@@ -117,30 +117,18 @@
               <q-icon name="warning" size="14px" class="q-mr-xs" />
               폴더명을 정확히 입력하세요.
             </div>
-            
+
             <!-- 새로고침 버튼 및 설명글 (변경되었을 때만 표시) -->
             <div v-if="hasFolderNameChanged" class="refresh-section q-mb-sm">
-              <div class="text-caption text-grey-6" style="margin-bottom: 0; padding-bottom: 0;">
+              <div class="text-caption text-grey-6" style="margin-bottom: 0; padding-bottom: 0">
                 <q-icon name="info" size="14px" class="q-mr-xs" />
                 변경된 폴더명에 맞는 파일들이 목록에 표시됩니다. 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
               </div>
-              <div class="row items-center" style="margin-top: 0; padding-top: 0;">
-                <q-btn
-                  flat
-                  dense
-                  icon="refresh"
-                  label="파일 목록 새로고침"
-                  color="primary"
-                  text-color="white"
-                  @click="handleRefreshFolderName"
-                  :loading="isRefreshingFolder"
-                  size="sm"
-                  class="refresh-btn-changed refresh-btn-warning"
-                  style="margin-top: 0; padding-top: 0;"
-                />
+              <div class="row items-center" style="margin-top: 0; padding-top: 0">
+                <q-btn flat dense icon="refresh" label="파일 목록 새로고침" color="primary" text-color="white" @click="handleRefreshFolderName" :loading="isRefreshingFolder" size="sm" class="refresh-btn-changed refresh-btn-warning" style="margin-top: 0; padding-top: 0" />
               </div>
             </div>
-            
+
             <q-input v-model="documentFolderName" outlined dense placeholder="예: NEXA-Documentation" class="q-mb-sm">
               <template v-slot:prepend>
                 <q-icon name="folder_open" />
@@ -158,28 +146,18 @@
           <div class="settings-section-content">
             <!-- 기본 설명글 (변경되지 않았을 때만 표시) -->
             <div v-if="!hasExtensionChanged" class="text-caption text-grey-6 q-mb-sm">문서 관리 시스템에서 지원할 파일 확장자를 선택하세요. 미리 정의된 확장자 목록에서만 선택 가능합니다.</div>
-            
+
             <!-- 새로고침 버튼 및 설명글 (변경되었을 때만 표시) -->
             <div v-if="hasExtensionChanged" class="refresh-section q-mb-sm">
-              <div class="text-caption text-grey-6" style="margin-bottom: 0; padding-bottom: 0;">
+              <div class="text-caption text-grey-6" style="margin-bottom: 0; padding-bottom: 0">
                 <q-icon name="info" size="14px" class="q-mr-xs" />
                 변경된 확장자에 맞는 파일들이 목록에 표시됩니다. 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
               </div>
-              <div class="row items-center" style="margin-top: 0; padding-top: 0;">
-                <q-btn
-                  flat
-                  dense
-                  icon="refresh"
-                  label="파일 목록 새로고침"
-                  @click="handleRefreshFileList"
-                  :loading="isRefreshing"
-                  size="sm"
-                  class="refresh-btn-changed refresh-btn-warning"
-                  style="margin-top: 0; padding-top: 0;"
-                />
+              <div class="row items-center" style="margin-top: 0; padding-top: 0">
+                <q-btn flat dense icon="refresh" label="파일 목록 새로고침" @click="handleRefreshFileList" :loading="isRefreshing" size="sm" class="refresh-btn-changed refresh-btn-warning" style="margin-top: 0; padding-top: 0" />
               </div>
             </div>
-            
+
             <div class="extension-list q-mb-sm">
               <div v-if="supportedExtensions.length === 0" class="text-caption text-grey-6 q-py-sm">선택된 확장자가 없습니다. 아래 목록에서 선택하세요.</div>
               <div v-else class="extension-items">
@@ -207,13 +185,12 @@
             </div>
           </div>
         </div>
-      </div>
-    </template>
 
-    <template #footer="{ close }">
-      <div class="footer-buttons">
-        <q-btn flat label="취소" @click="close" />
-        <q-btn color="primary" label="저장" @click="handleSave" />
+        <!-- Footer 버튼 (content 영역 내부) -->
+        <div class="document-settings-footer">
+          <q-btn flat label="취소" @click="$emit('update:modelValue', false)" />
+          <q-btn color="primary" label="저장" @click="handleSave" />
+        </div>
       </div>
     </template>
   </BaseModal>
@@ -371,7 +348,7 @@ watch(
       saveInitialFolderName()
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 사용 가능한 확장자 목록 (미리 정의된 목록만 허용)
@@ -896,11 +873,13 @@ async function handleSave() {
   }
 }
 
-.footer-buttons {
+.document-settings-footer {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
   margin-top: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--nexa-border-color);
 }
 </style>

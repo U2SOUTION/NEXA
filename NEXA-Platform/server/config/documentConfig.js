@@ -116,7 +116,10 @@ export function setDocsFolderName(folderName) {
     return
   }
   // 경로 순회 공격 방지: .., /, \ 제거
-  const sanitized = folderName.replace(/\.\./g, '').replace(/[\/\\]/g, '').trim()
+  const sanitized = folderName
+    .replace(/\.\./g, '')
+    .replace(/[\/\\]/g, '')
+    .trim()
   if (sanitized === '') {
     console.warn('[DocumentConfig] 폴더명이 비어있음, 기본값 사용')
     docsFolderName = DEFAULT_DOCS_FOLDER_NAME
