@@ -1,0 +1,178 @@
+// 넥사 아이템 공통 스타일 (모든 뷰)
+// 모든 뷰(테이블, 카드, 리스트, 타임라인 등)에서 공통으로 사용하는 아이템 스타일
+// "아이템" 개념: DB 레코드에 해당하는 데이터 단위 (테이블 로우, 카드, 타임라인 타임 등)
+//
+// 목적: 파일 하나만 수정해도 모든 뷰의 색상이 통일되게 관리
+// 사용법: 각 뷰에서 클래스만 추가하면 자동으로 스타일 적용
+//
+// 기본 아이템: .nexa-item (또는 뷰별 요소에 직접 적용)
+// 선택: .nexa-item-selected
+// 롱프레스: .nexa-item-long-pressing
+// 비활성: .nexa-item-inactive
+
+// ===== 기본 아이템 스타일 (공통) =====
+// 모든 뷰에서 공통으로 사용하는 기본 아이템 스타일
+// 배경색, 보더, 텍스트 색상, 호버는 모두 공통
+// 레이아웃/구조는 뷰별로 다르므로 각 뷰 전용 CSS에서 처리
+
+// 테이블 행 기본 스타일 (뷰 컨테이너 내부에서만 적용)
+.parts-table :deep(.q-table__body) .q-tr {
+  background-color: var(--nexa-item-bg);
+  color: var(--nexa-item-text-value);
+  border-left: 3px solid transparent;
+  transition:
+    background-color 0.2s ease,
+    border-left 0.2s ease;
+
+  &:hover {
+    background-color: var(--nexa-item-hover-bg);
+  }
+}
+
+// 카드 기본 스타일 (뷰 컨테이너 내부에서만 적용)
+.data-card-renderer .data-card-grid-item .q-card {
+  background-color: var(--nexa-item-bg) !important;
+  border: 1px solid var(--nexa-item-border) !important;
+  color: var(--nexa-item-text-value) !important;
+  transition:
+    background-color 0.1s ease,
+    border-color 0.2s ease;
+
+  // 클릭 상태
+  &:active {
+    background-color: var(--nexa-item-click-bg) !important;
+    border-color: var(--nexa-item-border) !important;
+  }
+
+  // 호버 효과 (선택/롱프레스가 아닐 때만)
+  &:not(.nexa-item-selected):not(.nexa-item-long-pressing):hover {
+    background-color: var(--nexa-item-hover-bg) !important;
+    border-color: var(--nexa-item-hover-border) !important;
+  }
+}
+
+// 아이템 텍스트 색상 (모든 뷰 공통)
+.data-card-renderer .card-content-section,
+.parts-table .q-td,
+.parts-table td {
+  color: var(--nexa-item-text-value) !important;
+
+  .text-h6 {
+    color: var(--nexa-item-text-title) !important;
+  }
+
+  .text-caption {
+    color: var(--nexa-item-text-label) !important;
+  }
+
+  .text-body2 {
+    color: var(--nexa-item-text-value) !important;
+  }
+}
+
+// ===== 선택 상태 (공통) =====
+// 모든 뷰에서 공통으로 사용하는 선택된 아이템 스타일
+
+// 일반 선택자 (기본)
+.nexa-item-selected {
+  background-color: var(--nexa-item-selected-bg) !important;
+  color: var(--nexa-item-selected-text) !important;
+
+  // 내부 요소 배경색 투명 처리 (모든 뷰 공통)
+  .q-td,
+  td,
+  .q-card-content,
+  .card-content-section {
+    background-color: transparent !important;
+  }
+
+  // 호버 시 선택된 호버 색상 사용
+  &:hover {
+    background-color: var(--nexa-item-selected-hover-bg) !important;
+  }
+}
+
+// 카드 뷰 선택 상태 (선택자 우선순위 문제 해결)
+.data-card-renderer .data-card-grid-item .q-card.nexa-item-selected {
+  background-color: var(--nexa-item-selected-bg) !important;
+  color: var(--nexa-item-selected-text) !important;
+
+  .q-card-content,
+  .card-content-section {
+    background-color: transparent !important;
+  }
+
+  &:hover {
+    background-color: var(--nexa-item-selected-hover-bg) !important;
+  }
+}
+
+// Quasar 테이블 기본 선택 클래스 오버라이드 (하위 호환용)
+// TODO: Phase 2에서 Quasar 의존성 제거 시 이 부분 삭제 예정
+.q-tr--selected {
+  background-color: var(--nexa-item-selected-bg) !important;
+  color: var(--nexa-item-selected-text) !important;
+
+  .q-td,
+  td {
+    background-color: transparent !important;
+  }
+
+  &:hover {
+    background-color: var(--nexa-item-selected-hover-bg) !important;
+  }
+}
+
+// ===== 롱프레스 상태 (공통) =====
+// 모든 뷰에서 공통으로 사용하는 롱프레스 아이템 스타일
+
+// 일반 선택자 (기본)
+.nexa-item-long-pressing {
+  background-color: var(--nexa-item-selected-bg) !important;
+  color: var(--nexa-item-selected-text) !important;
+  border-color: var(--nexa-item-longpress-border) !important;
+
+  // 내부 요소 배경색 투명 처리 (모든 뷰 공통)
+  .q-td,
+  td,
+  .q-card-content,
+  .card-content-section {
+    background-color: transparent !important;
+  }
+
+  // 호버 시 선택된 호버 색상 사용
+  &:hover {
+    background-color: var(--nexa-item-selected-hover-bg) !important;
+  }
+
+  // 선택된 상태와 함께 있어도 롱프레스 스타일 최우선
+  &.nexa-item-selected {
+    background-color: var(--nexa-item-selected-bg) !important;
+  }
+}
+
+// 카드 뷰 롱프레스 상태 (선택자 우선순위 문제 해결)
+.data-card-renderer .data-card-grid-item .q-card.nexa-item-long-pressing {
+  background-color: var(--nexa-item-selected-bg) !important;
+  color: var(--nexa-item-selected-text) !important;
+  border-color: var(--nexa-item-longpress-border) !important;
+
+  .q-card-content,
+  .card-content-section {
+    background-color: transparent !important;
+  }
+
+  &:hover {
+    background-color: var(--nexa-item-selected-hover-bg) !important;
+  }
+
+  &.nexa-item-selected {
+    background-color: var(--nexa-item-selected-bg) !important;
+  }
+}
+
+// ===== 비활성 상태 (공통) =====
+// 모든 뷰에서 공통으로 사용하는 비활성 아이템 스타일
+.nexa-item-inactive {
+  opacity: var(--nexa-item-inactive-opacity, 0.6) !important;
+}

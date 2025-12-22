@@ -1,0 +1,128 @@
+{
+    // VS Code 태스크 구성 파일 버전
+    "version": "2.0.0",
+    // 태스크 목록
+    "tasks": [
+        {
+            // 태스크 표시 이름 (Ctrl+Shift+B 또는 명령 팔레트에서 보이는 이름)
+            "label": "🚀 Platform: Start All (Dev) - 프론트엔드 + 백엔드 동시 실행",
+            // 태스크 타입: shell 명령어 실행
+            "type": "shell",
+            // 실행할 명령어 (npm run dev:all은 concurrently로 프론트엔드+백엔드+브라우저 자동 실행)
+            "command": "npm run dev:all",
+            // 명령어 실행 옵션
+            "options": {
+                // 작업 디렉토리: NEXA-Platform 폴더에서 실행
+                "cwd": "${workspaceFolder}/NEXA-Platform"
+            },
+            // 백그라운드 태스크로 실행 (장시간 실행되는 서버용)
+            "isBackground": true,
+            // 문제 매처: 빈 배열 = 에러 감지 안함 (백그라운드 태스크는 보통 빈 배열)
+            "problemMatcher": [],
+            // 터미널 표시 설정
+            "presentation": {
+                // 항상 터미널 패널 표시
+                "reveal": "always",
+                // 전용 터미널 패널 사용 (다른 태스크와 분리)
+                "panel": "dedicated",
+                // 같은 그룹의 태스크는 같은 터미널 패널 공유
+                "group": "nexa-platform"
+            },
+            // 빌드 태스크 그룹 설정
+            "group": {
+                // 빌드 타입 태스크 (Ctrl+Shift+B로 접근 가능)
+                "kind": "build",
+                // 기본 빌드 태스크 아님 (false = Ctrl+Shift+B 시 목록 표시)
+                "isDefault": false
+            }
+        },
+        {
+            // DEV 확장 프로그램 컴파일 태스크
+            "label": "npm: compile (DEV) - DEV 확장 프로그램 컴파일",
+            // shell 명령어 실행
+            "type": "shell",
+            // TypeScript 컴파일 명령어
+            "command": "npm run compile",
+            "options": {
+                // DEV 폴더에서 실행
+                "cwd": "${workspaceFolder}/DEV"
+            },
+            // TypeScript 컴파일러 문제 매처 (에러/경고를 Problems 패널에 표시)
+            "problemMatcher": "$tsc",
+            // 빌드 그룹에 속함 (Ctrl+Shift+B에서 선택 가능)
+            "group": "build"
+        },
+        {
+            // DEV 확장 프로그램 감시 모드 태스크
+            "label": "npm: watch (DEV) - DEV 확장 프로그램 감시 모드",
+            "type": "shell",
+            // TypeScript 감시 모드 (파일 변경 시 자동 재컴파일)
+            "command": "npm run watch",
+            "options": {
+                "cwd": "${workspaceFolder}/DEV"
+            },
+            // TypeScript 감시 모드용 문제 매처
+            "problemMatcher": "$tsc-watch",
+            // 백그라운드 실행 (감시 모드는 계속 실행됨)
+            "isBackground": true,
+            "group": "build"
+        },
+        {
+            // 프론트엔드만 실행하는 태스크
+            "label": "🌐 Platform: Frontend Only - 프론트엔드만 실행 (포트 9000)",
+            "type": "shell",
+            // Quasar 개발 서버만 실행
+            "command": "npm run dev",
+            "options": {
+                "cwd": "${workspaceFolder}/NEXA-Platform"
+            },
+            // 백그라운드 실행
+            "isBackground": true,
+            // 문제 매처 없음
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                // nexa-platform 그룹 (같은 터미널 패널 공유)
+                "group": "nexa-platform"
+            },
+            "group": "build"
+        },
+        {
+            // 백엔드 API만 실행하는 태스크
+            "label": "⚙️ Platform: Backend Only - 백엔드 API만 실행 (포트 3000)",
+            "type": "shell",
+            // Express 서버만 실행
+            "command": "npm run dev:server",
+            "options": {
+                "cwd": "${workspaceFolder}/NEXA-Platform"
+            },
+            "isBackground": true,
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "nexa-platform"
+            },
+            "group": "build"
+        },
+        {
+            // 프로덕션 모드로 실행하는 태스크
+            "label": "📦 Platform: Start All (Production) - 프로덕션 모드로 실행",
+            "type": "shell",
+            // 프로덕션 빌드 후 실행
+            "command": "npm run start:all",
+            "options": {
+                "cwd": "${workspaceFolder}/NEXA-Platform"
+            },
+            "isBackground": true,
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "nexa-platform"
+            },
+            "group": "build"
+        }
+    ]
+}

@@ -1,0 +1,67 @@
+# 의존성
+node_modules/
+
+# 빌드 결과물
+dist/
+build/
+.output/
+.quasar/
+
+# 캐시 및 임시 파일
+.vite/
+.cache/
+.temp/
+*.tmp
+
+# 로그 파일
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 운영체제 파일
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# 환경 변수 파일 (로컬)
+.env.local
+.env.*.local
+
+# 테스트 커버리지
+coverage/
+.nyc_output/
+
+# 버전 관리
+.git/
+
+# IDE 설정 (선택적 - 필요시 주석 해제)
+# .vscode/
+# .idea/
+
+# 패키지 매니저
+.pnpm-store/
+.yarn/
+.pnp.*
+
+# Cursor IDE 임시 이미지 파일
+assets/
+
+# 사용자 업로드 파일
+uploads/
+
+# 정적 파일
+public/
+
+# 기타
+*.swp
+*.swo
+*~
+.cache/
+

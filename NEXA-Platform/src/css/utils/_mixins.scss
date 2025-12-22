@@ -1,0 +1,193 @@
+// ============================================
+// NEXA SCSS 믹스인 (Mixins)
+// ============================================
+// 재사용 가능한 스타일 패턴을 믹스인으로 정의
+// 특정 컴포넌트/뷰에 종속되지 않는 범용 믹스인만 포함
+
+// ============================================
+// 레이아웃 믹스인
+// ============================================
+
+// 플렉스 중앙 정렬
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 플렉스 세로 방향 (컬럼)
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// 플렉스 세로 방향 + 높이 100% (뷰 렌더러 공통 패턴)
+@mixin flex-column-full {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; // flex 자식이 축소될 수 있도록
+}
+
+// 플렉스 남은 공간 차지 (flex: 1 1 auto)
+@mixin flex-grow {
+  flex: 1 1 auto;
+  min-height: 0; // flexbox에서 작동을 위해 필수
+}
+
+// 플렉스 고정 크기 (flex-shrink: 0, flex-grow: 0)
+@mixin flex-fixed {
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+// ============================================
+// NEXA 카드 기본 스타일
+// ============================================
+
+// 카드 기본 스타일 (레이아웃)
+@mixin nexa-card-base {
+  border-radius: 6px;
+  box-shadow: none !important;
+  outline: none !important;
+  box-sizing: border-box;
+  max-width: 100% !important;
+  width: 100% !important;
+  cursor: default !important;
+}
+
+// 카드 플렉스 레이아웃
+@mixin nexa-card-flex {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  max-height: 100%;
+}
+
+// 카드 텍스트 선택 방지
+@mixin nexa-card-no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+// 카드 가상 요소 제거 (Quasar 기본 스타일 제거)
+@mixin nexa-card-reset-pseudo {
+  &::before,
+  &::after {
+    display: none !important;
+  }
+}
+
+// ============================================
+// 트랜지션 믹스인
+// ============================================
+
+// NEXA 아이템 기본 트랜지션
+@mixin nexa-item-transition {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+// NEXA 카드 트랜지션
+@mixin nexa-card-transition {
+  transition:
+    box-shadow 0.2s ease,
+    background-color 0.1s ease,
+    border-color 0.2s ease;
+}
+
+// 커스텀 트랜지션 (여러 속성)
+@mixin nexa-transition($properties...) {
+  transition: $properties;
+}
+
+// ============================================
+// 오버플로우 믹스인
+// ============================================
+
+// 세로 스크롤만 허용
+@mixin overflow-y-only {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+// 오버플로우 숨김
+@mixin overflow-hidden {
+  overflow: hidden;
+}
+
+// ============================================
+// 텍스트 스타일 믹스인
+// ============================================
+
+// 텍스트 선택 방지
+@mixin no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+// 텍스트 줄 간격 조정 (한 줄 넘어간 텍스트용)
+@mixin text-line-height-compact {
+  line-height: 1.1; // 기본값 1.5에서 줄임
+}
+
+// ============================================
+// 인라인 필드 레이아웃
+// ============================================
+
+// 필드 인라인 (라벨과 값을 가로로 배치)
+@mixin field-inline {
+  display: flex;
+  align-items: flex-start; // 값이 두 줄일 때 라벨이 첫 번째 줄에 위치하도록
+  gap: 4px;
+}
+
+// 아이콘 인라인 (아이콘과 값이 같은 줄)
+@mixin field-icon-inline {
+  .text-body2 {
+    flex: 1; // 값은 남은 공간 차지
+    line-height: 1.3; // 줄 간격 줄이기
+  }
+
+  .field-icon-top {
+    margin-top: 0.25em; // 텍스트의 약간 아래로 (em 단위로 텍스트 크기에 비례)
+    align-self: flex-start; // 상단 정렬
+  }
+}
+
+// ============================================
+// 드래그 앤 드롭 믹스인
+// ============================================
+
+// 드래그 가능한 요소
+@mixin draggable {
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// 드래그 중 스타일
+@mixin dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+// ============================================
+// 반응형 믹스인 (필요 시 확장)
+// ============================================
+
+// 미디어 쿼리 브레이크포인트 (필요 시 추가)
+// @mixin respond-to($breakpoint) {
+//   @media (min-width: $breakpoint) {
+//     @content;
+//   }
+// }
+

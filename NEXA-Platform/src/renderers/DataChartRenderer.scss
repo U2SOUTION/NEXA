@@ -1,0 +1,298 @@
+// 차트 축 및 보더 색상 변수 (블랙톤 - 강조되지 않게)
+$chart-axis-color: #000000;
+
+// 차트 색상 변수
+$chart-line-color: #2196f3;
+$chart-text-color: #4d4d4d;
+$chart-scatter-stroke: #fff;
+
+.data-chart-renderer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+
+  .chart-settings-panel {
+    padding: 12px;
+    border-bottom: 1px solid var(--nexa-border);
+    background-color: var(--nexa-surface);
+
+    .settings-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+
+      .setting-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 150px;
+
+        label {
+          font-size: 12px;
+          color: var(--nexa-text-secondary);
+          font-weight: 500;
+        }
+
+        .q-select {
+          min-width: 150px;
+        }
+      }
+    }
+  }
+
+  .chart-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    overflow: visible; // 차트가 잘리지 않도록 visible로 변경
+    // 개선: padding 제거, 모든 여백을 D3 margin으로 관리
+    padding: 0; // 명시적으로 0으로 설정
+    box-sizing: border-box;
+
+    // SVG가 컨테이너를 넘어서도 표시되도록
+    :deep(svg) {
+      overflow: visible;
+      max-width: none;
+      max-height: none;
+    }
+  }
+
+  .no-data-message,
+  .chart-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--nexa-text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+}
+
+// D3.js 차트 스타일
+:deep(.bar) {
+  transition: opacity 0.2s;
+}
+
+// 차트 제목
+.chart-title-wrapper {
+  text-align: center;
+  padding: 10px 0;
+
+  .chart-title-text {
+    font-size: 16px;
+    font-weight: 600;
+    fill: $chart-axis-color;
+  }
+}
+
+// 차트 보더 (블랙톤 - 강조되지 않게)
+// ⚠️ 참고: SVG 요소에는 CSS padding/margin이 적용되지 않습니다.
+// SVG는 벡터 그래픽이므로 박스 모델(padding, margin, box-sizing) 속성이 없습니다.
+// stroke는 경계선 중앙을 기준으로 그려지므로, 보더가 안쪽으로만 그려지도록 하려면
+// JavaScript에서 rect의 x, y, width, height를 조정해야 합니다.
+:deep(.chart-border) {
+  stroke: $chart-axis-color;
+  stroke-width: 1px;
+}
+
+// CSS만으로 완전히 해결되지 않는 경우:
+// JavaScript에서 rect 크기를 조정하거나,
+// CSS 변수를 사용하여 stroke-width 값을 JavaScript와 동기화해야 합니다.
+
+// X축 스타일
+// font-size는 전역 CSS(_chart.scss)에서 관리
+:deep(.x-axis) {
+  // font-size: 12px; // 전역 CSS로 이동
+
+  // 틱 라벨 (블랙톤 - 강조되지 않게)
+  text {
+    fill: $chart-axis-color;
+  }
+}
+
+// Y축 스타일
+// font-size는 전역 CSS(_chart.scss)에서 관리
+:deep(.y-axis) {
+  // font-size: 12px; // 전역 CSS로 이동
+
+  // Y축 눈금 라인 (블랙톤 - 강조되지 않게)
+  line {
+    stroke: $chart-axis-color;
+    stroke-width: 1px;
+  }
+
+  // 틱 라벨 (블랙톤 - 강조되지 않게)
+  text {
+    fill: $chart-axis-color;
+  }
+}
+
+// 축 라벨 스타일 (블랙톤 - 강조되지 않게)
+// font-size와 font-weight는 전역 CSS(_chart.scss)에서 관리
+:deep(.axis-label) {
+  fill: $chart-axis-color;
+  // font-size: 13px; // 전역 CSS로 이동
+  // font-weight: 500; // 전역 CSS로 이동
+
+  &.x-axis-label {
+    // font-size: 13px; // 전역 CSS로 이동
+  }
+
+  &.y-axis-label {
+    // font-size: 13px; // 전역 CSS로 이동
+  }
+}
+
+:deep(.bar-label) {
+  // font-size: 11px; // 전역 CSS로 이동
+  fill: var(--nexa-text-primary);
+  pointer-events: none;
+}
+
+// 차트 제목 스타일
+:deep(.chart-title) {
+  text-anchor: middle;
+  font-size: 14px;
+  font-weight: 600;
+  fill: $chart-text-color;
+}
+
+// 막대 차트 기본 스타일
+:deep(.bar) {
+  transition: opacity 0.2s;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+// 막대 라벨 스타일 (이미 있음, 유지)
+:deep(.bar-label) {
+  // font-size: 11px; // 전역 CSS로 이동
+  fill: var(--nexa-text-primary);
+  pointer-events: none;
+  text-anchor: middle;
+  // font-weight: 500; // 전역 CSS로 이동 (필요시)
+}
+
+// 라인 차트 스타일
+:deep(.line-chart) {
+  fill: none;
+  // stroke는 JavaScript에서 동적으로 설정하므로 CSS에서 제거
+  // stroke: $chart-line-color;
+  stroke-width: 2px;
+  cursor: pointer;
+}
+
+// 라인 차트 노드 스타일
+:deep(.line-dot) {
+  // fill은 JavaScript에서 동적으로 설정하므로 CSS에서 제거
+  // fill: $chart-line-color;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+// 영역 차트 라인 스타일
+:deep(.area-line) {
+  fill: none;
+  // stroke는 JavaScript에서 동적으로 설정하므로 CSS에서 제거
+  // stroke: $chart-line-color;
+  stroke-width: 2px;
+  cursor: pointer;
+}
+
+// 영역 차트 점 스타일
+:deep(.area-dot) {
+  // fill은 JavaScript에서 동적으로 설정하므로 CSS에서 제거
+  // fill: $chart-line-color;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+// 영역 차트 영역 스타일
+:deep(.area-chart) {
+  cursor: pointer;
+}
+
+// 파이 차트 스타일
+:deep(.pie-segment) {
+  stroke: $chart-axis-color;
+  opacity: 0.8;
+  stroke-width: 2px;
+}
+
+// 파이 차트 라벨 스타일
+// font-size와 font-weight는 전역 CSS(_chart.scss)에서 관리
+:deep(.arc text) {
+  text-anchor: middle;
+  // font-size: 11px; // 전역 CSS로 이동
+  // font-weight: 500; // 전역 CSS로 이동
+  fill: $chart-text-color;
+}
+
+// 파이 차트 내부 라벨 스타일
+:deep(.pie-label-internal) {
+  text-anchor: middle;
+  // font-size: 11px; // 전역 CSS로 이동
+  // font-weight: 500; // 전역 CSS로 이동
+  fill: $chart-text-color;
+  pointer-events: none;
+}
+
+// 파이 차트 외부 라벨 스타일
+:deep(.pie-label-external) {
+  // font-size: 11px; // 전역 CSS로 이동
+  // font-weight: 500; // 전역 CSS로 이동
+  fill: $chart-text-color;
+  pointer-events: none;
+}
+
+// 파이 차트 라벨 연결선 스타일
+:deep(.pie-label-line) {
+  stroke: $chart-axis-color;
+  stroke-width: 1px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+// 분산 차트 스타일
+:deep(.scatter-dot) {
+  opacity: 0.7;
+  // stroke는 JavaScript에서 fill 색상과 동일하게 설정됨
+  // stroke: $chart-scatter-stroke;
+  stroke-width: 1.5px;
+  cursor: pointer;
+}
+
+// X축 틱 라벨 추가 스타일
+// font-size는 전역 CSS(_chart.scss)에서 관리
+:deep(.x-axis text) {
+  text-anchor: end;
+  // font-size: 11px; // 전역 CSS로 이동
+}
+
+// 공통 텍스트 스타일 (text-anchor: middle인 요소들)
+:deep(.axis-label) {
+  text-anchor: middle;
+}
+
+// 파이 차트 그룹 스타일
+:deep(.arc) {
+  cursor: pointer;
+}
+
+// 차트 툴팁 스타일
+// 참고: 툴팁은 body에 직접 추가되므로 전역 스타일 필요
+// Vue 컴포넌트의 전역 스타일 블록에서 처리됨 (scoped 스타일에서는 적용 불가)

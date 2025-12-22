@@ -1,0 +1,103 @@
+// PartClassesView 스타일
+.part-classes-view {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  // ===== 입력 폼 스타일 =====
+  // 전역 스타일로 이동됨 (nexa-system/_form.scss)
+  // 보더, placeholder, 아이콘, 셀렉트 색상은 전역 스타일에서 관리
+
+  // 필터 행 스타일 - 한 줄 유지
+  .filter-row {
+    flex-wrap: nowrap;
+
+    @media (max-width: 600px) {
+      flex-wrap: wrap;
+    }
+  }
+
+  // 필터 필드들이 자동으로 크기 조절되도록
+  .search-input {
+    flex: 0 1 auto;
+    min-width: 150px;
+    max-width: 300px;
+    width: auto;
+
+    // 입력 필드 컨트롤 최대 너비는 전역 스타일로 이동됨 (nexa-system/_form.scss)
+
+    @media (max-width: 600px) {
+      flex: 1 1 100%;
+      max-width: 100%;
+    }
+  }
+
+  .category-filter {
+    flex: 0 1 auto;
+    min-width: 140px;
+    max-width: 400px;
+    width: auto;
+
+    // 입력 필드 컨트롤 최대 너비는 전역 스타일로 이동됨 (nexa-system/_form.scss)
+
+    @media (max-width: 600px) {
+      flex: 1 1 100%;
+      max-width: 100%;
+    }
+  }
+
+  .status-filter {
+    flex: 0 1 auto;
+    min-width: 140px;
+    max-width: 180px;
+    width: auto;
+
+    // 입력 필드 컨트롤 최대 너비는 전역 스타일로 이동됨 (nexa-system/_form.scss)
+
+    @media (max-width: 600px) {
+      flex: 1 1 100%;
+      max-width: 100%;
+    }
+  }
+
+  // ===== 셀렉트 label/화살표 색상 =====
+  // 전역 스타일로 이동됨 (nexa-system/_form.scss)
+
+  // ===== 분류추가 버튼 스타일 =====
+  // PartClassesActionsBar.vue의 scoped 스타일로 이동됨
+
+  // ===== 뷰 모드 관리 버튼 스타일 =====
+  // 전역 스타일로 이동됨 (nexa-system/_form.scss)
+  // .view-mode-dropdown, .work-action-dropdown 공통 스타일
+
+  // ===== 관리작업 버튼 스타일 =====
+  // 전역 스타일로 이동됨 (nexa-system/_form.scss)
+}
+
+.parts-table-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+
+// .parts-table 스타일은 app.scss와 nexa-table-features.scss로 분리됨
+// 1단계: app.scss (기본 디자인), 2단계: nexa-table-features.scss (기능 스타일)
+
+// 작업 아이콘 오버레이 - 화면에 고정
+// 오버레이 스타일은 TableActionsOverlay 컴포넌트로 이동됨
+
+// ===== 유틸리티 클래스 =====
+// 전역 스타일로 이동됨 (app.scss)
+// .c-code-toast-custom, .updated-row-highlight

@@ -1,0 +1,226 @@
+// ============================================
+// 차트 뷰 전역 스타일
+// ============================================
+// D3.js 차트 및 툴팁 스타일 정의
+// 레벨 5: NEXA 프로젝트 특화 전역 스타일
+// 전역 CSS이므로 :deep() 불필요, SVG 요소에 직접 적용
+
+// ============================================
+// CSS 변수 정의
+// ============================================
+:root {
+  // 선 두께 기본값
+  // 라인 차트: 데이터 포인트를 연결하는 선
+  // 영역 차트: 영역의 윤곽선 (경계선)
+  --chart-stroke-width-default: 10;
+
+  // 커서 기본값 변수
+  --chart-cursor-hover: default;
+
+  // 차트 데이터 요소 색상
+  --chart-color-stroke: #02d80dfb; // 라인/영역 차트의 선 색상 (stroke)
+
+  // 파이 차트 stroke 색상
+  --chart-color-pie-stroke: #0000004e; // 파이 차트 세그먼트 테두리 색상
+  --chart-stroke-width-pie-default: 2; // 파이 차트 stroke 두께 기본값
+
+  // 데이터 라벨 색상 (차트 위에 표시되는 데이터 값)
+  --chart-color-data-label: #00fc32; // 데이터 라벨 색상 (bar-label, line-label, area-label)
+  --chart-color-pie-label: #000000; // 파이 차트 라벨 색상 (파이 차트 내부/외부 통합)
+
+  // 축 관련 색상
+  --chart-color-axis-label: #000000; // 축 라벨 색상 (X축 필드명, Y축 필드명)
+  --chart-color-axis-tick-x: #000000; // X축 틱 라벨 색상 (X축 항목 글씨)
+  --chart-color-axis-tick-y: #000000; // Y축 틱 라벨 색상 (Y축 숫자)
+
+  // 범례 관련 색상
+  --chart-color-legend-text: #000000; // 범례 텍스트 색상
+  --chart-color-legend-border: #000000; // 범례 테두리 색상
+  // 범례 다중 색상 3가지는 해당 파일에서 정의
+  //   --chart-color-legend-multi-1: #0026ff; // 범례 다중 색상 1
+  //   --chart-color-legend-multi-2: #0fc743; // 범례 다중 색상 2
+  //   --chart-color-legend-multi-3: #ffd600; // 범례 다중 색상 3
+
+  // 그리드 색상
+  --chart-color-grid: #000000; // 그리드 선 색상
+
+  // 크기 기본값 변수
+  --chart-node-size-default: 4; // 라인/영역 차트의 점 크기 (r)
+  --chart-dot-radius-default: 6; // 분산 차트의 점 크기 (r)
+  --chart-legend-box-size: 15; // 범례 박스 크기 (width, height)
+}
+
+// ============================================
+// 툴팁 스타일
+// ============================================
+
+// 공통 툴팁 스타일
+.chart-tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1;
+  transition: opacity 0.2s ease;
+  max-width: 300px;
+
+  div {
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .chart-tooltip-title {
+    font-weight: 600;
+  }
+
+  .chart-tooltip-value {
+    font-weight: 900;
+  }
+
+  .chart-tooltip-count {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+}
+
+// 멀티 차트 툴팁 스타일 (원하는 스타일)
+.chart-tooltip-multi {
+  padding: 16px 22px;
+  background: var(--nexa-tooltip-bg);
+  color: var(--nexa-tooltip-text);
+  border: 1px solid var(--nexa-tooltip-border);
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.512);
+}
+
+// 단독 차트 툴팁 (멀티와 동일하게 적용, CSS에서 별도 제어 가능)
+.chart-tooltip-single {
+  padding: 16px 22px;
+  background: var(--nexa-tooltip-bg);
+  color: var(--nexa-tooltip-text);
+  border: 1px solid var(--nexa-tooltip-border);
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.512);
+}
+
+// ============================================
+// 차트 데이터 요소 스타일
+// ============================================
+
+// 데이터 라벨 (막대, 라인, 영역 차트)
+.bar-label,
+.line-label,
+.area-label {
+  font-size: 13px;
+  fill: var(--chart-color-data-label);
+}
+
+// 파이 차트 라벨 (내부/외부 통합)
+// SVG 요소이므로 font-size는 CSS 속성으로 직접 적용
+// tspan 요소: 첫 번째 줄은 기본 크기 상속, 두 번째 줄은 0.9em
+.pie-label-internal,
+.pie-label-external {
+  font-size: 1em !important;
+  font-weight: 500 !important;
+  tspan {
+    font-size: inherit !important;
+    fill: var(--chart-color-pie-label);
+
+    // 두 번째 tspan (dy="1.2em")은 0.9em
+    &:nth-child(2) {
+      font-size: 0.9em !important;
+    }
+  }
+}
+
+// 파이 차트 세그먼트 스타일
+// NOTE: JS에서 attr와 style을 모두 설정하므로, CSS는 기본값으로만 사용
+// stroke와 stroke-width는 JS에서 직접 설정되므로 CSS보다 우선순위가 높음
+.pie-segment {
+  stroke: var(--chart-color-pie-stroke) !important;
+  stroke-width: var(--chart-stroke-width-pie-default) !important;
+  cursor: var(--chart-cursor-hover) !important;
+}
+
+// 선 두께 기본값 (라인/영역 차트)
+// NOTE: 현재 적용 안되고 있음 (JS에서 stroke-width를 직접 설정)
+.line-chart,
+.area-line {
+  stroke-width: var(--chart-stroke-width-default);
+}
+
+// 커서 스타일 (호버 가능한 요소)
+// SVG 요소이므로 CSS 변수로 정의하고 JS에서도 설정
+.bar,
+.line-dot,
+.area-dot,
+.scatter-dot {
+  cursor: var(--chart-cursor-hover) !important;
+}
+
+// ============================================
+// 축 스타일
+// ============================================
+
+// X축 틱 라벨 스타일 (항목 글씨)
+.x-axis text {
+  font-size: 12px;
+  font-weight: 500;
+  fill: var(--chart-color-axis-tick-x);
+}
+
+// Y축 틱 라벨 스타일 (숫자)
+.y-axis text {
+  font-size: 12px;
+  fill: var(--chart-color-axis-tick-y);
+}
+
+// 축 라벨 스타일 (필드명)
+.axis-label {
+  font-size: 18px;
+  font-weight: 500;
+  fill: var(--chart-color-axis-label);
+}
+
+// ============================================
+// 범례 스타일
+// ============================================
+
+// 범례 아이콘 스타일 (색상 박스)
+// width, height는 SVG 속성이므로 JS에서 관리
+.legend-item rect {
+  stroke: var(--chart-color-legend-border);
+  stroke-width: 1;
+}
+
+// 범례 텍스트 스타일
+// 실제 클래스명: .legend-item (chart-legend-item이 아님)
+.legend-item text {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  fill: var(--chart-color-legend-text);
+}
+
+// ============================================
+// 그리드 스타일
+// ============================================
+
+.grid-line {
+  stroke: var(--chart-color-grid);
+  stroke-width: 1.5;
+  stroke-opacity: 0.4;
+  stroke-dasharray: 4, 4;
+}
+
+// ============================================
+// SVG 컨테이너 스타일
+// ============================================
+
+.chart-svg-container svg {
+  overflow: visible;
+  display: block;
+}

@@ -1,0 +1,226 @@
+// 넥사 카드 뷰 특화 스타일
+// 카드 뷰에서만 사용하는 레이아웃, 호버, 스크롤 등 특화 스타일
+// 아이템 색상 관련 스타일은 _item.scss에서 관리
+@import 'item';
+
+.data-card-renderer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; // flex 자식이 축소될 수 있도록
+
+  .data-card-container {
+    width: 100%;
+    flex: 1 1 auto; // 남은 공간을 모두 사용
+    min-height: 0; // flex 자식이 축소될 수 있도록
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .data-card-grid-layout {
+    width: 100%;
+    min-height: 200px;
+    touch-action: none; // vue3-grid-layout-next 경고 해결
+
+    // 3D 효과를 위한 설정
+    perspective: 1200px;
+    transform-style: preserve-3d;
+
+    // ============================================
+    // 페이지 전환 애니메이션 설정
+    // Transition 정의 (부모 및 자식 요소에 공통 적용)
+    // ============================================
+    // 💥 CSS 변수 정의 💥
+    --leave-duration: 0.3s; // 나가기 시간
+    --enter-duration: 0.5s; // 진입 시간 (스프링 효과 때문에 더 길게 설정)
+    --spring-ease-in: cubic-bezier(0.55, 0.06, 0.68, 0.19); // 나가기 이징 (천천히 시작)
+    --spring-ease-out: cubic-bezier(0.68, -0.55, 0.265, 1.55); // 진입 이징 (스프링 효과)
+    --fold-translate: -100px; // 접힐 때 이동 거리
+    --fold-scale: 0.35; // 접힐 때 축소 비율
+
+    // ============================================
+    // 부모/자식 요소에 적용할 기본 Transition
+    &.slide-left-leave-active,
+    &.slide-left-enter-active {
+      &,
+      .data-card-grid-item {
+        transition-property: transform, opacity;
+        transform-origin: left center;
+      }
+    }
+
+    &.slide-left-leave-active {
+      transition-duration: var(--leave-duration);
+      transition-timing-function: var(--spring-ease-in), ease-in;
+      z-index: 1;
+
+      .data-card-grid-item {
+        transition-duration: var(--leave-duration);
+        transition-timing-function: var(--spring-ease-in), ease-in;
+      }
+    }
+
+    &.slide-left-enter-active {
+      transition-duration: var(--enter-duration);
+      transition-timing-function: var(--spring-ease-out), ease-out;
+      z-index: 2;
+
+      .data-card-grid-item {
+        transition-duration: var(--enter-duration);
+        transition-timing-function: var(--spring-ease-out), ease-out;
+      }
+    }
+
+    // ============================================
+    // 나가기 애니메이션 (이전 페이지가 사라지는 과정)
+    &.slide-left-leave-to {
+      // 부모 레이아웃 전체가 왼쪽으로 살짝 이동하며 접힘
+      transform: translateX(var(--fold-translate)) scaleX(var(--fold-scale));
+      opacity: 0.5; // 부모 투명도
+      // 자식 카드도 개별적으로 접힘
+      .data-card-grid-item {
+        transform: translateX(0) scaleX(var(--fold-scale)); // 💥 [최적화] 부모의 translate를 따라가므로 개별 translate는 0으로 단순화
+      }
+    }
+
+    // ============================================
+    // 진입 애니메이션 (새 페이지가 나타나는 과정)
+    &.slide-left-enter-from {
+      // 시작 위치는 leave-to와 동일해야 일관성 있음
+      transform: translateX(var(--fold-translate)) scaleX(var(--fold-scale));
+      opacity: 0.5; // 부모는 투명하게 시작
+      // 자식 카드도 개별적으로 접힌 상태에서 시작
+      .data-card-grid-item {
+        transform: translateX(0) scaleX(var(--fold-scale)); // 💥 [최적화] 부모의 translate를 따라가므로 개별 translate는 0으로 단순화
+      }
+    }
+  }
+
+  .data-card-grid-item {
+    touch-action: none;
+    max-width: 100%;
+    overflow: hidden;
+    height: 100%; // 그리드 아이템 높이에 맞춤
+
+    // 드래그 중일 때 카드 커서 변경
+    &.vue-draggable-dragging .q-card {
+      cursor: grabbing !important; // 드래그 중에는 grabbing 커서
+    }
+
+    .q-card {
+      // 레이아웃/구조만 (색상은 nexa-item.scss에서 공통 관리)
+      height: 100%; // 그리드 아이템 높이에 맞춤
+      max-height: 100%; // 최대 높이 제한
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; // 카드 전체에서 overflow 숨김
+      border-radius: 6px; // 카드 라운드
+      box-sizing: border-box;
+      max-width: 100% !important;
+      width: 100% !important;
+      cursor: default !important; // 일반 커서로 명시적 설정
+      // 텍스트 선택 방지 (Shift + 클릭 시 텍스트 블록 선택 방지)
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      // Quasar 기본 box-shadow 및 그림자 효과 제거
+      box-shadow: none !important;
+      // Quasar 기본 outline 제거
+      outline: none !important;
+      // 가상 요소 스타일 제거 (혹시 모를 Quasar 스타일)
+      &::before,
+      &::after {
+        display: none !important;
+      }
+      transition:
+        box-shadow 0.2s ease,
+        background-color 0.1s ease,
+        border-color 0.2s ease;
+
+      // 호버 시 box-shadow만 추가 (색상은 nexa-item.scss에서 처리)
+      &:not(.nexa-item-long-pressing):not(.nexa-item-selected):hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+
+      // ===== 상단 영역 (헤더/타이틀) =====
+      .card-header-section {
+        flex-shrink: 0; // 축소되지 않도록
+        flex-grow: 0; // 확장되지 않도록
+        display: flex;
+        flex-direction: column;
+        background-color: rgba(0, 0, 0, 0.192); // 임시 배경색
+        cursor: grab; // 드래그 가능 표시
+
+        // 드래그 중일 때 커서 변경
+        &:active {
+          cursor: grabbing;
+        }
+
+        .card-header-title {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          padding-left: 12px;
+          color: #030303c9;
+        }
+      }
+
+      // ===== 중간 영역 (내용) =====
+      .card-content-section {
+        padding-top: 0px;
+        flex: 1 1 0; // 남은 공간을 모두 차지 (0으로 설정하여 flex-basis 초기화)
+        min-height: 0; // flexbox에서 작동을 위해 필수
+        overflow: hidden; // 카드 내부 스크롤 비활성화 (전체 스크롤만 사용)
+        // 텍스트 선택 방지 (Shift + 클릭 시 텍스트 블록 선택 방지)
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+
+        // 텍스트 색상은 nexa-item.scss에서 공통 관리
+        // 한 줄이 넘어간 텍스트의 줄 간격 줄이기
+        .text-body2 {
+          line-height: 1.1; // 기본값 1.5에서 줄임 (한 줄 넘어간 텍스트의 줄 간격)
+        }
+
+        .text-caption {
+          line-height: 1.1; // 라벨도 동일하게 적용
+        }
+
+        // 특정 필드는 라벨과 값을 가로로 배치
+        .field-inline {
+          display: flex;
+          align-items: flex-start; // 값이 두 줄일 때 라벨이 첫 번째 줄에 위치하도록
+          gap: 4px;
+        }
+
+        // 아이콘과 값이 같은 줄에 표시되는 필드
+        .field-icon-inline {
+          .text-body2 {
+            flex: 1; // 값은 남은 공간 차지
+            line-height: 1.3; // 줄 간격 줄이기 (기본값 1.5에서 감소)
+          }
+
+          // 아이콘을 텍스트 첫 번째 줄과 정확히 정렬
+          .field-icon-top {
+            margin-top: 0.25em; // 텍스트의 약간 아래로 (em 단위로 텍스트 크기에 비례)
+            align-self: flex-start; // 상단 정렬
+          }
+        }
+      }
+
+      // ===== 하단 영역 (푸터) =====
+      .card-footer-section {
+        flex-shrink: 0; // 축소되지 않도록
+        flex-grow: 0; // 확장되지 않도록
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        min-height: 40px; // 최소 높이 보장
+        max-height: 40px; // 최대 높이 제한 (일관성 유지)
+      }
+    }
+  }
+
+  .card-image {
+    max-height: 200px;
+    object-fit: cover;
+  }
+}

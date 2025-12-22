@@ -1,0 +1,431 @@
+<!-- DocumentSettingsModal.vue
+  문서 관리 설정 모달
+  BaseModal을 사용하여 구현
+-->
+<template>
+  <BaseModal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" modal-id="document-settings-modal" title-en="DOCUMENT SETTINGS" title-ko="문서 관리 설정" :initial-size="{ width: 500, height: 800 }" :min-size="{ width: 400, height: 500 }" :max-size="maxSize">
+    <template #content>
+      <div class="document-settings-content">
+        <!-- 메뉴 이동 스텝 설정 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="mouse" size="20px" class="q-mr-sm" />
+            <span>메뉴 휠 스크롤 스텝 이동 스텝 수 설정</span>
+          </div>
+          <div class="settings-section-content">
+            <div class="text-caption text-grey-6">
+              <span class="step-value">{{ wheelScrollStep }} Step</span> 한 번에 스크롤할 메뉴 아이템 개수를 설정합니다.
+            </div>
+            <q-slider v-model="wheelScrollStep" :min="1" :max="10" :step="1" snap label :label-value="`${wheelScrollStep}`" color="primary" />
+          </div>
+        </div>
+
+        <!-- 애니메이션 설정 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="animation" size="20px" class="q-mr-sm" />
+            <span>메뉴 스크롤 애니메이션</span>
+          </div>
+          <div class="settings-section-content">
+            <q-checkbox v-model="enableMenuAnimation" label="애니메이션 활성화" color="primary" dense />
+            <div class="text-caption text-grey-6">메뉴 스크롤 시 부드러운 애니메이션 효과를 사용합니다.</div>
+          </div>
+        </div>
+
+        <!-- 재정렬 시간 설정 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="schedule" size="20px" class="q-mr-sm" />
+            <span>우선순위 모드 자동 재정렬</span>
+          </div>
+          <div class="settings-section-content">
+            <q-checkbox v-model="enableAutoReorder" label="자동 재정렬 사용" color="primary" dense />
+            <div class="text-caption text-grey-6">우선순위 모드에서 파일을 드래그 앤 드롭한 후 자동으로 절대 순위로 재정렬되는 시간을 설정합니다.</div>
+            <div v-if="enableAutoReorder" class="auto-reorder-options">
+              <q-slider v-model="reorderDelaySeconds" :min="1" :max="10" :step="1" label :label-value="`${reorderDelaySeconds}초`" color="primary" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 토스트 메시지 설정 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="notifications" size="20px" class="q-mr-sm" />
+            <span>알림 메시지</span>
+          </div>
+          <div class="settings-section-content">
+            <q-checkbox v-model="showToastMessages" label="토스트 메시지 표시" color="primary" dense />
+            <div class="text-caption text-grey-6">드래그 앤 드롭 시 우선순위 변경 메시지를 표시합니다.</div>
+            <div v-if="showToastMessages" class="toast-timeout-options">
+              <q-slider v-model="toastTimeoutSeconds" :min="1" :max="60" :step="0.5" label :label-value="`${toastTimeoutSeconds}초`" color="primary" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 데이터 초기화 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="refresh" size="20px" class="q-mr-sm" />
+            <span>데이터 초기화</span>
+          </div>
+          <div class="settings-section-content">
+            <div class="text-caption text-grey-6">저장된 사용빈도와 우선순위 데이터를 초기화합니다.</div>
+            <div class="row q-gutter-sm">
+              <q-btn outline color="primary" label="사용빈도 초기화" @click="handleResetUsage" class="col" />
+              <q-btn outline color="primary" label="우선순위 초기화" @click="handleResetPriority" class="col" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 키보드 단축키 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="keyboard" size="20px" class="q-mr-sm" />
+            <span>키보드 단축키</span>
+          </div>
+          <div class="settings-section-content">
+            <div class="shortcut-list">
+              <div class="shortcut-item">
+                <div class="shortcut-key">
+                  <kbd>ESC</kbd>
+                </div>
+                <div class="shortcut-description">
+                  목차 열기/닫기 (편집 모드가 아닐 때)<br />
+                  <span class="text-caption text-grey-6">편집 모드일 때는 편집 모드 종료</span>
+                </div>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-key"><kbd>Ctrl</kbd> + <kbd>E</kbd></div>
+                <div class="shortcut-description">
+                  편집 모드 토글<br />
+                  <span class="text-caption text-grey-6">Mac: Cmd + E</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 기타 설정 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="tune" size="20px" class="q-mr-sm" />
+            <span>기타 설정</span>
+          </div>
+          <div class="settings-section-content">
+            <div>
+              <q-checkbox v-model="hideCompleted" label="완료된 항목 숨기기" color="primary" dense @update:model-value="handleHideCompletedChange" />
+            </div>
+            <div>
+              <q-checkbox v-model="autoHighlightOnScroll" label="스크롤 시 현재 섹션 하일라이팅" color="primary" dense @update:model-value="handleAutoHighlightChange" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template #footer="{ close }">
+      <q-btn flat label="취소" @click="close" />
+      <q-btn color="primary" label="저장" @click="handleSave" />
+    </template>
+  </BaseModal>
+</template>
+
+<script setup>
+import { ref, watch, computed } from 'vue'
+import { useQuasar } from 'quasar'
+import { useDocumentManagerStore } from 'src/stores/documentManagerStore'
+import { saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
+import BaseModal from 'src/components/ui/BaseModal.vue'
+
+defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true,
+  },
+})
+
+const emit = defineEmits(['update:modelValue', 'save', 'resetUsage', 'resetPriority'])
+
+const $q = useQuasar()
+const documentStore = useDocumentManagerStore()
+
+// 최대 크기 설정 (높이를 더 크게)
+const maxSize = computed(() => ({
+  width: window.innerWidth * 0.95,
+  height: window.innerHeight * 0.98,
+}))
+
+// 설정 상태 (localStorage에서 불러오기)
+const wheelScrollStep = ref(1)
+const enableMenuAnimation = ref(true)
+const reorderDelaySeconds = ref(3)
+const enableAutoReorder = ref(true)
+const showToastMessages = ref(true)
+const toastTimeoutSeconds = ref(3.5) // 초 단위 (1~60초)
+
+// localStorage에서 메뉴 이동 스텝 설정 불러오기
+function loadWheelScrollStep() {
+  try {
+    const saved = localStorage.getItem('dev-menu-wheel-scroll-step')
+    if (saved) {
+      const parsedValue = parseInt(saved, 10)
+      if (!isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 10) {
+        wheelScrollStep.value = parsedValue
+      }
+    }
+  } catch (error) {
+    console.error('메뉴 이동 스텝 설정 불러오기 실패:', error)
+  }
+}
+
+// localStorage에 메뉴 이동 스텝 설정 저장
+function saveWheelScrollStep() {
+  try {
+    const stepValue = Math.max(1, Math.min(10, Math.round(wheelScrollStep.value)))
+    localStorage.setItem('dev-menu-wheel-scroll-step', stepValue.toString())
+    // 같은 탭에서 변경 감지를 위한 CustomEvent 발생
+    window.dispatchEvent(new CustomEvent('wheel-scroll-step-changed'))
+  } catch (error) {
+    console.error('메뉴 이동 스텝 설정 저장 실패:', error)
+  }
+}
+
+// localStorage에서 토스트 메시지 설정 불러오기
+function loadToastSettings() {
+  try {
+    const saved = localStorage.getItem('dev-toast-settings')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (parsed.showToastMessages !== undefined) {
+        showToastMessages.value = parsed.showToastMessages
+      }
+      if (parsed.toastTimeoutSeconds !== undefined) {
+        toastTimeoutSeconds.value = parsed.toastTimeoutSeconds
+      }
+    }
+  } catch (error) {
+    console.error('토스트 메시지 설정 불러오기 실패:', error)
+  }
+}
+
+// localStorage에 토스트 메시지 설정 저장
+function saveToastSettings() {
+  try {
+    localStorage.setItem(
+      'dev-toast-settings',
+      JSON.stringify({
+        showToastMessages: showToastMessages.value,
+        toastTimeoutSeconds: toastTimeoutSeconds.value,
+      }),
+    )
+  } catch (error) {
+    console.error('토스트 메시지 설정 저장 실패:', error)
+  }
+}
+
+// localStorage에서 애니메이션 설정 불러오기
+function loadMenuAnimation() {
+  try {
+    const saved = localStorage.getItem('dev-menu-animation-enabled')
+    if (saved !== null) {
+      enableMenuAnimation.value = saved === 'true'
+    }
+  } catch (error) {
+    console.error('애니메이션 설정 불러오기 실패:', error)
+  }
+}
+
+// localStorage에 애니메이션 설정 저장
+function saveMenuAnimation() {
+  try {
+    localStorage.setItem('dev-menu-animation-enabled', enableMenuAnimation.value.toString())
+    // 같은 탭에서 변경 감지를 위한 CustomEvent 발생
+    window.dispatchEvent(new CustomEvent('menu-animation-changed'))
+  } catch (error) {
+    console.error('애니메이션 설정 저장 실패:', error)
+  }
+}
+
+// 컴포넌트 마운트 시 설정 불러오기
+loadWheelScrollStep()
+loadToastSettings()
+loadMenuAnimation()
+
+// 기존 설정 값 가져오기
+const hideCompleted = ref(documentStore.hideCompleted)
+const autoHighlightOnScroll = ref(documentStore.autoHighlightOnScroll)
+
+// 설정 변경 감지
+watch(
+  () => documentStore.hideCompleted,
+  (value) => {
+    hideCompleted.value = value
+  },
+)
+
+watch(
+  () => documentStore.autoHighlightOnScroll,
+  (value) => {
+    autoHighlightOnScroll.value = value
+  },
+)
+
+// hideCompleted 변경 핸들러
+function handleHideCompletedChange(value) {
+  documentStore.hideCompleted = value
+  // saveTOCSettings는 ref 객체를 받지만, hideCompleted는 일반 값이므로 직접 저장
+  try {
+    const saved = localStorage.getItem('dev-toc-settings')
+    const parsed = saved ? JSON.parse(saved) : {}
+    parsed.hideCompleted = value
+    localStorage.setItem('dev-toc-settings', JSON.stringify(parsed))
+  } catch (error) {
+    console.error('hideCompleted 저장 실패:', error)
+  }
+}
+
+// autoHighlightOnScroll 변경 핸들러
+function handleAutoHighlightChange(value) {
+  documentStore.autoHighlightOnScroll = value
+  saveTOCSettings({
+    hideCompleted: documentStore.hideCompleted,
+    autoHighlightOnScroll: value,
+  })
+}
+
+// 사용빈도 초기화 핸들러
+function handleResetUsage() {
+  $q.dialog({
+    title: '사용빈도 초기화',
+    message: '사용빈도를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
+    persistent: true,
+    ok: {
+      label: '초기화',
+      color: 'negative',
+      flat: false,
+    },
+    cancel: {
+      label: '취소',
+      flat: true,
+    },
+  }).onOk(() => {
+    emit('resetUsage')
+  })
+}
+
+// 우선순위 초기화 핸들러
+function handleResetPriority() {
+  $q.dialog({
+    title: '우선순위 초기화',
+    message: '우선순위를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
+    persistent: true,
+    ok: {
+      label: '초기화',
+      color: 'negative',
+      flat: false,
+    },
+    cancel: {
+      label: '취소',
+      flat: true,
+    },
+  }).onOk(() => {
+    emit('resetPriority')
+  })
+}
+
+// 저장 핸들러
+function handleSave() {
+  // localStorage에 설정 저장
+  saveWheelScrollStep()
+  saveToastSettings()
+  saveMenuAnimation()
+  // TODO: localStorage에 설정 저장
+  // - reorderDelaySeconds
+  // - enableAutoReorder
+
+  emit('save', {
+    reorderDelaySeconds: reorderDelaySeconds.value,
+    enableAutoReorder: enableAutoReorder.value,
+    showToastMessages: showToastMessages.value,
+    toastTimeoutSeconds: toastTimeoutSeconds.value,
+    hideCompleted: hideCompleted.value,
+    autoHighlightOnScroll: autoHighlightOnScroll.value,
+  })
+
+  emit('update:modelValue', false)
+}
+</script>
+
+<style lang="scss" scoped>
+.document-settings-content {
+  width: 100%;
+
+  .settings-section {
+    margin-bottom: 0;
+
+    .settings-section-title {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--nexa-text-primary);
+      margin-bottom: 6px;
+    }
+
+    .settings-section-content {
+      padding-left: 28px;
+      margin-bottom: 12px;
+
+      .text-caption {
+        display: block;
+        margin-top: 0;
+
+        .step-value {
+          font-weight: 600;
+          color: var(--nexa-text-primary);
+          margin-right: 4px;
+        }
+      }
+
+      .shortcut-list {
+        .shortcut-item {
+          display: flex;
+          align-items: flex-start;
+          margin-bottom: 0;
+          gap: 16px;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          .shortcut-key {
+            flex-shrink: 0;
+            min-width: 120px;
+
+            kbd {
+              display: inline-block;
+              padding: 4px 8px;
+              margin: 2px;
+              font-size: 12px;
+              font-weight: 600;
+              line-height: 1.4;
+              color: var(--nexa-text-primary);
+              background-color: var(--nexa-background-darker);
+              border: 1px solid var(--nexa-border-color);
+              border-radius: 4px;
+              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+          }
+
+          .shortcut-description {
+            flex: 1;
+            font-size: 14px;
+            color: var(--nexa-text-secondary);
+            line-height: 1.5;
+          }
+        }
+      }
+    }
+  }
+}
+</style>

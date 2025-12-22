@@ -1,0 +1,265 @@
+// 다크 테마 변수
+// --------------------------------------------------
+
+// CSS 변수 설정
+body.dark {
+  // ============================================
+  // 1. 브랜드 색상 (primary, secondary, accent)
+  // ============================================
+  --nexa-primary: #00ff5eff;
+  --nexa-secondary: #00ff4067;
+  --nexa-accent: #ff8400e9;
+
+  // ============================================
+  // 2. 텍스트 색상 (text-*)
+  // ============================================
+  --nexa-text-primary: #0cee81;
+  --nexa-text-primary-hover: #0cee81; // 호버 상태 텍스트 색상
+  --nexa-text-primary-active: #00ff8c; // 클릭 상태 텍스트 색상
+  --nexa-text-primary-focus: rgba(170, 246, 5, 0.945); // 포커스 상태 텍스트 색상
+  --nexa-text-secondary: rgba(185, 185, 185, 0.814);
+  --nexa-text-hint: rgba(255, 255, 255, 0.4); // 힌트 텍스트용 (매우 흐린 색상)
+  --nexa-text-dark: rgba(0, 0, 0, 0.838); // 거의 블랙톤 텍스트 색상 (Added: 날짜 등 어두운 텍스트용)
+  --nexa-ui-primary: rgba(0, 216, 112, 0.506); // UI 요소용 (보더, 배경 등)
+
+  // 경고 및 에러 색상
+  --nexa-warning: #edb20f; // 경고 색상
+  --nexa-error: #c10015; // 에러 색상
+  --nexa-error-text: #ff6b6b; // 에러 텍스트 색상
+
+  // 링크 색상
+  --nexa-link-color: rgba(0, 118, 253, 1); // 링크 기본 색상
+  --nexa-link-hover-color: rgba(0, 118, 253, 0.8); // 링크 호버 색상
+  --nexa-link-visited-color: rgba(0, 118, 253, 0.6); // 링크 방문 색상
+  --nexa-link-active-color: rgba(0, 118, 253, 1); // 링크 활성 색상
+
+  // ============================================
+  // 3. 배경색 (background, surface)
+  // ============================================
+  --nexa-background: #2d2d2d;
+  --nexa-background-upper: rgba(88, 88, 88, 0.835);
+  --nexa-background-lower: rgba(4, 4, 4, 0.11);
+  --nexa-background-darker: rgba(26, 26, 26, 0.529); // 드로어 구분선용 더 어두운 배경색
+  --nexa-surface: #3d3d3d; // 컨텍스트 메뉴 등 표면 요소 (더 밝게 조정)
+
+  // 드로어/사이드바 색상
+  --nexa-drawer-bg: var(--nexa-background); // 드로어 배경색
+  --nexa-drawer-text: var(--nexa-text-primary); // 드로어 텍스트 색상
+  --nexa-drawer-border: var(--nexa-border-color-darker); // 드로어 보더 색상
+  --nexa-drawer-header-bg: var(--nexa-panel-header); // 드로어 헤더 배경색
+  --nexa-drawer-item-hover-bg: rgba(255, 255, 255, 0.05); // 드로어 아이템 호버 배경색
+  --nexa-surface-hover: #4d4d4d; // 호버 상태 표면 배경색
+  --nexa-surface-active: #5d5d5d; // 클릭 상태 표면 배경색
+  --nexa-surface-focus: #4a4a4a; // 포커스 상태 표면 배경색
+  --nexa-header-bg: #000000;
+  --nexa-border-color: rgba(0, 0, 0, 0.385); // 더 어두운 구분선 색상
+  --nexa-border-color-darker: rgba(0, 0, 0, 0.834); // 더욱 어두운 구분선 색상
+  --nexa-border-active: rgba(0, 255, 221, 0.323); // 엑티브 상태 보더 색상 (Added: 활성화된 요소의 보더용)
+
+  // 그림자 색상 (범용 사용)
+  --nexa-shadow-1: rgba(0, 0, 0, 0.325); // 첫 번째 그림자 레이어 (가장 진함)
+  --nexa-shadow-2: rgba(0, 0, 0, 0.193); // 두 번째 그림자 레이어 (중간)
+  --nexa-shadow-3: rgba(0, 0, 0, 0.019); // 세 번째 그림자 레이어 (가장 연함)
+
+  // 테이블 기본 디자인 색상 (1단계)
+  --nexa-table-bg: rgba(61, 61, 61, 0.643); // 테이블 배경색 (헤더, 본문, 푸터)
+  --nexa-table-header-bg: rgba(255, 0, 0, 0.259); // 헤더 배경색 (의도적 실험적 색상)
+  --nexa-table-header-text: rgba(255, 255, 255, 0.87); // 헤더 텍스트 색상
+  --nexa-table-border: rgba(8, 8, 8, 0.553); // 테이블 보더 색상
+  --nexa-table-cell-border: rgba(0, 0, 0, 0.12); // 테이블 셀 보더 색상
+  --nexa-table-text: rgba(255, 255, 255, 0.78); // 테이블 텍스트 색상
+  --nexa-table-row-hover-bg: rgba(255, 255, 255, 0.05); // 테이블 행 호버 배경색
+  --nexa-table-row-selected-bg: rgba(12, 238, 129, 0.15); // 테이블 행 선택 배경색
+  --nexa-table-row-striped-bg: rgba(255, 255, 255, 0.02); // 테이블 행 스트라이프 배경색 (⚠️ 선택적 사용: 기본 비활성화, 로우가 10개 이상일 때만 자동 적용, DataTableRenderer와 마크다운 테이블 모두 동일한 원칙)
+
+  // 셀렉트 박스 드롭다운 메뉴 관련 색상
+  --nexa-select-menu-bg: #5a5a5a; // 드롭다운 메뉴 배경색
+  --nexa-select-menu-opacity: 0.98; // 드롭다운 메뉴 투명도
+  --nexa-select-item-hover-bg: rgba(88, 88, 88, 0.7); // 드롭다운 아이템 호버 배경색 (이미 선택된것은 제외)
+  --nexa-select-item-active-bg: rgba(239, 2, 2, 0.383); // 드롭다운 아이템 선택된 배경색 (디버깅용 빨간색, 아직 정확하지 않은 점이 있어 우선 유지, 완벽하게 통제되면 적절한 타협점 찾을 예정)
+
+  // ============================================
+  // 4. 버튼 색상 (button-*)
+  // ============================================
+  --nexa-button-primary-bg: #029a79;
+  --nexa-button-primary-text: rgba(255, 255, 255, 0.9); // 투명도 90%
+  --nexa-button-secondary-bg: #959595;
+  --nexa-button-secondary-text: #000000;
+  --nexa-button-save-bg: rgba(2, 197, 155, 0.541);
+  --nexa-button-save-text: #ffffff;
+  --nexa-button-cancel-bg: rgba(88, 88, 88, 0.655);
+  --nexa-button-cancel-text: rgba(255, 255, 255, 0.408);
+  --nexa-button-success-bg: #0cee81;
+  --nexa-button-success-text: #000000;
+  --nexa-button-warning-bg: #edb20f;
+  --nexa-button-warning-text: #000000;
+  --nexa-button-danger-bg: #c10015;
+  --nexa-button-danger-text: #ffffff;
+
+  // ============================================
+  // 5. 아이템 색상 (item-*)
+  // ============================================
+  // 아이템 = DB 레코드에 해당하는 데이터 단위
+  // 테이블 로우, 카드, 타임라인 타임 등 모든 뷰에서 동일하게 적용
+
+  // 기본 상태
+  --nexa-item-bg: rgba(61, 61, 61, 0.4); // 기본 배경색
+  --nexa-item-border: rgba(0, 0, 0, 0.447); // 기본 테두리 색상
+
+  // 텍스트 색상
+  --nexa-item-text-title: rgba(228, 228, 228, 1); // 제목 텍스트 색상
+  --nexa-item-text-label: rgba(156, 156, 156, 0.675); // 라벨 텍스트 색상
+  --nexa-item-text-value: rgba(180, 180, 180, 0.783); // 값 텍스트 색상
+
+  // 호버 상태
+  --nexa-item-hover-bg: rgba(61, 61, 61, 0.6); // 호버 배경색
+  --nexa-item-hover-border: rgba(255, 255, 255, 0.193); // 호버 테두리 색상
+
+  // 클릭 상태
+  --nexa-item-click-bg: rgba(12, 238, 129, 0.15); // 클릭 배경색 (선택된 색상과 동일)
+
+  // 선택 상태 (멀티 셀렉터)
+  --nexa-item-selected-bg: rgba(12, 238, 129, 0.15); // 선택된 배경색
+  --nexa-item-selected-text: rgba(255, 255, 255, 0.869); // 선택된 텍스트 색상
+  --nexa-item-selected-hover-bg: rgba(12, 238, 129, 0.25); // 선택된 상태에서 호버 배경색
+
+  // 롱프레스 상태
+  --nexa-item-longpress-border: #272727; // 롱프레스 테두리 색상
+
+  // 드래그 오버 상태 (드래그앤드롭 전용)
+  --nexa-item-dragover-bg: rgba(12, 238, 129, 0.3); // 드래그 오버 배경색
+  --nexa-item-dragover-border: rgba(12, 238, 129, 0.8); // 드래그 오버 테두리 색상
+
+  // 비활성 상태
+  --nexa-item-inactive-opacity: 0.2; // 비활성 투명도
+
+  // ============================================
+  // 6. 패널 색상 (panel-*)
+  // ============================================
+  // 패널 = 설정 그룹, 컨테이너 등 UI 컨테이너 요소
+  // 섹션 그룹, 설정 패널, 컨텍스트 패널 등에 사용
+
+  // 기본 상태
+  --nexa-panel-bg: rgba(61, 61, 61, 0.4); // 패널 배경색
+  --nexa-panel-border: rgba(0, 0, 0, 0.385); // 패널 보더 색상
+  --nexa-panel-text: var(--nexa-text-primary); // 패널 텍스트 색상
+  --nexa-panel-header: #272727; // 패널/메뉴 헤더 배경색 (컨텍스트 메뉴 타이틀용)
+
+  // 호버 상태
+  --nexa-panel-hover-bg: rgba(61, 61, 61, 0.6); // 패널 호버 배경색
+
+  // ============================================
+  // 7. 폼 컨트롤 색상 (form-*)
+  // ============================================
+  // 슬라이더, 토글, 체크박스, 라디오 통일
+  --nexa-form-track-color: rgba(0, 0, 0, 0.974); // 트랙/배경 색상
+  --nexa-form-indicator-color: rgba(0, 0, 0, 0.5); // 기본 표시기 색상 (비활성/비선택)
+  --nexa-form-indicator-active-color: rgba(0, 255, 132, 0.635); // 활성 표시기 색상 (활성/선택 상태)
+
+  // Quasar 기본 primary 색상 변수 오버라이드 (라디오 버튼 등에 사용)
+  // 중요: 라디오 버튼 색상 적용을 위해 필수
+  // --nexa-form-indicator-active-color를 사용하여 Quasar 컴포넌트 색상 통일
+  --q-primary: var(--nexa-form-indicator-active-color);
+  --q-primary-rgb: 6, 232, 123; // RGB 값 (rgba() 사용 시 필요)
+
+  // Quasar 기본 negative 색상 변수 오버라이드 (필수 필드 등에 사용)
+  // 필수 필드의 빨간색을 폼 컨트롤 활성 색상으로 변경
+  --q-negative: var(--nexa-form-indicator-active-color);
+
+  // ============================================
+  // 8. 모달 색상 (modal-*)
+  // ============================================
+  --nexa-modal-bg: rgba(61, 61, 61, 0.883); // 모달 배경색
+  --nexa-modal-surface: rgba(61, 61, 61, 0.95); // 모달 내부 표면 배경색
+  --nexa-modal-header-hover-bg: rgba(255, 255, 255, 0.05); // 모달 헤더 호버 배경색
+  --nexa-modal-accordion-expanded-bg: rgba(252, 0, 0, 0.411); // 아코디언 펼쳐진 상태 헤더 배경색 (의도적 실험적 색상, 디버깅용)
+  --nexa-modal-scrollbar: rgba(59, 113, 2, 0.833); // 모달 스크롤바 색상
+  --nexa-modal-scrollbar-hover: rgba(0, 105, 16, 1); // 모달 스크롤바 호버 색상
+  --nexa-scrollbar-track: rgba(5, 15, 0, 0.874); // 일반 스크롤바 트랙 색상 (Added: app.scss에서 사용)
+  --nexa-scrollbar-thumb: rgba(0, 220, 33, 0.3); // 일반 스크롤바 썸 색상 (Added: app.scss에서 사용)
+  --nexa-scrollbar-thumb-hover: rgba(255, 255, 255, 0.5); // 일반 스크롤바 썸 호버 색상 (Added: app.scss에서 사용)
+  --nexa-resize-handle-bg: rgba(0, 82, 1, 0.7); // 리사이즈 핸들 배경색
+  --nexa-resize-handle-bg-hover: rgba(128, 128, 128, 0.9); // 리사이즈 핸들 호버 배경색
+  --nexa-resize-handle-pattern: rgba(77, 164, 5, 0.95); // 리사이즈 핸들 패턴 색상
+  --nexa-resize-handle-pattern-hover: rgba(38, 255, 0, 0.85); // 리사이즈 핸들 호버 패턴 색상
+
+  // ============================================
+  // 9. 토스트/알림 색상 (toast-*)
+  // ============================================
+  // 기본 토스트 색상
+  --nexa-toast-bg: rgba(61, 61, 61, 0.95); // 토스트 배경색
+  --nexa-toast-text: rgba(255, 255, 255, 0.87); // 토스트 텍스트 색상
+  --nexa-toast-border: rgba(255, 255, 255, 0.1); // 토스트 보더 색상
+
+  // 성공 토스트
+  --nexa-toast-success-bg: rgba(12, 238, 129, 0.9); // 성공 토스트 배경색
+  --nexa-toast-success-text: rgba(0, 0, 0, 0.87); // 성공 토스트 텍스트 색상
+  --nexa-toast-success-border: rgba(12, 238, 129, 1); // 성공 토스트 보더 색상
+
+  // 경고 토스트
+  --nexa-toast-warning-bg: rgba(237, 178, 15, 0.9); // 경고 토스트 배경색
+  --nexa-toast-warning-text: rgba(0, 0, 0, 0.87); // 경고 토스트 텍스트 색상
+  --nexa-toast-warning-border: rgba(237, 178, 15, 1); // 경고 토스트 보더 색상
+
+  // 에러 토스트
+  --nexa-toast-error-bg: rgba(193, 0, 21, 0.9); // 에러 토스트 배경색
+  --nexa-toast-error-text: rgba(255, 255, 255, 0.95); // 에러 토스트 텍스트 색상
+  --nexa-toast-error-border: rgba(193, 0, 21, 1); // 에러 토스트 보더 색상
+
+  // 정보 토스트
+  --nexa-toast-info-bg: rgba(0, 118, 253, 0.9); // 정보 토스트 배경색
+  --nexa-toast-info-text: rgba(255, 255, 255, 0.95); // 정보 토스트 텍스트 색상
+  --nexa-toast-info-border: rgba(0, 118, 253, 1); // 정보 토스트 보더 색상
+
+  // ============================================
+  // 10. 프로그레스 바 색상 (progress-*)
+  // ============================================
+  --nexa-progress-bg: rgba(0, 0, 0, 0.3); // 프로그레스 바 배경색
+  --nexa-progress-value-bg: var(--nexa-form-indicator-active-color); // 프로그레스 바 진행 색상
+  --nexa-progress-text: rgba(255, 255, 255, 0.87); // 프로그레스 바 텍스트 색상
+
+  // ============================================
+  // 11. 탭 색상 (tab-*)
+  // ============================================
+  --nexa-tab-bg: var(--nexa-surface); // 탭 기본 배경색
+  --nexa-tab-active-bg: var(--nexa-background-darker); // 탭 활성 배경색
+  --nexa-tab-inactive-bg: var(--nexa-surface); // 탭 비활성 배경색
+  --nexa-tab-hover-bg: var(--nexa-surface-hover); // 탭 호버 배경색
+  --nexa-tab-text: var(--nexa-text-primary); // 탭 텍스트 색상
+  --nexa-tab-active-text: var(--nexa-text-primary-focus); // 탭 활성 텍스트 색상
+
+  // ============================================
+  // 12. 아코디언 색상 (accordion-*)
+  // ============================================
+  --nexa-accordion-bg: var(--nexa-surface); // 아코디언 기본 배경색
+  --nexa-accordion-header-bg: #13131392; // 아코디언 헤더 배경색
+  --nexa-accordion-content-bg: var(--nexa-background); // 아코디언 컨텐츠 배경색
+  --nexa-accordion-expanded-bg: #0d7661a4; // 아코디언 펼쳐진 상태 헤더 배경색
+
+  // ============================================
+  // 13. 리스트 색상 (list-*)
+  // ============================================
+  --nexa-list-bg: var(--nexa-background); // 리스트 배경색
+  --nexa-list-border: var(--nexa-border-color); // 리스트 보더 색상
+  --nexa-list-item-hover-bg: var(--nexa-item-hover-bg); // 리스트 아이템 호버 배경색
+
+  // ============================================
+  // 14. 툴팁 색상 (tooltip-*)
+  // ============================================
+  --nexa-tooltip-bg: rgb(136, 192, 6); // 툴팁 배경색
+  --nexa-tooltip-text: rgb(255, 255, 255); // 툴팁 텍스트 색상
+  --nexa-tooltip-border: rgba(255, 255, 255, 0.1); // 툴팁 보더 색상
+  --nexa-tooltip-arrow-color: rgba(0, 0, 0, 0.85); // 툴팁 화살표 색상
+
+  // ============================================
+  // 15. 차트 색상 팔레트 (chart-color-*)
+  // ============================================
+  --nexa-chart-color-1: rgba(0, 118, 253, 1); // 차트 색상 1 (Primary Blue)
+  --nexa-chart-color-2: rgba(12, 238, 129, 1); // 차트 색상 2 (Primary Green)
+  --nexa-chart-color-3: rgba(255, 115, 0, 1); // 차트 색상 3 (Accent Orange)
+  --nexa-chart-color-4: rgba(0, 242, 255, 1); // 차트 색상 4 (Secondary Cyan)
+  --nexa-chart-color-5: rgba(237, 178, 15, 1); // 차트 색상 5 (Warning Yellow)
+  --nexa-chart-color-6: rgba(193, 0, 21, 1); // 차트 색상 6 (Error Red)
+  --nexa-chart-color-7: rgba(156, 39, 176, 1); // 차트 색상 7 (Purple)
+  --nexa-chart-color-8: rgba(76, 175, 80, 1); // 차트 색상 8 (Green)
+}

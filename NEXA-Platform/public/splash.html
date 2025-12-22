@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEXA - Loading</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        opacity: 0;
+        animation: fadeIn 0.3s ease-in-out forwards;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .splash-container {
+        text-align: center;
+        width: 1000px;
+        padding: 40px;
+      }
+
+      .title {
+        font-family: 'Arial Black', Arial, sans-serif;
+        font-size: 200px;
+        font-weight: 900;
+        color: #ff8400;
+        line-height: 1;
+        margin-bottom: 20px;
+        letter-spacing: -5px;
+        text-shadow: 0 0 30px rgba(255, 132, 0, 0.3);
+        animation: titleGlow 2s ease-in-out infinite;
+      }
+
+      @keyframes titleGlow {
+        0%,
+        100% {
+          text-shadow: 0 0 30px rgba(255, 132, 0, 0.3);
+        }
+        50% {
+          text-shadow: 0 0 50px rgba(255, 132, 0, 0.6);
+        }
+      }
+
+      .subtitle {
+        font-family: 'Arial', sans-serif;
+        font-size: 17px;
+        font-weight: bold;
+        color: rgba(255, 132, 0, 0.9);
+        margin-bottom: 40px;
+        letter-spacing: 2px;
+      }
+
+      .progress-container {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff8400 0%, #ff6a00 100%);
+        border-radius: 2px;
+        width: 0%;
+        transition: width 0.1s linear;
+        box-shadow: 0 0 10px rgba(255, 132, 0, 0.5);
+      }
+    </style>
+  </head>
+  <body style="background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%); margin: 0; padding: 0; overflow: hidden; width: 100vw; height: 100vh">
+    <div class="splash-container">
+      <div class="title">NEXA</div>
+      <div class="subtitle">U2 SOLUTION</div>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SPLASH_DURATION = 3000 // 3초 (setTimeout과 동일)
+      const progressFill = document.getElementById('progressFill')
+
+      // 전체화면 모드 강제 시도 (여러 방법 시도)
+      function requestFullscreen() {
+        const elem = document.documentElement
+
+        // 여러 브라우저 호환성
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch((err) => {
+            console.log('전체화면 요청 실패:', err)
+          })
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen()
+        } else if (elem.webkitRequestFullScreen) {
+          elem.webkitRequestFullScreen()
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen()
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen()
+        }
+      }
+
+      // F11 키 시뮬레이션 (전체화면 토글)
+      function simulateF11() {
+        const event = new KeyboardEvent('keydown', {
+          key: 'F11',
+          code: 'F11',
+          keyCode: 122,
+          which: 122,
+          bubbles: true,
+          cancelable: true,
+        })
+        document.dispatchEvent(event)
+      }
+
+      // 페이지 로드 시 즉시 전체화면 시도
+      window.addEventListener('load', () => {
+        // 즉시 전체화면 요청
+        requestFullscreen()
+
+        // 약간의 지연 후 다시 시도
+        setTimeout(() => {
+          requestFullscreen()
+        }, 100)
+
+        // 추가 시도
+        setTimeout(() => {
+          requestFullscreen()
+        }, 500)
+      })
+
+      // 클릭 시에도 전체화면 시도 (사용자 상호작용 후)
+      document.addEventListener('click', () => {
+        requestFullscreen()
+      })
+
+      // 프로그레스바 애니메이션 시작 (setTimeout과 정확히 동일한 시간)
+      const startTime = Date.now()
+      const updateProgress = () => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min((elapsed / SPLASH_DURATION) * 100, 100)
+        progressFill.style.width = progress + '%'
+
+        if (progress < 100) {
+          requestAnimationFrame(updateProgress)
+        }
+      }
+
+      // 애니메이션 시작
+      requestAnimationFrame(updateProgress)
+
+      // 2초 후 메인 페이지로 리다이렉트
+      setTimeout(() => {
+        window.location.href = 'http://localhost:9000'
+      }, SPLASH_DURATION)
+    </script>
+  </body>
+</html>

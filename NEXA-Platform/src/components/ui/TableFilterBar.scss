@@ -1,0 +1,199 @@
+// TableFilterBar 스타일
+.table-filter-bar {
+  // 필터 행 스타일 - 한 줄 유지
+  flex-wrap: nowrap;
+  // 아이템 간 간격을 2px로 설정 (q-gutter-xs는 4px이므로 더 줄임)
+  gap: 2px;
+
+  @media (max-width: 600px) {
+    flex-wrap: wrap;
+  }
+
+  // 검색 필드 스타일
+  .search-input {
+    flex: 0 1 auto;
+    min-width: 150px;
+    max-width: 300px;
+    width: auto;
+
+    :deep(.q-field__control) {
+      max-width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      flex: 1 1 100%;
+      max-width: 100%;
+    }
+  }
+
+  // 필터 셀렉트 스타일
+  .filter-select {
+    flex: 0 1 auto;
+    min-width: 140px;
+    max-width: 400px;
+    width: auto;
+
+    :deep(.q-field__control) {
+      max-width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      flex: 1 1 100%;
+      max-width: 100%;
+    }
+  }
+
+  // 선택 수량 텍스트
+  .selected-count-text {
+    font-size: 12px;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  // ===== 검색 필드 및 셀렉트 폼 보더 =====
+  // 전역 스타일로 이동됨 (nexa-system/_form.scss)
+  // 보더, placeholder, 아이콘 색상은 전역 스타일에서 관리
+
+  // ===== 검색 필드 선택 버튼 =====
+  // (컴포넌트 특화 스타일, 유지)
+
+  // ===== 검색 필드 선택 버튼 =====
+  .search-field-selector-btn {
+    color: var(--nexa-text-primary);
+    opacity: 0.6;
+    padding: 4px;
+    min-height: auto;
+
+    // 드롭다운 화살표 크기 명시적 지정
+    :deep(.q-btn-dropdown__arrow) {
+      font-size: 28px !important;
+      width: 28px !important;
+      height: 28px !important;
+      min-width: 28px !important;
+      min-height: 28px !important;
+      margin: -5px !important;
+      padding: 0 !important;
+      opacity: 1;
+    }
+
+    &:hover {
+      opacity: 1;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  // ===== 셀렉트 label/화살표 색상 =====
+  // 전역 스타일로 이동됨 (nexa-system/_form.scss)
+
+  // ===== 검색 자동완성 및 히스토리 =====
+  .search-input-wrapper {
+    position: relative;
+  }
+
+  .search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    margin-top: 4px;
+    background-color: var(--nexa-surface);
+    border: 1px solid var(--nexa-border-color);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .suggestions-section {
+    padding: 8px 0;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--nexa-border-color);
+    }
+  }
+
+  .suggestion-active {
+    background-color: var(--q-primary);
+    color: white;
+
+    :deep(.q-item__label) {
+      color: white;
+    }
+
+    :deep(.q-icon) {
+      color: white;
+    }
+  }
+
+  :deep(.q-item) {
+    min-height: 36px;
+    padding: 4px 16px;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  :deep(.q-item__section--avatar) {
+    min-width: 24px;
+    padding-right: 8px;
+  }
+
+  :deep(.q-item__label) {
+    font-size: 14px;
+    color: var(--nexa-text-primary);
+  }
+}
+
+// 프리셋 드롭다운 버튼
+.preset-dropdown-btn {
+  color: var(--nexa-text-primary);
+  opacity: 0.8;
+  font-size: 12px;
+  font-weight: 400;
+
+  :deep(.q-btn__content) {
+    font-size: 12px;
+    font-weight: 400;
+    gap: -1px;
+
+    .q-btn__label {
+      margin: 0;
+      padding: 0;
+    }
+
+    .q-btn-dropdown__arrow {
+      margin: 0;
+      padding: 0;
+      margin-left: -2px;
+    }
+  }
+
+  &:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// 프리셋 드롭다운 메뉴
+:deep(.preset-dropdown-menu) {
+  .q-item {
+    min-height: 36px;
+    padding: 4px 16px;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  .q-item-label {
+    font-size: 14px;
+    color: var(--nexa-text-primary);
+  }
+
+  .q-item__section--avatar {
+    min-width: 24px;
+    padding-right: 8px;
+  }
+}

@@ -1,0 +1,23 @@
+// ============================================
+// 탭 색상 (tab-*)
+// ============================================
+// Quasar q-tab 컴포넌트 전역 스타일 오버라이드
+// NEXA 시스템 정책에 맞춘 탭 스타일
+
+.q-tab {
+  background-color: var(--nexa-tab-bg) !important;
+  color: var(--nexa-tab-text) !important;
+
+  &:hover {
+    background-color: var(--nexa-tab-hover-bg) !important;
+  }
+
+  &.q-tab--active {
+    background-color: var(--nexa-tab-active-bg) !important;
+    color: var(--nexa-tab-active-text) !important;
+  }
+
+  &:not(.q-tab--active) {
+    background-color: var(--nexa-tab-inactive-bg) !important;
+  }
+}

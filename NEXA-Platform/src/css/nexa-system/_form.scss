@@ -1,0 +1,403 @@
+// ============================================
+// NEXA 입력 폼 전역 스타일
+// ============================================
+// 모든 q-input, q-select에 적용되는 전역 스타일
+// 보더, 색상 등 NEXA 시스템 특화 스타일 정의
+//
+// 참고:
+// - 레벨 3 (app.scss): 전역 기본 스타일 (스피너 숨기기, textarea resize 등)
+// - 레벨 5 (이 파일): NEXA 특화 입력 폼 스타일 (보더, 색상, label 정렬 등)
+// - 레벨 6: 컴포넌트 특화 스타일 (모달 특수 스타일 등)
+
+// ============================================
+// 0. 공통 라벨 스타일 (모든 폼 라벨 통합 관리)
+// ============================================
+
+// 모든 폼 라벨 텍스트 색상 통합 관리
+// q-field 라벨 (q-input, q-select 등)
+.q-field__label {
+  color: var(--nexa-text-primary);
+  opacity: 0.6;
+}
+
+// 포커스 시 q-field 라벨 색상 변경
+.q-field--focused .q-field__label {
+  color: var(--nexa-form-indicator-active-color);
+}
+
+// 체크박스, 라디오, 토글 라벨 (톤 낮춤)
+.q-checkbox__label,
+.q-radio__label,
+.q-toggle__label {
+  color: var(--nexa-text-secondary);
+}
+
+// ============================================
+// 1. q-field 기본 구조 (부모)
+// ============================================
+
+// ===== q-field__control (자식) =====
+// 입력 필드 컨트롤 최대 너비
+// 반응형 레이아웃에서 입력 필드 컨트롤이 부모 너비를 넘지 않도록 제한
+.q-field__control {
+  max-width: 100%;
+}
+
+// Outlined 보더 스타일
+// 모든 outlined 입력 폼에 적용되는 보더 스타일
+.q-field--outlined .q-field__control {
+  border: none;
+
+  &::before {
+    border: 1px solid var(--nexa-border-color);
+  }
+
+  &::after {
+    border: none;
+    border-color: transparent;
+  }
+}
+
+// 포커스/호버 시 보더 색상 변경
+// ::before와 ::after 모두 처리하여 포커스 시 보더가 사라지지 않도록 함
+// 폼 컨트롤 활성 색상 사용
+.q-field--outlined.q-field--focused .q-field__control::before,
+.q-field--outlined.q-field--focused .q-field__control::after {
+  border: 2px solid var(--nexa-form-indicator-active-color);
+}
+
+.q-field--outlined:hover .q-field__control::before {
+  border: 1px solid var(--nexa-form-indicator-active-color);
+  opacity: 0.7;
+}
+
+// 에러/경고 상태 보더 색상
+.q-field--error.q-field--outlined .q-field__control::before,
+.q-field--error.q-field--outlined .q-field__control::after {
+  border-color: var(--nexa-warning) !important;
+}
+
+.q-field--error.q-field--outlined.q-field--focused .q-field__control::before,
+.q-field--error.q-field--outlined.q-field--focused .q-field__control::after,
+.q-field--error.q-field--outlined:hover .q-field__control::before,
+.q-field--error.q-field--outlined:hover .q-field__control::after {
+  border-color: var(--nexa-warning) !important;
+}
+
+// ===== q-field__label (자식) =====
+// 입력 필드 라벨 스타일
+// q-input label 왼쪽 정렬 (Quasar 기본 구조 활용)
+q-input .q-field__label,
+.q-field__label {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+q-input .q-field__label .q-field__label-container,
+.q-field__label .q-field__label-container {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+// 라벨 색상은 상단 "0. 공통 라벨 스타일" 섹션에서 통합 관리
+
+// ===== q-field__native, q-field__input (자식) =====
+// Placeholder 색상
+// 모든 입력 필드의 placeholder 색상
+.q-field__native::placeholder,
+.q-field__input::placeholder {
+  color: var(--nexa-text-primary);
+  opacity: 0.6;
+}
+
+// ===== q-field__prepend, q-field__append (자식) =====
+// 아이콘 색상
+// 입력 필드의 prepend/append 아이콘 색상
+.q-field__prepend .q-icon,
+.q-field__append .q-icon:not(.q-select__dropdown-icon) {
+  color: var(--nexa-text-primary);
+  opacity: 0.6;
+}
+
+// 포커스 시 아이콘 색상도 폼 컨트롤 활성 색상으로 변경
+.q-field--focused .q-field__prepend .q-icon,
+.q-field--focused .q-field__append .q-icon:not(.q-select__dropdown-icon) {
+  color: var(--nexa-form-indicator-active-color);
+}
+
+// 에러/경고 상태 아이콘 색상
+.q-field--error .q-field__append .q-icon,
+.q-field--error .q-field__prepend .q-icon {
+  color: var(--nexa-warning) !important;
+}
+
+// 에러/경고 메시지 텍스트 색상
+.q-field--error .q-field__messages,
+.q-field--error .q-field__bottom {
+  color: var(--nexa-warning) !important;
+}
+
+// clearable 버튼 전역 스타일
+// 모든 q-input, q-select 등의 clearable 버튼에 적용
+// 색상 강조 및 크기 축소로 외부 URL 접근 시 필터 상태 인지 용이
+.q-field__append {
+  // clearable 버튼 (X 아이콘) - Quasar v2 구조
+  .q-btn--round {
+    // 색상 강조: primary 색상 사용
+    color: var(--nexa-ui-primary) !important;
+    opacity: 0.85 !important;
+
+    // hover 시 더 강조
+    &:hover {
+      opacity: 1 !important;
+      transform: scale(1.15);
+      transition: all 0.2s ease;
+      background-color: rgba(var(--q-primary-rgb, 0, 0, 0), 0.1);
+    }
+
+    // active 상태
+    &:active {
+      transform: scale(1.05);
+    }
+  }
+
+  // X 버튼 아이콘 크기 조정 (드롭다운 화살표는 제외하고 직접 아이콘이 있는 경우 (일부 케이스))
+  .q-icon:not(.q-select__dropdown-icon) {
+    color: var(--nexa-ui-primary);
+    opacity: 0.85;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: -5px !important;
+
+    &:hover {
+      opacity: 1;
+      transform: scale(1.15);
+      transition: all 0.2s ease;
+    }
+  }
+}
+
+// ============================================
+// 2. q-select (q-field 확장)
+// ============================================
+
+// 셀렉트 드롭다운 메뉴 (배경색, 보더, 그림자)
+// 주의: Quasar는 드롭다운 메뉴를 포털로 body에 렌더링하므로 .q-select .q-menu는 작동하지 않음
+// body를 포함한 선택자 또는 role 속성으로만 타겟팅 가능
+body .q-menu[role='listbox'],
+.q-menu[role='listbox'] {
+  background-color: var(--nexa-select-menu-bg);
+  opacity: var(--nexa-select-menu-opacity, 0.55);
+  border: 1px solid var(--nexa-border-color);
+  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.421);
+}
+
+// 셀렉트 드롭다운 메뉴 아이템 스타일
+// 주의: Quasar는 드롭다운 메뉴를 포털로 body에 렌더링하므로 body를 포함한 선택자 사용
+body .q-menu[role='listbox'] .q-item,
+.q-menu[role='listbox'] .q-item {
+  background-color: transparent;
+
+  &:hover {
+    background-color: var(--nexa-select-item-hover-bg);
+  }
+
+  // 선택된 항목 스타일 (배경색, 텍스트 색상, 체크 아이콘)
+  &.q-item--active {
+    background-color: var(--nexa-select-item-active-bg);
+    position: relative;
+    padding-left: 40px; // 체크 아이콘을 위한 공간 확보
+
+    // 왼쪽에 체크 아이콘 추가
+    &::before {
+      content: 'check';
+      font-family: 'Material Icons';
+      position: absolute;
+      left: 12px;
+      color: var(--nexa-text-primary);
+      font-size: 20px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+    }
+
+    // 선택된 항목의 텍스트 색상
+    .q-item__label {
+      color: var(--nexa-text-primary);
+    }
+
+    // 선택된 항목의 체크마크 아이콘 색상 (오른쪽 아이콘이 있는 경우)
+    .q-icon {
+      color: var(--nexa-text-primary);
+    }
+  }
+}
+
+// // 셀렉트 필드의 드롭다운 화살표 색상
+// .q-select__dropdown-icon {
+//   color: var(--nexa-text-primary);
+//   opacity: 0.6;
+// }
+
+// ============================================
+// 3. 기타 폼 컴포넌트
+// ============================================
+
+// ===== 체크박스 (q-checkbox) =====
+// 체크박스 체크마크 아이콘 색상
+.q-checkbox[aria-checked='true'] .q-checkbox__svg,
+.q-checkbox--checked .q-checkbox__svg {
+  color: var(--nexa-form-indicator-active-color) !important;
+}
+
+// 체크박스 배경색 투명 처리
+.q-checkbox__bg {
+  background: transparent !important;
+  border-color: var(--nexa-form-indicator-color) !important;
+}
+
+// ===== 라디오 버튼 (q-radio) =====
+// 라디오 버튼 선택된 점 색상
+.q-radio[aria-checked='true'] .q-radio__svg,
+.q-radio--checked .q-radio__svg {
+  color: var(--nexa-form-indicator-active-color) !important;
+}
+
+// 라디오 버튼 SVG 내부 요소 색상
+.q-radio[aria-checked='true'] .q-radio__svg *,
+.q-radio--checked .q-radio__svg * {
+  fill: var(--nexa-form-indicator-active-color) !important;
+  stroke: var(--nexa-form-indicator-active-color) !important;
+}
+
+// 라디오 버튼 배경색 투명 처리
+.q-radio__bg {
+  background: transparent !important;
+  border-color: var(--nexa-form-indicator-color) !important;
+}
+
+// ===== 토글 스위치 (q-toggle) =====
+// 토글 트랙 배경 (비활성 상태)
+.q-toggle__track {
+  background-color: var(--nexa-form-indicator-color) !important;
+  transition: background-color 0.3s ease; // 색상 전환 애니메이션
+}
+
+// 활성 상태: 트랙 색상 변경 (피드백)
+.q-toggle[aria-checked='true'] .q-toggle__track {
+  background-color: var(--nexa-form-indicator-active-color) !important;
+}
+
+// 토글 핸들 색상
+// 실제 원형 핸들은 ::before, ::after pseudo-element로 렌더링됨
+.q-toggle__thumb {
+  &::before,
+  &::after {
+    background-color: var(--nexa-form-indicator-active-color);
+  }
+}
+
+// ===== 슬라이더 (q-slider) =====
+// 슬라이더 툴팁(말풍선) 배경 투명 처리
+.q-slider__text-container {
+  background: transparent;
+}
+
+.q-slider__text {
+  color: var(--nexa-form-indicator-active-color);
+}
+
+// 슬라이더 라벨 삼각형 색상 통일
+.q-slider__pin::before {
+  border-top-color: var(--nexa-form-indicator-active-color);
+}
+
+// 슬라이더 트랙 배경색
+.q-slider__track {
+  background-color: var(--nexa-form-track-color) !important;
+}
+
+// 슬라이더 선택 영역 (활성 부분)
+.q-slider__selection {
+  background-color: var(--nexa-form-indicator-active-color) !important;
+}
+
+// 슬라이더 핸들 색상
+.q-slider__thumb-shape path {
+  fill: var(--nexa-form-indicator-active-color) !important;
+  stroke: var(--nexa-form-indicator-active-color) !important;
+}
+
+// 슬라이더 라벨 및 값 표시 색상
+.slider-label,
+.slider-value {
+  color: var(--nexa-form-indicator-active-color);
+}
+
+// ===== 파일 업로드 (q-uploader) =====
+// 파일 업로드 컴포넌트 전역 스타일 (최소한만 적용, 기본은 Quasar에 맡김)
+
+// q-uploader 가로 확장 (Quasar 기본 고정 너비 제거)
+.q-uploader {
+  width: 100%;
+  box-shadow: none !important;
+}
+
+// q-uploader 리스트 배경 투명 및 스타일 처리
+.q-uploader,
+.q-uploader * {
+  background-color: transparent !important;
+}
+
+// 리스트 요소 스타일
+.q-uploader__list,
+.q-uploader .q-uploader__list {
+  border: 1px solid var(--nexa-border-color);
+  box-shadow: none !important;
+}
+
+// q-uploader 헤더 배경색 및 라벨 색상
+// .q-uploader *의 transparent !important를 덮어쓰기 위해 !important 사용
+// --nexa-form-indicator-active-color는 투명도가 있어 보이지 않으므로 패널 헤더 색상 사용
+.q-uploader__header {
+  background-color: var(--nexa-panel-header) !important;
+  color: var(--nexa-form-indicator-active-color) !important;
+
+  // 헤더 내부 모든 텍스트 요소
+  * {
+    color: var(--nexa-form-indicator-active-color) !important;
+  }
+}
+
+// ============================================
+// 4. 공통 유틸리티 스타일
+// ============================================
+
+// 공통 드롭다운 버튼 스타일
+// 뷰 모드, 관리작업 등 드롭다운 버튼의 공통 스타일
+.view-mode-dropdown,
+.work-action-dropdown {
+  font-size: 12px;
+  font-weight: 400;
+
+  .q-btn__content {
+    font-size: 12px;
+    font-weight: 400;
+    gap: -1px;
+
+    .q-btn__label {
+      margin: 0;
+      padding: 0;
+    }
+
+    .q-btn-dropdown__arrow {
+      margin: 0;
+      padding: 0;
+      margin-left: -2px;
+    }
+  }
+}

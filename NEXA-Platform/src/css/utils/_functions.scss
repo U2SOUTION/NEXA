@@ -1,0 +1,56 @@
+// ============================================
+// NEXA SCSS 함수 (Functions)
+// ============================================
+// 재사용 가능한 계산 함수 및 유틸리티 함수
+
+// ============================================
+// 색상 함수
+// ============================================
+
+// NEXA CSS 변수 참조 함수
+// 사용법: nexa-color('primary', 0.8) → rgba(var(--nexa-primary), 0.8)
+@function nexa-color($color-name, $opacity: 1) {
+  @return rgba(var(--nexa-#{$color-name}), $opacity);
+}
+
+// NEXA 아이템 색상 참조 함수
+// 사용법: nexa-item-color('bg') → var(--nexa-item-bg)
+@function nexa-item-color($color-name) {
+  @return var(--nexa-item-#{$color-name});
+}
+
+// ============================================
+// 단위 변환 함수
+// ============================================
+
+// 픽셀을 rem으로 변환 (기본 폰트 크기 16px 기준)
+// 사용법: px-to-rem(16) → 1rem
+@function px-to-rem($pixels, $base-font-size: 16) {
+  @return ($pixels / $base-font-size) * 1rem;
+}
+
+// ============================================
+// 계산 함수
+// ============================================
+
+// 최소값 보장
+// 사용법: min-value(10px, 20px) → 10px
+@function min-value($a, $b) {
+  @return if($a < $b, $a, $b);
+}
+
+// 최대값 보장
+// 사용법: max-value(10px, 20px) → 20px
+@function max-value($a, $b) {
+  @return if($a > $b, $a, $b);
+}
+
+// ============================================
+// 문자열 함수 (필요 시 확장)
+// ============================================
+
+// 문자열 연결 (필요 시 사용)
+// @function str-concat($str1, $str2) {
+//   @return $str1 + $str2;
+// }
+

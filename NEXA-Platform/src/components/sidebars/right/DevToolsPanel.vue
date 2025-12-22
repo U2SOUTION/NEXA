@@ -1,0 +1,194 @@
+<!-- DevToolsPanel.vue
+  DEV 메뉴 전용 우측 도구 패널
+  Mermaid 차트 스타일 편집 등 개발 도구 제공
+-->
+
+<template>
+  <div class="dev-tools-panel">
+    <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
+    <RightSidebarHeader title="Tools Panel" subtitle="Control & Customize Your Documents" push-icon="double_arrow" />
+    <q-scroll-area class="fit">
+      <!-- 아코디언 방식으로 모든 섹션 나열 -->
+      <!-- 목차 섹션 (목차가 있을 때만 표시) -->
+      <div v-if="hasTOCItems" class="accordion-wrapper">
+        <q-expansion-item ref="tocExpansionRef" icon="menu" label="목차" :model-value="tocShouldAutoExpand" @update:model-value="onTOCExpansionChange">
+          <div class="section-content">
+            <PanelTOC
+              :items="documentStore.tocItems || []"
+              :current-section-id="documentStore.currentSectionId"
+              :auto-collapse="documentStore.tocAutoCollapse"
+              :is-all-expanded="documentStore.isAllTOCExpanded"
+              :toc-expanded-map="documentStore.tocExpanded"
+              @toggle="documentStore.toggleTOCItem"
+              @scroll-to="documentStore.scrollToHeading"
+              @toggle-all="documentStore.toggleAllTOC"
+              @auto-collapse-change="documentStore.setAutoCollapse"
+            />
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- Mermaid 스타일 섹션 (Mermaid 블록이 있을 때만 표시) -->
+      <div v-if="hasMermaidBlocks" class="accordion-wrapper">
+        <q-expansion-item ref="mermaidStyleExpansionRef" icon="palette" label="Mermaid 차트 스타일" :model-value="shouldAutoExpand" @update:model-value="onExpansionChange">
+          <div class="section-content">
+            <PanelMermaidStyle :file-path="documentStore.selectedFile?.name || ''" :content="documentStore.displayContent || ''" />
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 테마 색상 패널 (activeMenu === 'theme-manager') -->
+      <div v-if="activeMenu === 'theme-manager'" class="accordion-wrapper">
+        <q-expansion-item icon="palette" label="테마 색상" :model-value="themeColorPanelExpanded" @update:model-value="themeColorPanelExpanded = $event">
+          <div class="section-content">
+            <ThemeColorPanel :selected-color="selectedColor" :usage-count="usageCount" :usage-files="usageFiles" @file-clicked="handleFileClick" />
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 샘플 기능 섹션 (테스트용) -->
+      <div class="accordion-wrapper">
+        <q-expansion-item icon="extension" label="샘플기능">
+          <div class="section-content">
+            <SampleSection />
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 향후 추가 가능한 섹션들 -->
+      <!--
+      <div class="accordion-wrapper">
+        <q-expansion-item icon="settings" label="문서 설정">
+          <div class="section-content">
+            <DocumentSettingsSection />
+          </div>
+        </q-expansion-item>
+      </div>
+      -->
+    </q-scroll-area>
+  </div>
+</template>
+
+<script setup>
+import { computed, ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { useDocumentManagerStore } from 'src/stores/documentManagerStore'
+import { QExpansionItem, QScrollArea } from 'quasar'
+import RightSidebarHeader from './RightSidebarHeader.vue'
+import PanelMermaidStyle from 'src/panel/components/PanelMermaidStyle.vue'
+import PanelTOC from 'src/panel/components/PanelTOC.vue'
+import ThemeColorPanel from './dev-tools/ThemeColorPanel.vue'
+import SampleSection from 'src/modules/document-manager/components/sections/SampleSection.vue'
+
+const documentStore = useDocumentManagerStore()
+const mermaidStyleExpansionRef = ref(null)
+const tocExpansionRef = ref(null)
+const shouldAutoExpand = ref(false)
+const tocShouldAutoExpand = ref(false)
+
+// Active menu 상태
+const activeMenu = ref('document-manager')
+console.log('[DevToolsPanel] 초기 activeMenu:', activeMenu.value)
+
+// 테마 색상 패널 상태
+const selectedColor = ref(null)
+const usageCount = ref(0)
+const usageFiles = ref([])
+const themeColorPanelExpanded = ref(true)
+
+// Active menu 변경 이벤트 리스너
+function handleActiveMenuChange(event) {
+  console.log('[DevToolsPanel] dev-menu-changed 이벤트 수신:', event.detail)
+  activeMenu.value = event.detail.activeMenu
+  console.log('[DevToolsPanel] activeMenu 업데이트:', activeMenu.value)
+  // 테마 관리 메뉴로 변경 시 아코디언 자동으로 열기
+  if (activeMenu.value === 'theme-manager') {
+    themeColorPanelExpanded.value = true
+  }
+}
+
+// 테마 색상 선택 이벤트 리스너
+function handleThemeColorSelected(event) {
+  console.log('[DevToolsPanel] theme-color-selected 이벤트 수신:', event.detail)
+  selectedColor.value = event.detail.color
+  console.log('[DevToolsPanel] selectedColor 업데이트:', selectedColor.value)
+  // TODO: usageCount와 usageFiles는 나중에 통계 분석 결과에서 가져오기
+  usageCount.value = 0
+  usageFiles.value = []
+}
+
+// 파일 클릭 핸들러
+function handleFileClick(filePath) {
+  // TODO: 파일 경로로 이동 구현
+  console.log('파일 클릭:', filePath)
+}
+
+// Mermaid 블록 존재 여부 확인
+const hasMermaidBlocks = computed(() => {
+  if (!documentStore.selectedFile) return false
+  return (documentStore.displayContent || '').includes('mermaid-block')
+})
+
+// 목차 항목 존재 여부 확인
+const hasTOCItems = computed(() => {
+  return documentStore.tocItems && documentStore.tocItems.length > 0
+})
+
+// 전역 이벤트 리스너 등록 (헤더 아이콘 클릭 시 아코디언 펼치기)
+function handleExpandMermaidSection() {
+  shouldAutoExpand.value = true
+  nextTick(() => mermaidStyleExpansionRef.value?.show())
+}
+
+function handleExpandTOCSection() {
+  tocShouldAutoExpand.value = true
+  nextTick(() => tocExpansionRef.value?.show())
+}
+
+onMounted(() => {
+  // 전역 이벤트 리스너 등록
+  window.addEventListener('expand-mermaid-section', handleExpandMermaidSection)
+  window.addEventListener('expand-toc-section', handleExpandTOCSection)
+  window.addEventListener('dev-menu-changed', handleActiveMenuChange)
+  window.addEventListener('theme-color-selected', handleThemeColorSelected)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('expand-mermaid-section', handleExpandMermaidSection)
+  window.removeEventListener('expand-toc-section', handleExpandTOCSection)
+  window.removeEventListener('dev-menu-changed', handleActiveMenuChange)
+  window.removeEventListener('theme-color-selected', handleThemeColorSelected)
+})
+
+// 아코디언 상태 변경 핸들러
+function onExpansionChange(value) {
+  shouldAutoExpand.value = value
+}
+
+function onTOCExpansionChange(value) {
+  tocShouldAutoExpand.value = value
+}
+
+// 외부에서 아코디언 펼치기 함수 노출 (선택적)
+defineExpose({
+  expandMermaidSection: () => {
+    shouldAutoExpand.value = true
+  },
+})
+</script>
+
+<style lang="scss" scoped>
+// Quasar 기본 동작 존중 - 최소한의 커스터마이징만
+// 아코디언 스타일은 전역 스타일(_expansion-item.scss)에 의존
+.dev-tools-panel {
+  height: 100%;
+
+  .q-scroll-area {
+    height: calc(100% - 60px - 60px); // 헤더(60px) + Push/Overlay 버튼 영역(60px) 제외
+  }
+
+  // 섹션 컨텐츠 패딩 (필요시 조정)
+  .section-content {
+    padding: 0.5rem;
+  }
+}
+</style>

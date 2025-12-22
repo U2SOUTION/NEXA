@@ -1,0 +1,73 @@
+// ============================================
+// 아코디언 색상 (expansion-item)
+// ============================================
+// Quasar q-expansion-item 컴포넌트 전역 스타일 오버라이드
+// NEXA 시스템 정책에 맞춘 아코디언 스타일
+
+// 아코디언 wrapper (왼쪽/오른쪽 사이드바 공통)
+.accordion-wrapper {
+  margin-left: 0.5rem; // q-px-sm과 동일 (검색 필드와 정렬)
+  margin-right: 0.5rem;
+  margin-bottom: 4px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.q-expansion-item {
+  background-color: var(--nexa-accordion-bg);
+  border-radius: 4px; // 입력 필드와 동일한 코너 라운드
+  overflow: hidden; // border-radius가 적용되도록
+
+  .q-expansion-item__container {
+    border-radius: 4px;
+  }
+
+  .q-item {
+    background-color: var(--nexa-accordion-header-bg);
+    border-radius: 4px 4px 0 0; // 헤더는 상단만 라운드
+    color: var(--nexa-text-primary); // 아코디언 헤더 텍스트 색상
+
+    // 화살표 아이콘 색상도 텍스트와 동일하게 통일
+    .q-item__section--side .q-icon,
+    .q-expansion-item__icon {
+      color: var(--nexa-text-primary);
+    }
+  }
+
+  .q-expansion-item__content {
+    background-color: var(--nexa-accordion-content-bg);
+    border-radius: 0 0 4px 4px; // 컨텐츠는 하단만 라운드
+    border: 1px solid var(--nexa-border-color);
+    border-top: none; // 헤더와 보더가 겹치지 않도록
+  }
+
+  // 접혀있을 때는 전체 라운드
+  &:not(.q-expansion-item--expanded) {
+    .q-item {
+      border-radius: 4px; // 접혀있을 때는 전체 라운드
+    }
+  }
+
+  &.q-expansion-item--expanded > .q-expansion-item__container > .q-item {
+    background-color: var(--nexa-accordion-expanded-bg);
+    color: var(--nexa-text-primary); // 펼쳐진 상태 텍스트 색상도 동일하게 유지
+
+    // 펼쳐진 상태에서도 화살표 아이콘 색상 통일
+    .q-item__section--side .q-icon,
+    .q-expansion-item__icon {
+      color: var(--nexa-text-primary);
+    }
+  }
+
+  // 호버 상태 텍스트 및 아이콘 색상
+  .q-item:hover {
+    color: var(--nexa-text-primary-hover, var(--nexa-text-primary));
+
+    .q-item__section--side .q-icon,
+    .q-expansion-item__icon {
+      color: var(--nexa-text-primary-hover, var(--nexa-text-primary));
+    }
+  }
+}

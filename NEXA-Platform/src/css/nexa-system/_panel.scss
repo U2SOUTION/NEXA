@@ -1,0 +1,82 @@
+// ============================================
+// NEXA Panel 공통 스타일
+// ============================================
+// 패널 컴포넌트에서 공통으로 사용되는 스타일
+// MermaidStyleSection, TOCSection 등 모든 패널 컴포넌트에 적용
+
+// 패널 섹션 그룹 스타일
+.nexa-panel-section {
+  // 섹션 그룹 (노드 설정, 라인 설정 등) 보더
+  .section-group {
+    border: 1px solid var(--nexa-panel-border);
+    border-radius: 4px;
+    margin-bottom: 5px;
+    background-color: var(--nexa-panel-bg);
+
+    .section-label {
+      background-color: var(--nexa-panel-header);
+      padding: 10px 8px;
+      border-radius: 4px;
+    }
+
+    // 섹션 그룹 내부 아이템 간격
+    > .row,
+    > .color-row {
+      color: var(--nexa-text-secondary);
+      padding: 4px 18px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    // 그림자 효과 섹션은 다른 스타일 영향 받지 않음
+    &.shadow-section {
+      padding-left: 10px;
+
+      .section-label {
+        background-color: transparent;
+        border: none !important;
+        margin: 0;
+      }
+
+      > .row,
+      > .color-row {
+        color: inherit;
+        padding: 0 10px;
+        color: var(--nexa-text-secondary);
+      }
+    }
+  }
+
+  // 라벨 텍스트 크기 제한
+  .label-text {
+    min-width: 60px;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // 색상 박스 스타일
+  .color-box {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    border: 2px solid var(--nexa-border);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  // 색상 박스 버튼 스타일
+  .color-box-btn {
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+}
+
+// 하위 호환성: 기존 클래스명도 지원
+.mermaid-style-section {
+  @extend .nexa-panel-section;
+}
+

@@ -1,0 +1,8 @@
+{
+    "workbench.iconTheme": "vscode-great-icons",
+
+    // 탐색기 설정
+    "explorer.autoReveal": false,
+    "explorer.compactFolders": false,
+    "explorer.confirmDelete": true
+}

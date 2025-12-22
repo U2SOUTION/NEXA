@@ -1,0 +1,50 @@
+{
+    // Python 타입 힌트 색상 커스터마이징
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                // 기본 타입 (str, int 등) - TextMate scope
+                "scope": ["support.type.python"],
+                "settings": {
+                    "foreground": "#4EC9B0",
+                    "fontStyle": "italic"
+                    
+                }
+            }
+        ]
+    },
+
+    // Semantic Highlighting - Pylance가 인식하는 타입 힌트 색상 지정
+    "editor.semanticTokenColorCustomizations": {
+        "enabled": true,
+        "rules": {
+            // 기본 라이브러리 내장 타입 (str, int, float, bool 등)
+            "class.defaultLibrary.builtin": {
+                "foreground": "#4EC9B0",
+                "fontStyle": "italic"
+            },
+            // 기본 라이브러리 클래스
+            "class.defaultLibrary": {
+                "foreground": "#4EC9B0",
+                "fontStyle": "italic"
+            },
+            // 모든 클래스 타입
+            "class": {
+                "foreground": "#4EC9B0",
+                "fontStyle": "italic"
+            },
+            // 타입 자체
+            "type": {
+                "foreground": "#4EC9B0",
+                "fontStyle": "italic"
+            }
+        }
+    },
+
+    // Python 언어 서버 설정
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+
+    // Semantic highlighting 활성화
+    "editor.semanticHighlighting.enabled": true
+}

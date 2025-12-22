@@ -1,0 +1,326 @@
+<template>
+  <div class="performance-monitor-content">
+    <!-- 대형 타이틀 -->
+    <div class="performance-monitor-large-title">PERFORMANCE MONITOR</div>
+
+    <!-- 헤더 -->
+    <div class="performance-monitor-header q-pa-md">
+      <div class="row items-center justify-between">
+        <div class="row items-center q-gutter-md">
+          <q-icon name="speed" size="24px" color="primary" />
+          <div class="performance-monitor-title-section">
+            <h3 class="performance-monitor-title">Performance Monitor</h3>
+            <p class="performance-monitor-subtitle">성능 모니터</p>
+          </div>
+        </div>
+        <div class="row items-center q-gutter-sm">
+          <q-btn :color="isMonitoring ? 'negative' : 'positive'" :label="isMonitoring ? '중지' : '시작'" :icon="isMonitoring ? 'stop' : 'play_arrow'" @click="toggleMonitoring" />
+          <q-btn flat color="grey-7" icon="settings" @click="showSettings = !showSettings" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="performance-monitor-main">
+      <!-- 성능 지표 카드 -->
+      <PerformanceMetricsCards
+        :current-fps="currentFPS"
+        :average-fps="averageFPS"
+        :min-fps="minFPS"
+        :memory-used="memoryUsed"
+        :memory-usage-percent="memoryUsagePercent"
+        :memory-limit="memoryLimit"
+        :lcp-value="lcpValue"
+        :api-duration="apiDuration"
+        :api-count="apiCount"
+        :api-error-rate="apiErrorRate"
+      />
+
+      <!-- 성능 차트 영역 (구현 예정) -->
+      <div class="performance-chart-area q-mt-md">
+        <div class="chart-placeholder q-pa-lg text-center">
+          <q-icon name="show_chart" size="48px" color="grey-5" class="q-mb-md" />
+          <p class="text-grey-7">성능 차트 (구현 예정)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useQuasar } from 'quasar'
+import PerformanceMetricsCards from './PerformanceMetricsCards.vue'
+import { startFPSMonitoring, stopFPSMonitoring, getCurrentFPS, getAverageFPS, getMinFPS } from 'src/utils/performance/fpsMonitor'
+import { startMemoryMonitoring, stopMemoryMonitoring, collectMemorySnapshot } from 'src/utils/performance/memoryMonitor'
+import { onWebVitals, getWebVitals } from 'src/utils/performance/webVitalsCollector'
+import { enableAPIMonitoring, disableAPIMonitoring, getAPIStats } from 'src/utils/performance/apiPerformanceInterceptor'
+import { collectAllBasicMetrics } from 'src/utils/performance/performanceCollector'
+import { savePerformanceData } from 'src/utils/performance/performanceStorage'
+
+const $q = useQuasar()
+
+// 모니터링 상태
+const isMonitoring = ref(false)
+const showSettings = ref(false)
+
+// 성능 지표
+const currentFPS = ref(0)
+const averageFPS = ref(0)
+const minFPS = ref(0)
+const memoryUsed = ref('-')
+const memoryUsagePercent = ref(0)
+const memoryLimit = ref('-')
+const lcpValue = ref('-')
+const apiDuration = ref('-')
+const apiCount = ref(0)
+const apiErrorRate = ref(0)
+
+let updateInterval = null
+let metricsSaveInterval = null
+
+// 모니터링 시작/중지
+function toggleMonitoring() {
+  if (isMonitoring.value) {
+    stopMonitoring()
+  } else {
+    startMonitoring()
+  }
+}
+
+// 모니터링 시작
+function startMonitoring() {
+  isMonitoring.value = true
+
+  // FPS 모니터링 시작
+  startFPSMonitoring(1000, (fps) => {
+    console.log('[PerformanceMonitor] FPS 업데이트:', fps)
+    currentFPS.value = fps
+    averageFPS.value = getAverageFPS()
+    minFPS.value = getMinFPS()
+  })
+
+  // 메모리 모니터링 시작
+  startMemoryMonitoring(1000, (memory) => {
+    updateMemoryMetrics(memory)
+  })
+
+  // Web Vitals 수집 시작
+  onWebVitals((webVitals) => {
+    console.log('[PerformanceMonitor] Web Vitals 업데이트:', webVitals)
+    updateWebVitals(webVitals)
+  })
+
+  // API 모니터링 시작
+  enableAPIMonitoring()
+
+  // 초기 메트릭 업데이트 (즉시 한 번 실행)
+  updateMetrics()
+
+  // 주기적 업데이트
+  updateInterval = setInterval(() => {
+    updateMetrics()
+  }, 1000)
+
+  // 성능 데이터 저장 (10초마다)
+  metricsSaveInterval = setInterval(() => {
+    saveMetricsData()
+  }, 10000)
+
+  $q.notify({
+    type: 'positive',
+    message: '성능 모니터링이 시작되었습니다.',
+    position: 'top',
+  })
+}
+
+// 모니터링 중지
+function stopMonitoring() {
+  isMonitoring.value = false
+
+  stopFPSMonitoring()
+  stopMemoryMonitoring()
+  disableAPIMonitoring()
+
+  if (updateInterval) {
+    clearInterval(updateInterval)
+    updateInterval = null
+  }
+
+  if (metricsSaveInterval) {
+    clearInterval(metricsSaveInterval)
+    metricsSaveInterval = null
+  }
+
+  $q.notify({
+    type: 'info',
+    message: '성능 모니터링이 중지되었습니다.',
+    position: 'top',
+  })
+}
+
+// 메모리 메트릭 업데이트
+function updateMemoryMetrics(memory) {
+  const usedMB = (memory.usedJSHeapSize / (1024 * 1024)).toFixed(2)
+  const limitMB = (memory.jsHeapSizeLimit / (1024 * 1024)).toFixed(2)
+  const percent = ((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100).toFixed(1)
+
+  memoryUsed.value = `${usedMB} MB`
+  memoryLimit.value = `${limitMB} MB`
+  memoryUsagePercent.value = parseFloat(percent)
+}
+
+// Web Vitals 업데이트
+function updateWebVitals(webVitals) {
+  console.log('[PerformanceMonitor] updateWebVitals 호출:', webVitals)
+  if (webVitals.lcp && webVitals.lcp.value !== null && webVitals.lcp.value !== undefined) {
+    const lcpMs = webVitals.lcp.value
+    console.log('[PerformanceMonitor] LCP 값 설정:', lcpMs)
+    lcpValue.value = `${lcpMs.toFixed(0)}ms`
+  }
+}
+
+// 전체 메트릭 업데이트
+function updateMetrics() {
+  // FPS 업데이트 (콜백에서 업데이트되지만, 여기서도 확인)
+  const fps = getCurrentFPS()
+  if (fps > 0) {
+    currentFPS.value = fps
+    averageFPS.value = getAverageFPS()
+    minFPS.value = getMinFPS()
+  }
+
+  // Web Vitals 업데이트 (LCP는 페이지 로드 시점에만 측정되므로, 기존 값 확인)
+  const webVitals = getWebVitals()
+  console.log('[PerformanceMonitor] updateMetrics - Web Vitals:', webVitals)
+  if (webVitals.lcp?.value !== null && webVitals.lcp?.value !== undefined) {
+    lcpValue.value = `${webVitals.lcp.value.toFixed(0)}ms`
+  }
+
+  // API 통계 업데이트
+  const apiStats = getAPIStats({ duration: 60000 }) // 최근 1분
+  console.log('[PerformanceMonitor] updateMetrics - API Stats:', apiStats)
+  if (apiStats.count > 0) {
+    apiDuration.value = `${apiStats.avgDuration.toFixed(0)}ms`
+    apiCount.value = apiStats.count
+    apiErrorRate.value = parseFloat(apiStats.errorRate.toFixed(1))
+  } else {
+    // API 호출이 없을 때도 기본값 유지
+    apiDuration.value = '-'
+    apiCount.value = 0
+    apiErrorRate.value = 0
+  }
+}
+
+// 성능 데이터 저장
+function saveMetricsData() {
+  const webVitals = getWebVitals()
+  const apiStats = getAPIStats({ duration: 60000 })
+  const memory = collectMemorySnapshot()
+
+  const metricsData = {
+    timestamp: Date.now(),
+    frontend: {
+      fps: currentFPS.value,
+      memory: memory,
+      webVitals: webVitals,
+    },
+    api: {
+      requests: [],
+      stats:
+        apiStats.count > 0
+          ? {
+              avgDuration: apiStats.avgDuration,
+              count: apiStats.count,
+              errorRate: apiStats.errorRate,
+            }
+          : null,
+    },
+  }
+
+  savePerformanceData(metricsData)
+}
+
+onMounted(() => {
+  // 컴포넌트 마운트 시 기본 메트릭 수집 (모니터링 시작 전)
+  const basicMetrics = collectAllBasicMetrics()
+  console.log('[PerformanceMonitor] onMounted - 기본 메트릭:', basicMetrics)
+  if (basicMetrics.memory) {
+    updateMemoryMetrics(basicMetrics.memory)
+  }
+
+  // Web Vitals에서 LCP 값 확인 (navigation timing을 통한 근사값 포함)
+  const webVitals = getWebVitals()
+  console.log('[PerformanceMonitor] onMounted - Web Vitals:', webVitals)
+  if (webVitals.lcp && webVitals.lcp.value) {
+    lcpValue.value = `${webVitals.lcp.value.toFixed(0)}ms`
+  }
+})
+
+onBeforeUnmount(() => {
+  if (isMonitoring.value) {
+    stopMonitoring()
+  }
+})
+</script>
+
+<style lang="scss" scoped>
+.performance-monitor-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--nexa-background);
+}
+
+.performance-monitor-large-title {
+  font-size: 50px;
+  font-weight: 900;
+  color: var(--nexa-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  line-height: 1.2;
+  margin-top: 50px;
+  margin-bottom: 2px;
+  background: transparent;
+}
+
+.performance-monitor-header {
+  background: var(--nexa-surface);
+  border-bottom: 1px solid var(--nexa-border-color);
+}
+
+.performance-monitor-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.performance-monitor-title {
+  color: var(--nexa-text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.performance-monitor-subtitle {
+  color: var(--nexa-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.performance-monitor-main {
+  margin-top: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chart-placeholder {
+  background: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 8px;
+  min-height: 300px;
+}
+</style>

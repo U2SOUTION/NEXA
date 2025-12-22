@@ -1,0 +1,328 @@
+// 리스트 뷰 전용 스타일
+// DataListRenderer 컴포넌트에서 사용
+
+.data-list-renderer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+
+  .data-list-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .data-list-items {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 !important;
+    margin: 0 !important;
+
+    // 리스트 아이템 기본 스타일
+    .data-list-item {
+      border-bottom: 12px solid var(--nexa-item-border);
+      transition:
+        background-color 0.2s ease,
+        border-left 0.2s ease;
+
+      // 호버 효과 (선택/롱프레스가 아닐 때만)
+      &:not(.nexa-item-selected):not(.nexa-item-long-pressing):hover {
+        background-color: var(--nexa-item-hover-bg);
+      }
+
+      // 드래그 중
+      &.is-dragging {
+        opacity: 0.5;
+        cursor: grabbing;
+      }
+
+      // 드래그 오버
+      &.drag-over {
+        background-color: var(--nexa-item-dragover-bg) !important;
+        border-left: 3px solid var(--nexa-item-dragover-border);
+      }
+
+      // 드래그 가능한 행
+      &.draggable-row {
+        cursor: grab;
+
+        &:active {
+          cursor: grabbing;
+        }
+      }
+
+      // 리스트 아이템 내용
+      .list-item-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      // 필드 스타일
+      .list-item-field {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+
+        .list-field-label {
+          font-size: 0.875rem;
+          color: var(--nexa-text-secondary);
+          font-weight: 500;
+          min-width: fit-content;
+          flex-shrink: 0;
+        }
+
+        .list-field-value {
+          font-size: 0.875rem;
+          color: var(--nexa-item-text-value);
+          word-break: break-word;
+          flex: 1;
+        }
+      }
+
+      // 행 번호
+      .list-item-number {
+        min-width: 60px;
+        flex-shrink: 0;
+      }
+
+      // 액션 아이콘
+      .list-item-actions {
+        min-width: fit-content;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  // 페이징 영역 (하단 고정)
+  .list-pagination-fixed {
+    flex-shrink: 0;
+    border-top: 1px solid var(--nexa-item-border);
+    background-color: var(--nexa-item-bg);
+    padding: 8px 16px;
+  }
+
+  // 커스텀 아코디언 모드 스타일//////////////////////////////////
+  .data-list-items {
+    .data-list-item {
+      border: 2px solid var(--nexa-item-border);
+      border-radius: 8px;
+      padding: 0 !important; // 아이템 전체 패딩 제거
+      margin-top: 4px !important; // 아이템 전체 마진
+      transition:
+        background-color 0.8s ease,
+        border 0.9s ease;
+
+      // 헤더 (배경색 적용 영역, 화살표 포함)
+      .data-list-header {
+        min-height: 48px;
+        background-color: rgba(80, 80, 80, 0.177);
+        transition: background-color 0.2s ease;
+
+        // 헤더 내용
+        .data-list-header-content {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          min-height: 48px;
+          padding: 0 20px; // 기본 좌우 패딩 (행 간격 설정에서 오버라이드 가능)
+
+          // 행 번호
+          .list-item-number {
+            min-width: 60px;
+            flex-shrink: 0;
+            padding-right: 12px;
+          }
+
+          // 헤더 이름
+          .list-item-header-name {
+            flex: 1;
+            min-width: 0;
+          }
+
+          // 액션 아이콘
+          .list-item-actions {
+            min-width: fit-content;
+            flex-shrink: 0;
+            padding: 0 12px;
+          }
+
+          // 화살표 영역 (헤더 내부에 포함)
+          .data-list-header-toggle {
+            min-width: 48px;
+            max-width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+
+            // 화살표 아이콘 크기 키우기
+            :deep(.q-icon) {
+              font-size: 22px;
+            }
+          }
+        }
+
+        // 드래그 가능할 때만 커서 변경
+        &.draggable-header {
+          cursor: grab !important;
+
+          &:active {
+            cursor: grabbing !important;
+          }
+        }
+      }
+
+      // 선택된 상태에서 헤더 배경색
+      &.nexa-item-selected {
+        .data-list-header {
+          background-color: var(--nexa-item-selected-bg) !important;
+        }
+      }
+
+      // 컨텐츠 영역 (호버 효과 및 커서 완전 제거)
+      .data-list-content {
+        cursor: default !important;
+        background-color: transparent !important;
+
+        &:hover {
+          background-color: transparent !important;
+        }
+
+        .list-item-content {
+          padding: 10px 20px !important;
+          background-color: transparent !important;
+          cursor: default !important;
+
+          &:hover {
+            background-color: transparent !important;
+          }
+        }
+      }
+
+      // 선택된 상태에서도 컨텐츠 호버 효과 제거
+      &.nexa-item-selected {
+        .data-list-content {
+          cursor: default !important;
+
+          &:hover {
+            background-color: transparent !important;
+          }
+
+          .list-item-content {
+            cursor: default !important;
+
+            &:hover {
+              background-color: transparent !important;
+            }
+          }
+        }
+      }
+
+      // 드래그 가능한 행이어도 컨텐츠 영역은 기본 커서
+      &.draggable-row {
+        .data-list-content {
+          cursor: default !important;
+
+          .list-item-content {
+            cursor: default !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+// 행 간격 설정 (커스텀 아코디언에서는 아이템 자체 패딩 제거, 헤더/컨텐츠 내부 패딩만 조정)
+.data-list-items {
+  // Compact
+  &.list-spacing-compact {
+    .data-list-item {
+      padding: 0 !important; // 아이템 자체 패딩 제거
+      min-height: 40px;
+
+      .data-list-header .data-list-header-content {
+        padding: 0 16px; // 헤더 내부 패딩만 조정
+        min-height: 40px;
+      }
+
+      .list-item-field {
+        gap: 4px;
+      }
+    }
+  }
+
+  // Normal (기본값)
+  &.list-spacing-normal {
+    .data-list-item {
+      padding: 0 !important; // 아이템 자체 패딩 제거
+      min-height: 56px;
+
+      .data-list-header .data-list-header-content {
+        padding: 0 20px; // 헤더 내부 패딩만 조정
+        min-height: 48px;
+      }
+
+      .list-item-field {
+        gap: 8px;
+      }
+    }
+  }
+
+  // Comfortable
+  &.list-spacing-comfortable {
+    .data-list-item {
+      padding: 0 !important; // 아이템 자체 패딩 제거
+      min-height: 72px;
+
+      .data-list-header .data-list-header-content {
+        padding: 0 20px; // 헤더 내부 패딩만 조정
+        min-height: 72px;
+      }
+
+      .list-item-field {
+        gap: 12px;
+      }
+    }
+  }
+}
+
+// 폰트 크기 설정
+.data-list-items {
+  // Small
+  &.list-font-small {
+    .list-item-field {
+      .list-field-label,
+      .list-field-value {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  // Medium (기본값)
+  &.list-font-medium {
+    .list-item-field {
+      .list-field-label,
+      .list-field-value {
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  // Large
+  &.list-font-large {
+    .list-item-field {
+      .list-field-label,
+      .list-field-value {
+        font-size: 1rem;
+      }
+    }
+  }
+}

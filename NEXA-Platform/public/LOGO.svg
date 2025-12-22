@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_레이어_1" data-name="레이어 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 25 25">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #be1541;
+      }
+
+      .cls-2 {
+        fill: none;
+      }
+
+      .cls-3 {
+        fill: #e60012;
+      }
+
+      .cls-4 {
+        clip-path: url(#clippath);
+      }
+    </style>
+    <clipPath id="clippath">
+      <polygon class="cls-2" points="18.09 3.18 15.28 11.83 11.58 .07 23.7 -2.81 27.47 2.88 25.85 27.35 19.86 24.47 19.05 21.07 22.96 7.83 18.09 3.18"/>
+    </clipPath>
+  </defs>
+  <rect class="cls-3" x=".24" y="2.1" width="9.39" height="21.86"/>
+  <rect class="cls-3" x="16.09" y=".25" width="4.57" height="24.5" transform="translate(4.55 -4.9) rotate(17.29)"/>
+  <rect class="cls-3" x="9.91" y=".94" width="3.5" height="23.33" transform="translate(-2.01 2.22) rotate(-10)"/>
+  <g class="cls-4">
+    <rect class="cls-1" x="17.16" y=".01" width="3.37" height="24.77" transform="translate(-3.11 7.19) rotate(-20)"/>
+  </g>
+</svg>

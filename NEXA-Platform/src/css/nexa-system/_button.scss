@@ -1,0 +1,63 @@
+// ============================================
+// NEXA 버튼 전역 스타일
+// ============================================
+// Quasar q-btn 컴포넌트 전역 스타일 오버라이드
+// NEXA 시스템 정책에 맞춘 버튼 스타일
+
+// ============================================
+// 아코디언 내부 액션 버튼 패턴
+// ============================================
+// 아코디언, 패널 등 내부에서 사용하는 액션 버튼 공통 스타일
+// outlined, dense, 왼쪽 정렬, 아이콘+라벨 구조
+
+.expansion-action-btn,
+.accordion-action-btn {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  border-color: var(--nexa-border-color);
+  color: var(--nexa-text-primary);
+
+  :deep(.q-btn__content) {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    color: var(--nexa-text-primary);
+  }
+
+  :deep(.q-icon) {
+    font-size: 16px;
+    color: var(--nexa-text-primary);
+  }
+
+  :deep(.q-btn__label) {
+    font-size: 0.875rem;
+    color: var(--nexa-text-primary);
+  }
+
+  &:hover {
+    background-color: var(--nexa-surface-hover);
+    border-color: var(--nexa-border-hover);
+    color: var(--nexa-text-primary);
+
+    :deep(.q-btn__content),
+    :deep(.q-icon),
+    :deep(.q-btn__label) {
+      color: var(--nexa-text-primary);
+    }
+  }
+
+  &:active,
+  &:focus {
+    background-color: var(--nexa-surface-hover);
+    border-color: var(--nexa-primary);
+    color: var(--nexa-text-primary);
+
+    :deep(.q-btn__content),
+    :deep(.q-icon),
+    :deep(.q-btn__label) {
+      color: var(--nexa-text-primary);
+    }
+  }
+}

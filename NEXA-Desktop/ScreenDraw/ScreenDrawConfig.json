@@ -1,0 +1,18 @@
+{
+  "panel_x": -1140,
+  "panel_y": -150,
+  "drawing_area_mode": "partial",
+  "drawing_area_rect": {
+    "x": 1429,
+    "y": 9,
+    "width": 1125,
+    "height": 798
+  },
+  "pen_color": {
+    "r": 13,
+    "g": 67,
+    "b": 252,
+    "a": 255
+  },
+  "pen_width": 5
+}

@@ -1,0 +1,149 @@
+{
+    "name": "nexa-explorer",
+    "displayName": "NEXA Explorer",
+    "description": "Custom file explorer with accordion mode - 독립적인 커스텀 탐색기",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.74.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "nexaExplorerContainer",
+                    "title": "NEXA Explorer",
+                    "icon": "resources/nexa-explorer.svg"
+                }
+            ]
+        },
+        "views": {
+            "nexaExplorerContainer": [
+                {
+                    "id": "nexaExplorer",
+                    "name": "NEXA Explorer",
+                    "when": "true"
+                },
+                {
+                    "id": "nexaExplorer.webview",
+                    "name": "Platform",
+                    "type": "webview",
+                    "when": "true"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "nexaExplorer.expandFolder",
+                "title": "Expand Folder (Accordion Mode)",
+                "icon": "$(folder-opened)"
+            },
+            {
+                "command": "nexaExplorer.collapseAll",
+                "title": "Collapse All",
+                "icon": "$(collapse-all)"
+            },
+            {
+                "command": "nexaExplorer.refresh",
+                "title": "Refresh",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "nexaExplorer.openFolder",
+                "title": "Open Folder (Accordion Mode)"
+            },
+            {
+                "command": "nexaExplorer.toggle",
+                "title": "Toggle Accordion Mode"
+            },
+            {
+                "command": "nexaExplorer.showWebview",
+                "title": "Show Platform Webview"
+            },
+            {
+                "command": "nexaExplorer.toggleCheckbox",
+                "title": "Toggle Checkbox"
+            },
+            {
+                "command": "nexaExplorer.selectValue",
+                "title": "Select Value"
+            },
+            {
+                "command": "nexaExplorer.search",
+                "title": "Search",
+                "icon": "$(search)"
+            },
+            {
+                "command": "nexaExplorer.clearSearch",
+                "title": "Clear Search",
+                "icon": "$(close)"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "nexaExplorer.toggle",
+                "key": "ctrl+k ctrl+a",
+                "when": "nexaExplorerFocus"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "nexaExplorer.search",
+                    "when": "view == nexaExplorer",
+                    "group": "navigation",
+                    "icon": "$(search)"
+                },
+                {
+                    "command": "nexaExplorer.clearSearch",
+                    "when": "view == nexaExplorer && nexaExplorerHasSearch",
+                    "group": "navigation",
+                    "icon": "$(close)"
+                },
+                {
+                    "command": "nexaExplorer.refresh",
+                    "when": "view == nexaExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "nexaExplorer.collapseAll",
+                    "when": "view == nexaExplorer",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "nexaExplorer.openFolder",
+                    "when": "view == nexaExplorer && viewItem == folder",
+                    "group": "inline"
+                },
+                {
+                    "command": "nexaExplorer.toggleCheckbox",
+                    "when": "view == nexaExplorer",
+                    "group": "inline"
+                },
+                {
+                    "command": "nexaExplorer.selectValue",
+                    "when": "view == nexaExplorer",
+                    "group": "inline"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.74.0",
+        "@types/node": "16.x",
+        "typescript": "^4.9.4"
+    }
+}

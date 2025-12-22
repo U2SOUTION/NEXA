@@ -1,0 +1,209 @@
+// 넥사 범용 테이블 기능 스타일 (2단계)
+// 드래그앤드롭, 호버 등 테이블 특화 기능 관련 스타일
+// 아이템 색상 관련 스타일은 _item.scss에서 관리
+
+@import 'item';
+
+// .parts-table 컨테이너 레이아웃 스타일 (DataTableRenderer에서 사용)
+.parts-table {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 1px solid var(--nexa-table-border);
+
+  // ===== 테이블 로우 스타일 =====
+      // 레이아웃/구조만 (색상은 nexa-item.scss에서 공통 관리)
+  :deep(.q-table__body) {
+    .q-tr {
+      cursor: default;
+      position: relative;
+      transition:
+        background-color 0.2s ease,
+        border-left 0.2s ease;
+      border-left: 3px solid transparent;
+      // 색상은 nexa-item.scss에서 공통 관리
+
+      // 드래그 가능한 행
+      &.draggable-row {
+        cursor: default;
+
+        // 드래그 중일 때만 이동 가능 표시
+        &.is-dragging {
+          cursor: move;
+          opacity: 0.5;
+          background-color: rgba(65, 170, 223, 0.1);
+        }
+
+        // 드래그 오버 효과 (아이템 공통 변수 사용)
+        &.drag-over {
+          border-left: 3px solid var(--nexa-item-dragover-border);
+          background-color: var(--nexa-item-dragover-bg);
+          border-top: 1px dashed var(--nexa-item-dragover-border);
+          border-bottom: 1px dashed var(--nexa-item-dragover-border);
+
+          :deep(.q-td) {
+            background-color: var(--nexa-item-dragover-bg);
+          }
+
+          &:hover {
+            background-color: var(--nexa-item-dragover-bg);
+
+            :deep(.q-td) {
+              background-color: var(--nexa-item-dragover-bg);
+            }
+          }
+        }
+      }
+
+      // 선택된 행 스타일은 nexa-item.scss에서 관리
+    }
+  }
+
+  // ===== 테이블 뷰 전용 보더 스타일 =====
+  // 공통 스타일(.nexa-item-selected, .nexa-item-long-pressing)에 보더만 추가
+  :deep(.q-table__body) {
+    // 선택된 행: 보더 없음 (배경색만으로 표시)
+    .q-tr.nexa-item-selected,
+    .q-tr.q-tr--selected {
+      border-left: 3px solid transparent !important;
+    }
+
+    // 롱프레스 행: 왼쪽 보더로 표시
+    .q-tr.nexa-item-long-pressing {
+      border-left: 5px solid var(--nexa-item-longpress-border) !important;
+    }
+  }
+}
+
+// 호버 효과는 nexa-item.scss에서 공통 관리
+
+// ===== 고정 컬럼 스타일 =====
+// 왼쪽 고정 컬럼
+.parts-table {
+  :deep(.q-table) {
+    .q-th.sticky-column-left,
+    .q-td.sticky-column-left {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background-color: var(--nexa-table-header-bg);
+      box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+      // 기본 상태: 원래 배경색 유지
+      transition:
+        background-color 0.2s ease,
+        backdrop-filter 0.2s ease;
+    }
+
+    // 본문 셀의 배경색은 행 배경색과 일치하도록
+    // ⚠️ 색상은 반드시 아이템 공통 테마 변수 사용
+    .q-tr .q-td.sticky-column-left {
+      background-color: var(--nexa-item-bg);
+    }
+
+    // 선택된 행의 고정 컬럼 배경색
+    .q-tr--selected .q-td.sticky-column-left {
+      background-color: var(--nexa-item-selected-bg);
+    }
+
+    // 호버된 행의 고정 컬럼 배경색
+    .q-tr:hover .q-td.sticky-column-left {
+      background-color: var(--nexa-item-hover-bg);
+    }
+
+    // 레이어로 겹쳐질 때만 배경색 변경 (스크롤 가능한 상태에서만)
+    // 스크롤 가능한 테이블 컨테이너 내부의 고정 컬럼에만 적용
+    .q-table__container:has(.q-table__middle[style*='overflow']) {
+      .q-th.sticky-column-left,
+      .q-td.sticky-column-left {
+        backdrop-filter: blur(1px); // blur 효과 줄임
+        body:not(.dark) & {
+          background-color: rgba(61, 61, 61, 0.98) !important; // 더 불투명하게 (0.95 -> 0.98)
+        }
+        body.body--dark & {
+          background-color: rgba(61, 61, 61, 0.98) !important; // 더 불투명하게 (0.95 -> 0.98)
+        }
+      }
+
+      .q-tr .q-td.sticky-column-left {
+        backdrop-filter: blur(1px); // blur 효과 줄임
+        body:not(.dark) & {
+          background-color: rgba(61, 61, 61, 0.98) !important; // 더 불투명하게 (0.95 -> 0.98)
+        }
+        body.body--dark & {
+          background-color: rgba(61, 61, 61, 0.98) !important; // 더 불투명하게 (0.95 -> 0.98)
+        }
+      }
+
+      .q-tr--selected .q-td.sticky-column-left {
+        backdrop-filter: blur(1px); // blur 효과 줄임
+      }
+
+      .q-tr:hover .q-td.sticky-column-left {
+        backdrop-filter: blur(1px); // blur 효과 줄임
+      }
+    }
+
+    // 오른쪽 고정 컬럼
+    .q-th.sticky-column-right,
+    .q-td.sticky-column-right {
+      position: sticky;
+      right: 0;
+      z-index: 1;
+      background-color: var(--nexa-table-header-bg);
+      box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+      // 기본 상태: 원래 배경색 유지
+      transition:
+        background-color 0.2s ease,
+        backdrop-filter 0.2s ease;
+    }
+
+    // 본문 셀의 배경색은 행 배경색과 일치하도록
+    // ⚠️ 색상은 반드시 아이템 공통 테마 변수 사용
+    .q-tr .q-td.sticky-column-right {
+      background-color: var(--nexa-item-bg);
+    }
+
+    // 선택된 행의 고정 컬럼 배경색
+    .q-tr--selected .q-td.sticky-column-right {
+      background-color: var(--nexa-item-selected-bg);
+    }
+
+    // 호버된 행의 고정 컬럼 배경색
+    .q-tr:hover .q-td.sticky-column-right {
+      background-color: var(--nexa-item-hover-bg);
+    }
+
+    // 레이어로 겹쳐질 때만 배경색 변경 (스크롤 가능한 상태에서만)
+    // 스크롤 가능한 테이블 컨테이너 내부의 고정 컬럼에만 적용
+    .q-table__container:has(.q-table__middle[style*='overflow']) {
+      .q-th.sticky-column-right,
+      .q-td.sticky-column-right {
+        backdrop-filter: blur(1px); // blur 효과 줄임
+        body:not(.dark) & {
+          background-color: rgba(61, 61, 61, 0.98) !important; // 더 불투명하게 (0.95 -> 0.98)
+        }
+        body.body--dark & {
+          background-color: rgba(61, 61, 61, 0.98) !important; // 더 불투명하게 (0.95 -> 0.98)
+        }
+      }
+
+      .q-tr .q-td.sticky-column-right {
+        backdrop-filter: blur(1px); // blur 효과 줄임
+        body:not(.dark) & {
+          background-color: rgba(61, 61, 61, 0.98) !important; // 더 불투명하게 (0.95 -> 0.98)
+        }
+        body.body--dark & {
+          background-color: rgba(61, 61, 61, 0.98) !important; // 더 불투명하게 (0.95 -> 0.98)
+        }
+      }
+
+      .q-tr--selected .q-td.sticky-column-right {
+        backdrop-filter: blur(1px); // blur 효과 줄임
+      }
+
+      .q-tr:hover .q-td.sticky-column-right {
+        backdrop-filter: blur(1px); // blur 효과 줄임
+      }
+    }
+  }
+}

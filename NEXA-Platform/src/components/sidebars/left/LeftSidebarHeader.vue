@@ -1,0 +1,47 @@
+<!-- LeftSidebarHeader.vue
+  왼쪽 사이드바 공통 헤더 컴포넌트
+  타이틀과 부제목 표시
+-->
+<template>
+  <div class="left-sidebar-header" @mouseenter="$emit('header-hover', true)" @mouseleave="$emit('header-hover', false)">
+    <q-list>
+      <div class="sidebar-header q-pa-md">
+        <div class="text-h4 sidebar-title q-mb-xs text-bold">{{ title }}</div>
+        <div class="text-caption sidebar-subtitle">{{ subtitle }}</div>
+      </div>
+      <q-separator />
+    </q-list>
+  </div>
+</template>
+
+<script setup>
+defineProps({
+  title: {
+    type: String,
+    required: true,
+  },
+  subtitle: {
+    type: String,
+    required: true,
+  },
+})
+
+defineEmits(['header-hover'])
+</script>
+
+<style lang="scss" scoped>
+.left-sidebar-header {
+  .sidebar-header {
+    background: var(--nexa-background-darker);
+    border-bottom: 1px solid var(--nexa-border-color);
+
+    .sidebar-title {
+      color: var(--nexa-primary);
+    }
+
+    .sidebar-subtitle {
+      color: var(--nexa-text-secondary);
+    }
+  }
+}
+</style>

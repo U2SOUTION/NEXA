@@ -1,0 +1,24 @@
+// ============================================
+// NEXA q-separator 전역 스타일
+// ============================================
+// Quasar의 기본 separator 색상을 넥사 테마 border 색상으로 오버라이드
+// 모든 q-separator 컴포넌트에 전역적으로 적용
+
+// Quasar의 기본 separator 색상을 넥사 테마 border 색상으로 오버라이드
+.q-separator {
+  background-color: var(--nexa-border-color) !important;
+  border-color: var(--nexa-border-color) !important;
+  opacity: 1 !important;
+}
+
+// separator의 수평선 스타일 (기본적으로 border-top 사용)
+.q-separator--horizontal {
+  border-top: 1px solid var(--nexa-border-color) !important;
+  background-color: transparent !important;
+}
+
+// separator의 수직선 스타일
+.q-separator--vertical {
+  border-left: 1px solid var(--nexa-border-color) !important;
+  background-color: transparent !important;
+}

@@ -1,0 +1,15 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "C_Cpp.default.configurationProvider": "platformio-ide",
+    "platformio-ide.useBuiltinPIOCore": true,
+    "platformio-ide.useDevelopmentPIOCore": false,
+    "platformio-ide.forceUploadAndMonitor": false,
+    "platformio-ide.disablePIOHomeStartup": false,
+    "platformio-ide.activateOnlyOnPlatformIOProject": true,
+    "files.associations": {
+        "*.ino": "cpp",
+        "*.h": "cpp",
+        "*.cpp": "cpp"
+    },
+    "python.defaultInterpreterPath": "C:\\Python312\\python.exe"
+}
