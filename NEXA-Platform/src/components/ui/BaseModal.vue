@@ -351,7 +351,7 @@ onUnmounted(() => {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px;
+  padding: 0;
   -webkit-overflow-scrolling: touch;
 }
 

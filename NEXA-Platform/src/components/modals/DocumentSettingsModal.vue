@@ -740,139 +740,143 @@ async function handleSave() {
 </script>
 
 <style lang="scss" scoped>
+// 공통 변수
+$section-indent: 28px;
+$section-spacing: 12px;
+$title-spacing: 6px;
+$surface-padding: 8px;
+$surface-border-radius: 4px;
+
+// 공통 표면 스타일 (extension-list, available-extensions 공통)
+%surface-base {
+  padding: $surface-padding;
+  background-color: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  border-radius: $surface-border-radius;
+}
+
 .document-settings-content {
   width: 100%;
+}
 
-  .settings-section {
-    margin-bottom: 0;
+// 섹션 구조
+.settings-section {
+  margin-bottom: 0;
+}
 
-    .settings-section-title {
-      display: flex;
-      align-items: center;
-      font-size: 14px;
+.settings-section-title {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nexa-text-primary);
+  margin-bottom: $title-spacing;
+}
+
+.settings-section-content {
+  padding-left: $section-indent;
+  margin-bottom: $section-spacing;
+}
+
+// 텍스트 스타일
+.text-caption {
+  display: block;
+  margin-top: 0;
+}
+
+.step-value {
+  font-weight: 600;
+  color: var(--nexa-text-primary);
+  margin-right: 4px;
+}
+
+// 단축키 리스트
+.shortcut-list {
+  .shortcut-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .shortcut-key {
+    flex-shrink: 0;
+    min-width: 120px;
+
+    kbd {
+      display: inline-block;
+      padding: 4px 8px;
+      margin: 2px;
+      font-size: 12px;
       font-weight: 600;
+      line-height: 1.4;
       color: var(--nexa-text-primary);
-      margin-bottom: 6px;
+      background-color: var(--nexa-background-darker);
+      border: 1px solid var(--nexa-border-color);
+      border-radius: $surface-border-radius;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
+  }
 
-    .settings-section-content {
-      padding-left: 28px;
-      margin-bottom: 12px;
-
-      .text-caption {
-        display: block;
-        margin-top: 0;
-
-        .step-value {
-          font-weight: 600;
-          color: var(--nexa-text-primary);
-          margin-right: 4px;
-        }
-      }
-
-      .shortcut-list {
-        .shortcut-item {
-          display: flex;
-          align-items: flex-start;
-          margin-bottom: 0;
-          gap: 16px;
-
-          &:last-child {
-            margin-bottom: 0;
-          }
-
-          .shortcut-key {
-            flex-shrink: 0;
-            min-width: 120px;
-
-            kbd {
-              display: inline-block;
-              padding: 4px 8px;
-              margin: 2px;
-              font-size: 12px;
-              font-weight: 600;
-              line-height: 1.4;
-              color: var(--nexa-text-primary);
-              background-color: var(--nexa-background-darker);
-              border: 1px solid var(--nexa-border-color);
-              border-radius: 4px;
-              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            }
-          }
-
-          .shortcut-description {
-            flex: 1;
-            font-size: 14px;
-            color: var(--nexa-text-secondary);
-            line-height: 1.5;
-          }
-        }
-      }
-
-      .extension-list {
-        min-height: 40px;
-        padding: 8px;
-        background-color: var(--nexa-surface);
-        border: 1px solid var(--nexa-border-color);
-        border-radius: 4px;
-
-        .extension-items {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 4px;
-        }
-      }
-
-      .available-extensions {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        padding: 8px;
-        background-color: var(--nexa-surface);
-        border: 1px solid var(--nexa-border-color);
-        border-radius: 4px;
-        max-height: 200px;
-        overflow-y: auto;
-
-        .extension-checkbox {
-          margin-bottom: 4px;
-        }
-      }
-
-      .refresh-btn-changed {
-        font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-        transition: all 0.2s ease;
-
-        &:hover {
-          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-          transform: translateY(-1px);
-        }
-      }
-
-      .refresh-btn-warning {
-        color: var(--nexa-warning) !important;
-
-        .q-btn__content {
-          color: var(--nexa-warning) !important;
-
-          .q-icon {
-            color: var(--nexa-warning) !important;
-          }
-
-          .q-btn__label {
-            color: var(--nexa-warning) !important;
-          }
-        }
-
-        &:hover {
-          background-color: rgba(237, 178, 15, 0.1);
-        }
-      }
-    }
+  .shortcut-description {
+    flex: 1;
+    font-size: 14px;
+    color: var(--nexa-text-secondary);
+    line-height: 1.5;
   }
 }
 
+// 확장자 리스트 (공통 스타일 적용)
+.extension-list {
+  @extend %surface-base;
+  min-height: 40px;
+
+  .extension-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+.available-extensions {
+  @extend %surface-base;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+
+  .extension-checkbox {
+    margin-bottom: 4px;
+  }
+}
+
+// 새로고침 버튼 스타일
+.refresh-btn-changed {
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+  }
+}
+
+.refresh-btn-warning {
+  color: var(--nexa-warning) !important;
+
+  .q-btn__content,
+  .q-btn__content .q-icon,
+  .q-btn__content .q-btn__label {
+    color: var(--nexa-warning) !important;
+  }
+
+  &:hover {
+    background-color: rgba(237, 178, 15, 0.1);
+  }
+}
+
+// Footer
 .document-settings-footer {
   display: flex;
   justify-content: center;
