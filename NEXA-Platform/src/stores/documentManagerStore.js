@@ -2,8 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { parseMarkdown, escapeHtml } from 'src/modules/document-manager/services/markdownParser.js'
-import { saveCheckboxStates, loadTOCExpandedState } from 'src/modules/document-manager/services/documentStorage.js'
+import { saveCheckboxStates, loadTOCExpandedState, loadSupportedExtensions } from 'src/modules/document-manager/services/documentStorage.js'
 import { useTOC } from 'src/modules/document-manager/composables/useTOC.js'
+import { removeExtension } from 'src/config/documentConfig.js'
 
 /**
  * 문서 관리 Store
@@ -66,8 +67,37 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
   const globalSearchKeywords = ref([]) // 검색 키워드 배열
   const globalSearchResults = ref([]) // 검색 결과 배열
 
+  // 백엔드 확장자 설정 동기화
+  async function syncExtensionsToBackend() {
+    try {
+      const extensions = loadSupportedExtensions()
+      const response = await fetch('http://localhost:3000/api/docs/config/extensions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          extensions: extensions,
+        }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('[Store] 백엔드 확장자 설정 동기화 성공:', result.extensions)
+      } else {
+        console.warn('[Store] 백엔드 확장자 설정 동기화 실패:', response.status)
+      }
+    } catch (error) {
+      console.warn('[Store] 백엔드 확장자 설정 동기화 중 오류 (무시됨):', error.message)
+      // 초기 로드 시 백엔드가 아직 시작되지 않았을 수 있으므로 오류는 무시
+    }
+  }
+
   // 마크다운 파일 목록 로드
   async function loadMarkdownFiles() {
+    // 백엔드 확장자 설정 동기화 (파일 로드 전에 수행)
+    await syncExtensionsToBackend()
+
     try {
       // 이전 파일 목록 및 해시 정보 로드 (localStorage에서)
       const PREVIOUS_FILES_KEY = 'dev-previous-file-list'
@@ -221,10 +251,13 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       // 백엔드에서 가져온 모든 파일을 추가
       for (const [relativePath, fileMeta] of backendFilesMap.entries()) {
         const fileName = fileMeta.fileName
-        let displayName = fileName.replace('.md', '').replace(/_/g, ' ')
+        // 확장자 제거 (설정에서 지정한 확장자 사용)
+        let displayName = removeExtension(fileName).replace(/_/g, ' ')
 
         // README 파일인 경우 최상위 폴더부터 부모 폴더까지 모두 포함
-        if (fileName.toLowerCase() === 'readme.md') {
+        // 확장자 제거 후 'readme'인지 확인
+        const fileNameWithoutExt = removeExtension(fileName).toLowerCase()
+        if (fileNameWithoutExt === 'readme') {
           const pathParts = relativePath.split('/').filter((part) => part && part.trim() !== '')
           if (pathParts.length > 1) {
             // 파일명 제외한 모든 폴더 경로 추출

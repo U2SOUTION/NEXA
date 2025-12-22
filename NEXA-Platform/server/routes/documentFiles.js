@@ -3,14 +3,16 @@ import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs/promises'
+import { isSupportedExtension, setSupportedExtensions, getSupportedExtensions } from '../config/documentConfig.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const router = express.Router()
 
-// DELETE /api/docs/:relativePath - NEXA-Documentation 폴더의 마크다운 파일 영구 삭제
+// DELETE /api/docs/:relativePath - NEXA-Documentation 폴더의 파일 영구 삭제
 // relativePath는 NEXA-Documentation 기준 상대 경로 (예: Platform/01-기획/문서.md)
+// 지원 확장자만 삭제 가능 (설정에서 지정)
 router.delete('/:fileName', async (req, res) => {
   try {
     // URL 파라미터 디코딩
@@ -30,9 +32,9 @@ router.delete('/:fileName', async (req, res) => {
       return res.status(400).json({ error: '잘못된 파일명입니다.' })
     }
 
-    // .md 확장자 확인
-    if (!fileName.toLowerCase().endsWith('.md')) {
-      return res.status(400).json({ error: '마크다운 파일(.md)만 삭제할 수 있습니다.' })
+    // 지원 확장자 확인
+    if (!isSupportedExtension(fileName)) {
+      return res.status(400).json({ error: '지원하는 확장자의 파일만 삭제할 수 있습니다.' })
     }
 
     // 파일 경로 생성 (NEXA-Documentation 폴더 사용)
@@ -108,13 +110,13 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
         return res.status(400).json({ error: '잘못된 새 파일명입니다.' })
       }
 
-      // .md 확장자 확인 (파일명 변경은 .md 파일만)
-      if (!fileName.toLowerCase().endsWith('.md')) {
-        return res.status(400).json({ error: '기존 파일은 마크다운 파일(.md)이어야 합니다.' })
+      // 지원 확장자 확인 (파일명 변경)
+      if (!isSupportedExtension(fileName)) {
+        return res.status(400).json({ error: '기존 파일은 지원하는 확장자여야 합니다.' })
       }
 
-      if (!newFileName.toLowerCase().endsWith('.md')) {
-        return res.status(400).json({ error: '새 파일명은 마크다운 파일(.md) 확장자를 가져야 합니다.' })
+      if (!isSupportedExtension(newFileName)) {
+        return res.status(400).json({ error: '새 파일명은 지원하는 확장자를 가져야 합니다.' })
       }
 
       // 파일 경로 생성 (하위 디렉토리 지원: Platform/01-기획/file.md -> NEXA-Documentation/Platform/01-기획/file.md)
@@ -146,7 +148,7 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
                 if (entry.isDirectory()) {
                   const subFiles = await findFiles(fullPath, path.join(relativePath, entry.name), depth + 1)
                   files.push(...subFiles)
-                } else if (entry.isFile() && entry.name.endsWith('.md')) {
+                } else if (entry.isFile() && isSupportedExtension(entry.name)) {
                   const fileRelativePath = relativePath ? path.join(relativePath, entry.name).replace(/\\/g, '/') : entry.name
                   files.push(fileRelativePath)
                 }
@@ -246,9 +248,9 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
       const lowerFileName = fileName.toLowerCase()
 
       // 머메이드 스타일 설정 파일 저장 ************************
-      // .md 또는 .mermaid.css 확장자 확인
-      if (!lowerFileName.endsWith('.md') && !lowerFileName.endsWith('.mermaid.css')) {
-        return res.status(400).json({ error: '마크다운 파일(.md) 또는 Mermaid 스타일 파일(.mermaid.css)만 쓰기할 수 있습니다.' })
+      // 지원 확장자 확인
+      if (!isSupportedExtension(fileName)) {
+        return res.status(400).json({ error: '지원하는 확장자의 파일만 쓰기할 수 있습니다.' })
       }
 
       // 파일 경로 생성
@@ -291,10 +293,10 @@ router.get('/metadata', async (req, res) => {
   try {
     const docsPath = path.join(__dirname, '../../../NEXA-Documentation')
 
-    // 재귀적으로 모든 .md 파일 찾기 (최대 깊이 10 제한)
+    // 재귀적으로 모든 지원 확장자 파일 찾기 (최대 깊이 10 제한)
     // 주의사항:
     // - 빈 폴더는 자동으로 무시됩니다 (하위 파일이 없으면 빈 배열 반환)
-    // - 확장자 제한: .md 확장자를 가진 파일만 검색 대상입니다 (다른 확장자 파일은 제외)
+    // - 확장자 제한: 지원 확장자를 가진 파일만 검색 대상입니다 (설정에서 지정, 기본값: .md, .mermaid.css)
     async function findFiles(dir, relativePath = '', depth = 0) {
       const MAX_DEPTH = 10
       if (depth > MAX_DEPTH) {
@@ -310,8 +312,8 @@ router.get('/metadata', async (req, res) => {
             // 디렉토리인 경우 재귀적으로 하위 파일 검색 (빈 폴더는 자동으로 제외됨)
             const subFiles = await findFiles(fullPath, path.join(relativePath, entry.name), depth + 1)
             files.push(...subFiles)
-          } else if (entry.isFile() && entry.name.endsWith('.md')) {
-            // .md 확장자를 가진 파일만 처리 (다른 확장자 파일은 제외)
+          } else if (entry.isFile() && isSupportedExtension(entry.name)) {
+            // 지원 확장자를 가진 파일만 처리 (다른 확장자 파일은 제외)
             const fileRelativePath = relativePath ? path.join(relativePath, entry.name).replace(/\\/g, '/') : entry.name
             const fileFullPath = fullPath // 이미 fullPath가 올바른 전체 경로
             try {
@@ -372,9 +374,9 @@ router.post('/:fileName/touch', async (req, res) => {
       return res.status(400).json({ error: '잘못된 파일명입니다.' })
     }
 
-    // .md 확장자 확인
-    if (!fileName.toLowerCase().endsWith('.md')) {
-      return res.status(400).json({ error: '마크다운 파일(.md)만 업데이트할 수 있습니다.' })
+    // 지원 확장자 확인
+    if (!isSupportedExtension(fileName)) {
+      return res.status(400).json({ error: '지원하는 확장자의 파일만 업데이트할 수 있습니다.' })
     }
 
     // 파일 경로 생성 (하위 디렉토리 지원)
@@ -459,9 +461,9 @@ router.post('/', express.raw({ type: '*/*', limit: '10mb' }), express.json(), as
 
     const lowerFileName = fileName.toLowerCase()
 
-    // .md 또는 .mermaid.css 확장자 확인
-    if (!lowerFileName.endsWith('.md') && !lowerFileName.endsWith('.mermaid.css')) {
-      return res.status(400).json({ error: '마크다운 파일(.md) 또는 Mermaid 스타일 파일(.mermaid.css)만 생성할 수 있습니다.' })
+    // 지원 확장자 확인
+    if (!isSupportedExtension(fileName)) {
+      return res.status(400).json({ error: '지원하는 확장자의 파일만 생성할 수 있습니다.' })
     }
 
     // 파일 경로 생성
@@ -533,11 +535,12 @@ router.get('/:fileName', async (req, res) => {
       return res.status(400).json({ error: '잘못된 파일명입니다.' })
     }
 
-    // .md 또는 .mermaid.css 확장자 확인
-    const lowerFileName = fileName.toLowerCase()
-    if (!lowerFileName.endsWith('.md') && !lowerFileName.endsWith('.mermaid.css')) {
-      return res.status(400).json({ error: '마크다운 파일(.md) 또는 Mermaid 스타일 파일(.mermaid.css)만 읽을 수 있습니다.' })
+    // 지원 확장자 확인
+    if (!isSupportedExtension(fileName)) {
+      return res.status(400).json({ error: '지원하는 확장자의 파일만 읽을 수 있습니다.' })
     }
+
+    const lowerFileName = fileName.toLowerCase()
 
     // 파일 경로 생성 (NEXA-Documentation 폴더 사용)
     const docsPath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
@@ -560,6 +563,46 @@ router.get('/:fileName', async (req, res) => {
     }
   } catch (error) {
     console.error('[Docs Get] 파일 읽기 실패:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// POST /api/docs/config/extensions - 지원 확장자 목록 설정
+// 백엔드는 기본 확장자 사용 (추후 API 연동 가능)
+// 프론트엔드에서 설정한 확장자 목록을 백엔드에 동기화
+router.post('/config/extensions', express.json(), async (req, res) => {
+  try {
+    const { extensions } = req.body
+
+    if (!extensions || !Array.isArray(extensions) || extensions.length === 0) {
+      return res.status(400).json({ error: '유효하지 않은 확장자 목록입니다.' })
+    }
+
+    // 확장자 목록 설정
+    setSupportedExtensions(extensions)
+
+    console.log('[Docs Config] 지원 확장자 목록 업데이트:', getSupportedExtensions())
+
+    res.json({
+      success: true,
+      message: '지원 확장자 목록이 업데이트되었습니다.',
+      extensions: getSupportedExtensions(),
+    })
+  } catch (error) {
+    console.error('[Docs Config] 확장자 목록 설정 실패:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// GET /api/docs/config/extensions - 현재 지원 확장자 목록 조회
+router.get('/config/extensions', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      extensions: getSupportedExtensions(),
+    })
+  } catch (error) {
+    console.error('[Docs Config] 확장자 목록 조회 실패:', error)
     res.status(500).json({ error: error.message })
   }
 })

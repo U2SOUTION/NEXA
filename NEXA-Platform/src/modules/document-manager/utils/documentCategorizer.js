@@ -2,6 +2,7 @@
  * 문서 카테고리 분류 함수
  * 폴더 구조 기반 동적 카테고리 분류 (하드코딩 제거)
  */
+import { loadSupportedExtensions } from 'src/config/documentConfig.js'
 
 /**
  * 경로를 레벨별로 분리
@@ -20,11 +21,16 @@ export function getDirectoryLevels(relativePath) {
   // 경로를 슬래시로 분리하고 빈 문자열 제거
   const pathParts = cleanPath.split('/').filter((part) => part && part.trim() !== '')
 
-  // 파일명 제거 (마지막 요소가 .md로 끝나면 제거)
+  // 파일명 제거 (마지막 요소가 지원 확장자로 끝나면 제거)
+  const supportedExtensions = loadSupportedExtensions()
   const filteredParts = pathParts.filter((part, index) => {
-    // 마지막 요소이고 .md로 끝나면 파일명이므로 제외
-    if (index === pathParts.length - 1 && part.toLowerCase().endsWith('.md')) {
-      return false
+    // 마지막 요소이고 지원 확장자로 끝나면 파일명이므로 제외
+    if (index === pathParts.length - 1) {
+      const lowerPart = part.toLowerCase()
+      const isFile = supportedExtensions.some((ext) => lowerPart.endsWith(ext))
+      if (isFile) {
+        return false
+      }
     }
     return true
   })
@@ -55,7 +61,7 @@ function cleanFolderName(folderName) {
   if (!folderName) return ''
   // 숫자 접두사 제거 (01-기획 -> 기획)
   return folderName.replace(/^\d+-/, '').replace(/_/g, ' ').replace(/-/g, ' ')
-}
+  }
 
 /**
  * 파일 카테고리 분류 (그룹 레벨에 따라)
@@ -94,8 +100,8 @@ export function getFileCategory(file, groupLevel = 1) {
     } else if (levels.level1) {
       return levels.level1
     }
-    return '기타'
-  }
+  return '기타'
+}
 
   // 기본값: 1레벨
   return levels.level1 || '기타'

@@ -145,7 +145,24 @@
             </div>
             <div class="text-caption text-grey-6 q-mt-sm">
               <q-icon name="info" size="14px" class="q-mr-xs" />
-              변경 사항은 서버 재시작 후 적용됩니다.
+              확장자 설정을 변경한 후 아래 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
+            </div>
+            <div class="row items-center q-mt-sm q-gutter-sm">
+              <q-btn
+                flat
+                dense
+                icon="refresh"
+                label="파일 목록 새로고침"
+                :color="hasExtensionChanged ? 'primary' : 'grey-7'"
+                :text-color="hasExtensionChanged ? 'white' : 'grey-6'"
+                @click="handleRefreshFileList"
+                :loading="isRefreshing"
+                size="sm"
+                :class="{ 'refresh-btn-changed': hasExtensionChanged }"
+              />
+              <div class="text-caption text-grey-6">
+                변경된 확장자에 맞는 파일들이 목록에 표시됩니다.
+              </div>
             </div>
           </div>
         </div>
@@ -179,10 +196,10 @@
 import { ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useDocumentManagerStore } from 'src/stores/documentManagerStore'
-import { saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
+import { saveTOCSettings, loadSupportedExtensions, saveSupportedExtensions } from 'src/modules/document-manager/services/documentStorage.js'
 import BaseModal from 'src/components/ui/BaseModal.vue'
 
-defineProps({
+const props = defineProps({
   modelValue: {
     type: Boolean,
     required: true,
@@ -208,9 +225,53 @@ const enableAutoReorder = ref(true)
 const showToastMessages = ref(true)
 const toastTimeoutSeconds = ref(3.5) // 초 단위 (1~60초)
 
-// 문서 폴더 경로 및 확장자 설정 (UI만 구성, 로직은 이후 적용)
+// 문서 폴더 경로 및 확장자 설정
 const documentFolderPath = ref('../../../NEXA-Documentation')
 const supportedExtensions = ref(['.md', '.mermaid.css'])
+
+// 초기 확장자 저장 (변경 감지용)
+const initialExtensions = ref([])
+
+// 새로고침 로딩 상태
+const isRefreshing = ref(false)
+
+// 확장자 설정 불러오기
+function loadExtensionSettings() {
+  try {
+    const loaded = loadSupportedExtensions()
+    if (loaded && loaded.length > 0) {
+      supportedExtensions.value = loaded
+    }
+  } catch (error) {
+    console.error('확장자 설정 불러오기 실패:', error)
+  }
+}
+
+// 컴포넌트 마운트 시 확장자 설정 불러오기
+loadExtensionSettings()
+
+// 초기 확장자 저장 (모달이 열릴 때마다)
+function saveInitialExtensions() {
+  initialExtensions.value = [...supportedExtensions.value]
+}
+
+// 확장자 변경 감지
+const hasExtensionChanged = computed(() => {
+  if (initialExtensions.value.length === 0) return false
+  // 배열 복사 후 정렬하여 side effect 방지
+  return JSON.stringify([...initialExtensions.value].sort()) !== JSON.stringify([...supportedExtensions.value].sort())
+})
+
+// 모달이 열릴 때 초기 확장자 저장
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      saveInitialExtensions()
+    }
+  },
+  { immediate: true }
+)
 
 // 사용 가능한 확장자 목록 (미리 정의된 목록만 허용)
 const availableExtensions = ref([
@@ -435,12 +496,103 @@ function handleResetPriority() {
   })
 }
 
+// 백엔드에 확장자 설정 동기화
+async function syncExtensionsWithBackend() {
+  try {
+    const response = await fetch('http://localhost:3000/api/docs/config/extensions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        extensions: supportedExtensions.value,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('[Settings] 백엔드 확장자 설정 동기화 실패:', errorData.error || response.status)
+      $q.notify({
+        type: 'warning',
+        message: '백엔드 설정 동기화에 실패했습니다. 서버를 재시작해야 변경사항이 적용됩니다.',
+        position: 'top',
+        timeout: 3000,
+      })
+      return false
+    } else {
+      const result = await response.json()
+      console.log('[Settings] 백엔드 확장자 설정 동기화 성공:', result.extensions)
+      return true
+    }
+  } catch (error) {
+    console.error('[Settings] 백엔드 확장자 설정 동기화 중 오류:', error)
+    $q.notify({
+      type: 'warning',
+      message: '백엔드 설정 동기화 중 오류가 발생했습니다.',
+      position: 'top',
+      timeout: 3000,
+    })
+    return false
+  }
+}
+
+// 파일 목록 새로고침 핸들러
+async function handleRefreshFileList() {
+  try {
+    isRefreshing.value = true
+
+    // 현재 설정을 localStorage에 저장
+    saveSupportedExtensions(supportedExtensions.value)
+
+    // 백엔드 확장자 설정 동기화
+    const syncSuccess = await syncExtensionsWithBackend()
+
+    if (syncSuccess) {
+      // 파일 목록 새로고침
+      await documentStore.loadMarkdownFiles()
+
+      // 초기 확장자 업데이트 (변경 감지 초기화)
+      saveInitialExtensions()
+
+      $q.notify({
+        type: 'positive',
+        message: '파일 목록이 새로고침되었습니다.',
+        position: 'top',
+        timeout: 2000,
+      })
+    } else {
+      $q.notify({
+        type: 'warning',
+        message: '백엔드 동기화에 실패했습니다. 파일 목록을 새로고침할 수 없습니다.',
+        position: 'top',
+        timeout: 3000,
+      })
+    }
+  } catch (error) {
+    console.error('[Settings] 파일 목록 새로고침 실패:', error)
+    $q.notify({
+      type: 'negative',
+      message: '파일 목록 새로고침 중 오류가 발생했습니다.',
+      position: 'top',
+      timeout: 3000,
+    })
+  } finally {
+    isRefreshing.value = false
+  }
+}
+
 // 저장 핸들러
-function handleSave() {
+async function handleSave() {
   // localStorage에 설정 저장
   saveWheelScrollStep()
   saveToastSettings()
   saveMenuAnimation()
+  // 확장자 설정 저장 (localStorage)
+  saveSupportedExtensions(supportedExtensions.value)
+
+  // 백엔드에 확장자 설정 동기화
+  await syncExtensionsWithBackend()
+
   // TODO: localStorage에 설정 저장
   // - reorderDelaySeconds
   // - enableAutoReorder
@@ -452,6 +604,7 @@ function handleSave() {
     toastTimeoutSeconds: toastTimeoutSeconds.value,
     hideCompleted: hideCompleted.value,
     autoHighlightOnScroll: autoHighlightOnScroll.value,
+    supportedExtensions: supportedExtensions.value,
   })
 
   emit('update:modelValue', false)
@@ -555,6 +708,17 @@ function handleSave() {
 
         .extension-checkbox {
           margin-bottom: 4px;
+        }
+      }
+
+      .refresh-btn-changed {
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+
+        &:hover {
+          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+          transform: translateY(-1px);
         }
       }
     }

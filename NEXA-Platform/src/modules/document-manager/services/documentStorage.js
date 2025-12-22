@@ -3,6 +3,7 @@
  * 로컬 스토리지에 데이터를 저장하고 불러오는 함수들
  */
 import { isRef, nextTick } from 'vue'
+import { loadSupportedExtensions as loadExtensions, saveSupportedExtensions as saveExtensions, removeExtension } from 'src/config/documentConfig.js'
 
 /**
  * 체크박스 상태 불러오기
@@ -157,6 +158,31 @@ export function saveTOCExpandedState(fileName, expandedState) {
     localStorage.setItem(key, JSON.stringify(expandedState))
   } catch (error) {
     console.error('[Storage] 목차 확장 상태 저장 실패:', error)
+  }
+}
+
+/**
+ * 지원 확장자 목록 불러오기
+ * @returns {string[]} 확장자 목록 (점 포함)
+ */
+export function loadSupportedExtensions() {
+  try {
+    return loadExtensions()
+  } catch (error) {
+    console.error('지원 확장자 목록 불러오기 실패:', error)
+    return ['.md', '.mermaid.css'] // 기본값
+  }
+}
+
+/**
+ * 지원 확장자 목록 저장
+ * @param {string[]} extensions - 확장자 목록 (점 포함)
+ */
+export function saveSupportedExtensions(extensions) {
+  try {
+    saveExtensions(extensions)
+  } catch (error) {
+    console.error('지원 확장자 목록 저장 실패:', error)
   }
 }
 
@@ -450,7 +476,7 @@ export async function renameFile(oldFileName, newFileName, store, sidebarRefs) {
         store.markdownFiles[fileIndex] = {
           ...file,
           name: newFileNameOnly,
-          displayName: newFileNameOnly.replace('.md', '').replace(/_/g, ' '),
+          displayName: removeExtension(newFileNameOnly).replace(/_/g, ' '),
           modifiedDate: now, // 파일명 변경 시점을 수정일로 설정
           // path도 업데이트
           path: file.path ? file.path.split('/').slice(0, -1).concat([newFileNameOnly]).join('/') : file.path,
@@ -480,7 +506,7 @@ export async function renameFile(oldFileName, newFileName, store, sidebarRefs) {
           store.selectedFile = {
             ...store.selectedFile,
             name: newFileNameOnly,
-            displayName: newFileNameOnly.replace('.md', '').replace(/_/g, ' '),
+            displayName: removeExtension(newFileNameOnly).replace(/_/g, ' '),
             path: updatedPath,
             modifiedDate: now, // 파일명 변경 시점을 수정일로 설정
           }
