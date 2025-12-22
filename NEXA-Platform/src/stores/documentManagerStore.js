@@ -221,7 +221,23 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       // 백엔드에서 가져온 모든 파일을 추가
       for (const [relativePath, fileMeta] of backendFilesMap.entries()) {
         const fileName = fileMeta.fileName
-        const displayName = fileName.replace('.md', '').replace(/_/g, ' ')
+        let displayName = fileName.replace('.md', '').replace(/_/g, ' ')
+
+        // README 파일인 경우 최상위 폴더부터 부모 폴더까지 모두 포함
+        if (fileName.toLowerCase() === 'readme.md') {
+          const pathParts = relativePath.split('/').filter((part) => part && part.trim() !== '')
+          if (pathParts.length > 1) {
+            // 파일명 제외한 모든 폴더 경로 추출
+            const folderParts = pathParts.slice(0, -1) // 마지막 요소(파일명) 제외
+
+            // 각 폴더명에서 숫자 접두사 제거 및 가독성 변환
+            const cleanedFolders = folderParts.map((folder) => folder.replace(/^\d+-/, '').replace(/_/g, ' ').replace(/-/g, ' '))
+
+            // "README (Platform - 기획)" 형식으로 표시
+            displayName = `README (${cleanedFolders.join('/')})`
+          }
+        }
+
         const metadata = metadataMap.get(relativePath) || { modifiedDate: null, createdDate: null }
 
         // 백엔드 API를 통해 파일 내용을 로드하는 함수

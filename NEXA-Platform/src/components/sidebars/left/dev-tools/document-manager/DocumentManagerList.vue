@@ -27,6 +27,17 @@
         <q-tooltip>{{ getSortTypeLabel() }}</q-tooltip>
       </q-btn>
     </div>
+    <!-- 카테고리 필터 버튼 -->
+    <div v-if="availableCategories && availableCategories.length > 0" class="category-filter-section q-px-sm q-pt-xs q-pb-sm">
+      <div class="row q-gutter-xs category-filter-buttons">
+        <div class="col category-filter-item">
+          <q-btn flat dense :label="'전체'" :class="{ 'category-btn-active': !selectedCategory, 'category-btn-inactive': selectedCategory }" @click="selectCategory(null)" size="sm" class="category-btn full-width" />
+        </div>
+        <div v-for="category in availableCategories" :key="category" class="col category-filter-item">
+          <q-btn flat dense :label="category" :class="{ 'category-btn-active': selectedCategory === category, 'category-btn-inactive': selectedCategory !== category }" @click="selectCategory(category)" size="sm" class="category-btn full-width" />
+        </div>
+      </div>
+    </div>
     <!-- 모드 아이콘 그리드 (라벨 없이, 반응형) -->
     <div class="mode-icon-grid q-px-sm q-pt-xs q-pb-sm">
       <div class="row icon-grid-row">
@@ -1732,5 +1743,57 @@ defineExpose({
 
 .icon-trash {
   color: var(--nexa-text-secondary);
+}
+
+// ============================================
+// 카테고리 필터
+// ============================================
+.category-filter-section {
+  border-top: 1px solid var(--nexa-border-color);
+  padding-top: 8px;
+}
+
+.category-filter-buttons {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.category-filter-item {
+  min-width: 0; // 반응형을 위해 필요
+  flex: 1;
+}
+
+.category-btn {
+  min-height: 24px;
+  padding: 2px 4px;
+  font-size: 11px;
+  border-radius: 4px;
+  border: 1px solid var(--nexa-primary);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+  width: 100%;
+
+  &.category-btn-active {
+    background-color: var(--nexa-button-primary-bg);
+    color: var(--nexa-button-primary-text);
+    border-color: var(--nexa-primary);
+  }
+
+  &.category-btn-inactive {
+    background-color: transparent;
+    color: var(--nexa-primary);
+    border-color: var(--nexa-primary);
+    opacity: 0.7; // 보더와 텍스트 모두 연하게
+
+    &:hover {
+      background-color: var(--nexa-surface);
+      border-color: var(--nexa-primary);
+      color: var(--nexa-primary);
+      opacity: 0.8;
+    }
+  }
 }
 </style>

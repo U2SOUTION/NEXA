@@ -25,8 +25,6 @@
         :get-search-placeholder="getSearchPlaceholder"
         :get-search-mode-icon="getSearchModeIcon"
         :get-search-mode-label="getSearchModeLabel"
-        :available-categories="contentRef?.availableCategories || []"
-        :selected-category="contentRef?.selectedCategory || null"
         @update:global-search-query="searchQuery = $event"
         @perform-global-search="performGlobalSearch"
         @toggle-search-mode="toggleSearchMode"
@@ -36,7 +34,6 @@
         @toggle-trash-view="toggleTrashView"
         @load-markdown-files="loadMarkdownFiles"
         @open-settings="openSettings"
-        @select-category="contentRef?.handleSelectCategory($event)"
       />
 
       <!-- 문서 관리 리스트 -->
