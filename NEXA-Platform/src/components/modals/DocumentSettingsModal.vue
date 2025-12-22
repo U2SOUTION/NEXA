@@ -132,37 +132,38 @@
             <span>지원 확장자</span>
           </div>
           <div class="settings-section-content">
-            <div class="text-caption text-grey-6 q-mb-sm">문서 관리 시스템에서 지원할 파일 확장자를 선택하세요. 미리 정의된 확장자 목록에서만 선택 가능합니다.</div>
+            <!-- 기본 설명글 (변경되지 않았을 때만 표시) -->
+            <div v-if="!hasExtensionChanged" class="text-caption text-grey-6 q-mb-sm">문서 관리 시스템에서 지원할 파일 확장자를 선택하세요. 미리 정의된 확장자 목록에서만 선택 가능합니다.</div>
+            
+            <!-- 새로고침 버튼 및 설명글 (변경되었을 때만 표시) -->
+            <div v-if="hasExtensionChanged" class="refresh-section q-mb-sm">
+              <div class="text-caption text-grey-6" style="margin-bottom: 0; padding-bottom: 0;">
+                <q-icon name="info" size="14px" class="q-mr-xs" />
+                변경된 확장자에 맞는 파일들이 목록에 표시됩니다. 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
+              </div>
+              <div class="row items-center" style="margin-top: 0; padding-top: 0;">
+                <q-btn
+                  flat
+                  dense
+                  icon="refresh"
+                  label="파일 목록 새로고침"
+                  @click="handleRefreshFileList"
+                  :loading="isRefreshing"
+                  size="sm"
+                  class="refresh-btn-changed refresh-btn-warning"
+                  style="margin-top: 0; padding-top: 0;"
+                />
+              </div>
+            </div>
+            
             <div class="extension-list q-mb-sm">
               <div v-if="supportedExtensions.length === 0" class="text-caption text-grey-6 q-py-sm">선택된 확장자가 없습니다. 아래 목록에서 선택하세요.</div>
               <div v-else class="extension-items">
                 <q-chip v-for="(ext, index) in supportedExtensions" :key="index" :label="ext" color="primary" text-color="white" removable @remove="removeExtension(ext)" class="q-mr-xs q-mb-xs" />
               </div>
             </div>
-            <div class="text-caption text-grey-7 q-mb-sm" style="font-weight: 500">사용 가능한 확장자 목록:</div>
             <div class="available-extensions q-mb-sm">
               <q-checkbox v-for="ext in availableExtensions" :key="ext.value" v-model="ext.selected" :label="ext.label" color="primary" dense @update:model-value="handleExtensionToggle(ext.value, $event)" class="extension-checkbox" />
-            </div>
-            <div class="text-caption text-grey-6 q-mt-sm">
-              <q-icon name="info" size="14px" class="q-mr-xs" />
-              확장자 설정을 변경한 후 아래 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
-            </div>
-            <div class="row items-center q-mt-sm q-gutter-sm">
-              <q-btn
-                flat
-                dense
-                icon="refresh"
-                label="파일 목록 새로고침"
-                :color="hasExtensionChanged ? 'primary' : 'grey-7'"
-                :text-color="hasExtensionChanged ? 'white' : 'grey-6'"
-                @click="handleRefreshFileList"
-                :loading="isRefreshing"
-                size="sm"
-                :class="{ 'refresh-btn-changed': hasExtensionChanged }"
-              />
-              <div class="text-caption text-grey-6">
-                변경된 확장자에 맞는 파일들이 목록에 표시됩니다.
-              </div>
             </div>
           </div>
         </div>
@@ -719,6 +720,26 @@ async function handleSave() {
         &:hover {
           box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
           transform: translateY(-1px);
+        }
+      }
+
+      .refresh-btn-warning {
+        color: var(--nexa-warning) !important;
+
+        .q-btn__content {
+          color: var(--nexa-warning) !important;
+
+          .q-icon {
+            color: var(--nexa-warning) !important;
+          }
+
+          .q-btn__label {
+            color: var(--nexa-warning) !important;
+          }
+        }
+
+        &:hover {
+          background-color: rgba(237, 178, 15, 0.1);
         }
       }
     }
