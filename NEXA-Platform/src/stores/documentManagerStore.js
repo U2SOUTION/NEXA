@@ -123,21 +123,21 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         // 이전 파일 목록에서 사라진 파일 찾기 (파일명 변경 또는 삭제)
         const missingFiles = previousFileList.filter((prevPath) => !currentFileRelativePaths.includes(prevPath))
         const newFiles = currentFileRelativePaths.filter((currPath) => !previousFileList.includes(currPath))
-        
+
         if (missingFiles.length > 0 && newFiles.length > 0) {
           console.log(`[Store] 파일 목록 변경 감지 - 사라진 파일: ${missingFiles.length}개, 새 파일: ${newFiles.length}개`)
-          
+
           // 파일명 변경 감지: 이전 파일과 새 파일의 contentHash를 비교
           for (const newFilePath of newFiles) {
             const newFileMeta = metadataMap.get(newFilePath)
             if (!newFileMeta || !newFileMeta.contentHash) continue
-            
+
             // 새 파일의 contentHash와 동일한 해시를 가진 이전 파일 찾기
             const matchingPrevFile = missingFiles.find((prevPath) => {
               const prevHashData = previousFileHashes.get(prevPath)
               return prevHashData && prevHashData.contentHash === newFileMeta.contentHash
             })
-            
+
             if (matchingPrevFile) {
               // 파일명이 변경된 것으로 확인됨
               console.log(`[Store] 파일명 변경 감지: ${matchingPrevFile} -> ${newFilePath}`)
@@ -146,7 +146,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
           }
         }
       }
-      
+
       // 파일명이 변경된 파일의 mtime 업데이트
       if (filesToTouch.length > 0) {
         console.log(`[Store] ${filesToTouch.length}개 파일의 mtime 업데이트 시작...`)
@@ -166,7 +166,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
             console.error(`[Store] 파일 mtime 업데이트 오류: ${filePath}`, error)
           }
         }
-        
+
         // mtime 업데이트 후 메타데이터 재로드
         console.log('[Store] mtime 업데이트 후 메타데이터 재로드 중...')
         try {
@@ -196,7 +196,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
           console.warn('[Store] 메타데이터 재로드 실패 (계속 진행):', error)
         }
       }
-      
+
       // 현재 파일 목록 및 해시 정보 저장 (다음 로드 시 비교용)
       try {
         localStorage.setItem(PREVIOUS_FILES_KEY, JSON.stringify(currentFileRelativePaths))
@@ -214,91 +214,43 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         console.warn('[Store] 현재 파일 목록 저장 실패:', e)
       }
 
-      // Vite의 import.meta.glob을 사용하여 파일 내용 로드 함수 가져오기
-      const modules = import.meta.glob('/docs/**/*.md', { as: 'raw', eager: false })
-
+      // 백엔드 API에서 가져온 파일 목록만 사용 (import.meta.glob 제거)
+      // 문서는 NEXA-Documentation 폴더에 있으며, 모든 파일 로드는 백엔드 API를 통해 수행됩니다
       const files = []
-      const addedFiles = new Set() // 이미 추가된 파일 추적 (중복 방지)
 
-      // 1단계: import.meta.glob에 있는 파일 중 백엔드에 존재하는 파일만 추가
-      for (const [vitePath, loadContent] of Object.entries(modules)) {
-        const relativePath = vitePath.replace(/^\/docs\//, '')
-        const backendFile = backendFilesMap.get(relativePath)
-
-        // 백엔드 파일 목록에 있는 파일만 포함 (실제 파일 시스템에 존재하는 파일)
-        if (backendFile) {
-          addedFiles.add(relativePath) // 추가된 파일 기록
-
-          const fileName = backendFile.fileName
-          const displayName = fileName.replace('.md', '').replace(/_/g, ' ')
-          const metadata = metadataMap.get(relativePath) || { modifiedDate: null, createdDate: null }
-
-          // 항상 백엔드 API를 통해 최신 내용을 가져오도록 수정
-          const loadContentFromBackend = async () => {
-            try {
-              const response = await fetch(`http://localhost:3000/api/docs/${encodeURIComponent(relativePath)}`)
-              if (response.ok) {
-                return await response.text()
-              }
-            } catch (error) {
-              console.warn(`[Store] 파일 내용 로드 실패: ${relativePath}`, error)
-              // 백엔드 로드 실패 시 import.meta.glob을 폴백으로 사용
-              try {
-                return await loadContent()
-              } catch (fallbackError) {
-                console.warn(`[Store] 폴백 로드 실패: ${relativePath}`, fallbackError)
-              }
-            }
-            return ''
-          }
-
-          files.push({
-            name: fileName,
-            displayName: displayName,
-            path: vitePath,
-            loadContent: loadContentFromBackend,
-            modifiedDate: metadata.modifiedDate,
-            createdDate: metadata.createdDate,
-          })
-        }
-      }
-
-      // 2단계: 백엔드에는 있지만 import.meta.glob에 없는 파일 추가 (신규 직접 생성된 파일)
+      // 백엔드에서 가져온 모든 파일을 추가
       for (const [relativePath, fileMeta] of backendFilesMap.entries()) {
-        // 이미 추가된 파일은 건너뛰기
-        if (addedFiles.has(relativePath)) {
-          continue
-        }
+        const fileName = fileMeta.fileName
+        const displayName = fileName.replace('.md', '').replace(/_/g, ' ')
+        const metadata = metadataMap.get(relativePath) || { modifiedDate: null, createdDate: null }
 
-        const vitePath = `/docs/${relativePath}`
-        // import.meta.glob에 없는 파일 (신규 파일)
-        if (!modules[vitePath]) {
-          // 동적 파일의 경우 백엔드에서 직접 로드하는 함수 생성
-          const loadContent = async () => {
-            try {
-              const response = await fetch(`http://localhost:3000/api/docs/${encodeURIComponent(relativePath)}`)
-              if (response.ok) {
-                return await response.text()
-              }
-            } catch (error) {
-              console.warn(`[Store] 파일 내용 로드 실패: ${relativePath}`, error)
+        // 백엔드 API를 통해 파일 내용을 로드하는 함수
+        const loadContent = async () => {
+          try {
+            const response = await fetch(`http://localhost:3000/api/docs/${encodeURIComponent(relativePath)}`)
+            if (response.ok) {
+              return await response.text()
+            } else {
+              console.warn(`[Store] 파일 내용 로드 실패: ${relativePath} (${response.status})`)
             }
-            return ''
+          } catch (error) {
+            console.warn(`[Store] 파일 내용 로드 실패: ${relativePath}`, error)
           }
-
-          const fileName = fileMeta.fileName
-          const displayName = fileName.replace('.md', '').replace(/_/g, ' ')
-          const metadata = metadataMap.get(relativePath) || { modifiedDate: null, createdDate: null }
-
-          files.push({
-            name: fileName,
-            displayName: displayName,
-            path: vitePath,
-            loadContent: loadContent,
-            modifiedDate: metadata.modifiedDate,
-            createdDate: metadata.createdDate,
-          })
+          return ''
         }
+
+        // path는 relativePath와 동일하게 설정 (표시용, 기존 코드 호환성 유지)
+        // docs/ 폴더가 삭제되었으므로 /docs/ 접두사 불필요
+
+        files.push({
+          name: fileName,
+          displayName: displayName,
+          path: relativePath, // relativePath와 동일 (기존 코드 호환성)
+          relativePath: relativePath, // 실제 경로 (카테고리 분류용)
+          loadContent: loadContent,
+          modifiedDate: metadata.modifiedDate,
+          createdDate: metadata.createdDate,
+        })
       }
 
       // 파일명으로 정렬
@@ -481,7 +433,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
 
     // 저장된 확장 상태 로드 (파일별)
     const savedExpandedState = loadTOCExpandedState(selectedFile.value.name)
-    
+
     // 기본 확장 상태 설정 (저장된 상태가 없으면 모두 펼침)
     const expanded = {}
     function setExpandedState(items) {
@@ -496,7 +448,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     }
     setExpandedState(tree)
     tocExpanded.value = expanded
-    
+
     // 전체 토글 상태 초기화 (초기값: 모든 하위 항목이 펼쳐져 있는지 확인)
     function checkAllExpanded(items, isRootLevel = false) {
       return items.every((item) => {
@@ -612,7 +564,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       // 클릭한 요소가 체크박스나 라벨이 아닌 경우 무시
       const isCheckbox = event.target.classList.contains('dev-checkbox-input') && event.target.tagName === 'INPUT'
       const isLabel = event.target.classList.contains('dev-checkbox-label') && event.target.tagName === 'LABEL'
-      
+
       // 체크박스나 라벨이 아닌 경우 무시 (빈 공간 클릭)
       if (!isCheckbox && !isLabel) {
         event.stopPropagation()
@@ -624,7 +576,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     // 체크박스 또는 라벨 클릭 처리
     const isCheckbox = event.target.classList.contains('dev-checkbox-input') && event.target.tagName === 'INPUT'
     const isLabel = event.target.classList.contains('dev-checkbox-label') && event.target.tagName === 'LABEL'
-    
+
     if (isCheckbox || isLabel) {
       // 체크박스 직접 클릭 또는 라벨 클릭으로 인한 체크박스 토글
       let checkbox = null
@@ -641,9 +593,9 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
           checkbox = event.target.previousElementSibling
         }
       }
-      
+
       const container = checkbox?.closest('.checkbox-item')
-      
+
       if (container && checkbox && checkbox.classList.contains('dev-checkbox-input')) {
         const fileKey = container.dataset.fileKey
         const lineKey = container.dataset.lineKey

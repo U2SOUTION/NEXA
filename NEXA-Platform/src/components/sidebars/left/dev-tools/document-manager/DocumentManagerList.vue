@@ -1037,7 +1037,7 @@ const sortedSearchResults = computed(() => {
 })
 
 // 리스트 모드 및 정렬 기능
-const { toggleListMode, toggleSortOrder, toggleSortType, getSortTypeIcon, getSortTypeLabel, getListModeIcon, getListModeLabel, formatDate, groupedFiles, sortedFiles } = useDocumentList(
+const { toggleListMode, toggleSortOrder, toggleSortType, getSortTypeIcon, getSortTypeLabel, getListModeIcon, getListModeLabel, formatDate, groupedFiles, sortedFiles, availableCategories, selectedCategory, selectCategory } = useDocumentList(
   toRef(documentStore, 'markdownFiles'),
   fileUsageCounts,
   favoriteStates,
@@ -1051,7 +1051,7 @@ const { toggleListMode, toggleSortOrder, toggleSortType, getSortTypeIcon, getSor
 // 모드 옵션 배열 (기존 모드 배열 순서대로)
 const listModeOptions = [
   { value: 'default', label: '기본 순서 정렬', icon: 'list' },
-  { value: 'group', label: '카테고리별 그룹 정렬', icon: 'folder' },
+  { value: 'group', label: '폴더 그룹 정렬', icon: 'folder' },
   { value: 'name', label: '이름순 정렬', icon: 'sort_by_alpha' },
   { value: 'modified', label: '수정일순 정렬', icon: 'schedule' },
   { value: 'created', label: '생성일순 정렬', icon: 'add_circle' },
@@ -1237,6 +1237,11 @@ async function handlePermanentlyDeleteSelected() {
 }
 
 // Expose 멀티 셀렉션 관련 값들
+// 카테고리 필터 핸들러
+function handleSelectCategory(category) {
+  selectCategory(category === '전체' ? null : category)
+}
+
 defineExpose({
   selectedRows,
   selectedCount,
@@ -1246,6 +1251,9 @@ defineExpose({
   handleMoveSelectedToTrash,
   handleRestoreSelected,
   handlePermanentlyDeleteSelected,
+  availableCategories,
+  selectedCategory,
+  handleSelectCategory,
 })
 </script>
 

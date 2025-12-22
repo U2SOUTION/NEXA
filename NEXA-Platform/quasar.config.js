@@ -69,12 +69,13 @@ export default defineConfig((/* ctx */) => {
           // clientPort는 명시하지 않음 - Vite가 자동으로 개발 서버 포트를 사용
         }
 
-        // 파일 감시 설정: docs 폴더/파일명 변경/삭제 시 페이지 리로드 방지
+        // 파일 감시 설정: NEXA-Documentation 폴더/파일명 변경/삭제 시 페이지 리로드 방지
         // 원인을 찾이 힘들었으니 주의 할것
         viteConf.server.watch = viteConf.server.watch || {}
         viteConf.server.watch.ignored = [
           ...(viteConf.server.watch.ignored || []),
-          '**/docs/**', // docs 폴더의 모든 파일 변경 무시
+          '**/docs/**', // docs 폴더의 모든 파일 변경 무시 (심볼릭 링크용)
+          '**/NEXA-Documentation/**', // NEXA-Documentation 폴더의 모든 파일 변경 무시
         ]
 
         // Tiptap 최적화 설정

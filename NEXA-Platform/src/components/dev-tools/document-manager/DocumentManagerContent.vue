@@ -526,9 +526,9 @@ async function handleRefreshFile() {
 async function handleUpdateModifiedDate() {
   if (!documentStore.selectedFile) return
 
-  const filePath = documentStore.selectedFile.path || ''
-  const relativeFullPath = filePath.replace(/^\/docs\//, '')
-  const pathParts = relativeFullPath.split('/')
+  // path는 이미 relativePath와 동일하므로 그대로 사용
+  const filePath = documentStore.selectedFile.relativePath || documentStore.selectedFile.path || ''
+  const pathParts = filePath.split('/')
   const actualFileName = pathParts[pathParts.length - 1]
   const directoryPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : ''
   const fullRelativePath = directoryPath ? `${directoryPath}/${actualFileName}` : actualFileName
@@ -582,8 +582,9 @@ async function handleUpdateModifiedDate() {
 function handleRenameFile() {
   if (!documentStore.selectedFile) return
 
-  const filePath = documentStore.selectedFile.path || ''
-  const relativeFullPath = filePath.replace(/^\/docs\//, '')
+  // path는 이미 relativePath와 동일하므로 그대로 사용
+  const filePath = documentStore.selectedFile.relativePath || documentStore.selectedFile.path || ''
+  const relativeFullPath = filePath
   const pathParts = relativeFullPath.split('/')
   const actualFileName = pathParts[pathParts.length - 1]
   const directoryPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : ''
@@ -1072,4 +1073,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

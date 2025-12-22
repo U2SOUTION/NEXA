@@ -19,6 +19,34 @@
           </template>
         </q-input>
       </div>
+      <!-- 카테고리 필터 -->
+      <div v-if="availableCategories && availableCategories.length > 0" class="category-filter-section q-mb-sm">
+        <div class="category-filter-label q-mb-xs">폴더 필터</div>
+        <div class="category-filter-buttons">
+          <q-btn
+            flat
+            dense
+            size="sm"
+            :class="selectedCategory === null ? 'category-btn-active' : 'category-btn-inactive'"
+            @click="$emit('selectCategory', null)"
+            class="category-btn"
+          >
+            전체
+          </q-btn>
+          <q-btn
+            v-for="category in availableCategories"
+            :key="category"
+            flat
+            dense
+            size="sm"
+            :class="selectedCategory === category ? 'category-btn-active' : 'category-btn-inactive'"
+            @click="$emit('selectCategory', category)"
+            class="category-btn"
+          >
+            {{ category }}
+          </q-btn>
+        </div>
+      </div>
       <!-- 6개 아이콘 버튼 그리드 -->
       <div class="row icon-grid-row q-mb-sm">
         <!-- Exclude -->
@@ -112,9 +140,17 @@ defineProps({
     type: Function,
     required: true,
   },
+  availableCategories: {
+    type: Array,
+    default: () => [],
+  },
+  selectedCategory: {
+    type: String,
+    default: null,
+  },
 })
 
-defineEmits(['update:globalSearchQuery', 'performGlobalSearch', 'toggleSearchMode', 'toggleExcludedFiles', 'toggleHideCompleted', 'toggleHighlight', 'toggleTrashView', 'loadMarkdownFiles', 'openSettings'])
+defineEmits(['update:globalSearchQuery', 'performGlobalSearch', 'toggleSearchMode', 'toggleExcludedFiles', 'toggleHideCompleted', 'toggleHighlight', 'toggleTrashView', 'loadMarkdownFiles', 'openSettings', 'selectCategory'])
 </script>
 
 <style lang="scss" scoped>
@@ -251,5 +287,55 @@ defineEmits(['update:globalSearchQuery', 'performGlobalSearch', 'toggleSearchMod
   background: transparent;
   color: var(--nexa-warning);
   left: 0;
+}
+
+// ============================================
+// 카테고리 필터
+// ============================================
+.category-filter-section {
+  border-top: 1px solid var(--nexa-border-color);
+  padding-top: 8px;
+}
+
+.category-filter-label {
+  font-size: 11px;
+  color: var(--nexa-text-secondary);
+  font-weight: 500;
+}
+
+.category-filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.category-btn {
+  min-height: 24px;
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  border: 1px solid var(--nexa-border-color);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+
+  &.category-btn-active {
+    background-color: var(--nexa-button-primary-bg);
+    color: var(--nexa-button-primary-text);
+    border-color: var(--nexa-button-primary-bg);
+  }
+
+  &.category-btn-inactive {
+    background-color: transparent;
+    color: var(--nexa-text-secondary);
+    border-color: var(--nexa-border-color);
+
+    &:hover {
+      background-color: var(--nexa-surface);
+      border-color: var(--nexa-primary);
+      color: var(--nexa-text-primary);
+    }
+  }
 }
 </style>

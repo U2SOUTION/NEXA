@@ -9,7 +9,8 @@ const __dirname = path.dirname(__filename)
 
 const router = express.Router()
 
-// DELETE /api/docs/:fileName - docs 폴더의 마크다운 파일 영구 삭제
+// DELETE /api/docs/:relativePath - NEXA-Documentation 폴더의 마크다운 파일 영구 삭제
+// relativePath는 NEXA-Documentation 기준 상대 경로 (예: Platform/01-기획/문서.md)
 router.delete('/:fileName', async (req, res) => {
   try {
     // URL 파라미터 디코딩
@@ -34,8 +35,8 @@ router.delete('/:fileName', async (req, res) => {
       return res.status(400).json({ error: '마크다운 파일(.md)만 삭제할 수 있습니다.' })
     }
 
-    // 파일 경로 생성
-    const docsPath = path.join(__dirname, '../../docs', fileName)
+    // 파일 경로 생성 (NEXA-Documentation 폴더 사용)
+    const docsPath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
 
     // 파일 존재 확인
     try {
@@ -64,7 +65,8 @@ router.delete('/:fileName', async (req, res) => {
   }
 })
 
-// PUT /api/docs/:fileName - 파일명 변경 또는 파일 내용 쓰기
+// PUT /api/docs/:relativePath - NEXA-Documentation 폴더의 파일명 변경 또는 파일 내용 쓰기
+// relativePath는 NEXA-Documentation 기준 상대 경로 (예: Platform/01-기획/문서.md)
 // 파일 내용 쓰기를 위해 express.raw 또는 express.json 미들웨어 필요
 router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.json(), async (req, res) => {
   try {
@@ -115,9 +117,9 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
         return res.status(400).json({ error: '새 파일명은 마크다운 파일(.md) 확장자를 가져야 합니다.' })
       }
 
-      // 파일 경로 생성 (하위 디렉토리 지원: CORE/file.md -> docs/CORE/file.md)
-      const oldPath = path.join(__dirname, '../../docs', fileName)
-      const newPath = path.join(__dirname, '../../docs', newFileName)
+      // 파일 경로 생성 (하위 디렉토리 지원: Platform/01-기획/file.md -> NEXA-Documentation/Platform/01-기획/file.md)
+      const oldPath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
+      const newPath = path.join(__dirname, '../../../NEXA-Documentation', newFileName)
 
       // 기존 파일 존재 확인
       try {
@@ -127,17 +129,22 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
         }
       } catch (error) {
         if (error.code === 'ENOENT') {
-          // 디버깅: docs 폴더의 파일 목록 출력 (재귀적 검색)
+          // 디버깅: NEXA-Documentation 폴더의 파일 목록 출력 (재귀적 검색)
           try {
-            const docsDir = path.join(__dirname, '../../docs')
-            // 재귀적으로 모든 파일 찾기
-            async function findFiles(dir, relativePath = '') {
+            const docsDir = path.join(__dirname, '../../../NEXA-Documentation')
+            // 재귀적으로 모든 파일 찾기 (최대 깊이 10 제한)
+            async function findFiles(dir, relativePath = '', depth = 0) {
+              const MAX_DEPTH = 10
+              if (depth > MAX_DEPTH) {
+                console.warn(`[Docs Rename] 최대 깊이(${MAX_DEPTH}) 초과: ${dir}`)
+                return []
+              }
               const files = []
               const entries = await fs.readdir(dir, { withFileTypes: true })
               for (const entry of entries) {
                 const fullPath = path.join(dir, entry.name)
                 if (entry.isDirectory()) {
-                  const subFiles = await findFiles(fullPath, path.join(relativePath, entry.name))
+                  const subFiles = await findFiles(fullPath, path.join(relativePath, entry.name), depth + 1)
                   files.push(...subFiles)
                 } else if (entry.isFile() && entry.name.endsWith('.md')) {
                   const fileRelativePath = relativePath ? path.join(relativePath, entry.name).replace(/\\/g, '/') : entry.name
@@ -191,7 +198,7 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
       // 새 파일명의 디렉토리 경로 추출
       const newFilePathParts = newFileName.split('/')
       const newFileDirectory = newFilePathParts.length > 1 ? newFilePathParts.slice(0, -1).join('/') : ''
-      const newFileDirectoryPath = newFileDirectory ? path.join(__dirname, '../../docs', newFileDirectory) : null
+      const newFileDirectoryPath = newFileDirectory ? path.join(__dirname, '../../../NEXA-Documentation', newFileDirectory) : null
 
       // 새 파일 디렉토리가 있고 존재하지 않으면 생성
       if (newFileDirectoryPath) {
@@ -245,13 +252,13 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
       }
 
       // 파일 경로 생성
-      const filePath = path.join(__dirname, '../../docs', fileName)
+      const filePath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
 
       // 디렉토리 경로 추출 및 생성
       const filePathParts = fileName.split('/')
       if (filePathParts.length > 1) {
         const fileDirectory = filePathParts.slice(0, -1).join('/')
-        const fileDirectoryPath = path.join(__dirname, '../../docs', fileDirectory)
+        const fileDirectoryPath = path.join(__dirname, '../../../NEXA-Documentation', fileDirectory)
         try {
           await fs.mkdir(fileDirectoryPath, { recursive: true })
         } catch (dirError) {
@@ -279,20 +286,25 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
   }
 })
 
-// GET /api/docs/metadata - docs 폴더의 모든 마크다운 파일 목록과 메타데이터 반환
+// GET /api/docs/metadata - NEXA-Documentation 폴더의 모든 마크다운 파일 목록과 메타데이터 반환
 router.get('/metadata', async (req, res) => {
   try {
-    const docsPath = path.join(__dirname, '../../docs')
+    const docsPath = path.join(__dirname, '../../../NEXA-Documentation')
 
-    // 재귀적으로 모든 .md 파일 찾기
-    async function findFiles(dir, relativePath = '') {
+    // 재귀적으로 모든 .md 파일 찾기 (최대 깊이 10 제한)
+    async function findFiles(dir, relativePath = '', depth = 0) {
+      const MAX_DEPTH = 10
+      if (depth > MAX_DEPTH) {
+        console.warn(`[Docs Metadata] 최대 깊이(${MAX_DEPTH}) 초과: ${dir}`)
+        return []
+      }
       const files = []
       try {
         const entries = await fs.readdir(dir, { withFileTypes: true })
         for (const entry of entries) {
           const fullPath = path.join(dir, entry.name)
           if (entry.isDirectory()) {
-            const subFiles = await findFiles(fullPath, path.join(relativePath, entry.name))
+            const subFiles = await findFiles(fullPath, path.join(relativePath, entry.name), depth + 1)
             files.push(...subFiles)
           } else if (entry.isFile() && entry.name.endsWith('.md')) {
             const fileRelativePath = relativePath ? path.join(relativePath, entry.name).replace(/\\/g, '/') : entry.name
@@ -335,7 +347,8 @@ router.get('/metadata', async (req, res) => {
   }
 })
 
-// POST /api/docs/:fileName/touch - 파일의 mtime을 현재 시간으로 업데이트
+// POST /api/docs/:relativePath/touch - NEXA-Documentation 폴더의 파일 mtime을 현재 시간으로 업데이트
+// relativePath는 NEXA-Documentation 기준 상대 경로 (예: Platform/01-기획/문서.md)
 router.post('/:fileName/touch', async (req, res) => {
   try {
     // URL 파라미터 디코딩
@@ -360,7 +373,7 @@ router.post('/:fileName/touch', async (req, res) => {
     }
 
     // 파일 경로 생성 (하위 디렉토리 지원)
-    const filePath = path.join(__dirname, '../../docs', fileName)
+    const filePath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
 
     // 파일 존재 확인
     try {
@@ -399,7 +412,7 @@ router.post('/:fileName/touch', async (req, res) => {
   }
 })
 
-// POST /api/docs - 새 파일 생성
+// POST /api/docs - NEXA-Documentation 폴더에 새 파일 생성
 router.post('/', express.raw({ type: '*/*', limit: '10mb' }), express.json(), async (req, res) => {
   try {
     let fileName
@@ -447,13 +460,13 @@ router.post('/', express.raw({ type: '*/*', limit: '10mb' }), express.json(), as
     }
 
     // 파일 경로 생성
-    const filePath = path.join(__dirname, '../../docs', fileName)
+    const filePath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
 
     // 디렉토리 경로 추출 및 생성
     const filePathParts = fileName.split('/')
     if (filePathParts.length > 1) {
       const fileDirectory = filePathParts.slice(0, -1).join('/')
-      const fileDirectoryPath = path.join(__dirname, '../../docs', fileDirectory)
+      const fileDirectoryPath = path.join(__dirname, '../../../NEXA-Documentation', fileDirectory)
       try {
         await fs.mkdir(fileDirectoryPath, { recursive: true })
       } catch (dirError) {
@@ -494,7 +507,9 @@ router.post('/', express.raw({ type: '*/*', limit: '10mb' }), express.json(), as
   }
 })
 
-// GET /api/docs/:fileName - 마크다운 파일 내용 읽기
+// GET /api/docs/:relativePath - NEXA-Documentation 폴더의 파일 내용 읽기
+// relativePath는 NEXA-Documentation 기준 상대 경로 (예: Platform/01-기획/문서.md)
+// 지원 파일 형식: .md (마크다운), .mermaid.css (Mermaid 스타일)
 router.get('/:fileName', async (req, res) => {
   try {
     // URL 파라미터 디코딩
@@ -519,8 +534,8 @@ router.get('/:fileName', async (req, res) => {
       return res.status(400).json({ error: '마크다운 파일(.md) 또는 Mermaid 스타일 파일(.mermaid.css)만 읽을 수 있습니다.' })
     }
 
-    // 파일 경로 생성
-    const docsPath = path.join(__dirname, '../../docs', fileName)
+    // 파일 경로 생성 (NEXA-Documentation 폴더 사용)
+    const docsPath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
 
     // 파일 읽기
     try {

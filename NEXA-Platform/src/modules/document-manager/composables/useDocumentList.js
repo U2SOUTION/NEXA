@@ -1,12 +1,46 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from 'src/modules/document-manager/utils/documentSorter.js'
-import { getFileCategory } from 'src/modules/document-manager/utils/documentCategorizer.js'
+import { getFileCategory, getMainCategory } from 'src/modules/document-manager/utils/documentCategorizer.js'
 
 /**
  * 문서 목록 모드 및 정렬 Composable
  * 문서 목록의 모드 전환, 정렬 기능을 담당합니다.
  */
 export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, priorityStates, listMode, sortOrder, sortType, saveSettingsCallback) {
+  // 카테고리 필터 상태
+  const selectedCategory = ref(null) // null이면 전체, 문자열이면 선택된 카테고리
+
+  // 사용 가능한 카테고리 목록 추출 (1레벨 디렉토리)
+  const availableCategories = computed(() => {
+    const categories = new Set()
+    markdownFiles.value.forEach((file) => {
+      const mainCategory = getMainCategory(file.relativePath || file.path)
+      if (mainCategory) {
+        categories.add(mainCategory)
+      }
+    })
+    return Array.from(categories).sort((a, b) => a.localeCompare(b, 'ko'))
+  })
+
+  // 카테고리 선택 핸들러
+  function selectCategory(category) {
+    selectedCategory.value = category === '전체' || category === null ? null : category
+    if (saveSettingsCallback) {
+      saveSettingsCallback()
+    }
+  }
+
+  // 카테고리 필터링된 파일 목록
+  const filteredFiles = computed(() => {
+    if (!selectedCategory.value) {
+      return markdownFiles.value
+    }
+    return markdownFiles.value.filter((file) => {
+      const mainCategory = getMainCategory(file.relativePath || file.path)
+      return mainCategory === selectedCategory.value
+    })
+  })
+
   // 문서 목록 모드 전환
   function toggleListMode() {
     const modes = ['default', 'group', 'name', 'modified', 'created', 'usage', 'favorite', 'priority']
@@ -30,7 +64,7 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
 
   // 정렬 기준 토글 (기본 모드와 그룹 모드에서 사용)
   function toggleSortType() {
-    const types = ['name', 'modified', 'created', 'usage', 'favorite', 'priority']
+    const types = ['name', 'modified', 'created', 'usage', 'favorite', 'priority', 'category']
     const currentIndex = types.indexOf(sortType.value)
     const nextIndex = (currentIndex + 1) % types.length
     sortType.value = types[nextIndex]
@@ -55,6 +89,8 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
         return 'star'
       case 'priority':
         return 'flag'
+      case 'category':
+        return 'folder'
       default:
         return 'sort_by_alpha'
     }
@@ -75,6 +111,8 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
         return '즐겨찾기순'
       case 'priority':
         return '우선순위순'
+      case 'category':
+        return '카테고리순'
       default:
         return '이름순'
     }
@@ -110,7 +148,7 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
       case 'default':
         return '기본 순서 정렬'
       case 'group':
-        return '카테고리별 그룹 정렬'
+        return '폴더 그룹 정렬'
       case 'name':
         return '이름순 정렬'
       case 'modified':
@@ -146,8 +184,21 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
   const groupedFiles = computed(() => {
     const groups = new Map()
 
-    markdownFiles.value.forEach((file) => {
-      const category = getFileCategory(file)
+    // 그룹화 레벨 결정
+    let groupLevel = 1
+    if (sortType.value === 'category') {
+      groupLevel = 2 // 정렬 기준이 "category"일 때 2레벨로 그룹화
+    } else if (selectedCategory.value && listMode.value === 'group') {
+      groupLevel = 3 // 카테고리 필터 선택 + 그룹 모드일 때 3레벨로 그룹화
+    } else if (listMode.value === 'group') {
+      groupLevel = 1 // 기본 그룹 모드
+    }
+
+    // 필터링된 파일 목록 사용
+    const filesToGroup = selectedCategory.value ? filteredFiles.value : markdownFiles.value
+
+    filesToGroup.forEach((file) => {
+      const category = getFileCategory(file, groupLevel)
       if (!groups.has(category)) {
         groups.set(category, [])
       }
@@ -190,10 +241,27 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
     return sortedGroups
   })
 
+  // 카테고리 기준 정렬 함수
+  function sortByCategory(files, order) {
+    const sorted = [...files].sort((a, b) => {
+      const categoryA = getMainCategory(a.relativePath || a.path) || '기타'
+      const categoryB = getMainCategory(b.relativePath || b.path) || '기타'
+
+      const categoryCompare = categoryA.localeCompare(categoryB, 'ko')
+      if (categoryCompare !== 0) {
+        return order === 'asc' ? categoryCompare : -categoryCompare
+      }
+
+      // 같은 카테고리 내에서는 파일명으로 정렬
+      return a.name.localeCompare(b.name, 'ko')
+    })
+    return sorted
+  }
+
   // 정렬된 문서 목록
   const sortedFiles = computed(() => {
-    // markdownFiles는 ref이므로 .value로 접근
-    const files = markdownFiles.value
+    // 필터링된 파일 목록 사용
+    const files = selectedCategory.value ? filteredFiles.value : markdownFiles.value
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return []
@@ -222,6 +290,9 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
         case 'priority':
           sorted = sortByPriority(files, sortOrder.value, priorityStates.value)
           break
+        case 'category':
+          sorted = sortByCategory(files, sortOrder.value)
+          break
         default:
           sorted = files
       }
@@ -245,6 +316,9 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
           break
         case 'priority':
           sorted = sortByPriority(files, sortOrder.value, priorityStates.value)
+          break
+        case 'category':
+          sorted = sortByCategory(files, sortOrder.value)
           break
         default:
           sorted = files
@@ -289,8 +363,13 @@ export function useDocumentList(markdownFiles, fileUsageCounts, favoriteStates, 
     getListModeIcon,
     getListModeLabel,
     formatDate,
+    selectCategory,
+    // 상태
+    selectedCategory,
     // computed
     groupedFiles,
     sortedFiles,
+    availableCategories,
+    filteredFiles,
   }
 }

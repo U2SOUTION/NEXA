@@ -1,50 +1,102 @@
 /**
  * 문서 카테고리 분류 함수
- * 파일을 카테고리로 분류하는 함수
+ * 폴더 구조 기반 동적 카테고리 분류 (하드코딩 제거)
  */
 
 /**
- * 파일 카테고리 분류
- * @param {Object} file - 파일 객체 (name, path 포함)
- * @returns {string} 카테고리명
+ * 경로를 레벨별로 분리
+ * @param {string} relativePath - 상대 경로 (예: Platform/01-기획/문서.md)
+ * @returns {Object} 레벨별 디렉토리 정보
  */
-export function getFileCategory(file) {
-  // 규칙 1: 폴더 구조 기반 분류
-  // /docs/카테고리명/파일.md 형식이면 폴더명을 카테고리로 사용
-  const pathParts = file.path.split('/').filter((part) => part && part.trim() !== '')
-
-  // 경로 구조: ['docs', '카테고리', '파일.md'] 또는 ['docs', '파일.md']
-  // docs 폴더 바로 아래에 파일이 있으면 pathParts.length === 2
-  // docs 폴더 아래에 하위 폴더가 있으면 pathParts.length > 2
-  if (pathParts.length > 2) {
-    // /docs/카테고리/파일.md 형식
-    // pathParts[0] = 'docs', pathParts[1] = '카테고리', pathParts[2] = '파일.md'
-    const categoryFolder = pathParts[1] // 두 번째 요소가 카테고리 폴더명
-
-    // 'docs'가 아닌 모든 폴더명을 카테고리로 사용 (대소문자 구분 없이)
-    if (categoryFolder && categoryFolder.toLowerCase() !== 'docs') {
-      // 폴더명을 가독성 있게 변환 (언더스코어, 하이픈을 공백으로)
-      return categoryFolder.replace(/_/g, ' ').replace(/-/g, ' ')
-    }
+export function getDirectoryLevels(relativePath) {
+  if (!relativePath) {
+    return { level1: null, level2: null, level3: null }
   }
 
-  // 규칙 2: 파일명 구분자 기반 분류
-  // 파일명의 첫 번째 부분을 카테고리로 사용
-  const fileName = file.name.replace('.md', '')
+  // 경로 정규화: /docs/ 접두사 제거 (안전장치, 현재는 path가 relativePath와 동일하므로 불필요하지만 호환성 유지)
+  // 백슬래시를 슬래시로 변환
+  let cleanPath = relativePath.replace(/^\/?docs\//, '').replace(/\\/g, '/')
 
-  // 구분자 우선순위: 언더스코어(_) > 하이픈(-) > 공백
-  const separators = ['_', '-', ' ']
+  // 경로를 슬래시로 분리하고 빈 문자열 제거
+  const pathParts = cleanPath.split('/').filter((part) => part && part.trim() !== '')
 
-  for (const sep of separators) {
-    if (fileName.includes(sep)) {
-      const parts = fileName.split(sep)
-      if (parts[0] && parts[0].trim()) {
-        return parts[0].trim()
-      }
+  // 파일명 제거 (마지막 요소가 .md로 끝나면 제거)
+  const filteredParts = pathParts.filter((part, index) => {
+    // 마지막 요소이고 .md로 끝나면 파일명이므로 제외
+    if (index === pathParts.length - 1 && part.toLowerCase().endsWith('.md')) {
+      return false
     }
-  }
+    return true
+  })
 
-  // 규칙 3: 카테고리를 찾을 수 없으면 "기타"
-  return '기타'
+  return {
+    level1: filteredParts[0] || null,
+    level2: filteredParts[1] || null,
+    level3: filteredParts[2] || null,
+  }
 }
 
+/**
+ * 1레벨 디렉토리 반환 (메인 카테고리)
+ * @param {string} relativePath - 상대 경로
+ * @returns {string|null} 1레벨 디렉토리명
+ */
+export function getMainCategory(relativePath) {
+  const levels = getDirectoryLevels(relativePath)
+  return levels.level1
+}
+
+/**
+ * 숫자 접두사 제거 및 가독성 변환
+ * @param {string} folderName - 폴더명 (예: 01-기획)
+ * @returns {string} 변환된 폴더명 (예: 기획)
+ */
+function cleanFolderName(folderName) {
+  if (!folderName) return ''
+  // 숫자 접두사 제거 (01-기획 -> 기획)
+  return folderName.replace(/^\d+-/, '').replace(/_/g, ' ').replace(/-/g, ' ')
+}
+
+/**
+ * 파일 카테고리 분류 (그룹 레벨에 따라)
+ * @param {Object} file - 파일 객체 (relativePath 포함)
+ * @param {number} groupLevel - 그룹 레벨 (1, 2, 3)
+ * @returns {string} 카테고리명
+ */
+export function getFileCategory(file, groupLevel = 1) {
+  // relativePath 우선 사용, 없으면 path에서 추출
+  const relativePath = file.relativePath || file.path || ''
+
+  const levels = getDirectoryLevels(relativePath)
+
+  // groupLevel에 따라 카테고리 반환
+  if (groupLevel === 1) {
+    // 1레벨만 반환
+    return levels.level1 || '기타'
+  } else if (groupLevel === 2) {
+    // 2레벨까지 반환
+    if (levels.level1 && levels.level2) {
+      const cleanedLevel2 = cleanFolderName(levels.level2)
+      return `${levels.level1} - ${cleanedLevel2}`
+    } else if (levels.level1) {
+      return levels.level1
+    }
+    return '기타'
+  } else if (groupLevel === 3) {
+    // 3레벨까지 반환
+    if (levels.level1 && levels.level2 && levels.level3) {
+      const cleanedLevel2 = cleanFolderName(levels.level2)
+      const cleanedLevel3 = cleanFolderName(levels.level3)
+      return `${levels.level1} - ${cleanedLevel2} - ${cleanedLevel3}`
+    } else if (levels.level1 && levels.level2) {
+      const cleanedLevel2 = cleanFolderName(levels.level2)
+      return `${levels.level1} - ${cleanedLevel2}`
+    } else if (levels.level1) {
+      return levels.level1
+    }
+    return '기타'
+  }
+
+  // 기본값: 1레벨
+  return levels.level1 || '기타'
+}
