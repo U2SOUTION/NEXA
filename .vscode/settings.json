@@ -1,8 +1,59 @@
 {
+    // ============================================
+    // NEXA Monorepo - 통합 VS Code 설정
+    // ============================================
+
+    // 아이콘 테마
     "workbench.iconTheme": "vscode-great-icons",
 
     // 탐색기 설정
     "explorer.autoReveal": false,
     "explorer.compactFolders": false,
-    "explorer.confirmDelete": true
+    "explorer.confirmDelete": true,
+
+    // 에디터 설정 (Platform 전용)
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": ["source.fixAll.eslint"],
+
+    // ESLint 설정 (Platform 전용)
+    "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
+
+    // 파일 탐색기에서 숨길 파일/폴더
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/.output": true,
+        "**/.quasar": true,
+        "**/.vite": true,
+        "**/.cache": true,
+        "**/.temp": true,
+        "**/*.log": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/.git": true,
+        "**/coverage": true,
+        "**/.pnpm-store": true,
+        "**/.yarn": true,
+        "**/assets": true,
+        "**/uploads": true,
+        "**/public": true
+    },
+
+    // 터미널 설정
+    "terminal.integrated.profiles.windows": {
+        "PowerShell 7": {
+            "path": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+            "icon": "terminal-powershell"
+        },
+        "Windows PowerShell": {
+            "path": "powershell.exe",
+            "icon": "terminal-powershell"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell 7",
+    "powershell.powerShellDefaultVersion": "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
 }

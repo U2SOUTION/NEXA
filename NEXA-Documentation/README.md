@@ -1,63 +1,147 @@
-# NEXA Platform
+# NEXA Documentation
 
-스마트 IoT 플랫폼 - ESP32 기반 디바이스 관리 및 시각화 시스템
+NEXA 전체 시스템의 통합 문서 저장소입니다.
 
-## 📚 문서
+## 📚 전체 시스템 개요
 
-- **[아키텍처 문서](./docs/ARCHITECTURE.md)**: 전체 시스템 구조 및 설계 문서
-- **[부품 관리 시스템](./docs/PARTS_MANAGEMENT.md)**: 부품 관리 모듈 상세 설계 문서
-- **[기술 스택](./docs/TECH_STACK.md)**: 사용 중인 라이브러리 및 기술 스택
-- **[개발 가이드라인](./docs/development-guidelines.md)**: 개발 컨벤션 및 가이드라인 (localStorage 네이밍 등)
-- **[뷰 모드 구현 계획](./docs/view-mode-implementation-plan.md)**: 뷰 모드 기능 구현 및 적용 작업 순서
+-   **[NEXA 전체 시스템 아키텍처](./공통/02-아키텍처/NEXA_전체_시스템_아키텍처.md)** ⭐ - 전체 시스템 구조 및 개념 정리
 
-> 📖 더 많은 문서는 [`docs/`](./docs/) 디렉토리를 참고하세요.
+## 📂 플랫폼별 문서
 
-## Install the dependencies
+### 🌐 NEXA-Platform (중계소/데이터 관리)
 
-```bash
-yarn
-# or
-npm install
+-   [기획](./Platform/01-기획/README.md)
+-   [아키텍처](./Platform/02-아키텍처/README.md)
+-   [API](./Platform/03-API/README.md)
+-   [개발](./Platform/04-개발/README.md)
+
+### 💻 NEXA-Desktop (데스크톱 애플리케이션)
+
+-   [기획](./Desktop/01-기획/README.md)
+-   [아키텍처](./Desktop/02-아키텍처/README.md)
+-   [API](./Desktop/03-API/README.md)
+-   [개발](./Desktop/04-개발/README.md)
+
+### 🔌 NEXA-Edge (엣지 디바이스)
+
+-   [기획](./Edge/01-기획/README.md)
+-   [아키텍처](./Edge/02-아키텍처/README.md)
+-   [API](./Edge/03-API/README.md)
+-   [개발](./Edge/04-개발/README.md)
+
+### 📱 NEXA-App (모바일 애플리케이션)
+
+-   [기획](./Mobile/01-기획/README.md)
+-   [아키텍처](./Mobile/02-아키텍처/README.md)
+-   [API](./Mobile/03-API/README.md)
+-   [개발](./Mobile/04-개발/README.md)
+
+## 🔗 공통 문서
+
+### 📐 아키텍처
+
+-   [전체 시스템 아키텍처](./공통/02-아키텍처/NEXA_전체_시스템_아키텍처.md) ⭐
+-   [공통 아키텍처](./공통/02-아키텍처/README.md)
+
+### 🔌 API
+
+-   [공통 API 문서](./공통/03-API/README.md)
+
+### 🛠️ 개발
+
+-   [공통 개발 가이드](./공통/04-개발/README.md)
+
+---
+
+## 시스템 구조
+
+```
+NEXA/
+├── NEXA-Platform/        # 🌐 웹 플랫폼 (중계소/데이터 관리)
+├── NEXA-Desktop/         # 💻 데스크톱 애플리케이션
+├── NEXA-Edeg/            # 🔌 엣지 디바이스 (ESP32)
+├── NEXA-App/             # 📱 모바일 애플리케이션
+├── NEXA-Documentation/   # 📚 통합 문서 (현재 폴더)
+└── DEV/                  # 🛠️ 개발 도구 (VS Code 확장)
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+## 핵심 개념
 
-```bash
-quasar dev
-```
+-   **Monorepo 구조**: 모든 프로젝트를 하나의 저장소에서 통합 관리
+-   **중앙 집중식 데이터 관리**: NEXA-Platform이 모든 데이터의 중계소 역할
+-   **멀티 플랫폼 지원**: Web, Desktop, Mobile, Edge 디바이스 지원
 
-### Lint the files
+---
 
-```bash
-yarn lint
-# or
-npm run lint
-```
+## 📖 용어집
 
-### Format the files
+### 프로젝트/폴더 지칭 용어
 
-```bash
-yarn format
-# or
-npm run format
-```
+| 용어              | 한글 약어 | 설명                       | 대체 용어                          |
+| ----------------- | --------- | -------------------------- | ---------------------------------- |
+| **Platform**      | 플랫폼    | `NEXA-Platform/` 폴더      | 웹 플랫폼, 중계소, Hub, 서버       |
+| **Desktop**       | 피씨      | `NEXA-Desktop/` 폴더       | 데스크톱, PC 클라이언트            |
+| **Edge**          | 엣지      | `NEXA-Edeg/` 폴더          | 엣지 디바이스, IoT 디바이스, ESP32 |
+| **App**           | 앱        | `NEXA-App/` 폴더           | 모바일 앱, 모바일 클라이언트       |
+| **Documentation** | 문서      | `NEXA-Documentation/` 폴더 | 문서, Docs                         |
+| **DEV**           | 개발      | `DEV/` 폴더                | 개발 도구, VS Code 확장            |
 
-### Build the app for production
+**용어 통일 규칙:**
 
-```bash
-quasar build
-```
+-   NEXA-Platform, NEXA-Desktop 등을 지칭할 때는 **"프로젝트"** 사용
+-   **"레이어"**는 아키텍처 계층 구조를 의미하므로 프로젝트 지칭 시 사용하지 않음
 
-### Customize the configuration
+### 핵심 아키텍처 용어
 
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+| 용어                   | 설명                                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| **Monorepo**           | 모든 프로젝트를 하나의 Git 저장소에서 관리하는 구조                                    |
+| **중계소 (Hub)**       | NEXA-Platform의 역할 - 모든 데이터의 중앙 관리 및 플랫폼 간 데이터 중계                |
+| **플랫폼 (Platform)**  | 실행 환경 또는 시스템 레벨을 의미 (Web Platform, Desktop Platform 등)                  |
+| **티어 (Tier)**        | 시스템의 논리적/물리적 계층 (Client Tier, Server Tier)                                 |
+| **레이어 (Layer)**     | 아키텍처의 계층 구조 (Presentation Layer, Business Layer) - 프로젝트 지칭 시 사용 금지 |
+| **프로젝트 (Project)** | NEXA-Platform, NEXA-Desktop 등 독립적인 개발 단위를 지칭할 때 사용                     |
 
-## 기술 스택
+### 데이터 및 통신 용어
 
-- **Vue 3** (v3.4.18) - 프레임워크
-- **Quasar** (v2.16.0) - UI 프레임워크
-- **Pinia** (v3.0.2) - 상태 관리
-- **Vue Router** (v4.0.0) - 라우팅
-- **vue3-grid-layout-next** (v1.0.7) - 그리드 레이아웃
+| 용어                   | 설명                                          |
+| ---------------------- | --------------------------------------------- |
+| **단일 소스 원칙**     | 모든 데이터는 NEXA-Platform에서 관리하는 원칙 |
+| **실시간 동기화**      | 변경사항이 즉시 다른 클라이언트에 반영되는 것 |
+| **중앙 집중식 저장**   | 데이터베이스가 NEXA-Platform에 위치하는 구조  |
+| **OTA (Over-The-Air)** | 무선을 통한 펌웨어 업데이트                   |
 
-> 📦 상세한 라이브러리 정보는 [기술 스택 문서](./docs/TECH_STACK.md)를 참고하세요.
+### 기술 용어
+
+| 용어          | 설명                                                          |
+| ------------- | ------------------------------------------------------------- |
+| **ESP32**     | IoT 디바이스용 마이크로컨트롤러                               |
+| **WebSocket** | 실시간 양방향 통신 프로토콜                                   |
+| **API**       | Application Programming Interface - 서비스 간 통신 인터페이스 |
+| **펌웨어**    | 하드웨어에 내장된 소프트웨어 (Edge 디바이스용)                |
+
+### 개발 환경 용어
+
+| 용어            | 설명                                          |
+| --------------- | --------------------------------------------- |
+| **빌드**        | 소스 코드를 실행 가능한 형태로 변환하는 과정  |
+| **배포**        | 개발된 소프트웨어를 실제 환경에 설치하는 과정 |
+| **통합 테스트** | 여러 컴포넌트를 함께 테스트하는 것            |
+| **버전 관리**   | 코드 변경 이력을 추적하고 관리하는 것         |
+
+### 사용 예시
+
+**올바른 표현:**
+
+-   "Platform에서 데이터를 조회합니다"
+-   "Edge 디바이스가 Platform으로 센서 데이터를 전송합니다"
+-   "Desktop 클라이언트가 중계소를 통해 데이터를 동기화합니다"
+
+**피해야 할 표현:**
+
+-   "플랫폼에서..." (어떤 플랫폼인지 불명확)
+-   "서버에서..." (Platform을 의미하는지 불명확)
+
+---
+
+**최종 업데이트**: 2024년 12월

@@ -1,5 +1,6 @@
 # ============================================
-# NEXA Monorepo - Root .gitignore
+# NEXA Monorepo - Root .cursorignore
+# Cursor IDE AI 컨텍스트에서 제외할 파일/폴더
 # ============================================
 
 # 의존성 (모든 하위 프로젝트)
@@ -22,7 +23,7 @@ build/
 **/.vite/
 .vite/
 
-# PlatformIO (NEXA-Edeg)
+# PlatformIO (NEXA-Edge)
 **/.pio/
 .pio/
 
@@ -87,8 +88,11 @@ coverage/
 **/.nyc_output/
 .nyc_output/
 
-# IDE 설정 (선택적 - 필요시 주석 해제)
-# .vscode/
+# 버전 관리
+.git/
+
+# IDE 설정
+# .vscode/ (필요시 주석 해제)
 # .idea/
 **/*.suo
 **/*.ntvs*
@@ -109,15 +113,17 @@ coverage/
 **/.pnp.*
 .pnp.*
 
-# 사용자 업로드 파일 (폴더 구조는 유지)
+# 사용자 업로드 파일
 **/uploads/*
-!**/uploads/.gitkeep
 uploads/*
-!uploads/.gitkeep
 
 # Cursor IDE 임시 이미지 파일
 **/assets/
 assets/
+
+# 정적 파일
+**/public/
+public/
 
 # 특수 문자 파일
 **/*date=short*

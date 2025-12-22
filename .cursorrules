@@ -1,0 +1,260 @@
+# NEXA 전체 프로젝트 공통 규칙
+
+## 📋 프로젝트 구조
+
+NEXA는 모노레포 구조로 다음 프로젝트로 구성됩니다:
+- **NEXA-Platform** (플랫폼): 중계소/데이터 관리 (Quasar + Vue 3)
+- **NEXA-Desktop** (피씨): 데스크톱 애플리케이션
+- **NEXA-Edge** (엣지): 엣지 디바이스 (ESP32)
+- **NEXA-App** (앱): 모바일 애플리케이션
+- **DEV** (개발): 개발 도구
+- **NEXA-Documentation** (문서): 통합 문서 저장소
+
+### 용어 통일
+
+- **"프로젝트" 사용**: NEXA-Platform, NEXA-Desktop 등을 지칭할 때는 "프로젝트" 사용
+- **한글 약어**: 위 괄호 안의 한글 약어 사용 가능
+
+---
+
+## 📁 문서 관리 규칙
+
+### 문서 위치
+
+- **모든 문서는 `NEXA-Documentation/` 폴더에 위치**
+- **프로젝트별 문서**: `NEXA-Documentation/{프로젝트명}/` (Platform, Desktop, Edge, Mobile)
+- **공통 문서**: `NEXA-Documentation/공통/`
+- **절대 `NEXA-Platform/docs/` 폴더에 문서를 만들지 않음** (폴더 삭제됨)
+
+### 문서 구조
+
+```
+NEXA-Documentation/
+├── Platform/
+│   ├── 01-기획/
+│   ├── 02-아키텍처/
+│   ├── 03-API/
+│   └── 04-개발/
+├── Desktop/
+├── Edge/
+├── Mobile/
+└── 공통/
+    ├── 01-기획/
+    ├── 02-아키텍처/
+    ├── 03-API/
+    └── 04-개발/
+```
+
+### 문서 작성 시
+
+1. **적절한 위치 선택**: 프로젝트별 vs 공통 문서 판단
+2. **README.md 업데이트**: 해당 폴더의 README.md에 문서 링크 추가
+3. **파일명 규칙**: 
+   - 일반 문서: kebab-case (예: `사이드바_시스템_가이드.md`)
+   - **`NEXA-` 접두어 사용 조건**:
+     - ⚠️ **특별한 지시가 있을 때만 사용**
+     - ⚠️ **플랫폼에 해당하는 문서이면서 플랫폼 전체에 영향이 있는 핵심 문서에만 사용**
+     - 예: `NEXA-사이드바_시스템_가이드.md`, `NEXA-번역기_시스템.md`
+
+
+---
+
+## ✅ 코드 작성 시 체크리스트
+
+### 문서 관련
+
+- [ ] 문서는 `NEXA-Documentation/`에 위치하는가?
+- [ ] 적절한 하위 폴더에 배치되었는가? (기획/아키텍처/API/개발)
+- [ ] README.md에 링크가 추가되었는가?
+
+---
+
+## 📚 참고 문서
+
+### 전체 시스템
+
+- [NEXA 전체 시스템 아키텍처](./NEXA-Documentation/공통/02-아키텍처/NEXA_전체_시스템_아키텍처.md)
+
+### Platform
+
+- [네이밍 컨벤션](./NEXA-Documentation/Platform/04-개발/NEXA-네이밍_컨벤션.md)
+- [컴포넌트 표준 계약](./NEXA-Documentation/Platform/04-개발/NEXA-컴포넌트_표준_계약.md)
+- [UI 샘플 개발 가이드](./NEXA-Documentation/Platform/04-개발/NEXA-UI_샘플_개발_가이드.md)
+
+---
+
+## ⚠️ 주의사항
+
+1. **문서 위치**: 절대 `NEXA-Platform/docs/`에 문서를 만들지 않음
+2. **용어 통일**: NEXA-Platform, NEXA-Desktop 등을 지칭할 때는 "프로젝트" 사용 (레이어 사용 금지)
+3. **`NEXA-` 접두어**: 
+   - ⚠️ **남용 금지**: 특별한 지시가 있거나 플랫폼 전체에 영향이 있는 핵심 문서에만 사용
+   - 일반 문서에는 접두어 없이 kebab-case 사용
+
+---
+
+## 🎯 프로젝트별 규칙
+
+### Platform 전용 규칙
+
+#### ✅ BEFORE GENERATING CODE - CHECKLIST
+
+1. Check `NEXA-Platform/src/css/themes/dark.scss` and `NEXA-Platform/src/css/themes/light.scss` for available colors
+2. Use ONLY `--nexa-*` CSS variables
+3. NEVER use Quasar default colors
+4. Minimize wrapper elements
+
+#### 🚫 NEVER USE (절대 사용 금지)
+
+**Quasar Colors:**
+- ❌ color="primary", color="secondary", color="accent"
+- ❌ bg-primary, text-secondary, text-grey-7
+- ❌ $primary, $secondary, $grey-1 (SCSS variables)
+- ❌ class="text-positive text-negative text-info"
+
+**Bad Practices:**
+- ❌ Inline color styles: `:style="{ color: '#fff' }"`
+- ❌ Multiple unnecessary wrapper divs
+- ❌ 2중, 3중 래퍼 요소
+
+#### ✅ ALWAYS USE (필수 사항)
+
+**NEXA Theme Variables:**
+- ✅ `var(--nexa-background)`
+- ✅ `var(--nexa-text-primary)`
+- ✅ `var(--nexa-button-primary-bg)`
+- ✅ All variables follow: `--nexa-{category}-{property}` pattern
+
+**File Locations:**
+- Theme files: `NEXA-Platform/src/css/themes/dark.scss`, `NEXA-Platform/src/css/themes/light.scss`
+- Check these files for ALL available variables
+
+**Creating New Variables:**
+- Pattern: `--nexa-{category}-{property}`
+- Add to BOTH dark.scss and light.scss
+- Add comment: `// Added: {date/reason}`
+
+#### 🎯 QUICK REFERENCE
+
+```scss
+// Backgrounds
+var(--nexa-background)
+var(--nexa-surface)
+var(--nexa-surface-hover)
+
+// Text
+var(--nexa-text-primary)
+var(--nexa-text-secondary)
+var(--nexa-text-disabled)
+
+// Buttons
+var(--nexa-button-primary-bg)
+var(--nexa-button-primary-text)
+var(--nexa-button-secondary-bg)
+
+// Borders
+var(--nexa-border-color)
+var(--nexa-border-hover)
+
+// Status
+var(--nexa-success)
+var(--nexa-error)
+var(--nexa-warning)
+```
+
+#### 💡 USAGE EXAMPLES
+
+**Vue Component:**
+```vue
+<template>
+  <div class="my-component">Content</div>
+</template>
+
+<style lang="scss" scoped>
+.my-component {
+  background-color: var(--nexa-background);
+  color: var(--nexa-text-primary);
+  border: 1px solid var(--nexa-border-color);
+
+  &:hover {
+    background-color: var(--nexa-surface-hover);
+  }
+}
+</style>
+```
+
+**Good DOM Structure:**
+```vue
+<!-- ✅ GOOD: Minimal wrapper -->
+<template>
+  <section class="content">
+    <header>Title</header>
+    <article>Content</article>
+  </section>
+</template>
+
+<!-- ❌ BAD: Unnecessary wrappers -->
+<template>
+  <div>
+    <div>
+      <div class="content">...</div>
+    </div>
+  </div>
+</template>
+```
+
+#### 📐 SCSS ARCHITECTURE
+
+**Level Structure:**
+1. `NEXA-Platform/src/css/quasar.variables.scss` - Quasar overrides (SCSS vars only)
+2. `NEXA-Platform/src/css/utils/` - Mixins, functions, utilities
+3. `NEXA-Platform/src/css/app.scss` - Global base styles
+4. `NEXA-Platform/src/css/themes/` - Theme color variables (CSS vars only)
+5. `NEXA-Platform/src/css/nexa-system/` - NEXA global styles
+6. Component SCSS - Component-specific styles (각 컴포넌트 내)
+
+**Principles:**
+- ✅ Variables first (colors, sizes, spacing)
+- ✅ Scoped styles in components
+- ✅ Minimize global overrides
+- ✅ Semantic HTML elements
+
+#### 📝 네이밍 컨벤션 (Platform)
+
+**파일명:**
+- **컴포넌트**: PascalCase (예: `PartClassesView.vue`)
+- **일반 파일**: kebab-case (예: `document-manager.js`)
+- **문서 파일**: 
+  - 일반 문서: kebab-case (예: `사이드바_시스템_가이드.md`)
+  - **`NEXA-` 접두어**: 특별한 지시가 있거나, 플랫폼 전체에 영향이 있는 핵심 문서에만 사용
+    - 예: `NEXA-사이드바_시스템_가이드.md` (플랫폼 전체 아키텍처)
+    - 예: `NEXA-번역기_시스템.md` (핵심 통신 시스템)
+
+**변수/함수명:**
+- **일반 변수/함수**: camelCase (예: `userName`, `getUserData()`)
+- **상수**: UPPER_SNAKE_CASE (예: `MAX_ITEMS`, `API_BASE_URL`)
+- **Store 함수**: `use` + PascalCase (예: `usePartsDataStore()`)
+
+**localStorage 키:**
+- **kebab-case 권장** (예: `part-classes-search-history`)
+- **첫 글자 대문자 허용** (예: `Part-classes-search-history`)
+- **접두어 불필요** (예: `NEXA-` 접두어 사용하지 않음)
+
+#### ⚡ FINAL REMINDERS (Platform)
+
+1. **Check theme files FIRST** (`NEXA-Platform/src/css/themes/dark.scss`, `light.scss`) before writing any color code
+2. **Use `--nexa-*` variables ONLY** - never Quasar defaults
+3. **Keep DOM structure simple** - avoid unnecessary wrappers
+4. **When in doubt** - check `NEXA-Platform/src/css/themes/` for available variables
+
+### 다른 프로젝트
+
+- 각 프로젝트별로 독립적인 규칙 적용 가능
+- 프로젝트별 `.cursorrules` 파일로 관리
+
+
+
+---
+
+**마지막 업데이트**: 2024년 12월
+
