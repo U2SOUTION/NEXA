@@ -13,7 +13,7 @@
             <span>메뉴 휠 스크롤 스텝 이동 스텝 수 설정</span>
           </div>
           <div class="settings-section-content">
-            <div class="text-caption text-grey-6">
+            <div class="text-caption">
               <span class="step-value">{{ wheelScrollStep }} Step</span> 한 번에 스크롤할 메뉴 아이템 개수를 설정합니다.
             </div>
             <q-slider v-model="wheelScrollStep" :min="1" :max="10" :step="1" snap label :label-value="`${wheelScrollStep}`" color="primary" />
@@ -28,7 +28,7 @@
           </div>
           <div class="settings-section-content">
             <q-checkbox v-model="enableMenuAnimation" label="애니메이션 활성화" color="primary" dense />
-            <div class="text-caption text-grey-6">메뉴 스크롤 시 부드러운 애니메이션 효과를 사용합니다.</div>
+            <div class="text-caption">메뉴 스크롤 시 부드러운 애니메이션 효과를 사용합니다.</div>
           </div>
         </div>
 
@@ -40,7 +40,7 @@
           </div>
           <div class="settings-section-content">
             <q-checkbox v-model="enableAutoReorder" label="자동 재정렬 사용" color="primary" dense />
-            <div class="text-caption text-grey-6">우선순위 모드에서 파일을 드래그 앤 드롭한 후 자동으로 절대 순위로 재정렬되는 시간을 설정합니다.</div>
+            <div class="text-caption">우선순위 모드에서 파일을 드래그 앤 드롭한 후 자동으로 절대 순위로 재정렬되는 시간을 설정합니다.</div>
             <div v-if="enableAutoReorder" class="auto-reorder-options">
               <q-slider v-model="reorderDelaySeconds" :min="1" :max="10" :step="1" label :label-value="`${reorderDelaySeconds}초`" color="primary" />
             </div>
@@ -55,7 +55,7 @@
           </div>
           <div class="settings-section-content">
             <q-checkbox v-model="showToastMessages" label="토스트 메시지 표시" color="primary" dense />
-            <div class="text-caption text-grey-6">드래그 앤 드롭 시 우선순위 변경 메시지를 표시합니다.</div>
+            <div class="text-caption">드래그 앤 드롭 시 우선순위 변경 메시지를 표시합니다.</div>
             <div v-if="showToastMessages" class="toast-timeout-options">
               <q-slider v-model="toastTimeoutSeconds" :min="1" :max="60" :step="0.5" label :label-value="`${toastTimeoutSeconds}초`" color="primary" />
             </div>
@@ -69,7 +69,7 @@
             <span>데이터 초기화</span>
           </div>
           <div class="settings-section-content">
-            <div class="text-caption text-grey-6">저장된 사용빈도와 우선순위 데이터를 초기화합니다.</div>
+            <div class="text-caption">저장된 사용빈도와 우선순위 데이터를 초기화합니다.</div>
             <div class="row q-gutter-sm">
               <q-btn outline color="primary" label="사용빈도 초기화" @click="handleResetUsage" class="col" />
               <q-btn outline color="primary" label="우선순위 초기화" @click="handleResetPriority" class="col" />
@@ -91,14 +91,14 @@
                 </div>
                 <div class="shortcut-description">
                   목차 열기/닫기 (편집 모드가 아닐 때)<br />
-                  <span class="text-caption text-grey-6">편집 모드일 때는 편집 모드 종료</span>
+                  <span class="text-caption">편집 모드일 때는 편집 모드 종료</span>
                 </div>
               </div>
               <div class="shortcut-item">
                 <div class="shortcut-key"><kbd>Ctrl</kbd> + <kbd>E</kbd></div>
                 <div class="shortcut-description">
                   편집 모드 토글<br />
-                  <span class="text-caption text-grey-6">Mac: Cmd + E</span>
+                  <span class="text-caption">Mac: Cmd + E</span>
                 </div>
               </div>
             </div>
@@ -113,19 +113,19 @@
           </div>
           <div class="settings-section-content">
             <!-- 기본 설명글 (변경되지 않았을 때만 표시) -->
-            <div v-if="!hasFolderNameChanged" class="text-caption text-grey-6 q-mb-sm">
+            <div v-if="!hasFolderNameChanged" class="text-caption q-mb-sm">
               <q-icon name="warning" size="14px" class="q-mr-xs" />
               폴더명을 정확히 입력하세요.
             </div>
 
             <!-- 새로고침 버튼 및 설명글 (변경되었을 때만 표시) -->
             <div v-if="hasFolderNameChanged" class="refresh-section q-mb-sm">
-              <div class="text-caption text-grey-6" style="margin-bottom: 0; padding-bottom: 0">
+              <div class="text-caption refresh-section-content">
                 <q-icon name="info" size="14px" class="q-mr-xs" />
                 변경된 폴더명에 맞는 파일들이 목록에 표시됩니다. 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
               </div>
-              <div class="row items-center" style="margin-top: 0; padding-top: 0">
-                <q-btn flat dense icon="refresh" label="파일 목록 새로고침" color="primary" text-color="white" @click="handleRefreshFolderName" :loading="isRefreshingFolder" size="sm" class="refresh-btn-changed refresh-btn-warning" style="margin-top: 0; padding-top: 0" />
+              <div class="row items-center refresh-section-button-wrapper">
+                <q-btn flat dense icon="refresh" label="파일 목록 새로고침" color="primary" text-color="white" @click="handleRefreshFolderName" :loading="isRefreshingFolder" size="sm" class="refresh-btn-changed refresh-btn-warning refresh-section-button" />
               </div>
             </div>
 
@@ -145,21 +145,21 @@
           </div>
           <div class="settings-section-content">
             <!-- 기본 설명글 (변경되지 않았을 때만 표시) -->
-            <div v-if="!hasExtensionChanged" class="text-caption text-grey-6 q-mb-sm">문서 관리 시스템에서 지원할 파일 확장자를 선택하세요. 미리 정의된 확장자 목록에서만 선택 가능합니다.</div>
+            <div v-if="!hasExtensionChanged" class="text-caption q-mb-sm">문서 관리 시스템에서 지원할 파일 확장자를 선택하세요. 미리 정의된 확장자 목록에서만 선택 가능합니다.</div>
 
             <!-- 새로고침 버튼 및 설명글 (변경되었을 때만 표시) -->
             <div v-if="hasExtensionChanged" class="refresh-section q-mb-sm">
-              <div class="text-caption text-grey-6" style="margin-bottom: 0; padding-bottom: 0">
+              <div class="text-caption refresh-section-content">
                 <q-icon name="info" size="14px" class="q-mr-xs" />
                 변경된 확장자에 맞는 파일들이 목록에 표시됩니다. 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
               </div>
-              <div class="row items-center" style="margin-top: 0; padding-top: 0">
-                <q-btn flat dense icon="refresh" label="파일 목록 새로고침" @click="handleRefreshFileList" :loading="isRefreshing" size="sm" class="refresh-btn-changed refresh-btn-warning" style="margin-top: 0; padding-top: 0" />
+              <div class="row items-center refresh-section-button-wrapper">
+                <q-btn flat dense icon="refresh" label="파일 목록 새로고침" @click="handleRefreshFileList" :loading="isRefreshing" size="sm" class="refresh-btn-changed refresh-btn-warning refresh-section-button" />
               </div>
             </div>
 
             <div class="extension-list q-mb-sm">
-              <div v-if="supportedExtensions.length === 0" class="text-caption text-grey-6 q-py-sm">선택된 확장자가 없습니다. 아래 목록에서 선택하세요.</div>
+              <div v-if="supportedExtensions.length === 0" class="text-caption q-py-sm">선택된 확장자가 없습니다. 아래 목록에서 선택하세요.</div>
               <div v-else class="extension-items">
                 <q-chip v-for="(ext, index) in supportedExtensions" :key="index" :label="ext" color="primary" text-color="white" removable @remove="removeExtension(ext)" class="q-mr-xs q-mb-xs" />
               </div>
@@ -185,7 +185,6 @@
             </div>
           </div>
         </div>
-
         <!-- Footer 버튼 (content 영역 내부) -->
         <div class="document-settings-footer">
           <q-btn flat label="취소" @click="$emit('update:modelValue', false)" />
@@ -741,27 +740,32 @@ async function handleSave() {
 
 <style lang="scss" scoped>
 // 공통 변수
-$section-indent: 28px;
-$section-spacing: 12px;
-$title-spacing: 6px;
-$surface-padding: 8px;
+
 $surface-border-radius: 4px;
 
 // 공통 표면 스타일 (extension-list, available-extensions 공통)
 %surface-base {
-  padding: $surface-padding;
+  padding: 8px;
   background-color: var(--nexa-surface);
   border: 1px solid var(--nexa-border-color);
   border-radius: $surface-border-radius;
 }
 
 .document-settings-content {
+  padding: 30px;
   width: 100%;
+  color: var(--nexa-text-secondary);
 }
 
-// 섹션 구조
-.settings-section {
-  margin-bottom: 0;
+// Footer
+.document-settings-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--nexa-border-color);
 }
 
 .settings-section-title {
@@ -770,12 +774,12 @@ $surface-border-radius: 4px;
   font-size: 14px;
   font-weight: 600;
   color: var(--nexa-text-primary);
-  margin-bottom: $title-spacing;
+  margin-bottom: 6px;
 }
 
 .settings-section-content {
-  padding-left: $section-indent;
-  margin-bottom: $section-spacing;
+  padding-left: 28px;
+  margin-bottom: 12px;
 }
 
 // 텍스트 스타일
@@ -850,6 +854,24 @@ $surface-border-radius: 4px;
   }
 }
 
+// 새로고침 섹션 스타일
+.refresh-section {
+  &-content {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  &-button-wrapper {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  &-button {
+    margin-top: 0;
+    padding-top: 0;
+  }
+}
+
 // 새로고침 버튼 스타일
 .refresh-btn-changed {
   font-weight: 600;
@@ -874,16 +896,5 @@ $surface-border-radius: 4px;
   &:hover {
     background-color: rgba(237, 178, 15, 0.1);
   }
-}
-
-// Footer
-.document-settings-footer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 16px;
-  border-top: 1px solid var(--nexa-border-color);
 }
 </style>

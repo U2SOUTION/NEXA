@@ -171,7 +171,8 @@ body.dark {
   // ============================================
   --nexa-modal-bg: rgba(61, 61, 61, 0.883); // 모달 배경색
   --nexa-modal-surface: rgba(61, 61, 61, 0.95); // 모달 내부 표면 배경색
-  --nexa-modal-header-hover-bg: rgba(255, 255, 255, 0.05); // 모달 헤더 호버 배경색
+  --nexa-modal-header-bg: rgba(45, 45, 45, 0.95); // 모달 헤더 배경색 (드래그 핸들 구분용)
+  --nexa-modal-header-hover-bg: rgba(0, 0, 0, 0.317); // 모달 헤더 호버 배경색
   --nexa-modal-accordion-expanded-bg: rgba(252, 0, 0, 0.411); // 아코디언 펼쳐진 상태 헤더 배경색 (의도적 실험적 색상, 디버깅용)
   --nexa-modal-scrollbar: rgba(59, 113, 2, 0.833); // 모달 스크롤바 색상
   --nexa-modal-scrollbar-hover: rgba(0, 105, 16, 1); // 모달 스크롤바 호버 색상

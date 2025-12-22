@@ -10,10 +10,9 @@
         <div class="base-modal-header" @mousedown="handleDragStart">
           <div class="base-modal-title">
             <span class="base-modal-title-en">{{ titleEn }}</span>
-            <div class="base-modal-title-row">
-              <span class="base-modal-title-ko">{{ titleKo }}</span>
-              <span v-if="badge" class="base-modal-badge">{{ badge }}</span>
-            </div>
+            <span v-if="titleKo" class="base-modal-title-separator">|</span>
+            <span class="base-modal-title-ko">{{ titleKo }}</span>
+            <span v-if="badge" class="base-modal-badge">{{ badge }}</span>
           </div>
           <div class="base-modal-header-actions">
             <q-btn v-if="minimizable" flat dense :icon="isMinimized ? 'expand_more' : 'remove'" @click.stop="toggleMinimize" class="base-modal-minimize-btn" />
@@ -332,6 +331,52 @@ onUnmounted(() => {
   justify-content: space-between;
   cursor: move;
   user-select: none;
+  background-color: var(--nexa-modal-header-bg, var(--nexa-background-darker));
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--nexa-border-color);
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--nexa-modal-header-hover-bg, var(--nexa-background-darker));
+  }
+}
+
+.base-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0; // 텍스트 오버플로우 방지
+}
+
+.base-modal-title-en {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--nexa-text-primary);
+  white-space: nowrap;
+}
+
+.base-modal-title-separator {
+  color: var(--nexa-text-secondary);
+  opacity: 0.5;
+}
+
+.base-modal-title-ko {
+  color: var(--nexa-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.base-modal-badge {
+  margin-left: 4px;
+  padding: 2px 6px;
+  background-color: var(--nexa-primary);
+  color: white;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .base-modal-body {
