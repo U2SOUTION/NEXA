@@ -153,15 +153,6 @@ body .q-dialog .q-card {
   min-width: 460px; // 모바일에서도 너무 쪼그라들지 않도록 기본 폭 확보
 }
 
-// 1차 테스트용: 모든 모달 카드/섹션/액션에 동일 패딩 40px 적용
-// 이후 모바일/데스크톱 별 최소·최대값은 @media로 추가 조정 예정
-// 단, view-mode-settings-dialog-card는 예외 처리 (자체 패딩 사용)
-// body .q-dialog .q-card:not(.view-mode-settings-dialog-card),
-// body .q-dialog .q-card__section,
-// body .q-dialog .q-card__actions {
-//   padding: 40px;
-// }
-
 // ===== 1단계: 기본 테이블 디자인 (기능 없음) =====
 // 모든 q-table에 기본 디자인 적용
 .q-table {

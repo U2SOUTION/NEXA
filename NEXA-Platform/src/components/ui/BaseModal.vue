@@ -398,6 +398,28 @@ onUnmounted(() => {
   overflow-x: hidden;
   padding: 0;
   -webkit-overflow-scrolling: touch;
+
+  // 아이콘 크기 CSS 변수 (content slot 내부 요소에 사용)
+  --modal-icon-size-title: 20px;
+  --modal-icon-size-small: 14px;
+
+  // 패딩 변형 클래스 (content slot 내부 요소에 사용)
+  :deep(.modal-content-padded) {
+    padding: 30px;
+  }
+
+  :deep(.modal-content-padded-sm) {
+    padding: 16px;
+  }
+
+  // 아이콘 크기 유틸리티 클래스
+  :deep(.modal-icon-title) {
+    font-size: var(--modal-icon-size-title) !important;
+  }
+
+  :deep(.modal-icon-small) {
+    font-size: var(--modal-icon-size-small) !important;
+  }
 }
 
 .base-modal-tab-panels-wrapper {
@@ -420,8 +442,32 @@ onUnmounted(() => {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center; // 기본값: 중앙 정렬
   gap: 8px;
+
+  // 우측 정렬 변형 클래스 (필요시 사용)
+  &.right {
+    justify-content: flex-end;
+  }
+
+  // 상단 마진 및 보더 추가 변형
+  &.with-border {
+    margin-top: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--nexa-border-color);
+  }
+}
+
+// Footer 스타일 유틸리티 클래스 (content 영역 내부 footer에 사용)
+// 기본값: 중앙 정렬
+.modal-footer-center {
+  display: flex;
+  justify-content: center; // 기본값: 중앙 정렬
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--nexa-border-color);
 }
 
 .base-modal-resize-handle {

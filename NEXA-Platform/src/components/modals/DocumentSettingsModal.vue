@@ -5,11 +5,11 @@
 <template>
   <BaseModal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" modal-id="document-settings-modal" title-en="DOCUMENT SETTINGS" title-ko="문서 관리 설정" :initial-size="{ width: 500, height: 800 }" :min-size="{ width: 400, height: 500 }" :max-size="maxSize">
     <template #content>
-      <div class="document-settings-content">
+      <div class="modal-content-padded document-settings-content">
         <!-- 메뉴 이동 스텝 설정 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="mouse" size="20px" class="q-mr-sm" />
+            <q-icon name="mouse" class="modal-icon-title q-mr-sm" />
             <span>메뉴 휠 스크롤 스텝 이동 스텝 수 설정</span>
           </div>
           <div class="settings-section-content">
@@ -23,7 +23,7 @@
         <!-- 애니메이션 설정 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="animation" size="20px" class="q-mr-sm" />
+            <q-icon name="animation" class="modal-icon-title q-mr-sm" />
             <span>메뉴 스크롤 애니메이션</span>
           </div>
           <div class="settings-section-content">
@@ -35,7 +35,7 @@
         <!-- 재정렬 시간 설정 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="schedule" size="20px" class="q-mr-sm" />
+            <q-icon name="schedule" class="modal-icon-title q-mr-sm" />
             <span>우선순위 모드 자동 재정렬</span>
           </div>
           <div class="settings-section-content">
@@ -50,7 +50,7 @@
         <!-- 토스트 메시지 설정 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="notifications" size="20px" class="q-mr-sm" />
+            <q-icon name="notifications" class="modal-icon-title q-mr-sm" />
             <span>알림 메시지</span>
           </div>
           <div class="settings-section-content">
@@ -65,7 +65,7 @@
         <!-- 데이터 초기화 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="refresh" size="20px" class="q-mr-sm" />
+            <q-icon name="refresh" class="modal-icon-title q-mr-sm" />
             <span>데이터 초기화</span>
           </div>
           <div class="settings-section-content">
@@ -80,7 +80,7 @@
         <!-- 키보드 단축키 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="keyboard" size="20px" class="q-mr-sm" />
+            <q-icon name="keyboard" class="modal-icon-title q-mr-sm" />
             <span>키보드 단축키</span>
           </div>
           <div class="settings-section-content">
@@ -108,20 +108,20 @@
         <!-- 문서 폴더 경로 설정 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="folder" size="20px" class="q-mr-sm" />
+            <q-icon name="folder" class="modal-icon-title q-mr-sm" />
             <span>문서 폴더 경로</span>
           </div>
           <div class="settings-section-content">
             <!-- 기본 설명글 (변경되지 않았을 때만 표시) -->
             <div v-if="!hasFolderNameChanged" class="text-caption q-mb-sm">
-              <q-icon name="warning" size="14px" class="q-mr-xs" />
+              <q-icon name="warning" class="modal-icon-small q-mr-xs" />
               폴더명을 정확히 입력하세요.
             </div>
 
             <!-- 새로고침 버튼 및 설명글 (변경되었을 때만 표시) -->
             <div v-if="hasFolderNameChanged" class="refresh-section q-mb-sm">
               <div class="text-caption refresh-section-content">
-                <q-icon name="info" size="14px" class="q-mr-xs" />
+                <q-icon name="info" class="modal-icon-small q-mr-xs" />
                 변경된 폴더명에 맞는 파일들이 목록에 표시됩니다. 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
               </div>
               <div class="row items-center refresh-section-button-wrapper">
@@ -140,7 +140,7 @@
         <!-- 지원 확장자 설정 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="description" size="20px" class="q-mr-sm" />
+            <q-icon name="description" class="modal-icon-title q-mr-sm" />
             <span>지원 확장자</span>
           </div>
           <div class="settings-section-content">
@@ -150,7 +150,7 @@
             <!-- 새로고침 버튼 및 설명글 (변경되었을 때만 표시) -->
             <div v-if="hasExtensionChanged" class="refresh-section q-mb-sm">
               <div class="text-caption refresh-section-content">
-                <q-icon name="info" size="14px" class="q-mr-xs" />
+                <q-icon name="info" class="modal-icon-small q-mr-xs" />
                 변경된 확장자에 맞는 파일들이 목록에 표시됩니다. 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
               </div>
               <div class="row items-center refresh-section-button-wrapper">
@@ -173,7 +173,7 @@
         <!-- 기타 설정 -->
         <div class="settings-section">
           <div class="settings-section-title">
-            <q-icon name="tune" size="20px" class="q-mr-sm" />
+            <q-icon name="tune" class="modal-icon-title q-mr-sm" />
             <span>기타 설정</span>
           </div>
           <div class="settings-section-content">
@@ -186,9 +186,9 @@
           </div>
         </div>
         <!-- Footer 버튼 (content 영역 내부) -->
-        <div class="document-settings-footer">
-          <q-btn flat label="취소" @click="$emit('update:modelValue', false)" />
-          <q-btn color="primary" label="저장" @click="handleSave" />
+        <div class="modal-footer-center">
+          <q-btn flat label="취 소" @click="$emit('update:modelValue', false)" class="modal-cancel-btn" />
+          <q-btn color="primary" label="셋팅저장" @click="handleSave" class="modal-save-btn" />
         </div>
       </div>
     </template>
@@ -752,13 +752,12 @@ $surface-border-radius: 4px;
 }
 
 .document-settings-content {
-  padding: 30px;
   width: 100%;
   color: var(--nexa-text-secondary);
 }
 
-// Footer
-.document-settings-footer {
+// Footer 버튼 중앙 정렬
+.modal-footer-center {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -767,6 +766,8 @@ $surface-border-radius: 4px;
   padding-top: 16px;
   border-top: 1px solid var(--nexa-border-color);
 }
+
+// Quasar 기본 스타일 사용 (커스텀 스타일 제거)
 
 .settings-section-title {
   display: flex;
@@ -780,12 +781,20 @@ $surface-border-radius: 4px;
 .settings-section-content {
   padding-left: 28px;
   margin-bottom: 12px;
+
+  // 초기화 버튼 상하 패딩 줄이기
+  .row .q-btn {
+    margin-top: 10px;
+    margin-bottom: 0;
+    border-radius: 8px;
+  }
 }
 
 // 텍스트 스타일
 .text-caption {
   display: block;
   margin-top: 0;
+  line-height: 1.2;
 }
 
 .step-value {
@@ -831,13 +840,15 @@ $surface-border-radius: 4px;
 
 // 확장자 리스트 (공통 스타일 적용)
 .extension-list {
-  @extend %surface-base;
-  min-height: 40px;
+  // 보더, 배경, 패딩 제거
+  padding: 0;
+  background-color: transparent;
+  border: none;
 
   .extension-items {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 2px;
   }
 }
 
@@ -845,12 +856,14 @@ $surface-border-radius: 4px;
   @extend %surface-base;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   max-height: 200px;
   overflow-y: auto;
 
   .extension-checkbox {
-    margin-bottom: 4px;
+    // q-checkbox 내부 요소 간격 최소화
+    :deep(.q-checkbox__inner) {
+      margin-right: 6px;
+    }
   }
 }
 
