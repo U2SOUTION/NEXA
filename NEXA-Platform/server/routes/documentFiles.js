@@ -292,6 +292,9 @@ router.get('/metadata', async (req, res) => {
     const docsPath = path.join(__dirname, '../../../NEXA-Documentation')
 
     // 재귀적으로 모든 .md 파일 찾기 (최대 깊이 10 제한)
+    // 주의사항:
+    // - 빈 폴더는 자동으로 무시됩니다 (하위 파일이 없으면 빈 배열 반환)
+    // - 확장자 제한: .md 확장자를 가진 파일만 검색 대상입니다 (다른 확장자 파일은 제외)
     async function findFiles(dir, relativePath = '', depth = 0) {
       const MAX_DEPTH = 10
       if (depth > MAX_DEPTH) {
@@ -304,9 +307,11 @@ router.get('/metadata', async (req, res) => {
         for (const entry of entries) {
           const fullPath = path.join(dir, entry.name)
           if (entry.isDirectory()) {
+            // 디렉토리인 경우 재귀적으로 하위 파일 검색 (빈 폴더는 자동으로 제외됨)
             const subFiles = await findFiles(fullPath, path.join(relativePath, entry.name), depth + 1)
             files.push(...subFiles)
           } else if (entry.isFile() && entry.name.endsWith('.md')) {
+            // .md 확장자를 가진 파일만 처리 (다른 확장자 파일은 제외)
             const fileRelativePath = relativePath ? path.join(relativePath, entry.name).replace(/\\/g, '/') : entry.name
             const fileFullPath = fullPath // 이미 fullPath가 올바른 전체 경로
             try {

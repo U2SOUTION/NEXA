@@ -56,7 +56,9 @@
         <div class="text-caption progress-text text-weight-bold">{{ overallProgress }}%</div>
       </div>
       <div class="row items-center justify-center q-gutter-sm q-pt-xs">
-        <div class="text-caption stats-label">전체 진행률</div>
+        <div class="text-caption stats-label">
+          문서 <span class="text-weight-bold">{{ currentDisplayedCount }}개</span>
+        </div>
         <div class="text-caption stats-label">
           완료: <span class="stats-completed text-weight-bold">{{ totalCompleted }}</span>
         </div>
@@ -93,22 +95,21 @@
     <q-list separator @dragover.prevent.stop @drop.prevent.stop @mouseup="handleMultiSelectMouseUp">
       <!-- 검색 결과 문서 (상단에 표시) -->
       <template v-if="sortedSearchResults.length > 0">
-        <q-item-label header class="text-caption search-result-header q-pa-sm">검색어 포함한 검색 결과 ({{ sortedSearchResults.length }})</q-item-label>
         <q-item
           v-for="result in sortedSearchResults"
           :key="result.file.name"
           clickable
           v-ripple
-          :active="documentStore.selectedFile?.name === result.file.name && !multiSelectMode"
+          :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (result.file.path || result.file.relativePath) && !multiSelectMode"
           active-class="item-active"
           :class="{
-            'multi-selected': isFileSelected(result.file.name) && multiSelectMode,
-            'drag-over': dragOverFileName === result.file.name,
-            dragging: draggedFileName === result.file.name,
-            'recently-moved': lastMovedFileName === result.file.name,
+            'multi-selected': isFileSelected(result.file.path || result.file.relativePath) && multiSelectMode,
+            'drag-over': dragOverFileName === (result.file.path || result.file.relativePath),
+            dragging: draggedFileName === (result.file.path || result.file.relativePath),
+            'recently-moved': lastMovedFileName === (result.file.path || result.file.relativePath),
           }"
-          @click="handleMultiSelectClick($event, { ...result.file, id: result.file.name })"
-          @mousedown="handleMultiSelectMouseDown($event, { ...result.file, id: result.file.name })"
+          @click="handleMultiSelectClickWrapper($event, result.file)"
+          @mousedown="handleMultiSelectMouseDownWrapper($event, result.file)"
           draggable="true"
           @dragstart="handleDragStart($event, result.file)"
           @dragend="handleDragEnd($event)"
@@ -127,7 +128,11 @@
           </q-item-section>
           <q-item-section>
             <q-item-label class="relative-position">
-              {{ result.file.displayName }}
+              <template v-if="result.file.name.toLowerCase() === 'readme.md'">
+                <span>{{ parseReadmeDisplayName(result.file.displayName).main }}</span>
+                <span v-if="parseReadmeDisplayName(result.file.displayName).path" class="readme-path">{{ parseReadmeDisplayName(result.file.displayName).path }}</span>
+              </template>
+              <template v-else>{{ result.file.displayName }}</template>
               <span class="match-count">{{ result.matchCount }}</span>
               <span class="usage-count">{{ result.file.usageCount || 0 }}</span>
             </q-item-label>
@@ -143,17 +148,23 @@
           :key="file.name"
           clickable
           v-ripple
-          :active="documentStore.selectedFile?.name === file.name && !multiSelectMode"
+          :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (file.path || file.relativePath) && !multiSelectMode"
           active-class="item-active"
-          :class="{ 'multi-selected': isFileSelected(file.name) && multiSelectMode }"
-          @click="handleMultiSelectClick($event, { ...file, id: file.name })"
-          @mousedown="handleMultiSelectMouseDown($event, { ...file, id: file.name })"
+          :class="{ 'multi-selected': isFileSelected(file.path || file.relativePath) && multiSelectMode }"
+          @click="handleMultiSelectClickWrapper($event, file)"
+          @mousedown="handleMultiSelectMouseDownWrapper($event, file)"
         >
           <q-item-section avatar class="file-list-icon-section">
             <q-icon :name="isFavorite(file.name) ? 'star' : 'description'" :color="isFavorite(file.name) ? 'amber' : undefined" @click.stop="toggleFileFavorite(file, $event)" class="cursor-pointer" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="item-label-secondary">{{ file.displayName }}</q-item-label>
+            <q-item-label class="item-label-secondary">
+              <template v-if="file.name.toLowerCase() === 'readme.md'">
+                <span>{{ parseReadmeDisplayName(file.displayName).main }}</span>
+                <span v-if="parseReadmeDisplayName(file.displayName).path" class="readme-path">{{ parseReadmeDisplayName(file.displayName).path }}</span>
+              </template>
+              <template v-else>{{ file.displayName }}</template>
+            </q-item-label>
           </q-item-section>
         </q-item>
         <q-separator class="q-my-sm" />
@@ -170,17 +181,23 @@
             :key="file.name"
             clickable
             v-ripple
-            :active="documentStore.selectedFile?.name === file.name && !multiSelectMode"
+            :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (file.path || file.relativePath) && !multiSelectMode"
             active-class="item-active"
-            :class="{ 'multi-selected': isFileSelected(file.name) && multiSelectMode }"
-            @click="handleMultiSelectClick($event, { ...file, id: file.name })"
-            @mousedown="handleMultiSelectMouseDown($event, { ...file, id: file.name })"
+            :class="{ 'multi-selected': isFileSelected(file.path || file.relativePath) && multiSelectMode }"
+            @click="handleMultiSelectClick($event, { ...file, id: file.path || file.relativePath })"
+            @mousedown="handleMultiSelectMouseDown($event, { ...file, id: file.path || file.relativePath })"
           >
             <q-item-section avatar class="file-list-icon-section">
               <q-icon name="delete" class="icon-trash" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>{{ file.displayName }}</q-item-label>
+              <q-item-label>
+                <template v-if="file.name.toLowerCase() === 'readme.md'">
+                  <span>{{ parseReadmeDisplayName(file.displayName).main }}</span>
+                  <span v-if="parseReadmeDisplayName(file.displayName).path" class="readme-path">{{ parseReadmeDisplayName(file.displayName).path }}</span>
+                </template>
+                <template v-else>{{ file.displayName }}</template>
+              </q-item-label>
               <q-item-label caption class="item-label-secondary">휴지통에 있음</q-item-label>
             </q-item-section>
           </q-item>
@@ -196,16 +213,16 @@
                 :key="file.name"
                 clickable
                 v-ripple
-                :active="documentStore.selectedFile?.name === file.name && !multiSelectMode"
+                :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (file.path || file.relativePath) && !multiSelectMode"
                 active-class="item-active"
                 :class="{
-                  'multi-selected': isFileSelected(file.name) && multiSelectMode,
-                  'drag-over': dragOverFileName === file.name,
-                  dragging: draggedFileName === file.name,
-                  'recently-moved': lastMovedFileName === file.name,
+                  'multi-selected': isFileSelected(file.path || file.relativePath) && multiSelectMode,
+                  'drag-over': dragOverFileName === (file.path || file.relativePath),
+                  dragging: draggedFileName === (file.path || file.relativePath),
+                  'recently-moved': lastMovedFileName === (file.path || file.relativePath),
                 }"
-                @click="handleMultiSelectClick($event, { ...file, id: file.name })"
-                @mousedown="handleMultiSelectMouseDown($event, { ...file, id: file.name })"
+                @click="handleMultiSelectClick($event, { ...file, id: file.path || file.relativePath })"
+                @mousedown="handleMultiSelectMouseDown($event, { ...file, id: file.path || file.relativePath })"
                 draggable="true"
                 @dragstart="handleDragStart($event, file)"
                 @dragend="handleDragEnd($event)"
@@ -218,7 +235,11 @@
                 </q-item-section>
                 <q-item-section>
                   <q-item-label class="relative-position">
-                    {{ file.displayName }}
+                    <template v-if="file.name.toLowerCase() === 'readme.md'">
+                      <span>{{ parseReadmeDisplayName(file.displayName).main }}</span>
+                      <span v-if="parseReadmeDisplayName(file.displayName).path" class="readme-path">{{ parseReadmeDisplayName(file.displayName).path }}</span>
+                    </template>
+                    <template v-else>{{ file.displayName }}</template>
                     <span v-if="getFileTotalCount(file) > 0" class="file-progress-inline"> {{ getFileCompletedCount(file) }}/{{ getFileTotalCount(file) }} </span>
                     <span class="usage-count">{{ file.usageCount || 0 }}</span>
                   </q-item-label>
@@ -236,16 +257,16 @@
               :key="file.name"
               clickable
               v-ripple
-              :active="documentStore.selectedFile?.name === file.name && !multiSelectMode"
+              :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (file.path || file.relativePath) && !multiSelectMode"
               active-class="item-active"
               :class="{
-                'multi-selected': isFileSelected(file.name) && multiSelectMode,
-                'drag-over': dragOverFileName === file.name,
-                dragging: draggedFileName === file.name,
-                'recently-moved': lastMovedFileName === file.name,
+                'multi-selected': isFileSelected(file.path || file.relativePath) && multiSelectMode,
+                'drag-over': dragOverFileName === (file.path || file.relativePath),
+                dragging: draggedFileName === (file.path || file.relativePath),
+                'recently-moved': lastMovedFileName === (file.path || file.relativePath),
               }"
-              @click="handleMultiSelectClick($event, { ...file, id: file.name })"
-              @mousedown="handleMultiSelectMouseDown($event, { ...file, id: file.name })"
+              @click="handleMultiSelectClick($event, { ...file, id: file.path || file.relativePath })"
+              @mousedown="handleMultiSelectMouseDown($event, { ...file, id: file.path || file.relativePath })"
               draggable="true"
               @dragstart="handleDragStart($event, file)"
               @dragend="handleDragEnd($event)"
@@ -260,7 +281,11 @@
                 <q-item-label class="relative-position">
                   <span v-if="listMode === 'priority'" class="usage-count priority-mode">{{ file.usageCount || 0 }}</span>
                   <span v-if="listMode === 'priority' && getPriority(file.name) > 0" class="priority-badge">{{ getPriority(file.name) }}</span>
-                  {{ file.displayName }}
+                  <template v-if="file.name.toLowerCase() === 'readme.md'">
+                    <span>{{ parseReadmeDisplayName(file.displayName).main }}</span>
+                    <span v-if="parseReadmeDisplayName(file.displayName).path" class="readme-path">{{ parseReadmeDisplayName(file.displayName).path }}</span>
+                  </template>
+                  <template v-else>{{ file.displayName }}</template>
                   <span v-if="getFileTotalCount(file) > 0" class="file-progress-inline"> {{ getFileCompletedCount(file) }}/{{ getFileTotalCount(file) }} </span>
                   <span v-if="listMode !== 'priority'" class="usage-count">{{ file.usageCount || 0 }}</span>
                 </q-item-label>
@@ -356,14 +381,17 @@ const manualOrder = ref(null)
 let autoSortTimer = null
 
 // 현재 표시 중인 모든 파일 목록 (멀티 셀렉션용)
+// ⚠️ 중요: README 파일 등 동일한 파일명을 가진 파일들을 구분하기 위해
+// file.name 대신 file.path(또는 file.relativePath)를 고유 식별자(id)로 사용
 const allDisplayedFiles = computed(() => {
   const files = []
 
   // 검색 결과 추가
   if (sortedSearchResults.value.length > 0) {
     sortedSearchResults.value.forEach((result) => {
-      if (!files.find((f) => f.name === result.file.name)) {
-        files.push({ ...result.file, id: result.file.name })
+      const filePath = result.file.path || result.file.relativePath
+      if (!files.find((f) => (f.path || f.relativePath) === filePath)) {
+        files.push({ ...result.file, id: filePath })
       }
     })
   }
@@ -371,8 +399,9 @@ const allDisplayedFiles = computed(() => {
   // 검색 제외 목록 추가
   if (props.showExcludedFiles && filteredSearchExcluded.value.length > 0) {
     filteredSearchExcluded.value.forEach((file) => {
-      if (!files.find((f) => f.name === file.name)) {
-        files.push({ ...file, id: file.name })
+      const filePath = file.path || file.relativePath
+      if (!files.find((f) => (f.path || f.relativePath) === filePath)) {
+        files.push({ ...file, id: filePath })
       }
     })
   }
@@ -382,8 +411,9 @@ const allDisplayedFiles = computed(() => {
     if (isTrashView.value) {
       // 휴지통 모드
       displayFiles.value.forEach((file) => {
-        if (!files.find((f) => f.name === file.name)) {
-          files.push({ ...file, id: file.name })
+        const filePath = file.path || file.relativePath
+        if (!files.find((f) => (f.path || f.relativePath) === filePath)) {
+          files.push({ ...file, id: filePath })
         }
       })
     } else {
@@ -392,14 +422,14 @@ const allDisplayedFiles = computed(() => {
         filteredGroupedFiles.value.forEach((category) => {
           category.files.forEach((file) => {
             if (!files.find((f) => f.name === file.name)) {
-              files.push({ ...file, id: file.name })
+              files.push({ ...file, id: file.path || file.relativePath })
             }
           })
         })
       } else {
         displayFiles.value.forEach((file) => {
           if (!files.find((f) => f.name === file.name)) {
-            files.push({ ...file, id: file.name })
+            files.push({ ...file, id: file.path || file.relativePath })
           }
         })
       }
@@ -437,8 +467,21 @@ const {
 })
 
 // 파일이 선택되었는지 확인
-function isFileSelected(fileName) {
-  return selectedRows.value.some((file) => file.name === fileName)
+// ⚠️ file.name 대신 file.path로 비교 (README 등 동일 파일명 구분)
+function isFileSelected(filePath) {
+  return selectedRows.value.some((file) => {
+    const selectedFilePath = file.path || file.relativePath || file.id
+    return selectedFilePath === filePath
+  })
+}
+
+// allDisplayedFiles에서 파일 찾기 (id로)
+function findFileInAllDisplayedFiles(fileId) {
+  const allFiles = allDisplayedFiles.value
+  return allFiles.find((f) => {
+    const filePath = f.path || f.relativePath || f.id
+    return filePath === fileId
+  })
 }
 
 // 파일 선택 래퍼 (파일 사용 빈도 증가 포함)
@@ -450,7 +493,49 @@ async function selectFile(file) {
   }
 }
 
+// handleMultiSelectClick 래퍼: allDisplayedFiles에서 파일 찾아서 전달
+// ⚠️ 템플릿에서 새 객체를 생성하지 않고 allDisplayedFiles의 객체를 사용하여
+// useMultiSelection이 올바르게 파일을 식별할 수 있도록 함
+function handleMultiSelectClickWrapper(event, file) {
+  const fileId = file.path || file.relativePath || file.id
+  const foundFile = findFileInAllDisplayedFiles(fileId)
+  if (foundFile) {
+    handleMultiSelectClick(event, foundFile)
+  } else {
+    // 찾지 못한 경우 원본 파일 사용 (fallback)
+    handleMultiSelectClick(event, file)
+  }
+}
+
+// handleMultiSelectMouseDown 래퍼: allDisplayedFiles에서 파일 찾아서 전달
+function handleMultiSelectMouseDownWrapper(event, file) {
+  const fileId = file.path || file.relativePath || file.id
+  const foundFile = findFileInAllDisplayedFiles(fileId)
+  if (foundFile) {
+    handleMultiSelectMouseDown(event, foundFile)
+  } else {
+    // 찾지 못한 경우 원본 파일 사용 (fallback)
+    handleMultiSelectMouseDown(event, file)
+  }
+}
+
 // 설정 열기는 DevSidebar에서 처리
+
+// README 파일의 displayName 파싱 (메인 부분과 경로 부분 분리)
+function parseReadmeDisplayName(displayName) {
+  // "README (Platform - 기획)" 형식에서 분리
+  const match = displayName.match(/^README\s+(\(.+\))$/)
+  if (match) {
+    return {
+      main: 'README',
+      path: match[1], // "(Platform - 기획)"
+    }
+  }
+  return {
+    main: displayName,
+    path: null,
+  }
+}
 
 // 즐겨찾기 토글
 function toggleFileFavorite(file, event) {
@@ -470,9 +555,10 @@ function getPriority(fileName) {
 
 // 드래그 시작
 function handleDragStart(event, file) {
-  draggedFileName.value = file.name
+  const filePath = file.path || file.relativePath
+  draggedFileName.value = filePath
   event.dataTransfer.effectAllowed = 'move'
-  event.dataTransfer.setData('application/json', JSON.stringify({ fileName: file.name }))
+  event.dataTransfer.setData('application/json', JSON.stringify({ fileName: file.name, filePath: filePath }))
   event.stopPropagation()
   if (event.currentTarget) {
     event.currentTarget.style.opacity = '0.5'
@@ -491,7 +577,8 @@ function handleDragEnd(event) {
 
 // 드래그 오버
 function handleDragOver(event, file) {
-  if (draggedFileName.value && draggedFileName.value !== file.name) {
+  const filePath = file.path || file.relativePath
+  if (draggedFileName.value && draggedFileName.value !== filePath) {
     // 마우스 위치에 따라 드롭 위치 시각적 표시 (위쪽 절반인지 아래쪽 절반인지)
     const targetElement = event.currentTarget
     const rect = targetElement.getBoundingClientRect()
@@ -505,7 +592,7 @@ function handleDragOver(event, file) {
       targetElement.setAttribute('data-drop-position', 'after')
     }
 
-    dragOverFileName.value = file.name
+    dragOverFileName.value = filePath
     event.dataTransfer.dropEffect = 'move'
     event.preventDefault()
     event.stopPropagation()
@@ -528,7 +615,8 @@ function handleDrop(event, targetFile, currentFiles) {
   event.preventDefault()
   event.stopPropagation()
 
-  if (!draggedFileName.value || draggedFileName.value === targetFile.name) {
+  const targetFilePath = targetFile.path || targetFile.relativePath
+  if (!draggedFileName.value || draggedFileName.value === targetFilePath) {
     dragOverFileName.value = null
     draggedFileName.value = null
     return
@@ -536,16 +624,16 @@ function handleDrop(event, targetFile, currentFiles) {
 
   try {
     const dragData = JSON.parse(event.dataTransfer.getData('application/json'))
-    const sourceFileName = dragData.fileName || draggedFileName.value
+    const sourceFilePath = dragData.filePath || dragData.fileName || draggedFileName.value
 
-    if (!sourceFileName || sourceFileName === targetFile.name) {
+    if (!sourceFilePath || sourceFilePath === targetFilePath) {
       dragOverFileName.value = null
       draggedFileName.value = null
       return
     }
 
-    const sourceIndex = currentFiles.findIndex((f) => f.name === sourceFileName)
-    const targetIndex = currentFiles.findIndex((f) => f.name === targetFile.name)
+    const sourceIndex = currentFiles.findIndex((f) => (f.path || f.relativePath) === sourceFilePath)
+    const targetIndex = currentFiles.findIndex((f) => (f.path || f.relativePath) === targetFilePath)
 
     if (sourceIndex === -1 || targetIndex === -1) {
       dragOverFileName.value = null
@@ -580,16 +668,18 @@ function handleDrop(event, targetFile, currentFiles) {
     finalTargetIndex = Math.max(0, Math.min(finalTargetIndex, currentFiles.length - 1))
 
     // ⭐ 범용 값 조정 함수 호출 (정렬 모드에 따라 적절한 값 조정)
-    const result = calculateValueOnDrop(sourceFileName, targetFile, sourceIndex, finalTargetIndex, currentFiles)
-    lastMovedFileName.value = sourceFileName
+    const sourceFile = currentFiles[sourceIndex]
+    const result = calculateValueOnDrop(sourceFile, targetFile, sourceIndex, finalTargetIndex)
+    lastMovedFileName.value = sourceFilePath
     // ⭐ 수동 순서 적용 (시각적 피드백) - 계산된 finalTargetIndex 사용
-    applyManualOrder(sourceFileName, finalTargetIndex, currentFiles)
+    applyManualOrder(sourceFilePath, finalTargetIndex, currentFiles)
 
     // ⭐ 토스트 메시지 표시 (설정값 사용)
     if (showToastMessages.value) {
       const timeoutMs = toastTimeoutSeconds.value * 1000
-      const sourceDisplayName = sourceFileName.replace(/\.md$/, '')
-      const targetDisplayName = targetFile.name.replace(/\.md$/, '')
+      const sourceFile = currentFiles[sourceIndex]
+      const sourceDisplayName = sourceFile?.displayName || sourceFile?.name?.replace(/\.md$/, '') || '파일'
+      const targetDisplayName = targetFile.displayName || targetFile.name.replace(/\.md$/, '')
       const action = sourceIndex < targetIndex ? '내려서' : '올려서'
 
       switch (result.type) {
@@ -685,18 +775,18 @@ function handleDrop(event, targetFile, currentFiles) {
 }
 
 // ⭐ 수동 순서 적용: 드래그한 파일을 목표 위치로 이동하여 manualOrder 생성 (시각적 피드백용)
-function applyManualOrder(sourceFileName, targetIndex, currentFiles) {
+function applyManualOrder(sourceFilePath, targetIndex, currentFiles) {
   const baseFiles = manualOrder.value ? currentFiles : sortedFiles.value
   const newOrder = [...baseFiles]
 
-  const sourceIndex = newOrder.findIndex((f) => f.name === sourceFileName)
+  const sourceIndex = newOrder.findIndex((f) => (f.path || f.relativePath) === sourceFilePath)
   if (sourceIndex === -1) return
 
   const [movedFile] = newOrder.splice(sourceIndex, 1)
   // targetIndex는 이미 최종 삽입 위치로 계산되어 전달됨
   newOrder.splice(targetIndex, 0, movedFile)
 
-  manualOrder.value = newOrder.map((f) => f.name)
+  manualOrder.value = newOrder.map((f) => f.path || f.relativePath)
 }
 
 // ⭐ 자동 정렬 적용: manualOrder 초기화하여 sortedFiles(절대 정렬)로 복귀
@@ -778,8 +868,9 @@ async function updateFileModifiedDateOnDrop(sourceFileName) {
 }
 
 // ⭐ 범용 값 조정 함수: 정렬 모드에 따라 적절한 값을 조정
-function calculateValueOnDrop(sourceFileName, targetFile, sourceIndex, finalTargetIndex) {
+function calculateValueOnDrop(sourceFile, targetFile, sourceIndex, finalTargetIndex) {
   const currentSortType = listMode.value === 'default' ? sortType.value : listMode.value
+  const sourceFileName = sourceFile.name
   const targetFileName = targetFile.name
 
   switch (currentSortType) {
@@ -903,7 +994,53 @@ function loadToastSettings() {
 // 설정 모달 저장 핸들러 (DocumentListSidebar에서 처리)
 
 // 통계 계산 (store에서 직접 참조하여 반응성 유지)
-const { getFileTotalCount, getFileCompletedCount, overallProgress, totalCompleted, totalPending, totalItems } = useDocumentStats(toRef(documentStore, 'markdownFiles'), toRef(documentStore, 'fileContents'), toRef(documentStore, 'checkboxStates'))
+const { getFileTotalCount, getFileCompletedCount, getFileCheckboxStats } = useDocumentStats(toRef(documentStore, 'markdownFiles'), toRef(documentStore, 'fileContents'), toRef(documentStore, 'checkboxStates'))
+
+// 현재 표시되는 파일 목록 계산 (검색, 필터링 반영)
+const currentDisplayedFiles = computed(() => {
+  // 검색 중일 때
+  if (props.globalSearchQuery && props.globalSearchQuery.trim() !== '') {
+    const searchFiles = sortedSearchResults.value.map((result) => result.file)
+    const excludedFiles = props.showExcludedFiles ? filteredSearchExcluded.value : []
+    return [...searchFiles, ...excludedFiles]
+  }
+  // 일반 모드일 때
+  return displayFiles.value
+})
+
+// 현재 표시되는 문서 수 계산 (검색, 필터링 반영)
+const currentDisplayedCount = computed(() => {
+  return currentDisplayedFiles.value.length
+})
+
+// 현재 표시되는 파일들만 기준으로 통계 계산
+const currentDisplayedStats = computed(() => {
+  let total = 0
+  let completed = 0
+
+  if (!currentDisplayedFiles.value || !Array.isArray(currentDisplayedFiles.value)) {
+    return { total: 0, completed: 0, pending: 0, progress: 0 }
+  }
+
+  currentDisplayedFiles.value.forEach((file) => {
+    const stats = getFileCheckboxStats(file)
+    total += stats.total
+    completed += stats.completed
+  })
+
+  return {
+    total,
+    completed,
+    pending: total - completed,
+    progress: total === 0 ? 0 : Math.round((completed / total) * 100),
+  }
+})
+
+// 현재 표시되는 파일들 기준 통계
+const overallProgress = computed(() => currentDisplayedStats.value.progress)
+const totalCompleted = computed(() => currentDisplayedStats.value.completed)
+const totalPending = computed(() => currentDisplayedStats.value.pending)
+const totalItems = computed(() => currentDisplayedStats.value.total)
 
 // 검색 기능은 DevSidebar에서 관리하고 props로 전달받음
 
@@ -1032,8 +1169,9 @@ const sortedSearchResults = computed(() => {
     const unorderedResults = []
 
     finalSorted.forEach((result) => {
-      if (orderMap.has(result.file.name)) {
-        orderedResults.push({ result, index: orderMap.get(result.file.name) })
+      const filePath = result.file.path || result.file.relativePath
+      if (orderMap.has(filePath)) {
+        orderedResults.push({ result, index: orderMap.get(filePath) })
       } else {
         unorderedResults.push(result)
       }
@@ -1089,8 +1227,9 @@ const displayFiles = computed(() => {
     const unorderedFiles = []
 
     sortedFiles.value.forEach((file) => {
-      if (orderMap.has(file.name)) {
-        orderedFiles.push({ file, index: orderMap.get(file.name) })
+      const filePath = file.path || file.relativePath
+      if (orderMap.has(filePath)) {
+        orderedFiles.push({ file, index: orderMap.get(filePath) })
       } else {
         unorderedFiles.push(file)
       }
@@ -1364,6 +1503,12 @@ defineExpose({
 
   .stats-completed {
     color: var(--nexa-success);
+  }
+
+  .stats-count {
+    color: var(--nexa-text-hint);
+    font-size: 0.9em;
+    margin-left: 2px;
   }
 }
 
@@ -1743,6 +1888,15 @@ defineExpose({
 
 .icon-trash {
   color: var(--nexa-text-secondary);
+}
+
+// ============================================
+// README 파일 경로 스타일
+// ============================================
+.readme-path {
+  font-size: 0.85em; // 작게 표시
+  color: var(--nexa-text-hint); // 넥사 테마 힌트 컬러
+  margin-left: 4px;
 }
 
 // ============================================
