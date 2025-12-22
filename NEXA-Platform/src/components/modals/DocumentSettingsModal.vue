@@ -112,16 +112,8 @@
             <span>문서 폴더 경로</span>
           </div>
           <div class="settings-section-content">
-            <div class="text-caption text-grey-6 q-mb-sm">
-              문서가 저장된 폴더의 경로를 설정합니다. 상대 경로 또는 절대 경로를 사용할 수 있습니다.
-            </div>
-            <q-input
-              v-model="documentFolderPath"
-              outlined
-              dense
-              placeholder="예: ../../../NEXA-Documentation 또는 C:/Documents/NEXA-Documentation"
-              class="q-mb-sm"
-            >
+            <div class="text-caption text-grey-6 q-mb-sm">문서가 저장된 폴더의 경로를 설정합니다. 상대 경로 또는 절대 경로를 사용할 수 있습니다.</div>
+            <q-input v-model="documentFolderPath" outlined dense placeholder="예: ../../../NEXA-Documentation 또는 C:/Documents/NEXA-Documentation" class="q-mb-sm">
               <template v-slot:prepend>
                 <q-icon name="folder_open" />
               </template>
@@ -140,40 +132,16 @@
             <span>지원 확장자</span>
           </div>
           <div class="settings-section-content">
-            <div class="text-caption text-grey-6 q-mb-sm">
-              문서 관리 시스템에서 지원할 파일 확장자를 선택하세요. 미리 정의된 확장자 목록에서만 선택 가능합니다.
-            </div>
+            <div class="text-caption text-grey-6 q-mb-sm">문서 관리 시스템에서 지원할 파일 확장자를 선택하세요. 미리 정의된 확장자 목록에서만 선택 가능합니다.</div>
             <div class="extension-list q-mb-sm">
-              <div v-if="supportedExtensions.length === 0" class="text-caption text-grey-6 q-py-sm">
-                선택된 확장자가 없습니다. 아래 목록에서 선택하세요.
-              </div>
+              <div v-if="supportedExtensions.length === 0" class="text-caption text-grey-6 q-py-sm">선택된 확장자가 없습니다. 아래 목록에서 선택하세요.</div>
               <div v-else class="extension-items">
-                <q-chip
-                  v-for="(ext, index) in supportedExtensions"
-                  :key="index"
-                  :label="ext"
-                  color="primary"
-                  text-color="white"
-                  removable
-                  @remove="removeExtension(ext)"
-                  class="q-mr-xs q-mb-xs"
-                />
+                <q-chip v-for="(ext, index) in supportedExtensions" :key="index" :label="ext" color="primary" text-color="white" removable @remove="removeExtension(ext)" class="q-mr-xs q-mb-xs" />
               </div>
             </div>
-            <div class="text-caption text-grey-7 q-mb-sm" style="font-weight: 500">
-              사용 가능한 확장자 목록:
-            </div>
+            <div class="text-caption text-grey-7 q-mb-sm" style="font-weight: 500">사용 가능한 확장자 목록:</div>
             <div class="available-extensions q-mb-sm">
-              <q-checkbox
-                v-for="ext in availableExtensions"
-                :key="ext.value"
-                v-model="ext.selected"
-                :label="ext.label"
-                color="primary"
-                dense
-                @update:model-value="handleExtensionToggle(ext.value, $event)"
-                class="extension-checkbox"
-              />
+              <q-checkbox v-for="ext in availableExtensions" :key="ext.value" v-model="ext.selected" :label="ext.label" color="primary" dense @update:model-value="handleExtensionToggle(ext.value, $event)" class="extension-checkbox" />
             </div>
             <div class="text-caption text-grey-6 q-mt-sm">
               <q-icon name="info" size="14px" class="q-mr-xs" />
