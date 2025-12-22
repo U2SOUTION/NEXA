@@ -105,6 +105,83 @@
           </div>
         </div>
 
+        <!-- 문서 폴더 경로 설정 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="folder" size="20px" class="q-mr-sm" />
+            <span>문서 폴더 경로</span>
+          </div>
+          <div class="settings-section-content">
+            <div class="text-caption text-grey-6 q-mb-sm">
+              문서가 저장된 폴더의 경로를 설정합니다. 상대 경로 또는 절대 경로를 사용할 수 있습니다.
+            </div>
+            <q-input
+              v-model="documentFolderPath"
+              outlined
+              dense
+              placeholder="예: ../../../NEXA-Documentation 또는 C:/Documents/NEXA-Documentation"
+              class="q-mb-sm"
+            >
+              <template v-slot:prepend>
+                <q-icon name="folder_open" />
+              </template>
+            </q-input>
+            <div class="text-caption text-grey-6">
+              <q-icon name="info" size="14px" class="q-mr-xs" />
+              변경 사항은 서버 재시작 후 적용됩니다.
+            </div>
+          </div>
+        </div>
+
+        <!-- 지원 확장자 설정 -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <q-icon name="description" size="20px" class="q-mr-sm" />
+            <span>지원 확장자</span>
+          </div>
+          <div class="settings-section-content">
+            <div class="text-caption text-grey-6 q-mb-sm">
+              문서 관리 시스템에서 지원할 파일 확장자를 선택하세요. 미리 정의된 확장자 목록에서만 선택 가능합니다.
+            </div>
+            <div class="extension-list q-mb-sm">
+              <div v-if="supportedExtensions.length === 0" class="text-caption text-grey-6 q-py-sm">
+                선택된 확장자가 없습니다. 아래 목록에서 선택하세요.
+              </div>
+              <div v-else class="extension-items">
+                <q-chip
+                  v-for="(ext, index) in supportedExtensions"
+                  :key="index"
+                  :label="ext"
+                  color="primary"
+                  text-color="white"
+                  removable
+                  @remove="removeExtension(ext)"
+                  class="q-mr-xs q-mb-xs"
+                />
+              </div>
+            </div>
+            <div class="text-caption text-grey-7 q-mb-sm" style="font-weight: 500">
+              사용 가능한 확장자 목록:
+            </div>
+            <div class="available-extensions q-mb-sm">
+              <q-checkbox
+                v-for="ext in availableExtensions"
+                :key="ext.value"
+                v-model="ext.selected"
+                :label="ext.label"
+                color="primary"
+                dense
+                @update:model-value="handleExtensionToggle(ext.value, $event)"
+                class="extension-checkbox"
+              />
+            </div>
+            <div class="text-caption text-grey-6 q-mt-sm">
+              <q-icon name="info" size="14px" class="q-mr-xs" />
+              변경 사항은 서버 재시작 후 적용됩니다.
+            </div>
+          </div>
+        </div>
+
         <!-- 기타 설정 -->
         <div class="settings-section">
           <div class="settings-section-title">
@@ -162,6 +239,63 @@ const reorderDelaySeconds = ref(3)
 const enableAutoReorder = ref(true)
 const showToastMessages = ref(true)
 const toastTimeoutSeconds = ref(3.5) // 초 단위 (1~60초)
+
+// 문서 폴더 경로 및 확장자 설정 (UI만 구성, 로직은 이후 적용)
+const documentFolderPath = ref('../../../NEXA-Documentation')
+const supportedExtensions = ref(['.md', '.mermaid.css'])
+
+// 사용 가능한 확장자 목록 (미리 정의된 목록만 허용)
+const availableExtensions = ref([
+  { value: '.md', label: '.md (Markdown)', selected: true },
+  { value: '.mermaid.css', label: '.mermaid.css (Mermaid 스타일)', selected: true },
+  { value: '.txt', label: '.txt (텍스트)', selected: false },
+  { value: '.markdown', label: '.markdown (Markdown)', selected: false },
+  { value: '.mdx', label: '.mdx (MDX)', selected: false },
+  { value: '.html', label: '.html (HTML)', selected: false },
+  { value: '.css', label: '.css (CSS)', selected: false },
+  { value: '.json', label: '.json (JSON)', selected: false },
+  { value: '.yaml', label: '.yaml (YAML)', selected: false },
+  { value: '.yml', label: '.yml (YAML)', selected: false },
+])
+
+// 초기화: supportedExtensions에 따라 availableExtensions의 selected 상태 설정
+function initializeExtensionSelection() {
+  availableExtensions.value.forEach((ext) => {
+    ext.selected = supportedExtensions.value.includes(ext.value)
+  })
+}
+
+// 확장자 토글 처리
+function handleExtensionToggle(extValue, isSelected) {
+  if (isSelected) {
+    // 선택된 경우 추가
+    if (!supportedExtensions.value.includes(extValue)) {
+      supportedExtensions.value.push(extValue)
+    }
+  } else {
+    // 선택 해제된 경우 제거
+    const index = supportedExtensions.value.indexOf(extValue)
+    if (index > -1) {
+      supportedExtensions.value.splice(index, 1)
+    }
+  }
+}
+
+// 확장자 제거 (Chip에서 제거 버튼 클릭 시)
+function removeExtension(extValue) {
+  const index = supportedExtensions.value.indexOf(extValue)
+  if (index > -1) {
+    supportedExtensions.value.splice(index, 1)
+    // availableExtensions의 selected 상태도 업데이트
+    const ext = availableExtensions.value.find((e) => e.value === extValue)
+    if (ext) {
+      ext.selected = false
+    }
+  }
+}
+
+// 컴포넌트 마운트 시 초기화
+initializeExtensionSelection()
 
 // localStorage에서 메뉴 이동 스텝 설정 불러오기
 function loadWheelScrollStep() {
@@ -423,6 +557,36 @@ function handleSave() {
             color: var(--nexa-text-secondary);
             line-height: 1.5;
           }
+        }
+      }
+
+      .extension-list {
+        min-height: 40px;
+        padding: 8px;
+        background-color: var(--nexa-surface);
+        border: 1px solid var(--nexa-border-color);
+        border-radius: 4px;
+
+        .extension-items {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+      }
+
+      .available-extensions {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px;
+        background-color: var(--nexa-surface);
+        border: 1px solid var(--nexa-border-color);
+        border-radius: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+
+        .extension-checkbox {
+          margin-bottom: 4px;
         }
       }
     }
