@@ -3,7 +3,7 @@ import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs/promises'
-import { isSupportedExtension, setSupportedExtensions, getSupportedExtensions } from '../config/documentConfig.js'
+import { isSupportedExtension, setSupportedExtensions, getSupportedExtensions, getDocsBasePath, setDocsFolderName, getDocsFolderName } from '../config/documentConfig.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -37,8 +37,8 @@ router.delete('/:fileName', async (req, res) => {
       return res.status(400).json({ error: '지원하는 확장자의 파일만 삭제할 수 있습니다.' })
     }
 
-    // 파일 경로 생성 (NEXA-Documentation 폴더 사용)
-    const docsPath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
+    // 파일 경로 생성 (설정된 문서 폴더 사용)
+    const docsPath = path.join(getDocsBasePath(), fileName)
 
     // 파일 존재 확인
     try {
@@ -119,9 +119,9 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
         return res.status(400).json({ error: '새 파일명은 지원하는 확장자를 가져야 합니다.' })
       }
 
-      // 파일 경로 생성 (하위 디렉토리 지원: Platform/01-기획/file.md -> NEXA-Documentation/Platform/01-기획/file.md)
-      const oldPath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
-      const newPath = path.join(__dirname, '../../../NEXA-Documentation', newFileName)
+      // 파일 경로 생성 (하위 디렉토리 지원: Platform/01-기획/file.md -> 설정된 문서 폴더/Platform/01-기획/file.md)
+      const oldPath = path.join(getDocsBasePath(), fileName)
+      const newPath = path.join(getDocsBasePath(), newFileName)
 
       // 기존 파일 존재 확인
       try {
@@ -133,7 +133,7 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
         if (error.code === 'ENOENT') {
           // 디버깅: NEXA-Documentation 폴더의 파일 목록 출력 (재귀적 검색)
           try {
-            const docsDir = path.join(__dirname, '../../../NEXA-Documentation')
+            const docsDir = getDocsBasePath()
             // 재귀적으로 모든 파일 찾기 (최대 깊이 10 제한)
             async function findFiles(dir, relativePath = '', depth = 0) {
               const MAX_DEPTH = 10
@@ -200,7 +200,7 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
       // 새 파일명의 디렉토리 경로 추출
       const newFilePathParts = newFileName.split('/')
       const newFileDirectory = newFilePathParts.length > 1 ? newFilePathParts.slice(0, -1).join('/') : ''
-      const newFileDirectoryPath = newFileDirectory ? path.join(__dirname, '../../../NEXA-Documentation', newFileDirectory) : null
+      const newFileDirectoryPath = newFileDirectory ? path.join(getDocsBasePath(), newFileDirectory) : null
 
       // 새 파일 디렉토리가 있고 존재하지 않으면 생성
       if (newFileDirectoryPath) {
@@ -254,13 +254,13 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
       }
 
       // 파일 경로 생성
-      const filePath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
+      const filePath = path.join(getDocsBasePath(), fileName)
 
       // 디렉토리 경로 추출 및 생성
       const filePathParts = fileName.split('/')
       if (filePathParts.length > 1) {
         const fileDirectory = filePathParts.slice(0, -1).join('/')
-        const fileDirectoryPath = path.join(__dirname, '../../../NEXA-Documentation', fileDirectory)
+        const fileDirectoryPath = path.join(getDocsBasePath(), fileDirectory)
         try {
           await fs.mkdir(fileDirectoryPath, { recursive: true })
         } catch (dirError) {
@@ -291,7 +291,7 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
 // GET /api/docs/metadata - NEXA-Documentation 폴더의 모든 마크다운 파일 목록과 메타데이터 반환
 router.get('/metadata', async (req, res) => {
   try {
-    const docsPath = path.join(__dirname, '../../../NEXA-Documentation')
+    const docsPath = getDocsBasePath()
 
     // 재귀적으로 모든 지원 확장자 파일 찾기 (최대 깊이 10 제한)
     // 주의사항:
@@ -380,7 +380,7 @@ router.post('/:fileName/touch', async (req, res) => {
     }
 
     // 파일 경로 생성 (하위 디렉토리 지원)
-    const filePath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
+    const filePath = path.join(getDocsBasePath(), fileName)
 
     // 파일 존재 확인
     try {
@@ -467,13 +467,13 @@ router.post('/', express.raw({ type: '*/*', limit: '10mb' }), express.json(), as
     }
 
     // 파일 경로 생성
-    const filePath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
+    const filePath = path.join(getDocsBasePath(), fileName)
 
     // 디렉토리 경로 추출 및 생성
     const filePathParts = fileName.split('/')
     if (filePathParts.length > 1) {
       const fileDirectory = filePathParts.slice(0, -1).join('/')
-      const fileDirectoryPath = path.join(__dirname, '../../../NEXA-Documentation', fileDirectory)
+      const fileDirectoryPath = path.join(getDocsBasePath(), fileDirectory)
       try {
         await fs.mkdir(fileDirectoryPath, { recursive: true })
       } catch (dirError) {
@@ -542,8 +542,8 @@ router.get('/:fileName', async (req, res) => {
 
     const lowerFileName = fileName.toLowerCase()
 
-    // 파일 경로 생성 (NEXA-Documentation 폴더 사용)
-    const docsPath = path.join(__dirname, '../../../NEXA-Documentation', fileName)
+    // 파일 경로 생성 (설정된 문서 폴더 사용)
+    const docsPath = path.join(getDocsBasePath(), fileName)
 
     // 파일 읽기
     try {
@@ -603,6 +603,39 @@ router.get('/config/extensions', async (req, res) => {
     })
   } catch (error) {
     console.error('[Docs Config] 확장자 목록 조회 실패:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// POST /api/docs/config/folder - 문서 폴더명 설정
+router.post('/config/folder', express.json(), (req, res) => {
+  try {
+    const { folderName } = req.body
+    if (!folderName || typeof folderName !== 'string') {
+      return res.status(400).json({ error: '유효하지 않은 폴더명입니다.' })
+    }
+    setDocsFolderName(folderName)
+    console.log('[Docs Config] 문서 폴더명 업데이트:', getDocsFolderName())
+    res.json({
+      success: true,
+      message: '문서 폴더명이 업데이트되었습니다.',
+      folderName: getDocsFolderName(),
+    })
+  } catch (error) {
+    console.error('[Docs Config] 폴더명 설정 실패:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// GET /api/docs/config/folder - 현재 문서 폴더명 조회
+router.get('/config/folder', (req, res) => {
+  try {
+    res.json({
+      success: true,
+      folderName: getDocsFolderName(),
+    })
+  } catch (error) {
+    console.error('[Docs Config] 폴더명 조회 실패:', error)
     res.status(500).json({ error: error.message })
   }
 })

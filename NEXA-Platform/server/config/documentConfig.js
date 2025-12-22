@@ -8,6 +8,21 @@
  * API 연동: POST /api/docs/config/extensions (프론트엔드 설정 동기화용)
  */
 
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// 상대 경로 접두사 (하드코딩, 보안을 위해 변경 불가)
+const DOCS_BASE_PATH_PREFIX = '../../../'
+
+// 기본 폴더명
+const DEFAULT_DOCS_FOLDER_NAME = 'NEXA-Documentation'
+
+// 문서 폴더명 (런타임에 업데이트 가능)
+let docsFolderName = DEFAULT_DOCS_FOLDER_NAME
+
 // 기본 지원 확장자 목록 (점 포함)
 const DEFAULT_SUPPORTED_EXTENSIONS = ['.md', '.mermaid.css']
 
@@ -88,4 +103,40 @@ export function removeExtension(fileName) {
     }
   }
   return fileName
+}
+
+/**
+ * 문서 폴더명 설정
+ * @param {string} folderName - 폴더명 (예: 'NEXA-Documentation')
+ */
+export function setDocsFolderName(folderName) {
+  if (!folderName || typeof folderName !== 'string' || folderName.trim() === '') {
+    console.warn('[DocumentConfig] 유효하지 않은 폴더명, 기본값 사용')
+    docsFolderName = DEFAULT_DOCS_FOLDER_NAME
+    return
+  }
+  // 경로 순회 공격 방지: .., /, \ 제거
+  const sanitized = folderName.replace(/\.\./g, '').replace(/[\/\\]/g, '').trim()
+  if (sanitized === '') {
+    console.warn('[DocumentConfig] 폴더명이 비어있음, 기본값 사용')
+    docsFolderName = DEFAULT_DOCS_FOLDER_NAME
+    return
+  }
+  docsFolderName = sanitized
+}
+
+/**
+ * 문서 폴더명 가져오기
+ * @returns {string} 폴더명
+ */
+export function getDocsFolderName() {
+  return docsFolderName
+}
+
+/**
+ * 문서 폴더 전체 경로 가져오기
+ * @returns {string} 전체 경로 (예: '../../../NEXA-Documentation'의 절대 경로)
+ */
+export function getDocsBasePath() {
+  return path.join(__dirname, DOCS_BASE_PATH_PREFIX, docsFolderName)
 }
