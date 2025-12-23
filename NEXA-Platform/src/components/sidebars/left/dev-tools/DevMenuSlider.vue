@@ -353,6 +353,12 @@ function handleIndicatorClick(event) {
   if (closestDot) {
     const index = parseInt(closestDot.getAttribute('data-index'), 10)
     scrollToIndex(index)
+    // 인디케이터 클릭 시에도 메뉴 변경 (의도적인 클릭이므로)
+    const menuId = devMenus[index].id
+    if (activeMenu.value !== menuId) {
+      activeMenu.value = menuId
+      emit('update:activeMenu', menuId)
+    }
   }
 }
 
@@ -410,6 +416,12 @@ function scrollByItems(step) {
   }
 
   scrollToIndex(clampedIndex)
+  // 화살표 버튼 클릭 시에도 메뉴 변경 (의도적인 클릭이므로)
+  const menuId = devMenus[clampedIndex].id
+  if (activeMenu.value !== menuId) {
+    activeMenu.value = menuId
+    emit('update:activeMenu', menuId)
+  }
 }
 
 // 휠 스크롤용 빠른 애니메이션으로 이동
@@ -542,14 +554,16 @@ function updateActiveDotIndex() {
   const clampedIndex = Math.max(0, Math.min(index, devMenus.length - 1))
 
   // 인덱스를 0 ~ devMenus.length - 1 범위로 정규화
+  // 주의: activeDotIndex만 업데이트 (인디케이터 표시용)
+  // activeMenu는 handleMenuItemClick에서만 업데이트 (클릭 시에만 메뉴 변경)
   if (activeDotIndex.value !== clampedIndex) {
     activeDotIndex.value = clampedIndex
-    // activeMenu도 함께 업데이트
-    const menuId = devMenus[clampedIndex].id
-    if (activeMenu.value !== menuId) {
-      activeMenu.value = menuId
-      emit('update:activeMenu', menuId)
-    }
+    // activeMenu 자동 업데이트 제거 - 클릭 시에만 변경되도록 수정
+    // const menuId = devMenus[clampedIndex].id
+    // if (activeMenu.value !== menuId) {
+    //   activeMenu.value = menuId
+    //   emit('update:activeMenu', menuId)
+    // }
   }
 }
 
