@@ -2,48 +2,81 @@
     // ============================================
     // NEXA Monorepo - 통합 VS Code 설정
     // ============================================
+    // 이 파일은 NEXA 프로젝트 전체에 적용되는 VS Code/Cursor 설정입니다.
+    // 각 섹션은 독립적으로 작동하므로 필요 없는 섹션은 주석 처리하거나 삭제해도 됩니다.
 
-    // 아이콘 테마
-    "workbench.iconTheme": "vscode-great-icons",
+    // ============================================
+    // 1. UI 테마 및 아이콘
+    // ============================================
+    "workbench.iconTheme": "vscode-great-icons", // 파일 아이콘 테마
 
-    // 탐색기 설정
-    "explorer.autoReveal": false,
-    "explorer.compactFolders": false,
-    "explorer.confirmDelete": true,
+    // ============================================
+    // 2. 파일 탐색기 (왼쪽 사이드바)
+    // ============================================
+    "explorer.autoReveal": false, // 파일 열 때 자동으로 탐색기에서 표시 안 함
+    "explorer.compactFolders": false, // 빈 폴더를 압축해서 표시 안 함
+    "explorer.confirmDelete": true, // 파일 삭제 시 확인 요청
 
-    // 에디터 설정 (Platform 전용)
-    "editor.bracketPairColorization.enabled": true,
-    "editor.guides.bracketPairs": true,
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.codeActionsOnSave": ["source.fixAll.eslint"],
+    // ============================================
+    // 3. 에디터 기본 동작
+    // ============================================
+    "editor.bracketPairColorization.enabled": true, // 괄호 색상 표시
+    "editor.guides.bracketPairs": true, // 괄호 가이드 라인 표시
+    "editor.formatOnSave": true, // 저장 시 자동 포맷팅
+    "editor.defaultFormatter": "esbenp.prettier-vscode", // 기본 포맷터 (Prettier)
+    "editor.codeActionsOnSave": ["source.fixAll.eslint"], // 저장 시 ESLint 자동 수정
 
-    // ESLint 설정 (Platform 전용)
-    "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
-
-    // 파일 탐색기에서 숨길 파일/폴더
-    "files.exclude": {
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/build": true,
-        "**/.output": true,
-        "**/.quasar": true,
-        "**/.vite": true,
-        "**/.cache": true,
-        "**/.temp": true,
-        "**/*.log": true,
-        "**/.DS_Store": true,
-        "**/Thumbs.db": true,
-        "**/.git": true,
-        "**/coverage": true,
-        "**/.pnpm-store": true,
-        "**/.yarn": true,
-        "**/assets": true,
-        "**/uploads": true,
-        "**/public": true
+    // ============================================
+    // 4. 검색 하일라이팅 색상
+    // ============================================
+    // Ctrl+F로 검색할 때 표시되는 색상들
+    "workbench.colorCustomizations": {
+        // 현재 선택된 검색 결과 배경색 (현재 커서가 있는 검색 결과)
+        "editor.findMatchBackground": "#d34808e7",
+        // 다른 검색 결과 배경색 (현재 선택된 것 외의 모든 검색 결과)
+        "editor.findMatchHighlightBackground": "#ffa200a2",
+        // 검색 범위 하이라이트 배경색 (검색 범위가 표시될 때)
+        "editor.findRangeHighlightBackground": "#fc5400dc",
+        // 선택된 텍스트와 동일한 텍스트의 하이라이트 배경색 (다른 위치의 동일한 텍스트)
+        "editor.selectionHighlightBackground": "#01834fba"
     },
 
-    // 터미널 설정
+    // ============================================
+    // 5. 코드 품질 도구 (ESLint)
+    // ============================================
+    // JavaScript/TypeScript/Vue 파일에서 코드 검사
+    "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
+
+    // ============================================
+    // 6. 파일 탐색기에서 숨길 파일/폴더
+    // ============================================
+    // 이 목록에 있는 파일/폴더는 탐색기에서 보이지 않습니다.
+    // 필요하면 true를 false로 변경하거나 항목을 삭제하세요.
+    "files.exclude": {
+        "**/node_modules": true, // npm 패키지 폴더
+        "**/dist": true, // 빌드 결과물
+        "**/build": true, // 빌드 폴더
+        "**/.output": true, // 출력 폴더
+        "**/.quasar": true, // Quasar 빌드 캐시
+        "**/.vite": true, // Vite 캐시
+        "**/.cache": true, // 캐시 폴더
+        "**/.temp": true, // 임시 폴더
+        "**/*.log": true, // 로그 파일
+        "**/.DS_Store": true, // macOS 시스템 파일
+        "**/Thumbs.db": true, // Windows 썸네일 파일
+        "**/.git": true, // Git 폴더 (보통 숨김)
+        "**/coverage": true, // 테스트 커버리지 리포트
+        "**/.pnpm-store": true, // pnpm 저장소
+        "**/.yarn": true, // Yarn 캐시
+        "**/assets": true, // 에셋 폴더
+        "**/uploads": true, // 업로드 폴더
+        "**/public": true // 공개 폴더
+    },
+
+    // ============================================
+    // 7. 터미널 설정 (Windows)
+    // ============================================
+    // 터미널에서 사용할 PowerShell 버전 설정
     "terminal.integrated.profiles.windows": {
         "PowerShell 7": {
             "path": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
@@ -54,6 +87,6 @@
             "icon": "terminal-powershell"
         }
     },
-    "terminal.integrated.defaultProfile.windows": "PowerShell 7",
+    "terminal.integrated.defaultProfile.windows": "PowerShell 7", // 기본 터미널
     "powershell.powerShellDefaultVersion": "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
 }
