@@ -9,8 +9,8 @@
     <RightSidebarHeader title="Tools Panel" subtitle="Control & Customize Your Documents" push-icon="double_arrow" />
     <q-scroll-area class="fit">
       <!-- 아코디언 방식으로 모든 섹션 나열 -->
-      <!-- 목차 섹션 (목차가 있을 때만 표시) -->
-      <div v-if="hasTOCItems" class="accordion-wrapper">
+      <!-- 목차 섹션 (문서 관리자 메뉴이고 목차가 있을 때만 표시) -->
+      <div v-if="activeMenu === 'document-manager' && hasTOCItems" class="accordion-wrapper">
         <q-expansion-item ref="tocExpansionRef" icon="menu" label="목차" :model-value="tocShouldAutoExpand" @update:model-value="onTOCExpansionChange">
           <div class="section-content">
             <PanelTOC
@@ -28,8 +28,8 @@
         </q-expansion-item>
       </div>
 
-      <!-- Mermaid 스타일 섹션 (Mermaid 블록이 있을 때만 표시) -->
-      <div v-if="hasMermaidBlocks" class="accordion-wrapper">
+      <!-- Mermaid 스타일 섹션 (문서 관리자 메뉴이고 Mermaid 블록이 있을 때만 표시) -->
+      <div v-if="activeMenu === 'document-manager' && hasMermaidBlocks" class="accordion-wrapper">
         <q-expansion-item ref="mermaidStyleExpansionRef" icon="palette" label="Mermaid 차트 스타일" :model-value="shouldAutoExpand" @update:model-value="onExpansionChange">
           <div class="section-content">
             <PanelMermaidStyle :file-path="documentStore.selectedFile?.name || ''" :content="documentStore.displayContent || ''" />
@@ -42,6 +42,15 @@
         <q-expansion-item icon="palette" label="테마 색상" :model-value="themeColorPanelExpanded" @update:model-value="themeColorPanelExpanded = $event">
           <div class="section-content">
             <ThemeColorPanel :selected-color="selectedColor" :usage-count="usageCount" :usage-files="usageFiles" @file-clicked="handleFileClick" />
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 데이터베이스 테이블 상세 정보 패널 (activeMenu === 'database-viewer') -->
+      <div v-if="activeMenu === 'database-viewer'" class="accordion-wrapper">
+        <q-expansion-item icon="table_view" label="DB 테이블 상세 정보" :model-value="databaseTableDetailExpanded" @update:model-value="databaseTableDetailExpanded = $event">
+          <div class="section-content">
+            <DatabaseTableDetail :table-name="selectedTableName" />
           </div>
         </q-expansion-item>
       </div>
@@ -78,6 +87,7 @@ import PanelMermaidStyle from 'src/panel/components/PanelMermaidStyle.vue'
 import PanelTOC from 'src/panel/components/PanelTOC.vue'
 import ThemeColorPanel from './dev-tools/ThemeColorPanel.vue'
 import SampleSection from 'src/modules/document-manager/components/sections/SampleSection.vue'
+import DatabaseTableDetail from 'src/components/dev-tools/database-viewer/TableDetail.vue'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)
@@ -95,6 +105,10 @@ const usageCount = ref(0)
 const usageFiles = ref([])
 const themeColorPanelExpanded = ref(true)
 
+// 데이터베이스 테이블 상세 정보 패널 상태
+const selectedTableName = ref(null)
+const databaseTableDetailExpanded = ref(false)
+
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {
   console.log('[DevToolsPanel] dev-menu-changed 이벤트 수신:', event.detail)
@@ -103,6 +117,21 @@ function handleActiveMenuChange(event) {
   // 테마 관리 메뉴로 변경 시 아코디언 자동으로 열기
   if (activeMenu.value === 'theme-manager') {
     themeColorPanelExpanded.value = true
+  }
+  // 데이터베이스 뷰어 메뉴로 변경 시 아코디언 닫기 (테이블 선택 시 자동으로 열림)
+  if (activeMenu.value === 'database-viewer') {
+    databaseTableDetailExpanded.value = false
+  }
+}
+
+// 데이터베이스 테이블 선택 이벤트 리스너
+function handleDatabaseTableSelected(event) {
+  console.log('[DevToolsPanel] database-table-selected 이벤트 수신:', event.detail)
+  selectedTableName.value = event.detail.tableName
+  console.log('[DevToolsPanel] selectedTableName 업데이트:', selectedTableName.value)
+  // 테이블이 선택되면 아코디언 자동으로 열기
+  if (selectedTableName.value) {
+    databaseTableDetailExpanded.value = true
   }
 }
 
@@ -150,6 +179,7 @@ onMounted(() => {
   window.addEventListener('expand-toc-section', handleExpandTOCSection)
   window.addEventListener('dev-menu-changed', handleActiveMenuChange)
   window.addEventListener('theme-color-selected', handleThemeColorSelected)
+  window.addEventListener('database-table-selected', handleDatabaseTableSelected)
 })
 
 onUnmounted(() => {
@@ -157,6 +187,7 @@ onUnmounted(() => {
   window.removeEventListener('expand-toc-section', handleExpandTOCSection)
   window.removeEventListener('dev-menu-changed', handleActiveMenuChange)
   window.removeEventListener('theme-color-selected', handleThemeColorSelected)
+  window.removeEventListener('database-table-selected', handleDatabaseTableSelected)
 })
 
 // 아코디언 상태 변경 핸들러

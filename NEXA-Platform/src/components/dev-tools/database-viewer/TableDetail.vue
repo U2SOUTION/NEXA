@@ -378,9 +378,10 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .table-detail {
-  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 0; // 사이드바 패널 내에서 스크롤 가능하도록
 }
 
 .table-detail-loading,
@@ -394,8 +395,10 @@ onMounted(() => {
 }
 
 .table-detail-content {
-  flex: 1;
-  overflow: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .table-detail-metadata {

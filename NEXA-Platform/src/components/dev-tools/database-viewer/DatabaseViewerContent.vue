@@ -13,53 +13,27 @@
       </div>
     </div>
 
-    <!-- 메인 컨텐츠: 2단 레이아웃 (왼쪽 사이드바에 테이블 목록이 있으므로) -->
+    <!-- 메인 컨텐츠: ERD 다이어그램 (테이블 상세 정보는 우측 사이드바로 이동) -->
     <div class="database-viewer-main">
-      <q-splitter v-model="rightSplitterModel" vertical class="database-viewer-splitter">
-        <!-- 중앙: ERD 다이어그램 -->
-        <template v-slot:before>
-          <div class="database-viewer-diagram-panel">
-            <div class="database-viewer-panel-header">
-              <q-icon name="account_tree" size="18px" class="q-mr-sm" />
-              <span>ERD 다이어그램</span>
-            </div>
-            <div class="database-viewer-panel-content">
-              <SchemaDiagram />
-            </div>
-          </div>
-        </template>
-
-        <!-- 오른쪽: 테이블 상세 정보 -->
-        <template v-slot:after>
-          <div class="database-viewer-table-detail-panel">
-            <div class="database-viewer-panel-header">
-              <q-icon name="info" size="18px" class="q-mr-sm" />
-              <span>테이블 상세 정보</span>
-            </div>
-            <div class="database-viewer-panel-content">
-              <TableDetail :table-name="selectedTableName" />
-            </div>
-          </div>
-        </template>
-      </q-splitter>
+      <div class="database-viewer-diagram-panel">
+        <div class="database-viewer-panel-header">
+          <q-icon name="account_tree" size="18px" class="q-mr-sm" />
+          <span>ERD 다이어그램</span>
+        </div>
+        <div class="database-viewer-panel-content">
+          <SchemaDiagram />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import TableDetail from './TableDetail.vue'
+import { ref } from 'vue'
 import SchemaDiagram from './SchemaDiagram.vue'
 
 // 로딩 상태
 const isLoading = ref(false)
-
-// Splitter 모델 (왼쪽/오른쪽 비율)
-// 왼쪽 사이드바에 테이블 목록이 있으므로 왼쪽 패널은 제거하고 중앙과 오른쪽만 사용
-const rightSplitterModel = ref(70) // 중앙 70%, 오른쪽 30%
-
-// 선택된 테이블 이름
-const selectedTableName = ref(null)
 
 // 데이터 새로고침
 function refreshData() {
@@ -69,19 +43,6 @@ function refreshData() {
     isLoading.value = false
   }, 1000)
 }
-
-// 사이드바에서 테이블 선택 이벤트 리스너
-function handleTableSelected(event) {
-  selectedTableName.value = event.detail.tableName
-}
-
-onMounted(() => {
-  window.addEventListener('database-table-selected', handleTableSelected)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('database-table-selected', handleTableSelected)
-})
 </script>
 
 <style lang="scss" scoped>
@@ -118,26 +79,11 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 
-.database-viewer-splitter {
-  height: 100%;
-}
-
-.database-viewer-right-splitter {
-  height: 100%;
-}
-
-.database-viewer-table-list-panel,
-.database-viewer-diagram-panel,
-.database-viewer-table-detail-panel {
+.database-viewer-diagram-panel {
   height: 100%;
   display: flex;
   flex-direction: column;
   background-color: var(--nexa-surface);
-  border-right: 1px solid var(--nexa-border-color);
-}
-
-.database-viewer-table-detail-panel {
-  border-right: none;
 }
 
 .database-viewer-panel-header {
