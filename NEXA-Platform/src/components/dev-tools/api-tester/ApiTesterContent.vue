@@ -58,11 +58,6 @@
     <div class="api-tester-request-section">
       <!-- 왼쪽: 요청 설정 -->
       <div class="api-tester-request-panel">
-        <div class="api-tester-panel-header">
-          <q-icon name="edit" size="20px" class="q-mr-sm" />
-          <span class="api-tester-panel-title">요청 설정</span>
-        </div>
-
         <div class="api-tester-panel-content">
           <!-- HTTP 메서드 및 URL -->
           <div class="q-mb-md">
@@ -129,49 +124,49 @@
 
     <!-- 응답 표시 -->
     <div class="api-tester-response-section">
-      <div class="api-tester-panel-header">
-        <q-icon name="description" size="20px" class="q-mr-sm" />
-        <span class="api-tester-panel-title">응답</span>
-        <q-space />
-        <q-chip v-if="responseStatus" :color="getStatusColor(responseStatus)" text-color="white" :label="`${responseStatus} ${getStatusText(responseStatus)}`" size="sm" />
-      </div>
-
-      <div class="api-tester-panel-content">
-        <div v-if="!response" class="api-tester-empty-response">
-          <q-icon name="inbox" size="48px" class="q-mb-md" />
-          <p>요청을 전송하면 응답이 여기에 표시됩니다.</p>
-        </div>
-
-        <div v-else>
-          <!-- 응답 시간 -->
-          <div v-if="responseTime" class="api-tester-response-time q-mb-md">
-            <q-icon name="schedule" size="16px" class="q-mr-xs" />
-            응답 시간: {{ responseTime }}ms
+      <div class="api-tester-response-panel">
+        <div class="api-tester-panel-content">
+          <!-- 상태 칩 -->
+          <div v-if="responseStatus" class="q-mb-md">
+            <q-chip :color="getStatusColor(responseStatus)" text-color="white" :label="`${responseStatus} ${getStatusText(responseStatus)}`" size="sm" />
           </div>
 
-          <!-- 응답 헤더 -->
-          <div v-if="responseHeaders && Object.keys(responseHeaders).length > 0" class="q-mb-md">
-            <div class="api-tester-panel-subtitle q-mb-sm">
-              <q-icon name="settings" size="16px" class="q-mr-xs" />
-              응답 헤더
+          <div v-if="!response" class="api-tester-empty-response">
+            <q-icon name="inbox" size="48px" class="q-mb-md" />
+            <p>요청을 전송하면 응답이 여기에 표시됩니다.</p>
+          </div>
+
+          <div v-else>
+            <!-- 응답 시간 -->
+            <div v-if="responseTime" class="api-tester-response-time q-mb-md">
+              <q-icon name="schedule" size="16px" class="q-mr-xs" />
+              응답 시간: {{ responseTime }}ms
             </div>
-            <div class="api-tester-response-headers">
-              <div v-for="(value, key) in responseHeaders" :key="key" class="api-tester-header-item">
-                <span class="api-tester-header-key">{{ key }}:</span>
-                <span class="api-tester-header-value">{{ value }}</span>
+
+            <!-- 응답 헤더 -->
+            <div v-if="responseHeaders && Object.keys(responseHeaders).length > 0" class="q-mb-md">
+              <div class="api-tester-panel-subtitle q-mb-sm">
+                <q-icon name="settings" size="16px" class="q-mr-xs" />
+                응답 헤더
+              </div>
+              <div class="api-tester-response-headers">
+                <div v-for="(value, key) in responseHeaders" :key="key" class="api-tester-header-item">
+                  <span class="api-tester-header-key">{{ key }}:</span>
+                  <span class="api-tester-header-value">{{ value }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- 응답 본문 -->
-          <div>
-            <div class="api-tester-panel-subtitle q-mb-sm">
-              <q-icon name="code" size="16px" class="q-mr-xs" />
-              응답 본문
-            </div>
-            <div class="api-tester-response-body">
-              <pre v-if="isJsonResponse">{{ formattedResponse }}</pre>
-              <pre v-else>{{ response }}</pre>
+            <!-- 응답 본문 -->
+            <div>
+              <div class="api-tester-panel-subtitle q-mb-sm">
+                <q-icon name="code" size="16px" class="q-mr-xs" />
+                응답 본문
+              </div>
+              <div class="api-tester-response-body">
+                <pre v-if="isJsonResponse">{{ formattedResponse }}</pre>
+                <pre v-else>{{ response }}</pre>
+              </div>
             </div>
           </div>
         </div>
@@ -569,6 +564,13 @@ onMounted(() => {
   line-height: 1.6;
 }
 
+// 설명 아이콘
+.api-tester-description-icon-info,
+.api-tester-description-icon-help,
+.api-tester-description-icon-tip {
+  color: var(--nexa-primary);
+}
+
 // 툴바
 .api-tester-toolbar {
   background: var(--nexa-border-color);
@@ -603,6 +605,10 @@ onMounted(() => {
 
 .api-tester-request-panel {
   flex: 1;
+
+  .api-tester-panel-content {
+    padding: 0; // 요청 섹션에 이미 패딩이 있으므로 제거
+  }
 }
 
 // 응답 섹션
@@ -613,16 +619,22 @@ onMounted(() => {
   margin-top: 1rem;
 }
 
+.api-tester-response-panel {
+  .api-tester-panel-content {
+    padding: 0; // 응답 섹션에 이미 패딩이 있으므로 제거
+  }
+}
+
 // 히스토리 섹션
 .api-tester-history-section {
-  border: 1px solid var(--nexa-border-color);
-  border-radius: 1rem;
-  padding: 1rem;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
 }
 
 // 공통 패널 요소
 .api-tester-panel-header {
-  background: var(--nexa-surface-hover);
   padding: 3px;
   display: flex;
   align-items: center;
