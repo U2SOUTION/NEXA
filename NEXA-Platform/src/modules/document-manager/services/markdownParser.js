@@ -262,12 +262,13 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
 
     // 5. 체크박스 처리 (리스트 처리보다 먼저 처리하여 일반 리스트로 변환되지 않도록)
     // 체크리스트 패턴: - [ ] 또는 - [x] 또는 - [X] (대소문자 모두 지원)
-    // 정규식: 앞의 공백(들여쓰기) + 하이픈 + 공백 + 대괄호 + 공백/x/X + 대괄호 + 공백(0개 이상) + 텍스트(1개 이상)
+    // 정규식: 앞의 공백(들여쓰기) + 하이픈 + 공백(1개 이상) + 대괄호 + 공백/x/X + 대괄호 + 공백(0개 이상) + 텍스트(1개 이상)
     // 주의: 대괄호 안의 공백은 문자 클래스 [ xX]로 매칭 (공백 또는 x 또는 X)
     // 대괄호 뒤 공백은 선택적(\s*)이지만 텍스트는 필수(.+)
+    // 하이픈 뒤 공백은 1개 이상 허용 (\s+ 또는 +) - 여러 공백도 허용
     // 코드 블록이나 테이블 내부가 아닐 때만 체크박스 처리
     if (!inCodeBlock && !inTable) {
-      const checkboxMatch = line.match(/^(\s*)- \[([ xX])\]\s*(.+)$/)
+      const checkboxMatch = line.match(/^(\s*)- +\[([ xX])\]\s*(.+)$/)
       if (checkboxMatch && checkboxMatch[3] && checkboxMatch[3].trim()) {
         const indent = checkboxMatch[1]
         const checked = checkboxMatch[2]
@@ -294,8 +295,8 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
     // 6. 리스트는 나중에 처리 (일단 원본 유지)
     // 리스트 항목인지 확인만 하고 나중에 처리
     // 체크리스트는 제외 (체크박스 처리 단계에서 이미 처리되어야 함)
-    // 체크박스 정규식과 동일한 패턴 사용
-    const isChecklist = line.match(/^(\s*)- \[([ xX])\]\s*(.+)$/)
+    // 체크박스 정규식과 동일한 패턴 사용 (하이픈 뒤 공백 1개 이상 허용)
+    const isChecklist = line.match(/^(\s*)- +\[([ xX])\]\s*(.+)$/)
     if (isChecklist) {
       // 체크리스트인데 체크박스 정규식이 매칭되지 않았다면 원본 유지 (나중에 리스트 처리에서 제외됨)
       processedLines[i] = line
@@ -451,8 +452,8 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
     }
 
     // 체크리스트는 제외 (이미 체크박스로 처리되어야 함, 하지만 체크박스 정규식이 매칭되지 않았을 수 있음)
-    // 체크리스트 패턴: - [ ] 또는 - [x] 또는 - [X]
-    if (trimmedLine.match(/^-\s*\[([ xX])\]/)) {
+    // 체크리스트 패턴: - [ ] 또는 - [x] 또는 - [X] (하이픈 뒤 공백 1개 이상 허용)
+    if (trimmedLine.match(/^-\s+\[([ xX])\]/)) {
       closeAllLists()
       listProcessedLines.push(line)
       continue

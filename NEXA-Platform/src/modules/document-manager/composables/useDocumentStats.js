@@ -37,8 +37,8 @@ export function useDocumentStats(markdownFiles, fileContents, checkboxStates) {
       // 코드 블록 내부는 제외
       if (inCodeBlock) return
 
-      // 체크박스 패턴 매칭
-      const checkboxMatch = cleanLine.match(/^(\s*)- \[([ x])\] (.+)$/)
+      // 체크박스 패턴 매칭 (하이픈 뒤 공백 1개 이상 허용)
+      const checkboxMatch = cleanLine.match(/^(\s*)- +\[([ x])\] (.+)$/)
       if (checkboxMatch) {
         total++
         const lineKey = `line-${lineIndex}`

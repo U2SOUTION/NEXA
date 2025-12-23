@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { parseMarkdown, escapeHtml } from 'src/modules/document-manager/services/markdownParser.js'
-import { saveCheckboxStates, loadTOCExpandedState, loadSupportedExtensions } from 'src/modules/document-manager/services/documentStorage.js'
+import { saveCheckboxStates, loadCheckboxStates, loadTOCExpandedState, loadSupportedExtensions } from 'src/modules/document-manager/services/documentStorage.js'
 import { useTOC } from 'src/modules/document-manager/composables/useTOC.js'
 import { removeExtension } from 'src/config/documentConfig.js'
 
@@ -357,6 +357,10 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       // 파일 로드 완료 후 selectedFile 설정 (내용이 준비된 후에 선택)
       selectedFile.value = file
 
+      // 체크박스 상태를 다시 로드하여 최신 상태 보장
+      // 파일을 다시 선택하거나 새로고침할 때 체크박스 상태가 제대로 반영되도록 함
+      loadCheckboxStates(checkboxStates)
+
       // 목차 생성
       nextTick(() => {
         generateTOC()
@@ -651,30 +655,44 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         // 라벨 클릭 시 브라우저가 이미 체크박스를 토글했으므로 현재 상태를 읽음
         const isChecked = checkbox.checked
 
-        if (!checkboxStates.value[fileKey]) {
-          checkboxStates.value[fileKey] = {}
+        // Vue 반응성을 보장하기 위해 객체를 새로 생성하여 교체
+        const currentFileStates = checkboxStates.value[fileKey] || {}
+        const updatedFileStates = {
+          ...currentFileStates,
+          [lineKey]: isChecked,
         }
-        checkboxStates.value[fileKey][lineKey] = isChecked
+
+        // 전체 checkboxStates 객체를 새로 생성하여 반응성 보장
+        checkboxStates.value = {
+          ...checkboxStates.value,
+          [fileKey]: updatedFileStates,
+        }
 
         console.log('[Store] 체크박스 상태 업데이트:', {
           fileKey,
           lineKey,
           isChecked,
-          checkboxStatesForFile: Object.keys(checkboxStates.value[fileKey]).length,
+          checkboxStatesForFile: Object.keys(updatedFileStates).length,
           totalFiles: Object.keys(checkboxStates.value).length,
         })
 
         // checkboxStates는 ref이므로 그대로 전달
         saveCheckboxStates(checkboxStates)
 
-        // 내용 다시 파싱하여 반영
-        if (fileContents.value[fileKey] && selectedFile.value) {
+        // parsedContent computed가 checkboxStates 변경을 감지하여 자동으로 재계산됨
+        // fileContents는 변경하지 않으므로 원본 마크다운이 보존됨
+        // nextTick을 사용하여 DOM 업데이트 보장
+        nextTick(() => {
+          // 강제로 재렌더링을 트리거하기 위해 selectedFile을 임시로 null로 설정 후 복원
+          // 이렇게 하면 parsedContent가 확실히 재계산됨
           const currentFile = selectedFile.value
-          selectedFile.value = null
-          nextTick(() => {
-            selectedFile.value = currentFile
-          })
-        }
+          if (currentFile) {
+            selectedFile.value = null
+            nextTick(() => {
+              selectedFile.value = currentFile
+            })
+          }
+        })
       }
       // 체크박스나 라벨 클릭 시 이벤트 전파 중지
       event.stopPropagation()
@@ -686,6 +704,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
   }
 
   // 파싱된 내용 (computed)
+  // checkboxStates의 모든 키를 의존성으로 추가하여 반응성 보장
   const parsedContent = computed(() => {
     if (!selectedFile.value) {
       return ''
@@ -702,7 +721,15 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     }
 
     const fileKey = fileName
+    // checkboxStates.value를 직접 참조하여 반응성 보장
+    // 또한 checkboxStates.value[fileKey]도 참조하여 중첩된 객체 변경도 감지
     const fileCheckboxStates = checkboxStates.value[fileKey] || {}
+
+    // 반응성을 위해 checkboxStates의 모든 키와 값을 참조
+    // 이렇게 하면 checkboxStates가 변경될 때마다 computed가 재계산됨
+    // JSON.stringify를 사용하여 깊은 반응성 보장 (의도적으로 사용하지 않지만 반응성 트리거)
+    void JSON.stringify(checkboxStates.value)
+
     return parseMarkdown(content, fileKey, fileCheckboxStates)
   })
 
