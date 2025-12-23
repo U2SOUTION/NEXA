@@ -11,6 +11,7 @@ import multer from 'multer' // 파일 업로드를 위해 필요
 import { getCategoryAbbreviation } from './utils/skuGenerator.js'
 import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, generateFolderPath, generateFilename, createSafeFilename, ensureFolderExists, saveFile, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder, cleanupOldTempFiles } from './utils/fileUpload.js'
 import documentFilesRouter from './routes/documentFiles.js'
+import createDatabaseSchemaRouter from './routes/databaseSchema.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -157,19 +158,26 @@ let dbConnection = null
 // 데이터베이스 연결
 async function connectDB() {
   try {
+    console.log('[DB] 데이터베이스 연결 시도 중...')
     dbConnection = await mysql.createConnection(dbConfig)
 
     // 연결 후 charset 명시적으로 설정 (한글 지원)
     await dbConnection.execute('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci')
 
+    console.log('[DB] 데이터베이스 연결 성공:', dbConfig.database)
+
     // 연결 끊김 감지 및 재연결
     dbConnection.on('error', (err) => {
+      console.error('[DB] 데이터베이스 연결 에러:', err.message)
       if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
         dbConnection = null
+        console.log('[DB] 5초 후 재연결 시도...')
         setTimeout(() => connectDB(), 5000) // 5초 후 재연결 시도
       }
     })
-  } catch {
+  } catch (error) {
+    console.error('[DB] 데이터베이스 연결 실패:', error.message)
+    console.log('[DB] 5초 후 재연결 시도...')
     // process.exit(1) 제거 - 서버가 계속 실행되도록
     setTimeout(() => connectDB(), 5000) // 5초 후 재시도
   }
@@ -2090,6 +2098,16 @@ app.delete('/api/part-files/:id', async (req, res) => {
 // 문서 파일 관리 API
 app.use('/api/docs', documentFilesRouter)
 
+// 데이터베이스 스키마 라우터 등록 (데이터베이스 연결 전에도 등록)
+// 각 엔드포인트에서 연결 상태를 확인하므로 연결 실패해도 404 방지
+// getDbConnection 함수를 전달하여 항상 최신 연결 상태를 참조하도록 함
+const databaseSchemaRouter = createDatabaseSchemaRouter(() => dbConnection)
+app.use('/api/db', databaseSchemaRouter)
+console.log('[DB Schema] 라우터 등록 완료: /api/db')
+
+// 데이터베이스 스키마 API (데이터베이스 연결 후 등록)
+// startServer() 함수 내에서 connectDB() 후에 등록됨
+
 // 업로드 폴더 초기화
 async function initializeUploadFolder() {
   try {
@@ -2148,7 +2166,11 @@ app.use((err, req, res, next) => {
 // 서버 시작
 async function startServer() {
   try {
-    await connectDB()
+    // 데이터베이스 연결 시도 (비동기, 실패해도 서버는 계속 실행)
+    connectDB().catch((error) => {
+      console.warn('[DB Schema] 데이터베이스 연결 실패 (재시도 중):', error.message)
+    })
+    
     await initializeUploadFolder()
 
     const server = app.listen(PORT, () => {

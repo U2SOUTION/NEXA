@@ -69,6 +69,22 @@
       />
     </template>
 
+    <!-- 데이터베이스 뷰어 헤더 및 리스트 (activeMenu === 'database-viewer') -->
+    <template v-else-if="activeMenu === 'database-viewer'">
+      <DatabaseViewerHeader
+        :db-info="databaseViewerDbInfo"
+        :table-count="databaseViewerTableCount"
+        @refresh="handleDatabaseViewerRefresh"
+        @search-change="handleDatabaseViewerSearchChange"
+        @settings="handleDatabaseViewerSettings"
+      />
+      <DatabaseViewerList
+        :search-query="databaseViewerSearchQuery"
+        :refresh-trigger="databaseViewerRefreshTrigger"
+        @table-selected="handleDatabaseViewerTableSelected"
+      />
+    </template>
+
     <!-- 설정 모달 -->
     <DocumentSettingsModal v-model="showSettingsModal" @save="handleSettingsSave" @reset-usage="handleResetUsage" @reset-priority="handleResetPriority" />
   </div>
@@ -83,6 +99,8 @@ import DocumentManagerHeader from './dev-tools/document-manager/DocumentManagerH
 import DocumentManagerList from './dev-tools/document-manager/DocumentManagerList.vue'
 import ThemeManagerHeader from './dev-tools/theme-manager/ThemeManagerHeader.vue'
 import ThemeManagerList from './dev-tools/theme-manager/ThemeManagerList.vue'
+import DatabaseViewerHeader from './dev-tools/database-viewer/DatabaseViewerHeader.vue'
+import DatabaseViewerList from './dev-tools/database-viewer/DatabaseViewerList.vue'
 import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.vue'
 import { moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash, loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentManagerStore } from 'src/stores/documentManagerStore.js'
@@ -121,6 +139,16 @@ const sortOption = ref('category')
 
 // 카테고리 목록 (ThemeManagerHeader에 전달)
 const themeCategories = ref([])
+
+// 데이터베이스 뷰어 관련 상태
+const databaseViewerDbInfo = ref({
+  databaseName: null,
+  version: null,
+  charset: null,
+})
+const databaseViewerTableCount = ref(0)
+const databaseViewerSearchQuery = ref('')
+const databaseViewerRefreshTrigger = ref(0)
 
 // 테마 관리 테마 변경 핸들러
 function handleThemeManagerThemeChange(themeValue) {
@@ -184,6 +212,87 @@ function loadThemeCategories() {
   } catch (error) {
     console.error('[DevSidebar] 테마 카테고리 로드 실패:', error)
   }
+}
+
+// 데이터베이스 뷰어 새로고침 핸들러
+async function handleDatabaseViewerRefresh() {
+  try {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+    
+    // 데이터베이스 정보 조회
+    const infoResponse = await fetch(`${apiBaseUrl}/db/info`)
+    const infoData = await infoResponse.json()
+    
+    // 503 에러는 데이터베이스 연결 문제
+    if (infoResponse.status === 503) {
+      console.warn('[DevSidebar] 데이터베이스 연결이 없습니다:', infoData.message)
+      databaseViewerDbInfo.value = {
+        databaseName: null,
+        version: null,
+        charset: null,
+      }
+      databaseViewerTableCount.value = 0
+      return
+    }
+    
+    if (infoData.success && infoData.data) {
+      databaseViewerDbInfo.value = infoData.data
+    }
+
+    // 테이블 목록 조회 (개수만)
+    const tablesResponse = await fetch(`${apiBaseUrl}/db/tables`)
+    const tablesData = await tablesResponse.json()
+    
+    // 503 에러는 데이터베이스 연결 문제
+    if (tablesResponse.status === 503) {
+      console.warn('[DevSidebar] 데이터베이스 연결이 없습니다:', tablesData.message)
+      databaseViewerTableCount.value = 0
+      return
+    }
+    
+    if (tablesData.success && tablesData.data) {
+      databaseViewerTableCount.value = tablesData.data.length
+    }
+
+    // 리스트 컴포넌트 새로고침 트리거
+    databaseViewerRefreshTrigger.value++
+  } catch (error) {
+    // ERR_CONNECTION_REFUSED 등 네트워크 에러 처리
+    if (error.name === 'TypeError' && error.message?.includes('Failed to fetch')) {
+      console.warn('[DevSidebar] 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요.')
+      databaseViewerDbInfo.value = {
+        databaseName: null,
+        version: null,
+        charset: null,
+      }
+      databaseViewerTableCount.value = 0
+    } else {
+      console.error('[DevSidebar] 데이터베이스 뷰어 새로고침 실패:', error)
+    }
+  }
+}
+
+// 데이터베이스 뷰어 검색 변경 핸들러
+function handleDatabaseViewerSearchChange(query) {
+  databaseViewerSearchQuery.value = query
+}
+
+// 데이터베이스 뷰어 테이블 선택 핸들러
+function handleDatabaseViewerTableSelected(tableName) {
+  // 전역 이벤트로 DatabaseViewerContent에 알림
+  window.dispatchEvent(
+    new CustomEvent('database-table-selected', {
+      detail: {
+        tableName: tableName,
+      },
+    })
+  )
+}
+
+// 데이터베이스 뷰어 설정 핸들러
+function handleDatabaseViewerSettings() {
+  // TODO: 설정 모달 열기
+  console.log('[DevSidebar] 데이터베이스 뷰어 설정')
 }
 
 // Content 컴포넌트 참조
@@ -488,6 +597,9 @@ watch(
   (newMenu) => {
     if (newMenu === 'theme-manager') {
       loadThemeCategories()
+    } else if (newMenu === 'database-viewer') {
+      // 데이터베이스 뷰어 메뉴 활성화 시 초기 데이터 로드
+      handleDatabaseViewerRefresh()
     }
   },
   { immediate: true },
