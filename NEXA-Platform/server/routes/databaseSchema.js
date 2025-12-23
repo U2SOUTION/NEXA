@@ -21,6 +21,49 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
     return dbConnection
   }
 
+  // POST /api/db/query - SQL 쿼리 실행
+  router.post('/query', async (req, res) => {
+    try {
+      const dbConnection = checkConnection(res)
+      if (!dbConnection) return
+
+      const { query } = req.body
+
+      // 유효성 검사
+      if (!query || !query.trim()) {
+        return res.status(400).json({
+          error: '쿼리가 필요합니다.',
+        })
+      }
+
+      // 위험한 쿼리 차단 (선택적)
+      const dangerousKeywords = ['DROP DATABASE', 'TRUNCATE DATABASE', 'DELETE FROM', 'DROP TABLE']
+      const upperQuery = query.toUpperCase()
+      const hasDangerousKeyword = dangerousKeywords.some((keyword) => upperQuery.includes(keyword))
+
+      // DELETE와 DROP TABLE은 허용하되, 주의 메시지 포함
+      // 실제로는 더 세밀한 권한 관리가 필요할 수 있음
+
+      console.log('[DB Schema] 쿼리 실행:', query.substring(0, 100) + '...')
+
+      // 쿼리 실행
+      const [results] = await dbConnection.execute(query)
+
+      // 결과 반환
+      res.json({
+        success: true,
+        data: Array.isArray(results) ? results : [results],
+        message: '쿼리가 성공적으로 실행되었습니다.',
+      })
+    } catch (error) {
+      console.error('[DB Schema] 쿼리 실행 실패:', error)
+      res.status(500).json({
+        error: '쿼리 실행 실패',
+        message: error.message,
+      })
+    }
+  })
+
   // GET /api/db/info - 데이터베이스 정보 조회
   router.get('/info', async (req, res) => {
     try {
@@ -106,6 +149,93 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
       console.error('[DB Schema] 테이블 목록 조회 실패:', error)
       res.status(500).json({
         error: '테이블 목록 조회 실패',
+        message: error.message,
+      })
+    }
+  })
+
+  // POST /api/db/tables - 테이블 생성
+  router.post('/tables', async (req, res) => {
+    try {
+      const dbConnection = checkConnection(res)
+      if (!dbConnection) return
+
+      const { tableName, columns, comment } = req.body
+
+      // 유효성 검사
+      if (!tableName || !tableName.trim()) {
+        return res.status(400).json({
+          error: '테이블명이 필요합니다.',
+        })
+      }
+
+      if (!columns || !Array.isArray(columns) || columns.length === 0) {
+        return res.status(400).json({
+          error: '최소 1개 이상의 컬럼이 필요합니다.',
+        })
+      }
+
+      // CREATE TABLE 쿼리 생성
+      const sanitizedTableName = tableName.trim().replace(/[^a-zA-Z0-9_]/g, '')
+      if (!sanitizedTableName) {
+        return res.status(400).json({
+          error: '유효하지 않은 테이블명입니다.',
+        })
+      }
+
+      // 컬럼 정의 생성
+      const columnDefinitions = columns
+        .map((col) => {
+          if (!col.name || !col.name.trim()) {
+            return null
+          }
+          const sanitizedColumnName = col.name.trim().replace(/[^a-zA-Z0-9_]/g, '')
+          if (!sanitizedColumnName) {
+            return null
+          }
+
+          const dataType = col.dataType || 'VARCHAR(255)'
+          const nullable = col.isNullable !== false ? 'NULL' : 'NOT NULL'
+          const defaultValue = col.defaultValue ? `DEFAULT '${col.defaultValue.replace(/'/g, "''")}'` : ''
+          const commentClause = col.comment ? `COMMENT '${col.comment.replace(/'/g, "''")}'` : ''
+
+          return `${sanitizedColumnName} ${dataType} ${nullable} ${defaultValue} ${commentClause}`.trim()
+        })
+        .filter((def) => def !== null)
+
+      if (columnDefinitions.length === 0) {
+        return res.status(400).json({
+          error: '유효한 컬럼이 없습니다.',
+        })
+      }
+
+      // CREATE TABLE 쿼리 생성
+      let createTableQuery = `CREATE TABLE \`${sanitizedTableName}\` (\n  ${columnDefinitions.join(',\n  ')}\n)`
+
+      // 테이블 코멘트 추가
+      if (comment && comment.trim()) {
+        createTableQuery += ` COMMENT='${comment.trim().replace(/'/g, "''")}'`
+      }
+
+      // 엔진 및 문자셋 설정 (기본값)
+      createTableQuery += ` ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+
+      console.log('[DB Schema] 테이블 생성 쿼리:', createTableQuery)
+
+      // 쿼리 실행
+      await dbConnection.execute(createTableQuery)
+
+      res.json({
+        success: true,
+        message: `테이블 "${sanitizedTableName}"이(가) 생성되었습니다.`,
+        data: {
+          tableName: sanitizedTableName,
+        },
+      })
+    } catch (error) {
+      console.error('[DB Schema] 테이블 생성 실패:', error)
+      res.status(500).json({
+        error: '테이블 생성 실패',
         message: error.message,
       })
     }

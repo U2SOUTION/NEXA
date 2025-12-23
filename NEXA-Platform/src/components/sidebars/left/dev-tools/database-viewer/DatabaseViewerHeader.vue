@@ -29,19 +29,20 @@
 
     <!-- 검색 입력 (검색 모드일 때만 표시) -->
     <div v-if="showSearch" class="search-section q-pa-sm">
-      <q-input
-        v-model="searchQuery"
-        placeholder="테이블명 검색..."
-        outlined
-        dense
-        clearable
-        @update:model-value="handleSearchChange"
-        @clear="handleSearchClear"
-      >
+      <q-input v-model="searchQuery" placeholder="테이블명 검색..." outlined dense clearable @update:model-value="handleSearchChange" @clear="handleSearchClear">
         <template v-slot:prepend>
           <q-icon name="search" />
         </template>
       </q-input>
+    </div>
+
+    <!-- 서브 메뉴 탭 -->
+    <div class="sub-menu-tabs">
+      <q-tabs v-model="activeSubMenu" dense class="text-grey-7" active-color="primary" indicator-color="primary" align="justify" @update:model-value="handleSubMenuChange">
+        <q-tab name="erd" label="ERD" icon="account_tree" />
+        <q-tab name="editor" label="편집기" icon="edit" />
+        <q-tab name="query" label="SQL" icon="code" />
+      </q-tabs>
     </div>
   </div>
 </template>
@@ -64,12 +65,15 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['refresh', 'search-change', 'settings'])
+const emit = defineEmits(['refresh', 'search-change', 'settings', 'sub-menu-change'])
 
 // 검색 관련 상태
 const showSearch = ref(false)
 const searchQuery = ref('')
 const isRefreshing = ref(false)
+
+// 서브 메뉴 상태
+const activeSubMenu = ref('erd')
 
 // 새로고침
 function handleRefresh() {
@@ -105,6 +109,11 @@ function handleSearchClear() {
 function handleSettings() {
   emit('settings')
 }
+
+// 서브 메뉴 변경
+function handleSubMenuChange(menuName) {
+  emit('sub-menu-change', menuName)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -135,5 +144,9 @@ function handleSettings() {
 .search-section {
   border-top: 1px solid var(--nexa-border-color);
 }
-</style>
 
+.sub-menu-tabs {
+  border-top: 1px solid var(--nexa-border-color);
+  background-color: var(--nexa-surface);
+}
+</style>

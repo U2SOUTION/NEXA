@@ -77,6 +77,7 @@
         @refresh="handleDatabaseViewerRefresh"
         @search-change="handleDatabaseViewerSearchChange"
         @settings="handleDatabaseViewerSettings"
+        @sub-menu-change="handleDatabaseViewerSubMenuChange"
       />
       <DatabaseViewerList
         :search-query="databaseViewerSearchQuery"
@@ -149,6 +150,7 @@ const databaseViewerDbInfo = ref({
 const databaseViewerTableCount = ref(0)
 const databaseViewerSearchQuery = ref('')
 const databaseViewerRefreshTrigger = ref(0)
+const databaseViewerSubMenu = ref('erd')
 
 // 테마 관리 테마 변경 핸들러
 function handleThemeManagerThemeChange(themeValue) {
@@ -293,6 +295,19 @@ function handleDatabaseViewerTableSelected(tableName) {
 function handleDatabaseViewerSettings() {
   // TODO: 설정 모달 열기
   console.log('[DevSidebar] 데이터베이스 뷰어 설정')
+}
+
+// 데이터베이스 뷰어 서브 메뉴 변경 핸들러
+function handleDatabaseViewerSubMenuChange(subMenu) {
+  databaseViewerSubMenu.value = subMenu
+  // 전역 이벤트로 DatabaseViewerContent에 알림
+  window.dispatchEvent(
+    new CustomEvent('database-viewer-sub-menu-changed', {
+      detail: {
+        subMenu: subMenu,
+      },
+    })
+  )
 }
 
 // Content 컴포넌트 참조

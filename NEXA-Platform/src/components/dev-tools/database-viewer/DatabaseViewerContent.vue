@@ -13,27 +13,36 @@
       </div>
     </div>
 
-    <!-- 메인 컨텐츠: ERD 다이어그램 (테이블 상세 정보는 우측 사이드바로 이동) -->
+    <!-- 메인 컨텐츠: 서브 메뉴에 따라 다른 컴포넌트 표시 -->
     <div class="database-viewer-main">
-      <div class="database-viewer-diagram-panel">
-        <div class="database-viewer-panel-header">
-          <q-icon name="account_tree" size="18px" class="q-mr-sm" />
-          <span>ERD 다이어그램</span>
-        </div>
-        <div class="database-viewer-panel-content">
-          <SchemaDiagram />
-        </div>
-      </div>
+      <!-- ERD 다이어그램 -->
+      <SchemaDiagram v-if="activeSubMenu === 'erd'" />
+
+      <!-- 테이블 편집기 -->
+      <TableEditor v-else-if="activeSubMenu === 'editor'" />
+
+      <!-- SQL 쿼리 -->
+      <SqlQueryEditor v-else-if="activeSubMenu === 'query'" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import SchemaDiagram from './SchemaDiagram.vue'
+import TableEditor from './TableEditor.vue'
+import SqlQueryEditor from './SqlQueryEditor.vue'
 
 // 로딩 상태
 const isLoading = ref(false)
+
+// 서브 메뉴 상태
+const activeSubMenu = ref('erd')
+
+// 서브 메뉴 변경 이벤트 리스너
+function handleSubMenuChanged(event) {
+  activeSubMenu.value = event.detail.subMenu || 'erd'
+}
 
 // 데이터 새로고침
 function refreshData() {
@@ -43,6 +52,15 @@ function refreshData() {
     isLoading.value = false
   }, 1000)
 }
+
+// 이벤트 리스너 등록/해제
+onMounted(() => {
+  window.addEventListener('database-viewer-sub-menu-changed', handleSubMenuChanged)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('database-viewer-sub-menu-changed', handleSubMenuChanged)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -77,36 +95,6 @@ function refreshData() {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.database-viewer-diagram-panel {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--nexa-surface);
-}
-
-.database-viewer-panel-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--nexa-border-color);
-  background-color: var(--nexa-surface);
-  display: flex;
-  align-items: center;
-  font-weight: 600;
-  color: var(--nexa-text-primary);
-  flex-shrink: 0;
-}
-
-.database-viewer-panel-content {
-  flex: 1;
-  overflow: auto;
-  padding: 16px;
-}
-
-// 다이어그램 패널은 padding 없이 전체 영역 사용
-.database-viewer-diagram-panel .database-viewer-panel-content {
-  padding: 0;
-  overflow: hidden;
 }
 
 .database-viewer-placeholder {
