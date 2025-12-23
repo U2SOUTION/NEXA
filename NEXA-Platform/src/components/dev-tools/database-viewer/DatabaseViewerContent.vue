@@ -13,63 +13,33 @@
       </div>
     </div>
 
-    <!-- 메인 컨텐츠: 3단 레이아웃 -->
+    <!-- 메인 컨텐츠: 2단 레이아웃 (왼쪽 사이드바에 테이블 목록이 있으므로) -->
     <div class="database-viewer-main">
-      <q-splitter v-model="splitterModel" class="database-viewer-splitter">
-        <!-- 왼쪽: 테이블 목록 -->
+      <q-splitter v-model="rightSplitterModel" vertical class="database-viewer-splitter">
+        <!-- 중앙: ERD 다이어그램 -->
         <template v-slot:before>
-          <div class="database-viewer-table-list-panel">
+          <div class="database-viewer-diagram-panel">
             <div class="database-viewer-panel-header">
-              <q-icon name="table_view" size="18px" class="q-mr-sm" />
-              <span>테이블 목록</span>
+              <q-icon name="account_tree" size="18px" class="q-mr-sm" />
+              <span>ERD 다이어그램</span>
             </div>
             <div class="database-viewer-panel-content">
-              <!-- TableList 컴포넌트 (추후 구현) -->
-              <div class="database-viewer-placeholder">
-                <q-icon name="table_view" size="48px" color="grey-7" class="q-mb-md" />
-                <p class="database-viewer-placeholder-text">테이블 목록</p>
-              </div>
+              <SchemaDiagram />
             </div>
           </div>
         </template>
 
-        <!-- 중앙: ERD 다이어그램 -->
+        <!-- 오른쪽: 테이블 상세 정보 -->
         <template v-slot:after>
-          <q-splitter v-model="rightSplitterModel" vertical class="database-viewer-right-splitter">
-            <!-- 중앙: ERD 다이어그램 -->
-            <template v-slot:before>
-              <div class="database-viewer-diagram-panel">
-                <div class="database-viewer-panel-header">
-                  <q-icon name="account_tree" size="18px" class="q-mr-sm" />
-                  <span>ERD 다이어그램</span>
-                </div>
-                <div class="database-viewer-panel-content">
-                  <!-- SchemaDiagram 컴포넌트 (추후 구현) -->
-                  <div class="database-viewer-placeholder">
-                    <q-icon name="account_tree" size="48px" color="grey-7" class="q-mb-md" />
-                    <p class="database-viewer-placeholder-text">ERD 다이어그램</p>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- 오른쪽: 테이블 상세 정보 -->
-            <template v-slot:after>
-              <div class="database-viewer-table-detail-panel">
-                <div class="database-viewer-panel-header">
-                  <q-icon name="info" size="18px" class="q-mr-sm" />
-                  <span>테이블 상세 정보</span>
-                </div>
-                <div class="database-viewer-panel-content">
-                  <!-- TableDetail 컴포넌트 (추후 구현) -->
-                  <div class="database-viewer-placeholder">
-                    <q-icon name="info" size="48px" color="grey-7" class="q-mb-md" />
-                    <p class="database-viewer-placeholder-text">테이블을 선택하세요</p>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </q-splitter>
+          <div class="database-viewer-table-detail-panel">
+            <div class="database-viewer-panel-header">
+              <q-icon name="info" size="18px" class="q-mr-sm" />
+              <span>테이블 상세 정보</span>
+            </div>
+            <div class="database-viewer-panel-content">
+              <TableDetail :table-name="selectedTableName" />
+            </div>
+          </div>
         </template>
       </q-splitter>
     </div>
@@ -77,14 +47,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import TableDetail from './TableDetail.vue'
+import SchemaDiagram from './SchemaDiagram.vue'
 
 // 로딩 상태
 const isLoading = ref(false)
 
 // Splitter 모델 (왼쪽/오른쪽 비율)
-const splitterModel = ref(20) // 왼쪽 20%, 중앙+오른쪽 80%
+// 왼쪽 사이드바에 테이블 목록이 있으므로 왼쪽 패널은 제거하고 중앙과 오른쪽만 사용
 const rightSplitterModel = ref(70) // 중앙 70%, 오른쪽 30%
+
+// 선택된 테이블 이름
+const selectedTableName = ref(null)
 
 // 데이터 새로고침
 function refreshData() {
@@ -94,6 +69,19 @@ function refreshData() {
     isLoading.value = false
   }, 1000)
 }
+
+// 사이드바에서 테이블 선택 이벤트 리스너
+function handleTableSelected(event) {
+  selectedTableName.value = event.detail.tableName
+}
+
+onMounted(() => {
+  window.addEventListener('database-table-selected', handleTableSelected)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('database-table-selected', handleTableSelected)
+})
 </script>
 
 <style lang="scss" scoped>

@@ -138,79 +138,107 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
       }
 
       // 컬럼 정보 조회
-      const [columns] = await dbConnection.execute(
-        `
-        SELECT
-          COLUMN_NAME as name,
-          DATA_TYPE as dataType,
-          COLUMN_TYPE as columnType,
-          IS_NULLABLE as isNullable,
-          COLUMN_DEFAULT as defaultValue,
-          COLUMN_KEY as columnKey,
-          EXTRA as extra,
-          COLUMN_COMMENT as comment,
-          ORDINAL_POSITION as position
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = ?
-        ORDER BY ORDINAL_POSITION
-      `,
-        [tableName],
-      )
+      let columns = []
+      try {
+        const [columnsResult] = await dbConnection.execute(
+          `
+          SELECT
+            COLUMN_NAME as name,
+            DATA_TYPE as dataType,
+            COLUMN_TYPE as columnType,
+            IS_NULLABLE as isNullable,
+            COLUMN_DEFAULT as defaultValue,
+            COLUMN_KEY as columnKey,
+            EXTRA as extra,
+            COLUMN_COMMENT as comment,
+            ORDINAL_POSITION as position
+          FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = ?
+          ORDER BY ORDINAL_POSITION
+        `,
+          [tableName],
+        )
+        columns = columnsResult
+      } catch (err) {
+        console.error('[DB Schema] 컬럼 정보 조회 실패:', err)
+        throw new Error(`컬럼 정보 조회 실패: ${err.message}`)
+      }
 
       // 인덱스 정보 조회
-      const [indexes] = await dbConnection.execute(
-        `
-        SELECT
-          INDEX_NAME as name,
-          COLUMN_NAME as columnName,
-          NON_UNIQUE as nonUnique,
-          SEQ_IN_INDEX as seqInIndex,
-          INDEX_TYPE as type,
-          INDEX_COMMENT as comment
-        FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = ?
-        ORDER BY INDEX_NAME, SEQ_IN_INDEX
-      `,
-        [tableName],
-      )
+      let indexes = []
+      try {
+        const [indexesResult] = await dbConnection.execute(
+          `
+          SELECT
+            INDEX_NAME as name,
+            COLUMN_NAME as columnName,
+            NON_UNIQUE as nonUnique,
+            SEQ_IN_INDEX as seqInIndex,
+            INDEX_TYPE as type,
+            INDEX_COMMENT as comment
+          FROM INFORMATION_SCHEMA.STATISTICS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = ?
+          ORDER BY INDEX_NAME, SEQ_IN_INDEX
+        `,
+          [tableName],
+        )
+        indexes = indexesResult
+      } catch (err) {
+        console.error('[DB Schema] 인덱스 정보 조회 실패:', err)
+        throw new Error(`인덱스 정보 조회 실패: ${err.message}`)
+      }
 
       // 제약조건 정보 조회 (외래키, 기본키, 유니크 등)
-      const [constraints] = await dbConnection.execute(
-        `
-        SELECT
-          CONSTRAINT_NAME as name,
-          CONSTRAINT_TYPE as type,
-          COLUMN_NAME as columnName
-        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-        LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-          ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
-          AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
-          AND tc.TABLE_NAME = kcu.TABLE_NAME
-        WHERE tc.TABLE_SCHEMA = DATABASE()
-          AND tc.TABLE_NAME = ?
-        ORDER BY tc.CONSTRAINT_TYPE, tc.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
-      `,
-        [tableName],
-      )
+      let constraints = []
+      try {
+        const [constraintsResult] = await dbConnection.execute(
+          `
+          SELECT
+            tc.CONSTRAINT_NAME as name,
+            tc.CONSTRAINT_TYPE as type,
+            kcu.COLUMN_NAME as columnName
+          FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+          LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+            ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+            AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+            AND tc.TABLE_NAME = kcu.TABLE_NAME
+          WHERE tc.TABLE_SCHEMA = DATABASE()
+            AND tc.TABLE_NAME = ?
+          ORDER BY tc.CONSTRAINT_TYPE, tc.CONSTRAINT_NAME, COALESCE(kcu.ORDINAL_POSITION, 0)
+        `,
+          [tableName],
+        )
+        constraints = constraintsResult
+      } catch (err) {
+        console.error('[DB Schema] 제약조건 정보 조회 실패:', err)
+        throw new Error(`제약조건 정보 조회 실패: ${err.message}`)
+      }
 
       // 테이블 메타데이터
-      const [tableMeta] = await dbConnection.execute(
-        `
-        SELECT
-          TABLE_ROWS as rowCount,
-          DATA_LENGTH as dataLength,
-          INDEX_LENGTH as indexLength,
-          CREATE_TIME as createTime,
-          UPDATE_TIME as updateTime,
-          TABLE_COMMENT as comment
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = ?
-      `,
-        [tableName],
-      )
+      let tableMeta = []
+      try {
+        const [tableMetaResult] = await dbConnection.execute(
+          `
+          SELECT
+            TABLE_ROWS as rowCount,
+            DATA_LENGTH as dataLength,
+            INDEX_LENGTH as indexLength,
+            CREATE_TIME as createTime,
+            UPDATE_TIME as updateTime,
+            TABLE_COMMENT as comment
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = ?
+        `,
+          [tableName],
+        )
+        tableMeta = tableMetaResult
+      } catch (err) {
+        console.error('[DB Schema] 테이블 메타데이터 조회 실패:', err)
+        throw new Error(`테이블 메타데이터 조회 실패: ${err.message}`)
+      }
 
       res.json({
         success: true,
@@ -224,9 +252,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
       })
     } catch (error) {
       console.error('[DB Schema] 테이블 구조 조회 실패:', error)
+      console.error('[DB Schema] 에러 스택:', error.stack)
       res.status(500).json({
         error: '테이블 구조 조회 실패',
         message: error.message,
+        tableName: req.params.tableName,
       })
     }
   })

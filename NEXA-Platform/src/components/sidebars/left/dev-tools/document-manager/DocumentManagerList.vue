@@ -97,7 +97,7 @@
       <template v-if="sortedSearchResults.length > 0">
         <q-item
           v-for="result in sortedSearchResults"
-          :key="result.file.name"
+          :key="result.file.path || result.file.relativePath || result.file.name"
           clickable
           v-ripple
           :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (result.file.path || result.file.relativePath) && !multiSelectMode"
@@ -145,7 +145,7 @@
         <q-item-label header class="text-caption search-excluded-header q-pa-sm">검색어 제외한 검색 결과 ({{ filteredSearchExcluded.length }})</q-item-label>
         <q-item
           v-for="file in filteredSearchExcluded"
-          :key="file.name"
+          :key="file.path || file.relativePath || file.name"
           clickable
           v-ripple
           :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (file.path || file.relativePath) && !multiSelectMode"
@@ -178,7 +178,7 @@
           </q-item>
           <q-item
             v-for="file in displayFiles"
-            :key="file.name"
+            :key="file.path || file.relativePath || file.name"
             clickable
             v-ripple
             :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (file.path || file.relativePath) && !multiSelectMode"
@@ -210,7 +210,7 @@
               <q-item-label header class="text-caption category-header q-pa-sm">{{ category.name }} ({{ category.files.length }})</q-item-label>
               <q-item
                 v-for="file in category.files"
-                :key="file.name"
+                :key="file.path || file.relativePath || file.name"
                 clickable
                 v-ripple
                 :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (file.path || file.relativePath) && !multiSelectMode"
@@ -254,7 +254,7 @@
           <template v-else>
             <q-item
               v-for="file in displayFiles"
-              :key="file.name"
+              :key="file.path || file.relativePath || file.name"
               clickable
               v-ripple
               :active="(documentStore.selectedFile?.path || documentStore.selectedFile?.relativePath) === (file.path || file.relativePath) && !multiSelectMode"
