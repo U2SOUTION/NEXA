@@ -4,153 +4,137 @@
 -->
 
 <template>
-  <div class="table-detail">
-    <!-- 로딩 상태 -->
-    <div v-if="isLoading" class="table-detail-loading q-pa-lg text-center">
-      <q-spinner color="primary" size="3em" />
-      <div class="q-mt-md text-caption">테이블 정보를 불러오는 중...</div>
-    </div>
+  <!-- 로딩 상태 -->
+  <div v-if="isLoading" class="table-detail-loading text-center">
+    <q-spinner color="primary" size="3em" />
+    <div class="q-mt-md text-caption">테이블 정보를 불러오는 중...</div>
+  </div>
 
-    <!-- 에러 상태 -->
-    <div v-else-if="error" class="table-detail-error q-pa-lg text-center">
-      <q-icon name="error_outline" size="48px" color="negative" class="q-mb-md" />
-      <div class="text-body2 text-negative q-mb-sm">{{ error }}</div>
-      <q-btn flat dense label="다시 시도" icon="refresh" @click="loadTableStructure" />
-    </div>
+  <!-- 에러 상태 -->
+  <div v-else-if="error" class="table-detail-error text-center">
+    <q-icon name="error_outline" size="48px" color="negative" class="q-mb-md" />
+    <div class="text-body2 text-negative q-mb-sm">{{ error }}</div>
+    <q-btn flat dense label="다시 시도" icon="refresh" @click="loadTableStructure" />
+  </div>
 
-    <!-- 테이블 정보 -->
-    <div v-else-if="tableStructure" class="table-detail-content">
-      <!-- 테이블 메타데이터 -->
-      <div class="table-detail-metadata q-pa-md q-mb-md">
-        <div class="table-detail-title q-mb-sm">
-          <q-icon name="table_view" size="24px" class="q-mr-sm" />
-          <span class="text-h6">{{ tableStructure.tableName }}</span>
-        </div>
-        <div v-if="tableStructure.metadata" class="table-detail-meta-info text-caption">
-          <span v-if="tableStructure.metadata.rowCount !== null">
-            행: {{ formatNumber(tableStructure.metadata.rowCount) }}개
-          </span>
-          <span v-if="tableStructure.metadata.comment" class="q-ml-sm">
-            코멘트: {{ tableStructure.metadata.comment }}
-          </span>
-        </div>
+  <!-- 테이블 정보 -->
+  <div v-else-if="tableStructure" class="table-detail-content">
+    <!-- 테이블 메타데이터 -->
+    <div class="table-detail-metadata q-mb-md">
+      <div class="table-detail-title q-mb-sm">
+        <q-icon name="table_view" size="24px" class="q-mr-sm" />
+        <span class="text-h6">{{ tableStructure.tableName }}</span>
       </div>
-
-      <q-separator class="q-mb-md" />
-
-      <!-- 컬럼 정보 -->
-      <div class="table-detail-section q-mb-md">
-        <div class="table-detail-section-header q-mb-sm">
-          <q-icon name="view_column" size="18px" class="q-mr-sm" />
-          <span class="text-weight-bold">컬럼 정보</span>
-          <q-badge v-if="tableStructure.columns" :label="tableStructure.columns.length" color="primary" class="q-ml-sm" />
-        </div>
-        <q-table
-          v-if="tableStructure.columns && tableStructure.columns.length > 0"
-          :rows="tableStructure.columns"
-          :columns="columnColumns"
-          row-key="name"
-          flat
-          dense
-          class="table-detail-table"
-        >
-          <template v-slot:body-cell-dataType="props">
-            <q-td :props="props">
-              <span class="table-detail-data-type">{{ props.value }}</span>
-            </q-td>
-          </template>
-          <template v-slot:body-cell-isNullable="props">
-            <q-td :props="props">
-              <q-badge v-if="props.value === 'YES'" color="grey-7" label="NULL" />
-              <q-badge v-else color="negative" label="NOT NULL" />
-            </q-td>
-          </template>
-          <template v-slot:body-cell-columnKey="props">
-            <q-td :props="props">
-              <q-badge v-if="props.value === 'PRI'" color="primary" label="PK" />
-              <q-badge v-else-if="props.value === 'UNI'" color="positive" label="UNIQUE" />
-              <q-badge v-else-if="props.value === 'MUL'" color="info" label="INDEX" />
-            </q-td>
-          </template>
-          <template v-slot:body-cell-extra="props">
-            <q-td :props="props">
-              <q-badge v-if="props.value && props.value.includes('auto_increment')" color="warning" label="AUTO_INCREMENT" />
-            </q-td>
-          </template>
-        </q-table>
-        <div v-else class="table-detail-empty text-center q-pa-md">
-          <q-icon name="info" size="32px" color="grey-7" class="q-mb-sm" />
-          <div class="text-caption text-grey-7">컬럼 정보가 없습니다.</div>
-        </div>
-      </div>
-
-      <q-separator class="q-mb-md" />
-
-      <!-- 인덱스 정보 -->
-      <div class="table-detail-section q-mb-md">
-        <div class="table-detail-section-header q-mb-sm">
-          <q-icon name="storage" size="18px" class="q-mr-sm" />
-          <span class="text-weight-bold">인덱스 정보</span>
-          <q-badge v-if="indexCount > 0" :label="indexCount" color="primary" class="q-ml-sm" />
-        </div>
-        <q-list v-if="indexCount > 0" separator>
-          <q-item v-for="(index, indexKey) in groupedIndexes" :key="indexKey" class="table-detail-index-item">
-            <q-item-section>
-              <q-item-label class="table-detail-index-name">
-                <q-icon name="storage" size="16px" class="q-mr-xs" />
-                {{ index.name }}
-                <q-badge v-if="!index.nonUnique" color="positive" label="UNIQUE" class="q-ml-sm" />
-                <q-badge v-if="index.name === 'PRIMARY'" color="primary" label="PRIMARY" class="q-ml-sm" />
-              </q-item-label>
-              <q-item-label caption class="table-detail-index-columns">
-                컬럼: {{ index.columns.map((c) => c.columnName).join(', ') }}
-                <span v-if="index.type" class="q-ml-sm">({{ index.type }})</span>
-              </q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-        <div v-else class="table-detail-empty text-center q-pa-md">
-          <q-icon name="info" size="32px" color="grey-7" class="q-mb-sm" />
-          <div class="text-caption text-grey-7">인덱스가 없습니다.</div>
-        </div>
-      </div>
-
-      <q-separator class="q-mb-md" />
-
-      <!-- 제약조건 정보 -->
-      <div class="table-detail-section">
-        <div class="table-detail-section-header q-mb-sm">
-          <q-icon name="lock" size="18px" class="q-mr-sm" />
-          <span class="text-weight-bold">제약조건</span>
-          <q-badge v-if="constraintCount > 0" :label="constraintCount" color="primary" class="q-ml-sm" />
-        </div>
-        <q-list v-if="constraintCount > 0" separator>
-          <q-item v-for="(constraint, constraintKey) in groupedConstraints" :key="constraintKey" class="table-detail-constraint-item">
-            <q-item-section>
-              <q-item-label class="table-detail-constraint-name">
-                <q-icon :name="getConstraintIcon(constraint.type)" size="16px" class="q-mr-xs" />
-                {{ constraint.name }}
-                <q-badge :color="getConstraintColor(constraint.type)" :label="constraint.type" class="q-ml-sm" />
-              </q-item-label>
-              <q-item-label caption class="table-detail-constraint-columns">
-                컬럼: {{ constraint.columns.join(', ') }}
-              </q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-        <div v-else class="table-detail-empty text-center q-pa-md">
-          <q-icon name="info" size="32px" color="grey-7" class="q-mb-sm" />
-          <div class="text-caption text-grey-7">제약조건이 없습니다.</div>
-        </div>
+      <div v-if="tableStructure.metadata" class="table-detail-meta-info text-caption">
+        <span v-if="tableStructure.metadata.rowCount !== null"> 행: {{ formatNumber(tableStructure.metadata.rowCount) }}개 </span>
+        <span v-if="tableStructure.metadata.comment" class="q-ml-sm"> 코멘트: {{ tableStructure.metadata.comment }} </span>
       </div>
     </div>
 
-    <!-- 테이블 미선택 상태 -->
-    <div v-else class="table-detail-empty q-pa-lg text-center">
-      <q-icon name="table_view" size="64px" color="grey-7" class="q-mb-md" />
-      <div class="text-body2 text-grey-7">테이블을 선택하세요</div>
-      <div class="text-caption text-grey-7 q-mt-sm">왼쪽 사이드바에서 테이블을 선택하면 상세 정보가 표시됩니다.</div>
+    <q-separator class="q-mb-md" />
+
+    <!-- 컬럼 정보 -->
+    <div class="table-detail-section q-mb-md">
+      <div class="table-detail-section-header q-mb-sm">
+        <q-icon name="view_column" size="18px" class="q-mr-sm" />
+        <span class="text-weight-bold">컬럼 정보</span>
+        <q-badge v-if="tableStructure.columns" :label="tableStructure.columns.length" color="primary" class="q-ml-sm" />
+      </div>
+      <q-table v-if="tableStructure.columns && tableStructure.columns.length > 0" :rows="tableStructure.columns" :columns="columnColumns" row-key="name" flat dense class="table-detail-table">
+        <template v-slot:body-cell-dataType="props">
+          <q-td :props="props">
+            <span class="table-detail-data-type">{{ props.value }}</span>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-isNullable="props">
+          <q-td :props="props">
+            <q-badge v-if="props.value === 'YES'" color="grey-7" label="NULL" />
+            <q-badge v-else color="negative" label="NOT NULL" />
+          </q-td>
+        </template>
+        <template v-slot:body-cell-columnKey="props">
+          <q-td :props="props">
+            <q-badge v-if="props.value === 'PRI'" color="primary" label="PK" />
+            <q-badge v-else-if="props.value === 'UNI'" color="positive" label="UNIQUE" />
+            <q-badge v-else-if="props.value === 'MUL'" color="info" label="INDEX" />
+          </q-td>
+        </template>
+        <template v-slot:body-cell-extra="props">
+          <q-td :props="props">
+            <q-badge v-if="props.value && props.value.includes('auto_increment')" color="warning" label="AUTO_INCREMENT" />
+          </q-td>
+        </template>
+      </q-table>
+      <div v-else class="table-detail-empty text-center">
+        <q-icon name="info" size="32px" color="grey-7" class="q-mb-sm" />
+        <div class="text-caption text-grey-7">컬럼 정보가 없습니다.</div>
+      </div>
     </div>
+
+    <q-separator class="q-mb-md" />
+
+    <!-- 인덱스 정보 -->
+    <div class="table-detail-section q-mb-md">
+      <div class="table-detail-section-header q-mb-sm">
+        <q-icon name="storage" size="18px" class="q-mr-sm" />
+        <span class="text-weight-bold">인덱스 정보</span>
+        <q-badge v-if="indexCount > 0" :label="indexCount" color="primary" class="q-ml-sm" />
+      </div>
+      <q-list v-if="indexCount > 0" separator>
+        <q-item v-for="(index, indexKey) in groupedIndexes" :key="indexKey" class="table-detail-index-item">
+          <q-item-section>
+            <q-item-label class="table-detail-index-name">
+              <q-icon name="storage" size="16px" class="q-mr-xs" />
+              {{ index.name }}
+              <q-badge v-if="!index.nonUnique" color="positive" label="UNIQUE" class="q-ml-sm" />
+              <q-badge v-if="index.name === 'PRIMARY'" color="primary" label="PRIMARY" class="q-ml-sm" />
+            </q-item-label>
+            <q-item-label caption class="table-detail-index-columns">
+              컬럼: {{ index.columns.map((c) => c.columnName).join(', ') }}
+              <span v-if="index.type" class="q-ml-sm">({{ index.type }})</span>
+            </q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+      <div v-else class="table-detail-empty text-center">
+        <q-icon name="info" size="32px" color="grey-7" class="q-mb-sm" />
+        <div class="text-caption text-grey-7">인덱스가 없습니다.</div>
+      </div>
+    </div>
+
+    <q-separator class="q-mb-md" />
+
+    <!-- 제약조건 정보 -->
+    <div class="table-detail-section">
+      <div class="table-detail-section-header q-mb-sm">
+        <q-icon name="lock" size="18px" class="q-mr-sm" />
+        <span class="text-weight-bold">제약조건</span>
+        <q-badge v-if="constraintCount > 0" :label="constraintCount" color="primary" class="q-ml-sm" />
+      </div>
+      <q-list v-if="constraintCount > 0" separator>
+        <q-item v-for="(constraint, constraintKey) in groupedConstraints" :key="constraintKey" class="table-detail-constraint-item">
+          <q-item-section>
+            <q-item-label class="table-detail-constraint-name">
+              <q-icon :name="getConstraintIcon(constraint.type)" size="16px" class="q-mr-xs" />
+              {{ constraint.name }}
+              <q-badge :color="getConstraintColor(constraint.type)" :label="constraint.type" class="q-ml-sm" />
+            </q-item-label>
+            <q-item-label caption class="table-detail-constraint-columns"> 컬럼: {{ constraint.columns.join(', ') }} </q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+      <div v-else class="table-detail-empty text-center">
+        <q-icon name="info" size="32px" color="grey-7" class="q-mb-sm" />
+        <div class="text-caption text-grey-7">제약조건이 없습니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 테이블 미선택 상태 -->
+  <div v-else class="table-detail-empty text-center">
+    <q-icon name="table_view" size="64px" color="grey-7" class="q-mb-md" />
+    <div class="text-body2 text-grey-7">테이블을 선택하세요</div>
+    <div class="text-caption text-grey-7 q-mt-sm">왼쪽 사이드바에서 테이블을 선택하면 상세 정보가 표시됩니다.</div>
   </div>
 </template>
 
@@ -361,7 +345,7 @@ watch(
       error.value = null
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 전역 이벤트 리스너 (사이드바에서 테이블 선택 시)
@@ -379,31 +363,49 @@ onMounted(() => {
 <style lang="scss" scoped>
 .table-detail {
   width: 100%;
+  overflow: hidden; // 샘플 섹션과 동일한 패턴
+  min-width: 0; // 샘플 섹션과 동일한 패턴
   display: flex;
   flex-direction: column;
-  min-height: 0; // 사이드바 패널 내에서 스크롤 가능하도록
+  box-sizing: border-box; // 샘플 섹션과 동일한 패턴
 }
 
 .table-detail-loading,
-.table-detail-error,
+.table-detail-error {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px; // section-content 패딩 대신 직접 패딩 적용
+}
+
 .table-detail-empty {
   min-height: 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 16px; // section-content 패딩 대신 직접 패딩 적용
 }
 
 .table-detail-content {
   width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  box-sizing: border-box;
+  overflow-x: hidden; // 가로 스크롤 방지
 }
 
 .table-detail-metadata {
   background-color: var(--nexa-surface);
   border-radius: 4px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px; // section-content 패딩 대신 직접 패딩 적용
 }
 
 .table-detail-title {
@@ -419,6 +421,15 @@ onMounted(() => {
 
 .table-detail-section {
   margin-bottom: 16px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+// 섹션 내부 요소들이 부모 너비를 넘지 않도록
+.table-detail-section > * {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .table-detail-section-header {
@@ -430,6 +441,43 @@ onMounted(() => {
 
 .table-detail-table {
   background-color: var(--nexa-surface);
+  border-radius: 4px;
+  overflow: hidden; // 테이블이 부모 영역을 넘지 않도록
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+// 테이블 내부 요소들이 오른쪽 패딩을 고려하도록
+.table-detail-table :deep(.q-table__container) {
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.table-detail-table :deep(.q-table__top),
+.table-detail-table :deep(.q-table__bottom),
+.table-detail-table :deep(.q-table__middle) {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.table-detail-table :deep(table) {
+  width: 100%;
+  max-width: 100%;
+  table-layout: auto;
+  box-sizing: border-box;
+}
+
+// 테이블 셀이 오른쪽을 넘지 않도록
+.table-detail-table :deep(td),
+.table-detail-table :deep(th) {
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .table-detail-data-type {
@@ -440,7 +488,45 @@ onMounted(() => {
 
 .table-detail-index-item,
 .table-detail-constraint-item {
-  padding: 8px 16px;
+  padding: 8px 0; // 좌우 패딩 제거 (section-content의 패딩 사용)
+  border-radius: 0; // q-list의 border-radius 사용
+  margin-bottom: 4px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+// q-list의 separator 제거 (아이템 간격은 margin으로 처리)
+.table-detail-section :deep(.q-list--separator > .q-item) {
+  border-bottom: none;
+}
+
+// q-list 전체 스타일
+.table-detail-section :deep(.q-list) {
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--nexa-surface);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+// q-item-section이 너비를 넘지 않도록
+.table-detail-section :deep(.q-item__section) {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// q-item-label이 너비를 넘지 않도록
+.table-detail-section :deep(.q-item__label) {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .table-detail-index-name,
@@ -457,4 +543,3 @@ onMounted(() => {
   margin-top: 4px;
 }
 </style>
-

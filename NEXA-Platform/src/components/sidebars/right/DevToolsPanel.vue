@@ -48,7 +48,16 @@
 
       <!-- 데이터베이스 테이블 상세 정보 패널 (activeMenu === 'database-viewer') -->
       <div v-if="activeMenu === 'database-viewer'" class="accordion-wrapper">
-        <q-expansion-item icon="table_view" label="DB 테이블 상세 정보" :model-value="databaseTableDetailExpanded" @update:model-value="databaseTableDetailExpanded = $event">
+        <q-expansion-item icon="table_view" label="DB 테이블 상세 정보 (단순 버전)" :model-value="databaseTableDetailExpanded" @update:model-value="databaseTableDetailExpanded = $event">
+          <div class="section-content">
+            <DatabaseTableDetailSimple :table-name="selectedTableName" />
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 데이터베이스 테이블 상세 정보 패널 (원본 버전) -->
+      <div v-if="activeMenu === 'database-viewer'" class="accordion-wrapper">
+        <q-expansion-item icon="table_view" label="DB 테이블 상세 정보 (원본 버전)" :model-value="databaseTableDetailOriginalExpanded" @update:model-value="databaseTableDetailOriginalExpanded = $event">
           <div class="section-content">
             <DatabaseTableDetail :table-name="selectedTableName" />
           </div>
@@ -57,7 +66,7 @@
 
       <!-- 샘플 기능 섹션 (테스트용) -->
       <div class="accordion-wrapper">
-        <q-expansion-item icon="extension" label="샘플기능">
+        <q-expansion-item icon="extension" label="샘플 아코디언">
           <div class="section-content">
             <SampleSection />
           </div>
@@ -88,6 +97,7 @@ import PanelTOC from 'src/panel/components/PanelTOC.vue'
 import ThemeColorPanel from './dev-tools/ThemeColorPanel.vue'
 import SampleSection from 'src/modules/document-manager/components/sections/SampleSection.vue'
 import DatabaseTableDetail from 'src/components/dev-tools/database-viewer/TableDetail.vue'
+import DatabaseTableDetailSimple from 'src/components/dev-tools/database-viewer/TableDetailSimple.vue'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)
@@ -108,6 +118,7 @@ const themeColorPanelExpanded = ref(true)
 // 데이터베이스 테이블 상세 정보 패널 상태
 const selectedTableName = ref(null)
 const databaseTableDetailExpanded = ref(false)
+const databaseTableDetailOriginalExpanded = ref(false)
 
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {
@@ -121,6 +132,7 @@ function handleActiveMenuChange(event) {
   // 데이터베이스 뷰어 메뉴로 변경 시 아코디언 닫기 (테이블 선택 시 자동으로 열림)
   if (activeMenu.value === 'database-viewer') {
     databaseTableDetailExpanded.value = false
+    databaseTableDetailOriginalExpanded.value = false
   }
 }
 
@@ -132,6 +144,7 @@ function handleDatabaseTableSelected(event) {
   // 테이블이 선택되면 아코디언 자동으로 열기
   if (selectedTableName.value) {
     databaseTableDetailExpanded.value = true
+    // 원본 버전은 수동으로 열어야 함 (비교용)
   }
 }
 
@@ -219,7 +232,21 @@ defineExpose({
 
   // 섹션 컨텐츠 패딩 (필요시 조정)
   .section-content {
-    padding: 0.5rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden; // 가로 스크롤 방지
+    overflow-y: visible; // 세로 스크롤은 허용
   }
+
+  // // 아코디언 컨텐츠 영역이 오른쪽을 넘지 않도록
+  // :deep(.q-expansion-item__content) {
+  //   overflow-x: hidden !important;
+  //   overflow-y: visible;
+  //   box-sizing: border-box;
+  //   width: 100%;
+  //   max-width: 100%;
+  //   padding: 0 !important; // section-content가 패딩을 담당하므로 제거
+  // }
 }
 </style>

@@ -6,7 +6,7 @@
 <template>
   <div class="sample-section">
     <div class="sample-content q-pa-md">
-      <div class="text-h6 q-mb-md">샘플 기능</div>
+      <div class="text-h6 q-mb-md">샘플 아코디언 화살표 가려짐 테스트</div>
       <div class="text-body2 text-grey-7 q-mb-sm">이 섹션은 아코디언 화살표와 타이틀 표시 문제를 테스트하기 위한 샘플입니다. 가로로 긴 텍스트가 화살표를 가리는지 확인할 수 있습니다.</div>
 
       <q-separator class="q-my-md" />
