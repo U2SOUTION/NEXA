@@ -691,11 +691,11 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
           // 이렇게 하면 parsedContent가 확실히 재계산됨
           const currentFile = selectedFile.value
           if (currentFile) {
-            selectedFile.value = null
-            nextTick(() => {
-              selectedFile.value = currentFile
-            })
-          }
+          selectedFile.value = null
+          nextTick(() => {
+            selectedFile.value = currentFile
+          })
+        }
         })
       }
       // 체크박스나 라벨 클릭 시 이벤트 전파 중지

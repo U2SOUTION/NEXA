@@ -9,21 +9,130 @@
     <div class="table-editor-toolbar q-pa-md row items-center justify-between">
       <div class="row items-center q-gutter-sm">
         <q-btn color="primary" icon="add" label="새 테이블" @click="handleCreateTable" />
-        <q-btn v-if="selectedTable" flat icon="edit" label="수정" @click="handleEditTable" />
-        <q-btn v-if="selectedTable" flat icon="delete" label="삭제" color="negative" @click="handleDeleteTable" />
+        <q-btn v-if="selectedTable && !isCreating" :flat="!isEditing" :color="isEditing ? 'negative' : 'primary'" icon="edit" :label="isEditing ? '편집취소' : '편집'" @click="handleEditToggle" />
       </div>
       <div class="row items-center q-gutter-sm">
-        <q-btn flat icon="refresh" label="새로고침" @click="handleRefresh" :loading="isLoading" />
+        <q-btn v-if="isCreating || isEditing" flat icon="add" label="컬럼 추가" color="primary" @click="handleAddColumn" />
+        <q-btn v-if="isCreating || isEditing" flat color="primary" label="저장" @click="handleSave" :loading="isSaving" />
+        <q-btn v-if="selectedTable" flat icon="delete" label="삭제" color="negative" @click="handleDeleteTable" />
       </div>
     </div>
 
     <!-- 편집 폼 -->
     <div class="table-editor-content q-pa-md">
       <!-- 안내 메시지 (테이블 미선택 및 편집 모드 아님) -->
-      <div v-if="!selectedTable && !isCreating && !isEditing" class="empty-state text-center q-pa-lg">
-        <q-icon name="edit" size="48px" color="grey-7" class="q-mb-md" />
-        <div class="text-h6 q-mb-sm">테이블 편집기</div>
-        <div class="text-body2 text-grey-7 q-mb-md">왼쪽 사이드바에서 테이블을 선택하거나 "새 테이블" 버튼을 클릭하세요.</div>
+      <div v-if="!selectedTable && !isCreating && !isEditing" class="empty-state">
+        <div class="empty-state-header text-center q-mb-xl">
+          <q-icon name="storage" size="64px" color="primary" class="q-mb-md" />
+          <div class="text-h5 q-mb-sm" style="font-weight: 600">왼쪽에서 테이블을 선택하세요</div>
+          <div class="text-body1 text-grey-7">데이터베이스 테이블을 선택하여 구조를 확인하고 편집할 수 있습니다.</div>
+        </div>
+
+        <q-separator class="q-mb-xl" />
+
+        <div class="empty-state-content">
+          <div class="text-h6 q-mb-md">데이터베이스 관리 기능</div>
+          <div class="row q-gutter-md">
+            <div class="col-12 col-md-6">
+              <q-card flat bordered class="info-card">
+                <q-card-section>
+                  <div class="row items-center q-mb-sm">
+                    <q-icon name="add_circle" size="24px" color="primary" class="q-mr-sm" />
+                    <div class="text-subtitle1" style="font-weight: 600">새 테이블 생성</div>
+                  </div>
+                  <div class="text-body2 text-grey-7">"새 테이블" 버튼을 클릭하여 새로운 데이터베이스 테이블을 생성할 수 있습니다. 컬럼, 데이터 타입, 제약조건 등을 정의할 수 있습니다.</div>
+                </q-card-section>
+              </q-card>
+            </div>
+            <div class="col-12 col-md-6">
+              <q-card flat bordered class="info-card">
+                <q-card-section>
+                  <div class="row items-center q-mb-sm">
+                    <q-icon name="edit" size="24px" color="primary" class="q-mr-sm" />
+                    <div class="text-subtitle1" style="font-weight: 600">테이블 편집</div>
+                  </div>
+                  <div class="text-body2 text-grey-7">왼쪽 사이드바에서 테이블을 선택한 후 "편집" 버튼을 클릭하면 테이블 구조를 수정할 수 있습니다. 컬럼 추가, 수정, 삭제가 가능합니다.</div>
+                </q-card-section>
+              </q-card>
+            </div>
+            <div class="col-12 col-md-6">
+              <q-card flat bordered class="info-card">
+                <q-card-section>
+                  <div class="row items-center q-mb-sm">
+                    <q-icon name="delete" size="24px" color="primary" class="q-mr-sm" />
+                    <div class="text-subtitle1" style="font-weight: 600">테이블 삭제</div>
+                  </div>
+                  <div class="text-body2 text-grey-7">테이블을 선택한 후 "삭제" 버튼을 클릭하면 테이블을 삭제할 수 있습니다. 주의: 이 작업은 되돌릴 수 없습니다.</div>
+                </q-card-section>
+              </q-card>
+            </div>
+            <div class="col-12 col-md-6">
+              <q-card flat bordered class="info-card">
+                <q-card-section>
+                  <div class="row items-center q-mb-sm">
+                    <q-icon name="account_tree" size="24px" color="primary" class="q-mr-sm" />
+                    <div class="text-subtitle1" style="font-weight: 600">ERD 다이어그램</div>
+                  </div>
+                  <div class="text-body2 text-grey-7">ERD 탭에서 데이터베이스의 전체 구조와 테이블 간의 관계를 시각적으로 확인할 수 있습니다.</div>
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 로딩 상태 (상세 정보 로드 중) -->
+      <div v-else-if="selectedTable && !isCreating && !isEditing && (isLoadingTableStructure || !tableStructure)" class="text-center q-pa-lg">
+        <q-spinner color="primary" size="3em" />
+        <div class="q-mt-md text-caption">테이블 구조를 불러오는 중...</div>
+      </div>
+
+      <!-- 테이블 상세 정보 (읽기 모드) -->
+      <div v-else-if="selectedTable && !isCreating && !isEditing && tableStructure" class="table-detail-view">
+        <!-- 헤더 -->
+        <div class="row items-center q-mb-md">
+          <div>
+            <div class="text-h6">{{ tableStructure.tableName }}</div>
+            <div class="text-caption text-grey-7">
+              <span v-if="tableStructure.metadata?.rowCount !== null">행: {{ formatNumber(tableStructure.metadata.rowCount) }}개</span>
+              <span v-if="tableStructure.metadata?.comment" class="q-ml-sm">코멘트: {{ tableStructure.metadata.comment }}</span>
+            </div>
+          </div>
+        </div>
+
+        <q-separator class="q-mb-md" />
+
+        <!-- 컬럼 정보 -->
+        <div class="q-mb-md">
+          <div class="text-subtitle2 q-mb-sm">컬럼 ({{ tableStructure.columns?.length || 0 }}개)</div>
+          <table class="simple-table">
+            <thead>
+              <tr>
+                <th>컬럼명</th>
+                <th>데이터 타입</th>
+                <th>NULL</th>
+                <th>키</th>
+                <th>기본값</th>
+                <th>코멘트</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="column in tableStructure.columns" :key="column.name">
+                <td>{{ column.name }}</td>
+                <td>{{ column.dataType }}</td>
+                <td>{{ column.isNullable === 'YES' ? 'NULL' : 'NOT NULL' }}</td>
+                <td>
+                  <span v-if="column.columnKey === 'PRI'">PK</span>
+                  <span v-else-if="column.columnKey === 'UNI'">UNIQUE</span>
+                  <span v-else-if="column.columnKey === 'MUL'">INDEX</span>
+                  <span v-else>-</span>
+                </td>
+                <td>{{ column.defaultValue || '-' }}</td>
+                <td>{{ column.comment || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- 편집 폼 (생성/수정) -->
@@ -36,145 +145,69 @@
 
         <!-- 편집 폼 -->
         <div v-else-if="tableStructure || isCreating" class="table-editor-form">
-          <div class="text-h6 q-mb-md">
-            {{ isCreating ? '새 테이블 생성' : `테이블 수정: ${selectedTable}` }}
-          </div>
-
-          <!-- 테이블 기본 정보 -->
-          <q-card flat bordered class="q-mb-md">
-            <q-card-section>
-              <div class="text-subtitle2 q-mb-sm">테이블 정보</div>
-              <div class="row q-gutter-md">
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="tableName"
-                    label="테이블명"
-                    outlined
-                    dense
-                    :readonly="!isCreating"
-                    :disable="!isCreating"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="tableComment"
-                    label="테이블 코멘트"
-                    outlined
-                    dense
-                  />
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <!-- 컬럼 목록 -->
-          <q-card flat bordered class="q-mb-md">
-            <q-card-section>
-              <div class="row items-center justify-between q-mb-sm">
-                <div class="text-subtitle2">컬럼</div>
-                <q-btn
-                  v-if="isCreating"
-                  flat
-                  dense
-                  icon="add"
-                  label="컬럼 추가"
-                  color="primary"
-                  size="sm"
-                  @click="handleAddColumn"
-                />
-              </div>
-
-              <!-- 컬럼 목록 -->
-              <div v-if="columns.length > 0" class="column-list">
-                <div
-                  v-for="(column, index) in columns"
-                  :key="index"
-                  class="column-item q-pa-sm q-mb-sm"
-                  :class="{ 'column-item-editing': column.editing }"
-                >
-                  <div class="row items-center q-gutter-sm">
-                    <div class="col-3">
-                      <q-input
-                        v-model="column.name"
-                        label="컬럼명"
-                        outlined
-                        dense
-                        :readonly="!isCreating && !column.editing"
-                      />
-                    </div>
-                    <div class="col-2">
-                      <q-input
-                        v-model="column.dataType"
-                        label="데이터 타입"
-                        outlined
-                        dense
-                        :readonly="!isCreating && !column.editing"
-                      />
-                    </div>
-                    <div class="col-1">
-                      <q-checkbox
-                        v-model="column.isNullable"
-                        label="NULL"
-                        :disable="!isCreating && !column.editing"
-                      />
-                    </div>
-                    <div class="col-2">
-                      <q-input
-                        v-model="column.defaultValue"
-                        label="기본값"
-                        outlined
-                        dense
-                        :readonly="!isCreating && !column.editing"
-                      />
-                    </div>
-                    <div class="col-2">
-                      <q-input
-                        v-model="column.comment"
-                        label="코멘트"
-                        outlined
-                        dense
-                        :readonly="!isCreating && !column.editing"
-                      />
-                    </div>
-                    <div class="col-2 row items-center q-gutter-xs">
-                      <q-btn
-                        v-if="!isCreating && !column.editing"
-                        flat
-                        dense
-                        icon="edit"
-                        size="sm"
-                        @click="column.editing = true"
-                      />
-                      <q-btn
-                        v-if="isCreating || column.editing"
-                        flat
-                        dense
-                        icon="delete"
-                        size="sm"
-                        color="negative"
-                        @click="handleRemoveColumn(index)"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 컬럼이 없을 때 -->
-              <div v-else class="text-center q-pa-md text-grey-7">
-                컬럼이 없습니다. "컬럼 추가" 버튼을 클릭하여 컬럼을 추가하세요.
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <!-- 액션 버튼 -->
-          <div class="row justify-end q-gutter-sm">
-            <q-btn flat label="취소" @click="handleCancel" />
-            <q-btn
-              color="primary"
-              label="저장"
-              @click="handleSave"
-              :loading="isSaving"
-            />
+          <!-- 컬럼 정보 (편집 가능) -->
+          <div class="q-mb-md">
+            <div class="row items-center justify-between q-mb-sm">
+              <div class="text-subtitle2">컬럼 ({{ columns.length }}개)</div>
+              <q-btn v-if="isCreating || isEditing" flat dense icon="add" label="컬럼 추가" color="primary" size="sm" @click="handleAddColumn" />
+            </div>
+            <table class="simple-table">
+              <thead>
+                <tr>
+                  <th>컬럼명</th>
+                  <th>데이터 타입</th>
+                  <th>NULL</th>
+                  <th>키</th>
+                  <th>기본값</th>
+                  <th>코멘트</th>
+                  <th v-if="isCreating || isEditing" style="width: 80px">액션</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(column, index) in columns" :key="index">
+                  <td>
+                    <q-input v-model="column.name" outlined dense placeholder="컬럼명" class="table-form-input" />
+                  </td>
+                  <td>
+                    <q-select v-model="column.dataType" :options="dataTypeOptions" outlined dense emit-value map-options use-input input-debounce="0" placeholder="데이터 타입" @filter="filterDataTypes" class="table-form-select" />
+                  </td>
+                  <td>
+                    <q-checkbox v-model="column.isNullable" :disable="false" class="table-form-checkbox" />
+                  </td>
+                  <td>
+                    <q-select
+                      v-model="column.columnKey"
+                      :options="[
+                        { label: '-', value: '' },
+                        { label: 'PK', value: 'PRI' },
+                        { label: 'UNIQUE', value: 'UNI' },
+                        { label: 'INDEX', value: 'MUL' },
+                      ]"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      placeholder="키"
+                      class="table-form-select"
+                    />
+                  </td>
+                  <td>
+                    <q-select v-model="column.defaultValue" :options="defaultValueOptions" outlined dense use-input input-debounce="0" placeholder="기본값" @filter="filterDefaultValues" @new-value="createDefaultValue" class="table-form-select" />
+                  </td>
+                  <td>
+                    <q-input v-model="column.comment" outlined dense placeholder="코멘트" class="table-form-input" />
+                  </td>
+                  <td v-if="isCreating || isEditing" class="text-center">
+                    <q-btn flat dense icon="delete" size="sm" color="negative" @click="handleRemoveColumn(index)" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- 테이블 하단 버튼 -->
+            <div v-if="isCreating || isEditing" class="table-bottom-actions row items-center justify-end q-gutter-sm q-mt-md">
+              <q-btn class="table-bottom-btn" icon="add" label="컬럼 추가" color="primary" @click="handleAddColumn" />
+              <q-btn class="table-bottom-btn" color="primary" label="저장" @click="handleSave" :loading="isSaving" />
+            </div>
           </div>
         </div>
 
@@ -196,7 +229,6 @@ import { useQuasar } from 'quasar'
 const $q = useQuasar()
 
 // 상태
-const isLoading = ref(false)
 const isLoadingTableStructure = ref(false)
 const isSaving = ref(false)
 const selectedTable = ref(null)
@@ -210,6 +242,109 @@ const tableComment = ref('')
 const tableStructure = ref(null)
 const columns = ref([])
 
+// 데이터 타입 옵션
+const allDataTypeOptions = [
+  // 문자열 타입
+  { label: 'VARCHAR(255)', value: 'VARCHAR(255)' },
+  { label: 'VARCHAR(100)', value: 'VARCHAR(100)' },
+  { label: 'VARCHAR(50)', value: 'VARCHAR(50)' },
+  { label: 'CHAR(255)', value: 'CHAR(255)' },
+  { label: 'TEXT', value: 'TEXT' },
+  { label: 'TINYTEXT', value: 'TINYTEXT' },
+  { label: 'MEDIUMTEXT', value: 'MEDIUMTEXT' },
+  { label: 'LONGTEXT', value: 'LONGTEXT' },
+  // 숫자 타입
+  { label: 'INT', value: 'INT' },
+  { label: 'TINYINT', value: 'TINYINT' },
+  { label: 'SMALLINT', value: 'SMALLINT' },
+  { label: 'MEDIUMINT', value: 'MEDIUMINT' },
+  { label: 'BIGINT', value: 'BIGINT' },
+  { label: 'DECIMAL(10,2)', value: 'DECIMAL(10,2)' },
+  { label: 'FLOAT', value: 'FLOAT' },
+  { label: 'DOUBLE', value: 'DOUBLE' },
+  // 날짜/시간 타입
+  { label: 'DATE', value: 'DATE' },
+  { label: 'TIME', value: 'TIME' },
+  { label: 'DATETIME', value: 'DATETIME' },
+  { label: 'TIMESTAMP', value: 'TIMESTAMP' },
+  { label: 'YEAR', value: 'YEAR' },
+  // 바이너리 타입
+  { label: 'BLOB', value: 'BLOB' },
+  { label: 'TINYBLOB', value: 'TINYBLOB' },
+  { label: 'MEDIUMBLOB', value: 'MEDIUMBLOB' },
+  { label: 'LONGBLOB', value: 'LONGBLOB' },
+  // 기타
+  { label: 'JSON', value: 'JSON' },
+  { label: 'ENUM', value: 'ENUM' },
+  { label: 'SET', value: 'SET' },
+]
+
+const dataTypeOptions = ref([...allDataTypeOptions])
+
+// 데이터 타입 필터링
+function filterDataTypes(val, update) {
+  if (val === '') {
+    update(() => {
+      dataTypeOptions.value = allDataTypeOptions
+    })
+    return
+  }
+
+  update(() => {
+    const needle = val.toLowerCase()
+    dataTypeOptions.value = allDataTypeOptions.filter((v) => v.label.toLowerCase().indexOf(needle) > -1)
+  })
+}
+
+// 기본값 옵션
+const allDefaultValueOptions = [
+  // NULL 관련
+  { label: 'NULL', value: 'NULL' },
+  // 숫자 기본값
+  { label: '0', value: '0' },
+  { label: '1', value: '1' },
+  { label: '-1', value: '-1' },
+  // 문자열 기본값
+  { label: "'' (빈 문자열)", value: "''" },
+  { label: "'N'", value: "'N'" },
+  { label: "'Y'", value: "'Y'" },
+  // 날짜/시간 기본값
+  { label: 'CURRENT_TIMESTAMP', value: 'CURRENT_TIMESTAMP' },
+  { label: 'NOW()', value: 'NOW()' },
+  { label: 'CURRENT_DATE', value: 'CURRENT_DATE' },
+  { label: 'CURRENT_TIME', value: 'CURRENT_TIME' },
+  // 자동 증가
+  { label: 'AUTO_INCREMENT', value: 'AUTO_INCREMENT' },
+]
+
+const defaultValueOptions = ref([...allDefaultValueOptions])
+
+// 기본값 필터링
+function filterDefaultValues(val, update) {
+  if (val === '') {
+    update(() => {
+      defaultValueOptions.value = allDefaultValueOptions
+    })
+    return
+  }
+
+  update(() => {
+    const needle = val.toLowerCase()
+    defaultValueOptions.value = allDefaultValueOptions.filter((v) => v.label.toLowerCase().indexOf(needle) > -1 || v.value.toLowerCase().indexOf(needle) > -1)
+  })
+}
+
+// 기본값 직접 입력 생성
+function createDefaultValue(val, done) {
+  if (val.length > 0) {
+    // 이미 존재하는 값이 아니면 추가
+    if (!allDefaultValueOptions.find((opt) => opt.value === val)) {
+      allDefaultValueOptions.push({ label: val, value: val })
+    }
+    done(val, 'add')
+  }
+}
+
 // 왼쪽 사이드바에서 테이블 선택 이벤트 리스너
 function handleTableSelected(event) {
   const tableName = event.detail?.tableName
@@ -217,6 +352,8 @@ function handleTableSelected(event) {
     selectedTable.value = tableName
     isCreating.value = false
     isEditing.value = false
+    // 테이블 상세 정보 자동 로드
+    loadTableStructure()
   }
 }
 
@@ -240,6 +377,7 @@ function handleAddColumn() {
     isNullable: true,
     defaultValue: '',
     comment: '',
+    columnKey: '',
     editing: true,
   })
 }
@@ -372,15 +510,16 @@ async function loadTableStructure() {
     if (data.success && data.data) {
       tableStructure.value = data.data
       tableName.value = selectedTable.value
-      tableComment.value = data.data.comment || ''
-      
-      // 컬럼 데이터 변환
+      tableComment.value = data.data.metadata?.comment || ''
+
+      // 컬럼 데이터 변환 (편집 모드용)
       columns.value = (data.data.columns || []).map((col) => ({
         name: col.name,
         dataType: col.dataType,
         isNullable: col.isNullable === 'YES',
         defaultValue: col.defaultValue || '',
         comment: col.comment || '',
+        columnKey: col.columnKey || '',
         editing: false,
       }))
     } else {
@@ -395,6 +534,22 @@ async function loadTableStructure() {
     console.error('[TableEditor] 테이블 구조 로드 실패:', err)
   } finally {
     isLoadingTableStructure.value = false
+  }
+}
+
+// 숫자 포맷팅
+function formatNumber(num) {
+  if (num === null || num === undefined) return '0'
+  return new Intl.NumberFormat('ko-KR').format(num)
+}
+
+// 편집 토글 (편집/편집취소)
+function handleEditToggle() {
+  if (!selectedTable.value) return
+  if (isEditing.value) {
+    handleCancel()
+  } else {
+    handleEditTable()
   }
 }
 
@@ -426,25 +581,32 @@ function handleDeleteTable() {
 
 // 취소
 function handleCancel() {
-  isCreating.value = false
-  isEditing.value = false
-  tableStructure.value = null
-  columns.value = []
-  tableName.value = ''
-  tableComment.value = ''
+  if (isCreating.value) {
+    // 새 테이블 생성 모드 취소
+    isCreating.value = false
+    tableName.value = ''
+    tableComment.value = ''
+    columns.value = []
+    selectedTable.value = null
+  } else if (isEditing.value) {
+    // 편집 모드 취소 - 읽기 모드로 돌아가기
+    isEditing.value = false
+    // 테이블 구조를 다시 로드하여 원래 상태로 복원
+    if (selectedTable.value) {
+      loadTableStructure()
+    }
+  }
   error.value = null
   // 선택된 테이블은 유지 (왼쪽 사이드바에서 선택한 상태 유지)
-}
-
-// 새로고침 (왼쪽 사이드바의 새로고침과 동일한 기능)
-function handleRefresh() {
-  // 왼쪽 사이드바의 새로고침 이벤트 발생
-  window.dispatchEvent(new CustomEvent('database-viewer-refresh'))
 }
 
 // 이벤트 리스너 등록/해제
 onMounted(() => {
   window.addEventListener('database-table-selected', handleTableSelected)
+  // 마운트 시 selectedTable이 이미 설정되어 있으면 로드
+  if (selectedTable.value && !tableStructure.value) {
+    loadTableStructure()
+  }
 })
 
 onUnmounted(() => {
@@ -469,20 +631,260 @@ onUnmounted(() => {
 .table-editor-content {
   flex: 1;
   overflow: auto;
+  width: 100%;
+}
+
+.empty-state {
+  padding: 48px 24px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
+.empty-state-header {
+  padding: 24px 0;
+}
+
+.empty-state-content {
+  padding: 24px 0;
+}
+
+.info-card {
+  height: 100%;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 }
 
 .table-editor-form {
   width: 100%;
+}
+
+// 테이블 하단 버튼 배경
+.table-bottom-btn {
+  background-color: var(--nexa-surface) !important;
+  border-radius: 4px;
+}
+
+.table-detail-view {
+  width: 100%;
+
+  // 읽기 모드 테이블 본문 텍스트 secondary 컬러 적용
+  .simple-table tbody td {
+    color: var(--nexa-text-secondary) !important;
+  }
+}
+
+.simple-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  table-layout: fixed;
+
+  th,
+  td {
+    padding: 4px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--nexa-border-color);
+    vertical-align: middle;
+    overflow: hidden;
+    min-height: 40px;
+    height: 40px;
+  }
+}
+
+// 테이블 정보 테이블 스타일 (테이블명 텍스트, 코멘트 넓게)
+.table-info-table {
+  table-layout: auto; // auto로 변경하여 코멘트 필드가 남은 공간을 차지하도록
+
+  th,
+  td {
+    padding: 4px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--nexa-border-color);
+    vertical-align: middle;
+    min-height: 40px;
+    height: 40px;
+  }
+
+  // 테이블명 라벨
+  td:nth-child(1) {
+    width: 100px;
+  }
+
+  // 테이블명 값 (텍스트)
+  .table-name-cell {
+    width: 200px;
+    white-space: nowrap;
+  }
+
+  // 코멘트 라벨
+  td:nth-child(3) {
+    width: 100px;
+  }
+
+  // 코멘트 필드 (나머지 영역 최대한 차지)
+  .table-comment-cell {
+    width: 100%; // 나머지 공간 모두 차지
+    min-width: 300px; // 최소 너비 보장
+  }
+
+  thead th {
+    background-color: var(--nexa-table-header-bg);
+    color: var(--nexa-table-header-text);
+    font-weight: 600;
+  }
+
+  tbody {
+    tr {
+      background-color: var(--nexa-table-bg);
+
+      &:hover {
+        background-color: var(--nexa-table-row-hover-bg);
+      }
+    }
+
+    td {
+      color: var(--nexa-table-text);
+    }
+  }
+
+  // 컬럼 폭 조정
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 15%; // 컬럼명
+  }
+
+  th:nth-child(2),
+  td:nth-child(2) {
+    width: 15%; // 데이터 타입 (셀렉트)
+  }
+
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 6%; // NULL (체크박스)
+    text-align: center;
+  }
+
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 15%; // 키 (셀렉트)
+  }
+
+  th:nth-child(5),
+  td:nth-child(5) {
+    width: 15%; // 기본값 (셀렉트)
+  }
+
+  th:nth-child(6),
+  td:nth-child(6) {
+    width: 35%; // 코멘트 (입력) - 가장 넓게
+  }
+
+  th:nth-child(7),
+  td:nth-child(7) {
+    width: 8%; // 액션 (버튼)
+    text-align: center;
+  }
+}
+
+// 테이블 내 폼 필드 스타일 (보더 투명, 마진 0)
+.table-form-input {
+  margin: 0;
+  width: 100%;
+
+  :deep(.q-field__control) {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    min-height: 32px;
+    height: 32px;
+  }
+
+  :deep(.q-field__native) {
+    padding: 0;
+    min-height: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+
+  :deep(.q-field__marginal) {
+    display: none;
+  }
+
+  :deep(.q-field__label) {
+    display: none !important;
+  }
+
+  :deep(.q-field__messages) {
+    display: none;
+  }
+
+  :deep(input) {
+    min-height: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+}
+
+.table-form-select {
+  margin: 0;
+  width: 100%;
+
+  :deep(.q-field__control) {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    min-height: 32px;
+    height: 32px;
+  }
+
+  :deep(.q-field__native) {
+    padding: 0;
+    min-height: 32px;
+    height: 32px;
+    line-height: 32px;
+    position: relative;
+  }
+
+  // 값이 있을 때 (span.ellipsis가 있을 때) input.q-placeholder 숨기기
+  :deep(input.q-field__input.q-placeholder) {
+    display: none !important;
+  }
+
+  // 더 직접적인 방법: q-placeholder 클래스가 있는 input의 placeholder 텍스트 숨기기
+  :deep(.q-field__input.q-placeholder::placeholder) {
+    color: transparent !important;
+    opacity: 0 !important;
+  }
+
+  :deep(.q-field__marginal) {
+    display: none;
+  }
+
+  :deep(.q-field__label) {
+    display: none !important;
+  }
+
+  :deep(.q-field__messages) {
+    display: none;
+  }
+
+  // q-field__input 스타일
+  :deep(.q-field__input) {
+    min-height: 32px;
+    height: 32px;
+    line-height: 32px;
+    padding: 0;
+  }
+}
+
+.table-form-checkbox {
+  margin: 0;
 }
 
 .column-list {
