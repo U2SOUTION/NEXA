@@ -677,6 +677,10 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         })
 
         // checkboxStates는 ref이므로 그대로 전달
+        // 현재는 localStorage에만 저장 (원본 마크다운 파일은 수정하지 않음)
+        // TODO: 나중에 에디터 기능 완성 시 원본 파일에도 체크박스 상태를 반영하는 기능 추가 예정
+        // - 편집 모드에서 문서 저장 시 체크박스 상태도 함께 저장
+        // - - [ ] → - [x] 변환 로직 필요
         saveCheckboxStates(checkboxStates)
 
         // parsedContent computed가 checkboxStates 변경을 감지하여 자동으로 재계산됨

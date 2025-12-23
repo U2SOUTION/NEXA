@@ -344,6 +344,10 @@ function exitEditMode() {
 function saveEdit() {
   if (!documentStore.selectedFile) return
   // TODO: 파일 저장 로직 구현 필요
+  // - HTML을 마크다운으로 변환
+  // - 체크박스 상태를 원본 마크다운에 반영 (- [ ] → - [x])
+  // - PUT /api/docs/:fileName API 호출하여 파일 저장
+  // - localStorage의 체크박스 상태도 원본 파일에 반영
   documentStore.fileContents[documentStore.selectedFile.name] = editContent.value
   exitEditMode()
 }

@@ -40,6 +40,15 @@ export function loadCheckboxStates(checkboxStates) {
 /**
  * 체크박스 상태 저장
  * @param {Object} checkboxStates - 체크박스 상태 객체 (ref)
+ * 
+ * 현재 동작:
+ * - localStorage에만 저장 (원본 마크다운 파일은 수정하지 않음)
+ * - 브라우저별 개인 설정으로 저장됨
+ * 
+ * 향후 계획:
+ * - 에디터 기능 완성 시 원본 마크다운 파일에도 체크박스 상태를 반영할 예정
+ * - 편집 모드에서 문서 저장 시 체크박스 상태도 함께 저장
+ * - - [ ] → - [x] 변환 로직 필요
  */
 export function saveCheckboxStates(checkboxStates) {
   try {
