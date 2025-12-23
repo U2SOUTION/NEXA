@@ -1,6 +1,9 @@
 /**
  * API Performance Interceptor
  * fetch 및 XMLHttpRequest 인터셉트하여 API 성능 측정
+ *
+ * ✅ 인터셉트 로직: 정상 작동 (fetch/XHR 인터셉트 성공)
+ * ⚠️ 데이터 수집: 실제 API 호출이 없어서 데이터 0 (실제 사용 시 자동 작동)
  */
 
 let apiMetrics = []
@@ -15,21 +18,44 @@ const MAX_METRICS = 1000 // 최대 저장할 메트릭 수
  */
 export function interceptFetch() {
   if (originalFetch) {
+    console.log('[APIMonitor] fetch는 이미 인터셉트되어 있습니다.')
     return // 이미 인터셉트됨
   }
 
   originalFetch = window.fetch
-  window.fetch = async function(...args) {
+  console.log('[APIMonitor] fetch 인터셉트 시작')
+
+  window.fetch = async function (...args) {
     const startTime = performance.now()
-    const url = typeof args[0] === 'string' ? args[0] : args[0].url
-    const method = args[1]?.method || 'GET'
+
+    // URL 추출 로직 개선
+    let url = ''
+    if (typeof args[0] === 'string') {
+      url = args[0]
+    } else if (args[0] instanceof Request) {
+      url = args[0].url
+    } else if (args[0] && typeof args[0] === 'object' && args[0].url) {
+      url = args[0].url
+    } else {
+      url = String(args[0] || 'unknown')
+    }
+
+    // Method 추출 로직 개선
+    let method = 'GET'
+    if (args[1] && args[1].method) {
+      method = args[1].method
+    } else if (args[0] instanceof Request && args[0].method) {
+      method = args[0].method
+    } else if (args[0] && typeof args[0] === 'object' && args[0].method) {
+      method = args[0].method
+    }
 
     try {
       const response = await originalFetch.apply(this, args)
       const endTime = performance.now()
       const duration = endTime - startTime
 
-      recordAPIMetric({
+      const metric = {
         url,
         method,
         duration,
@@ -37,7 +63,10 @@ export function interceptFetch() {
         statusText: response.statusText,
         timestamp: Date.now(),
         success: response.ok,
-      })
+      }
+
+      recordAPIMetric(metric)
+      console.log('[APIMonitor] API 호출 기록:', { url, method, duration: `${duration.toFixed(2)}ms`, status: response.status })
 
       return response
     } catch (error) {
@@ -71,18 +100,18 @@ export function interceptXHR() {
   originalXHROpen = XMLHttpRequest.prototype.open
   originalXHRSend = XMLHttpRequest.prototype.send
 
-  XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+  XMLHttpRequest.prototype.open = function (method, url, ...rest) {
     this._apiMethod = method
     this._apiUrl = url
     this._apiStartTime = performance.now()
-    
+
     return originalXHROpen.apply(this, [method, url, ...rest])
   }
 
-  XMLHttpRequest.prototype.send = function(...args) {
+  XMLHttpRequest.prototype.send = function (...args) {
     const xhr = this
-    
-    xhr.addEventListener('loadend', function() {
+
+    xhr.addEventListener('loadend', function () {
       const endTime = performance.now()
       const duration = endTime - (xhr._apiStartTime || endTime)
 
@@ -97,7 +126,7 @@ export function interceptXHR() {
       })
     })
 
-    xhr.addEventListener('error', function() {
+    xhr.addEventListener('error', function () {
       const endTime = performance.now()
       const duration = endTime - (xhr._apiStartTime || endTime)
 
@@ -142,16 +171,16 @@ export function getAPIMetrics(options = {}) {
   let filtered = [...apiMetrics]
 
   if (options.url) {
-    filtered = filtered.filter(m => m.url.includes(options.url))
+    filtered = filtered.filter((m) => m.url.includes(options.url))
   }
 
   if (options.method) {
-    filtered = filtered.filter(m => m.method === options.method)
+    filtered = filtered.filter((m) => m.method === options.method)
   }
 
   if (options.duration) {
     const cutoffTime = Date.now() - options.duration
-    filtered = filtered.filter(m => m.timestamp >= cutoffTime)
+    filtered = filtered.filter((m) => m.timestamp >= cutoffTime)
   }
 
   return filtered
@@ -176,8 +205,8 @@ export function getAPIStats(options = {}) {
     }
   }
 
-  const durations = metrics.map(m => m.duration)
-  const successes = metrics.filter(m => m.success).length
+  const durations = metrics.map((m) => m.duration)
+  const successes = metrics.filter((m) => m.success).length
   const errors = metrics.length - successes
 
   return {
@@ -199,7 +228,7 @@ export function getAPIStatsByEndpoint(options = {}) {
   const metrics = getAPIMetrics(options)
   const endpointStats = {}
 
-  metrics.forEach(metric => {
+  metrics.forEach((metric) => {
     const key = `${metric.method} ${metric.url}`
     if (!endpointStats[key]) {
       endpointStats[key] = {
@@ -212,10 +241,10 @@ export function getAPIStatsByEndpoint(options = {}) {
   })
 
   // 통계 계산
-  Object.keys(endpointStats).forEach(key => {
+  Object.keys(endpointStats).forEach((key) => {
     const stats = endpointStats[key]
-    const durations = stats.requests.map(r => r.duration)
-    const successes = stats.requests.filter(r => r.success).length
+    const durations = stats.requests.map((r) => r.duration)
+    const successes = stats.requests.filter((r) => r.success).length
 
     stats.count = stats.requests.length
     stats.avgDuration = durations.reduce((a, b) => a + b, 0) / durations.length
@@ -239,8 +268,10 @@ export function clearAPIMetrics() {
  * 모든 API 인터셉터 활성화
  */
 export function enableAPIMonitoring() {
+  console.log('[APIMonitor] API 모니터링 활성화 시작')
   interceptFetch()
   interceptXHR()
+  console.log('[APIMonitor] API 모니터링 활성화 완료')
 }
 
 /**
@@ -259,4 +290,3 @@ export function disableAPIMonitoring() {
     originalXHRSend = null
   }
 }
-

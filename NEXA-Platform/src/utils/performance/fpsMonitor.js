@@ -1,6 +1,9 @@
 /**
  * FPS Monitor
  * requestAnimationFrame을 활용한 FPS 측정
+ *
+ * ✅ 측정 로직: 정상 작동 (FPS 값 정확히 측정됨)
+ * ⚠️ UI 렌더링: 부모에서 currentFPS.value는 업데이트되지만 자식 컴포넌트에서 반응성 문제로 렌더링 안 됨
  */
 
 let lastTime = performance.now()
@@ -19,9 +22,11 @@ const MAX_HISTORY = 100 // 최대 저장할 FPS 히스토리 수
  */
 export function startFPSMonitoring(sampleInterval = 1000, callback = null) {
   if (isMonitoring) {
+    console.log('[FPSMonitor] 이미 모니터링 중입니다.')
     return
   }
 
+  console.log('[FPSMonitor] FPS 모니터링 시작 (샘플링 간격:', sampleInterval, 'ms)')
   isMonitoring = true
   frameCount = 0
   lastTime = performance.now()
@@ -36,7 +41,20 @@ export function startFPSMonitoring(sampleInterval = 1000, callback = null) {
     const elapsed = currentTime - lastTime
 
     if (elapsed >= sampleInterval) {
-      currentFPS = Math.round((frameCount * 1000) / elapsed)
+      const measuredFrames = frameCount
+      currentFPS = Math.round((measuredFrames * 1000) / elapsed)
+
+      // FPS가 0이거나 음수인 경우 (초기 상태 또는 탭 비활성화) 처리
+      if (currentFPS <= 0) {
+        // 브라우저가 렌더링을 중지한 경우 (예: 탭 비활성화)
+        // 마지막 유효한 FPS 값을 유지하거나 0으로 설정
+        if (fpsHistory.length > 0) {
+          currentFPS = fpsHistory[fpsHistory.length - 1].fps
+        } else {
+          currentFPS = 0
+        }
+      }
+
       fpsHistory.push({
         fps: currentFPS,
         timestamp: Date.now(),
@@ -46,6 +64,8 @@ export function startFPSMonitoring(sampleInterval = 1000, callback = null) {
       if (fpsHistory.length > MAX_HISTORY) {
         fpsHistory.shift()
       }
+
+      console.log('[FPSMonitor] FPS 업데이트:', currentFPS, 'fps (프레임 수:', measuredFrames, ', 경과 시간:', elapsed.toFixed(2), 'ms)')
 
       frameCount = 0
       lastTime = currentTime
@@ -93,7 +113,7 @@ export function getAverageFPS(duration = null) {
   let samples = fpsHistory
   if (duration) {
     const cutoffTime = Date.now() - duration
-    samples = fpsHistory.filter(item => item.timestamp >= cutoffTime)
+    samples = fpsHistory.filter((item) => item.timestamp >= cutoffTime)
   }
 
   if (samples.length === 0) {
@@ -117,14 +137,14 @@ export function getMinFPS(duration = null) {
   let samples = fpsHistory
   if (duration) {
     const cutoffTime = Date.now() - duration
-    samples = fpsHistory.filter(item => item.timestamp >= cutoffTime)
+    samples = fpsHistory.filter((item) => item.timestamp >= cutoffTime)
   }
 
   if (samples.length === 0) {
     return 0
   }
 
-  return Math.min(...samples.map(item => item.fps))
+  return Math.min(...samples.map((item) => item.fps))
 }
 
 /**
@@ -149,4 +169,3 @@ export function clearFPSHistory() {
 export function isFPSMonitoring() {
   return isMonitoring
 }
-

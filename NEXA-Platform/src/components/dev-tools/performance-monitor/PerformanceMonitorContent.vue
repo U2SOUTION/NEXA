@@ -65,13 +65,17 @@ const isMonitoring = ref(false)
 const showSettings = ref(false)
 
 // 성능 지표
+// ⚠️ FPS: 측정은 정상 작동, 하지만 UI 렌더링 안 됨 (Vue 반응성 문제)
 const currentFPS = ref(0)
 const averageFPS = ref(0)
 const minFPS = ref(0)
+// ✅ 메모리: 정상 작동
 const memoryUsed = ref('-')
 const memoryUsagePercent = ref(0)
 const memoryLimit = ref('-')
+// ✅ LCP: 정상 작동
 const lcpValue = ref('-')
+// ⚠️ API: 인터셉트는 정상 작동, 하지만 실제 API 호출이 없어서 데이터 0 (실제 사용 시 자동 작동)
 const apiDuration = ref('-')
 const apiCount = ref(0)
 const apiErrorRate = ref(0)
@@ -92,27 +96,40 @@ function toggleMonitoring() {
 function startMonitoring() {
   isMonitoring.value = true
 
-  // FPS 모니터링 시작
+  // ⚠️ FPS 모니터링: 측정 로직은 정상 작동 (currentFPS.value 업데이트됨)
+  // 하지만 자식 컴포넌트에서 props 변경이 감지되지 않아 UI에 렌더링 안 됨
+  console.log('[PerformanceMonitor] FPS 모니터링 시작')
+  console.log('[PerformanceMonitor] 초기 currentFPS.value:', currentFPS.value)
   startFPSMonitoring(1000, (fps) => {
-    console.log('[PerformanceMonitor] FPS 업데이트:', fps)
+    console.log('[PerformanceMonitor] FPS 콜백 호출:', fps)
+    console.log('[PerformanceMonitor] currentFPS.value 업데이트 전:', currentFPS.value)
     currentFPS.value = fps
-    averageFPS.value = getAverageFPS()
-    minFPS.value = getMinFPS()
+    console.log('[PerformanceMonitor] currentFPS.value 업데이트 후:', currentFPS.value)
+    const avgFPS = getAverageFPS()
+    const minFPSValue = getMinFPS()
+    if (avgFPS > 0) {
+      averageFPS.value = avgFPS
+    }
+    if (minFPSValue > 0) {
+      minFPS.value = minFPSValue
+    }
   })
 
-  // 메모리 모니터링 시작
+  // ✅ 메모리 모니터링: 정상 작동
   startMemoryMonitoring(1000, (memory) => {
     updateMemoryMetrics(memory)
   })
 
-  // Web Vitals 수집 시작
+  // ✅ Web Vitals (LCP): 정상 작동
   onWebVitals((webVitals) => {
     console.log('[PerformanceMonitor] Web Vitals 업데이트:', webVitals)
     updateWebVitals(webVitals)
   })
 
-  // API 모니터링 시작
+  // ⚠️ API 모니터링: 인터셉트는 정상 작동, 하지만 실제 API 호출이 없어서 데이터 0
+  // 실제 사용 시 (API 호출 발생 시) 자동으로 작동함
   enableAPIMonitoring()
+  console.log('[PerformanceMonitor] API 모니터링 활성화됨')
 
   // 초기 메트릭 업데이트 (즉시 한 번 실행)
   updateMetrics()
@@ -184,10 +201,18 @@ function updateWebVitals(webVitals) {
 function updateMetrics() {
   // FPS 업데이트 (콜백에서 업데이트되지만, 여기서도 확인)
   const fps = getCurrentFPS()
-  if (fps > 0) {
-    currentFPS.value = fps
-    averageFPS.value = getAverageFPS()
-    minFPS.value = getMinFPS()
+  console.log('[PerformanceMonitor] updateMetrics - getCurrentFPS():', fps)
+  console.log('[PerformanceMonitor] updateMetrics - currentFPS.value 업데이트 전:', currentFPS.value)
+  // FPS가 0이어도 업데이트 (초기 상태 표시를 위해)
+  currentFPS.value = fps
+  console.log('[PerformanceMonitor] updateMetrics - currentFPS.value 업데이트 후:', currentFPS.value)
+  const avgFPS = getAverageFPS()
+  const minFPSValue = getMinFPS()
+  if (avgFPS > 0) {
+    averageFPS.value = avgFPS
+  }
+  if (minFPSValue > 0) {
+    minFPS.value = minFPSValue
   }
 
   // Web Vitals 업데이트 (LCP는 페이지 로드 시점에만 측정되므로, 기존 값 확인)
@@ -197,18 +222,24 @@ function updateMetrics() {
     lcpValue.value = `${webVitals.lcp.value.toFixed(0)}ms`
   }
 
-  // API 통계 업데이트
+  // ⚠️ API 통계: 인터셉트는 작동하지만 실제 API 호출이 없어서 count가 0
+  // 실제 API 호출 발생 시 자동으로 데이터 수집됨
   const apiStats = getAPIStats({ duration: 60000 }) // 최근 1분
   console.log('[PerformanceMonitor] updateMetrics - API Stats:', apiStats)
-  if (apiStats.count > 0) {
+  console.log('[PerformanceMonitor] API Metrics count:', apiStats.count)
+
+  if (apiStats.count > 0 && apiStats.avgDuration > 0) {
     apiDuration.value = `${apiStats.avgDuration.toFixed(0)}ms`
     apiCount.value = apiStats.count
     apiErrorRate.value = parseFloat(apiStats.errorRate.toFixed(1))
   } else {
     // API 호출이 없을 때도 기본값 유지
-    apiDuration.value = '-'
-    apiCount.value = 0
-    apiErrorRate.value = 0
+    // 단, 모니터링이 시작된 직후에는 '-' 표시
+    if (isMonitoring.value) {
+      apiDuration.value = '-'
+      apiCount.value = 0
+      apiErrorRate.value = 0
+    }
   }
 }
 

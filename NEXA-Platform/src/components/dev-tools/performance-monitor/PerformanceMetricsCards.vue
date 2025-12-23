@@ -8,8 +8,8 @@
       </div>
       <div class="metric-card-value">{{ displayFPS }}</div>
       <div class="metric-card-footer">
-        <span class="metric-card-label">평균: {{ props.averageFPS || '-' }}</span>
-        <span class="metric-card-label">최소: {{ props.minFPS || '-' }}</span>
+        <span class="metric-card-label">평균: {{ averageFPS || '-' }}</span>
+        <span class="metric-card-label">최소: {{ minFPS || '-' }}</span>
       </div>
       <div class="metric-card-description">초당 프레임 수 (Frames Per Second). 60이 이상적이며, 30 미만이면 성능 저하를 의미합니다.</div>
     </div>
@@ -104,19 +104,23 @@ const props = defineProps({
   },
 })
 
-// FPS 표시 값 (로컬 ref로 관리하여 강제 업데이트)
+// ⚠️ FPS 렌더링 문제: 부모에서 currentFPS.value는 업데이트되지만
+// 자식 컴포넌트의 watch가 props 변경을 감지하지 못함
+// 메모리/LCP는 템플릿에서 props를 직접 사용하여 정상 작동하지만,
+// FPS는 watch + computed를 사용하여 반응성이 끊김
+// FPS 값을 로컬 ref로 관리 (반응성 보장 시도)
 const localCurrentFPS = ref(props.currentFPS)
 
-// props.currentFPS 변경 감지하여 로컬 ref 업데이트
+// props.currentFPS 변경 감지 (작동 안 함 - watch가 트리거되지 않음)
 watch(
   () => props.currentFPS,
   (newValue) => {
-    console.log('[PerformanceMetricsCards] props.currentFPS changed:', newValue)
     localCurrentFPS.value = newValue
   },
   { immediate: true },
 )
 
+// FPS 표시 값
 const displayFPS = computed(() => {
   const fps = localCurrentFPS.value
   return fps > 0 ? fps : '-'
