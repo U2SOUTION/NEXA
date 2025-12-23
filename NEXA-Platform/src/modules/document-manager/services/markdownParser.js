@@ -40,10 +40,8 @@ function parseTableCells(line) {
 function buildTableHtml(headerCells, dataLines) {
   // 스트라이프 적용 여부 결정 (로우가 10개 이상일 때만)
   const shouldShowStriped = dataLines.length >= 10
-  const tableClass = shouldShowStriped
-    ? 'q-table q-table--flat q-table--bordered q-mb-md markdown-table table-striped'
-    : 'q-table q-table--flat q-table--bordered q-mb-md markdown-table'
-  
+  const tableClass = shouldShowStriped ? 'q-table q-table--flat q-table--bordered q-mb-md markdown-table table-striped' : 'q-table q-table--flat q-table--bordered q-mb-md markdown-table'
+
   let tableHtml = `<table class="${tableClass}" style="width: 100%; border-collapse: collapse;">`
 
   // 헤더 행
@@ -396,26 +394,40 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
 
   const processListItem = (text, listType, indentLevel) => {
     const safe = escapeHtml(text)
-    while (listStack.length > indentLevel) {
+
+    // 현재 인덴트 레벨보다 깊은 리스트만 닫기 (같은 레벨의 리스트는 유지)
+    while (listStack.length > 0 && listStack[listStack.length - 1].level > indentLevel) {
       const { type } = listStack.pop()
       listProcessedLines.push(`</${type}>`)
     }
 
-    const currentStackItem = listStack[listStack.length - 1]
-    const needsNewList = listStack.length < indentLevel
-    const needsTypeSwitch = listStack.length === indentLevel && listStack.length > 0 && currentStackItem?.type !== listType
+    // 현재 스택의 마지막 항목 확인
+    const currentStackItem = listStack.length > 0 ? listStack[listStack.length - 1] : null
 
-    if (needsNewList) {
+    // 같은 레벨에 같은 타입의 리스트가 이미 있는지 확인
+    // 위에서 listStack.length > indentLevel인 리스트를 닫았으므로,
+    // 이제 listStack.length <= indentLevel입니다.
+    // currentStackItem이 있고 currentStackItem.level === indentLevel이면 같은 레벨입니다.
+    const hasSameTypeAtLevel = currentStackItem && currentStackItem.level === indentLevel && currentStackItem.type === listType
+
+    if (hasSameTypeAtLevel) {
+      // 같은 타입의 리스트가 같은 레벨에 있으면 새 리스트 생성하지 않고 항목만 추가
+      listProcessedLines.push(`<li>${safe}</li>`)
+    } else {
+      // 새 리스트가 필요한 경우
+      // 먼저 같은 레벨에 다른 타입의 리스트가 있으면 닫기
+      if (currentStackItem && currentStackItem.level === indentLevel && currentStackItem.type !== listType) {
+        listProcessedLines.push(`</${currentStackItem.type}>`)
+        listStack.pop()
+      }
+
+      // 새 리스트 시작
       listProcessedLines.push(`<${listType}>`)
       listStack.push({ type: listType, level: indentLevel })
-    } else if (needsTypeSwitch && currentStackItem) {
-      listProcessedLines.push(`</${currentStackItem.type}>`)
-      listStack.pop()
-      listProcessedLines.push(`<${listType}>`)
-      listStack.push({ type: listType, level: indentLevel })
+
+      // 리스트 항목 추가
+      listProcessedLines.push(`<li>${safe}</li>`)
     }
-
-    listProcessedLines.push(`<li>${safe}</li>`)
   }
 
   const isPlaceholder = (line) => {
@@ -425,6 +437,12 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
   for (let i = 0; i < listLines.length; i++) {
     const line = listLines[i]
     const trimmedLine = line.trim()
+
+    // 빈 줄은 리스트를 닫지 않고 그대로 전달 (리스트 항목 사이의 빈 줄 허용)
+    if (trimmedLine === '') {
+      listProcessedLines.push(line)
+      continue
+    }
 
     if (isPlaceholder(trimmedLine)) {
       closeAllLists()
@@ -443,8 +461,9 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
     const indentMatch = line.match(/^(\s*)/)
     const indentLevel = Math.floor((indentMatch?.[1] || '').length / 2)
     // 일반 리스트는 체크리스트가 아닌 것만 처리 (체크리스트는 위에서 이미 제외됨)
-    const unorderedMatch = trimmedLine.match(/^[-*+]\s+(.+)$/)
-    const orderedMatch = trimmedLine.match(/^\d+\.\s+(.+)$/)
+    // 빈 리스트 항목도 인식할 수 있도록 .+ 대신 .* 사용
+    const unorderedMatch = trimmedLine.match(/^[-*+]\s+(.*)$/)
+    const orderedMatch = trimmedLine.match(/^\d+\.\s+(.*)$/)
 
     if (unorderedMatch) {
       processListItem(unorderedMatch[1], 'ul', indentLevel)

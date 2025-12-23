@@ -4,7 +4,7 @@
 -->
 <template>
   <div class="file-content-container" :class="{ 'edit-mode': isEditMode }">
-    <div v-if="!documentStore.selectedFile" class="q-pa-xl text-center text-grey-6">
+    <div v-if="!documentStore.selectedFile" class="q-pa-xl text-center">
       <q-icon name="description" size="64px" class="q-mb-md" />
       <div class="text-h6">왼쪽 사이드바에서 문서를 선택하세요</div>
     </div>
@@ -15,7 +15,7 @@
         <div class="file-content-header row items-center justify-between">
           <div>
             <div class="text-h6 file-content-title">{{ documentStore.selectedFile.displayName }}</div>
-            <div class="text-caption text-grey-6 file-content-filename">{{ documentStore.selectedFile.name }}</div>
+            <div class="text-caption file-content-filename">{{ documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name }}</div>
           </div>
           <div class="row q-gutter-xs">
             <!-- 휴지통에 있는 파일인 경우: 복원, 영구 삭제, 전체 휴지통 비우기 -->
@@ -54,14 +54,14 @@
         <!-- 선택한 파일의 상세 통계 -->
         <div v-if="getFileTotalCount(documentStore.selectedFile) > 0" class="file-stats-section q-pa-sm q-mb-md">
           <div class="row items-center q-gutter-sm">
-            <div class="text-caption text-grey-6">진행률:</div>
+            <div class="text-caption">진행률:</div>
             <q-linear-progress :value="getFileProgress(documentStore.selectedFile) / 100" :color="getFileProgress(documentStore.selectedFile) === 100 ? 'positive' : 'primary'" size="8px" rounded class="col" />
             <div class="text-caption text-primary text-weight-bold">{{ getFileProgress(documentStore.selectedFile) }}%</div>
             <q-separator vertical />
-            <div class="text-caption text-grey-6">
+            <div class="text-caption">
               완료: <span class="text-positive text-weight-bold">{{ getFileCompletedCount(documentStore.selectedFile) }}</span>
             </div>
-            <div class="text-caption text-grey-6">
+            <div class="text-caption">
               미완료: <span class="text-weight-bold">{{ getFilePendingCount(documentStore.selectedFile) }}</span>
             </div>
           </div>
@@ -751,7 +751,7 @@ onUnmounted(() => {
   padding: 18px 20px 10px 20px;
   margin: 0 -20px 16px -20px;
   border-bottom: 3px solid var(--nexa-border-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 4px var(--nexa-shadow-1, rgba(0, 0, 0, 0.5));
   width: calc(100% + 40px);
   box-sizing: border-box;
 
@@ -761,6 +761,7 @@ onUnmounted(() => {
   }
 
   .file-content-filename {
+    color: var(--nexa-text-secondary);
     margin-top: 2px !important;
     line-height: 1.2;
   }
@@ -834,8 +835,11 @@ onUnmounted(() => {
 }
 
 .markdown-content {
-  line-height: 1.8;
+  line-height: 1.4;
   color: var(--nexa-text-secondary);
+  padding: 0;
+  margin: 0;
+  text-align: left;
 
   :deep(h1),
   :deep(h2),
@@ -845,16 +849,15 @@ onUnmounted(() => {
   :deep(h6) {
     transition: all 0.3s ease;
     position: relative;
-    padding-left: 8px;
-    margin-left: -8px;
     border-radius: 4px;
 
+    /* 스크롤 하일라이팅 스타일 */
     &.current-section {
       border: 1px solid color-mix(in srgb, var(--nexa-accent) 50%, transparent);
       border-left: 15px solid var(--nexa-accent);
       animation: highlightPulse 0.5s ease-out 3;
-      padding: 4px 8px;
-      margin-left: -20px;
+      padding: 2px 8px;
+      margin-left: -15px;
     }
   }
 
@@ -871,35 +874,41 @@ onUnmounted(() => {
     font-weight: 900;
     color: var(--nexa-text-primary);
     opacity: 1;
+    margin-bottom: 5px;
   }
 
   :deep(h2) {
     font-weight: 800;
     color: var(--nexa-text-primary);
     opacity: 0.9;
+    margin-bottom: 5px;
   }
 
   :deep(h3) {
     font-weight: 700;
     color: var(--nexa-text-primary);
     opacity: 0.8;
+    margin-bottom: 5px;
   }
   :deep(h4) {
     font-weight: 600;
     color: var(--nexa-text-primary);
     opacity: 0.7;
+    margin-bottom: 5px;
   }
 
   :deep(h5) {
     font-weight: 500;
     color: var(--nexa-text-primary);
     opacity: 0.6;
+    margin-bottom: 5px;
   }
 
   :deep(h6) {
     font-weight: 400;
     color: var(--nexa-text-primary);
     opacity: 0.5;
+    margin-bottom: 5px;
   }
 
   :deep(p) {
@@ -910,19 +919,59 @@ onUnmounted(() => {
   :deep(hr) {
     border: none;
     border-top: 2px solid var(--nexa-border-color);
-    margin: 2em 0;
+    margin-top: 2em;
     opacity: 0.6;
   }
 
+  // ul, ol 태그 스타일
   :deep(ul),
   :deep(ol) {
     color: var(--nexa-text-secondary);
     margin-bottom: 1em;
-    padding-left: 1.5em;
+    margin-left: 0 !important;
+    padding-left: 2em !important;
+    list-style-position: outside;
   }
 
+  // 순서 있는 리스트 스타일 (번호 표시)
+  :deep(ol) {
+    list-style-type: decimal !important;
+  }
+
+  // li 태그 스타일 (부모 ul/ol이 있는 경우)
+  :deep(ul li),
+  :deep(ol li) {
+    margin-top: 0.3em;
+    margin-bottom: 0.1em;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    text-indent: 0;
+    display: list-item !important;
+  }
+
+  // 순서 있는 리스트 아이템 (번호 표시)
+  :deep(ol li) {
+    list-style-type: decimal !important;
+  }
+
+  // li 태그가 부모 없이 직접 사용되는 경우
+  // 마크다운 파서가 ul/ol을 생성하지 못한 경우 대비
   :deep(li) {
     margin-bottom: 0.5em;
+    margin-left: 0 !important;
+    padding-left: 2em !important;
+    text-indent: 0;
+    list-style-position: outside;
+    display: list-item;
+  }
+
+  // 중첩 리스트
+  :deep(ul ul),
+  :deep(ol ol),
+  :deep(ul ol),
+  :deep(ol ul) {
+    margin-left: 0 !important;
+    padding-left: 1em !important;
   }
 
   :deep(.code-block) {
@@ -971,7 +1020,8 @@ onUnmounted(() => {
   :deep(.checkbox-item) {
     display: flex;
     align-items: flex-start;
-    padding: 4px 0;
+    margin-bottom: 2px;
+    margin-top: 0;
     pointer-events: none;
 
     .dev-checkbox-input {
@@ -1066,10 +1116,11 @@ onUnmounted(() => {
   }
 
   :deep(.mermaid-error) {
-    background: var(--nexa-error-bg, rgba(244, 67, 54, 0.1));
-    border: 1px solid var(--nexa-error-border, rgba(244, 67, 54, 0.3));
+    background: var(--nexa-error-bg, rgba(193, 0, 21, 0.1));
+    border: 1px solid var(--nexa-error-border, rgba(193, 0, 21, 0.3));
     border-radius: 4px;
     font-size: 0.875rem;
+    color: var(--nexa-error-text, var(--nexa-error, #c10015));
   }
 }
 </style>
