@@ -157,6 +157,12 @@ onBeforeUnmount(() => {
   padding: 16px;
 }
 
+// 다이어그램 패널은 padding 없이 전체 영역 사용
+.database-viewer-diagram-panel .database-viewer-panel-content {
+  padding: 0;
+  overflow: hidden;
+}
+
 .database-viewer-placeholder {
   display: flex;
   flex-direction: column;

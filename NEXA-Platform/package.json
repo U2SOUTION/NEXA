@@ -40,6 +40,7 @@
     "@tiptap/starter-kit": "^3.10.7",
     "@tiptap/vue-3": "^3.10.7",
     "d3": "^7.9.0",
+    "dagre": "^0.8.5",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "mermaid": "^11.12.2",
