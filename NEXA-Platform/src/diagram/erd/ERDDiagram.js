@@ -99,7 +99,7 @@ export async function renderERD(container, data, options = {}) {
   // 기존 설정 호환성: nodeSize가 단일 구조인지 확인
   let nodeWidth = defaultERDSettings.nodeSize.width
   let nodeHeight = defaultERDSettings.nodeSize.height
-  
+
   if (settings?.nodeSize) {
     // 새로운 단일 구조
     if (settings.nodeSize.width && settings.nodeSize.height) {
@@ -112,15 +112,15 @@ export async function renderERD(container, data, options = {}) {
       nodeHeight = settings.nodeSize.unselected.height || defaultERDSettings.nodeSize.height
     }
   }
-  
+
   console.log('[ERDDiagram] 노드 크기 설정:', { nodeWidth, nodeHeight, tablesCount: tables.length })
-  
+
   tables.forEach((table) => {
     if (!table || !table.name) {
       console.warn('[ERDDiagram] 잘못된 테이블 데이터:', table)
       return
     }
-    
+
     const isSelected = selectedNode === table.name
 
     graph.setNode(table.name, {
@@ -133,7 +133,7 @@ export async function renderERD(container, data, options = {}) {
       height: nodeHeight,
       class: isSelected ? 'node-selected' : '',
     })
-    
+
     console.log('[ERDDiagram] 노드 추가:', { name: table.name, width: nodeWidth, height: nodeHeight, isSelected })
   })
 
@@ -169,7 +169,7 @@ export async function renderERD(container, data, options = {}) {
       const graphNode = graph.node(d)
       // 노드 ID는 graphNode의 label 또는 d 자체
       let nodeId = graphNode?.label || d
-      
+
       // nodeId 정규화
       if (nodeId) {
         nodeId = nodeId.toString().trim()
@@ -177,16 +177,16 @@ export async function renderERD(container, data, options = {}) {
 
       // data 속성에 노드 ID 저장 (클릭 이벤트에서 사용)
       node.attr('data-node-id', nodeId)
-      
+
       // 선택 상태 확인 (대소문자 무시)
       const normalizedNodeId = nodeId?.toLowerCase()
       const normalizedSelectedNode = selectedNode?.toString().trim().toLowerCase()
       const isSelected = normalizedNodeId === normalizedSelectedNode
-      
+
       if (isSelected) {
         node.classed('node-selected', true)
       }
-      
+
       console.log('[ERDDiagram] 노드 속성 설정:', { nodeId, d, isSelected, selectedNode })
     })
   } else {
@@ -292,21 +292,21 @@ export async function renderERD(container, data, options = {}) {
 
       // 노드 ID 정규화 (공백 제거)
       const normalizedNodeId = nodeId?.toString().trim()
-      
+
       // 테이블 목록에서 찾기 (정확한 매칭)
       const nodeData = tables.find((t) => {
         if (!t || !t.name) return false
         return t.name === normalizedNodeId || t.name.toLowerCase() === normalizedNodeId.toLowerCase()
       })
-      
-      console.log('[ERDDiagram] 노드 클릭:', { 
-        nodeId: normalizedNodeId, 
-        d, 
+
+      console.log('[ERDDiagram] 노드 클릭:', {
+        nodeId: normalizedNodeId,
+        d,
         nodeData: nodeData?.name,
-        allTables: tables.map(t => t.name),
-        graphNodes: graph.nodes()
+        allTables: tables.map((t) => t.name),
+        graphNodes: graph.nodes(),
       })
-      
+
       if (nodeData) {
         onNodeClick(normalizedNodeId, nodeData)
       } else {
@@ -456,7 +456,7 @@ export async function updateERD(renderResult, data, options = {}) {
 
     // 선택 상태 클래스만 업데이트 (위치나 크기는 절대 변경하지 않음)
     node.classed('node-selected', isSelected)
-    
+
     // transform 속성이 변경되지 않았는지 확인 (디버깅용)
     const currentTransform = node.attr('transform')
     if (isSelected && currentTransform) {
@@ -467,23 +467,30 @@ export async function updateERD(renderResult, data, options = {}) {
 
 /**
  * 노드 크기만 업데이트 (위치 유지, fitToScreen 스킵)
- * @param {Object} renderResult - renderERD의 반환값
+ *
+ * 노드 크기 변경 시 전체 재렌더링을 하면 fitToScreen()이 호출되어
+ * 다이어그램이 위로 올라갔다가 내려오는 "점프" 현상이 발생함.
+ *
+ * 이 함수는 노드의 중심점을 유지하며 크기만 변경하여
+ * 사용자가 설정한 줌/팬 상태를 그대로 유지함.
+ *
+ * @param {Object} renderResult - renderERD의 반환값 (svgGroup, graph 포함)
  */
 export async function updateNodeSizes(renderResult) {
   const { svgGroup, graph } = renderResult
-  
+
   if (!svgGroup || !graph) {
     console.warn('[ERDDiagram] updateNodeSizes: svgGroup 또는 graph가 없습니다.')
     return
   }
-  
+
   // 설정 로드
   const settings = getERDSettings()
-  
+
   // 노드 크기 계산
   let nodeWidth = defaultERDSettings.nodeSize.width
   let nodeHeight = defaultERDSettings.nodeSize.height
-  
+
   if (settings?.nodeSize) {
     if (settings.nodeSize.width && settings.nodeSize.height) {
       nodeWidth = settings.nodeSize.width
@@ -493,46 +500,41 @@ export async function updateNodeSizes(renderResult) {
       nodeHeight = settings.nodeSize.unselected.height || defaultERDSettings.nodeSize.height
     }
   }
-  
+
   console.log('[ERDDiagram] 노드 크기 업데이트:', { nodeWidth, nodeHeight })
-  
+
   // 모든 노드의 rect 크기만 업데이트 (위치는 변경하지 않음)
   svgGroup.selectAll('.node').each(function (d) {
     const node = d3.select(this)
     const rect = node.select('rect')
-    
+
     if (rect.node()) {
       // 현재 rect의 중심점 계산 (getBBox는 transform을 포함하므로 주의)
       const currentBBox = rect.node().getBBox()
       const currentCenterX = currentBBox.x + currentBBox.width / 2
       const currentCenterY = currentBBox.y + currentBBox.height / 2
-      
+
       // 새로운 크기의 중심점 계산 (중심점은 유지)
+      // 중심점 기준으로 새로운 x, y 좌표 계산하여 위치 유지
       const newX = currentCenterX - nodeWidth / 2
       const newY = currentCenterY - nodeHeight / 2
-      
+
       // 크기만 업데이트 (위치는 중심점 기준으로 유지)
-      rect.attr('x', newX)
-          .attr('y', newY)
-          .attr('width', nodeWidth)
-          .attr('height', nodeHeight)
-      
+      rect.attr('x', newX).attr('y', newY).attr('width', nodeWidth).attr('height', nodeHeight)
+
       // graph의 노드 크기도 업데이트 (다음 fitToScreen 호출 시 참조)
       if (graph.node(d)) {
         graph.node(d).width = nodeWidth
         graph.node(d).height = nodeHeight
       }
-      
-      // 텍스트 중앙 정렬 유지
+
+      // 텍스트 중앙 정렬 유지 (노드 크기 변경 후에도 중앙에 위치)
       const text = node.select('text')
       if (text.node()) {
-        text.attr('x', currentCenterX)
-            .attr('y', currentCenterY)
-            .attr('text-anchor', 'middle')
-            .attr('dominant-baseline', 'middle')
+        text.attr('x', currentCenterX).attr('y', currentCenterY).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
       }
     }
   })
-  
+
   console.log('[ERDDiagram] 노드 크기 업데이트 완료')
 }

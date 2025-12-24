@@ -263,6 +263,8 @@ function handleTableSelected(event) {
 }
 
 // ERD 설정 변경 이벤트 리스너 (실시간 반영)
+// ERDDiagramSettingsPanel에서 전달된 changedTypes에 따라
+// 부분 업데이트 vs 전체 재렌더링을 선택적으로 처리
 function handleERDSettingsChanged(event) {
   const { settings, changedTypes = [] } = event.detail
   console.log('[SchemaDiagram] ERD 설정 변경 이벤트 수신:', settings, changedTypes)
@@ -272,16 +274,19 @@ function handleERDSettingsChanged(event) {
   const renderResult = nexaDiagramRef.value.renderResult
 
   // 노드 크기만 변경된 경우: 부분 업데이트 (위치 유지, fitToScreen 스킵)
+  // → 다이어그램이 위로 올라갔다가 내려오는 "점프" 현상 방지
   if (changedTypes.includes('nodeSize') && renderResult) {
     console.log('[SchemaDiagram] 노드 크기 변경 → 부분 업데이트 (위치 유지)')
     updateNodeSizes(renderResult)
   }
-  // 레이아웃 변경된 경우: 전체 재렌더링
+  // 레이아웃 변경된 경우: 전체 재렌더링 필요
+  // → 노드 간격, 방향 등이 변경되면 레이아웃 재계산 필요
   else if (changedTypes.includes('layout')) {
     console.log('[SchemaDiagram] 레이아웃 변경 → 전체 재렌더링')
     nexaDiagramRef.value.renderDiagram()
   }
   // 기타 또는 변경 타입이 없는 경우: 전체 재렌더링
+  // → 안전을 위해 전체 재렌더링 (초기 로드 시 등)
   else {
     console.log('[SchemaDiagram] 기타 설정 변경 → 전체 재렌더링')
     nexaDiagramRef.value.renderDiagram()

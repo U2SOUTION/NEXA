@@ -127,17 +127,20 @@ const rankdirOptions = [
 const localSettings = ref(loadERDSettings())
 
 // 설정 변경 핸들러 (실시간 반영)
+// 변경 타입을 감지하여 부분 업데이트 vs 전체 재렌더링 결정
+// - nodeSize 변경: 위치 유지하며 크기만 업데이트 (점프 현상 방지)
+// - layout 변경: 전체 재렌더링 필요
 function handleSettingsChange() {
   // 변경된 설정 타입 감지
   const changedTypes = []
   const oldSettings = loadERDSettings()
 
-  // 노드 크기 변경 감지
+  // 노드 크기 변경 감지 → 부분 업데이트로 처리 (위치 유지)
   if (localSettings.value.nodeSize?.width !== oldSettings.nodeSize?.width || localSettings.value.nodeSize?.height !== oldSettings.nodeSize?.height) {
     changedTypes.push('nodeSize')
   }
 
-  // 레이아웃 변경 감지
+  // 레이아웃 변경 감지 → 전체 재렌더링 필요
   if (
     localSettings.value.layout?.nodesep !== oldSettings.layout?.nodesep ||
     localSettings.value.layout?.ranksep !== oldSettings.layout?.ranksep ||
@@ -152,6 +155,7 @@ function handleSettingsChange() {
   updateERDSettings(localSettings.value)
 
   // 전역 이벤트로 SchemaDiagram에 알림 (변경 타입 포함)
+  // SchemaDiagram에서 changedTypes를 확인하여 적절한 업데이트 방식 선택
   window.dispatchEvent(
     new CustomEvent('erd-settings-changed', {
       detail: {
