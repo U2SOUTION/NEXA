@@ -150,6 +150,9 @@ const localSettings = ref(loadERDSettings())
 
 // 설정 변경 핸들러 (실시간 반영)
 function handleSettingsChange() {
+  // 설정을 즉시 저장하고 캐시 업데이트 (실시간 반영을 위해)
+  updateERDSettings(localSettings.value)
+
   // 전역 이벤트로 SchemaDiagram에 알림
   window.dispatchEvent(
     new CustomEvent('erd-settings-changed', {

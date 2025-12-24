@@ -5,7 +5,6 @@
  */
 
 import * as d3 from 'd3'
-import { createNodeStyle, createLabelStyle, createEdgeStyle } from '../utils/diagramTheme.js'
 import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
 import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
 import { getERDSettings } from '../config/diagramSettings.js'
@@ -79,8 +78,8 @@ export async function renderERD(container, data, options = {}) {
     throw new Error('컨테이너 크기가 0입니다.')
   }
 
-  // SVG 생성
-  const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', '100%').attr('viewBox', `0 0 ${containerWidth} ${containerHeight}`).style('background-color', 'var(--nexa-background)')
+  // SVG 생성 (배경색은 CSS에서 처리)
+  const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', '100%').attr('viewBox', `0 0 ${containerWidth} ${containerHeight}`)
 
   const svgGroup = svg.append('g')
 
@@ -104,10 +103,12 @@ export async function renderERD(container, data, options = {}) {
     graph.setNode(table.name, {
       label: table.name,
       shape: 'rect',
-      style: createNodeStyle(isSelected),
-      labelStyle: createLabelStyle(isSelected),
+      // 스타일은 CSS 클래스로 처리하므로 빈 문자열 또는 최소한의 스타일만
+      style: '',
+      labelStyle: '',
       width: nodeSize.width,
       height: nodeSize.height,
+      class: isSelected ? 'node-selected' : '',
     })
   })
 
@@ -116,8 +117,9 @@ export async function renderERD(container, data, options = {}) {
     graph.setEdge(rel.fromTable, rel.toTable, {
       label: `${rel.fromColumn} → ${rel.toColumn}`,
       arrowhead: 'vee',
-      style: createEdgeStyle(),
-      labelStyle: 'fill: var(--nexa-text-secondary); font-size: 12px;',
+      // 스타일은 CSS로 처리
+      style: '',
+      labelStyle: '',
     })
   })
 
@@ -134,6 +136,16 @@ export async function renderERD(container, data, options = {}) {
     const renderer = new render()
     renderer(svgGroup, graph)
     console.log('[ERDDiagram] D3.js 렌더링 완료')
+
+    // 노드에 선택 상태 클래스 추가
+    svgGroup.selectAll('.node').each(function (d) {
+      const node = d3.select(this)
+      const nodeId = d
+      const isSelected = selectedNode === nodeId
+      if (isSelected) {
+        node.classed('node-selected', true)
+      }
+    })
   } else {
     throw new Error('render를 찾을 수 없습니다.')
   }
@@ -160,6 +172,55 @@ export async function renderERD(container, data, options = {}) {
     text.attr('x', centerX).attr('y', centerY).attr('dy', 0).attr('text-anchor', 'middle')
   })
 
+  // 엣지 라벨을 라인 위에 배치
+  // .edgeLabels 내의 모든 .edgeLabel과 .edgePath를 인덱스로 매칭
+  const edgePaths = svgGroup.selectAll('.edgePath').nodes()
+  const edgeLabels = svgGroup.selectAll('.edgeLabel').nodes()
+
+  edgePaths.forEach((edgePathNode, index) => {
+    const edgePath = d3.select(edgePathNode)
+    const path = edgePath.select('path')
+
+    if (!path.node() || !edgeLabels[index]) return
+
+    const pathLength = path.node().getTotalLength()
+    const midPoint = path.node().getPointAtLength(pathLength / 2)
+
+    // 경로의 방향(각도) 계산 (중간점 근처의 두 점 사용)
+    const beforePoint = path.node().getPointAtLength(Math.max(0, pathLength / 2 - 5))
+    const afterPoint = path.node().getPointAtLength(Math.min(pathLength, pathLength / 2 + 5))
+    const angle = Math.atan2(afterPoint.y - beforePoint.y, afterPoint.x - beforePoint.x) * (180 / Math.PI)
+
+    // 라벨을 라인 위로 올리기 위한 오프셋 계산 (경로에 수직인 방향)
+    const offsetDistance = -10 // 라인 위로 15px 올림
+    const perpendicularAngle = angle + 90 // 수직 방향
+    const offsetX = offsetDistance * Math.cos((perpendicularAngle * Math.PI) / 180)
+    const offsetY = offsetDistance * Math.sin((perpendicularAngle * Math.PI) / 180)
+
+    // 해당 인덱스의 엣지 라벨 그룹
+    const edgeLabelGroup = d3.select(edgeLabels[index])
+
+    // 내부 .label 그룹 찾기
+    const labelGroup = edgeLabelGroup.select('.label')
+    const textElement = edgeLabelGroup.select('text')
+
+    if (textElement.node()) {
+      // .edgeLabel 그룹의 transform을 경로 중간점 위로 배치하고 회전
+      edgeLabelGroup.attr('transform', `translate(${midPoint.x + offsetX}, ${midPoint.y + offsetY}) rotate(${angle})`)
+
+      // 내부 .label 그룹의 transform 초기화 (이미 부모에서 이동했으므로)
+      if (labelGroup.node()) {
+        labelGroup.attr('transform', 'translate(0, 0)')
+      }
+
+      // 텍스트 중앙 정렬
+      textElement.attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').attr('x', 0).attr('y', 0)
+
+      // tspan도 중앙 정렬
+      textElement.selectAll('tspan').attr('x', 0).attr('text-anchor', 'middle').attr('dy', 0)
+    }
+  })
+
   // 노드 클릭 이벤트 추가
   if (onNodeClick) {
     svgGroup.selectAll('.node').on('click', function (event, d) {
@@ -170,19 +231,32 @@ export async function renderERD(container, data, options = {}) {
   }
 
   // 노드 호버 이벤트 추가
+  // 노드 그룹 전체에 이벤트를 바인딩하여 rect와 text 모두에서 호버 가능
+  // CSS 클래스를 사용하여 스타일 적용
   if (onNodeHover) {
     svgGroup
       .selectAll('.node')
+      .style('pointer-events', 'all')
       .on('mouseenter', function (event, d) {
         const nodeId = d
         const nodeData = tables.find((t) => t.name === nodeId)
         onNodeHover(nodeId, nodeData, true)
+
+        // 호버 시 CSS 클래스 추가
+        const node = d3.select(this)
+        node.classed('node-hover', true)
       })
       .on('mouseleave', function (event, d) {
         const nodeId = d
         const nodeData = tables.find((t) => t.name === nodeId)
         onNodeHover(nodeId, nodeData, false)
+
+        // 호버 해제 시 CSS 클래스 제거
+        const node = d3.select(this)
+        node.classed('node-hover', false)
       })
+
+    // pointer-events는 CSS에서 처리
   }
 
   // 줌/팬 기능
@@ -249,7 +323,10 @@ export async function updateERD(renderResult, data, options = {}) {
       const newX = currentCenterX - nodeSize.width / 2
       const newY = currentCenterY - nodeSize.height / 2
 
-      rect.attr('x', newX).attr('y', newY).attr('width', nodeSize.width).attr('height', nodeSize.height).attr('style', createNodeStyle(isSelected))
+      rect.attr('x', newX).attr('y', newY).attr('width', nodeSize.width).attr('height', nodeSize.height)
+
+      // 선택 상태 클래스 업데이트
+      node.classed('node-selected', isSelected)
     }
 
     // text 요소 스타일 업데이트
@@ -263,8 +340,8 @@ export async function updateERD(renderResult, data, options = {}) {
       text.selectAll('tspan').attr('x', 0)
       text.select('tspan').attr('dy', 0)
 
-      // text 중앙 정렬
-      text.attr('x', centerX).attr('y', centerY).attr('dy', 0).attr('text-anchor', 'middle').attr('style', createLabelStyle(isSelected))
+      // text 중앙 정렬 (스타일은 CSS 클래스로 처리)
+      text.attr('x', centerX).attr('y', centerY).attr('dy', 0).attr('text-anchor', 'middle')
     }
   })
 }

@@ -132,7 +132,7 @@ watch(
       // ERD 업데이트 - 스타일만 변경, 레이아웃 재계산 없음
       updateERD(renderResult, props.data, props.options)
     }
-  }
+  },
 )
 
 // 데이터 변경 감지
@@ -143,7 +143,7 @@ watch(
       renderDiagram()
     }
   },
-  { deep: true }
+  { deep: true },
 )
 
 // 컴포넌트 마운트 시 렌더링
@@ -180,7 +180,7 @@ defineExpose({
 
 .nexa-diagram-loading,
 .nexa-diagram-error {
-  min-height: 300px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -191,7 +191,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border: 1px solid var(--nexa-border-color);
+  border: 1px solid rgb(0, 232, 112);
   cursor: grab;
 
   &:active {
@@ -204,23 +204,73 @@ defineExpose({
   svg {
     width: 100%;
     height: 100%;
+    background-color: var(--nexa-background);
   }
 
-  // 노드 스타일
-  .node rect {
-    rx: 4px;
-    ry: 4px;
+  // 노드 기본 스타일
+  .node {
+    pointer-events: all;
+    cursor: default;
+
+    rect {
+      rx: 4px;
+      ry: 4px;
+      fill: var(--nexa-surface);
+      stroke: var(--nexa-border-color);
+      stroke-width: 2px;
+      pointer-events: all;
+    }
+
+    text {
+      text-anchor: middle !important;
+      dominant-baseline: middle !important;
+      fill: var(--nexa-text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      pointer-events: none; // text는 이벤트를 부모로 전달
+    }
   }
 
-  // 노드 라벨 중앙 정렬
-  .node text {
-    text-anchor: middle !important;
-    dominant-baseline: middle !important;
+  // 선택된 노드 스타일
+  .node.node-selected {
+    rect {
+      fill: var(--nexa-primary);
+      stroke: var(--nexa-primary);
+      stroke-width: 4px;
+      filter: drop-shadow(0 4px 8px rgba(0, 118, 253, 0.5));
+      opacity: 1;
+    }
+
+    text {
+      fill: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+    }
   }
 
-  // 엣지 스타일
+  // 노드 호버 스타일
+  .node.node-hover {
+    cursor: pointer;
+
+    rect {
+      stroke: var(--nexa-primary) !important;
+      stroke-width: 1px !important;
+      opacity: 0.9;
+    }
+  }
+
+  // 엣지 기본 스타일
   .edgePath path {
+    stroke: var(--nexa-primary);
+    stroke-width: 2px;
+    fill: none;
     marker-end: url(#arrowhead);
+  }
+
+  // 엣지 라벨 스타일
+  .edgeLabel text {
+    fill: var(--nexa-text-secondary);
+    font-size: 12px;
   }
 
   // 화살표 마커
@@ -229,4 +279,3 @@ defineExpose({
   }
 }
 </style>
-

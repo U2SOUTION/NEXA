@@ -313,9 +313,13 @@ watch(
 
 <style lang="scss" scoped>
 .schema-diagram {
-  height: 100%;
+  flex: 1;
   width: 100%;
+  display: flex;
+  flex-direction: column;
   position: relative;
+  min-height: 0; // flex 자식이 overflow를 올바르게 처리하도록
+  border: 1px solid red;
 }
 
 .schema-diagram-loading,
