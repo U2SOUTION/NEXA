@@ -123,6 +123,7 @@ ERD 다이어그램 추가 가능한 기능
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import NexaDiagram from 'src/diagram/NexaDiagram.vue'
+import { updateNodeSizes } from 'src/diagram/erd/ERDDiagram.js'
 
 // 선택된 테이블 상태 (왼쪽 사이드바에서 선택된 테이블)
 const selectedTable = ref(null)
@@ -263,11 +264,26 @@ function handleTableSelected(event) {
 
 // ERD 설정 변경 이벤트 리스너 (실시간 반영)
 function handleERDSettingsChanged(event) {
-  const { settings } = event.detail
-  console.log('[SchemaDiagram] ERD 설정 변경 이벤트 수신:', settings)
-  // 설정이 변경되면 다이어그램 재렌더링
-  if (nexaDiagramRef.value && typeof nexaDiagramRef.value.renderDiagram === 'function') {
-    console.log('[SchemaDiagram] 다이어그램 재렌더링 트리거 (설정 변경)')
+  const { settings, changedTypes = [] } = event.detail
+  console.log('[SchemaDiagram] ERD 설정 변경 이벤트 수신:', settings, changedTypes)
+
+  if (!nexaDiagramRef.value) return
+
+  const renderResult = nexaDiagramRef.value.renderResult
+
+  // 노드 크기만 변경된 경우: 부분 업데이트 (위치 유지, fitToScreen 스킵)
+  if (changedTypes.includes('nodeSize') && renderResult) {
+    console.log('[SchemaDiagram] 노드 크기 변경 → 부분 업데이트 (위치 유지)')
+    updateNodeSizes(renderResult)
+  }
+  // 레이아웃 변경된 경우: 전체 재렌더링
+  else if (changedTypes.includes('layout')) {
+    console.log('[SchemaDiagram] 레이아웃 변경 → 전체 재렌더링')
+    nexaDiagramRef.value.renderDiagram()
+  }
+  // 기타 또는 변경 타입이 없는 경우: 전체 재렌더링
+  else {
+    console.log('[SchemaDiagram] 기타 설정 변경 → 전체 재렌더링')
     nexaDiagramRef.value.renderDiagram()
   }
 }

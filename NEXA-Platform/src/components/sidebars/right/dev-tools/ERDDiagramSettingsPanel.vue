@@ -128,13 +128,36 @@ const localSettings = ref(loadERDSettings())
 
 // 설정 변경 핸들러 (실시간 반영)
 function handleSettingsChange() {
+  // 변경된 설정 타입 감지
+  const changedTypes = []
+  const oldSettings = loadERDSettings()
+
+  // 노드 크기 변경 감지
+  if (localSettings.value.nodeSize?.width !== oldSettings.nodeSize?.width || localSettings.value.nodeSize?.height !== oldSettings.nodeSize?.height) {
+    changedTypes.push('nodeSize')
+  }
+
+  // 레이아웃 변경 감지
+  if (
+    localSettings.value.layout?.nodesep !== oldSettings.layout?.nodesep ||
+    localSettings.value.layout?.ranksep !== oldSettings.layout?.ranksep ||
+    localSettings.value.layout?.marginx !== oldSettings.layout?.marginx ||
+    localSettings.value.layout?.marginy !== oldSettings.layout?.marginy ||
+    localSettings.value.layout?.rankdir !== oldSettings.layout?.rankdir
+  ) {
+    changedTypes.push('layout')
+  }
+
   // 설정을 즉시 저장하고 캐시 업데이트 (실시간 반영을 위해)
   updateERDSettings(localSettings.value)
 
-  // 전역 이벤트로 SchemaDiagram에 알림
+  // 전역 이벤트로 SchemaDiagram에 알림 (변경 타입 포함)
   window.dispatchEvent(
     new CustomEvent('erd-settings-changed', {
-      detail: { settings: { ...localSettings.value } },
+      detail: {
+        settings: { ...localSettings.value },
+        changedTypes: changedTypes,
+      },
     }),
   )
 }

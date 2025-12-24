@@ -168,6 +168,9 @@ onBeforeUnmount(() => {
 // 외부에서 렌더링을 트리거할 수 있도록 expose
 defineExpose({
   renderDiagram,
+  get renderResult() {
+    return renderResult
+  },
 })
 </script>
 

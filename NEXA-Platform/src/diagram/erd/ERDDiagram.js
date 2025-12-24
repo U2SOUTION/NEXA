@@ -464,3 +464,75 @@ export async function updateERD(renderResult, data, options = {}) {
     }
   })
 }
+
+/**
+ * 노드 크기만 업데이트 (위치 유지, fitToScreen 스킵)
+ * @param {Object} renderResult - renderERD의 반환값
+ */
+export async function updateNodeSizes(renderResult) {
+  const { svgGroup, graph } = renderResult
+  
+  if (!svgGroup || !graph) {
+    console.warn('[ERDDiagram] updateNodeSizes: svgGroup 또는 graph가 없습니다.')
+    return
+  }
+  
+  // 설정 로드
+  const settings = getERDSettings()
+  
+  // 노드 크기 계산
+  let nodeWidth = defaultERDSettings.nodeSize.width
+  let nodeHeight = defaultERDSettings.nodeSize.height
+  
+  if (settings?.nodeSize) {
+    if (settings.nodeSize.width && settings.nodeSize.height) {
+      nodeWidth = settings.nodeSize.width
+      nodeHeight = settings.nodeSize.height
+    } else if (settings.nodeSize.unselected) {
+      nodeWidth = settings.nodeSize.unselected.width || defaultERDSettings.nodeSize.width
+      nodeHeight = settings.nodeSize.unselected.height || defaultERDSettings.nodeSize.height
+    }
+  }
+  
+  console.log('[ERDDiagram] 노드 크기 업데이트:', { nodeWidth, nodeHeight })
+  
+  // 모든 노드의 rect 크기만 업데이트 (위치는 변경하지 않음)
+  svgGroup.selectAll('.node').each(function (d) {
+    const node = d3.select(this)
+    const rect = node.select('rect')
+    
+    if (rect.node()) {
+      // 현재 rect의 중심점 계산 (getBBox는 transform을 포함하므로 주의)
+      const currentBBox = rect.node().getBBox()
+      const currentCenterX = currentBBox.x + currentBBox.width / 2
+      const currentCenterY = currentBBox.y + currentBBox.height / 2
+      
+      // 새로운 크기의 중심점 계산 (중심점은 유지)
+      const newX = currentCenterX - nodeWidth / 2
+      const newY = currentCenterY - nodeHeight / 2
+      
+      // 크기만 업데이트 (위치는 중심점 기준으로 유지)
+      rect.attr('x', newX)
+          .attr('y', newY)
+          .attr('width', nodeWidth)
+          .attr('height', nodeHeight)
+      
+      // graph의 노드 크기도 업데이트 (다음 fitToScreen 호출 시 참조)
+      if (graph.node(d)) {
+        graph.node(d).width = nodeWidth
+        graph.node(d).height = nodeHeight
+      }
+      
+      // 텍스트 중앙 정렬 유지
+      const text = node.select('text')
+      if (text.node()) {
+        text.attr('x', currentCenterX)
+            .attr('y', currentCenterY)
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+      }
+    }
+  })
+  
+  console.log('[ERDDiagram] 노드 크기 업데이트 완료')
+}
