@@ -137,10 +137,17 @@ export async function renderERD(container, data, options = {}) {
     renderer(svgGroup, graph)
     console.log('[ERDDiagram] D3.js 렌더링 완료')
 
-    // 노드에 선택 상태 클래스 추가
+    // 노드에 data-node-id 속성 추가 및 선택 상태 클래스 추가
     svgGroup.selectAll('.node').each(function (d) {
       const node = d3.select(this)
-      const nodeId = d
+      // graph에서 노드 정보 가져오기
+      const graphNode = graph.node(d)
+      // 노드 ID는 graphNode의 label 또는 d 자체
+      const nodeId = graphNode?.label || d
+
+      // data 속성에 노드 ID 저장 (클릭 이벤트에서 사용)
+      node.attr('data-node-id', nodeId)
+
       const isSelected = selectedNode === nodeId
       if (isSelected) {
         node.classed('node-selected', true)
@@ -224,8 +231,30 @@ export async function renderERD(container, data, options = {}) {
   // 노드 클릭 이벤트 추가
   if (onNodeClick) {
     svgGroup.selectAll('.node').on('click', function (event, d) {
-      const nodeId = d
+      const nodeElement = d3.select(this)
+
+      // data 속성에서 노드 ID 가져오기 (가장 안전)
+      let nodeId = nodeElement.attr('data-node-id')
+
+      // data 속성이 없으면 텍스트에서 가져오기
+      if (!nodeId) {
+        const textElement = nodeElement.select('text')
+        nodeId = textElement.text()?.trim()
+      }
+
+      // 그래도 없으면 graph에서 가져오기
+      if (!nodeId) {
+        const graphNode = graph.node(d)
+        nodeId = graphNode?.label || d
+      }
+
+      // 최후의 수단으로 d 사용
+      if (!nodeId) {
+        nodeId = d
+      }
+
       const nodeData = tables.find((t) => t.name === nodeId)
+      console.log('[ERDDiagram] 노드 클릭:', { nodeId, d, nodeData: nodeData?.name })
       onNodeClick(nodeId, nodeData)
     })
   }
@@ -238,22 +267,62 @@ export async function renderERD(container, data, options = {}) {
       .selectAll('.node')
       .style('pointer-events', 'all')
       .on('mouseenter', function (event, d) {
-        const nodeId = d
+        const nodeElement = d3.select(this)
+
+        // data 속성에서 노드 ID 가져오기 (가장 안전)
+        let nodeId = nodeElement.attr('data-node-id')
+
+        // data 속성이 없으면 텍스트에서 가져오기
+        if (!nodeId) {
+          const textElement = nodeElement.select('text')
+          nodeId = textElement.text()?.trim()
+        }
+
+        // 그래도 없으면 graph에서 가져오기
+        if (!nodeId) {
+          const graphNode = graph.node(d)
+          nodeId = graphNode?.label || d
+        }
+
+        // 최후의 수단으로 d 사용
+        if (!nodeId) {
+          nodeId = d
+        }
+
         const nodeData = tables.find((t) => t.name === nodeId)
         onNodeHover(nodeId, nodeData, true)
 
         // 호버 시 CSS 클래스 추가
-        const node = d3.select(this)
-        node.classed('node-hover', true)
+        nodeElement.classed('node-hover', true)
       })
       .on('mouseleave', function (event, d) {
-        const nodeId = d
+        const nodeElement = d3.select(this)
+
+        // data 속성에서 노드 ID 가져오기 (가장 안전)
+        let nodeId = nodeElement.attr('data-node-id')
+
+        // data 속성이 없으면 텍스트에서 가져오기
+        if (!nodeId) {
+          const textElement = nodeElement.select('text')
+          nodeId = textElement.text()?.trim()
+        }
+
+        // 그래도 없으면 graph에서 가져오기
+        if (!nodeId) {
+          const graphNode = graph.node(d)
+          nodeId = graphNode?.label || d
+        }
+
+        // 최후의 수단으로 d 사용
+        if (!nodeId) {
+          nodeId = d
+        }
+
         const nodeData = tables.find((t) => t.name === nodeId)
         onNodeHover(nodeId, nodeData, false)
 
         // 호버 해제 시 CSS 클래스 제거
-        const node = d3.select(this)
-        node.classed('node-hover', false)
+        nodeElement.classed('node-hover', false)
       })
 
     // pointer-events는 CSS에서 처리
@@ -292,7 +361,7 @@ export async function renderERD(container, data, options = {}) {
  * @param {Object} options - 업데이트 옵션
  */
 export async function updateERD(renderResult, data, options = {}) {
-  const { svgGroup } = renderResult
+  const { svgGroup, graph } = renderResult
   const { selectedNode = null } = options
 
   if (!svgGroup) return
@@ -308,8 +377,46 @@ export async function updateERD(renderResult, data, options = {}) {
   // 모든 노드의 스타일만 업데이트 (레이아웃 재계산 없음)
   svgGroup.selectAll('.node').each(function (d) {
     const node = d3.select(this)
-    const nodeId = d
-    const isSelected = selectedNode === nodeId
+
+    // data 속성에서 노드 ID 가져오기 (가장 안전)
+    let nodeId = node.attr('data-node-id')
+
+    // data 속성이 없으면 텍스트에서 가져오기
+    if (!nodeId) {
+      const textElement = node.select('text')
+      nodeId = textElement.text()?.trim()
+    }
+
+    // 그래도 없으면 graph에서 가져오기
+    if (!nodeId && graph) {
+      const graphNode = graph.node(d)
+      nodeId = graphNode?.label || d
+    }
+
+    // 최후의 수단으로 d 사용
+    if (!nodeId) {
+      nodeId = d
+    }
+
+    // 노드 ID와 selectedNode를 정확히 비교 (대소문자 무시, 공백 제거)
+    const normalizedNodeId = nodeId?.toString().trim().toLowerCase()
+    const normalizedSelectedNode = selectedNode?.toString().trim().toLowerCase()
+    const isSelected = normalizedNodeId === normalizedSelectedNode
+
+    // 디버깅: 선택 상태 확인
+    if (selectedNode) {
+      console.log('[ERDDiagram] updateERD:', {
+        nodeId,
+        normalizedNodeId,
+        selectedNode,
+        normalizedSelectedNode,
+        isSelected,
+        dataNodeId: node.attr('data-node-id'),
+        textContent: node.select('text').text()?.trim(),
+        d,
+      })
+    }
+
     const nodeSize = getNodeSize(isSelected)
 
     // rect 요소 스타일 및 크기 업데이트

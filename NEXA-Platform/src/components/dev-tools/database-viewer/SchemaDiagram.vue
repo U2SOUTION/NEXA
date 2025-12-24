@@ -295,17 +295,15 @@ onBeforeUnmount(() => {
 })
 
 // 선택된 테이블 변경 감지하여 다이어그램 업데이트
+// 주의: NexaDiagram의 watch가 자동으로 updateERD를 호출하므로
+// 여기서는 renderDiagram을 호출하지 않음 (전체 재렌더링 방지)
 watch(
   () => selectedTable.value,
   (newTable, oldTable) => {
     if (newTable !== oldTable && diagramData.value.tables) {
       console.log('[SchemaDiagram] 선택된 테이블 변경:', newTable)
-      // NexaDiagram이 자동으로 업데이트됨 (computed 옵션을 통해)
-      // NexaDiagram의 renderDiagram을 호출하여 업데이트를 트리거
-      if (nexaDiagramRef.value && typeof nexaDiagramRef.value.renderDiagram === 'function') {
-        console.log('[SchemaDiagram] NexaDiagram 렌더링 트리거 (selectedTable watch)')
-        nexaDiagramRef.value.renderDiagram()
-      }
+      // NexaDiagram의 watch가 자동으로 updateERD를 호출함
+      // renderDiagram()을 호출하면 전체가 재렌더링되어 위치가 초기화됨
     }
   },
 )
@@ -319,7 +317,6 @@ watch(
   flex-direction: column;
   position: relative;
   min-height: 0; // flex 자식이 overflow를 올바르게 처리하도록
-  border: 1px solid red;
 }
 
 .schema-diagram-loading,
