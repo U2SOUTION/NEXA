@@ -48,18 +48,18 @@
 
       <!-- 데이터베이스 테이블 상세 정보 패널 (activeMenu === 'database-viewer') -->
       <div v-if="activeMenu === 'database-viewer'" class="accordion-wrapper">
-        <q-expansion-item icon="table_view" label="DB 테이블 상세 정보 (단순 버전)" :model-value="databaseTableDetailExpanded" @update:model-value="databaseTableDetailExpanded = $event">
+        <q-expansion-item icon="table_view" label="DB 테이블 상세 정보" :model-value="databaseTableDetailExpanded" @update:model-value="databaseTableDetailExpanded = $event">
           <div class="section-content">
             <DatabaseTableDetailSimple :table-name="selectedTableName" />
           </div>
         </q-expansion-item>
       </div>
 
-      <!-- 데이터베이스 테이블 상세 정보 패널 (원본 버전) -->
+      <!-- ERD 다이어그램 설정 패널 (activeMenu === 'database-viewer') -->
       <div v-if="activeMenu === 'database-viewer'" class="accordion-wrapper">
-        <q-expansion-item icon="table_view" label="DB 테이블 상세 정보 (원본 버전)" :model-value="databaseTableDetailOriginalExpanded" @update:model-value="databaseTableDetailOriginalExpanded = $event">
+        <q-expansion-item icon="tune" label="ERD 다이어그램 설정" :model-value="erdSettingsExpanded" @update:model-value="erdSettingsExpanded = $event">
           <div class="section-content">
-            <DatabaseTableDetail :table-name="selectedTableName" />
+            <ERDDiagramSettingsPanel />
           </div>
         </q-expansion-item>
       </div>
@@ -95,8 +95,8 @@ import RightSidebarHeader from './RightSidebarHeader.vue'
 import PanelMermaidStyle from 'src/panel/components/PanelMermaidStyle.vue'
 import PanelTOC from 'src/panel/components/PanelTOC.vue'
 import ThemeColorPanel from './dev-tools/ThemeColorPanel.vue'
+import ERDDiagramSettingsPanel from './dev-tools/ERDDiagramSettingsPanel.vue'
 import SampleSection from 'src/modules/document-manager/components/sections/SampleSection.vue'
-import DatabaseTableDetail from 'src/components/dev-tools/database-viewer/TableDetail.vue'
 import DatabaseTableDetailSimple from 'src/components/dev-tools/database-viewer/TableDetailSimple.vue'
 
 const documentStore = useDocumentManagerStore()
@@ -118,7 +118,9 @@ const themeColorPanelExpanded = ref(true)
 // 데이터베이스 테이블 상세 정보 패널 상태
 const selectedTableName = ref(null)
 const databaseTableDetailExpanded = ref(false)
-const databaseTableDetailOriginalExpanded = ref(false)
+
+// ERD 다이어그램 설정 패널 상태
+const erdSettingsExpanded = ref(false)
 
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {
@@ -132,7 +134,6 @@ function handleActiveMenuChange(event) {
   // 데이터베이스 뷰어 메뉴로 변경 시 아코디언 닫기 (테이블 선택 시 자동으로 열림)
   if (activeMenu.value === 'database-viewer') {
     databaseTableDetailExpanded.value = false
-    databaseTableDetailOriginalExpanded.value = false
   }
 }
 
