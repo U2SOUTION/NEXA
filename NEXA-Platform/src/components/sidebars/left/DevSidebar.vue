@@ -92,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref, toRef, watch, onMounted } from 'vue'
+import { ref, toRef, watch, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import LeftSidebarHeader from './LeftSidebarHeader.vue'
 import DevMenuSlider from './dev-tools/DevMenuSlider.vue'
@@ -635,6 +635,12 @@ watch(
   { immediate: true },
 )
 
+// 데이터베이스 뷰어 새로고침 이벤트 리스너
+function handleDatabaseViewerRefreshEvent() {
+  console.log('[DevSidebar] database-viewer-refresh 이벤트 수신')
+  handleDatabaseViewerRefresh()
+}
+
 // 컴포넌트 마운트 시 설정 로드
 onMounted(() => {
   // showExcludedFiles와 searchMode 설정 로드
@@ -662,7 +668,15 @@ onMounted(() => {
   }
   window.addEventListener('dev-menu-changed', initialHandler)
   
+  // 데이터베이스 뷰어 새로고침 이벤트 리스너 등록
+  window.addEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
+  
   // 이후 변경사항은 handleActiveMenuChange로 처리 (이미 등록되어 있음)
+})
+
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
+onUnmounted(() => {
+  window.removeEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
 })
 </script>
 

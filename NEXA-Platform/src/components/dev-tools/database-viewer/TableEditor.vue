@@ -89,22 +89,15 @@
 
       <!-- 테이블 상세 정보 (읽기 모드) -->
       <div v-else-if="selectedTable && !isCreating && !isEditing && tableStructure" class="table-detail-view">
-        <!-- 헤더 -->
-        <div class="row items-center q-mb-md">
-          <div>
-            <div class="text-h6">{{ tableStructure.tableName }}</div>
-            <div class="text-caption text-grey-7">
-              <span v-if="tableStructure.metadata?.rowCount !== null">행: {{ formatNumber(tableStructure.metadata.rowCount) }}개</span>
-              <span v-if="tableStructure.metadata?.comment" class="q-ml-sm">코멘트: {{ tableStructure.metadata.comment }}</span>
-            </div>
-          </div>
-        </div>
-
-        <q-separator class="q-mb-md" />
-
         <!-- 컬럼 정보 -->
         <div class="q-mb-md">
-          <div class="text-subtitle2 q-mb-sm">컬럼 ({{ tableStructure.columns?.length || 0 }}개)</div>
+          <div class="row items-end q-mb-sm" style="height: 32px; gap: 12px">
+            <div class="text-h5" style="line-height: 32px; height: 32px; display: flex; align-items: center">{{ tableStructure.tableName }}</div>
+            <div class="text-body1" style="color: var(--nexa-text-secondary); line-height: 32px; height: 32px; display: flex; align-items: center; gap: 16px">
+              <span v-if="tableStructure.metadata?.rowCount !== null">행 {{ formatNumber(tableStructure.metadata.rowCount) }}개</span>
+              <span v-if="tableStructure.columns?.length">컬럼 {{ tableStructure.columns.length }}개</span>
+            </div>
+          </div>
           <table class="simple-table">
             <thead>
               <tr>
@@ -147,9 +140,12 @@
         <div v-else-if="tableStructure || isCreating" class="table-editor-form">
           <!-- 컬럼 정보 (편집 가능) -->
           <div class="q-mb-md">
-            <div class="row items-center justify-between q-mb-sm">
-              <div class="text-subtitle2">컬럼 ({{ columns.length }}개)</div>
-              <q-btn v-if="isCreating || isEditing" flat dense icon="add" label="컬럼 추가" color="primary" size="sm" @click="handleAddColumn" />
+            <div class="row items-center q-mb-sm" style="gap: 16px">
+              <div class="row items-center" style="height: 32px; gap: 12px">
+                <div class="text-h5" style="line-height: 32px; height: 32px; display: flex; align-items: center">{{ tableName || '새 테이블' }}</div>
+                <div class="text-body1" style="color: var(--nexa-text-secondary); line-height: 32px; height: 32px; display: flex; align-items: center">컬럼 {{ columns.length }}개</div>
+              </div>
+              <q-input v-model="tableComment" outlined dense placeholder="코멘트" class="col table-form-input" />
             </div>
             <table class="simple-table">
               <thead>
@@ -467,7 +463,6 @@ async function handleSave() {
         throw new Error(data.error || '테이블 생성에 실패했습니다.')
       }
     } catch (err) {
-      console.error('[TableEditor] 테이블 생성 실패:', err)
       $q.notify({
         type: 'negative',
         message: err.message || '테이블 생성 중 오류가 발생했습니다.',
@@ -537,7 +532,6 @@ async function loadTableStructure() {
     } else {
       error.value = err.message || '테이블 구조를 불러오는데 실패했습니다.'
     }
-    console.error('[TableEditor] 테이블 구조 로드 실패:', err)
   } finally {
     isLoadingTableStructure.value = false
   }
@@ -568,20 +562,64 @@ function handleEditTable() {
 }
 
 // 테이블 삭제
-function handleDeleteTable() {
+async function handleDeleteTable() {
   if (!selectedTable.value) return
 
   $q.dialog({
     title: '테이블 삭제',
-    message: `"${selectedTable.value}" 테이블을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`,
-    cancel: true,
+    message: `"${selectedTable.value}" 테이블을 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`,
     persistent: true,
-  }).onOk(() => {
-    // TODO: 테이블 삭제 API 호출
-    $q.notify({
-      type: 'info',
-      message: '테이블 삭제 기능은 곧 구현될 예정입니다.',
-    })
+    ok: {
+      label: '삭제',
+      color: 'negative',
+      flat: false,
+    },
+    cancel: {
+      label: '취소',
+      flat: true,
+    },
+  }).onOk(async () => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+      const response = await fetch(`${apiBaseUrl}/db/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: `DROP TABLE ${selectedTable.value}` }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || '테이블 삭제에 실패했습니다.')
+      }
+
+      $q.notify({
+        type: 'positive',
+        message: `"${selectedTable.value}" 테이블이 삭제되었습니다.`,
+        position: 'top',
+        timeout: 2000,
+      })
+
+      // 상태 초기화
+      selectedTable.value = null
+      tableStructure.value = null
+      isEditing.value = false
+      isCreating.value = false
+
+      // 테이블 목록 새로고침
+      window.dispatchEvent(new CustomEvent('database-viewer-refresh'))
+      window.dispatchEvent(new CustomEvent('database-viewer-list-refresh'))
+    } catch (err) {
+      console.error('[TableEditor] 테이블 삭제 실패:', err)
+      $q.notify({
+        type: 'negative',
+        message: err.message || '테이블 삭제 중 오류가 발생했습니다.',
+        position: 'top',
+        timeout: 3000,
+      })
+    }
   })
 }
 
@@ -732,6 +770,11 @@ onUnmounted(() => {
     overflow: hidden;
     min-height: 40px;
     height: 40px;
+  }
+
+  thead th {
+    background-color: var(--nexa-surface);
+    font-weight: 600;
   }
 }
 

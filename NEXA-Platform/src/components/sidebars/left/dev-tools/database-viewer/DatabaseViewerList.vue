@@ -159,16 +159,25 @@ function handleRequestSelectedTable() {
   }
 }
 
+// 테이블 목록 직접 새로고침 이벤트 핸들러
+function handleListRefresh() {
+  console.log('[DatabaseViewerList] database-viewer-list-refresh 이벤트 수신, 테이블 목록 새로고침 시작')
+  loadTables()
+}
+
 // 컴포넌트 마운트 시 테이블 목록 로드
 onMounted(() => {
   loadTables()
   // 현재 선택된 테이블 요청 이벤트 리스너 등록
   window.addEventListener('database-viewer-request-selected-table', handleRequestSelectedTable)
+  // 테이블 목록 직접 새로고침 이벤트 리스너 등록
+  window.addEventListener('database-viewer-list-refresh', handleListRefresh)
 })
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
 onUnmounted(() => {
   window.removeEventListener('database-viewer-request-selected-table', handleRequestSelectedTable)
+  window.removeEventListener('database-viewer-list-refresh', handleListRefresh)
 })
 
 // refresh 이벤트 리스너
