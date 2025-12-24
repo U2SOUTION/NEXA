@@ -5,6 +5,11 @@
 
 <template>
   <div class="schema-diagram">
+    <!-- 설정 버튼 -->
+    <div class="schema-diagram-toolbar">
+      <q-btn flat dense icon="settings" label="설정" @click="showSettingsDialog = true" />
+    </div>
+
     <!-- NexaDiagram 컴포넌트 사용 -->
     <NexaDiagram v-if="diagramData.tables && diagramData.relationships" ref="nexaDiagramRef" type="erd" :data="diagramData" :options="diagramOptions" :auto-load="false" @node-click="handleNodeClick" @node-hover="handleNodeHover" @error="handleDiagramError" @loaded="handleDiagramLoaded" />
 
@@ -20,6 +25,75 @@
       <div class="text-body2 text-negative q-mb-sm">{{ error }}</div>
       <q-btn flat dense label="다시 시도" icon="refresh" @click="loadSchemaData" />
     </div>
+
+    <!-- 설정 다이얼로그 -->
+    <q-dialog v-model="showSettingsDialog" persistent>
+      <q-card class="schema-settings-dialog" style="min-width: 500px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">ERD 다이어그램 설정</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="q-pt-md">
+          <!-- 노드 크기 설정 -->
+          <div class="q-mb-lg">
+            <div class="text-subtitle2 q-mb-md">노드 크기</div>
+
+            <div class="q-mb-md">
+              <div class="text-caption q-mb-sm">선택된 노드</div>
+              <div class="row q-gutter-md">
+                <q-input v-model.number="settings.nodeSize.selected.width" type="number" label="너비" dense outlined style="width: 120px" />
+                <q-input v-model.number="settings.nodeSize.selected.height" type="number" label="높이" dense outlined style="width: 120px" />
+              </div>
+            </div>
+
+            <div>
+              <div class="text-caption q-mb-sm">일반 노드</div>
+              <div class="row q-gutter-md">
+                <q-input v-model.number="settings.nodeSize.unselected.width" type="number" label="너비" dense outlined style="width: 120px" />
+                <q-input v-model.number="settings.nodeSize.unselected.height" type="number" label="높이" dense outlined style="width: 120px" />
+              </div>
+            </div>
+          </div>
+
+          <q-separator class="q-my-md" />
+
+          <!-- 레이아웃 간격 설정 -->
+          <div>
+            <div class="text-subtitle2 q-mb-md">레이아웃 간격</div>
+
+            <div class="q-mb-md">
+              <q-input v-model.number="settings.layout.nodesep" type="number" label="노드 간격 (nodesep)" dense outlined hint="같은 레벨 내 노드 간 수평 최소 간격" />
+            </div>
+
+            <div class="q-mb-md">
+              <q-input v-model.number="settings.layout.ranksep" type="number" label="레벨 간격 (ranksep)" dense outlined hint="서로 다른 레벨 간 수직 최소 간격" />
+            </div>
+
+            <div class="row q-gutter-md q-mb-md">
+              <q-input v-model.number="settings.layout.marginx" type="number" label="마진 X" dense outlined style="flex: 1" />
+              <q-input v-model.number="settings.layout.marginy" type="number" label="마진 Y" dense outlined style="flex: 1" />
+            </div>
+
+            <div>
+              <div class="text-caption q-mb-sm">레이아웃 방향</div>
+              <q-radio v-model="settings.layout.rankdir" val="LR" label="좌우 (LR)" />
+              <q-radio v-model="settings.layout.rankdir" val="TB" label="상하 (TB)" />
+              <q-radio v-model="settings.layout.rankdir" val="RL" label="우좌 (RL)" />
+              <q-radio v-model="settings.layout.rankdir" val="BT" label="하상 (BT)" />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="초기화" @click="handleResetSettings" />
+          <q-space />
+          <q-btn flat label="취소" v-close-popup />
+          <q-btn flat label="적용" color="primary" @click="handleApplySettings" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <!-- 추가 가능한 기능 목록 -->
     <div class="">
@@ -122,7 +196,11 @@ ERD 다이어그램 추가 가능한 기능
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import NexaDiagram from 'src/diagram/NexaDiagram.vue'
+import { loadERDSettings, saveERDSettings, resetERDSettings, updateERDSettings } from 'src/diagram/config/diagramSettings.js'
+
+const $q = useQuasar()
 
 // 선택된 테이블 상태 (왼쪽 사이드바에서 선택된 테이블)
 const selectedTable = ref(null)
@@ -139,6 +217,10 @@ const diagramData = ref({
 // 로딩 및 에러 상태
 const isLoading = ref(false)
 const error = ref(null)
+
+// 설정 관련
+const showSettingsDialog = ref(false)
+const settings = ref(loadERDSettings())
 
 // 다이어그램 옵션 (선택된 노드 포함)
 const diagramOptions = computed(() => ({
@@ -286,9 +368,88 @@ watch(
     if (newTable !== oldTable && diagramData.value.tables) {
       console.log('[SchemaDiagram] 선택된 테이블 변경:', newTable)
       // NexaDiagram이 자동으로 업데이트됨 (computed 옵션을 통해)
+      // NexaDiagram의 renderDiagram을 호출하여 업데이트를 트리거
+      if (nexaDiagramRef.value && typeof nexaDiagramRef.value.renderDiagram === 'function') {
+        console.log('[SchemaDiagram] NexaDiagram 렌더링 트리거 (selectedTable watch)')
+        nexaDiagramRef.value.renderDiagram()
+      }
     }
   },
 )
+
+// 설정 적용 핸들러
+function handleApplySettings() {
+  try {
+    // 설정 저장
+    updateERDSettings(settings.value)
+    saveERDSettings(settings.value)
+
+    // 다이어그램 재렌더링
+    if (nexaDiagramRef.value && typeof nexaDiagramRef.value.renderDiagram === 'function') {
+      nexaDiagramRef.value.renderDiagram()
+    }
+
+    $q.notify({
+      type: 'positive',
+      message: '설정이 적용되었습니다.',
+      position: 'top',
+      timeout: 2000,
+    })
+
+    showSettingsDialog.value = false
+  } catch (error) {
+    console.error('[SchemaDiagram] 설정 적용 실패:', error)
+    $q.notify({
+      type: 'negative',
+      message: '설정 적용에 실패했습니다.',
+      position: 'top',
+      timeout: 3000,
+    })
+  }
+}
+
+// 설정 초기화 핸들러
+function handleResetSettings() {
+  $q.dialog({
+    title: '설정 초기화',
+    message: '모든 설정을 기본값으로 초기화하시겠습니까?',
+    persistent: true,
+    ok: {
+      label: '초기화',
+      color: 'negative',
+      flat: false,
+    },
+    cancel: {
+      label: '취소',
+      flat: true,
+    },
+  }).onOk(() => {
+    try {
+      resetERDSettings()
+      settings.value = loadERDSettings()
+
+      // 다이어그램 재렌더링
+      if (nexaDiagramRef.value && typeof nexaDiagramRef.value.renderDiagram === 'function') {
+        nexaDiagramRef.value.renderDiagram()
+      }
+
+      $q.notify({
+        type: 'positive',
+        message: '설정이 초기화되었습니다.',
+        position: 'top',
+        timeout: 2000,
+      })
+    } catch (error) {
+      console.error('[SchemaDiagram] 설정 초기화 실패:', error)
+      $q.notify({
+        type: 'negative',
+        message: '설정 초기화에 실패했습니다.',
+        position: 'top',
+        timeout: 3000,
+      })
+    }
+  })
+}
 </script>
 
 <style lang="scss" scoped>
@@ -353,5 +514,23 @@ watch(
   white-space: pre-wrap;
   word-break: break-word;
   overflow-x: auto;
+}
+
+.schema-diagram-toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  background-color: var(--nexa-surface);
+  border-radius: 4px;
+  padding: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.schema-settings-dialog {
+  :deep(.q-card-section) {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
 }
 </style>

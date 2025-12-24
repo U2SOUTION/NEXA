@@ -8,6 +8,7 @@ import * as d3 from 'd3'
 import { createNodeStyle, createLabelStyle, createEdgeStyle } from '../utils/diagramTheme.js'
 import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
 import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
+import { getERDSettings } from '../config/diagramSettings.js'
 
 // dagre-d3-es는 동적 임포트
 let dagre = null
@@ -58,6 +59,9 @@ export async function renderERD(container, data, options = {}) {
 
   const { selectedNode = null, layoutType = layoutTypes.HIERARCHICAL, layoutOptions = {}, onNodeClick = null, onNodeHover = null } = options
 
+  // 설정 로드
+  const settings = getERDSettings()
+
   // dagre 라이브러리 로드
   const libraries = await loadDagreLibraries()
   dagre = libraries.dagre
@@ -80,31 +84,30 @@ export async function renderERD(container, data, options = {}) {
 
   const svgGroup = svg.append('g')
 
-  // Dagre 그래프 생성
-  const layoutOpts = getLayoutOptions(layoutType, layoutOptions)
+  // Dagre 그래프 생성 (설정값 사용)
+  const layoutOpts = getLayoutOptions(layoutType, { ...settings.layout, ...layoutOptions })
   const graph = new graphlib.Graph()
     .setGraph({
-      rankdir: layoutOpts.rankdir || 'LR', // 레이아웃 방향
-      nodesep: layoutOpts.nodesep || 200, // 같은 레벨 내 노드 간 수평 최소 간격
-      ranksep: layoutOpts.ranksep || 120, // 서로 다른 레벨 간 수직 최소 간격
-      marginx: layoutOpts.marginx || 150, // 마진 X
-      marginy: layoutOpts.marginy || 150, // 마진 Y
+      rankdir: layoutOpts.rankdir || settings.layout.rankdir,
+      nodesep: layoutOpts.nodesep || settings.layout.nodesep,
+      ranksep: layoutOpts.ranksep || settings.layout.ranksep,
+      marginx: layoutOpts.marginx || settings.layout.marginx,
+      marginy: layoutOpts.marginy || settings.layout.marginy,
     })
     .setDefaultEdgeLabel(() => ({}))
 
-  // 노드 추가 (테이블)
+  // 노드 추가 (테이블) - 설정값 사용
   tables.forEach((table) => {
     const isSelected = selectedNode === table.name
-    const nodeWidth = isSelected ? 120 : 100 // 노드 크기
-    const nodeHeight = isSelected ? 30 : 25 // 노드 높이
+    const nodeSize = isSelected ? settings.nodeSize.selected : settings.nodeSize.unselected
 
     graph.setNode(table.name, {
       label: table.name,
       shape: 'rect',
       style: createNodeStyle(isSelected),
       labelStyle: createLabelStyle(isSelected),
-      width: nodeWidth,
-      height: nodeHeight,
+      width: nodeSize.width,
+      height: nodeSize.height,
     })
   })
 
@@ -209,38 +212,59 @@ export async function renderERD(container, data, options = {}) {
 
 /**
  * ERD 다이어그램 업데이트 (선택된 노드 변경 등)
+ * 레이아웃 재계산 없이 스타일만 업데이트하여 위치 유지
  * @param {Object} renderResult - renderERD의 반환값
  * @param {Object} data - 업데이트된 데이터
  * @param {Object} options - 업데이트 옵션
  */
 export async function updateERD(renderResult, data, options = {}) {
-  const { svgGroup, graph } = renderResult
+  const { svgGroup } = renderResult
   const { selectedNode = null } = options
 
-  // 노드 스타일 업데이트
-  if (graph && selectedNode !== null) {
-    // 그래프의 모든 노드 순회하여 선택 상태 업데이트
-    graph.nodes().forEach((nodeId) => {
-      const isSelected = selectedNode === nodeId
-      const node = graph.node(nodeId)
-      if (node) {
-        node.style = createNodeStyle(isSelected)
-        node.labelStyle = createLabelStyle(isSelected)
-        node.width = isSelected ? 200 : 150
-        node.height = isSelected ? 80 : 60
-      }
-    })
+  if (!svgGroup) return
 
-    // 레이아웃 재계산
-    if (dagre && typeof dagre.layout === 'function') {
-      dagre.layout(graph)
-    }
+  // 설정 로드
+  const settings = getERDSettings()
 
-    // 다시 렌더링
-    if (render) {
-      svgGroup.selectAll('*').remove()
-      const renderer = new render()
-      renderer(svgGroup, graph)
-    }
+  // 노드 크기 설정 (설정값 사용)
+  const getNodeSize = (isSelected) => {
+    return isSelected ? settings.nodeSize.selected : settings.nodeSize.unselected
   }
+
+  // 모든 노드의 스타일만 업데이트 (레이아웃 재계산 없음)
+  svgGroup.selectAll('.node').each(function (d) {
+    const node = d3.select(this)
+    const nodeId = d
+    const isSelected = selectedNode === nodeId
+    const nodeSize = getNodeSize(isSelected)
+
+    // rect 요소 스타일 및 크기 업데이트
+    const rect = node.select('rect')
+    if (rect.node()) {
+      const currentBBox = rect.node().getBBox()
+      const currentCenterX = currentBBox.x + currentBBox.width / 2
+      const currentCenterY = currentBBox.y + currentBBox.height / 2
+
+      // 새로운 크기의 중심점 계산
+      const newX = currentCenterX - nodeSize.width / 2
+      const newY = currentCenterY - nodeSize.height / 2
+
+      rect.attr('x', newX).attr('y', newY).attr('width', nodeSize.width).attr('height', nodeSize.height).attr('style', createNodeStyle(isSelected))
+    }
+
+    // text 요소 스타일 업데이트
+    const text = node.select('text')
+    if (text.node()) {
+      const rectBBox = rect.node().getBBox()
+      const centerX = rectBBox.x + rectBBox.width / 2
+      const centerY = rectBBox.y + rectBBox.height / 2
+
+      // 모든 tspan의 x를 0으로 설정
+      text.selectAll('tspan').attr('x', 0)
+      text.select('tspan').attr('dy', 0)
+
+      // text 중앙 정렬
+      text.attr('x', centerX).attr('y', centerY).attr('dy', 0).attr('text-anchor', 'middle').attr('style', createLabelStyle(isSelected))
+    }
+  })
 }

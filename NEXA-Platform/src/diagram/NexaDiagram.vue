@@ -25,7 +25,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { renderERD } from './erd/ERDDiagram.js'
+import { renderERD, updateERD } from './erd/ERDDiagram.js'
 import { renderFlow } from './flow/FlowDiagram.js'
 import { renderNetwork } from './network/NetworkDiagram.js'
 import { diagramTypes } from './config/diagramMetadata.js'
@@ -129,9 +129,8 @@ watch(
   () => props.options?.selectedNode,
   (newSelectedNode, oldSelectedNode) => {
     if (newSelectedNode !== oldSelectedNode && renderResult && props.type === diagramTypes.ERD) {
-      // ERD 업데이트 (향후 updateERD 함수 사용)
-      // 현재는 전체 재렌더링
-      renderDiagram()
+      // ERD 업데이트 - 스타일만 변경, 레이아웃 재계산 없음
+      updateERD(renderResult, props.data, props.options)
     }
   }
 )
