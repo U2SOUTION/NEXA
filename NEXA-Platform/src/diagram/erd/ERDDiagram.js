@@ -7,7 +7,7 @@
 import * as d3 from 'd3'
 import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
 import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
-import { getERDSettings } from '../config/diagramSettings.js'
+import { getERDSettings, defaultERDSettings } from '../config/diagramSettings.js'
 
 // dagre-d3-es는 동적 임포트
 let dagre = null
@@ -95,10 +95,33 @@ export async function renderERD(container, data, options = {}) {
     })
     .setDefaultEdgeLabel(() => ({}))
 
-  // 노드 추가 (테이블) - 설정값 사용
+  // 노드 추가 (테이블) - 설정값 사용 (모든 노드 동일 크기)
+  // 기존 설정 호환성: nodeSize가 단일 구조인지 확인
+  let nodeWidth = defaultERDSettings.nodeSize.width
+  let nodeHeight = defaultERDSettings.nodeSize.height
+  
+  if (settings?.nodeSize) {
+    // 새로운 단일 구조
+    if (settings.nodeSize.width && settings.nodeSize.height) {
+      nodeWidth = settings.nodeSize.width
+      nodeHeight = settings.nodeSize.height
+    }
+    // 기존 구조 호환성
+    else if (settings.nodeSize.unselected) {
+      nodeWidth = settings.nodeSize.unselected.width || defaultERDSettings.nodeSize.width
+      nodeHeight = settings.nodeSize.unselected.height || defaultERDSettings.nodeSize.height
+    }
+  }
+  
+  console.log('[ERDDiagram] 노드 크기 설정:', { nodeWidth, nodeHeight, tablesCount: tables.length })
+  
   tables.forEach((table) => {
+    if (!table || !table.name) {
+      console.warn('[ERDDiagram] 잘못된 테이블 데이터:', table)
+      return
+    }
+    
     const isSelected = selectedNode === table.name
-    const nodeSize = isSelected ? settings.nodeSize.selected : settings.nodeSize.unselected
 
     graph.setNode(table.name, {
       label: table.name,
@@ -106,10 +129,12 @@ export async function renderERD(container, data, options = {}) {
       // 스타일은 CSS 클래스로 처리하므로 빈 문자열 또는 최소한의 스타일만
       style: '',
       labelStyle: '',
-      width: nodeSize.width,
-      height: nodeSize.height,
+      width: nodeWidth,
+      height: nodeHeight,
       class: isSelected ? 'node-selected' : '',
     })
+    
+    console.log('[ERDDiagram] 노드 추가:', { name: table.name, width: nodeWidth, height: nodeHeight, isSelected })
   })
 
   // 엣지 추가 (외래키 관계)
@@ -143,15 +168,26 @@ export async function renderERD(container, data, options = {}) {
       // graph에서 노드 정보 가져오기
       const graphNode = graph.node(d)
       // 노드 ID는 graphNode의 label 또는 d 자체
-      const nodeId = graphNode?.label || d
+      let nodeId = graphNode?.label || d
+      
+      // nodeId 정규화
+      if (nodeId) {
+        nodeId = nodeId.toString().trim()
+      }
 
       // data 속성에 노드 ID 저장 (클릭 이벤트에서 사용)
       node.attr('data-node-id', nodeId)
-
-      const isSelected = selectedNode === nodeId
+      
+      // 선택 상태 확인 (대소문자 무시)
+      const normalizedNodeId = nodeId?.toLowerCase()
+      const normalizedSelectedNode = selectedNode?.toString().trim().toLowerCase()
+      const isSelected = normalizedNodeId === normalizedSelectedNode
+      
       if (isSelected) {
         node.classed('node-selected', true)
       }
+      
+      console.log('[ERDDiagram] 노드 속성 설정:', { nodeId, d, isSelected, selectedNode })
     })
   } else {
     throw new Error('render를 찾을 수 없습니다.')
@@ -231,6 +267,7 @@ export async function renderERD(container, data, options = {}) {
   // 노드 클릭 이벤트 추가
   if (onNodeClick) {
     svgGroup.selectAll('.node').on('click', function (event, d) {
+      event.stopPropagation() // 이벤트 버블링 방지
       const nodeElement = d3.select(this)
 
       // data 속성에서 노드 ID 가져오기 (가장 안전)
@@ -243,7 +280,7 @@ export async function renderERD(container, data, options = {}) {
       }
 
       // 그래도 없으면 graph에서 가져오기
-      if (!nodeId) {
+      if (!nodeId && graph) {
         const graphNode = graph.node(d)
         nodeId = graphNode?.label || d
       }
@@ -253,9 +290,28 @@ export async function renderERD(container, data, options = {}) {
         nodeId = d
       }
 
-      const nodeData = tables.find((t) => t.name === nodeId)
-      console.log('[ERDDiagram] 노드 클릭:', { nodeId, d, nodeData: nodeData?.name })
-      onNodeClick(nodeId, nodeData)
+      // 노드 ID 정규화 (공백 제거)
+      const normalizedNodeId = nodeId?.toString().trim()
+      
+      // 테이블 목록에서 찾기 (정확한 매칭)
+      const nodeData = tables.find((t) => {
+        if (!t || !t.name) return false
+        return t.name === normalizedNodeId || t.name.toLowerCase() === normalizedNodeId.toLowerCase()
+      })
+      
+      console.log('[ERDDiagram] 노드 클릭:', { 
+        nodeId: normalizedNodeId, 
+        d, 
+        nodeData: nodeData?.name,
+        allTables: tables.map(t => t.name),
+        graphNodes: graph.nodes()
+      })
+      
+      if (nodeData) {
+        onNodeClick(normalizedNodeId, nodeData)
+      } else {
+        console.warn('[ERDDiagram] 노드 데이터를 찾을 수 없음:', normalizedNodeId)
+      }
     })
   }
 
@@ -364,17 +420,12 @@ export async function updateERD(renderResult, data, options = {}) {
   const { svgGroup, graph } = renderResult
   const { selectedNode = null } = options
 
-  if (!svgGroup) return
-
-  // 설정 로드
-  const settings = getERDSettings()
-
-  // 노드 크기 설정 (설정값 사용)
-  const getNodeSize = (isSelected) => {
-    return isSelected ? settings.nodeSize.selected : settings.nodeSize.unselected
+  if (!svgGroup || !graph) {
+    console.warn('[ERDDiagram] updateERD: svgGroup 또는 graph가 없습니다.')
+    return
   }
 
-  // 모든 노드의 스타일만 업데이트 (레이아웃 재계산 없음)
+  // 모든 노드의 선택 상태만 업데이트 (크기나 위치는 변경하지 않음)
   svgGroup.selectAll('.node').each(function (d) {
     const node = d3.select(this)
 
@@ -398,57 +449,18 @@ export async function updateERD(renderResult, data, options = {}) {
       nodeId = d
     }
 
-    // 노드 ID와 selectedNode를 정확히 비교 (대소문자 무시, 공백 제거)
+    // 노드 ID 정규화
     const normalizedNodeId = nodeId?.toString().trim().toLowerCase()
     const normalizedSelectedNode = selectedNode?.toString().trim().toLowerCase()
     const isSelected = normalizedNodeId === normalizedSelectedNode
 
-    // 디버깅: 선택 상태 확인
-    if (selectedNode) {
-      console.log('[ERDDiagram] updateERD:', {
-        nodeId,
-        normalizedNodeId,
-        selectedNode,
-        normalizedSelectedNode,
-        isSelected,
-        dataNodeId: node.attr('data-node-id'),
-        textContent: node.select('text').text()?.trim(),
-        d,
-      })
-    }
-
-    const nodeSize = getNodeSize(isSelected)
-
-    // rect 요소 스타일 및 크기 업데이트
-    const rect = node.select('rect')
-    if (rect.node()) {
-      const currentBBox = rect.node().getBBox()
-      const currentCenterX = currentBBox.x + currentBBox.width / 2
-      const currentCenterY = currentBBox.y + currentBBox.height / 2
-
-      // 새로운 크기의 중심점 계산
-      const newX = currentCenterX - nodeSize.width / 2
-      const newY = currentCenterY - nodeSize.height / 2
-
-      rect.attr('x', newX).attr('y', newY).attr('width', nodeSize.width).attr('height', nodeSize.height)
-
-      // 선택 상태 클래스 업데이트
-      node.classed('node-selected', isSelected)
-    }
-
-    // text 요소 스타일 업데이트
-    const text = node.select('text')
-    if (text.node()) {
-      const rectBBox = rect.node().getBBox()
-      const centerX = rectBBox.x + rectBBox.width / 2
-      const centerY = rectBBox.y + rectBBox.height / 2
-
-      // 모든 tspan의 x를 0으로 설정
-      text.selectAll('tspan').attr('x', 0)
-      text.select('tspan').attr('dy', 0)
-
-      // text 중앙 정렬 (스타일은 CSS 클래스로 처리)
-      text.attr('x', centerX).attr('y', centerY).attr('dy', 0).attr('text-anchor', 'middle')
+    // 선택 상태 클래스만 업데이트 (위치나 크기는 절대 변경하지 않음)
+    node.classed('node-selected', isSelected)
+    
+    // transform 속성이 변경되지 않았는지 확인 (디버깅용)
+    const currentTransform = node.attr('transform')
+    if (isSelected && currentTransform) {
+      console.log('[ERDDiagram] 선택된 노드 transform:', { nodeId, transform: currentTransform })
     }
   })
 }

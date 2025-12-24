@@ -9,39 +9,17 @@
       <div class="settings-section q-mb-md">
         <h4 class="section-title">노드 크기</h4>
 
-        <!-- 일반 노드 -->
-        <div>
-          <div class="row items-center q-gutter-sm q-mb-sm">
-            <div class="col-auto text-caption slider-label">일반 노드 너비</div>
-            <q-slider v-model.number="localSettings.nodeSize.unselected.width" :min="60" :max="250" :step="10" class="col" @update:model-value="handleSettingsChange" />
-            <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.unselected.width }}px</div>
-          </div>
-
-          <div class="row items-center q-gutter-sm">
-            <div class="col-auto text-caption slider-label">일반 노드 높이</div>
-            <q-slider v-model.number="localSettings.nodeSize.unselected.height" :min="15" :max="120" :step="5" class="col" @update:model-value="handleSettingsChange" />
-            <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.unselected.height }}px</div>
-          </div>
+        <div class="row items-center q-gutter-sm q-mb-sm">
+          <div class="col-auto text-caption slider-label">노드 너비</div>
+          <q-slider v-model.number="localSettings.nodeSize.width" :min="1" :max="400" :step="10" class="col" @update:model-value="handleSettingsChange" />
+          <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.width }}px</div>
         </div>
 
-        <q-separator class="q-my-md" />
-
-        <!-- 선택된 노드 -->
-        <div class="q-mb-md">
-          <div class="row items-center q-gutter-sm q-mb-sm">
-            <div class="col-auto text-caption slider-label">선택 노드 너비</div>
-            <q-slider v-model.number="localSettings.nodeSize.selected.width" :min="80" :max="300" :step="10" class="col" @update:model-value="handleSettingsChange" />
-            <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.selected.width }}px</div>
-          </div>
-
-          <div class="row items-center q-gutter-sm">
-            <div class="col-auto text-caption slider-label">선택 노드 높이</div>
-            <q-slider v-model.number="localSettings.nodeSize.selected.height" :min="20" :max="150" :step="5" class="col" @update:model-value="handleSettingsChange" />
-            <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.selected.height }}px</div>
-          </div>
+        <div class="row items-center q-gutter-sm">
+          <div class="col-auto text-caption slider-label">노드 높이</div>
+          <q-slider v-model.number="localSettings.nodeSize.height" :min="1" :max="400" :step="5" class="col" @update:model-value="handleSettingsChange" />
+          <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.height }}px</div>
         </div>
-
-        <q-separator class="q-my-sm" />
       </div>
 
       <!-- 레이아웃 간격 설정 -->

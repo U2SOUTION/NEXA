@@ -10,16 +10,10 @@ const STORAGE_KEY = 'nexa-diagram-erd-settings'
  * 기본 설정값
  */
 export const defaultERDSettings = {
-  // 노드 크기
+  // 노드 크기 (단일 크기)
   nodeSize: {
-    selected: {
-      width: 120,
-      height: 30,
-    },
-    unselected: {
-      width: 100,
-      height: 25,
-    },
+    width: 100,
+    height: 25,
   },
   // 레이아웃 간격
   layout: {
@@ -41,19 +35,26 @@ export function loadERDSettings() {
     if (stored) {
       const parsed = JSON.parse(stored)
       // 기본값과 병합하여 누락된 항목 보완
+      // 기존 설정 호환성: selected/unselected가 있으면 단일 크기로 변환
+      let nodeSize = { ...defaultERDSettings.nodeSize }
+      if (parsed.nodeSize) {
+        // 새로운 단일 크기 구조
+        if (parsed.nodeSize.width && parsed.nodeSize.height) {
+          nodeSize = {
+            ...defaultERDSettings.nodeSize,
+            ...parsed.nodeSize,
+          }
+        } else if (parsed.nodeSize.unselected) {
+          // 기존 구조에서 unselected 크기 사용
+          nodeSize = {
+            width: parsed.nodeSize.unselected.width || defaultERDSettings.nodeSize.width,
+            height: parsed.nodeSize.unselected.height || defaultERDSettings.nodeSize.height,
+          }
+        }
+      }
+      
       return {
-        nodeSize: {
-          ...defaultERDSettings.nodeSize,
-          ...parsed.nodeSize,
-          selected: {
-            ...defaultERDSettings.nodeSize.selected,
-            ...parsed.nodeSize?.selected,
-          },
-          unselected: {
-            ...defaultERDSettings.nodeSize.unselected,
-            ...parsed.nodeSize?.unselected,
-          },
-        },
+        nodeSize,
         layout: {
           ...defaultERDSettings.layout,
           ...parsed.layout,
@@ -93,13 +94,13 @@ export function resetERDSettings() {
 
 /**
  * 현재 설정 가져오기 (싱글톤 패턴)
+ * 주의: 설정이 변경되면 캐시를 무효화해야 함
  */
 let currentSettings = null
 
 export function getERDSettings() {
-  if (!currentSettings) {
-    currentSettings = loadERDSettings()
-  }
+  // 항상 최신 설정을 로드 (캐시 무효화)
+  currentSettings = loadERDSettings()
   return currentSettings
 }
 
@@ -111,16 +112,9 @@ export function updateERDSettings(updates) {
   const current = getERDSettings()
   const updated = {
     nodeSize: {
+      ...defaultERDSettings.nodeSize,
       ...current.nodeSize,
       ...updates.nodeSize,
-      selected: {
-        ...current.nodeSize.selected,
-        ...updates.nodeSize?.selected,
-      },
-      unselected: {
-        ...current.nodeSize.unselected,
-        ...updates.nodeSize?.unselected,
-      },
     },
     layout: {
       ...current.layout,

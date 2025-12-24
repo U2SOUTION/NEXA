@@ -231,7 +231,7 @@ defineExpose({
     }
   }
 
-  // 선택된 노드 스타일
+  // 선택된 노드 스타일 (크기 변경 없이 색상과 스타일만 변경)
   .node.node-selected {
     rect {
       fill: var(--nexa-primary);
@@ -243,7 +243,6 @@ defineExpose({
 
     text {
       fill: #ffffff;
-      font-size: 16px;
       font-weight: 700;
     }
   }
