@@ -54,18 +54,9 @@ async function loadDagreLibraries() {
  * @returns {Promise<Object>} 렌더링 결과 (svg, svgGroup, zoom, graph)
  */
 export async function renderERD(container, data, options = {}) {
-  const {
-    tables = [],
-    relationships = [],
-  } = data
+  const { tables = [], relationships = [] } = data
 
-  const {
-    selectedNode = null,
-    layoutType = layoutTypes.HIERARCHICAL,
-    layoutOptions = {},
-    onNodeClick = null,
-    onNodeHover = null,
-  } = options
+  const { selectedNode = null, layoutType = layoutTypes.HIERARCHICAL, layoutOptions = {}, onNodeClick = null, onNodeHover = null } = options
 
   // dagre 라이브러리 로드
   const libraries = await loadDagreLibraries()
@@ -85,12 +76,7 @@ export async function renderERD(container, data, options = {}) {
   }
 
   // SVG 생성
-  const svg = d3.select(container)
-    .append('svg')
-    .attr('width', '100%')
-    .attr('height', '100%')
-    .attr('viewBox', `0 0 ${containerWidth} ${containerHeight}`)
-    .style('background-color', 'var(--nexa-background)')
+  const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', '100%').attr('viewBox', `0 0 ${containerWidth} ${containerHeight}`).style('background-color', 'var(--nexa-background)')
 
   const svgGroup = svg.append('g')
 
@@ -98,20 +84,20 @@ export async function renderERD(container, data, options = {}) {
   const layoutOpts = getLayoutOptions(layoutType, layoutOptions)
   const graph = new graphlib.Graph()
     .setGraph({
-      rankdir: layoutOpts.rankdir || 'LR',
-      nodesep: layoutOpts.nodesep || 100, // 노드 간격 증가 (50 -> 100)
-      ranksep: layoutOpts.ranksep || 120, // 레벨 간격 증가 (80 -> 120)
-      marginx: layoutOpts.marginx || 50,
-      marginy: layoutOpts.marginy || 50,
+      rankdir: layoutOpts.rankdir || 'LR', // 레이아웃 방향
+      nodesep: layoutOpts.nodesep || 200, // 같은 레벨 내 노드 간 수평 최소 간격
+      ranksep: layoutOpts.ranksep || 120, // 서로 다른 레벨 간 수직 최소 간격
+      marginx: layoutOpts.marginx || 150, // 마진 X
+      marginy: layoutOpts.marginy || 150, // 마진 Y
     })
     .setDefaultEdgeLabel(() => ({}))
 
   // 노드 추가 (테이블)
   tables.forEach((table) => {
     const isSelected = selectedNode === table.name
-    const nodeWidth = isSelected ? 250 : 180 // 노드 크기 증가
-    const nodeHeight = isSelected ? 100 : 70
-    
+    const nodeWidth = isSelected ? 120 : 100 // 노드 크기
+    const nodeHeight = isSelected ? 30 : 25 // 노드 높이
+
     graph.setNode(table.name, {
       label: table.name,
       shape: 'rect',
@@ -149,27 +135,49 @@ export async function renderERD(container, data, options = {}) {
     throw new Error('render를 찾을 수 없습니다.')
   }
 
+  // 노드 라벨 중앙 정렬 설정
+  svgGroup.selectAll('.node').each(function () {
+    const node = d3.select(this)
+    const rect = node.select('rect')
+    const text = node.select('text')
+
+    if (!rect.node() || !text.node()) return
+
+    // 노드 중심 좌표 계산
+    const bbox = rect.node().getBBox()
+    const centerX = bbox.x + bbox.width / 2
+    const centerY = bbox.y + bbox.height / 2
+
+    // 모든 tspan의 x를 0으로 설정 (중앙 정렬)
+    text.selectAll('tspan').attr('x', 0)
+    // 첫 번째 tspan의 dy만 0으로 설정 (나머지는 줄 간격 유지)
+    text.select('tspan').attr('dy', 0)
+
+    // text 중앙 정렬
+    text.attr('x', centerX).attr('y', centerY).attr('dy', 0).attr('text-anchor', 'middle')
+  })
+
   // 노드 클릭 이벤트 추가
   if (onNodeClick) {
-    svgGroup.selectAll('.node')
-      .on('click', function(event, d) {
-        const nodeId = d
-        const nodeData = tables.find(t => t.name === nodeId)
-        onNodeClick(nodeId, nodeData)
-      })
+    svgGroup.selectAll('.node').on('click', function (event, d) {
+      const nodeId = d
+      const nodeData = tables.find((t) => t.name === nodeId)
+      onNodeClick(nodeId, nodeData)
+    })
   }
 
   // 노드 호버 이벤트 추가
   if (onNodeHover) {
-    svgGroup.selectAll('.node')
-      .on('mouseenter', function(event, d) {
+    svgGroup
+      .selectAll('.node')
+      .on('mouseenter', function (event, d) {
         const nodeId = d
-        const nodeData = tables.find(t => t.name === nodeId)
+        const nodeData = tables.find((t) => t.name === nodeId)
         onNodeHover(nodeId, nodeData, true)
       })
-      .on('mouseleave', function(event, d) {
+      .on('mouseleave', function (event, d) {
         const nodeId = d
-        const nodeData = tables.find(t => t.name === nodeId)
+        const nodeData = tables.find((t) => t.name === nodeId)
         onNodeHover(nodeId, nodeData, false)
       })
   }
@@ -236,4 +244,3 @@ export async function updateERD(renderResult, data, options = {}) {
     }
   }
 }
-

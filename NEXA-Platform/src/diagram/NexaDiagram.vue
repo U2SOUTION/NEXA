@@ -213,6 +213,12 @@ defineExpose({
     ry: 4px;
   }
 
+  // 노드 라벨 중앙 정렬
+  .node text {
+    text-anchor: middle !important;
+    dominant-baseline: middle !important;
+  }
+
   // 엣지 스타일
   .edgePath path {
     marker-end: url(#arrowhead);
