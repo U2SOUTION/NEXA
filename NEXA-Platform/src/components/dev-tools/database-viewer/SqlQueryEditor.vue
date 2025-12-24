@@ -375,6 +375,9 @@
     <div class="q-pa-md">
       <pre class="feature-list">
 추가 가능한 기능
+
+[차트 활용 데이터베이스 대시보드]
+
 1. 쿼리 결과 관련
   결과 내보내기: CSV, JSON, Excel
   결과 복사: 클립보드 복사
