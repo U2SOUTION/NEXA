@@ -354,6 +354,12 @@ function handleTableSelected(event) {
     isEditing.value = false
     // 테이블 상세 정보 자동 로드
     loadTableStructure()
+  } else if (tableName === null) {
+    // 테이블 선택 해제
+    selectedTable.value = null
+    tableStructure.value = null
+    isCreating.value = false
+    isEditing.value = false
   }
 }
 
@@ -600,17 +606,49 @@ function handleCancel() {
   // 선택된 테이블은 유지 (왼쪽 사이드바에서 선택한 상태 유지)
 }
 
+// 서브 메뉴 변경 이벤트 핸들러 (편집기 탭 활성화 시)
+function handleSubMenuChanged(event) {
+  const subMenu = event.detail?.subMenu
+  const eventSelectedTable = event.detail?.selectedTable
+  // 편집기 탭으로 전환될 때
+  if (subMenu === 'editor') {
+    // 이벤트에 선택된 테이블 정보가 있으면 무조건 적용 (마운트 직후일 수 있으므로)
+    if (eventSelectedTable) {
+      selectedTable.value = eventSelectedTable
+      isCreating.value = false
+      isEditing.value = false
+      loadTableStructure()
+    }
+    // 이미 선택된 테이블이 있지만 구조가 로드되지 않았으면 로드
+    else if (selectedTable.value && !tableStructure.value && !isLoadingTableStructure.value) {
+      loadTableStructure()
+    }
+    // 선택된 테이블이 없으면 이벤트를 발생시켜 현재 선택 상태 확인
+    else if (!selectedTable.value && !eventSelectedTable) {
+      // 현재 선택된 테이블 확인을 위한 이벤트 요청
+      window.dispatchEvent(new CustomEvent('database-viewer-request-selected-table'))
+    }
+  }
+}
+
 // 이벤트 리스너 등록/해제
 onMounted(() => {
   window.addEventListener('database-table-selected', handleTableSelected)
+  window.addEventListener('database-viewer-sub-menu-changed', handleSubMenuChanged)
+
   // 마운트 시 selectedTable이 이미 설정되어 있으면 로드
   if (selectedTable.value && !tableStructure.value) {
     loadTableStructure()
+  } else {
+    // 마운트 직후 선택된 테이블이 있는지 확인하기 위해 이벤트 요청
+    // 이렇게 하면 편집기 탭으로 전환될 때 선택된 테이블을 받을 수 있음
+    window.dispatchEvent(new CustomEvent('database-viewer-request-selected-table'))
   }
 })
 
 onUnmounted(() => {
   window.removeEventListener('database-table-selected', handleTableSelected)
+  window.removeEventListener('database-viewer-sub-menu-changed', handleSubMenuChanged)
 })
 </script>
 

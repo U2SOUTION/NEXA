@@ -279,8 +279,12 @@ function handleDatabaseViewerSearchChange(query) {
   databaseViewerSearchQuery.value = query
 }
 
+// 데이터베이스 뷰어 선택된 테이블 상태
+const databaseViewerSelectedTable = ref(null)
+
 // 데이터베이스 뷰어 테이블 선택 핸들러
 function handleDatabaseViewerTableSelected(tableName) {
+  databaseViewerSelectedTable.value = tableName
   // 전역 이벤트로 DatabaseViewerContent에 알림
   window.dispatchEvent(
     new CustomEvent('database-table-selected', {
@@ -300,14 +304,25 @@ function handleDatabaseViewerSettings() {
 // 데이터베이스 뷰어 서브 메뉴 변경 핸들러
 function handleDatabaseViewerSubMenuChange(subMenu) {
   databaseViewerSubMenu.value = subMenu
-  // 전역 이벤트로 DatabaseViewerContent에 알림
+  // 전역 이벤트로 DatabaseViewerContent에 알림 (선택된 테이블 정보도 포함)
   window.dispatchEvent(
     new CustomEvent('database-viewer-sub-menu-changed', {
       detail: {
         subMenu: subMenu,
+        selectedTable: databaseViewerSelectedTable.value, // 선택된 테이블 정보 포함
       },
     })
   )
+  // 편집기 탭으로 전환 시 선택된 테이블이 있으면 테이블 선택 이벤트도 발생
+  if (subMenu === 'editor' && databaseViewerSelectedTable.value) {
+    window.dispatchEvent(
+      new CustomEvent('database-table-selected', {
+        detail: {
+          tableName: databaseViewerSelectedTable.value,
+        },
+      })
+    )
+  }
 }
 
 // Content 컴포넌트 참조

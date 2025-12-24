@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, onMounted, watch } from 'vue'
+import { ref, computed, defineProps, defineEmits, onMounted, onUnmounted, watch } from 'vue'
 
 const props = defineProps({
   searchQuery: {
@@ -151,9 +151,24 @@ watch(
   }
 )
 
+// 현재 선택된 테이블 요청 이벤트 핸들러
+function handleRequestSelectedTable() {
+  // 현재 선택된 테이블이 있으면 이벤트 발생
+  if (selectedTable.value) {
+    emit('table-selected', selectedTable.value)
+  }
+}
+
 // 컴포넌트 마운트 시 테이블 목록 로드
 onMounted(() => {
   loadTables()
+  // 현재 선택된 테이블 요청 이벤트 리스너 등록
+  window.addEventListener('database-viewer-request-selected-table', handleRequestSelectedTable)
+})
+
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
+onUnmounted(() => {
+  window.removeEventListener('database-viewer-request-selected-table', handleRequestSelectedTable)
 })
 
 // refresh 이벤트 리스너
