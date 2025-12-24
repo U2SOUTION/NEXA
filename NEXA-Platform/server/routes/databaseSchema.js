@@ -699,5 +699,139 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
     }
   })
 
+  // POST /api/db/backup - 데이터베이스 백업
+  router.post('/backup', async (req, res) => {
+    try {
+      const dbConnection = checkConnection(res)
+      if (!dbConnection) return
+
+      const { type = 'full', options = {}, tableName = null } = req.body
+
+      // 데이터베이스 이름 가져오기
+      const [dbResult] = await dbConnection.execute('SELECT DATABASE() as dbName')
+      const dbName = dbResult[0]?.dbName
+
+      if (!dbName) {
+        return res.status(500).json({
+          error: '데이터베이스 이름을 가져올 수 없습니다.',
+        })
+      }
+
+      let backupSQL = ''
+
+      // 헤더 추가
+      backupSQL += `-- MySQL Database Backup\n`
+      backupSQL += `-- Database: ${dbName}\n`
+      backupSQL += `-- Generated: ${new Date().toISOString()}\n`
+      backupSQL += `-- Backup Type: ${type}\n`
+      if (tableName) {
+        backupSQL += `-- Table: ${tableName}\n`
+      }
+      backupSQL += `\n`
+      backupSQL += `SET FOREIGN_KEY_CHECKS=0;\n\n`
+
+      // 테이블 목록 가져오기
+      let tables
+      if (tableName) {
+        // 특정 테이블만 백업
+        tables = [{ TABLE_NAME: tableName }]
+      } else {
+        // 전체 데이터베이스 백업
+        ;[tables] = await dbConnection.execute(`
+          SELECT TABLE_NAME
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_SCHEMA = ?
+          ORDER BY TABLE_NAME
+        `, [dbName])
+      }
+
+      for (const table of tables) {
+        const tableName = table.TABLE_NAME
+
+        // DROP TABLE 문 추가
+        if (options.addDropTable) {
+          backupSQL += `DROP TABLE IF EXISTS \`${tableName}\`;\n`
+        }
+
+        // CREATE TABLE 문 가져오기
+        if (type === 'full' || type === 'structure') {
+          const [createResult] = await dbConnection.execute(`SHOW CREATE TABLE \`${tableName}\``)
+          let createTableSQL = createResult[0]['Create Table']
+
+          // IF NOT EXISTS 추가
+          if (options.addIfNotExists && !createTableSQL.includes('IF NOT EXISTS')) {
+            createTableSQL = createTableSQL.replace(/^CREATE TABLE/, 'CREATE TABLE IF NOT EXISTS')
+          }
+
+          backupSQL += `${createTableSQL};\n\n`
+        }
+
+        // 데이터 백업
+        if (type === 'full' || type === 'data') {
+          // LOCK TABLES 추가
+          if (options.addLockTables) {
+            backupSQL += `LOCK TABLES \`${tableName}\` WRITE;\n`
+          }
+
+          // 데이터 가져오기
+          const [rows] = await dbConnection.execute(`SELECT * FROM \`${tableName}\``)
+
+          if (rows.length > 0) {
+            // 컬럼 목록 가져오기
+            const [columns] = await dbConnection.execute(`SHOW COLUMNS FROM \`${tableName}\``)
+            const columnNames = columns.map((col) => `\`${col.Field}\``).join(', ')
+
+            // INSERT 문 생성
+            backupSQL += `INSERT INTO \`${tableName}\` (${columnNames}) VALUES\n`
+
+            const values = rows.map((row) => {
+              const rowValues = columns.map((col) => {
+                const value = row[col.Field]
+                if (value === null) return 'NULL'
+                if (typeof value === 'string') {
+                  // SQL 이스케이프
+                  return `'${value.replace(/'/g, "''").replace(/\\/g, '\\\\')}'`
+                }
+                return value
+              })
+              return `(${rowValues.join(', ')})`
+            })
+
+            // 1000개씩 나누어서 INSERT
+            const chunkSize = 1000
+            for (let i = 0; i < values.length; i += chunkSize) {
+              const chunk = values.slice(i, i + chunkSize)
+              backupSQL += `  ${chunk.join(',\n  ')}${i + chunk.length < values.length ? ',' : ';'}\n`
+            }
+          }
+
+          // UNLOCK TABLES
+          if (options.addLockTables) {
+            backupSQL += `UNLOCK TABLES;\n`
+          }
+
+          backupSQL += `\n`
+        }
+      }
+
+      backupSQL += `SET FOREIGN_KEY_CHECKS=1;\n`
+
+      // 파일로 응답
+      const dateStr = new Date().toISOString().split('T')[0]
+      const filename = tableName
+        ? `${dbName}_${tableName}_backup_${dateStr}.sql`
+        : `${dbName}_backup_${dateStr}.sql`
+      res.setHeader('Content-Type', 'application/sql')
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+      res.send(backupSQL)
+    } catch (error) {
+      console.error('[DB Schema] 데이터베이스 백업 실패:', error)
+      res.status(500).json({
+        error: '데이터베이스 백업 실패',
+        message: error.message,
+      })
+    }
+  })
+
   return router
 }

@@ -200,6 +200,7 @@
         <q-btn flat icon="save" label="쿼리저장" @click="handleSave" dense />
         <q-btn flat icon="bookmark" label="저장쿼리" @click="handleShowSavedQueries" dense />
         <q-btn flat icon="history" label="히스토리" @click="handleShowHistory" dense />
+        <q-btn flat icon="backup" label="DB 백업" @click="handleBackup" dense />
       </div>
     </div>
 
@@ -322,6 +323,54 @@
       </q-card>
     </q-dialog>
 
+    <!-- 데이터베이스 백업 다이얼로그 -->
+    <q-dialog v-model="showBackupDialog">
+      <q-card style="min-width: 500px; max-width: 600px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">데이터베이스 백업</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <!-- 백업 범위 선택 -->
+          <div class="q-mb-md">
+            <div class="text-body2 text-weight-medium q-mb-sm">백업 범위:</div>
+            <q-radio v-model="backupScope" val="all" label="전체 데이터베이스" />
+            <q-radio v-if="selectedTable" v-model="backupScope" val="selected" :label="`선택된 테이블: ${selectedTable}`" />
+          </div>
+
+          <!-- 선택된 테이블 정보 표시 -->
+          <div v-if="backupScope === 'selected' && selectedTable" class="q-mb-md q-pa-md" style="background-color: var(--nexa-surface); border-radius: 4px">
+            <div class="text-body2 text-weight-medium q-mb-xs">선택된 테이블:</div>
+            <div class="text-h6 text-primary">{{ selectedTable }}</div>
+            <div class="text-caption text-grey-7 q-mt-xs">선택한 테이블만 백업됩니다.</div>
+          </div>
+          <div v-else-if="backupScope === 'all'" class="q-mb-md q-pa-md" style="background-color: var(--nexa-surface); border-radius: 4px">
+            <div class="text-body2 text-weight-medium q-mb-xs">백업 범위:</div>
+            <div class="text-h6">전체 데이터베이스</div>
+            <div class="text-caption text-grey-7 q-mt-xs">모든 테이블이 백업됩니다.</div>
+          </div>
+
+          <!-- 백업 타입 선택 -->
+          <div class="q-mb-md">
+            <div class="text-body2 text-weight-medium q-mb-sm">백업 타입:</div>
+            <q-radio v-model="backupType" val="full" label="구조 + 데이터" />
+            <q-radio v-model="backupType" val="structure" label="구조만 (CREATE 문)" />
+            <q-radio v-model="backupType" val="data" label="데이터만 (INSERT 문)" />
+          </div>
+          <q-checkbox v-model="backupOptions.addDropTable" label="DROP TABLE 문 추가" />
+          <q-checkbox v-model="backupOptions.addIfNotExists" label="IF NOT EXISTS 추가" />
+          <q-checkbox v-model="backupOptions.addLockTables" label="LOCK TABLES 추가" />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="취소" v-close-popup />
+          <q-btn flat label="백업 실행" color="primary" @click="executeBackup" :loading="isBackingUp" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- 추가 가능한 기능 목록 -->
     <div class="q-pa-md">
       <pre class="feature-list">
@@ -393,6 +442,15 @@ const showHistoryDialog = ref(false)
 const queryHistory = ref([])
 const executionTime = ref(null)
 const affectedRows = ref(null)
+const showBackupDialog = ref(false)
+const backupScope = ref('all') // 'all' 또는 'selected'
+const backupType = ref('full')
+const isBackingUp = ref(false)
+const backupOptions = ref({
+  addDropTable: true,
+  addIfNotExists: true,
+  addLockTables: false,
+})
 
 // 결과 컬럼 추출
 const resultColumns = computed(() => {
@@ -725,6 +783,83 @@ function handleExport() {
     type: 'info',
     message: '결과 내보내기 기능은 곧 구현될 예정입니다.',
   })
+}
+
+// 백업 다이얼로그 표시
+function handleBackup() {
+  // 선택된 테이블이 있으면 'selected'를 기본값으로, 없으면 'all'을 기본값으로
+  backupScope.value = selectedTable.value ? 'selected' : 'all'
+  showBackupDialog.value = true
+}
+
+// 백업 실행
+async function executeBackup() {
+  isBackingUp.value = true
+
+  try {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+    const response = await fetch(`${apiBaseUrl}/db/backup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: backupType.value,
+        options: backupOptions.value,
+        tableName: backupScope.value === 'selected' && selectedTable.value ? selectedTable.value : null,
+      }),
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.message || data.error || '백업에 실패했습니다.')
+    }
+
+    // 백업 파일 다운로드
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+
+    // 파일명 파싱 개선
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let filename = null
+
+    if (contentDisposition) {
+      // 여러 형식 지원: filename="...", filename=..., filename*=UTF-8''...
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/i)
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1].replace(/['"]/g, '')
+      }
+    }
+
+    // 파싱 실패 시 백엔드로 보낸 정보로 파일명 생성
+    if (!filename) {
+      const dateStr = new Date().toISOString().split('T')[0]
+      const tableName = backupScope.value === 'selected' && selectedTable.value ? selectedTable.value : null
+      filename = tableName ? `database_${tableName}_backup_${dateStr}.sql` : `database_backup_${dateStr}.sql`
+    }
+
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+
+    $q.notify({
+      type: 'positive',
+      message: '데이터베이스 백업이 완료되었습니다.',
+    })
+
+    showBackupDialog.value = false
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: `백업 실패: ${error.message}`,
+    })
+  } finally {
+    isBackingUp.value = false
+  }
 }
 
 // 샘플 쿼리 로드
