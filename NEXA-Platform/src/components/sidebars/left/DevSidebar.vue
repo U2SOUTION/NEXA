@@ -313,15 +313,19 @@ function handleDatabaseViewerSubMenuChange(subMenu) {
       },
     })
   )
-  // 편집기 탭으로 전환 시 선택된 테이블이 있으면 테이블 선택 이벤트도 발생
-  if (subMenu === 'editor' && databaseViewerSelectedTable.value) {
-    window.dispatchEvent(
-      new CustomEvent('database-table-selected', {
-        detail: {
-          tableName: databaseViewerSelectedTable.value,
-        },
-      })
-    )
+  // 서브 메뉴 변경 시 선택된 테이블이 있으면 테이블 선택 이벤트 재발생
+  // (편집기, SQL 탭 등에서 선택된 테이블 정보를 유지하기 위함)
+  if (databaseViewerSelectedTable.value && (subMenu === 'editor' || subMenu === 'query')) {
+    // 약간의 지연을 두어 컴포넌트가 마운트된 후 이벤트 발생
+    setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent('database-table-selected', {
+          detail: {
+            tableName: databaseViewerSelectedTable.value,
+          },
+        })
+      )
+    }, 100)
   }
 }
 

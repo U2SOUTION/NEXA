@@ -7,9 +7,9 @@
   <div class="sql-query-editor">
     <!-- 툴바 -->
     <div class="sql-editor-toolbar q-mr-xs row items-center justify-between">
-      <div class="row items-center q-gutter-sm">
+      <div class="row items-center sql-toolbar-left">
         <q-btn color="primary" icon="play_arrow" label="실행" @click="handleExecute" :loading="isExecuting" />
-        <q-btn-dropdown flat icon="description" label="샘플 쿼리" @click="handleLoadSample">
+        <q-btn-dropdown flat icon="description" label="샘플 쿼리" @click="handleLoadSample" dense>
           <q-list>
             <q-item clickable v-close-popup @click="loadSampleQuery('select')">
               <q-item-section avatar>
@@ -78,7 +78,7 @@
           </q-list>
         </q-btn-dropdown>
       </div>
-      <div class="row items-center q-gutter-sm">
+      <div class="row items-center sql-toolbar-right">
         <!-- 선택된 테이블 빠른 액션 -->
         <q-btn-dropdown v-if="selectedTable" flat dense :label="selectedTable" icon="table_chart" color="primary">
           <q-list>
@@ -196,9 +196,10 @@
             </q-item>
           </q-list>
         </q-btn-dropdown>
-        <q-btn flat icon="clear" label="초기화" @click="handleClear" />
-        <q-btn flat icon="save" label="저장" @click="handleSave" />
-        <q-btn flat icon="history" label="히스토리" @click="handleShowHistory" />
+        <q-btn flat icon="clear" label="초기화" @click="handleClear" dense />
+        <q-btn flat icon="save" label="쿼리저장" @click="handleSave" dense />
+        <q-btn flat icon="bookmark" label="저장쿼리" @click="handleShowSavedQueries" dense />
+        <q-btn flat icon="history" label="히스토리" @click="handleShowHistory" dense />
       </div>
     </div>
 
@@ -208,7 +209,7 @@
         <q-icon name="code" size="16px" class="q-mr-xs" />
         <span>SQL 쿼리</span>
       </div>
-      <q-input v-model="query" type="textarea" placeholder="SQL 쿼리를 입력하세요..." :rows="15" outlined class="sql-textarea q-mr-xs" />
+      <q-input v-model="query" type="textarea" placeholder="SQL 쿼리를 입력하세요..." :rows="4" autogrow outlined class="sql-textarea q-mr-xs" />
     </div>
 
     <!-- 결과 영역 -->
@@ -243,13 +244,133 @@
             </tr>
           </tbody>
         </table>
+        <!-- 실행 정보 -->
+        <pre v-if="executionTime" class="execution-info">{{ getExecutionInfo() }}</pre>
       </div>
 
       <!-- 빈 상태 -->
-      <div v-else class="empty-state text-center q-pa-lg">
-        <q-icon name="code" size="48px" color="grey-7" class="q-mb-md" />
-        <div class="text-body2 text-grey-7">쿼리를 실행하면 결과가 여기에 표시됩니다.</div>
+      <div v-else class="empty-state q-pa-lg">
+        <div v-if="executionTime" class="text-center q-mb-md">
+          <pre class="execution-info">{{ getExecutionInfo() }}</pre>
+        </div>
+        <div v-else class="text-center">
+          <q-icon name="code" size="48px" color="grey-7" class="q-mb-md" />
+          <div class="text-body2 text-grey-7">쿼리를 실행하면 결과가 여기에 표시됩니다.</div>
+        </div>
       </div>
+    </div>
+
+    <!-- 저장된 쿼리 다이얼로그 -->
+    <q-dialog v-model="showSavedQueriesDialog">
+      <q-card style="min-width: 500px; max-width: 700px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">저장된 쿼리</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section v-if="savedQueries.length === 0" class="text-center q-pa-lg">
+          <q-icon name="inbox" size="48px" color="grey-7" class="q-mb-md" />
+          <div class="text-body2 text-grey-7">저장된 쿼리가 없습니다.</div>
+        </q-card-section>
+
+        <q-card-section v-else class="q-pa-none">
+          <q-list separator>
+            <q-item v-for="savedQuery in savedQueries" :key="savedQuery.id" clickable v-ripple @click="loadSavedQuery(savedQuery)">
+              <q-item-section>
+                <q-item-label>{{ savedQuery.name }}</q-item-label>
+                <q-item-label caption>
+                  {{ new Date(savedQuery.updatedAt).toLocaleString('ko-KR') }}
+                </q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-btn flat round dense icon="delete" color="negative" @click.stop="confirmDeleteQuery(savedQuery)" />
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- 쿼리 실행 히스토리 다이얼로그 -->
+    <q-dialog v-model="showHistoryDialog">
+      <q-card style="min-width: 500px; max-width: 700px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">쿼리 실행 히스토리</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section v-if="queryHistory.length === 0" class="text-center q-pa-lg">
+          <q-icon name="history" size="48px" color="grey-7" class="q-mb-md" />
+          <div class="text-body2 text-grey-7">실행한 쿼리가 없습니다.</div>
+        </q-card-section>
+
+        <q-card-section v-else class="q-pa-none">
+          <q-list separator>
+            <q-item v-for="(historyItem, index) in queryHistory" :key="historyItem.id" clickable v-ripple @click="loadHistoryQuery(historyItem)">
+              <q-item-section>
+                <q-item-label class="text-caption text-grey-7">쿼리 {{ queryHistory.length - index }}</q-item-label>
+                <q-item-label caption class="text-body2" style="white-space: pre-wrap; word-break: break-all"> {{ historyItem.query.substring(0, 100) }}{{ historyItem.query.length > 100 ? '...' : '' }} </q-item-label>
+                <q-item-label caption>
+                  {{ new Date(historyItem.executedAt).toLocaleString('ko-KR') }}
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- 추가 가능한 기능 목록 -->
+    <div class="q-pa-md">
+      <pre class="feature-list">
+추가 가능한 기능
+1. 쿼리 결과 관련
+  결과 내보내기: CSV, JSON, Excel
+  결과 복사: 클립보드 복사
+  결과 페이징: 대용량 결과 처리
+  결과 필터링/정렬: 클라이언트 측 필터링
+  결과 차트: 그래프/차트 시각화
+2. 쿼리 편집 기능
+  SQL 문법 하이라이팅: 코드 색상 구분
+  자동 완성: 테이블/컬럼명 자동완성
+  쿼리 포맷팅: 자동 정렬
+  쿼리 검증: 실행 전 문법 검사
+  다중 쿼리 실행: 세미콜론으로 구분된 여러 쿼리 실행
+3. 성능/분석 기능
+  실행 시간 표시: 쿼리 실행 시간 측정
+  실행 계획: EXPLAIN 결과 표시
+  느린 쿼리 감지: 실행 시간 경고
+  쿼리 최적화 제안: 인덱스 사용 제안 등
+4. 편의 기능
+  즐겨찾기: 자주 사용하는 쿼리 즐겨찾기
+  카테고리/태그: 저장된 쿼리 분류
+  검색: 저장된 쿼리 검색
+  쿼리 비교: 두 쿼리 결과 비교
+  변수 바인딩: 파라미터화된 쿼리 지원
+5. 보안/안전 기능
+  위험 쿼리 경고: DROP, DELETE 등 경고
+  실행 전 확인: DDL/DML 쿼리 확인 다이얼로그
+  롤백 시뮬레이션: 트랜잭션 미리보기
+  쿼리 로깅: 실행 이력 상세 기록
+6. 협업 기능
+  쿼리 공유: 팀원과 쿼리 공유
+  주석/설명: 쿼리에 설명 추가
+  버전 관리: 쿼리 버전 추적
+7. 고급 기능
+  스케줄링: 정기 실행
+  알림: 쿼리 완료 알림
+  백업/복원: 쿼리 백업
+  템플릿 라이브러리: 재사용 가능한 템플릿
+
+우선순위 제안
+결과 내보내기 (CSV/JSON)
+SQL 문법 하이라이팅
+실행 시간 표시
+쿼리 포맷팅
+결과 복사 기능</pre
+      >
     </div>
   </div>
 </template>
@@ -266,6 +387,12 @@ const isExecuting = ref(false)
 const result = ref(null)
 const error = ref(null)
 const selectedTable = ref(null)
+const showSavedQueriesDialog = ref(false)
+const savedQueries = ref([])
+const showHistoryDialog = ref(false)
+const queryHistory = ref([])
+const executionTime = ref(null)
+const affectedRows = ref(null)
 
 // 결과 컬럼 추출
 const resultColumns = computed(() => {
@@ -277,29 +404,6 @@ const resultColumns = computed(() => {
 const resultRowCount = computed(() => {
   return result.value ? result.value.length : 0
 })
-
-// 쿼리에서 테이블명 추출 (CREATE TABLE, DROP TABLE 등)
-function extractTableNameFromQuery(queryText) {
-  // CREATE TABLE 테이블명 추출
-  const createMatch = queryText.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([`"]?)(\w+)\1/i)
-  if (createMatch) {
-    return createMatch[2]
-  }
-
-  // DROP TABLE 테이블명 추출
-  const dropMatch = queryText.match(/DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?([`"]?)(\w+)\1/i)
-  if (dropMatch) {
-    return dropMatch[2]
-  }
-
-  // CREATE TABLE ... LIKE 테이블명 추출 (복사 쿼리)
-  const createLikeMatch = queryText.match(/CREATE\s+TABLE\s+([`"]?)(\w+)\1\s+LIKE/i)
-  if (createLikeMatch) {
-    return createLikeMatch[2]
-  }
-
-  return null
-}
 
 // 쿼리 실행
 async function handleExecute() {
@@ -314,6 +418,10 @@ async function handleExecute() {
   isExecuting.value = true
   error.value = null
   result.value = null
+  executionTime.value = null
+  affectedRows.value = null
+
+  const startTime = performance.now()
 
   try {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
@@ -325,6 +433,9 @@ async function handleExecute() {
       body: JSON.stringify({ query: query.value }),
     })
 
+    const endTime = performance.now()
+    executionTime.value = ((endTime - startTime) / 1000).toFixed(3)
+
     const data = await response.json()
 
     if (!response.ok) {
@@ -334,6 +445,10 @@ async function handleExecute() {
     if (data.success) {
       // 결과가 있으면 표시
       result.value = data.data || []
+      affectedRows.value = data.affectedRows || null
+
+      // 쿼리 실행 히스토리에 추가
+      addToHistory(query.value)
 
       // DDL 쿼리(CREATE TABLE, DROP TABLE 등)인 경우 테이블 목록 새로고침
       // 주석과 공백을 제거한 순수 쿼리 추출
@@ -364,25 +479,6 @@ async function handleExecute() {
         // 2. DatabaseViewerList에 직접 새로고침 이벤트 (즉시 반영)
         window.dispatchEvent(new CustomEvent('database-viewer-list-refresh'))
         console.log('[SqlQueryEditor] database-viewer-list-refresh 이벤트 발생')
-
-        // CREATE TABLE인 경우 생성된 테이블 자동 선택
-        const createdTableName = extractTableNameFromQuery(cleanQuery)
-        console.log('[SqlQueryEditor] 추출된 테이블명:', createdTableName)
-
-        if (createdTableName && /^\s*CREATE\s+TABLE/i.test(cleanQuery)) {
-          console.log('[SqlQueryEditor] 생성된 테이블 자동 선택 예약:', createdTableName)
-          // 약간의 지연 후 테이블 선택 (목록 새로고침 완료 대기)
-          setTimeout(() => {
-            console.log('[SqlQueryEditor] 테이블 선택 이벤트 발생:', createdTableName)
-            window.dispatchEvent(
-              new CustomEvent('database-table-selected', {
-                detail: {
-                  tableName: createdTableName,
-                },
-              }),
-            )
-          }, 500) // 지연 시간을 500ms로 증가 (새로고침 완료 대기)
-        }
       }
     } else {
       result.value = []
@@ -402,22 +498,224 @@ function handleClear() {
   error.value = null
 }
 
+// 로컬 스토리지에서 저장된 쿼리 목록 가져오기
+function getSavedQueries() {
+  try {
+    const saved = localStorage.getItem('saved-sql-queries')
+    return saved ? JSON.parse(saved) : []
+  } catch (error) {
+    console.error('[SqlQueryEditor] 저장된 쿼리 불러오기 실패:', error)
+    return []
+  }
+}
+
+// 로컬 스토리지에 쿼리 목록 저장
+function saveQueriesToStorage(queries) {
+  try {
+    localStorage.setItem('saved-sql-queries', JSON.stringify(queries))
+  } catch (error) {
+    console.error('[SqlQueryEditor] 쿼리 저장 실패:', error)
+    throw error
+  }
+}
+
 // 저장
 function handleSave() {
-  // TODO: 쿼리 저장 기능 구현
-  $q.notify({
-    type: 'info',
-    message: '쿼리 저장 기능은 곧 구현될 예정입니다.',
+  if (!query.value.trim()) {
+    $q.notify({
+      type: 'warning',
+      message: '저장할 쿼리를 입력하세요.',
+    })
+    return
+  }
+
+  $q.dialog({
+    title: '쿼리 저장',
+    message: '저장할 쿼리의 이름을 입력하세요.',
+    prompt: {
+      model: '',
+      type: 'text',
+      placeholder: '예: 월별 매출 조회',
+      isValid: (val) => val && val.trim().length > 0,
+      attrs: {
+        maxlength: 100,
+      },
+    },
+    cancel: true,
+    persistent: true,
+  }).onOk((queryName) => {
+    try {
+      const savedQueries = getSavedQueries()
+      const trimmedName = queryName.trim()
+
+      // 중복 이름 확인
+      const existingIndex = savedQueries.findIndex((q) => q.name === trimmedName)
+      const now = new Date().toISOString()
+
+      if (existingIndex >= 0) {
+        // 기존 쿼리 업데이트
+        savedQueries[existingIndex].query = query.value
+        savedQueries[existingIndex].updatedAt = now
+        $q.notify({
+          type: 'info',
+          message: `"${trimmedName}" 쿼리가 업데이트되었습니다.`,
+        })
+      } else {
+        // 새 쿼리 추가
+        const newQuery = {
+          id: `query-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: trimmedName,
+          query: query.value,
+          createdAt: now,
+          updatedAt: now,
+        }
+        savedQueries.push(newQuery)
+        $q.notify({
+          type: 'positive',
+          message: `"${trimmedName}" 쿼리가 저장되었습니다.`,
+        })
+      }
+
+      // 생성일 기준 내림차순 정렬 (최신순)
+      savedQueries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+      saveQueriesToStorage(savedQueries)
+
+      // 다이얼로그의 목록 새로고침
+      if (showSavedQueriesDialog.value) {
+        savedQueries.value = getSavedQueries()
+      }
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: `쿼리 저장 실패: ${error.message}`,
+      })
+    }
   })
 }
 
-// 히스토리
-function handleShowHistory() {
-  // TODO: 쿼리 히스토리 기능 구현
+// 저장된 쿼리 목록 표시
+function handleShowSavedQueries() {
+  savedQueries.value = getSavedQueries()
+  showSavedQueriesDialog.value = true
+}
+
+// 저장된 쿼리 불러오기
+function loadSavedQuery(savedQuery) {
+  query.value = savedQuery.query
+  showSavedQueriesDialog.value = false
   $q.notify({
-    type: 'info',
-    message: '쿼리 히스토리 기능은 곧 구현될 예정입니다.',
+    type: 'positive',
+    message: `"${savedQuery.name}" 쿼리를 불러왔습니다.`,
   })
+}
+
+// 히스토리 관련 함수들
+// 로컬 스토리지에서 쿼리 히스토리 가져오기
+function getQueryHistory() {
+  try {
+    const history = localStorage.getItem('sql-query-history')
+    return history ? JSON.parse(history) : []
+  } catch (error) {
+    console.error('[SqlQueryEditor] 히스토리 불러오기 실패:', error)
+    return []
+  }
+}
+
+// 로컬 스토리지에 쿼리 히스토리 저장
+function saveQueryHistoryToStorage(history) {
+  try {
+    localStorage.setItem('sql-query-history', JSON.stringify(history))
+  } catch (error) {
+    console.error('[SqlQueryEditor] 히스토리 저장 실패:', error)
+    throw error
+  }
+}
+
+// 히스토리에 쿼리 추가
+function addToHistory(queryText) {
+  try {
+    const history = getQueryHistory()
+    const now = new Date().toISOString()
+
+    // 중복 제거: 동일한 쿼리가 최근에 실행되었으면 제거
+    const trimmedQuery = queryText.trim()
+    const existingIndex = history.findIndex((h) => h.query.trim() === trimmedQuery)
+    if (existingIndex >= 0) {
+      history.splice(existingIndex, 1)
+    }
+
+    // 새 히스토리 항목 추가
+    const newHistoryItem = {
+      id: `history-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      query: queryText,
+      executedAt: now,
+    }
+
+    history.unshift(newHistoryItem)
+
+    // 최대 100개까지만 저장
+    if (history.length > 100) {
+      history.splice(100)
+    }
+
+    saveQueryHistoryToStorage(history)
+    queryHistory.value = history
+  } catch (error) {
+    console.error('[SqlQueryEditor] 히스토리 추가 실패:', error)
+  }
+}
+
+// 히스토리 표시
+function handleShowHistory() {
+  queryHistory.value = getQueryHistory()
+  showHistoryDialog.value = true
+}
+
+// 히스토리에서 쿼리 불러오기
+function loadHistoryQuery(historyItem) {
+  query.value = historyItem.query
+  showHistoryDialog.value = false
+  $q.notify({
+    type: 'positive',
+    message: '쿼리를 불러왔습니다.',
+  })
+}
+
+// 쿼리 삭제 확인
+function confirmDeleteQuery(savedQuery) {
+  $q.dialog({
+    title: '쿼리 삭제',
+    message: `"${savedQuery.name}" 쿼리를 삭제하시겠습니까?`,
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    if (deleteSavedQuery(savedQuery.id)) {
+      savedQueries.value = getSavedQueries()
+      $q.notify({
+        type: 'positive',
+        message: `"${savedQuery.name}" 쿼리가 삭제되었습니다.`,
+      })
+    } else {
+      $q.notify({
+        type: 'negative',
+        message: '쿼리 삭제에 실패했습니다.',
+      })
+    }
+  })
+}
+
+// 저장된 쿼리 삭제
+function deleteSavedQuery(queryId) {
+  try {
+    const savedQueries = getSavedQueries()
+    const filtered = savedQueries.filter((q) => q.id !== queryId)
+    saveQueriesToStorage(filtered)
+    return true
+  } catch (error) {
+    console.error('[SqlQueryEditor] 쿼리 삭제 실패:', error)
+    return false
+  }
 }
 
 // 내보내기
@@ -491,6 +789,18 @@ function handleLoadSample() {
 function formatNumber(num) {
   if (num === null || num === undefined) return '0'
   return new Intl.NumberFormat('ko-KR').format(num)
+}
+
+// 실행 정보 포맷팅
+function getExecutionInfo() {
+  let info = `실행 시간: ${executionTime.value}초`
+  if (result.value && result.value.length > 0) {
+    info += `\n반환된 행 수: ${formatNumber(result.value.length)}개`
+  }
+  if (affectedRows.value !== null && affectedRows.value !== undefined) {
+    info += `\n영향받은 행 수: ${formatNumber(affectedRows.value)}개`
+  }
+  return info
 }
 
 // 테이블 선택 이벤트 핸들러
@@ -662,6 +972,18 @@ DROP TABLE ${selectedTable.value};
 // 컴포넌트 마운트 시 이벤트 리스너 등록
 onMounted(() => {
   window.addEventListener('database-table-selected', handleTableSelected)
+
+  // 히스토리 불러오기
+  queryHistory.value = getQueryHistory()
+
+  // 마운트 시 현재 선택된 테이블 확인
+  // 약간의 지연을 두어 다른 컴포넌트가 먼저 마운트되도록 함
+  setTimeout(() => {
+    // 선택된 테이블이 없으면 DatabaseViewerList에 요청
+    if (!selectedTable.value) {
+      window.dispatchEvent(new CustomEvent('database-viewer-request-selected-table'))
+    }
+  }, 200)
 })
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
@@ -683,10 +1005,18 @@ onUnmounted(() => {
   margin-top: 8px;
   margin-bottom: 8px;
   padding-bottom: 8px;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.sql-toolbar-left,
+.sql-toolbar-right {
+  gap: 4px;
+  flex-wrap: nowrap;
 }
 
 .sql-query-section {
-  flex: 0 0 50%;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -699,18 +1029,39 @@ onUnmounted(() => {
 }
 
 .sql-textarea {
-  flex: 1;
-  overflow: auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  overflow: visible;
+  min-height: 100px;
+  max-height: 40vh;
+  border: 1px solid var(--nexa-primary);
+  border-radius: 10px;
 
   :deep(.q-field__control) {
-    height: 100%;
+    min-height: 100px;
+    max-height: 40vh;
+    border-color: var(--nexa-primary) !important;
+    overflow: hidden;
   }
 
+  // :deep(.q-field--focused .q-field__control) {
+  //   color: var(--nexa-text-primary) !important;
+  // }
+
+  // :deep(.q-field__native) {
+  //   min-height: 100px;
+  //   max-height: 40vh;
+  //   overflow: hidden;
+  // }
+
   :deep(textarea) {
-    font-family: 'Courier New', monospace;
+    //font-family: 'Courier New', monospace;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.3;
+    min-height: 100px;
+    max-height: 40vh;
+    resize: none;
+    overflow-y: auto;
+    color: var(--nexa-text-primary) !important;
   }
 }
 
@@ -753,6 +1104,19 @@ onUnmounted(() => {
   border-radius: 4px;
 }
 
+.execution-info {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: var(--nexa-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .result-table {
   width: 100%;
   border-collapse: collapse;
@@ -784,5 +1148,17 @@ onUnmounted(() => {
       color: var(--nexa-text-secondary);
     }
   }
+}
+
+.feature-list {
+  padding: 26px;
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: var(--nexa-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
 }
 </style>
