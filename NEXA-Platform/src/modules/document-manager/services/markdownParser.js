@@ -556,21 +556,49 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
   html = html.replace(/<p class="q-mb-md"><\/p>/g, '')
 
   // 블록 마커 복원 및 <p> 태그 밖으로 이동 (모든 블록 요소 통합 처리)
-  blockMarkers.forEach(({ marker, html: blockHtml }) => {
-    const regex = new RegExp(`<p class="q-mb-md">([^<]*?)${escapeRegex(marker)}([^<]*?)</p>`, 'g')
-    html = html.replace(regex, (match, before, after) => {
+  // 역순으로 복원하여 중첩된 블록 요소가 올바르게 복원되도록 함
+  for (let i = blockMarkers.length - 1; i >= 0; i--) {
+    const { marker, html: blockHtml } = blockMarkers[i]
+    
+    // 1단계: <p> 태그 안에 있는 마커를 찾아서 복원하고 <p> 태그 밖으로 이동
+    // 마커 앞뒤에 다른 태그가 있을 수 있으므로 더 유연한 정규식 사용
+    const pTagRegex = new RegExp(`<p class="q-mb-md">([\\s\\S]*?)${escapeRegex(marker)}([\\s\\S]*?)</p>`, 'g')
+    html = html.replace(pTagRegex, (match, before, after) => {
       let result = ''
+      // before 부분 처리: 태그가 있으면 그대로, 텍스트만 있으면 <p> 태그로 감싸기
       if (before && before.trim()) {
-        result += `<p class="q-mb-md">${before}</p>`
+        // HTML 태그가 포함되어 있는지 확인
+        if (/<[^>]+>/.test(before)) {
+          // 태그가 있으면 그대로 사용 (이미 포맷팅된 HTML)
+          result += before
+        } else {
+          // 텍스트만 있으면 <p> 태그로 감싸기
+          result += `<p class="q-mb-md">${before}</p>`
+        }
       }
+      // 블록 요소 복원 (<p> 태그 밖으로)
       result += blockHtml
+      // after 부분 처리
       if (after && after.trim()) {
-        result += `<p class="q-mb-md">${after}</p>`
+        if (/<[^>]+>/.test(after)) {
+          result += after
+        } else {
+          result += `<p class="q-mb-md">${after}</p>`
+        }
       }
       return result || blockHtml
     })
+    
+    // 2단계: 리스트 내부에 있는 마커 복원 (<li> 태그 안에 있을 수 있음)
+    const liTagRegex = new RegExp(`(<li[^>]*>)([\\s\\S]*?)${escapeRegex(marker)}([\\s\\S]*?)(</li>)`, 'g')
+    html = html.replace(liTagRegex, (match, liOpen, before, after, liClose) => {
+      // 리스트 항목 내부의 블록 요소는 그대로 복원 (리스트 항목 안에 유지)
+      return `${liOpen}${before}${blockHtml}${after}${liClose}`
+    })
+    
+    // 3단계: 남은 마커 모두 복원 (<p> 태그 밖에 있거나 위에서 처리되지 않은 경우)
     html = html.replace(new RegExp(escapeRegex(marker), 'g'), blockHtml)
-  })
+  }
 
   return html
 }
