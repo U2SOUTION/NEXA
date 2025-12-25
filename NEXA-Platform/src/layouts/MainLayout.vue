@@ -73,10 +73,10 @@
 
           <!-- 공통 기능 버튼 (항상 표시) -->
           <div ref="headerIconGroupRef" class="row items-center no-wrap header-icon-group">
-            <q-btn flat dense :icon="dashboardLayoutStore.mainNavigationOpen ? 'menu_open' : 'menu'" :label="showLabels ? '왼쪽 사이드바' : undefined" aria-label="Toggle Left Sidebar" class="text-primary" @click="dashboardLayoutStore.toggleMainNavigation()">
+            <q-btn flat dense :icon="dashboardLayoutStore.mainNavigationOpen ? 'left_panel_close' : 'left_panel_open'" :label="showLabels ? '왼쪽 사이드바' : undefined" aria-label="Toggle Left Sidebar" class="text-primary" @click="dashboardLayoutStore.toggleMainNavigation()">
               <q-tooltip>왼쪽 사이드바 {{ dashboardLayoutStore.mainNavigationOpen ? '닫기' : '열기' }} (Ctrl+B)</q-tooltip>
             </q-btn>
-            <q-btn flat dense icon="view_sidebar" :label="showLabels ? '사이드패널' : undefined" aria-label="Side Panel" class="text-primary" @click="togglePropertyPanel">
+            <q-btn flat dense :icon="userSettings.settings.drawer.rightOpen ? 'right_panel_close' : 'right_panel_open'" :label="showLabels ? '사이드패널' : undefined" aria-label="Side Panel" class="text-primary" @click="togglePropertyPanel">
               <q-tooltip>오른쪽 사이드 패널 {{ userSettings.settings.drawer.rightOpen ? '닫기' : '열기' }} (Ctrl+])</q-tooltip>
             </q-btn>
             <q-btn flat dense :icon="userSettings.settings.theme.isDarkMode ? 'light_mode' : 'dark_mode'" :label="showLabels ? '테마전환' : undefined" aria-label="Toggle Theme" class="text-primary" @click="userSettings.toggleTheme">
@@ -694,9 +694,13 @@ const handleMainNavigationResize = (event) => {
 
   const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
   const diff = currentX - startMainNavigationX.value
-  const newWidth = Math.max(200, Math.min(startMainNavigationWidth.value + diff, 400))
 
-  userSettings.setDrawerWidth('left', newWidth)
+  // 화면 크기에 따라 최대 너비 동적 계산 (화면의 60% 또는 600px 중 작은 값)
+  const maxWidth = Math.min(600, Math.floor(window.innerWidth * 0.6))
+  const newWidth = Math.max(200, Math.min(startMainNavigationWidth.value + diff, maxWidth))
+
+  // 리사이즈 중에는 저장하지 않고 값만 업데이트
+  userSettings.settings.drawer.leftWidth = newWidth
 }
 
 // 메인 네비게이션 리사이즈 종료
@@ -709,6 +713,9 @@ const stopMainNavigationResize = () => {
   document.body.style.webkitUserSelect = ''
   document.body.style.mozUserSelect = ''
   document.body.style.msUserSelect = ''
+
+  // 리사이즈 종료 시에만 저장
+  userSettings.saveSettings()
 
   document.removeEventListener('mousemove', handleMainNavigationResize)
   document.removeEventListener('touchmove', handleMainNavigationResize)
@@ -744,9 +751,13 @@ const handleResize = (event) => {
 
   const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
   const diff = startX.value - currentX
-  const newWidth = Math.max(200, Math.min(startWidth.value + diff, 800))
 
-  userSettings.setDrawerWidth('right', newWidth)
+  // 화면 크기에 따라 최대 너비 동적 계산 (화면의 60% 또는 800px 중 작은 값)
+  const maxWidth = Math.min(800, Math.floor(window.innerWidth * 0.6))
+  const newWidth = Math.max(200, Math.min(startWidth.value + diff, maxWidth))
+
+  // 리사이즈 중에는 저장하지 않고 값만 업데이트
+  userSettings.settings.drawer.rightWidth = newWidth
 }
 
 // 오른쪽 도구 패널 리사이즈 종료
@@ -759,6 +770,9 @@ const stopResize = () => {
   document.body.style.webkitUserSelect = ''
   document.body.style.mozUserSelect = ''
   document.body.style.msUserSelect = ''
+
+  // 리사이즈 종료 시에만 저장
+  userSettings.saveSettings()
 
   document.removeEventListener('mousemove', handleResize)
   document.removeEventListener('touchmove', handleResize)
@@ -833,6 +847,30 @@ const rightHoverRotation = computed(() => {
 onMounted(() => {
   // 테마 초기화
   userSettings.initializeTheme()
+
+  // 초기 로드 시 화면 크기에 따라 사이드바 최대 크기 제한 적용
+  const adjustDrawerWidths = () => {
+    // 왼쪽 사이드바: 화면의 60% 또는 600px 중 작은 값
+    const leftMaxWidth = Math.min(600, Math.floor(window.innerWidth * 0.6))
+    if (userSettings.settings.drawer.leftWidth > leftMaxWidth) {
+      userSettings.settings.drawer.leftWidth = leftMaxWidth
+      userSettings.saveSettings()
+    }
+
+    // 오른쪽 사이드바: 화면의 60% 또는 800px 중 작은 값
+    const rightMaxWidth = Math.min(800, Math.floor(window.innerWidth * 0.6))
+    if (userSettings.settings.drawer.rightWidth > rightMaxWidth) {
+      userSettings.settings.drawer.rightWidth = rightMaxWidth
+      userSettings.saveSettings()
+    }
+  }
+
+  // 초기 조정
+  adjustDrawerWidths()
+
+  // 화면 크기 변경 시에도 조정 (cleanup을 위해 저장)
+  window._adjustDrawerWidths = adjustDrawerWidths
+  window.addEventListener('resize', adjustDrawerWidths)
 
   // 전역 단축키 설정
   setupGlobalShortcuts()
@@ -936,6 +974,12 @@ onBeforeUnmount(() => {
   if (window._handleResize) {
     window.removeEventListener('resize', window._handleResize)
     delete window._handleResize
+  }
+
+  // 사이드바 크기 조정 리스너 제거
+  if (window._adjustDrawerWidths) {
+    window.removeEventListener('resize', window._adjustDrawerWidths)
+    delete window._adjustDrawerWidths
   }
 })
 </script>
@@ -1374,6 +1418,12 @@ onBeforeUnmount(() => {
     width: var(--resize-handle-border-width);
     background: var(--nexa-background-darker);
     pointer-events: none;
+    transition: background var(--transition-duration) ease;
+  }
+
+  /* 호버 시 브랜드 색상으로 변경 */
+  &:hover::before {
+    background: var(--nexa-primary);
   }
 }
 
@@ -1451,6 +1501,12 @@ onBeforeUnmount(() => {
     width: var(--resize-handle-border-width);
     background: var(--nexa-background-darker);
     pointer-events: none;
+    transition: background var(--transition-duration) ease;
+  }
+
+  /* 호버 시 브랜드 색상으로 변경 */
+  &:hover::before {
+    background: var(--nexa-primary);
   }
 }
 
@@ -1461,7 +1517,7 @@ onBeforeUnmount(() => {
   transform: translateY(-50%);
   width: 22px;
   height: 120px;
-  background: var(--nexa-surface);
+  background: var(--nexa-background-darker);
   border: 1px solid var(--nexa-border-color);
   display: flex;
   flex-direction: column;
@@ -1470,7 +1526,9 @@ onBeforeUnmount(() => {
   gap: 4px;
   cursor: pointer;
   z-index: 1002; /* resize handle(1001) 위, header(2000) 아래 */
-  transition: all 0.2s ease;
+  transition:
+    //all 0.3s ease,
+    background-color 2s ease;
 
   /* 라벨 스타일 (세로 방향) */
   .toggle-label {
@@ -1498,7 +1556,10 @@ onBeforeUnmount(() => {
   /* 호버 효과 */
   &:hover {
     width: 30px;
-    background: var(--nexa-surface-hover);
+    background: var(--nexa-surface);
+    transition:
+      width 0.3s ease,
+      background-color 2s ease;
 
     .toggle-label {
       color: var(--nexa-accent);
@@ -1545,6 +1606,11 @@ onBeforeUnmount(() => {
   /* 오버레이 모드일 때는 drawer보다 위에 표시되도록 z-index 높임 */
   &.is-overlay-mode {
     z-index: 3001; /* Quasar drawer overlay z-index (3000)보다 높게 설정 */
+    /* 사이드바와 동일한 그림자 적용 (왼쪽으로 그림자) */
+    box-shadow:
+      -9px 0 8px var(--nexa-shadow-1),
+      -10px 0 16px var(--nexa-shadow-2),
+      -19px 0 24px var(--nexa-shadow-3);
   }
 
   &:hover {

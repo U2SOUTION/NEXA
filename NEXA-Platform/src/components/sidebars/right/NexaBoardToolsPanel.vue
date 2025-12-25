@@ -6,7 +6,7 @@
 <template>
   <div class="nexa-board-tools-panel">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
-    <RightSidebarHeader title="Tools Panel" subtitle="Control & Customize Your Dashboard" push-icon="swap_horiz" />
+    <RightSidebarHeader title="Tools Panel" subtitle="Control & Customize Your Dashboard" push-icon="menu_open" />
     <q-scroll-area class="fit">
       <!-- 아코디언 방식으로 모든 섹션 나열 -->
       <div class="accordion-wrapper">

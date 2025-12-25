@@ -6,7 +6,7 @@
 <template>
   <div class="dev-tools-panel">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
-    <RightSidebarHeader title="Tools Panel" subtitle="Control & Customize Your Documents" push-icon="double_arrow" />
+    <RightSidebarHeader title="Tools Panel" subtitle="Control & Customize Your Documents" push-icon="menu_open" />
     <q-scroll-area class="fit">
       <!-- 아코디언 방식으로 모든 섹션 나열 -->
       <!-- 목차 섹션 (문서 관리자 메뉴이고 목차가 있을 때만 표시) -->

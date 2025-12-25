@@ -14,7 +14,6 @@
       </div>
     </div>
     <!-- Push/Overlay 모드 전환 버튼 -->
-    <!-- TODO: Push 모드 아이콘을 커스텀 아이콘으로 교체 예정 (현재: double_arrow) -->
     <div class="q-pa-sm">
       <q-btn-toggle
         v-model="sidePanelMode"
@@ -50,7 +49,7 @@ const { title, subtitle, pushIcon } = defineProps({
   },
   pushIcon: {
     type: String,
-    default: 'double_arrow', // 기본값, 필요시 커스텀 아이콘으로 교체 가능
+    default: 'menu_open', // 기본값, 필요시 커스텀 아이콘으로 교체 가능
   },
 })
 
