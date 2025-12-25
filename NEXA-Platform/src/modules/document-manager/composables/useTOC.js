@@ -376,6 +376,11 @@ export function useTOC(storeRefs) {
    */
   function setAutoCollapse(value) {
     tocAutoCollapse.value = value
+    // 설정 저장
+    saveTOCSettings({
+      autoCollapse: value,
+      autoCloseOnContentClick: tocAutoCloseOnContentClick.value,
+    })
   }
 
   /**

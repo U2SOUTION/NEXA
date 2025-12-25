@@ -7,9 +7,9 @@
   <div class="nexa-panel-section toc-section">
     <!-- 헤더 컨트롤 -->
     <div class="toc-section-header q-pa-sm">
-      <div class="row items-center justify-between q-gutter-xs">
-        <q-toggle :model-value="isAllExpanded" @update:model-value="handleToggleAll" size="sm" dense :label="isAllExpanded ? '전체 접기' : '전체 펼치기'" color="primary" />
-        <q-toggle :model-value="autoCollapse" @update:model-value="handleAutoCollapseChange" size="sm" dense label="아코디언" color="primary" />
+      <div class="row items-center justify-between q-gutter-xs toc-header-controls">
+        <q-toggle :model-value="props.isAllExpanded" @update:model-value="handleToggleAll" size="sm" dense :label="props.isAllExpanded ? '전체 접기' : '전체 펼치기'" color="primary" />
+        <q-toggle :model-value="props.autoCollapse" @update:model-value="handleAutoCollapseChange" size="sm" dense label="아코디언" color="primary" :key="`accordion-${props.autoCollapse}`" />
       </div>
     </div>
 
@@ -99,24 +99,53 @@ function handleAutoCollapseChange(value) {
 .toc-section {
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 200px;
-  max-height: 600px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .toc-section-header {
   flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+  padding-right: 16px; // 우측 마진 증가 (라벨이 가려지지 않도록)
+}
+
+.toc-header-controls {
+  padding-right: 0;
+  margin-right: 0;
 }
 
 .toc-section-content {
-  flex: 1;
-  overflow-y: auto;
+  overflow-y: visible;
+  overflow-x: hidden;
   padding: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .toc-list {
   padding: 4px 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+}
+
+// 모든 하위 요소에도 적용
+.toc-section *,
+.toc-section-content *,
+.toc-list * {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 </style>
-
-

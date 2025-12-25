@@ -1,24 +1,26 @@
 <template>
-  <div class="toc-item" :class="{ 'toc-item--active': isActive }">
+  <div class="toc-item" :class="['toc-level-' + item.level, { 'toc-item--active': isActive }]">
     <div class="toc-item-header" @click="handleClick">
       <q-icon v-if="hasChildren" :name="expanded ? 'expand_more' : 'chevron_right'" size="16px" class="toc-toggle-icon" @click.stop="handleToggle" />
       <span v-else class="toc-toggle-spacer"></span>
-      <span class="toc-item-text" :class="'toc-level-' + item.level">{{ item.text }}</span>
+      <span class="toc-item-text" @click="handleTextClick">{{ item.text }}</span>
     </div>
-    <div v-if="hasChildren && expanded" class="toc-children">
-      <TOCItem
-        v-for="child in item.children"
-        :key="child.id"
-        :item="child"
-        :expanded="getChildExpanded(child)"
-        :current-section-id="currentSectionId"
-        :auto-collapse="autoCollapse"
-        :toc-expanded-map="tocExpandedMap"
-        :toc-items="tocItems"
-        @toggle="$emit('toggle', $event)"
-        @scroll-to="$emit('scroll-to', $event)"
-      />
-    </div>
+    <q-slide-transition>
+      <div v-show="hasChildren && expanded" class="toc-children">
+        <TOCItem
+          v-for="child in item.children"
+          :key="child.id"
+          :item="child"
+          :expanded="getChildExpanded(child)"
+          :current-section-id="currentSectionId"
+          :auto-collapse="autoCollapse"
+          :toc-expanded-map="tocExpandedMap"
+          :toc-items="tocItems"
+          @toggle="$emit('toggle', $event)"
+          @scroll-to="$emit('scroll-to', $event)"
+        />
+      </div>
+    </q-slide-transition>
   </div>
 </template>
 
@@ -67,7 +69,31 @@ function getChildExpanded(childItem) {
   )
 }
 
-function handleClick() {
+function handleClick(e) {
+  // 화살표 아이콘을 클릭한 경우는 handleToggle에서 처리하므로 여기서는 무시
+  if (e.target.closest('.toc-toggle-icon')) {
+    return
+  }
+  // 텍스트를 클릭한 경우는 handleTextClick에서 처리
+  if (e.target.closest('.toc-item-text')) {
+    return
+  }
+  // 헤더의 다른 영역을 클릭한 경우 스크롤만 이동
+  emit('scroll-to', props.item.id)
+}
+
+function handleTextClick(e) {
+  e.stopPropagation()
+
+  // 자식이 있는 아이템을 클릭하면 토글 발생
+  // 아코디언 모드일 때: 2레벨 이상만 토글
+  // 아코디언 모드 해제 시: 모든 레벨에서 토글
+  const shouldToggle = hasChildren.value && (props.autoCollapse ? props.item.level >= 2 : true)
+
+  if (shouldToggle) {
+    emit('toggle', props.item.id)
+  }
+  // 스크롤 이동
   emit('scroll-to', props.item.id)
 }
 
@@ -79,25 +105,34 @@ function handleToggle(e) {
 
 <style lang="scss" scoped>
 .toc-item {
-  margin-bottom: 2px;
-  display: block !important; // 명시적으로 블록 요소로 설정
-  width: 100% !important; // 전체 너비 사용
-  visibility: visible !important;
-  opacity: 1 !important;
-  min-height: 24px; // 최소 높이 보장
+  margin-bottom: 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  visibility: visible;
+  opacity: 1;
+  min-height: 24px;
+  min-width: 0;
 
   .toc-item-header {
-    display: flex !important;
+    display: flex;
     align-items: center;
-    padding: 4px 8px;
+    padding: 0px 2px;
     cursor: pointer;
     border-radius: 4px;
     color: var(--nexa-text-secondary);
     font-size: 0.875rem;
     transition: background-color 0.2s;
-    min-height: 24px; // 최소 높이 보장
-    visibility: visible !important;
-    opacity: 1 !important;
+    min-height: 24px;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    visibility: visible;
+    opacity: 1;
 
     &:hover {
       background-color: var(--nexa-surface);
@@ -108,63 +143,96 @@ function handleToggle(e) {
       margin-right: 4px;
       cursor: pointer;
       color: var(--nexa-text-secondary);
-      flex-shrink: 0;
+      flex-shrink: 0; // 아이콘은 축소되지 않음
     }
 
     .toc-toggle-spacer {
       width: 20px;
+      flex-shrink: 0; // 스페이서도 축소되지 않음
       display: inline-block;
     }
 
     .toc-item-text {
-      flex: 1;
+      flex: 1 1 0%;
+      min-width: 0;
+      max-width: 100%;
+      width: 0; // flexbox에서 오버플로우 작동을 위해 0으로 설정
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      box-sizing: border-box;
     }
   }
-
+  //활성 상태 스타일
   &.toc-item--active .toc-item-header {
-    background-color: var(--nexa-surface);
-    color: var(--nexa-text-primary);
+    color: var(--nexa-text-primary-focus);
+  }
+
+  // 레벨별 들여쓰기 : 헤더에 적용하여 화살표와 텍스트가 함께 이동
+  &.toc-level-1 .toc-item-header {
+    padding-left: 0px;
+  }
+
+  &.toc-level-1 .toc-item-text {
     font-weight: 600;
   }
 
-  // 레벨별 들여쓰기
-  .toc-level-1 {
-    padding-left: 0;
-    font-weight: 600;
+  &.toc-level-2 .toc-item-header {
+    padding-left: 0px; // 8px (기본) + 16px (들여쓰기)
   }
 
-  .toc-level-2 {
-    padding-left: 16px;
+  &.toc-level-2 .toc-item-text {
     font-weight: 500;
   }
 
-  .toc-level-3 {
-    padding-left: 32px;
+  &.toc-level-3 .toc-item-header {
+    padding-left: 0px; // 8px (기본) + 32px (들여쓰기)
   }
 
-  .toc-level-4 {
-    padding-left: 48px;
+  &.toc-level-4 .toc-item-header {
+    padding-left: 0px; // 8px (기본) + 48px (들여쓰기)
+  }
+
+  &.toc-level-4 .toc-item-text {
     font-size: 0.8rem;
   }
 
-  .toc-level-5 {
-    padding-left: 64px;
+  &.toc-level-5 .toc-item-header {
+    padding-left: 16px; // 8px (기본) + 64px (들여쓰기)
+  }
+
+  &.toc-level-5 .toc-item-text {
     font-size: 0.75rem;
   }
 
-  .toc-level-6 {
-    padding-left: 80px;
+  &.toc-level-6 .toc-item-header {
+    padding-left: 20px; // 8px (기본) + 80px (들여쓰기)
+  }
+
+  &.toc-level-6 .toc-item-text {
     font-size: 0.7rem;
   }
 }
 
 .toc-children {
-  margin-left: 8px;
-  padding-left: 8px;
+  margin-left: 6px;
+  padding-left: 6px;
   border-left: 1px solid var(--nexa-border-color);
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-width: 0;
+  // 부드러운 전환을 위한 추가 스타일
+  transition: opacity 0.3s ease-in-out;
+}
+
+// 모든 하위 요소에도 적용
+.toc-item *,
+.toc-item-header *,
+.toc-item span,
+.toc-item div {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 </style>
-

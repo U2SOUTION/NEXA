@@ -922,6 +922,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     scrollToHeading,
     toggleTOCItem,
     toggleAllTOC,
+    setAutoCollapse,
+    setAutoCloseOnContentClick,
     useTOCFunctions,
     updateCurrentSection,
     handleContentClick,

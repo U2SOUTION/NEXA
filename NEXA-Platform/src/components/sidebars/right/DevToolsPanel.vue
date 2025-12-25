@@ -16,13 +16,13 @@
             <PanelTOC
               :items="documentStore.tocItems || []"
               :current-section-id="documentStore.currentSectionId"
-              :auto-collapse="documentStore.tocAutoCollapse"
+              :auto-collapse="tocAutoCollapse"
               :is-all-expanded="documentStore.isAllTOCExpanded"
               :toc-expanded-map="documentStore.tocExpanded"
               @toggle="documentStore.toggleTOCItem"
               @scroll-to="documentStore.scrollToHeading"
               @toggle-all="documentStore.toggleAllTOC"
-              @auto-collapse-change="documentStore.setAutoCollapse"
+              @auto-collapse-change="(value) => { documentStore.setAutoCollapse(value) }"
             />
           </div>
         </q-expansion-item>
@@ -104,6 +104,9 @@ const mermaidStyleExpansionRef = ref(null)
 const tocExpansionRef = ref(null)
 const shouldAutoExpand = ref(false)
 const tocShouldAutoExpand = ref(false)
+
+// 아코디언 상태를 computed로 감싸서 반응성 보장
+const tocAutoCollapse = computed(() => documentStore.tocAutoCollapse)
 
 // Active menu 상태
 const activeMenu = ref('document-manager')
@@ -226,18 +229,63 @@ defineExpose({
 // 아코디언 스타일은 전역 스타일(_expansion-item.scss)에 의존
 .dev-tools-panel {
   height: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 
   .q-scroll-area {
     height: calc(100% - 60px - 60px); // 헤더(60px) + Push/Overlay 버튼 영역(60px) 제외
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  // q-scroll-area 내부 요소들도 제한
+  :deep(.q-scroll-area__content) {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
   }
 
   // 섹션 컨텐츠 패딩 (필요시 조정)
   .section-content {
     box-sizing: border-box;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden; // 가로 스크롤 방지
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important; // 가로 스크롤 방지 (강제)
     overflow-y: visible; // 세로 스크롤은 허용
+    // 사이드바 너비를 넘지 않도록 강제
+    min-width: 0 !important; // flexbox에서 오버플로우 작동을 위해 필요
+  }
+
+  // 아코디언 래퍼와 확장 아이템에 너비 제한
+  .accordion-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  // Quasar 확장 아이템의 컨텐츠 영역 제한
+  :deep(.q-expansion-item) {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  :deep(.q-expansion-item__content) {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
   }
 
   // // 아코디언 컨텐츠 영역이 오른쪽을 넘지 않도록
