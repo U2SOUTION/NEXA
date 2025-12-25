@@ -11,12 +11,6 @@
           <span class="tools-panel-title">{{ title }}</span>
           <span class="tools-panel-subtitle">{{ subtitle }}</span>
         </div>
-        <div class="toggle-container" @click="handleToggle">
-          <span class="toggle-label">RIGHT PANEL</span>
-          <q-btn flat dense round :icon="pushIcon" class="toggle-btn">
-            <q-tooltip>{{ shortcutDisplay }}</q-tooltip>
-          </q-btn>
-        </div>
       </div>
     </div>
     <!-- Push/Overlay 모드 전환 버튼 -->
@@ -41,9 +35,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useUserSettingsStore } from 'src/stores/userSettingsStore'
-import { useGlobalShortcuts } from 'src/composables/useGlobalShortcuts'
 import { QBtnToggle } from 'quasar'
 
 const { title, subtitle, pushIcon } = defineProps({
@@ -62,31 +55,7 @@ const { title, subtitle, pushIcon } = defineProps({
 })
 
 const userSettings = useUserSettingsStore()
-const { getShortcutSetting } = useGlobalShortcuts()
 const sidePanelMode = ref(userSettings.settings.drawer.rightMode)
-
-// 단축키 정보 가져오기
-const shortcutDisplay = computed(() => {
-  const setting = getShortcutSetting('toggleRightSidebarCtrlRight')
-  if (setting && setting.combo) {
-    return setting.combo
-  }
-  // 기본값
-  return 'ctrl+right'
-})
-
-// 사이드바 열림/닫힘 상태
-const isOpen = computed(() => userSettings.settings.drawer.rightOpen)
-
-// 아이콘 회전 각도 (오른쪽 아이콘은 기본적으로 180deg 역전 <<, 열려있으면 << 180deg, 닫혀있으면 >> 0deg)
-const iconRotation = computed(() => {
-  return isOpen.value ? '180deg' : '0deg'
-})
-
-// 호버 시 회전 각도 (반대로 회전하여 강조)
-const hoverRotation = computed(() => {
-  return isOpen.value ? '0deg' : '180deg'
-})
 
 // 모드 변경 시 store에도 반영
 watch(sidePanelMode, (val) => {
@@ -100,11 +69,6 @@ watch(
     sidePanelMode.value = val
   },
 )
-
-// 사이드바 토글 함수
-function handleToggle() {
-  userSettings.setRightDrawerOpen(!userSettings.settings.drawer.rightOpen)
-}
 </script>
 
 <style lang="scss" scoped>
@@ -147,99 +111,6 @@ function handleToggle() {
     color: var(--nexa-text-secondary);
     letter-spacing: 0.5px;
     font-weight: 400;
-  }
-
-  .toggle-container {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    flex-shrink: 0;
-    cursor: pointer;
-    user-select: none;
-
-    &:hover {
-      .toggle-label {
-        color: var(--nexa-accent);
-        transition: color 0.2s ease;
-      }
-
-      .toggle-btn {
-        color: var(--nexa-accent);
-
-        :deep(.q-icon) {
-          animation: shake-right 0.6s ease-in-out forwards;
-          filter: drop-shadow(0 0 6px var(--nexa-accent));
-        }
-      }
-    }
-  }
-
-  .toggle-label {
-    font-size: 0.75em;
-    font-weight: 600;
-    color: var(--nexa-primary);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin: 0;
-    padding: 0;
-    transition: color 0.2s ease;
-  }
-
-  .toggle-btn {
-    color: var(--nexa-primary);
-    font-weight: 900;
-    margin: 0;
-    padding: 0;
-    min-width: 0;
-    transition: color 0.2s ease;
-
-    :deep(.q-btn__wrapper) {
-      padding: 0;
-      min-height: 0;
-    }
-
-    :deep(.q-btn__content) {
-      padding: 0;
-    }
-
-    :deep(.q-icon) {
-      font-weight: 900;
-      font-size: 1.5em;
-      margin: 0;
-      --icon-rotation: v-bind(iconRotation);
-      --hover-rotation: v-bind(hoverRotation);
-      transform: rotate(var(--icon-rotation));
-      transition:
-        transform 0.3s ease,
-        filter 0.2s ease,
-        color 0.2s ease;
-    }
-  }
-}
-
-// 오른쪽 사이드바 아이콘 좌우 흔들림 애니메이션 (오른쪽으로 이동하는 느낌)
-@keyframes shake-right {
-  0% {
-    transform: translateX(0) rotate(var(--hover-rotation));
-  }
-  15% {
-    transform: translateX(4px) rotate(var(--hover-rotation));
-  }
-  30% {
-    transform: translateX(-3px) rotate(var(--hover-rotation));
-  }
-  45% {
-    transform: translateX(3px) rotate(var(--hover-rotation));
-  }
-  60% {
-    transform: translateX(-2px) rotate(var(--hover-rotation));
-  }
-  75% {
-    transform: translateX(2px) rotate(var(--hover-rotation));
-  }
-  90%,
-  100% {
-    transform: translateX(0) rotate(var(--hover-rotation));
   }
 }
 </style>

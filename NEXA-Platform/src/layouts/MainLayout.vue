@@ -142,6 +142,39 @@
       <component v-if="rightSidebarComponent" :is="rightSidebarComponent" />
     </q-drawer>
 
+    <!-- 왼쪽 사이드바 토글 버튼 (항상 표시) -->
+    <div
+      class="sidebar-toggle-button sidebar-toggle-button--left"
+      :class="{ 'is-drawer-open': dashboardLayoutStore.mainNavigationOpen }"
+      :style="{
+        ...leftButtonStyle,
+        '--icon-rotation': leftIconRotation,
+        '--hover-rotation': leftHoverRotation,
+      }"
+      @click="dashboardLayoutStore.toggleMainNavigation()"
+    >
+      <q-icon name="double_arrow" />
+      <span class="toggle-label">LEFT NAV</span>
+    </div>
+
+    <!-- 오른쪽 사이드바 토글 버튼 (항상 표시) -->
+    <div
+      class="sidebar-toggle-button sidebar-toggle-button--right"
+      :class="{
+        'is-drawer-open': userSettings.settings.drawer.rightOpen,
+        'is-overlay-mode': userSettings.settings.drawer.rightMode === 'overlay',
+      }"
+      :style="{
+        ...rightButtonStyle,
+        '--icon-rotation': rightIconRotation,
+        '--hover-rotation': rightHoverRotation,
+      }"
+      @click="togglePropertyPanel()"
+    >
+      <q-icon name="double_arrow" />
+      <span class="toggle-label">RIGHT PANEL</span>
+    </div>
+
     <!-- Footer -->
     <q-footer class="bg-grey-10 text-grey-6">
       <q-toolbar dense>
@@ -748,6 +781,53 @@ const rightDrawerStyles = computed(() => {
 
   // 푸시 모드일 때는 CSS에서 보더가 적용되므로 스타일 반환 불필요
   return {}
+})
+
+// 왼쪽 버튼 스타일 (drawer 열림 상태에 따라 위치 조정)
+const leftButtonStyle = computed(() => {
+  if (dashboardLayoutStore.mainNavigationOpen) {
+    return {
+      left: `${userSettings.settings.drawer.leftWidth}px`,
+    }
+  }
+  return { left: '0' }
+})
+
+// 오른쪽 버튼 스타일 (drawer 열림 상태 및 모드에 따라 위치 조정)
+const rightButtonStyle = computed(() => {
+  const isOpen = userSettings.settings.drawer.rightOpen
+  const drawerWidth = userSettings.settings.drawer.rightWidth
+
+  // Drawer가 열려있으면 drawer의 왼쪽 가장자리 (리사이즈 핸들 위치)
+  if (isOpen) {
+    // 화면 너비에서 drawer 너비를 뺀 위치 = drawer의 왼쪽 가장자리
+    return {
+      right: `${drawerWidth}px`,
+    }
+  }
+
+  // Drawer가 닫혀있으면 화면 가장 우측
+  return { right: '0' }
+})
+
+// 왼쪽 아이콘 회전 각도 (열려있으면 >> 오른쪽 방향 0deg, 닫혀있으면 << 왼쪽 방향 180deg)
+const leftIconRotation = computed(() => {
+  return dashboardLayoutStore.mainNavigationOpen ? '0deg' : '180deg'
+})
+
+// 왼쪽 호버 시 회전 각도 (반대로 회전하여 강조)
+const leftHoverRotation = computed(() => {
+  return dashboardLayoutStore.mainNavigationOpen ? '180deg' : '0deg'
+})
+
+// 오른쪽 아이콘 회전 각도 (열려있으면 << 180deg, 닫혀있으면 >> 0deg)
+const rightIconRotation = computed(() => {
+  return userSettings.settings.drawer.rightOpen ? '180deg' : '0deg'
+})
+
+// 오른쪽 호버 시 회전 각도 (반대로 회전하여 강조)
+const rightHoverRotation = computed(() => {
+  return userSettings.settings.drawer.rightOpen ? '0deg' : '180deg'
 })
 
 onMounted(() => {
@@ -1371,6 +1451,158 @@ onBeforeUnmount(() => {
     width: var(--resize-handle-border-width);
     background: var(--nexa-background-darker);
     pointer-events: none;
+  }
+}
+
+/* 사이드바 토글 버튼 (항상 표시) */
+.sidebar-toggle-button {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 120px;
+  background: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  z-index: 1002; /* resize handle(1001) 위, header(2000) 아래 */
+  transition: all 0.2s ease;
+
+  /* 라벨 스타일 (세로 방향) */
+  .toggle-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--nexa-text-secondary);
+    letter-spacing: 1px;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+
+  /* 아이콘 스타일 */
+  .q-icon {
+    font-size: 12px;
+    color: var(--nexa-primary);
+    font-weight: 900;
+    transform: rotate(var(--icon-rotation, 0deg));
+    transition:
+      transform 0.3s ease,
+      color 0.2s ease;
+  }
+
+  /* 호버 효과 */
+  &:hover {
+    width: 30px;
+    background: var(--nexa-surface-hover);
+
+    .toggle-label {
+      color: var(--nexa-accent);
+    }
+
+    .q-icon {
+      color: var(--nexa-accent);
+      filter: drop-shadow(0 0 6px var(--nexa-accent));
+    }
+  }
+}
+
+/* 왼쪽 사이드바 토글 버튼 */
+.sidebar-toggle-button--left {
+  left: 0;
+  border-radius: 0 8px 8px 0; /* 오른쪽 상단, 오른쪽 하단만 라운드 */
+  border-left: none;
+
+  &.is-drawer-open {
+    border-left: 1px solid var(--nexa-border-color);
+  }
+
+  &:hover {
+    .q-icon {
+      animation: shake-left-toggle 0.6s ease-in-out forwards;
+    }
+  }
+}
+
+/* 오른쪽 사이드바 토글 버튼 */
+.sidebar-toggle-button--right {
+  right: 0;
+  border-radius: 8px 0 0 8px; /* 왼쪽 상단, 왼쪽 하단만 라운드 */
+  border-right: none;
+
+  /* Drawer가 열려있을 때: 리사이즈 핸들 위치 (drawer 왼쪽 가장자리) */
+  &.is-drawer-open {
+    /* 리사이즈 핸들 위치에 배치되므로 border-left 추가 */
+    border-left: 1px solid var(--nexa-border-color);
+    border-right: none;
+    border-radius: 8px 0 0 8px; /* drawer 열림 시 왼쪽 상단, 왼쪽 하단만 라운드 (유지) */
+  }
+
+  /* 오버레이 모드일 때는 drawer보다 위에 표시되도록 z-index 높임 */
+  &.is-overlay-mode {
+    z-index: 3001; /* Quasar drawer overlay z-index (3000)보다 높게 설정 */
+  }
+
+  &:hover {
+    .q-icon {
+      animation: shake-right-toggle 0.6s ease-in-out forwards;
+    }
+  }
+}
+
+/* 왼쪽 토글 버튼 아이콘 좌우 흔들림 애니메이션 (왼쪽으로 이동하는 느낌) */
+@keyframes shake-left-toggle {
+  0% {
+    transform: translateX(0) rotate(var(--hover-rotation));
+  }
+  15% {
+    transform: translateX(-4px) rotate(var(--hover-rotation));
+  }
+  30% {
+    transform: translateX(3px) rotate(var(--hover-rotation));
+  }
+  45% {
+    transform: translateX(-3px) rotate(var(--hover-rotation));
+  }
+  60% {
+    transform: translateX(2px) rotate(var(--hover-rotation));
+  }
+  75% {
+    transform: translateX(-2px) rotate(var(--hover-rotation));
+  }
+  90%,
+  100% {
+    transform: translateX(0) rotate(var(--hover-rotation));
+  }
+}
+
+/* 오른쪽 토글 버튼 아이콘 좌우 흔들림 애니메이션 (오른쪽으로 이동하는 느낌) */
+@keyframes shake-right-toggle {
+  0% {
+    transform: translateX(0) rotate(var(--hover-rotation));
+  }
+  15% {
+    transform: translateX(4px) rotate(var(--hover-rotation));
+  }
+  30% {
+    transform: translateX(-3px) rotate(var(--hover-rotation));
+  }
+  45% {
+    transform: translateX(3px) rotate(var(--hover-rotation));
+  }
+  60% {
+    transform: translateX(-2px) rotate(var(--hover-rotation));
+  }
+  75% {
+    transform: translateX(2px) rotate(var(--hover-rotation));
+  }
+  90%,
+  100% {
+    transform: translateX(0) rotate(var(--hover-rotation));
   }
 }
 
