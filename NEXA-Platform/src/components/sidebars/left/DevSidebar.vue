@@ -417,8 +417,35 @@ function toggleTrashView() {
 }
 
 async function loadMarkdownFiles() {
-  // Store의 loadMarkdownFiles를 직접 호출하여 파일 목록 새로고침
-  await documentStore.loadMarkdownFiles()
+  try {
+    const beforeCount = documentStore.markdownFiles.length
+    // Store의 loadMarkdownFiles를 직접 호출하여 파일 목록 새로고침
+    await documentStore.loadMarkdownFiles()
+    const afterCount = documentStore.markdownFiles.length
+    const addedCount = afterCount - beforeCount
+
+    let message = `파일 목록이 새로고침되었습니다 (${afterCount}개 파일)`
+    if (addedCount > 0) {
+      message += `, +${addedCount}개 추가`
+    }
+
+    $q.notify({
+      type: 'positive',
+      message: message,
+      position: 'top',
+      timeout: 5000,
+      icon: 'refresh',
+    })
+  } catch (error) {
+    console.error('[DevSidebar] 파일 목록 새로고침 실패:', error)
+    $q.notify({
+      type: 'negative',
+      message: `새로고침 실패: ${error.message || '알 수 없는 오류'}`,
+      position: 'top',
+      timeout: 6000,
+      icon: 'error',
+    })
+  }
 }
 
 function openSettings() {

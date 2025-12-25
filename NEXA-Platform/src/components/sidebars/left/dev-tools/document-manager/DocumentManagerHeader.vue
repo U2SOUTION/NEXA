@@ -25,41 +25,41 @@
         <div class="col-2 icon-grid-item" @click="$emit('toggleExcludedFiles')">
           <q-tooltip>{{ showExcludedFiles ? '검색어 제외한 문서 숨기기' : '검색어 제외한 문서 표시' }}</q-tooltip>
           <q-btn flat dense icon="filter_alt" :class="showExcludedFiles ? 'icon-btn-active' : 'icon-btn-inactive'" class="icon-btn-with-label"> </q-btn>
-          <div class="icon-label">제외</div>
+          <div class="icon-label">검색제외</div>
         </div>
         <!-- Hide -->
         <div class="col-2 icon-grid-item" @click="$emit('toggleHideCompleted')">
           <q-tooltip>{{ hideCompleted ? '완료된 항목 표시' : '완료된 항목 숨기기' }}</q-tooltip>
           <q-btn flat dense :icon="hideCompleted ? 'task_alt' : 'circle'" :class="hideCompleted ? 'icon-btn-active' : 'icon-btn-inactive'" class="icon-btn-with-label"> </q-btn>
-          <div class="icon-label">완료</div>
+          <div class="icon-label">체크완료</div>
         </div>
         <!-- Highlight -->
         <div class="col-2 icon-grid-item" @click="$emit('toggleHighlight')">
           <q-tooltip>스크롤 시 현재 섹션 하일라이팅</q-tooltip>
           <q-btn flat dense icon="highlight" :class="autoHighlightOnScroll ? 'icon-btn-active' : 'icon-btn-inactive'" class="icon-btn-with-label"> </q-btn>
-          <div class="icon-label">강조</div>
+          <div class="icon-label">섹션강조</div>
         </div>
         <!-- Trash -->
         <div class="col-2 icon-grid-item" @click="$emit('toggleTrashView')">
           <q-tooltip>{{ isTrashView ? '일반 목록으로 돌아가기' : '휴지통 보기' }}</q-tooltip>
-          <q-btn flat dense icon="delete_outline" :class="isTrashView ? 'icon-btn-trash' : 'icon-btn-inactive'" class="icon-btn-with-label">
-            <q-badge v-if="!isTrashView && trashCount > 0" floating class="trash-badge">
+          <q-btn flat dense :icon="isTrashView ? 'contract_delete' : 'delete_sweep'" :class="isTrashView ? 'icon-btn-trash' : 'icon-btn-inactive'" class="icon-btn-with-label">
+            <q-badge v-if="trashCount > 0" floating class="trash-badge">
               {{ trashCount }}
             </q-badge>
           </q-btn>
-          <div class="icon-label">휴지통</div>
+          <div class="icon-label">{{ isTrashView ? '리스트' : '휴지통' }}</div>
         </div>
         <!-- Refresh -->
-        <div class="col-2 icon-grid-item" @click="$emit('loadMarkdownFiles')">
+        <div class="col-2 icon-grid-item" @click="handleRefreshClick">
           <q-tooltip>새로고침</q-tooltip>
-          <q-btn flat dense icon="refresh" class="icon-btn-active icon-btn-with-label"> </q-btn>
+          <q-btn flat dense icon="refresh" :class="['icon-btn-active', 'icon-btn-with-label', { 'refresh-rotating': isRefreshing }]"> </q-btn>
           <div class="icon-label">새로고침</div>
         </div>
         <!-- Settings -->
         <div class="col-2 icon-grid-item" @click="$emit('openSettings')">
-          <q-tooltip>설정</q-tooltip>
+          <q-tooltip>개발툴 설정</q-tooltip>
           <q-btn flat dense icon="settings" class="icon-btn-active icon-btn-with-label"> </q-btn>
-          <div class="icon-label">설정</div>
+          <div class="icon-label">개발설정</div>
         </div>
       </div>
     </div>
@@ -67,6 +67,8 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 defineProps({
   headerHovered: {
     type: Boolean,
@@ -114,7 +116,21 @@ defineProps({
   },
 })
 
-defineEmits(['update:globalSearchQuery', 'performGlobalSearch', 'toggleSearchMode', 'toggleExcludedFiles', 'toggleHideCompleted', 'toggleHighlight', 'toggleTrashView', 'loadMarkdownFiles', 'openSettings'])
+const emit = defineEmits(['update:globalSearchQuery', 'performGlobalSearch', 'toggleSearchMode', 'toggleExcludedFiles', 'toggleHideCompleted', 'toggleHighlight', 'toggleTrashView', 'loadMarkdownFiles', 'openSettings'])
+
+const isRefreshing = ref(false)
+
+function handleRefreshClick() {
+  if (isRefreshing.value) return // 이미 회전 중이면 무시
+
+  isRefreshing.value = true
+  emit('loadMarkdownFiles')
+
+  // 1회전 애니메이션 (0.5초 후 초기화)
+  setTimeout(() => {
+    isRefreshing.value = false
+  }, 500)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -209,9 +225,9 @@ defineEmits(['update:globalSearchQuery', 'performGlobalSearch', 'toggleSearchMod
 
   // 아이콘 크기 통일
   :deep(.q-icon) {
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
+    font-size: 25px;
+    width: 25px;
+    height: 25px;
   }
 
   // 아이콘 상태별 색상
@@ -250,7 +266,25 @@ defineEmits(['update:globalSearchQuery', 'performGlobalSearch', 'toggleSearchMod
 :deep(.trash-badge) {
   background: transparent;
   color: var(--nexa-warning);
-  left: 0;
+  right: 0;
+  left: auto;
 }
 
+// ============================================
+// 새로고침 아이콘 회전 애니메이션
+// ============================================
+.refresh-rotating {
+  :deep(.q-icon) {
+    animation: refresh-rotate 0.4s ease-in-out;
+  }
+}
+
+@keyframes refresh-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>

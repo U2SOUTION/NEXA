@@ -32,7 +32,7 @@
               <q-btn flat dense icon="update" color="grey-7" class="update-date-btn" @click="handleUpdateModifiedDate">
                 <q-tooltip>수정일 갱신</q-tooltip>
               </q-btn>
-              <q-btn flat dense icon="cached" color="grey-7" class="refresh-btn" @click="handleRefreshFile">
+              <q-btn flat dense icon="cached" color="grey-7" :class="['refresh-btn', { 'refresh-rotating': isRefreshingFile }]" @click="handleRefreshFile">
                 <q-tooltip>업데이트</q-tooltip>
               </q-btn>
               <q-btn flat dense icon="delete" color="grey-7" class="trash-btn" @click="handleMoveToTrash">
@@ -111,6 +111,7 @@ const searchMode = ref('both') // 검색 모드: 'title', 'content', 'both', 'ch
 // 템플릿 ref
 const markdownContentRef = ref(null)
 const tocButtonRef = ref(null)
+const isRefreshingFile = ref(false)
 
 // Mermaid 렌더링 Composable 사용
 const { renderMermaid, reapplyMermaidStyles, cleanup: cleanupMermaid } = useMermaid(markdownContentRef, () => documentStore.selectedFile?.name || null)
@@ -502,7 +503,9 @@ async function handleEmptyTrash() {
 
 // 파일 내용 업데이트
 async function handleRefreshFile() {
-  if (!documentStore.selectedFile) return
+  if (!documentStore.selectedFile || isRefreshingFile.value) return
+
+  isRefreshingFile.value = true
 
   try {
     const { selectFile } = documentStore
@@ -514,7 +517,8 @@ async function handleRefreshFile() {
       type: 'positive',
       message: '파일 내용이 업데이트되었습니다',
       position: 'top',
-      timeout: 2000,
+      timeout: 4000,
+      icon: 'cached',
     })
   } catch (error) {
     console.error('[Refresh] 파일 업데이트 실패:', error)
@@ -522,8 +526,14 @@ async function handleRefreshFile() {
       type: 'negative',
       message: `파일 업데이트 실패: ${error.message || '알 수 없는 오류'}`,
       position: 'top',
-      timeout: 3000,
+      timeout: 6000,
+      icon: 'error',
     })
+  } finally {
+    // 1회전 애니메이션 (0.8초 후 초기화)
+    setTimeout(() => {
+      isRefreshingFile.value = false
+    }, 800)
   }
 }
 
@@ -784,6 +794,22 @@ onUnmounted(() => {
     }
     &:hover {
       background-color: color-mix(in srgb, var(--q-primary) 10%, transparent);
+    }
+  }
+
+  // 새로고침 아이콘 회전 애니메이션
+  :deep(.refresh-btn.refresh-rotating) {
+    .q-icon {
+      animation: refresh-rotate 0.4s ease-in-out;
+    }
+  }
+
+  @keyframes refresh-rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
     }
   }
 
