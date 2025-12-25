@@ -198,12 +198,6 @@ const { registerShortcuts, setupGlobalShortcuts, cleanupGlobalShortcuts } = useG
 
 // 기본 단축키 정의 (handler는 여기서 주입)
 const defaultShortcuts = getDefaultShortcuts({
-  toggleLeftSidebar: () => {
-    dashboardLayoutStore.toggleMainNavigation()
-  },
-  toggleRightSidebar: () => {
-    togglePropertyPanel()
-  },
   goToHome: () => {
     router.push('/')
   },

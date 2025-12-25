@@ -6,9 +6,17 @@
   <div class="right-sidebar-header">
     <!-- 상단 헤더 -->
     <div class="tools-panel-header">
-      <div class="tools-panel-title-container">
-        <span class="tools-panel-title">{{ title }}</span>
-        <span class="tools-panel-subtitle">{{ subtitle }}</span>
+      <div class="header-content">
+        <div class="tools-panel-title-container">
+          <span class="tools-panel-title">{{ title }}</span>
+          <span class="tools-panel-subtitle">{{ subtitle }}</span>
+        </div>
+        <div class="toggle-container" @click="handleToggle">
+          <span class="toggle-label">RIGHT PANEL</span>
+          <q-btn flat dense round :icon="pushIcon" class="toggle-btn">
+            <q-tooltip>{{ shortcutDisplay }}</q-tooltip>
+          </q-btn>
+        </div>
       </div>
     </div>
     <!-- Push/Overlay 모드 전환 버튼 -->
@@ -33,8 +41,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useUserSettingsStore } from 'src/stores/userSettingsStore'
+import { useGlobalShortcuts } from 'src/composables/useGlobalShortcuts'
 import { QBtnToggle } from 'quasar'
 
 const { title, subtitle, pushIcon } = defineProps({
@@ -53,7 +62,18 @@ const { title, subtitle, pushIcon } = defineProps({
 })
 
 const userSettings = useUserSettingsStore()
+const { getShortcutSetting } = useGlobalShortcuts()
 const sidePanelMode = ref(userSettings.settings.drawer.rightMode)
+
+// 단축키 정보 가져오기
+const shortcutDisplay = computed(() => {
+  const setting = getShortcutSetting('toggleRightSidebarCtrlRight')
+  if (setting && setting.combo) {
+    return setting.combo
+  }
+  // 기본값
+  return 'ctrl+right'
+})
 
 // 모드 변경 시 store에도 반영
 watch(sidePanelMode, (val) => {
@@ -68,8 +88,10 @@ watch(
   },
 )
 
-// 사이드바 토글 함수는 제거됨 (ESC 키 단축키 제거로 인해 사용되지 않음)
-// 필요시 MainLayout이나 다른 컴포넌트에서 직접 userSettings.setRightDrawerOpen() 호출
+// 사이드바 토글 함수
+function handleToggle() {
+  userSettings.setRightDrawerOpen(!userSettings.settings.drawer.rightOpen)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -80,6 +102,14 @@ watch(
     display: flex;
     align-items: center;
     padding: 0 20px;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 12px;
+    }
   }
 
   .tools-panel-title-container {
@@ -87,6 +117,8 @@ watch(
     flex-direction: column;
     gap: 2px;
     padding-top: 12px;
+    flex: 1;
+    min-width: 0;
   }
 
   .tools-panel-title {
@@ -102,6 +134,48 @@ watch(
     color: var(--nexa-text-secondary);
     letter-spacing: 0.5px;
     font-weight: 400;
+  }
+
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .toggle-label {
+    font-size: 0.75em;
+    font-weight: 600;
+    color: var(--nexa-primary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0;
+    padding: 0;
+  }
+
+  .toggle-btn {
+    color: var(--nexa-primary);
+    font-weight: 900;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+
+    :deep(.q-btn__wrapper) {
+      padding: 0;
+      min-height: 0;
+    }
+
+    :deep(.q-btn__content) {
+      padding: 0;
+    }
+
+    :deep(.q-icon) {
+      font-weight: 900;
+      font-size: 1.5em;
+      margin: 0;
+    }
   }
 }
 </style>

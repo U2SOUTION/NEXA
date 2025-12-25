@@ -224,18 +224,6 @@ export function getDefaultShortcuts(handlers = {}) {
   return [
     // 사이드바 토글
     {
-      description: '왼쪽 사이드바 토글',
-      combo: 'ctrl+x',
-      id: 'toggleLeftSidebar',
-      handler: handlers.toggleLeftSidebar || (() => {}),
-    },
-    {
-      description: '오른쪽 사이드 패널 토글',
-      combo: 'ctrl+c',
-      id: 'toggleRightSidebar',
-      handler: handlers.toggleRightSidebar || (() => {}),
-    },
-    {
       description: '우측 사이드바 Push 모드로 오픈/클로즈 토글',
       combo: 'ctrl+shift+p',
       id: 'openRightSidebarPush',
