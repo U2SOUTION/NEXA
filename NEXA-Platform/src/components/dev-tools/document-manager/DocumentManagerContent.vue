@@ -9,9 +9,10 @@
       <div class="text-h6">왼쪽 사이드바에서 문서를 선택하세요</div>
     </div>
 
-    <div v-else class="file-content">
+    <template v-else>
       <!-- 편집 모드가 아닐 때만 헤더와 통계 표시 -->
       <template v-if="!isEditMode">
+        <!-- 헤더를 스크롤 컨테이너의 직접 자식으로 배치 (sticky 작동을 위해) -->
         <div class="file-content-header row items-center justify-between">
           <div>
             <div class="text-h6 file-content-title">{{ documentStore.selectedFile.displayName }}</div>
@@ -26,63 +27,74 @@
             </template>
             <template v-else>
               <!-- 일반 파일인 경우: 파일명 변경, 수정일 갱신, 업데이트, 휴지통, 편집, 다이어그램 편집, 목차 -->
-              <q-btn flat dense icon="text_fields" color="grey-7" class="rename-btn" @click="handleRenameFile">
+              <q-btn flat dense icon="text_fields" class="rename-btn" @click="handleRenameFile">
                 <q-tooltip>이름 변경</q-tooltip>
               </q-btn>
-              <q-btn flat dense icon="update" color="grey-7" class="update-date-btn" @click="handleUpdateModifiedDate">
+              <q-btn flat dense icon="update" class="update-date-btn" @click="handleUpdateModifiedDate">
                 <q-tooltip>수정일 갱신</q-tooltip>
               </q-btn>
-              <q-btn flat dense icon="cached" color="grey-7" :class="['refresh-btn', { 'refresh-rotating': isRefreshingFile }]" @click="handleRefreshFile">
+              <q-btn flat dense icon="cached" :class="['refresh-btn', { 'refresh-rotating': isRefreshingFile }]" @click="handleRefreshFile">
                 <q-tooltip>업데이트</q-tooltip>
               </q-btn>
-              <q-btn flat dense icon="delete" color="grey-7" class="trash-btn" @click="handleMoveToTrash">
+              <q-btn flat dense icon="delete" class="trash-btn" @click="handleMoveToTrash">
                 <q-tooltip>휴지통</q-tooltip>
               </q-btn>
-              <q-btn flat dense icon="edit_note" color="grey-7" class="edit-btn" @click="enterEditMode">
+              <q-btn flat dense icon="edit_note" class="edit-btn" @click="enterEditMode">
                 <q-tooltip>편집</q-tooltip>
               </q-btn>
-              <q-btn v-if="hasMermaidBlocks" flat dense icon="account_tree" :color="isRightSidebarOpen ? 'primary' : 'grey-7'" class="mermaid-edit-btn" @click="toggleMermaidEditor">
+              <q-btn v-if="hasMermaidBlocks" flat dense icon="account_tree" :class="['mermaid-edit-btn', { active: isRightSidebarOpen }]" @click="toggleMermaidEditor">
                 <q-tooltip>{{ isRightSidebarOpen ? '다이어그램 편집 닫기' : '다이어그램 편집' }}</q-tooltip>
               </q-btn>
-              <q-btn ref="tocButtonRef" flat dense icon="menu" color="grey-7" class="toc-btn" @click="openTOCInSidebar" :disable="documentStore.tocItems.length === 0">
+              <q-btn v-if="hasSearchKeywords" flat dense icon="highlight" :class="['highlight-toggle-btn', { active: showHighlight }]" @click="toggleHighlight">
+                <q-tooltip>{{ showHighlight ? '검색어 하일라이팅 숨기기' : '검색어 하일라이팅 보기' }}</q-tooltip>
+              </q-btn>
+              <q-btn v-if="hasCodeBlocks" flat dense icon="code" :class="['code-block-toggle-btn', { active: !codeBlocksCollapsed }]" @click="toggleCodeBlocks">
+                <q-tooltip>{{ codeBlocksCollapsed ? '코드 블럭 모두 펼치기' : '코드 블럭 모두 접기' }}</q-tooltip>
+              </q-btn>
+              <q-btn ref="tocButtonRef" flat dense icon="menu" class="toc-btn" @click="openTOCInSidebar" :disable="documentStore.tocItems.length === 0">
                 <q-tooltip>목차</q-tooltip>
               </q-btn>
             </template>
           </div>
         </div>
 
-        <!-- 선택한 파일의 상세 통계 -->
-        <div v-if="getFileTotalCount(documentStore.selectedFile) > 0" class="file-stats-section q-pa-sm q-mb-md">
-          <div class="row items-center q-gutter-sm">
-            <div class="text-caption">진행률:</div>
-            <q-linear-progress :value="getFileProgress(documentStore.selectedFile) / 100" :color="getFileProgress(documentStore.selectedFile) === 100 ? 'positive' : 'primary'" size="8px" rounded class="col" />
-            <div class="text-caption text-primary text-weight-bold">{{ getFileProgress(documentStore.selectedFile) }}%</div>
-            <q-separator vertical />
-            <div class="text-caption">
-              완료: <span class="text-positive text-weight-bold">{{ getFileCompletedCount(documentStore.selectedFile) }}</span>
-            </div>
-            <div class="text-caption">
-              미완료: <span class="text-weight-bold">{{ getFilePendingCount(documentStore.selectedFile) }}</span>
+        <!-- 컨텐츠 래퍼 (헤더 다음에 배치) -->
+        <div class="file-content">
+          <!-- 선택한 파일의 상세 통계 -->
+          <div v-if="getFileTotalCount(documentStore.selectedFile) > 0" class="file-stats-section q-pa-sm q-mb-md">
+            <div class="row items-center q-gutter-sm">
+              <div class="text-caption">진행률:</div>
+              <q-linear-progress :value="getFileProgress(documentStore.selectedFile) / 100" :color="getFileProgress(documentStore.selectedFile) === 100 ? 'positive' : 'primary'" size="8px" rounded class="col" />
+              <div class="text-caption text-primary text-weight-bold">{{ getFileProgress(documentStore.selectedFile) }}%</div>
+              <q-separator vertical />
+              <div class="text-caption">
+                완료: <span class="text-positive text-weight-bold">{{ getFileCompletedCount(documentStore.selectedFile) }}</span>
+              </div>
+              <div class="text-caption">
+                미완료: <span class="text-weight-bold">{{ getFilePendingCount(documentStore.selectedFile) }}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- 파싱된 마크다운 내용 -->
-        <div class="markdown-content" ref="markdownContentRef" v-html="displayContent" @click="handleContentClick" @scroll="updateCurrentSection"></div>
+          <!-- 파싱된 마크다운 내용 -->
+          <div class="markdown-content" ref="markdownContentRef" v-html="displayContent" @click="handleContentClick" @scroll="updateCurrentSection"></div>
+        </div>
       </template>
 
       <!-- 편집 모드: 에디터 표시 -->
-      <div v-else class="edit-mode-container">
-        <div class="edit-mode-header row items-center justify-between q-pa-sm">
-          <div class="text-subtitle2 text-primary">편집 모드</div>
-          <div class="row q-gutter-xs">
-            <q-btn flat dense icon="save" label="저장" color="primary" @click="saveEdit" />
-            <q-btn flat dense icon="close" label="취소" color="grey-7" @click="exitEditMode" />
+      <template v-else>
+        <div class="edit-mode-container">
+          <div class="edit-mode-header row items-center justify-between q-pa-sm">
+            <div class="text-subtitle2 text-primary">편집 모드</div>
+            <div class="row q-gutter-xs">
+              <q-btn flat dense icon="save" label="저장" color="primary" @click="saveEdit" />
+              <q-btn flat dense icon="close" label="취소" class="cancel-edit-btn" @click="exitEditMode" />
+            </div>
           </div>
+          <TiptapEditor v-model="editContent" />
         </div>
-        <TiptapEditor v-model="editContent" />
-      </div>
-    </div>
+      </template>
+    </template>
   </div>
 </template>
 
@@ -181,25 +193,70 @@ async function toggleMermaidEditor() {
   }
 }
 
+// 하일라이팅 토글 상태
+const showHighlight = ref(true)
+
+// 검색 키워드가 있는지 확인
+const hasSearchKeywords = computed(() => {
+  return documentStore.globalSearchKeywords && documentStore.globalSearchKeywords.length > 0
+})
+
+// 코드 블럭 접기/펼치기 상태
+const codeBlocksCollapsed = ref(false)
+
+// 코드 블럭 존재 여부 확인
+const hasCodeBlocks = ref(false)
+
+// 코드 블럭 존재 여부 업데이트
+function updateCodeBlocksStatus() {
+  nextTick(() => {
+    if (markdownContentRef.value) {
+      const codeBlocks = markdownContentRef.value.querySelectorAll('.code-block')
+      hasCodeBlocks.value = codeBlocks.length > 0
+    } else {
+      hasCodeBlocks.value = false
+    }
+  })
+}
+
 // 표시할 내용 (검색 키워드 하일라이팅 포함)
 const displayContent = ref('')
+
+// 하일라이팅 적용 여부에 따라 내용 업데이트
+function updateDisplayContent() {
+  if (!documentStore.selectedFile || !documentStore.displayContent) {
+    displayContent.value = ''
+    return
+  }
+
+  if (showHighlight.value && hasSearchKeywords.value) {
+    displayContent.value = getDisplayContentWithHighlight(documentStore.globalSearchKeywords, documentStore.globalSearchResults, searchMode.value)
+  } else {
+    displayContent.value = documentStore.displayContent
+  }
+
+  nextTick(() => {
+    nextTick(() => {
+      setTimeout(() => {
+        renderMermaid()
+        // 코드 블럭 상태 복원 및 존재 여부 업데이트
+        updateCodeBlocksStatus()
+        if (markdownContentRef.value && codeBlocksCollapsed.value) {
+          const codeBlocks = markdownContentRef.value.querySelectorAll('.code-block')
+          codeBlocks.forEach((block) => {
+            block.classList.add('collapsed')
+          })
+        }
+      }, 800)
+    })
+  })
+}
 
 // store의 displayContent computed를 watch하여 파일 로드 완료 시 자동 업데이트
 watch(
   () => documentStore.displayContent,
-  (newContent) => {
-    if (documentStore.selectedFile && newContent && newContent.length > 0) {
-      displayContent.value = getDisplayContentWithHighlight(documentStore.globalSearchKeywords, documentStore.globalSearchResults, searchMode.value)
-      nextTick(() => {
-        nextTick(() => {
-          setTimeout(() => {
-            renderMermaid()
-          }, 800)
-        })
-      })
-    } else if (!documentStore.selectedFile) {
-      displayContent.value = ''
-    }
+  () => {
+    updateDisplayContent()
   },
   { immediate: true },
 )
@@ -210,17 +267,7 @@ watch(
   (loadingFileName) => {
     if (!loadingFileName && documentStore.selectedFile) {
       nextTick(() => {
-        const baseContent = documentStore.displayContent
-        if (baseContent) {
-          displayContent.value = getDisplayContentWithHighlight(documentStore.globalSearchKeywords, documentStore.globalSearchResults, searchMode.value)
-          nextTick(() => {
-            nextTick(() => {
-              setTimeout(() => {
-                renderMermaid()
-              }, 800)
-            })
-          })
-        }
+        updateDisplayContent()
       })
     }
   },
@@ -228,25 +275,54 @@ watch(
 
 // 검색 키워드, 검색 결과, 검색 모드 변경 시 하일라이팅 업데이트
 watch(
-  [() => documentStore.globalSearchKeywords, () => documentStore.globalSearchResults, () => searchMode.value],
+  [() => documentStore.globalSearchKeywords, () => documentStore.globalSearchResults, () => searchMode.value, () => showHighlight.value],
   () => {
     if (documentStore.selectedFile && documentStore.displayContent) {
       nextTick(() => {
-        const baseContent = documentStore.displayContent
-        if (baseContent) {
-          displayContent.value = getDisplayContentWithHighlight(documentStore.globalSearchKeywords, documentStore.globalSearchResults, searchMode.value)
-          nextTick(() => {
-            nextTick(() => {
-              setTimeout(() => {
-                renderMermaid()
-              }, 800)
-            })
-          })
-        }
+        updateDisplayContent()
       })
     }
   },
   { deep: true },
+)
+
+// 하일라이팅 토글 핸들러
+function toggleHighlight() {
+  showHighlight.value = !showHighlight.value
+  updateDisplayContent()
+}
+
+// 코드 블럭 접기/펼치기 토글 핸들러
+function toggleCodeBlocks() {
+  codeBlocksCollapsed.value = !codeBlocksCollapsed.value
+  nextTick(() => {
+    if (markdownContentRef.value) {
+      const codeBlocks = markdownContentRef.value.querySelectorAll('.code-block')
+      codeBlocks.forEach((block) => {
+        if (codeBlocksCollapsed.value) {
+          block.classList.add('collapsed')
+        } else {
+          block.classList.remove('collapsed')
+        }
+      })
+    }
+  })
+}
+
+// 파일 변경 시 코드 블럭 상태 초기화
+watch(
+  () => documentStore.selectedFile,
+  () => {
+    codeBlocksCollapsed.value = false
+    nextTick(() => {
+      if (markdownContentRef.value) {
+        const codeBlocks = markdownContentRef.value.querySelectorAll('.code-block')
+        codeBlocks.forEach((block) => {
+          block.classList.remove('collapsed')
+        })
+      }
+    })
+  },
 )
 
 // HTML의 체크박스를 Tiptap TaskList 형식으로 변환
@@ -741,19 +817,19 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .file-content-container {
-  height: 100%;
-  overflow-y: auto;
+  // 스크롤은 .q-page에서 발생하므로 여기서는 제거
+  // height: 100% 제거 (자동 높이)
   background: var(--nexa-background);
   padding: 0 20px 20px 20px;
-  scroll-behavior: smooth;
-  display: flex;
-  flex-direction: column;
-
+  // 일반 모드: flex 제거 (sticky 작동을 위해)
+  // 편집 모드: flex 사용
   &.edit-mode {
     padding: 0;
-    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 
-    .file-content {
+    .edit-mode-container {
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -761,8 +837,13 @@ onUnmounted(() => {
   }
 }
 
+// .file-content는 일반 블록 요소로 사용 (별도 스타일 불필요)
+
 .file-content-header {
-  background: var(--nexa-background-darker);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--nexa-background); //투명도 있으면 스크롤 할때 비춰서 투명도 없도록 할것
   padding: 18px 20px 10px 20px;
   margin: 0 -20px 16px -20px;
   border-bottom: 3px solid var(--nexa-border-color);
@@ -785,10 +866,50 @@ onUnmounted(() => {
   :deep(.update-date-btn),
   :deep(.refresh-btn),
   :deep(.edit-btn),
-  :deep(.toc-btn) {
+  :deep(.toc-btn),
+  :deep(.cancel-edit-btn) {
+    color: var(--nexa-text-secondary);
     transition:
       color 0.2s ease,
       background-color 0.2s ease;
+
+    .q-btn__content {
+      color: var(--nexa-text-secondary);
+    }
+
+    &:hover .q-btn__content {
+      color: var(--q-primary);
+    }
+    &:hover {
+      background-color: color-mix(in srgb, var(--q-primary) 10%, transparent);
+    }
+  }
+
+  :deep(.mermaid-edit-btn),
+  :deep(.highlight-toggle-btn),
+  :deep(.code-block-toggle-btn) {
+    color: var(--nexa-text-secondary);
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
+
+    .q-btn__content {
+      color: var(--nexa-text-secondary);
+    }
+
+    &.active {
+      color: var(--nexa-accent);
+
+      .q-btn__content {
+        color: var(--nexa-accent);
+      }
+
+      // active 상태일 때 hover해도 primary 색상 유지
+      &:hover .q-btn__content {
+        color: var(--q-primary);
+      }
+    }
+
     &:hover .q-btn__content {
       color: var(--q-primary);
     }
@@ -1010,10 +1131,13 @@ onUnmounted(() => {
     padding: 16px;
     border-radius: 8px;
     overflow-x: auto;
+    overflow-y: hidden;
     margin: 16px 0;
     border: 2px solid var(--nexa-border-color);
     white-space: pre-wrap;
     word-wrap: break-word;
+    max-height: none;
+    transition: max-height 0.3s ease-out;
 
     code {
       color: var(--nexa-text-primary-focus);
@@ -1022,6 +1146,23 @@ onUnmounted(() => {
       display: block;
       width: 100%;
       opacity: 0.8;
+    }
+
+    &.collapsed {
+      max-height: 150px;
+      overflow-y: hidden;
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50px;
+        background: linear-gradient(to bottom, transparent, var(--nexa-background-lower));
+        pointer-events: none;
+      }
     }
   }
 

@@ -170,6 +170,8 @@ onUnmounted(() => {
 .development-page {
   background: var(--nexa-background);
   min-height: 100vh;
+  // 문서 관리자에서 스크롤은 DocumentManagerContent 내부에서 처리
+  // overflow: hidden; // 필요시 활성화
 }
 
 .stats-summary-section {
