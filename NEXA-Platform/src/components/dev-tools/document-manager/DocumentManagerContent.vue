@@ -421,11 +421,12 @@ async function handlePermanentlyDelete() {
       flat: true,
     },
   }).onOk(async () => {
-    const fileName = documentStore.selectedFile.name
+    // relativePath를 우선 사용, 없으면 name 사용
+    const filePath = documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name
     const displayName = documentStore.selectedFile.displayName
 
     try {
-      await permanentlyDeleteFromTrash(fileName, documentStore)
+      await permanentlyDeleteFromTrash(filePath, documentStore)
       documentStore.selectedFile = null
 
       $q.notify({

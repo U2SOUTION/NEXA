@@ -276,16 +276,24 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         // 백엔드 API를 통해 파일 내용을 로드하는 함수
         const loadContent = async () => {
           try {
-            const response = await fetch(`http://localhost:3000/api/docs/${encodeURIComponent(relativePath)}`)
+            const encodedPath = encodeURIComponent(relativePath)
+            const url = `http://localhost:3000/api/docs/${encodedPath}`
+            console.log(`[Store] 파일 내용 로드 시도: ${relativePath} -> ${url}`)
+
+            const response = await fetch(url)
             if (response.ok) {
-              return await response.text()
+              const content = await response.text()
+              console.log(`[Store] 파일 내용 로드 성공: ${relativePath} (${content.length} bytes)`)
+              return content
             } else {
-              console.warn(`[Store] 파일 내용 로드 실패: ${relativePath} (${response.status})`)
+              const errorText = await response.text().catch(() => '')
+              console.error(`[Store] 파일 내용 로드 실패: ${relativePath} (${response.status})`, errorText)
+              throw new Error(`파일을 불러올 수 없습니다: ${response.status} ${errorText}`)
             }
           } catch (error) {
-            console.warn(`[Store] 파일 내용 로드 실패: ${relativePath}`, error)
+            console.error(`[Store] 파일 내용 로드 실패: ${relativePath}`, error)
+            throw error // 에러를 다시 throw하여 상위에서 처리할 수 있도록 함
           }
-          return ''
         }
 
         // path는 relativePath와 동일하게 설정 (표시용, 기존 코드 호환성 유지)
@@ -339,13 +347,27 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     try {
       // 항상 최신 내용을 백엔드에서 가져오기 (외부에서 변경된 내용 반영)
       try {
+        console.log(`[Store] selectFile: 파일 선택 시작 - ${file.name} (relativePath: ${file.relativePath || file.path || '없음'})`)
+
+        // loadContent 함수가 있는지 확인
+        if (!file.loadContent || typeof file.loadContent !== 'function') {
+          console.error(`[Store] selectFile: loadContent 함수가 없습니다 - ${file.name}`, file)
+          throw new Error('파일 로드 함수가 없습니다.')
+        }
+
         const content = await file.loadContent()
-        fileContents.value[file.name] = content
+
+        if (!content || content.trim() === '') {
+          // 빈 내용이면 경고 메시지 표시
+          fileContents.value[file.name] = '# 경고\n\n파일 내용이 비어있거나 불러올 수 없습니다.'
+        } else {
+          fileContents.value[file.name] = content
+        }
       } catch (error) {
         console.error('[Store] 파일 내용 로드 실패:', error)
         // 로드 실패 시 캐시된 내용이 있으면 사용, 없으면 오류 메시지
         if (!fileContents.value[file.name]) {
-          fileContents.value[file.name] = '# 오류\n\n파일을 불러올 수 없습니다.'
+          fileContents.value[file.name] = `# 오류\n\n파일을 불러올 수 없습니다.\n\n오류: ${error.message || '알 수 없는 오류'}`
         }
       }
 
@@ -691,11 +713,11 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
           // 이렇게 하면 parsedContent가 확실히 재계산됨
           const currentFile = selectedFile.value
           if (currentFile) {
-          selectedFile.value = null
-          nextTick(() => {
-            selectedFile.value = currentFile
-          })
-        }
+            selectedFile.value = null
+            nextTick(() => {
+              selectedFile.value = currentFile
+            })
+          }
         })
       }
       // 체크박스나 라벨 클릭 시 이벤트 전파 중지
@@ -721,6 +743,11 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     // 현재 파일명으로 찾을 수 없으면 빈 문자열 반환하지 않고,
     // 이전 파일명을 시도하지 않음 (파일명 변경 중에는 빈 문자열이 나올 수 있음)
     if (!content) {
+      console.warn(`[Store] parsedContent: 파일 내용을 찾을 수 없습니다 - ${fileName}`, {
+        selectedFile: selectedFile.value,
+        availableKeys: Object.keys(fileContents.value),
+        fileContentsSize: Object.keys(fileContents.value).length,
+      })
       return ''
     }
 

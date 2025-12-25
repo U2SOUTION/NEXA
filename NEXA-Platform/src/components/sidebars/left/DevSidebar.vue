@@ -52,38 +52,14 @@
 
     <!-- 테마 관리 헤더 및 리스트 (activeMenu === 'theme-manager') -->
     <template v-else-if="activeMenu === 'theme-manager'">
-      <ThemeManagerHeader
-        :categories="themeCategories"
-        @theme-change="handleThemeManagerThemeChange"
-        @search-change="handleSearchChange"
-        @filter="handleCategoryFilterChange"
-        @sort="handleSortChange"
-        @statistics-action="handleStatisticsAction"
-      />
-      <ThemeManagerList
-        :active-tab="themeManagerActiveTab"
-        :statistics-data="themeStatisticsData"
-        @tab-change="themeManagerActiveTab = $event"
-        @color-selected="handleThemeColorSelected"
-        @statistics-action="handleStatisticsAction"
-      />
+      <ThemeManagerHeader :categories="themeCategories" @theme-change="handleThemeManagerThemeChange" @search-change="handleSearchChange" @filter="handleCategoryFilterChange" @sort="handleSortChange" @statistics-action="handleStatisticsAction" />
+      <ThemeManagerList :active-tab="themeManagerActiveTab" :statistics-data="themeStatisticsData" @tab-change="themeManagerActiveTab = $event" @color-selected="handleThemeColorSelected" @statistics-action="handleStatisticsAction" />
     </template>
 
     <!-- 데이터베이스 뷰어 헤더 및 리스트 (activeMenu === 'database-viewer') -->
     <template v-else-if="activeMenu === 'database-viewer'">
-      <DatabaseViewerHeader
-        :db-info="databaseViewerDbInfo"
-        :table-count="databaseViewerTableCount"
-        @refresh="handleDatabaseViewerRefresh"
-        @search-change="handleDatabaseViewerSearchChange"
-        @settings="handleDatabaseViewerSettings"
-        @sub-menu-change="handleDatabaseViewerSubMenuChange"
-      />
-      <DatabaseViewerList
-        :search-query="databaseViewerSearchQuery"
-        :refresh-trigger="databaseViewerRefreshTrigger"
-        @table-selected="handleDatabaseViewerTableSelected"
-      />
+      <DatabaseViewerHeader :db-info="databaseViewerDbInfo" :table-count="databaseViewerTableCount" @refresh="handleDatabaseViewerRefresh" @search-change="handleDatabaseViewerSearchChange" @settings="handleDatabaseViewerSettings" @sub-menu-change="handleDatabaseViewerSubMenuChange" />
+      <DatabaseViewerList :search-query="databaseViewerSearchQuery" :refresh-trigger="databaseViewerRefreshTrigger" @table-selected="handleDatabaseViewerTableSelected" />
     </template>
 
     <!-- 설정 모달 -->
@@ -157,13 +133,13 @@ function handleThemeManagerThemeChange(themeValue) {
   const $q = useQuasar()
   const userSettings = useUserSettingsStore()
   const isDark = themeValue === 'dark'
-  
+
   // 사용자 설정 스토어를 통해 테마 변경
   userSettings.settings.theme.isDarkMode = isDark
   $q.dark.set(isDark)
   document.body.classList.toggle('dark', isDark)
   userSettings.saveSettings()
-  
+
   // 테마 변경 이벤트를 DevelopmentPage로 전달
   window.dispatchEvent(new CustomEvent('theme-manager-theme-changed', { detail: { theme: themeValue } }))
 }
@@ -195,7 +171,7 @@ function handleStatisticsAction(actionType) {
   console.log('[ThemeManager] 통계 액션:', actionType)
   // 임시로 빈 배열 설정 (나중에 실제 분석 결과로 교체)
   themeStatisticsData.value = []
-  
+
   // TODO: themeUsageAnalyzer.js를 사용하여 실제 분석 수행
 }
 
@@ -220,11 +196,11 @@ function loadThemeCategories() {
 async function handleDatabaseViewerRefresh() {
   try {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
-    
+
     // 데이터베이스 정보 조회
     const infoResponse = await fetch(`${apiBaseUrl}/db/info`)
     const infoData = await infoResponse.json()
-    
+
     // 503 에러는 데이터베이스 연결 문제
     if (infoResponse.status === 503) {
       console.warn('[DevSidebar] 데이터베이스 연결이 없습니다:', infoData.message)
@@ -236,7 +212,7 @@ async function handleDatabaseViewerRefresh() {
       databaseViewerTableCount.value = 0
       return
     }
-    
+
     if (infoData.success && infoData.data) {
       databaseViewerDbInfo.value = infoData.data
     }
@@ -244,14 +220,14 @@ async function handleDatabaseViewerRefresh() {
     // 테이블 목록 조회 (개수만)
     const tablesResponse = await fetch(`${apiBaseUrl}/db/tables`)
     const tablesData = await tablesResponse.json()
-    
+
     // 503 에러는 데이터베이스 연결 문제
     if (tablesResponse.status === 503) {
       console.warn('[DevSidebar] 데이터베이스 연결이 없습니다:', tablesData.message)
       databaseViewerTableCount.value = 0
       return
     }
-    
+
     if (tablesData.success && tablesData.data) {
       databaseViewerTableCount.value = tablesData.data.length
     }
@@ -291,7 +267,7 @@ function handleDatabaseViewerTableSelected(tableName) {
       detail: {
         tableName: tableName,
       },
-    })
+    }),
   )
 }
 
@@ -311,7 +287,7 @@ function handleDatabaseViewerSubMenuChange(subMenu) {
         subMenu: subMenu,
         selectedTable: databaseViewerSelectedTable.value, // 선택된 테이블 정보 포함
       },
-    })
+    }),
   )
   // 서브 메뉴 변경 시 선택된 테이블이 있으면 테이블 선택 이벤트 재발생
   // (편집기, SQL 탭 등에서 선택된 테이블 정보를 유지하기 위함)
@@ -323,7 +299,7 @@ function handleDatabaseViewerSubMenuChange(subMenu) {
           detail: {
             tableName: databaseViewerSelectedTable.value,
           },
-        })
+        }),
       )
     }, 100)
   }
@@ -440,10 +416,9 @@ function toggleTrashView() {
   }
 }
 
-function loadMarkdownFiles() {
-  if (contentRef.value) {
-    // DocumentManagerList에서 처리
-  }
+async function loadMarkdownFiles() {
+  // Store의 loadMarkdownFiles를 직접 호출하여 파일 목록 새로고침
+  await documentStore.loadMarkdownFiles()
 }
 
 function openSettings() {
@@ -581,11 +556,14 @@ async function handlePermanentlyDeleteSelected(selectedFiles) {
 
       for (const file of selectedFiles) {
         try {
-          await permanentlyDeleteFromTrash(file.name, documentStore)
+          // relativePath를 우선 사용, 없으면 name 사용
+          const filePath = file.relativePath || file.path || file.name
+          await permanentlyDeleteFromTrash(filePath, documentStore)
           successCount++
         } catch (error) {
-          console.error(`[MultiSelection] 파일 영구 삭제 실패: ${file.name}`, error)
-          failedFiles.push(file.name)
+          const filePath = file.relativePath || file.path || file.name
+          console.error(`[MultiSelection] 파일 영구 삭제 실패: ${filePath}`, error)
+          failedFiles.push(filePath)
         }
       }
 
@@ -652,7 +630,7 @@ onMounted(() => {
     showExcludedFiles: excludedFiles,
     searchMode,
   })
-  
+
   // DevelopmentPage에서 초기 메뉴 이벤트를 받아서 동기화
   function handleInitialMenuChange(event) {
     const menuId = event.detail.activeMenu
@@ -664,17 +642,17 @@ onMounted(() => {
       loadThemeCategories()
     }
   }
-  
+
   // 초기 이벤트 리스너 (한 번만 실행)
   const initialHandler = (event) => {
     handleInitialMenuChange(event)
     window.removeEventListener('dev-menu-changed', initialHandler)
   }
   window.addEventListener('dev-menu-changed', initialHandler)
-  
+
   // 데이터베이스 뷰어 새로고침 이벤트 리스너 등록
   window.addEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
-  
+
   // 이후 변경사항은 handleActiveMenuChange로 처리 (이미 등록되어 있음)
 })
 

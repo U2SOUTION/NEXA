@@ -40,11 +40,11 @@ export function loadCheckboxStates(checkboxStates) {
 /**
  * 체크박스 상태 저장
  * @param {Object} checkboxStates - 체크박스 상태 객체 (ref)
- * 
+ *
  * 현재 동작:
  * - localStorage에만 저장 (원본 마크다운 파일은 수정하지 않음)
  * - 브라우저별 개인 설정으로 저장됨
- * 
+ *
  * 향후 계획:
  * - 에디터 기능 완성 시 원본 마크다운 파일에도 체크박스 상태를 반영할 예정
  * - 편집 모드에서 문서 저장 시 체크박스 상태도 함께 저장
@@ -658,8 +658,12 @@ export function restoreFromTrash(fileName, store) {
  */
 export async function permanentlyDeleteFromTrash(fileName, store) {
   try {
+    // fileName이 relativePath인지 확인 (슬래시가 있으면 경로)
+    const filePath = fileName
+    const fileNameOnly = filePath.includes('/') ? filePath.split('/').pop() : filePath
+
     // URL 인코딩 (한글 파일명 처리)
-    const encodedFileName = encodeURIComponent(fileName)
+    const encodedFileName = encodeURIComponent(filePath)
 
     // API 호출하여 실제 파일 삭제
     const response = await fetch(`http://localhost:3000/api/docs/${encodedFileName}`, {
@@ -676,14 +680,60 @@ export async function permanentlyDeleteFromTrash(fileName, store) {
 
     await response.json()
 
-    // localStorage에서도 제거
+    // markdownFiles에서 파일 제거 (name, path, relativePath 모두 확인)
+    if (store.markdownFiles) {
+      const fileIndex = store.markdownFiles.findIndex((file) => file.name === fileNameOnly || file.name === filePath || file.path === filePath || file.relativePath === filePath || file.relativePath === fileNameOnly)
+      if (fileIndex !== -1) {
+        store.markdownFiles.splice(fileIndex, 1)
+        console.log(`[Trash] markdownFiles에서 파일 제거: ${filePath}`)
+      }
+    }
+
+    // trashFiles에서 제거 (파일명만 사용)
     if (store.removeFromTrash) {
-      store.removeFromTrash(fileName)
+      store.removeFromTrash(fileNameOnly)
       saveTrashFiles({ value: store.trashFiles })
     } else {
       // 레거시 방식
-      store.trashFiles = Array.from(store.trashFiles).filter((name) => name !== fileName)
+      store.trashFiles = Array.from(store.trashFiles).filter((name) => name !== fileNameOnly)
       saveTrashFiles({ value: store.trashFiles })
+    }
+
+    // 로컬 스토리지에서 관련 데이터 제거
+    try {
+      const fileNameOnlyForStorage = fileNameOnly
+
+      // dev-checkbox-states에서 제거
+      const checkboxStates = JSON.parse(localStorage.getItem('dev-checkbox-states') || '{}')
+      if (checkboxStates[fileNameOnlyForStorage]) {
+        delete checkboxStates[fileNameOnlyForStorage]
+        localStorage.setItem('dev-checkbox-states', JSON.stringify(checkboxStates))
+      }
+
+      // dev-file-usage-counts에서 제거
+      const usageCounts = JSON.parse(localStorage.getItem('dev-file-usage-counts') || '{}')
+      if (usageCounts[fileNameOnlyForStorage]) {
+        delete usageCounts[fileNameOnlyForStorage]
+        localStorage.setItem('dev-file-usage-counts', JSON.stringify(usageCounts))
+      }
+
+      // dev-favorite-states에서 제거
+      const favoriteStates = JSON.parse(localStorage.getItem('dev-favorite-states') || '{}')
+      if (favoriteStates[fileNameOnlyForStorage]) {
+        delete favoriteStates[fileNameOnlyForStorage]
+        localStorage.setItem('dev-favorite-states', JSON.stringify(favoriteStates))
+      }
+
+      // dev-priority-states에서 제거
+      const priorityStates = JSON.parse(localStorage.getItem('dev-priority-states') || '{}')
+      if (priorityStates[fileNameOnlyForStorage]) {
+        delete priorityStates[fileNameOnlyForStorage]
+        localStorage.setItem('dev-priority-states', JSON.stringify(priorityStates))
+      }
+
+      console.log(`[Trash] 로컬 스토리지에서 관련 데이터 제거 완료: ${fileNameOnlyForStorage}`)
+    } catch (storageError) {
+      console.warn('[Trash] 로컬 스토리지 정리 중 오류 (계속 진행):', storageError)
     }
 
     return true
@@ -702,7 +752,7 @@ export async function emptyTrash(store) {
   try {
     // 초기 trashFiles 배열을 복사 (각 파일 삭제 시 배열이 변경되므로 미리 복사)
     const trashFilesToDelete = Array.from(store.trashFiles || [])
-    
+
     if (trashFilesToDelete.length === 0) {
       console.log('[Trash] emptyTrash: 휴지통이 이미 비어있습니다')
       return 0
@@ -715,10 +765,21 @@ export async function emptyTrash(store) {
     const failedFiles = []
 
     // 모든 휴지통 파일을 순차적으로 삭제
+    const deletedFileNames = [] // 삭제된 파일명 목록 (로컬 스토리지 정리용)
+
     for (const fileName of trashFilesToDelete) {
       try {
+        // markdownFiles에서 해당 파일 찾기 (relativePath 확인)
+        let filePath = fileName
+        if (store.markdownFiles) {
+          const file = store.markdownFiles.find((f) => f.name === fileName || f.path === fileName || f.relativePath === fileName)
+          if (file && file.relativePath) {
+            filePath = file.relativePath
+          }
+        }
+
         // URL 인코딩 (한글 파일명 처리)
-        const encodedFileName = encodeURIComponent(fileName)
+        const encodedFileName = encodeURIComponent(filePath)
 
         // API 호출하여 실제 파일 삭제
         const response = await fetch(`http://localhost:3000/api/docs/${encodedFileName}`, {
@@ -734,8 +795,9 @@ export async function emptyTrash(store) {
         }
 
         await response.json()
-        console.log(`[Trash] 파일 삭제 성공: ${fileName}`)
+        console.log(`[Trash] 파일 삭제 성공: ${filePath}`)
         successCount++
+        deletedFileNames.push(fileName) // 파일명 저장 (로컬 스토리지 정리용)
       } catch (error) {
         console.error(`[Trash] 파일 삭제 실패: ${fileName}`, error)
         failCount++
@@ -743,26 +805,68 @@ export async function emptyTrash(store) {
       }
     }
 
-    // 모든 파일 삭제 시도 후, 성공한 파일들을 trashFiles에서 제거
-    // (permanentlyDeleteFromTrash를 사용하지 않고 직접 처리하여 중복 제거 방지)
+    // 모든 파일 삭제 시도 후, 성공한 파일들을 처리
     if (successCount > 0) {
-      const remainingFiles = trashFilesToDelete.filter((fileName) => failedFiles.includes(fileName))
-      
-      // store 업데이트
-      if (store.removeFromTrash) {
-        // 성공한 파일들만 제거
-        trashFilesToDelete.forEach((fileName) => {
-          if (!failedFiles.includes(fileName)) {
-            store.removeFromTrash(fileName)
+      // markdownFiles에서 삭제된 파일들 제거
+      if (store.markdownFiles) {
+        deletedFileNames.forEach((fileName) => {
+          const fileIndex = store.markdownFiles.findIndex((file) => file.name === fileName || file.path === fileName || file.relativePath === fileName || file.relativePath?.endsWith(fileName))
+          if (fileIndex !== -1) {
+            store.markdownFiles.splice(fileIndex, 1)
+            console.log(`[Trash] markdownFiles에서 파일 제거: ${fileName}`)
           }
+        })
+      }
+
+      // trashFiles에서 제거
+      if (store.removeFromTrash) {
+        deletedFileNames.forEach((fileName) => {
+          store.removeFromTrash(fileName)
         })
       } else {
         // 레거시 방식: 실패한 파일만 남김
-        store.trashFiles = remainingFiles
+        store.trashFiles = failedFiles
       }
-      
+
       // localStorage 저장
       saveTrashFiles({ value: store.trashFiles || [] })
+
+      // 로컬 스토리지에서 관련 데이터 제거
+      try {
+        deletedFileNames.forEach((fileNameOnly) => {
+          // dev-checkbox-states에서 제거
+          const checkboxStates = JSON.parse(localStorage.getItem('dev-checkbox-states') || '{}')
+          if (checkboxStates[fileNameOnly]) {
+            delete checkboxStates[fileNameOnly]
+            localStorage.setItem('dev-checkbox-states', JSON.stringify(checkboxStates))
+          }
+
+          // dev-file-usage-counts에서 제거
+          const usageCounts = JSON.parse(localStorage.getItem('dev-file-usage-counts') || '{}')
+          if (usageCounts[fileNameOnly]) {
+            delete usageCounts[fileNameOnly]
+            localStorage.setItem('dev-file-usage-counts', JSON.stringify(usageCounts))
+          }
+
+          // dev-favorite-states에서 제거
+          const favoriteStates = JSON.parse(localStorage.getItem('dev-favorite-states') || '{}')
+          if (favoriteStates[fileNameOnly]) {
+            delete favoriteStates[fileNameOnly]
+            localStorage.setItem('dev-favorite-states', JSON.stringify(favoriteStates))
+          }
+
+          // dev-priority-states에서 제거
+          const priorityStates = JSON.parse(localStorage.getItem('dev-priority-states') || '{}')
+          if (priorityStates[fileNameOnly]) {
+            delete priorityStates[fileNameOnly]
+            localStorage.setItem('dev-priority-states', JSON.stringify(priorityStates))
+          }
+        })
+
+        console.log(`[Trash] 로컬 스토리지에서 관련 데이터 제거 완료: ${deletedFileNames.length}개 파일`)
+      } catch (storageError) {
+        console.warn('[Trash] 로컬 스토리지 정리 중 오류 (계속 진행):', storageError)
+      }
     }
 
     // 결과 반환
