@@ -21,6 +21,8 @@ Platform 레이어 개발 가이드를 관리합니다.
 ### 구현 가이드
 
 -   **[데이터베이스*뷰어*구현\_가이드.md](./데이터베이스_뷰어_구현_가이드.md)** - 데이터베이스 스키마 시각화 구현 가이드
+-   **[ERD*다이어그램*영역*최적화*문제점.md](./ERD_다이어그램_영역_최적화_문제점.md)** - ERD 다이어그램 영역 최적화 문제점 정리
+-   **[ERD*다이어그램*높이*고정*시*축소*원인\_분석.md](./ERD_다이어그램_높이_고정_시_축소_원인_분석.md)** - ERD 다이어그램 높이 고정 시 축소 원인 분석
 -   **[D3_CHART_IMPLEMENTATION_GUIDE.md](./D3_CHART_IMPLEMENTATION_GUIDE.md)** - D3 차트 구현 가이드
 -   **[d3js-detailed-guide.md](./d3js-detailed-guide.md)** - D3.js 상세 가이드
 -   **[Mermaid*차트*샘플.md](./Mermaid_차트_샘플.md)** - Mermaid 차트 샘플
