@@ -88,5 +88,11 @@
         }
     },
     "terminal.integrated.defaultProfile.windows": "PowerShell 7", // 기본 터미널
-    "powershell.powerShellDefaultVersion": "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+    // "powershell.powerShellDefaultVersion": "C:\\Program Files\\PowerShell\\7\\pwsh.exe", // VS Code가 자동으로 감지하므로 주석 처리
+
+    // ============================================
+    // 8. 워크스페이스 키보드 단축키 활성화
+    // ============================================
+    // .vscode/keybindings.json 파일이 작동하도록 설정
+    "keybindings.workspace": true
 }

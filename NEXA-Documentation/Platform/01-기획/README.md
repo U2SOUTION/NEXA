@@ -23,12 +23,12 @@ Platform 레이어 기획 및 요구사항 문서를 관리합니다.
 
 -   **[DOCUMENT_MULTI_SELECTION_PLAN.md](./DOCUMENT_MULTI_SELECTION_PLAN.md)** - 문서 멀티 선택 계획
 -   **[MULTI_SELECTION_STANDARDIZATION_PLAN.md](./MULTI_SELECTION_STANDARDIZATION_PLAN.md)** - 멀티 선택 표준화 계획
--   **[MULTI_SELECTION_UNIVERSAL_DESIGN.md](./MULTI_SELECTION_UNIVERSAL_DESIGN.md)** - 멀티 선택 유니버설 디자인
+-   **[멀티*셀렉션*유니버설\_디자인.md](./멀티_셀렉션_유니버설_디자인.md)** - 멀티 선택 유니버설 디자인
 -   **[확장*가능한*단축키*시스템*구축.md](./확장_가능한_단축키_시스템_구축.md)** - 확장 가능한 단축키 시스템 구축
 
 ### DEV 툴
 
--   **[DevDocs_Manager_AI_협업_기능_아이디어.md](./DevDocs_Manager_AI_협업_기능_아이디어.md)** - DEV 페이지(`/dev`) 개발 효율화 툴 아이디어 (요구사항 파악 진행 중)
+-   **[DevDocs*Manager_AI*협업*기능*아이디어.md](./DevDocs_Manager_AI_협업_기능_아이디어.md)** - DEV 페이지(`/dev`) 개발 효율화 툴 아이디어 (요구사항 파악 진행 중)
 
 ### 테마 관리
 

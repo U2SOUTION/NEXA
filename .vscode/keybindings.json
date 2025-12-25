@@ -1,0 +1,15 @@
+[
+    {
+        "key": "ctrl+alt+t",
+        "command": "nexaExplorer.toggleRevealAndCollapse",
+        "when": "editorTextFocus && !editorReadonly"
+    },
+    {
+        "key": "ctrl+alt+r",
+        "command": "workbench.action.reloadWindow"
+    },
+    {
+        "key": "ctrl+k ctrl+k",
+        "command": "workbench.action.openGlobalKeybindings"
+    }
+]

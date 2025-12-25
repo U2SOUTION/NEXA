@@ -38,7 +38,7 @@
         },
         {
             // DEV 확장 프로그램 컴파일 태스크
-            "label": "npm: compile (DEV) - DEV 확장 프로그램 컴파일",
+            "label": "npm: compile (DEV)",
             // shell 명령어 실행
             "type": "shell",
             // TypeScript 컴파일 명령어

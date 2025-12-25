@@ -1577,10 +1577,6 @@ onBeforeUnmount(() => {
   left: 0;
   border-radius: 0 8px 8px 0; /* 오른쪽 상단, 오른쪽 하단만 라운드 */
   border-left: none;
-  /* 오른쪽으로 그림자 (오른쪽으로 떠있는 느낌) */
-  box-shadow:
-    4px 0 4px var(--nexa-shadow-1),
-    8px 0 8px var(--nexa-shadow-2);
 
   &.is-drawer-open {
     border-left: 1px solid var(--nexa-border-color);
@@ -1598,10 +1594,6 @@ onBeforeUnmount(() => {
   right: 0;
   border-radius: 8px 0 0 8px; /* 왼쪽 상단, 왼쪽 하단만 라운드 */
   border-right: none;
-  /* 왼쪽으로 그림자 (왼쪽으로 떠있는 느낌) */
-  box-shadow:
-    -4px 0 4px var(--nexa-shadow-1),
-    -8px 0 8px var(--nexa-shadow-2);
 
   /* Drawer가 열려있을 때: 리사이즈 핸들 위치 (drawer 왼쪽 가장자리) */
   &.is-drawer-open {
@@ -1614,7 +1606,7 @@ onBeforeUnmount(() => {
   /* 오버레이 모드일 때는 drawer보다 위에 표시되도록 z-index 높임 */
   &.is-overlay-mode {
     z-index: 3001; /* Quasar drawer overlay z-index (3000)보다 높게 설정 */
-    /* 사이드바와 동일한 강한 그림자 적용 (왼쪽으로 그림자, 기본 그림자보다 우선) */
+    /* 사이드바와 동일한 그림자 적용 (왼쪽으로 그림자) */
     box-shadow:
       -9px 0 8px var(--nexa-shadow-1),
       -10px 0 16px var(--nexa-shadow-2),

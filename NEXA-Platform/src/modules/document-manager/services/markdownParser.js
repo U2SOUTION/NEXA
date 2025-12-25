@@ -84,6 +84,9 @@ function buildTableHtml(headerCells, dataLines) {
   // 테이블 HTML 내부의 강조 표시 처리 (**텍스트** -> <strong>텍스트</strong>)
   tableHtml = tableHtml.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
 
+  // <br> 태그 처리 (escapeHtml로 인해 &lt;br&gt;로 변환된 것을 실제 <br> 태그로 복원)
+  tableHtml = tableHtml.replace(/&lt;br\s*\/?&gt;/gi, '<br>')
+
   return tableHtml
 }
 
