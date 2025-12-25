@@ -247,6 +247,26 @@ function updateDisplayContent() {
             block.classList.add('collapsed')
           })
         }
+        // 코드 블럭에 아이콘 추가 및 클릭 이벤트 연결
+        if (markdownContentRef.value) {
+          const codeBlocks = markdownContentRef.value.querySelectorAll('.code-block')
+          codeBlocks.forEach((block) => {
+            // 코드 블럭에 아이콘 추가 (이미 있으면 추가하지 않음)
+            let icon = block.querySelector('.code-block-toggle-icon')
+            if (!icon) {
+              icon = document.createElement('i')
+              icon.className = 'code-block-toggle-icon material-icons'
+              icon.textContent = 'code'
+              icon.setAttribute('aria-hidden', 'true')
+              block.style.position = 'relative'
+              block.appendChild(icon)
+            }
+
+            // 아이콘에 클릭 이벤트 리스너 추가 (중복 방지)
+            icon.removeEventListener('click', handleCodeBlockIconClick)
+            icon.addEventListener('click', handleCodeBlockIconClick)
+          })
+        }
       }, 800)
     })
   })
@@ -292,7 +312,60 @@ function toggleHighlight() {
   updateDisplayContent()
 }
 
-// 코드 블럭 접기/펼치기 토글 핸들러
+// 코드 블럭 접기 함수 (개별 블럭용)
+function collapseCodeBlock(block) {
+  const currentHeight = block.scrollHeight
+  block.style.maxHeight = `${currentHeight}px`
+  block.offsetHeight
+  block.classList.add('collapsed')
+  block.style.maxHeight = '50px'
+}
+
+// 코드 블럭 펼치기 함수 (개별 블럭용)
+function expandCodeBlock(block) {
+  const currentHeight = block.scrollHeight
+  block.style.maxHeight = `${currentHeight}px`
+  block.classList.remove('collapsed')
+  block.offsetHeight
+  block.style.maxHeight = `${block.scrollHeight}px`
+  setTimeout(() => {
+    block.style.maxHeight = ''
+  }, 500)
+}
+
+// 코드 블럭 아이콘 클릭 핸들러 (아코디언 방식)
+function handleCodeBlockIconClick(event) {
+  // 이벤트 전파 중단
+  event.stopPropagation()
+  event.preventDefault()
+
+  const icon = event.currentTarget
+  const codeBlock = icon.closest('.code-block')
+
+  if (!codeBlock || !markdownContentRef.value) return
+
+  // 코드 블럭 접기/펼치기 처리
+  const codeBlocks = markdownContentRef.value.querySelectorAll('.code-block')
+  const isClickedBlockCollapsed = codeBlock.classList.contains('collapsed')
+
+  // 클릭된 블럭의 상태에 따라 토글
+  if (isClickedBlockCollapsed) {
+    // 접혀있으면 펼치기
+    expandCodeBlock(codeBlock)
+  } else {
+    // 펼쳐져 있으면 접기
+    collapseCodeBlock(codeBlock)
+  }
+
+  // 클릭된 블럭을 제외한 나머지 모두 접기
+  codeBlocks.forEach((block) => {
+    if (block !== codeBlock && !block.classList.contains('collapsed')) {
+      collapseCodeBlock(block)
+    }
+  })
+}
+
+// 코드 블럭 접기/펼치기 토글 핸들러 (전체 토글 버튼용)
 function toggleCodeBlocks() {
   codeBlocksCollapsed.value = !codeBlocksCollapsed.value
   nextTick(() => {
@@ -300,9 +373,9 @@ function toggleCodeBlocks() {
       const codeBlocks = markdownContentRef.value.querySelectorAll('.code-block')
       codeBlocks.forEach((block) => {
         if (codeBlocksCollapsed.value) {
-          block.classList.add('collapsed')
+          collapseCodeBlock(block)
         } else {
-          block.classList.remove('collapsed')
+          expandCodeBlock(block)
         }
       })
     }
@@ -846,14 +919,16 @@ onUnmounted(() => {
   background: var(--nexa-background); //투명도 있으면 스크롤 할때 비춰서 투명도 없도록 할것
   padding: 18px 20px 10px 20px;
   margin: 0 -20px 16px -20px;
-  border-bottom: 3px solid var(--nexa-border-color);
+  border-bottom: 5px solid var(--nexa-border-color);
   box-shadow: 0 2px 4px var(--nexa-shadow-1, rgba(0, 0, 0, 0.5));
   width: calc(100% + 40px);
   box-sizing: border-box;
 
   .file-content-title {
     margin-bottom: 0 !important;
+    font-size: 2.5em;
     line-height: 1.2;
+    font-weight: 800;
   }
 
   .file-content-filename {
@@ -1023,21 +1098,21 @@ onUnmounted(() => {
   }
 
   :deep(h1) {
-    font-weight: 900;
+    font-weight: 700;
     color: var(--nexa-text-primary);
-    opacity: 1;
+    opacity: 0.9;
     margin-bottom: 5px;
   }
 
   :deep(h2) {
-    font-weight: 800;
+    font-weight: 700;
     color: var(--nexa-text-primary);
     opacity: 0.9;
     margin-bottom: 5px;
   }
 
   :deep(h3) {
-    font-weight: 700;
+    font-weight: 600;
     color: var(--nexa-text-primary);
     opacity: 0.8;
     margin-bottom: 5px;
@@ -1128,16 +1203,48 @@ onUnmounted(() => {
 
   :deep(.code-block) {
     background: var(--nexa-background-lower);
-    padding: 16px;
+    padding: 16px; // 상하좌우 패딩 (최소 높이 = padding 32px + 내용 높이)
     border-radius: 8px;
     overflow-x: auto;
     overflow-y: hidden;
-    margin: 16px 0;
-    border: 2px solid var(--nexa-border-color);
+    margin: 3px 0 16px 0;
+    border: 1px solid var(--nexa-border-color);
     white-space: pre-wrap;
     word-wrap: break-word;
-    max-height: none;
-    transition: max-height 0.3s ease-out;
+    // min-height 없음: 내용 + padding(32px)에 의해 자동 결정
+    // max-height 없음 (일반 상태): 내용에 따라 무제한 확장
+    transition:
+      max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.2s ease; // 접기/펼치기 애니메이션 시간(300ms), Material Design 표준 easing
+    position: relative;
+    // user-select 제거: 더블 클릭으로 접기/펼치기하므로 텍스트 선택 가능
+
+    // 코드 블럭 토글 아이콘
+    .code-block-toggle-icon {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 20px;
+      color: var(--nexa-text-secondary);
+      cursor: pointer;
+      z-index: 1;
+      opacity: 0.7;
+      transition:
+        opacity 0.2s ease,
+        color 0.2s ease;
+      user-select: none;
+      pointer-events: auto; // 클릭 이벤트를 받을 수 있도록
+
+      &:hover {
+        opacity: 1;
+        color: var(--nexa-text-primary);
+      }
+    }
+
+    &:hover {
+      //border-color: var(--nexa-primary); // 호버 시 테두리 색상 변경
+      border-width: 2px;
+    }
 
     code {
       color: var(--nexa-text-primary-focus);
@@ -1145,24 +1252,13 @@ onUnmounted(() => {
       white-space: pre-wrap;
       display: block;
       width: 100%;
-      opacity: 0.8;
+      opacity: 0.7; // 코드 텍스트 투명도 (70%)
+      user-select: text; // 코드 내용은 선택 가능
     }
 
     &.collapsed {
-      max-height: 150px;
+      max-height: 280px; // 접힌 상태의 최대 높이 (px) - CSS에서 결정
       overflow-y: hidden;
-      position: relative;
-
-      &::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 50px;
-        background: linear-gradient(to bottom, transparent, var(--nexa-background-lower));
-        pointer-events: none;
-      }
     }
   }
 
