@@ -58,15 +58,15 @@
 
               <q-checkbox v-model="batchOptions.resolved" dense class="checkbox-resolved" @update:model-value="handleBatchOptionChange" />
               <span class="text-caption">해결</span>
-              <q-btn v-if="batchOptions.resolved" flat dense size="xs" icon="check_circle" class="btn-batch-resolved" @click="batchMarkAsResolved" />
+              <q-btn v-if="batchOptions.resolved" flat dense size="xs" class="btn-batch-resolved" @click="batchMarkAsResolved" />
 
               <q-checkbox v-model="batchOptions.ignored" dense class="checkbox-ignored" @update:model-value="handleBatchOptionChange" />
               <span class="text-caption">무시</span>
-              <q-btn v-if="batchOptions.ignored" flat dense size="xs" icon="block" class="btn-batch-ignored" @click="batchMarkAsIgnored" />
+              <q-btn v-if="batchOptions.ignored" flat dense size="xs" class="btn-batch-ignored" @click="batchMarkAsIgnored" />
 
               <q-checkbox v-model="batchOptions.deleted" dense class="checkbox-deleted" @update:model-value="handleBatchOptionChange" />
               <span class="text-caption">삭제</span>
-              <q-btn v-if="batchOptions.deleted" flat dense size="xs" icon="delete" class="btn-batch-deleted" @click="batchDelete" />
+              <q-btn v-if="batchOptions.deleted" flat dense size="xs" class="btn-batch-deleted" @click="batchDelete" />
             </div>
           </div>
         </div>
@@ -178,12 +178,43 @@ const $q = useQuasar()
 // 선택된 에러 상태
 const selectedError = ref(null)
 
+// localStorage 키
+const BATCH_OPTIONS_STORAGE_KEY = 'error-tracking-batch-options'
+
+// 전체적용 옵션 (localStorage에서 불러오거나 기본값 true)
+function loadBatchOptions() {
+  try {
+    const saved = localStorage.getItem(BATCH_OPTIONS_STORAGE_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return {
+        resolved: parsed.resolved ?? true, // 기본값 true
+        ignored: parsed.ignored ?? true,
+        deleted: parsed.deleted ?? true,
+      }
+    }
+  } catch (error) {
+    console.warn('[ErrorTracking] 저장된 체크박스 상태 불러오기 실패:', error)
+  }
+  // 저장된 값이 없으면 기본값 true
+  return {
+    resolved: true,
+    ignored: true,
+    deleted: true,
+  }
+}
+
 // 전체적용 옵션
-const batchOptions = ref({
-  resolved: false,
-  ignored: false,
-  deleted: false,
-})
+const batchOptions = ref(loadBatchOptions())
+
+// 체크박스 상태 저장
+function saveBatchOptions() {
+  try {
+    localStorage.setItem(BATCH_OPTIONS_STORAGE_KEY, JSON.stringify(batchOptions.value))
+  } catch (error) {
+    console.warn('[ErrorTracking] 체크박스 상태 저장 실패:', error)
+  }
+}
 
 // 통계 정보 (임시)
 const statistics = ref({
@@ -197,11 +228,15 @@ const statistics = ref({
 // 에러 선택 이벤트 리스너
 function handleErrorSelected(event) {
   selectedError.value = event.detail.error
-  // 에러가 변경되면 전체적용 옵션 초기화
-  batchOptions.value = {
-    resolved: false,
-    ignored: false,
-    deleted: false,
+  // 에러가 변경되어도 체크박스 상태는 유지 (저장된 값 사용)
+
+  // 유사한 에러 개수 요청
+  if (selectedError.value) {
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-request-similar-count', {
+        detail: { error: selectedError.value },
+      }),
+    )
   }
 }
 
@@ -261,7 +296,9 @@ function getStatusClass(status) {
 
 // 유사한 에러 개수 계산
 const similarErrorsCount = computed(() => {
-  if (!selectedError.value) return 0
+  if (!selectedError.value) {
+    return 0
+  }
   // 이벤트를 통해 유사한 에러 개수 받기
   return similarErrorsCountRef.value
 })
@@ -289,19 +326,25 @@ const resolvedButtonClass = computed(() => {
 // 에러 상태 변경 (토글 방식)
 function handleResolved() {
   if (selectedError.value) {
+    // ID가 없어도 error 객체를 전달하여 batchUpdateErrorStatus에서 찾도록 함
+    const errorId = selectedError.value.id || null
+
     const includeSimilar = batchOptions.value.resolved
     // 현재 상태가 'resolved'면 'new'로, 아니면 'resolved'로 변경
     const newStatus = selectedError.value.status === 'resolved' ? 'new' : 'resolved'
 
     window.dispatchEvent(
       new CustomEvent('error-tracking-status-update', {
-        detail: { errorId: selectedError.value.id, status: newStatus, includeSimilar },
+        detail: {
+          errorId,
+          status: newStatus,
+          includeSimilar,
+          error: selectedError.value, // ID가 없을 때 찾기 위해 error 객체도 전달
+        },
       }),
     )
     selectedError.value.status = newStatus
-    if (includeSimilar) {
-      batchOptions.value.resolved = false
-    }
+    // 체크박스 상태는 유지 (저장된 설정 유지)
   }
 }
 
@@ -310,13 +353,16 @@ function handleIgnored() {
     const includeSimilar = batchOptions.value.ignored
     window.dispatchEvent(
       new CustomEvent('error-tracking-status-update', {
-        detail: { errorId: selectedError.value.id, status: 'ignored', includeSimilar },
+        detail: {
+          errorId: selectedError.value.id || null,
+          status: 'ignored',
+          includeSimilar,
+          error: selectedError.value, // ID가 없을 때 찾기 위해 error 객체도 전달
+        },
       }),
     )
     selectedError.value.status = 'ignored'
-    if (includeSimilar) {
-      batchOptions.value.ignored = false
-    }
+    // 체크박스 상태는 유지 (저장된 설정 유지)
   }
 }
 
@@ -332,11 +378,15 @@ function handleDelete() {
       }).onOk(() => {
         window.dispatchEvent(
           new CustomEvent('error-tracking-delete', {
-            detail: { errorId: selectedError.value.id, includeSimilar: true },
+            detail: {
+              errorId: selectedError.value.id || null,
+              includeSimilar: true,
+              error: selectedError.value, // ID가 없을 때 찾기 위해 error 객체도 전달
+            },
           }),
         )
         selectedError.value = null
-        batchOptions.value.deleted = false
+        // 체크박스 상태는 유지 (저장된 설정 유지)
         $q.notify({
           type: 'positive',
           message: '유사한 에러가 모두 삭제되었습니다.',
@@ -346,7 +396,11 @@ function handleDelete() {
     } else {
       window.dispatchEvent(
         new CustomEvent('error-tracking-delete', {
-          detail: { errorId: selectedError.value.id, includeSimilar: false },
+          detail: {
+            errorId: selectedError.value.id || null,
+            includeSimilar: false,
+            error: selectedError.value, // ID가 없을 때 찾기 위해 error 객체도 전달
+          },
         }),
       )
       selectedError.value = null
@@ -356,7 +410,8 @@ function handleDelete() {
 
 // 전체적용 옵션 변경 핸들러
 function handleBatchOptionChange() {
-  // 체크박스 변경 시 추가 처리 필요 시 여기에 구현
+  // 체크박스 상태 변경 시 localStorage에 저장
+  saveBatchOptions()
 }
 
 // 일괄 작업 함수들
@@ -364,11 +419,16 @@ function batchMarkAsResolved() {
   if (selectedError.value) {
     window.dispatchEvent(
       new CustomEvent('error-tracking-status-update', {
-        detail: { errorId: selectedError.value.id, status: 'resolved', includeSimilar: true },
+        detail: {
+          errorId: selectedError.value.id || null,
+          status: 'resolved',
+          includeSimilar: true,
+          error: selectedError.value, // ID가 없을 때 찾기 위해 error 객체도 전달
+        },
       }),
     )
     selectedError.value.status = 'resolved'
-    batchOptions.value.resolved = false
+    // 체크박스 상태는 유지 (저장된 설정 유지)
     $q.notify({
       type: 'positive',
       message: '유사한 에러가 모두 해결됨으로 표시되었습니다.',
@@ -381,11 +441,16 @@ function batchMarkAsIgnored() {
   if (selectedError.value) {
     window.dispatchEvent(
       new CustomEvent('error-tracking-status-update', {
-        detail: { errorId: selectedError.value.id, status: 'ignored', includeSimilar: true },
+        detail: {
+          errorId: selectedError.value.id || null,
+          status: 'ignored',
+          includeSimilar: true,
+          error: selectedError.value, // ID가 없을 때 찾기 위해 error 객체도 전달
+        },
       }),
     )
     selectedError.value.status = 'ignored'
-    batchOptions.value.ignored = false
+    // 체크박스 상태는 유지 (저장된 설정 유지)
     $q.notify({
       type: 'info',
       message: '유사한 에러가 모두 무시됨으로 표시되었습니다.',
@@ -404,11 +469,15 @@ function batchDelete() {
     }).onOk(() => {
       window.dispatchEvent(
         new CustomEvent('error-tracking-delete', {
-          detail: { errorId: selectedError.value.id, includeSimilar: true },
+          detail: {
+            errorId: selectedError.value.id || null,
+            includeSimilar: true,
+            error: selectedError.value, // ID가 없을 때 찾기 위해 error 객체도 전달
+          },
         }),
       )
       selectedError.value = null
-      batchOptions.value.deleted = false
+      // 체크박스 상태는 유지 (저장된 설정 유지)
       $q.notify({
         type: 'positive',
         message: '유사한 에러가 모두 삭제되었습니다.',

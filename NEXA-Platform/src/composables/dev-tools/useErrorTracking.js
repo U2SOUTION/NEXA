@@ -7,7 +7,7 @@
 import { ref, computed } from 'vue'
 import { loadErrors, saveErrors, updateError as updateErrorStorage, deleteError as deleteErrorStorage } from 'src/utils/error-tracking/errorStorage.js'
 import { setCollectingEnabled } from 'src/utils/error-tracking/errorCollector.js'
-import { findSimilarErrors } from 'src/utils/error-tracking/errorGrouper.js'
+import { findSimilarErrors, areErrorsSimilar } from 'src/utils/error-tracking/errorGrouper.js'
 import { watchFileChanges } from 'src/utils/error-tracking/lintCollector.js'
 
 /**
@@ -172,7 +172,7 @@ export function useErrorTracking() {
     }
 
     errors.value.unshift(error)
-    
+
     // localStorage에 저장
     saveErrors(errors.value)
 
@@ -277,20 +277,95 @@ export function useErrorTracking() {
   }
 
   /**
-   * 유사한 에러 찾기
+   * 유사한 에러 찾기 (표시용 - 필터링된 목록에서 검색)
+   * 탭 필터링을 포함한 필터링된 에러 목록에서만 검색하여 현재 탭에 맞는 개수 표시
    */
   function findSimilarErrorsForError(error) {
+    // filteredErrors를 사용하여 탭 필터링, 레벨 필터, 상태 필터, 검색어 등이 모두 반영된 목록에서 유사 에러 찾기
+    return findSimilarErrors(error, filteredErrors.value)
+  }
+
+  /**
+   * 유사한 에러 찾기 (일괄 처리용 - 전체 목록에서 검색)
+   * 일괄 처리 시에는 필터링과 관계없이 전체 목록에서 모든 유사 에러를 찾아야 함
+   */
+  function findSimilarErrorsForErrorInAll(error) {
+    // errors.value 전체 목록에서 유사 에러 찾기 (필터링 무시)
     return findSimilarErrors(error, errors.value)
   }
 
   /**
    * 일괄 상태 변경 (유사한 에러 포함)
    */
-  function batchUpdateErrorStatus(errorId, status, includeSimilar = false) {
-    const error = errors.value.find((e) => e.id === errorId)
-    if (!error) return
+  function batchUpdateErrorStatus(errorId, status, includeSimilar = false, errorObject = null) {
+    // errorId가 임시 ID 형식이거나 없으면, errorObject로 찾기
+    let error = errors.value.find((e) => e.id === errorId)
 
-    const errorsToUpdate = includeSimilar ? [error, ...findSimilarErrorsForError(error)] : [error]
+    if (!error && errorObject) {
+      // 먼저 메시지와 레벨로 정확히 일치하는 것 찾기
+      error = errors.value.find((e) => {
+        return e.message === errorObject.message && e.level === errorObject.level
+      })
+
+      // 정확히 일치하지 않으면 유사도로 찾기 (areErrorsSimilar 사용)
+      if (!error) {
+        error = errors.value.find((e) => {
+          return areErrorsSimilar(e, errorObject)
+        })
+      }
+
+      // 타임스탬프가 있으면 더 정확하게 찾기 (1초 오차 허용)
+      if (!error && errorObject.timestamp) {
+        error = errors.value.find((e) => {
+          const timeDiff = Math.abs((e.timestamp || 0) - (errorObject.timestamp || 0))
+          return (e.message === errorObject.message || areErrorsSimilar(e, errorObject)) && e.level === errorObject.level && timeDiff < 1000 // 1초 이내 차이 허용
+        })
+      }
+
+      if (error) {
+        // 찾은 에러에 ID가 없으면 생성
+        if (!error.id) {
+          error.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+          console.log('[ErrorTracking] 일괄 상태 변경: ID가 없어 새로 생성:', error.id)
+          saveErrors(errors.value) // ID 생성 후 저장
+        }
+        errorId = error.id // 실제 ID로 교체
+        console.log('[ErrorTracking] 일괄 상태 변경: errorObject로 찾은 실제 ID:', errorId)
+      } else {
+        // 여전히 찾지 못했으면 디버깅 정보 출력
+        console.warn('[ErrorTracking] 일괄 상태 변경: errorObject로 찾기 실패', {
+          errorObject: {
+            message: errorObject.message,
+            level: errorObject.level,
+            timestamp: errorObject.timestamp,
+          },
+          availableErrors: errors.value.slice(0, 5).map((e) => ({
+            message: e.message,
+            level: e.level,
+            timestamp: e.timestamp,
+            id: e.id,
+          })),
+        })
+      }
+    }
+
+    if (!error) {
+      console.warn('[ErrorTracking] 일괄 상태 변경 실패: 에러를 찾을 수 없습니다.', errorId, errorObject)
+      return
+    }
+
+    // 일괄 처리 시에는 전체 목록에서 유사 에러 찾기 (필터링 무시)
+    const similarErrors = includeSimilar ? findSimilarErrorsForErrorInAll(error) : []
+    const errorsToUpdate = includeSimilar ? [error, ...similarErrors] : [error]
+
+    console.log('[ErrorTracking] 일괄 상태 변경:', {
+      targetError: error.message,
+      status,
+      includeSimilar,
+      similarCount: similarErrors.length,
+      totalCount: errorsToUpdate.length,
+      similarErrors: similarErrors.map((e) => ({ id: e.id, message: e.message })),
+    })
 
     errorsToUpdate.forEach((err) => {
       err.status = status
@@ -308,11 +383,74 @@ export function useErrorTracking() {
   /**
    * 일괄 삭제 (유사한 에러 포함)
    */
-  function batchDeleteError(errorId, includeSimilar = false) {
-    const error = errors.value.find((e) => e.id === errorId)
-    if (!error) return
+  function batchDeleteError(errorId, includeSimilar = false, errorObject = null) {
+    // errorId가 없거나 임시 ID 형식이면, errorObject로 찾기
+    let error = errorId ? errors.value.find((e) => e.id === errorId) : null
 
-    const errorsToDelete = includeSimilar ? [error, ...findSimilarErrorsForError(error)] : [error]
+    if (!error && errorObject) {
+      // 먼저 메시지와 레벨로 정확히 일치하는 것 찾기
+      error = errors.value.find((e) => {
+        return e.message === errorObject.message && e.level === errorObject.level
+      })
+
+      // 정확히 일치하지 않으면 유사도로 찾기 (areErrorsSimilar 사용)
+      if (!error) {
+        error = errors.value.find((e) => {
+          return areErrorsSimilar(e, errorObject)
+        })
+      }
+
+      // 타임스탬프가 있으면 더 정확하게 찾기 (1초 오차 허용)
+      if (!error && errorObject.timestamp) {
+        error = errors.value.find((e) => {
+          const timeDiff = Math.abs((e.timestamp || 0) - (errorObject.timestamp || 0))
+          return (e.message === errorObject.message || areErrorsSimilar(e, errorObject)) && e.level === errorObject.level && timeDiff < 1000 // 1초 이내 차이 허용
+        })
+      }
+
+      if (error) {
+        // 찾은 에러에 ID가 없으면 생성
+        if (!error.id) {
+          error.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+          console.log('[ErrorTracking] 일괄 삭제: ID가 없어 새로 생성:', error.id)
+          saveErrors(errors.value) // ID 생성 후 저장
+        }
+        errorId = error.id // 실제 ID로 교체
+        console.log('[ErrorTracking] 일괄 삭제: errorObject로 찾은 실제 ID:', errorId)
+      } else {
+        // 여전히 찾지 못했으면 디버깅 정보 출력
+        console.warn('[ErrorTracking] 일괄 삭제: errorObject로 찾기 실패', {
+          errorObject: {
+            message: errorObject.message,
+            level: errorObject.level,
+            timestamp: errorObject.timestamp,
+          },
+          availableErrors: errors.value.slice(0, 5).map((e) => ({
+            message: e.message,
+            level: e.level,
+            timestamp: e.timestamp,
+            id: e.id,
+          })),
+        })
+      }
+    }
+
+    if (!error) {
+      console.warn('[ErrorTracking] 일괄 삭제 실패: 에러를 찾을 수 없습니다.', errorId, errorObject)
+      return
+    }
+
+    // 일괄 처리 시에는 전체 목록에서 유사 에러 찾기 (필터링 무시)
+    const similarErrors = includeSimilar ? findSimilarErrorsForErrorInAll(error) : []
+    const errorsToDelete = includeSimilar ? [error, ...similarErrors] : [error]
+
+    console.log('[ErrorTracking] 일괄 삭제:', {
+      targetError: error.message,
+      includeSimilar,
+      similarCount: similarErrors.length,
+      totalCount: errorsToDelete.length,
+      similarErrors: similarErrors.map((e) => ({ id: e.id, message: e.message })),
+    })
 
     errorsToDelete.forEach((err) => {
       const index = errors.value.findIndex((e) => e.id === err.id)
@@ -343,15 +481,7 @@ export function useErrorTracking() {
     }
 
     // 중복 체크 (같은 파일, 라인, 규칙의 린트 오류는 제외)
-    const existingError = errors.value.find(
-      (e) =>
-        e.type === 'lint' &&
-        e.file === lintError.file &&
-        e.line === lintError.line &&
-        e.ruleId === lintError.ruleId &&
-        e.status !== 'resolved' &&
-        e.status !== 'ignored',
-    )
+    const existingError = errors.value.find((e) => e.type === 'lint' && e.file === lintError.file && e.line === lintError.line && e.ruleId === lintError.ruleId && e.status !== 'resolved' && e.status !== 'ignored')
 
     if (existingError) {
       // 기존 에러 업데이트 (타임스탬프만 갱신)
@@ -391,28 +521,28 @@ export function useErrorTracking() {
    */
   async function initialize() {
     await refresh()
-    
+
     // 에러 수집 이벤트 리스너 등록
     function handleErrorCollected(event) {
       const newError = event.detail.error
-      
+
       // 이미 ID가 있으면 그대로 사용, 없으면 생성
       if (!newError.id) {
         newError.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
       }
-      
+
       if (!newError.status) {
         newError.status = 'new'
       }
-      
+
       if (!newError.count) {
         newError.count = 1
       }
-      
+
       // 에러 목록에 추가
       errors.value.unshift(newError)
       saveErrors(errors.value)
-      
+
       // 통계 업데이트
       window.dispatchEvent(
         new CustomEvent('error-tracking-statistics-updated', {
@@ -420,16 +550,16 @@ export function useErrorTracking() {
         }),
       )
     }
-    
+
     window.addEventListener('error-tracking-error-collected', handleErrorCollected)
-    
+
     // 린트 오류 수집 시작 (개발 환경에서만)
     if (import.meta.env.DEV) {
       watchFileChanges((lintError) => {
         addLintError(lintError)
       })
     }
-    
+
     // 정리 함수 저장 (나중에 사용 가능)
     return () => {
       window.removeEventListener('error-tracking-error-collected', handleErrorCollected)
@@ -472,4 +602,3 @@ export function useErrorTracking() {
     initialize,
   }
 }
-

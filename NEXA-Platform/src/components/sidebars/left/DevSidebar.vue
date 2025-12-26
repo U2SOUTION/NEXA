@@ -429,17 +429,36 @@ onMounted(() => {
 
   // 에러 트래킹 이벤트 리스너 등록
   window.addEventListener('error-tracking-status-update', (event) => {
-    const { errorId, status, includeSimilar } = event.detail
+    const { errorId, status, includeSimilar, error: errorObject } = event.detail
     if (includeSimilar) {
-      errorTrackingBatchUpdateErrorStatus(errorId, status)
+      errorTrackingBatchUpdateErrorStatus(errorId, status, true, errorObject) // includeSimilar와 errorObject 파라미터 전달
     } else {
       handleErrorTrackingStatusUpdate(errorId, status)
     }
   })
+
+  // 에러 ID 찾기 이벤트 리스너
+  window.addEventListener('error-tracking-find-error-id', (event) => {
+    const { error } = event.detail
+    if (error) {
+      // 메시지와 타임스탬프로 찾기
+      const foundError = errorTrackingErrors.value.find((e) => {
+        return e.message === error.message && e.timestamp === error.timestamp && e.level === error.level
+      })
+
+      if (foundError && foundError.id) {
+        window.dispatchEvent(
+          new CustomEvent('error-tracking-error-id-found', {
+            detail: { errorId: foundError.id },
+          }),
+        )
+      }
+    }
+  })
   window.addEventListener('error-tracking-delete', (event) => {
-    const { errorId, includeSimilar } = event.detail
+    const { errorId, includeSimilar, error: errorObject } = event.detail
     if (includeSimilar) {
-      errorTrackingBatchDeleteError(errorId)
+      errorTrackingBatchDeleteError(errorId, true, errorObject) // includeSimilar와 errorObject 파라미터 전달
     } else {
       handleErrorTrackingDelete(errorId)
     }

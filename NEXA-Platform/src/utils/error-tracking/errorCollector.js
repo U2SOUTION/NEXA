@@ -17,18 +17,7 @@ let errorCollector = null
  * @returns {Object} 정규화된 에러 객체
  */
 function normalizeError(errorData) {
-  const {
-    message,
-    source,
-    lineno,
-    colno,
-    error,
-    filename,
-    stack,
-    url,
-    userAgent,
-    level = 'error',
-  } = errorData
+  const { message, source, lineno, colno, error, filename, stack, url, userAgent, level = 'error' } = errorData
 
   // 스택 트레이스 추출
   let errorStack = stack
@@ -83,7 +72,22 @@ function collectError(errorData) {
 
   try {
     const normalizedError = normalizeError(errorData)
-    
+
+    // ID가 없으면 생성
+    if (!normalizedError.id) {
+      normalizedError.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+    }
+
+    // status가 없으면 기본값 설정
+    if (!normalizedError.status) {
+      normalizedError.status = 'new'
+    }
+
+    // count가 없으면 기본값 설정
+    if (!normalizedError.count) {
+      normalizedError.count = 1
+    }
+
     // 에러 저장
     addError(normalizedError)
 
@@ -163,7 +167,7 @@ function interceptFetch() {
   window.fetch = async function (...args) {
     const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || 'unknown'
     const method = args[1]?.method || 'GET'
-    
+
     try {
       const response = await originalFetch.apply(this, args)
 
@@ -171,7 +175,7 @@ function interceptFetch() {
       if (!response.ok && response.status >= 400) {
         // 404는 경고로 처리 (존재하지 않는 리소스는 일반적일 수 있음)
         const level = response.status === 404 ? 'warning' : 'error'
-        
+
         collectError({
           message: `HTTP ${response.status} ${response.statusText}: ${method} ${url}`,
           level,
@@ -194,10 +198,28 @@ function interceptFetch() {
       return response
     } catch (error) {
       // 네트워크 연결 실패 등의 에러
+      // 에러 메시지에서 상태 코드 추출 시도 (예: "404 Not Found")
+      const errorMessage = error.message || 'Failed to fetch'
+      let statusCode = null
+      let statusText = errorMessage
+
+      // "404 Not Found" 형식의 메시지에서 상태 코드 추출
+      const statusMatch = errorMessage.match(/^(\d+)\s+(.+)$/)
+      if (statusMatch) {
+        statusCode = statusMatch[1]
+        statusText = statusMatch[2]
+      }
+
+      // HTTP 에러와 동일한 형식으로 메시지 생성 (유사도 판단을 위해)
+      const message = statusCode ? `HTTP ${statusCode} ${statusText}: ${method} ${url}` : `Network Error: ${errorMessage} - ${method} ${url}`
+
+      // 404는 경고로 처리 (HTTP 에러와 동일하게)
+      const level = statusCode === '404' ? 'warning' : 'error'
+
       collectError({
-        message: `Network Error: ${error.message || 'Failed to fetch'}`,
+        message,
         error,
-        level: 'error',
+        level,
         file: url,
         line: null,
         column: null,
@@ -290,4 +312,3 @@ export function getErrorCollector() {
   }
   return errorCollector
 }
-

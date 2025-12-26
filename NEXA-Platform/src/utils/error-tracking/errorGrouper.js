@@ -11,50 +11,24 @@
  */
 function normalizeErrorMessage(message) {
   if (!message) return ''
-  
+
+  let normalized = message
+
   // URL 패턴 제거 (http://, https://)
-  let normalized = message.replace(/https?:\/\/[^\s]+/g, '[URL]')
-  
-  // 숫자 패턴 제거 (라인 번호, ID 등)
-  normalized = normalized.replace(/\d+/g, '[NUMBER]')
-  
-  // 파일 경로 패턴 제거
-  normalized = normalized.replace(/[/\\][^\s/\\]+/g, '[PATH]')
-  
+  normalized = normalized.replace(/https?:\/\/[^\s]+/g, '[URL]')
+
+  // 파일 경로의 절대 경로 부분 제거 (Windows: E:\, C:\ 등)
+  normalized = normalized.replace(/[A-Z]:\\[^\s]+/gi, '[PATH]')
+  normalized = normalized.replace(/\/[^\s/]+/g, '[PATH]')
+
+  // 숫자 패턴 제거 (라인 번호, ID 등) - 하지만 너무 공격적이지 않도록
+  // 단독 숫자만 제거 (단어 내 숫자는 유지)
+  normalized = normalized.replace(/\b\d+\b/g, '[NUMBER]')
+
   // 공백 정규화
   normalized = normalized.replace(/\s+/g, ' ').trim()
-  
-  return normalized
-}
 
-/**
- * 두 에러 메시지의 유사도 계산 (간단한 문자열 매칭)
- * @param {string} message1 - 첫 번째 메시지
- * @param {string} message2 - 두 번째 메시지
- * @returns {number} 유사도 (0-1)
- */
-function calculateSimilarity(message1, message2) {
-  if (!message1 || !message2) return 0
-  
-  const norm1 = normalizeErrorMessage(message1)
-  const norm2 = normalizeErrorMessage(message2)
-  
-  // 정확히 일치하면 1.0
-  if (norm1 === norm2) return 1.0
-  
-  // 한쪽이 다른 쪽을 포함하면 0.8
-  if (norm1.includes(norm2) || norm2.includes(norm1)) return 0.8
-  
-  // 공통 단어 비율 계산
-  const words1 = norm1.split(' ').filter(w => w.length > 2)
-  const words2 = norm2.split(' ').filter(w => w.length > 2)
-  
-  if (words1.length === 0 || words2.length === 0) return 0
-  
-  const commonWords = words1.filter(w => words2.includes(w))
-  const similarity = (commonWords.length * 2) / (words1.length + words2.length)
-  
-  return similarity
+  return normalized
 }
 
 /**
@@ -65,21 +39,46 @@ function calculateSimilarity(message1, message2) {
  */
 export function areErrorsSimilar(error1, error2) {
   // 레벨이 다르면 다른 그룹
-  if (error1.level !== error2.level) return false
-  
-  // 메시지 유사도 확인
-  const similarity = calculateSimilarity(error1.message, error2.message)
-  
-  // 유사도가 0.7 이상이면 같은 그룹
-  if (similarity >= 0.7) return true
-  
-  // 파일과 라인이 같으면 같은 그룹
+  if (error1.level !== error2.level) {
+    return false
+  }
+
+  // 타입이 다르면 다른 그룹 (lint vs 일반 에러)
+  // 타입이 없으면 기본값 'javascript'로 처리
+  const type1 = error1.type || 'javascript'
+  const type2 = error2.type || 'javascript'
+  if (type1 !== type2) {
+    return false
+  }
+
+  // 메시지가 정확히 일치하면 같은 그룹 (메시지 기준 우선 처리)
+  const msg1 = (error1.message || '').trim()
+  const msg2 = (error2.message || '').trim()
+
+  if (msg1 === msg2 && msg1.length > 0) {
+    return true
+  }
+
+  // 린트 오류의 경우: 파일, 라인, ruleId가 모두 같으면 같은 그룹
+  if (type1 === 'lint' && type2 === 'lint') {
+    if (error1.file && error2.file && error1.file === error2.file) {
+      if (error1.line && error2.line && error1.line === error2.line) {
+        if (error1.ruleId && error2.ruleId) {
+          return error1.ruleId === error2.ruleId
+        }
+        // ruleId가 없으면 파일과 라인만으로 판단
+        return true
+      }
+    }
+  }
+
+  // 일반 에러의 경우: 파일과 라인이 정확히 같으면 같은 그룹
   if (error1.file && error2.file && error1.file === error2.file) {
     if (error1.line && error2.line && error1.line === error2.line) {
       return true
     }
   }
-  
+
   return false
 }
 
@@ -91,10 +90,10 @@ export function areErrorsSimilar(error1, error2) {
 export function groupSimilarErrors(errors) {
   const groups = []
   const processed = new Set()
-  
+
   for (let i = 0; i < errors.length; i++) {
     if (processed.has(i)) continue
-    
+
     const error = errors[i]
     const group = {
       ...error,
@@ -103,11 +102,11 @@ export function groupSimilarErrors(errors) {
       firstOccurrence: error.timestamp,
       lastOccurrence: error.timestamp,
     }
-    
+
     // 유사한 에러 찾기
     for (let j = i + 1; j < errors.length; j++) {
       if (processed.has(j)) continue
-      
+
       if (areErrorsSimilar(error, errors[j])) {
         group.count += 1
         group.similarErrors.push(errors[j])
@@ -115,11 +114,11 @@ export function groupSimilarErrors(errors) {
         processed.add(j)
       }
     }
-    
+
     groups.push(group)
     processed.add(i)
   }
-  
+
   return groups
 }
 
@@ -130,10 +129,17 @@ export function groupSimilarErrors(errors) {
  * @returns {Array} 유사한 에러 목록
  */
 export function findSimilarErrors(targetError, errors) {
-  return errors.filter(error => {
-    if (error.id === targetError.id) return false
-    return areErrorsSimilar(targetError, error)
+  const similarErrors = errors.filter((error) => {
+    // ID가 있고 같으면 스킵 (ID가 없으면 다른 방식으로 비교)
+    if (error.id && targetError.id && error.id === targetError.id) {
+      return false
+    }
+    // ID가 없거나 다른 경우에만 유사성 비교
+    const isSimilar = areErrorsSimilar(targetError, error)
+    return isSimilar
   })
+
+  return similarErrors
 }
 
 /**
@@ -146,7 +152,6 @@ export function getErrorGroupKey(error) {
   const file = error.file || ''
   const line = error.line || ''
   const level = error.level || 'error'
-  
+
   return `${level}:${normalizedMessage}:${file}:${line}`
 }
-
