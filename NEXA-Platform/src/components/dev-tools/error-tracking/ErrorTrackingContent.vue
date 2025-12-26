@@ -69,8 +69,10 @@
               <q-icon name="trending_up" class="q-mr-sm" />
               에러 발생 추이
             </div>
-            <NexaChart v-if="errorTrendChartData.length > 0" type="line" :data="errorTrendChartData" :height="300" :options="{ animation: true, showLabels: true }" />
-            <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
+            <div class="chart-container">
+              <NexaChart v-if="errorTrendChartData.length > 0" type="line" :data="errorTrendChartData" :options="{ animation: true, showLabels: true }" />
+              <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
+            </div>
           </div>
 
           <!-- 에러 유형별 분포 차트 -->
@@ -79,8 +81,10 @@
               <q-icon name="pie_chart" class="q-mr-sm" />
               에러 유형별 분포
             </div>
-            <NexaChart v-if="errorTypeChartData.length > 0" type="pie" :data="errorTypeChartData" :height="300" :margin="{ top: 10, right: 10, bottom: 10, left: 10 }" :options="{ animation: true, showLabels: true }" />
-            <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
+            <div class="chart-container">
+              <NexaChart v-if="errorTypeChartData.length > 0" type="pie" :data="errorTypeChartData" :margin="{ top: 10, right: 10, bottom: 10, left: 10 }" :options="{ animation: true, showLabels: true }" />
+              <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1130,6 +1134,12 @@ onUnmounted(() => {
   border: 1px solid var(--nexa-border-color);
   border-radius: 4px;
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  max-height: 600px;
+  height: 500px;
+  overflow: hidden;
 }
 
 .diagram-section {
@@ -1143,10 +1153,14 @@ onUnmounted(() => {
   width: 100%;
   min-width: 0;
   position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 
   :deep(.chart-wrapper) {
-    width: 100% !important;
+    width: 100%;
     height: 100%;
+    max-height: 100%;
   }
 }
 
