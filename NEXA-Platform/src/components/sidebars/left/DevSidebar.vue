@@ -53,7 +53,7 @@
     <!-- 테마 관리 헤더 및 리스트 (activeMenu === 'theme-manager') -->
     <template v-else-if="activeMenu === 'theme-manager'">
       <ThemeManagerHeader :categories="themeCategories" @theme-change="handleThemeManagerThemeChange" @search-change="handleSearchChange" @filter="handleCategoryFilterChange" @sort="handleSortChange" @statistics-action="handleStatisticsAction" />
-      <ThemeManagerList :active-tab="themeManagerActiveTab" :statistics-data="themeStatisticsData" @tab-change="themeManagerActiveTab = $event" @color-selected="handleThemeColorSelected" @statistics-action="handleStatisticsAction" />
+      <ThemeManagerList :active-tab="themeManagerActiveTab" :statistics-data="themeStatisticsData" @tab-change="handleThemeManagerTabChange" @color-selected="handleThemeColorSelected" @statistics-action="handleStatisticsAction" />
     </template>
 
     <!-- 데이터베이스 뷰어 헤더 및 리스트 (activeMenu === 'database-viewer') -->
@@ -107,11 +107,11 @@ import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.v
 import { loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentMultiSelection } from 'src/composables/dev-tools/useDocumentMultiSelection.js'
 import { useDocumentManagerStore } from 'src/stores/documentManagerStore.js'
-import { useUserSettingsStore } from 'src/stores/userSettingsStore'
 import { useDocumentSearch } from 'src/modules/document-manager/composables/useDocumentSearch.js'
-import { extractThemeColors } from 'src/utils/themeColorParser'
 import { useComponentLibrary } from 'src/composables/dev-tools/useComponentLibrary.js'
 import { useDatabaseViewer } from 'src/composables/dev-tools/useDatabaseViewer.js'
+import { useThemeManager } from 'src/composables/dev-tools/useThemeManager.js'
+import { useDocumentFilters } from 'src/composables/dev-tools/useDocumentFilters.js'
 
 // Quasar 인스턴스
 const $q = useQuasar()
@@ -132,18 +132,28 @@ function handleActiveMenuChange(menuId) {
   window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: menuId } }))
 }
 
-// 테마 관리 관련 상태
-const themeManagerActiveTab = ref('recent')
-const themeStatisticsData = ref([])
-const selectedThemeColor = ref(null)
-
-// 검색/필터/정렬 상태 (테마 관리용)
-const themeSearchQuery = ref('')
-const categoryFilter = ref(null)
-const sortOption = ref('category')
-
-// 카테고리 목록 (ThemeManagerHeader에 전달)
-const themeCategories = ref([])
+// 테마 관리 (composable 사용)
+const {
+  activeTab: themeManagerActiveTab,
+  statisticsData: themeStatisticsData,
+  // eslint-disable-next-line no-unused-vars
+  selectedThemeColor,
+  // eslint-disable-next-line no-unused-vars
+  searchQuery: themeSearchQuery,
+  // eslint-disable-next-line no-unused-vars
+  categoryFilter,
+  // eslint-disable-next-line no-unused-vars
+  sortOption,
+  categories: themeCategories,
+  handleThemeChange: handleThemeManagerThemeChange,
+  handleSearchChange,
+  handleCategoryFilterChange,
+  handleSortChange,
+  handleStatisticsAction,
+  handleColorSelected: handleThemeColorSelected,
+  loadCategories: loadThemeCategories,
+  handleTabChange: handleThemeManagerTabChange,
+} = useThemeManager()
 
 // 데이터베이스 뷰어 관리 (composable 사용)
 const {
@@ -187,70 +197,6 @@ const {
   handleStatisticsRequest,
 } = useComponentLibrary()
 
-// 테마 관리 테마 변경 핸들러
-function handleThemeManagerThemeChange(themeValue) {
-  const $q = useQuasar()
-  const userSettings = useUserSettingsStore()
-  const isDark = themeValue === 'dark'
-
-  // 사용자 설정 스토어를 통해 테마 변경
-  userSettings.settings.theme.isDarkMode = isDark
-  $q.dark.set(isDark)
-  document.body.classList.toggle('dark', isDark)
-  userSettings.saveSettings()
-
-  // 테마 변경 이벤트를 DevelopmentPage로 전달
-  window.dispatchEvent(new CustomEvent('theme-manager-theme-changed', { detail: { theme: themeValue } }))
-}
-
-// 검색 변경 핸들러
-function handleSearchChange(query) {
-  themeSearchQuery.value = query
-  // 전역 이벤트로 DevelopmentPage에 알림
-  window.dispatchEvent(new CustomEvent('theme-manager-search-changed', { detail: { query } }))
-}
-
-// 카테고리 필터 변경 핸들러
-function handleCategoryFilterChange(category) {
-  categoryFilter.value = category
-  // 전역 이벤트로 DevelopmentPage에 알림
-  window.dispatchEvent(new CustomEvent('theme-manager-filter-changed', { detail: { category } }))
-}
-
-// 정렬 변경 핸들러
-function handleSortChange(option) {
-  sortOption.value = option
-  // 전역 이벤트로 DevelopmentPage에 알림
-  window.dispatchEvent(new CustomEvent('theme-manager-sort-changed', { detail: { option } }))
-}
-
-// 통계 액션 핸들러
-function handleStatisticsAction(actionType) {
-  // TODO: 통계 분석 로직 구현
-  console.log('[ThemeManager] 통계 액션:', actionType)
-  // 임시로 빈 배열 설정 (나중에 실제 분석 결과로 교체)
-  themeStatisticsData.value = []
-
-  // TODO: themeUsageAnalyzer.js를 사용하여 실제 분석 수행
-}
-
-// 테마 색상 선택 핸들러
-function handleThemeColorSelected(colorData) {
-  selectedThemeColor.value = colorData
-  // 전역 이벤트로 오른쪽 패널에 알림
-  window.dispatchEvent(new CustomEvent('theme-color-selected', { detail: { color: colorData } }))
-}
-
-// 테마 카테고리 로드 함수
-function loadThemeCategories() {
-  try {
-    const categories = extractThemeColors()
-    themeCategories.value = categories
-  } catch (error) {
-    console.error('[DevSidebar] 테마 카테고리 로드 실패:', error)
-  }
-}
-
 // Content 컴포넌트 참조
 const contentRef = ref(null)
 
@@ -291,6 +237,9 @@ const {
   getSearchModeLabel,
   getSearchPlaceholder,
 } = useDocumentSearch(toRef(documentStore, 'markdownFiles'), toRef(documentStore, 'fileContents'), searchMode, saveSettings, trashFiles)
+
+// 문서 필터 관리 (composable 사용) - saveSettings와 excludedFiles가 정의된 후에 호출
+const { toggleExcludedFiles, toggleHideCompleted, toggleHighlight, toggleTrashView } = useDocumentFilters(documentStore, contentRef, saveSettings, excludedFiles)
 
 // 검색 키워드를 store에 동기화 (DevelopmentPage에서 사용)
 watch(
@@ -340,28 +289,6 @@ function handleResetPriority() {
   // DocumentManagerList에서 처리
   if (contentRef.value) {
     // 필요시 contentRef를 통해 초기화
-  }
-}
-
-// 필터 토글 함수들
-function toggleExcludedFiles() {
-  excludedFiles.value = !excludedFiles.value
-  saveSettings()
-}
-
-function toggleHideCompleted() {
-  documentStore.hideCompleted = !documentStore.hideCompleted
-  saveSettings()
-}
-
-function toggleHighlight() {
-  documentStore.autoHighlightOnScroll = !documentStore.autoHighlightOnScroll
-  saveSettings()
-}
-
-function toggleTrashView() {
-  if (contentRef.value && contentRef.value.isTrashView !== undefined) {
-    contentRef.value.isTrashView = !contentRef.value.isTrashView
   }
 }
 
