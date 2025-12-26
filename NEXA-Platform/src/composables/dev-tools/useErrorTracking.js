@@ -132,6 +132,24 @@ export function useErrorTracking() {
   // ============================================
 
   /**
+   * 에러 목록 업데이트 이벤트 발생
+   */
+  function emitErrorsUpdated() {
+    console.log('[useErrorTracking] emitErrorsUpdated 호출:', errors.value.length, '개 에러')
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-errors-updated', {
+        detail: { errors: errors.value },
+      }),
+    )
+    console.log('[useErrorTracking] 통계 전송:', statistics.value)
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-statistics-updated', {
+        detail: statistics.value,
+      }),
+    )
+  }
+
+  /**
    * 에러 목록 새로고침
    */
   async function refresh() {
@@ -165,6 +183,9 @@ export function useErrorTracking() {
       
       errors.value = loadedErrors
       console.log('[useErrorTracking] 에러 목록 새로고침 완료:', loadedErrors.length, '개')
+
+      // 에러 목록 업데이트 이벤트
+      emitErrorsUpdated()
     } catch (error) {
       console.error('[useErrorTracking] 에러 목록 새로고침 실패:', error)
     } finally {
@@ -207,12 +228,8 @@ export function useErrorTracking() {
       }),
     )
 
-    // 통계 업데이트 이벤트
-    window.dispatchEvent(
-      new CustomEvent('error-tracking-statistics-updated', {
-        detail: statistics.value,
-      }),
-    )
+    // 에러 목록 업데이트 이벤트
+    emitErrorsUpdated()
   }
 
   /**
@@ -316,11 +333,8 @@ export function useErrorTracking() {
         selectedError.value = error
       }
 
-      window.dispatchEvent(
-        new CustomEvent('error-tracking-statistics-updated', {
-          detail: statistics.value,
-        }),
-      )
+      // 에러 목록 업데이트 이벤트
+      emitErrorsUpdated()
     }
   }
 
@@ -336,11 +350,8 @@ export function useErrorTracking() {
       if (selectedError.value?.id === errorId) {
         selectedError.value = null
       }
-      window.dispatchEvent(
-        new CustomEvent('error-tracking-statistics-updated', {
-          detail: statistics.value,
-        }),
-      )
+      // 에러 목록 업데이트 이벤트
+      emitErrorsUpdated()
     }
   }
 
@@ -441,21 +452,18 @@ export function useErrorTracking() {
       updateErrorStorage(err.id, { status })
     })
 
-    saveErrors(errors.value)
+      saveErrors(errors.value)
 
-    // selectedError도 동기화 (업데이트된 에러 중 하나가 선택된 에러인 경우)
-    if (selectedError.value) {
-      const updatedSelectedError = errors.value.find((e) => e.id === selectedError.value.id)
-      if (updatedSelectedError) {
-        selectedError.value = updatedSelectedError
+      // selectedError도 동기화 (업데이트된 에러 중 하나가 선택된 에러인 경우)
+      if (selectedError.value) {
+        const updatedSelectedError = errors.value.find((e) => e.id === selectedError.value.id)
+        if (updatedSelectedError) {
+          selectedError.value = updatedSelectedError
+        }
       }
-    }
 
-    window.dispatchEvent(
-      new CustomEvent('error-tracking-statistics-updated', {
-        detail: statistics.value,
-      }),
-    )
+      // 에러 목록 업데이트 이벤트
+      emitErrorsUpdated()
   }
 
   /**
@@ -565,6 +573,8 @@ export function useErrorTracking() {
       // 기존 에러 업데이트 (타임스탬프만 갱신)
       existingError.timestamp = Date.now()
       saveErrors(errors.value)
+      // 에러 목록 업데이트 이벤트
+      emitErrorsUpdated()
       return
     }
 
@@ -586,12 +596,8 @@ export function useErrorTracking() {
       }),
     )
 
-    // 통계 업데이트
-    window.dispatchEvent(
-      new CustomEvent('error-tracking-statistics-updated', {
-        detail: statistics.value,
-      }),
-    )
+    // 에러 목록 업데이트 이벤트
+    emitErrorsUpdated()
   }
 
   /**
@@ -649,12 +655,8 @@ export function useErrorTracking() {
         saveErrors(errors.value)
       }
 
-      // 통계 업데이트
-      window.dispatchEvent(
-        new CustomEvent('error-tracking-statistics-updated', {
-          detail: statistics.value,
-        }),
-      )
+      // 에러 목록 업데이트 이벤트
+      emitErrorsUpdated()
     }
 
     window.addEventListener('error-tracking-error-collected', handleErrorCollected)

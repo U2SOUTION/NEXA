@@ -1,23 +1,105 @@
 <template>
   <div class="error-tracking-content">
     <!-- 선택된 에러가 없을 때 -->
-    <div v-if="!selectedError" class="empty-state q-pa-lg">
-      <q-icon name="bug_report" size="80px" class="empty-icon q-mb-md" />
-      <h3 class="empty-title">에러 트래킹</h3>
-      <p class="empty-description">왼쪽 목록에서 에러를 선택하여 상세 정보를 확인하세요.</p>
-      <div v-if="statistics.total > 0" class="statistics-summary q-mt-lg">
-        <div class="stat-item">
-          <span class="stat-label">총 에러:</span>
-          <span class="stat-value">{{ statistics.total }}개</span>
+    <div v-if="!selectedError" class="dashboard-view q-pa-md">
+      <!-- 통계 카드 -->
+      <div class="statistics-cards q-mb-lg">
+        <div class="row q-gutter-md">
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card class="stat-card">
+              <q-card-section>
+                <div class="stat-card-header">
+                  <q-icon name="bug_report" size="32px" color="negative" />
+                  <div class="stat-card-content">
+                    <div class="stat-card-label">총 에러</div>
+                    <div class="stat-card-value">{{ statistics.total }}개</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card class="stat-card">
+              <q-card-section>
+                <div class="stat-card-header">
+                  <q-icon name="new_releases" size="32px" color="warning" />
+                  <div class="stat-card-content">
+                    <div class="stat-card-label">신규</div>
+                    <div class="stat-card-value stat-value-new">{{ statistics.new }}개</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card class="stat-card">
+              <q-card-section>
+                <div class="stat-card-header">
+                  <q-icon name="check_circle" size="32px" color="positive" />
+                  <div class="stat-card-content">
+                    <div class="stat-card-label">해결</div>
+                    <div class="stat-card-value stat-value-resolved">{{ statistics.resolved }}개</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card class="stat-card">
+              <q-card-section>
+                <div class="stat-card-header">
+                  <q-icon name="today" size="32px" color="info" />
+                  <div class="stat-card-content">
+                    <div class="stat-card-label">오늘</div>
+                    <div class="stat-card-value">{{ statistics.today }}개</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
-        <div class="stat-item">
-          <span class="stat-label">신규:</span>
-          <span class="stat-value stat-value-new">{{ statistics.new }}개</span>
+      </div>
+
+      <!-- 차트 섹션 -->
+      <div v-if="statistics.total > 0" class="charts-section q-mb-lg">
+        <div class="charts-grid">
+          <!-- 에러 발생 추이 차트 -->
+          <div class="chart-card">
+            <div class="text-h6 q-mb-md">
+              <q-icon name="trending_up" class="q-mr-sm" />
+              에러 발생 추이
+            </div>
+            <NexaChart v-if="errorTrendChartData.length > 0" type="line" :data="errorTrendChartData" :height="300" :options="{ animation: true, showLabels: true }" />
+            <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
+          </div>
+
+          <!-- 에러 유형별 분포 차트 -->
+          <div class="chart-card">
+            <div class="text-h6 q-mb-md">
+              <q-icon name="pie_chart" class="q-mr-sm" />
+              에러 유형별 분포
+            </div>
+            <NexaChart v-if="errorTypeChartData.length > 0" type="pie" :data="errorTypeChartData" :height="300" :margin="{ top: 10, right: 10, bottom: 10, left: 10 }" :options="{ animation: true, showLabels: true }" />
+            <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
+          </div>
         </div>
-        <div class="stat-item">
-          <span class="stat-label">오늘:</span>
-          <span class="stat-value">{{ statistics.today }}개</span>
+      </div>
+
+      <!-- 다이어그램 섹션 -->
+      <div v-if="statistics.total > 0 && diagramData.nodes && diagramData.nodes.length > 0" class="diagram-section q-mb-lg">
+        <div class="text-h6 q-mb-md">
+          <q-icon name="account_tree" class="q-mr-sm" />
+          에러 의존성 다이어그램
         </div>
+        <div ref="diagramContainer" class="error-dependency-diagram"></div>
+      </div>
+
+      <!-- 안내 메시지 -->
+      <div v-if="statistics.total === 0" class="empty-state q-pa-lg text-center">
+        <q-icon name="bug_report" size="80px" class="empty-icon q-mb-md" />
+        <h3 class="empty-title">에러 트래킹</h3>
+        <p class="empty-description">현재 수집된 에러가 없습니다.</p>
+        <p class="empty-description">왼쪽 목록에서 에러를 선택하여 상세 정보를 확인하세요.</p>
       </div>
     </div>
 
@@ -226,13 +308,23 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
+import NexaChart from 'src/charts/NexaChart.vue'
+import * as d3 from 'd3'
 
 const $q = useQuasar()
 
 // 선택된 에러 상태
 const selectedError = ref(null)
+
+// 에러 목록 (차트/다이어그램용)
+const errors = ref([])
+
+// 다이어그램 컨테이너
+const diagramContainer = ref(null)
+let diagramSvg = null
+let diagramSimulation = null
 
 // localStorage 키
 const BATCH_OPTIONS_STORAGE_KEY = 'error-tracking-batch-options'
@@ -299,7 +391,253 @@ function handleErrorSelected(event) {
 // 통계 업데이트 이벤트 리스너
 function handleStatisticsUpdated(event) {
   statistics.value = event.detail
+  console.log('[ErrorTrackingContent] 통계 업데이트:', statistics.value)
 }
+
+// 에러 목록 업데이트 이벤트 리스너
+function handleErrorsUpdated(event) {
+  errors.value = event.detail.errors || []
+  console.log('[ErrorTrackingContent] 에러 목록 업데이트:', errors.value.length, '개')
+}
+
+// 에러 발생 추이 차트 데이터 (최근 7일)
+const errorTrendChartData = computed(() => {
+  if (errors.value.length === 0) return []
+
+  const now = Date.now()
+  const days = 7
+  const dayMs = 24 * 60 * 60 * 1000
+  const data = []
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(now - i * dayMs)
+    const dayStartDate = new Date(date)
+    dayStartDate.setHours(0, 0, 0, 0)
+    const dayStart = dayStartDate.getTime()
+    const dayEnd = dayStart + dayMs
+
+    const count = errors.value.filter((error) => {
+      const errorTime = new Date(error.timestamp).getTime()
+      return errorTime >= dayStart && errorTime < dayEnd
+    }).length
+
+    data.push({
+      x: date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+      y: count,
+    })
+  }
+
+  return data
+})
+
+// 에러 유형별 분포 차트 데이터
+const errorTypeChartData = computed(() => {
+  if (errors.value.length === 0) return []
+
+  const typeCounts = {
+    error: 0,
+    warning: 0,
+    unhandled: 0,
+    lint: 0,
+  }
+
+  errors.value.forEach((error) => {
+    if (error.type === 'lint') {
+      typeCounts.lint++
+    } else {
+      typeCounts[error.level] = (typeCounts[error.level] || 0) + 1
+    }
+  })
+
+  return Object.entries(typeCounts)
+    .filter(([, count]) => count > 0)
+    .map(([type, count]) => ({
+      x: type === 'lint' ? 'Lint' : type.charAt(0).toUpperCase() + type.slice(1),
+      y: count,
+    }))
+})
+
+// 다이어그램 데이터 (에러 의존성)
+const diagramData = computed(() => {
+  if (errors.value.length === 0) {
+    return { nodes: [], edges: [] }
+  }
+
+  // 파일별로 에러 그룹화
+  const fileErrors = {}
+  errors.value.forEach((error) => {
+    const file = error.file || 'unknown'
+    if (!fileErrors[file]) {
+      fileErrors[file] = []
+    }
+    fileErrors[file].push(error)
+  })
+
+  // 노드 생성 (파일별, 최대 20개)
+  const fileEntries = Object.entries(fileErrors).slice(0, 20)
+  const nodes = fileEntries.map(([file, fileErrorList], index) => ({
+    id: `file-${index}`,
+    label: file.split('/').pop() || file,
+    type: 'file',
+    count: fileErrorList.length,
+    file: file,
+  }))
+
+  // 에지 생성 (파일 간 연관성 - 같은 에러 메시지를 가진 파일들)
+  const edges = []
+  const messageToFiles = {}
+  errors.value.forEach((error) => {
+    const message = error.message || 'unknown'
+    const file = error.file || 'unknown'
+    if (!messageToFiles[message]) {
+      messageToFiles[message] = new Set()
+    }
+    messageToFiles[message].add(file)
+  })
+
+  Object.values(messageToFiles).forEach((fileSet) => {
+    const fileArray = Array.from(fileSet)
+    if (fileArray.length > 1) {
+      // 같은 메시지를 가진 파일들을 연결
+      for (let i = 0; i < fileArray.length - 1; i++) {
+        const sourceNode = nodes.find((n) => n.file === fileArray[i])
+        const targetNode = nodes.find((n) => n.file === fileArray[i + 1])
+        if (sourceNode && targetNode) {
+          edges.push({
+            id: `edge-${sourceNode.id}-${targetNode.id}`,
+            source: sourceNode.id,
+            target: targetNode.id,
+            type: 'related',
+          })
+        }
+      }
+    }
+  })
+
+  return { nodes, edges }
+})
+
+// 다이어그램 렌더링
+function renderDiagram() {
+  if (!diagramContainer.value || !diagramData.value.nodes || diagramData.value.nodes.length === 0) {
+    return
+  }
+
+  // 기존 다이어그램 제거
+  d3.select(diagramContainer.value).selectAll('*').remove()
+
+  const width = diagramContainer.value.clientWidth || 800
+  const height = 400
+
+  // CSS 변수에서 색상 가져오기
+  const root = getComputedStyle(document.documentElement)
+  const borderColor = root.getPropertyValue('--nexa-border-color').trim() || '#666'
+  const primaryColor = root.getPropertyValue('--nexa-primary').trim() || '#1976d2'
+  const textColor = root.getPropertyValue('--nexa-text-primary').trim() || '#fff'
+
+  // SVG 생성
+  diagramSvg = d3.select(diagramContainer.value).append('svg').attr('width', width).attr('height', height)
+
+  // 시뮬레이션 생성
+  diagramSimulation = d3
+    .forceSimulation(diagramData.value.nodes)
+    .force(
+      'link',
+      d3
+        .forceLink(diagramData.value.edges)
+        .id((d) => d.id)
+        .distance(100),
+    )
+    .force('charge', d3.forceManyBody().strength(-300))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+
+  // 링크 그리기
+  const link = diagramSvg.append('g').selectAll('line').data(diagramData.value.edges).enter().append('line').attr('stroke', borderColor).attr('stroke-width', 2).attr('opacity', 0.6)
+
+  // 노드 그리기
+  const node = diagramSvg.append('g').selectAll('g').data(diagramData.value.nodes).enter().append('g').attr('class', 'diagram-node').call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+
+  // 노드 원
+  node
+    .append('circle')
+    .attr('r', (d) => Math.max(15, Math.min(35, 15 + d.count * 2)))
+    .attr('fill', primaryColor)
+    .attr('stroke', borderColor)
+    .attr('stroke-width', 2)
+    .style('cursor', 'pointer')
+    .on('click', (event, d) => {
+      const fileError = errors.value.find((error) => error.file === d.file)
+      if (fileError) {
+        window.dispatchEvent(
+          new CustomEvent('error-tracking-error-selected', {
+            detail: { error: fileError },
+          }),
+        )
+      }
+    })
+
+  // 노드 라벨
+  node
+    .append('text')
+    .text((d) => d.label)
+    .attr('dx', 0)
+    .attr('dy', (d) => Math.max(15, Math.min(35, 15 + d.count * 2)) + 18)
+    .attr('text-anchor', 'middle')
+    .attr('fill', textColor)
+    .attr('font-size', '11px')
+    .attr('font-weight', '500')
+
+  // 카운트 표시
+  node
+    .append('text')
+    .text((d) => d.count)
+    .attr('text-anchor', 'middle')
+    .attr('dy', 4)
+    .attr('fill', textColor)
+    .attr('font-size', '10px')
+    .attr('font-weight', 'bold')
+
+  // 시뮬레이션 업데이트
+  diagramSimulation.on('tick', () => {
+    link
+      .attr('x1', (d) => d.source.x)
+      .attr('y1', (d) => d.source.y)
+      .attr('x2', (d) => d.target.x)
+      .attr('y2', (d) => d.target.y)
+
+    node.attr('transform', (d) => `translate(${d.x},${d.y})`)
+  })
+
+  function dragstarted(event) {
+    if (!event.active) diagramSimulation.alphaTarget(0.3).restart()
+    event.subject.fx = event.subject.x
+    event.subject.fy = event.subject.y
+  }
+
+  function dragged(event) {
+    event.subject.fx = event.x
+    event.subject.fy = event.y
+  }
+
+  function dragended(event) {
+    if (!event.active) diagramSimulation.alphaTarget(0)
+    event.subject.fx = null
+    event.subject.fy = null
+  }
+}
+
+// 다이어그램 데이터 변경 감지 (컨테이너가 마운트된 후에만 렌더링)
+watch(
+  () => [diagramData.value.nodes, diagramContainer.value],
+  ([nodes, container]) => {
+    if (container && nodes && nodes.length > 0) {
+      nextTick(() => {
+        renderDiagram()
+      })
+    }
+  },
+  { deep: true, immediate: false },
+)
 
 // 에러 아이콘
 function getErrorIcon(level) {
@@ -698,6 +1036,12 @@ onMounted(() => {
   window.addEventListener('error-tracking-error-selected', handleErrorSelected)
   window.addEventListener('error-tracking-statistics-updated', handleStatisticsUpdated)
   window.addEventListener('error-tracking-similar-errors-count', handleSimilarErrorsCount)
+  window.addEventListener('error-tracking-errors-updated', handleErrorsUpdated)
+
+  // 에러 목록 요청 (약간의 지연을 두어 useErrorTracking이 초기화된 후 요청)
+  setTimeout(() => {
+    window.dispatchEvent(new CustomEvent('error-tracking-request-errors'))
+  }, 100)
 
   // 선택된 에러가 변경될 때마다 유사한 에러 개수 요청
   if (selectedError.value) {
@@ -713,6 +1057,15 @@ onUnmounted(() => {
   window.removeEventListener('error-tracking-error-selected', handleErrorSelected)
   window.removeEventListener('error-tracking-statistics-updated', handleStatisticsUpdated)
   window.removeEventListener('error-tracking-similar-errors-count', handleSimilarErrorsCount)
+  window.removeEventListener('error-tracking-errors-updated', handleErrorsUpdated)
+
+  // 다이어그램 정리
+  if (diagramSimulation) {
+    diagramSimulation.stop()
+  }
+  if (diagramSvg) {
+    diagramSvg.remove()
+  }
 })
 </script>
 
@@ -723,6 +1076,103 @@ onUnmounted(() => {
   flex-direction: column;
   background-color: var(--nexa-background);
   overflow-y: auto;
+}
+
+.dashboard-view {
+  background-color: var(--nexa-background);
+}
+
+.statistics-cards {
+  .stat-card {
+    background-color: var(--nexa-surface);
+    border: 1px solid var(--nexa-border-color);
+  }
+
+  .stat-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-card-content {
+    flex: 1;
+  }
+
+  .stat-card-label {
+    font-size: 0.9rem;
+    color: var(--nexa-text-secondary);
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--nexa-text-primary);
+
+    &.stat-value-new {
+      color: var(--nexa-error);
+    }
+
+    &.stat-value-resolved {
+      color: var(--nexa-success);
+    }
+  }
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1rem;
+}
+
+.chart-card {
+  background-color: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.diagram-section {
+  background-color: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.chart-container {
+  width: 100%;
+  min-width: 0;
+  position: relative;
+
+  :deep(.chart-wrapper) {
+    width: 100% !important;
+    height: 100%;
+  }
+}
+
+.error-dependency-diagram {
+  width: 100%;
+  height: 400px;
+  min-height: 400px;
+  background-color: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 4px;
+
+  :deep(.diagram-node) {
+    cursor: pointer;
+
+    circle {
+      transition:
+        r 0.2s,
+        fill 0.2s,
+        opacity 0.2s;
+    }
+
+    &:hover circle {
+      fill: var(--nexa-primary);
+      opacity: 0.8;
+    }
+  }
 }
 
 .empty-state {
@@ -745,30 +1195,6 @@ onUnmounted(() => {
   color: var(--nexa-text-secondary);
   font-size: 1rem;
   margin: 0;
-}
-
-.statistics-summary {
-  display: flex;
-  gap: 2rem;
-  margin-top: 2rem;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.stat-label {
-  color: var(--nexa-text-secondary);
-  font-size: 0.875rem;
-}
-
-.stat-value {
-  color: var(--nexa-text-primary);
-  font-size: 1.5rem;
-  font-weight: 600;
 }
 
 .error-detail {

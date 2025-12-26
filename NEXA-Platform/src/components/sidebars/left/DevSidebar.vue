@@ -487,6 +487,20 @@ onMounted(() => {
       )
     }
   })
+  window.addEventListener('error-tracking-request-errors', () => {
+    // 에러 목록 요청 처리
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-errors-updated', {
+        detail: { errors: errorTrackingErrors.value },
+      }),
+    )
+    // 통계도 함께 전송
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-statistics-updated', {
+        detail: errorTrackingStatistics.value,
+      }),
+    )
+  })
 
   // 컴포넌트 라이브러리 초기 스캔
   initializeComponentLibrary()

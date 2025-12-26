@@ -105,20 +105,37 @@
 
       <!-- 에러 트래킹 패널들 (activeMenu === 'error-tracking') -->
       <template v-if="activeMenu === 'error-tracking'">
-        <!-- 에러 통계 패널 -->
-        <div class="accordion-wrapper">
-          <q-expansion-item icon="bar_chart" label="에러 통계" :model-value="errorTrackingStatisticsExpanded" @update:model-value="errorTrackingStatisticsExpanded = $event">
-            <div class="q-pa-md">
-              <div class="text-body2 text-grey-7">통계 기능은 곧 추가될 예정입니다.</div>
-            </div>
-          </q-expansion-item>
-        </div>
-
         <!-- 에러 설정 패널 -->
         <div class="accordion-wrapper">
           <q-expansion-item icon="settings" label="에러 설정" :model-value="errorTrackingSettingsExpanded" @update:model-value="errorTrackingSettingsExpanded = $event">
             <div class="q-pa-md">
-              <div class="text-body2 text-grey-7">설정 기능은 곧 추가될 예정입니다.</div>
+              <div class="text-body2 q-mb-sm text-weight-medium">에러 수집 설정</div>
+              <ul class="text-body2 text-grey-7 q-pl-md q-mb-md">
+                <li>에러 수집 활성화/비활성화</li>
+                <li>수집할 에러 레벨 선택</li>
+                <li>최대 저장 에러 수 (메모리 관리)</li>
+                <li>자동 정리 기간 설정</li>
+              </ul>
+
+              <div class="text-body2 q-mb-sm text-weight-medium">알림 설정</div>
+              <ul class="text-body2 text-grey-7 q-pl-md q-mb-md">
+                <li>에러 발생 시 알림 표시 여부</li>
+                <li>중요 에러만 알림</li>
+                <li>알림 사운드 설정</li>
+              </ul>
+
+              <div class="text-body2 q-mb-sm text-weight-medium">저장 설정</div>
+              <ul class="text-body2 text-grey-7 q-pl-md q-mb-md">
+                <li>localStorage 사용 여부</li>
+                <li>IndexedDB 사용 여부 (대용량)</li>
+                <li>자동 내보내기 설정</li>
+              </ul>
+
+              <div class="text-body2 q-mb-sm text-weight-medium">필터 기본값 설정</div>
+              <ul class="text-body2 text-grey-7 q-pl-md">
+                <li>기본 시간 범위</li>
+                <li>기본 정렬 옵션</li>
+              </ul>
             </div>
           </q-expansion-item>
         </div>
@@ -127,7 +144,26 @@
         <div class="accordion-wrapper">
           <q-expansion-item icon="flash_on" label="에러 액션" :model-value="errorTrackingActionsExpanded" @update:model-value="errorTrackingActionsExpanded = $event">
             <div class="q-pa-md">
-              <div class="text-body2 text-grey-7">액션 기능은 곧 추가될 예정입니다.</div>
+              <div class="text-body2 q-mb-sm text-weight-medium">일괄 작업</div>
+              <ul class="text-body2 text-grey-7 q-pl-md q-mb-md">
+                <li>모든 에러 해결 표시</li>
+                <li>모든 에러 무시</li>
+                <li>오래된 에러 삭제 (30일 이상)</li>
+              </ul>
+
+              <div class="text-body2 q-mb-sm text-weight-medium">내보내기/가져오기</div>
+              <ul class="text-body2 text-grey-7 q-pl-md q-mb-md">
+                <li>선택한 에러 내보내기 (JSON)</li>
+                <li>모든 에러 내보내기 (CSV)</li>
+                <li>에러 데이터 가져오기</li>
+              </ul>
+
+              <div class="text-body2 q-mb-sm text-weight-medium">데이터 관리</div>
+              <ul class="text-body2 text-grey-7 q-pl-md">
+                <li>에러 데이터 초기화</li>
+                <li>통계 데이터 초기화</li>
+                <li>저장소 사용량 확인</li>
+              </ul>
             </div>
           </q-expansion-item>
         </div>
@@ -136,7 +172,25 @@
         <div class="accordion-wrapper">
           <q-expansion-item icon="analytics" label="에러 분석" :model-value="errorTrackingAnalysisExpanded" @update:model-value="errorTrackingAnalysisExpanded = $event">
             <div class="q-pa-md">
-              <div class="text-body2 text-grey-7">분석 기능은 곧 추가될 예정입니다.</div>
+              <div class="text-body2 q-mb-sm text-weight-medium">에러 발생 위치 히트맵</div>
+              <ul class="text-body2 text-grey-7 q-pl-md q-mb-md">
+                <li>파일별 에러 발생 빈도 시각화</li>
+                <li>컴포넌트별 에러 발생 빈도</li>
+              </ul>
+
+              <div class="text-body2 q-mb-sm text-weight-medium">에러 의존성 다이어그램</div>
+              <ul class="text-body2 text-grey-7 q-pl-md q-mb-md">
+                <li>에러 간 연관성 시각화</li>
+                <li>에러 체인 다이어그램</li>
+                <li>원인-결과 관계 표시</li>
+              </ul>
+
+              <div class="text-body2 q-mb-sm text-weight-medium">패턴 분석</div>
+              <ul class="text-body2 text-grey-7 q-pl-md">
+                <li>반복 발생하는 에러 패턴</li>
+                <li>시간대별 에러 패턴</li>
+                <li>사용자 액션별 에러 패턴</li>
+              </ul>
             </div>
           </q-expansion-item>
         </div>
@@ -217,7 +271,6 @@ const componentLibraryQuickActionsExpanded = ref(false)
 const componentLibraryRelatedDocsExpanded = ref(false)
 
 // 에러 트래킹 패널 상태
-const errorTrackingStatisticsExpanded = ref(false)
 const errorTrackingSettingsExpanded = ref(false)
 const errorTrackingActionsExpanded = ref(false)
 const errorTrackingAnalysisExpanded = ref(false)
@@ -244,7 +297,6 @@ function handleActiveMenuChange(event) {
   }
   // 에러 트래킹 메뉴로 변경 시 상태 초기화
   if (activeMenu.value === 'error-tracking') {
-    errorTrackingStatisticsExpanded.value = false
     errorTrackingSettingsExpanded.value = false
     errorTrackingActionsExpanded.value = false
     errorTrackingAnalysisExpanded.value = false
