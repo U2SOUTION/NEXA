@@ -171,37 +171,143 @@ function updateComponentLibraryStatistics() {
   const categories = componentLibraryCategories.value
   const manualCategories = componentLibraryManualCategories.value
 
-  // 모든 컴포넌트 수집
-  const allComponents = categories.flatMap((cat) => cat.components || [])
+  // ============================================
+  // 1. 전체 컴포넌트 수집 (중복 제거)
+  // ============================================
+  // 디렉토리 기반 카테고리의 모든 컴포넌트 수집
+  const directoryComponents = categories.flatMap((cat) => cat.components || [])
 
-  // 통계 데이터 계산
-  const totalComponents = allComponents.length
-  const scannedComponents = allComponents.length // 스캔된 컴포넌트 = 전체 컴포넌트
-  const systemsCount = manualCategories.length
-  const systemsComponentCount = manualCategories.reduce((sum, cat) => {
-    // 하위 카테고리의 컴포넌트도 포함
-    function countComponents(category) {
-      let count = category.components?.length || 0
-      if (category.subcategories) {
-        count += category.subcategories.reduce((subSum, subCat) => subSum + countComponents(subCat), 0)
-      }
-      return count
+  // 고유한 컴포넌트만 추출 (path 기준)
+  const uniqueComponentsSet = new Set(directoryComponents.map((comp) => comp.path))
+  const uniqueComponents = Array.from(uniqueComponentsSet).map((path) => directoryComponents.find((comp) => comp.path === path))
+
+  // ============================================
+  // 2. 전체 탭 통계
+  // ============================================
+  const totalComponents = uniqueComponents.length
+  const scannedComponents = uniqueComponents.length // 현재는 스캔된 컴포넌트 = 전체 컴포넌트
+
+  // 시스템 카테고리에 매핑된 컴포넌트 수집 (중복 제거)
+  const systemMappedComponentsSet = new Set()
+  function collectSystemComponents(category) {
+    if (category.components) {
+      category.components.forEach((comp) => systemMappedComponentsSet.add(comp.path))
     }
-    return sum + countComponents(cat)
-  }, 0)
-  const directoryCategoryCount = categories.length
-  const directoryComponentCount = allComponents.length
+    if (category.subcategories) {
+      category.subcategories.forEach((subCat) => collectSystemComponents(subCat))
+    }
+  }
+  manualCategories.forEach((cat) => collectSystemComponents(cat))
+  const categorizedComponents = systemMappedComponentsSet.size
+  const uncategorizedComponents = totalComponents - categorizedComponents
 
-  // 통계 업데이트 이벤트 전달
+  // 중복 매핑된 컴포넌트 계산 (여러 시스템 카테고리에 속한 컴포넌트)
+  const componentCategoryCount = new Map()
+  function countComponentMappings(category) {
+    if (category.components) {
+      category.components.forEach((comp) => {
+        const count = componentCategoryCount.get(comp.path) || 0
+        componentCategoryCount.set(comp.path, count + 1)
+      })
+    }
+    if (category.subcategories) {
+      category.subcategories.forEach((subCat) => countComponentMappings(subCat))
+    }
+  }
+  manualCategories.forEach((cat) => countComponentMappings(cat))
+  const duplicateMappedComponents = Array.from(componentCategoryCount.values()).filter((count) => count > 1).length
+
+  // ============================================
+  // 3. 시스템 탭 통계
+  // ============================================
+  const systemsCount = manualCategories.length
+
+  // 시스템별 컴포넌트 수 계산 (중복 제거)
+  function countSystemComponents(category) {
+    const componentSet = new Set()
+    if (category.components) {
+      category.components.forEach((comp) => componentSet.add(comp.path))
+    }
+    if (category.subcategories) {
+      category.subcategories.forEach((subCat) => {
+        const subComponents = countSystemComponents(subCat)
+        subComponents.forEach((path) => componentSet.add(path))
+      })
+    }
+    return componentSet
+  }
+
+  const systemComponentCounts = manualCategories.map((cat) => ({
+    name: cat.displayName,
+    count: countSystemComponents(cat).size,
+  }))
+
+  const systemsComponentCount = systemComponentCounts.reduce((sum, item) => sum + item.count, 0)
+  const averageComponentsPerSystem = systemsCount > 0 ? Math.round(systemsComponentCount / systemsCount) : 0
+  const topSystemByComponents = systemComponentCounts.length > 0 ? systemComponentCounts.reduce((max, item) => (item.count > max.count ? item : max), systemComponentCounts[0]) : null
+  const emptySystems = systemComponentCounts.filter((item) => item.count === 0).length
+
+  // ============================================
+  // 4. 디렉토리 탭 통계
+  // ============================================
+  const directoryCategoryCount = categories.length
+  const directoryComponentCount = uniqueComponents.length
+
+  // 깊이별 통계
+  const depths = categories.map((cat) => {
+    if (cat.components && cat.components.length > 0) {
+      return cat.components[0].depth || 1
+    }
+    return 1
+  })
+  const maxDepth = depths.length > 0 ? Math.max(...depths) : 0
+  const averageDepth = depths.length > 0 ? Math.round(depths.reduce((sum, d) => sum + d, 0) / depths.length) : 0
+
+  // 깊이별 컴포넌트 수 분포
+  const componentsByDepth = new Map()
+  uniqueComponents.forEach((comp) => {
+    const depth = comp.depth || 1
+    const count = componentsByDepth.get(depth) || 0
+    componentsByDepth.set(depth, count + 1)
+  })
+
+  // ============================================
+  // 5. 체계분석 탭 통계 (componentTaxonomy 기반)
+  // ============================================
+  // 이 통계는 TaxonomyDetail에서 직접 계산하므로 여기서는 기본값만 전달
+  // (실제 계산은 TaxonomyDetail에서 componentTaxonomy를 사용)
+
+  // ============================================
+  // 6. 통계 업데이트 이벤트 전달
+  // ============================================
   window.dispatchEvent(
     new CustomEvent('component-library-statistics-updated', {
       detail: {
+        // 전체 탭 통계
         totalComponents,
         scannedComponents,
+        categorizedComponents,
+        uncategorizedComponents,
+        duplicateMappedComponents,
+
+        // 시스템 탭 통계
         systemsCount,
         systemsComponentCount,
+        averageComponentsPerSystem,
+        topSystemByComponents: topSystemByComponents
+          ? {
+              name: topSystemByComponents.name,
+              count: topSystemByComponents.count,
+            }
+          : null,
+        emptySystems,
+
+        // 디렉토리 탭 통계
         directoryCategoryCount,
         directoryComponentCount,
+        maxDepth,
+        averageDepth,
+        componentsByDepth: Object.fromEntries(componentsByDepth),
       },
     }),
   )
@@ -209,10 +315,18 @@ function updateComponentLibraryStatistics() {
   console.log('[DevSidebar] 통계 업데이트:', {
     totalComponents,
     scannedComponents,
+    categorizedComponents,
+    uncategorizedComponents,
+    duplicateMappedComponents,
     systemsCount,
     systemsComponentCount,
+    averageComponentsPerSystem,
+    topSystemByComponents,
+    emptySystems,
     directoryCategoryCount,
     directoryComponentCount,
+    maxDepth,
+    averageDepth,
   })
 }
 

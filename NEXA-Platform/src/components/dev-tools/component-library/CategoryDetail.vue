@@ -26,18 +26,7 @@
 
       <!-- 의존성 다이어그램 -->
       <div v-if="diagramData.tables && diagramData.tables.length > 0" class="diagram-section">
-        <NexaDiagram
-          v-if="diagramData.tables && diagramData.relationships"
-          ref="nexaDiagramRef"
-          type="erd"
-          :data="diagramData"
-          :options="diagramOptions"
-          :auto-load="false"
-          @node-click="handleNodeClick"
-          @node-hover="handleNodeHover"
-          @error="handleDiagramError"
-          @loaded="handleDiagramLoaded"
-        />
+        <NexaDiagram v-if="diagramData.tables && diagramData.relationships" ref="nexaDiagramRef" type="erd" :data="diagramData" :options="diagramOptions" :auto-load="false" @node-click="handleNodeClick" @node-hover="handleNodeHover" @error="handleDiagramError" @loaded="handleDiagramLoaded" />
 
         <!-- 로딩 상태 -->
         <div v-if="isAnalyzing" class="diagram-loading q-pa-lg text-center">
@@ -80,21 +69,73 @@ const selectedCategory = ref(null)
 // 통계 데이터 상태
 const systemsCount = ref(0)
 const systemsComponentCount = ref(0)
+const averageComponentsPerSystem = ref(0)
+const topSystemByComponents = ref(null)
+const emptySystems = ref(0)
+
 const directoryCategoryCount = ref(0)
 const directoryComponentCount = ref(0)
+const maxDepth = ref(0)
+const averageDepth = ref(0)
 
 // 통계 데이터
 const statistics = computed(() => {
   if (props.tabName === 'systems') {
-    return {
+    const stats = {
       totalSystems: { label: '시스템 수', value: String(systemsCount.value), description: 'NEXA 시스템 카테고리' },
       totalComponents: { label: '컴포넌트 수', value: String(systemsComponentCount.value), description: '시스템별 분류된 컴포넌트' },
     }
+
+    // 추가 통계가 있으면 표시
+    if (averageComponentsPerSystem.value > 0) {
+      stats.averageComponentsPerSystem = {
+        label: '시스템당 평균',
+        value: String(averageComponentsPerSystem.value),
+        description: '시스템당 평균 컴포넌트 수',
+      }
+    }
+
+    if (topSystemByComponents.value) {
+      stats.topSystemByComponents = {
+        label: '최다 컴포넌트',
+        value: `${topSystemByComponents.value.name} (${topSystemByComponents.value.count})`,
+        description: '컴포넌트가 가장 많은 시스템',
+      }
+    }
+
+    if (emptySystems.value > 0) {
+      stats.emptySystems = {
+        label: '빈 시스템',
+        value: String(emptySystems.value),
+        description: '컴포넌트가 없는 시스템',
+      }
+    }
+
+    return stats
   } else {
-    return {
+    const stats = {
       totalCategories: { label: '카테고리 수', value: String(directoryCategoryCount.value), description: '디렉토리 기반 카테고리' },
       totalComponents: { label: '컴포넌트 수', value: String(directoryComponentCount.value), description: '디렉토리별 분류된 컴포넌트' },
     }
+
+    // 깊이 통계 추가
+    if (maxDepth.value > 0) {
+      stats.maxDepth = {
+        label: '최대 깊이',
+        value: String(maxDepth.value),
+        description: '가장 깊은 디렉토리 깊이',
+      }
+    }
+
+    if (averageDepth.value > 0) {
+      stats.averageDepth = {
+        label: '평균 깊이',
+        value: String(averageDepth.value),
+        description: '평균 디렉토리 깊이',
+      }
+    }
+
+    return stats
   }
 })
 
@@ -108,12 +149,27 @@ function handleStatisticsUpdate(event) {
       if (event.detail.systemsComponentCount !== undefined) {
         systemsComponentCount.value = event.detail.systemsComponentCount
       }
+      if (event.detail.averageComponentsPerSystem !== undefined) {
+        averageComponentsPerSystem.value = event.detail.averageComponentsPerSystem
+      }
+      if (event.detail.topSystemByComponents !== undefined) {
+        topSystemByComponents.value = event.detail.topSystemByComponents
+      }
+      if (event.detail.emptySystems !== undefined) {
+        emptySystems.value = event.detail.emptySystems
+      }
     } else {
       if (event.detail.directoryCategoryCount !== undefined) {
         directoryCategoryCount.value = event.detail.directoryCategoryCount
       }
       if (event.detail.directoryComponentCount !== undefined) {
         directoryComponentCount.value = event.detail.directoryComponentCount
+      }
+      if (event.detail.maxDepth !== undefined) {
+        maxDepth.value = event.detail.maxDepth
+      }
+      if (event.detail.averageDepth !== undefined) {
+        averageDepth.value = event.detail.averageDepth
       }
     }
   }
@@ -205,13 +261,13 @@ watch(
     if (newCategory && newCategory.components) {
       analyzeDependencies()
     }
-  }
+  },
 )
 
 onMounted(() => {
   window.addEventListener('component-library-category-selected', handleCategorySelected)
   window.addEventListener('component-library-statistics-updated', handleStatisticsUpdate)
-  
+
   // 마운트 시 통계 요청
   window.dispatchEvent(new CustomEvent('component-library-statistics-request'))
 })
@@ -275,4 +331,3 @@ onUnmounted(() => {
   height: 100%;
 }
 </style>
-

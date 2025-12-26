@@ -41,7 +41,9 @@
             <div class="violation-message">{{ violation.message }}</div>
             <div v-if="violation.suggestedLocation" class="violation-suggestion q-mt-sm">
               <q-icon name="lightbulb" color="info" />
-              <span class="q-ml-sm">제안 위치: <code>{{ violation.suggestedLocation }}</code></span>
+              <span class="q-ml-sm"
+                >제안 위치: <code>{{ violation.suggestedLocation }}</code></span
+              >
             </div>
             <div v-if="violation.fixable" class="violation-actions q-mt-sm">
               <q-btn flat dense color="primary" icon="build" label="자동 수정" @click="fixViolation(selectedViolation.component, violation)" />
@@ -108,13 +110,41 @@ const selectedViolation = ref(null)
 // 통계 데이터 상태
 const totalComponentCount = ref(0)
 const scannedComponentCount = ref(0)
+const categorizedComponents = ref(0)
+const uncategorizedComponents = ref(0)
+const duplicateMappedComponents = ref(0)
 
 // 통계 데이터
 const statistics = computed(() => {
-  return {
+  const stats = {
     totalComponents: { label: '전체 컴포넌트', value: String(totalComponentCount.value), description: '프로젝트 내 모든 Vue 컴포넌트' },
     scannedComponents: { label: '스캔된 컴포넌트', value: String(scannedComponentCount.value), description: '자동 스캔으로 발견된 컴포넌트' },
   }
+
+  // 분류된 컴포넌트가 있으면 추가 통계 표시
+  if (categorizedComponents.value > 0 || uncategorizedComponents.value > 0) {
+    stats.categorizedComponents = {
+      label: '분류된 컴포넌트',
+      value: String(categorizedComponents.value),
+      description: '시스템 카테고리에 매핑된 컴포넌트',
+    }
+    stats.uncategorizedComponents = {
+      label: '미분류 컴포넌트',
+      value: String(uncategorizedComponents.value),
+      description: '시스템 카테고리에 매핑되지 않은 컴포넌트',
+    }
+  }
+
+  // 중복 매핑된 컴포넌트가 있으면 표시
+  if (duplicateMappedComponents.value > 0) {
+    stats.duplicateMappedComponents = {
+      label: '중복 매핑',
+      value: String(duplicateMappedComponents.value),
+      description: '여러 시스템 카테고리에 중복 매핑된 컴포넌트',
+    }
+  }
+
+  return stats
 })
 
 // 통계 업데이트 이벤트 리스너
@@ -125,6 +155,15 @@ function handleStatisticsUpdate(event) {
     }
     if (event.detail.scannedComponents !== undefined) {
       scannedComponentCount.value = event.detail.scannedComponents
+    }
+    if (event.detail.categorizedComponents !== undefined) {
+      categorizedComponents.value = event.detail.categorizedComponents
+    }
+    if (event.detail.uncategorizedComponents !== undefined) {
+      uncategorizedComponents.value = event.detail.uncategorizedComponents
+    }
+    if (event.detail.duplicateMappedComponents !== undefined) {
+      duplicateMappedComponents.value = event.detail.duplicateMappedComponents
     }
   }
 }
@@ -172,7 +211,7 @@ onMounted(() => {
   window.addEventListener('component-library-component-selected', handleComponentSelected)
   window.addEventListener('component-library-violation-selected', handleViolationSelected)
   window.addEventListener('component-library-statistics-updated', handleStatisticsUpdate)
-  
+
   // 마운트 시 통계 요청
   window.dispatchEvent(new CustomEvent('component-library-statistics-request'))
 })
@@ -305,4 +344,3 @@ onUnmounted(() => {
   }
 }
 </style>
-
