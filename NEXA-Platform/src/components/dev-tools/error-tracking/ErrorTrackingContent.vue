@@ -31,11 +31,6 @@
             <h4 class="error-title">{{ selectedError.message || '에러 메시지 없음' }}</h4>
             <div class="error-meta q-mt-xs">
               <q-chip v-if="selectedError.type === 'lint'" class="chip-lint" size="sm" label="Lint" />
-              <q-chip v-if="selectedError.status === 'new'" class="chip-new" size="sm" label="신규" />
-              <q-chip v-else-if="selectedError.status === 'resolved'" class="chip-resolved" size="sm" icon="check_circle" label="해결" />
-              <q-chip v-else-if="selectedError.status === 'ignored'" class="chip-ignored" size="sm" label="무시" />
-              <span class="q-ml-sm text-caption error-time">{{ formatTime(selectedError.timestamp) }}</span>
-              <span v-if="selectedError.count > 1" class="q-ml-sm text-caption error-count">({{ selectedError.count }}회 발생)</span>
             </div>
           </div>
         </div>
@@ -54,7 +49,6 @@
             <div class="batch-apply-group row q-gutter-xs items-center">
               <q-separator vertical />
               <span class="text-caption text-weight-medium q-mr-xs batch-apply-label">전체 적용</span>
-              <q-chip v-if="similarErrorsCount > 0" class="chip-similar" size="sm" icon="info"> 유사 {{ similarErrorsCount }}개 </q-chip>
 
               <q-checkbox v-model="batchOptions.resolved" dense class="checkbox-resolved" @update:model-value="handleBatchOptionChange" />
               <span class="text-caption">해결</span>
@@ -68,6 +62,68 @@
               <span class="text-caption">삭제</span>
               <q-btn v-if="batchOptions.deleted" flat dense size="xs" class="btn-batch-deleted" @click="batchDelete" />
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 에러 발생 통계 -->
+      <div class="error-statistics q-pa-md q-mb-md">
+        <h5 class="section-title q-mb-sm">
+          <q-icon name="bar_chart" />
+          발생 통계
+        </h5>
+        <div class="statistics-info">
+          <div class="info-row">
+            <span class="info-label">발생 횟수</span>
+            <span class="info-value">{{ selectedError.count || 1 }}회</span>
+          </div>
+          <div v-if="selectedError.type" class="info-row">
+            <span class="info-label">에러 타입</span>
+            <span class="info-value">
+              <q-chip v-if="selectedError.type === 'lint'" class="chip-lint" size="sm" label="Lint" />
+              <span v-else class="text-caption">{{ selectedError.type }}</span>
+            </span>
+          </div>
+          <div v-if="similarErrorsCount > 0" class="info-row">
+            <span class="info-label">유사 에러</span>
+            <span class="info-value">{{ similarErrorsCount }}개</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">최초 발생</span>
+            <span class="info-value time-value">
+              <span class="time-relative">{{ formatTimeRelative(selectedError.timestamp) }}</span>
+              <span class="time-absolute">{{ formatTimeAbsolute(selectedError.timestamp) }}</span>
+            </span>
+          </div>
+          <div v-if="selectedError.count > 1" class="info-row">
+            <span class="info-label">최근 발생</span>
+            <span class="info-value time-value">
+              <span class="time-relative">{{ formatTimeRelative(selectedError.timestamp) }}</span>
+              <span class="time-absolute">{{ formatTimeAbsolute(selectedError.timestamp) }}</span>
+            </span>
+          </div>
+          <div v-if="selectedError.count > 1" class="info-row">
+            <span class="info-label">발생 기간</span>
+            <span class="info-value">{{ formatDuration(selectedError.timestamp) }}</span>
+          </div>
+          <q-separator class="q-my-sm" />
+          <div class="info-row info-row-no-margin">
+            <span class="info-label">에러 레벨</span>
+            <span class="info-value">
+              <q-chip v-if="selectedError.level === 'error'" color="negative" text-color="white" size="sm" label="Error" />
+              <q-chip v-else-if="selectedError.level === 'warning'" color="warning" text-color="white" size="sm" label="Warning" />
+              <q-chip v-else-if="selectedError.level === 'unhandled'" color="negative" text-color="white" size="sm" label="Unhandled" />
+              <span v-else class="text-caption">{{ selectedError.level || '알 수 없음' }}</span>
+            </span>
+          </div>
+          <div class="info-row info-row-no-margin">
+            <span class="info-label">상태</span>
+            <span class="info-value">
+              <q-chip v-if="selectedError.status === 'new'" class="chip-new" size="sm" label="신규" />
+              <q-chip v-else-if="selectedError.status === 'resolved'" class="chip-resolved" size="sm" icon="check_circle" label="해결" />
+              <q-chip v-else-if="selectedError.status === 'ignored'" class="chip-ignored" size="sm" label="무시" />
+              <span v-else class="text-caption">알 수 없음</span>
+            </span>
           </div>
         </div>
       </div>
@@ -273,8 +329,38 @@ function getErrorIconClass(level) {
   }
 }
 
-// 시간 포맷팅
-function formatTime(timestamp) {
+// 상대 시간 포맷팅 (몇 분 전)
+function formatTimeRelative(timestamp) {
+  if (!timestamp) return ''
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diff = now - date
+
+  // 1분 이내
+  if (diff < 60000) {
+    return '방금 전'
+  }
+
+  // 1시간 이내
+  if (diff < 3600000) {
+    return `${Math.floor(diff / 60000)}분 전`
+  }
+
+  // 24시간 이내
+  if (diff < 86400000) {
+    return `${Math.floor(diff / 3600000)}시간 전`
+  }
+
+  // 7일 이내
+  if (diff < 604800000) {
+    return `${Math.floor(diff / 86400000)}일 전`
+  }
+
+  return ''
+}
+
+// 절대 시간 포맷팅 (원본 시간)
+function formatTimeAbsolute(timestamp) {
   if (!timestamp) return ''
   const date = new Date(timestamp)
   return date.toLocaleString('ko-KR', {
@@ -285,6 +371,35 @@ function formatTime(timestamp) {
     minute: '2-digit',
     second: '2-digit',
   })
+}
+
+// 시간 포맷팅 (기존 호환성 유지)
+function formatTime(timestamp) {
+  if (!timestamp) return ''
+  const relative = formatTimeRelative(timestamp)
+  if (relative) {
+    return relative
+  }
+  return formatTimeAbsolute(timestamp)
+}
+
+// 기간 포맷팅 (발생 기간 계산)
+function formatDuration(timestamp) {
+  if (!timestamp) return ''
+  const now = Date.now()
+  const diff = now - timestamp
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
+  if (days > 0) {
+    return `${days}일 ${hours}시간`
+  } else if (hours > 0) {
+    return `${hours}시간 ${minutes}분`
+  } else {
+    return `${minutes}분`
+  }
 }
 
 // 상태 코드에 따른 클래스 반환
@@ -723,6 +838,10 @@ onUnmounted(() => {
   align-items: baseline;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
+
+  &.info-row-no-margin {
+    margin-bottom: 0;
+  }
 }
 
 .info-label {
@@ -743,6 +862,24 @@ onUnmounted(() => {
     padding: 0.25rem 0.5rem;
     border-radius: 3px;
   }
+
+  &.time-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: space-between;
+  }
+}
+
+.time-relative {
+  color: var(--nexa-text-primary);
+  font-size: 0.9em;
+}
+
+.time-absolute {
+  color: var(--nexa-text-secondary);
+  font-size: 0.85em;
+  font-family: monospace;
 }
 
 .stack-trace {

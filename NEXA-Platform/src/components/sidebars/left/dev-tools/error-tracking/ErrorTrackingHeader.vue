@@ -8,7 +8,6 @@
     <!-- 에러 트래킹 정보 -->
     <div class="error-info-section q-pa-sm">
       <div class="row items-center q-gutter-sm">
-        <q-icon name="bug_report" size="20px" color="primary" />
         <div class="col">
           <div class="error-tracking-name">Error Tracking</div>
           <div class="error-meta text-caption">
@@ -16,16 +15,13 @@
             <span v-if="newErrors > 0" class="q-ml-sm text-negative">신규 {{ newErrors }}개</span>
           </div>
         </div>
+        <div class="row items-center q-gutter-xs">
+          <q-btn flat dense icon="search" size="sm" @click="toggleSearch" />
+          <q-btn flat dense icon="refresh" size="sm" @click="handleRefresh" :loading="isRefreshing" />
+          <q-toggle :model-value="isCollecting" size="sm" @update:model-value="handleCollectingToggle" />
+          <q-btn flat dense icon="settings" size="sm" @click="handleSettings" />
+        </div>
       </div>
-    </div>
-
-    <!-- 액션 버튼 -->
-    <div class="header-actions q-pa-sm row items-center q-gutter-xs">
-      <q-btn flat dense icon="refresh" label="새로고침" size="sm" @click="handleRefresh" :loading="isRefreshing" />
-      <q-btn flat dense icon="search" label="검색" size="sm" @click="toggleSearch" />
-      <q-space />
-      <q-toggle :model-value="isCollecting" label="수집" size="sm" @update:model-value="handleCollectingToggle" />
-      <q-btn flat dense icon="settings" size="sm" @click="handleSettings" />
     </div>
 
     <!-- 검색 입력 (검색 모드일 때만 표시) -->
@@ -178,14 +174,10 @@ function handleCollectingToggle(value) {
   background-color: var(--nexa-surface);
 }
 
-.error-info-section {
-  border-bottom: 1px solid var(--nexa-border-color);
-}
-
 .error-tracking-name {
-  font-weight: 600;
+  font-weight: 900;
   color: var(--nexa-text-primary);
-  font-size: 0.95rem;
+  font-size: 1.95rem;
 }
 
 .error-meta {
@@ -193,17 +185,13 @@ function handleCollectingToggle(value) {
   margin-top: 2px;
 }
 
-.header-actions {
-  border-bottom: 1px solid var(--nexa-border-color);
-}
-
 .search-section {
   border-top: 1px solid var(--nexa-border-color);
 }
 
 .filter-section {
-  border-top: 1px solid var(--nexa-border-color);
   background-color: var(--nexa-surface);
+  margin-top: 5px;
 
   // Container Query를 사용하여 사이드바 너비 기준으로 화살표 숨기기
   // 사이드바가 400px 이하일 때 화살표 숨김

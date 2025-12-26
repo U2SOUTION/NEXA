@@ -394,31 +394,32 @@ export function useErrorTracking() {
         // 찾은 에러에 ID가 없으면 생성
         if (!error.id) {
           error.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
-          console.log('[ErrorTracking] 일괄 상태 변경: ID가 없어 새로 생성:', error.id)
+          // console.log('[ErrorTracking] 일괄 상태 변경: ID가 없어 새로 생성:', error.id)
           saveErrors(errors.value) // ID 생성 후 저장
         }
         errorId = error.id // 실제 ID로 교체
-        console.log('[ErrorTracking] 일괄 상태 변경: errorObject로 찾은 실제 ID:', errorId)
+        // console.log('[ErrorTracking] 일괄 상태 변경: errorObject로 찾은 실제 ID:', errorId)
       } else {
-        // 여전히 찾지 못했으면 디버깅 정보 출력
-        console.warn('[ErrorTracking] 일괄 상태 변경: errorObject로 찾기 실패', {
-          errorObject: {
-            message: errorObject.message,
-            level: errorObject.level,
-            timestamp: errorObject.timestamp,
-          },
-          availableErrors: errors.value.slice(0, 5).map((e) => ({
-            message: e.message,
-            level: e.level,
-            timestamp: e.timestamp,
-            id: e.id,
-          })),
-        })
+        // 여전히 찾지 못했으면 디버깅 정보 출력 (에러가 많을 수 있으므로 로그 제거)
+        // console.warn('[ErrorTracking] 일괄 상태 변경: errorObject로 찾기 실패', {
+        //   errorObject: {
+        //     message: errorObject.message,
+        //     level: errorObject.level,
+        //     timestamp: errorObject.timestamp,
+        //   },
+        //   availableErrors: errors.value.slice(0, 5).map((e) => ({
+        //     message: e.message,
+        //     level: e.level,
+        //     timestamp: e.timestamp,
+        //     id: e.id,
+        //   })),
+        // })
       }
     }
 
     if (!error) {
-      console.warn('[ErrorTracking] 일괄 상태 변경 실패: 에러를 찾을 수 없습니다.', errorId, errorObject)
+      // 에러를 찾지 못한 경우 조용히 실패 (이미 해결되었거나 삭제된 에러일 수 있음)
+      // console.warn('[ErrorTracking] 일괄 상태 변경 실패: 에러를 찾을 수 없습니다.', errorId, errorObject)
       return
     }
 
@@ -426,14 +427,14 @@ export function useErrorTracking() {
     const similarErrors = includeSimilar ? findSimilarErrorsForErrorInAll(error) : []
     const errorsToUpdate = includeSimilar ? [error, ...similarErrors] : [error]
 
-    console.log('[ErrorTracking] 일괄 상태 변경:', {
-      targetError: error.message,
-      status,
-      includeSimilar,
-      similarCount: similarErrors.length,
-      totalCount: errorsToUpdate.length,
-      similarErrors: similarErrors.map((e) => ({ id: e.id, message: e.message })),
-    })
+    // console.log('[ErrorTracking] 일괄 상태 변경:', {
+    //   targetError: error.message,
+    //   status,
+    //   includeSimilar,
+    //   similarCount: similarErrors.length,
+    //   totalCount: errorsToUpdate.length,
+    //   similarErrors: similarErrors.map((e) => ({ id: e.id, message: e.message })),
+    // })
 
     errorsToUpdate.forEach((err) => {
       err.status = status
@@ -489,31 +490,31 @@ export function useErrorTracking() {
         // 찾은 에러에 ID가 없으면 생성
         if (!error.id) {
           error.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
-          console.log('[ErrorTracking] 일괄 삭제: ID가 없어 새로 생성:', error.id)
+          // console.log('[ErrorTracking] 일괄 삭제: ID가 없어 새로 생성:', error.id)
           saveErrors(errors.value) // ID 생성 후 저장
         }
         errorId = error.id // 실제 ID로 교체
-        console.log('[ErrorTracking] 일괄 삭제: errorObject로 찾은 실제 ID:', errorId)
+        // console.log('[ErrorTracking] 일괄 삭제: errorObject로 찾은 실제 ID:', errorId)
       } else {
         // 여전히 찾지 못했으면 디버깅 정보 출력
-        console.warn('[ErrorTracking] 일괄 삭제: errorObject로 찾기 실패', {
-          errorObject: {
-            message: errorObject.message,
-            level: errorObject.level,
-            timestamp: errorObject.timestamp,
-          },
-          availableErrors: errors.value.slice(0, 5).map((e) => ({
-            message: e.message,
-            level: e.level,
-            timestamp: e.timestamp,
-            id: e.id,
-          })),
-        })
+        // console.warn('[ErrorTracking] 일괄 삭제: errorObject로 찾기 실패', {
+        //   errorObject: {
+        //     message: errorObject.message,
+        //     level: errorObject.level,
+        //     timestamp: errorObject.timestamp,
+        //   },
+        //   availableErrors: errors.value.slice(0, 5).map((e) => ({
+        //     message: e.message,
+        //     level: e.level,
+        //     timestamp: e.timestamp,
+        //     id: e.id,
+        //   })),
+        // })
       }
     }
 
     if (!error) {
-      console.warn('[ErrorTracking] 일괄 삭제 실패: 에러를 찾을 수 없습니다.', errorId, errorObject)
+      // console.warn('[ErrorTracking] 일괄 삭제 실패: 에러를 찾을 수 없습니다.', errorId, errorObject)
       return
     }
 
@@ -521,13 +522,13 @@ export function useErrorTracking() {
     const similarErrors = includeSimilar ? findSimilarErrorsForErrorInAll(error) : []
     const errorsToDelete = includeSimilar ? [error, ...similarErrors] : [error]
 
-    console.log('[ErrorTracking] 일괄 삭제:', {
-      targetError: error.message,
-      includeSimilar,
-      similarCount: similarErrors.length,
-      totalCount: errorsToDelete.length,
-      similarErrors: similarErrors.map((e) => ({ id: e.id, message: e.message })),
-    })
+    // console.log('[ErrorTracking] 일괄 삭제:', {
+    //   targetError: error.message,
+    //   includeSimilar,
+    //   similarCount: similarErrors.length,
+    //   totalCount: errorsToDelete.length,
+    //   similarErrors: similarErrors.map((e) => ({ id: e.id, message: e.message })),
+    // })
 
     errorsToDelete.forEach((err) => {
       const index = errors.value.findIndex((e) => e.id === err.id)

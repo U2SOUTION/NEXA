@@ -5,19 +5,38 @@
 // NEXA 시스템 정책에 맞춘 탭 스타일
 
 .q-tab {
-  background-color: var(--nexa-tab-bg) !important;
-  color: var(--nexa-tab-text) !important;
+  background-color: var(--nexa-tab-bg);
+  color: var(--nexa-tab-text);
+  position: relative; // 세로선 위치 기준
 
-  &:hover {
-    background-color: var(--nexa-tab-hover-bg) !important;
+  // 일반 호버 상태
+  &:hover:not(.q-tab--active) {
+    background-color: var(--nexa-tab-hover-bg);
   }
 
   &.q-tab--active {
-    background-color: var(--nexa-tab-active-bg) !important;
-    color: var(--nexa-tab-active-text) !important;
+    background-color: var(--nexa-tab-active-bg);
+    color: var(--nexa-tab-active-text);
+
+    // Active 상태일 때 호버 (더 강조)
+    &:hover {
+      background-color: var(--nexa-background-darker);
+      opacity: 1;
+    }
   }
 
   &:not(.q-tab--active) {
-    background-color: var(--nexa-tab-inactive-bg) !important;
+    background-color: var(--nexa-tab-inactive-bg);
+  }
+
+  // 각 탭 사이에 세로선 추가 (마지막 탭 제외)
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 1px;
+    background-color: var(--nexa-border-color);
   }
 }

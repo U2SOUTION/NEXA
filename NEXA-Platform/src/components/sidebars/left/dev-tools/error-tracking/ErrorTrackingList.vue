@@ -23,7 +23,7 @@
 
       <!-- 에러 목록 -->
       <q-list v-else separator>
-        <q-item v-for="error in filteredErrors" :key="error.id" clickable :active="isErrorSelected(error)" active-class="error-item-active" :class="{ 'error-item-selected': isErrorSelected(error) }" @click="handleErrorSelect(error)">
+        <q-item v-for="error in filteredErrors" :key="error.id" clickable :active="isErrorSelected(error)" active-class="error-item-active" @click="handleErrorSelect(error)">
           <q-item-section avatar>
             <q-icon :name="getErrorIcon(error.level)" :color="getErrorColor(error.level)" />
           </q-item-section>
@@ -33,10 +33,10 @@
             <q-item-label caption class="error-meta">
               <span v-if="error.file">{{ getFileName(error.file) }}</span>
               <span v-if="error.line" class="q-ml-sm">라인 {{ error.line }}</span>
-              <span v-if="error.count > 1" class="q-ml-sm text-negative">({{ error.count }}회)</span>
-            </q-item-label>
-            <q-item-label caption class="error-time">
-              {{ formatTime(error.timestamp) }}
+              <span class="q-ml-sm error-time-count">
+                <span class="error-time">{{ formatTime(error.timestamp) }}</span>
+                <span v-if="error.count" class="error-count">({{ error.count }}회)</span>
+              </span>
             </q-item-label>
           </q-item-section>
 
@@ -222,8 +222,10 @@ function handleErrorSelect(error) {
 }
 
 .error-status-tabs {
+  border-top: 1px solid var(--nexa-border-color);
+  margin-top: 5px;
   border-bottom: 1px solid var(--nexa-border-color);
-  background-color: var(--nexa-surface);
+  background-color: var(--nexa-tab-bg);
   overflow-x: auto; // 좌우 스크롤 활성화
   overflow-y: hidden;
 
@@ -231,30 +233,6 @@ function handleErrorSelect(error) {
   :deep(.q-tabs__content) {
     display: flex;
     width: 100%;
-  }
-
-  :deep(.q-tab) {
-    flex: 1 1 0; // 균등하게 공간 분할
-    min-width: 0; // flex 아이템이 축소될 수 있도록
-    padding: 8px 4px; // 패딩 조정
-    position: relative; // 세로선 위치 기준
-
-    // 각 탭 사이에 세로선 추가 (마지막 탭 제외)
-    &:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 20%;
-      bottom: 20%;
-      width: 1px;
-      background-color: var(--nexa-border-color);
-    }
-  }
-
-  // 스크롤 화살표 스타일
-  :deep(.q-tabs__arrow) {
-    background-color: var(--nexa-surface);
-    color: var(--nexa-text-primary);
   }
 
   // 스크롤바 숨김 (화살표만 표시)
@@ -285,17 +263,33 @@ function handleErrorSelect(error) {
   min-height: 200px;
 }
 
+// 일반 호버 상태
+:deep(.q-item:hover:not(.error-item-active)) {
+  background-color: var(--nexa-surface-hover) !important;
+}
+
+// Active 상태
 .error-item-active {
-  background-color: var(--nexa-surface-hover);
+  background-color: var(--nexa-secondary) !important;
 }
 
-.error-item-selected {
-  background-color: var(--nexa-surface-hover);
+// Active 상태일 때 호버 (더 강조)
+:deep(.q-item.error-item-active:hover) {
+  background-color: var(--nexa-background-darker) !important;
+  opacity: 0.9;
 }
 
-// Quasar q-item의 active 상태 스타일 강제 적용
-:deep(.q-item.q-item--active) {
-  background-color: var(--nexa-surface-hover);
+// 리스트 아이템 패딩 줄이기
+:deep(.q-item) {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  min-height: auto;
+}
+
+// 아이콘과 라벨 간격 줄이기
+.q-item__section--avatar {
+  min-width: 32px;
+  padding-right: 8px;
 }
 
 .error-message {
@@ -311,9 +305,20 @@ function handleErrorSelect(error) {
   font-size: 0.75rem;
 }
 
+.error-time-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .error-time {
+  color: var(--nexa-text-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.error-count {
   color: var(--nexa-text-secondary);
-  font-size: 0.7rem;
-  margin-top: 2px;
+  font-size: 0.75rem;
 }
 </style>
