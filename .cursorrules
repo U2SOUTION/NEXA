@@ -99,10 +99,21 @@ NEXA-Documentation/
 
 #### ✅ BEFORE GENERATING CODE - CHECKLIST
 
-1. Check `NEXA-Platform/src/css/themes/dark.scss` and `NEXA-Platform/src/css/themes/light.scss` for available colors
-2. Use ONLY `--nexa-*` CSS variables
-3. NEVER use Quasar default colors
-4. Minimize wrapper elements
+**⚠️ CRITICAL: 반드시 코드 생성 전 확인**
+
+1. **🚨 WRAPPER CHECK (최우선)**: 불필요한 래퍼 div가 있는가? 제거했는가?
+   - 기존 컴포넌트를 직접 사용할 수 있는가?
+   - CSS로 해결할 수 있는가?
+   - 정말 래퍼가 필요한가? (99%는 불필요함)
+2. **🚨 LAYOUT ISSUE CHECK**: 레이아웃 문제 발생 시
+   - 임시 방편 CSS 사용 금지 (예: `margin-left: -10px`, `position: absolute` 등)
+   - 근본적인 구조 분석 필수 (DOM 구조, flexbox, grid, overflow 등)
+   - 구조적 해결책 제시 (래퍼 제거, 올바른 부모-자식 관계 등)
+3. Check `NEXA-Platform/src/css/themes/dark.scss` and `NEXA-Platform/src/css/themes/light.scss` for available colors
+4. Use ONLY `--nexa-*` CSS variables
+5. NEVER use Quasar default colors
+6. **NEXA SCSS 정책을 따를 것** - `NEXA-Platform/src/css/nexa-system/` 구조 준수
+7. **절대 `!important` 사용 금지** - DOM 구조를 요청하여 올바른 위치에 스타일 적용
 
 #### 🚫 NEVER USE (절대 사용 금지)
 
@@ -114,8 +125,17 @@ NEXA-Documentation/
 
 **Bad Practices:**
 - ❌ Inline color styles: `:style="{ color: '#fff' }"`
-- ❌ Multiple unnecessary wrapper divs
-- ❌ 2중, 3중 래퍼 요소
+- ❌ **Multiple unnecessary wrapper divs (가장 흔한 실수!)**
+- ❌ **2중, 3중 래퍼 요소 (절대 금지!)**
+- ❌ 패딩/마진을 위해 래퍼 추가 (CSS로 해결)
+- ❌ 스타일링을 위해 래퍼 추가 (부모 요소에 직접 적용)
+- ❌ 컴포넌트를 감싸는 불필요한 div (직접 배치)
+- ❌ **`!important` 사용 (절대 금지!)**
+- ❌ **`:deep()` 사용 (절대 금지!)** - DOM 구조를 요청하여 올바른 위치에 스타일 적용
+- ❌ **구체적인 선택자 체인 사용 (절대 금지!)** - 복잡한 선택자 대신 DOM 구조 요청
+- ❌ **레이아웃 문제의 임시 방편 CSS (절대 금지!)** - `margin-left: -10px`, `position: absolute` 등으로 문제 회피
+- ❌ **변형적이고 임시적인 CSS 해결책** - 근본적인 구조 분석 없이 CSS로 우회
+- ❌ NEXA SCSS 정책을 따르지 않는 스타일 구조
 
 #### ✅ ALWAYS USE (필수 사항)
 
@@ -133,6 +153,14 @@ NEXA-Documentation/
 - Pattern: `--nexa-{category}-{property}`
 - Add to BOTH dark.scss and light.scss
 - Add comment: `// Added: {date/reason}`
+
+**CSS/SCSS 규칙:**
+- ✅ **NEXA SCSS 정책 준수**: `NEXA-Platform/src/css/nexa-system/` 구조 따르기
+- ✅ **`!important` 사용 금지**: CSS 선택자 특이도로 해결하지 말고, DOM 구조를 이해하고 올바른 위치에 스타일 적용
+- ❌ **`:deep()` 사용 금지**: Vue scoped 스타일에서 자식 컴포넌트 스타일링 시 사용하지 않음
+- ❌ **구체적인 선택자 사용 금지**: 복잡한 선택자 체인 대신 DOM 구조를 요청하여 올바른 위치에 스타일 적용
+- ✅ **DOM 구조 요청**: 스타일링이 필요할 때 사용자에게 DOM 구조를 요청하여 올바른 접근 방법 확인
+- ✅ **전역 스타일은 `nexa-system/`에**: 컴포넌트별 스타일은 컴포넌트 내부에
 
 #### 🎯 QUICK REFERENCE
 
@@ -240,12 +268,99 @@ var(--nexa-warning)
 - **첫 글자 대문자 허용** (예: `Part-classes-search-history`)
 - **접두어 불필요** (예: `NEXA-` 접두어 사용하지 않음)
 
+#### 🚨 WRAPPER ELEMENTS - CRITICAL RULE (가장 중요!)
+
+**⚠️ 불필요한 래퍼는 절대 만들지 말 것!**
+
+**래퍼를 추가하기 전 반드시 확인:**
+1. 기존 컴포넌트/요소에 직접 스타일을 적용할 수 있는가?
+2. DOM 구조를 확인하여 올바른 위치에 스타일을 적용할 수 있는가? (사용자에게 DOM 구조 요청)
+3. 정말 구조적으로 래퍼가 필요한가? (99%는 불필요)
+
+**금지 사항:**
+```vue
+<!-- ❌ 절대 금지: 불필요한 래퍼 -->
+<q-expansion-item>
+  <div class="section-content">  <!-- 불필요! -->
+    <div class="wrapper">         <!-- 불필요! -->
+      <PanelTOC />
+    </div>
+  </div>
+</q-expansion-item>
+
+<!-- ✅ 올바른 방법: 직접 배치 -->
+<q-expansion-item>
+  <PanelTOC />  <!-- 패널 컴포넌트가 자체 패딩 처리 -->
+</q-expansion-item>
+```
+
+**래퍼가 필요한 경우 (매우 드묾):**
+- 구조적으로 필수인 경우만 (예: `v-for`의 `:key`를 위한 최소 래퍼)
+- 부모 컴포넌트가 특정 구조를 요구하는 경우만
+
+**체크리스트:**
+- [ ] 래퍼를 추가하기 전, CSS로 해결 가능한지 확인했는가?
+- [ ] 기존 요소에 직접 스타일을 적용할 수 있는가?
+- [ ] 정말 구조적으로 필요한가?
+
+#### 🚨 LAYOUT ISSUES - CRITICAL RULE (가장 중요!)
+
+**⚠️ 레이아웃 문제 발생 시 절대 임시 방편 CSS 사용 금지!**
+
+**레이아웃 문제 해결 절차:**
+1. **근본 원인 분석 필수**:
+   - DOM 구조 확인 (불필요한 래퍼, 잘못된 중첩 등)
+   - Flexbox/Grid 구조 분석 (부모-자식 관계, `flex-direction`, `align-items` 등)
+   - Overflow 속성 확인 (`overflow: hidden`, `overflow-x: hidden` 등)
+   - Box-sizing 확인 (`border-box` vs `content-box`)
+   - Width/Height 제약 확인 (`width: 100%`, `max-width`, `min-width: 0` 등)
+
+2. **구조적 해결책 제시**:
+   - 불필요한 래퍼 제거
+   - 올바른 부모-자식 관계 설정
+   - Flexbox/Grid 속성 조정
+   - DOM 구조 재구성
+
+3. **임시 방편 CSS 절대 금지**:
+   - ❌ `margin-left: -10px` (음수 마진으로 위치 조정)
+   - ❌ `position: absolute` (레이아웃 문제 회피)
+   - ❌ `transform: translateX(-10px)` (시각적 조정)
+   - ❌ `width: calc(100% + 20px)` (임시 크기 조정)
+   - ❌ 기타 변형적이고 임시적인 CSS 해결책
+
+**예시:**
+```vue
+<!-- ❌ 잘못된 방법: 임시 방편 CSS -->
+<div class="parent">
+  <div class="child" style="margin-left: -10px;">Content</div>
+</div>
+
+<!-- ✅ 올바른 방법: 구조 분석 후 해결 -->
+<!-- 문제: parent에 불필요한 padding이 있음 -->
+<div class="parent" style="padding: 0;">  <!-- 구조 수정 -->
+  <div class="child">Content</div>
+</div>
+```
+
+**체크리스트:**
+- [ ] 레이아웃 문제의 근본 원인을 분석했는가?
+- [ ] DOM 구조를 확인했는가?
+- [ ] Flexbox/Grid 구조를 분석했는가?
+- [ ] 임시 방편 CSS를 사용하지 않았는가?
+- [ ] 구조적 해결책을 제시했는가?
+
 #### ⚡ FINAL REMINDERS (Platform)
 
-1. **Check theme files FIRST** (`NEXA-Platform/src/css/themes/dark.scss`, `light.scss`) before writing any color code
-2. **Use `--nexa-*` variables ONLY** - never Quasar defaults
-3. **Keep DOM structure simple** - avoid unnecessary wrappers
-4. **When in doubt** - check `NEXA-Platform/src/css/themes/` for available variables
+1. **🚨 WRAPPER CHECK FIRST** - 코드 생성 전 반드시 래퍼 필요성 확인
+2. **🚨 LAYOUT ISSUE ANALYSIS FIRST** - 레이아웃 문제 발생 시 근본 원인 분석 필수, 임시 방편 CSS 절대 금지
+3. **Check theme files** (`NEXA-Platform/src/css/themes/dark.scss`, `light.scss`) before writing any color code
+4. **Use `--nexa-*` variables ONLY** - never Quasar defaults
+5. **Keep DOM structure simple** - avoid unnecessary wrappers (99%는 불필요)
+6. **NEVER use `!important`** - DOM 구조를 요청하여 올바른 위치에 스타일 적용
+7. **NEVER use `:deep()` or complex selectors** - DOM 구조를 요청하여 올바른 접근 방법 확인
+8. **NEVER use temporary CSS workarounds** - 근본적인 구조 분석 후 해결
+9. **Follow NEXA SCSS policy** - `NEXA-Platform/src/css/nexa-system/` 구조 준수
+10. **When in doubt** - check `NEXA-Platform/src/css/themes/` for available variables or request DOM structure
 
 ### 다른 프로젝트
 

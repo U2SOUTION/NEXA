@@ -62,6 +62,23 @@
       <DatabaseViewerList :search-query="databaseViewerSearchQuery" :refresh-trigger="databaseViewerRefreshTrigger" @table-selected="handleDatabaseViewerTableSelected" />
     </template>
 
+    <!-- 컴포넌트 라이브러리 사이드바 (activeMenu === 'component-library') -->
+    <template v-else-if="activeMenu === 'component-library'">
+      <ComponentLibrarySidebar
+        :categories="componentLibraryCategories"
+        :violations="componentLibraryViolations"
+        :selected-category="componentLibrarySelectedCategory"
+        :selected-component="componentLibrarySelectedComponent"
+        :selected-violation="componentLibrarySelectedViolation"
+        @search-change="handleComponentLibrarySearchChange"
+        @category-selected="handleComponentLibraryCategorySelected"
+        @component-selected="handleComponentLibraryComponentSelected"
+        @violation-selected="handleComponentLibraryViolationSelected"
+        @show-file-structure="handleComponentLibraryShowFileStructure"
+        @show-file-structure-detail="handleComponentLibraryShowFileStructureDetail"
+      />
+    </template>
+
     <!-- 설정 모달 -->
     <DocumentSettingsModal v-model="showSettingsModal" @save="handleSettingsSave" @reset-usage="handleResetUsage" @reset-priority="handleResetPriority" />
   </div>
@@ -78,6 +95,7 @@ import ThemeManagerHeader from './dev-tools/theme-manager/ThemeManagerHeader.vue
 import ThemeManagerList from './dev-tools/theme-manager/ThemeManagerList.vue'
 import DatabaseViewerHeader from './dev-tools/database-viewer/DatabaseViewerHeader.vue'
 import DatabaseViewerList from './dev-tools/database-viewer/DatabaseViewerList.vue'
+import ComponentLibrarySidebar from './dev-tools/component-library/ComponentLibrarySidebar.vue'
 import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.vue'
 import { moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash, loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentManagerStore } from 'src/stores/documentManagerStore.js'
@@ -127,6 +145,81 @@ const databaseViewerTableCount = ref(0)
 const databaseViewerSearchQuery = ref('')
 const databaseViewerRefreshTrigger = ref(0)
 const databaseViewerSubMenu = ref('erd')
+
+// 컴포넌트 라이브러리 관련 상태
+const componentLibraryCategories = ref([
+  {
+    name: 'ui',
+    displayName: 'UI 컴포넌트',
+    components: [
+      { name: 'BaseModal', path: 'components/ui/BaseModal.vue', icon: 'modal' },
+      { name: 'ContextMenu', path: 'components/ui/ContextMenu.vue', icon: 'menu' },
+      { name: 'DataPageNavigation', path: 'components/ui/DataPageNavigation.vue', icon: 'navigation' },
+      { name: 'GlobalSkeletonLoader', path: 'components/ui/GlobalSkeletonLoader.vue', icon: 'hourglass_empty' },
+      { name: 'TableActionsOverlay', path: 'components/ui/TableActionsOverlay.vue', icon: 'more_vert' },
+      { name: 'TableEmptyState', path: 'components/ui/TableEmptyState.vue', icon: 'inbox' },
+      { name: 'TableFilterBar', path: 'components/ui/TableFilterBar.vue', icon: 'filter_list' },
+      { name: 'UploadProgress', path: 'components/ui/UploadProgress.vue', icon: 'cloud_upload' },
+    ],
+  },
+  {
+    name: 'form',
+    displayName: '폼 컴포넌트',
+    components: [
+      { name: 'AddBoardForm', path: 'components/form/AddBoardForm.vue', icon: 'dashboard' },
+      { name: 'AddDeviceForm', path: 'components/form/AddDeviceForm.vue', icon: 'devices' },
+      { name: 'AddGroupForm', path: 'components/form/AddGroupForm.vue', icon: 'group' },
+    ],
+  },
+  {
+    name: 'parts-management',
+    displayName: '부품 관리',
+    components: [
+      { name: 'PartClassesView', path: 'components/parts-management/PartClassesView.vue', icon: 'category' },
+      { name: 'PartModelsView', path: 'components/parts-management/PartModelsView.vue', icon: 'inventory_2' },
+      { name: 'PartFilesView', path: 'components/parts-management/PartFilesView.vue', icon: 'folder' },
+      { name: 'PartSpecsView', path: 'components/parts-management/PartSpecsView.vue', icon: 'description' },
+      { name: 'StorageBlockGrid', path: 'components/parts-management/StorageBlockGrid.vue', icon: 'grid_view' },
+      { name: 'PartsDataDashboard', path: 'components/parts-management/PartsDataDashboard.vue', icon: 'dashboard' },
+    ],
+  },
+  {
+    name: 'sidebars',
+    displayName: '사이드바',
+    components: [
+      { name: 'DevToolsPanel', path: 'components/sidebars/right/DevToolsPanel.vue', icon: 'build' },
+      { name: 'RightSidebarHeader', path: 'components/sidebars/right/RightSidebarHeader.vue', icon: 'menu' },
+      { name: 'NexaBoardToolsPanel', path: 'components/sidebars/right/NexaBoardToolsPanel.vue', icon: 'dashboard' },
+    ],
+  },
+  {
+    name: 'settings',
+    displayName: '설정',
+    components: [
+      { name: 'IotSettings', path: 'components/settings/IotSettings.vue', icon: 'settings' },
+      { name: 'LayoutSettings', path: 'components/settings/LayoutSettings.vue', icon: 'view_quilt' },
+      { name: 'ShortcutsSettings', path: 'components/settings/ShortcutsSettings.vue', icon: 'keyboard' },
+      { name: 'SystemSettings', path: 'components/settings/SystemSettings.vue', icon: 'computer' },
+      { name: 'ThemeSettings', path: 'components/settings/ThemeSettings.vue', icon: 'palette' },
+    ],
+  },
+  {
+    name: 'side-panel',
+    displayName: '사이드 패널',
+    components: [
+      { name: 'DeviceSection', path: 'components/side-panel/sections/DeviceSection.vue', icon: 'devices' },
+      { name: 'HistorySection', path: 'components/side-panel/sections/HistorySection.vue', icon: 'history' },
+      { name: 'LayoutSection', path: 'components/side-panel/sections/LayoutSection.vue', icon: 'view_quilt' },
+      { name: 'NexaPanelSection', path: 'components/side-panel/sections/NexaPanelSection.vue', icon: 'dashboard' },
+      { name: 'NotificationSection', path: 'components/side-panel/sections/NotificationSection.vue', icon: 'notifications' },
+    ],
+  },
+])
+const componentLibraryViolations = ref([])
+const componentLibrarySelectedCategory = ref(null)
+const componentLibrarySelectedComponent = ref(null)
+const componentLibrarySelectedViolation = ref(null)
+const componentLibrarySearchQuery = ref('')
 
 // 테마 관리 테마 변경 핸들러
 function handleThemeManagerThemeChange(themeValue) {
@@ -290,19 +383,57 @@ function handleDatabaseViewerSubMenuChange(subMenu) {
     }),
   )
   // 서브 메뉴 변경 시 선택된 테이블이 있으면 테이블 선택 이벤트 재발생
-  // (편집기, SQL 탭 등에서 선택된 테이블 정보를 유지하기 위함)
-  if (databaseViewerSelectedTable.value && (subMenu === 'editor' || subMenu === 'query')) {
-    // 약간의 지연을 두어 컴포넌트가 마운트된 후 이벤트 발생
-    setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent('database-table-selected', {
-          detail: {
-            tableName: databaseViewerSelectedTable.value,
-          },
-        }),
-      )
-    }, 100)
-  }
+}
+
+// 컴포넌트 라이브러리 검색 변경 핸들러
+function handleComponentLibrarySearchChange(query) {
+  componentLibrarySearchQuery.value = query
+}
+
+// 컴포넌트 라이브러리 카테고리 선택 핸들러
+function handleComponentLibraryCategorySelected(categoryName) {
+  componentLibrarySelectedCategory.value = categoryName
+  componentLibrarySelectedComponent.value = null
+  componentLibrarySelectedViolation.value = null
+}
+
+// 컴포넌트 라이브러리 컴포넌트 선택 핸들러
+function handleComponentLibraryComponentSelected(component) {
+  componentLibrarySelectedComponent.value = component
+  componentLibrarySelectedViolation.value = null
+  // 전역 이벤트로 DevToolsPanel에 알림
+  window.dispatchEvent(
+    new CustomEvent('component-library-component-selected', {
+      detail: {
+        component: component,
+      },
+    }),
+  )
+}
+
+// 컴포넌트 라이브러리 위반 항목 선택 핸들러
+function handleComponentLibraryViolationSelected(violation) {
+  componentLibrarySelectedViolation.value = violation
+  componentLibrarySelectedComponent.value = null
+  // 전역 이벤트로 DevToolsPanel에 알림
+  window.dispatchEvent(
+    new CustomEvent('component-library-violation-selected', {
+      detail: {
+        violation: violation,
+      },
+    }),
+  )
+}
+
+// 컴포넌트 라이브러리 파일 구조 표시 핸들러
+function handleComponentLibraryShowFileStructure() {
+  // TODO: 파일 구조 표시 구현
+  console.log('[DevSidebar] 파일 구조 표시')
+}
+
+function handleComponentLibraryShowFileStructureDetail() {
+  // TODO: 파일 구조 상세 표시 구현
+  console.log('[DevSidebar] 파일 구조 상세 표시')
 }
 
 // Content 컴포넌트 참조

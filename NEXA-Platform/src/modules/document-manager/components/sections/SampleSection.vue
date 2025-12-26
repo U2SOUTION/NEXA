@@ -46,21 +46,10 @@ import TableSample from './samples/TableSample.vue'
 import FormSample from './samples/FormSample.vue'
 </script>
 
-<style lang="scss" scoped>
+<!-- <style lang="scss" scoped>
 .sample-section {
   width: 100%;
   overflow: hidden;
   min-width: 0;
 }
-</style>
-
-<style lang="scss">
-// 부모 컨테이너 폭 제약 (구체적인 선택자로 제한)
-.section-content:has(.sample-section),
-.q-expansion-item__content:has(.sample-section) {
-  width: 100% !important;
-  min-width: 0 !important;
-  overflow-x: visible !important; // 잘림 방지
-  box-sizing: border-box !important; // 패딩 포함하여 계산
-}
-</style>
+</style> -->

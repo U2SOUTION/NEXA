@@ -3,7 +3,7 @@
     <div class="toc-item-header" @click="handleClick">
       <q-icon v-if="hasChildren" :name="expanded ? 'expand_more' : 'chevron_right'" size="16px" class="toc-toggle-icon" @click.stop="handleToggle" />
       <span v-else class="toc-toggle-spacer"></span>
-      <span class="toc-item-text" @click="handleTextClick">{{ item.text }}</span>
+      <span class="toc-item-text" @click="handleTextClick" v-html="highlightedText"></span>
     </div>
     <q-slide-transition>
       <div v-show="hasChildren && expanded" class="toc-children">
@@ -16,6 +16,7 @@
           :auto-collapse="autoCollapse"
           :toc-expanded-map="tocExpandedMap"
           :toc-items="tocItems"
+          :search-query="searchQuery"
           @toggle="$emit('toggle', $event)"
           @scroll-to="$emit('scroll-to', $event)"
         />
@@ -35,12 +36,37 @@ const props = defineProps({
   autoCollapse: { type: Boolean, default: true },
   tocExpandedMap: { type: Object, default: () => ({}) },
   tocItems: { type: Array, default: () => [] },
+  searchQuery: { type: String, default: '' },
 })
 
 const emit = defineEmits(['toggle', 'scroll-to'])
 
 const hasChildren = computed(() => props.item.children && props.item.children.length > 0)
 const isActive = computed(() => props.currentSectionId === props.item.id)
+
+/**
+ * 한자/한글 포함 여부 확인
+ */
+function hasCJKOrHangul(text) {
+  return /[\u4E00-\u9FFF\uAC00-\uD7A3\u1100-\u11FF\u3130-\u318F]/.test(text)
+}
+
+/**
+ * 검색어가 있으면 텍스트를 하이라이트
+ */
+const highlightedText = computed(() => {
+  const query = props.searchQuery?.trim()
+  if (!query) return props.item.text
+
+  try {
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const flags = hasCJKOrHangul(query) ? 'g' : 'gi'
+    const regex = new RegExp(`(${escapedQuery})`, flags)
+    return props.item.text.replace(regex, '<mark class="toc-search-highlight">$1</mark>')
+  } catch {
+    return props.item.text
+  }
+})
 
 // useTOC composable에서 비즈니스 로직 함수 가져오기
 const { getItemExpanded } = useTOC({
@@ -225,6 +251,15 @@ function handleToggle(e) {
   min-width: 0;
   // 부드러운 전환을 위한 추가 스타일
   transition: opacity 0.3s ease-in-out;
+}
+
+// 검색 하이라이트 스타일
+.toc-search-highlight {
+  background-color: var(--nexa-accent);
+  color: var(--nexa-text-primary);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-weight: 600;
 }
 
 // 모든 하위 요소에도 적용
