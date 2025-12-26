@@ -120,6 +120,10 @@ function handleTabChange(tab) {
   display: flex;
   flex-direction: column;
   background-color: var(--nexa-surface);
+  
+  // Container Query 활성화 (사이드바 너비 기준)
+  container-type: inline-size;
+  container-name: error-tracking-sidebar;
 }
 </style>
 

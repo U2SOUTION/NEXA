@@ -6,7 +6,7 @@
 <template>
   <div class="error-tracking-list-container">
     <!-- 상태별 탭 -->
-    <q-tabs v-model="activeTab" dense class="error-status-tabs" align="left" @update:model-value="handleTabChange">
+    <q-tabs v-model="activeTab" dense class="error-status-tabs" align="left" scrollable @update:model-value="handleTabChange">
       <q-tab name="all" label="전체" :ripple="false" />
       <q-tab name="new" label="신규" :ripple="false" />
       <q-tab name="resolved" label="해결" :ripple="false" />
@@ -200,6 +200,44 @@ function handleErrorSelect(error) {
 .error-status-tabs {
   border-bottom: 1px solid var(--nexa-border-color);
   background-color: var(--nexa-surface);
+  overflow-x: auto; // 좌우 스크롤 활성화
+  overflow-y: hidden;
+
+  // 각 탭이 좌우 공간에 꽉 차도록 설정
+  :deep(.q-tabs__content) {
+    display: flex;
+    width: 100%;
+  }
+
+  :deep(.q-tab) {
+    flex: 1 1 0; // 균등하게 공간 분할
+    min-width: 0; // flex 아이템이 축소될 수 있도록
+    padding: 8px 4px; // 패딩 조정
+    position: relative; // 세로선 위치 기준
+
+    // 각 탭 사이에 세로선 추가 (마지막 탭 제외)
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 1px;
+      background-color: var(--nexa-border-color);
+    }
+  }
+
+  // 스크롤 화살표 스타일
+  :deep(.q-tabs__arrow) {
+    background-color: var(--nexa-surface);
+    color: var(--nexa-text-primary);
+  }
+
+  // 스크롤바 숨김 (화살표만 표시)
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
 }
 
 .error-tracking-list-scroll-area {

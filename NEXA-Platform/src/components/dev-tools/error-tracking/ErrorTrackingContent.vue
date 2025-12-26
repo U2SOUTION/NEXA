@@ -2,7 +2,7 @@
   <div class="error-tracking-content">
     <!-- 선택된 에러가 없을 때 -->
     <div v-if="!selectedError" class="empty-state q-pa-lg">
-      <q-icon name="bug_report" size="80px" color="grey-7" class="q-mb-md" />
+      <q-icon name="bug_report" size="80px" class="empty-icon q-mb-md" />
       <h3 class="empty-title">에러 트래킹</h3>
       <p class="empty-description">왼쪽 목록에서 에러를 선택하여 상세 정보를 확인하세요.</p>
       <div v-if="statistics.total > 0" class="statistics-summary q-mt-lg">
@@ -12,7 +12,7 @@
         </div>
         <div class="stat-item">
           <span class="stat-label">신규:</span>
-          <span class="stat-value text-negative">{{ statistics.new }}개</span>
+          <span class="stat-value stat-value-new">{{ statistics.new }}개</span>
         </div>
         <div class="stat-item">
           <span class="stat-label">오늘:</span>
@@ -26,41 +26,49 @@
       <!-- 에러 기본 정보 -->
       <div class="error-header q-mb-md">
         <div class="row items-center q-gutter-md">
-          <q-icon :name="getErrorIcon(selectedError.level)" :color="getErrorColor(selectedError.level)" size="32px" />
+          <q-icon :name="getErrorIcon(selectedError.level)" :class="getErrorIconClass(selectedError.level)" size="32px" />
           <div class="col">
             <h4 class="error-title">{{ selectedError.message || '에러 메시지 없음' }}</h4>
             <div class="error-meta q-mt-xs">
-              <q-chip v-if="selectedError.type === 'lint'" color="orange" text-color="white" size="sm" label="Lint" />
-              <q-chip v-if="selectedError.status === 'new'" color="negative" text-color="white" size="sm" label="신규" />
-              <q-chip v-else-if="selectedError.status === 'resolved'" color="positive" text-color="white" size="sm" label="해결" />
-              <q-chip v-else-if="selectedError.status === 'ignored'" color="grey" text-color="white" size="sm" label="무시" />
-              <span class="q-ml-sm text-caption">{{ formatTime(selectedError.timestamp) }}</span>
-              <span v-if="selectedError.count > 1" class="q-ml-sm text-caption text-negative">({{ selectedError.count }}회 발생)</span>
+              <q-chip v-if="selectedError.type === 'lint'" class="chip-lint" size="sm" label="Lint" />
+              <q-chip v-if="selectedError.status === 'new'" class="chip-new" size="sm" label="신규" />
+              <q-chip v-else-if="selectedError.status === 'resolved'" class="chip-resolved" size="sm" icon="check_circle" label="해결" />
+              <q-chip v-else-if="selectedError.status === 'ignored'" class="chip-ignored" size="sm" label="무시" />
+              <span class="q-ml-sm text-caption error-time">{{ formatTime(selectedError.timestamp) }}</span>
+              <span v-if="selectedError.count > 1" class="q-ml-sm text-caption error-count">({{ selectedError.count }}회 발생)</span>
             </div>
           </div>
         </div>
         <div class="error-actions q-mt-md">
-          <div class="row q-gutter-sm items-center">
-            <q-btn flat dense icon="check_circle" label="해결 표시" color="positive" @click="markAsResolved" />
-            <q-btn flat dense icon="block" label="무시" color="grey" @click="markAsIgnored" />
-            <q-btn flat dense icon="delete" label="삭제" color="negative" @click="deleteError" />
-            <q-separator vertical />
-            <q-btn flat dense icon="content_copy" label="복사" color="primary" @click="copyToClipboard" />
-            <q-btn flat dense icon="more_vert" color="grey" @click="showBatchMenu = !showBatchMenu" />
-          </div>
-
-          <!-- 일괄 작업 메뉴 -->
-          <q-slide-transition>
-            <div v-if="showBatchMenu" class="batch-actions-menu q-mt-sm q-pa-sm" style="background-color: var(--nexa-surface); border-radius: 4px">
-              <div class="text-caption q-mb-xs">동일한 에러에 모두 적용:</div>
-              <div class="row q-gutter-xs">
-                <q-btn flat dense size="sm" icon="check_circle" label="해결" color="positive" @click="batchMarkAsResolved" />
-                <q-btn flat dense size="sm" icon="block" label="무시" color="grey" @click="batchMarkAsIgnored" />
-                <q-btn flat dense size="sm" icon="delete" label="삭제" color="negative" @click="batchDelete" />
-              </div>
-              <div v-if="similarErrorsCount > 0" class="text-caption text-grey-7 q-mt-xs">유사한 에러 {{ similarErrorsCount }}개 발견</div>
+          <div class="row q-gutter-sm items-center justify-between">
+            <!-- 메인 액션 버튼들 -->
+            <div class="row q-gutter-sm items-center">
+              <q-btn flat dense :icon="resolvedButtonIcon" :label="resolvedButtonLabel" :class="resolvedButtonClass" @click="handleResolved" />
+              <q-btn flat dense icon="block" label="무시" class="btn-ignored" @click="handleIgnored" />
+              <q-btn flat dense icon="delete" label="삭제" class="btn-delete" @click="handleDelete" />
+              <q-separator vertical />
+              <q-btn flat dense icon="content_copy" label="복사" class="btn-copy" @click="copyToClipboard" />
             </div>
-          </q-slide-transition>
+
+            <!-- 전체적용 옵션 그룹 (우측) -->
+            <div class="batch-apply-group row q-gutter-xs items-center">
+              <q-separator vertical />
+              <span class="text-caption text-weight-medium q-mr-xs batch-apply-label">전체 적용</span>
+              <q-chip v-if="similarErrorsCount > 0" class="chip-similar" size="sm" icon="info"> 유사 {{ similarErrorsCount }}개 </q-chip>
+
+              <q-checkbox v-model="batchOptions.resolved" dense class="checkbox-resolved" @update:model-value="handleBatchOptionChange" />
+              <span class="text-caption">해결</span>
+              <q-btn v-if="batchOptions.resolved" flat dense size="xs" icon="check_circle" class="btn-batch-resolved" @click="batchMarkAsResolved" />
+
+              <q-checkbox v-model="batchOptions.ignored" dense class="checkbox-ignored" @update:model-value="handleBatchOptionChange" />
+              <span class="text-caption">무시</span>
+              <q-btn v-if="batchOptions.ignored" flat dense size="xs" icon="block" class="btn-batch-ignored" @click="batchMarkAsIgnored" />
+
+              <q-checkbox v-model="batchOptions.deleted" dense class="checkbox-deleted" @update:model-value="handleBatchOptionChange" />
+              <span class="text-caption">삭제</span>
+              <q-btn v-if="batchOptions.deleted" flat dense size="xs" icon="delete" class="btn-batch-deleted" @click="batchDelete" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -109,11 +117,11 @@
           </div>
           <div v-if="selectedError.networkInfo.status" class="info-row">
             <span class="info-label">상태 코드:</span>
-            <span class="info-value" :class="getStatusClass(selectedError.networkInfo.status)"> {{ selectedError.networkInfo.status }} {{ selectedError.networkInfo.statusText || '' }} </span>
+            <span class="info-value" :class="getStatusClass(selectedError.networkInfo.status)">{{ selectedError.networkInfo.status }} {{ selectedError.networkInfo.statusText || '' }}</span>
           </div>
           <div v-if="selectedError.networkInfo.error" class="info-row">
             <span class="info-label">에러:</span>
-            <span class="info-value text-negative">{{ selectedError.networkInfo.error }}</span>
+            <span class="info-value error-text">{{ selectedError.networkInfo.error }}</span>
           </div>
         </div>
       </div>
@@ -131,7 +139,7 @@
           </div>
           <div v-if="selectedError.fixable" class="info-row">
             <span class="info-label">자동 수정 가능:</span>
-            <span class="info-value text-positive">예</span>
+            <span class="info-value success-text">예</span>
           </div>
         </div>
       </div>
@@ -169,7 +177,13 @@ const $q = useQuasar()
 
 // 선택된 에러 상태
 const selectedError = ref(null)
-const showBatchMenu = ref(false)
+
+// 전체적용 옵션
+const batchOptions = ref({
+  resolved: false,
+  ignored: false,
+  deleted: false,
+})
 
 // 통계 정보 (임시)
 const statistics = ref({
@@ -183,6 +197,12 @@ const statistics = ref({
 // 에러 선택 이벤트 리스너
 function handleErrorSelected(event) {
   selectedError.value = event.detail.error
+  // 에러가 변경되면 전체적용 옵션 초기화
+  batchOptions.value = {
+    resolved: false,
+    ignored: false,
+    deleted: false,
+  }
 }
 
 // 통계 업데이트 이벤트 리스너
@@ -204,17 +224,17 @@ function getErrorIcon(level) {
   }
 }
 
-// 에러 색상
-function getErrorColor(level) {
+// 에러 아이콘 클래스
+function getErrorIconClass(level) {
   switch (level) {
     case 'error':
-      return 'negative'
+      return 'error-icon-error'
     case 'warning':
-      return 'warning'
+      return 'error-icon-warning'
     case 'unhandled':
-      return 'negative'
+      return 'error-icon-unhandled'
     default:
-      return 'grey-7'
+      return 'error-icon-default'
   }
 }
 
@@ -234,8 +254,8 @@ function formatTime(timestamp) {
 
 // 상태 코드에 따른 클래스 반환
 function getStatusClass(status) {
-  if (status >= 500) return 'text-negative'
-  if (status >= 400) return 'text-warning'
+  if (status >= 500) return 'status-error'
+  if (status >= 400) return 'status-warning'
   return ''
 }
 
@@ -248,41 +268,95 @@ const similarErrorsCount = computed(() => {
 
 const similarErrorsCountRef = ref(0)
 
-// 에러 상태 변경
-function markAsResolved() {
+// 해결 버튼 아이콘 (상태에 따라 동적 변경)
+const resolvedButtonIcon = computed(() => {
+  if (!selectedError.value) return 'check_circle'
+  return selectedError.value.status === 'resolved' ? 'undo' : 'check_circle'
+})
+
+// 해결 버튼 라벨 (상태에 따라 동적 변경)
+const resolvedButtonLabel = computed(() => {
+  if (!selectedError.value) return '해결 처리'
+  return selectedError.value.status === 'resolved' ? '해결 취소' : '해결 처리'
+})
+
+// 해결 버튼 클래스 (상태에 따라 동적 변경)
+const resolvedButtonClass = computed(() => {
+  if (!selectedError.value) return 'btn-resolved'
+  return selectedError.value.status === 'resolved' ? 'btn-resolved btn-resolved-active' : 'btn-resolved'
+})
+
+// 에러 상태 변경 (토글 방식)
+function handleResolved() {
   if (selectedError.value) {
+    const includeSimilar = batchOptions.value.resolved
+    // 현재 상태가 'resolved'면 'new'로, 아니면 'resolved'로 변경
+    const newStatus = selectedError.value.status === 'resolved' ? 'new' : 'resolved'
+
     window.dispatchEvent(
       new CustomEvent('error-tracking-status-update', {
-        detail: { errorId: selectedError.value.id, status: 'resolved', includeSimilar: false },
+        detail: { errorId: selectedError.value.id, status: newStatus, includeSimilar },
       }),
     )
-    selectedError.value.status = 'resolved'
-    showBatchMenu.value = false
+    selectedError.value.status = newStatus
+    if (includeSimilar) {
+      batchOptions.value.resolved = false
+    }
   }
 }
 
-function markAsIgnored() {
+function handleIgnored() {
   if (selectedError.value) {
+    const includeSimilar = batchOptions.value.ignored
     window.dispatchEvent(
       new CustomEvent('error-tracking-status-update', {
-        detail: { errorId: selectedError.value.id, status: 'ignored', includeSimilar: false },
+        detail: { errorId: selectedError.value.id, status: 'ignored', includeSimilar },
       }),
     )
     selectedError.value.status = 'ignored'
-    showBatchMenu.value = false
+    if (includeSimilar) {
+      batchOptions.value.ignored = false
+    }
   }
 }
 
-function deleteError() {
+function handleDelete() {
   if (selectedError.value) {
-    window.dispatchEvent(
-      new CustomEvent('error-tracking-delete', {
-        detail: { errorId: selectedError.value.id, includeSimilar: false },
-      }),
-    )
-    selectedError.value = null
-    showBatchMenu.value = false
+    const includeSimilar = batchOptions.value.deleted
+    if (includeSimilar) {
+      $q.dialog({
+        title: '일괄 삭제 확인',
+        message: '유사한 에러를 모두 삭제하시겠습니까?',
+        cancel: true,
+        persistent: true,
+      }).onOk(() => {
+        window.dispatchEvent(
+          new CustomEvent('error-tracking-delete', {
+            detail: { errorId: selectedError.value.id, includeSimilar: true },
+          }),
+        )
+        selectedError.value = null
+        batchOptions.value.deleted = false
+        $q.notify({
+          type: 'positive',
+          message: '유사한 에러가 모두 삭제되었습니다.',
+          position: 'top',
+        })
+      })
+    } else {
+      window.dispatchEvent(
+        new CustomEvent('error-tracking-delete', {
+          detail: { errorId: selectedError.value.id, includeSimilar: false },
+        }),
+      )
+      selectedError.value = null
+    }
   }
+}
+
+// 전체적용 옵션 변경 핸들러
+function handleBatchOptionChange() {
+  // 체크박스 변경 시 추가 처리 필요 시 여기에 구현
 }
 
 // 일괄 작업 함수들
@@ -294,7 +368,7 @@ function batchMarkAsResolved() {
       }),
     )
     selectedError.value.status = 'resolved'
-    showBatchMenu.value = false
+    batchOptions.value.resolved = false
     $q.notify({
       type: 'positive',
       message: '유사한 에러가 모두 해결됨으로 표시되었습니다.',
@@ -311,7 +385,7 @@ function batchMarkAsIgnored() {
       }),
     )
     selectedError.value.status = 'ignored'
-    showBatchMenu.value = false
+    batchOptions.value.ignored = false
     $q.notify({
       type: 'info',
       message: '유사한 에러가 모두 무시됨으로 표시되었습니다.',
@@ -334,7 +408,7 @@ function batchDelete() {
         }),
       )
       selectedError.value = null
-      showBatchMenu.value = false
+      batchOptions.value.deleted = false
       $q.notify({
         type: 'positive',
         message: '유사한 에러가 모두 삭제되었습니다.',
@@ -540,9 +614,11 @@ onUnmounted(() => {
 }
 
 .error-actions {
-  display: flex;
-  gap: 0.5rem;
   margin-top: 1rem;
+}
+
+.batch-apply-group {
+  padding-left: 0.5rem;
 }
 
 .error-location,
@@ -613,5 +689,177 @@ onUnmounted(() => {
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
+}
+
+// ============================================
+// 아이콘 색상
+// ============================================
+.empty-icon {
+  color: var(--nexa-text-secondary);
+}
+
+.error-icon-error {
+  color: var(--nexa-error);
+}
+
+.error-icon-warning {
+  color: var(--nexa-warning);
+}
+
+.error-icon-unhandled {
+  color: var(--nexa-error);
+}
+
+.error-icon-default {
+  color: var(--nexa-text-secondary);
+}
+
+// ============================================
+// 칩 색상
+// ============================================
+.chip-lint {
+  background-color: var(--nexa-accent);
+  color: var(--nexa-text-primary);
+}
+
+.chip-new {
+  background-color: var(--nexa-error);
+  color: var(--nexa-text-primary);
+}
+
+.chip-resolved {
+  background-color: var(--nexa-primary);
+  color: var(--nexa-text-dark);
+  padding: 12px 14px 10px 6px;
+  border-radius: 12px;
+
+  :deep(.q-chip__content) {
+    color: var(--nexa-text-dark) !important;
+  }
+
+  :deep(.q-icon) {
+    color: var(--nexa-text-dark) !important;
+  }
+}
+
+.chip-ignored {
+  background-color: var(--nexa-text-secondary);
+  color: var(--nexa-text-primary);
+}
+
+.chip-similar {
+  background-color: var(--nexa-accent);
+  color: var(--nexa-text-primary);
+}
+
+// ============================================
+// 버튼 색상
+// ============================================
+.btn-resolved {
+  color: var(--nexa-primary);
+}
+
+.btn-resolved:hover {
+  background-color: var(--nexa-surface-hover);
+}
+
+.btn-resolved-active {
+  color: var(--nexa-warning);
+}
+
+.btn-resolved-active:hover {
+  background-color: var(--nexa-surface-hover);
+}
+
+.btn-ignored {
+  color: var(--nexa-text-secondary);
+}
+
+.btn-ignored:hover {
+  background-color: var(--nexa-surface-hover);
+}
+
+.btn-delete {
+  color: var(--nexa-warning);
+}
+
+.btn-delete:hover {
+  background-color: var(--nexa-surface-hover);
+}
+
+.btn-copy {
+  color: var(--nexa-primary);
+}
+
+.btn-copy:hover {
+  background-color: var(--nexa-surface-hover);
+}
+
+.btn-batch-resolved {
+  color: var(--nexa-primary);
+}
+
+.btn-batch-ignored {
+  color: var(--nexa-text-secondary);
+}
+
+.btn-batch-deleted {
+  color: var(--nexa-error);
+}
+
+// ============================================
+// 체크박스 색상
+// ============================================
+.checkbox-resolved {
+  :deep(.q-checkbox__inner) {
+    color: var(--nexa-primary);
+  }
+}
+
+.checkbox-ignored {
+  :deep(.q-checkbox__inner) {
+    color: var(--nexa-text-secondary);
+  }
+}
+
+.checkbox-deleted {
+  :deep(.q-checkbox__inner) {
+    color: var(--nexa-error);
+  }
+}
+
+// ============================================
+// 텍스트 색상
+// ============================================
+.error-time {
+  color: var(--nexa-text-secondary);
+}
+
+.error-count {
+  color: var(--nexa-error-text);
+}
+
+.stat-value-new {
+  color: var(--nexa-error-text);
+}
+
+.error-text {
+  color: var(--nexa-error-text);
+}
+
+.success-text {
+  color: var(--nexa-primary);
+}
+
+.status-error {
+  color: var(--nexa-error-text);
+}
+
+.status-warning {
+  color: var(--nexa-warning);
+}
+
+.batch-apply-label {
+  color: var(--nexa-text-primary);
 }
 </style>

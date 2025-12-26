@@ -37,19 +37,22 @@
       </q-input>
     </div>
 
-    <!-- 필터 섹션 -->
-    <div v-if="showFilters" class="filter-section q-pa-sm">
-      <div class="row q-gutter-xs">
-        <q-select v-model="selectedLevel" :options="levelOptions" dense outlined label="레벨" style="min-width: 100px" @update:model-value="handleFilterChange" />
-        <q-select v-model="selectedStatus" :options="statusOptions" dense outlined label="상태" style="min-width: 100px" @update:model-value="handleFilterChange" />
-        <q-select v-model="selectedTimeRange" :options="timeRangeOptions" dense outlined label="기간" style="min-width: 120px" @update:model-value="handleFilterChange" />
-        <q-select v-model="selectedSort" :options="sortOptions" dense outlined label="정렬" style="min-width: 100px" @update:model-value="handleSortChange" />
+    <!-- 필터 섹션 (항상 표시) -->
+    <div class="filter-section">
+      <div class="row q-gutter-xs no-wrap">
+        <div class="col">
+          <q-select v-model="selectedLevel" :options="levelOptions" dense outlined label="레벨" @update:model-value="handleFilterChange" />
+        </div>
+        <div class="col">
+          <q-select v-model="selectedStatus" :options="statusOptions" dense outlined label="상태" @update:model-value="handleFilterChange" />
+        </div>
+        <div class="col">
+          <q-select v-model="selectedTimeRange" :options="timeRangeOptions" dense outlined label="기간" @update:model-value="handleFilterChange" />
+        </div>
+        <div class="col">
+          <q-select v-model="selectedSort" :options="sortOptions" dense outlined label="정렬" @update:model-value="handleSortChange" />
+        </div>
       </div>
-    </div>
-
-    <!-- 필터 토글 버튼 -->
-    <div class="filter-toggle-section q-pa-xs text-center">
-      <q-btn flat dense icon="filter_list" label="필터" size="sm" @click="toggleFilters" />
     </div>
   </div>
 </template>
@@ -80,7 +83,6 @@ const searchQuery = ref('')
 const isRefreshing = ref(false)
 
 // 필터 관련 상태
-const showFilters = ref(false)
 const selectedLevel = ref(null)
 const selectedStatus = ref(null)
 const selectedTimeRange = ref(null)
@@ -145,11 +147,6 @@ function handleSearchClear() {
   emit('search-change', '')
 }
 
-// 필터 토글
-function toggleFilters() {
-  showFilters.value = !showFilters.value
-}
-
 // 필터 변경
 function handleFilterChange() {
   emit('filter-change', {
@@ -207,11 +204,17 @@ function handleCollectingToggle(value) {
 .filter-section {
   border-top: 1px solid var(--nexa-border-color);
   background-color: var(--nexa-surface);
-}
 
-.filter-toggle-section {
-  border-top: 1px solid var(--nexa-border-color);
-  background-color: var(--nexa-surface);
+  // Container Query를 사용하여 사이드바 너비 기준으로 화살표 숨기기
+  // 사이드바가 400px 이하일 때 화살표 숨김
+  @container error-tracking-sidebar (max-width: 400px) {
+    :deep(.q-select__dropdown-icon) {
+      display: none !important;
+    }
+
+    :deep(.q-field__append) {
+      display: none !important;
+    }
+  }
 }
 </style>
-
