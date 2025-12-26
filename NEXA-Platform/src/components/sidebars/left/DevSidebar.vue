@@ -66,6 +66,7 @@
     <template v-else-if="activeMenu === 'component-library'">
       <ComponentLibrarySidebar
         :categories="componentLibraryCategories"
+        :manual-categories="componentLibraryManualCategories"
         :violations="componentLibraryViolations"
         :selected-category="componentLibrarySelectedCategory"
         :selected-component="componentLibrarySelectedComponent"
@@ -79,6 +80,9 @@
         @refresh="handleComponentLibraryRefresh"
         @settings="handleComponentLibrarySettings"
         @tab-change="handleComponentLibraryTabChange"
+        @depth-change="handleComponentLibraryDepthChange"
+        @dimension-selected="handleComponentLibraryDimensionSelected"
+        @taxonomy-category-selected="handleComponentLibraryTaxonomyCategorySelected"
       />
     </template>
 
@@ -106,6 +110,7 @@ import { useUserSettingsStore } from 'src/stores/userSettingsStore'
 import { useDocumentSearch } from 'src/modules/document-manager/composables/useDocumentSearch.js'
 import { extractThemeColors } from 'src/utils/themeColorParser'
 import { scanAndCategorizeComponents } from 'src/utils/componentScanner.js'
+import { buildCategoryStructure, mapComponentToCategory, getAllCategoriesFlat } from 'src/config/componentCategories.js'
 
 // Quasar 인스턴스
 const $q = useQuasar()
@@ -152,12 +157,14 @@ const databaseViewerSubMenu = ref('erd')
 
 // 컴포넌트 라이브러리 관련 상태
 // 자동 스캔으로 초기화 (onMounted에서 실제 스캔 실행)
-const componentLibraryCategories = ref([])
+const componentLibraryCategories = ref([]) // 디렉토리 기반 자동 분류
+const componentLibraryManualCategories = ref([]) // 하드코딩된 수동 분류
 const componentLibraryViolations = ref([])
 const componentLibrarySelectedCategory = ref(null)
 const componentLibrarySelectedComponent = ref(null)
 const componentLibrarySelectedViolation = ref(null)
 const componentLibrarySearchQuery = ref('')
+const componentLibraryDepth = ref(2) // 기본값: 2단계
 
 // 테마 관리 테마 변경 핸들러
 function handleThemeManagerThemeChange(themeValue) {
@@ -384,6 +391,7 @@ function handleComponentLibraryShowFileStructureDetail() {
 
 // 컴포넌트 라이브러리 탭 변경 핸들러
 function handleComponentLibraryTabChange(tabName) {
+  console.log('[DevSidebar] 탭 변경 요청:', tabName)
   window.dispatchEvent(
     new CustomEvent('component-library-tab-changed', {
       detail: {
@@ -391,18 +399,78 @@ function handleComponentLibraryTabChange(tabName) {
       },
     }),
   )
+  console.log('[DevSidebar] 탭 변경 이벤트 전달 완료')
+}
+
+// 컴포넌트를 하드코딩된 카테고리에 매핑
+function mapComponentsToManualCategories(allComponents) {
+  // 카테고리 구조 동적 생성
+  const manualCategories = buildCategoryStructure()
+
+  // 모든 카테고리와 하위 카테고리를 평면 배열로 만들기
+  const allManualCategories = getAllCategoriesFlat(manualCategories)
+
+  // 각 컴포넌트를 적절한 카테고리에 매핑
+  for (const component of allComponents) {
+    const categoryId = mapComponentToCategory(component.path)
+    if (categoryId) {
+      const targetCategory = allManualCategories.find((cat) => cat.name === categoryId)
+      if (targetCategory) {
+        targetCategory.components.push(component)
+      }
+    }
+  }
+
+  return manualCategories
 }
 
 // 컴포넌트 라이브러리 새로고침 핸들러
 async function handleComponentLibraryRefresh() {
-  console.log('[DevSidebar] 컴포넌트 라이브러리 새로고침 시작')
+  console.log('[DevSidebar] 컴포넌트 라이브러리 새로고침 시작 (깊이:', componentLibraryDepth.value, ')')
   try {
-    const categories = await scanAndCategorizeComponents()
+    // 디렉토리 기반 자동 분류
+    const categories = await scanAndCategorizeComponents(componentLibraryDepth.value)
     componentLibraryCategories.value = categories
-    console.log('[DevSidebar] 컴포넌트 스캔 완료:', categories.length, '개 카테고리')
+
+    // 모든 컴포넌트 수집
+    const allComponents = categories.flatMap((cat) => cat.components || [])
+
+    // 하드코딩된 카테고리에 컴포넌트 매핑
+    const manualCategories = mapComponentsToManualCategories(allComponents)
+    componentLibraryManualCategories.value = manualCategories
+
+    console.log('[DevSidebar] 컴포넌트 스캔 완료:', categories.length, '개 카테고리 (자동),', manualCategories.length, '개 카테고리 (수동)')
   } catch (error) {
     console.error('[DevSidebar] 컴포넌트 스캔 중 오류:', error)
   }
+}
+
+// 컴포넌트 라이브러리 깊이 변경 핸들러
+async function handleComponentLibraryDepthChange(depth) {
+  console.log('[DevSidebar] 깊이 변경:', depth)
+  componentLibraryDepth.value = depth
+  // 깊이 변경 시 자동으로 스캔 다시 실행
+  await handleComponentLibraryRefresh()
+}
+
+// 컴포넌트 라이브러리 차원 선택 핸들러 (부류체계)
+function handleComponentLibraryDimensionSelected(dimensionId) {
+  window.dispatchEvent(
+    new CustomEvent('component-library-dimension-selected', {
+      detail: {
+        dimensionId: dimensionId,
+      },
+    }),
+  )
+}
+
+// 컴포넌트 라이브러리 부류체계 카테고리 선택 핸들러
+function handleComponentLibraryTaxonomyCategorySelected(data) {
+  window.dispatchEvent(
+    new CustomEvent('component-library-taxonomy-category-selected', {
+      detail: data,
+    }),
+  )
 }
 
 // 컴포넌트 라이브러리 초기 스캔
@@ -750,6 +818,9 @@ watch(
     } else if (newMenu === 'database-viewer') {
       // 데이터베이스 뷰어 메뉴 활성화 시 초기 데이터 로드
       handleDatabaseViewerRefresh()
+    } else if (newMenu === 'component-library') {
+      // 컴포넌트 라이브러리 메뉴 활성화 시 초기 스캔
+      initializeComponentLibrary()
     }
   },
   { immediate: true },

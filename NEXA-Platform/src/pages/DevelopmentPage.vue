@@ -27,9 +27,6 @@
       <!-- 설정 관리 -->
       <SettingsManagerContent v-else-if="activeMenu === 'settings-manager'" />
 
-      <!-- 컴포넌트 -->
-      <ComponentLibraryContent v-else-if="activeMenu === 'component-library'" />
-
       <!-- 스타일 가이드 -->
       <StyleGuideContent v-else-if="activeMenu === 'style-guide'" />
 
@@ -54,6 +51,9 @@
       <!-- 배포 관리 -->
       <DeploymentManagerContent v-else-if="activeMenu === 'deployment-manager'" />
     </div>
+
+    <!-- 컴포넌트 라이브러리 (q-pa-lg 밖으로 분리하여 높이 문제 해결) -->
+    <ComponentLibraryContent v-if="activeMenu === 'component-library'" />
   </q-page>
 </template>
 
@@ -170,6 +170,8 @@ onUnmounted(() => {
 .development-page {
   background: var(--nexa-background);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   // 문서 관리자에서 스크롤은 DocumentManagerContent 내부에서 처리
   // overflow: hidden; // 필요시 활성화
 }

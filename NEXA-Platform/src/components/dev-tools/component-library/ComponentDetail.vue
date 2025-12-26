@@ -4,10 +4,10 @@
 
 <template>
   <div class="component-detail">
-    <div v-if="!selectedComponent && !selectedViolation" class="empty-state q-pa-xl text-center">
-      <q-icon name="widgets" size="64px" class="q-mb-md" />
-      <div class="text-h6">왼쪽에서 컴포넌트를 선택하세요</div>
-    </div>
+    <!-- 탭 정보 (선택된 항목이 없을 때) -->
+    <TabInfo v-if="!selectedComponent && !selectedViolation" tab-name="all" :statistics="statistics" />
+
+    <!-- 선택된 항목이 있을 때는 기존 상세 정보 표시 -->
 
     <!-- 규칙 위반 상세 (위반 항목 선택 시) -->
     <div v-else-if="selectedViolation" class="content-section violation-detail q-pa-md">
@@ -96,13 +96,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
+import TabInfo from './TabInfo.vue'
 
 const $q = useQuasar()
 
 const selectedComponent = ref(null)
 const selectedViolation = ref(null)
+
+// 통계 데이터 (임시)
+const statistics = computed(() => {
+  // TODO: 실제 통계 데이터로 교체
+  return {
+    totalComponents: { label: '전체 컴포넌트', value: '0', description: '프로젝트 내 모든 Vue 컴포넌트' },
+    scannedComponents: { label: '스캔된 컴포넌트', value: '0', description: '자동 스캔으로 발견된 컴포넌트' },
+  }
+})
 
 function handleComponentSelected(event) {
   selectedComponent.value = event.detail.component
@@ -143,6 +153,7 @@ async function copyComponentPath(path) {
 }
 
 onMounted(() => {
+  console.log('[ComponentDetail] 마운트됨')
   window.addEventListener('component-library-component-selected', handleComponentSelected)
   window.addEventListener('component-library-violation-selected', handleViolationSelected)
 })
@@ -156,7 +167,10 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .component-detail {
   height: 100%;
-  overflow-y: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .empty-state {

@@ -24,6 +24,12 @@
       <q-btn flat dense icon="refresh" label="새로고침" size="sm" @click="handleRefresh" :loading="isRefreshing" />
       <q-btn flat dense icon="search" label="검색" size="sm" @click="toggleSearch" />
       <q-space />
+      <!-- 깊이 선택 -->
+      <q-select v-model="selectedDepth" :options="depthOptions" dense outlined style="min-width: 120px" @update:model-value="handleDepthChange">
+        <template v-slot:prepend>
+          <q-icon name="layers" size="16px" />
+        </template>
+      </q-select>
       <q-btn flat dense icon="settings" size="sm" @click="handleSettings" />
     </div>
 
@@ -39,9 +45,10 @@
     <!-- 서브 메뉴 탭 -->
     <div class="sub-menu-tabs">
       <q-tabs v-model="activeTab" dense class="text-grey-7" active-color="primary" indicator-color="primary" align="justify" @update:model-value="handleTabChange">
-        <q-tab name="categories" label="카테고리" icon="folder" />
-        <q-tab name="components" label="컴포넌트" icon="widgets" />
-        <q-tab name="taxonomy" label="부류체계" icon="account_tree" />
+        <q-tab name="all" label="전체" icon="list" />
+        <q-tab name="systems" label="시스템" icon="apps" />
+        <q-tab name="directory" label="디렉토리" icon="folder" />
+        <q-tab name="analysis" label="체계분석" icon="analytics" />
       </q-tabs>
     </div>
   </div>
@@ -61,15 +68,27 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['refresh', 'search-change', 'settings', 'tab-change'])
+const emit = defineEmits(['refresh', 'search-change', 'settings', 'tab-change', 'depth-change'])
 
 // 검색 관련 상태
 const showSearch = ref(false)
 const searchQuery = ref('')
 const isRefreshing = ref(false)
 
-// 탭 상태 (부모와 동기화)
-const activeTab = ref('categories')
+// 탭 상태 (부모와 동기화, 기본값: 전체)
+const activeTab = ref('all')
+
+// 깊이 선택 옵션
+const depthOptions = [
+  { label: '1단계', value: 1 },
+  { label: '2단계', value: 2 },
+  { label: '3단계', value: 3 },
+  { label: '4단계', value: 4 },
+  { label: '전체', value: 0 },
+]
+
+// 선택된 깊이 (기본값: 2단계)
+const selectedDepth = ref({ label: '2단계', value: 2 })
 
 // 새로고침
 function handleRefresh() {
@@ -107,8 +126,15 @@ function handleSettings() {
 
 // 탭 변경
 function handleTabChange(tabName) {
+  console.log('[ComponentLibraryHeader] 탭 변경:', tabName)
   activeTab.value = tabName
   emit('tab-change', tabName)
+  console.log('[ComponentLibraryHeader] 탭 변경 이벤트 emit 완료')
+}
+
+// 깊이 변경
+function handleDepthChange(option) {
+  emit('depth-change', option.value)
 }
 </script>
 
