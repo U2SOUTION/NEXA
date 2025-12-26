@@ -6,6 +6,16 @@
 -->
 <template>
   <div ref="chartContainerRef" class="chart-wrapper">
+    <!-- 헤더 (타이틀 및 보조 정보/액션) -->
+    <div v-if="title" class="chart-header">
+      <div class="chart-header-title">
+        <q-icon v-if="titleIcon" :name="titleIcon" class="chart-title-icon" />
+        <span class="chart-title-text">{{ title }}</span>
+      </div>
+      <div class="chart-header-actions">
+        <slot name="title-right" :isRefreshing="isRefreshing" :handleRefresh="handleRefresh" />
+      </div>
+    </div>
     <div ref="chartSvgRef" class="chart-svg-container"></div>
   </div>
 </template>
@@ -95,9 +105,99 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  // 차트 타이틀 (선택적)
+  title: {
+    type: String,
+    default: null,
+  },
+  // 타이틀 아이콘 (선택적)
+  titleIcon: {
+    type: String,
+    default: null,
+  },
+  // 새로고침 콜백 함수 (선택적)
+  onRefresh: {
+    type: Function,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['data-click', 'data-hover'])
+
+// ============================================
+// 차트 액션 기능 (기본 기능: 새로고침)
+// ============================================
+/**
+ * 차트 액션 기능 확장 계획
+ *
+ * 이 섹션은 NexaChart의 기본 액션 기능들을 관리합니다.
+ * 현재는 새로고침 기능을 기본으로 제공하며, 향후 다양한 액션 기능을 추가할 수 있는 구조입니다.
+ *
+ * 향후 확장 가능한 기능 예시:
+ *
+ * 1. 필터링 기능
+ *    - onFilter: Function - 필터링 콜백
+ *    - isFiltering: ref(false) - 필터링 상태
+ *    - handleFilter: Function - 필터링 처리
+ *    - Slot Props: { isFiltering, handleFilter, filterOptions }
+ *
+ * 2. 내보내기 기능
+ *    - onExport: Function - 내보내기 콜백
+ *    - isExporting: ref(false) - 내보내기 상태
+ *    - handleExport: Function - 내보내기 처리
+ *    - exportFormats: ['png', 'svg', 'csv'] - 지원 형식
+ *    - Slot Props: { isExporting, handleExport, exportFormats }
+ *
+ * 3. 설정 기능
+ *    - onSettings: Function - 설정 콜백
+ *    - isSettingsOpen: ref(false) - 설정 패널 상태
+ *    - handleSettings: Function - 설정 처리
+ *    - settingsOptions: Object - 설정 옵션
+ *    - Slot Props: { isSettingsOpen, handleSettings, settingsOptions }
+ *
+ * 4. 줌 기능
+ *    - onZoom: Function - 줌 콜백
+ *    - zoomLevel: ref(1) - 현재 줌 레벨
+ *    - handleZoomIn/Out: Function - 줌 인/아웃 처리
+ *    - Slot Props: { zoomLevel, handleZoomIn, handleZoomOut, canZoomIn, canZoomOut }
+ *
+ * 5. 데이터 상세 기능
+ *    - onDataDetail: Function - 데이터 상세 콜백
+ *    - selectedData: ref(null) - 선택된 데이터
+ *    - handleDataClick: Function - 데이터 클릭 처리
+ *    - Slot Props: { selectedData, handleDataClick }
+ *
+ * 확장 방법:
+ * - 각 기능별로 독립적인 prop, ref, 함수 추가
+ * - Slot Props에 새로운 상태/함수 포함
+ * - title-right slot을 통해 부모 컴포넌트에서 유연하게 사용
+ * - 기능 간 독립성 유지 (필요한 기능만 사용)
+ */
+
+// 새로고침 상태
+const isRefreshing = ref(false)
+
+// 새로고침 처리 함수
+function handleRefresh() {
+  if (isRefreshing.value || !props.onRefresh) return
+
+  isRefreshing.value = true
+  props.onRefresh()
+
+  // 차트 재렌더링을 통해 애니메이션 재생
+  // nextTick을 사용하여 데이터 업데이트를 기다린 후 차트 재렌더링
+  nextTick(() => {
+    // 약간의 지연을 두어 데이터 업데이트 완료 보장
+    setTimeout(() => {
+      renderChart()
+    }, 50)
+  })
+
+  // 0.6초 후 로딩 상태 해제 (애니메이션 피드백)
+  setTimeout(() => {
+    isRefreshing.value = false
+  }, 600)
+}
 
 // Refs
 const chartContainerRef = ref(null)
@@ -111,6 +211,9 @@ const actualHeight = ref(400)
 let svg = null
 let chartGroup = null
 let tooltip = null
+
+// 툴팁 고유 ID (인스턴스별 고유 툴팁 관리)
+const tooltipId = `nexa-chart-tooltip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
 // 렌더링 중 플래그 (무한 루프 방지)
 let isRendering = false
@@ -166,13 +269,20 @@ function renderChart() {
     // 기존 SVG 제거
     d3.select(chartSvgRef.value).selectAll('*').remove()
 
-    // 툴팁이 없으면 생성 (한 번만)
+    // 툴팁이 없으면 생성 (인스턴스별 고유 툴팁)
     // 단독 차트용 클래스 추가하여 CSS에서 별도 제어 가능하도록
     if (!tooltip) {
+      // 기존 툴팁이 있으면 제거 (안전장치 - 동일 인스턴스 재생성 시)
+      const existingTooltip = d3.select(`[data-chart-tooltip-id="${tooltipId}"]`)
+      if (!existingTooltip.empty()) {
+        existingTooltip.remove()
+      }
+
       tooltip = d3
         .select('body')
         .append('div')
         .attr('class', 'chart-tooltip chart-tooltip-single')
+        .attr('data-chart-tooltip-id', tooltipId) // 고유 ID 추가
         // 기본 스타일은 CSS에서 관리, 동적으로 변경되는 속성만 인라인으로 설정
         .style('position', 'fixed')
         .style('pointer-events', 'none')
@@ -181,12 +291,21 @@ function renderChart() {
         .style('display', 'none')
     }
 
-    // 마진 설정
-    const margin = props.margin || {
-      top: 50,
-      right: 40,
-      bottom: 120,
-      left: 40,
+    // 마진 설정 (기본값: 타이틀 없을 때는 top: 50)
+    const margin = props.margin
+      ? { ...props.margin }
+      : {
+          top: 20,
+          right: 20,
+          bottom: 20,
+          left: 40,
+        }
+
+    // 타이틀이 있으면 타이틀 높이만큼만 top 마진 설정 (겹침 방지, 최소 간격)
+    if (props.title) {
+      // 타이틀 높이 계산: font-size (1.25rem ≈ 20px) + line-height + 여유 공간
+      // 실제 측정값: 약 14px (아이콘 포함, 최소 간격)
+      margin.top = 14
     }
 
     // 실제 크기 사용
@@ -277,9 +396,19 @@ function renderChart() {
   }
 }
 
-// 데이터 변경 시 재렌더링
+// 데이터 변경 시 재렌더링 (참조만 감시 - 성능 최적화)
 watch(
-  () => [props.data, props.type, props.options, props.style, props.width, props.height],
+  () => props.data,
+  () => {
+    nextTick(() => {
+      renderChart()
+    })
+  },
+)
+
+// 다른 props 변경 시 재렌더링 (deep 감시 유지)
+watch(
+  () => [props.type, props.options, props.style, props.width, props.height],
   () => {
     nextTick(() => {
       // props.width/height가 변경되었을 때만 크기 업데이트
@@ -400,10 +529,48 @@ onUnmounted(() => {
   position: relative;
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.chart-header-title {
+  display: flex;
+  align-items: center;
+}
+
+.chart-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-title-icon {
+  margin-right: 0.5rem;
+}
+
+.chart-title-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--nexa-text-primary);
+  line-height: 1;
+  margin: 0;
+  padding: 0;
 }
 
 .chart-svg-container {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  margin: 0;
+  padding: 0;
 }
 </style>

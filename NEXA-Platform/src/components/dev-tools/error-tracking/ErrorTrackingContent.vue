@@ -65,26 +65,30 @@
         <div class="charts-grid">
           <!-- 에러 발생 추이 차트 -->
           <div class="chart-card">
-            <div class="text-h6 q-mb-md">
-              <q-icon name="trending_up" class="q-mr-sm" />
-              에러 발생 추이
-            </div>
-            <div class="chart-container">
-              <NexaChart v-if="errorTrendChartData.length > 0" type="line" :data="errorTrendChartData" :options="{ animation: true, showLabels: true }" />
-              <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
-            </div>
+            <NexaChart v-if="errorTrendChartData.length > 0" type="line" :data="errorTrendChartData" title="에러 발생 추이" title-icon="trending_up" :options="{ animation: true, showLabels: true }" :on-refresh="handleRefreshErrors">
+              <template #title-right="{ isRefreshing, handleRefresh }">
+                <q-chip size="sm" color="primary" text-color="white">
+                  {{ errorTrendChartData.length }}일간
+                  <q-tooltip>최근 7일간 에러 발생 추이 데이터 포인트 수</q-tooltip>
+                </q-chip>
+                <q-btn flat dense icon="refresh" size="sm" :loading="isRefreshing" @click="handleRefresh" />
+              </template>
+            </NexaChart>
+            <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
           </div>
 
           <!-- 에러 유형별 분포 차트 -->
           <div class="chart-card">
-            <div class="text-h6 q-mb-md">
-              <q-icon name="pie_chart" class="q-mr-sm" />
-              에러 유형별 분포
-            </div>
-            <div class="chart-container">
-              <NexaChart v-if="errorTypeChartData.length > 0" type="pie" :data="errorTypeChartData" :margin="{ top: 10, right: 10, bottom: 10, left: 10 }" :options="{ animation: true, showLabels: true }" />
-              <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
-            </div>
+            <NexaChart v-if="errorTypeChartData.length > 0" type="pie" :data="errorTypeChartData" title="에러 유형별 분포" title-icon="pie_chart" :margin="{ top: 0, right: 10, bottom: 10, left: 10 }" :options="{ animation: true, showLabels: true }" :on-refresh="handleRefreshErrors">
+              <template #title-right="{ isRefreshing, handleRefresh }">
+                <q-chip size="sm" color="primary" text-color="white">
+                  {{ errorTypeChartData.length }}개
+                  <q-tooltip>에러 유형별 분포 데이터 포인트 수</q-tooltip>
+                </q-chip>
+                <q-btn flat dense icon="refresh" size="sm" :loading="isRefreshing" @click="handleRefresh" />
+              </template>
+            </NexaChart>
+            <div v-else class="text-center q-pa-lg text-grey-7">데이터가 없습니다.</div>
           </div>
         </div>
       </div>
@@ -1036,6 +1040,11 @@ function handleSimilarErrorsCount(event) {
   similarErrorsCountRef.value = event.detail.count || 0
 }
 
+// 에러 목록 새로고침
+function handleRefreshErrors() {
+  window.dispatchEvent(new CustomEvent('error-tracking-request-errors'))
+}
+
 onMounted(() => {
   window.addEventListener('error-tracking-error-selected', handleErrorSelected)
   window.addEventListener('error-tracking-statistics-updated', handleStatisticsUpdated)
@@ -1130,7 +1139,7 @@ onUnmounted(() => {
 }
 
 .chart-card {
-  background-color: var(--nexa-surface);
+  //background-color: var(--nexa-surface);
   border: 1px solid var(--nexa-border-color);
   border-radius: 4px;
   padding: 1rem;
@@ -1147,21 +1156,6 @@ onUnmounted(() => {
   border: 1px solid var(--nexa-border-color);
   border-radius: 4px;
   padding: 1rem;
-}
-
-.chart-container {
-  width: 100%;
-  min-width: 0;
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-
-  :deep(.chart-wrapper) {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-  }
 }
 
 .error-dependency-diagram {
