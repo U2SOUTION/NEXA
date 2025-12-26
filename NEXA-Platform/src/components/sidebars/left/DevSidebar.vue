@@ -86,6 +86,26 @@
       />
     </template>
 
+    <!-- 에러 트래킹 -->
+    <template v-else-if="activeMenu === 'error-tracking'">
+      <ErrorTrackingSidebar
+        :errors="errorTrackingErrors"
+        :filtered-errors="errorTrackingFilteredErrors"
+        :selected-error="errorTrackingSelectedError"
+        :search-query="errorTrackingSearchQuery"
+        :is-collecting="errorTrackingIsCollecting"
+        :is-loading="errorTrackingIsLoading"
+        :statistics="errorTrackingStatistics"
+        @refresh="handleErrorTrackingRefresh"
+        @search-change="handleErrorTrackingSearchChange"
+        @settings="handleErrorTrackingSettings"
+        @filter-change="handleErrorTrackingFilterChange"
+        @sort-change="handleErrorTrackingSortChange"
+        @collecting-toggle="handleErrorTrackingCollectingToggle"
+        @error-selected="handleErrorTrackingErrorSelected"
+      />
+    </template>
+
     <!-- 설정 모달 -->
     <DocumentSettingsModal v-model="showSettingsModal" @save="handleSettingsSave" @reset-usage="handleResetUsage" @reset-priority="handleResetPriority" />
   </div>
@@ -103,6 +123,7 @@ import ThemeManagerList from './dev-tools/theme-manager/ThemeManagerList.vue'
 import DatabaseViewerHeader from './dev-tools/database-viewer/DatabaseViewerHeader.vue'
 import DatabaseViewerList from './dev-tools/database-viewer/DatabaseViewerList.vue'
 import ComponentLibrarySidebar from './dev-tools/component-library/ComponentLibrarySidebar.vue'
+import ErrorTrackingSidebar from './dev-tools/error-tracking/ErrorTrackingSidebar.vue'
 import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.vue'
 import { loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentMultiSelection } from 'src/composables/dev-tools/useDocumentMultiSelection.js'
@@ -112,6 +133,7 @@ import { useComponentLibrary } from 'src/composables/dev-tools/useComponentLibra
 import { useDatabaseViewer } from 'src/composables/dev-tools/useDatabaseViewer.js'
 import { useThemeManager } from 'src/composables/dev-tools/useThemeManager.js'
 import { useDocumentFilters } from 'src/composables/dev-tools/useDocumentFilters.js'
+import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
 
 // Quasar 인스턴스
 const $q = useQuasar()
@@ -196,6 +218,26 @@ const {
   handleSettings: handleComponentLibrarySettings,
   handleStatisticsRequest,
 } = useComponentLibrary()
+
+// 에러 트래킹 관리 (composable 사용)
+const {
+  errors: errorTrackingErrors,
+  filteredErrors: errorTrackingFilteredErrors,
+  selectedError: errorTrackingSelectedError,
+  searchQuery: errorTrackingSearchQuery,
+  isCollecting: errorTrackingIsCollecting,
+  isLoading: errorTrackingIsLoading,
+  statistics: errorTrackingStatistics,
+  refresh: handleErrorTrackingRefresh,
+  handleSearchChange: handleErrorTrackingSearchChange,
+  handleFilterChange: handleErrorTrackingFilterChange,
+  handleSortChange: handleErrorTrackingSortChange,
+  handleCollectingToggle: handleErrorTrackingCollectingToggle,
+  selectError: handleErrorTrackingErrorSelected,
+  initialize: initializeErrorTracking,
+  updateErrorStatus: handleErrorTrackingStatusUpdate,
+  deleteError: handleErrorTrackingDelete,
+} = useErrorTracking()
 
 // Content 컴포넌트 참조
 const contentRef = ref(null)
@@ -340,6 +382,9 @@ watch(
     } else if (newMenu === 'component-library') {
       // 컴포넌트 라이브러리 메뉴 활성화 시 초기 스캔
       initializeComponentLibrary()
+    } else if (newMenu === 'error-tracking') {
+      // 에러 트래킹 메뉴 활성화 시 초기화
+      initializeErrorTracking()
     }
   },
   { immediate: true },
@@ -378,6 +423,14 @@ onMounted(() => {
   // 컴포넌트 라이브러리 통계 요청 이벤트 리스너 등록
   window.addEventListener('component-library-statistics-request', handleStatisticsRequest)
 
+  // 에러 트래킹 이벤트 리스너 등록
+  window.addEventListener('error-tracking-status-update', (event) => {
+    handleErrorTrackingStatusUpdate(event.detail.errorId, event.detail.status)
+  })
+  window.addEventListener('error-tracking-delete', (event) => {
+    handleErrorTrackingDelete(event.detail.errorId)
+  })
+
   // 컴포넌트 라이브러리 초기 스캔
   initializeComponentLibrary()
 
@@ -389,6 +442,12 @@ onUnmounted(() => {
   window.removeEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
   window.removeEventListener('component-library-statistics-request', handleStatisticsRequest)
 })
+
+// 에러 트래킹 설정 핸들러
+function handleErrorTrackingSettings() {
+  console.log('[DevSidebar] 에러 트래킹 설정')
+  // TODO: 설정 모달 열기
+}
 </script>
 
 <style lang="scss" scoped>

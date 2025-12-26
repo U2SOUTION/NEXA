@@ -82,23 +82,23 @@ function getInitialActiveMenu() {
   try {
     const saved = localStorage.getItem('dev-active-menu')
     if (saved) {
-      // 유효한 메뉴 ID인지 확인
+      // 유효한 메뉴 ID인지 확인 (DevMenuSlider.vue의 순서와 동일하게 유지)
       const validMenus = [
         'document-manager',
         'theme-manager',
-        'performance-monitor',
-        'log-viewer',
-        'api-tester',
-        'database-viewer',
-        'settings-manager',
         'component-library',
+        'database-viewer',
+        'api-tester',
+        'log-viewer',
+        'performance-monitor',
+        'error-tracking',
+        'settings-manager',
         'style-guide',
         'test-runner',
         'build-tools',
-        'package-manager',
-        'environment-variables',
         'network-monitor',
-        'error-tracking',
+        'environment-variables',
+        'package-manager',
         'document-generator',
         'deployment-manager',
       ]

@@ -70,23 +70,30 @@ const emit = defineEmits(['openSettings', 'update:activeMenu'])
 const $q = useQuasar()
 
 // 메뉴 항목 정의 (17개)
+// 중요도 순서: 문서관리/테마관리(최우선) → 구현된 도구 → 개발/디버깅 도구 → 관리/유틸리티 도구
 const devMenus = [
+  // 최우선: 핵심 관리 도구
   { id: 'document-manager', label: '문서 관리', icon: 'description' },
   { id: 'theme-manager', label: '테마 관리', icon: 'palette' },
-  { id: 'document-generator', label: '그래프독', icon: 'account_tree' },
-  { id: 'performance-monitor', label: '성능 모니터', icon: 'speed' },
-  { id: 'log-viewer', label: '로그 뷰어', icon: 'list_alt' },
-  { id: 'api-tester', label: 'API 테스터', icon: 'api' },
-  { id: 'database-viewer', label: '데이터베이스', icon: 'storage' },
-  { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
+  // 구현된 개발 도구 (높은 중요도)
   { id: 'component-library', label: '컴포넌트', icon: 'widgets' },
+  { id: 'database-viewer', label: '데이터베이스', icon: 'storage' },
+  // 개발/테스트 도구 (중요도 높음)
+  { id: 'api-tester', label: 'API 테스터', icon: 'api' },
+  { id: 'log-viewer', label: '로그 뷰어', icon: 'list_alt' },
+  { id: 'performance-monitor', label: '성능 모니터', icon: 'speed' },
+  { id: 'error-tracking', label: '에러 트래킹', icon: 'bug_report' },
+  // 시스템 관리 도구
+  { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
   { id: 'style-guide', label: '스타일 가이드', icon: 'style' },
+  // 개발 유틸리티 도구
   { id: 'test-runner', label: '테스트 러너', icon: 'play_arrow' },
   { id: 'build-tools', label: '빌드 도구', icon: 'build' },
-  { id: 'package-manager', label: '패키지 관리', icon: 'inventory_2' },
-  { id: 'environment-variables', label: '환경 변수', icon: 'tune' },
   { id: 'network-monitor', label: '네트워크 모니터', icon: 'network_check' },
-  { id: 'error-tracking', label: '에러 트래킹', icon: 'bug_report' },
+  { id: 'environment-variables', label: '환경 변수', icon: 'tune' },
+  { id: 'package-manager', label: '패키지 관리', icon: 'inventory_2' },
+  // 문서/배포 도구
+  { id: 'document-generator', label: '그래프독', icon: 'account_tree' },
   { id: 'deployment-manager', label: '배포 관리', icon: 'cloud_upload' },
 ]
 

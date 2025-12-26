@@ -103,6 +103,45 @@
         </div>
       </template>
 
+      <!-- 에러 트래킹 패널들 (activeMenu === 'error-tracking') -->
+      <template v-if="activeMenu === 'error-tracking'">
+        <!-- 에러 통계 패널 -->
+        <div class="accordion-wrapper">
+          <q-expansion-item icon="bar_chart" label="에러 통계" :model-value="errorTrackingStatisticsExpanded" @update:model-value="errorTrackingStatisticsExpanded = $event">
+            <div class="q-pa-md">
+              <div class="text-body2 text-grey-7">통계 기능은 곧 추가될 예정입니다.</div>
+            </div>
+          </q-expansion-item>
+        </div>
+
+        <!-- 에러 설정 패널 -->
+        <div class="accordion-wrapper">
+          <q-expansion-item icon="settings" label="에러 설정" :model-value="errorTrackingSettingsExpanded" @update:model-value="errorTrackingSettingsExpanded = $event">
+            <div class="q-pa-md">
+              <div class="text-body2 text-grey-7">설정 기능은 곧 추가될 예정입니다.</div>
+            </div>
+          </q-expansion-item>
+        </div>
+
+        <!-- 에러 액션 패널 -->
+        <div class="accordion-wrapper">
+          <q-expansion-item icon="flash_on" label="에러 액션" :model-value="errorTrackingActionsExpanded" @update:model-value="errorTrackingActionsExpanded = $event">
+            <div class="q-pa-md">
+              <div class="text-body2 text-grey-7">액션 기능은 곧 추가될 예정입니다.</div>
+            </div>
+          </q-expansion-item>
+        </div>
+
+        <!-- 에러 분석 패널 -->
+        <div class="accordion-wrapper">
+          <q-expansion-item icon="analytics" label="에러 분석" :model-value="errorTrackingAnalysisExpanded" @update:model-value="errorTrackingAnalysisExpanded = $event">
+            <div class="q-pa-md">
+              <div class="text-body2 text-grey-7">분석 기능은 곧 추가될 예정입니다.</div>
+            </div>
+          </q-expansion-item>
+        </div>
+      </template>
+
       <!-- 샘플 기능 섹션 (테스트용) -->
       <div class="accordion-wrapper">
         <q-expansion-item icon="extension" label="샘플 아코디언">
@@ -177,6 +216,12 @@ const componentLibraryInterfaceExpanded = ref(false)
 const componentLibraryQuickActionsExpanded = ref(false)
 const componentLibraryRelatedDocsExpanded = ref(false)
 
+// 에러 트래킹 패널 상태
+const errorTrackingStatisticsExpanded = ref(false)
+const errorTrackingSettingsExpanded = ref(false)
+const errorTrackingActionsExpanded = ref(false)
+const errorTrackingAnalysisExpanded = ref(false)
+
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {
   console.log('[DevToolsPanel] dev-menu-changed 이벤트 수신:', event.detail)
@@ -196,6 +241,13 @@ function handleActiveMenuChange(event) {
     componentLibrarySelectedViolation.value = null
     componentLibraryWarningExpanded.value = false
     componentLibraryMoveExpanded.value = false
+  }
+  // 에러 트래킹 메뉴로 변경 시 상태 초기화
+  if (activeMenu.value === 'error-tracking') {
+    errorTrackingStatisticsExpanded.value = false
+    errorTrackingSettingsExpanded.value = false
+    errorTrackingActionsExpanded.value = false
+    errorTrackingAnalysisExpanded.value = false
   }
 }
 
