@@ -76,6 +76,9 @@
         @violation-selected="handleComponentLibraryViolationSelected"
         @show-file-structure="handleComponentLibraryShowFileStructure"
         @show-file-structure-detail="handleComponentLibraryShowFileStructureDetail"
+        @refresh="handleComponentLibraryRefresh"
+        @settings="handleComponentLibrarySettings"
+        @tab-change="handleComponentLibraryTabChange"
       />
     </template>
 
@@ -102,6 +105,7 @@ import { useDocumentManagerStore } from 'src/stores/documentManagerStore.js'
 import { useUserSettingsStore } from 'src/stores/userSettingsStore'
 import { useDocumentSearch } from 'src/modules/document-manager/composables/useDocumentSearch.js'
 import { extractThemeColors } from 'src/utils/themeColorParser'
+import { scanAndCategorizeComponents } from 'src/utils/componentScanner.js'
 
 // Quasar 인스턴스
 const $q = useQuasar()
@@ -147,74 +151,8 @@ const databaseViewerRefreshTrigger = ref(0)
 const databaseViewerSubMenu = ref('erd')
 
 // 컴포넌트 라이브러리 관련 상태
-const componentLibraryCategories = ref([
-  {
-    name: 'ui',
-    displayName: 'UI 컴포넌트',
-    components: [
-      { name: 'BaseModal', path: 'components/ui/BaseModal.vue', icon: 'modal' },
-      { name: 'ContextMenu', path: 'components/ui/ContextMenu.vue', icon: 'menu' },
-      { name: 'DataPageNavigation', path: 'components/ui/DataPageNavigation.vue', icon: 'navigation' },
-      { name: 'GlobalSkeletonLoader', path: 'components/ui/GlobalSkeletonLoader.vue', icon: 'hourglass_empty' },
-      { name: 'TableActionsOverlay', path: 'components/ui/TableActionsOverlay.vue', icon: 'more_vert' },
-      { name: 'TableEmptyState', path: 'components/ui/TableEmptyState.vue', icon: 'inbox' },
-      { name: 'TableFilterBar', path: 'components/ui/TableFilterBar.vue', icon: 'filter_list' },
-      { name: 'UploadProgress', path: 'components/ui/UploadProgress.vue', icon: 'cloud_upload' },
-    ],
-  },
-  {
-    name: 'form',
-    displayName: '폼 컴포넌트',
-    components: [
-      { name: 'AddBoardForm', path: 'components/form/AddBoardForm.vue', icon: 'dashboard' },
-      { name: 'AddDeviceForm', path: 'components/form/AddDeviceForm.vue', icon: 'devices' },
-      { name: 'AddGroupForm', path: 'components/form/AddGroupForm.vue', icon: 'group' },
-    ],
-  },
-  {
-    name: 'parts-management',
-    displayName: '부품 관리',
-    components: [
-      { name: 'PartClassesView', path: 'components/parts-management/PartClassesView.vue', icon: 'category' },
-      { name: 'PartModelsView', path: 'components/parts-management/PartModelsView.vue', icon: 'inventory_2' },
-      { name: 'PartFilesView', path: 'components/parts-management/PartFilesView.vue', icon: 'folder' },
-      { name: 'PartSpecsView', path: 'components/parts-management/PartSpecsView.vue', icon: 'description' },
-      { name: 'StorageBlockGrid', path: 'components/parts-management/StorageBlockGrid.vue', icon: 'grid_view' },
-      { name: 'PartsDataDashboard', path: 'components/parts-management/PartsDataDashboard.vue', icon: 'dashboard' },
-    ],
-  },
-  {
-    name: 'sidebars',
-    displayName: '사이드바',
-    components: [
-      { name: 'DevToolsPanel', path: 'components/sidebars/right/DevToolsPanel.vue', icon: 'build' },
-      { name: 'RightSidebarHeader', path: 'components/sidebars/right/RightSidebarHeader.vue', icon: 'menu' },
-      { name: 'NexaBoardToolsPanel', path: 'components/sidebars/right/NexaBoardToolsPanel.vue', icon: 'dashboard' },
-    ],
-  },
-  {
-    name: 'settings',
-    displayName: '설정',
-    components: [
-      { name: 'IotSettings', path: 'components/settings/IotSettings.vue', icon: 'settings' },
-      { name: 'LayoutSettings', path: 'components/settings/LayoutSettings.vue', icon: 'view_quilt' },
-      { name: 'ShortcutsSettings', path: 'components/settings/ShortcutsSettings.vue', icon: 'keyboard' },
-      { name: 'SystemSettings', path: 'components/settings/SystemSettings.vue', icon: 'computer' },
-      { name: 'ThemeSettings', path: 'components/settings/ThemeSettings.vue', icon: 'palette' },
-    ],
-  },
-  {
-    name: 'side-panel',
-    displayName: '사이드 패널',
-    components: [
-      { name: 'DeviceSection', path: 'components/side-panel/sections/DeviceSection.vue', icon: 'devices' },
-      { name: 'HistorySection', path: 'components/side-panel/sections/HistorySection.vue', icon: 'history' },
-      { name: 'LayoutSection', path: 'components/side-panel/sections/LayoutSection.vue', icon: 'view_quilt' },
-      { name: 'NexaPanelSection', path: 'components/side-panel/sections/NexaPanelSection.vue', icon: 'dashboard' },
-      { name: 'NotificationSection', path: 'components/side-panel/sections/NotificationSection.vue', icon: 'notifications' },
-    ],
-  },
-])
+// 자동 스캔으로 초기화 (onMounted에서 실제 스캔 실행)
+const componentLibraryCategories = ref([])
 const componentLibraryViolations = ref([])
 const componentLibrarySelectedCategory = ref(null)
 const componentLibrarySelectedComponent = ref(null)
@@ -395,6 +333,14 @@ function handleComponentLibraryCategorySelected(categoryName) {
   componentLibrarySelectedCategory.value = categoryName
   componentLibrarySelectedComponent.value = null
   componentLibrarySelectedViolation.value = null
+  // 전역 이벤트로 CategoryDetail에 알림
+  window.dispatchEvent(
+    new CustomEvent('component-library-category-selected', {
+      detail: {
+        category: componentLibraryCategories.value.find((cat) => cat.name === categoryName),
+      },
+    }),
+  )
 }
 
 // 컴포넌트 라이브러리 컴포넌트 선택 핸들러
@@ -434,6 +380,40 @@ function handleComponentLibraryShowFileStructure() {
 function handleComponentLibraryShowFileStructureDetail() {
   // TODO: 파일 구조 상세 표시 구현
   console.log('[DevSidebar] 파일 구조 상세 표시')
+}
+
+// 컴포넌트 라이브러리 탭 변경 핸들러
+function handleComponentLibraryTabChange(tabName) {
+  window.dispatchEvent(
+    new CustomEvent('component-library-tab-changed', {
+      detail: {
+        tab: tabName,
+      },
+    }),
+  )
+}
+
+// 컴포넌트 라이브러리 새로고침 핸들러
+async function handleComponentLibraryRefresh() {
+  console.log('[DevSidebar] 컴포넌트 라이브러리 새로고침 시작')
+  try {
+    const categories = await scanAndCategorizeComponents()
+    componentLibraryCategories.value = categories
+    console.log('[DevSidebar] 컴포넌트 스캔 완료:', categories.length, '개 카테고리')
+  } catch (error) {
+    console.error('[DevSidebar] 컴포넌트 스캔 중 오류:', error)
+  }
+}
+
+// 컴포넌트 라이브러리 초기 스캔
+async function initializeComponentLibrary() {
+  await handleComponentLibraryRefresh()
+}
+
+// 컴포넌트 라이브러리 설정 핸들러
+function handleComponentLibrarySettings() {
+  // TODO: 설정 다이얼로그 표시
+  console.log('[DevSidebar] 컴포넌트 라이브러리 설정')
 }
 
 // Content 컴포넌트 참조
@@ -810,6 +790,9 @@ onMounted(() => {
 
   // 데이터베이스 뷰어 새로고침 이벤트 리스너 등록
   window.addEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
+
+  // 컴포넌트 라이브러리 초기 스캔
+  initializeComponentLibrary()
 
   // 이후 변경사항은 handleActiveMenuChange로 처리 (이미 등록되어 있음)
 })
