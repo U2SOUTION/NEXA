@@ -92,6 +92,7 @@ const levelOptions = [
   { label: 'Error', value: 'error' },
   { label: 'Warning', value: 'warning' },
   { label: 'Unhandled Rejection', value: 'unhandled' },
+  { label: 'Lint', value: 'lint' },
 ]
 
 const statusOptions = [

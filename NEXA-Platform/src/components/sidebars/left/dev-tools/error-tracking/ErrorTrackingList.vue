@@ -4,15 +4,25 @@
 -->
 
 <template>
-  <q-scroll-area class="error-tracking-list-scroll-area">
-    <!-- 로딩 상태 -->
-    <div v-if="isLoading" class="loading-section q-pa-lg text-center">
-      <q-spinner color="primary" size="3em" />
-      <div class="q-mt-md text-caption">에러 목록을 불러오는 중...</div>
-    </div>
+  <div class="error-tracking-list-container">
+    <!-- 상태별 탭 -->
+    <q-tabs v-model="activeTab" dense class="error-status-tabs" align="left" @update:model-value="handleTabChange">
+      <q-tab name="all" label="전체" :ripple="false" />
+      <q-tab name="new" label="신규" :ripple="false" />
+      <q-tab name="resolved" label="해결" :ripple="false" />
+      <q-tab name="ignored" label="무시" :ripple="false" />
+      <q-tab name="lint" label="Lint" :ripple="false" />
+    </q-tabs>
 
-    <!-- 에러 목록 -->
-    <q-list v-else separator>
+    <q-scroll-area class="error-tracking-list-scroll-area">
+      <!-- 로딩 상태 -->
+      <div v-if="isLoading" class="loading-section q-pa-lg text-center">
+        <q-spinner color="primary" size="3em" />
+        <div class="q-mt-md text-caption">에러 목록을 불러오는 중...</div>
+      </div>
+
+      <!-- 에러 목록 -->
+      <q-list v-else separator>
       <q-item
         v-for="error in filteredErrors"
         :key="error.id"
@@ -54,11 +64,12 @@
         </div>
       </div>
     </q-list>
-  </q-scroll-area>
+    </q-scroll-area>
+  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   errors: {
@@ -79,21 +90,32 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['error-selected'])
+const emit = defineEmits(['error-selected', 'tab-change'])
 
-// 필터링된 에러 목록
+// 활성 탭
+const activeTab = ref('all')
+
+// 탭 변경 핸들러
+function handleTabChange(tab) {
+  activeTab.value = tab
+  emit('tab-change', tab)
+}
+
+// 필터링된 에러 목록 (탭 필터 추가)
 const filteredErrors = computed(() => {
-  if (!props.searchQuery) {
-    return props.errors
+  let result = [...props.errors]
+
+  // 탭 필터 (상태별 또는 타입별)
+  if (activeTab.value === 'lint') {
+    result = result.filter((error) => error.type === 'lint')
+  } else if (activeTab.value !== 'all') {
+    result = result.filter((error) => {
+      const status = error.status || 'new'
+      return status === activeTab.value
+    })
   }
 
-  const query = props.searchQuery.toLowerCase()
-  return props.errors.filter((error) => {
-    const message = (error.message || '').toLowerCase()
-    const file = (error.file || '').toLowerCase()
-    const stack = (error.stack || '').toLowerCase()
-    return message.includes(query) || file.includes(query) || stack.includes(query)
-  })
+  return result
 })
 
 // 에러 아이콘
@@ -169,8 +191,20 @@ function handleErrorSelect(error) {
 </script>
 
 <style lang="scss" scoped>
-.error-tracking-list-scroll-area {
+.error-tracking-list-container {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.error-status-tabs {
+  border-bottom: 1px solid var(--nexa-border-color);
+  background-color: var(--nexa-surface);
+}
+
+.error-tracking-list-scroll-area {
+  flex: 1;
+  height: 0; /* flex를 위해 필요 */
 }
 
 .loading-section {

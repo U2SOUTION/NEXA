@@ -103,6 +103,7 @@
         @sort-change="handleErrorTrackingSortChange"
         @collecting-toggle="handleErrorTrackingCollectingToggle"
         @error-selected="handleErrorTrackingErrorSelected"
+        @tab-change="handleErrorTrackingTabChange"
       />
     </template>
 
@@ -237,6 +238,9 @@ const {
   initialize: initializeErrorTracking,
   updateErrorStatus: handleErrorTrackingStatusUpdate,
   deleteError: handleErrorTrackingDelete,
+  findSimilarErrorsForError: errorTrackingFindSimilarErrorsForError,
+  batchUpdateErrorStatus: errorTrackingBatchUpdateErrorStatus,
+  batchDeleteError: errorTrackingBatchDeleteError,
 } = useErrorTracking()
 
 // Content 컴포넌트 참조
@@ -425,10 +429,44 @@ onMounted(() => {
 
   // 에러 트래킹 이벤트 리스너 등록
   window.addEventListener('error-tracking-status-update', (event) => {
-    handleErrorTrackingStatusUpdate(event.detail.errorId, event.detail.status)
+    const { errorId, status, includeSimilar } = event.detail
+    if (includeSimilar) {
+      errorTrackingBatchUpdateErrorStatus(errorId, status)
+    } else {
+      handleErrorTrackingStatusUpdate(errorId, status)
+    }
   })
   window.addEventListener('error-tracking-delete', (event) => {
-    handleErrorTrackingDelete(event.detail.errorId)
+    const { errorId, includeSimilar } = event.detail
+    if (includeSimilar) {
+      errorTrackingBatchDeleteError(errorId)
+    } else {
+      handleErrorTrackingDelete(errorId)
+    }
+  })
+  window.addEventListener('error-tracking-error-selected', (event) => {
+    // 선택된 에러의 유사한 에러 개수 계산
+    const error = event.detail.error
+    if (error) {
+      const similarCount = errorTrackingFindSimilarErrorsForError(error).length
+      window.dispatchEvent(
+        new CustomEvent('error-tracking-similar-errors-count', {
+          detail: { count: similarCount },
+        }),
+      )
+    }
+  })
+  window.addEventListener('error-tracking-request-similar-count', (event) => {
+    // 유사한 에러 개수 요청 처리
+    const error = event.detail.error
+    if (error) {
+      const similarCount = errorTrackingFindSimilarErrorsForError(error).length
+      window.dispatchEvent(
+        new CustomEvent('error-tracking-similar-errors-count', {
+          detail: { count: similarCount },
+        }),
+      )
+    }
   })
 
   // 컴포넌트 라이브러리 초기 스캔
@@ -447,6 +485,26 @@ onUnmounted(() => {
 function handleErrorTrackingSettings() {
   console.log('[DevSidebar] 에러 트래킹 설정')
   // TODO: 설정 모달 열기
+}
+
+// 에러 트래킹 탭 변경 핸들러
+function handleErrorTrackingTabChange(tab) {
+  // 탭 변경 시 상태 필터 또는 타입 필터 업데이트
+  if (tab === 'lint') {
+    // Lint 탭 선택 시
+    handleErrorTrackingFilterChange({
+      level: 'lint', // lint 타입 필터
+      status: null,
+      timeRange: null,
+    })
+  } else {
+    // 상태 탭 선택 시
+    handleErrorTrackingFilterChange({
+      level: null, // 레벨 필터는 유지
+      status: tab === 'all' ? null : tab,
+      timeRange: null, // 시간 범위 필터는 유지
+    })
+  }
 }
 </script>
 

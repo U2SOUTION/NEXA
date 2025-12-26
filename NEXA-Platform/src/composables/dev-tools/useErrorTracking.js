@@ -7,6 +7,8 @@
 import { ref, computed } from 'vue'
 import { loadErrors, saveErrors, updateError as updateErrorStorage, deleteError as deleteErrorStorage } from 'src/utils/error-tracking/errorStorage.js'
 import { setCollectingEnabled } from 'src/utils/error-tracking/errorCollector.js'
+import { findSimilarErrors } from 'src/utils/error-tracking/errorGrouper.js'
+import { watchFileChanges } from 'src/utils/error-tracking/lintCollector.js'
 
 /**
  * 에러 트래킹 관리 Composable
@@ -38,9 +40,13 @@ export function useErrorTracking() {
   const filteredErrors = computed(() => {
     let result = [...errors.value]
 
-    // 레벨 필터
+    // 레벨 필터 (lint 타입도 처리)
     if (filterLevel.value) {
-      result = result.filter((error) => error.level === filterLevel.value)
+      if (filterLevel.value === 'lint') {
+        result = result.filter((error) => error.type === 'lint')
+      } else {
+        result = result.filter((error) => error.level === filterLevel.value && error.type !== 'lint')
+      }
     }
 
     // 상태 필터
@@ -271,6 +277,116 @@ export function useErrorTracking() {
   }
 
   /**
+   * 유사한 에러 찾기
+   */
+  function findSimilarErrorsForError(error) {
+    return findSimilarErrors(error, errors.value)
+  }
+
+  /**
+   * 일괄 상태 변경 (유사한 에러 포함)
+   */
+  function batchUpdateErrorStatus(errorId, status, includeSimilar = false) {
+    const error = errors.value.find((e) => e.id === errorId)
+    if (!error) return
+
+    const errorsToUpdate = includeSimilar ? [error, ...findSimilarErrorsForError(error)] : [error]
+
+    errorsToUpdate.forEach((err) => {
+      err.status = status
+      updateErrorStorage(err.id, { status })
+    })
+
+    saveErrors(errors.value)
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-statistics-updated', {
+        detail: statistics.value,
+      }),
+    )
+  }
+
+  /**
+   * 일괄 삭제 (유사한 에러 포함)
+   */
+  function batchDeleteError(errorId, includeSimilar = false) {
+    const error = errors.value.find((e) => e.id === errorId)
+    if (!error) return
+
+    const errorsToDelete = includeSimilar ? [error, ...findSimilarErrorsForError(error)] : [error]
+
+    errorsToDelete.forEach((err) => {
+      const index = errors.value.findIndex((e) => e.id === err.id)
+      if (index !== -1) {
+        errors.value.splice(index, 1)
+        deleteErrorStorage(err.id)
+      }
+    })
+
+    if (selectedError.value && errorsToDelete.some((e) => e.id === selectedError.value.id)) {
+      selectedError.value = null
+    }
+
+    saveErrors(errors.value)
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-statistics-updated', {
+        detail: statistics.value,
+      }),
+    )
+  }
+
+  /**
+   * 린트 오류 추가
+   */
+  function addLintError(lintError) {
+    if (!isCollecting.value) {
+      return
+    }
+
+    // 중복 체크 (같은 파일, 라인, 규칙의 린트 오류는 제외)
+    const existingError = errors.value.find(
+      (e) =>
+        e.type === 'lint' &&
+        e.file === lintError.file &&
+        e.line === lintError.line &&
+        e.ruleId === lintError.ruleId &&
+        e.status !== 'resolved' &&
+        e.status !== 'ignored',
+    )
+
+    if (existingError) {
+      // 기존 에러 업데이트 (타임스탬프만 갱신)
+      existingError.timestamp = Date.now()
+      saveErrors(errors.value)
+      return
+    }
+
+    // 새 린트 오류 추가
+    const error = {
+      ...lintError,
+      id: lintError.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      status: 'new',
+      count: 1,
+    }
+
+    errors.value.unshift(error)
+    saveErrors(errors.value)
+
+    // 이벤트 전달
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-error-collected', {
+        detail: { error },
+      }),
+    )
+
+    // 통계 업데이트
+    window.dispatchEvent(
+      new CustomEvent('error-tracking-statistics-updated', {
+        detail: statistics.value,
+      }),
+    )
+  }
+
+  /**
    * 초기화
    */
   async function initialize() {
@@ -279,10 +395,19 @@ export function useErrorTracking() {
     // 에러 수집 이벤트 리스너 등록
     function handleErrorCollected(event) {
       const newError = event.detail.error
-      // 에러 ID 생성
-      newError.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
-      newError.status = 'new'
-      newError.count = 1
+      
+      // 이미 ID가 있으면 그대로 사용, 없으면 생성
+      if (!newError.id) {
+        newError.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+      }
+      
+      if (!newError.status) {
+        newError.status = 'new'
+      }
+      
+      if (!newError.count) {
+        newError.count = 1
+      }
       
       // 에러 목록에 추가
       errors.value.unshift(newError)
@@ -297,6 +422,13 @@ export function useErrorTracking() {
     }
     
     window.addEventListener('error-tracking-error-collected', handleErrorCollected)
+    
+    // 린트 오류 수집 시작 (개발 환경에서만)
+    if (import.meta.env.DEV) {
+      watchFileChanges((lintError) => {
+        addLintError(lintError)
+      })
+    }
     
     // 정리 함수 저장 (나중에 사용 가능)
     return () => {
@@ -326,6 +458,7 @@ export function useErrorTracking() {
     // 함수
     refresh,
     addError,
+    addLintError,
     selectError,
     handleSearchChange,
     handleFilterChange,
@@ -333,6 +466,9 @@ export function useErrorTracking() {
     handleCollectingToggle,
     updateErrorStatus,
     deleteError,
+    findSimilarErrorsForError,
+    batchUpdateErrorStatus,
+    batchDeleteError,
     initialize,
   }
 }

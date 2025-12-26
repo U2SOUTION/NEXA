@@ -25,6 +25,7 @@
       :selected-error="selectedError"
       :is-loading="isLoading"
       @error-selected="handleErrorSelect"
+      @tab-change="handleTabChange"
     />
   </div>
 </template>
@@ -70,7 +71,7 @@ defineProps({
   },
 })
 
-const emit = defineEmits(['refresh', 'search-change', 'settings', 'filter-change', 'sort-change', 'collecting-toggle', 'error-selected'])
+const emit = defineEmits(['refresh', 'search-change', 'settings', 'filter-change', 'sort-change', 'collecting-toggle', 'error-selected', 'tab-change'])
 
 // 새로고침
 function handleRefresh() {
@@ -105,6 +106,11 @@ function handleErrorSelect(error) {
 // 설정
 function handleSettings() {
   emit('settings')
+}
+
+// 탭 변경
+function handleTabChange(tab) {
+  emit('tab-change', tab)
 }
 </script>
 
