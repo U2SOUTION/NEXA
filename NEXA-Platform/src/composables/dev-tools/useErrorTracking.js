@@ -5,6 +5,8 @@
  */
 
 import { ref, computed } from 'vue'
+import { loadErrors, saveErrors, updateError as updateErrorStorage, deleteError as deleteErrorStorage } from 'src/utils/error-tracking/errorStorage.js'
+import { setCollectingEnabled } from 'src/utils/error-tracking/errorCollector.js'
 
 /**
  * 에러 트래킹 관리 Composable
@@ -129,10 +131,10 @@ export function useErrorTracking() {
   async function refresh() {
     isLoading.value = true
     try {
-      // TODO: localStorage/IndexedDB에서 에러 데이터 로드
-      // 임시로 빈 배열 반환
-      errors.value = []
-      console.log('[useErrorTracking] 에러 목록 새로고침 완료')
+      // localStorage에서 에러 데이터 로드
+      const loadedErrors = loadErrors()
+      errors.value = loadedErrors
+      console.log('[useErrorTracking] 에러 목록 새로고침 완료:', loadedErrors.length, '개')
     } catch (error) {
       console.error('[useErrorTracking] 에러 목록 새로고침 실패:', error)
     } finally {
@@ -164,6 +166,9 @@ export function useErrorTracking() {
     }
 
     errors.value.unshift(error)
+    
+    // localStorage에 저장
+    saveErrors(errors.value)
 
     // 이벤트 전달
     window.dispatchEvent(
@@ -220,6 +225,7 @@ export function useErrorTracking() {
    */
   function handleCollectingToggle(enabled) {
     isCollecting.value = enabled
+    setCollectingEnabled(enabled)
     window.dispatchEvent(
       new CustomEvent('error-tracking-collecting-toggled', {
         detail: { enabled },
@@ -234,6 +240,8 @@ export function useErrorTracking() {
     const error = errors.value.find((e) => e.id === errorId)
     if (error) {
       error.status = status
+      updateErrorStorage(errorId, { status })
+      saveErrors(errors.value)
       window.dispatchEvent(
         new CustomEvent('error-tracking-statistics-updated', {
           detail: statistics.value,
@@ -249,6 +257,8 @@ export function useErrorTracking() {
     const index = errors.value.findIndex((e) => e.id === errorId)
     if (index !== -1) {
       errors.value.splice(index, 1)
+      deleteErrorStorage(errorId)
+      saveErrors(errors.value)
       if (selectedError.value?.id === errorId) {
         selectedError.value = null
       }
@@ -265,6 +275,33 @@ export function useErrorTracking() {
    */
   async function initialize() {
     await refresh()
+    
+    // 에러 수집 이벤트 리스너 등록
+    function handleErrorCollected(event) {
+      const newError = event.detail.error
+      // 에러 ID 생성
+      newError.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+      newError.status = 'new'
+      newError.count = 1
+      
+      // 에러 목록에 추가
+      errors.value.unshift(newError)
+      saveErrors(errors.value)
+      
+      // 통계 업데이트
+      window.dispatchEvent(
+        new CustomEvent('error-tracking-statistics-updated', {
+          detail: statistics.value,
+        }),
+      )
+    }
+    
+    window.addEventListener('error-tracking-error-collected', handleErrorCollected)
+    
+    // 정리 함수 저장 (나중에 사용 가능)
+    return () => {
+      window.removeEventListener('error-tracking-error-collected', handleErrorCollected)
+    }
   }
 
   // ============================================

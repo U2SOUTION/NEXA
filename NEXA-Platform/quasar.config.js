@@ -13,6 +13,7 @@ export default defineConfig((/* ctx */) => {
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
       'pinia', // pinia 부트 파일 추가
+      'errorTracking', // 에러 트래킹 시스템 초기화
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css

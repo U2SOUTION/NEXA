@@ -73,6 +73,32 @@
         <pre class="stack-trace">{{ selectedError.stack }}</pre>
       </div>
 
+      <!-- 네트워크 정보 (네트워크 에러인 경우) -->
+      <div v-if="selectedError.networkInfo" class="error-network q-pa-md q-mb-md">
+        <h5 class="section-title q-mb-sm">
+          <q-icon name="cloud_off" />
+          네트워크 정보
+        </h5>
+        <div class="network-info">
+          <div class="info-row">
+            <span class="info-label">요청 URL:</span>
+            <span class="info-value code">{{ selectedError.networkInfo.requestUrl }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">메서드:</span>
+            <span class="info-value">{{ selectedError.networkInfo.method || 'GET' }}</span>
+          </div>
+          <div v-if="selectedError.networkInfo.status" class="info-row">
+            <span class="info-label">상태 코드:</span>
+            <span class="info-value" :class="getStatusClass(selectedError.networkInfo.status)"> {{ selectedError.networkInfo.status }} {{ selectedError.networkInfo.statusText || '' }} </span>
+          </div>
+          <div v-if="selectedError.networkInfo.error" class="info-row">
+            <span class="info-label">에러:</span>
+            <span class="info-value text-negative">{{ selectedError.networkInfo.error }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 컨텍스트 정보 -->
       <div class="error-context q-pa-md">
         <h5 class="section-title q-mb-sm">
@@ -81,12 +107,16 @@
         </h5>
         <div class="context-info">
           <div v-if="selectedError.url" class="info-row">
-            <span class="info-label">URL:</span>
+            <span class="info-label">페이지 URL:</span>
             <span class="info-value">{{ selectedError.url }}</span>
           </div>
           <div v-if="selectedError.userAgent" class="info-row">
             <span class="info-label">User Agent:</span>
             <span class="info-value text-caption">{{ selectedError.userAgent }}</span>
+          </div>
+          <div v-if="selectedError.timestamp" class="info-row">
+            <span class="info-label">발생 시간:</span>
+            <span class="info-value">{{ formatTime(selectedError.timestamp) }}</span>
           </div>
         </div>
       </div>
@@ -159,6 +189,13 @@ function formatTime(timestamp) {
     minute: '2-digit',
     second: '2-digit',
   })
+}
+
+// 상태 코드에 따른 클래스 반환
+function getStatusClass(status) {
+  if (status >= 500) return 'text-negative'
+  if (status >= 400) return 'text-warning'
+  return ''
 }
 
 // 에러 상태 변경
@@ -295,10 +332,15 @@ onUnmounted(() => {
 
 .error-location,
 .error-stack,
+.error-network,
 .error-context {
   background-color: var(--nexa-surface);
   border-radius: 4px;
   border: 1px solid var(--nexa-border-color);
+}
+
+.network-info {
+  margin-top: 1rem;
 }
 
 .section-title {
@@ -358,4 +400,3 @@ onUnmounted(() => {
   margin: 0;
 }
 </style>
-
