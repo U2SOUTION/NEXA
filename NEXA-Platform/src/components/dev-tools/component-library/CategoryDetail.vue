@@ -77,21 +77,47 @@ const props = defineProps({
 
 const selectedCategory = ref(null)
 
-// 통계 데이터 (임시)
+// 통계 데이터 상태
+const systemsCount = ref(0)
+const systemsComponentCount = ref(0)
+const directoryCategoryCount = ref(0)
+const directoryComponentCount = ref(0)
+
+// 통계 데이터
 const statistics = computed(() => {
-  // TODO: 실제 통계 데이터로 교체
   if (props.tabName === 'systems') {
     return {
-      totalSystems: { label: '시스템 수', value: '0', description: 'NEXA 시스템 카테고리' },
-      totalComponents: { label: '컴포넌트 수', value: '0', description: '시스템별 분류된 컴포넌트' },
+      totalSystems: { label: '시스템 수', value: String(systemsCount.value), description: 'NEXA 시스템 카테고리' },
+      totalComponents: { label: '컴포넌트 수', value: String(systemsComponentCount.value), description: '시스템별 분류된 컴포넌트' },
     }
   } else {
     return {
-      totalCategories: { label: '카테고리 수', value: '0', description: '디렉토리 기반 카테고리' },
-      totalComponents: { label: '컴포넌트 수', value: '0', description: '디렉토리별 분류된 컴포넌트' },
+      totalCategories: { label: '카테고리 수', value: String(directoryCategoryCount.value), description: '디렉토리 기반 카테고리' },
+      totalComponents: { label: '컴포넌트 수', value: String(directoryComponentCount.value), description: '디렉토리별 분류된 컴포넌트' },
     }
   }
 })
+
+// 통계 업데이트 이벤트 리스너
+function handleStatisticsUpdate(event) {
+  if (event.detail) {
+    if (props.tabName === 'systems') {
+      if (event.detail.systemsCount !== undefined) {
+        systemsCount.value = event.detail.systemsCount
+      }
+      if (event.detail.systemsComponentCount !== undefined) {
+        systemsComponentCount.value = event.detail.systemsComponentCount
+      }
+    } else {
+      if (event.detail.directoryCategoryCount !== undefined) {
+        directoryCategoryCount.value = event.detail.directoryCategoryCount
+      }
+      if (event.detail.directoryComponentCount !== undefined) {
+        directoryComponentCount.value = event.detail.directoryComponentCount
+      }
+    }
+  }
+}
 const isAnalyzing = ref(false)
 const diagramError = ref(null)
 const nexaDiagramRef = ref(null)
@@ -184,10 +210,15 @@ watch(
 
 onMounted(() => {
   window.addEventListener('component-library-category-selected', handleCategorySelected)
+  window.addEventListener('component-library-statistics-updated', handleStatisticsUpdate)
+  
+  // 마운트 시 통계 요청
+  window.dispatchEvent(new CustomEvent('component-library-statistics-request'))
 })
 
 onUnmounted(() => {
   window.removeEventListener('component-library-category-selected', handleCategorySelected)
+  window.removeEventListener('component-library-statistics-updated', handleStatisticsUpdate)
 })
 </script>
 

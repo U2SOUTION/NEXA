@@ -166,6 +166,56 @@ const componentLibrarySelectedViolation = ref(null)
 const componentLibrarySearchQuery = ref('')
 const componentLibraryDepth = ref(2) // 기본값: 2단계
 
+// 통계 계산 및 전달 함수
+function updateComponentLibraryStatistics() {
+  const categories = componentLibraryCategories.value
+  const manualCategories = componentLibraryManualCategories.value
+
+  // 모든 컴포넌트 수집
+  const allComponents = categories.flatMap((cat) => cat.components || [])
+
+  // 통계 데이터 계산
+  const totalComponents = allComponents.length
+  const scannedComponents = allComponents.length // 스캔된 컴포넌트 = 전체 컴포넌트
+  const systemsCount = manualCategories.length
+  const systemsComponentCount = manualCategories.reduce((sum, cat) => {
+    // 하위 카테고리의 컴포넌트도 포함
+    function countComponents(category) {
+      let count = category.components?.length || 0
+      if (category.subcategories) {
+        count += category.subcategories.reduce((subSum, subCat) => subSum + countComponents(subCat), 0)
+      }
+      return count
+    }
+    return sum + countComponents(cat)
+  }, 0)
+  const directoryCategoryCount = categories.length
+  const directoryComponentCount = allComponents.length
+
+  // 통계 업데이트 이벤트 전달
+  window.dispatchEvent(
+    new CustomEvent('component-library-statistics-updated', {
+      detail: {
+        totalComponents,
+        scannedComponents,
+        systemsCount,
+        systemsComponentCount,
+        directoryCategoryCount,
+        directoryComponentCount,
+      },
+    }),
+  )
+
+  console.log('[DevSidebar] 통계 업데이트:', {
+    totalComponents,
+    scannedComponents,
+    systemsCount,
+    systemsComponentCount,
+    directoryCategoryCount,
+    directoryComponentCount,
+  })
+}
+
 // 테마 관리 테마 변경 핸들러
 function handleThemeManagerThemeChange(themeValue) {
   const $q = useQuasar()
@@ -440,6 +490,9 @@ async function handleComponentLibraryRefresh() {
     componentLibraryManualCategories.value = manualCategories
 
     console.log('[DevSidebar] 컴포넌트 스캔 완료:', categories.length, '개 카테고리 (자동),', manualCategories.length, '개 카테고리 (수동)')
+
+    // 통계 업데이트 (watch가 자동으로 호출하지만, 명시적으로 호출하여 즉시 업데이트)
+    updateComponentLibraryStatistics()
   } catch (error) {
     console.error('[DevSidebar] 컴포넌트 스캔 중 오류:', error)
   }
@@ -826,6 +879,18 @@ watch(
   { immediate: true },
 )
 
+// 컴포넌트 라이브러리 카테고리 변경 시 통계 업데이트
+watch(
+  [() => componentLibraryCategories.value, () => componentLibraryManualCategories.value],
+  () => {
+    // 카테고리 데이터가 있을 때만 통계 업데이트
+    if (componentLibraryCategories.value.length > 0 || componentLibraryManualCategories.value.length > 0) {
+      updateComponentLibraryStatistics()
+    }
+  },
+  { deep: true },
+)
+
 // 데이터베이스 뷰어 새로고침 이벤트 리스너
 function handleDatabaseViewerRefreshEvent() {
   console.log('[DevSidebar] database-viewer-refresh 이벤트 수신')
@@ -862,15 +927,25 @@ onMounted(() => {
   // 데이터베이스 뷰어 새로고침 이벤트 리스너 등록
   window.addEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
 
+  // 컴포넌트 라이브러리 통계 요청 이벤트 리스너 등록
+  window.addEventListener('component-library-statistics-request', handleStatisticsRequest)
+
   // 컴포넌트 라이브러리 초기 스캔
   initializeComponentLibrary()
 
   // 이후 변경사항은 handleActiveMenuChange로 처리 (이미 등록되어 있음)
 })
 
+// 통계 요청 이벤트 리스너
+function handleStatisticsRequest() {
+  // 현재 통계를 즉시 전달
+  updateComponentLibraryStatistics()
+}
+
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
 onUnmounted(() => {
   window.removeEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
+  window.removeEventListener('component-library-statistics-request', handleStatisticsRequest)
 })
 </script>
 

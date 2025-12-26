@@ -170,13 +170,23 @@ const taxonomy = componentTaxonomy
 // 선택된 차원 ID (왼쪽 사이드바에서 선택)
 const selectedDimensionId = ref(null)
 
-// 통계 데이터 (임시)
+// 통계 데이터 (실제 데이터 계산)
 const statistics = computed(() => {
-  // TODO: 실제 통계 데이터로 교체
+  // 차원 수
+  const totalDimensions = taxonomy.dimensions.length
+
+  // 전체 카테고리 수 (모든 차원의 카테고리 합산)
+  const totalCategories = taxonomy.dimensions.reduce((sum, dimension) => {
+    return sum + (dimension.categories?.length || 0)
+  }, 0)
+
+  // 평가된 컴포넌트 수 (현재는 0, 추후 규칙 검사 시스템 구현 시 업데이트)
+  const evaluatedComponents = 0
+
   return {
-    totalDimensions: { label: '분류 차원', value: '6', description: '6가지 분류 차원' },
-    totalCategories: { label: '카테고리 수', value: '0', description: '전체 분류 카테고리' },
-    evaluatedComponents: { label: '평가된 컴포넌트', value: '0', description: '적합성 평가 완료' },
+    totalDimensions: { label: '분류 차원', value: String(totalDimensions), description: `${totalDimensions}가지 분류 차원` },
+    totalCategories: { label: '카테고리 수', value: String(totalCategories), description: '전체 분류 카테고리' },
+    evaluatedComponents: { label: '평가된 컴포넌트', value: String(evaluatedComponents), description: '적합성 평가 완료' },
   }
 })
 

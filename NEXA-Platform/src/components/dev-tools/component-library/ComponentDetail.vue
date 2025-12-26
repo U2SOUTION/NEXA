@@ -105,14 +105,29 @@ const $q = useQuasar()
 const selectedComponent = ref(null)
 const selectedViolation = ref(null)
 
-// 통계 데이터 (임시)
+// 통계 데이터 상태
+const totalComponentCount = ref(0)
+const scannedComponentCount = ref(0)
+
+// 통계 데이터
 const statistics = computed(() => {
-  // TODO: 실제 통계 데이터로 교체
   return {
-    totalComponents: { label: '전체 컴포넌트', value: '0', description: '프로젝트 내 모든 Vue 컴포넌트' },
-    scannedComponents: { label: '스캔된 컴포넌트', value: '0', description: '자동 스캔으로 발견된 컴포넌트' },
+    totalComponents: { label: '전체 컴포넌트', value: String(totalComponentCount.value), description: '프로젝트 내 모든 Vue 컴포넌트' },
+    scannedComponents: { label: '스캔된 컴포넌트', value: String(scannedComponentCount.value), description: '자동 스캔으로 발견된 컴포넌트' },
   }
 })
+
+// 통계 업데이트 이벤트 리스너
+function handleStatisticsUpdate(event) {
+  if (event.detail) {
+    if (event.detail.totalComponents !== undefined) {
+      totalComponentCount.value = event.detail.totalComponents
+    }
+    if (event.detail.scannedComponents !== undefined) {
+      scannedComponentCount.value = event.detail.scannedComponents
+    }
+  }
+}
 
 function handleComponentSelected(event) {
   selectedComponent.value = event.detail.component
@@ -156,11 +171,16 @@ onMounted(() => {
   console.log('[ComponentDetail] 마운트됨')
   window.addEventListener('component-library-component-selected', handleComponentSelected)
   window.addEventListener('component-library-violation-selected', handleViolationSelected)
+  window.addEventListener('component-library-statistics-updated', handleStatisticsUpdate)
+  
+  // 마운트 시 통계 요청
+  window.dispatchEvent(new CustomEvent('component-library-statistics-request'))
 })
 
 onUnmounted(() => {
   window.removeEventListener('component-library-component-selected', handleComponentSelected)
   window.removeEventListener('component-library-violation-selected', handleViolationSelected)
+  window.removeEventListener('component-library-statistics-updated', handleStatisticsUpdate)
 })
 </script>
 
