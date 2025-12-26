@@ -5,7 +5,7 @@
  * 모든 에러를 자동으로 수집합니다.
  */
 
-import { addError } from './errorStorage.js'
+// import { addError } from './errorStorage.js' // useErrorTracking에서 이벤트로 처리하므로 제거
 
 let isInitialized = false
 let isCollecting = true
@@ -88,10 +88,8 @@ function collectError(errorData) {
       normalizedError.count = 1
     }
 
-    // 에러 저장
-    addError(normalizedError)
-
-    // 이벤트 전달 (UI 업데이트용)
+    // 에러 저장은 useErrorTracking의 handleErrorCollected에서 처리
+    // 여기서는 이벤트만 발생시켜 useErrorTracking이 처리하도록 함
     window.dispatchEvent(
       new CustomEvent('error-tracking-error-collected', {
         detail: { error: normalizedError },

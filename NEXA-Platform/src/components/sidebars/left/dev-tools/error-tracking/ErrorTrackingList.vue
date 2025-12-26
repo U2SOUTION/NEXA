@@ -23,47 +23,40 @@
 
       <!-- 에러 목록 -->
       <q-list v-else separator>
-      <q-item
-        v-for="error in filteredErrors"
-        :key="error.id"
-        clickable
-        :active="selectedError?.id === error.id"
-        active-class="error-item-active"
-        @click="handleErrorSelect(error)"
-      >
-        <q-item-section avatar>
-          <q-icon :name="getErrorIcon(error.level)" :color="getErrorColor(error.level)" />
-        </q-item-section>
+        <q-item v-for="error in filteredErrors" :key="error.id" clickable :active="isErrorSelected(error)" active-class="error-item-active" :class="{ 'error-item-selected': isErrorSelected(error) }" @click="handleErrorSelect(error)">
+          <q-item-section avatar>
+            <q-icon :name="getErrorIcon(error.level)" :color="getErrorColor(error.level)" />
+          </q-item-section>
 
-        <q-item-section>
-          <q-item-label class="error-message">{{ error.message || '에러 메시지 없음' }}</q-item-label>
-          <q-item-label caption class="error-meta">
-            <span v-if="error.file">{{ getFileName(error.file) }}</span>
-            <span v-if="error.line" class="q-ml-sm">라인 {{ error.line }}</span>
-            <span v-if="error.count > 1" class="q-ml-sm text-negative">({{ error.count }}회)</span>
-          </q-item-label>
-          <q-item-label caption class="error-time">
-            {{ formatTime(error.timestamp) }}
-          </q-item-label>
-        </q-item-section>
+          <q-item-section>
+            <q-item-label class="error-message">{{ error.message || '에러 메시지 없음' }}</q-item-label>
+            <q-item-label caption class="error-meta">
+              <span v-if="error.file">{{ getFileName(error.file) }}</span>
+              <span v-if="error.line" class="q-ml-sm">라인 {{ error.line }}</span>
+              <span v-if="error.count > 1" class="q-ml-sm text-negative">({{ error.count }}회)</span>
+            </q-item-label>
+            <q-item-label caption class="error-time">
+              {{ formatTime(error.timestamp) }}
+            </q-item-label>
+          </q-item-section>
 
-        <q-item-section side>
-          <q-chip v-if="error.status === 'new'" color="negative" text-color="white" size="sm" label="신규" />
-          <q-chip v-else-if="error.status === 'resolved'" color="positive" text-color="white" size="sm" label="해결" />
-          <q-chip v-else-if="error.status === 'ignored'" color="grey" text-color="white" size="sm" label="무시" />
-          <q-icon name="chevron_right" color="grey-7" class="q-ml-sm" />
-        </q-item-section>
-      </q-item>
+          <q-item-section side>
+            <q-chip v-if="error.status === 'new'" color="negative" text-color="white" size="sm" label="신규" />
+            <q-chip v-else-if="error.status === 'resolved'" color="positive" text-color="white" size="sm" label="해결" />
+            <q-chip v-else-if="error.status === 'ignored'" color="grey" text-color="white" size="sm" label="무시" />
+            <q-icon name="chevron_right" color="grey-7" class="q-ml-sm" />
+          </q-item-section>
+        </q-item>
 
-      <!-- 에러가 없을 때 -->
-      <div v-if="filteredErrors.length === 0" class="empty-section q-pa-lg text-center">
-        <q-icon name="bug_report" size="48px" color="grey-7" class="q-mb-md" />
-        <div class="text-body2 text-grey-7">
-          <span v-if="searchQuery">검색 결과가 없습니다.</span>
-          <span v-else>에러가 없습니다.</span>
+        <!-- 에러가 없을 때 -->
+        <div v-if="filteredErrors.length === 0" class="empty-section q-pa-lg text-center">
+          <q-icon name="bug_report" size="48px" color="grey-7" class="q-mb-md" />
+          <div class="text-body2 text-grey-7">
+            <span v-if="searchQuery">검색 결과가 없습니다.</span>
+            <span v-else>에러가 없습니다.</span>
+          </div>
         </div>
-      </div>
-    </q-list>
+      </q-list>
     </q-scroll-area>
   </div>
 </template>
@@ -184,6 +177,37 @@ function formatTime(timestamp) {
   })
 }
 
+// 에러가 선택되었는지 확인
+function isErrorSelected(error) {
+  // selectedError가 없으면 false
+  if (!props.selectedError) {
+    return false
+  }
+
+  // error가 없으면 false
+  if (!error) {
+    return false
+  }
+
+  // 둘 다 ID가 있으면 ID로 비교
+  if (props.selectedError.id && error.id) {
+    return String(props.selectedError.id) === String(error.id)
+  }
+
+  // ID가 없으면 메시지, 레벨, 타임스탬프로 비교 (fallback)
+  if (props.selectedError.message === error.message && props.selectedError.level === error.level) {
+    // 타임스탬프가 있으면 1초 오차 허용
+    if (props.selectedError.timestamp && error.timestamp) {
+      const timeDiff = Math.abs(props.selectedError.timestamp - error.timestamp)
+      return timeDiff < 1000
+    }
+    // 타임스탬프가 없으면 메시지와 레벨만으로 비교
+    return true
+  }
+
+  return false
+}
+
 // 에러 선택
 function handleErrorSelect(error) {
   emit('error-selected', error)
@@ -265,6 +289,15 @@ function handleErrorSelect(error) {
   background-color: var(--nexa-surface-hover);
 }
 
+.error-item-selected {
+  background-color: var(--nexa-surface-hover);
+}
+
+// Quasar q-item의 active 상태 스타일 강제 적용
+:deep(.q-item.q-item--active) {
+  background-color: var(--nexa-surface-hover);
+}
+
 .error-message {
   font-weight: 500;
   color: var(--nexa-text-primary);
@@ -284,4 +317,3 @@ function handleErrorSelect(error) {
   margin-top: 2px;
 }
 </style>
-

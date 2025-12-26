@@ -139,6 +139,30 @@ export function useErrorTracking() {
     try {
       // localStorage에서 에러 데이터 로드
       const loadedErrors = loadErrors()
+      
+      // ID가 없는 오래된 에러에 ID 생성 (마이그레이션)
+      let hasChanges = false
+      loadedErrors.forEach((error) => {
+        if (!error.id) {
+          error.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+          hasChanges = true
+        }
+        // 기본값 설정
+        if (!error.status) {
+          error.status = 'new'
+          hasChanges = true
+        }
+        if (!error.count) {
+          error.count = 1
+          hasChanges = true
+        }
+      })
+      
+      // 변경사항이 있으면 저장
+      if (hasChanges) {
+        saveErrors(loadedErrors)
+      }
+      
       errors.value = loadedErrors
       console.log('[useErrorTracking] 에러 목록 새로고침 완료:', loadedErrors.length, '개')
     } catch (error) {
@@ -195,10 +219,48 @@ export function useErrorTracking() {
    * 에러 선택
    */
   function selectError(error) {
-    selectedError.value = error
+    if (!error) {
+      selectedError.value = null
+      return
+    }
+
+    // ID로 최신 에러 객체를 찾아서 할당 (참조 동기화)
+    if (error.id) {
+      const latestError = errors.value.find((e) => e.id === error.id)
+      if (latestError) {
+        selectedError.value = latestError
+      } else {
+        // ID로 찾지 못했으면 메시지, 레벨, 타임스탬프로 찾기
+        const foundError = errors.value.find((e) => {
+          if (e.message === error.message && e.level === error.level) {
+            if (e.timestamp && error.timestamp) {
+              const timeDiff = Math.abs(e.timestamp - error.timestamp)
+              return timeDiff < 1000
+            }
+            return true
+          }
+          return false
+        })
+        selectedError.value = foundError || error
+      }
+    } else {
+      // ID가 없으면 메시지, 레벨, 타임스탬프로 찾기
+      const foundError = errors.value.find((e) => {
+        if (e.message === error.message && e.level === error.level) {
+          if (e.timestamp && error.timestamp) {
+            const timeDiff = Math.abs(e.timestamp - error.timestamp)
+            return timeDiff < 1000
+          }
+          return true
+        }
+        return false
+      })
+      selectedError.value = foundError || error
+    }
+
     window.dispatchEvent(
       new CustomEvent('error-tracking-error-selected', {
-        detail: { error },
+        detail: { error: selectedError.value },
       }),
     )
   }
@@ -248,6 +310,12 @@ export function useErrorTracking() {
       error.status = status
       updateErrorStorage(errorId, { status })
       saveErrors(errors.value)
+
+      // selectedError도 동기화
+      if (selectedError.value && selectedError.value.id === errorId) {
+        selectedError.value = error
+      }
+
       window.dispatchEvent(
         new CustomEvent('error-tracking-statistics-updated', {
           detail: statistics.value,
@@ -373,6 +441,15 @@ export function useErrorTracking() {
     })
 
     saveErrors(errors.value)
+
+    // selectedError도 동기화 (업데이트된 에러 중 하나가 선택된 에러인 경우)
+    if (selectedError.value) {
+      const updatedSelectedError = errors.value.find((e) => e.id === selectedError.value.id)
+      if (updatedSelectedError) {
+        selectedError.value = updatedSelectedError
+      }
+    }
+
     window.dispatchEvent(
       new CustomEvent('error-tracking-statistics-updated', {
         detail: statistics.value,
@@ -539,9 +616,37 @@ export function useErrorTracking() {
         newError.count = 1
       }
 
-      // 에러 목록에 추가
-      errors.value.unshift(newError)
-      saveErrors(errors.value)
+      // 중복 체크: 유사한 에러가 이미 있는지 확인
+      const existingError = errors.value.find((e) => {
+        // ID가 같으면 같은 에러
+        if (e.id && newError.id && e.id === newError.id) {
+          return true
+        }
+        // 유사도로 확인 (areErrorsSimilar 사용)
+        return areErrorsSimilar(e, newError)
+      })
+
+      if (existingError) {
+        // 기존 에러의 카운트 증가 및 타임스탬프 업데이트
+        existingError.count = (existingError.count || 1) + 1
+        existingError.timestamp = newError.timestamp // 최신 발생 시간으로 업데이트
+
+        // 상태가 'new'가 아니면 유지 (해결/무시된 에러는 상태 유지)
+        if (existingError.status === 'new') {
+          existingError.status = 'new'
+        }
+
+        // 저장소 업데이트
+        updateErrorStorage(existingError.id, {
+          count: existingError.count,
+          timestamp: existingError.timestamp,
+        })
+        saveErrors(errors.value)
+      } else {
+        // 새로운 에러로 추가
+        errors.value.unshift(newError)
+        saveErrors(errors.value)
+      }
 
       // 통계 업데이트
       window.dispatchEvent(
