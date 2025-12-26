@@ -2105,6 +2105,46 @@ const databaseSchemaRouter = createDatabaseSchemaRouter(() => dbConnection)
 app.use('/api/db', databaseSchemaRouter)
 console.log('[DB Schema] 라우터 등록 완료: /api/db')
 
+// ============================================
+// 관리자 설정 API
+// ============================================
+
+// GET /api/admin/sidebar-settings - 사이드바 관리자 설정 조회
+app.get('/api/admin/sidebar-settings', async (req, res) => {
+  try {
+    // 현재는 빈 객체 반환 (나중에 데이터베이스나 파일에서 로드 가능)
+    // 클라이언트는 로컬 스토리지를 사용하므로 빈 객체로 응답
+    res.json({})
+  } catch (error) {
+    console.error('[GET /api/admin/sidebar-settings] 설정 조회 실패:', error)
+    res.status(500).json({
+      success: false,
+      error: '설정 조회 실패',
+      message: error.message,
+    })
+  }
+})
+
+// POST /api/admin/sidebar-settings - 사이드바 관리자 설정 저장
+app.post('/api/admin/sidebar-settings', async (req, res) => {
+  try {
+    const settings = req.body
+    // 현재는 저장하지 않음 (나중에 데이터베이스나 파일에 저장 가능)
+    // 클라이언트는 로컬 스토리지를 사용하므로 성공 응답만 반환
+    res.json({
+      success: true,
+      message: '설정이 저장되었습니다.',
+    })
+  } catch (error) {
+    console.error('[POST /api/admin/sidebar-settings] 설정 저장 실패:', error)
+    res.status(500).json({
+      success: false,
+      error: '설정 저장 실패',
+      message: error.message,
+    })
+  }
+})
+
 // 데이터베이스 스키마 API (데이터베이스 연결 후 등록)
 // startServer() 함수 내에서 connectDB() 후에 등록됨
 
@@ -2170,7 +2210,7 @@ async function startServer() {
     connectDB().catch((error) => {
       console.warn('[DB Schema] 데이터베이스 연결 실패 (재시도 중):', error.message)
     })
-    
+
     await initializeUploadFolder()
 
     const server = app.listen(PORT, () => {
