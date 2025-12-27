@@ -17,44 +17,25 @@ const ERROR_RETENTION_DAYS = 30 // 에러 보관 기간 (일)
 export function loadErrors() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    console.log('[errorStorage] localStorage에서 데이터 로드 시도:', {
-      hasStored: !!stored,
-      storedLength: stored ? stored.length : 0,
-      storageKey: STORAGE_KEY,
-    })
 
     if (!stored) {
-      console.log('[errorStorage] 저장된 데이터 없음, 빈 배열 반환')
       return []
     }
 
     let errors
     try {
       errors = JSON.parse(stored)
-      console.log('[errorStorage] 파싱 성공:', {
-        type: typeof errors,
-        isArray: Array.isArray(errors),
-        length: Array.isArray(errors) ? errors.length : 'N/A',
-        preview: Array.isArray(errors) && errors.length > 0 ? errors[0] : 'empty',
-      })
     } catch (parseError) {
-      console.error('[errorStorage] JSON 파싱 실패:', parseError, {
-        storedPreview: stored.substring(0, 200),
-        storedLength: stored.length,
-      })
+      console.error('[errorStorage] JSON 파싱 실패:', parseError)
       return []
     }
 
     if (!Array.isArray(errors)) {
-      console.error('[errorStorage] 파싱된 데이터가 배열이 아닙니다:', {
-        type: typeof errors,
-        value: errors,
-      })
+      console.error('[errorStorage] 파싱된 데이터가 배열이 아닙니다')
       return []
     }
 
     if (errors.length === 0) {
-      console.log('[errorStorage] 에러 목록이 비어있습니다')
       return []
     }
 
@@ -64,33 +45,19 @@ export function loadErrors() {
 
     const filteredErrors = errors.filter((error) => {
       if (!error.timestamp) {
-        console.warn('[errorStorage] 타임스탬프가 없는 에러:', error.id || error.message)
         return false // 타임스탬프가 없으면 제외
       }
 
       const errorTime = new Date(error.timestamp).getTime()
       if (isNaN(errorTime)) {
-        console.warn('[errorStorage] 유효하지 않은 타임스탬프:', error.timestamp, error.id || error.message)
         return false
       }
 
-      const isRecent = now - errorTime < retentionTime
-      if (!isRecent) {
-        console.log('[errorStorage] 오래된 에러 필터링됨:', {
-          id: error.id,
-          message: error.message,
-          timestamp: error.timestamp,
-          age: Math.floor((now - errorTime) / (24 * 60 * 60 * 1000)) + '일 전',
-        })
-      }
-      return isRecent
+      return now - errorTime < retentionTime
     })
-
-    console.log('[errorStorage] 필터링 후 에러 개수:', filteredErrors.length, '/', errors.length)
 
     // 필터링된 에러가 다르면 저장
     if (filteredErrors.length !== errors.length) {
-      console.log('[errorStorage] 오래된 에러 제거 후 저장')
       saveErrors(filteredErrors)
     }
 
@@ -115,21 +82,7 @@ export function saveErrors(errors) {
     // 최대 개수 제한
     const limitedErrors = errors.slice(0, MAX_ERRORS)
 
-    console.log('[errorStorage] 에러 저장 시도:', {
-      count: limitedErrors.length,
-      storageKey: STORAGE_KEY,
-    })
-
     localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedErrors))
-
-    // 저장 확인
-    const saved = localStorage.getItem(STORAGE_KEY)
-    const savedCount = saved ? JSON.parse(saved).length : 0
-    console.log('[errorStorage] 에러 저장 완료:', {
-      savedCount,
-      expectedCount: limitedErrors.length,
-      match: savedCount === limitedErrors.length,
-    })
   } catch (error) {
     console.error('[errorStorage] 에러 저장 실패:', error)
 
@@ -138,7 +91,6 @@ export function saveErrors(errors) {
       const halfErrors = errors.slice(Math.floor(errors.length / 2))
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(halfErrors))
-        console.log('[errorStorage] 용량 초과로 인한 재시도 저장 완료')
       } catch (retryError) {
         console.error('[errorStorage] 재시도 저장 실패:', retryError)
       }
@@ -230,6 +182,5 @@ export function cleanupOldErrors() {
 
   if (filteredErrors.length !== errors.length) {
     saveErrors(filteredErrors)
-    console.log(`[errorStorage] 오래된 에러 ${errors.length - filteredErrors.length}개 정리됨`)
   }
 }

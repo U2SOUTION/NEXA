@@ -128,11 +128,8 @@
               <q-btn flat dense :icon="ignoredButtonIcon" :label="ignoredButtonLabel" @click="handleIgnored" />
               <q-btn flat dense icon="delete" label="삭제" @click="handleDelete" />
               <q-separator vertical />
-              <q-btn flat dense icon="content_copy" label="전체 정보 복사" @click="copyToClipboard">
+              <q-btn flat dense icon="content_copy" label="정보 복사" @click="copyToClipboard">
                 <q-tooltip>에러의 전체 정보를 상세한 형식으로 클립보드에 복사합니다</q-tooltip>
-              </q-btn>
-              <q-btn flat dense icon="code" label="기본 정보 복사" @click="handleCopyErrorInfo">
-                <q-tooltip>에러의 핵심 정보만 간단한 형식으로 클립보드에 복사합니다</q-tooltip>
               </q-btn>
             </div>
 
@@ -434,6 +431,9 @@ import NexaChart from 'src/charts/NexaChart.vue'
 import * as d3 from 'd3'
 import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
 import { classifyErrorType, getErrorIcon, getErrorColor, getErrorTypeLabel, getErrorTypeChartLabel } from 'src/utils/error-tracking/errorTypeClassifier.js'
+import { normalizeFilePathForAI, normalizeStackForAI } from 'src/utils/error-tracking/pathNormalizer.js'
+import { formatTimeRelative, formatTimeAbsolute, formatTime, formatDuration } from 'src/utils/error-tracking/timeFormatter.js'
+import { copyTextToClipboard } from 'src/utils/clipboard.js'
 
 const $q = useQuasar()
 
@@ -524,17 +524,15 @@ function loadBatchOptions() {
         try {
           const oldData = localStorage.getItem(oldKey)
           if (oldData) {
-            console.log(`[ErrorTracking] 기존 배치 옵션 키에서 데이터 발견: ${oldKey}`)
             // 새 키로 저장
             localStorage.setItem(BATCH_OPTIONS_STORAGE_KEY, oldData)
             // 기존 키 삭제
             localStorage.removeItem(oldKey)
-            console.log(`[ErrorTracking] 배치 옵션 마이그레이션 완료: ${BATCH_OPTIONS_STORAGE_KEY}`)
             saved = oldData
             break
           }
-        } catch (error) {
-          console.warn(`[ErrorTracking] 기존 배치 옵션 키 마이그레이션 실패 (${oldKey}):`, error)
+        } catch {
+          // 마이그레이션 실패 시 무시
         }
       }
     }
@@ -547,8 +545,8 @@ function loadBatchOptions() {
         deleted: parsed.deleted ?? true,
       }
     }
-  } catch (error) {
-    console.warn('[ErrorTracking] 저장된 체크박스 상태 불러오기 실패:', error)
+  } catch {
+    // 저장된 상태 불러오기 실패 시 기본값 사용
   }
   // 저장된 값이 없으면 기본값 true
   return {
@@ -565,8 +563,8 @@ const batchOptions = ref(loadBatchOptions())
 function saveBatchOptions() {
   try {
     localStorage.setItem(BATCH_OPTIONS_STORAGE_KEY, JSON.stringify(batchOptions.value))
-  } catch (error) {
-    console.warn('[ErrorTracking] 체크박스 상태 저장 실패:', error)
+  } catch {
+    // 체크박스 상태 저장 실패 시 무시
   }
 }
 
@@ -597,30 +595,21 @@ function handleErrorSelected(event) {
 // 통계 업데이트 이벤트 리스너
 function handleStatisticsUpdated(event) {
   statistics.value = event.detail
-  console.log('[ErrorTrackingContent] 통계 업데이트:', statistics.value)
 }
 
 // 에러 목록 업데이트 이벤트 리스너
 function handleErrorsUpdated(event) {
   const eventErrors = event.detail.errors || event.detail || []
-  console.log('[ErrorTrackingContent] 에러 목록 업데이트 이벤트 수신:', eventErrors.length, '개')
-  console.log('[ErrorTrackingContent] 현재 errors.value.length:', errors.value.length)
 
   // errors 배열 업데이트
   if (Array.isArray(eventErrors)) {
     errors.value = eventErrors
-    console.log('[ErrorTrackingContent] errors.value 업데이트 완료:', errors.value.length, '개')
-  } else {
-    console.warn('[ErrorTrackingContent] 이벤트 데이터가 배열이 아닙니다:', eventErrors)
   }
 }
 
 // 에러 발생 추이 차트 데이터 (최근 7일)
 const errorTrendChartData = computed(() => {
-  console.log('[차트 데이터] errorTrendChartData 계산 시작, errors.value.length:', errors.value.length)
-
   if (errors.value.length === 0) {
-    console.log('[차트 데이터] errorTrendChartData: errors가 비어있음')
     return []
   }
 
@@ -647,16 +636,12 @@ const errorTrendChartData = computed(() => {
     })
   }
 
-  console.log('[차트 데이터] errorTrendChartData 생성 완료:', data.length, '개 데이터 포인트', data)
   return data
 })
 
 // 에러 유형별 분포 차트 데이터
 const errorTypeChartData = computed(() => {
-  console.log('[차트 데이터] errorTypeChartData 계산 시작, errors.value.length:', errors.value.length)
-
   if (errors.value.length === 0) {
-    console.log('[차트 데이터] errorTypeChartData: errors가 비어있음')
     return []
   }
 
@@ -684,7 +669,6 @@ const errorTypeChartData = computed(() => {
       y: count,
     }))
 
-  console.log('[차트 데이터] errorTypeChartData 생성 완료:', result.length, '개 데이터 포인트', result)
   return result
 })
 
@@ -692,23 +676,6 @@ const errorTypeChartData = computed(() => {
 const diagramData = computed(() => {
   if (errors.value.length === 0) {
     return { nodes: [], edges: [] }
-  }
-
-  // 🔍 디버깅: 파일 정보 확인
-  const filesWithInfo = errors.value.filter((e) => e.file).length
-  const filesWithoutInfo = errors.value.filter((e) => !e.file).length
-  console.log('=== 다이어그램 데이터 확인 ===')
-  console.log('전체 에러 개수:', errors.value.length)
-  console.log('파일 정보 있는 에러:', filesWithInfo)
-  console.log('파일 정보 없는 에러:', filesWithoutInfo)
-  if (filesWithInfo > 0) {
-    console.log(
-      '파일 정보 샘플:',
-      errors.value
-        .filter((e) => e.file)
-        .slice(0, 5)
-        .map((e) => e.file),
-    )
   }
 
   // 파일별로 에러 그룹화
@@ -721,16 +688,6 @@ const diagramData = computed(() => {
     fileErrors[file].push(error)
   })
 
-  // 🔍 디버깅: 그룹화 결과 확인
-  console.log('파일별 그룹화 결과:', Object.keys(fileErrors))
-  console.log('그룹화된 파일 개수:', Object.keys(fileErrors).length)
-  if (Object.keys(fileErrors).length > 0) {
-    console.log(
-      '각 파일별 에러 개수:',
-      Object.entries(fileErrors).map(([file, list]) => ({ file, count: list.length })),
-    )
-  }
-
   // 노드 생성 (파일별, 최대 20개)
   const fileEntries = Object.entries(fileErrors).slice(0, 20)
   const nodes = fileEntries.map(([file, fileErrorList], index) => ({
@@ -740,10 +697,6 @@ const diagramData = computed(() => {
     count: fileErrorList.length,
     file: file,
   }))
-
-  // 🔍 디버깅: 생성된 노드 확인
-  console.log('생성된 노드 개수:', nodes.length)
-  console.log('생성된 노드 정보:', nodes)
 
   // 에지 생성 (파일 간 연관성 - 같은 에러 메시지를 가진 파일들)
   const edges = []
@@ -775,26 +728,6 @@ const diagramData = computed(() => {
       }
     }
   })
-
-  // 🔍 디버깅: 에지 생성 결과 확인
-  console.log('생성된 에지 개수:', edges.length)
-  if (edges.length > 0) {
-    console.log('생성된 에지 정보:', edges)
-  } else {
-    console.log('에지가 생성되지 않은 이유: 같은 메시지를 가진 파일이 2개 이상 없음')
-    console.log(
-      '메시지별 파일 매핑:',
-      Object.entries(messageToFiles).map(([msg, files]) => ({
-        message: msg.substring(0, 50),
-        files: Array.from(files),
-        fileCount: files.size,
-      })),
-    )
-  }
-
-  console.log('=== 다이어그램 데이터 생성 완료 ===')
-  console.log('최종 노드:', nodes.length, '개')
-  console.log('최종 에지:', edges.length, '개')
 
   return { nodes, edges }
 })
@@ -970,79 +903,6 @@ function getStatusLabel(status) {
   }
 }
 
-// 상대 시간 포맷팅 (몇 분 전)
-function formatTimeRelative(timestamp) {
-  if (!timestamp) return ''
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now - date
-
-  // 1분 이내
-  if (diff < 60000) {
-    return '방금 전'
-  }
-
-  // 1시간 이내
-  if (diff < 3600000) {
-    return `${Math.floor(diff / 60000)}분 전`
-  }
-
-  // 24시간 이내
-  if (diff < 86400000) {
-    return `${Math.floor(diff / 3600000)}시간 전`
-  }
-
-  // 7일 이내
-  if (diff < 604800000) {
-    return `${Math.floor(diff / 86400000)}일 전`
-  }
-
-  return ''
-}
-
-// 절대 시간 포맷팅 (원본 시간)
-function formatTimeAbsolute(timestamp) {
-  if (!timestamp) return ''
-  const date = new Date(timestamp)
-  return date.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
-
-// 시간 포맷팅 (기존 호환성 유지)
-function formatTime(timestamp) {
-  if (!timestamp) return ''
-  const relative = formatTimeRelative(timestamp)
-  if (relative) {
-    return relative
-  }
-  return formatTimeAbsolute(timestamp)
-}
-
-// 기간 포맷팅 (발생 기간 계산)
-function formatDuration(timestamp) {
-  if (!timestamp) return ''
-  const now = Date.now()
-  const diff = now - timestamp
-
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-
-  if (days > 0) {
-    return `${days}일 ${hours}시간`
-  } else if (hours > 0) {
-    return `${hours}시간 ${minutes}분`
-  } else {
-    return `${minutes}분`
-  }
-}
-
 // 유사한 에러 개수 계산
 const similarErrorsCount = computed(() => {
   if (!selectedError.value) {
@@ -1069,180 +929,6 @@ if (import.meta.env.DEV) {
 }
 
 // Phase 1: 임시 핸들러 함수 (기능 없음, UI만 구성)
-
-// 상단: 에러 기본 정보 복사 (일반적인 에러 정보)
-function handleCopyErrorInfo() {
-  if (!selectedError.value) {
-    $q.notify({
-      type: 'warning',
-      message: '복사할 에러가 선택되지 않았습니다.',
-      position: 'top',
-      timeout: 2000,
-    })
-    return
-  }
-
-  const error = selectedError.value
-
-  // FILE 경로 정규화
-  const normalizedFilePath = normalizeFilePathForAI(error.file)
-
-  // STACK 정규화 (내부 경로 변환)
-  const normalizedStack = normalizeStackForAI(error.stack)
-
-  let text = `에러 기본 정보\n`
-  text += `==========\n\n`
-  text += `메시지: ${error.message || '없음'}\n`
-  text += `레벨: ${error.level || '없음'}\n`
-  text += `상태: ${error.status || '없음'}\n`
-  text += `발생 횟수: ${error.count || 1}회\n`
-  text += `발생 시간: ${formatTime(error.timestamp)}\n\n`
-
-  if (normalizedFilePath && normalizedFilePath !== 'unknown') {
-    text += `발생 위치: ${normalizedFilePath}`
-    if (error.line) text += `:${error.line}`
-    if (error.column) text += `:${error.column}`
-    text += `\n`
-  }
-
-  if (normalizedStack && normalizedStack !== '없음') {
-    text += `\n스택 트레이스:\n${normalizedStack}`
-  }
-
-  copyTextToClipboard(text)
-  $q.notify({
-    type: 'positive',
-    message: '에러 정보가 클립보드에 복사되었습니다.',
-    position: 'top',
-    timeout: 2000,
-  })
-}
-
-// 가상 경로 체크 (.q-cache, chunk- 등 Vite/Quasar 캐시 경로)
-function isVirtualPath(path) {
-  if (!path) return false
-  return path.includes('/.q-cache/') || path.includes('/chunk-') || path.includes('/node_modules/.q-cache/') || /\/node_modules\/[^/]+\/chunk-/.test(path)
-}
-
-// URL 경로 정규화 (공통 함수)
-function normalizeUrlPath(urlPath, options = {}) {
-  const { preserveVirtual = true, removeQuery = true } = options
-
-  if (!urlPath) return urlPath
-
-  let normalized = urlPath
-
-  // 쿼리 파라미터 제거
-  if (removeQuery && normalized.includes('?')) {
-    normalized = normalized.split('?')[0]
-  }
-
-  // 가상 경로인 경우 원본 URL 유지
-  if (preserveVirtual && isVirtualPath(normalized)) {
-    return normalized
-  }
-
-  // src/ 경로 정규화
-  if (normalized.includes('/src/')) {
-    return normalized.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
-  }
-
-  // node_modules/ 경로 정규화 (가상 경로 제외)
-  if (normalized.includes('/node_modules/') && !isVirtualPath(normalized)) {
-    return normalized.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
-  }
-
-  // 개발 서버 URL만 제거
-  const devServerUrlPattern = /^https?:\/\/[^/]+(?::\d+)?\//
-  if (devServerUrlPattern.test(normalized)) {
-    return normalized.replace(devServerUrlPattern, '')
-  }
-
-  return normalized
-}
-
-// 파일 경로를 실제 프로젝트 경로로 변환 (개발 서버 URL → 프로젝트 경로)
-function normalizeFilePathForAI(filePath) {
-  if (!filePath || filePath === 'unknown') {
-    return 'unknown'
-  }
-
-  let normalized = filePath
-
-  // file:// 프로토콜 제거
-  if (normalized.startsWith('file://')) {
-    normalized = normalized.replace(/^file:\/\/[^/]+\//, '')
-    normalized = normalized.replace(/^\/+/, '')
-  }
-
-  // 절대 경로에서 프로젝트 경로 추출
-  const absolutePathPattern = /[A-Z]:[\\/].*?NEXA-Platform[\\/]src[\\/]/
-  if (absolutePathPattern.test(normalized)) {
-    const match = normalized.match(/(NEXA-Platform[\\/]src[\\/].*)/i)
-    if (match) {
-      return match[1].replace(/\\/g, '/')
-    }
-  }
-
-  // 백슬래시를 슬래시로 변환
-  normalized = normalized.replace(/\\/g, '/')
-
-  // 개발 서버 URL 정규화
-  if (/^https?:\/\//.test(normalized)) {
-    normalized = normalizeUrlPath(normalized, { preserveVirtual: true })
-  }
-
-  // 이미 node_modules/로 시작하는 경우
-  if (normalized.startsWith('node_modules/') && !normalized.includes('NEXA-Platform/') && !isVirtualPath(normalized)) {
-    normalized = 'NEXA-Platform/' + normalized
-  }
-
-  return normalized
-}
-
-// STACK 트레이스 내의 경로도 변환
-function normalizeStackForAI(stack) {
-  if (!stack || stack === '없음') {
-    return stack
-  }
-
-  const lines = stack.split('\n')
-  const normalizedLines = lines.map((line) => {
-    let processedLine = line
-
-    // 쿼리 파라미터 + 라인:컬럼 패턴: http://localhost:9000/path/file.js?t=123:45:67
-    const urlWithQueryPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^?\s]+)\?([^:\s]+):(\d+):(\d+)/g
-    processedLine = processedLine.replace(urlWithQueryPattern, (match, urlPath, query, lineNum, colNum) => {
-      const normalized = normalizeUrlPath(urlPath, { preserveVirtual: true })
-      return normalized + ':' + lineNum + ':' + colNum
-    })
-
-    // 라인:컬럼 패턴: http://localhost:9000/path/file.js:45:67
-    const urlPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^:\s]+):(\d+):(\d+)/g
-    processedLine = processedLine.replace(urlPattern, (match, urlPath, lineNum, colNum) => {
-      const normalized = normalizeUrlPath(urlPath, { preserveVirtual: true })
-      return normalized + ':' + lineNum + ':' + colNum
-    })
-
-    // URL만 있는 패턴: http://localhost:9000/path/file.js
-    const urlOnlyPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^\s:?]+)(?:\?[^\s:]+)?/g
-    processedLine = processedLine.replace(urlOnlyPattern, (match, urlPath) => {
-      return normalizeUrlPath(urlPath, { preserveVirtual: true })
-    })
-
-    return processedLine
-  })
-
-  // 이미 변환된 라인에서 node_modules/로 시작하는 경우 처리
-  const finalLines = normalizedLines.map((line) => {
-    if (line.includes('NEXA-Platform/') || isVirtualPath(line)) {
-      return line
-    }
-    return line.replace(/\bnode_modules\//g, 'NEXA-Platform/node_modules/')
-  })
-
-  return finalLines.join('\n')
-}
 
 // 메모 섹션: AI 분석용 컨텍스트 복사 (@error-ref 형식)
 function handleCopyContextForAI() {
@@ -1779,34 +1465,6 @@ function formatErrorForClipboard(error) {
   return text
 }
 
-function copyTextToClipboard(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).catch((err) => {
-      console.error('클립보드 복사 실패:', err)
-      fallbackCopyTextToClipboard(text)
-    })
-  } else {
-    fallbackCopyTextToClipboard(text)
-  }
-}
-
-function fallbackCopyTextToClipboard(text) {
-  const textArea = document.createElement('textarea')
-  textArea.value = text
-  textArea.style.position = 'fixed'
-  textArea.style.left = '-999999px'
-  textArea.style.top = '-999999px'
-  document.body.appendChild(textArea)
-  textArea.focus()
-  textArea.select()
-  try {
-    document.execCommand('copy')
-  } catch (err) {
-    console.error('클립보드 복사 실패:', err)
-  }
-  document.body.removeChild(textArea)
-}
-
 // 유사한 에러 개수 업데이트 이벤트 리스너
 function handleSimilarErrorsCount(event) {
   similarErrorsCountRef.value = event.detail.count || 0
@@ -1816,16 +1474,6 @@ function handleSimilarErrorsCount(event) {
 function handleRefreshErrors() {
   window.dispatchEvent(new CustomEvent('error-tracking-request-errors'))
 }
-
-// errors 변경 감지 (디버깅용)
-watch(
-  () => errors.value.length,
-  (newLength, oldLength) => {
-    console.log('[ErrorTrackingContent] errors.length 변경:', oldLength, '->', newLength)
-    console.log('[ErrorTrackingContent] errors 샘플:', errors.value.slice(0, 3))
-  },
-  { immediate: true },
-)
 
 onMounted(() => {
   window.addEventListener('error-tracking-error-selected', handleErrorSelected)
