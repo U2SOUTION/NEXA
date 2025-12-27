@@ -4,7 +4,7 @@
  * 에러 트래킹의 상태 관리, 에러 수집, 필터링 등을 담당합니다.
  */
 
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { loadErrors, saveErrors, updateError as updateErrorStorage, deleteError as deleteErrorStorage } from 'src/utils/error-tracking/errorStorage.js'
 import { setCollectingEnabled } from 'src/utils/error-tracking/errorCollector.js'
 import { findSimilarErrors, areErrorsSimilar } from 'src/utils/error-tracking/errorGrouper.js'
@@ -131,33 +131,49 @@ export function useErrorTracking() {
   // 핸들러 함수
   // ============================================
 
+  // 이벤트 발생 디바운싱을 위한 타이머
+  let emitTimer = null
+
   /**
-   * 에러 목록 업데이트 이벤트 발생
+   * 에러 목록 업데이트 이벤트 발생 (디바운싱 적용)
    */
   function emitErrorsUpdated() {
-    console.log('[useErrorTracking] emitErrorsUpdated 호출:', errors.value.length, '개 에러')
-    window.dispatchEvent(
-      new CustomEvent('error-tracking-errors-updated', {
-        detail: { errors: errors.value },
-      }),
-    )
-    console.log('[useErrorTracking] 통계 전송:', statistics.value)
-    window.dispatchEvent(
-      new CustomEvent('error-tracking-statistics-updated', {
-        detail: statistics.value,
-      }),
-    )
+    // 기존 타이머 취소
+    if (emitTimer) {
+      clearTimeout(emitTimer)
+    }
+
+    // 디바운싱: 100ms 후 이벤트 발생 (UI 업데이트를 배치로 처리)
+    emitTimer = setTimeout(() => {
+      nextTick(() => {
+        console.log('[useErrorTracking] emitErrorsUpdated 호출:', errors.value.length, '개 에러')
+        window.dispatchEvent(
+          new CustomEvent('error-tracking-errors-updated', {
+            detail: { errors: errors.value },
+          }),
+        )
+        console.log('[useErrorTracking] 통계 전송:', statistics.value)
+        window.dispatchEvent(
+          new CustomEvent('error-tracking-statistics-updated', {
+            detail: statistics.value,
+          }),
+        )
+        emitTimer = null
+      })
+    }, 100)
   }
 
   /**
    * 에러 목록 새로고침
    */
   async function refresh() {
+    console.log('[useErrorTracking] refresh 시작')
     isLoading.value = true
     try {
       // localStorage에서 에러 데이터 로드
       const loadedErrors = loadErrors()
-      
+      console.log('[useErrorTracking] loadErrors 결과:', loadedErrors.length, '개')
+
       // ID가 없는 오래된 에러에 ID 생성 (마이그레이션)
       let hasChanges = false
       loadedErrors.forEach((error) => {
@@ -187,12 +203,16 @@ export function useErrorTracking() {
           hasChanges = true
         }
       })
-      
+
+      if (hasChanges) {
+        console.log('[useErrorTracking] 마이그레이션 변경사항 저장')
+      }
+
       // 변경사항이 있으면 저장
       if (hasChanges) {
         saveErrors(loadedErrors)
       }
-      
+
       errors.value = loadedErrors
       console.log('[useErrorTracking] 에러 목록 새로고침 완료:', loadedErrors.length, '개')
 
@@ -472,18 +492,18 @@ export function useErrorTracking() {
       updateErrorStorage(err.id, { status })
     })
 
-      saveErrors(errors.value)
+    saveErrors(errors.value)
 
-      // selectedError도 동기화 (업데이트된 에러 중 하나가 선택된 에러인 경우)
-      if (selectedError.value) {
-        const updatedSelectedError = errors.value.find((e) => e.id === selectedError.value.id)
-        if (updatedSelectedError) {
-          selectedError.value = updatedSelectedError
-        }
+    // selectedError도 동기화 (업데이트된 에러 중 하나가 선택된 에러인 경우)
+    if (selectedError.value) {
+      const updatedSelectedError = errors.value.find((e) => e.id === selectedError.value.id)
+      if (updatedSelectedError) {
+        selectedError.value = updatedSelectedError
       }
+    }
 
-      // 에러 목록 업데이트 이벤트
-      emitErrorsUpdated()
+    // 에러 목록 업데이트 이벤트
+    emitErrorsUpdated()
   }
 
   /**
@@ -634,16 +654,39 @@ export function useErrorTracking() {
    * @param {Object} notes - 메모 데이터
    */
   function saveErrorNotes(errorId, notes) {
+    console.log('[useErrorTracking] 메모 저장 시작:', errorId, {
+      errorsCount: errors.value.length,
+      hasSelectedError: !!selectedError.value,
+    })
+
     // 먼저 errors 배열에서 찾기
     let error = errors.value.find((e) => e.id === errorId)
-    
+
     // errors 배열에 없으면 selectedError 확인
     if (!error && selectedError.value && selectedError.value.id === errorId) {
       error = selectedError.value
     }
-    
+
+    // errors 배열이 비어있으면 localStorage에서 다시 로드
+    if (errors.value.length === 0) {
+      console.log('[useErrorTracking] errors 배열이 비어있음, localStorage에서 다시 로드')
+      const loadedErrors = loadErrors()
+      errors.value = loadedErrors
+      error = errors.value.find((e) => e.id === errorId)
+
+      // 여전히 없으면 selectedError 확인
+      if (!error && selectedError.value && selectedError.value.id === errorId) {
+        error = selectedError.value
+        // selectedError를 errors 배열에 추가
+        errors.value.unshift(error)
+      }
+    }
+
     if (!error) {
-      console.warn('[useErrorTracking] 에러를 찾을 수 없습니다:', errorId)
+      console.warn('[useErrorTracking] 에러를 찾을 수 없습니다:', errorId, {
+        errorsCount: errors.value.length,
+        errorIds: errors.value.map((e) => e.id),
+      })
       return
     }
 
@@ -671,7 +714,13 @@ export function useErrorTracking() {
     const errorInArray = errors.value.find((e) => e.id === errorId)
     if (errorInArray) {
       errorInArray.notes = error.notes
+    } else {
+      // errors 배열에 없으면 추가
+      console.log('[useErrorTracking] errors 배열에 에러 없음, 추가:', errorId)
+      errors.value.unshift(error)
     }
+
+    console.log('[useErrorTracking] 저장 전 errors 개수:', errors.value.length)
 
     // localStorage에 저장
     saveErrors(errors.value)
@@ -695,11 +744,19 @@ export function useErrorTracking() {
    * 초기화
    */
   async function initialize() {
+    console.log('[useErrorTracking] 초기화 시작')
     await refresh()
+    console.log('[useErrorTracking] refresh 완료, 에러 개수:', errors.value.length)
 
     // 에러 수집 이벤트 리스너 등록
     function handleErrorCollected(event) {
+      console.log('[useErrorTracking] 에러 수집 이벤트 수신:', event.detail)
       const newError = event.detail.error
+
+      if (!isCollecting.value) {
+        console.log('[useErrorTracking] 에러 수집 비활성화 상태, 무시')
+        return
+      }
 
       // 이미 ID가 있으면 그대로 사용, 없으면 생성
       if (!newError.id) {
@@ -725,6 +782,7 @@ export function useErrorTracking() {
       })
 
       if (existingError) {
+        console.log('[useErrorTracking] 기존 에러 발견, 카운트 증가:', existingError.id)
         // 기존 에러의 카운트 증가 및 타임스탬프 업데이트
         existingError.count = (existingError.count || 1) + 1
         existingError.timestamp = newError.timestamp // 최신 발생 시간으로 업데이트
@@ -739,11 +797,20 @@ export function useErrorTracking() {
           count: existingError.count,
           timestamp: existingError.timestamp,
         })
+        // errors 배열도 업데이트하여 동기화
+        const errorIndex = errors.value.findIndex((e) => e.id === existingError.id)
+        if (errorIndex !== -1) {
+          errors.value[errorIndex] = existingError
+        }
         saveErrors(errors.value)
+        console.log('[useErrorTracking] 기존 에러 저장 완료:', existingError.id)
       } else {
+        console.log('[useErrorTracking] 새로운 에러 추가:', newError.id)
         // 새로운 에러로 추가
         errors.value.unshift(newError)
+        console.log('[useErrorTracking] errors 배열 업데이트 후 개수:', errors.value.length)
         saveErrors(errors.value)
+        console.log('[useErrorTracking] 새 에러 저장 완료:', newError.id)
       }
 
       // 에러 목록 업데이트 이벤트
@@ -751,14 +818,17 @@ export function useErrorTracking() {
     }
 
     window.addEventListener('error-tracking-error-collected', handleErrorCollected)
+    console.log('[useErrorTracking] 에러 수집 이벤트 리스너 등록 완료')
 
     // 린트 오류 수집 시작 (개발 환경에서만)
     if (import.meta.env.DEV) {
+      console.log('[useErrorTracking] 린트 오류 수집 시작')
       watchFileChanges((lintError) => {
         addLintError(lintError)
       })
     }
 
+    console.log('[useErrorTracking] 초기화 완료')
     // 정리 함수 저장 (나중에 사용 가능)
     return () => {
       window.removeEventListener('error-tracking-error-collected', handleErrorCollected)

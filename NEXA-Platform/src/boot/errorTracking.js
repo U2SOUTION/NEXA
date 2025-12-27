@@ -30,6 +30,41 @@ export default ({ app }) => {
     )
   }
 
+  // 개발 환경에서만 전역 테스트 함수 노출
+  if (import.meta.env.DEV) {
+    /**
+     * 에러 트래킹 테스트 함수
+     * 콘솔에서 `testError()` 또는 `testError('커스텀 메시지')`로 호출 가능
+     */
+    window.testError = (message = '테스트 에러') => {
+      console.log('[테스트] 에러 발생 시도:', message)
+      throw new Error(message)
+    }
+
+    /**
+     * Promise rejection 테스트 함수
+     * 콘솔에서 `testRejection()` 또는 `testRejection('커스텀 메시지')`로 호출 가능
+     */
+    window.testRejection = (message = '테스트 Promise Rejection') => {
+      console.log('[테스트] Promise Rejection 발생 시도:', message)
+      Promise.reject(new Error(message))
+    }
+
+    /**
+     * 네트워크 에러 테스트 함수
+     * 콘솔에서 `testNetworkError()`로 호출 가능
+     */
+    window.testNetworkError = () => {
+      console.log('[테스트] 네트워크 에러 발생 시도')
+      fetch('/api/nonexistent-endpoint-that-will-fail')
+        .then(() => {})
+        .catch(() => {})
+    }
+
+    console.log('[boot] 에러 트래킹 테스트 함수 등록 완료')
+    console.log('[boot] 사용법: testError(), testRejection(), testNetworkError()')
+  }
+
   console.log('[boot] 에러 트래킹 시스템 초기화 완료')
 }
 

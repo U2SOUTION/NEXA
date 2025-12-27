@@ -16,6 +16,7 @@
           </div>
         </div>
         <div class="row items-center q-gutter-xs">
+          <q-btn v-if="isDev" flat dense icon="bug_report" size="sm" @click="handleTestError" title="테스트 에러 발생" />
           <q-btn flat dense icon="search" size="sm" @click="toggleSearch" />
           <q-btn flat dense icon="refresh" size="sm" @click="handleRefresh" :loading="isRefreshing" />
           <q-toggle :model-value="isCollecting" size="sm" @update:model-value="handleCollectingToggle" />
@@ -54,9 +55,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useQuasar } from 'quasar'
 
-defineProps({
+const $q = useQuasar()
+
+const props = defineProps({
   totalErrors: {
     type: Number,
     default: 0,
@@ -72,6 +76,9 @@ defineProps({
 })
 
 const emit = defineEmits(['refresh', 'search-change', 'settings', 'filter-change', 'sort-change', 'collecting-toggle'])
+
+// 개발 환경 여부
+const isDev = computed(() => import.meta.env.DEV)
 
 // 검색 관련 상태
 const showSearch = ref(false)
@@ -165,6 +172,34 @@ function handleSettings() {
 // 수집 토글
 function handleCollectingToggle(value) {
   emit('collecting-toggle', value)
+}
+
+// 테스트 에러 발생
+function handleTestError() {
+  if (!props.isCollecting) {
+    $q.notify({
+      type: 'warning',
+      message: '에러 수집이 비활성화되어 있습니다.',
+      position: 'top',
+      timeout: 2000,
+    })
+    console.warn('[ErrorTracking] 에러 수집이 비활성화되어 있습니다.')
+    return
+  }
+
+  $q.notify({
+    type: 'info',
+    message: '테스트 에러를 발생시킵니다...',
+    position: 'top',
+    timeout: 1000,
+  })
+
+  console.log('[ErrorTracking] 테스트 에러 발생')
+
+  // 약간의 딜레이 후 에러 발생 (토스트가 보이도록)
+  setTimeout(() => {
+    throw new Error('테스트 에러: 에러 트래킹 시스템 테스트용 에러입니다')
+  }, 100)
 }
 </script>
 

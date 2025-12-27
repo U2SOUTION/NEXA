@@ -13,11 +13,11 @@
                   <div class="stat-card-content">
                     <div class="stat-card-label">총 에러</div>
                     <div class="stat-card-value">{{ statistics.total }}개</div>
-      </div>
-    </div>
+                  </div>
+                </div>
               </q-card-section>
             </q-card>
-  </div>
+          </div>
           <div class="col-12 col-sm-6 col-md-3">
             <q-card class="stat-card">
               <q-card-section>
@@ -323,15 +323,7 @@
             원인 및 해결법
           </h5>
           <div class="row q-gutter-xs">
-            <q-btn
-              flat
-              dense
-              icon="content_copy"
-              size="sm"
-              label="컨텍스트 복사"
-              class="btn-copy-context"
-              @click="handleCopyContextForAI"
-            >
+            <q-btn flat dense icon="content_copy" size="sm" label="컨텍스트 복사" class="btn-copy-context" @click="handleCopyContextForAI">
               <q-tooltip>AI 분석용 에러 컨텍스트를 클립보드에 복사합니다 (Cursor에서 사용)</q-tooltip>
             </q-btn>
           </div>
@@ -347,15 +339,7 @@
         <q-tab-panels v-model="notesTab" class="notes-panels">
           <q-tab-panel name="cause">
             <div class="notes-editor">
-              <q-input
-                :model-value="errorNotes.cause || ''"
-                @update:model-value="handleNotesChange('cause', $event)"
-                type="textarea"
-                placeholder="에러 발생 원인을 분석해주세요..."
-                rows="5"
-                class="notes-textarea"
-                @blur="handleSaveNotes"
-              />
+              <q-input :model-value="errorNotes.cause || ''" @update:model-value="handleNotesChange('cause', $event)" type="textarea" placeholder="에러 발생 원인을 분석해주세요..." rows="5" class="notes-textarea" @blur="handleSaveNotes" />
               <div v-if="errorNotes.updatedBy === 'ai'" class="notes-meta q-mt-xs">
                 <q-icon name="auto_awesome" size="xs" />
                 <span class="text-caption">AI가 생성한 내용</span>
@@ -365,60 +349,26 @@
 
           <q-tab-panel name="solution">
             <div class="notes-editor">
-              <q-input
-                :model-value="errorNotes.solution || ''"
-                @update:model-value="handleNotesChange('solution', $event)"
-                type="textarea"
-                placeholder="에러 해결 방법을 기록해주세요..."
-                rows="5"
-                class="notes-textarea"
-                @blur="handleSaveNotes"
-              />
+              <q-input :model-value="errorNotes.solution || ''" @update:model-value="handleNotesChange('solution', $event)" type="textarea" placeholder="에러 해결 방법을 기록해주세요..." rows="5" class="notes-textarea" @blur="handleSaveNotes" />
             </div>
           </q-tab-panel>
 
           <q-tab-panel name="learned">
             <div class="notes-editor">
-              <q-input
-                :model-value="errorNotes.learned || ''"
-                @update:model-value="handleNotesChange('learned', $event)"
-                type="textarea"
-                placeholder="이 에러를 통해 배운 내용을 기록해주세요..."
-                rows="5"
-                class="notes-textarea"
-                @blur="handleSaveNotes"
-              />
+              <q-input :model-value="errorNotes.learned || ''" @update:model-value="handleNotesChange('learned', $event)" type="textarea" placeholder="이 에러를 통해 배운 내용을 기록해주세요..." rows="5" class="notes-textarea" @blur="handleSaveNotes" />
             </div>
           </q-tab-panel>
 
           <q-tab-panel name="references">
             <div class="notes-editor">
-              <div v-for="(ref, index) in (errorNotes.references || [])" :key="index" class="reference-item q-mb-sm">
-                <q-input
-                  :model-value="ref"
-                  @update:model-value="handleReferenceChange(index, $event)"
-                  placeholder="참고 자료 URL 또는 설명"
-                  @blur="handleSaveNotes"
-                >
+              <div v-for="(ref, index) in errorNotes.references || []" :key="index" class="reference-item q-mb-sm">
+                <q-input :model-value="ref" @update:model-value="handleReferenceChange(index, $event)" placeholder="참고 자료 URL 또는 설명" @blur="handleSaveNotes">
                   <template #append>
-                    <q-btn
-                      flat
-                      dense
-                      icon="delete"
-                      size="sm"
-                      @click="handleRemoveReference(index)"
-                    />
+                    <q-btn flat dense icon="delete" size="sm" @click="handleRemoveReference(index)" />
                   </template>
                 </q-input>
               </div>
-              <q-btn
-                flat
-                dense
-                icon="add"
-                label="참고 자료 추가"
-                @click="handleAddReference"
-                class="q-mt-sm"
-              />
+              <q-btn flat dense icon="add" label="참고 자료 추가" @click="handleAddReference" class="q-mt-sm" />
             </div>
           </q-tab-panel>
         </q-tab-panels>
@@ -429,9 +379,7 @@
         <h5 class="section-title q-mb-sm">
           <q-icon name="description" />
           에러 분석 문서
-          <q-chip v-if="tempDocumentCount > 1" size="sm" color="primary" class="q-ml-sm">
-            {{ tempDocumentCount }}개
-          </q-chip>
+          <q-chip v-if="tempDocumentCount > 1" size="sm" color="primary" class="q-ml-sm"> {{ tempDocumentCount }}개 </q-chip>
         </h5>
 
         <!-- 문서가 1개면 바로 표시 -->
@@ -456,24 +404,13 @@
 
         <!-- 여러 개면 리스트 -->
         <q-list v-else-if="tempDocumentCount > 1">
-          <q-item
-            v-for="(doc, index) in tempDocuments"
-            :key="index"
-            clickable
-            @click="handleSelectDocument(doc)"
-          >
+          <q-item v-for="(doc, index) in tempDocuments" :key="index" clickable @click="handleSelectDocument(doc)">
             <q-item-section>
               <q-item-label>{{ doc.title }}</q-item-label>
               <q-item-label caption>
                 {{ doc.date }}
                 <span v-if="doc.tags && doc.tags.length" class="q-ml-sm">
-                  <q-chip
-                    v-for="tag in doc.tags"
-                    :key="tag"
-                    size="xs"
-                    color="secondary"
-                    text-color="white"
-                  >
+                  <q-chip v-for="tag in doc.tags" :key="tag" size="xs" color="secondary" text-color="white">
                     {{ tag }}
                   </q-chip>
                 </span>
@@ -524,14 +461,16 @@ const errorNotes = computed({
         updatedBy: null,
       }
     }
-    return selectedError.value.notes || {
-      cause: null,
-      solution: null,
-      learned: null,
-      references: [],
-      updatedAt: null,
-      updatedBy: null,
-    }
+    return (
+      selectedError.value.notes || {
+        cause: null,
+        solution: null,
+        learned: null,
+        references: [],
+        updatedAt: null,
+        updatedBy: null,
+      }
+    )
   },
   set: () => {
     // computed setter는 사용하지 않음 (직접 저장 함수 사용)
@@ -546,13 +485,13 @@ const tempDocuments = ref([
   {
     title: 'Vue ref 초기화 에러 분석',
     date: '2024-12-20 10:30:00',
-    tags: ['vue', 'ref', '초기화']
+    tags: ['vue', 'ref', '초기화'],
   },
   {
     title: '네트워크 요청 타임아웃 분석',
     date: '2024-12-20 11:00:00',
-    tags: ['network', 'timeout']
-  }
+    tags: ['network', 'timeout'],
+  },
 ])
 
 // 에러 목록은 useErrorTracking()에서 가져옴 (위에서 이미 선언됨)
@@ -562,13 +501,37 @@ const diagramContainer = ref(null)
 let diagramSvg = null
 let diagramSimulation = null
 
-// localStorage 키
-const BATCH_OPTIONS_STORAGE_KEY = 'error-tracking-batch-options'
+// localStorage 키 (새 네임스페이스)
+const BATCH_OPTIONS_STORAGE_KEY = 'tracking-error:batch-options'
+// 기존 키 (마이그레이션용)
+const OLD_BATCH_OPTIONS_KEYS = ['error-tracking-batch-options']
 
 // 전체적용 옵션 (localStorage에서 불러오거나 기본값 true)
 function loadBatchOptions() {
   try {
-    const saved = localStorage.getItem(BATCH_OPTIONS_STORAGE_KEY)
+    let saved = localStorage.getItem(BATCH_OPTIONS_STORAGE_KEY)
+
+    // 새 키에 데이터가 없으면 기존 키에서 마이그레이션 시도
+    if (!saved) {
+      for (const oldKey of OLD_BATCH_OPTIONS_KEYS) {
+        try {
+          const oldData = localStorage.getItem(oldKey)
+          if (oldData) {
+            console.log(`[ErrorTracking] 기존 배치 옵션 키에서 데이터 발견: ${oldKey}`)
+            // 새 키로 저장
+            localStorage.setItem(BATCH_OPTIONS_STORAGE_KEY, oldData)
+            // 기존 키 삭제
+            localStorage.removeItem(oldKey)
+            console.log(`[ErrorTracking] 배치 옵션 마이그레이션 완료: ${BATCH_OPTIONS_STORAGE_KEY}`)
+            saved = oldData
+            break
+          }
+        } catch (error) {
+          console.warn(`[ErrorTracking] 기존 배치 옵션 키 마이그레이션 실패 (${oldKey}):`, error)
+        }
+      }
+    }
+
     if (saved) {
       const parsed = JSON.parse(saved)
       return {
@@ -1083,7 +1046,6 @@ function handleCopyContextForAI() {
   })
 }
 
-
 // 메모 변경 핸들러 (임시 저장용)
 const pendingNotes = ref({
   cause: null,
@@ -1092,17 +1054,27 @@ const pendingNotes = ref({
   references: null,
 })
 
+// 저장 디바운싱을 위한 타이머
+let saveNotesTimer = null
+let isSaving = ref(false)
+
 // selectedError 변경 시 pendingNotes 초기화
 watch(
   () => selectedError.value?.id,
   () => {
+    // 타이머 취소
+    if (saveNotesTimer) {
+      clearTimeout(saveNotesTimer)
+      saveNotesTimer = null
+    }
     pendingNotes.value = {
       cause: null,
       solution: null,
       learned: null,
       references: null,
     }
-  }
+    isSaving.value = false
+  },
 )
 
 /**
@@ -1159,44 +1131,65 @@ function handleReferenceChange(index, value) {
 }
 
 /**
- * 메모 저장 핸들러
+ * 메모 저장 핸들러 (디바운싱 적용)
  */
 function handleSaveNotes() {
   if (!selectedError.value || !selectedError.value.id) {
     return
   }
 
-  // pendingNotes와 현재 notes를 병합하여 저장
-  const notesToSave = {
-    ...errorNotes.value,
-    ...pendingNotes.value,
-    updatedBy: 'user',
+  // 이미 저장 중이면 무시
+  if (isSaving.value) {
+    return
   }
 
-  // null 값 제거 (기존 값 유지)
-  Object.keys(notesToSave).forEach((key) => {
-    if (notesToSave[key] === null && errorNotes.value[key] !== null) {
-      notesToSave[key] = errorNotes.value[key]
+  // 기존 타이머 취소
+  if (saveNotesTimer) {
+    clearTimeout(saveNotesTimer)
+  }
+
+  // 디바운싱: 500ms 후 저장 (더 긴 딜레이로 중복 방지)
+  saveNotesTimer = setTimeout(() => {
+    isSaving.value = true
+
+    const currentErrorId = selectedError.value.id
+
+    // pendingNotes와 현재 notes를 병합하여 저장
+    const notesToSave = {
+      ...errorNotes.value,
+      ...pendingNotes.value,
+      updatedBy: 'user',
     }
-  })
 
-  // 저장
-  saveErrorNotes(selectedError.value.id, notesToSave)
+    // null 값 제거 (기존 값 유지)
+    Object.keys(notesToSave).forEach((key) => {
+      if (notesToSave[key] === null && errorNotes.value[key] !== null) {
+        notesToSave[key] = errorNotes.value[key]
+      }
+    })
 
-  // pendingNotes 초기화
-  pendingNotes.value = {
-    cause: null,
-    solution: null,
-    learned: null,
-    references: null,
-  }
+    // 저장
+    saveErrorNotes(currentErrorId, notesToSave)
 
-  $q.notify({
-    type: 'positive',
-    message: '메모가 저장되었습니다.',
-    position: 'top',
-    timeout: 1500,
-  })
+    // pendingNotes 초기화
+    pendingNotes.value = {
+      cause: null,
+      solution: null,
+      learned: null,
+      references: null,
+    }
+
+    // 토스트 메시지 (저장할 때마다 표시)
+    $q.notify({
+      type: 'positive',
+      message: '메모가 저장되었습니다.',
+      position: 'top',
+      timeout: 1500,
+    })
+
+    isSaving.value = false
+    saveNotesTimer = null
+  }, 500)
 }
 
 /**
@@ -1590,8 +1583,8 @@ onUnmounted(() => {
   }
 
   .stat-card-header {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
     gap: 1rem;
   }
 

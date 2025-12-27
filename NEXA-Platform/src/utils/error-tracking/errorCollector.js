@@ -91,8 +91,11 @@ function normalizeError(errorData) {
  */
 function collectError(errorData) {
   if (!isCollecting) {
+    console.log('[errorCollector] 에러 수집 비활성화 상태, 무시')
     return
   }
+
+  console.log('[errorCollector] 에러 수집 시작:', errorData)
 
   try {
     const normalizedError = normalizeError(errorData)
@@ -112,6 +115,8 @@ function collectError(errorData) {
       normalizedError.count = 1
     }
 
+    console.log('[errorCollector] 정규화된 에러:', normalizedError.id)
+
     // 에러 저장은 useErrorTracking의 handleErrorCollected에서 처리
     // 여기서는 이벤트만 발생시켜 useErrorTracking이 처리하도록 함
     window.dispatchEvent(
@@ -119,6 +124,7 @@ function collectError(errorData) {
         detail: { error: normalizedError },
       }),
     )
+    console.log('[errorCollector] 에러 수집 이벤트 발생 완료')
   } catch (error) {
     console.error('[errorCollector] 에러 수집 실패:', error)
   }
