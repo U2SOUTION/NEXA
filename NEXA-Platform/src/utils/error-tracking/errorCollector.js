@@ -19,6 +19,10 @@ let errorCollector = null
 function normalizeError(errorData) {
   const { message, source, lineno, colno, error, filename, stack, url, userAgent, level = 'error' } = errorData
 
+  // 🔍 디버깅: 원본 데이터 확인
+  console.log('=== 에러 정규화 시작 ===')
+  console.log('원본 errorData:', { message, source, lineno, colno, filename, hasError: !!error, hasStack: !!stack })
+
   // 스택 트레이스 추출
   let errorStack = stack
   if (!errorStack && error) {
@@ -33,22 +37,37 @@ function normalizeError(errorData) {
   let errorLine = lineno
   let errorColumn = colno
 
+  console.log('1차 파일 정보 추출:', { errorFile, errorLine, errorColumn, hasStack: !!errorStack })
+
   // 스택 트레이스에서 파일명과 라인 번호 파싱
   if (errorStack && !errorFile) {
     const stackLines = errorStack.split('\n')
+    console.log('스택 트레이스 라인 수:', stackLines.length)
     if (stackLines.length > 0) {
       const firstLine = stackLines[0]
+      console.log('첫 번째 스택 라인:', firstLine)
       // 스택 트레이스 형식: "at functionName (file://path/to/file.js:line:column)"
       const match = firstLine.match(/\((.+):(\d+):(\d+)\)/)
       if (match) {
         errorFile = match[1]
         errorLine = parseInt(match[2], 10)
         errorColumn = parseInt(match[3], 10)
+        console.log('스택에서 파싱 성공:', { errorFile, errorLine, errorColumn })
+      } else {
+        console.log('스택 파싱 실패: 매칭 패턴 없음')
+        // 다른 패턴 시도: "at file://path/to/file.js:line:column"
+        const altMatch = firstLine.match(/at\s+(.+):(\d+):(\d+)/)
+        if (altMatch) {
+          errorFile = altMatch[1]
+          errorLine = parseInt(altMatch[2], 10)
+          errorColumn = parseInt(altMatch[3], 10)
+          console.log('대체 패턴으로 파싱 성공:', { errorFile, errorLine, errorColumn })
+        }
       }
     }
   }
 
-  return {
+  const normalized = {
     message: message || error?.message || '알 수 없는 에러',
     level,
     file: errorFile || null,
@@ -59,6 +78,11 @@ function normalizeError(errorData) {
     userAgent: userAgent || navigator.userAgent,
     timestamp: Date.now(),
   }
+
+  console.log('정규화 결과:', { file: normalized.file, line: normalized.line, column: normalized.column })
+  console.log('=== 에러 정규화 완료 ===')
+
+  return normalized
 }
 
 /**

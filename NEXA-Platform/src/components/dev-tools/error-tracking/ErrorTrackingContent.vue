@@ -13,11 +13,11 @@
                   <div class="stat-card-content">
                     <div class="stat-card-label">총 에러</div>
                     <div class="stat-card-value">{{ statistics.total }}개</div>
-                  </div>
-                </div>
+      </div>
+    </div>
               </q-card-section>
             </q-card>
-          </div>
+  </div>
           <div class="col-12 col-sm-6 col-md-3">
             <q-card class="stat-card">
               <q-card-section>
@@ -133,6 +133,9 @@
               <q-btn flat dense icon="delete" label="삭제" class="btn-delete" @click="handleDelete" />
               <q-separator vertical />
               <q-btn flat dense icon="content_copy" label="복사" class="btn-copy" @click="copyToClipboard" />
+              <q-btn flat dense icon="code" label="에러 정보 복사" class="btn-copy-context" @click="handleCopyErrorInfo">
+                <q-tooltip>에러의 기본 정보를 클립보드에 복사합니다</q-tooltip>
+              </q-btn>
             </div>
 
             <!-- 전체적용 옵션 그룹 (우측) -->
@@ -291,7 +294,7 @@
       </div>
 
       <!-- 컨텍스트 정보 -->
-      <div class="error-context q-pa-md">
+      <div class="error-context q-pa-md q-mb-md">
         <h5 class="section-title q-mb-sm">
           <q-icon name="info" />
           컨텍스트 정보
@@ -311,6 +314,184 @@
           </div>
         </div>
       </div>
+
+      <!-- 원인 및 해결법 메모 -->
+      <div class="error-notes q-pa-md q-mb-md">
+        <div class="section-header q-mb-sm">
+          <h5 class="section-title">
+            <q-icon name="lightbulb" />
+            원인 및 해결법
+          </h5>
+          <div class="row q-gutter-xs">
+            <q-btn
+              flat
+              dense
+              icon="content_copy"
+              size="sm"
+              label="컨텍스트 복사"
+              class="btn-copy-context"
+              @click="handleCopyContextForAI"
+            >
+              <q-tooltip>AI 분석용 에러 컨텍스트를 클립보드에 복사합니다 (Cursor에서 사용)</q-tooltip>
+            </q-btn>
+          </div>
+        </div>
+
+        <q-tabs v-model="notesTab" class="notes-tabs">
+          <q-tab name="cause" label="원인 분석" icon="bug_report" />
+          <q-tab name="solution" label="해결 방법" icon="build" />
+          <q-tab name="learned" label="학습 내용" icon="school" />
+          <q-tab name="references" label="참고 자료" icon="link" />
+        </q-tabs>
+
+        <q-tab-panels v-model="notesTab" class="notes-panels">
+          <q-tab-panel name="cause">
+            <div class="notes-editor">
+              <q-input
+                :model-value="errorNotes.cause || ''"
+                @update:model-value="handleNotesChange('cause', $event)"
+                type="textarea"
+                placeholder="에러 발생 원인을 분석해주세요..."
+                rows="5"
+                class="notes-textarea"
+                @blur="handleSaveNotes"
+              />
+              <div v-if="errorNotes.updatedBy === 'ai'" class="notes-meta q-mt-xs">
+                <q-icon name="auto_awesome" size="xs" />
+                <span class="text-caption">AI가 생성한 내용</span>
+              </div>
+            </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="solution">
+            <div class="notes-editor">
+              <q-input
+                :model-value="errorNotes.solution || ''"
+                @update:model-value="handleNotesChange('solution', $event)"
+                type="textarea"
+                placeholder="에러 해결 방법을 기록해주세요..."
+                rows="5"
+                class="notes-textarea"
+                @blur="handleSaveNotes"
+              />
+            </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="learned">
+            <div class="notes-editor">
+              <q-input
+                :model-value="errorNotes.learned || ''"
+                @update:model-value="handleNotesChange('learned', $event)"
+                type="textarea"
+                placeholder="이 에러를 통해 배운 내용을 기록해주세요..."
+                rows="5"
+                class="notes-textarea"
+                @blur="handleSaveNotes"
+              />
+            </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="references">
+            <div class="notes-editor">
+              <div v-for="(ref, index) in (errorNotes.references || [])" :key="index" class="reference-item q-mb-sm">
+                <q-input
+                  :model-value="ref"
+                  @update:model-value="handleReferenceChange(index, $event)"
+                  placeholder="참고 자료 URL 또는 설명"
+                  @blur="handleSaveNotes"
+                >
+                  <template #append>
+                    <q-btn
+                      flat
+                      dense
+                      icon="delete"
+                      size="sm"
+                      @click="handleRemoveReference(index)"
+                    />
+                  </template>
+                </q-input>
+              </div>
+              <q-btn
+                flat
+                dense
+                icon="add"
+                label="참고 자료 추가"
+                @click="handleAddReference"
+                class="q-mt-sm"
+              />
+            </div>
+          </q-tab-panel>
+        </q-tab-panels>
+      </div>
+
+      <!-- 에러 분석 문서 -->
+      <div class="error-analysis-docs q-pa-md q-mb-md">
+        <h5 class="section-title q-mb-sm">
+          <q-icon name="description" />
+          에러 분석 문서
+          <q-chip v-if="tempDocumentCount > 1" size="sm" color="primary" class="q-ml-sm">
+            {{ tempDocumentCount }}개
+          </q-chip>
+        </h5>
+
+        <!-- 문서가 1개면 바로 표시 -->
+        <div v-if="tempDocumentCount === 1" class="analysis-doc-preview">
+          <q-card>
+            <q-card-section>
+              <div class="text-h6">{{ tempDocumentTitle }}</div>
+              <div class="text-caption q-mt-xs">작성일: {{ tempDocumentDate }}</div>
+            </q-card-section>
+            <q-separator />
+            <q-card-section>
+              <div class="markdown-content">
+                <p class="text-body2">이 영역에 마크다운 렌더링된 문서 내용이 표시됩니다.</p>
+                <p class="text-caption text-grey-6">기능은 Phase 5에서 구현됩니다</p>
+              </div>
+            </q-card-section>
+            <q-card-actions>
+              <q-btn flat label="문서 뷰어에서 열기" icon="open_in_new" @click="handleOpenInDocumentViewer" />
+            </q-card-actions>
+          </q-card>
+        </div>
+
+        <!-- 여러 개면 리스트 -->
+        <q-list v-else-if="tempDocumentCount > 1">
+          <q-item
+            v-for="(doc, index) in tempDocuments"
+            :key="index"
+            clickable
+            @click="handleSelectDocument(doc)"
+          >
+            <q-item-section>
+              <q-item-label>{{ doc.title }}</q-item-label>
+              <q-item-label caption>
+                {{ doc.date }}
+                <span v-if="doc.tags && doc.tags.length" class="q-ml-sm">
+                  <q-chip
+                    v-for="tag in doc.tags"
+                    :key="tag"
+                    size="xs"
+                    color="secondary"
+                    text-color="white"
+                  >
+                    {{ tag }}
+                  </q-chip>
+                </span>
+              </q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn flat dense icon="open_in_new" @click.stop="handleOpenInDocumentViewer" />
+            </q-item-section>
+          </q-item>
+        </q-list>
+
+        <!-- 문서가 없을 때 안내 -->
+        <div v-else class="error-analysis-empty text-center">
+          <q-icon name="description" size="48px" class="q-mb-sm" />
+          <div class="text-body2">이 에러에 대한 분석 문서가 없습니다.</div>
+          <div class="text-caption q-mt-xs">Cursor에서 에러를 분석하여 문서를 생성하세요.</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -320,14 +501,61 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import NexaChart from 'src/charts/NexaChart.vue'
 import * as d3 from 'd3'
+import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
 
 const $q = useQuasar()
 
-// 선택된 에러 상태
-const selectedError = ref(null)
+// 에러 트래킹 composable
+const { selectedError, saveErrorNotes, errors } = useErrorTracking()
 
-// 에러 목록 (차트/다이어그램용)
-const errors = ref([])
+// 메모 탭 상태
+const notesTab = ref('cause')
+
+// 메모 데이터 (computed로 selectedError의 notes와 동기화)
+const errorNotes = computed({
+  get: () => {
+    if (!selectedError.value) {
+      return {
+        cause: '',
+        solution: '',
+        learned: '',
+        references: [],
+        updatedAt: null,
+        updatedBy: null,
+      }
+    }
+    return selectedError.value.notes || {
+      cause: null,
+      solution: null,
+      learned: null,
+      references: [],
+      updatedAt: null,
+      updatedBy: null,
+    }
+  },
+  set: () => {
+    // computed setter는 사용하지 않음 (직접 저장 함수 사용)
+  },
+})
+
+// Phase 1: 문서 표시용 임시 데이터
+const tempDocumentCount = ref(0) // 0: 없음, 1: 1개, 2+: 여러 개
+const tempDocumentTitle = ref('Vue ref 초기화 에러 분석')
+const tempDocumentDate = ref('2024-12-20 10:30:00')
+const tempDocuments = ref([
+  {
+    title: 'Vue ref 초기화 에러 분석',
+    date: '2024-12-20 10:30:00',
+    tags: ['vue', 'ref', '초기화']
+  },
+  {
+    title: '네트워크 요청 타임아웃 분석',
+    date: '2024-12-20 11:00:00',
+    tags: ['network', 'timeout']
+  }
+])
+
+// 에러 목록은 useErrorTracking()에서 가져옴 (위에서 이미 선언됨)
 
 // 다이어그램 컨테이너
 const diagramContainer = ref(null)
@@ -403,9 +631,11 @@ function handleStatisticsUpdated(event) {
 }
 
 // 에러 목록 업데이트 이벤트 리스너
+// errors는 useErrorTracking()에서 가져온 것이므로 이벤트로 업데이트할 필요 없음
+// (useErrorTracking 내부에서 자동으로 관리됨)
 function handleErrorsUpdated(event) {
-  errors.value = event.detail.errors || []
-  console.log('[ErrorTrackingContent] 에러 목록 업데이트:', errors.value.length, '개')
+  // 이벤트는 받지만, errors는 useErrorTracking()에서 직접 관리되므로 여기서는 로그만
+  console.log('[ErrorTrackingContent] 에러 목록 업데이트:', event.detail.errors?.length || 0, '개')
 }
 
 // 에러 발생 추이 차트 데이터 (최근 7일)
@@ -471,6 +701,23 @@ const diagramData = computed(() => {
     return { nodes: [], edges: [] }
   }
 
+  // 🔍 디버깅: 파일 정보 확인
+  const filesWithInfo = errors.value.filter((e) => e.file).length
+  const filesWithoutInfo = errors.value.filter((e) => !e.file).length
+  console.log('=== 다이어그램 데이터 확인 ===')
+  console.log('전체 에러 개수:', errors.value.length)
+  console.log('파일 정보 있는 에러:', filesWithInfo)
+  console.log('파일 정보 없는 에러:', filesWithoutInfo)
+  if (filesWithInfo > 0) {
+    console.log(
+      '파일 정보 샘플:',
+      errors.value
+        .filter((e) => e.file)
+        .slice(0, 5)
+        .map((e) => e.file),
+    )
+  }
+
   // 파일별로 에러 그룹화
   const fileErrors = {}
   errors.value.forEach((error) => {
@@ -481,6 +728,16 @@ const diagramData = computed(() => {
     fileErrors[file].push(error)
   })
 
+  // 🔍 디버깅: 그룹화 결과 확인
+  console.log('파일별 그룹화 결과:', Object.keys(fileErrors))
+  console.log('그룹화된 파일 개수:', Object.keys(fileErrors).length)
+  if (Object.keys(fileErrors).length > 0) {
+    console.log(
+      '각 파일별 에러 개수:',
+      Object.entries(fileErrors).map(([file, list]) => ({ file, count: list.length })),
+    )
+  }
+
   // 노드 생성 (파일별, 최대 20개)
   const fileEntries = Object.entries(fileErrors).slice(0, 20)
   const nodes = fileEntries.map(([file, fileErrorList], index) => ({
@@ -490,6 +747,10 @@ const diagramData = computed(() => {
     count: fileErrorList.length,
     file: file,
   }))
+
+  // 🔍 디버깅: 생성된 노드 확인
+  console.log('생성된 노드 개수:', nodes.length)
+  console.log('생성된 노드 정보:', nodes)
 
   // 에지 생성 (파일 간 연관성 - 같은 에러 메시지를 가진 파일들)
   const edges = []
@@ -521,6 +782,26 @@ const diagramData = computed(() => {
       }
     }
   })
+
+  // 🔍 디버깅: 에지 생성 결과 확인
+  console.log('생성된 에지 개수:', edges.length)
+  if (edges.length > 0) {
+    console.log('생성된 에지 정보:', edges)
+  } else {
+    console.log('에지가 생성되지 않은 이유: 같은 메시지를 가진 파일이 2개 이상 없음')
+    console.log(
+      '메시지별 파일 매핑:',
+      Object.entries(messageToFiles).map(([msg, files]) => ({
+        message: msg.substring(0, 50),
+        files: Array.from(files),
+        fileCount: files.size,
+      })),
+    )
+  }
+
+  console.log('=== 다이어그램 데이터 생성 완료 ===')
+  console.log('최종 노드:', nodes.length, '개')
+  console.log('최종 에지:', edges.length, '개')
 
   return { nodes, edges }
 })
@@ -765,6 +1046,213 @@ const similarErrorsCount = computed(() => {
 })
 
 const similarErrorsCountRef = ref(0)
+
+// ============================================
+// Phase 1: UI 틀 구성용 임시 데이터 및 핸들러
+// ============================================
+
+// 메모 탭 상태, 임시 메모 데이터, 문서 표시용 임시 데이터는 위에서 이미 선언됨 (512-535번 줄)
+
+// Phase 1: UI 테스트용 - 문서 개수 변경 함수 (개발 중 테스트용)
+// 개발자 도구 콘솔에서 사용: window.tempDocumentCount = 0, 1, 2
+if (import.meta.env.DEV) {
+  window.tempDocumentCount = (count) => {
+    tempDocumentCount.value = count
+  }
+}
+
+// Phase 1: 임시 핸들러 함수 (기능 없음, UI만 구성)
+
+// 상단: 에러 기본 정보 복사 (일반적인 에러 정보)
+function handleCopyErrorInfo() {
+  $q.notify({
+    type: 'info',
+    message: '에러 정보 복사 기능은 Phase 4에서 구현됩니다.',
+    position: 'top',
+    timeout: 2000,
+  })
+}
+
+// 메모 섹션: AI 분석용 컨텍스트 복사 (@error-ref 형식)
+function handleCopyContextForAI() {
+  $q.notify({
+    type: 'info',
+    message: 'AI 컨텍스트 복사 기능은 Phase 4에서 구현됩니다.',
+    position: 'top',
+    timeout: 2000,
+  })
+}
+
+
+// 메모 변경 핸들러 (임시 저장용)
+const pendingNotes = ref({
+  cause: null,
+  solution: null,
+  learned: null,
+  references: null,
+})
+
+// selectedError 변경 시 pendingNotes 초기화
+watch(
+  () => selectedError.value?.id,
+  () => {
+    pendingNotes.value = {
+      cause: null,
+      solution: null,
+      learned: null,
+      references: null,
+    }
+  }
+)
+
+/**
+ * 메모 필드 변경 핸들러
+ */
+function handleNotesChange(field, value) {
+  if (!selectedError.value) return
+
+  // 임시 저장
+  pendingNotes.value[field] = value
+
+  // notes 필드가 없으면 초기화
+  if (!selectedError.value.notes) {
+    selectedError.value.notes = {
+      cause: null,
+      solution: null,
+      learned: null,
+      references: [],
+      updatedAt: null,
+      updatedBy: null,
+    }
+  }
+
+  // 즉시 반영 (UI 반응성)
+  selectedError.value.notes[field] = value
+}
+
+/**
+ * 참고 자료 변경 핸들러
+ */
+function handleReferenceChange(index, value) {
+  if (!selectedError.value) return
+
+  // notes 필드가 없으면 초기화
+  if (!selectedError.value.notes) {
+    selectedError.value.notes = {
+      cause: null,
+      solution: null,
+      learned: null,
+      references: [],
+      updatedAt: null,
+      updatedBy: null,
+    }
+  }
+
+  if (!selectedError.value.notes.references) {
+    selectedError.value.notes.references = []
+  }
+
+  // 배열 업데이트
+  if (selectedError.value.notes.references[index] !== undefined) {
+    selectedError.value.notes.references[index] = value
+  }
+}
+
+/**
+ * 메모 저장 핸들러
+ */
+function handleSaveNotes() {
+  if (!selectedError.value || !selectedError.value.id) {
+    return
+  }
+
+  // pendingNotes와 현재 notes를 병합하여 저장
+  const notesToSave = {
+    ...errorNotes.value,
+    ...pendingNotes.value,
+    updatedBy: 'user',
+  }
+
+  // null 값 제거 (기존 값 유지)
+  Object.keys(notesToSave).forEach((key) => {
+    if (notesToSave[key] === null && errorNotes.value[key] !== null) {
+      notesToSave[key] = errorNotes.value[key]
+    }
+  })
+
+  // 저장
+  saveErrorNotes(selectedError.value.id, notesToSave)
+
+  // pendingNotes 초기화
+  pendingNotes.value = {
+    cause: null,
+    solution: null,
+    learned: null,
+    references: null,
+  }
+
+  $q.notify({
+    type: 'positive',
+    message: '메모가 저장되었습니다.',
+    position: 'top',
+    timeout: 1500,
+  })
+}
+
+/**
+ * 참고 자료 추가
+ */
+function handleAddReference() {
+  if (!selectedError.value) return
+
+  // notes 필드가 없으면 초기화
+  if (!selectedError.value.notes) {
+    selectedError.value.notes = {
+      cause: null,
+      solution: null,
+      learned: null,
+      references: [],
+      updatedAt: null,
+      updatedBy: null,
+    }
+  }
+
+  if (!selectedError.value.notes.references) {
+    selectedError.value.notes.references = []
+  }
+
+  selectedError.value.notes.references.push('')
+}
+
+/**
+ * 참고 자료 삭제
+ */
+function handleRemoveReference(index) {
+  if (!selectedError.value || !selectedError.value.notes || !selectedError.value.notes.references) {
+    return
+  }
+
+  selectedError.value.notes.references.splice(index, 1)
+  handleSaveNotes()
+}
+
+function handleSelectDocument(doc) {
+  $q.notify({
+    type: 'info',
+    message: `문서 선택 기능은 Phase 5에서 구현됩니다: ${doc.title}`,
+    position: 'top',
+    timeout: 2000,
+  })
+}
+
+function handleOpenInDocumentViewer() {
+  $q.notify({
+    type: 'info',
+    message: '문서 뷰어 연동 기능은 Phase 8에서 구현됩니다.',
+    position: 'top',
+    timeout: 2000,
+  })
+}
 
 // 해결 버튼 아이콘 (상태에 따라 동적 변경)
 const resolvedButtonIcon = computed(() => {
@@ -1102,8 +1590,8 @@ onUnmounted(() => {
   }
 
   .stat-card-header {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
     gap: 1rem;
   }
 
@@ -1242,7 +1730,9 @@ onUnmounted(() => {
 .error-location,
 .error-stack,
 .error-network,
-.error-context {
+.error-context,
+.error-notes,
+.error-analysis-docs {
   background-color: var(--nexa-surface);
   border-radius: 4px;
   border: 1px solid var(--nexa-border-color);
@@ -1501,5 +1991,76 @@ onUnmounted(() => {
 
 .batch-apply-label {
   color: var(--nexa-text-primary);
+}
+
+// ============================================
+// Phase 1: 메모 섹션 스타일
+// ============================================
+.error-notes {
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .notes-tabs {
+    margin-bottom: 1rem;
+  }
+
+  .notes-panels {
+    .notes-editor {
+      .notes-textarea {
+        width: 100%;
+      }
+
+      .notes-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: var(--nexa-text-secondary);
+      }
+    }
+
+    .reference-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+}
+
+// ============================================
+// Phase 1: 문서 표시 섹션 스타일
+// ============================================
+.error-analysis-docs {
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .analysis-doc-preview {
+    .markdown-content {
+      color: var(--nexa-text-primary);
+      line-height: 1.6;
+    }
+  }
+
+  .error-analysis-empty {
+    padding: 2rem;
+    color: var(--nexa-text-secondary);
+  }
+}
+
+// 컨텍스트 복사 버튼 스타일
+.btn-copy-context {
+  color: var(--nexa-primary);
 }
 </style>

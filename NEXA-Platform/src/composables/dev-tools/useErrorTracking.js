@@ -174,6 +174,18 @@ export function useErrorTracking() {
           error.count = 1
           hasChanges = true
         }
+        // notes 필드 마이그레이션
+        if (!error.notes) {
+          error.notes = {
+            cause: null,
+            solution: null,
+            learned: null,
+            references: [],
+            updatedAt: null,
+            updatedBy: null,
+          }
+          hasChanges = true
+        }
       })
       
       // 변경사항이 있으면 저장
@@ -214,6 +226,14 @@ export function useErrorTracking() {
       count: 1,
       url: errorData.url || window.location.href,
       userAgent: errorData.userAgent || navigator.userAgent,
+      notes: {
+        cause: null,
+        solution: null,
+        learned: null,
+        references: [],
+        updatedAt: null,
+        updatedBy: null,
+      },
     }
 
     errors.value.unshift(error)
@@ -584,6 +604,14 @@ export function useErrorTracking() {
       id: lintError.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
       status: 'new',
       count: 1,
+      notes: {
+        cause: null,
+        solution: null,
+        learned: null,
+        references: [],
+        updatedAt: null,
+        updatedBy: null,
+      },
     }
 
     errors.value.unshift(error)
@@ -598,6 +626,69 @@ export function useErrorTracking() {
 
     // 에러 목록 업데이트 이벤트
     emitErrorsUpdated()
+  }
+
+  /**
+   * 에러 메모 저장
+   * @param {string} errorId - 에러 ID
+   * @param {Object} notes - 메모 데이터
+   */
+  function saveErrorNotes(errorId, notes) {
+    // 먼저 errors 배열에서 찾기
+    let error = errors.value.find((e) => e.id === errorId)
+    
+    // errors 배열에 없으면 selectedError 확인
+    if (!error && selectedError.value && selectedError.value.id === errorId) {
+      error = selectedError.value
+    }
+    
+    if (!error) {
+      console.warn('[useErrorTracking] 에러를 찾을 수 없습니다:', errorId)
+      return
+    }
+
+    // notes 필드가 없으면 초기화
+    if (!error.notes) {
+      error.notes = {
+        cause: null,
+        solution: null,
+        learned: null,
+        references: [],
+        updatedAt: null,
+        updatedBy: null,
+      }
+    }
+
+    // 메모 업데이트
+    error.notes = {
+      ...error.notes,
+      ...notes,
+      updatedAt: Date.now(),
+      updatedBy: notes.updatedBy || 'user',
+    }
+
+    // errors 배열에도 반영 (selectedError가 errors 배열의 참조가 아닐 수 있음)
+    const errorInArray = errors.value.find((e) => e.id === errorId)
+    if (errorInArray) {
+      errorInArray.notes = error.notes
+    }
+
+    // localStorage에 저장
+    saveErrors(errors.value)
+
+    // 에러 목록 업데이트 이벤트
+    emitErrorsUpdated()
+
+    console.log('[useErrorTracking] 메모 저장 완료:', errorId)
+  }
+
+  /**
+   * 에러 메모 업데이트 (saveErrorNotes의 별칭)
+   * @param {string} errorId - 에러 ID
+   * @param {Object} notes - 메모 데이터
+   */
+  function updateErrorNotes(errorId, notes) {
+    saveErrorNotes(errorId, notes)
   }
 
   /**
@@ -708,5 +799,7 @@ export function useErrorTracking() {
     batchUpdateErrorStatus,
     batchDeleteError,
     initialize,
+    saveErrorNotes,
+    updateErrorNotes,
   }
 }
