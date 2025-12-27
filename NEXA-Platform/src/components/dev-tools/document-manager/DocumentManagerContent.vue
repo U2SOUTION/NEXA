@@ -16,7 +16,12 @@
         <div class="file-content-header row items-center justify-between">
           <div>
             <div class="text-h6 file-content-title">{{ documentStore.selectedFile.displayName }}</div>
-            <div class="text-caption file-content-filename">{{ documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name }}</div>
+            <div class="text-caption file-content-filename row items-center q-gutter-xs">
+              <span>{{ documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name }}</span>
+              <q-btn flat dense round icon="content_copy" size="sm" class="copy-path-btn" @click="handleCopyFilePath">
+                <q-tooltip>경로 복사</q-tooltip>
+              </q-btn>
+            </div>
           </div>
           <div class="row q-gutter-xs">
             <!-- 휴지통에 있는 파일인 경우: 복원, 영구 삭제, 전체 휴지통 비우기 -->
@@ -108,6 +113,7 @@ import { useUserSettingsStore } from 'src/stores/userSettingsStore'
 import { loadCheckboxStates, loadTOCSettings, moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash, emptyTrash, renameFile } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentStats } from 'src/modules/document-manager/composables/useDocumentStats.js'
 import { useDocumentManagerStore } from 'src/stores/documentManagerStore.js'
+import { copyTextToClipboard } from 'src/utils/clipboard.js'
 
 const $q = useQuasar()
 const documentStore = useDocumentManagerStore()
@@ -742,6 +748,32 @@ async function handleUpdateModifiedDate() {
   }
 }
 
+// 파일 경로 복사
+async function handleCopyFilePath() {
+  if (!documentStore.selectedFile) return
+
+  const filePath = documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name
+
+  try {
+    await copyTextToClipboard(filePath)
+    $q.notify({
+      type: 'positive',
+      message: '경로가 클립보드에 복사되었습니다',
+      position: 'top',
+      timeout: 2000,
+      icon: 'content_copy',
+    })
+  } catch (error) {
+    console.error('[Copy] 경로 복사 실패:', error)
+    $q.notify({
+      type: 'negative',
+      message: `경로 복사 실패: ${error.message || '알 수 없는 오류'}`,
+      position: 'top',
+      timeout: 3000,
+    })
+  }
+}
+
 // 파일명 변경
 function handleRenameFile() {
   if (!documentStore.selectedFile) return
@@ -935,6 +967,22 @@ onUnmounted(() => {
     color: var(--nexa-text-secondary);
     margin-top: 2px !important;
     line-height: 1.2;
+
+    .copy-path-btn {
+      opacity: 0.6;
+      transition:
+        opacity 0.2s ease,
+        color 0.2s ease;
+
+      &:hover {
+        opacity: 1;
+        color: var(--nexa-primary);
+      }
+
+      :deep(.q-icon) {
+        font-size: 14px;
+      }
+    }
   }
 
   :deep(.rename-btn),
