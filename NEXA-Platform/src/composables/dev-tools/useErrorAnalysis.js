@@ -6,7 +6,68 @@
 
 import { ref, computed } from 'vue'
 import { errorAnalysisIndex } from 'src/utils/error-tracking/errorAnalysisIndex.js'
-import { extractDocumentMetadata } from 'src/utils/error-tracking/errorAnalysisParser.js'
+import { extractDocumentMetadata, parseErrorAnalysisFrontmatter } from 'src/utils/error-tracking/errorAnalysisParser.js'
+
+
+/**
+ * 메타데이터 API를 활용하여 Error/Platform 폴더의 문서 검색
+ * @param {string} errorId - 에러 ID
+ * @returns {Promise<Array>} 문서 메타데이터 배열
+ */
+async function searchKnownDocumentPaths(errorId) {
+  const project = 'Platform'
+  const matchingDocs = []
+
+  try {
+    // 문서 뷰어의 메타데이터 API를 통해 파일 목록 가져오기
+    const metadataResponse = await fetch('http://localhost:3000/api/docs/metadata')
+    if (!metadataResponse.ok) {
+      return []
+    }
+
+    const metadata = await metadataResponse.json()
+    
+    // metadata.files 배열에서 Error/Platform 폴더의 파일만 필터링
+    const files = metadata.files || []
+    const errorPlatformFiles = files.filter((fileMeta) => {
+      const relativePath = fileMeta.relativePath || fileMeta.fileName || ''
+      return relativePath.startsWith(`Error/${project}/`) && relativePath.endsWith('.md')
+    })
+
+    // 각 파일의 내용 확인
+    for (const fileMeta of errorPlatformFiles) {
+      const filePath = fileMeta.relativePath || fileMeta.fileName
+      if (!filePath) continue
+
+      try {
+        const contentResponse = await fetch(`http://localhost:3000/api/docs/${encodeURIComponent(filePath)}`)
+        if (!contentResponse.ok) continue
+
+        const content = await contentResponse.text()
+        const frontmatter = parseErrorAnalysisFrontmatter(content)
+
+        if (frontmatter?.errorId === errorId) {
+          const fileName = filePath.split('/').pop()
+          matchingDocs.push({
+            path: filePath,
+            fileName: fileName,
+            title: frontmatter.title || fileName.replace('.md', ''),
+            createdAt: frontmatter.createdAt || new Date().toISOString(),
+            updatedAt: frontmatter.updatedAt || new Date().toISOString(),
+            tags: frontmatter.tags || [],
+            errorMessage: frontmatter.errorMessage || null,
+          })
+        }
+      } catch {
+        // 조용히 처리 (에러 수집기에서 수집되지 않도록)
+      }
+    }
+  } catch {
+    // 조용히 처리 (에러 수집기에서 수집되지 않도록)
+  }
+
+  return matchingDocs
+}
 
 /**
  * 에러 분석 문서 검색 Composable
@@ -57,6 +118,7 @@ export function useErrorAnalysis() {
   async function findAnalysisDocuments(errorId) {
     if (!errorId) {
       documents.value = []
+      error.value = null
       return []
     }
 
@@ -65,10 +127,30 @@ export function useErrorAnalysis() {
 
     try {
       // 인덱스에서 문서 메타데이터 가져오기
-      const indexEntries = await errorAnalysisIndex.findDocumentsByErrorId(errorId)
+      let indexEntries = await errorAnalysisIndex.findDocumentsByErrorId(errorId)
+
+      // 인덱스가 없거나 비어있으면 메타데이터 API로 직접 검색
+      const indexError = errorAnalysisIndex.getLastError()
+      if (indexError && indexError.type === 'index_not_found') {
+        // 인덱스 파일이 없으면 바로 메타데이터 API로 검색 (폴더 스캔은 시도하지 않음)
+        indexEntries = await searchKnownDocumentPaths(errorId)
+      }
 
       if (indexEntries.length === 0) {
         documents.value = []
+        // 인덱스 로드 실패 및 직접 검색 실패 시 에러 정보 저장
+        const finalError = errorAnalysisIndex.getLastError()
+        if (finalError) {
+          error.value = {
+            type: 'index_error',
+            message: finalError.message || '인덱스 파일을 로드할 수 없습니다. 문서가 없거나 API 경로 문제일 수 있습니다.',
+            details: {
+              ...finalError,
+              suggestion: '문서 뷰어에서 Error/Platform 폴더를 확인하거나, 인덱스를 수동으로 재구성해주세요.',
+            },
+            errorId, // 검색한 에러 ID도 포함
+          }
+        }
         return []
       }
 

@@ -14,6 +14,7 @@ export class ErrorAnalysisIndex {
     this.indexPath = `Error/${project}/.error-analysis-index.json`
     this.cache = null
     this.lastModified = null
+    this.lastError = null // 마지막 에러 정보 저장
   }
 
   /**
@@ -27,10 +28,35 @@ export class ErrorAnalysisIndex {
         return this.cache
       }
 
-      const response = await fetch(
-        `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`
-      )
+      const url = `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`
+      
+      // 조용한 fetch (에러 수집기에서 수집되지 않도록)
+      let response
+      try {
+        response = await fetch(url, {
+          // 에러 수집기에서 무시하도록 특별한 헤더 추가 (선택적)
+        })
+      } catch {
+        // 네트워크 에러는 조용히 처리
+        this.lastError = {
+          type: 'index_not_found',
+          message: `인덱스 파일을 찾을 수 없습니다: ${this.indexPath}`,
+          url,
+          status: null,
+          statusText: 'Network Error',
+        }
+        return this.createEmptyIndex()
+      }
+
       if (!response.ok) {
+        // 인덱스 파일이 없으면 에러 정보 저장 (400/404는 예상된 에러)
+        this.lastError = {
+          type: 'index_not_found',
+          message: `인덱스 파일을 찾을 수 없습니다: ${this.indexPath}`,
+          url,
+          status: response.status,
+          statusText: response.statusText,
+        }
         // 인덱스 파일이 없으면 빈 인덱스 생성
         return this.createEmptyIndex()
       }
@@ -39,11 +65,26 @@ export class ErrorAnalysisIndex {
       const index = JSON.parse(content)
 
       this.cache = index
+      this.lastError = null // 성공 시 에러 정보 초기화
       return index
     } catch (error) {
+      this.lastError = {
+        type: 'index_load_error',
+        message: `인덱스 파일 로드 실패: ${error.message}`,
+        error: error.toString(),
+        path: this.indexPath,
+      }
       console.error('[ErrorAnalysisIndex] 인덱스 로드 실패:', error)
       return this.createEmptyIndex()
     }
+  }
+
+  /**
+   * 마지막 에러 정보 가져오기
+   * @returns {Object|null} 에러 정보 또는 null
+   */
+  getLastError() {
+    return this.lastError
   }
 
   /**

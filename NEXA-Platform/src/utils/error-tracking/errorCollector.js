@@ -230,11 +230,29 @@ function interceptFetch() {
     const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || 'unknown'
     const method = args[1]?.method || 'GET'
 
+    // 에러 수집에서 제외할 URL 패턴 (예상된 실패)
+    const shouldIgnoreError = (url) => {
+      // 인덱스 파일 요청 (400은 예상된 에러 - 파일이 없을 수 있음)
+      if (url.includes('.error-analysis-index.json')) {
+        return true
+      }
+      // 폴더 스캔 요청 (404는 예상된 에러 - API가 폴더를 지원하지 않을 수 있음)
+      if (url.includes('/api/docs/Error/Platform') && !url.includes('.md') && !url.includes('.json')) {
+        return true
+      }
+      return false
+    }
+
     try {
       const response = await originalFetch.apply(this, args)
 
       // HTTP 에러 상태 코드 체크 (400 이상)
       if (!response.ok && response.status >= 400) {
+        // 예상된 실패는 무시
+        if (shouldIgnoreError(url)) {
+          return response
+        }
+
         // 404는 경고로 처리 (존재하지 않는 리소스는 일반적일 수 있음)
         const level = response.status === 404 ? 'warning' : 'error'
 
@@ -259,6 +277,21 @@ function interceptFetch() {
 
       return response
     } catch (error) {
+      // 예상된 실패는 무시
+      const shouldIgnoreError = (url) => {
+        if (url.includes('.error-analysis-index.json')) {
+          return true
+        }
+        if (url.includes('/api/docs/Error/Platform') && !url.includes('.md') && !url.includes('.json')) {
+          return true
+        }
+        return false
+      }
+
+      if (shouldIgnoreError(url)) {
+        throw error
+      }
+
       // 네트워크 연결 실패 등의 에러
       // 에러 메시지에서 상태 코드 추출 시도 (예: "404 Not Found")
       const errorMessage = error.message || 'Failed to fetch'

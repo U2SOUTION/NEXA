@@ -162,6 +162,10 @@
         </h5>
         <div class="statistics-info">
           <div class="info-row">
+            <span class="info-label">에러 ID</span>
+            <span class="info-value code">{{ selectedError.id }}</span>
+          </div>
+          <div class="info-row">
             <span class="info-label">발생 횟수</span>
             <span class="info-value">{{ selectedError.count || 1 }}회</span>
           </div>
@@ -366,58 +370,82 @@
       </div>
 
       <!-- 에러 분석 문서 -->
-      <div class="error-analysis-docs q-pa-md">
+      <div v-if="selectedError" class="error-analysis-docs q-pa-md">
         <h5 class="section-title">
           <q-icon name="description" />
           에러 분석 문서
-          <q-chip v-if="tempDocumentCount > 1" size="sm"> {{ tempDocumentCount }}개 </q-chip>
+          <q-chip v-if="documentCount > 1" size="sm"> {{ documentCount }}개 </q-chip>
         </h5>
 
+        <!-- 로딩 상태 -->
+        <div v-if="isAnalysisLoading" class="text-center">
+          <q-spinner color="primary" size="3em" />
+          <div class="text-caption">문서를 검색하는 중...</div>
+        </div>
+
         <!-- 문서가 1개면 바로 표시 -->
-        <div v-if="tempDocumentCount === 1" class="analysis-doc-preview">
+        <div v-else-if="hasSingleDocument" class="analysis-doc-preview">
           <q-card>
             <q-card-section>
-              <div class="text-h6">{{ tempDocumentTitle }}</div>
-              <div class="text-caption">작성일: {{ tempDocumentDate }}</div>
+              <div class="text-h6">{{ analysisDocuments[0].title || analysisDocuments[0].fileName }}</div>
+              <div class="text-caption">작성일: {{ formatDocumentDate(analysisDocuments[0].frontmatter?.createdAt) }}</div>
             </q-card-section>
             <q-separator />
             <q-card-section>
-              <div class="markdown-content">
-                <p class="text-body2">이 영역에 마크다운 렌더링된 문서 내용이 표시됩니다.</p>
-                <p class="text-caption text-grey-6">기능은 Phase 5에서 구현됩니다</p>
-              </div>
+              <div class="markdown-content" v-html="renderMarkdown(analysisDocuments[0].body)"></div>
             </q-card-section>
             <q-card-actions>
-              <q-btn flat label="문서 뷰어에서 열기" icon="open_in_new" @click="handleOpenInDocumentViewer" />
+              <q-btn flat label="문서 뷰어에서 열기" icon="open_in_new" @click="handleOpenInDocumentViewer(analysisDocuments[0].path)" />
             </q-card-actions>
           </q-card>
         </div>
 
         <!-- 여러 개면 리스트 -->
-        <q-list v-else-if="tempDocumentCount > 1">
-          <q-item v-for="(doc, index) in tempDocuments" :key="index" clickable @click="handleSelectDocument(doc)">
+        <q-list v-else-if="hasMultipleDocuments">
+          <q-item v-for="doc in analysisDocuments" :key="doc.path" clickable @click="handleSelectDocument(doc)">
             <q-item-section>
-              <q-item-label>{{ doc.title }}</q-item-label>
+              <q-item-label>{{ doc.title || doc.fileName }}</q-item-label>
               <q-item-label caption>
-                {{ doc.date }}
-                <span v-if="doc.tags && doc.tags.length">
-                  <q-chip v-for="tag in doc.tags" :key="tag" size="xs">
+                {{ formatDocumentDate(doc.frontmatter?.createdAt) }}
+                <span v-if="doc.frontmatter?.tags && doc.frontmatter.tags.length">
+                  <q-chip v-for="tag in doc.frontmatter.tags" :key="tag" size="xs">
                     {{ tag }}
                   </q-chip>
                 </span>
               </q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-btn flat dense icon="open_in_new" @click.stop="handleOpenInDocumentViewer" />
+              <q-btn flat dense icon="open_in_new" @click.stop="handleOpenInDocumentViewer(doc.path)" />
             </q-item-section>
           </q-item>
         </q-list>
 
         <!-- 문서가 없을 때 안내 -->
-        <div v-else class="error-analysis-empty text-center">
+        <div v-else-if="hasNoDocuments" class="error-analysis-empty text-center">
           <q-icon name="description" size="48px" />
           <div class="text-body2">이 에러에 대한 분석 문서가 없습니다.</div>
           <div class="text-caption">Cursor에서 에러를 분석하여 문서를 생성하세요.</div>
+
+          <!-- 인덱스 에러 정보 표시 -->
+          <div v-if="analysisError" class="error-analysis-error q-mt-md">
+            <q-banner class="bg-negative text-white">
+              <template #avatar>
+                <q-icon name="error" />
+              </template>
+              <div class="text-body2">{{ analysisError.message }}</div>
+              <div v-if="analysisError.details" class="text-caption q-mt-xs">
+                <div v-if="analysisError.details.url"><strong>요청 URL:</strong> {{ analysisError.details.url }}</div>
+                <div v-if="analysisError.details.status"><strong>상태 코드:</strong> {{ analysisError.details.status }} {{ analysisError.details.statusText }}</div>
+                <div v-if="analysisError.details.path"><strong>인덱스 경로:</strong> {{ analysisError.details.path }}</div>
+                <div v-if="analysisError.errorId">
+                  <strong>검색한 에러 ID:</strong> <code>{{ analysisError.errorId }}</code>
+                </div>
+              </div>
+              <template #action>
+                <q-btn flat dense label="인덱스 재구성" @click="handleRebuildIndex" :loading="isRebuildingIndex" />
+              </template>
+            </q-banner>
+          </div>
         </div>
       </div>
     </div>
@@ -430,6 +458,8 @@ import { useQuasar } from 'quasar'
 import NexaChart from 'src/charts/NexaChart.vue'
 import * as d3 from 'd3'
 import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
+import { useErrorAnalysis } from 'src/composables/dev-tools/useErrorAnalysis.js'
+import { errorAnalysisIndex } from 'src/utils/error-tracking/errorAnalysisIndex.js'
 import { classifyErrorType, getErrorIcon, getErrorTypeLabel, getErrorTypeChartLabel } from 'src/utils/error-tracking/errorTypeClassifier.js'
 import { normalizeFilePathForAI, normalizeStackForAI } from 'src/utils/error-tracking/pathNormalizer.js'
 import { formatTimeRelative, formatTimeAbsolute, formatTime, formatDuration } from 'src/utils/error-tracking/timeFormatter.js'
@@ -439,6 +469,12 @@ const $q = useQuasar()
 
 // 에러 트래킹 composable
 const { selectedError, saveErrorNotes, errors } = useErrorTracking()
+
+// 에러 분석 문서 composable
+const { documents: analysisDocuments, isLoading: isAnalysisLoading, error: analysisError, documentCount, hasSingleDocument, hasMultipleDocuments, hasNoDocuments, findAnalysisDocuments, selectDocument, clear: clearAnalysis } = useErrorAnalysis()
+
+// 인덱스 재구성 상태
+const isRebuildingIndex = ref(false)
 
 // 메모 탭 상태
 const notesTab = ref('cause')
@@ -484,22 +520,18 @@ const errorNotes = computed({
   },
 })
 
-// Phase 1: 문서 표시용 임시 데이터
-const tempDocumentCount = ref(0) // 0: 없음, 1: 1개, 2+: 여러 개
-const tempDocumentTitle = ref('Vue ref 초기화 에러 분석')
-const tempDocumentDate = ref('2024-12-20 10:30:00')
-const tempDocuments = ref([
-  {
-    title: 'Vue ref 초기화 에러 분석',
-    date: '2024-12-20 10:30:00',
-    tags: ['vue', 'ref', '초기화'],
+// 선택된 에러가 변경될 때마다 문서 검색
+watch(
+  () => selectedError.value?.id,
+  async (errorId) => {
+    if (errorId) {
+      await findAnalysisDocuments(errorId)
+    } else {
+      clearAnalysis()
+    }
   },
-  {
-    title: '네트워크 요청 타임아웃 분석',
-    date: '2024-12-20 11:00:00',
-    tags: ['network', 'timeout'],
-  },
-])
+  { immediate: true },
+)
 
 // 에러 목록은 useErrorTracking()에서 가져옴 (위에서 이미 선언됨)
 
@@ -907,11 +939,9 @@ const similarErrorsCountRef = ref(0)
 // 메모 탭 상태, 임시 메모 데이터, 문서 표시용 임시 데이터는 위에서 이미 선언됨 (512-535번 줄)
 
 // Phase 1: UI 테스트용 - 문서 개수 변경 함수 (개발 중 테스트용)
-// 개발자 도구 콘솔에서 사용: window.tempDocumentCount = 0, 1, 2
+// 개발자 도구 콘솔에서 사용 (Phase 5 이후 제거됨)
 if (import.meta.env.DEV) {
-  window.tempDocumentCount = (count) => {
-    tempDocumentCount.value = count
-  }
+  // Phase 5 구현 완료로 임시 함수 제거됨
 }
 
 // Phase 1: 임시 핸들러 함수 (기능 없음, UI만 구성)
@@ -1174,21 +1204,114 @@ function handleRemoveReference(index) {
 }
 
 function handleSelectDocument(doc) {
+  selectDocument(doc)
+}
+
+function handleOpenInDocumentViewer(documentPath) {
+  if (!documentPath) return
+
+  // 문서 뷰어로 이동하고 문서 열기
+  // 1. 문서 뷰어 메뉴로 전환
+  window.dispatchEvent(
+    new CustomEvent('dev-menu-changed', {
+      detail: { activeMenu: 'document-manager' },
+    }),
+  )
+
+  // 2. 문서 선택 이벤트 발생 (문서 뷰어에서 처리)
+  nextTick(() => {
+    window.dispatchEvent(
+      new CustomEvent('open-document', {
+        detail: { path: documentPath },
+      }),
+    )
+  })
+
   $q.notify({
     type: 'info',
-    message: `문서 선택 기능은 Phase 5에서 구현됩니다: ${doc.title}`,
+    message: '문서 뷰어로 이동합니다.',
     position: 'top',
     timeout: 2000,
   })
 }
 
-function handleOpenInDocumentViewer() {
-  $q.notify({
-    type: 'info',
-    message: '문서 뷰어 연동 기능은 Phase 8에서 구현됩니다.',
-    position: 'top',
-    timeout: 2000,
+// 인덱스 재구성 핸들러
+async function handleRebuildIndex() {
+  if (!selectedError.value?.id) return
+
+  isRebuildingIndex.value = true
+
+  try {
+    await errorAnalysisIndex.rebuildIndex()
+    $q.notify({
+      type: 'positive',
+      message: '인덱스 재구성이 완료되었습니다.',
+      position: 'top',
+      timeout: 2000,
+    })
+
+    // 재구성 후 문서 다시 검색
+    await findAnalysisDocuments(selectedError.value.id)
+  } catch (error) {
+    console.error('[ErrorTrackingContent] 인덱스 재구성 실패:', error)
+    $q.notify({
+      type: 'negative',
+      message: '인덱스 재구성에 실패했습니다.',
+      position: 'top',
+      timeout: 3000,
+    })
+  } finally {
+    isRebuildingIndex.value = false
+  }
+}
+
+// 문서 날짜 포맷팅
+function formatDocumentDate(dateString) {
+  if (!dateString) return '날짜 없음'
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return dateString
+  }
+}
+
+// 마크다운 렌더링 (간단한 텍스트 변환)
+function renderMarkdown(content) {
+  if (!content) return ''
+
+  // 간단한 마크다운 변환
+  let html = content
+
+  // 제목 변환
+  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>')
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>')
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>')
+
+  // 강조 변환
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
+  html = html.replace(/`(.*?)`/g, '<code>$1</code>')
+
+  // 링크 변환
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+
+  // 코드 블록 변환 (간단)
+  html = html.replace(/```[\s\S]*?```/g, (match) => {
+    const code = match.replace(/```/g, '').trim()
+    return `<pre><code>${code}</code></pre>`
   })
+
+  // 줄바꿈 변환
+  html = html.replace(/\n/g, '<br>')
+
+  return html
 }
 
 // 해결 버튼 아이콘 (상태에 따라 동적 변경)
