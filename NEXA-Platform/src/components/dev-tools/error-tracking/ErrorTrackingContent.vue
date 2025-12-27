@@ -3,13 +3,13 @@
     <!-- 선택된 에러가 없을 때 -->
     <div v-if="!selectedError" class="dashboard-view q-pa-md">
       <!-- 대시보드 타이틀 -->
-      <div class="dashboard-header q-mb-lg">
+      <div class="dashboard-header">
         <h2 class="dashboard-title">에러 트래킹 대시보드</h2>
         <p class="dashboard-subtitle">수집된 에러의 통계 및 분석 정보를 확인할 수 있습니다</p>
       </div>
 
       <!-- 통계 카드 -->
-      <div class="statistics-cards q-mb-lg">
+      <div class="statistics-cards">
         <q-card class="stat-card">
           <q-card-section>
             <div class="stat-card-header">
@@ -57,7 +57,7 @@
       </div>
 
       <!-- 차트 섹션 -->
-      <div v-if="statistics.total > 0" class="charts-section q-mb-lg">
+      <div v-if="statistics.total > 0" class="charts-section">
         <div class="charts-grid">
           <!-- 에러 발생 추이 차트 -->
           <div class="chart-card">
@@ -90,9 +90,9 @@
       </div>
 
       <!-- 다이어그램 섹션 -->
-      <div v-if="statistics.total > 0 && diagramData.nodes && diagramData.nodes.length > 0" class="diagram-section q-mb-lg">
-        <div class="text-h6 q-mb-md">
-          <q-icon name="account_tree" class="q-mr-sm" />
+      <div v-if="statistics.total > 0 && diagramData.nodes && diagramData.nodes.length > 0" class="diagram-section">
+        <div class="text-h6">
+          <q-icon name="account_tree" />
           에러 의존성 다이어그램
         </div>
         <div ref="diagramContainer" class="error-dependency-diagram"></div>
@@ -100,7 +100,7 @@
 
       <!-- 안내 메시지 -->
       <div v-if="statistics.total === 0" class="empty-state q-pa-lg text-center">
-        <q-icon name="bug_report" size="80px" class="empty-icon q-mb-md" />
+        <q-icon name="bug_report" size="80px" class="empty-icon" />
         <h3 class="empty-title">에러 트래킹</h3>
         <p class="empty-description">현재 수집된 에러가 없습니다.</p>
         <p class="empty-description">왼쪽 목록에서 에러를 선택하여 상세 정보를 확인하세요.</p>
@@ -110,17 +110,17 @@
     <!-- 선택된 에러 상세 정보 -->
     <div v-else class="error-detail q-pa-md">
       <!-- 에러 기본 정보 -->
-      <div class="error-header q-mb-md">
+      <div class="error-header">
         <div class="row items-center q-gutter-md">
           <q-icon :name="getErrorIcon(selectedError)" :class="getErrorIconClass()" size="32px" />
           <div class="col">
             <h4 class="error-title">{{ selectedError.message || '에러 메시지 없음' }}</h4>
-            <div class="error-meta q-mt-xs">
+            <div class="error-meta">
               <q-chip v-if="selectedError.type === 'lint'" size="sm" label="Lint" />
             </div>
           </div>
         </div>
-        <div class="error-actions q-mt-md">
+        <div class="error-actions">
           <div class="row q-gutter-sm items-center justify-between">
             <!-- 메인 액션 버튼들 -->
             <div class="row q-gutter-sm items-center">
@@ -136,7 +136,7 @@
             <!-- 전체적용 옵션 그룹 (우측) -->
             <div class="batch-apply-group row q-gutter-xs items-center">
               <q-separator vertical />
-              <span class="text-caption text-weight-medium q-mr-xs batch-apply-label">전체 적용</span>
+              <span class="text-caption text-weight-medium batch-apply-label">전체 적용</span>
 
               <q-checkbox v-model="batchOptions.resolved" dense @update:model-value="handleBatchOptionChange" />
               <span class="text-caption">해결</span>
@@ -155,8 +155,8 @@
       </div>
 
       <!-- 에러 발생 통계 -->
-      <div class="error-statistics q-pa-md q-mb-md">
-        <h5 class="section-title q-mb-sm">
+      <div class="error-statistics q-pa-md">
+        <h5 class="section-title">
           <q-icon name="bar_chart" />
           발생 통계
         </h5>
@@ -194,18 +194,18 @@
             <span class="info-label">발생 기간</span>
             <span class="info-value">{{ formatDuration(selectedError.timestamp) }}</span>
           </div>
-          <q-separator class="q-my-sm" />
+          <q-separator />
           <div class="info-row info-row-no-margin">
             <span class="info-label">에러 타입</span>
             <span class="info-value">
-              <q-icon :name="getErrorIcon(selectedError)" :color="getErrorColor(selectedError)" size="20px" class="q-mr-xs" />
+              <q-icon :name="getErrorIcon(selectedError)" size="20px" />
               <span>{{ getErrorTypeLabel(selectedError) }}</span>
             </span>
           </div>
           <div class="info-row info-row-no-margin">
             <span class="info-label">상태</span>
             <span class="info-value">
-              <q-icon :name="getStatusIcon(selectedError.status)" :color="getStatusColor(selectedError.status)" size="20px" class="q-mr-xs" />
+              <q-icon :name="getStatusIcon(selectedError.status)" size="20px" />
               <span>{{ getStatusLabel(selectedError.status) }}</span>
             </span>
           </div>
@@ -213,8 +213,8 @@
       </div>
 
       <!-- 에러 위치 정보 -->
-      <div v-if="selectedError.file" class="error-location q-pa-md q-mb-md">
-        <h5 class="section-title q-mb-sm">
+      <div v-if="selectedError.file" class="error-location q-pa-md">
+        <h5 class="section-title">
           <q-icon name="location_on" />
           발생 위치
         </h5>
@@ -226,14 +226,14 @@
           <div v-if="selectedError.line" class="info-row">
             <span class="info-label">라인:</span>
             <span class="info-value">{{ selectedError.line }}</span>
-            <span v-if="selectedError.column" class="info-value q-ml-sm">컬럼: {{ selectedError.column }}</span>
+            <span v-if="selectedError.column" class="info-value">컬럼: {{ selectedError.column }}</span>
           </div>
         </div>
       </div>
 
       <!-- 스택 트레이스 -->
-      <div v-if="selectedError.stack" class="error-stack q-pa-md q-mb-md">
-        <h5 class="section-title q-mb-sm">
+      <div v-if="selectedError.stack" class="error-stack q-pa-md">
+        <h5 class="section-title">
           <q-icon name="code" />
           스택 트레이스
         </h5>
@@ -241,8 +241,8 @@
       </div>
 
       <!-- 네트워크 정보 (네트워크 에러인 경우) -->
-      <div v-if="selectedError.networkInfo" class="error-network q-pa-md q-mb-md">
-        <h5 class="section-title q-mb-sm">
+      <div v-if="selectedError.networkInfo" class="error-network q-pa-md">
+        <h5 class="section-title">
           <q-icon name="cloud_off" />
           네트워크 정보
         </h5>
@@ -267,8 +267,8 @@
       </div>
 
       <!-- 린트 정보 (린트 오류인 경우) -->
-      <div v-if="selectedError.type === 'lint'" class="error-lint q-pa-md q-mb-md">
-        <h5 class="section-title q-mb-sm">
+      <div v-if="selectedError.type === 'lint'" class="error-lint q-pa-md">
+        <h5 class="section-title">
           <q-icon name="code" />
           린트 정보
         </h5>
@@ -285,8 +285,8 @@
       </div>
 
       <!-- 컨텍스트 정보 -->
-      <div class="error-context q-pa-md q-mb-md">
-        <h5 class="section-title q-mb-sm">
+      <div class="error-context q-pa-md">
+        <h5 class="section-title">
           <q-icon name="info" />
           컨텍스트 정보
         </h5>
@@ -307,8 +307,8 @@
       </div>
 
       <!-- 원인 및 해결법 메모 -->
-      <div class="error-notes q-pa-md q-mb-md">
-        <div class="section-header q-mb-sm">
+      <div class="error-notes q-pa-md">
+        <div class="section-header">
           <h5 class="section-title">
             <q-icon name="lightbulb" />
             원인 및 해결법
@@ -331,7 +331,7 @@
           <q-tab-panel name="cause">
             <div class="notes-editor">
               <q-input :model-value="errorNotes.cause || ''" @update:model-value="handleNotesChange('cause', $event)" type="textarea" placeholder="에러 발생 원인을 분석해주세요..." rows="5" class="notes-textarea" @blur="handleSaveNotes" />
-              <div v-if="errorNotes.updatedBy === 'ai'" class="notes-meta q-mt-xs">
+              <div v-if="errorNotes.updatedBy === 'ai'" class="notes-meta">
                 <q-icon name="auto_awesome" size="xs" />
                 <span class="text-caption">AI가 생성한 내용</span>
               </div>
@@ -352,25 +352,25 @@
 
           <q-tab-panel name="references">
             <div class="notes-editor">
-              <div v-for="(ref, index) in errorNotes.references || []" :key="index" class="reference-item q-mb-sm">
+              <div v-for="(ref, index) in errorNotes.references || []" :key="index" class="reference-item">
                 <q-input :model-value="ref" @update:model-value="handleReferenceChange(index, $event)" placeholder="참고 자료 URL 또는 설명" @blur="handleSaveNotes">
                   <template #append>
                     <q-btn flat dense icon="delete" size="sm" @click="handleRemoveReference(index)" />
                   </template>
                 </q-input>
               </div>
-              <q-btn flat dense icon="add" label="참고 자료 추가" @click="handleAddReference" class="q-mt-sm" />
+              <q-btn flat dense icon="add" label="참고 자료 추가" @click="handleAddReference" />
             </div>
           </q-tab-panel>
         </q-tab-panels>
       </div>
 
       <!-- 에러 분석 문서 -->
-      <div class="error-analysis-docs q-pa-md q-mb-md">
-        <h5 class="section-title q-mb-sm">
+      <div class="error-analysis-docs q-pa-md">
+        <h5 class="section-title">
           <q-icon name="description" />
           에러 분석 문서
-          <q-chip v-if="tempDocumentCount > 1" size="sm" class="q-ml-sm"> {{ tempDocumentCount }}개 </q-chip>
+          <q-chip v-if="tempDocumentCount > 1" size="sm"> {{ tempDocumentCount }}개 </q-chip>
         </h5>
 
         <!-- 문서가 1개면 바로 표시 -->
@@ -378,7 +378,7 @@
           <q-card>
             <q-card-section>
               <div class="text-h6">{{ tempDocumentTitle }}</div>
-              <div class="text-caption q-mt-xs">작성일: {{ tempDocumentDate }}</div>
+              <div class="text-caption">작성일: {{ tempDocumentDate }}</div>
             </q-card-section>
             <q-separator />
             <q-card-section>
@@ -400,7 +400,7 @@
               <q-item-label>{{ doc.title }}</q-item-label>
               <q-item-label caption>
                 {{ doc.date }}
-                <span v-if="doc.tags && doc.tags.length" class="q-ml-sm">
+                <span v-if="doc.tags && doc.tags.length">
                   <q-chip v-for="tag in doc.tags" :key="tag" size="xs">
                     {{ tag }}
                   </q-chip>
@@ -415,9 +415,9 @@
 
         <!-- 문서가 없을 때 안내 -->
         <div v-else class="error-analysis-empty text-center">
-          <q-icon name="description" size="48px" class="q-mb-sm" />
+          <q-icon name="description" size="48px" />
           <div class="text-body2">이 에러에 대한 분석 문서가 없습니다.</div>
-          <div class="text-caption q-mt-xs">Cursor에서 에러를 분석하여 문서를 생성하세요.</div>
+          <div class="text-caption">Cursor에서 에러를 분석하여 문서를 생성하세요.</div>
         </div>
       </div>
     </div>
@@ -430,7 +430,7 @@ import { useQuasar } from 'quasar'
 import NexaChart from 'src/charts/NexaChart.vue'
 import * as d3 from 'd3'
 import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
-import { classifyErrorType, getErrorIcon, getErrorColor, getErrorTypeLabel, getErrorTypeChartLabel } from 'src/utils/error-tracking/errorTypeClassifier.js'
+import { classifyErrorType, getErrorIcon, getErrorTypeLabel, getErrorTypeChartLabel } from 'src/utils/error-tracking/errorTypeClassifier.js'
 import { normalizeFilePathForAI, normalizeStackForAI } from 'src/utils/error-tracking/pathNormalizer.js'
 import { formatTimeRelative, formatTimeAbsolute, formatTime, formatDuration } from 'src/utils/error-tracking/timeFormatter.js'
 import { copyTextToClipboard } from 'src/utils/clipboard.js'
@@ -872,20 +872,6 @@ function getStatusIcon(status) {
       return 'block'
     default:
       return 'help_outline'
-  }
-}
-
-// 상태 색상
-function getStatusColor(status) {
-  switch (status) {
-    case 'new':
-      return 'negative'
-    case 'resolved':
-      return 'positive'
-    case 'ignored':
-      return 'grey-7'
-    default:
-      return 'grey-7'
   }
 }
 
@@ -1537,8 +1523,6 @@ onUnmounted(() => {
 
 .chart-card {
   border: 1px solid var(--nexa-border-color);
-  border-radius: 4px;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
   min-height: 400px;
@@ -1547,9 +1531,22 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
+// 타이틀
+.dashboard-title,
+.error-title,
+.section-title {
+  font-weight: 900;
+}
+
+.info-label {
+  color: var(--nexa-text-secondary);
+  margin-right: 10px;
+}
+
 // 스택 트레이스
 .stack-trace {
-  padding: 1rem;
+  color: var(--nexa-text-hint);
+  padding: 10px;
   border-radius: 4px;
   border: 1px solid var(--nexa-border-color);
   font-family: 'Courier New', monospace;
