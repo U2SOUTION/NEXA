@@ -106,3 +106,28 @@ export function getFileCategory(file, groupLevel = 1) {
   // 기본값: 1레벨
   return levels.level1 || '기타'
 }
+
+/**
+ * 컴포넌트 경로에서 카테고리 추출 (src 다음의 첫 디렉토리)
+ * @param {string} componentPath - 컴포넌트 경로 (예: 'src/charts/NexaChart.vue')
+ * @returns {string|null} 카테고리명 (예: 'charts')
+ */
+export function getComponentCategory(componentPath) {
+  if (!componentPath) return null
+
+  // 경로를 슬래시로 분리하고 빈 문자열 제거
+  const parts = componentPath.split('/').filter((part) => part && part.trim() !== '')
+
+  // 'src' 다음의 첫 번째 디렉토리를 카테고리로 사용
+  const srcIndex = parts.findIndex((part) => part === 'src')
+  if (srcIndex >= 0 && srcIndex < parts.length - 1) {
+    return parts[srcIndex + 1]
+  }
+
+  // 'src'가 없으면 첫 번째 디렉토리 사용
+  if (parts.length > 1) {
+    return parts[0]
+  }
+
+  return null
+}

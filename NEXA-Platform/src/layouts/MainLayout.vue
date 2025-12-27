@@ -797,18 +797,80 @@ const rightDrawerStyles = computed(() => {
   return {}
 })
 
-// 왼쪽 버튼 스타일 (drawer 열림 상태에 따라 위치 조정)
+// 버튼의 현재 Y 위치 추적 (버튼 중앙 기준)
+const buttonY = ref(0)
+const BUTTON_HEIGHT = 120 // 버튼 높이
+
+// 마우스 위치 추적
+const mouseY = ref(0)
+
+// 대기 시간 설정 (밀리초 단위, 쉽게 조정 가능)
+const getAutoMoveDelay = () => 500
+
+// 타이머 ref
+let autoMoveTimer = null
+
+// 버튼 위치를 마우스 위치로 업데이트하는 함수
+const updateButtonPosition = () => {
+  const buttonHalfHeight = BUTTON_HEIGHT / 2
+  const buttonTop = buttonY.value - buttonHalfHeight // 버튼 상단
+  const buttonBottom = buttonY.value + buttonHalfHeight // 버튼 하단
+  const currentMouseY = mouseY.value
+
+  // 마우스가 버튼의 상단이나 하단을 벗어났을 때만 버튼 위치 업데이트
+  if (currentMouseY < buttonTop || currentMouseY > buttonBottom) {
+    const minY = buttonHalfHeight // 버튼이 화면 상단을 벗어나지 않도록
+    const maxY = window.innerHeight - buttonHalfHeight // 버튼이 화면 하단을 벗어나지 않도록
+
+    // 마우스 Y좌표를 화면 경계 내로 제한하여 버튼 위치 업데이트
+    buttonY.value = Math.max(minY, Math.min(maxY, currentMouseY))
+  }
+}
+
+// 마우스 이동 이벤트 핸들러 (대기 시간 후 자동 이동)
+const handleMouseMove = (event) => {
+  // 마우스 위치 업데이트
+  mouseY.value = event.clientY
+
+  // 기존 타이머가 있으면 취소
+  if (autoMoveTimer) {
+    clearTimeout(autoMoveTimer)
+    autoMoveTimer = null
+  }
+
+  // 대기 시간 후 버튼 위치 업데이트
+  autoMoveTimer = setTimeout(() => {
+    updateButtonPosition()
+    autoMoveTimer = null
+  }, getAutoMoveDelay())
+}
+
+// 왼쪽 버튼 스타일 (drawer 열림 상태에 따라 위치 조정, 버튼 Y좌표 추적)
 const leftButtonStyle = computed(() => {
+  const baseStyle = {
+    top: `${buttonY.value - BUTTON_HEIGHT / 2}px`,
+    transform: 'translateY(0)',
+  }
+
   if (dashboardLayoutStore.mainNavigationOpen) {
     return {
+      ...baseStyle,
       left: `${userSettings.settings.drawer.leftWidth}px`,
     }
   }
-  return { left: '0' }
+  return {
+    ...baseStyle,
+    left: '0',
+  }
 })
 
-// 오른쪽 버튼 스타일 (drawer 열림 상태 및 모드에 따라 위치 조정)
+// 오른쪽 버튼 스타일 (drawer 열림 상태 및 모드에 따라 위치 조정, 버튼 Y좌표 추적)
 const rightButtonStyle = computed(() => {
+  const baseStyle = {
+    top: `${buttonY.value - BUTTON_HEIGHT / 2}px`,
+    transform: 'translateY(0)',
+  }
+
   const isOpen = userSettings.settings.drawer.rightOpen
   const drawerWidth = userSettings.settings.drawer.rightWidth
 
@@ -816,12 +878,16 @@ const rightButtonStyle = computed(() => {
   if (isOpen) {
     // 화면 너비에서 drawer 너비를 뺀 위치 = drawer의 왼쪽 가장자리
     return {
+      ...baseStyle,
       right: `${drawerWidth}px`,
     }
   }
 
   // Drawer가 닫혀있으면 화면 가장 우측
-  return { right: '0' }
+  return {
+    ...baseStyle,
+    right: '0',
+  }
 })
 
 // 왼쪽 아이콘 회전 각도 (열려있으면 >> 오른쪽 방향 0deg, 닫혀있으면 << 왼쪽 방향 180deg)
@@ -847,6 +913,20 @@ const rightHoverRotation = computed(() => {
 onMounted(() => {
   // 테마 초기화
   userSettings.initializeTheme()
+
+  // 초기 버튼 Y좌표 설정 (화면 중앙, 경계 체크 포함)
+  const buttonHalfHeight = BUTTON_HEIGHT / 2
+  const initialY = window.innerHeight / 2
+  const minY = buttonHalfHeight
+  const maxY = window.innerHeight - buttonHalfHeight
+  const initialButtonY = Math.max(minY, Math.min(maxY, initialY))
+  buttonY.value = initialButtonY
+
+  // 초기 마우스 위치를 버튼 위치와 동기화
+  mouseY.value = initialButtonY
+
+  // 마우스 이동 이벤트 리스너 등록
+  window.addEventListener('mousemove', handleMouseMove)
 
   // 초기 로드 시 화면 크기에 따라 사이드바 최대 크기 제한 적용
   const adjustDrawerWidths = () => {
@@ -953,6 +1033,15 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // 전역 단축키 정리
   cleanupGlobalShortcuts()
+
+  // 마우스 이동 이벤트 리스너 제거
+  window.removeEventListener('mousemove', handleMouseMove)
+
+  // 타이머 정리
+  if (autoMoveTimer) {
+    clearTimeout(autoMoveTimer)
+    autoMoveTimer = null
+  }
 
   const mainNavigationHandle = document.querySelector('.resize-handle-right')
   if (mainNavigationHandle) {
@@ -1513,8 +1602,6 @@ onBeforeUnmount(() => {
 /* 사이드바 토글 버튼 (항상 표시) */
 .sidebar-toggle-button {
   position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
   width: 22px;
   height: 120px;
   background: var(--nexa-background-darker);
@@ -1527,7 +1614,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   z-index: 1002; /* resize handle(1001) 위, header(2000) 아래 */
   transition:
-    //all 0.3s ease,
+    top 0.5s ease-out,
     background-color 2s ease;
 
   /* 라벨 스타일 (세로 방향) */

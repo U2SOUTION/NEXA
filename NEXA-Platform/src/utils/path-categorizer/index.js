@@ -5,5 +5,6 @@ export {
   getDirectoryLevels,
   getMainCategory,
   getFileCategory,
+  getComponentCategory,
 } from './pathCategorizer.js'
 

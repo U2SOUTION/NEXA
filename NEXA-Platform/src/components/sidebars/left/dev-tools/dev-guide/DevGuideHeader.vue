@@ -4,6 +4,22 @@
 -->
 <template>
   <div class="dev-guide-header">
+    <!-- 헤더 타이틀 및 액션 버튼 -->
+    <div class="header-title-section q-px-sm q-pt-sm q-pb-sm">
+      <div class="row items-center justify-between">
+        <div class="header-title">Development Guide</div>
+        <div class="row q-gutter-xs">
+          <q-btn flat dense icon="refresh" size="sm" @click="handleRefresh">
+            <q-tooltip>새로고침</q-tooltip>
+          </q-btn>
+          <q-btn flat dense icon="settings" size="sm" @click="handleSettings">
+            <q-tooltip>설정</q-tooltip>
+          </q-btn>
+        </div>
+      </div>
+    </div>
+
+    <!-- 검색 및 필터 섹션 -->
     <div class="header-section q-px-sm q-pt-sm q-pb-none">
       <!-- 검색 입력 -->
       <div class="row items-center q-gutter-sm q-mb-sm">
@@ -38,12 +54,6 @@
           dense
           @update:model-value="handleViewModeChangeLocal"
         />
-      </div>
-
-      <!-- 액션 버튼 -->
-      <div class="row q-gutter-sm q-mb-sm">
-        <q-btn flat dense icon="refresh" @click="handleRefresh" />
-        <q-btn flat dense icon="settings" @click="handleSettings" />
       </div>
     </div>
   </div>
@@ -131,6 +141,35 @@ watch(
 
 <style lang="scss" scoped>
 .dev-guide-header {
+  // border-bottom: 1px solid var(--nexa-border-color);
+
+  .header-title-section {
+    border-bottom: 1px solid var(--nexa-border-color);
+    //margin-bottom: 2px;
+
+    .header-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--nexa-text-primary);
+    }
+
+    .q-btn {
+      color: var(--nexa-text-secondary);
+      transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+
+      &:hover {
+        color: var(--nexa-primary);
+        background-color: color-mix(in srgb, var(--nexa-primary) 10%, transparent);
+      }
+
+      :deep(.q-icon) {
+        font-size: 18px;
+      }
+    }
+  }
+
   .header-section {
     .search-input {
       width: 100%;

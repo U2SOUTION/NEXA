@@ -1,10 +1,11 @@
 /**
  * 개발 가이드 Composable
- * 
+ *
  * 개발 가이드의 상태 관리, 검색, 필터, 샘플 관리 등을 담당합니다.
  */
 
 import { ref, computed } from 'vue'
+import { getComponentCategory } from 'src/utils/path-categorizer/index.js'
 
 /**
  * 개발 가이드 Composable
@@ -24,14 +25,29 @@ export function useDevGuide() {
   const recentSamples = ref([])
   const favoriteSamples = ref([])
 
-  // 카테고리 목록
-  const categories = ref([
-    { value: 'NexaChart', label: 'NexaChart' },
-    { value: 'NexaPanel', label: 'NexaPanel' },
-    { value: 'LeftSidebar', label: 'LeftSidebar' },
-    { value: 'ContentArea', label: 'ContentArea' },
-    { value: 'RightSidebar', label: 'RightSidebar' },
-  ])
+  // 카테고리 목록 (샘플 데이터에서 동적으로 추출)
+  const categories = computed(() => {
+    const categorySet = new Set()
+    samples.value.forEach((sample) => {
+      // 명시적으로 category가 있으면 사용
+      if (sample.category) {
+        categorySet.add(sample.category)
+      }
+      // category가 없으면 componentPath에서 추출
+      else if (sample.componentPath) {
+        const extractedCategory = getComponentCategory(sample.componentPath)
+        if (extractedCategory) {
+          categorySet.add(extractedCategory)
+        }
+      }
+    })
+    return Array.from(categorySet)
+      .sort()
+      .map((cat) => ({
+        value: cat,
+        label: cat,
+      }))
+  })
 
   // ============================================
   // Computed
@@ -43,18 +59,17 @@ export function useDevGuide() {
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
       result = result.filter((sample) => {
-        return (
-          sample.name?.toLowerCase().includes(query) ||
-          sample.displayName?.toLowerCase().includes(query) ||
-          sample.description?.toLowerCase().includes(query) ||
-          sample.tags?.some((tag) => tag.toLowerCase().includes(query))
-        )
+        return sample.name?.toLowerCase().includes(query) || sample.displayName?.toLowerCase().includes(query) || sample.description?.toLowerCase().includes(query) || sample.tags?.some((tag) => tag.toLowerCase().includes(query))
       })
     }
 
     // 카테고리 필터
     if (filterCategory.value) {
-      result = result.filter((sample) => sample.category === filterCategory.value)
+      result = result.filter((sample) => {
+        // 명시적 category 또는 자동 추출된 category 사용
+        const sampleCategory = sample.category || (sample.componentPath ? getComponentCategory(sample.componentPath) : null)
+        return sampleCategory === filterCategory.value
+      })
     }
 
     // 태그 필터
@@ -213,4 +228,3 @@ export function useDevGuide() {
     init,
   }
 }
-
