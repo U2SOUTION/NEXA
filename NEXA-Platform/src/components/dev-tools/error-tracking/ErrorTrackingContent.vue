@@ -132,9 +132,11 @@
               <q-btn flat dense icon="block" label="무시" class="btn-ignored" @click="handleIgnored" />
               <q-btn flat dense icon="delete" label="삭제" class="btn-delete" @click="handleDelete" />
               <q-separator vertical />
-              <q-btn flat dense icon="content_copy" label="복사" class="btn-copy" @click="copyToClipboard" />
-              <q-btn flat dense icon="code" label="에러 정보 복사" class="btn-copy-context" @click="handleCopyErrorInfo">
-                <q-tooltip>에러의 기본 정보를 클립보드에 복사합니다</q-tooltip>
+              <q-btn flat dense icon="content_copy" label="전체 정보 복사" class="btn-copy" @click="copyToClipboard">
+                <q-tooltip>에러의 전체 정보를 상세한 형식으로 클립보드에 복사합니다</q-tooltip>
+              </q-btn>
+              <q-btn flat dense icon="code" label="기본 정보 복사" class="btn-copy-context" @click="handleCopyErrorInfo">
+                <q-tooltip>에러의 핵심 정보만 간단한 형식으로 클립보드에 복사합니다</q-tooltip>
               </q-btn>
             </div>
 
@@ -230,7 +232,7 @@
         <div class="location-info">
           <div class="info-row">
             <span class="info-label">파일:</span>
-            <span class="info-value code">{{ selectedError.file }}</span>
+            <span class="info-value code">{{ normalizedFilePath || selectedError.file }}</span>
           </div>
           <div v-if="selectedError.line" class="info-row">
             <span class="info-label">라인:</span>
@@ -246,7 +248,7 @@
           <q-icon name="code" />
           스택 트레이스
         </h5>
-        <pre class="stack-trace">{{ selectedError.stack }}</pre>
+        <pre class="stack-trace">{{ normalizedStack || selectedError.stack }}</pre>
       </div>
 
       <!-- 네트워크 정보 (네트워크 에러인 경우) -->
@@ -323,8 +325,8 @@
             원인 및 해결법
           </h5>
           <div class="row q-gutter-xs">
-            <q-btn flat dense icon="content_copy" size="sm" label="컨텍스트 복사" class="btn-copy-context" @click="handleCopyContextForAI">
-              <q-tooltip>AI 분석용 에러 컨텍스트를 클립보드에 복사합니다 (Cursor에서 사용)</q-tooltip>
+            <q-btn flat dense icon="content_copy" size="sm" label="AI 분석용 복사" class="btn-copy-context" @click="handleCopyContextForAI">
+              <q-tooltip>AI 분석용 에러 컨텍스트를 @error-ref 형식으로 클립보드에 복사합니다 (Cursor에서 사용)</q-tooltip>
             </q-btn>
           </div>
         </div>
@@ -449,6 +451,18 @@ const { selectedError, saveErrorNotes, errors } = useErrorTracking()
 const notesTab = ref('cause')
 
 // 메모 데이터 (computed로 selectedError의 notes와 동기화)
+// 정규화된 파일 경로 (UI 표시용)
+const normalizedFilePath = computed(() => {
+  if (!selectedError.value?.file) return null
+  return normalizeFilePathForAI(selectedError.value.file)
+})
+
+// 정규화된 스택 트레이스 (UI 표시용)
+const normalizedStack = computed(() => {
+  if (!selectedError.value?.stack) return null
+  return normalizeStackForAI(selectedError.value.stack)
+})
+
 const errorNotes = computed({
   get: () => {
     if (!selectedError.value) {
@@ -1028,21 +1042,307 @@ if (import.meta.env.DEV) {
 
 // 상단: 에러 기본 정보 복사 (일반적인 에러 정보)
 function handleCopyErrorInfo() {
+  if (!selectedError.value) {
+    $q.notify({
+      type: 'warning',
+      message: '복사할 에러가 선택되지 않았습니다.',
+      position: 'top',
+      timeout: 2000,
+    })
+    return
+  }
+
+  const error = selectedError.value
+
+  // FILE 경로 정규화
+  const normalizedFilePath = normalizeFilePathForAI(error.file)
+
+  // STACK 정규화 (내부 경로 변환)
+  const normalizedStack = normalizeStackForAI(error.stack)
+
+  let text = `에러 기본 정보\n`
+  text += `==========\n\n`
+  text += `메시지: ${error.message || '없음'}\n`
+  text += `레벨: ${error.level || '없음'}\n`
+  text += `상태: ${error.status || '없음'}\n`
+  text += `발생 횟수: ${error.count || 1}회\n`
+  text += `발생 시간: ${formatTime(error.timestamp)}\n\n`
+
+  if (normalizedFilePath && normalizedFilePath !== 'unknown') {
+    text += `발생 위치: ${normalizedFilePath}`
+    if (error.line) text += `:${error.line}`
+    if (error.column) text += `:${error.column}`
+    text += `\n`
+  }
+
+  if (normalizedStack && normalizedStack !== '없음') {
+    text += `\n스택 트레이스:\n${normalizedStack}`
+  }
+
+  copyTextToClipboard(text)
   $q.notify({
-    type: 'info',
-    message: '에러 정보 복사 기능은 Phase 4에서 구현됩니다.',
+    type: 'positive',
+    message: '에러 정보가 클립보드에 복사되었습니다.',
     position: 'top',
     timeout: 2000,
   })
 }
 
+// 파일 경로를 실제 프로젝트 경로로 변환 (개발 서버 URL → 프로젝트 경로)
+function normalizeFilePathForAI(filePath) {
+  if (!filePath || filePath === 'unknown') {
+    return 'unknown'
+  }
+
+  let normalized = filePath
+
+  // 쿼리 파라미터 제거 (?t=... 등)
+  if (normalized.includes('?')) {
+    normalized = normalized.split('?')[0]
+  }
+
+  // 개발 서버 URL을 프로젝트 경로로 변환
+  // http://localhost:9000/src/... → NEXA-Platform/src/...
+  // https://localhost:9000/src/... → NEXA-Platform/src/...
+  // 포트 번호가 다른 경우도 처리 (9000, 3000 등)
+  const devServerPattern = /^https?:\/\/[^/]+(?::\d+)?\/src\//
+  if (devServerPattern.test(normalized)) {
+    normalized = normalized.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
+  }
+
+  // file:// 프로토콜 제거
+  if (normalized.startsWith('file://')) {
+    normalized = normalized.replace(/^file:\/\/[^/]+\//, '')
+    // Windows 경로 처리 (file:///E:/... → E:/...)
+    normalized = normalized.replace(/^\/+/, '')
+  }
+
+  // 절대 경로에서 프로젝트 경로 추출
+  // E:\NEXA System\NEXA\NEXA-Platform\src\... → NEXA-Platform/src/...
+  // E:/NEXA System/NEXA/NEXA-Platform/src/... → NEXA-Platform/src/...
+  const absolutePathPattern = /[A-Z]:[\\/].*?NEXA-Platform[\\/]src[\\/]/
+  if (absolutePathPattern.test(normalized)) {
+    const match = normalized.match(/(NEXA-Platform[\\/]src[\\/].*)/i)
+    if (match) {
+      normalized = match[1].replace(/\\/g, '/')
+    }
+  }
+
+  // 백슬래시를 슬래시로 변환
+  normalized = normalized.replace(/\\/g, '/')
+
+  // 가상 경로 체크 (.q-cache, chunk- 등 Vite/Quasar 캐시 경로)
+  // 이런 경로는 실제 파일 경로가 아니므로 원본 개발 서버 URL 유지
+  const isVirtualPath = normalized.includes('/.q-cache/') || normalized.includes('/chunk-') || normalized.includes('/node_modules/.q-cache/') || normalized.match(/\/node_modules\/[^/]+\/chunk-/)
+
+  // 개발 서버 URL이지만 src/로 시작하지 않는 경우
+  const devServerUrlPattern = /^https?:\/\/[^/]+(?::\d+)?\//
+  if (devServerUrlPattern.test(normalized)) {
+    // 가상 경로인 경우 원본 개발 서버 URL 유지 (정규화하지 않음, 쿼리 파라미터만 제거)
+    if (isVirtualPath) {
+      return normalized // 쿼리 파라미터만 제거된 개발 서버 URL 반환
+    }
+
+    if (normalized.includes('/node_modules/')) {
+      // 실제 node_modules 경로는 프로젝트 루트 기준으로 표시
+      // 단, .q-cache 같은 가상 경로는 제외
+      if (!isVirtualPath) {
+        normalized = normalized.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
+      }
+    } else if (!normalized.includes('NEXA-Platform/src/') && !normalized.startsWith('src/')) {
+      // 기타 경로는 개발 서버 URL만 제거
+      normalized = normalized.replace(devServerUrlPattern, '')
+    }
+  }
+
+  // 이미 node_modules/로 시작하는 경우 (개발 서버 URL이 이미 제거된 경우)
+  // 단, 가상 경로이거나 이미 NEXA-Platform/이 포함된 경우는 건너뛰기
+  if (normalized.startsWith('node_modules/') && !normalized.includes('NEXA-Platform/') && !isVirtualPath) {
+    normalized = 'NEXA-Platform/' + normalized
+  }
+
+  return normalized
+}
+
+// STACK 트레이스 내의 경로도 변환
+function normalizeStackForAI(stack) {
+  if (!stack || stack === '없음') {
+    return stack
+  }
+
+  // STACK의 각 라인에서 모든 개발 서버 URL 패턴을 찾아 변환
+  const lines = stack.split('\n')
+  const normalizedLines = lines.map((line) => {
+    // 개발 서버 URL 패턴 찾기 (더 정확한 매칭)
+    // 형식: http://localhost:9000/src/... 또는 http://localhost:9000/node_modules/...
+    // 라인:컬럼 정보도 포함: http://localhost:9000/path/file.js:45:67
+    // 쿼리 파라미터 포함: http://localhost:9000/path/file.js?t=123:45:67
+
+    // 먼저 쿼리 파라미터가 있는 경우 처리
+    let processedLine = line
+
+    // 쿼리 파라미터가 있는 URL 패턴: http://localhost:9000/path/file.js?t=123:45:67
+    const urlWithQueryPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^?\s]+)\?([^:\s]+):(\d+):(\d+)/g
+    processedLine = processedLine.replace(urlWithQueryPattern, (match, urlPath, query, lineNum, colNum) => {
+      // 가상 경로 체크 (.q-cache, chunk- 등)
+      const isVirtualPath = urlPath.includes('/.q-cache/') || urlPath.includes('/chunk-')
+
+      // 가상 경로인 경우 원본 URL 유지 (쿼리 파라미터만 제거)
+      if (isVirtualPath) {
+        return urlPath + ':' + lineNum + ':' + colNum
+      }
+
+      // 쿼리 파라미터 제거하고 라인:컬럼만 유지
+      const cleanPath = urlPath
+      let normalized = cleanPath
+
+      if (cleanPath.includes('/src/')) {
+        normalized = cleanPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
+      } else if (cleanPath.includes('/node_modules/')) {
+        normalized = cleanPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
+      }
+
+      return normalized + ':' + lineNum + ':' + colNum
+    })
+
+    // 쿼리 파라미터가 없는 URL 패턴: http://localhost:9000/path/file.js:45:67
+    const urlPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^:\s]+):(\d+):(\d+)/g
+    processedLine = processedLine.replace(urlPattern, (match, urlPath, lineNum, colNum) => {
+      // 가상 경로 체크 (.q-cache, chunk- 등)
+      const isVirtualPath = urlPath.includes('/.q-cache/') || urlPath.includes('/chunk-')
+
+      // 가상 경로인 경우 원본 URL 유지
+      if (isVirtualPath) {
+        return urlPath + ':' + lineNum + ':' + colNum
+      }
+
+      let normalized = urlPath
+
+      if (urlPath.includes('/src/')) {
+        normalized = urlPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
+      } else if (urlPath.includes('/node_modules/')) {
+        normalized = urlPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
+      }
+
+      return normalized + ':' + lineNum + ':' + colNum
+    })
+
+    // 라인:컬럼 정보가 없는 URL 패턴: http://localhost:9000/path/file.js
+    const urlWithoutLineColPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^\s:?]+)(?:\?[^\s:]+)?/g
+    processedLine = processedLine.replace(urlWithoutLineColPattern, (match, urlPath) => {
+      // 가상 경로 체크 (.q-cache, chunk- 등)
+      const isVirtualPath = urlPath.includes('/.q-cache/') || urlPath.includes('/chunk-')
+
+      // 가상 경로인 경우 원본 URL 유지
+      if (isVirtualPath) {
+        return urlPath
+      }
+
+      let normalized = urlPath
+
+      if (urlPath.includes('/src/')) {
+        normalized = urlPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
+      } else if (urlPath.includes('/node_modules/')) {
+        normalized = urlPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
+      }
+
+      return normalized
+    })
+
+    return processedLine
+  })
+
+  // 이미 변환된 라인에서 node_modules/로 시작하는 경우도 처리 (개발 서버 URL이 이미 제거된 경우)
+  const finalLines = normalizedLines.map((line) => {
+    // 이미 NEXA-Platform/이 포함된 경로는 건너뛰기
+    if (line.includes('NEXA-Platform/')) {
+      return line
+    }
+
+    // 가상 경로 체크 (.q-cache, chunk- 등) - 가상 경로는 정규화하지 않음
+    const isVirtualPath = line.includes('/.q-cache/') || line.includes('/chunk-')
+    if (isVirtualPath) {
+      return line
+    }
+
+    // node_modules/로 시작하지만 NEXA-Platform/node_modules/가 아닌 경우만 처리
+    return line.replace(/\bnode_modules\//g, 'NEXA-Platform/node_modules/')
+  })
+
+  return finalLines.join('\n')
+}
+
 // 메모 섹션: AI 분석용 컨텍스트 복사 (@error-ref 형식)
 function handleCopyContextForAI() {
+  if (!selectedError.value) {
+    $q.notify({
+      type: 'warning',
+      message: '복사할 에러가 선택되지 않았습니다.',
+      position: 'top',
+      timeout: 2000,
+    })
+    return
+  }
+
+  const error = selectedError.value
+
+  // 프로젝트 식별 (현재는 Platform 고정, 향후 동적으로 식별)
+  // TODO: 동적으로 프로젝트 식별 (예: import.meta.env.VITE_PROJECT_NAME 또는 설정에서 가져오기)
+  const project = 'Platform'
+  const savePath = `NEXA-Documentation/Error/${project}/`
+
+  // FILE 경로 정규화
+  const normalizedFilePath = normalizeFilePathForAI(error.file)
+
+  // STACK 정규화 (내부 경로 변환)
+  const normalizedStack = normalizeStackForAI(error.stack)
+
+  // @error-ref 형식으로 포맷팅
+  let errorRef = `@error-ref\n`
+  errorRef += `ID: ${error.id || 'unknown'}\n`
+  errorRef += `PROJECT: ${project}\n`
+  errorRef += `SAVE_PATH: ${savePath}\n`
+  errorRef += `MESSAGE: ${error.message || '없음'}\n`
+  errorRef += `FILE: ${normalizedFilePath}:${error.line || 0}:${error.column || 0}\n`
+  errorRef += `STACK: ${normalizedStack}\n`
+  errorRef += `TIMESTAMP: ${error.timestamp || Date.now()}\n`
+
+  // 추가 정보 (있는 경우만)
+  if (error.url) {
+    errorRef += `URL: ${error.url}\n`
+  }
+  if (error.userAgent) {
+    errorRef += `USER_AGENT: ${error.userAgent}\n`
+  }
+  if (error.level) {
+    errorRef += `LEVEL: ${error.level}\n`
+  }
+  if (error.status) {
+    errorRef += `STATUS: ${error.status}\n`
+  }
+  if (error.count) {
+    errorRef += `COUNT: ${error.count}\n`
+  }
+  if (error.type) {
+    errorRef += `TYPE: ${error.type}\n`
+  }
+  if (error.ruleId) {
+    errorRef += `RULE_ID: ${error.ruleId}\n`
+  }
+  if (error.networkInfo) {
+    errorRef += `NETWORK_REQUEST_URL: ${error.networkInfo.requestUrl || '없음'}\n`
+    errorRef += `NETWORK_METHOD: ${error.networkInfo.method || 'GET'}\n`
+    if (error.networkInfo.status) {
+      errorRef += `NETWORK_STATUS: ${error.networkInfo.status}\n`
+    }
+  }
+
+  copyTextToClipboard(errorRef)
   $q.notify({
-    type: 'info',
-    message: 'AI 컨텍스트 복사 기능은 Phase 4에서 구현됩니다.',
+    type: 'positive',
+    message: 'AI 분석용 컨텍스트가 클립보드에 복사되었습니다. Cursor에서 붙여넣기 후 AI에게 분석을 요청하세요.',
     position: 'top',
-    timeout: 2000,
+    timeout: 4000,
   })
 }
 
@@ -1444,26 +1744,32 @@ function copyToClipboard() {
 }
 
 function formatErrorForClipboard(error) {
-  let text = `에러 정보\n`
+  // FILE 경로 정규화
+  const normalizedFilePath = normalizeFilePathForAI(error.file)
+
+  // STACK 정규화 (내부 경로 변환)
+  const normalizedStack = normalizeStackForAI(error.stack)
+
+  let text = `에러 전체 정보\n`
   text += `==========\n\n`
   text += `메시지: ${error.message || '없음'}\n`
   text += `레벨: ${error.level || '없음'}\n`
   text += `상태: ${error.status || '없음'}\n`
   text += `발생 시간: ${formatTime(error.timestamp)}\n\n`
 
-  if (error.file) {
+  if (normalizedFilePath && normalizedFilePath !== 'unknown') {
     text += `발생 위치\n`
     text += `----------\n`
-    text += `파일: ${error.file}\n`
+    text += `파일: ${normalizedFilePath}\n`
     if (error.line) text += `라인: ${error.line}\n`
     if (error.column) text += `컬럼: ${error.column}\n`
     text += `\n`
   }
 
-  if (error.stack) {
+  if (normalizedStack && normalizedStack !== '없음') {
     text += `스택 트레이스\n`
     text += `----------\n`
-    text += `${error.stack}\n\n`
+    text += `${normalizedStack}\n\n`
   }
 
   if (error.url) {
