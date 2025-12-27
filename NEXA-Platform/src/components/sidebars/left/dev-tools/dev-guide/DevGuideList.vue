@@ -5,7 +5,7 @@
 <template>
   <div class="dev-guide-list">
     <q-scroll-area class="list-scroll-area">
-      <!-- 샘플 라이브러리 아코디언 -->
+      <!-- 샘플 라이브러리 아코디언 (Phase 1-3) -->
       <div class="accordion-wrapper">
         <q-expansion-item icon="style" label="샘플 라이브러리" default-opened class="samples-expansion">
           <q-tabs v-model="activeTab" dense class="samples-tabs" @update:model-value="handleTabChange">
@@ -72,7 +72,7 @@
             <q-tab-panel name="all" class="q-pa-sm">
               <div v-if="filteredSamples.length > 0" class="samples-list">
                 <!-- 평면 분류 모드 -->
-                <template v-if="viewMode === 'flat'">
+                <template v-if="currentViewMode === 'flat'">
                   <div v-for="sample in filteredSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
                     <div class="sample-item-content">
                       <q-icon :name="sample.icon || 'style'" class="sample-icon" />
@@ -89,19 +89,30 @@
                   </div>
                 </template>
 
-                <!-- 계층적 분류 모드 -->
-                <template v-else>
-                  <div v-for="category in hierarchicalCategories" :key="category.name" class="category-group">
-                    <q-expansion-item :label="category.name" :icon="category.icon">
-                      <div v-for="sample in category.samples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
-                        <div class="sample-item-content">
-                          <q-icon :name="sample.icon || 'style'" class="sample-icon" />
-                          <div class="sample-info">
-                            <div class="sample-name">{{ sample.displayName || sample.name }}</div>
-                          </div>
+                <!-- 계층적 분류 모드 (최상위 레벨 > 카테고리 > 샘플) -->
+                <template v-else-if="currentViewMode === 'hierarchy'">
+                  <div v-if="hierarchicalStructure && hierarchicalStructure.length > 0">
+                    <div v-for="topLevel in hierarchicalStructure" :key="topLevel.name" class="top-level-group">
+                      <q-expansion-item :label="topLevel.label" :icon="topLevel.icon" class="top-level-expansion">
+                        <div v-for="category in topLevel.categories" :key="category.name" class="category-group">
+                          <q-expansion-item :label="category.name" :icon="category.icon" class="category-expansion">
+                            <div v-for="sample in category.samples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
+                              <div class="sample-item-content">
+                                <q-icon :name="sample.icon || 'style'" class="sample-icon" />
+                                <div class="sample-info">
+                                  <div class="sample-name">{{ sample.displayName || sample.name }}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </q-expansion-item>
                         </div>
-                      </div>
-                    </q-expansion-item>
+                      </q-expansion-item>
+                    </div>
+                  </div>
+                  <div v-else class="empty-state">
+                    <q-icon name="account_tree" size="48px" class="q-mb-sm" />
+                    <div class="empty-message">계층 구조 데이터가 없습니다.</div>
+                    <div class="empty-hint">샘플을 로드하면 계층 구조가 표시됩니다.</div>
                   </div>
                 </template>
               </div>
@@ -115,15 +126,149 @@
         </q-expansion-item>
       </div>
 
-      <!-- 통계 아코디언 -->
+      <!-- 코딩 컨벤션 아코디언 (Phase 4: 향후 구현) -->
       <div class="accordion-wrapper">
-        <q-expansion-item icon="analytics" label="통계" class="statistics-expansion">
-          <div class="statistics-actions q-pa-sm">
-            <q-btn outlined dense icon="analytics" label="전체 통계 분석" class="accordion-action-btn q-mb-sm" @click="handleStatisticsAction('full-analysis')" />
-            <q-btn outlined dense icon="trending_up" label="인기 샘플" class="accordion-action-btn q-mb-sm" @click="handleStatisticsAction('popular')" />
-            <q-btn outlined dense icon="delete_outline" label="미사용 샘플" class="accordion-action-btn q-mb-sm" @click="handleStatisticsAction('unused')" />
-            <q-btn outlined dense icon="category" label="카테고리별 통계" class="accordion-action-btn q-mb-sm" @click="handleStatisticsAction('by-category')" />
-            <q-btn outlined dense icon="schedule" label="사용 빈도 통계" class="accordion-action-btn" @click="handleStatisticsAction('by-usage')" />
+        <q-expansion-item icon="code" label="코딩 컨벤션" class="conventions-expansion">
+          <div class="coming-soon-section q-pa-md">
+            <div class="coming-soon-content">
+              <q-icon name="code" size="48px" class="q-mb-sm" />
+              <div class="coming-soon-title">코딩 컨벤션 가이드</div>
+              <div class="coming-soon-description">Phase 4에서 구현 예정</div>
+              <div class="coming-soon-features q-mt-md">
+                <div class="feature-item">
+                  <q-icon name="text_fields" size="sm" />
+                  <span>네이밍 규칙 샘플</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="folder_open" size="sm" />
+                  <span>파일 구조 패턴</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="code" size="sm" />
+                  <span>코드 스타일 가이드</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 아키텍처 패턴 아코디언 (Phase 5: 향후 구현) -->
+      <div class="accordion-wrapper">
+        <q-expansion-item icon="account_tree" label="아키텍처 패턴" class="patterns-expansion">
+          <div class="coming-soon-section q-pa-md">
+            <div class="coming-soon-content">
+              <q-icon name="account_tree" size="48px" class="q-mb-sm" />
+              <div class="coming-soon-title">아키텍처 패턴 가이드</div>
+              <div class="coming-soon-description">Phase 5에서 구현 예정</div>
+              <div class="coming-soon-features q-mt-md">
+                <div class="feature-item">
+                  <q-icon name="account_tree" size="sm" />
+                  <span>컴포넌트 구조 패턴</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="storage" size="sm" />
+                  <span>상태 관리 패턴</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="hub" size="sm" />
+                  <span>통신 패턴</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="folder" size="sm" />
+                  <span>모듈 구조 패턴</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 베스트 프랙티스 아코디언 (Phase 6: 향후 구현) -->
+      <div class="accordion-wrapper">
+        <q-expansion-item icon="star" label="베스트 프랙티스" class="best-practices-expansion">
+          <div class="coming-soon-section q-pa-md">
+            <div class="coming-soon-content">
+              <q-icon name="star" size="48px" class="q-mb-sm" />
+              <div class="coming-soon-title">베스트 프랙티스 가이드</div>
+              <div class="coming-soon-description">Phase 6에서 구현 예정</div>
+              <div class="coming-soon-features q-mt-md">
+                <div class="feature-item">
+                  <q-icon name="error_outline" size="sm" />
+                  <span>에러 처리 패턴</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="speed" size="sm" />
+                  <span>성능 최적화</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="accessibility_new" size="sm" />
+                  <span>접근성 가이드</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="security" size="sm" />
+                  <span>보안 가이드</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 빠른 액세스 섹션 (Phase 6: 향후 구현) -->
+      <div class="accordion-wrapper">
+        <q-expansion-item icon="flash_on" label="빠른 액세스" class="quick-access-expansion">
+          <div class="coming-soon-section q-pa-md">
+            <div class="coming-soon-content">
+              <q-icon name="flash_on" size="48px" class="q-mb-sm" />
+              <div class="coming-soon-title">빠른 액세스</div>
+              <div class="coming-soon-description">Phase 6에서 구현 예정</div>
+              <div class="coming-soon-features q-mt-md">
+                <div class="feature-item">
+                  <q-icon name="star" size="sm" />
+                  <span>자주 사용하는 샘플 (최대 5개)</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="history" size="sm" />
+                  <span>최근 검색어</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="smart_toy" size="sm" />
+                  <span>추천 샘플 (AI 기반)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </q-expansion-item>
+      </div>
+
+      <!-- 고급 필터 (Phase 6: 향후 구현) -->
+      <div class="accordion-wrapper">
+        <q-expansion-item icon="tune" label="고급 필터" class="advanced-filter-expansion">
+          <div class="coming-soon-section q-pa-md">
+            <div class="coming-soon-content">
+              <q-icon name="tune" size="48px" class="q-mb-sm" />
+              <div class="coming-soon-title">고급 필터</div>
+              <div class="coming-soon-description">Phase 6에서 구현 예정</div>
+              <div class="coming-soon-features q-mt-md">
+                <div class="feature-item">
+                  <q-icon name="apps" size="sm" />
+                  <span>프로젝트별 필터 (Platform, Desktop, Edge, Mobile)</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="signal_cellular_alt" size="sm" />
+                  <span>난이도 필터 (초급, 중급, 고급)</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="label" size="sm" />
+                  <span>태그 다중 선택</span>
+                </div>
+                <div class="feature-item">
+                  <q-icon name="sort" size="sm" />
+                  <span>정렬 옵션 (이름순, 카테고리순, 최근 수정순, 사용 빈도순)</span>
+                </div>
+              </div>
+            </div>
           </div>
         </q-expansion-item>
       </div>
@@ -142,24 +287,10 @@ defineProps({
   },
 })
 
-const { activeTab, selectedSample, recentSamples, favoriteSamples, filteredSamples, viewMode, handleSampleSelect, toggleFavorite } = useDevGuide()
+const { activeTab, selectedSample, recentSamples, favoriteSamples, filteredSamples, viewMode, hierarchicalStructure, handleSampleSelect, toggleFavorite } = useDevGuide()
 
-// 계층적 카테고리 (계층적 분류 모드용)
-const hierarchicalCategories = computed(() => {
-  const categoryMap = new Map()
-  filteredSamples.value.forEach((sample) => {
-    const category = sample.category || '기타'
-    if (!categoryMap.has(category)) {
-      categoryMap.set(category, {
-        name: category,
-        icon: 'folder',
-        samples: [],
-      })
-    }
-    categoryMap.get(category).samples.push(sample)
-  })
-  return Array.from(categoryMap.values())
-})
+// viewMode를 computed로 변환하여 템플릿에서 사용
+const currentViewMode = computed(() => viewMode.value)
 
 // 즐겨찾기 확인
 function isFavorite(sampleId) {
@@ -191,12 +322,6 @@ function handleDeleteFavorite(sampleId) {
     favoriteSamples.value.splice(index, 1)
   }
 }
-
-// 통계 액션 핸들러
-function handleStatisticsAction(actionType) {
-  // TODO: 통계 분석 로직 구현
-  console.log('[DevGuideList] 통계 액션:', actionType)
-}
 </script>
 
 <style lang="scss" scoped>
@@ -223,6 +348,33 @@ function handleStatisticsAction(actionType) {
 
   .samples-tab-panels {
     min-height: 200px;
+  }
+
+  .top-level-group {
+    margin-bottom: 4px;
+
+    .top-level-expansion {
+      :deep(.q-expansion-item__container) {
+        border-bottom: 1px solid var(--nexa-border-color);
+        font-weight: 600;
+      }
+    }
+
+    .category-group {
+      margin-left: 8px;
+      margin-bottom: 2px;
+
+      .category-expansion {
+        :deep(.q-expansion-item__container) {
+          border-bottom: 1px solid var(--nexa-border-color);
+          font-weight: 500;
+        }
+
+        :deep(.q-expansion-item__content) {
+          padding-left: 8px;
+        }
+      }
+    }
   }
 
   .samples-list {
@@ -319,15 +471,68 @@ function handleStatisticsAction(actionType) {
     }
   }
 
-  .statistics-expansion {
+  .conventions-expansion,
+  .patterns-expansion,
+  .best-practices-expansion,
+  .quick-access-expansion,
+  .advanced-filter-expansion {
     :deep(.q-expansion-item__container) {
       border-bottom: 1px solid var(--nexa-border-color);
     }
   }
 
-  .statistics-actions {
-    .accordion-action-btn {
-      width: 100%;
+  .coming-soon-section {
+    .coming-soon-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--nexa-text-secondary);
+
+      .q-icon {
+        color: var(--nexa-text-disabled);
+        margin-bottom: 8px;
+      }
+
+      .coming-soon-title {
+        font-weight: 600;
+        color: var(--nexa-text-primary);
+        margin-bottom: 4px;
+        font-size: 1rem;
+      }
+
+      .coming-soon-description {
+        font-size: 0.875rem;
+        color: var(--nexa-text-secondary);
+        margin-bottom: 16px;
+      }
+
+      .coming-soon-features {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+        margin-top: 16px;
+
+        .feature-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          background-color: var(--nexa-background);
+          border: 1px solid var(--nexa-border-color);
+          border-radius: 4px;
+          font-size: 0.875rem;
+          color: var(--nexa-text-secondary);
+          text-align: left;
+
+          .q-icon {
+            color: var(--nexa-text-disabled);
+            margin: 0;
+          }
+        }
+      }
     }
   }
 }

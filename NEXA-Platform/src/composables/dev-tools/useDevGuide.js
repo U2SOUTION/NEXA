@@ -7,23 +7,27 @@
 import { ref, computed } from 'vue'
 import { getComponentCategory } from 'src/utils/path-categorizer/index.js'
 
+// ============================================
+// 싱글톤 상태 (모듈 레벨에서 관리)
+// ============================================
+const searchQuery = ref('')
+const filterCategory = ref(null)
+const filterTags = ref([])
+const viewMode = ref('flat') // 'flat' | 'hierarchy'
+const activeTab = ref('recent') // 'recent' | 'favorite' | 'all'
+const selectedSample = ref(null)
+const samples = ref([])
+const recentSamples = ref([])
+const favoriteSamples = ref([])
+
 /**
  * 개발 가이드 Composable
  * @returns {Object} 개발 가이드 관련 상태 및 함수
  */
 export function useDevGuide() {
   // ============================================
-  // 상태 관리
+  // 상태 관리 (싱글톤 상태 사용)
   // ============================================
-  const searchQuery = ref('')
-  const filterCategory = ref(null)
-  const filterTags = ref([])
-  const viewMode = ref('flat') // 'flat' | 'hierarchy'
-  const activeTab = ref('recent') // 'recent' | 'favorite' | 'all'
-  const selectedSample = ref(null)
-  const samples = ref([])
-  const recentSamples = ref([])
-  const favoriteSamples = ref([])
 
   // 카테고리 목록 (샘플 데이터에서 동적으로 추출)
   const categories = computed(() => {
@@ -185,9 +189,159 @@ export function useDevGuide() {
   }
 
   /**
+   * 경로에서 최상위 레벨 추출 (styles, patterns, conventions, best-practices)
+   * @param {string} componentPath - 컴포넌트 경로
+   * @returns {string|null} 최상위 레벨명
+   */
+  function getTopLevel(componentPath) {
+    if (!componentPath) return null
+    const parts = componentPath.split('/').filter((part) => part && part.trim() !== '')
+    const guidesIndex = parts.findIndex((part) => part === 'guides')
+    if (guidesIndex >= 0 && guidesIndex < parts.length - 1) {
+      const topLevelFolders = ['styles', 'patterns', 'conventions', 'best-practices']
+      const topLevel = parts[guidesIndex + 1]
+      if (topLevelFolders.includes(topLevel)) {
+        return topLevel
+      }
+    }
+    return null
+  }
+
+  /**
+   * 최상위 레벨에 따른 아이콘 반환
+   * @param {string} topLevel - 최상위 레벨명
+   * @returns {string} 아이콘명
+   */
+  function getIconForTopLevel(topLevel) {
+    const iconMap = {
+      styles: 'style',
+      patterns: 'account_tree',
+      conventions: 'code',
+      'best-practices': 'star',
+    }
+    return iconMap[topLevel] || 'folder'
+  }
+
+  /**
+   * 최상위 레벨에 따른 라벨 반환
+   * @param {string} topLevel - 최상위 레벨명
+   * @returns {string} 라벨명
+   */
+  function getLabelForTopLevel(topLevel) {
+    const labelMap = {
+      styles: '스타일',
+      patterns: '패턴',
+      conventions: '컨벤션',
+      'best-practices': '베스트 프랙티스',
+    }
+    return labelMap[topLevel] || topLevel
+  }
+
+  /**
+   * 파일 시스템에서 샘플 파일 스캔 및 로드
+   */
+  async function loadSamplesFromFilesystem() {
+    try {
+      // Vite의 import.meta.glob을 사용하여 src/guides/ 하위의 모든 .vue 파일 스캔
+      const guideModules = import.meta.glob('/src/guides/**/*.vue', { eager: false })
+
+      const loadedSamples = []
+
+      // 각 샘플 파일 처리
+      for (const path in guideModules) {
+        // 경로에서 샘플 정보 추출
+        // 예: '/src/guides/styles/charts/bar/NexaChartBar.vue'
+        const relativePath = path.replace('/src/', '')
+        const pathParts = relativePath.split('/').filter((part) => part && part.trim() !== '')
+        const fileName = pathParts[pathParts.length - 1]
+        const componentName = fileName.replace('.vue', '')
+
+        // 카테고리 추출
+        const extractedCategory = getComponentCategory(relativePath)
+
+        // 샘플 ID 생성 (파일명 기반)
+        const sampleId = componentName.toLowerCase().replace(/([A-Z])/g, '-$1').toLowerCase()
+
+        // 파일명에서 displayName 추출 (PascalCase를 읽기 쉬운 형태로)
+        const displayName = componentName
+          .replace(/([A-Z])/g, ' $1')
+          .trim()
+          .replace(/^./, (str) => str.toUpperCase())
+
+        // 샘플 객체 생성
+        const sample = {
+          id: sampleId,
+          name: componentName,
+          displayName: displayName,
+          category: extractedCategory || '기타',
+          hierarchy: {
+            type: pathParts[1] || '기타', // 'styles', 'patterns' 등
+            subType: extractedCategory || '기타', // 'charts', 'panels' 등
+            variant: pathParts[pathParts.length - 2] || '기타', // 'bar', 'line' 등
+          },
+          tags: [extractedCategory, pathParts[1], componentName].filter(Boolean),
+          description: `${displayName} 샘플 컴포넌트`,
+          icon: getIconForCategory(extractedCategory),
+          componentPath: relativePath,
+          topLevel: getTopLevel(relativePath), // 최상위 레벨 추가
+          codeSnippet: `<!-- ${componentName}.vue 샘플 -->\n<template>\n  <div class="${componentName.toLowerCase()}">\n    <!-- 샘플 내용 -->\n  </div>\n</template>`,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }
+
+        loadedSamples.push(sample)
+      }
+
+      // 샘플 목록 업데이트
+      samples.value = loadedSamples
+
+      console.log(`[useDevGuide] 샘플 로드 완료: ${loadedSamples.length}개`)
+    } catch (error) {
+      console.error('[useDevGuide] 샘플 로드 실패:', error)
+      samples.value = []
+    }
+  }
+
+  /**
+   * 카테고리에 따른 아이콘 반환
+   * @param {string} category - 카테고리명
+   * @returns {string} 아이콘명
+   */
+  function getIconForCategory(category) {
+    const iconMap = {
+      // styles 하위 카테고리
+      charts: 'bar_chart',
+      panels: 'dashboard',
+      sidebars: 'menu',
+      buttons: 'smart_button',
+      inputs: 'input',
+      forms: 'description',
+      modals: 'fullscreen',
+      cards: 'credit_card',
+      lists: 'list',
+      tables: 'table_chart',
+      // patterns 하위 카테고리
+      'component-structure': 'account_tree',
+      'state-management': 'storage',
+      communication: 'hub',
+      'module-structure': 'folder',
+      // conventions 하위 카테고리
+      naming: 'text_fields',
+      'file-structure': 'folder_open',
+      'code-style': 'code',
+      // best-practices 하위 카테고리
+      'error-handling': 'error_outline',
+      performance: 'speed',
+      accessibility: 'accessibility_new',
+      security: 'security',
+    }
+    return iconMap[category] || 'style'
+  }
+
+  /**
    * 초기화
    */
-  function init() {
+  async function init() {
     // localStorage에서 뷰 모드 복원
     try {
       const savedViewMode = localStorage.getItem('dev-guide-view-mode')
@@ -198,13 +352,73 @@ export function useDevGuide() {
       console.error('[useDevGuide] 뷰 모드 복원 실패:', error)
     }
 
-    // TODO: 샘플 데이터 로드 (sampleRegistry.js에서)
-    // 현재는 빈 배열로 시작
-    samples.value = []
+    // 파일 시스템에서 샘플 데이터 로드
+    await loadSamplesFromFilesystem()
   }
 
   // 초기화 실행
   init()
+
+  /**
+   * 새로고침 (샘플 목록 다시 로드)
+   */
+  async function refresh() {
+    await loadSamplesFromFilesystem()
+  }
+
+  /**
+   * 계층적 구조 (최상위 레벨 > 카테고리 > 샘플)
+   */
+  const hierarchicalStructure = computed(() => {
+    const topLevelMap = new Map()
+
+    filteredSamples.value.forEach((sample) => {
+      const topLevel = sample.topLevel || '기타'
+      const category = sample.category || '기타'
+
+      if (!topLevelMap.has(topLevel)) {
+        topLevelMap.set(topLevel, {
+          name: topLevel,
+          label: getLabelForTopLevel(topLevel),
+          icon: getIconForTopLevel(topLevel),
+          categories: new Map(),
+        })
+      }
+
+      const topLevelData = topLevelMap.get(topLevel)
+      if (!topLevelData.categories.has(category)) {
+        topLevelData.categories.set(category, {
+          name: category,
+          icon: getIconForCategory(category),
+          samples: [],
+        })
+      }
+
+      topLevelData.categories.get(category).samples.push(sample)
+    })
+
+    // Map을 배열로 변환하고 정렬
+    return Array.from(topLevelMap.values())
+      .map((topLevel) => ({
+        ...topLevel,
+        categories: Array.from(topLevel.categories.values())
+          .map((cat) => ({
+            ...cat,
+            samples: cat.samples.sort((a, b) => (a.displayName || a.name).localeCompare(b.displayName || b.name)),
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      }))
+      .sort((a, b) => {
+        // styles, patterns, conventions, best-practices 순서로 정렬
+        const order = ['styles', 'patterns', 'conventions', 'best-practices']
+        const aIndex = order.indexOf(a.name)
+        const bIndex = order.indexOf(b.name)
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
+        if (aIndex !== -1) return -1
+        if (bIndex !== -1) return 1
+        return a.label.localeCompare(b.label)
+      })
+  })
 
   return {
     // 상태
@@ -219,12 +433,18 @@ export function useDevGuide() {
     favoriteSamples,
     categories,
     filteredSamples,
+    hierarchicalStructure,
     // 함수
     handleSearchChange,
     handleCategoryFilterChange,
     handleViewModeChange,
     handleSampleSelect,
     toggleFavorite,
+    refresh,
+    loadSamplesFromFilesystem,
+    getTopLevel,
+    getIconForTopLevel,
+    getLabelForTopLevel,
     init,
   }
 }

@@ -104,11 +104,21 @@
       </template>
 
       <!-- 개발 가이드 패널 (activeMenu === 'dev-guide') -->
-      <div v-if="activeMenu === 'dev-guide'" class="accordion-wrapper">
-        <q-expansion-item icon="style" label="개발 가이드" :model-value="devGuidePanelExpanded" @update:model-value="devGuidePanelExpanded = $event">
-          <DevGuidePanel />
-        </q-expansion-item>
-      </div>
+      <template v-if="activeMenu === 'dev-guide'">
+        <!-- 샘플 상세 정보 -->
+        <div class="accordion-wrapper">
+          <q-expansion-item icon="style" label="샘플 상세 정보" :model-value="devGuidePanelExpanded" @update:model-value="devGuidePanelExpanded = $event">
+            <DevGuidePanel />
+          </q-expansion-item>
+        </div>
+        
+        <!-- 통계 (별도 아코디언) -->
+        <div class="accordion-wrapper">
+          <q-expansion-item icon="analytics" label="통계" :model-value="devGuideStatisticsExpanded" @update:model-value="devGuideStatisticsExpanded = $event" default-opened>
+            <DevGuideStatistics />
+          </q-expansion-item>
+        </div>
+      </template>
 
       <!-- 에러 트래킹 패널들 (activeMenu === 'error-tracking') -->
       <template v-if="activeMenu === 'error-tracking'">
@@ -240,6 +250,7 @@ import ComponentLibraryInterface from './dev-tools/component-library/ComponentLi
 import ComponentLibraryQuickActions from './dev-tools/component-library/ComponentLibraryQuickActions.vue'
 import ComponentLibraryRelatedDocs from './dev-tools/component-library/ComponentLibraryRelatedDocs.vue'
 import DevGuidePanel from './dev-tools/DevGuidePanel.vue'
+import DevGuideStatistics from './dev-tools/DevGuideStatistics.vue'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)
@@ -325,6 +336,7 @@ const errorTrackingAnalysisExpanded = ref(false)
 
 // 개발 가이드 패널 상태
 const devGuidePanelExpanded = ref(true)
+const devGuideStatisticsExpanded = ref(true)
 
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {

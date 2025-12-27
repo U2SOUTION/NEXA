@@ -108,9 +108,9 @@ export function getFileCategory(file, groupLevel = 1) {
 }
 
 /**
- * 컴포넌트 경로에서 카테고리 추출 (src 다음의 첫 디렉토리)
- * @param {string} componentPath - 컴포넌트 경로 (예: 'src/charts/NexaChart.vue')
- * @returns {string|null} 카테고리명 (예: 'charts')
+ * 컴포넌트 경로에서 카테고리 추출
+ * @param {string} componentPath - 컴포넌트 경로 (예: 'src/charts/NexaChart.vue' 또는 'src/guides/styles/charts/bar/NexaChartBar.vue')
+ * @returns {string|null} 카테고리명
  */
 export function getComponentCategory(componentPath) {
   if (!componentPath) return null
@@ -118,7 +118,25 @@ export function getComponentCategory(componentPath) {
   // 경로를 슬래시로 분리하고 빈 문자열 제거
   const parts = componentPath.split('/').filter((part) => part && part.trim() !== '')
 
-  // 'src' 다음의 첫 번째 디렉토리를 카테고리로 사용
+  // 'guides' 다음의 첫 번째 디렉토리를 카테고리로 사용 (개발 가이드 샘플용)
+  const guidesIndex = parts.findIndex((part) => part === 'guides')
+  if (guidesIndex >= 0 && guidesIndex < parts.length - 1) {
+    // 최상위 레벨 폴더 (styles, patterns, conventions, best-practices 등)
+    const topLevelFolders = ['styles', 'patterns', 'conventions', 'best-practices']
+    const topLevelIndex = parts.findIndex((part, idx) => idx > guidesIndex && topLevelFolders.includes(part))
+    
+    if (topLevelIndex >= 0 && topLevelIndex < parts.length - 1) {
+      // 최상위 레벨 다음의 첫 디렉토리를 카테고리로 사용
+      // 예: 'guides/styles/charts/...' → 'charts'
+      // 예: 'guides/patterns/component-structure/...' → 'component-structure'
+      return parts[topLevelIndex + 1]
+    }
+    
+    // 최상위 레벨이 없으면 'guides' 다음의 첫 디렉토리 사용
+    return parts[guidesIndex + 1]
+  }
+
+  // 'src' 다음의 첫 번째 디렉토리를 카테고리로 사용 (일반 컴포넌트용)
   const srcIndex = parts.findIndex((part) => part === 'src')
   if (srcIndex >= 0 && srcIndex < parts.length - 1) {
     return parts[srcIndex + 1]

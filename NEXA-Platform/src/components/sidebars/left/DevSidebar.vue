@@ -143,6 +143,7 @@ import { useDatabaseViewer } from 'src/composables/dev-tools/useDatabaseViewer.j
 import { useThemeManager } from 'src/composables/dev-tools/useThemeManager.js'
 import { useDocumentFilters } from 'src/composables/dev-tools/useDocumentFilters.js'
 import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
+import { useDevGuide } from 'src/composables/dev-tools/useDevGuide.js'
 
 // Quasar 인스턴스
 const $q = useQuasar()
@@ -580,9 +581,13 @@ onUnmounted(() => {
 })
 
 // 개발 가이드 새로고침 핸들러
-function handleDevGuideRefresh() {
+// 개발 가이드 composable (새로고침용)
+const devGuideComposable = useDevGuide()
+
+async function handleDevGuideRefresh() {
   console.log('[DevSidebar] 개발 가이드 새로고침')
-  // TODO: 개발 가이드 샘플 목록 새로고침
+  // useDevGuide의 refresh 함수 호출
+  await devGuideComposable.refresh()
 }
 
 // 개발 가이드 설정 핸들러
