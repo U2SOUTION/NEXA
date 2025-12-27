@@ -4,6 +4,7 @@
  */
 
 import { parseErrorAnalysisFrontmatter } from './errorAnalysisParser.js'
+import { quietFetch } from './quietFetch.js'
 
 /**
  * 에러 분석 문서 인덱스 관리 클래스
@@ -28,15 +29,34 @@ export class ErrorAnalysisIndex {
         return this.cache
       }
 
-      const url = `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`
-      
-      // 조용한 fetch (에러 수집기에서 수집되지 않도록)
-      let response
-      try {
-        response = await fetch(url, {
-          // 에러 수집기에서 무시하도록 특별한 헤더 추가 (선택적)
+      // 메타데이터 API로 인덱스 파일 존재 여부 먼저 확인 (400 에러 방지)
+      const metadataResponse = await quietFetch('http://localhost:3000/api/docs/metadata')
+      if (metadataResponse && metadataResponse.ok) {
+        const metadata = await metadataResponse.json()
+        const files = metadata.files || []
+        const indexFile = files.find(f => {
+          const filePath = f.relativePath || f.fileName || ''
+          return filePath === this.indexPath
         })
-      } catch {
+        
+        // 인덱스 파일이 없으면 바로 빈 인덱스 반환 (요청하지 않음)
+        if (!indexFile) {
+          this.lastError = {
+            type: 'index_not_found',
+            message: `인덱스 파일을 찾을 수 없습니다: ${this.indexPath}`,
+            url: `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`,
+            status: null,
+            statusText: 'Not Found (checked via metadata)',
+          }
+          return this.createEmptyIndex()
+        }
+      }
+
+      // 인덱스 파일이 존재하는 경우에만 실제 파일 요청
+      const url = `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`
+      const response = await quietFetch(url)
+      
+      if (!response) {
         // 네트워크 에러는 조용히 처리
         this.lastError = {
           type: 'index_not_found',
@@ -67,14 +87,12 @@ export class ErrorAnalysisIndex {
       this.cache = index
       this.lastError = null // 성공 시 에러 정보 초기화
       return index
-    } catch (error) {
+    } catch {
       this.lastError = {
         type: 'index_load_error',
-        message: `인덱스 파일 로드 실패: ${error.message}`,
-        error: error.toString(),
+        message: `인덱스 파일 로드 실패: ${this.indexPath}`,
         path: this.indexPath,
       }
-      console.error('[ErrorAnalysisIndex] 인덱스 로드 실패:', error)
       return this.createEmptyIndex()
     }
   }
@@ -125,7 +143,7 @@ export class ErrorAnalysisIndex {
     const errorId = metadata.errorId
 
     if (!errorId) {
-      console.warn('[ErrorAnalysisIndex] 에러 ID가 없어 인덱스에 추가할 수 없습니다:', documentPath)
+      // 에러 ID가 없으면 조용히 반환 (콘솔 로그 출력 안 함)
       return
     }
 
@@ -199,29 +217,21 @@ export class ErrorAnalysisIndex {
    * @returns {Promise<void>}
    */
   async saveIndex(index) {
-    try {
-      const content = JSON.stringify(index, null, 2)
-      const response = await fetch(
-        `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: content,
-        }
-      )
+    const content = JSON.stringify(index, null, 2)
+    const url = `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`
+    const response = await quietFetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: content,
+    })
 
-      if (!response.ok) {
-        throw new Error(`인덱스 저장 실패: ${response.statusText}`)
-      }
-
-      this.cache = index
-      console.log('[ErrorAnalysisIndex] 인덱스 저장 완료')
-    } catch (error) {
-      console.error('[ErrorAnalysisIndex] 인덱스 저장 실패:', error)
-      throw error
+    if (!response || !response.ok) {
+      throw new Error(`인덱스 저장 실패: ${response?.statusText || 'Unknown error'}`)
     }
+
+    this.cache = index
   }
 
   /**
@@ -229,15 +239,12 @@ export class ErrorAnalysisIndex {
    * @returns {Promise<Object>} 재구성된 인덱스
    */
   async rebuildIndex() {
-    console.log('[ErrorAnalysisIndex] 인덱스 재구성 시작...')
-
     const index = this.createEmptyIndex()
 
     try {
-      // 에러 분석 폴더의 모든 파일 가져오기
-      const response = await fetch(`http://localhost:3000/api/docs/Error/${this.project}`)
-      if (!response.ok) {
-        console.warn('[ErrorAnalysisIndex] 폴더 읽기 실패:', response.statusText)
+      // 에러 분석 폴더의 모든 파일 가져오기 (조용한 fetch 사용)
+      const response = await quietFetch(`http://localhost:3000/api/docs/Error/${this.project}`)
+      if (!response || !response.ok) {
         return index
       }
 
@@ -248,11 +255,10 @@ export class ErrorAnalysisIndex {
         if (file.name === '.error-analysis-index.json') continue
 
         try {
-          const contentResponse = await fetch(
+          const contentResponse = await quietFetch(
             `http://localhost:3000/api/docs/${encodeURIComponent(file.path)}`
           )
-          if (!contentResponse.ok) {
-            console.warn(`[ErrorAnalysisIndex] 문서 읽기 실패: ${file.path}`)
+          if (!contentResponse || !contentResponse.ok) {
             continue
           }
 
@@ -279,8 +285,8 @@ export class ErrorAnalysisIndex {
             index.index[errorId].push(docEntry)
             index.fileMap[file.path] = errorId
           }
-        } catch (error) {
-          console.error(`[ErrorAnalysisIndex] 문서 처리 실패: ${file.path}`, error)
+        } catch {
+          // 문서 처리 실패는 조용히 처리 (콘솔 로그 출력 안 함)
         }
       }
 
@@ -289,10 +295,9 @@ export class ErrorAnalysisIndex {
       // 재구성된 인덱스 저장
       await this.saveIndex(index)
 
-      console.log('[ErrorAnalysisIndex] 인덱스 재구성 완료')
       return index
-    } catch (error) {
-      console.error('[ErrorAnalysisIndex] 인덱스 재구성 실패:', error)
+    } catch {
+      // 에러는 조용히 처리 (콘솔 로그 출력 안 함)
       return index
     }
   }

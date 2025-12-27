@@ -73,6 +73,7 @@ const $q = useQuasar()
 // 중요도 순서: 문서관리/테마관리(최우선) → 구현된 도구 → 개발/디버깅 도구 → 관리/유틸리티 도구
 const devMenus = [
   // 최우선: 핵심 관리 도구
+  { id: 'dev-guide', label: '개발 가이드', icon: 'style' },
   { id: 'document-manager', label: '문서 관리', icon: 'description' },
   { id: 'theme-manager', label: '테마 관리', icon: 'palette' },
   // 구현된 개발 도구 (높은 중요도)
@@ -85,7 +86,6 @@ const devMenus = [
   { id: 'error-tracking', label: '에러 트래킹', icon: 'bug_report' },
   // 시스템 관리 도구
   { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
-  { id: 'style-guide', label: '스타일 가이드', icon: 'style' },
   // 개발 유틸리티 도구
   { id: 'test-runner', label: '테스트 러너', icon: 'play_arrow' },
   { id: 'build-tools', label: '빌드 도구', icon: 'build' },

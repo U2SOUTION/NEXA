@@ -7,6 +7,7 @@
 import { ref, computed } from 'vue'
 import { errorAnalysisIndex } from 'src/utils/error-tracking/errorAnalysisIndex.js'
 import { extractDocumentMetadata, parseErrorAnalysisFrontmatter } from 'src/utils/error-tracking/errorAnalysisParser.js'
+import { quietFetch } from 'src/utils/error-tracking/quietFetch.js'
 
 
 /**
@@ -19,9 +20,9 @@ async function searchKnownDocumentPaths(errorId) {
   const matchingDocs = []
 
   try {
-    // 문서 뷰어의 메타데이터 API를 통해 파일 목록 가져오기
-    const metadataResponse = await fetch('http://localhost:3000/api/docs/metadata')
-    if (!metadataResponse.ok) {
+    // 문서 뷰어의 메타데이터 API를 통해 파일 목록 가져오기 (조용한 fetch 사용)
+    const metadataResponse = await quietFetch('http://localhost:3000/api/docs/metadata')
+    if (!metadataResponse || !metadataResponse.ok) {
       return []
     }
 
@@ -40,8 +41,8 @@ async function searchKnownDocumentPaths(errorId) {
       if (!filePath) continue
 
       try {
-        const contentResponse = await fetch(`http://localhost:3000/api/docs/${encodeURIComponent(filePath)}`)
-        if (!contentResponse.ok) continue
+        const contentResponse = await quietFetch(`http://localhost:3000/api/docs/${encodeURIComponent(filePath)}`)
+        if (!contentResponse || !contentResponse.ok) continue
 
         const content = await contentResponse.text()
         const frontmatter = parseErrorAnalysisFrontmatter(content)
@@ -159,10 +160,9 @@ export function useErrorAnalysis() {
 
       for (const entry of indexEntries) {
         try {
-          const response = await fetch(`http://localhost:3000/api/docs/${encodeURIComponent(entry.path)}`)
+          const response = await quietFetch(`http://localhost:3000/api/docs/${encodeURIComponent(entry.path)}`)
 
-          if (!response.ok) {
-            console.warn(`[useErrorAnalysis] 문서 로드 실패: ${entry.path}`)
+          if (!response || !response.ok) {
             continue
           }
 
@@ -181,8 +181,8 @@ export function useErrorAnalysis() {
             frontmatter: metadata, // 전체 메타데이터
             rawContent: content, // 원본 내용 (문서 뷰어에서 사용)
           })
-        } catch (err) {
-          console.error(`[useErrorAnalysis] 문서 처리 실패: ${entry.path}`, err)
+        } catch {
+          // 문서 처리 실패는 조용히 처리 (콘솔 로그 출력 안 함)
         }
       }
 
@@ -197,7 +197,7 @@ export function useErrorAnalysis() {
 
       return loadedDocuments
     } catch (err) {
-      console.error('[useErrorAnalysis] 문서 검색 실패:', err)
+      // 에러는 조용히 처리하되, UI에 표시하기 위해 error 상태에 저장
       error.value = err
       documents.value = []
       return []

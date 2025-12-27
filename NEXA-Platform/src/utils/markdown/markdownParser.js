@@ -605,3 +605,4 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
 
   return html
 }
+

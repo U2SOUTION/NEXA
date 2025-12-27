@@ -8,7 +8,10 @@
       <div class="sidebar-header q-pa-md">
         <div class="header-content">
           <div class="title-container">
-            <div class="text-h4 sidebar-title q-mb-xs text-bold">{{ title }}</div>
+            <div v-if="titleLink" class="text-h4 sidebar-title q-mb-xs text-bold">
+              <router-link :to="titleLink" class="title-link">{{ title }}</router-link>
+            </div>
+            <div v-else class="text-h4 sidebar-title q-mb-xs text-bold">{{ title }}</div>
             <div class="text-caption sidebar-subtitle">{{ subtitle }}</div>
           </div>
         </div>
@@ -19,7 +22,6 @@
 </template>
 
 <script setup>
-
 defineProps({
   title: {
     type: String,
@@ -29,10 +31,13 @@ defineProps({
     type: String,
     required: true,
   },
+  titleLink: {
+    type: String,
+    default: null,
+  },
 })
 
 defineEmits(['header-hover'])
-
 </script>
 
 <style lang="scss" scoped>
@@ -54,6 +59,17 @@ defineEmits(['header-hover'])
 
       .sidebar-title {
         color: var(--nexa-primary);
+
+        .title-link {
+          color: var(--nexa-primary);
+          text-decoration: none;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+          }
+        }
       }
 
       .sidebar-subtitle {

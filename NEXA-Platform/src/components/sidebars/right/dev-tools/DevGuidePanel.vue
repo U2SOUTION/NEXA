@@ -1,0 +1,204 @@
+<!-- DevGuidePanel.vue
+  개발 가이드 오른쪽 사이드바 패널
+  선택된 샘플의 상세 정보 표시
+-->
+<template>
+  <div class="dev-guide-panel">
+    <!-- 선택된 샘플이 있을 때 -->
+    <template v-if="selectedSample">
+      <!-- AI 참조 키워드 -->
+      <div class="panel-section q-pa-md">
+        <div class="section-header">
+          <q-icon name="smart_toy" class="section-icon" />
+          <div class="section-title">AI 참조 키워드</div>
+        </div>
+        <q-input :model-value="`@${selectedSample.name}`" readonly outlined dense class="q-mt-sm">
+          <template v-slot:append>
+            <q-btn flat dense icon="content_copy" @click="handleCopyKeyword" />
+          </template>
+        </q-input>
+        <p class="section-note q-mt-xs text-caption text-grey-6">AI에게 "{{ `@${selectedSample.name}` }} 샘플 참고"라고 말하면 됩니다.</p>
+      </div>
+
+      <q-separator />
+
+      <!-- 태그 관리 -->
+      <div class="panel-section q-pa-md">
+        <div class="section-header">
+          <q-icon name="label" class="section-icon" />
+          <div class="section-title">태그 관리</div>
+        </div>
+        <div v-if="selectedSample.tags && selectedSample.tags.length > 0" class="tags-display q-mt-sm">
+          <q-chip v-for="tag in selectedSample.tags" :key="tag" removable @remove="handleRemoveTag(tag)">
+            {{ tag }}
+          </q-chip>
+        </div>
+        <div v-else class="q-mt-sm text-caption text-grey-6">태그가 없습니다.</div>
+        <q-input v-model="newTag" placeholder="새 태그 추가" dense outlined class="q-mt-sm" @keyup.enter="handleAddTag">
+          <template v-slot:append>
+            <q-btn flat dense icon="add" @click="handleAddTag" />
+          </template>
+        </q-input>
+      </div>
+
+      <q-separator />
+
+      <!-- 샘플 정보 -->
+      <div class="panel-section q-pa-md">
+        <div class="section-header">
+          <q-icon name="info" class="section-icon" />
+          <div class="section-title">샘플 정보</div>
+        </div>
+        <div class="info-list q-mt-sm">
+          <div class="info-item">
+            <span class="info-label">카테고리:</span>
+            <span class="info-value">{{ selectedSample.category || 'N/A' }}</span>
+          </div>
+          <div v-if="selectedSample.hierarchy" class="info-item">
+            <span class="info-label">계층:</span>
+            <span class="info-value">
+              {{ selectedSample.hierarchy.type }} > {{ selectedSample.hierarchy.subType }} > {{ selectedSample.hierarchy.variant }}
+            </span>
+          </div>
+          <div v-if="selectedSample.componentPath" class="info-item">
+            <span class="info-label">컴포넌트:</span>
+            <span class="info-value">{{ selectedSample.componentPath }}</span>
+          </div>
+        </div>
+      </div>
+
+      <q-separator />
+
+      <!-- 사용 통계 (향후 구현) -->
+      <div class="panel-section q-pa-md">
+        <div class="section-header">
+          <q-icon name="analytics" class="section-icon" />
+          <div class="section-title">사용 통계</div>
+        </div>
+        <div class="statistics-placeholder q-mt-sm text-grey-6 text-caption">사용 통계는 향후 구현 예정입니다.</div>
+      </div>
+    </template>
+
+    <!-- 선택된 샘플이 없을 때 -->
+    <div v-else class="no-selection q-pa-md text-center">
+      <q-icon name="style" size="48px" class="q-mb-sm" />
+      <p>샘플을 선택하면 상세 정보가 표시됩니다.</p>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
+import { copyTextToClipboard } from 'src/utils/clipboard'
+
+const { selectedSample } = useDevGuide()
+
+const newTag = ref('')
+
+// 키워드 복사 핸들러
+async function handleCopyKeyword() {
+  if (selectedSample.value?.name) {
+    await copyTextToClipboard(`@${selectedSample.value.name}`)
+  }
+}
+
+// 태그 추가 핸들러
+function handleAddTag() {
+  if (newTag.value.trim() && selectedSample.value) {
+    if (!selectedSample.value.tags) {
+      selectedSample.value.tags = []
+    }
+    if (!selectedSample.value.tags.includes(newTag.value.trim())) {
+      selectedSample.value.tags.push(newTag.value.trim())
+      newTag.value = ''
+      // TODO: 샘플 레지스트리에 저장
+    }
+  }
+}
+
+// 태그 제거 핸들러
+function handleRemoveTag(tag) {
+  if (selectedSample.value?.tags) {
+    const index = selectedSample.value.tags.indexOf(tag)
+    if (index >= 0) {
+      selectedSample.value.tags.splice(index, 1)
+      // TODO: 샘플 레지스트리에 저장
+    }
+  }
+}
+
+// 샘플 선택 이벤트 리스너
+function handleSampleSelected() {
+  // selectedSample은 useDevGuide에서 관리되므로 자동으로 업데이트됨
+}
+
+onMounted(() => {
+  window.addEventListener('dev-guide-sample-selected', handleSampleSelected)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('dev-guide-sample-selected', handleSampleSelected)
+})
+</script>
+
+<style lang="scss" scoped>
+.dev-guide-panel {
+  .panel-section {
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+
+      .section-icon {
+        margin-right: 8px;
+        color: var(--nexa-text-secondary);
+      }
+
+      .section-title {
+        color: var(--nexa-text-primary);
+        font-weight: 600;
+      }
+    }
+
+    .section-note {
+      color: var(--nexa-text-secondary);
+    }
+
+    .tags-display {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .info-list {
+      .info-item {
+        display: flex;
+        margin-bottom: 8px;
+
+        .info-label {
+          color: var(--nexa-text-secondary);
+          font-weight: 500;
+          min-width: 80px;
+        }
+
+        .info-value {
+          color: var(--nexa-text-primary);
+          flex: 1;
+        }
+      }
+    }
+
+    .statistics-placeholder {
+      color: var(--nexa-text-disabled);
+    }
+  }
+
+  .no-selection {
+    color: var(--nexa-text-secondary);
+    text-align: center;
+    padding: 32px 16px;
+  }
+}
+</style>
+

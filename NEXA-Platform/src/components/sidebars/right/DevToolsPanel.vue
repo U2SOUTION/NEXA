@@ -103,6 +103,13 @@
         </div>
       </template>
 
+      <!-- 개발 가이드 패널 (activeMenu === 'dev-guide') -->
+      <div v-if="activeMenu === 'dev-guide'" class="accordion-wrapper">
+        <q-expansion-item icon="style" label="개발 가이드" :model-value="devGuidePanelExpanded" @update:model-value="devGuidePanelExpanded = $event">
+          <DevGuidePanel />
+        </q-expansion-item>
+      </div>
+
       <!-- 에러 트래킹 패널들 (activeMenu === 'error-tracking') -->
       <template v-if="activeMenu === 'error-tracking'">
         <!-- 에러 설정 패널 -->
@@ -232,6 +239,7 @@ import ComponentLibraryMergeSplit from './dev-tools/component-library/ComponentL
 import ComponentLibraryInterface from './dev-tools/component-library/ComponentLibraryInterface.vue'
 import ComponentLibraryQuickActions from './dev-tools/component-library/ComponentLibraryQuickActions.vue'
 import ComponentLibraryRelatedDocs from './dev-tools/component-library/ComponentLibraryRelatedDocs.vue'
+import DevGuidePanel from './dev-tools/DevGuidePanel.vue'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)
@@ -274,6 +282,9 @@ const componentLibraryRelatedDocsExpanded = ref(false)
 const errorTrackingSettingsExpanded = ref(false)
 const errorTrackingActionsExpanded = ref(false)
 const errorTrackingAnalysisExpanded = ref(false)
+
+// 개발 가이드 패널 상태
+const devGuidePanelExpanded = ref(true)
 
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {

@@ -326,7 +326,7 @@ import { useDocumentStats } from 'src/modules/document-manager/composables/useDo
 import { useDocumentList } from 'src/modules/document-manager/composables/useDocumentList.js'
 import { useMultiSelection } from 'src/composables/useMultiSelection.js'
 import { useQuasar } from 'quasar'
-import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from 'src/modules/document-manager/utils/documentSorter.js'
+import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from 'src/utils/file-sorter/index.js'
 
 // Props
 const props = defineProps({

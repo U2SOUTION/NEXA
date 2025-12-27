@@ -1,0 +1,342 @@
+// ============================================
+// 마크다운 콘텐츠 전역 스타일
+// ============================================
+// 문서 뷰어와 에러 분석 문서에서 공통 사용
+// 문서 뷰어의 .markdown-content 스타일을 전역으로 분리
+
+.markdown-content {
+  line-height: 1.4;
+  color: var(--nexa-text-secondary);
+  padding: 0;
+  margin: 0;
+  text-align: left;
+
+  // 제목 공통 스타일
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    transition: all 0.3s ease;
+    position: relative;
+    border-radius: 4px;
+
+    // 스크롤 하일라이팅 스타일 (문서 뷰어 전용)
+    &.current-section {
+      border: 1px solid color-mix(in srgb, var(--nexa-accent) 50%, transparent);
+      border-left: 15px solid var(--nexa-accent);
+      animation: highlightPulse 0.5s ease-out 3;
+      padding: 2px 8px;
+      margin-left: -15px;
+    }
+  }
+
+  @keyframes highlightPulse {
+    50% {
+      border-left-width: 2px;
+    }
+    100% {
+      border-left-width: 5px;
+    }
+  }
+
+  h1 {
+    font-weight: 700;
+    color: var(--nexa-text-primary);
+    opacity: 0.9;
+    margin-bottom: 5px;
+  }
+
+  h2 {
+    font-weight: 700;
+    color: var(--nexa-text-primary);
+    opacity: 0.9;
+    margin-bottom: 5px;
+  }
+
+  h3 {
+    font-weight: 600;
+    color: var(--nexa-text-primary);
+    opacity: 0.8;
+    margin-bottom: 5px;
+  }
+
+  h4 {
+    font-weight: 600;
+    color: var(--nexa-text-primary);
+    opacity: 0.7;
+    margin-bottom: 5px;
+  }
+
+  h5 {
+    font-weight: 500;
+    color: var(--nexa-text-primary);
+    opacity: 0.6;
+    margin-bottom: 5px;
+  }
+
+  h6 {
+    font-weight: 400;
+    color: var(--nexa-text-primary);
+    opacity: 0.5;
+    margin-bottom: 5px;
+  }
+
+  p {
+    color: var(--nexa-text-secondary);
+    margin-bottom: 1em;
+  }
+
+  hr {
+    border: none;
+    border-top: 2px solid var(--nexa-border-color);
+    margin-top: 2em;
+    opacity: 0.6;
+  }
+
+  // ul, ol 태그 스타일
+  ul,
+  ol {
+    color: var(--nexa-text-secondary);
+    margin-bottom: 1em;
+    margin-left: 0 !important;
+    padding-left: 2em !important;
+    list-style-position: outside;
+  }
+
+  // 순서 있는 리스트 스타일 (번호 표시)
+  ol {
+    list-style-type: decimal !important;
+  }
+
+  // li 태그 스타일 (부모 ul/ol이 있는 경우)
+  ul li,
+  ol li {
+    margin-top: 0.3em;
+    margin-bottom: 0.1em;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    text-indent: 0;
+    display: list-item !important;
+  }
+
+  // 순서 있는 리스트 아이템 (번호 표시)
+  ol li {
+    list-style-type: decimal !important;
+  }
+
+  // li 태그가 부모 없이 직접 사용되는 경우
+  // 마크다운 파서가 ul/ol을 생성하지 못한 경우 대비
+  li {
+    margin-bottom: 0.5em;
+    margin-left: 0 !important;
+    padding-left: 2em !important;
+    text-indent: 0;
+    list-style-position: outside;
+    display: list-item;
+  }
+
+  // 중첩 리스트
+  ul ul,
+  ol ol,
+  ul ol,
+  ol ul {
+    margin-left: 0 !important;
+    padding-left: 1em !important;
+  }
+
+  // 코드 블록 스타일
+  .code-block {
+    background: var(--nexa-background-lower);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: 3px 0 16px 0;
+    border: 1px solid var(--nexa-border-color);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    transition:
+      max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.2s ease;
+    position: relative;
+
+    // 코드 블럭 토글 아이콘
+    .code-block-toggle-icon {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 20px;
+      color: var(--nexa-text-secondary);
+      cursor: pointer;
+      z-index: 1;
+      opacity: 0.7;
+      transition:
+        opacity 0.2s ease,
+        color 0.2s ease;
+      user-select: none;
+      pointer-events: auto;
+
+      &:hover {
+        opacity: 1;
+        color: var(--nexa-text-primary);
+      }
+    }
+
+    &:hover {
+      border-width: 2px;
+    }
+
+    code {
+      color: var(--nexa-text-primary-focus);
+      font-size: 0.9em;
+      white-space: pre-wrap;
+      display: block;
+      width: 100%;
+      opacity: 0.7;
+      user-select: text;
+    }
+
+    &.collapsed {
+      max-height: 280px;
+      overflow-y: hidden;
+    }
+  }
+
+  // 인라인 코드 스타일
+  .code-inline {
+    background: var(--nexa-background-darker);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    color: var(--q-primary);
+  }
+
+  // 강조 스타일
+  strong {
+    color: var(--nexa-accent);
+    font-weight: 600;
+    opacity: 0.9;
+  }
+
+  // 검색 하이라이트 스타일
+  .global-search-highlight {
+    background-color: var(--nexa-accent);
+    color: var(--nexa-text-primary);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  // 체크박스 아이템 스타일
+  .checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 2px;
+    margin-top: 0;
+    pointer-events: none;
+
+    .dev-checkbox-input {
+      margin-right: 8px;
+      margin-top: 1.5px;
+      cursor: pointer;
+      pointer-events: auto;
+      width: 18px;
+      height: 18px;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background: transparent;
+      border: 3px solid var(--nexa-border-color);
+      border-radius: 4px;
+      position: relative;
+      flex-shrink: 0;
+
+      &:checked {
+        &::after {
+          content: '';
+          position: absolute;
+          left: 4px;
+          top: 1px;
+          width: 5px;
+          height: 10px;
+          border: solid var(--q-primary);
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+        }
+      }
+
+      &:hover {
+        border-color: var(--q-primary);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--q-primary);
+        box-shadow: 0 0 0 2px rgba(var(--q-primary-rgb), 0.2);
+      }
+    }
+
+    .dev-checkbox-label {
+      color: var(--nexa-text-secondary);
+      line-height: 1.6;
+      cursor: pointer;
+      flex: 0 0 auto;
+      user-select: none;
+      pointer-events: auto;
+      width: fit-content;
+      max-width: 100%;
+    }
+  }
+
+  // Mermaid 다이어그램 스타일
+  .mermaid-block {
+    margin: 24px 0;
+    padding: 16px;
+    background: var(--nexa-surface);
+    border-radius: 8px;
+    border: 1px solid var(--nexa-border-color);
+    overflow-x: auto;
+    overflow-y: visible;
+    text-align: center;
+    min-height: 100px;
+    min-width: 100%;
+    display: block;
+    box-sizing: border-box;
+
+    svg {
+      max-width: 100%;
+      height: auto;
+      width: 100%;
+    }
+
+    &.mermaid-rendered {
+      display: block;
+    }
+
+    &:not(.mermaid-rendered) {
+      position: relative;
+      &::after {
+        content: '차트 렌더링 중...';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--nexa-text-secondary);
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  // Mermaid 에러 스타일
+  .mermaid-error {
+    background: var(--nexa-error-bg, rgba(193, 0, 21, 0.1));
+    border: 1px solid var(--nexa-error-border, rgba(193, 0, 21, 0.3));
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--nexa-error-text, var(--nexa-error, #c10015));
+  }
+}
+

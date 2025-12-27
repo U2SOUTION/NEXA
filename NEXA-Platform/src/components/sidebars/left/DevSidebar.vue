@@ -6,7 +6,7 @@
 <template>
   <div class="dev-sidebar">
     <!-- 공통 헤더 -->
-    <LeftSidebarHeader title="DEV" subtitle="개발 문서 및 요구사항 관리" @header-hover="isLeftHeaderHovered = $event" />
+    <LeftSidebarHeader title="DEV" subtitle="개발 문서 및 요구사항 관리" title-link="/dev" @header-hover="isLeftHeaderHovered = $event" />
 
     <!-- DevMenuSlider (항상 표시) -->
     <DevMenuSlider :header-hovered="isLeftHeaderHovered" @update:active-menu="handleActiveMenuChange" @open-settings="openSettings" />
@@ -86,6 +86,12 @@
       />
     </template>
 
+    <!-- 개발 가이드 헤더 및 리스트 (activeMenu === 'dev-guide') -->
+    <template v-else-if="activeMenu === 'dev-guide'">
+      <DevGuideHeader :header-hovered="isLeftHeaderHovered" @refresh="handleDevGuideRefresh" @settings="handleDevGuideSettings" />
+      <DevGuideList :header-hovered="isLeftHeaderHovered" />
+    </template>
+
     <!-- 에러 트래킹 -->
     <template v-else-if="activeMenu === 'error-tracking'">
       <ErrorTrackingSidebar
@@ -125,6 +131,8 @@ import DatabaseViewerHeader from './dev-tools/database-viewer/DatabaseViewerHead
 import DatabaseViewerList from './dev-tools/database-viewer/DatabaseViewerList.vue'
 import ComponentLibrarySidebar from './dev-tools/component-library/ComponentLibrarySidebar.vue'
 import ErrorTrackingSidebar from './dev-tools/error-tracking/ErrorTrackingSidebar.vue'
+import DevGuideHeader from './dev-tools/dev-guide/DevGuideHeader.vue'
+import DevGuideList from './dev-tools/dev-guide/DevGuideList.vue'
 import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.vue'
 import { loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentMultiSelection } from 'src/composables/dev-tools/useDocumentMultiSelection.js'

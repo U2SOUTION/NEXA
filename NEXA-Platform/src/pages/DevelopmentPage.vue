@@ -1,6 +1,16 @@
 <template>
   <q-page class="development-page">
-    <div class="q-pa-lg">
+    <!-- activeMenu가 없을 때: DevelopmentPage 기본 뷰 -->
+    <div v-if="!activeMenu" class="development-page-default q-pa-lg">
+      <div class="default-content">
+        <q-icon name="code" size="80px" color="grey-7" class="q-mb-md" />
+        <h2 class="default-title">개발 도구</h2>
+        <p class="default-description">왼쪽 사이드바에서 개발 도구를 선택하세요.</p>
+      </div>
+    </div>
+
+    <!-- activeMenu가 있을 때: 각 도구 컨텐츠 -->
+    <div v-else class="q-pa-lg">
       <!-- 문서 관리 컨텐츠 -->
       <DocumentManagerContent v-if="activeMenu === 'document-manager'" />
 
@@ -27,8 +37,8 @@
       <!-- 설정 관리 -->
       <SettingsManagerContent v-else-if="activeMenu === 'settings-manager'" />
 
-      <!-- 스타일 가이드 -->
-      <StyleGuideContent v-else-if="activeMenu === 'style-guide'" />
+      <!-- 개발 가이드 -->
+      <DevGuideContent v-else-if="activeMenu === 'dev-guide'" />
 
       <!-- 테스트 러너 -->
       <TestRunnerContent v-else-if="activeMenu === 'test-runner'" />
@@ -68,7 +78,7 @@ import ApiTesterContent from 'src/components/dev-tools/api-tester/ApiTesterConte
 import DatabaseViewerContent from 'src/components/dev-tools/database-viewer/DatabaseViewerContent.vue'
 import SettingsManagerContent from 'src/components/dev-tools/settings-manager/SettingsManagerContent.vue'
 import ComponentLibraryContent from 'src/components/dev-tools/component-library/ComponentLibraryContent.vue'
-import StyleGuideContent from 'src/components/dev-tools/style-guide/StyleGuideContent.vue'
+import DevGuideContent from 'src/components/dev-tools/dev-guide/DevGuideContent.vue'
 import TestRunnerContent from 'src/components/dev-tools/test-runner/TestRunnerContent.vue'
 import BuildToolsContent from 'src/components/dev-tools/build-tools/BuildToolsContent.vue'
 import PackageManagerContent from 'src/components/dev-tools/package-manager/PackageManagerContent.vue'
@@ -77,7 +87,7 @@ import NetworkMonitorContent from 'src/components/dev-tools/network-monitor/Netw
 import ErrorTrackingContent from 'src/components/dev-tools/error-tracking/ErrorTrackingContent.vue'
 import DeploymentManagerContent from 'src/components/dev-tools/deployment-manager/DeploymentManagerContent.vue'
 
-// Active menu 상태 (localStorage에서 마지막 선택한 메뉴 복원, 없으면 기본값 'document-manager')
+// Active menu 상태 (localStorage에서 마지막 선택한 메뉴 복원, 없으면 null로 시작)
 function getInitialActiveMenu() {
   try {
     const saved = localStorage.getItem('dev-active-menu')
@@ -86,6 +96,7 @@ function getInitialActiveMenu() {
       const validMenus = [
         'document-manager',
         'theme-manager',
+        'dev-guide',
         'component-library',
         'database-viewer',
         'api-tester',
@@ -93,7 +104,6 @@ function getInitialActiveMenu() {
         'performance-monitor',
         'error-tracking',
         'settings-manager',
-        'style-guide',
         'test-runner',
         'build-tools',
         'network-monitor',
@@ -109,7 +119,7 @@ function getInitialActiveMenu() {
   } catch (error) {
     console.error('[DevelopmentPage] 초기 메뉴 로드 실패:', error)
   }
-  return 'document-manager' // 기본값
+  return null // 기본값: DevelopmentPage 자체를 보여줌
 }
 
 const activeMenu = ref(getInitialActiveMenu())
@@ -174,6 +184,31 @@ onUnmounted(() => {
   flex-direction: column;
   // 문서 관리자에서 스크롤은 DocumentManagerContent 내부에서 처리
   // overflow: hidden; // 필요시 활성화
+
+  .development-page-default {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+
+    .default-content {
+      text-align: center;
+      padding: 2rem;
+
+      .default-title {
+        color: var(--nexa-text-primary);
+        font-size: 2rem;
+        font-weight: 900;
+        margin: 1rem 0;
+      }
+
+      .default-description {
+        color: var(--nexa-text-secondary);
+        font-size: 1rem;
+        margin: 0;
+      }
+    }
+  }
 }
 
 .stats-summary-section {

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
-import { parseMarkdown, escapeHtml } from 'src/modules/document-manager/services/markdownParser.js'
+import { parseMarkdown, escapeHtml } from 'src/utils/markdown/index.js'
 import { saveCheckboxStates, loadCheckboxStates, loadTOCExpandedState, loadSupportedExtensions } from 'src/modules/document-manager/services/documentStorage.js'
 import { useTOC } from 'src/modules/document-manager/composables/useTOC.js'
 import { removeExtension } from 'src/config/documentConfig.js'

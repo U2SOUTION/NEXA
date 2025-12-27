@@ -19,10 +19,6 @@ let errorCollector = null
 function normalizeError(errorData) {
   const { message, source, lineno, colno, error, filename, stack, url, userAgent, level = 'error' } = errorData
 
-  // 🔍 디버깅: 원본 데이터 확인
-  console.log('=== 에러 정규화 시작 ===')
-  console.log('원본 errorData:', { message, source, lineno, colno, filename, hasError: !!error, hasStack: !!stack })
-
   // 스택 트레이스 추출
   let errorStack = stack
   if (!errorStack && error) {
@@ -37,31 +33,23 @@ function normalizeError(errorData) {
   let errorLine = lineno
   let errorColumn = colno
 
-  console.log('1차 파일 정보 추출:', { errorFile, errorLine, errorColumn, hasStack: !!errorStack })
-
   // 스택 트레이스에서 파일명과 라인 번호 파싱
   if (errorStack && !errorFile) {
     const stackLines = errorStack.split('\n')
-    console.log('스택 트레이스 라인 수:', stackLines.length)
     if (stackLines.length > 0) {
       const firstLine = stackLines[0]
-      console.log('첫 번째 스택 라인:', firstLine)
       // 스택 트레이스 형식: "at functionName (file://path/to/file.js:line:column)"
       const match = firstLine.match(/\((.+):(\d+):(\d+)\)/)
       if (match) {
         errorFile = match[1]
         errorLine = parseInt(match[2], 10)
         errorColumn = parseInt(match[3], 10)
-        console.log('스택에서 파싱 성공:', { errorFile, errorLine, errorColumn })
-      } else {
-        console.log('스택 파싱 실패: 매칭 패턴 없음')
         // 다른 패턴 시도: "at file://path/to/file.js:line:column"
         const altMatch = firstLine.match(/at\s+(.+):(\d+):(\d+)/)
         if (altMatch) {
           errorFile = altMatch[1]
           errorLine = parseInt(altMatch[2], 10)
           errorColumn = parseInt(altMatch[3], 10)
-          console.log('대체 패턴으로 파싱 성공:', { errorFile, errorLine, errorColumn })
         }
       }
     }
@@ -107,14 +95,6 @@ function normalizeError(errorData) {
     errorType: error?.constructor?.name || error?.name || null,
   }
 
-  console.log('정규화 결과:', { 
-    file: normalized.file, 
-    line: normalized.line, 
-    column: normalized.column,
-    level: normalized.level,
-    errorType: normalized.errorType
-  })
-  console.log('=== 에러 정규화 완료 ===')
 
   return normalized
 }
@@ -125,11 +105,8 @@ function normalizeError(errorData) {
  */
 function collectError(errorData) {
   if (!isCollecting) {
-    console.log('[errorCollector] 에러 수집 비활성화 상태, 무시')
     return
   }
-
-  console.log('[errorCollector] 에러 수집 시작:', errorData)
 
   try {
     const normalizedError = normalizeError(errorData)
@@ -149,8 +126,6 @@ function collectError(errorData) {
       normalizedError.count = 1
     }
 
-    console.log('[errorCollector] 정규화된 에러:', normalizedError.id)
-
     // 에러 저장은 useErrorTracking의 handleErrorCollected에서 처리
     // 여기서는 이벤트만 발생시켜 useErrorTracking이 처리하도록 함
     window.dispatchEvent(
@@ -158,9 +133,8 @@ function collectError(errorData) {
         detail: { error: normalizedError },
       }),
     )
-    console.log('[errorCollector] 에러 수집 이벤트 발생 완료')
-  } catch (error) {
-    console.error('[errorCollector] 에러 수집 실패:', error)
+  } catch {
+    // 에러 수집 실패는 조용히 처리 (콘솔 로그 출력 안 함)
   }
 }
 
@@ -232,12 +206,23 @@ function interceptFetch() {
 
     // 에러 수집에서 제외할 URL 패턴 (예상된 실패)
     const shouldIgnoreError = (url) => {
+      // URL 디코딩 (인코딩된 URL도 체크하기 위해)
+      let decodedUrl = url
+      try {
+        decodedUrl = decodeURIComponent(url)
+      } catch {
+        // 디코딩 실패 시 원본 URL 사용
+      }
+      
       // 인덱스 파일 요청 (400은 예상된 에러 - 파일이 없을 수 있음)
-      if (url.includes('.error-analysis-index.json')) {
+      // 인코딩된 형태와 디코딩된 형태 모두 체크
+      if (url.includes('.error-analysis-index.json') || decodedUrl.includes('.error-analysis-index.json')) {
         return true
       }
       // 폴더 스캔 요청 (404는 예상된 에러 - API가 폴더를 지원하지 않을 수 있음)
-      if (url.includes('/api/docs/Error/Platform') && !url.includes('.md') && !url.includes('.json')) {
+      if ((url.includes('/api/docs/Error/Platform') || decodedUrl.includes('/api/docs/Error/Platform')) && 
+          !url.includes('.md') && !decodedUrl.includes('.md') && 
+          !url.includes('.json') && !decodedUrl.includes('.json')) {
         return true
       }
       return false
@@ -279,10 +264,22 @@ function interceptFetch() {
     } catch (error) {
       // 예상된 실패는 무시
       const shouldIgnoreError = (url) => {
-        if (url.includes('.error-analysis-index.json')) {
+        // URL 디코딩 (인코딩된 URL도 체크하기 위해)
+        let decodedUrl = url
+        try {
+          decodedUrl = decodeURIComponent(url)
+        } catch {
+          // 디코딩 실패 시 원본 URL 사용
+        }
+        
+        // 인덱스 파일 요청 (400은 예상된 에러 - 파일이 없을 수 있음)
+        if (url.includes('.error-analysis-index.json') || decodedUrl.includes('.error-analysis-index.json')) {
           return true
         }
-        if (url.includes('/api/docs/Error/Platform') && !url.includes('.md') && !url.includes('.json')) {
+        // 폴더 스캔 요청 (404는 예상된 에러 - API가 폴더를 지원하지 않을 수 있음)
+        if ((url.includes('/api/docs/Error/Platform') || decodedUrl.includes('/api/docs/Error/Platform')) && 
+            !url.includes('.md') && !decodedUrl.includes('.md') && 
+            !url.includes('.json') && !decodedUrl.includes('.json')) {
           return true
         }
         return false
@@ -341,7 +338,7 @@ function interceptFetch() {
  */
 export function initializeErrorCollector(options = {}) {
   if (isInitialized) {
-    console.warn('[errorCollector] 이미 초기화되었습니다.')
+    // 이미 초기화되었으면 조용히 반환 (콘솔 로그 출력 안 함)
     return
   }
 
@@ -362,7 +359,6 @@ export function initializeErrorCollector(options = {}) {
     interceptFetch()
   }
 
-  console.log('[errorCollector] 에러 수집기 초기화 완료')
 }
 
 /**
@@ -391,7 +387,6 @@ export function cleanupErrorCollector() {
   window.removeEventListener('error-tracking-vue-error', handleVueError)
   isInitialized = false
 
-  console.log('[errorCollector] 에러 수집기 정리 완료')
 }
 
 /**

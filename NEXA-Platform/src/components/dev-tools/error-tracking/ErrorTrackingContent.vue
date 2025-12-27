@@ -124,8 +124,8 @@
           <div class="row q-gutter-sm items-center justify-between">
             <!-- 메인 액션 버튼들 -->
             <div class="row q-gutter-sm items-center">
-              <q-btn flat dense :icon="resolvedButtonIcon" :label="resolvedButtonLabel" @click="handleResolved" />
-              <q-btn flat dense :icon="ignoredButtonIcon" :label="ignoredButtonLabel" @click="handleIgnored" />
+              <q-btn flat dense :icon="resolvedButtonIcon" :label="resolvedButtonLabel" :class="{ 'warning-button': selectedError?.status === 'resolved' }" @click="handleResolved" />
+              <q-btn flat dense :icon="ignoredButtonIcon" :label="ignoredButtonLabel" :class="{ 'warning-button': selectedError?.status === 'ignored' }" @click="handleIgnored" />
               <q-btn flat dense icon="delete" label="삭제" @click="handleDelete" />
               <q-separator vertical />
               <q-btn flat dense icon="content_copy" label="정보 복사" @click="copyToClipboard">
@@ -385,19 +385,14 @@
 
         <!-- 문서가 1개면 바로 표시 -->
         <div v-else-if="hasSingleDocument" class="analysis-doc-preview">
-          <q-card>
-            <q-card-section>
-              <div class="text-h6">{{ analysisDocuments[0].title || analysisDocuments[0].fileName }}</div>
-              <div class="text-caption">작성일: {{ formatDocumentDate(analysisDocuments[0].frontmatter?.createdAt) }}</div>
-            </q-card-section>
-            <q-separator />
-            <q-card-section>
-              <div class="markdown-content" v-html="renderMarkdown(analysisDocuments[0].body)"></div>
-            </q-card-section>
-            <q-card-actions>
-              <q-btn flat label="문서 뷰어에서 열기" icon="open_in_new" @click="handleOpenInDocumentViewer(analysisDocuments[0].path)" />
-            </q-card-actions>
-          </q-card>
+          <div class="analysis-doc-header">
+            <!-- <div class="text-h6">{{ analysisDocuments[0].title || analysisDocuments[0].fileName }}</div> -->
+            <div class="text-caption">작성일: {{ formatDocumentDate(analysisDocuments[0].frontmatter?.createdAt) }}</div>
+          </div>
+          <div class="markdown-content" v-html="parseMarkdown(analysisDocuments[0].body, analysisDocuments[0].path || '', {})"></div>
+          <div class="analysis-doc-actions">
+            <q-btn flat label="문서 뷰어에서 열기" icon="open_in_new" @click="handleOpenInDocumentViewer(analysisDocuments[0].path)" />
+          </div>
         </div>
 
         <!-- 여러 개면 리스트 -->
@@ -425,27 +420,6 @@
           <q-icon name="description" size="48px" />
           <div class="text-body2">이 에러에 대한 분석 문서가 없습니다.</div>
           <div class="text-caption">Cursor에서 에러를 분석하여 문서를 생성하세요.</div>
-
-          <!-- 인덱스 에러 정보 표시 -->
-          <div v-if="analysisError" class="error-analysis-error q-mt-md">
-            <q-banner class="bg-negative text-white">
-              <template #avatar>
-                <q-icon name="error" />
-              </template>
-              <div class="text-body2">{{ analysisError.message }}</div>
-              <div v-if="analysisError.details" class="text-caption q-mt-xs">
-                <div v-if="analysisError.details.url"><strong>요청 URL:</strong> {{ analysisError.details.url }}</div>
-                <div v-if="analysisError.details.status"><strong>상태 코드:</strong> {{ analysisError.details.status }} {{ analysisError.details.statusText }}</div>
-                <div v-if="analysisError.details.path"><strong>인덱스 경로:</strong> {{ analysisError.details.path }}</div>
-                <div v-if="analysisError.errorId">
-                  <strong>검색한 에러 ID:</strong> <code>{{ analysisError.errorId }}</code>
-                </div>
-              </div>
-              <template #action>
-                <q-btn flat dense label="인덱스 재구성" @click="handleRebuildIndex" :loading="isRebuildingIndex" />
-              </template>
-            </q-banner>
-          </div>
         </div>
       </div>
     </div>
@@ -459,11 +433,11 @@ import NexaChart from 'src/charts/NexaChart.vue'
 import * as d3 from 'd3'
 import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
 import { useErrorAnalysis } from 'src/composables/dev-tools/useErrorAnalysis.js'
-import { errorAnalysisIndex } from 'src/utils/error-tracking/errorAnalysisIndex.js'
 import { classifyErrorType, getErrorIcon, getErrorTypeLabel, getErrorTypeChartLabel } from 'src/utils/error-tracking/errorTypeClassifier.js'
 import { normalizeFilePathForAI, normalizeStackForAI } from 'src/utils/error-tracking/pathNormalizer.js'
 import { formatTimeRelative, formatTimeAbsolute, formatTime, formatDuration } from 'src/utils/error-tracking/timeFormatter.js'
 import { copyTextToClipboard } from 'src/utils/clipboard.js'
+import { parseMarkdown } from 'src/utils/markdown/index.js'
 
 const $q = useQuasar()
 
@@ -471,10 +445,7 @@ const $q = useQuasar()
 const { selectedError, saveErrorNotes, errors } = useErrorTracking()
 
 // 에러 분석 문서 composable
-const { documents: analysisDocuments, isLoading: isAnalysisLoading, error: analysisError, documentCount, hasSingleDocument, hasMultipleDocuments, hasNoDocuments, findAnalysisDocuments, selectDocument, clear: clearAnalysis } = useErrorAnalysis()
-
-// 인덱스 재구성 상태
-const isRebuildingIndex = ref(false)
+const { documents: analysisDocuments, isLoading: isAnalysisLoading, documentCount, hasSingleDocument, hasMultipleDocuments, hasNoDocuments, findAnalysisDocuments, selectDocument, clear: clearAnalysis } = useErrorAnalysis()
 
 // 메모 탭 상태
 const notesTab = ref('cause')
@@ -1235,36 +1206,6 @@ function handleOpenInDocumentViewer(documentPath) {
   })
 }
 
-// 인덱스 재구성 핸들러
-async function handleRebuildIndex() {
-  if (!selectedError.value?.id) return
-
-  isRebuildingIndex.value = true
-
-  try {
-    await errorAnalysisIndex.rebuildIndex()
-    $q.notify({
-      type: 'positive',
-      message: '인덱스 재구성이 완료되었습니다.',
-      position: 'top',
-      timeout: 2000,
-    })
-
-    // 재구성 후 문서 다시 검색
-    await findAnalysisDocuments(selectedError.value.id)
-  } catch (error) {
-    console.error('[ErrorTrackingContent] 인덱스 재구성 실패:', error)
-    $q.notify({
-      type: 'negative',
-      message: '인덱스 재구성에 실패했습니다.',
-      position: 'top',
-      timeout: 3000,
-    })
-  } finally {
-    isRebuildingIndex.value = false
-  }
-}
-
 // 문서 날짜 포맷팅
 function formatDocumentDate(dateString) {
   if (!dateString) return '날짜 없음'
@@ -1280,38 +1221,6 @@ function formatDocumentDate(dateString) {
   } catch {
     return dateString
   }
-}
-
-// 마크다운 렌더링 (간단한 텍스트 변환)
-function renderMarkdown(content) {
-  if (!content) return ''
-
-  // 간단한 마크다운 변환
-  let html = content
-
-  // 제목 변환
-  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>')
-  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>')
-  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>')
-
-  // 강조 변환
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
-  html = html.replace(/`(.*?)`/g, '<code>$1</code>')
-
-  // 링크 변환
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-
-  // 코드 블록 변환 (간단)
-  html = html.replace(/```[\s\S]*?```/g, (match) => {
-    const code = match.replace(/```/g, '').trim()
-    return `<pre><code>${code}</code></pre>`
-  })
-
-  // 줄바꿈 변환
-  html = html.replace(/\n/g, '<br>')
-
-  return html
 }
 
 // 해결 버튼 아이콘 (상태에 따라 동적 변경)
@@ -1346,6 +1255,7 @@ function handleResolved() {
 
     const includeSimilar = batchOptions.value.resolved
     // 현재 상태가 'resolved'면 'new'로, 아니면 'resolved'로 변경
+    // 'ignored' 상태일 때는 'resolved'로 변경 (상호 배타적)
     const newStatus = selectedError.value.status === 'resolved' ? 'new' : 'resolved'
 
     window.dispatchEvent(
@@ -1371,6 +1281,7 @@ function handleIgnored() {
 
     const includeSimilar = batchOptions.value.ignored
     // 현재 상태가 'ignored'면 'new'로, 아니면 'ignored'로 변경
+    // 'resolved' 상태일 때는 'ignored'로 변경 (상호 배타적)
     const newStatus = selectedError.value.status === 'ignored' ? 'new' : 'ignored'
 
     window.dispatchEvent(
@@ -1662,8 +1573,16 @@ onUnmounted(() => {
 }
 
 .info-label {
+  display: inline-block;
   color: var(--nexa-text-secondary);
   margin-right: 10px;
+  min-width: 60px;
+  text-align: right;
+}
+
+// 해결 취소/무시 취소 버튼 경고 색상
+.warning-button {
+  color: var(--nexa-warning);
 }
 
 // 스택 트레이스
@@ -1678,5 +1597,23 @@ onUnmounted(() => {
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+// 분석 문서 미리보기
+.analysis-doc-preview {
+  display: flex;
+  flex-direction: column;
+}
+
+.analysis-doc-header {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--nexa-border-color);
+  color: var(--nexa-text-secondary);
+}
+
+.analysis-doc-actions {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--nexa-border-color);
 }
 </style>

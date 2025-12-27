@@ -1,5 +1,5 @@
 /**
- * 문서 카테고리 분류 함수
+ * 경로 카테고리 분류 함수
  * 폴더 구조 기반 동적 카테고리 분류 (하드코딩 제거)
  */
 import { loadSupportedExtensions } from 'src/config/documentConfig.js'
@@ -61,7 +61,7 @@ function cleanFolderName(folderName) {
   if (!folderName) return ''
   // 숫자 접두사 제거 (01-기획 -> 기획)
   return folderName.replace(/^\d+-/, '').replace(/_/g, ' ').replace(/-/g, ' ')
-  }
+}
 
 /**
  * 파일 카테고리 분류 (그룹 레벨에 따라)
@@ -100,8 +100,8 @@ export function getFileCategory(file, groupLevel = 1) {
     } else if (levels.level1) {
       return levels.level1
     }
-  return '기타'
-}
+    return '기타'
+  }
 
   // 기본값: 1레벨
   return levels.level1 || '기타'
