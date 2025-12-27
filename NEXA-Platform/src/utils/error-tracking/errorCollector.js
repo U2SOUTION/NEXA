@@ -67,9 +67,35 @@ function normalizeError(errorData) {
     }
   }
 
+  // 에러 타입 감지하여 level 설정
+  let detectedLevel = level
+  if (error) {
+    const errorType = error.constructor?.name || error.name
+    const errorMessage = message || error?.message || ''
+    
+    // 에러 타입에 따라 level 분류
+    if (errorType === 'TypeError' || errorMessage.includes('TypeError')) {
+      detectedLevel = 'error' // TypeError는 error 레벨
+    } else if (errorType === 'ReferenceError' || errorMessage.includes('ReferenceError')) {
+      detectedLevel = 'error' // ReferenceError는 error 레벨
+    } else if (errorType === 'SyntaxError' || errorMessage.includes('SyntaxError')) {
+      detectedLevel = 'error' // SyntaxError는 error 레벨
+    } else if (errorType === 'RangeError' || errorMessage.includes('RangeError')) {
+      detectedLevel = 'error' // RangeError는 error 레벨
+    } else if (errorType === 'EvalError' || errorMessage.includes('EvalError')) {
+      detectedLevel = 'error' // EvalError는 error 레벨
+    } else if (errorType === 'URIError' || errorMessage.includes('URIError')) {
+      detectedLevel = 'error' // URIError는 error 레벨
+    } else if (errorMessage.toLowerCase().includes('warning')) {
+      detectedLevel = 'warning' // 메시지에 warning이 포함된 경우
+    } else if (errorMessage.toLowerCase().includes('unhandled') || errorMessage.toLowerCase().includes('rejection')) {
+      detectedLevel = 'unhandled' // Promise rejection 관련
+    }
+  }
+
   const normalized = {
     message: message || error?.message || '알 수 없는 에러',
-    level,
+    level: detectedLevel,
     file: errorFile || null,
     line: errorLine || null,
     column: errorColumn || null,
@@ -77,9 +103,17 @@ function normalizeError(errorData) {
     url: url || window.location.href,
     userAgent: userAgent || navigator.userAgent,
     timestamp: Date.now(),
+    // 에러 타입 정보 추가 (차트 분류용)
+    errorType: error?.constructor?.name || error?.name || null,
   }
 
-  console.log('정규화 결과:', { file: normalized.file, line: normalized.line, column: normalized.column })
+  console.log('정규화 결과:', { 
+    file: normalized.file, 
+    line: normalized.line, 
+    column: normalized.column,
+    level: normalized.level,
+    errorType: normalized.errorType
+  })
   console.log('=== 에러 정규화 완료 ===')
 
   return normalized

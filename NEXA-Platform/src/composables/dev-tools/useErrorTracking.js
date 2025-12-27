@@ -9,6 +9,7 @@ import { loadErrors, saveErrors, updateError as updateErrorStorage, deleteError 
 import { setCollectingEnabled } from 'src/utils/error-tracking/errorCollector.js'
 import { findSimilarErrors, areErrorsSimilar } from 'src/utils/error-tracking/errorGrouper.js'
 import { watchFileChanges } from 'src/utils/error-tracking/lintCollector.js'
+import { classifyErrorType } from 'src/utils/error-tracking/errorTypeClassifier.js'
 
 /**
  * 에러 트래킹 관리 Composable
@@ -25,7 +26,7 @@ export function useErrorTracking() {
   const isLoading = ref(false) // 로딩 상태
 
   // 필터 상태
-  const filterLevel = ref(null) // 에러 레벨 필터
+  const filterErrorType = ref(null) // 에러 타입 필터
   const filterStatus = ref(null) // 에러 상태 필터
   const filterTimeRange = ref(null) // 시간 범위 필터
   const sortOption = ref('newest') // 정렬 옵션
@@ -40,13 +41,13 @@ export function useErrorTracking() {
   const filteredErrors = computed(() => {
     let result = [...errors.value]
 
-    // 레벨 필터 (lint 타입도 처리)
-    if (filterLevel.value) {
-      if (filterLevel.value === 'lint') {
-        result = result.filter((error) => error.type === 'lint')
-      } else {
-        result = result.filter((error) => error.level === filterLevel.value && error.type !== 'lint')
-      }
+    // 에러 타입 필터 (공통 유틸리티 사용)
+    if (filterErrorType.value) {
+      const targetType = filterErrorType.value
+      result = result.filter((error) => {
+        const classifiedType = classifyErrorType(error)
+        return classifiedType === targetType
+      })
     }
 
     // 상태 필터
@@ -333,7 +334,7 @@ export function useErrorTracking() {
    * 필터 변경
    */
   function handleFilterChange(filters) {
-    filterLevel.value = filters.level
+    filterErrorType.value = filters.errorType
     filterStatus.value = filters.status
     filterTimeRange.value = filters.timeRange
   }
@@ -845,7 +846,7 @@ export function useErrorTracking() {
     searchQuery,
     isCollecting,
     isLoading,
-    filterLevel,
+    filterErrorType,
     filterStatus,
     filterTimeRange,
     sortOption,

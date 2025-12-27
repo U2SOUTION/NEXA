@@ -25,7 +25,7 @@
       <q-list v-else separator>
         <q-item v-for="error in filteredErrors" :key="error.id" clickable :active="isErrorSelected(error)" active-class="error-item-active" @click="handleErrorSelect(error)">
           <q-item-section avatar>
-            <q-icon :name="getErrorIcon(error.level)" :color="getErrorColor(error.level)" />
+            <q-icon :name="getErrorIcon(error)" :color="getErrorColor(error)" />
           </q-item-section>
 
           <q-item-section>
@@ -63,6 +63,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { getErrorIcon, getErrorColor } from 'src/utils/error-tracking/errorTypeClassifier.js'
 
 const props = defineProps({
   errors: {
@@ -111,33 +112,7 @@ const filteredErrors = computed(() => {
   return result
 })
 
-// 에러 아이콘
-function getErrorIcon(level) {
-  switch (level) {
-    case 'error':
-      return 'error'
-    case 'warning':
-      return 'warning'
-    case 'unhandled':
-      return 'cancel'
-    default:
-      return 'bug_report'
-  }
-}
-
-// 에러 색상
-function getErrorColor(level) {
-  switch (level) {
-    case 'error':
-      return 'negative'
-    case 'warning':
-      return 'warning'
-    case 'unhandled':
-      return 'negative'
-    default:
-      return 'grey-7'
-  }
-}
+// 에러 아이콘, 색상은 공통 유틸리티에서 import하여 사용
 
 // 파일명 추출
 function getFileName(filePath) {

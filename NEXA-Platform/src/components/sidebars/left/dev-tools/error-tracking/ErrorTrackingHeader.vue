@@ -38,10 +38,7 @@
     <div class="filter-section">
       <div class="row q-gutter-xs no-wrap">
         <div class="col">
-          <q-select v-model="selectedLevel" :options="levelOptions" dense outlined label="레벨" @update:model-value="handleFilterChange" />
-        </div>
-        <div class="col">
-          <q-select v-model="selectedStatus" :options="statusOptions" dense outlined label="상태" @update:model-value="handleFilterChange" />
+          <q-select v-model="selectedErrorType" :options="errorTypeOptions" dense outlined label="에러 타입" @update:model-value="handleFilterChange" />
         </div>
         <div class="col">
           <q-select v-model="selectedTimeRange" :options="timeRangeOptions" dense outlined label="기간" @update:model-value="handleFilterChange" />
@@ -86,25 +83,20 @@ const searchQuery = ref('')
 const isRefreshing = ref(false)
 
 // 필터 관련 상태
-const selectedLevel = ref(null)
-const selectedStatus = ref(null)
+const selectedErrorType = ref(null)
 const selectedTimeRange = ref(null)
 const selectedSort = ref({ label: '최신순', value: 'newest' })
 
 // 필터 옵션
-const levelOptions = [
+const errorTypeOptions = [
   { label: '전체', value: null },
   { label: 'Error', value: 'error' },
   { label: 'Warning', value: 'warning' },
-  { label: 'Unhandled Rejection', value: 'unhandled' },
-  { label: 'Lint', value: 'lint' },
-]
-
-const statusOptions = [
-  { label: '전체', value: null },
-  { label: '새 에러', value: 'new' },
-  { label: '해결됨', value: 'resolved' },
-  { label: '무시됨', value: 'ignored' },
+  { label: 'Unhandled', value: 'unhandled' },
+  { label: 'TypeError', value: 'typeError' },
+  { label: 'ReferenceError', value: 'referenceError' },
+  { label: 'Network', value: 'networkError' },
+  { label: 'Promise', value: 'promiseRejection' },
 ]
 
 const timeRangeOptions = [
@@ -153,8 +145,7 @@ function handleSearchClear() {
 // 필터 변경
 function handleFilterChange() {
   emit('filter-change', {
-    level: selectedLevel.value?.value,
-    status: selectedStatus.value?.value,
+    errorType: selectedErrorType.value?.value,
     timeRange: selectedTimeRange.value?.value,
   })
 }
@@ -174,7 +165,7 @@ function handleCollectingToggle(value) {
   emit('collecting-toggle', value)
 }
 
-// 테스트 에러 발생
+// 테스트 에러 발생 (랜덤 종류)
 function handleTestError() {
   if (!props.isCollecting) {
     $q.notify({
@@ -187,18 +178,86 @@ function handleTestError() {
     return
   }
 
+  // 랜덤 에러 타입 선택
+  const errorTypes = ['error', 'typeError', 'referenceError', 'promiseRejection', 'networkError', 'asyncError', 'nestedError']
+  const randomType = errorTypes[Math.floor(Math.random() * errorTypes.length)]
+
   $q.notify({
     type: 'info',
-    message: '테스트 에러를 발생시킵니다...',
+    message: `테스트 에러 발생: ${randomType}`,
     position: 'top',
     timeout: 1000,
   })
 
-  console.log('[ErrorTracking] 테스트 에러 발생')
+  console.log('[ErrorTracking] 테스트 에러 발생:', randomType)
 
   // 약간의 딜레이 후 에러 발생 (토스트가 보이도록)
   setTimeout(() => {
-    throw new Error('테스트 에러: 에러 트래킹 시스템 테스트용 에러입니다')
+    switch (randomType) {
+      case 'error':
+        throw new Error(`테스트 에러: 일반 에러 발생 (${Date.now()})`)
+
+      case 'typeError': {
+        // TypeError 발생
+        try {
+          const obj = null
+          obj.someMethod()
+        } catch {
+          throw new TypeError(`테스트 TypeError: null 객체에 메서드 호출 시도 (${Date.now()})`)
+        }
+        break
+      }
+
+      case 'referenceError': {
+        // ReferenceError 발생
+        try {
+          // eslint-disable-next-line no-undef
+          undefinedVariable.someProperty
+        } catch {
+          throw new ReferenceError(`테스트 ReferenceError: 정의되지 않은 변수 참조 (${Date.now()})`)
+        }
+        break
+      }
+
+      case 'promiseRejection':
+        // Promise Rejection 발생
+        Promise.reject(new Error(`테스트 Promise Rejection: 비동기 작업 실패 (${Date.now()})`))
+        break
+
+      case 'networkError':
+        // Network Error 시뮬레이션 (fetch 실패)
+        fetch('https://invalid-url-that-will-fail.com/api/test')
+          .then(() => {})
+          .catch(() => {
+            throw new Error(`테스트 Network Error: 네트워크 요청 실패 (${Date.now()})`)
+          })
+        break
+
+      case 'asyncError':
+        // 비동기 함수 내부 에러
+        setTimeout(() => {
+          throw new Error(`테스트 Async Error: 비동기 함수 내부 에러 발생 (${Date.now()})`)
+        }, 10)
+        break
+
+      case 'nestedError': {
+        // 중첩된 함수에서 발생하는 에러
+        function outerFunction() {
+          function innerFunction() {
+            function deepFunction() {
+              throw new Error(`테스트 Nested Error: 깊게 중첩된 함수에서 발생한 에러 (${Date.now()})`)
+            }
+            deepFunction()
+          }
+          innerFunction()
+        }
+        outerFunction()
+        break
+      }
+
+      default:
+        throw new Error(`테스트 에러: 알 수 없는 에러 타입 (${Date.now()})`)
+    }
   }, 100)
 }
 </script>

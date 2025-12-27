@@ -2,62 +2,58 @@
   <div class="error-tracking-content">
     <!-- 선택된 에러가 없을 때 -->
     <div v-if="!selectedError" class="dashboard-view q-pa-md">
+      <!-- 대시보드 타이틀 -->
+      <div class="dashboard-header q-mb-lg">
+        <h2 class="dashboard-title">에러 트래킹 대시보드</h2>
+        <p class="dashboard-subtitle">수집된 에러의 통계 및 분석 정보를 확인할 수 있습니다</p>
+      </div>
+
       <!-- 통계 카드 -->
       <div class="statistics-cards q-mb-lg">
-        <div class="row q-gutter-md">
-          <div class="col-12 col-sm-6 col-md-3">
-            <q-card class="stat-card">
-              <q-card-section>
-                <div class="stat-card-header">
-                  <q-icon name="bug_report" size="32px" color="negative" />
-                  <div class="stat-card-content">
-                    <div class="stat-card-label">총 에러</div>
-                    <div class="stat-card-value">{{ statistics.total }}개</div>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-          <div class="col-12 col-sm-6 col-md-3">
-            <q-card class="stat-card">
-              <q-card-section>
-                <div class="stat-card-header">
-                  <q-icon name="new_releases" size="32px" color="warning" />
-                  <div class="stat-card-content">
-                    <div class="stat-card-label">신규</div>
-                    <div class="stat-card-value stat-value-new">{{ statistics.new }}개</div>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-          <div class="col-12 col-sm-6 col-md-3">
-            <q-card class="stat-card">
-              <q-card-section>
-                <div class="stat-card-header">
-                  <q-icon name="check_circle" size="32px" color="positive" />
-                  <div class="stat-card-content">
-                    <div class="stat-card-label">해결</div>
-                    <div class="stat-card-value stat-value-resolved">{{ statistics.resolved }}개</div>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-          <div class="col-12 col-sm-6 col-md-3">
-            <q-card class="stat-card">
-              <q-card-section>
-                <div class="stat-card-header">
-                  <q-icon name="today" size="32px" color="info" />
-                  <div class="stat-card-content">
-                    <div class="stat-card-label">오늘</div>
-                    <div class="stat-card-value">{{ statistics.today }}개</div>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </div>
+        <q-card class="stat-card">
+          <q-card-section>
+            <div class="stat-card-header">
+              <q-icon name="bug_report" size="32px" />
+              <div class="stat-card-content">
+                <div class="stat-card-label">총 에러</div>
+                <div class="stat-card-value">{{ statistics.total }}개</div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+        <q-card class="stat-card">
+          <q-card-section>
+            <div class="stat-card-header">
+              <q-icon name="new_releases" size="32px" />
+              <div class="stat-card-content">
+                <div class="stat-card-label">신규</div>
+                <div class="stat-card-value stat-value-new">{{ statistics.new }}개</div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+        <q-card class="stat-card">
+          <q-card-section>
+            <div class="stat-card-header">
+              <q-icon name="check_circle" size="32px" />
+              <div class="stat-card-content">
+                <div class="stat-card-label">해결</div>
+                <div class="stat-card-value stat-value-resolved">{{ statistics.resolved }}개</div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+        <q-card class="stat-card">
+          <q-card-section>
+            <div class="stat-card-header">
+              <q-icon name="today" size="32px" />
+              <div class="stat-card-content">
+                <div class="stat-card-label">오늘</div>
+                <div class="stat-card-value">{{ statistics.today }}개</div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
       </div>
 
       <!-- 차트 섹션 -->
@@ -67,7 +63,7 @@
           <div class="chart-card">
             <NexaChart v-if="errorTrendChartData.length > 0" type="line" :data="errorTrendChartData" title="에러 발생 추이" title-icon="trending_up" :options="{ animation: true, showLabels: true }" :on-refresh="handleRefreshErrors">
               <template #title-right="{ isRefreshing, handleRefresh }">
-                <q-chip size="sm" color="primary" text-color="white">
+                <q-chip size="sm">
                   {{ errorTrendChartData.length }}일간
                   <q-tooltip>최근 7일간 에러 발생 추이 데이터 포인트 수</q-tooltip>
                 </q-chip>
@@ -81,7 +77,7 @@
           <div class="chart-card">
             <NexaChart v-if="errorTypeChartData.length > 0" type="pie" :data="errorTypeChartData" title="에러 유형별 분포" title-icon="pie_chart" :margin="{ top: 0, right: 10, bottom: 10, left: 10 }" :options="{ animation: true, showLabels: true }" :on-refresh="handleRefreshErrors">
               <template #title-right="{ isRefreshing, handleRefresh }">
-                <q-chip size="sm" color="primary" text-color="white">
+                <q-chip size="sm">
                   {{ errorTypeChartData.length }}개
                   <q-tooltip>에러 유형별 분포 데이터 포인트 수</q-tooltip>
                 </q-chip>
@@ -116,11 +112,11 @@
       <!-- 에러 기본 정보 -->
       <div class="error-header q-mb-md">
         <div class="row items-center q-gutter-md">
-          <q-icon :name="getErrorIcon(selectedError.level)" :class="getErrorIconClass(selectedError.level)" size="32px" />
+          <q-icon :name="getErrorIcon(selectedError)" :class="getErrorIconClass()" size="32px" />
           <div class="col">
             <h4 class="error-title">{{ selectedError.message || '에러 메시지 없음' }}</h4>
             <div class="error-meta q-mt-xs">
-              <q-chip v-if="selectedError.type === 'lint'" class="chip-lint" size="sm" label="Lint" />
+              <q-chip v-if="selectedError.type === 'lint'" size="sm" label="Lint" />
             </div>
           </div>
         </div>
@@ -128,14 +124,14 @@
           <div class="row q-gutter-sm items-center justify-between">
             <!-- 메인 액션 버튼들 -->
             <div class="row q-gutter-sm items-center">
-              <q-btn flat dense :icon="resolvedButtonIcon" :label="resolvedButtonLabel" :class="resolvedButtonClass" @click="handleResolved" />
-              <q-btn flat dense icon="block" label="무시" class="btn-ignored" @click="handleIgnored" />
-              <q-btn flat dense icon="delete" label="삭제" class="btn-delete" @click="handleDelete" />
+              <q-btn flat dense :icon="resolvedButtonIcon" :label="resolvedButtonLabel" @click="handleResolved" />
+              <q-btn flat dense :icon="ignoredButtonIcon" :label="ignoredButtonLabel" @click="handleIgnored" />
+              <q-btn flat dense icon="delete" label="삭제" @click="handleDelete" />
               <q-separator vertical />
-              <q-btn flat dense icon="content_copy" label="전체 정보 복사" class="btn-copy" @click="copyToClipboard">
+              <q-btn flat dense icon="content_copy" label="전체 정보 복사" @click="copyToClipboard">
                 <q-tooltip>에러의 전체 정보를 상세한 형식으로 클립보드에 복사합니다</q-tooltip>
               </q-btn>
-              <q-btn flat dense icon="code" label="기본 정보 복사" class="btn-copy-context" @click="handleCopyErrorInfo">
+              <q-btn flat dense icon="code" label="기본 정보 복사" @click="handleCopyErrorInfo">
                 <q-tooltip>에러의 핵심 정보만 간단한 형식으로 클립보드에 복사합니다</q-tooltip>
               </q-btn>
             </div>
@@ -145,17 +141,17 @@
               <q-separator vertical />
               <span class="text-caption text-weight-medium q-mr-xs batch-apply-label">전체 적용</span>
 
-              <q-checkbox v-model="batchOptions.resolved" dense class="checkbox-resolved" @update:model-value="handleBatchOptionChange" />
+              <q-checkbox v-model="batchOptions.resolved" dense @update:model-value="handleBatchOptionChange" />
               <span class="text-caption">해결</span>
-              <q-btn v-if="batchOptions.resolved" flat dense size="xs" class="btn-batch-resolved" @click="batchMarkAsResolved" />
+              <q-btn v-if="batchOptions.resolved" flat dense size="xs" @click="batchMarkAsResolved" />
 
-              <q-checkbox v-model="batchOptions.ignored" dense class="checkbox-ignored" @update:model-value="handleBatchOptionChange" />
+              <q-checkbox v-model="batchOptions.ignored" dense @update:model-value="handleBatchOptionChange" />
               <span class="text-caption">무시</span>
-              <q-btn v-if="batchOptions.ignored" flat dense size="xs" class="btn-batch-ignored" @click="batchMarkAsIgnored" />
+              <q-btn v-if="batchOptions.ignored" flat dense size="xs" @click="batchMarkAsIgnored" />
 
-              <q-checkbox v-model="batchOptions.deleted" dense class="checkbox-deleted" @update:model-value="handleBatchOptionChange" />
+              <q-checkbox v-model="batchOptions.deleted" dense @update:model-value="handleBatchOptionChange" />
               <span class="text-caption">삭제</span>
-              <q-btn v-if="batchOptions.deleted" flat dense size="xs" class="btn-batch-deleted" @click="batchDelete" />
+              <q-btn v-if="batchOptions.deleted" flat dense size="xs" @click="batchDelete" />
             </div>
           </div>
         </div>
@@ -175,7 +171,7 @@
           <div v-if="selectedError.type" class="info-row">
             <span class="info-label">에러 타입</span>
             <span class="info-value">
-              <q-chip v-if="selectedError.type === 'lint'" class="chip-lint" size="sm" label="Lint" />
+              <q-chip v-if="selectedError.type === 'lint'" size="sm" label="Lint" />
               <span v-else class="text-caption">{{ selectedError.type }}</span>
             </span>
           </div>
@@ -203,21 +199,17 @@
           </div>
           <q-separator class="q-my-sm" />
           <div class="info-row info-row-no-margin">
-            <span class="info-label">에러 레벨</span>
+            <span class="info-label">에러 타입</span>
             <span class="info-value">
-              <q-chip v-if="selectedError.level === 'error'" color="negative" text-color="white" size="sm" label="Error" />
-              <q-chip v-else-if="selectedError.level === 'warning'" color="warning" text-color="white" size="sm" label="Warning" />
-              <q-chip v-else-if="selectedError.level === 'unhandled'" color="negative" text-color="white" size="sm" label="Unhandled" />
-              <span v-else class="text-caption">{{ selectedError.level || '알 수 없음' }}</span>
+              <q-icon :name="getErrorIcon(selectedError)" :color="getErrorColor(selectedError)" size="20px" class="q-mr-xs" />
+              <span>{{ getErrorTypeLabel(selectedError) }}</span>
             </span>
           </div>
           <div class="info-row info-row-no-margin">
             <span class="info-label">상태</span>
             <span class="info-value">
-              <q-chip v-if="selectedError.status === 'new'" class="chip-new" size="sm" label="신규" />
-              <q-chip v-else-if="selectedError.status === 'resolved'" class="chip-resolved" size="sm" icon="check_circle" label="해결" />
-              <q-chip v-else-if="selectedError.status === 'ignored'" class="chip-ignored" size="sm" label="무시" />
-              <span v-else class="text-caption">알 수 없음</span>
+              <q-icon :name="getStatusIcon(selectedError.status)" :color="getStatusColor(selectedError.status)" size="20px" class="q-mr-xs" />
+              <span>{{ getStatusLabel(selectedError.status) }}</span>
             </span>
           </div>
         </div>
@@ -268,11 +260,11 @@
           </div>
           <div v-if="selectedError.networkInfo.status" class="info-row">
             <span class="info-label">상태 코드:</span>
-            <span class="info-value" :class="getStatusClass(selectedError.networkInfo.status)">{{ selectedError.networkInfo.status }} {{ selectedError.networkInfo.statusText || '' }}</span>
+            <span class="info-value">{{ selectedError.networkInfo.status }} {{ selectedError.networkInfo.statusText || '' }}</span>
           </div>
           <div v-if="selectedError.networkInfo.error" class="info-row">
             <span class="info-label">에러:</span>
-            <span class="info-value error-text">{{ selectedError.networkInfo.error }}</span>
+            <span class="info-value">{{ selectedError.networkInfo.error }}</span>
           </div>
         </div>
       </div>
@@ -290,7 +282,7 @@
           </div>
           <div v-if="selectedError.fixable" class="info-row">
             <span class="info-label">자동 수정 가능:</span>
-            <span class="info-value success-text">예</span>
+            <span class="info-value">예</span>
           </div>
         </div>
       </div>
@@ -325,7 +317,7 @@
             원인 및 해결법
           </h5>
           <div class="row q-gutter-xs">
-            <q-btn flat dense icon="content_copy" size="sm" label="AI 분석용 복사" class="btn-copy-context" @click="handleCopyContextForAI">
+            <q-btn flat dense icon="content_copy" size="sm" label="AI 분석용 복사" @click="handleCopyContextForAI">
               <q-tooltip>AI 분석용 에러 컨텍스트를 @error-ref 형식으로 클립보드에 복사합니다 (Cursor에서 사용)</q-tooltip>
             </q-btn>
           </div>
@@ -381,7 +373,7 @@
         <h5 class="section-title q-mb-sm">
           <q-icon name="description" />
           에러 분석 문서
-          <q-chip v-if="tempDocumentCount > 1" size="sm" color="primary" class="q-ml-sm"> {{ tempDocumentCount }}개 </q-chip>
+          <q-chip v-if="tempDocumentCount > 1" size="sm" class="q-ml-sm"> {{ tempDocumentCount }}개 </q-chip>
         </h5>
 
         <!-- 문서가 1개면 바로 표시 -->
@@ -412,7 +404,7 @@
               <q-item-label caption>
                 {{ doc.date }}
                 <span v-if="doc.tags && doc.tags.length" class="q-ml-sm">
-                  <q-chip v-for="tag in doc.tags" :key="tag" size="xs" color="secondary" text-color="white">
+                  <q-chip v-for="tag in doc.tags" :key="tag" size="xs">
                     {{ tag }}
                   </q-chip>
                 </span>
@@ -441,6 +433,7 @@ import { useQuasar } from 'quasar'
 import NexaChart from 'src/charts/NexaChart.vue'
 import * as d3 from 'd3'
 import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
+import { classifyErrorType, getErrorIcon, getErrorColor, getErrorTypeLabel, getErrorTypeChartLabel } from 'src/utils/error-tracking/errorTypeClassifier.js'
 
 const $q = useQuasar()
 
@@ -608,16 +601,28 @@ function handleStatisticsUpdated(event) {
 }
 
 // 에러 목록 업데이트 이벤트 리스너
-// errors는 useErrorTracking()에서 가져온 것이므로 이벤트로 업데이트할 필요 없음
-// (useErrorTracking 내부에서 자동으로 관리됨)
 function handleErrorsUpdated(event) {
-  // 이벤트는 받지만, errors는 useErrorTracking()에서 직접 관리되므로 여기서는 로그만
-  console.log('[ErrorTrackingContent] 에러 목록 업데이트:', event.detail.errors?.length || 0, '개')
+  const eventErrors = event.detail.errors || event.detail || []
+  console.log('[ErrorTrackingContent] 에러 목록 업데이트 이벤트 수신:', eventErrors.length, '개')
+  console.log('[ErrorTrackingContent] 현재 errors.value.length:', errors.value.length)
+
+  // errors 배열 업데이트
+  if (Array.isArray(eventErrors)) {
+    errors.value = eventErrors
+    console.log('[ErrorTrackingContent] errors.value 업데이트 완료:', errors.value.length, '개')
+  } else {
+    console.warn('[ErrorTrackingContent] 이벤트 데이터가 배열이 아닙니다:', eventErrors)
+  }
 }
 
 // 에러 발생 추이 차트 데이터 (최근 7일)
 const errorTrendChartData = computed(() => {
-  if (errors.value.length === 0) return []
+  console.log('[차트 데이터] errorTrendChartData 계산 시작, errors.value.length:', errors.value.length)
+
+  if (errors.value.length === 0) {
+    console.log('[차트 데이터] errorTrendChartData: errors가 비어있음')
+    return []
+  }
 
   const now = Date.now()
   const days = 7
@@ -642,34 +647,45 @@ const errorTrendChartData = computed(() => {
     })
   }
 
+  console.log('[차트 데이터] errorTrendChartData 생성 완료:', data.length, '개 데이터 포인트', data)
   return data
 })
 
 // 에러 유형별 분포 차트 데이터
 const errorTypeChartData = computed(() => {
-  if (errors.value.length === 0) return []
+  console.log('[차트 데이터] errorTypeChartData 계산 시작, errors.value.length:', errors.value.length)
+
+  if (errors.value.length === 0) {
+    console.log('[차트 데이터] errorTypeChartData: errors가 비어있음')
+    return []
+  }
 
   const typeCounts = {
     error: 0,
     warning: 0,
     unhandled: 0,
     lint: 0,
+    typeError: 0,
+    referenceError: 0,
+    networkError: 0,
+    promiseRejection: 0,
   }
 
+  // 공통 분류 함수 사용
   errors.value.forEach((error) => {
-    if (error.type === 'lint') {
-      typeCounts.lint++
-    } else {
-      typeCounts[error.level] = (typeCounts[error.level] || 0) + 1
-    }
+    const errorType = classifyErrorType(error)
+    typeCounts[errorType] = (typeCounts[errorType] || 0) + 1
   })
 
-  return Object.entries(typeCounts)
+  const result = Object.entries(typeCounts)
     .filter(([, count]) => count > 0)
     .map(([type, count]) => ({
-      x: type === 'lint' ? 'Lint' : type.charAt(0).toUpperCase() + type.slice(1),
+      x: getErrorTypeChartLabel(type),
       y: count,
     }))
+
+  console.log('[차트 데이터] errorTypeChartData 생성 완료:', result.length, '개 데이터 포인트', result)
+  return result
 })
 
 // 다이어그램 데이터 (에러 의존성)
@@ -905,31 +921,52 @@ watch(
   { deep: true, immediate: false },
 )
 
-// 에러 아이콘
-function getErrorIcon(level) {
-  switch (level) {
-    case 'error':
-      return 'error'
-    case 'warning':
-      return 'warning'
-    case 'unhandled':
-      return 'cancel'
+// 에러 아이콘, 색상, 라벨은 공통 유틸리티에서 import하여 사용
+
+// 에러 아이콘 클래스 (색상 제거)
+function getErrorIconClass() {
+  return ''
+}
+
+// 상태 아이콘
+function getStatusIcon(status) {
+  switch (status) {
+    case 'new':
+      return 'new_releases'
+    case 'resolved':
+      return 'check_circle'
+    case 'ignored':
+      return 'block'
     default:
-      return 'bug_report'
+      return 'help_outline'
   }
 }
 
-// 에러 아이콘 클래스
-function getErrorIconClass(level) {
-  switch (level) {
-    case 'error':
-      return 'error-icon-error'
-    case 'warning':
-      return 'error-icon-warning'
-    case 'unhandled':
-      return 'error-icon-unhandled'
+// 상태 색상
+function getStatusColor(status) {
+  switch (status) {
+    case 'new':
+      return 'negative'
+    case 'resolved':
+      return 'positive'
+    case 'ignored':
+      return 'grey-7'
     default:
-      return 'error-icon-default'
+      return 'grey-7'
+  }
+}
+
+// 상태 라벨
+function getStatusLabel(status) {
+  switch (status) {
+    case 'new':
+      return '신규'
+    case 'resolved':
+      return '해결'
+    case 'ignored':
+      return '무시'
+    default:
+      return '알 수 없음'
   }
 }
 
@@ -1004,13 +1041,6 @@ function formatDuration(timestamp) {
   } else {
     return `${minutes}분`
   }
-}
-
-// 상태 코드에 따른 클래스 반환
-function getStatusClass(status) {
-  if (status >= 500) return 'status-error'
-  if (status >= 400) return 'status-warning'
-  return ''
 }
 
 // 유사한 에러 개수 계산
@@ -1088,6 +1118,49 @@ function handleCopyErrorInfo() {
   })
 }
 
+// 가상 경로 체크 (.q-cache, chunk- 등 Vite/Quasar 캐시 경로)
+function isVirtualPath(path) {
+  if (!path) return false
+  return path.includes('/.q-cache/') || path.includes('/chunk-') || path.includes('/node_modules/.q-cache/') || /\/node_modules\/[^/]+\/chunk-/.test(path)
+}
+
+// URL 경로 정규화 (공통 함수)
+function normalizeUrlPath(urlPath, options = {}) {
+  const { preserveVirtual = true, removeQuery = true } = options
+
+  if (!urlPath) return urlPath
+
+  let normalized = urlPath
+
+  // 쿼리 파라미터 제거
+  if (removeQuery && normalized.includes('?')) {
+    normalized = normalized.split('?')[0]
+  }
+
+  // 가상 경로인 경우 원본 URL 유지
+  if (preserveVirtual && isVirtualPath(normalized)) {
+    return normalized
+  }
+
+  // src/ 경로 정규화
+  if (normalized.includes('/src/')) {
+    return normalized.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
+  }
+
+  // node_modules/ 경로 정규화 (가상 경로 제외)
+  if (normalized.includes('/node_modules/') && !isVirtualPath(normalized)) {
+    return normalized.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
+  }
+
+  // 개발 서버 URL만 제거
+  const devServerUrlPattern = /^https?:\/\/[^/]+(?::\d+)?\//
+  if (devServerUrlPattern.test(normalized)) {
+    return normalized.replace(devServerUrlPattern, '')
+  }
+
+  return normalized
+}
+
 // 파일 경로를 실제 프로젝트 경로로 변환 (개발 서버 URL → 프로젝트 경로)
 function normalizeFilePathForAI(filePath) {
   if (!filePath || filePath === 'unknown') {
@@ -1096,68 +1169,31 @@ function normalizeFilePathForAI(filePath) {
 
   let normalized = filePath
 
-  // 쿼리 파라미터 제거 (?t=... 등)
-  if (normalized.includes('?')) {
-    normalized = normalized.split('?')[0]
-  }
-
-  // 개발 서버 URL을 프로젝트 경로로 변환
-  // http://localhost:9000/src/... → NEXA-Platform/src/...
-  // https://localhost:9000/src/... → NEXA-Platform/src/...
-  // 포트 번호가 다른 경우도 처리 (9000, 3000 등)
-  const devServerPattern = /^https?:\/\/[^/]+(?::\d+)?\/src\//
-  if (devServerPattern.test(normalized)) {
-    normalized = normalized.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
-  }
-
   // file:// 프로토콜 제거
   if (normalized.startsWith('file://')) {
     normalized = normalized.replace(/^file:\/\/[^/]+\//, '')
-    // Windows 경로 처리 (file:///E:/... → E:/...)
     normalized = normalized.replace(/^\/+/, '')
   }
 
   // 절대 경로에서 프로젝트 경로 추출
-  // E:\NEXA System\NEXA\NEXA-Platform\src\... → NEXA-Platform/src/...
-  // E:/NEXA System/NEXA/NEXA-Platform/src/... → NEXA-Platform/src/...
   const absolutePathPattern = /[A-Z]:[\\/].*?NEXA-Platform[\\/]src[\\/]/
   if (absolutePathPattern.test(normalized)) {
     const match = normalized.match(/(NEXA-Platform[\\/]src[\\/].*)/i)
     if (match) {
-      normalized = match[1].replace(/\\/g, '/')
+      return match[1].replace(/\\/g, '/')
     }
   }
 
   // 백슬래시를 슬래시로 변환
   normalized = normalized.replace(/\\/g, '/')
 
-  // 가상 경로 체크 (.q-cache, chunk- 등 Vite/Quasar 캐시 경로)
-  // 이런 경로는 실제 파일 경로가 아니므로 원본 개발 서버 URL 유지
-  const isVirtualPath = normalized.includes('/.q-cache/') || normalized.includes('/chunk-') || normalized.includes('/node_modules/.q-cache/') || normalized.match(/\/node_modules\/[^/]+\/chunk-/)
-
-  // 개발 서버 URL이지만 src/로 시작하지 않는 경우
-  const devServerUrlPattern = /^https?:\/\/[^/]+(?::\d+)?\//
-  if (devServerUrlPattern.test(normalized)) {
-    // 가상 경로인 경우 원본 개발 서버 URL 유지 (정규화하지 않음, 쿼리 파라미터만 제거)
-    if (isVirtualPath) {
-      return normalized // 쿼리 파라미터만 제거된 개발 서버 URL 반환
-    }
-
-    if (normalized.includes('/node_modules/')) {
-      // 실제 node_modules 경로는 프로젝트 루트 기준으로 표시
-      // 단, .q-cache 같은 가상 경로는 제외
-      if (!isVirtualPath) {
-        normalized = normalized.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
-      }
-    } else if (!normalized.includes('NEXA-Platform/src/') && !normalized.startsWith('src/')) {
-      // 기타 경로는 개발 서버 URL만 제거
-      normalized = normalized.replace(devServerUrlPattern, '')
-    }
+  // 개발 서버 URL 정규화
+  if (/^https?:\/\//.test(normalized)) {
+    normalized = normalizeUrlPath(normalized, { preserveVirtual: true })
   }
 
-  // 이미 node_modules/로 시작하는 경우 (개발 서버 URL이 이미 제거된 경우)
-  // 단, 가상 경로이거나 이미 NEXA-Platform/이 포함된 경우는 건너뛰기
-  if (normalized.startsWith('node_modules/') && !normalized.includes('NEXA-Platform/') && !isVirtualPath) {
+  // 이미 node_modules/로 시작하는 경우
+  if (normalized.startsWith('node_modules/') && !normalized.includes('NEXA-Platform/') && !isVirtualPath(normalized)) {
     normalized = 'NEXA-Platform/' + normalized
   }
 
@@ -1170,102 +1206,38 @@ function normalizeStackForAI(stack) {
     return stack
   }
 
-  // STACK의 각 라인에서 모든 개발 서버 URL 패턴을 찾아 변환
   const lines = stack.split('\n')
   const normalizedLines = lines.map((line) => {
-    // 개발 서버 URL 패턴 찾기 (더 정확한 매칭)
-    // 형식: http://localhost:9000/src/... 또는 http://localhost:9000/node_modules/...
-    // 라인:컬럼 정보도 포함: http://localhost:9000/path/file.js:45:67
-    // 쿼리 파라미터 포함: http://localhost:9000/path/file.js?t=123:45:67
-
-    // 먼저 쿼리 파라미터가 있는 경우 처리
     let processedLine = line
 
-    // 쿼리 파라미터가 있는 URL 패턴: http://localhost:9000/path/file.js?t=123:45:67
+    // 쿼리 파라미터 + 라인:컬럼 패턴: http://localhost:9000/path/file.js?t=123:45:67
     const urlWithQueryPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^?\s]+)\?([^:\s]+):(\d+):(\d+)/g
     processedLine = processedLine.replace(urlWithQueryPattern, (match, urlPath, query, lineNum, colNum) => {
-      // 가상 경로 체크 (.q-cache, chunk- 등)
-      const isVirtualPath = urlPath.includes('/.q-cache/') || urlPath.includes('/chunk-')
-
-      // 가상 경로인 경우 원본 URL 유지 (쿼리 파라미터만 제거)
-      if (isVirtualPath) {
-        return urlPath + ':' + lineNum + ':' + colNum
-      }
-
-      // 쿼리 파라미터 제거하고 라인:컬럼만 유지
-      const cleanPath = urlPath
-      let normalized = cleanPath
-
-      if (cleanPath.includes('/src/')) {
-        normalized = cleanPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
-      } else if (cleanPath.includes('/node_modules/')) {
-        normalized = cleanPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
-      }
-
+      const normalized = normalizeUrlPath(urlPath, { preserveVirtual: true })
       return normalized + ':' + lineNum + ':' + colNum
     })
 
-    // 쿼리 파라미터가 없는 URL 패턴: http://localhost:9000/path/file.js:45:67
+    // 라인:컬럼 패턴: http://localhost:9000/path/file.js:45:67
     const urlPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^:\s]+):(\d+):(\d+)/g
     processedLine = processedLine.replace(urlPattern, (match, urlPath, lineNum, colNum) => {
-      // 가상 경로 체크 (.q-cache, chunk- 등)
-      const isVirtualPath = urlPath.includes('/.q-cache/') || urlPath.includes('/chunk-')
-
-      // 가상 경로인 경우 원본 URL 유지
-      if (isVirtualPath) {
-        return urlPath + ':' + lineNum + ':' + colNum
-      }
-
-      let normalized = urlPath
-
-      if (urlPath.includes('/src/')) {
-        normalized = urlPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
-      } else if (urlPath.includes('/node_modules/')) {
-        normalized = urlPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
-      }
-
+      const normalized = normalizeUrlPath(urlPath, { preserveVirtual: true })
       return normalized + ':' + lineNum + ':' + colNum
     })
 
-    // 라인:컬럼 정보가 없는 URL 패턴: http://localhost:9000/path/file.js
-    const urlWithoutLineColPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^\s:?]+)(?:\?[^\s:]+)?/g
-    processedLine = processedLine.replace(urlWithoutLineColPattern, (match, urlPath) => {
-      // 가상 경로 체크 (.q-cache, chunk- 등)
-      const isVirtualPath = urlPath.includes('/.q-cache/') || urlPath.includes('/chunk-')
-
-      // 가상 경로인 경우 원본 URL 유지
-      if (isVirtualPath) {
-        return urlPath
-      }
-
-      let normalized = urlPath
-
-      if (urlPath.includes('/src/')) {
-        normalized = urlPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/src\//, 'NEXA-Platform/src/')
-      } else if (urlPath.includes('/node_modules/')) {
-        normalized = urlPath.replace(/^https?:\/\/[^/]+(?::\d+)?\/node_modules\//, 'NEXA-Platform/node_modules/')
-      }
-
-      return normalized
+    // URL만 있는 패턴: http://localhost:9000/path/file.js
+    const urlOnlyPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^\s:?]+)(?:\?[^\s:]+)?/g
+    processedLine = processedLine.replace(urlOnlyPattern, (match, urlPath) => {
+      return normalizeUrlPath(urlPath, { preserveVirtual: true })
     })
 
     return processedLine
   })
 
-  // 이미 변환된 라인에서 node_modules/로 시작하는 경우도 처리 (개발 서버 URL이 이미 제거된 경우)
+  // 이미 변환된 라인에서 node_modules/로 시작하는 경우 처리
   const finalLines = normalizedLines.map((line) => {
-    // 이미 NEXA-Platform/이 포함된 경로는 건너뛰기
-    if (line.includes('NEXA-Platform/')) {
+    if (line.includes('NEXA-Platform/') || isVirtualPath(line)) {
       return line
     }
-
-    // 가상 경로 체크 (.q-cache, chunk- 등) - 가상 경로는 정규화하지 않음
-    const isVirtualPath = line.includes('/.q-cache/') || line.includes('/chunk-')
-    if (isVirtualPath) {
-      return line
-    }
-
-    // node_modules/로 시작하지만 NEXA-Platform/node_modules/가 아닌 경우만 처리
     return line.replace(/\bnode_modules\//g, 'NEXA-Platform/node_modules/')
   })
 
@@ -1559,10 +1531,16 @@ const resolvedButtonLabel = computed(() => {
   return selectedError.value.status === 'resolved' ? '해결 취소' : '해결 처리'
 })
 
-// 해결 버튼 클래스 (상태에 따라 동적 변경)
-const resolvedButtonClass = computed(() => {
-  if (!selectedError.value) return 'btn-resolved'
-  return selectedError.value.status === 'resolved' ? 'btn-resolved btn-resolved-active' : 'btn-resolved'
+// 무시 버튼 아이콘 (상태에 따라 동적 변경)
+const ignoredButtonIcon = computed(() => {
+  if (!selectedError.value) return 'block'
+  return selectedError.value.status === 'ignored' ? 'undo' : 'block'
+})
+
+// 무시 버튼 라벨 (상태에 따라 동적 변경)
+const ignoredButtonLabel = computed(() => {
+  if (!selectedError.value) return '무시'
+  return selectedError.value.status === 'ignored' ? '무시 취소' : '무시'
 })
 
 // 에러 상태 변경 (토글 방식)
@@ -1590,20 +1568,27 @@ function handleResolved() {
   }
 }
 
+// 에러 무시 처리 (토글 방식)
 function handleIgnored() {
   if (selectedError.value) {
+    // ID가 없어도 error 객체를 전달하여 batchUpdateErrorStatus에서 찾도록 함
+    const errorId = selectedError.value.id || null
+
     const includeSimilar = batchOptions.value.ignored
+    // 현재 상태가 'ignored'면 'new'로, 아니면 'ignored'로 변경
+    const newStatus = selectedError.value.status === 'ignored' ? 'new' : 'ignored'
+
     window.dispatchEvent(
       new CustomEvent('error-tracking-status-update', {
         detail: {
-          errorId: selectedError.value.id || null,
-          status: 'ignored',
+          errorId,
+          status: newStatus,
           includeSimilar,
           error: selectedError.value, // ID가 없을 때 찾기 위해 error 객체도 전달
         },
       }),
     )
-    selectedError.value.status = 'ignored'
+    selectedError.value.status = newStatus
     // 체크박스 상태는 유지 (저장된 설정 유지)
   }
 }
@@ -1832,6 +1817,16 @@ function handleRefreshErrors() {
   window.dispatchEvent(new CustomEvent('error-tracking-request-errors'))
 }
 
+// errors 변경 감지 (디버깅용)
+watch(
+  () => errors.value.length,
+  (newLength, oldLength) => {
+    console.log('[ErrorTrackingContent] errors.length 변경:', oldLength, '->', newLength)
+    console.log('[ErrorTrackingContent] errors 샘플:', errors.value.slice(0, 3))
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
   window.addEventListener('error-tracking-error-selected', handleErrorSelected)
   window.addEventListener('error-tracking-statistics-updated', handleStatisticsUpdated)
@@ -1870,55 +1865,22 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+// 기본 레이아웃
 .error-tracking-content {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--nexa-background);
   overflow-y: auto;
 }
 
-.dashboard-view {
-  background-color: var(--nexa-background);
-}
-
+// 통계 카드 그리드
 .statistics-cards {
-  .stat-card {
-    background-color: var(--nexa-surface);
-    border: 1px solid var(--nexa-border-color);
-  }
-
-  .stat-card-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .stat-card-content {
-    flex: 1;
-  }
-
-  .stat-card-label {
-    font-size: 0.9rem;
-    color: var(--nexa-text-secondary);
-    margin-bottom: 0.25rem;
-  }
-
-  .stat-card-value {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--nexa-text-primary);
-
-    &.stat-value-new {
-      color: var(--nexa-error);
-    }
-
-    &.stat-value-resolved {
-      color: var(--nexa-success);
-    }
-  }
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
 }
 
+// 차트 그리드 레이아웃
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -1926,7 +1888,6 @@ onUnmounted(() => {
 }
 
 .chart-card {
-  //background-color: var(--nexa-surface);
   border: 1px solid var(--nexa-border-color);
   border-radius: 4px;
   padding: 1rem;
@@ -1938,176 +1899,8 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-.diagram-section {
-  background-color: var(--nexa-surface);
-  border: 1px solid var(--nexa-border-color);
-  border-radius: 4px;
-  padding: 1rem;
-}
-
-.error-dependency-diagram {
-  width: 100%;
-  height: 400px;
-  min-height: 400px;
-  background-color: var(--nexa-surface);
-  border: 1px solid var(--nexa-border-color);
-  border-radius: 4px;
-
-  :deep(.diagram-node) {
-    cursor: pointer;
-
-    circle {
-      transition:
-        r 0.2s,
-        fill 0.2s,
-        opacity 0.2s;
-    }
-
-    &:hover circle {
-      fill: var(--nexa-primary);
-      opacity: 0.8;
-    }
-  }
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  text-align: center;
-}
-
-.empty-title {
-  color: var(--nexa-text-primary);
-  font-size: 2rem;
-  font-weight: 600;
-  margin: 1rem 0;
-}
-
-.empty-description {
-  color: var(--nexa-text-secondary);
-  font-size: 1rem;
-  margin: 0;
-}
-
-.error-detail {
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.error-header {
-  border-bottom: 2px solid var(--nexa-border-color);
-  padding-bottom: 1rem;
-}
-
-.error-title {
-  color: var(--nexa-text-primary);
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-  word-break: break-word;
-}
-
-.error-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.error-actions {
-  margin-top: 1rem;
-}
-
-.batch-apply-group {
-  padding-left: 0.5rem;
-}
-
-.error-location,
-.error-stack,
-.error-network,
-.error-context,
-.error-notes,
-.error-analysis-docs {
-  background-color: var(--nexa-surface);
-  border-radius: 4px;
-  border: 1px solid var(--nexa-border-color);
-}
-
-.network-info {
-  margin-top: 1rem;
-}
-
-.section-title {
-  color: var(--nexa-text-primary);
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.location-info,
-.context-info {
-  margin-top: 1rem;
-}
-
-.info-row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-
-  &.info-row-no-margin {
-    margin-bottom: 0;
-  }
-}
-
-.info-label {
-  color: var(--nexa-text-secondary);
-  font-weight: 500;
-  min-width: 80px;
-}
-
-.info-value {
-  color: var(--nexa-text-primary);
-  flex: 1;
-  word-break: break-all;
-
-  &.code {
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    background-color: var(--nexa-surface);
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-  }
-
-  &.time-value {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    justify-content: space-between;
-  }
-}
-
-.time-relative {
-  color: var(--nexa-text-primary);
-  font-size: 0.9em;
-}
-
-.time-absolute {
-  color: var(--nexa-text-secondary);
-  font-size: 0.85em;
-  font-family: monospace;
-}
-
+// 스택 트레이스
 .stack-trace {
-  background-color: var(--nexa-background);
-  color: var(--nexa-text-primary);
   padding: 1rem;
   border-radius: 4px;
   border: 1px solid var(--nexa-border-color);
@@ -2117,249 +1910,5 @@ onUnmounted(() => {
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
-  margin: 0;
-}
-
-// ============================================
-// 아이콘 색상
-// ============================================
-.empty-icon {
-  color: var(--nexa-text-secondary);
-}
-
-.error-icon-error {
-  color: var(--nexa-error);
-}
-
-.error-icon-warning {
-  color: var(--nexa-warning);
-}
-
-.error-icon-unhandled {
-  color: var(--nexa-error);
-}
-
-.error-icon-default {
-  color: var(--nexa-text-secondary);
-}
-
-// ============================================
-// 칩 색상
-// ============================================
-.chip-lint {
-  background-color: var(--nexa-accent);
-  color: var(--nexa-text-primary);
-}
-
-.chip-new {
-  background-color: var(--nexa-error);
-  color: var(--nexa-text-primary);
-}
-
-.chip-resolved {
-  background-color: var(--nexa-primary);
-  color: var(--nexa-text-dark);
-  padding: 12px 14px 10px 6px;
-  border-radius: 12px;
-
-  :deep(.q-chip__content) {
-    color: var(--nexa-text-dark) !important;
-  }
-
-  :deep(.q-icon) {
-    color: var(--nexa-text-dark) !important;
-  }
-}
-
-.chip-ignored {
-  background-color: var(--nexa-text-secondary);
-  color: var(--nexa-text-primary);
-}
-
-.chip-similar {
-  background-color: var(--nexa-accent);
-  color: var(--nexa-text-primary);
-}
-
-// ============================================
-// 버튼 색상
-// ============================================
-.btn-resolved {
-  color: var(--nexa-primary);
-}
-
-.btn-resolved:hover {
-  background-color: var(--nexa-surface-hover);
-}
-
-.btn-resolved-active {
-  color: var(--nexa-warning);
-}
-
-.btn-resolved-active:hover {
-  background-color: var(--nexa-surface-hover);
-}
-
-.btn-ignored {
-  color: var(--nexa-text-secondary);
-}
-
-.btn-ignored:hover {
-  background-color: var(--nexa-surface-hover);
-}
-
-.btn-delete {
-  color: var(--nexa-warning);
-}
-
-.btn-delete:hover {
-  background-color: var(--nexa-surface-hover);
-}
-
-.btn-copy {
-  color: var(--nexa-primary);
-}
-
-.btn-copy:hover {
-  background-color: var(--nexa-surface-hover);
-}
-
-.btn-batch-resolved {
-  color: var(--nexa-primary);
-}
-
-.btn-batch-ignored {
-  color: var(--nexa-text-secondary);
-}
-
-.btn-batch-deleted {
-  color: var(--nexa-error);
-}
-
-// ============================================
-// 체크박스 색상
-// ============================================
-.checkbox-resolved {
-  :deep(.q-checkbox__inner) {
-    color: var(--nexa-primary);
-  }
-}
-
-.checkbox-ignored {
-  :deep(.q-checkbox__inner) {
-    color: var(--nexa-text-secondary);
-  }
-}
-
-.checkbox-deleted {
-  :deep(.q-checkbox__inner) {
-    color: var(--nexa-error);
-  }
-}
-
-// ============================================
-// 텍스트 색상
-// ============================================
-.error-time {
-  color: var(--nexa-text-secondary);
-}
-
-.error-count {
-  color: var(--nexa-error-text);
-}
-
-.stat-value-new {
-  color: var(--nexa-error-text);
-}
-
-.error-text {
-  color: var(--nexa-error-text);
-}
-
-.success-text {
-  color: var(--nexa-primary);
-}
-
-.status-error {
-  color: var(--nexa-error-text);
-}
-
-.status-warning {
-  color: var(--nexa-warning);
-}
-
-.batch-apply-label {
-  color: var(--nexa-text-primary);
-}
-
-// ============================================
-// Phase 1: 메모 섹션 스타일
-// ============================================
-.error-notes {
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .notes-tabs {
-    margin-bottom: 1rem;
-  }
-
-  .notes-panels {
-    .notes-editor {
-      .notes-textarea {
-        width: 100%;
-      }
-
-      .notes-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        color: var(--nexa-text-secondary);
-      }
-    }
-
-    .reference-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-  }
-}
-
-// ============================================
-// Phase 1: 문서 표시 섹션 스타일
-// ============================================
-.error-analysis-docs {
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .analysis-doc-preview {
-    .markdown-content {
-      color: var(--nexa-text-primary);
-      line-height: 1.6;
-    }
-  }
-
-  .error-analysis-empty {
-    padding: 2rem;
-    color: var(--nexa-text-secondary);
-  }
-}
-
-// 컨텍스트 복사 버튼 스타일
-.btn-copy-context {
-  color: var(--nexa-primary);
 }
 </style>
