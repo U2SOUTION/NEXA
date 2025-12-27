@@ -9,10 +9,13 @@
         <div class="header-content">
           <div class="title-container">
             <div v-if="titleLink" class="text-h4 sidebar-title q-mb-xs text-bold">
-              <router-link :to="titleLink" class="title-link">{{ title }}</router-link>
+              <a href="#" class="title-link" @click.prevent="handleTitleClick">{{ title }}</a>
             </div>
             <div v-else class="text-h4 sidebar-title q-mb-xs text-bold">{{ title }}</div>
             <div class="text-caption sidebar-subtitle">{{ subtitle }}</div>
+          </div>
+          <div v-if="showRestoreOption" class="header-options">
+            <q-checkbox v-model="restoreLastMenu" dense size="sm" label="이전 메뉴 복원" @update:model-value="handleRestoreOptionChange" />
           </div>
         </div>
       </div>
@@ -22,6 +25,8 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+
 defineProps({
   title: {
     type: String,
@@ -35,9 +40,52 @@ defineProps({
     type: String,
     default: null,
   },
+  showRestoreOption: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-defineEmits(['header-hover'])
+const emit = defineEmits(['header-hover', 'title-click'])
+
+// 이전 메뉴 복원 옵션
+const RESTORE_OPTION_KEY = 'dev-restore-last-menu'
+const restoreLastMenu = ref(true) // 기본값: true (이전 메뉴 복원)
+
+// 설정 로드
+function loadRestoreOption() {
+  try {
+    const saved = localStorage.getItem(RESTORE_OPTION_KEY)
+    if (saved !== null) {
+      restoreLastMenu.value = saved === 'true'
+    }
+  } catch (error) {
+    console.error('[LeftSidebarHeader] 설정 로드 실패:', error)
+  }
+}
+
+// 설정 저장
+function saveRestoreOption(value) {
+  try {
+    localStorage.setItem(RESTORE_OPTION_KEY, value.toString())
+  } catch (error) {
+    console.error('[LeftSidebarHeader] 설정 저장 실패:', error)
+  }
+}
+
+// 타이틀 클릭 핸들러
+function handleTitleClick() {
+  emit('title-click')
+}
+
+// 복원 옵션 변경 핸들러
+function handleRestoreOptionChange(value) {
+  saveRestoreOption(value)
+}
+
+onMounted(() => {
+  loadRestoreOption()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -55,6 +103,12 @@ defineEmits(['header-hover'])
       .title-container {
         flex: 1;
         min-width: 0;
+      }
+
+      .header-options {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
       }
 
       .sidebar-title {

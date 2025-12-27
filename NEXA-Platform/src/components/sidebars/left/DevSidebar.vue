@@ -6,7 +6,7 @@
 <template>
   <div class="dev-sidebar">
     <!-- 공통 헤더 -->
-    <LeftSidebarHeader title="DEV" subtitle="개발 문서 및 요구사항 관리" title-link="/dev" @header-hover="isLeftHeaderHovered = $event" />
+    <LeftSidebarHeader title="DEV" subtitle="개발 문서 및 요구사항 관리" title-link="/dev" :show-restore-option="true" @header-hover="isLeftHeaderHovered = $event" @title-click="handleDevHeaderClick" />
 
     <!-- DevMenuSlider (항상 표시) -->
     <DevMenuSlider :header-hovered="isLeftHeaderHovered" @update:active-menu="handleActiveMenuChange" @open-settings="openSettings" />
@@ -153,14 +153,21 @@ const isLeftHeaderHovered = ref(false)
 // Store 사용
 const documentStore = useDocumentManagerStore()
 
-// Active menu 상태
-const activeMenu = ref('document-manager')
+// Active menu 상태 (DevelopmentPage와 동기화)
+const activeMenu = ref(null)
 
 // Active menu 변경 핸들러
 function handleActiveMenuChange(menuId) {
   activeMenu.value = menuId
   // 전역 이벤트로 DevelopmentPage와 DevToolsPanel에 알림
   window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: menuId } }))
+}
+
+// DEV 헤더 클릭 핸들러 (메인 페이지로 이동)
+function handleDevHeaderClick() {
+  // activeMenu를 null로 리셋하여 DevelopmentPage 기본 뷰 표시
+  activeMenu.value = null
+  window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: null } }))
 }
 
 // 테마 관리 (composable 사용)
@@ -402,6 +409,47 @@ watch(
   { immediate: true },
 )
 
+// 초기 activeMenu 로드 함수 (DevelopmentPage와 동일한 로직)
+function getInitialActiveMenu() {
+  try {
+    // 이전 메뉴 복원 옵션 확인
+    const restoreOption = localStorage.getItem('dev-restore-last-menu')
+    const shouldRestore = restoreOption === null || restoreOption === 'true' // 기본값: true
+
+    if (shouldRestore) {
+      const saved = localStorage.getItem('dev-active-menu')
+      if (saved) {
+        // 유효한 메뉴 ID인지 확인
+        const validMenus = [
+          'document-manager',
+          'theme-manager',
+          'dev-guide',
+          'component-library',
+          'database-viewer',
+          'api-tester',
+          'log-viewer',
+          'performance-monitor',
+          'error-tracking',
+          'settings-manager',
+          'test-runner',
+          'build-tools',
+          'network-monitor',
+          'environment-variables',
+          'package-manager',
+          'document-generator',
+          'deployment-manager',
+        ]
+        if (validMenus.includes(saved)) {
+          return saved
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[DevSidebar] 초기 메뉴 로드 실패:', error)
+  }
+  return null
+}
+
 // 컴포넌트 마운트 시 설정 로드
 onMounted(() => {
   // showExcludedFiles와 searchMode 설정 로드
@@ -410,24 +458,29 @@ onMounted(() => {
     searchMode,
   })
 
-  // DevelopmentPage에서 초기 메뉴 이벤트를 받아서 동기화
-  function handleInitialMenuChange(event) {
+  // 초기 activeMenu 설정 (DevelopmentPage와 동기화)
+  const initialMenu = getInitialActiveMenu()
+  if (initialMenu !== null) {
+    activeMenu.value = initialMenu
+  }
+
+  // DevelopmentPage에서 메뉴 변경 이벤트를 받아서 동기화 (지속적으로 리스닝)
+  function handleMenuChanged(event) {
     const menuId = event.detail.activeMenu
-    if (activeMenu.value !== menuId) {
-      activeMenu.value = menuId
-    }
+    // null 포함하여 항상 동기화 (메인 페이지로 리셋 시에도 처리)
+    activeMenu.value = menuId
+    
     // 테마 관리 메뉴가 활성화되어 있으면 카테고리 로드
     if (menuId === 'theme-manager') {
       loadThemeCategories()
     }
   }
 
-  // 초기 이벤트 리스너 (한 번만 실행)
-  const initialHandler = (event) => {
-    handleInitialMenuChange(event)
-    window.removeEventListener('dev-menu-changed', initialHandler)
-  }
-  window.addEventListener('dev-menu-changed', initialHandler)
+  // dev-menu-changed 이벤트를 지속적으로 리스닝
+  window.addEventListener('dev-menu-changed', handleMenuChanged)
+
+  // 언마운트 시 제거를 위해 참조 저장
+  window.__devSidebarMenuChangedHandler = handleMenuChanged
 
   // 데이터베이스 뷰어 새로고침 이벤트 리스너 등록
   window.addEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
@@ -520,7 +573,23 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
   window.removeEventListener('component-library-statistics-request', handleStatisticsRequest)
+  if (window.__devSidebarMenuChangedHandler) {
+    window.removeEventListener('dev-menu-changed', window.__devSidebarMenuChangedHandler)
+    delete window.__devSidebarMenuChangedHandler
+  }
 })
+
+// 개발 가이드 새로고침 핸들러
+function handleDevGuideRefresh() {
+  console.log('[DevSidebar] 개발 가이드 새로고침')
+  // TODO: 개발 가이드 샘플 목록 새로고침
+}
+
+// 개발 가이드 설정 핸들러
+function handleDevGuideSettings() {
+  console.log('[DevSidebar] 개발 가이드 설정')
+  // TODO: 설정 모달 열기
+}
 
 // 에러 트래킹 설정 핸들러
 function handleErrorTrackingSettings() {

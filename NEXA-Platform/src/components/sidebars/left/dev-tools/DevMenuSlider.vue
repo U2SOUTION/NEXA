@@ -26,7 +26,7 @@
     <div class="dev-menu-slider" ref="sliderRef">
       <div class="dev-menu-container" ref="containerRef">
         <!-- 무한 스크롤을 위한 복제: 끝 부분 복제 (앞에 배치) -->
-        <q-btn v-for="(menu, index) in devMenus" :key="`clone-end-${menu.id}`" :class="{ 'menu-active': activeMenu === menu.id }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
+        <q-btn v-for="(menu, index) in devMenus" :key="`clone-end-${menu.id}`" :class="{ 'menu-active': activeMenu === menu.id && activeMenu !== null }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
           <div class="menu-item-content">
             <div class="menu-item-number">{{ index + 1 }}</div>
             <q-icon :name="menu.icon" class="q-mr-xs menu-icon" />
@@ -34,7 +34,7 @@
           </div>
         </q-btn>
         <!-- 원본 메뉴 항목 -->
-        <q-btn v-for="(menu, index) in devMenus" :key="menu.id" :class="{ 'menu-active': activeMenu === menu.id }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
+                <q-btn v-for="(menu, index) in devMenus" :key="menu.id" :class="{ 'menu-active': activeMenu === menu.id && activeMenu !== null }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
           <div class="menu-item-content">
             <div class="menu-item-number">{{ index + 1 }}</div>
             <q-icon :name="menu.icon" class="q-mr-xs menu-icon" />
@@ -42,7 +42,7 @@
           </div>
         </q-btn>
         <!-- 무한 스크롤을 위한 복제: 처음 부분 복제 (뒤에 배치) -->
-        <q-btn v-for="(menu, index) in devMenus" :key="`clone-start-${menu.id}`" :class="{ 'menu-active': activeMenu === menu.id }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
+                <q-btn v-for="(menu, index) in devMenus" :key="`clone-start-${menu.id}`" :class="{ 'menu-active': activeMenu === menu.id && activeMenu !== null }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
           <div class="menu-item-content">
             <div class="menu-item-number">{{ index + 1 }}</div>
             <q-icon :name="menu.icon" class="q-mr-xs menu-icon" />
@@ -55,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 
 const props = defineProps({
@@ -97,16 +97,43 @@ const devMenus = [
   { id: 'deployment-manager', label: '배포 관리', icon: 'cloud_upload' },
 ]
 
-// 현재 선택된 메뉴 (기본값: 문서 관리)
-const activeMenu = ref('document-manager')
+// 초기 activeMenu 로드 함수 (DevelopmentPage와 동일한 로직)
+function getInitialActiveMenu() {
+  try {
+    // 이전 메뉴 복원 옵션 확인
+    const restoreOption = localStorage.getItem('dev-restore-last-menu')
+    const shouldRestore = restoreOption === null || restoreOption === 'true' // 기본값: true
+
+    if (shouldRestore) {
+      const saved = localStorage.getItem('dev-active-menu')
+      if (saved) {
+        // 유효한 메뉴 ID인지 확인
+        const validMenus = devMenus.map((menu) => menu.id)
+        if (validMenus.includes(saved)) {
+          return saved
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[DevMenuSlider] 초기 메뉴 로드 실패:', error)
+  }
+  return null
+}
+
+// 현재 선택된 메뉴 (기본값: null - DevelopmentPage와 동기화)
+const initialActiveMenu = getInitialActiveMenu()
+const activeMenu = ref(initialActiveMenu)
 
 // 슬라이더 참조
 const sliderRef = ref(null)
 const containerRef = ref(null)
 const wrapperRef = ref(null)
 
-// 활성화된 점 인덱스
-const activeDotIndex = ref(0)
+// 활성화된 점 인덱스 (초기 activeMenu에 맞게 설정)
+const initialActiveDotIndex = initialActiveMenu
+  ? devMenus.findIndex((menu) => menu.id === initialActiveMenu)
+  : 0
+const activeDotIndex = ref(initialActiveDotIndex >= 0 ? initialActiveDotIndex : 0)
 
 // 메뉴 컨테이너 호버 상태
 const isMenuHovered = ref(false)
@@ -289,12 +316,10 @@ function handleStepButtonClick() {
 // 메뉴 아이템 클릭 핸들러
 function handleMenuItemClick(index) {
   scrollToIndex(index)
-  // activeMenu 업데이트 및 이벤트 emit
+  // activeMenu 업데이트 및 이벤트 emit (항상 업데이트하여 재클릭 가능하도록)
   const menuId = devMenus[index].id
-  if (activeMenu.value !== menuId) {
-    activeMenu.value = menuId
-    emit('update:activeMenu', menuId)
-  }
+  activeMenu.value = menuId
+  emit('update:activeMenu', menuId)
 }
 
 // localStorage에서 휠 스크롤 스텝 설정 불러오기
@@ -360,12 +385,10 @@ function handleIndicatorClick(event) {
   if (closestDot) {
     const index = parseInt(closestDot.getAttribute('data-index'), 10)
     scrollToIndex(index)
-    // 인디케이터 클릭 시에도 메뉴 변경 (의도적인 클릭이므로)
+    // 인디케이터 클릭 시에도 메뉴 변경 (의도적인 클릭이므로, 항상 업데이트)
     const menuId = devMenus[index].id
-    if (activeMenu.value !== menuId) {
-      activeMenu.value = menuId
-      emit('update:activeMenu', menuId)
-    }
+    activeMenu.value = menuId
+    emit('update:activeMenu', menuId)
   }
 }
 
@@ -423,12 +446,10 @@ function scrollByItems(step) {
   }
 
   scrollToIndex(clampedIndex)
-  // 화살표 버튼 클릭 시에도 메뉴 변경 (의도적인 클릭이므로)
+  // 화살표 버튼 클릭 시에도 메뉴 변경 (의도적인 클릭이므로, 항상 업데이트)
   const menuId = devMenus[clampedIndex].id
-  if (activeMenu.value !== menuId) {
-    activeMenu.value = menuId
-    emit('update:activeMenu', menuId)
-  }
+  activeMenu.value = menuId
+  emit('update:activeMenu', menuId)
 }
 
 // 휠 스크롤용 빠른 애니메이션으로 이동
@@ -729,15 +750,29 @@ onMounted(() => {
     // DevelopmentPage에서 초기 메뉴를 받아서 동기화
     function handleMenuChanged(event) {
       const menuId = event.detail.activeMenu
-      if (activeMenu.value !== menuId) {
-        const menuIndex = devMenus.findIndex((menu) => menu.id === menuId)
-        if (menuIndex !== -1) {
-          activeMenu.value = menuId
-          activeDotIndex.value = menuIndex
-          // 초기화가 완료되었으면 해당 위치로 스크롤
-          if (!isInitializing.value && sliderRef.value) {
-            scrollToIndex(menuIndex)
-          }
+      // 항상 동기화 (초기 로드 시에도 처리)
+      // menuId가 null이면 (메인 페이지로 리셋) activeMenu도 null로 설정
+      if (menuId === null) {
+        activeMenu.value = null
+        activeDotIndex.value = 0 // 기본 인덱스로 리셋
+        return
+      }
+      
+      const menuIndex = devMenus.findIndex((menu) => menu.id === menuId)
+      if (menuIndex !== -1) {
+        activeMenu.value = menuId
+        activeDotIndex.value = menuIndex
+        // 초기화가 완료되었으면 해당 위치로 스크롤
+        if (!isInitializing.value && sliderRef.value) {
+          scrollToIndex(menuIndex)
+        } else {
+          // 초기화 중이면 초기화 완료 후 스크롤하도록 플래그 설정
+          // initializeSlider 완료 후 스크롤하도록 nextTick 사용
+          nextTick(() => {
+            if (sliderRef.value && !isInitializing.value) {
+              scrollToIndex(menuIndex)
+            }
+          })
         }
       }
     }

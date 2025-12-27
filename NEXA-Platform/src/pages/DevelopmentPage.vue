@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import DocumentManagerContent from 'src/components/dev-tools/document-manager/DocumentManagerContent.vue'
 import ThemeManagerContent from 'src/components/dev-tools/theme-manager/ThemeManagerContent.vue'
 import GraphDocContent from 'src/components/dev-tools/graph-doc/GraphDocContent.vue'
@@ -87,33 +87,39 @@ import NetworkMonitorContent from 'src/components/dev-tools/network-monitor/Netw
 import ErrorTrackingContent from 'src/components/dev-tools/error-tracking/ErrorTrackingContent.vue'
 import DeploymentManagerContent from 'src/components/dev-tools/deployment-manager/DeploymentManagerContent.vue'
 
-// Active menu 상태 (localStorage에서 마지막 선택한 메뉴 복원, 없으면 null로 시작)
+// Active menu 상태 (설정에 따라 이전 메뉴 복원 또는 null로 시작)
 function getInitialActiveMenu() {
   try {
-    const saved = localStorage.getItem('dev-active-menu')
-    if (saved) {
-      // 유효한 메뉴 ID인지 확인 (DevMenuSlider.vue의 순서와 동일하게 유지)
-      const validMenus = [
-        'document-manager',
-        'theme-manager',
-        'dev-guide',
-        'component-library',
-        'database-viewer',
-        'api-tester',
-        'log-viewer',
-        'performance-monitor',
-        'error-tracking',
-        'settings-manager',
-        'test-runner',
-        'build-tools',
-        'network-monitor',
-        'environment-variables',
-        'package-manager',
-        'document-generator',
-        'deployment-manager',
-      ]
-      if (validMenus.includes(saved)) {
-        return saved
+    // 이전 메뉴 복원 옵션 확인
+    const restoreOption = localStorage.getItem('dev-restore-last-menu')
+    const shouldRestore = restoreOption === null || restoreOption === 'true' // 기본값: true
+
+    if (shouldRestore) {
+      const saved = localStorage.getItem('dev-active-menu')
+      if (saved) {
+        // 유효한 메뉴 ID인지 확인 (DevMenuSlider.vue의 순서와 동일하게 유지)
+        const validMenus = [
+          'document-manager',
+          'theme-manager',
+          'dev-guide',
+          'component-library',
+          'database-viewer',
+          'api-tester',
+          'log-viewer',
+          'performance-monitor',
+          'error-tracking',
+          'settings-manager',
+          'test-runner',
+          'build-tools',
+          'network-monitor',
+          'environment-variables',
+          'package-manager',
+          'document-generator',
+          'deployment-manager',
+        ]
+        if (validMenus.includes(saved)) {
+          return saved
+        }
       }
     }
   } catch (error) {
@@ -156,15 +162,19 @@ function handleActiveMenuChange(event) {
   }
 }
 
-onMounted(() => {
-  // 초기 메뉴를 사이드바에 전파 (DevelopmentPage가 초기 상태의 주인)
-  window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: activeMenu.value } }))
-
+onMounted(async () => {
   // Active menu 변경 이벤트 리스너 등록
   window.addEventListener('dev-menu-changed', handleActiveMenuChange)
   window.addEventListener('theme-manager-search-changed', handleThemeSearchChange)
   window.addEventListener('theme-manager-filter-changed', handleThemeCategoryFilterChange)
   window.addEventListener('theme-manager-sort-changed', handleThemeSortChange)
+
+  // 모든 컴포넌트가 마운트된 후에 초기 메뉴를 사이드바에 전파
+  await nextTick()
+  // 추가 대기 시간을 두어 DevSidebar와 DevMenuSlider가 완전히 마운트되도록 함
+  setTimeout(() => {
+    window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: activeMenu.value } }))
+  }, 100)
 })
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거

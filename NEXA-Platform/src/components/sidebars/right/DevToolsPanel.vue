@@ -250,9 +250,49 @@ const tocShouldAutoExpand = ref(false)
 // 아코디언 상태를 computed로 감싸서 반응성 보장
 const tocAutoCollapse = computed(() => documentStore.tocAutoCollapse)
 
-// Active menu 상태
-const activeMenu = ref('document-manager')
-console.log('[DevToolsPanel] 초기 activeMenu:', activeMenu.value)
+// 초기 activeMenu 로드 함수 (DevelopmentPage와 동일한 로직)
+function getInitialActiveMenu() {
+  try {
+    // 이전 메뉴 복원 옵션 확인
+    const restoreOption = localStorage.getItem('dev-restore-last-menu')
+    const shouldRestore = restoreOption === null || restoreOption === 'true' // 기본값: true
+
+    if (shouldRestore) {
+      const saved = localStorage.getItem('dev-active-menu')
+      if (saved) {
+        // 유효한 메뉴 ID인지 확인
+        const validMenus = [
+          'document-manager',
+          'theme-manager',
+          'dev-guide',
+          'component-library',
+          'database-viewer',
+          'api-tester',
+          'log-viewer',
+          'performance-monitor',
+          'error-tracking',
+          'settings-manager',
+          'test-runner',
+          'build-tools',
+          'network-monitor',
+          'environment-variables',
+          'package-manager',
+          'document-generator',
+          'deployment-manager',
+        ]
+        if (validMenus.includes(saved)) {
+          return saved
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[DevToolsPanel] 초기 메뉴 로드 실패:', error)
+  }
+  return null
+}
+
+// Active menu 상태 (DevelopmentPage와 동기화)
+const activeMenu = ref(getInitialActiveMenu())
 
 // 테마 색상 패널 상태
 const selectedColor = ref(null)
@@ -288,11 +328,11 @@ const devGuidePanelExpanded = ref(true)
 
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {
-  console.log('[DevToolsPanel] dev-menu-changed 이벤트 수신:', event.detail)
-  activeMenu.value = event.detail.activeMenu
-  console.log('[DevToolsPanel] activeMenu 업데이트:', activeMenu.value)
+  const menuId = event.detail.activeMenu
+  // null 포함하여 항상 동기화 (메인 페이지로 리셋 시에도 처리)
+  activeMenu.value = menuId
   // 테마 관리 메뉴로 변경 시 아코디언 자동으로 열기
-  if (activeMenu.value === 'theme-manager') {
+  if (menuId === 'theme-manager') {
     themeColorPanelExpanded.value = true
   }
   // 데이터베이스 뷰어 메뉴로 변경 시 아코디언 닫기 (테이블 선택 시 자동으로 열림)
