@@ -70,8 +70,11 @@
                   <q-slider v-model="previewWidth" :min="200" :max="1200" :step="50" />
                 </div>
                 <div class="control-input-item">
-                  <label>높이: {{ previewHeight }}px</label>
-                  <q-slider v-model="previewHeight" :min="100" :max="800" :step="50" />
+                  <label>높이: {{ autoHeight ? '자동' : `${previewHeight}px` }}</label>
+                  <div class="height-control-row">
+                    <q-slider v-model="previewHeight" :min="100" :max="800" :step="50" :disable="autoHeight" />
+                    <q-btn flat dense :icon="autoHeight ? 'height' : 'height_off'" :label="autoHeight ? '자동' : '수동'" :class="{ 'bg-active': autoHeight }" @click="autoHeight = !autoHeight" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -92,8 +95,14 @@
             </div>
           </div>
 
+          <!-- 높이 경고 메시지 -->
+          <div v-if="heightWarning" class="height-warning">
+            <q-icon name="warning" size="16px" />
+            <span>{{ heightWarning }}</span>
+          </div>
+
           <!-- 샘플 미리보기 (래퍼 없이 직접 렌더링) -->
-          <div :style="previewContainerStyle" class="sample-preview-direct">
+          <div ref="previewContainerRef" :style="previewContainerStyle" class="sample-preview-direct">
             <!-- 샘플 컴포넌트 실제 렌더링 -->
             <component v-if="sampleComponent && !isLoading && !loadError" :is="sampleComponent" />
             <!-- 로딩 상태 -->
@@ -258,7 +267,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, shallowRef, computed } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, shallowRef, computed, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 import { copyTextToClipboard } from 'src/utils/clipboard'
@@ -288,6 +297,10 @@ const previewWidth = ref(800)
 const previewHeight = ref(400)
 const previewBackgroundMode = ref('dark')
 const previewCustomColor = ref('#1e1e1e')
+const autoHeight = ref(true) // 자동 높이 조정 활성화
+const previewContainerRef = ref(null) // 미리보기 컨테이너 DOM 참조
+const heightWarning = ref(null) // 높이 조정 경고 메시지
+let resizeObserver = null // ResizeObserver 인스턴스
 
 // 커스텀 색상 변경 감지
 watch(previewCustomColor, () => {
@@ -317,15 +330,43 @@ const previewContainerStyle = computed(() => {
       break
   }
 
-  return {
+  const baseStyle = {
     width: `${previewWidth.value}px`,
-    height: `${previewHeight.value}px`,
     maxWidth: '100%',
     margin: '0 auto',
     position: 'relative',
     backgroundColor,
-    padding: '0 16px',
+    paddingTop: '0',
+    paddingRight: '16px',
+    paddingLeft: '16px',
+    paddingBottom: '0',
     boxSizing: 'border-box',
+    overflowX: 'hidden',
+  }
+
+  if (autoHeight.value) {
+    // 자동 높이 모드: height와 maxHeight 제한 없음
+    // 내부 컨텐츠의 실제 높이에 맞춰 자동 조정
+    return {
+      ...baseStyle,
+      height: 'auto',
+      minHeight: '0',
+      maxHeight: 'none',
+      overflowY: 'visible',
+      overflow: 'visible', // 모든 overflow 제거
+      display: 'block', // 블록 요소로 명시
+      paddingBottom: '16px', // 하단 여유 공간 확보 (내용이 잘리지 않도록)
+      transition: 'width 0.9s ease-out, background-color 0.3s ease-out',
+    }
+  } else {
+    // 수동 높이 모드: 고정 높이 + 스크롤
+    return {
+      ...baseStyle,
+      height: `${previewHeight.value}px`,
+      maxHeight: `${previewHeight.value}px`,
+      overflowY: 'auto',
+      transition: 'height 0.9s ease-out, max-height 0.9s ease-out, width 0.9s ease-out, background-color 0.3s ease-out',
+    }
   }
 })
 
@@ -335,7 +376,114 @@ function resetPreviewSize() {
   previewHeight.value = 400
   previewBackgroundMode.value = 'transparent'
   previewCustomColor.value = '#1e1e1e'
+  autoHeight.value = true
+  heightWarning.value = null
 }
+
+// 높이 자동 조정 함수
+async function adjustHeightAutomatically() {
+  if (!previewContainerRef.value || !sampleComponent.value) return
+
+  // nextTick을 사용하여 DOM 업데이트 후 높이 측정
+  await nextTick()
+
+  // 추가 지연을 두어 렌더링 완료 보장 (이미지나 폰트 로딩 대기)
+  setTimeout(() => {
+    if (previewContainerRef.value && sampleComponent.value) {
+      const container = previewContainerRef.value
+
+      // 실제 내부 컨텐츠의 높이 측정 (헤더 포함 전체)
+      // scrollHeight는 padding을 포함한 전체 스크롤 가능한 높이
+      const scrollHeight = container.scrollHeight
+      const clientHeight = container.clientHeight
+
+      // 내부 첫 번째 자식 요소의 실제 높이도 측정 (이중 확인)
+      const firstChild = container.firstElementChild
+      let contentHeight = scrollHeight
+
+      if (firstChild) {
+        // 첫 번째 자식의 실제 높이 측정
+        // offsetHeight는 padding + border + content 포함
+        const childHeight = firstChild.offsetHeight || firstChild.scrollHeight
+        // 컨테이너의 border와 padding 계산
+        const containerBorder = 8 // border: 4px solid = 상하 4px씩
+        const containerPadding = autoHeight.value ? 16 : 0 // 자동 모드일 때 padding-bottom: 16px
+        contentHeight = Math.max(scrollHeight, childHeight + containerBorder + containerPadding)
+      }
+
+      // 자동 높이 모드인 경우 경고만 표시
+      if (autoHeight.value) {
+        // 자동 높이 모드에서는 경고 없음 (CSS가 자동으로 처리)
+        heightWarning.value = null
+      } else {
+        // 수동 높이 모드에서 오버플로우 발생 시 경고
+        if (scrollHeight > clientHeight || contentHeight > clientHeight) {
+          const actualHeight = Math.max(scrollHeight, contentHeight)
+          heightWarning.value = `⚠️ 높이가 부족합니다. 실제 높이: ${actualHeight}px, 현재 높이: ${clientHeight}px`
+        } else {
+          heightWarning.value = null
+        }
+      }
+    }
+  }, 500) // 렌더링 완료를 위해 지연 시간 증가
+}
+
+// ResizeObserver로 높이 변화 추적
+function setupResizeObserver() {
+  if (!previewContainerRef.value || !window.ResizeObserver) return
+
+  // 기존 observer 제거
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
+
+  resizeObserver = new ResizeObserver((entries) => {
+    if (autoHeight.value && sampleComponent.value) {
+      // 자동 높이 모드에서 크기 변화 감지 시 오버플로우 확인
+      for (const entry of entries) {
+        const { height, scrollHeight } = entry.target
+
+        if (scrollHeight > height) {
+          // 오버플로우 발생 (이론적으로는 발생하지 않아야 함)
+          console.warn('[ResizeObserver] 오버플로우 감지:', { height, scrollHeight })
+        }
+      }
+    }
+  })
+
+  resizeObserver.observe(previewContainerRef.value)
+}
+
+function cleanupResizeObserver() {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+}
+
+// 수동 높이 조정 감지
+watch(previewHeight, () => {
+  if (autoHeight.value) {
+    autoHeight.value = false
+    heightWarning.value = '⚠️ 수동 높이 조정 모드입니다. 오버플로우가 발생할 수 있습니다.'
+    // 수동 모드로 전환 후 높이 검증
+    setTimeout(() => {
+      adjustHeightAutomatically()
+    }, 100)
+  } else {
+    // 수동 조정 중에도 경고 업데이트
+    adjustHeightAutomatically()
+  }
+})
+
+// 자동 높이 모드 토글 감지
+watch(autoHeight, (newValue) => {
+  if (newValue) {
+    // 자동 모드로 전환 시 경고 제거 및 높이 재조정
+    heightWarning.value = null
+    adjustHeightAutomatically()
+  }
+})
 
 // Import 정보 및 사용 예제
 const importPath = computed(() => {
@@ -417,8 +565,39 @@ async function loadSampleComponent() {
     sampleComponent.value = null
   } finally {
     isLoading.value = false
+    // 샘플 로딩 완료 후 자동 높이 조정
+    if (autoHeight.value) {
+      adjustHeightAutomatically()
+    }
   }
 }
+
+// 샘플 컴포넌트 변경 감지하여 자동 높이 조정
+watch(
+  sampleComponent,
+  async () => {
+    if (autoHeight.value && sampleComponent.value) {
+      await adjustHeightAutomatically()
+      // ResizeObserver 재설정
+      await nextTick()
+      setupResizeObserver()
+    } else {
+      cleanupResizeObserver()
+    }
+  },
+  { flush: 'post' },
+)
+
+// selectedSample 변경 시 자동 높이 모드로 리셋
+watch(
+  () => selectedSample.value?.id,
+  () => {
+    if (selectedSample.value) {
+      autoHeight.value = true
+      heightWarning.value = null
+    }
+  },
+)
 
 // 파일 내용 로드 함수
 async function loadFileContent() {
@@ -574,10 +753,28 @@ onMounted(() => {
   if (selectedSample.value?.componentPath) {
     loadSampleComponent()
   }
+  // ResizeObserver 설정 (DOM이 준비된 후)
+  nextTick(() => {
+    if (previewContainerRef.value && sampleComponent.value) {
+      setupResizeObserver()
+    }
+  })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('dev-guide-sample-selected', handleSampleSelected)
+  cleanupResizeObserver()
+})
+
+// previewContainerRef 변경 감지하여 ResizeObserver 설정
+watch(previewContainerRef, (newRef) => {
+  if (newRef && sampleComponent.value && autoHeight.value) {
+    nextTick(() => {
+      setupResizeObserver()
+    })
+  } else {
+    cleanupResizeObserver()
+  }
 })
 </script>
 
@@ -722,6 +919,21 @@ onBeforeUnmount(() => {
                   white-space: nowrap;
                 }
 
+                .height-control-row {
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  flex: 1;
+
+                  .q-slider {
+                    flex: 1;
+                  }
+
+                  .q-btn {
+                    min-width: 60px;
+                  }
+                }
+
                 .q-slider {
                   flex: 1;
                 }
@@ -744,14 +956,30 @@ onBeforeUnmount(() => {
           }
         }
 
+        .height-warning {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          margin-bottom: 8px;
+          background-color: var(--nexa-warning);
+          color: var(--nexa-text-primary);
+          border-radius: 4px;
+          font-size: 0.875rem;
+          border-left: 3px solid var(--nexa-warning);
+        }
+
         .sample-preview-direct {
           border: 4px solid var(--nexa-border-color);
           border-radius: 8px;
+          // overflow는 computed style에서 동적으로 설정됨
+          // 자동 높이 모드: overflow-y: visible
+          // 수동 높이 모드: overflow-y: auto
 
           //샘플 컴포넌트의 최상위 래퍼를 레이아웃에서 제거 (display: contents)
-          > :deep(div[class*='sample']) {
-            display: contents;
-          }
+          // > :deep(div[class*='sample']) {
+          //   display: contents;
+          // }
 
           .preview-placeholder,
           .preview-loading,

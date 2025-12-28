@@ -8,12 +8,11 @@
   @description: Multi-Step Form 샘플 컴포넌트
 -->
 <template>
-  <div class="multi-step-form-sample">
-    <div class="sample-header">
-      <h3 class="sample-title">다단계 폼 샘플</h3>
-      <p class="sample-description">여러 단계로 나뉜 폼 예시</p>
-    </div>
-    <div class="sample-container">
+  <div class="sample-header">
+    <h3 class="sample-title">다단계 폼 샘플</h3>
+    <p class="sample-description">여러 단계로 나뉜 폼 예시</p>
+  </div>
+  <div class="sample-container">
       <q-stepper v-model="step" color="primary" animated>
         <q-step :name="1" title="1단계" icon="info" :done="step > 1">
           <q-input v-model="form.name" label="이름" outlined />
@@ -43,7 +42,6 @@
         </template>
       </q-stepper>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -77,28 +75,23 @@ function submitForm() {
 </script>
 
 <style lang="scss" scoped>
-.multi-step-form-sample {
-  padding: 16px;
-  background-color: var(--nexa-surface);
-  border-radius: 8px;
+.sample-header {
+  margin-bottom: 16px;
 
-  .sample-header {
-    margin-bottom: 16px;
-
-    .sample-title {
-      color: var(--nexa-text-primary);
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .sample-description {
-      color: var(--nexa-text-secondary);
-      font-size: 0.875rem;
-    }
+  .sample-title {
+    color: var(--nexa-text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
   }
 
-  .sample-container {
+  .sample-description {
+    color: var(--nexa-text-secondary);
+    font-size: 0.875rem;
+  }
+}
+
+.sample-container {
     .summary {
       padding: 16px;
       background-color: var(--nexa-background);
@@ -109,7 +102,6 @@ function submitForm() {
         margin-bottom: 8px;
       }
     }
-  }
 }
 </style>
 

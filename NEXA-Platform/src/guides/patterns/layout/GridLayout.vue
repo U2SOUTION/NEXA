@@ -8,12 +8,11 @@
   @description: Grid Layout 패턴 샘플 컴포넌트
 -->
 <template>
-  <div class="grid-layout-pattern">
-    <div class="pattern-header">
-      <h3 class="pattern-title">Grid 레이아웃 패턴</h3>
-      <p class="pattern-description">CSS Grid를 사용한 레이아웃 구조 예시</p>
-    </div>
-    <div class="pattern-container">
+  <div class="sample-header">
+    <h3 class="sample-title">Grid 레이아웃 패턴</h3>
+    <p class="sample-description">CSS Grid를 사용한 레이아웃 구조 예시</p>
+  </div>
+  <div class="sample-container">
       <div class="layout-preview">
         <div class="grid-container">
           <div class="grid-header">헤더</div>
@@ -26,7 +25,6 @@
         <pre><code>{{ codeExample }}</code></pre>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -54,28 +52,23 @@ const codeExample = `<template>
 </script>
 
 <style lang="scss" scoped>
-.grid-layout-pattern {
-  padding: 16px;
-  background-color: var(--nexa-surface);
-  border-radius: 8px;
+.sample-header {
+  margin-bottom: 16px;
 
-  .pattern-header {
-    margin-bottom: 16px;
-
-    .pattern-title {
-      color: var(--nexa-text-primary);
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .pattern-description {
-      color: var(--nexa-text-secondary);
-      font-size: 0.875rem;
-    }
+  .sample-title {
+    color: var(--nexa-text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
   }
 
-  .pattern-container {
+  .sample-description {
+    color: var(--nexa-text-secondary);
+    font-size: 0.875rem;
+  }
+}
+
+.sample-container {
     .layout-preview {
       margin-bottom: 16px;
       padding: 16px;
@@ -151,7 +144,6 @@ const codeExample = `<template>
         }
       }
     }
-  }
 }
 </style>
 

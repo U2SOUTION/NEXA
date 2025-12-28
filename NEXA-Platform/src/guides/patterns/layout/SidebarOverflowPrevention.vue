@@ -8,13 +8,12 @@
   @description: 사이드바 폭이 줄어들 때 텍스트 오버플로우를 방지하는 CSS 패턴
 -->
 <template>
-  <div class="sidebar-overflow-sample">
-    <div class="sample-header">
-      <h3 class="sample-title">사이드바 오버플로우 방지 패턴</h3>
-      <p class="sample-description">사이드바 폭이 줄어들 때 긴 텍스트나 요소가 우측으로 밀려나가는 문제를 방지하는 CSS 패턴입니다.</p>
-    </div>
+  <div class="sample-header">
+    <h3 class="sample-title">사이드바 오버플로우 방지 패턴</h3>
+    <p class="sample-description">사이드바 폭이 줄어들 때 긴 텍스트나 요소가 우측으로 밀려나가는 문제를 방지하는 CSS 패턴입니다.</p>
+  </div>
 
-    <div class="sample-container">
+  <div class="sample-container">
       <!-- 문제 상황 설명 -->
       <div class="problem-section">
         <h4 class="section-title">❌ 문제 상황</h4>
@@ -121,7 +120,6 @@
         </ul>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -129,29 +127,24 @@
 </script>
 
 <style lang="scss" scoped>
-.sidebar-overflow-sample {
-  padding: 16px;
-  background-color: var(--nexa-surface);
-  border-radius: 8px;
+.sample-header {
+  margin-bottom: 24px;
 
-  .sample-header {
-    margin-bottom: 24px;
-
-    .sample-title {
-      color: var(--nexa-text-primary);
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .sample-description {
-      color: var(--nexa-text-secondary);
-      font-size: 0.875rem;
-      line-height: 1.5;
-    }
+  .sample-title {
+    color: var(--nexa-text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 8px;
   }
 
-  .sample-container {
+  .sample-description {
+    color: var(--nexa-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+.sample-container {
     .section-title {
       color: var(--nexa-text-primary);
       font-size: 1rem;
@@ -211,6 +204,5 @@
         }
       }
     }
-  }
 }
 </style>

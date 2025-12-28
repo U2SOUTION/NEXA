@@ -3,17 +3,15 @@
   개발 가이드용 샘플 파일
 -->
 <template>
-  <div class="error-boundary-practice">
-    <div class="practice-header">
-      <h3 class="practice-title">에러 처리 패턴</h3>
-      <p class="practice-description">컴포넌트 에러 처리 및 에러 바운더리 패턴</p>
-    </div>
-    <div class="practice-container">
+  <div class="sample-header">
+    <h3 class="sample-title">에러 처리 패턴</h3>
+    <p class="sample-description">컴포넌트 에러 처리 및 에러 바운더리 패턴</p>
+  </div>
+  <div class="sample-container">
       <div class="code-preview">
         <pre><code>{{ codeExample }}</code></pre>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -31,28 +29,23 @@ try {
 </script>
 
 <style lang="scss" scoped>
-.error-boundary-practice {
-  padding: 16px;
-  background-color: var(--nexa-surface);
-  border-radius: 8px;
+.sample-header {
+  margin-bottom: 16px;
 
-  .practice-header {
-    margin-bottom: 16px;
-
-    .practice-title {
-      color: var(--nexa-text-primary);
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .practice-description {
-      color: var(--nexa-text-secondary);
-      font-size: 0.875rem;
-    }
+  .sample-title {
+    color: var(--nexa-text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
   }
 
-  .practice-container {
+  .sample-description {
+    color: var(--nexa-text-secondary);
+    font-size: 0.875rem;
+  }
+}
+
+.sample-container {
     .code-preview {
       background-color: var(--nexa-background);
       border: 1px solid var(--nexa-border-color);
@@ -69,7 +62,6 @@ try {
         }
       }
     }
-  }
 }
 </style>
 

@@ -8,12 +8,11 @@
   @description: Pagination Table 샘플 컴포넌트
 -->
 <template>
-  <div class="pagination-table-sample">
-    <div class="sample-header">
-      <h3 class="sample-title">페이지네이션 테이블 샘플</h3>
-      <p class="sample-description">페이지네이션이 있는 테이블 예시</p>
-    </div>
-    <div class="sample-container">
+  <div class="sample-header">
+    <h3 class="sample-title">페이지네이션 테이블 샘플</h3>
+    <p class="sample-description">페이지네이션이 있는 테이블 예시</p>
+  </div>
+  <div class="sample-container">
       <q-table
         :rows="rows"
         :columns="columns"
@@ -38,7 +37,6 @@
         </template>
       </q-table>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -107,30 +105,24 @@ function onRequest(props) {
 </script>
 
 <style lang="scss" scoped>
-.pagination-table-sample {
-  padding: 16px;
-  background-color: var(--nexa-surface);
-  border-radius: 8px;
+.sample-header {
+  margin-bottom: 16px;
 
-  .sample-header {
-    margin-bottom: 16px;
-
-    .sample-title {
-      color: var(--nexa-text-primary);
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .sample-description {
-      color: var(--nexa-text-secondary);
-      font-size: 0.875rem;
-    }
+  .sample-title {
+    color: var(--nexa-text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
   }
 
-  .sample-container {
-    // 테이블 스타일은 Quasar 기본 스타일 사용
+  .sample-description {
+    color: var(--nexa-text-secondary);
+    font-size: 0.875rem;
   }
+}
+
+.sample-container {
+  // 테이블 스타일은 Quasar 기본 스타일 사용
 }
 </style>
 

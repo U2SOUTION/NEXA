@@ -3,12 +3,11 @@
   개발 가이드용 샘플 파일
 -->
 <template>
-  <div class="component-naming-convention">
-    <div class="convention-header">
-      <h3 class="convention-title">컴포넌트 네이밍 컨벤션</h3>
-      <p class="convention-description">Vue 컴포넌트 파일명 및 클래스 네이밍 규칙</p>
-    </div>
-    <div class="convention-container">
+  <div class="sample-header">
+    <h3 class="sample-title">컴포넌트 네이밍 컨벤션</h3>
+    <p class="sample-description">Vue 컴포넌트 파일명 및 클래스 네이밍 규칙</p>
+  </div>
+  <div class="sample-container">
       <div class="rules-list">
         <div class="rule-item">
           <q-icon name="check_circle" class="rule-icon" />
@@ -33,7 +32,6 @@
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -41,28 +39,23 @@
 </script>
 
 <style lang="scss" scoped>
-.component-naming-convention {
-  padding: 16px;
-  background-color: var(--nexa-surface);
-  border-radius: 8px;
+.sample-header {
+  margin-bottom: 16px;
 
-  .convention-header {
-    margin-bottom: 16px;
-
-    .convention-title {
-      color: var(--nexa-text-primary);
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .convention-description {
-      color: var(--nexa-text-secondary);
-      font-size: 0.875rem;
-    }
+  .sample-title {
+    color: var(--nexa-text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 4px;
   }
 
-  .convention-container {
+  .sample-description {
+    color: var(--nexa-text-secondary);
+    font-size: 0.875rem;
+  }
+}
+
+.sample-container {
     .rules-list {
       .rule-item {
         display: flex;
@@ -95,7 +88,6 @@
         }
       }
     }
-  }
 }
 </style>
 
