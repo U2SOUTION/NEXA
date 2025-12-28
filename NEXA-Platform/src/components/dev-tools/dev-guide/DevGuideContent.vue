@@ -75,11 +75,11 @@
         <!-- 사용 예제 & Import 정보 -->
         <div v-if="selectedSample?.componentPath" class="detail-section">
           <h3 class="section-title">사용 예제 & Import 정보</h3>
-          
-          <!-- Import 정보 -->
+
+          <!-- 샘플 파일 정보 -->
           <div class="import-info-section">
             <div class="import-item">
-              <div class="import-label">Import 경로:</div>
+              <div class="import-label">샘플 파일 경로:</div>
               <div class="import-value">
                 <code>{{ importPath }}</code>
                 <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyImportPath" />
@@ -91,6 +91,65 @@
                 <code>{{ fileName }}</code>
                 <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyFileName" />
               </div>
+            </div>
+          </div>
+
+          <!-- 의존성 정보 -->
+          <div v-if="dependencies" class="dependencies-section">
+            <!-- 컴포넌트 의존성 -->
+            <div v-if="dependencies.components && dependencies.components.length > 0" class="dependency-group">
+              <div class="dependency-group-header">
+                <q-icon name="widgets" size="20px" />
+                <span class="dependency-group-title">사용하는 컴포넌트</span>
+              </div>
+              <div class="dependency-list">
+                <div v-for="(comp, index) in dependencies.components" :key="index" class="dependency-item">
+                  <code class="dependency-path">{{ comp.fullPath }}</code>
+                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(comp.fullPath)" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 유틸리티 의존성 -->
+            <div v-if="dependencies.utilities && dependencies.utilities.length > 0" class="dependency-group">
+              <div class="dependency-group-header">
+                <q-icon name="build" size="20px" />
+                <span class="dependency-group-title">사용하는 유틸리티</span>
+              </div>
+              <div class="dependency-list">
+                <div v-for="(util, index) in dependencies.utilities" :key="index" class="dependency-item">
+                  <code class="dependency-path">{{ util.fullPath }}</code>
+                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(util.fullPath)" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 전역 SCSS 의존성 -->
+            <div v-if="dependencies.scss && dependencies.scss.usesGlobalVariables" class="dependency-group">
+              <div class="dependency-group-header">
+                <q-icon name="palette" size="20px" />
+                <span class="dependency-group-title">전역 SCSS 변수 사용</span>
+              </div>
+              <div class="dependency-list">
+                <div v-for="(scssFile, index) in dependencies.scss.globalFiles" :key="index" class="dependency-item">
+                  <code class="dependency-path">{{ scssFile }}</code>
+                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(scssFile)" />
+                </div>
+                <div v-if="dependencies.scss.variables && dependencies.scss.variables.length > 0" class="scss-variables">
+                  <div class="scss-variables-label">사용된 변수:</div>
+                  <div class="scss-variables-list">
+                    <q-chip v-for="(variable, index) in dependencies.scss.variables" :key="index" dense size="sm">
+                      {{ variable }}
+                    </q-chip>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 의존성이 없는 경우 -->
+            <div v-if="(!dependencies.components || dependencies.components.length === 0) && (!dependencies.utilities || dependencies.utilities.length === 0) && (!dependencies.scss || !dependencies.scss.usesGlobalVariables)" class="no-dependencies">
+              <q-icon name="info" size="24px" />
+              <span>이 샘플은 외부 의존성이 없습니다.</span>
             </div>
           </div>
 
@@ -121,13 +180,7 @@
         <div class="detail-section">
           <h3 class="section-title">원본 코드 편집</h3>
           <div class="code-editor-section">
-            <CodeEditor
-              v-if="fileContent && selectedSample?.componentPath"
-              :file-path="selectedSample.componentPath"
-              :file-content="fileContent"
-              @save="handleFileSave"
-              @reload="handleFileReload"
-            />
+            <CodeEditor v-if="fileContent && selectedSample?.componentPath" :file-path="selectedSample.componentPath" :file-content="fileContent" @save="handleFileSave" @reload="handleFileReload" />
             <div v-else-if="isLoadingFile" class="file-loading">
               <q-spinner color="primary" size="32px" />
               <p class="file-loading-text">파일 로딩 중...</p>
@@ -163,6 +216,7 @@ import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 import { copyTextToClipboard } from 'src/utils/clipboard'
 import CodeEditor from './CodeEditor.vue'
 import { generateUsageExample } from 'src/utils/dev-guide/usage-example-generator.js'
+import { analyzeSampleDependencies } from 'src/utils/dev-guide/dependency-analyzer.js'
 
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect } = useDevGuide()
@@ -176,6 +230,9 @@ const loadError = ref(null)
 const fileContent = ref('')
 const isLoadingFile = ref(false)
 const fileLoadError = ref(null)
+
+// 의존성 분석 결과
+const dependencies = ref(null)
 
 // Import 정보 및 사용 예제
 const importPath = computed(() => {
@@ -202,9 +259,9 @@ const componentName = computed(() => {
 
 const usageExampleCode = computed(() => {
   if (!selectedSample.value || !componentName.value) return ''
-  
+
   const displayName = selectedSample.value.displayName || selectedSample.value.name || componentName.value
-  
+
   // 외부 유틸리티 함수 사용 (Vue 컴파일러 오류 방지)
   return generateUsageExample(componentName.value, importPath.value, displayName)
 })
@@ -228,12 +285,12 @@ async function loadSampleComponent() {
     // componentPath에서 전체 경로 구성
     // 예: "guides/styles/charts/bar/NexaChartBar.vue" -> "/src/guides/styles/charts/bar/NexaChartBar.vue"
     let fullPath = selectedSample.value.componentPath
-    
+
     // src/ 접두사가 없으면 추가
     if (!fullPath.startsWith('src/')) {
       fullPath = `src/${fullPath}`
     }
-    
+
     // /src/로 시작하도록 정규화
     if (!fullPath.startsWith('/src/')) {
       fullPath = `/${fullPath}`
@@ -241,14 +298,14 @@ async function loadSampleComponent() {
 
     // import.meta.glob으로 등록된 모듈 찾기
     const moduleLoader = guideModules[fullPath]
-    
+
     if (!moduleLoader) {
       throw new Error(`컴포넌트를 찾을 수 없습니다: ${fullPath}`)
     }
 
     // 모듈 로드
     const module = await moduleLoader()
-    
+
     // 모듈에서 default export 또는 named export 가져오기
     sampleComponent.value = module.default || module
   } catch (error) {
@@ -265,6 +322,7 @@ async function loadFileContent() {
   if (!selectedSample.value?.componentPath) {
     fileContent.value = ''
     fileLoadError.value = null
+    dependencies.value = null
     return
   }
 
@@ -272,9 +330,7 @@ async function loadFileContent() {
   fileLoadError.value = null
 
   try {
-    const response = await fetch(
-      `http://localhost:3000/api/dev/files/${selectedSample.value.componentPath}/content`
-    )
+    const response = await fetch(`http://localhost:3000/api/dev/files/${selectedSample.value.componentPath}/content`)
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -283,6 +339,8 @@ async function loadFileContent() {
     const data = await response.json()
     if (data.success && data.content) {
       fileContent.value = data.content
+      // 의존성 분석
+      dependencies.value = analyzeSampleDependencies(data.content, selectedSample.value.componentPath)
     } else {
       throw new Error('파일 내용을 가져올 수 없습니다.')
     }
@@ -290,6 +348,7 @@ async function loadFileContent() {
     console.error('[DevGuideContent] 파일 로드 실패:', error)
     fileLoadError.value = error.message || '파일을 로드할 수 없습니다.'
     fileContent.value = ''
+    dependencies.value = null
   } finally {
     isLoadingFile.value = false
   }
@@ -297,8 +356,11 @@ async function loadFileContent() {
 
 // 파일 저장 핸들러
 function handleFileSave(newContent) {
-  // 파일이 저장되면 컴포넌트도 다시 로드
+  // 파일이 저장되면 컴포넌트도 다시 로드하고 의존성도 다시 분석
   fileContent.value = newContent
+  if (selectedSample.value?.componentPath) {
+    dependencies.value = analyzeSampleDependencies(newContent, selectedSample.value.componentPath)
+  }
   loadSampleComponent()
 }
 
@@ -323,7 +385,7 @@ watch(
       isLoadingFile.value = false
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 뒤로 가기 핸들러
@@ -365,6 +427,19 @@ async function handleCopyUsageExample() {
     $q.notify({
       type: 'positive',
       message: '사용 예제 코드가 복사되었습니다.',
+      position: 'top',
+      timeout: 1000,
+    })
+  }
+}
+
+// 의존성 경로 복사 핸들러
+async function handleCopyDependencyPath(path) {
+  if (path) {
+    await copyTextToClipboard(path)
+    $q.notify({
+      type: 'positive',
+      message: '경로가 복사되었습니다.',
       position: 'top',
       timeout: 1000,
     })
@@ -613,6 +688,88 @@ onBeforeUnmount(() => {
           }
         }
 
+        .dependencies-section {
+          background-color: var(--nexa-surface);
+          border: 1px solid var(--nexa-border-color);
+          border-radius: 8px;
+          padding: 16px;
+          margin-bottom: 16px;
+
+          .dependency-group {
+            margin-bottom: 20px;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+
+            .dependency-group-header {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 12px;
+
+              .dependency-group-title {
+                color: var(--nexa-text-primary);
+                font-size: 0.875rem;
+                font-weight: 600;
+              }
+            }
+
+            .dependency-list {
+              .dependency-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 12px;
+                background-color: var(--nexa-background);
+                border-radius: 4px;
+                margin-bottom: 8px;
+
+                &:last-child {
+                  margin-bottom: 0;
+                }
+
+                .dependency-path {
+                  font-family: 'Courier New', monospace;
+                  font-size: 0.8125rem;
+                  color: var(--nexa-text-primary);
+                  flex: 1;
+                  word-break: break-all;
+                }
+              }
+            }
+
+            .scss-variables {
+              margin-top: 12px;
+              padding-top: 12px;
+              border-top: 1px solid var(--nexa-border-color);
+
+              .scss-variables-label {
+                color: var(--nexa-text-secondary);
+                font-size: 0.8125rem;
+                margin-bottom: 8px;
+              }
+
+              .scss-variables-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+              }
+            }
+          }
+
+          .no-dependencies {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px;
+            color: var(--nexa-text-secondary);
+            font-size: 0.875rem;
+            text-align: center;
+            justify-content: center;
+          }
+        }
+
         .usage-example-section {
           background-color: var(--nexa-surface);
           border: 1px solid var(--nexa-border-color);
@@ -716,4 +873,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-
