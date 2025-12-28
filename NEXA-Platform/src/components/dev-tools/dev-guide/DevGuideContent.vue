@@ -127,84 +127,7 @@
 
         <!-- 사용 예제 & Import 정보 -->
         <div v-if="selectedSample?.componentPath" class="detail-section">
-          <h3 class="section-title">사용 예제 & Import 정보</h3>
-
-          <!-- 샘플 파일 정보 -->
-          <div class="info-section">
-            <div class="import-item">
-              <div class="import-label">샘플 파일 경로:</div>
-              <div class="import-value">
-                <code>{{ importPath }}</code>
-                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyImportPath" />
-              </div>
-            </div>
-            <div class="import-item">
-              <div class="import-label">파일명:</div>
-              <div class="import-value">
-                <code>{{ fileName }}</code>
-                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyFileName" />
-              </div>
-            </div>
-          </div>
-
-          <!-- 의존성 정보 -->
-          <div v-if="dependencies" class="info-section">
-            <!-- 컴포넌트 의존성 -->
-            <div v-if="dependencies.components && dependencies.components.length > 0" class="dependency-group">
-              <div class="dependency-group-header">
-                <q-icon name="widgets" size="20px" />
-                <span class="dependency-group-title">사용하는 컴포넌트</span>
-              </div>
-              <div class="dependency-list">
-                <div v-for="(comp, index) in dependencies.components" :key="index" class="dependency-item">
-                  <code class="dependency-path">{{ comp.fullPath }}</code>
-                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(comp.fullPath)" />
-                </div>
-              </div>
-            </div>
-
-            <!-- 유틸리티 의존성 -->
-            <div v-if="dependencies.utilities && dependencies.utilities.length > 0" class="dependency-group">
-              <div class="dependency-group-header">
-                <q-icon name="build" size="20px" />
-                <span class="dependency-group-title">사용하는 유틸리티</span>
-              </div>
-              <div class="dependency-list">
-                <div v-for="(util, index) in dependencies.utilities" :key="index" class="dependency-item">
-                  <code class="dependency-path">{{ util.fullPath }}</code>
-                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(util.fullPath)" />
-                </div>
-              </div>
-            </div>
-
-            <!-- 전역 SCSS 의존성 -->
-            <div v-if="dependencies.scss && dependencies.scss.usesGlobalVariables" class="dependency-group">
-              <div class="dependency-group-header">
-                <q-icon name="palette" size="20px" />
-                <span class="dependency-group-title">전역 SCSS 변수 사용</span>
-              </div>
-              <div class="dependency-list">
-                <div v-for="(scssFile, index) in dependencies.scss.globalFiles" :key="index" class="dependency-item">
-                  <code class="dependency-path">{{ scssFile }}</code>
-                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(scssFile)" />
-                </div>
-                <div v-if="dependencies.scss.variables && dependencies.scss.variables.length > 0" class="scss-variables">
-                  <div class="scss-variables-label">사용된 변수:</div>
-                  <div class="scss-variables-list">
-                    <q-chip v-for="(variable, index) in dependencies.scss.variables" :key="index" dense size="sm">
-                      {{ variable }}
-                    </q-chip>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 의존성이 없는 경우 -->
-            <div v-if="(!dependencies.components || dependencies.components.length === 0) && (!dependencies.utilities || dependencies.utilities.length === 0) && (!dependencies.scss || !dependencies.scss.usesGlobalVariables)" class="no-dependencies">
-              <q-icon name="info" size="24px" />
-              <span>이 샘플은 외부 의존성이 없습니다.</span>
-            </div>
-          </div>
+          <h3 class="section-title">사용 예제</h3>
 
           <!-- 사용 예제 코드 -->
           <div class="info-section">
@@ -485,36 +408,27 @@ watch(autoHeight, (newValue) => {
   }
 })
 
-// Import 정보 및 사용 예제
-const importPath = computed(() => {
+// 사용 예제 코드 생성
+const usageExampleCode = computed(() => {
   if (!selectedSample.value?.componentPath) return ''
-  // componentPath에서 import 경로 생성
-  // 예: "guides/styles/buttons/IconButton.vue" -> "src/guides/styles/buttons/IconButton.vue"
-  const path = selectedSample.value.componentPath
-  return path.startsWith('src/') ? path : `src/${path}`
-})
 
-const fileName = computed(() => {
-  if (!selectedSample.value?.componentPath) return ''
+  // componentPath에서 파일명 추출
   const path = selectedSample.value.componentPath
   const parts = path.split('/')
-  return parts[parts.length - 1] || ''
-})
+  const fileName = parts[parts.length - 1] || ''
 
-const componentName = computed(() => {
-  if (!fileName.value) return ''
-  // 파일명에서 확장자 제거하고 PascalCase로 변환
-  const name = fileName.value.replace(/\.vue$/, '')
-  return name
-})
+  // 파일명에서 확장자 제거하여 컴포넌트명 추출
+  const componentName = fileName.replace(/\.vue$/, '')
+  if (!componentName) return ''
 
-const usageExampleCode = computed(() => {
-  if (!selectedSample.value || !componentName.value) return ''
+  // import 경로 생성
+  const importPath = path.startsWith('src/') ? path : `src/${path}`
 
-  const displayName = selectedSample.value.displayName || selectedSample.value.name || componentName.value
+  // displayName 추출
+  const displayName = selectedSample.value.displayName || selectedSample.value.name || componentName
 
   // 외부 유틸리티 함수 사용 (Vue 컴파일러 오류 방지)
-  return generateUsageExample(componentName.value, importPath.value, displayName)
+  return generateUsageExample(componentName, importPath, displayName)
 })
 
 // Vite의 import.meta.glob을 사용하여 모든 샘플 컴포넌트 미리 등록
@@ -676,32 +590,6 @@ function handleBack() {
   window.dispatchEvent(new CustomEvent('dev-guide-sample-deselected'))
 }
 
-// Import 경로 복사 핸들러
-async function handleCopyImportPath() {
-  if (importPath.value) {
-    await copyTextToClipboard(importPath.value)
-    $q.notify({
-      type: 'positive',
-      message: 'Import 경로가 복사되었습니다.',
-      position: 'top',
-      timeout: 1000,
-    })
-  }
-}
-
-// 파일명 복사 핸들러
-async function handleCopyFileName() {
-  if (fileName.value) {
-    await copyTextToClipboard(fileName.value)
-    $q.notify({
-      type: 'positive',
-      message: '파일명이 복사되었습니다.',
-      position: 'top',
-      timeout: 1000,
-    })
-  }
-}
-
 // 사용 예제 코드 복사 핸들러
 async function handleCopyUsageExample() {
   if (usageExampleCode.value) {
@@ -709,19 +597,6 @@ async function handleCopyUsageExample() {
     $q.notify({
       type: 'positive',
       message: '사용 예제 코드가 복사되었습니다.',
-      position: 'top',
-      timeout: 1000,
-    })
-  }
-}
-
-// 의존성 경로 복사 핸들러
-async function handleCopyDependencyPath(path) {
-  if (path) {
-    await copyTextToClipboard(path)
-    $q.notify({
-      type: 'positive',
-      message: '경로가 복사되었습니다.',
       position: 'top',
       timeout: 1000,
     })
@@ -1013,97 +888,7 @@ watch(previewContainerRef, (newRef) => {
           padding: 16px;
           margin-bottom: 6px;
 
-          // Import 정보 스타일
-          .import-item {
-            display: flex;
-            align-items: center;
-
-            .import-label {
-              color: var(--nexa-text-secondary);
-              font-size: 0.875rem;
-              font-weight: 500;
-              min-width: 100px;
-              margin-right: 12px;
-            }
-
-            .import-value {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex: 1;
-
-              code {
-                font-family: 'Courier New', monospace;
-                font-size: 0.875rem;
-                color: var(--nexa-text-primary);
-                background-color: var(--nexa-background);
-                padding: 4px 8px;
-                border-radius: 4px;
-                flex: 1;
-              }
-            }
-          }
-
           // 의존성 정보 스타일
-          .dependency-group {
-            .dependency-group-header {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-
-              .dependency-group-title {
-                color: var(--nexa-text-primary);
-                font-size: 0.875rem;
-                font-weight: 600;
-              }
-            }
-
-            .dependency-list {
-              .dependency-item {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0 12px;
-                background-color: var(--nexa-background);
-                border-radius: 4px;
-
-                .dependency-path {
-                  font-family: 'Courier New', monospace;
-                  font-size: 0.8125rem;
-                  color: var(--nexa-text-primary);
-                  flex: 1;
-                  word-break: break-all;
-                }
-              }
-            }
-
-            .scss-variables {
-              border-top: 1px solid var(--nexa-border-color);
-
-              .scss-variables-label {
-                color: var(--nexa-text-secondary);
-                font-size: 0.8125rem;
-              }
-
-              .scss-variables-list {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 4px;
-              }
-            }
-          }
-
-          .no-dependencies {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 16px;
-            color: var(--nexa-text-secondary);
-            font-size: 0.875rem;
-            text-align: center;
-            justify-content: center;
-          }
-
           // 사용 예제 스타일
           .usage-example-header {
             display: flex;

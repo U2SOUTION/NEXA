@@ -3,7 +3,7 @@
   개발 가이드용 샘플 파일
 -->
 <template>
-  <div class="sample-header">
+<div class="sample-header">
     <h3 class="sample-title">카드 패널 샘플</h3>
     <p class="sample-description">NexaPanel 컴포넌트를 사용한 카드 패널 예시</p>
   </div>
@@ -15,9 +15,13 @@
     </div>
 </template>
 
+
+
 <script setup>
 // 샘플 컴포넌트 - 실제 구현은 참고용
 </script>
+
+
 
 <style lang="scss" scoped>
 .sample-header {
@@ -55,4 +59,6 @@
     }
 }
 </style>
+
+
 

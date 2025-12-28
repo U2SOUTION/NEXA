@@ -40,6 +40,7 @@ import { vue } from '@codemirror/lang-vue'
 import { javascript } from '@codemirror/lang-javascript'
 import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { indentUnit } from '@codemirror/language'
 import { parseVueFile, combineVueFile } from 'src/utils/vue-file-parser.js'
 import { useUserSettingsStore } from 'src/stores/userSettingsStore'
 
@@ -86,17 +87,34 @@ function parseContent() {
 // Template 에디터 초기화
 function initTemplateEditor() {
   if (templateEditorRef.value && !templateEditor) {
+    // 부모 요소의 높이를 명시적으로 설정
+    if (templateEditorRef.value) {
+      templateEditorRef.value.style.height = '100%'
+      templateEditorRef.value.style.minHeight = '400px'
+    }
+
     const extensions = [
       basicSetup,
       vue(),
+      EditorState.tabSize.of(2), // 탭 크기 2로 설정
+      indentUnit.of('  '), // 들여쓰기 단위 2칸 (스페이스 2개)
       EditorView.theme({
         '&': {
           fontSize: '14px',
           height: '100%',
+          maxHeight: 'none',
+        },
+        '.cm-editor': {
+          height: '100%',
+          maxHeight: 'none',
         },
         '.cm-scroller': {
-          overflow: 'auto',
-          height: '100%',
+          overflow: 'auto !important',
+          height: '100% !important',
+          maxHeight: 'none !important',
+        },
+        '.cm-content': {
+          minHeight: 'auto',
         },
       }),
       ...editorTheme.value,
@@ -109,23 +127,48 @@ function initTemplateEditor() {
       }),
       parent: templateEditorRef.value,
     })
+
+    // 에디터 초기화 후 강제로 업데이트
+    setTimeout(() => {
+      if (templateEditor) {
+        templateEditor.requestMeasure()
+        templateEditor.dispatch({ effects: [] })
+      }
+    }, 100)
   }
 }
 
 // Script 에디터 초기화
 function initScriptEditor() {
   if (scriptEditorRef.value && !scriptEditor) {
+    // 부모 요소의 높이를 명시적으로 설정
+    if (scriptEditorRef.value) {
+      scriptEditorRef.value.style.height = '100%'
+      scriptEditorRef.value.style.minHeight = '400px'
+    }
+
     const extensions = [
       basicSetup,
       javascript(),
+      EditorState.tabSize.of(2), // 탭 크기 2로 설정
+      indentUnit.of('  '), // 들여쓰기 단위 2칸 (스페이스 2개)
       EditorView.theme({
         '&': {
           fontSize: '14px',
           height: '100%',
+          maxHeight: 'none',
+        },
+        '.cm-editor': {
+          height: '100%',
+          maxHeight: 'none',
         },
         '.cm-scroller': {
-          overflow: 'auto',
-          height: '100%',
+          overflow: 'auto !important',
+          height: '100% !important',
+          maxHeight: 'none !important',
+        },
+        '.cm-content': {
+          minHeight: 'auto',
         },
       }),
       ...editorTheme.value,
@@ -138,23 +181,48 @@ function initScriptEditor() {
       }),
       parent: scriptEditorRef.value,
     })
+
+    // 에디터 초기화 후 강제로 업데이트
+    setTimeout(() => {
+      if (scriptEditor) {
+        scriptEditor.requestMeasure()
+        scriptEditor.dispatch({ effects: [] })
+      }
+    }, 100)
   }
 }
 
 // Style 에디터 초기화
 function initStyleEditor() {
   if (styleEditorRef.value && !styleEditor) {
+    // 부모 요소의 높이를 명시적으로 설정
+    if (styleEditorRef.value) {
+      styleEditorRef.value.style.height = '100%'
+      styleEditorRef.value.style.minHeight = '400px'
+    }
+
     const extensions = [
       basicSetup,
       css(),
+      EditorState.tabSize.of(2), // 탭 크기 2로 설정
+      indentUnit.of('  '), // 들여쓰기 단위 2칸 (스페이스 2개)
       EditorView.theme({
         '&': {
           fontSize: '14px',
           height: '100%',
+          maxHeight: 'none',
+        },
+        '.cm-editor': {
+          height: '100%',
+          maxHeight: 'none',
         },
         '.cm-scroller': {
-          overflow: 'auto',
-          height: '100%',
+          overflow: 'auto !important',
+          height: '100% !important',
+          maxHeight: 'none !important',
+        },
+        '.cm-content': {
+          minHeight: 'auto',
         },
       }),
       ...editorTheme.value,
@@ -167,6 +235,14 @@ function initStyleEditor() {
       }),
       parent: styleEditorRef.value,
     })
+
+    // 에디터 초기화 후 강제로 업데이트
+    setTimeout(() => {
+      if (styleEditor) {
+        styleEditor.requestMeasure()
+        styleEditor.dispatch({ effects: [] })
+      }
+    }, 100)
   }
 }
 
@@ -380,7 +456,38 @@ onBeforeUnmount(() => {
       .code-editor {
         flex: 1;
         min-height: 400px;
+        height: 100%;
+        position: relative;
         overflow: hidden;
+        
+        // CodeMirror 루트 요소
+        :deep(.cm-editor) {
+          height: 100% !important;
+          max-height: none !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        
+        // CodeMirror 스크롤러
+        :deep(.cm-scroller) {
+          overflow: auto !important;
+          overflow-x: auto !important;
+          overflow-y: auto !important;
+          height: 100% !important;
+          max-height: none !important;
+          flex: 1 !important;
+        }
+        
+        // CodeMirror 콘텐츠
+        :deep(.cm-content) {
+          min-height: auto !important;
+          padding: 12px !important;
+        }
+        
+        // CodeMirror 라인
+        :deep(.cm-line) {
+          padding: 0 4px;
+        }
       }
     }
   }

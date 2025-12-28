@@ -59,14 +59,89 @@
             <span class="info-label">계층:</span>
             <span class="info-value"> {{ selectedSample.hierarchy.type }} > {{ selectedSample.hierarchy.subType }} > {{ selectedSample.hierarchy.variant }} </span>
           </div>
-          <div v-if="selectedSample.componentPath" class="info-item">
+          <div v-if="selectedSample.displayName || selectedSample.name" class="info-item">
             <span class="info-label">컴포넌트:</span>
+            <span class="info-value">{{ selectedSample.displayName || selectedSample.name }}</span>
+          </div>
+          <div v-if="fileName" class="info-item">
+            <span class="info-label">파일명:</span>
+            <span class="info-value">{{ fileName }}</span>
+          </div>
+          <div v-if="selectedSample.componentPath" class="info-item">
+            <span class="info-label">파일 경로:</span>
             <span class="info-value">{{ selectedSample.componentPath }}</span>
           </div>
         </div>
       </div>
 
       <q-separator />
+
+      <!-- 전역 SCSS 변수 사용 -->
+      <div v-if="scssDependencies && scssDependencies.usesGlobalVariables" class="panel-section q-pa-md">
+        <div class="section-header">
+          <q-icon name="palette" class="section-icon" />
+          <div class="section-title">사용된 CSS 전역변수</div>
+        </div>
+        <div v-if="scssDependencies.variables && scssDependencies.variables.length > 0" class="scss-variables-list q-mt-sm">
+          <div v-for="(variable, index) in scssDependencies.variables" :key="index" class="scss-variable-item">
+            <div class="scss-variable-name">{{ variable }}</div>
+            <div class="scss-variable-color-box" :style="{ backgroundColor: getVariableColor(variable) }" :title="getVariableColor(variable)" />
+          </div>
+        </div>
+        <div v-else class="q-mt-sm text-caption text-grey-6">사용된 변수가 없습니다.</div>
+      </div>
+
+      <q-separator v-if="scssDependencies && scssDependencies.usesGlobalVariables" />
+
+      <!-- 임포트 정보 -->
+      <div v-if="selectedSample" class="panel-section q-pa-md">
+        <div class="section-header">
+          <q-icon name="import_export" class="section-icon" />
+          <div class="section-title">임포트 정보</div>
+        </div>
+
+        <!-- 로딩 중 -->
+        <div v-if="isLoadingDependencies" class="q-mt-sm text-caption text-grey-6">
+          <q-spinner size="16px" class="q-mr-xs" />
+          의존성 정보를 로드하는 중...
+        </div>
+
+        <!-- 컴포넌트 의존성 -->
+        <div v-else-if="dependencies?.components && dependencies.components.length > 0" class="dependency-group q-mt-sm">
+          <div class="dependency-group-header">
+            <q-icon name="widgets" size="16px" />
+            <span class="dependency-group-title">사용하는 컴포넌트</span>
+          </div>
+          <div class="dependency-list q-mt-xs">
+            <div v-for="(comp, index) in dependencies.components" :key="index" class="dependency-item">
+              <code class="dependency-path">{{ comp.fullPath }}</code>
+              <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(comp.fullPath)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 유틸리티 의존성 -->
+        <div v-else-if="dependencies?.utilities && dependencies.utilities.length > 0" class="dependency-group q-mt-sm">
+          <div class="dependency-group-header">
+            <q-icon name="build" size="16px" />
+            <span class="dependency-group-title">사용하는 유틸리티</span>
+          </div>
+          <div class="dependency-list q-mt-xs">
+            <div v-for="(util, index) in dependencies.utilities" :key="index" class="dependency-item">
+              <code class="dependency-path">{{ util.fullPath }}</code>
+              <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(util.fullPath)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 의존성 없음 -->
+        <div v-else-if="dependencies && (!dependencies.components || dependencies.components.length === 0) && (!dependencies.utilities || dependencies.utilities.length === 0)" class="q-mt-sm text-caption text-grey-6">이 샘플은 외부 의존성이 없습니다.</div>
+
+        <!-- 데이터 없음 -->
+        <div v-else class="q-mt-sm text-caption text-grey-6">의존성 정보를 불러올 수 없습니다.</div>
+      </div>
+
+      <q-separator v-if="selectedSample" />
 
       <!-- 사용 통계 (향후 구현) -->
       <div class="panel-section q-pa-md">
@@ -87,16 +162,158 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 import { copyTextToClipboard } from 'src/utils/clipboard'
+import { analyzeSampleDependencies } from 'src/utils/dev-guide/dependency-analyzer.js'
 
 const $q = useQuasar()
 const { selectedSample } = useDevGuide()
 
 const newTag = ref('')
 const isSaving = ref(false)
+const scssDependencies = ref(null)
+const dependencies = ref(null)
+const isLoadingDependencies = ref(false)
+
+// 파일명 추출 (componentPath에서)
+const fileName = computed(() => {
+  if (!selectedSample.value?.componentPath) return ''
+  const path = selectedSample.value.componentPath
+  const parts = path.split('/')
+  return parts[parts.length - 1] || ''
+})
+
+// CSS 변수의 실제 색상 값 가져오기
+function getVariableColor(variableName) {
+  if (!variableName) return 'transparent'
+
+  try {
+    // 변수명에서 var() 제거하고 실제 변수명만 추출
+    // 예: "var(--nexa-background)" -> "--nexa-background"
+    let actualVarName = variableName.trim()
+    if (actualVarName.startsWith('var(')) {
+      const match = actualVarName.match(/var\(([^)]+)\)/)
+      if (match) {
+        actualVarName = match[1].trim()
+      }
+    }
+
+    // document.documentElement에서 CSS 변수 값 가져오기
+    const rootStyle = getComputedStyle(document.documentElement)
+    let colorValue = rootStyle.getPropertyValue(actualVarName)?.trim()
+
+    if (!colorValue) {
+      // body에서도 시도
+      const bodyStyle = getComputedStyle(document.body)
+      colorValue = bodyStyle.getPropertyValue(actualVarName)?.trim()
+    }
+
+    // 여전히 값이 없으면 직접 스타일시트에서 찾기
+    if (!colorValue) {
+      // 모든 스타일시트에서 변수 찾기
+      for (const stylesheet of Array.from(document.styleSheets)) {
+        try {
+          const cssRules = stylesheet.cssRules
+          for (const rule of Array.from(cssRules)) {
+            if (rule.style) {
+              const value = rule.style.getPropertyValue(actualVarName)?.trim()
+              if (value) {
+                colorValue = value
+                break
+              }
+            }
+          }
+          if (colorValue) break
+        } catch {
+          // CORS 오류 등 무시
+          continue
+        }
+      }
+    }
+
+    // var() 참조가 있으면 재귀적으로 해석
+    if (colorValue && colorValue.startsWith('var(')) {
+      const varMatch = colorValue.match(/var\(([^)]+)\)/)
+      if (varMatch) {
+        const nestedVarName = varMatch[1].trim()
+        return getVariableColor(nestedVarName)
+      }
+    }
+
+    // 디버깅: 색상 값이 없을 때 로그 출력
+    if (!colorValue) {
+      console.warn('[DevGuidePanel] CSS 변수 값을 찾을 수 없음:', actualVarName)
+    }
+
+    return colorValue || 'transparent'
+  } catch (error) {
+    console.error('[DevGuidePanel] CSS 변수 값 가져오기 실패:', variableName, error)
+    return 'transparent'
+  }
+}
+
+// 파일에서 의존성 로드 (컴포넌트, 유틸리티, SCSS)
+async function loadDependencies() {
+  if (!selectedSample.value?.componentPath) {
+    dependencies.value = null
+    scssDependencies.value = null
+    isLoadingDependencies.value = false
+    return
+  }
+
+  // 개발 환경에서만 API 호출
+  if (!import.meta.env.DEV) {
+    dependencies.value = null
+    scssDependencies.value = null
+    isLoadingDependencies.value = false
+    return
+  }
+
+  isLoadingDependencies.value = true
+
+  try {
+    const filePath = selectedSample.value.componentPath
+    const response = await fetch(`http://localhost:3000/api/dev/files/${filePath}/content`)
+
+    if (!response.ok) {
+      dependencies.value = null
+      scssDependencies.value = null
+      return
+    }
+
+    const data = await response.json()
+    if (data.success && data.content) {
+      const deps = analyzeSampleDependencies(data.content, selectedSample.value.componentPath)
+      dependencies.value = deps
+      scssDependencies.value = deps?.scss || null
+      console.log('[DevGuidePanel] 의존성 로드 완료:', deps)
+    } else {
+      dependencies.value = null
+      scssDependencies.value = null
+    }
+  } catch (error) {
+    console.error('[DevGuidePanel] 의존성 로드 실패:', error)
+    dependencies.value = null
+    scssDependencies.value = null
+  } finally {
+    isLoadingDependencies.value = false
+  }
+}
+
+// 의존성 경로 복사 핸들러
+async function handleCopyDependencyPath(path) {
+  if (path) {
+    await copyTextToClipboard(path)
+    $q.notify({
+      type: 'positive',
+      message: '경로가 복사되었습니다.',
+      position: 'top',
+      timeout: 1000,
+    })
+  }
+}
 
 // 키워드 복사 핸들러
 async function handleCopyKeyword() {
@@ -219,6 +436,7 @@ function handleSampleSelected() {
   // selectedSample은 useDevGuide에서 관리되므로 자동으로 업데이트됨
   // 파일에서 메타데이터 로드
   loadMetadataFromFile()
+  loadDependencies()
 }
 
 // selectedSample 변경 감시
@@ -227,6 +445,10 @@ watch(
   () => {
     if (selectedSample.value?.componentPath) {
       loadMetadataFromFile()
+      loadDependencies()
+    } else {
+      dependencies.value = null
+      scssDependencies.value = null
     }
   },
 )
@@ -236,6 +458,7 @@ onMounted(() => {
   // 초기 로드
   if (selectedSample.value?.componentPath) {
     loadMetadataFromFile()
+    loadDependencies()
   }
 })
 
@@ -339,6 +562,87 @@ onBeforeUnmount(() => {
 
     .statistics-placeholder {
       color: var(--nexa-text-disabled);
+    }
+
+    .dependency-group {
+      .dependency-group-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+
+        .dependency-group-title {
+          color: var(--nexa-text-primary);
+          font-size: 0.875rem;
+          font-weight: 600;
+        }
+      }
+
+      .dependency-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .dependency-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 6px 18px;
+          border: 1px solid var(--nexa-border-color) !important;
+          border-radius: 4px;
+          min-width: 0;
+
+          .dependency-path {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8125rem;
+            color: var(--nexa-text-primary);
+            flex: 1;
+            min-width: 0;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+
+    //변수 아이템
+    .scss-variables-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .scss-variable-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 8px;
+        border: 1px solid var(--nexa-border-color);
+        border-radius: 4px;
+        min-width: 0; // flex 아이템이 줄어들 수 있도록
+
+        .scss-variable-name {
+          color: var(--nexa-text-primary);
+          font-size: 0.8125rem;
+          font-family: 'Courier New', monospace;
+          flex: 1;
+          min-width: 0;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          margin-right: 8px;
+        }
+
+        .scss-variable-color-box {
+          width: 24px;
+          height: 24px;
+          min-width: 24px;
+          min-height: 24px;
+          border: 1px solid var(--nexa-border-color);
+          border-radius: 3px;
+          flex-shrink: 0;
+          cursor: pointer;
+        }
+      }
     }
   }
 
