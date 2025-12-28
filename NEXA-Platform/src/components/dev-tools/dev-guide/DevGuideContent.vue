@@ -50,7 +50,21 @@
         <div class="detail-section">
           <h3 class="section-title">미리보기</h3>
           <div class="sample-preview">
-            <div class="preview-placeholder">
+            <!-- 샘플 컴포넌트 실제 렌더링 -->
+            <component v-if="sampleComponent && !isLoading && !loadError" :is="sampleComponent" />
+            <!-- 로딩 상태 -->
+            <div v-else-if="isLoading" class="preview-loading">
+              <q-spinner color="primary" size="48px" />
+              <p class="preview-text">샘플 로딩 중...</p>
+            </div>
+            <!-- 에러 상태 -->
+            <div v-else-if="loadError" class="preview-error">
+              <q-icon name="error" size="48px" color="negative" />
+              <p class="preview-text">컴포넌트를 로드할 수 없습니다</p>
+              <p class="preview-note">{{ loadError }}</p>
+            </div>
+            <!-- 플레이스홀더 (초기 상태) -->
+            <div v-else class="preview-placeholder">
               <q-icon name="image" size="48px" color="grey-5" />
               <p class="preview-text">미리보기 영역</p>
               <p class="preview-note">컴포넌트: {{ selectedSample.componentPath || 'N/A' }}</p>
@@ -78,6 +92,28 @@
           </div>
         </div>
 
+        <!-- 코드 에디터 -->
+        <div class="detail-section">
+          <h3 class="section-title">원본 코드 편집</h3>
+          <div class="code-editor-section">
+            <CodeEditor
+              v-if="fileContent && selectedSample?.componentPath"
+              :file-path="selectedSample.componentPath"
+              :file-content="fileContent"
+              @save="handleFileSave"
+              @reload="handleFileReload"
+            />
+            <div v-else-if="isLoadingFile" class="file-loading">
+              <q-spinner color="primary" size="32px" />
+              <p class="file-loading-text">파일 로딩 중...</p>
+            </div>
+            <div v-else-if="fileLoadError" class="file-error">
+              <q-icon name="error" size="32px" color="negative" />
+              <p class="file-error-text">{{ fileLoadError }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- AI 참조 키워드 -->
         <div class="detail-section">
           <h3 class="section-title">AI 참조 키워드</h3>
@@ -96,11 +132,141 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue'
+import { useQuasar } from 'quasar'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 import { copyTextToClipboard } from 'src/utils/clipboard'
+import CodeEditor from './CodeEditor.vue'
 
+const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect } = useDevGuide()
+
+// 샘플 컴포넌트 로딩 상태
+const sampleComponent = shallowRef(null)
+const isLoading = ref(false)
+const loadError = ref(null)
+
+// 파일 내용 로딩 상태
+const fileContent = ref('')
+const isLoadingFile = ref(false)
+const fileLoadError = ref(null)
+
+// Vite의 import.meta.glob을 사용하여 모든 샘플 컴포넌트 미리 등록
+const guideModules = import.meta.glob('/src/guides/**/*.vue', { eager: false })
+
+// 샘플 컴포넌트 로드 함수
+async function loadSampleComponent() {
+  if (!selectedSample.value?.componentPath) {
+    sampleComponent.value = null
+    loadError.value = null
+    return
+  }
+
+  isLoading.value = true
+  loadError.value = null
+  sampleComponent.value = null
+
+  try {
+    // componentPath에서 전체 경로 구성
+    // 예: "guides/styles/charts/bar/NexaChartBar.vue" -> "/src/guides/styles/charts/bar/NexaChartBar.vue"
+    let fullPath = selectedSample.value.componentPath
+    
+    // src/ 접두사가 없으면 추가
+    if (!fullPath.startsWith('src/')) {
+      fullPath = `src/${fullPath}`
+    }
+    
+    // /src/로 시작하도록 정규화
+    if (!fullPath.startsWith('/src/')) {
+      fullPath = `/${fullPath}`
+    }
+
+    // import.meta.glob으로 등록된 모듈 찾기
+    const moduleLoader = guideModules[fullPath]
+    
+    if (!moduleLoader) {
+      throw new Error(`컴포넌트를 찾을 수 없습니다: ${fullPath}`)
+    }
+
+    // 모듈 로드
+    const module = await moduleLoader()
+    
+    // 모듈에서 default export 또는 named export 가져오기
+    sampleComponent.value = module.default || module
+  } catch (error) {
+    console.error('[DevGuideContent] 컴포넌트 로드 실패:', error)
+    loadError.value = error.message || '컴포넌트를 로드할 수 없습니다. 파일 경로를 확인해주세요.'
+    sampleComponent.value = null
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 파일 내용 로드 함수
+async function loadFileContent() {
+  if (!selectedSample.value?.componentPath) {
+    fileContent.value = ''
+    fileLoadError.value = null
+    return
+  }
+
+  isLoadingFile.value = true
+  fileLoadError.value = null
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/dev/files/${selectedSample.value.componentPath}/content`
+    )
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    if (data.success && data.content) {
+      fileContent.value = data.content
+    } else {
+      throw new Error('파일 내용을 가져올 수 없습니다.')
+    }
+  } catch (error) {
+    console.error('[DevGuideContent] 파일 로드 실패:', error)
+    fileLoadError.value = error.message || '파일을 로드할 수 없습니다.'
+    fileContent.value = ''
+  } finally {
+    isLoadingFile.value = false
+  }
+}
+
+// 파일 저장 핸들러
+function handleFileSave(newContent) {
+  // 파일이 저장되면 컴포넌트도 다시 로드
+  fileContent.value = newContent
+  loadSampleComponent()
+}
+
+// 파일 새로고침 핸들러
+function handleFileReload() {
+  loadFileContent()
+}
+
+// selectedSample 변경 감시
+watch(
+  () => selectedSample.value?.componentPath,
+  (newPath, oldPath) => {
+    if (newPath && newPath !== oldPath) {
+      loadSampleComponent()
+      loadFileContent()
+    } else if (!newPath) {
+      sampleComponent.value = null
+      loadError.value = null
+      isLoading.value = false
+      fileContent.value = ''
+      fileLoadError.value = null
+      isLoadingFile.value = false
+    }
+  },
+  { immediate: true }
+)
 
 // 뒤로 가기 핸들러
 function handleBack() {
@@ -112,6 +278,12 @@ function handleBack() {
 async function handleCopyCode() {
   if (selectedSample.value?.codeSnippet) {
     await copyTextToClipboard(selectedSample.value.codeSnippet)
+    $q.notify({
+      type: 'positive',
+      message: '코드가 복사되었습니다.',
+      position: 'top',
+      timeout: 1000,
+    })
   }
 }
 
@@ -119,16 +291,27 @@ async function handleCopyCode() {
 async function handleCopyKeyword() {
   if (selectedSample.value?.name) {
     await copyTextToClipboard(`@${selectedSample.value.name}`)
+    $q.notify({
+      type: 'positive',
+      message: 'AI 참조 키워드가 복사되었습니다.',
+      position: 'top',
+      timeout: 1000,
+    })
   }
 }
 
 // 샘플 선택 이벤트 리스너
 function handleSampleSelected() {
   // selectedSample은 useDevGuide에서 관리되므로 자동으로 업데이트됨
+  // watch가 자동으로 컴포넌트를 로드함
 }
 
 onMounted(() => {
   window.addEventListener('dev-guide-sample-selected', handleSampleSelected)
+  // 초기 로드
+  if (selectedSample.value?.componentPath) {
+    loadSampleComponent()
+  }
 })
 
 onBeforeUnmount(() => {
@@ -267,7 +450,14 @@ onBeforeUnmount(() => {
           align-items: center;
           justify-content: center;
 
-          .preview-placeholder {
+          // 실제 컴포넌트가 렌더링될 때는 정렬 제거
+          > :deep(*) {
+            width: 100%;
+          }
+
+          .preview-placeholder,
+          .preview-loading,
+          .preview-error {
             text-align: center;
             color: var(--nexa-text-secondary);
 
@@ -279,6 +469,19 @@ onBeforeUnmount(() => {
             .preview-note {
               font-size: 0.875rem;
               color: var(--nexa-text-disabled);
+            }
+          }
+
+          .preview-loading {
+            .preview-text {
+              margin-top: 16px;
+            }
+          }
+
+          .preview-error {
+            .preview-text {
+              color: var(--nexa-error);
+              font-weight: 600;
             }
           }
         }
@@ -328,6 +531,36 @@ onBeforeUnmount(() => {
             .decision-value {
               color: var(--nexa-text-primary);
               flex: 1;
+            }
+          }
+        }
+
+        .code-editor-section {
+          background-color: var(--nexa-surface);
+          border: 1px solid var(--nexa-border-color);
+          border-radius: 8px;
+          padding: 16px;
+          min-height: 500px;
+          display: flex;
+          flex-direction: column;
+
+          .file-loading,
+          .file-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: var(--nexa-text-secondary);
+
+            .file-loading-text,
+            .file-error-text {
+              margin-top: 16px;
+              font-size: 0.875rem;
+            }
+
+            .file-error-text {
+              color: var(--nexa-error);
             }
           }
         }

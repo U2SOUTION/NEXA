@@ -106,8 +106,8 @@
 
             <!-- 최근 사용 탭 -->
             <q-tab-panel name="recent" class="q-pa-sm">
-              <div v-if="recentSamples.length > 0" class="samples-list">
-                <div v-for="sample in recentSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id, 'has-favorite': isFavorite(sample.id) }]" @click="handleSampleSelect(sample)">
+              <div v-if="filteredRecentSamples.length > 0" class="samples-list">
+                <div v-for="sample in filteredRecentSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id, 'has-favorite': isFavorite(sample.id) }]" @click="handleSampleSelect(sample)">
                   <div class="sample-item-content">
                     <div class="sample-actions">
                       <q-btn flat dense round :icon="isFavorite(sample.id) ? 'star' : 'star_border'" size="sm" :class="{ 'favorite-btn': true, active: isFavorite(sample.id) }" @click.stop="handleToggleFavorite(sample)" />
@@ -135,8 +135,8 @@
 
             <!-- 즐겨찾기 탭 -->
             <q-tab-panel name="favorite" class="q-pa-sm">
-              <div v-if="favoriteSamples.length > 0" class="samples-list">
-                <div v-for="sample in favoriteSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
+              <div v-if="filteredFavoriteSamples.length > 0" class="samples-list">
+                <div v-for="sample in filteredFavoriteSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
                   <div class="sample-item-content">
                     <div class="sample-actions">
                       <q-btn flat dense round icon="star" size="sm" class="favorite-btn active" @click.stop="handleToggleFavorite(sample)" />
@@ -321,7 +321,7 @@ defineProps({
   },
 })
 
-const { activeTab, selectedSample, recentSamples, favoriteSamples, filteredSamples, viewMode, hierarchicalStructure, handleSampleSelect, toggleFavorite } = useDevGuide()
+const { activeTab, selectedSample, recentSamples, favoriteSamples, filteredSamples, filteredRecentSamples, filteredFavoriteSamples, viewMode, hierarchicalStructure, handleSampleSelect, toggleFavorite } = useDevGuide()
 
 // viewMode를 computed로 변환하여 템플릿에서 사용
 const currentViewMode = computed(() => viewMode.value)

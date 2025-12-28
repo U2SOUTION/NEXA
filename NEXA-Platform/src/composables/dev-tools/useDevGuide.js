@@ -56,14 +56,82 @@ export function useDevGuide() {
   // ============================================
   // Computed
   // ============================================
-  const filteredSamples = computed(() => {
-    let result = samples.value
+  /**
+   * 샘플 필터링 헬퍼 함수 (검색, 카테고리, 태그 필터 적용)
+   * @param {Array} sampleList - 필터링할 샘플 목록
+   * @returns {Array} 필터링된 샘플 목록
+   */
+  /**
+   * 한글 검색어를 영문 키워드로 변환 (간단한 매핑)
+   * @param {string} query - 검색어
+   * @returns {Array<string>} 검색어 배열 (원본 + 변환된 키워드)
+   */
+  function expandSearchQuery(query) {
+    const lowerQuery = query.toLowerCase().trim()
+    const keywords = [lowerQuery]
+
+    // 한글-영문 매핑 (일반적인 용어)
+    const keywordMap = {
+      사이드바: ['sidebar', 'side-bar'],
+      버튼: ['button', 'btn'],
+      차트: ['chart'],
+      패널: ['panel'],
+      폼: ['form'],
+      입력: ['input'],
+      카드: ['card'],
+      리스트: ['list'],
+      테이블: ['table'],
+      모달: ['modal'],
+      아이콘: ['icon'],
+      스타일: ['style', 'styles'],
+      패턴: ['pattern', 'patterns'],
+      컨벤션: ['convention', 'conventions'],
+      베스트프랙티스: ['best-practice', 'best-practices'],
+    }
+
+    // 한글 키워드가 매핑에 있으면 영문 키워드 추가
+    for (const [korean, english] of Object.entries(keywordMap)) {
+      if (lowerQuery.includes(korean)) {
+        keywords.push(...english)
+      }
+      // 역방향: 영문 키워드가 검색어에 포함되면 한글도 추가
+      english.forEach((eng) => {
+        if (lowerQuery.includes(eng)) {
+          keywords.push(korean)
+        }
+      })
+    }
+
+    return [...new Set(keywords)] // 중복 제거
+  }
+
+  function applyFilters(sampleList) {
+    let result = [...sampleList]
 
     // 검색 필터
-    if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase()
+    if (searchQuery.value && searchQuery.value.trim()) {
+      const originalQuery = searchQuery.value.toLowerCase().trim()
+      const searchKeywords = expandSearchQuery(originalQuery)
+
       result = result.filter((sample) => {
-        return sample.name?.toLowerCase().includes(query) || sample.displayName?.toLowerCase().includes(query) || sample.description?.toLowerCase().includes(query) || sample.tags?.some((tag) => tag.toLowerCase().includes(query))
+        // 모든 키워드 중 하나라도 매칭되면 통과
+        return searchKeywords.some((keyword) => {
+          const nameMatch = sample.name?.toLowerCase().includes(keyword)
+          const displayNameMatch = sample.displayName?.toLowerCase().includes(keyword)
+          const descriptionMatch = sample.description?.toLowerCase().includes(keyword)
+
+          // 태그 검색: 배열인 경우 각 태그에 대해 부분 일치 검사
+          const tagsMatch = Array.isArray(sample.tags) && sample.tags.length > 0
+            ? sample.tags.some((tag) => {
+                const tagStr = String(tag).toLowerCase()
+                return tagStr.includes(keyword) || keyword.includes(tagStr)
+              })
+            : false
+
+          const categoryMatch = sample.category?.toLowerCase().includes(keyword)
+          const componentPathMatch = sample.componentPath?.toLowerCase().includes(keyword)
+          return nameMatch || displayNameMatch || descriptionMatch || tagsMatch || categoryMatch || componentPathMatch
+        })
       })
     }
 
@@ -84,6 +152,20 @@ export function useDevGuide() {
     }
 
     return result
+  }
+
+  const filteredSamples = computed(() => {
+    return applyFilters(samples.value)
+  })
+
+  // 필터링된 최근 샘플
+  const filteredRecentSamples = computed(() => {
+    return applyFilters(recentSamples.value)
+  })
+
+  // 필터링된 즐겨찾기 샘플
+  const filteredFavoriteSamples = computed(() => {
+    return applyFilters(favoriteSamples.value)
   })
 
   // ============================================
@@ -256,17 +338,42 @@ export function useDevGuide() {
         const fileName = pathParts[pathParts.length - 1]
         const componentName = fileName.replace('.vue', '')
 
-        // 카테고리 추출
-        const extractedCategory = getComponentCategory(relativePath)
+        // 파일 메타데이터 읽기 (개발 환경에서만)
+        let metadata = null
+        if (import.meta.env.DEV) {
+          try {
+            const response = await fetch(`http://localhost:3000/api/dev/files/${relativePath}/metadata`)
+            if (response.ok) {
+              const data = await response.json()
+              if (data.success && data.metadata) {
+                metadata = data.metadata
+              }
+            }
+          } catch {
+            // API 호출 실패는 무시 (기본값 사용)
+          }
+        }
+
+        // 카테고리 추출 (메타데이터 우선, 없으면 경로에서 추출)
+        const extractedCategory = metadata?.category || getComponentCategory(relativePath)
 
         // 샘플 ID 생성 (파일명 기반)
-        const sampleId = componentName.toLowerCase().replace(/([A-Z])/g, '-$1').toLowerCase()
+        const sampleId = componentName
+          .toLowerCase()
+          .replace(/([A-Z])/g, '-$1')
+          .toLowerCase()
 
         // 파일명에서 displayName 추출 (PascalCase를 읽기 쉬운 형태로)
         const displayName = componentName
           .replace(/([A-Z])/g, ' $1')
           .trim()
           .replace(/^./, (str) => str.toUpperCase())
+
+        // 태그 추출 (메타데이터 우선, 없으면 기본 태그)
+        const tags = metadata?.tags || [extractedCategory, pathParts[1], componentName].filter(Boolean)
+
+        // 설명 추출 (메타데이터 우선, 없으면 기본 설명)
+        const description = metadata?.description || `${displayName} 샘플 컴포넌트`
 
         // 샘플 객체 생성
         const sample = {
@@ -279,8 +386,8 @@ export function useDevGuide() {
             subType: extractedCategory || '기타', // 'charts', 'panels' 등
             variant: pathParts[pathParts.length - 2] || '기타', // 'bar', 'line' 등
           },
-          tags: [extractedCategory, pathParts[1], componentName].filter(Boolean),
-          description: `${displayName} 샘플 컴포넌트`,
+          tags: tags,
+          description: description,
           icon: getIconForCategory(extractedCategory),
           componentPath: relativePath,
           topLevel: getTopLevel(relativePath), // 최상위 레벨 추가
@@ -433,6 +540,8 @@ export function useDevGuide() {
     favoriteSamples,
     categories,
     filteredSamples,
+    filteredRecentSamples,
+    filteredFavoriteSamples,
     hierarchicalStructure,
     // 함수
     handleSearchChange,

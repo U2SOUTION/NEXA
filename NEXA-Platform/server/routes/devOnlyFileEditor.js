@@ -33,21 +33,29 @@ if (!isDev) {
  * 형식: <!-- @tags: tag1, tag2 @category: category @description: description -->
  */
 function parseVueMetadata(content) {
-  // 여러 줄 메타데이터 형식 지원
-  const multiLineRegex = /<!--\s*@tags:\s*([^\n@]+)\s*@category:\s*([^\n@]+)\s*@description:\s*([^\n@]+)\s*-->/i
-  // 한 줄 메타데이터 형식 지원
-  const singleLineRegex = /<!--\s*@tags:\s*([^@]+)\s*@category:\s*([^@]+)\s*@description:\s*([^@]+)\s*-->/i
+  // @tags, @category, @description이 모두 포함된 주석 블록 찾기
+  // 여러 줄 형식: <!--\n  @tags: ...\n  @category: ...\n  @description: ...\n-->
+  // 각 필드는 줄바꿈을 포함할 수 있으므로 [\s\S]*?를 사용
+  const multiLineRegex = /<!--[\s\S]*?@tags:\s*([\s\S]*?)\s*@category:\s*([\s\S]*?)\s*@description:\s*([\s\S]*?)\s*-->/i
+  
+  // 한 줄 형식: <!-- @tags: ... @category: ... @description: ... -->
+  const singleLineRegex = /<!--\s*@tags:\s*([^@]+?)\s*@category:\s*([^@]+?)\s*@description:\s*([^@]+?)\s*-->/i
 
   let match = content.match(multiLineRegex) || content.match(singleLineRegex)
 
   if (match) {
+    // 각 필드에서 줄바꿈을 공백으로 변환하고 정리
+    const tagsStr = match[1].replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+    const categoryStr = match[2].replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+    const descriptionStr = match[3].replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+
     return {
-      tags: match[1]
+      tags: tagsStr
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean),
-      category: match[2].trim(),
-      description: match[3].trim(),
+      category: categoryStr,
+      description: descriptionStr,
     }
   }
   return null

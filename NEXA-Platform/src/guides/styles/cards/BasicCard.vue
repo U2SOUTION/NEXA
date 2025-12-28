@@ -2,6 +2,11 @@
   기본 카드 샘플 컴포넌트
   개발 가이드용 샘플 파일
 -->
+<!--
+  @tags: cards, styles, BasicCard, 카드
+  @category: cards
+  @description: Basic Card 샘플 컴포넌트
+-->
 <template>
   <div class="basic-card-sample">
     <div class="sample-header">

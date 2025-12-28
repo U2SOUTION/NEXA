@@ -29,14 +29,15 @@
           <div class="section-title">태그 관리</div>
         </div>
         <div v-if="selectedSample.tags && selectedSample.tags.length > 0" class="tags-display q-mt-sm">
-          <q-chip v-for="tag in selectedSample.tags" :key="tag" removable @remove="handleRemoveTag(tag)">
+          <q-chip v-for="tag in selectedSample.tags" :key="tag" class="tag-chip">
             {{ tag }}
+            <q-icon name="close" class="tag-remove-icon" @click="handleRemoveTag(tag)" />
           </q-chip>
         </div>
         <div v-else class="q-mt-sm text-caption text-grey-6">태그가 없습니다.</div>
-        <q-input v-model="newTag" placeholder="새 태그 추가" dense outlined class="q-mt-sm" @keyup.enter="handleAddTag">
+        <q-input v-model="newTag" placeholder="새 태그 추가" dense outlined class="q-mt-sm tag-input" @keyup.enter="handleAddTag">
           <template v-slot:append>
-            <q-btn flat dense icon="add" @click="handleAddTag" />
+            <q-btn flat dense icon="add_box" @click="handleAddTag" class="tag-add-btn" />
           </template>
         </q-input>
       </div>
@@ -245,7 +246,15 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .dev-guide-panel {
+  width: 100%;
+  min-width: 0; // flex 컨테이너가 줄어들 수 있도록
+  overflow: hidden; // 내용이 넘치지 않도록
+
   .panel-section {
+    width: 100%;
+    min-width: 0; // flex 컨테이너가 줄어들 수 있도록
+    overflow: hidden; // 내용이 넘치지 않도록
+
     .section-header {
       display: flex;
       align-items: center;
@@ -270,22 +279,60 @@ onBeforeUnmount(() => {
       display: flex;
       gap: 4px;
       flex-wrap: wrap;
+      min-width: 0; // flex 컨테이너가 줄어들 수 있도록
+      overflow: hidden; // 내용이 넘치지 않도록
+
+      .tag-chip {
+        color: var(--nexa-primary);
+
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding-right: 4px;
+
+        .tag-remove-icon {
+          opacity: 0.5;
+          font-size: 20px;
+          cursor: pointer;
+          transition: opacity 0.5s ease;
+          margin-left: 2px;
+          color: var(--nexa-warning);
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+      }
+    }
+
+    .tag-input {
+      .tag-add-btn {
+        :deep(.q-icon) {
+          font-size: 24px !important;
+        }
+      }
     }
 
     .info-list {
       .info-item {
         display: flex;
         margin-bottom: 8px;
+        min-width: 0; // flex 아이템이 줄어들 수 있도록
 
         .info-label {
           color: var(--nexa-text-secondary);
           font-weight: 500;
           min-width: 80px;
+          flex-shrink: 0; // 레이블은 줄어들지 않도록
         }
 
         .info-value {
           color: var(--nexa-text-primary);
           flex: 1;
+          min-width: 0; // flex 아이템이 줄어들 수 있도록
+          word-break: break-word; // 단어 단위로 줄바꿈
+          overflow-wrap: break-word; // 긴 단어도 줄바꿈
+          hyphens: auto; // 하이픈으로 단어 분리 (선택사항)
         }
       }
     }
