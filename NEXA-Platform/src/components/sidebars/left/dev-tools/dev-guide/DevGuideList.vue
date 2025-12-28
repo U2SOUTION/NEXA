@@ -9,65 +9,21 @@
       <div class="accordion-wrapper">
         <q-expansion-item icon="style" label="샘플 라이브러리" default-opened class="samples-expansion">
           <q-tabs v-model="activeTab" dense class="samples-tabs" @update:model-value="handleTabChange">
-            <q-tab name="recent" label="최근" icon="schedule" />
-            <q-tab name="favorite" label="즐겨찾기" icon="star" />
-            <q-tab name="all" label="전체" icon="list" />
+            <q-tab name="all">
+              <q-icon name="list" class="q-mr-xs" />
+              <span>전체</span>
+            </q-tab>
+            <q-tab name="recent">
+              <q-icon name="schedule" class="q-mr-xs" />
+              <span>최근</span>
+            </q-tab>
+            <q-tab name="favorite">
+              <q-icon name="star" class="q-mr-xs" />
+              <span>즐겨찾기</span>
+            </q-tab>
           </q-tabs>
 
           <q-tab-panels v-model="activeTab" class="samples-tab-panels">
-            <!-- 최근 사용 탭 -->
-            <q-tab-panel name="recent" class="q-pa-sm">
-              <div v-if="recentSamples.length > 0" class="samples-list">
-                <div v-for="sample in recentSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
-                  <div class="sample-item-content">
-                    <q-icon :name="sample.icon || 'style'" class="sample-icon" />
-                    <div class="sample-info">
-                      <div class="sample-name">{{ sample.displayName || sample.name }}</div>
-                      <div class="sample-category">{{ sample.category }}</div>
-                      <div v-if="sample.tags && sample.tags.length > 0" class="sample-tags">
-                        <q-chip v-for="tag in sample.tags.slice(0, 3)" :key="tag" dense size="sm">
-                          {{ tag }}
-                        </q-chip>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="sample-actions">
-                    <q-btn flat dense round :icon="isFavorite(sample.id) ? 'star' : 'star_border'" size="sm" :class="{ 'favorite-btn': true, active: isFavorite(sample.id) }" @click.stop="handleToggleFavorite(sample)" />
-                    <q-btn flat dense round icon="close" size="sm" class="delete-btn" @click.stop="handleDeleteRecent(sample.id)" />
-                  </div>
-                </div>
-              </div>
-              <div v-else class="empty-state">
-                <q-icon name="schedule" size="48px" class="q-mb-sm" />
-                <div class="empty-message">최근 사용한 샘플이 없습니다.</div>
-                <div class="empty-hint">샘플을 선택하면 여기에 표시됩니다.</div>
-              </div>
-            </q-tab-panel>
-
-            <!-- 즐겨찾기 탭 -->
-            <q-tab-panel name="favorite" class="q-pa-sm">
-              <div v-if="favoriteSamples.length > 0" class="samples-list">
-                <div v-for="sample in favoriteSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
-                  <div class="sample-item-content">
-                    <q-icon :name="sample.icon || 'style'" class="sample-icon" />
-                    <div class="sample-info">
-                      <div class="sample-name">{{ sample.displayName || sample.name }}</div>
-                      <div class="sample-category">{{ sample.category }}</div>
-                    </div>
-                  </div>
-                  <div class="sample-actions">
-                    <q-btn flat dense round icon="star" size="sm" class="favorite-btn active" @click.stop="handleToggleFavorite(sample)" />
-                    <q-btn flat dense round icon="close" size="sm" class="delete-btn" @click.stop="handleDeleteFavorite(sample.id)" />
-                  </div>
-                </div>
-              </div>
-              <div v-else class="empty-state">
-                <q-icon name="star" size="48px" class="q-mb-sm" />
-                <div class="empty-message">즐겨찾기 샘플이 없습니다.</div>
-                <div class="empty-hint">최근 샘플 목록에서 별 아이콘을 클릭하여 즐겨찾기에 추가하세요.</div>
-              </div>
-            </q-tab-panel>
-
             <!-- 전체 샘플 탭 -->
             <q-tab-panel name="all" class="q-pa-sm">
               <div v-if="filteredSamples.length > 0" class="samples-list">
@@ -91,10 +47,34 @@
 
                 <!-- 계층적 분류 모드 (최상위 레벨 > 카테고리 > 샘플) -->
                 <template v-else-if="currentViewMode === 'hierarchy'">
+                  <!-- q-tree 방식 (테스트용) -->
+                  <q-tree v-if="treeNodes && treeNodes.length > 0" :nodes="treeNodes" node-key="id" label-key="label" children-key="children" default-expand-all class="hierarchy-tree" @update:selected="handleTreeNodeSelect">
+                    <template v-slot:default-header="prop">
+                      <div class="row items-center full-width">
+                        <q-icon v-if="prop.node.icon" :name="prop.node.icon" class="q-mr-sm" />
+                        <div class="col">{{ prop.node.label }}</div>
+                      </div>
+                    </template>
+                    <template v-slot:default-body="prop">
+                      <!-- 샘플 노드인 경우 클릭 가능한 아이템으로 렌더링 -->
+                      <div v-if="prop.node.sample" :class="['tree-sample-item', { 'tree-sample-item-selected': selectedSample?.id === prop.node.sample.id }]" @click="handleSampleSelect(prop.node.sample)">
+                        <div class="tree-sample-item-content">
+                          <q-icon :name="prop.node.icon || 'style'" class="tree-sample-icon" />
+                          <div class="tree-sample-info">
+                            <div class="tree-sample-name">{{ prop.node.label }}</div>
+                            <div v-if="prop.node.sample.category" class="tree-sample-category">{{ prop.node.sample.category }}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </q-tree>
+
+                  <!-- 기존 아코디언 방식 (주석 처리) -->
+                  <!--
                   <div v-if="hierarchicalStructure && hierarchicalStructure.length > 0">
                     <div v-for="topLevel in hierarchicalStructure" :key="topLevel.name" class="top-level-group">
                       <q-expansion-item :label="topLevel.label" :icon="topLevel.icon" class="top-level-expansion">
-                        <div v-for="category in topLevel.categories" :key="category.name" class="category-group">
+                        <div v-for="category in topLevel.categories" :key="category.name" class="accordion-wrapper">
                           <q-expansion-item :label="category.name" :icon="category.icon" class="category-expansion">
                             <div v-for="sample in category.samples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
                               <div class="sample-item-content">
@@ -109,7 +89,8 @@
                       </q-expansion-item>
                     </div>
                   </div>
-                  <div v-else class="empty-state">
+                  -->
+                  <div v-if="!treeNodes || treeNodes.length === 0" class="empty-state">
                     <q-icon name="account_tree" size="48px" class="q-mb-sm" />
                     <div class="empty-message">계층 구조 데이터가 없습니다.</div>
                     <div class="empty-hint">샘플을 로드하면 계층 구조가 표시됩니다.</div>
@@ -120,6 +101,59 @@
                 <q-icon name="style" size="48px" class="q-mb-sm" />
                 <div class="empty-message">샘플이 없습니다.</div>
                 <div class="empty-hint">샘플을 등록하면 여기에 표시됩니다.</div>
+              </div>
+            </q-tab-panel>
+
+            <!-- 최근 사용 탭 -->
+            <q-tab-panel name="recent" class="q-pa-sm">
+              <div v-if="recentSamples.length > 0" class="samples-list">
+                <div v-for="sample in recentSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id, 'has-favorite': isFavorite(sample.id) }]" @click="handleSampleSelect(sample)">
+                  <div class="sample-item-content">
+                    <div class="sample-actions">
+                      <q-btn flat dense round :icon="isFavorite(sample.id) ? 'star' : 'star_border'" size="sm" :class="{ 'favorite-btn': true, active: isFavorite(sample.id) }" @click.stop="handleToggleFavorite(sample)" />
+                      <q-btn flat dense round icon="close" size="sm" class="delete-btn" @click.stop="handleDeleteRecent(sample.id)" />
+                    </div>
+                    <q-icon :name="sample.icon || 'style'" class="sample-icon" />
+                    <div class="sample-info">
+                      <div class="sample-name">{{ sample.displayName || sample.name }}</div>
+                      <div class="sample-category">{{ sample.category }}</div>
+                      <div v-if="sample.tags && sample.tags.length > 0" class="sample-tags">
+                        <q-chip v-for="tag in sample.tags.slice(0, 3)" :key="tag" dense size="sm">
+                          {{ tag }}
+                        </q-chip>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-state">
+                <q-icon name="schedule" size="48px" class="q-mb-sm" />
+                <div class="empty-message">최근 사용한 샘플이 없습니다.</div>
+                <div class="empty-hint">샘플을 선택하면 여기에 표시됩니다.</div>
+              </div>
+            </q-tab-panel>
+
+            <!-- 즐겨찾기 탭 -->
+            <q-tab-panel name="favorite" class="q-pa-sm">
+              <div v-if="favoriteSamples.length > 0" class="samples-list">
+                <div v-for="sample in favoriteSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
+                  <div class="sample-item-content">
+                    <div class="sample-actions">
+                      <q-btn flat dense round icon="star" size="sm" class="favorite-btn active" @click.stop="handleToggleFavorite(sample)" />
+                      <q-btn flat dense round icon="close" size="sm" class="delete-btn" @click.stop="handleDeleteFavorite(sample.id)" />
+                    </div>
+                    <q-icon :name="sample.icon || 'style'" class="sample-icon" />
+                    <div class="sample-info">
+                      <div class="sample-name">{{ sample.displayName || sample.name }}</div>
+                      <div class="sample-category">{{ sample.category }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-state">
+                <q-icon name="star" size="48px" class="q-mb-sm" />
+                <div class="empty-message">즐겨찾기 샘플이 없습니다.</div>
+                <div class="empty-hint">최근 샘플 목록에서 별 아이콘을 클릭하여 즐겨찾기에 추가하세요.</div>
               </div>
             </q-tab-panel>
           </q-tab-panels>
@@ -292,6 +326,61 @@ const { activeTab, selectedSample, recentSamples, favoriteSamples, filteredSampl
 // viewMode를 computed로 변환하여 템플릿에서 사용
 const currentViewMode = computed(() => viewMode.value)
 
+// q-tree용 노드 데이터 변환 (테스트용)
+const treeNodes = computed(() => {
+  if (!hierarchicalStructure.value || hierarchicalStructure.value.length === 0) {
+    return []
+  }
+
+  let nodeId = 1
+  return hierarchicalStructure.value.map((topLevel) => {
+    const topLevelId = nodeId++
+    const children = topLevel.categories.map((category) => {
+      const categoryId = nodeId++
+      const sampleChildren = category.samples.map((sample) => {
+        return {
+          id: nodeId++,
+          label: sample.displayName || sample.name,
+          icon: sample.icon || 'style',
+          sample: sample, // 원본 샘플 데이터 보관
+        }
+      })
+      return {
+        id: categoryId,
+        label: category.name,
+        icon: category.icon,
+        children: sampleChildren,
+      }
+    })
+    return {
+      id: topLevelId,
+      label: topLevel.label,
+      icon: topLevel.icon,
+      children: children,
+    }
+  })
+})
+
+// q-tree 노드 선택 핸들러
+function handleTreeNodeSelect(selectedId) {
+  // 선택된 노드에서 샘플 데이터 찾기
+  const findSampleInNodes = (nodes) => {
+    for (const node of nodes) {
+      if (node.id === selectedId && node.sample) {
+        handleSampleSelect(node.sample)
+        return
+      }
+      if (node.children) {
+        const found = findSampleInNodes(node.children)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  findSampleInNodes(treeNodes.value)
+}
+
 // 즐겨찾기 확인
 function isFavorite(sampleId) {
   return favoriteSamples.value.some((s) => s.id === sampleId)
@@ -332,205 +421,84 @@ function handleDeleteFavorite(sampleId) {
     height: 100%;
   }
 
-  .accordion-wrapper {
-    margin-bottom: 8px;
-  }
-
-  .samples-expansion {
-    :deep(.q-expansion-item__container) {
-      border-bottom: 1px solid var(--nexa-border-color);
-    }
-  }
-
-  .samples-tabs {
-    border-bottom: 1px solid var(--nexa-border-color);
-  }
-
-  .samples-tab-panels {
-    min-height: 200px;
-  }
-
-  .top-level-group {
-    margin-bottom: 4px;
-
-    .top-level-expansion {
-      :deep(.q-expansion-item__container) {
-        border-bottom: 1px solid var(--nexa-border-color);
-        font-weight: 600;
-      }
-    }
-
-    .category-group {
-      margin-left: 8px;
-      margin-bottom: 2px;
-
-      .category-expansion {
-        :deep(.q-expansion-item__container) {
-          border-bottom: 1px solid var(--nexa-border-color);
-          font-weight: 500;
-        }
-
-        :deep(.q-expansion-item__content) {
-          padding-left: 8px;
-        }
-      }
-    }
-  }
-
-  .samples-list {
-    .sample-item {
+  // 샘플 아이템 스타일 (최근, 즐겨찾기, 전체 탭의 평면 모드)
+  .sample-item {
+    .sample-item-content {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 8px;
-      margin-bottom: 4px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-
-      &:hover {
-        background-color: var(--nexa-surface-hover);
-      }
-
-      &.sample-item-selected {
-        background-color: var(--nexa-surface-hover);
-        border-left: 3px solid var(--nexa-primary);
-      }
-
-      .sample-item-content {
-        display: flex;
-        align-items: center;
-        flex: 1;
-        min-width: 0;
-
-        .sample-icon {
-          margin-right: 8px;
-          color: var(--nexa-text-secondary);
-        }
-
-        .sample-info {
-          flex: 1;
-          min-width: 0;
-
-          .sample-name {
-            font-weight: 500;
-            color: var(--nexa-text-primary);
-            margin-bottom: 2px;
-          }
-
-          .sample-category {
-            font-size: 12px;
-            color: var(--nexa-text-secondary);
-            margin-bottom: 4px;
-          }
-
-          .sample-tags {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-          }
-        }
-      }
+      gap: 2px;
 
       .sample-actions {
         display: flex;
+        align-items: center;
         gap: 4px;
-
-        .favorite-btn {
-          color: var(--nexa-text-secondary);
-
-          &.active {
-            color: var(--nexa-warning);
-          }
-        }
-
-        .delete-btn {
-          color: var(--nexa-text-secondary);
-        }
-      }
-    }
-  }
-
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-    text-align: center;
-    color: var(--nexa-text-secondary);
-
-    .empty-message {
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-
-    .empty-hint {
-      font-size: 12px;
-      color: var(--nexa-text-disabled);
-    }
-  }
-
-  .conventions-expansion,
-  .patterns-expansion,
-  .best-practices-expansion,
-  .quick-access-expansion,
-  .advanced-filter-expansion {
-    :deep(.q-expansion-item__container) {
-      border-bottom: 1px solid var(--nexa-border-color);
-    }
-  }
-
-  .coming-soon-section {
-    .coming-soon-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: var(--nexa-text-secondary);
-
-      .q-icon {
-        color: var(--nexa-text-disabled);
-        margin-bottom: 8px;
+        width: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition:
+          width 0.2s ease,
+          opacity 0.2s ease;
+        flex-shrink: 0;
       }
 
-      .coming-soon-title {
-        font-weight: 600;
-        color: var(--nexa-text-primary);
-        margin-bottom: 4px;
-        font-size: 1rem;
+      .sample-icon {
+        flex-shrink: 0;
       }
 
-      .coming-soon-description {
-        font-size: 0.875rem;
-        color: var(--nexa-text-secondary);
-        margin-bottom: 16px;
-      }
-
-      .coming-soon-features {
+      .sample-info {
         display: flex;
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-        margin-top: 16px;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
 
-        .feature-item {
+        .sample-name {
+          font-size: 0.9rem;
+          white-space: nowrap;
+        }
+
+        .sample-category {
+          font-size: 0.75rem;
+          color: var(--nexa-text-secondary);
+          white-space: nowrap;
+        }
+
+        .sample-tags {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 8px 12px;
-          background-color: var(--nexa-background);
-          border: 1px solid var(--nexa-border-color);
-          border-radius: 4px;
-          font-size: 0.875rem;
-          color: var(--nexa-text-secondary);
-          text-align: left;
+          flex-wrap: nowrap;
 
-          .q-icon {
-            color: var(--nexa-text-disabled);
+          :deep(.q-chip) {
             margin: 0;
           }
+        }
+      }
+    }
+
+    // 즐겨찾기가 있는 경우 항상 표시
+    &.has-favorite {
+      .sample-item-content {
+        .sample-actions {
+          width: auto;
+          opacity: 1;
+        }
+      }
+    }
+
+    &:hover {
+      .sample-item-content {
+        .sample-actions {
+          width: auto;
+          opacity: 1;
+        }
+      }
+    }
+
+    // 즐겨찾기 버튼 액센트 컬러 적용
+    .favorite-btn {
+      &.active {
+        :deep(.q-icon) {
+          color: var(--nexa-accent);
         }
       }
     }

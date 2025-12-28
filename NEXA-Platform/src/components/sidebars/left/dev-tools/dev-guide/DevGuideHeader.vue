@@ -9,6 +9,10 @@
       <div class="row items-center justify-between">
         <div class="header-title">Development Guide</div>
         <div class="row q-gutter-xs">
+          <!-- 뷰 모드 토글 -->
+          <q-btn flat dense :icon="localViewMode === 'flat' ? 'view_list' : 'account_tree'" size="sm" @click="handleViewModeToggle">
+            <q-tooltip>{{ localViewMode === 'flat' ? '평면 모드' : '계층 모드' }} (클릭하여 전환)</q-tooltip>
+          </q-btn>
           <q-btn flat dense icon="refresh" size="sm" @click="handleRefresh">
             <q-tooltip>새로고침</q-tooltip>
           </q-btn>
@@ -40,20 +44,6 @@
             </template>
           </q-select>
         </div>
-      </div>
-
-      <!-- 뷰 모드 전환 -->
-      <div class="row q-gutter-sm q-mb-sm">
-        <q-btn-toggle
-          v-model="localViewMode"
-          :options="[
-            { label: '평면', value: 'flat', icon: 'view_list' },
-            { label: '계층', value: 'hierarchy', icon: 'account_tree' },
-          ]"
-          toggle-color="primary"
-          dense
-          @update:model-value="handleViewModeChangeLocal"
-        />
       </div>
     </div>
   </div>
@@ -94,10 +84,11 @@ function handleCategoryFilterChangeLocal(value) {
   handleCategoryFilterChange(value)
 }
 
-// 뷰 모드 변경 핸들러
-function handleViewModeChangeLocal(value) {
-  localViewMode.value = value
-  handleViewModeChange(value)
+// 뷰 모드 토글 핸들러
+function handleViewModeToggle() {
+  const newMode = localViewMode.value === 'flat' ? 'hierarchy' : 'flat'
+  localViewMode.value = newMode
+  handleViewModeChange(newMode)
 }
 
 // 새로고침 핸들러

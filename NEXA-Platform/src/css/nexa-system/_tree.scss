@@ -1,0 +1,82 @@
+// ============================================
+// 트리 컴포넌트 (tree)
+// ============================================
+// Quasar q-tree 컴포넌트 전역 스타일 오버라이드
+// 최소한의 스타일만 유지
+
+.q-tree {
+  color: var(--nexa-text-primary);
+
+  // 노드 간격 조정
+  .q-tree__node {
+    .q-tree__node-header {
+      padding: 4px 8px;
+    }
+  }
+
+  // 트리 샘플 아이템 (body slot에서 렌더링되는 샘플 아이템)
+  .tree-sample-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    padding: 0 0 0 14px;
+
+    .tree-sample-item-content {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+
+      .tree-sample-icon {
+        color: var(--nexa-text-secondary);
+        font-size: 20px;
+        // flex-shrink: 0;
+      }
+
+      .tree-sample-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex: 1;
+        min-width: 0;
+
+        //각 아이템 이름 스타일
+        .tree-sample-name {
+          font-size: 0.9rem;
+          white-space: nowrap;
+        }
+
+        .tree-sample-category {
+          font-size: 0.75rem;
+          color: var(--nexa-text-secondary);
+          white-space: nowrap;
+        }
+      }
+    }
+
+    &:hover {
+      background-color: var(--nexa-surface-hover);
+    }
+
+    // 선택된 상태
+    &.tree-sample-item-selected {
+      background-color: var(--nexa-item-selected-bg);
+      border-left: 3px solid var(--nexa-primary);
+      padding-left: 9px;
+
+      .tree-sample-item-content {
+        .tree-sample-icon {
+          color: var(--nexa-primary);
+        }
+
+        .tree-sample-info {
+          .tree-sample-name {
+            color: var(--nexa-item-selected-text);
+          }
+        }
+      }
+
+      &:hover {
+        background-color: var(--nexa-item-selected-hover-bg);
+      }
+    }
+  }
+}

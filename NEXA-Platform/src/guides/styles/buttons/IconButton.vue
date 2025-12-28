@@ -2,6 +2,11 @@
   아이콘 버튼 샘플 컴포넌트
   개발 가이드용 샘플 파일
 -->
+<!--
+  @tags: styles 버튼, 아이콘 버튼
+  @category: buttons
+  @description: Icon Button 샘플 컴포넌트
+-->
 <template>
   <div class="icon-button-sample">
     <div class="sample-header">
@@ -53,4 +58,3 @@
   }
 }
 </style>
-

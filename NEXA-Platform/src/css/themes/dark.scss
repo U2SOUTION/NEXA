@@ -24,7 +24,7 @@ body.dark {
 
   // 경고 및 에러 색상
   --nexa-warning: #edb20f; // 경고 색상
-  --nexa-error: #c10015; // 에러 색상
+  --nexa-error: #de104d; // 에러 색상
   --nexa-error-text: #ff6b6b; // 에러 텍스트 색상
 
   // 링크 색상
@@ -223,7 +223,7 @@ body.dark {
   // 11. 탭 색상 (tab-*)
   // ============================================
   --nexa-tab-bg: var(--nexa-surface); // 탭 기본 배경색
-  --nexa-tab-active-bg: var(--nexa-background-darker); // 탭 활성 배경색
+  --nexa-tab-active-bg: #00000026; // 탭 활성 배경색
   --nexa-tab-inactive-bg: var(--nexa-surface); // 탭 비활성 배경색
   --nexa-tab-hover-bg: var(--nexa-surface-hover); // 탭 호버 배경색
   --nexa-tab-text: var(--nexa-text-primary); // 탭 텍스트 색상

@@ -56,9 +56,7 @@
           </div>
           <div v-if="selectedSample.hierarchy" class="info-item">
             <span class="info-label">계층:</span>
-            <span class="info-value">
-              {{ selectedSample.hierarchy.type }} > {{ selectedSample.hierarchy.subType }} > {{ selectedSample.hierarchy.variant }}
-            </span>
+            <span class="info-value"> {{ selectedSample.hierarchy.type }} > {{ selectedSample.hierarchy.subType }} > {{ selectedSample.hierarchy.variant }} </span>
           </div>
           <div v-if="selectedSample.componentPath" class="info-item">
             <span class="info-label">컴포넌트:</span>
@@ -88,13 +86,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useQuasar } from 'quasar'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 import { copyTextToClipboard } from 'src/utils/clipboard'
 
+const $q = useQuasar()
 const { selectedSample } = useDevGuide()
 
 const newTag = ref('')
+const isSaving = ref(false)
 
 // 키워드 복사 핸들러
 async function handleCopyKeyword() {
@@ -103,8 +104,55 @@ async function handleCopyKeyword() {
   }
 }
 
+// 파일에 메타데이터 저장
+async function saveMetadataToFile() {
+  if (!selectedSample.value?.componentPath) return
+
+  // 개발 환경에서만 API 호출
+  if (!import.meta.env.DEV) {
+    console.warn('[DevGuidePanel] 개발 환경에서만 파일 저장이 가능합니다.')
+    return
+  }
+
+  if (isSaving.value) return // 이미 저장 중이면 무시
+
+  try {
+    isSaving.value = true
+
+    const filePath = selectedSample.value.componentPath
+    const response = await fetch(`http://localhost:3000/api/dev/files/${filePath}/metadata`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tags: selectedSample.value.tags || [],
+        category: selectedSample.value.category || '',
+        description: selectedSample.value.description || '',
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || '메타데이터 저장 실패')
+    }
+
+    // 성공 알림은 생략 (너무 자주 발생할 수 있음)
+  } catch (error) {
+    console.error('[DevGuidePanel] 메타데이터 저장 실패:', error)
+    $q.notify({
+      type: 'negative',
+      message: `태그 저장 실패: ${error.message}`,
+      position: 'top',
+      timeout: 2000,
+    })
+  } finally {
+    isSaving.value = false
+  }
+}
+
 // 태그 추가 핸들러
-function handleAddTag() {
+async function handleAddTag() {
   if (newTag.value.trim() && selectedSample.value) {
     if (!selectedSample.value.tags) {
       selectedSample.value.tags = []
@@ -112,29 +160,82 @@ function handleAddTag() {
     if (!selectedSample.value.tags.includes(newTag.value.trim())) {
       selectedSample.value.tags.push(newTag.value.trim())
       newTag.value = ''
-      // TODO: 샘플 레지스트리에 저장
+      // 파일에 저장
+      await saveMetadataToFile()
     }
   }
 }
 
 // 태그 제거 핸들러
-function handleRemoveTag(tag) {
+async function handleRemoveTag(tag) {
   if (selectedSample.value?.tags) {
     const index = selectedSample.value.tags.indexOf(tag)
     if (index >= 0) {
       selectedSample.value.tags.splice(index, 1)
-      // TODO: 샘플 레지스트리에 저장
+      // 파일에 저장
+      await saveMetadataToFile()
     }
+  }
+}
+
+// 파일에서 메타데이터 읽기
+async function loadMetadataFromFile() {
+  if (!selectedSample.value?.componentPath) return
+
+  // 개발 환경에서만 API 호출
+  if (!import.meta.env.DEV) return
+
+  try {
+    const filePath = selectedSample.value.componentPath
+    const response = await fetch(`http://localhost:3000/api/dev/files/${filePath}/metadata`)
+
+    if (!response.ok) {
+      // 파일에 메타데이터가 없거나 읽기 실패 시 무시 (기본값 사용)
+      return
+    }
+
+    const data = await response.json()
+    if (data.success && data.metadata) {
+      // 파일에서 읽은 메타데이터로 업데이트
+      if (data.metadata.tags && data.metadata.tags.length > 0) {
+        selectedSample.value.tags = data.metadata.tags
+      }
+      if (data.metadata.category) {
+        selectedSample.value.category = data.metadata.category
+      }
+      if (data.metadata.description) {
+        selectedSample.value.description = data.metadata.description
+      }
+    }
+  } catch (error) {
+    // 파일 읽기 실패는 무시 (기본값 사용)
+    console.debug('[DevGuidePanel] 메타데이터 읽기 실패 (무시됨):', error.message)
   }
 }
 
 // 샘플 선택 이벤트 리스너
 function handleSampleSelected() {
   // selectedSample은 useDevGuide에서 관리되므로 자동으로 업데이트됨
+  // 파일에서 메타데이터 로드
+  loadMetadataFromFile()
 }
+
+// selectedSample 변경 감시
+watch(
+  () => selectedSample.value?.componentPath,
+  () => {
+    if (selectedSample.value?.componentPath) {
+      loadMetadataFromFile()
+    }
+  },
+)
 
 onMounted(() => {
   window.addEventListener('dev-guide-sample-selected', handleSampleSelected)
+  // 초기 로드
+  if (selectedSample.value?.componentPath) {
+    loadMetadataFromFile()
+  }
 })
 
 onBeforeUnmount(() => {
@@ -201,4 +302,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-

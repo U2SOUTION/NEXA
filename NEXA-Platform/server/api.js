@@ -12,6 +12,8 @@ import { getCategoryAbbreviation } from './utils/skuGenerator.js'
 import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, generateFolderPath, generateFilename, createSafeFilename, ensureFolderExists, saveFile, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder, cleanupOldTempFiles } from './utils/fileUpload.js'
 import documentFilesRouter from './routes/documentFiles.js'
 import createDatabaseSchemaRouter from './routes/databaseSchema.js'
+// 개발 전용 파일 편집 API (프로덕션에서는 라우터 내부에서 차단됨)
+import devOnlyFileEditorRouter from './routes/devOnlyFileEditor.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -2104,6 +2106,14 @@ app.use('/api/docs', documentFilesRouter)
 const databaseSchemaRouter = createDatabaseSchemaRouter(() => dbConnection)
 app.use('/api/db', databaseSchemaRouter)
 console.log('[DB Schema] 라우터 등록 완료: /api/db')
+
+// 개발 전용 파일 편집 API 등록 (라우터 내부에서 프로덕션 환경 체크)
+app.use('/api/dev/files', devOnlyFileEditorRouter)
+if (process.env.NODE_ENV !== 'production') {
+  console.log('[DevFileEditor] 개발 전용 파일 편집 API 등록 완료: /api/dev/files')
+} else {
+  console.log('[DevFileEditor] 개발 전용 파일 편집 API 등록됨 (프로덕션에서는 모든 요청 차단)')
+}
 
 // ============================================
 // 관리자 설정 API

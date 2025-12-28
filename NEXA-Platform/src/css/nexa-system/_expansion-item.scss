@@ -8,7 +8,8 @@
 // 좌우 패딩 통일: q-scroll-area의 스크롤바가 오른쪽에 있어서
 // 시각적 균형을 위해 좌우 동일한 패딩 적용
 .accordion-wrapper {
-  padding: 0 8px;
+  padding: 0 4px;
+  margin-top: 4px; //아코디언간의 상하 간격
   margin-bottom: 4px; //아코디언간의 상하 간격
 }
 
