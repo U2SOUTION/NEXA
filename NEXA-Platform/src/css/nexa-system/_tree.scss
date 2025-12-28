@@ -5,12 +5,108 @@
 // 최소한의 스타일만 유지
 
 .q-tree {
-  color: var(--nexa-text-primary);
+  //color: var(--nexa-text-primary);
 
-  // 노드 간격 조정
+  // 노드 간격 최소화 및 연결선 완전 제거
   .q-tree__node {
+    margin: 0;
+    padding: 0;
+
+    // Quasar의 기본 연결선 제거
+    .q-tree__node-connector {
+      display: none;
+    }
+
+    // 모든 연결선 제거
+    &::before,
+    &::after {
+      display: none;
+      content: none;
+    }
+
     .q-tree__node-header {
-      padding: 4px 8px;
+      padding: 0; //아이템 끼리 상하 간격
+      margin: 0;
+      cursor: pointer; // 클릭 가능하도록
+
+      transition: background-color 0.2s ease;
+
+      // 헤더 클릭 가능하도록
+      pointer-events: auto;
+
+      // 호버 효과
+      &:hover {
+        background-color: var(--nexa-surface-hover);
+      }
+
+      // 헤더의 연결선 제거
+      &::before,
+      &::after {
+        display: none;
+        content: none;
+      }
+
+      // 폴더명(헤더 텍스트) 색상
+      .row,
+      .col,
+      div {
+        color: var(--nexa-text-primary);
+        pointer-events: none; // 텍스트 클릭 이벤트는 헤더로 전달
+      }
+
+      // 헤더 아이콘 색상 (기본 - 모든 레벨에 적용, 하위 레벨은 아래에서 오버라이드)
+      .row {
+        .q-icon {
+          color: var(--nexa-text-primary) !important;
+          font-size: 16px !important; // 기본 크기 (하위 레벨)
+          pointer-events: none; // 아이콘 클릭 이벤트는 헤더로 전달
+        }
+      }
+    }
+
+    .q-tree__node-body {
+      //   margin: 0;
+      //   padding: 0;
+      //position: relative;
+
+      // 본문의 연결선 제거
+      &::before,
+      &::after {
+        display: none;
+        content: none;
+      }
+    }
+  }
+
+  // 트리 전체의 연결선 제거
+  &::before,
+  &::after {
+    display: none;
+    content: none;
+  }
+
+  // 최상위 폴더 아이콘 (루트 레벨) - .q-tree의 직접 자식 노드만
+  // 하위 레벨보다 더 구체적인 선택자로 최상위만 선택
+  > .q-tree__node {
+    .q-tree__node-header {
+      .row {
+        .q-icon {
+          color: var(--nexa-primary); // 최상위 폴더 아이콘 색상
+          font-size: 22px !important; // 최상위 폴더 아이콘 크기
+        }
+      }
+    }
+
+    // 최상위 노드의 하위 노드는 제외 (16px 유지)
+    .q-tree__node {
+      .q-tree__node-header {
+        .row {
+          .q-icon {
+            font-size: 16px; // 최상위의 하위는 16px
+            color: var(--nexa-text-primary);
+          }
+        }
+      }
     }
   }
 
@@ -18,23 +114,21 @@
   .tree-sample-item {
     cursor: pointer;
     transition: background-color 0.2s ease;
-    padding: 0 0 0 14px;
 
+    //구제적인 아이템
     .tree-sample-item-content {
       display: flex;
-      align-items: center;
-      gap: 2px;
 
       .tree-sample-icon {
-        color: var(--nexa-text-secondary);
-        font-size: 20px;
-        // flex-shrink: 0;
+        color: var(--nexa-text-ㅔㄱ);
+        font-size: 15px;
+        margin-right: 4px;
       }
 
       .tree-sample-info {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 4px; //아이템 이름과 카테고리 간격
         flex: 1;
         min-width: 0;
 

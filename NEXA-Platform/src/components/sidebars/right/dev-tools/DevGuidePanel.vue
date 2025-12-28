@@ -107,68 +107,79 @@
           의존성 정보를 로드하는 중...
         </div>
 
-        <!-- 컴포넌트 의존성 -->
-        <template v-if="dependencies?.components && dependencies.components.length > 0">
-          <div class="dependency-group q-mt-sm">
-            <div class="dependency-list">
-              <div v-for="(comp, index) in dependencies.components" :key="index" class="dependency-item">
-                <q-icon name="widgets" size="14px" class="item-icon" />
-                <span class="dependency-path" @click="handleCopyDependencyPath(comp.fullPath)">{{ comp.fullPath }}</span>
-                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(comp.fullPath)" />
+        <!-- 의존성 정보가 로드된 경우 -->
+        <template v-else-if="dependencies">
+          <!-- 스타일 의존성 (CSS) - 가장 위에 위치 -->
+          <template v-if="dependencies.styles && dependencies.styles.length > 0">
+            <div class="dependency-group q-mt-sm">
+              <div class="dependency-list">
+                <div v-for="(style, index) in dependencies.styles" :key="index" class="dependency-item">
+                  <q-icon name="style" size="14px" class="item-icon" />
+                  <span class="dependency-path" @click="handleCopyDependencyPath(style.fullPath)">{{ style.fullPath }}</span>
+                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(style.fullPath)" />
+                </div>
               </div>
             </div>
+          </template>
+          <div v-else-if="!isLoadingDependencies" class="dependency-empty-message">
+            <q-icon name="style" size="14px" class="q-mr-xs" />
+            사용하는 스타일이 없습니다.
+          </div>
+
+          <!-- 컴포넌트 의존성 -->
+          <template v-if="dependencies.components && dependencies.components.length > 0">
+            <div class="dependency-group q-mt-sm">
+              <div class="dependency-list">
+                <div v-for="(comp, index) in dependencies.components" :key="index" class="dependency-item">
+                  <q-icon name="widgets" size="14px" class="item-icon" />
+                  <span class="dependency-path" @click="handleCopyDependencyPath(comp.fullPath)">{{ comp.fullPath }}</span>
+                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(comp.fullPath)" />
+                </div>
+              </div>
+            </div>
+          </template>
+          <div v-else-if="!isLoadingDependencies" class="dependency-empty-message">
+            <q-icon name="widgets" size="14px" class="q-mr-xs" />
+            사용하는 컴포넌트가 없습니다.
+          </div>
+
+          <!-- 유틸리티 의존성 -->
+          <template v-if="dependencies.utilities && dependencies.utilities.length > 0">
+            <div class="dependency-group q-mt-sm">
+              <div class="dependency-list">
+                <div v-for="(util, index) in dependencies.utilities" :key="index" class="dependency-item">
+                  <q-icon name="build" size="14px" class="item-icon" />
+                  <span class="dependency-path" @click="handleCopyDependencyPath(util.fullPath)">{{ util.fullPath }}</span>
+                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(util.fullPath)" />
+                </div>
+              </div>
+            </div>
+          </template>
+          <div v-else-if="!isLoadingDependencies" class="dependency-empty-message">
+            <q-icon name="build" size="14px" class="q-mr-xs" />
+            사용하는 유틸리티가 없습니다.
+          </div>
+
+          <!-- 스토어 의존성 -->
+          <template v-if="dependencies.stores && dependencies.stores.length > 0">
+            <div class="dependency-group q-mt-sm">
+              <div class="dependency-list">
+                <div v-for="(store, index) in dependencies.stores" :key="index" class="dependency-item">
+                  <q-icon name="storage" size="14px" class="item-icon" />
+                  <span class="dependency-path" @click="handleCopyDependencyPath(store.fullPath)">{{ store.fullPath }}</span>
+                  <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(store.fullPath)" />
+                </div>
+              </div>
+            </div>
+          </template>
+          <div v-else-if="!isLoadingDependencies" class="dependency-empty-message">
+            <q-icon name="storage" size="14px" class="q-mr-xs" />
+            사용하는 스토어가 없습니다.
           </div>
         </template>
 
-        <!-- 유틸리티 의존성 -->
-        <template v-if="dependencies?.utilities && dependencies.utilities.length > 0">
-          <div class="dependency-group q-mt-sm">
-            <div class="dependency-list">
-              <div v-for="(util, index) in dependencies.utilities" :key="index" class="dependency-item">
-                <q-icon name="build" size="14px" class="item-icon" />
-                <span class="dependency-path" @click="handleCopyDependencyPath(util.fullPath)">{{ util.fullPath }}</span>
-                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(util.fullPath)" />
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <!-- 스토어 의존성 -->
-        <template v-if="dependencies?.stores && dependencies.stores.length > 0">
-          <div class="dependency-group q-mt-sm">
-            <div class="dependency-list">
-              <div v-for="(store, index) in dependencies.stores" :key="index" class="dependency-item">
-                <q-icon name="storage" size="14px" class="item-icon" />
-                <span class="dependency-path" @click="handleCopyDependencyPath(store.fullPath)">{{ store.fullPath }}</span>
-                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(store.fullPath)" />
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <!-- 스타일 의존성 -->
-        <template v-if="dependencies?.styles && dependencies.styles.length > 0">
-          <div class="dependency-group q-mt-sm">
-            <div class="dependency-list">
-              <div v-for="(style, index) in dependencies.styles" :key="index" class="dependency-item">
-                <q-icon name="style" size="14px" class="item-icon" />
-                <span class="dependency-path" @click="handleCopyDependencyPath(style.fullPath)">{{ style.fullPath }}</span>
-                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(style.fullPath)" />
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <!-- 의존성 없음 -->
-        <div
-          v-if="dependencies && (!dependencies.components || dependencies.components.length === 0) && (!dependencies.utilities || dependencies.utilities.length === 0) && (!dependencies.stores || dependencies.stores.length === 0) && (!dependencies.styles || dependencies.styles.length === 0)"
-          class="q-mt-sm text-caption"
-        >
-          이 샘플은 외부 의존성이 없습니다.
-        </div>
-
-        <!-- 데이터 없음 -->
-        <div v-else class="q-mt-sm text-caption">의존성 정보를 불러올 수 없습니다.</div>
+        <!-- 데이터 없음 (의존성 정보를 불러올 수 없는 경우) -->
+        <div v-else-if="!isLoadingDependencies" class="dependency-empty-message">의존성 정보를 불러올 수 없습니다.</div>
       </div>
 
       <q-separator v-if="selectedSample" />
@@ -628,8 +639,8 @@ onBeforeUnmount(() => {
     .info-list {
       .info-item {
         display: flex;
-        margin-bottom: 8px;
         min-width: 0; // flex 아이템이 줄어들 수 있도록
+        padding: 4px 0;
 
         .info-label {
           color: var(--nexa-text-secondary);
@@ -658,80 +669,62 @@ onBeforeUnmount(() => {
       color: var(--nexa-text-disabled);
     }
 
-    .dependency-group {
-      .dependency-list {
-        .dependency-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-left: 16px;
-          min-width: 0;
+    // 공통 아이템 스타일
+    .dependency-item,
+    .scss-variable-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-left: 16px;
+      min-width: 0;
+      line-height: 1 !important;
 
-          .item-icon {
-            color: var(--nexa-text-secondary);
-            margin-right: 6px;
-            flex-shrink: 0;
-          }
-
-          .dependency-path {
-            font-family: 'Courier New', monospace;
-            font-size: 0.8125rem;
-            color: var(--nexa-text-primary);
-            flex: 1;
-            min-width: 0;
-            word-break: break-word;
-            overflow-wrap: break-word;
-            transition: color 0.2s;
-
-            &:hover {
-              color: var(--nexa-text-secondary);
-            }
-          }
-        }
+      .item-icon {
+        color: var(--nexa-text-secondary);
+        font-size: 10px;
+        margin-right: 6px;
+        flex-shrink: 0;
       }
     }
 
-    //변수 아이템 (샘플 정보와 비슷한 포맷)
-    .scss-variables-list {
-      .scss-variable-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-left: 16px;
-        min-width: 0;
+    // 공통 텍스트 스타일 (의존성 경로, 변수명)
+    .dependency-path,
+    .scss-variable-name {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8125rem;
+      color: var(--nexa-text-primary);
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      transition: color 0.2s;
+      cursor: pointer;
 
-        .item-icon {
-          color: var(--nexa-text-secondary);
-          margin-right: 6px;
-          flex-shrink: 0;
-        }
-
-        .scss-variable-name {
-          color: var(--nexa-text-primary);
-          font-size: 0.8125rem;
-          font-family: 'Courier New', monospace;
-          flex: 1;
-          min-width: 0;
-          word-break: break-word;
-          overflow-wrap: break-word;
-          transition: color 0.2s;
-
-          &:hover {
-            color: var(--nexa-text-secondary);
-          }
-        }
-
-        .scss-variable-color-box {
-          width: 20px;
-          height: 20px;
-          min-width: 20px;
-          min-height: 20px;
-          border: 1px solid var(--nexa-border-color);
-          border-radius: 3px;
-          flex-shrink: 0;
-          margin-left: 8px;
-        }
+      &:hover {
+        color: var(--nexa-text-secondary);
       }
+    }
+
+    .dependency-empty-message {
+      color: var(--nexa-text-secondary) !important;
+      font-size: 0.8125rem;
+      opacity: 0.5;
+      margin-left: 16px;
+
+      .q-icon {
+        color: var(--nexa-text-secondary) !important;
+      }
+    }
+
+    .scss-variable-color-box {
+      width: 50px;
+      height: 10px;
+      min-width: 30px;
+      min-height: 10px;
+      border: 1px solid var(--nexa-border-color);
+      border-radius: 3px;
+      flex-shrink: 0;
+      margin-left: 8px;
     }
   }
 
