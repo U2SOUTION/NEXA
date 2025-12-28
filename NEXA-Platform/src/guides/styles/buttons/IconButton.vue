@@ -8,7 +8,7 @@
   @description: Icon Button 샘플 컴포넌트
 -->
 <template>
-  <div class="icon-button-sample">
+<div class="icon-button-sample">
     <div class="sample-header">
       <h3 class="sample-title">아이콘 버튼 샘플</h3>
       <p class="sample-description">아이콘만 표시되는 버튼 예시</p>
@@ -23,9 +23,13 @@
   </div>
 </template>
 
+
+
 <script setup>
 // 샘플 컴포넌트 - 실제 구현은 참고용
 </script>
+
+
 
 <style lang="scss" scoped>
 .icon-button-sample {
@@ -58,3 +62,5 @@
   }
 }
 </style>
+
+

@@ -83,11 +83,8 @@ function parseContent() {
   parsedContent.value = parseVueFile(props.fileContent)
 }
 
-// 에디터 초기화
-async function initEditors() {
-  await nextTick()
-
-  // Template 에디터
+// Template 에디터 초기화
+function initTemplateEditor() {
   if (templateEditorRef.value && !templateEditor) {
     const extensions = [
       basicSetup,
@@ -107,14 +104,16 @@ async function initEditors() {
 
     templateEditor = new EditorView({
       state: EditorState.create({
-        doc: parsedContent.value.template || '',
+        doc: parsedContent.value?.template || '',
         extensions,
       }),
       parent: templateEditorRef.value,
     })
   }
+}
 
-  // Script 에디터
+// Script 에디터 초기화
+function initScriptEditor() {
   if (scriptEditorRef.value && !scriptEditor) {
     const extensions = [
       basicSetup,
@@ -134,14 +133,16 @@ async function initEditors() {
 
     scriptEditor = new EditorView({
       state: EditorState.create({
-        doc: parsedContent.value.script || '',
+        doc: parsedContent.value?.script || '',
         extensions,
       }),
       parent: scriptEditorRef.value,
     })
   }
+}
 
-  // Style 에디터
+// Style 에디터 초기화
+function initStyleEditor() {
   if (styleEditorRef.value && !styleEditor) {
     const extensions = [
       basicSetup,
@@ -161,7 +162,7 @@ async function initEditors() {
 
     styleEditor = new EditorView({
       state: EditorState.create({
-        doc: parsedContent.value.style || '',
+        doc: parsedContent.value?.style || '',
         extensions,
       }),
       parent: styleEditorRef.value,
@@ -169,37 +170,16 @@ async function initEditors() {
   }
 }
 
-// 에디터 내용 업데이트
-function updateEditors() {
-  if (templateEditor && parsedContent.value) {
-    const newState = templateEditor.state.update({
-      changes: {
-        from: 0,
-        to: templateEditor.state.doc.length,
-        insert: parsedContent.value.template || '',
-      },
-    })
-    templateEditor.dispatch(newState)
-  }
-  if (scriptEditor && parsedContent.value) {
-    const newState = scriptEditor.state.update({
-      changes: {
-        from: 0,
-        to: scriptEditor.state.doc.length,
-        insert: parsedContent.value.script || '',
-      },
-    })
-    scriptEditor.dispatch(newState)
-  }
-  if (styleEditor && parsedContent.value) {
-    const newState = styleEditor.state.update({
-      changes: {
-        from: 0,
-        to: styleEditor.state.doc.length,
-        insert: parsedContent.value.style || '',
-      },
-    })
-    styleEditor.dispatch(newState)
+// 에디터 초기화 (모든 에디터)
+async function initEditors() {
+  await nextTick()
+  // 현재 활성 탭에 해당하는 에디터만 초기화
+  if (activeTab.value === 'template') {
+    initTemplateEditor()
+  } else if (activeTab.value === 'script') {
+    initScriptEditor()
+  } else if (activeTab.value === 'style') {
+    initStyleEditor()
   }
 }
 
@@ -260,8 +240,11 @@ async function handleSave() {
 
 // 새로고침 핸들러
 function handleReload() {
+  destroyEditors()
   parseContent()
-  updateEditors()
+  nextTick(() => {
+    initEditors()
+  })
   emit('reload')
 }
 
@@ -270,9 +253,56 @@ watch(
   () => props.fileContent,
   () => {
     parseContent()
-    updateEditors()
+    // 파일이 변경되면 에디터를 재초기화
+    destroyEditors()
+    nextTick(() => {
+      initEditors()
+    })
   },
   { immediate: true },
+)
+
+// 탭 변경 감지 - 에디터 재렌더링
+watch(
+  () => activeTab.value,
+  async (newTab) => {
+    await nextTick()
+    // 탭이 변경되면 해당 에디터를 다시 렌더링
+    // DOM이 다시 보일 때 CodeMirror가 제대로 렌더링되도록 함
+    setTimeout(() => {
+      if (newTab === 'template') {
+        if (templateEditor && templateEditorRef.value) {
+          // 에디터가 이미 초기화되어 있으면 재초기화 (가장 확실한 방법)
+          templateEditor.destroy()
+          templateEditor = null
+          initTemplateEditor()
+        } else if (!templateEditor && templateEditorRef.value) {
+          // 에디터가 아직 초기화되지 않았으면 초기화
+          initTemplateEditor()
+        }
+      }
+      
+      if (newTab === 'script') {
+        if (scriptEditor && scriptEditorRef.value) {
+          scriptEditor.destroy()
+          scriptEditor = null
+          initScriptEditor()
+        } else if (!scriptEditor && scriptEditorRef.value) {
+          initScriptEditor()
+        }
+      }
+      
+      if (newTab === 'style') {
+        if (styleEditor && styleEditorRef.value) {
+          styleEditor.destroy()
+          styleEditor = null
+          initStyleEditor()
+        } else if (!styleEditor && styleEditorRef.value) {
+          initStyleEditor()
+        }
+      }
+    }, 150)
+  },
 )
 
 // 테마 변경 감지

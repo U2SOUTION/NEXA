@@ -72,12 +72,37 @@
           </div>
         </div>
 
-        <!-- 코드 스니펫 -->
-        <div v-if="selectedSample.codeSnippet" class="detail-section">
-          <h3 class="section-title">코드 스니펫</h3>
-          <div class="code-snippet">
-            <pre><code>{{ selectedSample.codeSnippet }}</code></pre>
-            <q-btn flat dense icon="content_copy" @click="handleCopyCode" />
+        <!-- 사용 예제 & Import 정보 -->
+        <div v-if="selectedSample?.componentPath" class="detail-section">
+          <h3 class="section-title">사용 예제 & Import 정보</h3>
+          
+          <!-- Import 정보 -->
+          <div class="import-info-section">
+            <div class="import-item">
+              <div class="import-label">Import 경로:</div>
+              <div class="import-value">
+                <code>{{ importPath }}</code>
+                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyImportPath" />
+              </div>
+            </div>
+            <div class="import-item">
+              <div class="import-label">파일명:</div>
+              <div class="import-value">
+                <code>{{ fileName }}</code>
+                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyFileName" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 사용 예제 코드 -->
+          <div class="usage-example-section">
+            <div class="usage-example-header">
+              <span class="usage-label">사용 예제:</span>
+              <q-btn flat dense icon="content_copy" size="sm" label="전체 복사" @click="handleCopyUsageExample" />
+            </div>
+            <div class="usage-example-code">
+              <pre><code>{{ usageExampleCode }}</code></pre>
+            </div>
           </div>
         </div>
 
@@ -132,11 +157,12 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, shallowRef, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 import { copyTextToClipboard } from 'src/utils/clipboard'
 import CodeEditor from './CodeEditor.vue'
+import { generateUsageExample } from 'src/utils/dev-guide/usage-example-generator.js'
 
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect } = useDevGuide()
@@ -150,6 +176,38 @@ const loadError = ref(null)
 const fileContent = ref('')
 const isLoadingFile = ref(false)
 const fileLoadError = ref(null)
+
+// Import 정보 및 사용 예제
+const importPath = computed(() => {
+  if (!selectedSample.value?.componentPath) return ''
+  // componentPath에서 import 경로 생성
+  // 예: "guides/styles/buttons/IconButton.vue" -> "src/guides/styles/buttons/IconButton.vue"
+  const path = selectedSample.value.componentPath
+  return path.startsWith('src/') ? path : `src/${path}`
+})
+
+const fileName = computed(() => {
+  if (!selectedSample.value?.componentPath) return ''
+  const path = selectedSample.value.componentPath
+  const parts = path.split('/')
+  return parts[parts.length - 1] || ''
+})
+
+const componentName = computed(() => {
+  if (!fileName.value) return ''
+  // 파일명에서 확장자 제거하고 PascalCase로 변환
+  const name = fileName.value.replace(/\.vue$/, '')
+  return name
+})
+
+const usageExampleCode = computed(() => {
+  if (!selectedSample.value || !componentName.value) return ''
+  
+  const displayName = selectedSample.value.displayName || selectedSample.value.name || componentName.value
+  
+  // 외부 유틸리티 함수 사용 (Vue 컴파일러 오류 방지)
+  return generateUsageExample(componentName.value, importPath.value, displayName)
+})
 
 // Vite의 import.meta.glob을 사용하여 모든 샘플 컴포넌트 미리 등록
 const guideModules = import.meta.glob('/src/guides/**/*.vue', { eager: false })
@@ -274,13 +332,39 @@ function handleBack() {
   window.dispatchEvent(new CustomEvent('dev-guide-sample-deselected'))
 }
 
-// 코드 복사 핸들러
-async function handleCopyCode() {
-  if (selectedSample.value?.codeSnippet) {
-    await copyTextToClipboard(selectedSample.value.codeSnippet)
+// Import 경로 복사 핸들러
+async function handleCopyImportPath() {
+  if (importPath.value) {
+    await copyTextToClipboard(importPath.value)
     $q.notify({
       type: 'positive',
-      message: '코드가 복사되었습니다.',
+      message: 'Import 경로가 복사되었습니다.',
+      position: 'top',
+      timeout: 1000,
+    })
+  }
+}
+
+// 파일명 복사 핸들러
+async function handleCopyFileName() {
+  if (fileName.value) {
+    await copyTextToClipboard(fileName.value)
+    $q.notify({
+      type: 'positive',
+      message: '파일명이 복사되었습니다.',
+      position: 'top',
+      timeout: 1000,
+    })
+  }
+}
+
+// 사용 예제 코드 복사 핸들러
+async function handleCopyUsageExample() {
+  if (usageExampleCode.value) {
+    await copyTextToClipboard(usageExampleCode.value)
+    $q.notify({
+      type: 'positive',
+      message: '사용 예제 코드가 복사되었습니다.',
       position: 'top',
       timeout: 1000,
     })
@@ -486,28 +570,83 @@ onBeforeUnmount(() => {
           }
         }
 
-        .code-snippet {
+        .import-info-section {
           background-color: var(--nexa-surface);
           border: 1px solid var(--nexa-border-color);
           border-radius: 8px;
           padding: 16px;
-          position: relative;
+          margin-bottom: 16px;
 
-          pre {
-            margin: 0;
-            overflow-x: auto;
+          .import-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
 
-            code {
-              font-family: 'Courier New', monospace;
+            &:last-child {
+              margin-bottom: 0;
+            }
+
+            .import-label {
+              color: var(--nexa-text-secondary);
               font-size: 0.875rem;
-              color: var(--nexa-text-primary);
+              font-weight: 500;
+              min-width: 100px;
+              margin-right: 12px;
+            }
+
+            .import-value {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex: 1;
+
+              code {
+                font-family: 'Courier New', monospace;
+                font-size: 0.875rem;
+                color: var(--nexa-text-primary);
+                background-color: var(--nexa-background);
+                padding: 4px 8px;
+                border-radius: 4px;
+                flex: 1;
+              }
+            }
+          }
+        }
+
+        .usage-example-section {
+          background-color: var(--nexa-surface);
+          border: 1px solid var(--nexa-border-color);
+          border-radius: 8px;
+          padding: 16px;
+
+          .usage-example-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+
+            .usage-label {
+              color: var(--nexa-text-secondary);
+              font-size: 0.875rem;
+              font-weight: 500;
             }
           }
 
-          .q-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
+          .usage-example-code {
+            pre {
+              margin: 0;
+              overflow-x: auto;
+              background-color: var(--nexa-background);
+              padding: 12px;
+              border-radius: 4px;
+
+              code {
+                font-family: 'Courier New', monospace;
+                font-size: 0.875rem;
+                color: var(--nexa-text-primary);
+                line-height: 1.6;
+              }
+            }
           }
         }
 
