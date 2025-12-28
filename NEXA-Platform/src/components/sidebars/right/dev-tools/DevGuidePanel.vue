@@ -11,13 +11,11 @@
         <div class="section-header">
           <q-icon name="smart_toy" class="section-icon" />
           <div class="section-title">AI 참조 키워드</div>
+          <div class="section-header-right">
+            <span class="keyword-text" @click="handleCopyKeyword">@{{ selectedSample.name }}</span>
+            <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyKeyword" />
+          </div>
         </div>
-        <q-input :model-value="`@${selectedSample.name}`" readonly outlined dense class="q-mt-sm">
-          <template v-slot:append>
-            <q-btn flat dense icon="content_copy" @click="handleCopyKeyword" />
-          </template>
-        </q-input>
-        <p class="section-note q-mt-xs text-caption text-grey-6">AI에게 "{{ `@${selectedSample.name}` }} 샘플 참고"라고 말하면 됩니다.</p>
       </div>
 
       <q-separator />
@@ -34,7 +32,7 @@
             <q-icon name="close" class="tag-remove-icon" @click="handleRemoveTag(tag)" />
           </q-chip>
         </div>
-        <div v-else class="q-mt-sm text-caption text-grey-6">태그가 없습니다.</div>
+        <div v-else class="q-mt-sm text-caption">태그가 없습니다.</div>
         <q-input v-model="newTag" placeholder="새 태그 추가" dense outlined class="q-mt-sm tag-input" @keyup.enter="handleAddTag">
           <template v-slot:append>
             <q-btn flat dense icon="add_box" @click="handleAddTag" class="tag-add-btn" />
@@ -53,23 +51,25 @@
         <div class="info-list q-mt-sm">
           <div class="info-item">
             <span class="info-label">카테고리:</span>
-            <span class="info-value">{{ selectedSample.category || 'N/A' }}</span>
+            <span class="info-value" @click="handleCopyInfoValue(selectedSample.category || 'N/A')">{{ selectedSample.category || 'N/A' }}</span>
           </div>
           <div v-if="selectedSample.hierarchy" class="info-item">
             <span class="info-label">계층:</span>
-            <span class="info-value"> {{ selectedSample.hierarchy.type }} > {{ selectedSample.hierarchy.subType }} > {{ selectedSample.hierarchy.variant }} </span>
+            <span class="info-value" @click="handleCopyInfoValue(`${selectedSample.hierarchy.type} > ${selectedSample.hierarchy.subType} > ${selectedSample.hierarchy.variant}`)">
+              {{ selectedSample.hierarchy.type }} > {{ selectedSample.hierarchy.subType }} > {{ selectedSample.hierarchy.variant }}
+            </span>
           </div>
           <div v-if="selectedSample.displayName || selectedSample.name" class="info-item">
             <span class="info-label">컴포넌트:</span>
-            <span class="info-value">{{ selectedSample.displayName || selectedSample.name }}</span>
+            <span class="info-value" @click="handleCopyInfoValue(selectedSample.displayName || selectedSample.name)">{{ selectedSample.displayName || selectedSample.name }}</span>
           </div>
           <div v-if="fileName" class="info-item">
             <span class="info-label">파일명:</span>
-            <span class="info-value">{{ fileName }}</span>
+            <span class="info-value" @click="handleCopyInfoValue(fileName)">{{ fileName }}</span>
           </div>
           <div v-if="selectedSample.componentPath" class="info-item">
             <span class="info-label">파일 경로:</span>
-            <span class="info-value">{{ selectedSample.componentPath }}</span>
+            <span class="info-value" @click="handleCopyInfoValue(selectedSample.componentPath)">{{ selectedSample.componentPath }}</span>
           </div>
         </div>
       </div>
@@ -84,11 +84,12 @@
         </div>
         <div v-if="scssDependencies.variables && scssDependencies.variables.length > 0" class="scss-variables-list q-mt-sm">
           <div v-for="(variable, index) in scssDependencies.variables" :key="index" class="scss-variable-item">
-            <div class="scss-variable-name">{{ variable }}</div>
+            <q-icon name="palette" size="14px" class="item-icon" />
+            <span class="scss-variable-name" @click="handleCopyVariableName(variable)">{{ getVariableName(variable) }}</span>
             <div class="scss-variable-color-box" :style="{ backgroundColor: getVariableColor(variable) }" :title="getVariableColor(variable)" />
           </div>
         </div>
-        <div v-else class="q-mt-sm text-caption text-grey-6">사용된 변수가 없습니다.</div>
+        <div v-else class="q-mt-sm text-caption">사용된 변수가 없습니다.</div>
       </div>
 
       <q-separator v-if="scssDependencies && scssDependencies.usesGlobalVariables" />
@@ -101,44 +102,73 @@
         </div>
 
         <!-- 로딩 중 -->
-        <div v-if="isLoadingDependencies" class="q-mt-sm text-caption text-grey-6">
+        <div v-if="isLoadingDependencies" class="q-mt-sm text-caption">
           <q-spinner size="16px" class="q-mr-xs" />
           의존성 정보를 로드하는 중...
         </div>
 
         <!-- 컴포넌트 의존성 -->
-        <div v-else-if="dependencies?.components && dependencies.components.length > 0" class="dependency-group q-mt-sm">
-          <div class="dependency-group-header">
-            <q-icon name="widgets" size="16px" />
-            <span class="dependency-group-title">사용하는 컴포넌트</span>
-          </div>
-          <div class="dependency-list q-mt-xs">
-            <div v-for="(comp, index) in dependencies.components" :key="index" class="dependency-item">
-              <code class="dependency-path">{{ comp.fullPath }}</code>
-              <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(comp.fullPath)" />
+        <template v-if="dependencies?.components && dependencies.components.length > 0">
+          <div class="dependency-group q-mt-sm">
+            <div class="dependency-list">
+              <div v-for="(comp, index) in dependencies.components" :key="index" class="dependency-item">
+                <q-icon name="widgets" size="14px" class="item-icon" />
+                <span class="dependency-path" @click="handleCopyDependencyPath(comp.fullPath)">{{ comp.fullPath }}</span>
+                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(comp.fullPath)" />
+              </div>
             </div>
           </div>
-        </div>
+        </template>
 
         <!-- 유틸리티 의존성 -->
-        <div v-else-if="dependencies?.utilities && dependencies.utilities.length > 0" class="dependency-group q-mt-sm">
-          <div class="dependency-group-header">
-            <q-icon name="build" size="16px" />
-            <span class="dependency-group-title">사용하는 유틸리티</span>
-          </div>
-          <div class="dependency-list q-mt-xs">
-            <div v-for="(util, index) in dependencies.utilities" :key="index" class="dependency-item">
-              <code class="dependency-path">{{ util.fullPath }}</code>
-              <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(util.fullPath)" />
+        <template v-if="dependencies?.utilities && dependencies.utilities.length > 0">
+          <div class="dependency-group q-mt-sm">
+            <div class="dependency-list">
+              <div v-for="(util, index) in dependencies.utilities" :key="index" class="dependency-item">
+                <q-icon name="build" size="14px" class="item-icon" />
+                <span class="dependency-path" @click="handleCopyDependencyPath(util.fullPath)">{{ util.fullPath }}</span>
+                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(util.fullPath)" />
+              </div>
             </div>
           </div>
-        </div>
+        </template>
+
+        <!-- 스토어 의존성 -->
+        <template v-if="dependencies?.stores && dependencies.stores.length > 0">
+          <div class="dependency-group q-mt-sm">
+            <div class="dependency-list">
+              <div v-for="(store, index) in dependencies.stores" :key="index" class="dependency-item">
+                <q-icon name="storage" size="14px" class="item-icon" />
+                <span class="dependency-path" @click="handleCopyDependencyPath(store.fullPath)">{{ store.fullPath }}</span>
+                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(store.fullPath)" />
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- 스타일 의존성 -->
+        <template v-if="dependencies?.styles && dependencies.styles.length > 0">
+          <div class="dependency-group q-mt-sm">
+            <div class="dependency-list">
+              <div v-for="(style, index) in dependencies.styles" :key="index" class="dependency-item">
+                <q-icon name="style" size="14px" class="item-icon" />
+                <span class="dependency-path" @click="handleCopyDependencyPath(style.fullPath)">{{ style.fullPath }}</span>
+                <q-btn flat dense icon="content_copy" size="sm" @click="handleCopyDependencyPath(style.fullPath)" />
+              </div>
+            </div>
+          </div>
+        </template>
 
         <!-- 의존성 없음 -->
-        <div v-else-if="dependencies && (!dependencies.components || dependencies.components.length === 0) && (!dependencies.utilities || dependencies.utilities.length === 0)" class="q-mt-sm text-caption text-grey-6">이 샘플은 외부 의존성이 없습니다.</div>
+        <div
+          v-if="dependencies && (!dependencies.components || dependencies.components.length === 0) && (!dependencies.utilities || dependencies.utilities.length === 0) && (!dependencies.stores || dependencies.stores.length === 0) && (!dependencies.styles || dependencies.styles.length === 0)"
+          class="q-mt-sm text-caption"
+        >
+          이 샘플은 외부 의존성이 없습니다.
+        </div>
 
         <!-- 데이터 없음 -->
-        <div v-else class="q-mt-sm text-caption text-grey-6">의존성 정보를 불러올 수 없습니다.</div>
+        <div v-else class="q-mt-sm text-caption">의존성 정보를 불러올 수 없습니다.</div>
       </div>
 
       <q-separator v-if="selectedSample" />
@@ -149,12 +179,12 @@
           <q-icon name="analytics" class="section-icon" />
           <div class="section-title">사용 통계</div>
         </div>
-        <div class="statistics-placeholder q-mt-sm text-grey-6 text-caption">사용 통계는 향후 구현 예정입니다.</div>
+        <div class="statistics-placeholder q-mt-sm text-caption">사용 통계는 향후 구현 예정입니다.</div>
       </div>
     </template>
 
     <!-- 선택된 샘플이 없을 때 -->
-    <div v-else class="no-selection q-pa-md text-center">
+    <div v-if="!selectedSample" class="no-selection q-pa-md text-center">
       <q-icon name="style" size="48px" class="q-mb-sm" />
       <p>샘플을 선택하면 상세 정보가 표시됩니다.</p>
     </div>
@@ -185,38 +215,42 @@ const fileName = computed(() => {
   return parts[parts.length - 1] || ''
 })
 
+// CSS 변수명에서 var() 제거하고 순수 변수명만 반환
+// 예: "var(--nexa-background)" -> "--nexa-background"
+function getVariableName(variableName) {
+  if (!variableName) return ''
+
+  const trimmed = variableName.trim()
+  const varMatch = trimmed.match(/var\(([^)]+)\)/)
+
+  // var() 형식이면 내부 변수명만 추출, 아니면 그대로 반환
+  return varMatch ? varMatch[1].trim() : trimmed
+}
+
 // CSS 변수의 실제 색상 값 가져오기
 function getVariableColor(variableName) {
   if (!variableName) return 'transparent'
 
   try {
-    // 변수명에서 var() 제거하고 실제 변수명만 추출
-    // 예: "var(--nexa-background)" -> "--nexa-background"
-    let actualVarName = variableName.trim()
-    if (actualVarName.startsWith('var(')) {
-      const match = actualVarName.match(/var\(([^)]+)\)/)
-      if (match) {
-        actualVarName = match[1].trim()
-      }
-    }
+    // 변수명에서 var() 제거 (공통 함수 사용)
+    const actualVarName = getVariableName(variableName)
+    if (!actualVarName) return 'transparent'
 
     // document.documentElement에서 CSS 변수 값 가져오기
     const rootStyle = getComputedStyle(document.documentElement)
     let colorValue = rootStyle.getPropertyValue(actualVarName)?.trim()
 
+    // body에서도 시도
     if (!colorValue) {
-      // body에서도 시도
       const bodyStyle = getComputedStyle(document.body)
       colorValue = bodyStyle.getPropertyValue(actualVarName)?.trim()
     }
 
-    // 여전히 값이 없으면 직접 스타일시트에서 찾기
+    // 스타일시트에서 직접 찾기
     if (!colorValue) {
-      // 모든 스타일시트에서 변수 찾기
       for (const stylesheet of Array.from(document.styleSheets)) {
         try {
-          const cssRules = stylesheet.cssRules
-          for (const rule of Array.from(cssRules)) {
+          for (const rule of Array.from(stylesheet.cssRules)) {
             if (rule.style) {
               const value = rule.style.getPropertyValue(actualVarName)?.trim()
               if (value) {
@@ -233,16 +267,15 @@ function getVariableColor(variableName) {
       }
     }
 
-    // var() 참조가 있으면 재귀적으로 해석
-    if (colorValue && colorValue.startsWith('var(')) {
-      const varMatch = colorValue.match(/var\(([^)]+)\)/)
-      if (varMatch) {
-        const nestedVarName = varMatch[1].trim()
+    // 중첩된 var() 참조가 있으면 재귀적으로 해석 (공통 함수 사용)
+    if (colorValue && colorValue.includes('var(')) {
+      const nestedVarName = getVariableName(colorValue)
+      if (nestedVarName) {
         return getVariableColor(nestedVarName)
       }
     }
 
-    // 디버깅: 색상 값이 없을 때 로그 출력
+    // 값이 없을 때 경고
     if (!colorValue) {
       console.warn('[DevGuidePanel] CSS 변수 값을 찾을 수 없음:', actualVarName)
     }
@@ -302,23 +335,60 @@ async function loadDependencies() {
   }
 }
 
-// 의존성 경로 복사 핸들러
-async function handleCopyDependencyPath(path) {
-  if (path) {
-    await copyTextToClipboard(path)
+// 범용 복사 핸들러
+async function handleCopy(value, message = '복사되었습니다.') {
+  if (!value) return
+
+  // 문자열인 경우 trim 처리
+  const textToCopy = typeof value === 'string' ? value.trim() : String(value)
+
+  // 'N/A'나 빈 문자열은 복사하지 않음
+  if (!textToCopy || textToCopy === 'N/A') return
+
+  try {
+    await copyTextToClipboard(textToCopy)
     $q.notify({
       type: 'positive',
-      message: '경로가 복사되었습니다.',
+      message,
       position: 'top',
       timeout: 1000,
     })
+  } catch (error) {
+    console.error('[DevGuidePanel] 복사 실패:', error)
+    $q.notify({
+      type: 'negative',
+      message: '복사에 실패했습니다.',
+      position: 'top',
+      timeout: 2000,
+    })
   }
+}
+
+// 의존성 경로 복사 핸들러
+async function handleCopyDependencyPath(path) {
+  await handleCopy(path, '경로가 복사되었습니다.')
 }
 
 // 키워드 복사 핸들러
 async function handleCopyKeyword() {
   if (selectedSample.value?.name) {
-    await copyTextToClipboard(`@${selectedSample.value.name}`)
+    await handleCopy(`@${selectedSample.value.name}`, 'AI 참조 키워드가 복사되었습니다.')
+  }
+}
+
+// 샘플 정보 값 복사 핸들러
+async function handleCopyInfoValue(value) {
+  if (!value || (typeof value === 'string' && value.trim() === 'N/A')) return
+
+  const textToCopy = typeof value === 'string' ? value.trim() : String(value)
+  await handleCopy(textToCopy, `"${textToCopy}" 복사되었습니다.`)
+}
+
+// CSS 변수명 복사 핸들러
+async function handleCopyVariableName(variable) {
+  const variableName = getVariableName(variable)
+  if (variableName) {
+    await handleCopy(variableName, `"${variableName}" 복사되었습니다.`)
   }
 }
 
@@ -481,7 +551,7 @@ onBeforeUnmount(() => {
     .section-header {
       display: flex;
       align-items: center;
-      margin-bottom: 8px;
+      justify-content: space-between;
 
       .section-icon {
         margin-right: 8px;
@@ -491,11 +561,30 @@ onBeforeUnmount(() => {
       .section-title {
         color: var(--nexa-text-primary);
         font-weight: 600;
+        flex: 1;
+      }
+
+      .section-header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .keyword-text {
+          color: var(--nexa-text-secondary);
+          font-size: 0.9rem;
+          transition: color 0.2s;
+
+          &:hover {
+            color: var(--nexa-text-primary);
+          }
+        }
       }
     }
 
     .section-note {
-      color: var(--nexa-text-secondary);
+      color: var(--nexa-text-primary);
+      font-size: 0.875rem;
+      line-height: 1.4;
     }
 
     .tags-display {
@@ -556,6 +645,11 @@ onBeforeUnmount(() => {
           word-break: break-word; // 단어 단위로 줄바꿈
           overflow-wrap: break-word; // 긴 단어도 줄바꿈
           hyphens: auto; // 하이픈으로 단어 분리 (선택사항)
+          transition: color 0.2s;
+
+          &:hover {
+            color: var(--nexa-text-secondary);
+          }
         }
       }
     }
@@ -565,32 +659,19 @@ onBeforeUnmount(() => {
     }
 
     .dependency-group {
-      .dependency-group-header {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 4px;
-
-        .dependency-group-title {
-          color: var(--nexa-text-primary);
-          font-size: 0.875rem;
-          font-weight: 600;
-        }
-      }
-
       .dependency-list {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-
         .dependency-item {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 6px 18px;
-          border: 1px solid var(--nexa-border-color) !important;
-          border-radius: 4px;
+          margin-left: 16px;
           min-width: 0;
+
+          .item-icon {
+            color: var(--nexa-text-secondary);
+            margin-right: 6px;
+            flex-shrink: 0;
+          }
 
           .dependency-path {
             font-family: 'Courier New', monospace;
@@ -600,26 +681,30 @@ onBeforeUnmount(() => {
             min-width: 0;
             word-break: break-word;
             overflow-wrap: break-word;
-            margin-right: 8px;
+            transition: color 0.2s;
+
+            &:hover {
+              color: var(--nexa-text-secondary);
+            }
           }
         }
       }
     }
 
-    //변수 아이템
+    //변수 아이템 (샘플 정보와 비슷한 포맷)
     .scss-variables-list {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-
       .scss-variable-item {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 4px 8px;
-        border: 1px solid var(--nexa-border-color);
-        border-radius: 4px;
-        min-width: 0; // flex 아이템이 줄어들 수 있도록
+        margin-left: 16px;
+        min-width: 0;
+
+        .item-icon {
+          color: var(--nexa-text-secondary);
+          margin-right: 6px;
+          flex-shrink: 0;
+        }
 
         .scss-variable-name {
           color: var(--nexa-text-primary);
@@ -629,18 +714,22 @@ onBeforeUnmount(() => {
           min-width: 0;
           word-break: break-word;
           overflow-wrap: break-word;
-          margin-right: 8px;
+          transition: color 0.2s;
+
+          &:hover {
+            color: var(--nexa-text-secondary);
+          }
         }
 
         .scss-variable-color-box {
-          width: 24px;
-          height: 24px;
-          min-width: 24px;
-          min-height: 24px;
+          width: 20px;
+          height: 20px;
+          min-width: 20px;
+          min-height: 20px;
           border: 1px solid var(--nexa-border-color);
           border-radius: 3px;
           flex-shrink: 0;
-          cursor: pointer;
+          margin-left: 8px;
         }
       }
     }

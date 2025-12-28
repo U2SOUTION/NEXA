@@ -4,18 +4,20 @@
  */
 
 /**
- * 파일 내용에서 import 문 추출
+ * 파일 내용에서 import 문 추출 (script + style 섹션)
  * @param {string} content - 파일 내용
- * @returns {Array<Object>} import 정보 배열 { type, path, name, fullPath }
+ * @returns {Array<Object>} import 정보 배열 { type, path, name, fullPath, section }
  */
 export function extractImports(content) {
   const imports = []
   
   // script 섹션 추출
   const scriptMatch = content.match(/<script[^>]*>([\s\S]*?)<\/script>/)
-  if (!scriptMatch) return imports
+  const scriptContent = scriptMatch ? scriptMatch[1] : ''
   
-  const scriptContent = scriptMatch[1]
+  // style 섹션 추출
+  const styleMatch = content.match(/<style[^>]*>([\s\S]*?)<\/style>/)
+  const styleContent = styleMatch ? styleMatch[1] : ''
   
   // import 패턴들
   const patterns = [
@@ -38,6 +40,7 @@ export function extractImports(content) {
     }
   ]
   
+  // script 섹션의 import 문 추출
   for (const { pattern, type } of patterns) {
     let match
     while ((match = pattern.exec(scriptContent)) !== null) {
@@ -72,12 +75,46 @@ export function extractImports(content) {
         type,
         path: importPath,
         name: componentName,
+        section: 'script',
         fullPath: null // 나중에 resolveImportPath로 계산
       })
     }
   }
   
-  return [...new Map(imports.map(imp => [imp.path, imp])).values()] // 중복 제거
+  // style 섹션의 @import 문 추출
+  if (styleContent) {
+    // @import 'path/to/file.scss'
+    // @import url('path/to/file.css')
+    const styleImportPatterns = [
+      /@import\s+['"]([^'"]+)['"]/g,
+      /@import\s+url\(['"]?([^'"]+)['"]?\)/g
+    ]
+    
+    for (const pattern of styleImportPatterns) {
+      let match
+      while ((match = pattern.exec(styleContent)) !== null) {
+        const importPath = match[1]
+        
+        // 외부 라이브러리 제외
+        if (importPath.startsWith('vue') || 
+            importPath.startsWith('quasar') ||
+            importPath.startsWith('pinia') ||
+            importPath.startsWith('@quasar')) {
+          continue
+        }
+        
+        imports.push({
+          type: 'style-import',
+          path: importPath,
+          name: null,
+          section: 'style',
+          fullPath: null
+        })
+      }
+    }
+  }
+  
+  return [...new Map(imports.map(imp => [imp.path + imp.section, imp])).values()] // 중복 제거
 }
 
 /**
@@ -153,18 +190,27 @@ export function analyzeSCSSDependencies(content) {
   const styleContent = styleMatch[1]
   const variables = extractSCSSVariables(styleContent)
   
-  // 전역 SCSS 파일 목록 (일반적으로 사용되는 파일들)
-  const globalSCSSFiles = [
-    'src/css/themes/dark.scss',
-    'src/css/themes/light.scss',
-    'src/css/nexa-system/nexa-system.scss',
-    'src/css/app.scss'
-  ]
+  // 전역 CSS 변수를 사용하는 경우 실제 전역 SCSS 파일 경로 반환
+  // 이 파일들은 app.scss나 main.js에서 전역으로 import됨
+  const globalSCSSFiles = []
+  
+  if (variables.length > 0) {
+    // 변수 사용 패턴에 따라 관련 파일 추적
+    // --nexa-* 변수는 themes와 nexa-system에서 정의됨
+    globalSCSSFiles.push(
+      'src/css/themes/dark.scss',
+      'src/css/themes/light.scss',
+      'src/css/nexa-system/nexa-system.scss'
+    )
+    
+    // app.scss는 모든 전역 스타일을 포함
+    globalSCSSFiles.push('src/css/app.scss')
+  }
   
   return {
     usesGlobalVariables: variables.length > 0,
     variables: variables,
-    globalFiles: variables.length > 0 ? globalSCSSFiles : []
+    globalFiles: globalSCSSFiles
   }
 }
 
@@ -184,7 +230,7 @@ export function analyzeSampleDependencies(content, filePath) {
     fullPath: resolveImportPath(imp.path, filePath)
   }))
   
-  // 컴포넌트와 유틸리티 분류
+  // 의존성 타입별 분류
   const components = resolvedImports.filter(imp => 
     imp.fullPath.endsWith('.vue') || 
     imp.fullPath.includes('/components/') ||
@@ -196,15 +242,36 @@ export function analyzeSampleDependencies(content, filePath) {
     imp.fullPath.includes('/composables/')
   )
   
+  const stores = resolvedImports.filter(imp => 
+    imp.fullPath.includes('/stores/')
+  )
+  
   const styles = resolvedImports.filter(imp => 
     imp.fullPath.endsWith('.scss') ||
     imp.fullPath.endsWith('.css')
   )
   
+  // 전역 CSS 변수를 사용하는 경우 전역 SCSS 파일도 styles에 추가
+  if (scssDeps.usesGlobalVariables && scssDeps.globalFiles.length > 0) {
+    scssDeps.globalFiles.forEach(filePath => {
+      // 중복 체크
+      if (!styles.some(s => s.fullPath === filePath)) {
+        styles.push({
+          type: 'global-css',
+          path: filePath,
+          name: null,
+          section: 'style',
+          fullPath: filePath
+        })
+      }
+    })
+  }
+  
   return {
     imports: resolvedImports,
     components,
     utilities,
+    stores,
     styles,
     scss: scssDeps
   }

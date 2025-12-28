@@ -50,15 +50,7 @@
         <div class="detail-section">
           <div class="preview-header">
             <h3 class="section-title">미리보기</h3>
-            <q-btn-toggle
-              v-model="previewControlsExpanded"
-              :options="[
-                { label: '컨트롤 숨김', value: false, icon: 'expand_less' },
-                { label: '컨트롤 보기', value: true, icon: 'expand_more' },
-              ]"
-              dense
-              flat
-            />
+            <q-btn :icon="previewControlsExpanded ? 'expand_less' : 'expand_more'" :label="previewControlsExpanded ? '컨트롤 숨김' : '컨트롤 보기'" dense flat @click="previewControlsExpanded = !previewControlsExpanded" />
           </div>
 
           <!-- 테스트 컨트롤 패널 -->
@@ -127,14 +119,13 @@
 
         <!-- 사용 예제 & Import 정보 -->
         <div v-if="selectedSample?.componentPath" class="detail-section">
-          <h3 class="section-title">사용 예제</h3>
+          <div class="section-header">
+            <h3 class="section-title">사용 예제</h3>
+            <q-btn flat dense icon="content_copy" size="sm" label="전체 복사" @click="handleCopyUsageExample" />
+          </div>
 
           <!-- 사용 예제 코드 -->
           <div class="info-section">
-            <div class="usage-example-header">
-              <span class="usage-label">사용 예제:</span>
-              <q-btn flat dense icon="content_copy" size="sm" label="전체 복사" @click="handleCopyUsageExample" />
-            </div>
             <div class="usage-example-code">
               <pre><code>{{ usageExampleCode }}</code></pre>
             </div>
@@ -761,6 +752,13 @@ watch(previewContainerRef, (newRef) => {
           color: var(--nexa-text-primary);
           font-size: 1.25rem;
           font-weight: 700;
+          margin-bottom: 6px;
+        }
+
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
         }
 
         .preview-header {
@@ -847,14 +845,6 @@ watch(previewContainerRef, (newRef) => {
         .sample-preview-direct {
           border: 4px solid var(--nexa-border-color);
           border-radius: 8px;
-          // overflow는 computed style에서 동적으로 설정됨
-          // 자동 높이 모드: overflow-y: visible
-          // 수동 높이 모드: overflow-y: auto
-
-          //샘플 컴포넌트의 최상위 래퍼를 레이아웃에서 제거 (display: contents)
-          // > :deep(div[class*='sample']) {
-          //   display: contents;
-          // }
 
           .preview-placeholder,
           .preview-loading,
@@ -888,29 +878,16 @@ watch(previewContainerRef, (newRef) => {
           padding: 16px;
           margin-bottom: 6px;
 
-          // 의존성 정보 스타일
-          // 사용 예제 스타일
-          .usage-example-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            .usage-label {
-              color: var(--nexa-text-secondary);
-              font-size: 0.875rem;
-              font-weight: 500;
-            }
-          }
-
           .usage-example-code {
             pre {
               margin: 0;
               overflow-x: auto;
-              background-color: var(--nexa-background);
-              padding: 0 12px;
+              padding: 0 22px;
               border-radius: 4px;
+              color: var(--nexa-text-secondary) !important;
 
               code {
+                line-height: 1.1 !important;
                 font-family: 'Courier New', monospace;
                 font-size: 0.875rem;
                 color: var(--nexa-text-primary);

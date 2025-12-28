@@ -14,25 +14,25 @@
   </div>
 
   <div class="sample-container">
-      <!-- 문제 상황 설명 -->
-      <div class="problem-section">
-        <h4 class="section-title">❌ 문제 상황</h4>
-        <div class="code-block">
-          <pre><code>.info-value {
+    <!-- 문제 상황 설명 -->
+    <div class="problem-section">
+      <h4 class="section-title">❌ 문제 상황</h4>
+      <div class="code-block">
+        <pre><code>.info-value {
   color: var(--nexa-text-primary);
   flex: 1;
   /* min-width가 없으면 flex 아이템이 줄어들지 않음 */
   /* word-break가 없으면 긴 텍스트가 줄바꿈되지 않음 */
 }</code></pre>
-        </div>
-        <p class="problem-note">사이드바 폭이 줄어들면 긴 컴포넌트 경로나 텍스트가 우측으로 밀려나가 아코디언 블록 전체가 잘립니다.</p>
       </div>
+      <p class="problem-note">사이드바 폭이 줄어들면 긴 컴포넌트 경로나 텍스트가 우측으로 밀려나가 아코디언 블록 전체가 잘립니다.</p>
+    </div>
 
-      <!-- 해결 방법 -->
-      <div class="solution-section">
-        <h4 class="section-title">✅ 해결 방법</h4>
-        <div class="code-block">
-          <pre><code>// 1. 패널 전체 오버플로우 방지
+    <!-- 해결 방법 -->
+    <div class="solution-section">
+      <h4 class="section-title">✅ 해결 방법</h4>
+      <div class="code-block">
+        <pre><code>// 1. 패널 전체 오버플로우 방지
 .dev-guide-panel {
   width: 100%;
   min-width: 0; // flex 컨테이너가 줄어들 수 있도록
@@ -65,29 +65,29 @@
     }
   }
 }</code></pre>
-        </div>
       </div>
+    </div>
 
-      <!-- 핵심 포인트 -->
-      <div class="key-points-section">
-        <h4 class="section-title">🔑 핵심 포인트</h4>
-        <ul class="points-list">
-          <li><strong>min-width: 0</strong>: Flex 아이템이 기본적으로 `min-width: auto`를 가지므로, 명시적으로 `min-width: 0`을 설정해야 줄어들 수 있습니다.</li>
-          <li><strong>word-break: break-word</strong>: 긴 단어나 URL, 경로 등을 강제로 줄바꿈합니다.</li>
-          <li><strong>overflow-wrap: break-word</strong>: `word-break`와 함께 사용하여 더 안전하게 줄바꿈합니다.</li>
-          <li><strong>overflow: hidden</strong>: 컨테이너 레벨에서 넘치는 내용을 숨깁니다.</li>
-          <li><strong>flex-shrink: 0</strong>: 레이블 등 고정 크기가 필요한 요소는 줄어들지 않도록 합니다.</li>
-        </ul>
-      </div>
+    <!-- 핵심 포인트 -->
+    <div class="key-points-section">
+      <h4 class="section-title">🔑 핵심 포인트</h4>
+      <ul class="points-list">
+        <li><strong>min-width: 0</strong>: Flex 아이템이 기본적으로 `min-width: auto`를 가지므로, 명시적으로 `min-width: 0`을 설정해야 줄어들 수 있습니다.</li>
+        <li><strong>word-break: break-word</strong>: 긴 단어나 URL, 경로 등을 강제로 줄바꿈합니다.</li>
+        <li><strong>overflow-wrap: break-word</strong>: `word-break`와 함께 사용하여 더 안전하게 줄바꿈합니다.</li>
+        <li><strong>overflow: hidden</strong>: 컨테이너 레벨에서 넘치는 내용을 숨깁니다.</li>
+        <li><strong>flex-shrink: 0</strong>: 레이블 등 고정 크기가 필요한 요소는 줄어들지 않도록 합니다.</li>
+      </ul>
+    </div>
 
-      <!-- 실제 적용 예시 -->
-      <div class="example-section">
-        <h4 class="section-title">📝 실제 적용 예시</h4>
-        <div class="code-block">
-          <pre><code>// DevGuidePanel.vue
+    <!-- 실제 적용 예시 -->
+    <div class="example-section">
+      <h4 class="section-title">📝 실제 적용 예시</h4>
+      <div class="code-block">
+        <pre><code>// DevGuidePanel.vue
 &lt;div class="info-item"&gt;
   &lt;span class="info-label"&gt;컴포넌트:&lt;/span&gt;
-  &lt;span class="info-value"&gt;{{ selectedSample.componentPath }}&lt;/span&gt;
+  &lt;span class="info-value"&gt;{{ '{' + '{' }} selectedSample.componentPath {{ '}' + '}' }}&lt;/span&gt;
 &lt;/div&gt;
 
 // CSS
@@ -107,19 +107,19 @@
     overflow-wrap: break-word;
   }
 }</code></pre>
-        </div>
-      </div>
-
-      <!-- 주의사항 -->
-      <div class="warning-section">
-        <h4 class="section-title">⚠️ 주의사항</h4>
-        <ul class="points-list">
-          <li>복잡한 중첩 구조에서는 모든 레벨에 `min-width: 0`을 적용해야 할 수 있습니다.</li>
-          <li>`word-break: break-all`은 단어 중간에서도 줄바꿈하므로 가독성이 떨어질 수 있습니다. `break-word`를 권장합니다.</li>
-          <li>테이블이나 그리드 레이아웃에서는 `min-width: 0` 대신 `min-width: min-content`를 고려해볼 수 있습니다.</li>
-        </ul>
       </div>
     </div>
+
+    <!-- 주의사항 -->
+    <div class="warning-section">
+      <h4 class="section-title">⚠️ 주의사항</h4>
+      <ul class="points-list">
+        <li>복잡한 중첩 구조에서는 모든 레벨에 `min-width: 0`을 적용해야 할 수 있습니다.</li>
+        <li>`word-break: break-all`은 단어 중간에서도 줄바꿈하므로 가독성이 떨어질 수 있습니다. `break-word`를 권장합니다.</li>
+        <li>테이블이나 그리드 레이아웃에서는 `min-width: 0` 대신 `min-width: min-content`를 고려해볼 수 있습니다.</li>
+      </ul>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -145,64 +145,64 @@
 }
 
 .sample-container {
-    .section-title {
-      color: var(--nexa-text-primary);
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 12px;
-      margin-top: 24px;
+  .section-title {
+    color: var(--nexa-text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 24px;
 
-      &:first-child {
-        margin-top: 0;
-      }
+    &:first-child {
+      margin-top: 0;
     }
+  }
 
-    .code-block {
-      background-color: var(--nexa-background);
-      border: 1px solid var(--nexa-border-color);
-      border-radius: 4px;
-      padding: 12px;
-      margin-bottom: 16px;
-      overflow-x: auto;
+  .code-block {
+    background-color: var(--nexa-background);
+    border: 1px solid var(--nexa-border-color);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 16px;
+    overflow-x: auto;
 
-      pre {
-        margin: 0;
+    pre {
+      margin: 0;
+      color: var(--nexa-text-primary);
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      line-height: 1.5;
+
+      code {
         color: var(--nexa-text-primary);
-        font-family: 'Courier New', monospace;
-        font-size: 0.875rem;
-        line-height: 1.5;
-
-        code {
-          color: var(--nexa-text-primary);
-        }
       }
     }
+  }
 
-    .problem-note {
-      color: var(--nexa-warning);
-      font-size: 0.875rem;
-      padding: 8px;
-      background-color: rgba(237, 178, 15, 0.1);
-      border-left: 3px solid var(--nexa-warning);
-      border-radius: 4px;
-      margin-bottom: 16px;
-    }
+  .problem-note {
+    color: var(--nexa-warning);
+    font-size: 0.875rem;
+    padding: 8px;
+    background-color: rgba(237, 178, 15, 0.1);
+    border-left: 3px solid var(--nexa-warning);
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
 
-    .points-list {
-      color: var(--nexa-text-primary);
-      font-size: 0.875rem;
-      line-height: 1.8;
-      padding-left: 20px;
-      margin-bottom: 16px;
+  .points-list {
+    color: var(--nexa-text-primary);
+    font-size: 0.875rem;
+    line-height: 1.8;
+    padding-left: 20px;
+    margin-bottom: 16px;
 
-      li {
-        margin-bottom: 8px;
+    li {
+      margin-bottom: 8px;
 
-        strong {
-          color: var(--nexa-primary);
-          font-weight: 600;
-        }
+      strong {
+        color: var(--nexa-primary);
+        font-weight: 600;
       }
     }
+  }
 }
 </style>
