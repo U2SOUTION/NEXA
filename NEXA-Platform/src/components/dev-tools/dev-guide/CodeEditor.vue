@@ -98,6 +98,7 @@ function initTemplateEditor() {
       vue(),
       EditorState.tabSize.of(2), // 탭 크기 2로 설정
       indentUnit.of('  '), // 들여쓰기 단위 2칸 (스페이스 2개)
+      EditorView.lineWrapping, // 긴 줄 자동 줄바꿈
       EditorView.theme({
         '&': {
           fontSize: '14px',
@@ -152,6 +153,7 @@ function initScriptEditor() {
       javascript(),
       EditorState.tabSize.of(2), // 탭 크기 2로 설정
       indentUnit.of('  '), // 들여쓰기 단위 2칸 (스페이스 2개)
+      EditorView.lineWrapping, // 긴 줄 자동 줄바꿈
       EditorView.theme({
         '&': {
           fontSize: '14px',
@@ -206,6 +208,7 @@ function initStyleEditor() {
       css(),
       EditorState.tabSize.of(2), // 탭 크기 2로 설정
       indentUnit.of('  '), // 들여쓰기 단위 2칸 (스페이스 2개)
+      EditorView.lineWrapping, // 긴 줄 자동 줄바꿈
       EditorView.theme({
         '&': {
           fontSize: '14px',
@@ -357,7 +360,7 @@ watch(
           initTemplateEditor()
         }
       }
-      
+
       if (newTab === 'script') {
         if (scriptEditor && scriptEditorRef.value) {
           scriptEditor.destroy()
@@ -367,7 +370,7 @@ watch(
           initScriptEditor()
         }
       }
-      
+
       if (newTab === 'style') {
         if (styleEditor && styleEditorRef.value) {
           styleEditor.destroy()
@@ -459,7 +462,7 @@ onBeforeUnmount(() => {
         height: 100%;
         position: relative;
         overflow: hidden;
-        
+
         // CodeMirror 루트 요소
         :deep(.cm-editor) {
           height: 100% !important;
@@ -467,7 +470,7 @@ onBeforeUnmount(() => {
           display: flex !important;
           flex-direction: column !important;
         }
-        
+
         // CodeMirror 스크롤러
         :deep(.cm-scroller) {
           overflow: auto !important;
@@ -477,13 +480,13 @@ onBeforeUnmount(() => {
           max-height: none !important;
           flex: 1 !important;
         }
-        
+
         // CodeMirror 콘텐츠
         :deep(.cm-content) {
           min-height: auto !important;
           padding: 12px !important;
         }
-        
+
         // CodeMirror 라인
         :deep(.cm-line) {
           padding: 0 4px;
@@ -493,4 +496,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-
