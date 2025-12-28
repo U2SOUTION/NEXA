@@ -48,8 +48,52 @@
       <div class="detail-content">
         <!-- 샘플 미리보기 -->
         <div class="detail-section">
-          <h3 class="section-title">미리보기</h3>
-          <div class="sample-preview">
+          <div class="preview-header">
+            <h3 class="section-title">미리보기</h3>
+            <q-btn-toggle
+              v-model="previewControlsExpanded"
+              :options="[
+                { label: '컨트롤 숨김', value: false, icon: 'expand_less' },
+                { label: '컨트롤 보기', value: true, icon: 'expand_more' },
+              ]"
+              dense
+              flat
+            />
+          </div>
+
+          <!-- 테스트 컨트롤 패널 -->
+          <div v-if="previewControlsExpanded" class="preview-controls">
+            <div class="control-group">
+              <div class="control-inputs">
+                <div class="control-input-item">
+                  <label>너비: {{ previewWidth }}px</label>
+                  <q-slider v-model="previewWidth" :min="200" :max="1200" :step="50" />
+                </div>
+                <div class="control-input-item">
+                  <label>높이: {{ previewHeight }}px</label>
+                  <q-slider v-model="previewHeight" :min="100" :max="800" :step="50" />
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-inputs">
+                <div class="background-controls-row">
+                  <q-btn flat dense label="기본값 리셋" icon="refresh" :class="{ 'bg-active': false }" @click="resetPreviewSize" />
+                  <q-btn flat dense label="다크" icon="dark_mode" :class="{ 'bg-active': previewBackgroundMode === 'dark' }" @click="previewBackgroundMode = 'dark'" />
+                  <q-btn flat dense label="라이트" icon="light_mode" :class="{ 'bg-active': previewBackgroundMode === 'light' }" @click="previewBackgroundMode = 'light'" />
+                  <q-btn flat dense label="커스텀" icon="colorize" :class="{ 'bg-active': previewBackgroundMode === 'custom' }" :style="{ backgroundColor: previewBackgroundMode === 'custom' ? previewCustomColor : 'transparent' }" @click="previewBackgroundMode = 'custom'">
+                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                      <q-color v-model="previewCustomColor" />
+                    </q-popup-proxy>
+                  </q-btn>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 샘플 미리보기 (래퍼 없이 직접 렌더링) -->
+          <div :style="previewContainerStyle" class="sample-preview-direct">
             <!-- 샘플 컴포넌트 실제 렌더링 -->
             <component v-if="sampleComponent && !isLoading && !loadError" :is="sampleComponent" />
             <!-- 로딩 상태 -->
@@ -77,7 +121,7 @@
           <h3 class="section-title">사용 예제 & Import 정보</h3>
 
           <!-- 샘플 파일 정보 -->
-          <div class="import-info-section">
+          <div class="info-section">
             <div class="import-item">
               <div class="import-label">샘플 파일 경로:</div>
               <div class="import-value">
@@ -95,7 +139,7 @@
           </div>
 
           <!-- 의존성 정보 -->
-          <div v-if="dependencies" class="dependencies-section">
+          <div v-if="dependencies" class="info-section">
             <!-- 컴포넌트 의존성 -->
             <div v-if="dependencies.components && dependencies.components.length > 0" class="dependency-group">
               <div class="dependency-group-header">
@@ -154,7 +198,7 @@
           </div>
 
           <!-- 사용 예제 코드 -->
-          <div class="usage-example-section">
+          <div class="info-section">
             <div class="usage-example-header">
               <span class="usage-label">사용 예제:</span>
               <q-btn flat dense icon="content_copy" size="sm" label="전체 복사" @click="handleCopyUsageExample" />
@@ -168,10 +212,12 @@
         <!-- 디자인 결정 요소 -->
         <div v-if="selectedSample.designDecisions" class="detail-section">
           <h3 class="section-title">디자인 결정 요소</h3>
-          <div class="design-decisions">
-            <div v-for="(value, key) in selectedSample.designDecisions" :key="key" class="decision-item">
-              <div class="decision-key">{{ key }}:</div>
-              <div class="decision-value">{{ value }}</div>
+          <div class="info-section">
+            <div class="design-decisions">
+              <div v-for="(value, key) in selectedSample.designDecisions" :key="key" class="decision-item">
+                <div class="decision-key">{{ key }}:</div>
+                <div class="decision-value">{{ value }}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -179,7 +225,7 @@
         <!-- 코드 에디터 -->
         <div class="detail-section">
           <h3 class="section-title">원본 코드 편집</h3>
-          <div class="code-editor-section">
+          <div class="info-section code-editor-section">
             <CodeEditor v-if="fileContent && selectedSample?.componentPath" :file-path="selectedSample.componentPath" :file-content="fileContent" @save="handleFileSave" @reload="handleFileReload" />
             <div v-else-if="isLoadingFile" class="file-loading">
               <q-spinner color="primary" size="32px" />
@@ -195,13 +241,15 @@
         <!-- AI 참조 키워드 -->
         <div class="detail-section">
           <h3 class="section-title">AI 참조 키워드</h3>
-          <div class="ai-reference">
-            <q-input :model-value="`@${selectedSample.name}`" readonly outlined dense>
-              <template v-slot:append>
-                <q-btn flat dense icon="content_copy" @click="handleCopyKeyword" />
-              </template>
-            </q-input>
-            <p class="ai-reference-note">AI에게 "{{ `@${selectedSample.name}` }} 샘플 참고"라고 말하면 됩니다.</p>
+          <div class="info-section">
+            <div class="ai-reference">
+              <q-input :model-value="`@${selectedSample.name}`" readonly outlined dense>
+                <template v-slot:append>
+                  <q-btn flat dense icon="content_copy" @click="handleCopyKeyword" />
+                </template>
+              </q-input>
+              <p class="ai-reference-note">AI에게 "{{ `@${selectedSample.name}` }} 샘플 참고"라고 말하면 됩니다.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -233,6 +281,61 @@ const fileLoadError = ref(null)
 
 // 의존성 분석 결과
 const dependencies = ref(null)
+
+// 미리보기 테스트 컨트롤
+const previewControlsExpanded = ref(true)
+const previewWidth = ref(800)
+const previewHeight = ref(400)
+const previewBackgroundMode = ref('dark')
+const previewCustomColor = ref('#1e1e1e')
+
+// 커스텀 색상 변경 감지
+watch(previewCustomColor, () => {
+  // 커스텀 색상이 변경되면 커스텀 모드로 전환
+  if (previewBackgroundMode.value !== 'custom') {
+    previewBackgroundMode.value = 'custom'
+  }
+})
+
+// 미리보기 컨테이너 스타일 (크기 + 배경색)
+const previewContainerStyle = computed(() => {
+  let backgroundColor = 'transparent'
+
+  switch (previewBackgroundMode.value) {
+    case 'dark':
+      backgroundColor = 'var(--nexa-background)'
+      break
+    case 'light':
+      backgroundColor = '#ffffff'
+      break
+    case 'custom':
+      backgroundColor = previewCustomColor.value
+      break
+    case 'transparent':
+    default:
+      backgroundColor = 'transparent'
+      break
+  }
+
+  return {
+    width: `${previewWidth.value}px`,
+    height: `${previewHeight.value}px`,
+    maxWidth: '100%',
+    margin: '0 auto',
+    position: 'relative',
+    backgroundColor,
+    padding: '0 16px',
+    boxSizing: 'border-box',
+  }
+})
+
+// 미리보기 크기 및 배경 리셋
+function resetPreviewSize() {
+  previewWidth.value = 800
+  previewHeight.value = 400
+  previewBackgroundMode.value = 'transparent'
+  previewCustomColor.value = '#1e1e1e'
+}
 
 // Import 정보 및 사용 예제
 const importPath = computed(() => {
@@ -481,17 +584,14 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .dev-guide-content {
   height: 100%;
-  padding: 24px;
+  padding: 0 24px;
 
   .sample-library-view {
     .library-header {
-      margin-bottom: 24px;
-
       .library-title {
         color: var(--nexa-text-primary);
         font-size: 2rem;
         font-weight: 900;
-        margin-bottom: 8px;
       }
 
       .library-description {
@@ -510,7 +610,7 @@ onBeforeUnmount(() => {
       background-color: var(--nexa-surface);
       border: 1px solid var(--nexa-border-color);
       border-radius: 8px;
-      padding: 16px;
+      padding: 0 16px;
       cursor: pointer;
       transition: all 0.2s;
 
@@ -524,7 +624,6 @@ onBeforeUnmount(() => {
       .sample-card-header {
         display: flex;
         align-items: center;
-        margin-bottom: 12px;
 
         .sample-card-icon {
           margin-right: 8px;
@@ -542,13 +641,11 @@ onBeforeUnmount(() => {
         .sample-card-category {
           color: var(--nexa-text-secondary);
           font-size: 0.875rem;
-          margin-bottom: 8px;
         }
 
         .sample-card-description {
           color: var(--nexa-text-secondary);
           font-size: 0.875rem;
-          margin-bottom: 8px;
         }
 
         .sample-card-tags {
@@ -564,7 +661,6 @@ onBeforeUnmount(() => {
         color: var(--nexa-text-primary);
         font-size: 1.1rem;
         font-weight: 500;
-        margin-bottom: 4px;
       }
 
       .no-samples-hint {
@@ -578,7 +674,6 @@ onBeforeUnmount(() => {
     .detail-header {
       display: flex;
       align-items: center;
-      margin-bottom: 24px;
 
       .detail-title {
         color: var(--nexa-text-primary);
@@ -590,28 +685,72 @@ onBeforeUnmount(() => {
 
     .detail-content {
       .detail-section {
-        margin-bottom: 32px;
-
         .section-title {
           color: var(--nexa-text-primary);
           font-size: 1.25rem;
           font-weight: 700;
-          margin-bottom: 16px;
         }
 
-        .sample-preview {
+        .preview-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .preview-controls {
           background-color: var(--nexa-surface);
           border: 1px solid var(--nexa-border-color);
           border-radius: 8px;
-          padding: 32px;
-          min-height: 200px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          padding: 16px;
+          margin-bottom: 16px;
 
-          // 실제 컴포넌트가 렌더링될 때는 정렬 제거
-          > :deep(*) {
-            width: 100%;
+          .control-group {
+            .control-inputs {
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+
+              .control-input-item {
+                display: flex;
+                align-items: center;
+                gap: 2px;
+
+                label {
+                  min-width: 80px;
+                  color: var(--nexa-text-secondary);
+                  font-size: 0.875rem;
+                  white-space: nowrap;
+                }
+
+                .q-slider {
+                  flex: 1;
+                }
+              }
+
+              .background-controls-row {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+
+                .q-btn {
+                  flex: 1;
+                }
+
+                .bg-active {
+                  background-color: var(--nexa-surface-hover);
+                }
+              }
+            }
+          }
+        }
+
+        .sample-preview-direct {
+          border: 4px solid var(--nexa-border-color);
+          border-radius: 8px;
+
+          //샘플 컴포넌트의 최상위 래퍼를 레이아웃에서 제거 (display: contents)
+          > :deep(div[class*='sample']) {
+            display: contents;
           }
 
           .preview-placeholder,
@@ -621,19 +760,13 @@ onBeforeUnmount(() => {
             color: var(--nexa-text-secondary);
 
             .preview-text {
-              margin: 8px 0 4px;
+              margin: 0;
               font-weight: 500;
             }
 
             .preview-note {
               font-size: 0.875rem;
               color: var(--nexa-text-disabled);
-            }
-          }
-
-          .preview-loading {
-            .preview-text {
-              margin-top: 16px;
             }
           }
 
@@ -645,21 +778,17 @@ onBeforeUnmount(() => {
           }
         }
 
-        .import-info-section {
+        .info-section {
           background-color: var(--nexa-surface);
           border: 1px solid var(--nexa-border-color);
           border-radius: 8px;
           padding: 16px;
-          margin-bottom: 16px;
+          margin-bottom: 6px;
 
+          // Import 정보 스타일
           .import-item {
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
-
-            &:last-child {
-              margin-bottom: 0;
-            }
 
             .import-label {
               color: var(--nexa-text-secondary);
@@ -686,27 +815,13 @@ onBeforeUnmount(() => {
               }
             }
           }
-        }
 
-        .dependencies-section {
-          background-color: var(--nexa-surface);
-          border: 1px solid var(--nexa-border-color);
-          border-radius: 8px;
-          padding: 16px;
-          margin-bottom: 16px;
-
+          // 의존성 정보 스타일
           .dependency-group {
-            margin-bottom: 20px;
-
-            &:last-child {
-              margin-bottom: 0;
-            }
-
             .dependency-group-header {
               display: flex;
               align-items: center;
               gap: 8px;
-              margin-bottom: 12px;
 
               .dependency-group-title {
                 color: var(--nexa-text-primary);
@@ -720,14 +835,9 @@ onBeforeUnmount(() => {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 8px 12px;
+                padding: 0 12px;
                 background-color: var(--nexa-background);
                 border-radius: 4px;
-                margin-bottom: 8px;
-
-                &:last-child {
-                  margin-bottom: 0;
-                }
 
                 .dependency-path {
                   font-family: 'Courier New', monospace;
@@ -740,14 +850,11 @@ onBeforeUnmount(() => {
             }
 
             .scss-variables {
-              margin-top: 12px;
-              padding-top: 12px;
               border-top: 1px solid var(--nexa-border-color);
 
               .scss-variables-label {
                 color: var(--nexa-text-secondary);
                 font-size: 0.8125rem;
-                margin-bottom: 8px;
               }
 
               .scss-variables-list {
@@ -762,25 +869,18 @@ onBeforeUnmount(() => {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 16px;
+            padding: 0 16px;
             color: var(--nexa-text-secondary);
             font-size: 0.875rem;
             text-align: center;
             justify-content: center;
           }
-        }
 
-        .usage-example-section {
-          background-color: var(--nexa-surface);
-          border: 1px solid var(--nexa-border-color);
-          border-radius: 8px;
-          padding: 16px;
-
+          // 사용 예제 스타일
           .usage-example-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
 
             .usage-label {
               color: var(--nexa-text-secondary);
@@ -794,7 +894,7 @@ onBeforeUnmount(() => {
               margin: 0;
               overflow-x: auto;
               background-color: var(--nexa-background);
-              padding: 12px;
+              padding: 0 12px;
               border-radius: 4px;
 
               code {
@@ -805,67 +905,63 @@ onBeforeUnmount(() => {
               }
             }
           }
-        }
 
-        .design-decisions {
-          .decision-item {
-            display: flex;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--nexa-border-color);
+          // 디자인 결정 요소 스타일
+          .design-decisions {
+            .decision-item {
+              display: flex;
+              border-bottom: 1px solid var(--nexa-border-color);
 
-            &:last-child {
-              border-bottom: none;
-            }
+              &:last-child {
+                border-bottom: none;
+              }
 
-            .decision-key {
-              color: var(--nexa-text-secondary);
-              font-weight: 500;
-              min-width: 120px;
-            }
+              .decision-key {
+                color: var(--nexa-text-secondary);
+                font-weight: 500;
+                min-width: 120px;
+              }
 
-            .decision-value {
-              color: var(--nexa-text-primary);
-              flex: 1;
+              .decision-value {
+                color: var(--nexa-text-primary);
+                flex: 1;
+              }
             }
           }
-        }
 
-        .code-editor-section {
-          background-color: var(--nexa-surface);
-          border: 1px solid var(--nexa-border-color);
-          border-radius: 8px;
-          padding: 16px;
-          min-height: 500px;
-          display: flex;
-          flex-direction: column;
-
-          .file-loading,
-          .file-error {
+          // 코드 에디터 섹션 스타일
+          &.code-editor-section {
+            padding: 0 16px;
+            min-height: 500px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-            color: var(--nexa-text-secondary);
 
-            .file-loading-text,
-            .file-error-text {
-              margin-top: 16px;
-              font-size: 0.875rem;
-            }
+            .file-loading,
+            .file-error {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 200px;
+              color: var(--nexa-text-secondary);
 
-            .file-error-text {
-              color: var(--nexa-error);
+              .file-loading-text,
+              .file-error-text {
+                font-size: 0.875rem;
+              }
+
+              .file-error-text {
+                color: var(--nexa-error);
+              }
             }
           }
-        }
 
-        .ai-reference {
-          .ai-reference-note {
-            color: var(--nexa-text-secondary);
-            font-size: 0.875rem;
-            margin-top: 8px;
+          // AI 참조 키워드 스타일
+          .ai-reference {
+            .ai-reference-note {
+              color: var(--nexa-text-secondary);
+              font-size: 0.875rem;
+            }
           }
         }
       }
