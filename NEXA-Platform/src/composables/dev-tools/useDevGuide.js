@@ -18,6 +18,7 @@ const activeTab = ref('all') // 'all' | 'recent' | 'favorite'
 const selectedSample = ref(null)
 const selectedFolderNode = ref(null)
 const filterListOnSearch = ref(true) // 리스트도 검색 필터 적용 여부
+const accordionMode = ref(false) // 아코디언 모드 (최상위 폴더 하나만 열기)
 const samples = ref([])
 const recentSamples = ref([])
 const favoriteSamples = ref([])
@@ -246,6 +247,21 @@ export function useDevGuide() {
     } catch (error) {
       console.error('[useDevGuide] 뷰 모드 저장 실패:', error)
     }
+  }
+
+  /**
+   * 아코디언 모드 토글 변경 핸들러
+   * @param {boolean} enabled - 아코디언 모드 활성화 여부
+   */
+  function handleAccordionModeChange(enabled) {
+    accordionMode.value = enabled
+    // localStorage에 저장
+    try {
+      localStorage.setItem('dev-guide-accordion-mode', enabled ? 'true' : 'false')
+    } catch (error) {
+      console.error('[useDevGuide] 아코디언 모드 저장 실패:', error)
+    }
+    window.dispatchEvent(new CustomEvent('dev-guide-accordion-mode-changed', { detail: { enabled } }))
   }
 
   /**
@@ -543,6 +559,11 @@ export function useDevGuide() {
       if (savedFilterListOnSearch !== null) {
         filterListOnSearch.value = savedFilterListOnSearch === 'true'
       }
+      // localStorage에서 아코디언 모드 설정 복원
+      const savedAccordionMode = localStorage.getItem('dev-guide-accordion-mode')
+      if (savedAccordionMode !== null) {
+        accordionMode.value = savedAccordionMode === 'true'
+      }
     } catch (error) {
       console.error('[useDevGuide] 설정 복원 실패:', error)
     }
@@ -626,6 +647,7 @@ export function useDevGuide() {
     selectedSample,
     selectedFolderNode,
     filterListOnSearch,
+    accordionMode,
     samples,
     recentSamples,
     favoriteSamples,
@@ -639,6 +661,7 @@ export function useDevGuide() {
     handleCategoryFilterChange,
     handleViewModeChange,
     handleFilterListOnSearchChange,
+    handleAccordionModeChange,
     handleSampleSelect,
     handleFolderSelect,
     toggleFavorite,

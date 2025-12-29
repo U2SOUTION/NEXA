@@ -1,14 +1,36 @@
 <!-- DevGuideContent.vue
   개발 가이드 메인 컨텐츠 컴포넌트
-  샘플 라이브러리 및 상세 뷰 관리
+  샘플 모음 및 상세 뷰 관리
 -->
 <template>
   <div class="dev-guide-content">
-    <!-- 샘플이 선택되지 않았을 때: 샘플 라이브러리 -->
-    <div v-if="!selectedSample" class="sample-library-view">
-      <div class="library-header">
-        <h2 class="library-title">개발 가이드 샘플 라이브러리</h2>
-        <p class="library-description">NEXA 시스템의 디자인 샘플을 탐색하고 참고하세요.</p>
+    <!-- 샘플이 선택되지 않았을 때: 샘플 모음 -->
+    <div v-if="!selectedSample" class="sample-collection-view">
+      <div class="collection-header">
+        <div class="header-top">
+          <div class="header-left">
+            <h2 class="collection-title">개발 가이드 샘플 모음</h2>
+            <p class="collection-description">NEXA 시스템의 디자인 샘플을 탐색하고 참고하세요.</p>
+          </div>
+          <div class="header-options">
+            <div class="display-options-group">
+              <q-btn
+                v-for="(option, index) in displayOptionButtons"
+                :key="option.value"
+                :icon="option.icon"
+                :label="option.label"
+                :class="{
+                  'display-option-btn': true,
+                  'option-active': cardDisplayOptions.includes(option.value),
+                  'first-btn': index === 0,
+                  'last-btn': index === displayOptionButtons.length - 1,
+                }"
+                dense
+                @click="toggleDisplayOption(option.value)"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 샘플 그리드 -->
@@ -196,6 +218,30 @@ import { analyzeSampleDependencies } from 'src/utils/dev-guide/dependency-analyz
 
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, toggleFavorite } = useDevGuide()
+
+// 카드 표시 옵션
+const cardDisplayOptions = ref(['title', 'category', 'description', 'tags'])
+
+// 표시 옵션 버튼 설정
+const displayOptionButtons = computed(() => [
+  { label: '미리보기', value: 'preview', icon: 'preview' },
+  { label: '제목', value: 'title', icon: 'text_fields' },
+  { label: '카테고리', value: 'category', icon: 'category' },
+  { label: '설명', value: 'description', icon: 'description' },
+  { label: '태그', value: 'tags', icon: 'label' },
+])
+
+// 표시 옵션 토글 함수
+function toggleDisplayOption(optionValue) {
+  const index = cardDisplayOptions.value.indexOf(optionValue)
+  if (index > -1) {
+    // 이미 활성화되어 있으면 제거
+    cardDisplayOptions.value.splice(index, 1)
+  } else {
+    // 비활성화되어 있으면 추가
+    cardDisplayOptions.value.push(optionValue)
+  }
+}
 
 // 샘플 컴포넌트 로딩 상태
 const sampleComponent = shallowRef(null)
@@ -677,17 +723,79 @@ watch(previewContainerRef, (newRef) => {
   height: 100%;
   padding: 0 24px;
 
-  .sample-library-view {
-    .library-header {
-      .library-title {
+  .sample-collection-view {
+    .collection-header {
+      .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 16px;
+        margin-bottom: 6px;
+
+        .header-left {
+          flex: 1;
+        }
+
+        .header-options {
+          flex-shrink: 0;
+
+          .display-options-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--nexa-border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: var(--nexa-surface);
+          }
+
+          .display-option-btn {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            min-height: 28px;
+            transition: all 0.2s ease;
+            background-color: transparent;
+            color: var(--nexa-text-secondary);
+            border: none;
+            border-radius: 0;
+            border-right: 1px solid var(--nexa-border-color);
+
+            &:last-child {
+              border-right: none;
+            }
+
+            &:hover {
+              background-color: var(--nexa-surface-hover);
+            }
+
+            &.option-active {
+              background-color: var(--nexa-button-primary-bg);
+              color: var(--nexa-button-primary-text);
+            }
+
+            &.first-btn {
+              border-top-left-radius: 4px;
+              border-bottom-left-radius: 4px;
+            }
+
+            &.last-btn {
+              border-top-right-radius: 4px;
+              border-bottom-right-radius: 4px;
+            }
+          }
+        }
+      }
+
+      .collection-title {
         color: var(--nexa-text-primary);
         font-size: 2rem;
         font-weight: 900;
+        margin-bottom: 4px;
       }
 
-      .library-description {
+      .collection-description {
         color: var(--nexa-text-secondary);
         font-size: 1rem;
+        margin: 0;
       }
     }
 
@@ -737,18 +845,22 @@ watch(previewContainerRef, (newRef) => {
         .sample-card-description {
           color: var(--nexa-text-secondary);
           font-size: 0.875rem;
+          margin-bottom: 6px;
         }
 
         .sample-card-tags {
           display: flex;
-          gap: 1px;
+          gap: 2px;
+          row-gap: 2px; // 줄바꿈 시 상하 간격 최소화
           flex-wrap: wrap;
+          align-items: flex-start; // 상단 정렬
         }
 
         .sample-card-tag {
-          padding: 3px 10px;
-          font-size: 0.575rem !important;
+          padding: 3px 8px;
+          font-size: 0.575rem;
           color: var(--nexa-text-secondary);
+          margin: 0; // Quasar 기본 margin 제거
         }
       }
     }

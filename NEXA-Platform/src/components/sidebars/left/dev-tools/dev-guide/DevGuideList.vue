@@ -5,9 +5,9 @@
 <template>
   <div class="dev-guide-list">
     <q-scroll-area class="list-scroll-area">
-      <!-- 샘플 라이브러리 아코디언 (Phase 1-3) -->
+      <!-- 샘플 모음 아코디언 (Phase 1-3) -->
       <div class="accordion-wrapper">
-        <q-expansion-item icon="style" label="샘플 라이브러리" default-opened class="samples-expansion">
+        <q-expansion-item icon="style" label="샘플 모음" default-opened class="samples-expansion">
           <q-tabs v-model="activeTab" dense class="samples-tabs" @update:model-value="handleTabChange">
             <q-tab name="all">
               <q-icon name="list" class="q-mr-xs" />
@@ -22,6 +22,55 @@
               <span>즐겨찾기</span>
             </q-tab>
           </q-tabs>
+
+          <!-- 컨트롤 버튼 영역 -->
+          <div class="tree-controls q-px-sm q-pt-xs q-pb-xs">
+            <div class="row q-gutter-xs items-center">
+              <!-- 뷰 모드 토글 -->
+              <q-btn
+                flat
+                dense
+                size="sm"
+                :icon="currentViewMode === 'flat' ? 'view_list' : 'account_tree'"
+                :label="currentViewMode === 'flat' ? '평면 보기' : '계층 보기'"
+                :class="{ 'view-mode-toggle-active': currentViewMode === 'hierarchy', 'view-mode-toggle-inactive': currentViewMode === 'flat' }"
+                class="view-mode-toggle-btn"
+                @click="handleViewModeToggle"
+              >
+                <q-tooltip>{{ currentViewMode === 'flat' ? '평면 모드' : '계층 모드' }} (클릭하여 전환)</q-tooltip>
+              </q-btn>
+
+              <!-- 아코디언 모드 토글 (계층 모드일 때만 표시) -->
+              <q-btn
+                v-if="currentViewMode === 'hierarchy' && activeTab === 'all'"
+                flat
+                dense
+                size="sm"
+                :icon="accordionMode ? 'unfold_less' : 'unfold_more'"
+                :label="accordionMode ? '아코디언 ON' : '아코디언 OFF'"
+                :class="{ 'accordion-toggle-active': accordionMode, 'accordion-toggle-inactive': !accordionMode }"
+                class="accordion-toggle-btn"
+                @click="handleAccordionModeToggle"
+              >
+                <q-tooltip>아코디언 모드 {{ accordionMode ? 'ON' : 'OFF' }} (최상위 폴더 하나만 열기)</q-tooltip>
+              </q-btn>
+
+              <!-- 트리 컨트롤 버튼 (계층 모드일 때만 표시) -->
+              <q-btn
+                v-if="currentViewMode === 'hierarchy' && activeTab === 'all'"
+                flat
+                dense
+                size="sm"
+                :icon="isAllExpanded ? 'unfold_less' : 'unfold_more'"
+                :label="isAllExpanded ? '모두 접기' : '모두 펴기'"
+                :class="{ 'tree-expand-toggle-active': isAllExpanded, 'tree-expand-toggle-inactive': !isAllExpanded }"
+                class="tree-expand-toggle-btn"
+                @click="toggleExpandAll"
+              >
+                <q-tooltip>{{ isAllExpanded ? '모든 노드 접기' : '모든 노드 펴기' }}</q-tooltip>
+              </q-btn>
+            </div>
+          </div>
 
           <q-tab-panels v-model="activeTab" class="samples-tab-panels">
             <!-- 전체 샘플 탭 -->
@@ -61,10 +110,10 @@
                   <q-tree
                     v-if="treeNodes && treeNodes.length > 0"
                     :nodes="treeNodes"
+                    :expanded="expandedNodes"
                     node-key="id"
                     label-key="label"
                     children-key="children"
-                    default-expand-all
                     class="hierarchy-tree"
                     @update:selected="handleTreeNodeSelect"
                     @update:expanded="
@@ -87,7 +136,7 @@
                             }
                           }
                         "
-                        style="pointer-events: auto !important"
+                        style="pointer-events: auto"
                       >
                         <q-icon v-if="prop.node.icon" :name="prop.node.icon" class="q-mr-sm" />
                         <div class="col">{{ prop.node.label }}</div>
@@ -349,7 +398,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 
 defineProps({
@@ -359,7 +408,27 @@ defineProps({
   },
 })
 
-const { activeTab, selectedSample, recentSamples, favoriteSamples, samples, filteredSamples, filteredRecentSamples, filteredFavoriteSamples, viewMode, filterListOnSearch, handleSampleSelect, handleFolderSelect, toggleFavorite, getIconForTopLevel, getLabelForTopLevel, getIconForCategory } = useDevGuide()
+const {
+  activeTab,
+  selectedSample,
+  recentSamples,
+  favoriteSamples,
+  samples,
+  filteredSamples,
+  filteredRecentSamples,
+  filteredFavoriteSamples,
+  viewMode,
+  filterListOnSearch,
+  accordionMode,
+  handleSampleSelect,
+  handleFolderSelect,
+  toggleFavorite,
+  getIconForTopLevel,
+  getLabelForTopLevel,
+  getIconForCategory,
+  handleViewModeChange,
+  handleAccordionModeChange,
+} = useDevGuide()
 
 // viewMode를 computed로 변환하여 템플릿에서 사용
 const currentViewMode = computed(() => viewMode.value)
@@ -373,7 +442,7 @@ const listSamples = computed(() => {
 const treeNodes = computed(() => {
   // filterListOnSearch가 true면 filteredSamples, false면 samples 사용
   const sourceSamples = filterListOnSearch.value ? filteredSamples.value : samples.value
-  
+
   if (!sourceSamples || sourceSamples.length === 0) {
     return []
   }
@@ -460,8 +529,74 @@ const treeNodes = computed(() => {
   })
 })
 
-// 확장 상태 추적
-const expandedNodes = ref({})
+// 확장 상태 추적 (배열 형태: 확장된 노드 ID들의 배열)
+const expandedNodes = ref([])
+
+// 모든 노드 ID 수집 (재귀, 샘플 노드 제외)
+function getAllNodeIds(nodes) {
+  const ids = []
+  for (const node of nodes) {
+    // 샘플 노드는 children이 없으므로 제외
+    if (!node.sample) {
+      ids.push(node.id)
+    }
+    if (node.children && node.children.length > 0) {
+      ids.push(...getAllNodeIds(node.children))
+    }
+  }
+  return ids
+}
+
+// 모두 펴기
+function expandAll() {
+  if (!treeNodes.value || treeNodes.value.length === 0) {
+    return
+  }
+  const allIds = getAllNodeIds(treeNodes.value)
+  // Quasar q-tree는 expanded prop으로 배열을 받음 (노드 ID들의 배열)
+  expandedNodes.value = [...allIds]
+  console.log('🟢 모두 펴기:', expandedNodes.value)
+}
+
+// 모두 접기
+function collapseAll() {
+  expandedNodes.value = []
+  console.log('🟢 모두 접기')
+}
+
+// 모두 접기/펴기 상태 확인
+const isAllExpanded = computed(() => {
+  if (!treeNodes.value || treeNodes.value.length === 0) {
+    return false
+  }
+  const allIds = getAllNodeIds(treeNodes.value)
+  if (allIds.length === 0) {
+    return false
+  }
+  // 모든 노드가 확장되어 있는지 확인 (배열에 모든 ID가 포함되어 있는지)
+  return allIds.every((id) => expandedNodes.value.includes(id))
+})
+
+// 모두 접기/펴기 토글
+function toggleExpandAll() {
+  if (isAllExpanded.value) {
+    collapseAll()
+  } else {
+    expandAll()
+  }
+}
+
+// 트리 노드 변경 시 초기 상태 설정 (모두 펴기)
+watch(
+  () => treeNodes.value,
+  (newNodes) => {
+    if (newNodes && newNodes.length > 0 && expandedNodes.value.length === 0) {
+      // 초기 상태는 모두 펴기 (expandedNodes가 비어있을 때만)
+      expandAll()
+    }
+  },
+  { immediate: true },
+)
 
 // 노드 ID로 노드 찾기 헬퍼 함수
 function findNodeById(nodes, targetId) {
@@ -543,20 +678,19 @@ function handleTreeExpanded(expanded) {
   console.log('🟣 트리 확장/축소 이벤트:', expanded)
   console.log('🟣 이전 확장 상태:', expandedNodes.value)
 
-  if (!expanded || typeof expanded !== 'object') {
+  // Quasar q-tree의 @update:expanded 이벤트는 배열을 반환 (확장된 노드 ID들의 배열)
+  if (!Array.isArray(expanded)) {
     return
   }
 
-  // expanded는 { [nodeId]: boolean } 형태의 객체
   // 이전 상태와 비교하여 새로 확장된 노드만 감지
-  for (const [nodeId, isExpanded] of Object.entries(expanded)) {
-    const nodeIdNum = parseInt(nodeId, 10)
-    const wasExpanded = expandedNodes.value[nodeId] || false
+  const previousExpanded = new Set(expandedNodes.value)
 
-    // 새로 확장된 노드만 처리 (축소된 노드는 무시)
-    if (isExpanded && !wasExpanded) {
+  for (const nodeId of expanded) {
+    // 새로 확장된 노드만 처리
+    if (!previousExpanded.has(nodeId)) {
       console.log('🟣 새로 확장된 노드 감지:', nodeId)
-      const node = findNodeById(treeNodes.value, nodeIdNum)
+      const node = findNodeById(treeNodes.value, nodeId)
 
       if (!node) {
         continue
@@ -594,8 +728,63 @@ function handleTreeExpanded(expanded) {
     }
   }
 
-  // 확장 상태 업데이트
-  expandedNodes.value = { ...expanded }
+  // 아코디언 모드: 최상위 레벨 폴더가 확장되면 다른 최상위 레벨 폴더들을 접기
+  if (accordionMode.value) {
+    // 모든 최상위 레벨 폴더 ID 수집
+    const topLevelIds = treeNodes.value.map((topLevel) => topLevel.id)
+
+    // 확장된 노드 중 최상위 레벨 폴더 찾기
+    const expandedTopLevelIds = expanded.filter((nodeId) => topLevelIds.includes(nodeId))
+
+    // 새로 확장된 최상위 레벨 폴더가 있으면
+    if (expandedTopLevelIds.length > 0) {
+      // 가장 최근에 확장된 최상위 레벨 폴더 (마지막 항목)
+      const newlyExpandedTopLevelId = expandedTopLevelIds[expandedTopLevelIds.length - 1]
+
+      // 다른 최상위 레벨 폴더들의 ID
+      const otherTopLevelIds = topLevelIds.filter((id) => id !== newlyExpandedTopLevelId)
+
+      // 최상위 레벨 폴더의 모든 하위 노드 ID 수집 (재귀)
+      function getAllChildIds(node) {
+        const ids = []
+        if (node.children) {
+          for (const child of node.children) {
+            ids.push(child.id)
+            if (child.children) {
+              ids.push(...getAllChildIds(child))
+            }
+          }
+        }
+        return ids
+      }
+
+      // 다른 최상위 레벨 폴더와 그 하위 노드들의 ID
+      const otherTopLevelAndChildrenIds = new Set()
+      for (const topLevelId of otherTopLevelIds) {
+        const topLevelNode = treeNodes.value.find((tl) => tl.id === topLevelId)
+        if (topLevelNode) {
+          otherTopLevelAndChildrenIds.add(topLevelId)
+          getAllChildIds(topLevelNode).forEach((id) => otherTopLevelAndChildrenIds.add(id))
+        }
+      }
+
+      // 새로 확장된 최상위 레벨 폴더와 그 하위 노드만 유지
+      const filteredExpanded = expanded.filter((nodeId) => {
+        // 다른 최상위 레벨 폴더나 그 하위 노드면 제거
+        return !otherTopLevelAndChildrenIds.has(nodeId)
+      })
+
+      expandedNodes.value = filteredExpanded
+      console.log('🟢 아코디언 모드: 다른 최상위 폴더 접기', {
+        newlyExpandedTopLevelId,
+        filteredExpanded,
+      })
+      return
+    }
+  }
+
+  // 확장 상태 업데이트 (배열로 저장)
+  expandedNodes.value = [...expanded]
 }
 
 // 즐겨찾기 확인
@@ -607,6 +796,18 @@ function isFavorite(sampleId) {
 function handleTabChange(newTab) {
   console.log('🟡 탭 변경:', newTab, '이전 탭:', activeTab.value)
   // activeTab은 useDevGuide에서 관리
+}
+
+// 뷰 모드 토글 핸들러
+function handleViewModeToggle() {
+  const newMode = currentViewMode.value === 'flat' ? 'hierarchy' : 'flat'
+  handleViewModeChange(newMode)
+}
+
+// 아코디언 모드 토글 핸들러
+function handleAccordionModeToggle() {
+  const newValue = !accordionMode.value
+  handleAccordionModeChange(newValue)
 }
 
 // 즐겨찾기 토글
@@ -641,9 +842,120 @@ function handleDeleteFavorite(sampleId) {
     height: 100%;
   }
 
+  // 트리 컨트롤 버튼
+  .tree-controls {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--nexa-border-color);
+    border-bottom: 1px solid var(--nexa-border-color);
+    padding: 4px;
+
+    .view-mode-toggle-btn,
+    .accordion-toggle-btn,
+    .tree-expand-toggle-btn {
+      font-size: 0.7rem;
+      color: var(--nexa-text-secondary);
+      padding: 0px 16px 0 10px;
+      line-height: 1.2;
+      transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+
+      // Quasar 기본 스타일 완전 오버라이드
+      :deep(.q-btn__wrapper) {
+        padding: 0;
+        min-height: unset;
+        height: auto;
+      }
+
+      :deep(.q-btn__content) {
+        font-size: 0.8rem;
+        padding: 0;
+        min-height: unset;
+        height: auto;
+        line-height: 1.2;
+      }
+
+      :deep(.q-icon) {
+        font-size: 16px;
+        margin-right: 4px;
+      }
+
+      :deep(.q-btn__label) {
+        font-size: 0.8rem;
+        line-height: 1.2;
+      }
+
+      &:hover {
+        color: var(--nexa-primary);
+        background-color: color-mix(in srgb, var(--nexa-primary) 10%, transparent);
+      }
+    }
+
+    .view-mode-toggle-btn {
+      &.view-mode-toggle-active {
+        background-color: var(--nexa-button-primary-bg);
+        color: var(--nexa-button-primary-text);
+
+        :deep(.q-icon) {
+          color: var(--nexa-button-primary-text);
+        }
+      }
+
+      &.view-mode-toggle-inactive {
+        background-color: var(--nexa-surface);
+        color: var(--nexa-text-secondary);
+
+        :deep(.q-icon) {
+          color: var(--nexa-text-secondary);
+        }
+      }
+    }
+
+    .accordion-toggle-btn {
+      &.accordion-toggle-active {
+        background-color: var(--nexa-button-primary-bg);
+        color: var(--nexa-button-primary-text);
+
+        :deep(.q-icon) {
+          color: var(--nexa-button-primary-text);
+        }
+      }
+
+      &.accordion-toggle-inactive {
+        background-color: var(--nexa-surface);
+        color: var(--nexa-text-secondary);
+
+        :deep(.q-icon) {
+          color: var(--nexa-text-secondary);
+        }
+      }
+    }
+
+    .tree-expand-toggle-btn {
+      &.tree-expand-toggle-active {
+        background-color: var(--nexa-button-primary-bg);
+        color: var(--nexa-button-primary-text);
+
+        :deep(.q-icon) {
+          color: var(--nexa-button-primary-text);
+        }
+      }
+
+      &.tree-expand-toggle-inactive {
+        background-color: var(--nexa-surface);
+        color: var(--nexa-text-secondary);
+
+        :deep(.q-icon) {
+          color: var(--nexa-text-secondary);
+        }
+      }
+    }
+  }
+
   // 트리 폴더 헤더 스타일
   .tree-folder-header {
-    pointer-events: auto !important;
+    pointer-events: auto;
     cursor: pointer;
     user-select: none;
 
