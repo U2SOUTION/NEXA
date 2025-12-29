@@ -196,11 +196,50 @@ function convertTreeToNodes(tree) {
       // 하위 디렉토리만 children에 포함 (파일은 제외)
       const directoryChildren = convertTreeToNodes(node.children)
 
-      // 파일 아이템들은 별도로 처리하지 않고, 부모 노드의 items에만 보관
-      // q-tree에서 파일은 default-body slot으로 렌더링되므로 별도 children에 포함하지 않음
+      // 파일 아이템들을 children으로 변환 (q-tree가 인식하도록)
+      const fileChildren = (node.items || []).map((item) => {
+        const id = convertTreeToNodes.sampleIdCounter++
+        // 파일명에서 확장자 제거하여 라벨 생성
+        const fileName = item.name || (item.componentPath ? item.componentPath.split('/').pop() : 'Unknown')
+        const labelWithoutExt = fileName.replace(/\.\w+$/, '')
 
-      // children이 있는 경우에만 children 속성 추가
-      const children = directoryChildren.length > 0 ? directoryChildren : undefined
+        // displayName 처리: 파일명과 동일하거나 유사하면 파일명만 사용, 다르면 displayName 사용
+        let displayLabel
+        if (item.displayName) {
+          // displayName이 파일명과 유사한지 확인 (대소문자 무시)
+          const displayNameLower = item.displayName.toLowerCase().trim()
+          const fileNameLower = labelWithoutExt.toLowerCase().trim()
+
+          // displayName이 파일명을 포함하거나, 파일명이 displayName을 포함하는 경우 파일명만 사용
+          if (displayNameLower === fileNameLower || displayNameLower.includes(fileNameLower) || fileNameLower.includes(displayNameLower)) {
+            displayLabel = labelWithoutExt
+          } else {
+            displayLabel = item.displayName
+          }
+        } else {
+          displayLabel = labelWithoutExt
+        }
+
+        return {
+          id: id,
+          label: displayLabel,
+          icon: 'description', // 파일 아이콘으로 변경 (폴더와 구분)
+          sample: item, // 원본 아이템 데이터 보관
+          item: item, // 호환성을 위한 별칭
+          // 파일 노드는 children이 없어야 화살표가 생기지 않음
+          children: undefined,
+        }
+      })
+
+      // children 설정 규칙:
+      // 1. 하위 디렉토리와 파일 아이템을 모두 포함
+      // 2. 둘 다 없으면 undefined (리프 노드)
+      let children
+      if (directoryChildren.length > 0 || fileChildren.length > 0) {
+        children = [...directoryChildren, ...fileChildren]
+      } else {
+        children = undefined
+      }
 
       return {
         id: node.id,
@@ -211,7 +250,7 @@ function convertTreeToNodes(tree) {
         path: node.path,
         fullPath: node.fullPath,
         children: children,
-        // 파일 아이템들은 items에 보관 (템플릿에서 직접 접근)
+        // 파일 아이템들은 items에도 보관 (필터링 등에 사용)
         items: node.items,
         // 필터링을 위한 메타데이터
         _meta: {
@@ -222,8 +261,9 @@ function convertTreeToNodes(tree) {
     })
     .sort((a, b) => {
       // 디렉토리 먼저, 그 다음 파일
-      const aIsDir = a.children && a.children.length > 0
-      const bIsDir = b.children && b.children.length > 0
+      // children이 있거나 items가 있으면 디렉토리로 간주
+      const aIsDir = (a.children && a.children.length > 0) || (a.items && a.items.length > 0)
+      const bIsDir = (b.children && b.children.length > 0) || (b.items && b.items.length > 0)
       if (aIsDir && !bIsDir) return -1
       if (!aIsDir && bIsDir) return 1
       return a.label.localeCompare(b.label)

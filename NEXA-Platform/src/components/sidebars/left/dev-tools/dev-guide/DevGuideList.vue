@@ -125,13 +125,16 @@
                   >
                     <template v-slot:default-header="prop">
                       <div
-                        class="row items-center full-width tree-folder-header"
+                        :class="['row items-center full-width', prop.node.sample ? 'tree-file-header' : 'tree-folder-header', prop.node.sample && selectedSample?.id === prop.node.sample.id ? 'tree-file-header-selected' : '']"
                         @click.capture="
                           (e) => {
-                            // 샘플 노드가 아닌 폴더 노드인 경우에만 필터링 처리
-                            if (!prop.node.sample) {
+                            // 파일 노드인 경우 파일 열기
+                            if (prop.node.sample) {
+                              e.stopPropagation() // q-tree의 확장/축소 방지
+                              handleSampleSelect(prop.node.sample)
+                            } else {
+                              // 폴더 노드인 경우 필터링 처리
                               console.log('🔴🔴🔴 폴더 헤더 클릭 (capture):', prop.node.label, prop.node.id)
-                              // stopPropagation을 제거하여 q-tree의 기본 확장/축소 동작 허용
                               handleFolderHeaderClick(prop.node)
                             }
                           }
@@ -142,29 +145,9 @@
                         <div class="col">{{ prop.node.label }}</div>
                       </div>
                     </template>
-                    <template v-slot:default-body="prop">
-                      <!-- 샘플 노드인 경우 클릭 가능한 아이템으로 렌더링 -->
-                      <div v-if="prop.node.sample" :class="['tree-sample-item', { 'tree-sample-item-selected': selectedSample?.id === prop.node.sample.id }]" @click="handleSampleSelect(prop.node.sample)">
-                        <div class="tree-sample-item-content">
-                          <q-icon :name="prop.node.icon || 'style'" class="tree-sample-icon" />
-                          <div class="tree-sample-info">
-                            <div class="tree-sample-name">{{ prop.node.label }}</div>
-                            <div v-if="prop.node.sample.category" class="tree-sample-category">{{ prop.node.sample.category }}</div>
-                          </div>
-                        </div>
-                      </div>
-                      <!-- 폴더 노드의 파일 아이템들 직접 렌더링 -->
-                      <template v-else-if="prop.node.items && prop.node.items.length > 0">
-                        <div v-for="item in prop.node.items" :key="item.id" :class="['tree-sample-item', { 'tree-sample-item-selected': selectedSample?.id === item.id }]" @click="handleSampleSelect(item)">
-                          <div class="tree-sample-item-content">
-                            <q-icon :name="item.icon || 'style'" class="tree-sample-icon" />
-                            <div class="tree-sample-info">
-                              <div class="tree-sample-name">{{ item.displayName || item.name }}</div>
-                              <div v-if="item.category" class="tree-sample-category">{{ item.category }}</div>
-                            </div>
-                          </div>
-                        </div>
-                      </template>
+                    <template v-slot:default-body>
+                      <!-- 파일 노드는 body에서 렌더링하지 않음 (헤더에서만 표시) -->
+                      <!-- 폴더 노드의 하위 항목들은 q-tree가 자동으로 렌더링 -->
                     </template>
                   </q-tree>
 
@@ -948,6 +931,23 @@ function handleDeleteFavorite(sampleId) {
   }
 
   // 트리 폴더 헤더 스타일
+  .tree-file-header {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: var(--nexa-text-primary);
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--nexa-surface-hover);
+    }
+
+    &.tree-file-header-selected {
+      background-color: var(--nexa-surface-hover);
+      color: var(--nexa-primary);
+    }
+  }
+
   .tree-folder-header {
     pointer-events: auto;
     cursor: pointer;
