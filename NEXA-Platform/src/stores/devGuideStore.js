@@ -699,6 +699,129 @@ export const useDevGuideStore = defineStore('devGuide', () => {
     return 'label'
   }
 
+  // ============================================
+  // 통계 분석 함수
+  // ============================================
+
+  /**
+   * 전체 통계 분석
+   * @returns {Object} 전체 통계 데이터
+   */
+  function getFullStatistics() {
+    const totalSamples = samples.value.length
+    const totalCategories = categories.value.length
+    const favoriteCount = favoriteSamples.value.length
+    const recentCount = recentSamples.value.length
+
+    // 카테고리별 샘플 수
+    const categoryCounts = {}
+    samples.value.forEach((sample) => {
+      const category = sample.category || getComponentCategory(sample.componentPath) || '기타'
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1
+    })
+
+    // 태그별 샘플 수
+    const tagCounts = {}
+    samples.value.forEach((sample) => {
+      if (sample.tags && Array.isArray(sample.tags)) {
+        sample.tags.forEach((tag) => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1
+        })
+      }
+    })
+
+    // 가장 많은 샘플을 가진 카테고리
+    const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0] || null
+
+    // 캐시 통계
+    const cacheStatsData = cacheStats.value
+
+    return {
+      overview: {
+        totalSamples,
+        totalCategories,
+        favoriteCount,
+        recentCount,
+      },
+      categories: {
+        total: totalCategories,
+        distribution: categoryCounts,
+        topCategory: topCategory ? { name: topCategory[0], count: topCategory[1] } : null,
+      },
+      tags: {
+        total: Object.keys(tagCounts).length,
+        distribution: tagCounts,
+        topTags: Object.entries(tagCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([tag, count]) => ({ tag, count })),
+      },
+      cache: cacheStatsData,
+    }
+  }
+
+  /**
+   * 카테고리별 통계
+   * @returns {Object} 카테고리별 통계 데이터
+   */
+  function getCategoryStatistics() {
+    const categoryStats = {}
+
+    samples.value.forEach((sample) => {
+      const category = sample.category || getComponentCategory(sample.componentPath) || '기타'
+
+      if (!categoryStats[category]) {
+        categoryStats[category] = {
+          name: category,
+          totalSamples: 0,
+          favoriteCount: 0,
+          recentCount: 0,
+          cachedCount: 0,
+          errorCount: 0,
+          samples: [],
+        }
+      }
+
+      const stats = categoryStats[category]
+      stats.totalSamples++
+      stats.samples.push(sample)
+
+      // 즐겨찾기 여부
+      if (favoriteSamples.value.some((fav) => fav.id === sample.id)) {
+        stats.favoriteCount++
+      }
+
+      // 최근 사용 여부
+      if (recentSamples.value.some((recent) => recent.id === sample.id)) {
+        stats.recentCount++
+      }
+
+      // 캐시 상태
+      if (previewStates.loadedPreviews.value.has(sample.id)) {
+        stats.cachedCount++
+      }
+
+      // 에러 상태
+      if (previewStates.previewErrors.value.has(sample.id)) {
+        stats.errorCount++
+      }
+    })
+
+    // 배열로 변환하고 정렬 (샘플 수 기준 내림차순)
+    const categoryList = Object.values(categoryStats).sort((a, b) => b.totalSamples - a.totalSamples)
+
+    return {
+      totalCategories: categoryList.length,
+      categories: categoryList,
+      summary: {
+        totalSamples: samples.value.length,
+        averageSamplesPerCategory: Math.round((samples.value.length / categoryList.length) * 10) / 10,
+        maxSamplesInCategory: categoryList[0]?.totalSamples || 0,
+        minSamplesInCategory: categoryList[categoryList.length - 1]?.totalSamples || 0,
+      },
+    }
+  }
+
   /**
    * 초기화 (localStorage에서 설정 복원)
    */
@@ -796,5 +919,9 @@ export const useDevGuideStore = defineStore('devGuide', () => {
     getLabelForTopLevel,
     getIconForCategory,
     init,
+
+    // 통계 분석
+    getFullStatistics,
+    getCategoryStatistics,
   }
 })

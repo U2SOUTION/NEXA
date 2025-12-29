@@ -1274,17 +1274,39 @@ watch(previewContainerRef, (newRef) => {
     .collection-header {
       .header-top {
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
         align-items: flex-end;
         gap: 16px;
         margin-bottom: 6px;
 
+        // 컨텐츠 영역이 좁아질 때 세로 배치
+        @media (max-width: 600px) {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
         .header-left {
           flex: 1;
+          min-width: 0;
+          // 최소 너비 보장 (타이틀이 너무 작아지지 않도록)
+          min-width: 200px;
+
+          @media (max-width: 600px) {
+            width: 100%;
+            min-width: 0;
+          }
         }
 
         .header-options {
           flex-shrink: 0;
+          // 버튼 그룹이 공간이 부족하면 아래로 이동
+          min-width: fit-content;
+
+          @media (max-width: 600px) {
+            width: 100%;
+          }
 
           .display-options-group {
             display: flex;
@@ -1293,6 +1315,16 @@ watch(previewContainerRef, (newRef) => {
             border-radius: 4px;
             overflow: hidden;
             background-color: var(--nexa-surface);
+            flex-wrap: wrap;
+
+            @media (max-width: 600px) {
+              width: 100%;
+            }
+
+            // 컨텐츠 영역이 매우 좁을 때 버튼 숨김
+            @media (max-width: 400px) {
+              display: none;
+            }
           }
 
           .display-option-btn {
@@ -1342,12 +1374,28 @@ watch(previewContainerRef, (newRef) => {
         font-size: 2rem;
         font-weight: 900;
         margin-bottom: 4px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+
+        @media (max-width: 768px) {
+          font-size: 1.5rem;
+        }
+
+        @media (max-width: 480px) {
+          font-size: 1.25rem;
+        }
       }
 
       .collection-description {
         color: var(--nexa-text-secondary);
         font-size: 1rem;
         margin: 0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+
+        @media (max-width: 768px) {
+          font-size: 0.875rem;
+        }
       }
     }
 

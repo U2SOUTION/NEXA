@@ -33,6 +33,7 @@ body {
   word-wrap: normal;
   direction: ltr;
   -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
 
@@ -107,13 +108,13 @@ q-input input[type='number'] {
 
 // 텍스트 필드 크기 조정 아이콘 숨기기
 textarea {
-  resize: none !important;
+  resize: none;
 }
 
 // Quasar q-input 내부의 textarea에도 적용
 .q-input textarea,
 .q-field textarea {
-  resize: none !important;
+  resize: none;
 }
 
 // =====부품 분류 추가 모달 중복 체크 에러 상태 (경고 색상 적용) =====
@@ -121,35 +122,35 @@ textarea {
 .add-class-dialog-form {
   // Quasar의 negative 색상 변수 오버라이드
   .q-field--error {
-    --q-negative: var(--nexa-warning) !important;
+    --q-negative: var(--nexa-warning);
   }
 
   // 에러 상태 보더 색상 (::before와 ::after 모두 처리)
   .q-field--error.q-field--outlined .q-field__control::before,
   .q-field--error.q-field--outlined .q-field__control::after {
-    border-color: var(--nexa-warning) !important;
+    border-color: var(--nexa-warning);
   }
 
   .q-field--error.q-field--outlined.q-field--focused .q-field__control::before,
   .q-field--error.q-field--outlined.q-field--focused .q-field__control::after,
   .q-field--error.q-field--outlined:hover .q-field__control::before,
   .q-field--error.q-field--outlined:hover .q-field__control::after {
-    border-color: var(--nexa-warning) !important;
+    border-color: var(--nexa-warning);
   }
 
   // 에러 상태 아이콘 색상
   .q-field--error .q-field__append .q-icon,
   .q-field--error .q-field__prepend .q-icon {
-    color: var(--nexa-warning) !important;
+    color: var(--nexa-warning);
   }
 
   // 에러 메시지 텍스트 색상 및 줄바꿈 허용
   .q-field--error .q-field__messages,
   .q-field--error .q-field__bottom {
-    color: var(--nexa-warning) !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    overflow: visible !important;
+    color: var(--nexa-warning);
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
   }
 }
 
@@ -161,7 +162,7 @@ textarea {
   box-shadow:
     0 2px 6px var(--nexa-shadow-1),
     0 4px 12px var(--nexa-shadow-2),
-    0 6px 10px var(--nexa-shadow-3) !important;
+    0 6px 10px var(--nexa-shadow-3);
 }
 
 // ===== Quasar 전역 모달(다이얼로그) 기본 크기 & 패딩 =====
@@ -306,36 +307,36 @@ a {
 // Quasar q-notify 컴포넌트 스타일 오버라이드
 .q-notifications__list {
   .q-notification {
-    background-color: var(--nexa-toast-bg) !important;
-    color: var(--nexa-toast-text) !important;
-    border: 1px solid var(--nexa-toast-border) !important;
+    background-color: var(--nexa-toast-bg);
+    color: var(--nexa-toast-text);
+    border: 1px solid var(--nexa-toast-border);
 
     // 성공 토스트
     &.q-notification--positive {
-      background-color: var(--nexa-toast-success-bg) !important;
-      color: var(--nexa-toast-success-text) !important;
-      border-color: var(--nexa-toast-success-border) !important;
+      background-color: var(--nexa-toast-success-bg);
+      color: var(--nexa-toast-success-text);
+      border-color: var(--nexa-toast-success-border);
     }
 
     // 경고 토스트
     &.q-notification--warning {
-      background-color: var(--nexa-toast-warning-bg) !important;
-      color: var(--nexa-toast-warning-text) !important;
-      border-color: var(--nexa-toast-warning-border) !important;
+      background-color: var(--nexa-toast-warning-bg);
+      color: var(--nexa-toast-warning-text);
+      border-color: var(--nexa-toast-warning-border);
     }
 
     // 에러 토스트
     &.q-notification--negative {
-      background-color: var(--nexa-toast-error-bg) !important;
-      color: var(--nexa-toast-error-text) !important;
-      border-color: var(--nexa-toast-error-border) !important;
+      background-color: var(--nexa-toast-error-bg);
+      color: var(--nexa-toast-error-text);
+      border-color: var(--nexa-toast-error-border);
     }
 
     // 정보 토스트
     &.q-notification--info {
-      background-color: var(--nexa-toast-info-bg) !important;
-      color: var(--nexa-toast-info-text) !important;
-      border-color: var(--nexa-toast-info-border) !important;
+      background-color: var(--nexa-toast-info-bg);
+      color: var(--nexa-toast-info-text);
+      border-color: var(--nexa-toast-info-border);
     }
   }
 }
@@ -343,15 +344,15 @@ a {
 // ===== 프로그레스 바 색상 =====
 // Quasar q-linear-progress 컴포넌트 스타일 오버라이드
 .q-linear-progress {
-  background-color: var(--nexa-progress-bg) !important;
-  color: var(--nexa-progress-text) !important;
+  background-color: var(--nexa-progress-bg);
+  color: var(--nexa-progress-text);
 
   .q-linear-progress__track {
-    background-color: var(--nexa-progress-bg) !important;
+    background-color: var(--nexa-progress-bg);
   }
 
   .q-linear-progress__model {
-    background-color: var(--nexa-progress-value-bg) !important;
+    background-color: var(--nexa-progress-value-bg);
   }
 }
 
@@ -366,27 +367,52 @@ a {
 // ===== 리스트 색상 =====
 // Quasar q-list 컴포넌트 스타일 오버라이드
 .q-list {
-  background-color: var(--nexa-list-bg) !important;
-  border: 1px solid var(--nexa-list-border) !important;
+  background-color: var(--nexa-list-bg);
+  border: 1px solid var(--nexa-list-border);
 
   .q-item {
     &:hover {
-      background-color: var(--nexa-list-item-hover-bg) !important;
+      background-color: var(--nexa-list-item-hover-bg);
     }
+  }
+}
+
+// ===== 칩 색상 =====
+// Quasar q-chip 컴포넌트 전역 스타일 오버라이드
+.q-chip {
+  background-color: var(--nexa-surface);
+  color: var(--nexa-text-secondary);
+  border: 1px solid var(--nexa-border-color);
+  margin: 1px;
+
+  // 호버 상태
+  &:hover {
+    background-color: var(--nexa-surface-hover);
+    color: var(--nexa-text-primary);
+  }
+
+  // 아이콘 색상
+  .q-icon {
+    color: var(--nexa-text-secondary);
+  }
+
+  // 호버 시 아이콘 색상
+  &:hover .q-icon {
+    color: var(--nexa-text-primary);
   }
 }
 
 // ===== 툴팁 색상 =====
 // Quasar q-tooltip 컴포넌트 스타일 오버라이드
 .q-tooltip {
-  background-color: var(--nexa-tooltip-bg) !important;
-  color: var(--nexa-tooltip-text) !important;
-  border: 1px solid var(--nexa-tooltip-border) !important;
+  background-color: var(--nexa-tooltip-bg);
+  color: var(--nexa-tooltip-text);
+  border: 1px solid var(--nexa-tooltip-border);
 
   // 툴팁 화살표 색상
   &::before {
-    background-color: var(--nexa-tooltip-arrow-color) !important;
-    border-color: var(--nexa-tooltip-arrow-color) !important;
+    background-color: var(--nexa-tooltip-arrow-color);
+    border-color: var(--nexa-tooltip-arrow-color);
   }
 }
 

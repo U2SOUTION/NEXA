@@ -14,6 +14,7 @@
 }
 
 .q-expansion-item {
+  padding: 4px 4px 0px 4px;
   background-color: var(--nexa-accordion-bg);
   border-radius: 4px; // 입력 필드와 동일한 코너 라운드
   overflow: hidden; // border-radius가 적용되도록
@@ -59,6 +60,35 @@
     .q-item__section--side .q-icon,
     .q-expansion-item__icon {
       color: var(--nexa-accent);
+    }
+  }
+
+  // ============================================
+  // 중첩된 아코디언 (아코디언 내부의 아코디언)
+  // ============================================
+  // 헤더 높이 줄이고 헤더 배경색에만 투명도 적용, 라운드 값 줄임
+  .q-expansion-item {
+    overflow: hidden;
+
+    .q-item {
+      min-height: 36px; // 기본 48px에서 줄임
+      padding: 0 12px;
+      background-color: rgba(38, 38, 38, 0.5); // var(--nexa-accordion-header-bg)에 투명도 적용
+      border-color: rgba(56, 56, 56, 0.5);
+      border-radius: 4px 4px 0 0; // 기본 4px에서 줄임
+    }
+
+    .q-expansion-item__content {
+      background-color: rgba(64, 64, 64, 0.5); // var(--nexa-accordion-content-bg)에 투명도 적용
+      border-color: rgba(0, 0, 0, 0.628);
+      border-radius: 0 0 4px 4px; // 기본 4px에서 줄임
+    }
+
+    // 접혀있을 때는 전체 라운드
+    &:not(.q-expansion-item--expanded) {
+      .q-item {
+        border-radius: 4px; // 기본 4px에서 줄임
+      }
     }
   }
 }
