@@ -52,24 +52,29 @@
           <div class="info-item">
             <span class="info-label">카테고리:</span>
             <span class="info-value" @click="handleCopyInfoValue(selectedSample.category || 'N/A')">{{ selectedSample.category || 'N/A' }}</span>
+            <q-btn v-if="selectedSample.category && selectedSample.category !== 'N/A'" flat dense icon="content_copy" size="sm" @click.stop="handleCopyInfoValue(selectedSample.category || 'N/A')" />
           </div>
           <div v-if="selectedSample.hierarchy" class="info-item">
             <span class="info-label">계층:</span>
             <span class="info-value" @click="handleCopyInfoValue(`${selectedSample.hierarchy.type} > ${selectedSample.hierarchy.subType} > ${selectedSample.hierarchy.variant}`)">
               {{ selectedSample.hierarchy.type }} > {{ selectedSample.hierarchy.subType }} > {{ selectedSample.hierarchy.variant }}
             </span>
+            <q-btn flat dense icon="content_copy" size="sm" @click.stop="handleCopyInfoValue(`${selectedSample.hierarchy.type} > ${selectedSample.hierarchy.subType} > ${selectedSample.hierarchy.variant}`)" />
           </div>
           <div v-if="selectedSample.displayName || selectedSample.name" class="info-item">
             <span class="info-label">컴포넌트:</span>
             <span class="info-value" @click="handleCopyInfoValue(selectedSample.displayName || selectedSample.name)">{{ selectedSample.displayName || selectedSample.name }}</span>
+            <q-btn flat dense icon="content_copy" size="sm" @click.stop="handleCopyInfoValue(selectedSample.displayName || selectedSample.name)" />
           </div>
           <div v-if="fileName" class="info-item">
             <span class="info-label">파일명:</span>
             <span class="info-value" @click="handleCopyInfoValue(fileName)">{{ fileName }}</span>
+            <q-btn flat dense icon="content_copy" size="sm" @click.stop="handleCopyInfoValue(fileName)" />
           </div>
           <div v-if="selectedSample.componentPath" class="info-item">
             <span class="info-label">파일 경로:</span>
             <span class="info-value" @click="handleCopyInfoValue(selectedSample.componentPath)">{{ selectedSample.componentPath }}</span>
+            <q-btn flat dense icon="content_copy" size="sm" @click.stop="handleCopyInfoValue(selectedSample.componentPath)" />
           </div>
         </div>
       </div>
@@ -630,8 +635,10 @@ onBeforeUnmount(() => {
     .info-list {
       .info-item {
         display: flex;
+        align-items: center;
         min-width: 0; // flex 아이템이 줄어들 수 있도록
-        padding: 4px 0;
+        padding: 0;
+        gap: 4px; // 아이템 간 간격 추가
 
         .info-label {
           color: var(--nexa-text-secondary);
@@ -648,9 +655,21 @@ onBeforeUnmount(() => {
           overflow-wrap: break-word; // 긴 단어도 줄바꿈
           hyphens: auto; // 하이픈으로 단어 분리 (선택사항)
           transition: color 0.2s;
+          cursor: pointer;
 
           &:hover {
             color: var(--nexa-text-secondary);
+          }
+        }
+
+        // 카피 버튼 스타일
+        .q-btn {
+          flex-shrink: 0; // 버튼은 줄어들지 않도록
+          opacity: 0.6;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 1;
           }
         }
       }
@@ -708,6 +727,17 @@ onBeforeUnmount(() => {
         font-size: 10px;
         margin-right: 6px;
         flex-shrink: 0;
+      }
+
+      // 카피 버튼 스타일 (샘플 정보와 동일)
+      .q-btn {
+        flex-shrink: 0; // 버튼은 줄어들지 않도록
+        opacity: 0.6;
+        transition: opacity 0.2s;
+
+        &:hover {
+          opacity: 1;
+        }
       }
     }
 

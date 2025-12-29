@@ -26,12 +26,13 @@
           <!-- 컨트롤 버튼 영역 -->
           <div class="tree-controls q-px-sm q-pt-xs q-pb-xs">
             <div class="row q-gutter-xs items-center">
-              <!-- 뷰 모드 토글 -->
+              <!-- 뷰 모드 토글 (전체 탭에서만 표시) -->
               <q-btn
+                v-if="activeTab === 'all'"
                 flat
                 dense
                 size="sm"
-                :icon="currentViewMode === 'flat' ? 'view_list' : 'account_tree'"
+                :icon="currentViewMode === 'flat' ? 'view_list' : 'folder'"
                 :label="currentViewMode === 'flat' ? '평면 보기' : '계층 보기'"
                 :class="{ 'view-mode-toggle-active': currentViewMode === 'hierarchy', 'view-mode-toggle-inactive': currentViewMode === 'flat' }"
                 class="view-mode-toggle-btn"
@@ -70,32 +71,32 @@
                 <q-tooltip>{{ isAllExpanded ? '모든 노드 접기' : '모든 노드 펴기' }}</q-tooltip>
               </q-btn>
 
-              <!-- 정렬 버튼 (최근 탭에서만 표시) -->
-              <q-btn v-if="activeTab === 'recent'" flat dense size="sm" icon="sort" :label="getSortLabel(recentSortMode)" :class="{ 'sort-toggle-active': true }" class="sort-toggle-btn">
+              <!-- 정렬 버튼 (최근 탭, 즐겨찾기 탭에서 표시) -->
+              <q-btn v-if="activeTab === 'recent' || activeTab === 'favorite'" flat dense size="sm" icon="sort" :label="getSortLabel(getCurrentSortMode())" :class="{ 'sort-toggle-active': true }" class="sort-toggle-btn">
                 <q-tooltip>정렬 방식 변경</q-tooltip>
                 <q-menu>
                   <q-list>
-                    <q-item clickable @click="setRecentSortMode('newest')">
+                    <q-item clickable @click="setSortMode('newest')">
                       <q-item-section side>
-                        <q-icon :name="recentSortMode === 'newest' ? 'check' : ''" />
+                        <q-icon :name="getCurrentSortMode() === 'newest' ? 'check' : ''" />
                       </q-item-section>
                       <q-item-section>최신순</q-item-section>
                     </q-item>
-                    <q-item clickable @click="setRecentSortMode('oldest')">
+                    <q-item clickable @click="setSortMode('oldest')">
                       <q-item-section side>
-                        <q-icon :name="recentSortMode === 'oldest' ? 'check' : ''" />
+                        <q-icon :name="getCurrentSortMode() === 'oldest' ? 'check' : ''" />
                       </q-item-section>
                       <q-item-section>오래된순</q-item-section>
                     </q-item>
-                    <q-item clickable @click="setRecentSortMode('name')">
+                    <q-item clickable @click="setSortMode('name')">
                       <q-item-section side>
-                        <q-icon :name="recentSortMode === 'name' ? 'check' : ''" />
+                        <q-icon :name="getCurrentSortMode() === 'name' ? 'check' : ''" />
                       </q-item-section>
                       <q-item-section>이름순</q-item-section>
                     </q-item>
-                    <q-item clickable @click="setRecentSortMode('category')">
+                    <q-item clickable @click="setSortMode('category')">
                       <q-item-section side>
-                        <q-icon :name="recentSortMode === 'category' ? 'check' : ''" />
+                        <q-icon :name="getCurrentSortMode() === 'category' ? 'check' : ''" />
                       </q-item-section>
                       <q-item-section>카테고리순</q-item-section>
                     </q-item>
@@ -225,8 +226,8 @@
 
             <!-- 즐겨찾기 탭 -->
             <q-tab-panel name="favorite" class="q-pa-sm">
-              <div v-if="filteredFavoriteSamples.length > 0" class="samples-list">
-                <div v-for="sample in filteredFavoriteSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
+              <div v-if="sortedFavoriteSamples.length > 0" class="samples-list">
+                <div v-for="sample in sortedFavoriteSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
                   <div class="sample-item-content">
                     <div class="sample-actions">
                       <q-btn flat dense round icon="star" size="sm" class="favorite-btn active" @click.stop="handleToggleFavorite(sample)" />
@@ -440,17 +441,17 @@ const listSamples = computed(() => {
   return filterListOnSearch.value ? filteredSamples.value : samples.value
 })
 
-// 최근 샘플 정렬 모드 (localStorage에 저장)
+// 정렬 모드 (탭별로 localStorage에 저장)
 const recentSortMode = ref(localStorage.getItem('dev-guide-recent-sort-mode') || 'newest')
+const favoriteSortMode = ref(localStorage.getItem('dev-guide-favorite-sort-mode') || 'name')
 
-// 정렬된 최근 샘플
-const sortedRecentSamples = computed(() => {
-  const samples = filteredRecentSamples.value || []
-  if (samples.length === 0) return []
+// 공유 정렬 함수
+function sortSamples(samples, sortMode) {
+  if (!samples || samples.length === 0) return []
 
   const sorted = [...samples] // 복사본 생성
 
-  switch (recentSortMode.value) {
+  switch (sortMode) {
     case 'newest':
       // 이미 최신순 (unshift로 추가되므로)
       return sorted
@@ -480,12 +481,37 @@ const sortedRecentSamples = computed(() => {
     default:
       return sorted
   }
+}
+
+// 정렬된 최근 샘플
+const sortedRecentSamples = computed(() => {
+  return sortSamples(filteredRecentSamples.value, recentSortMode.value)
 })
 
-// 정렬 모드 설정
-function setRecentSortMode(mode) {
-  recentSortMode.value = mode
-  localStorage.setItem('dev-guide-recent-sort-mode', mode)
+// 정렬된 즐겨찾기 샘플
+const sortedFavoriteSamples = computed(() => {
+  return sortSamples(filteredFavoriteSamples.value, favoriteSortMode.value)
+})
+
+// 현재 탭의 정렬 모드 가져오기
+function getCurrentSortMode() {
+  if (activeTab.value === 'recent') {
+    return recentSortMode.value
+  } else if (activeTab.value === 'favorite') {
+    return favoriteSortMode.value
+  }
+  return 'newest'
+}
+
+// 정렬 모드 설정 (현재 탭에 따라)
+function setSortMode(mode) {
+  if (activeTab.value === 'recent') {
+    recentSortMode.value = mode
+    localStorage.setItem('dev-guide-recent-sort-mode', mode)
+  } else if (activeTab.value === 'favorite') {
+    favoriteSortMode.value = mode
+    localStorage.setItem('dev-guide-favorite-sort-mode', mode)
+  }
 }
 
 // 정렬 라벨 가져오기
