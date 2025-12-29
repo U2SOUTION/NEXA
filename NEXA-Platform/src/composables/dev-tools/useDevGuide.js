@@ -16,6 +16,8 @@ const filterTags = ref([])
 const viewMode = ref('flat') // 'flat' | 'hierarchy'
 const activeTab = ref('all') // 'all' | 'recent' | 'favorite'
 const selectedSample = ref(null)
+const selectedFolderNode = ref(null)
+const filterListOnSearch = ref(true) // 리스트도 검색 필터 적용 여부
 const samples = ref([])
 const recentSamples = ref([])
 const favoriteSamples = ref([])
@@ -121,12 +123,13 @@ export function useDevGuide() {
           const descriptionMatch = sample.description?.toLowerCase().includes(keyword)
 
           // 태그 검색: 배열인 경우 각 태그에 대해 부분 일치 검사
-          const tagsMatch = Array.isArray(sample.tags) && sample.tags.length > 0
-            ? sample.tags.some((tag) => {
-                const tagStr = String(tag).toLowerCase()
-                return tagStr.includes(keyword) || keyword.includes(tagStr)
-              })
-            : false
+          const tagsMatch =
+            Array.isArray(sample.tags) && sample.tags.length > 0
+              ? sample.tags.some((tag) => {
+                  const tagStr = String(tag).toLowerCase()
+                  return tagStr.includes(keyword) || keyword.includes(tagStr)
+                })
+              : false
 
           const categoryMatch = sample.category?.toLowerCase().includes(keyword)
           const componentPathMatch = sample.componentPath?.toLowerCase().includes(keyword)
@@ -155,7 +158,41 @@ export function useDevGuide() {
   }
 
   const filteredSamples = computed(() => {
-    return applyFilters(samples.value)
+    let result = applyFilters(samples.value)
+
+    // 폴더 필터 적용 (선택된 폴더의 자식 샘플만 표시)
+    // 단, 검색어가 있을 때만 폴더 필터 적용 (검색어가 없으면 전체 표시)
+    if (selectedFolderNode.value && searchQuery.value && searchQuery.value.trim()) {
+      const folderNode = selectedFolderNode.value
+      console.log('[useDevGuide] 폴더 필터 적용:', folderNode, '필터 전 샘플 개수:', result.length)
+
+      if (folderNode.type === 'topLevel') {
+        result = result.filter((sample) => {
+          const sampleTopLevel = getTopLevel(sample.componentPath)
+          const matches = sampleTopLevel === folderNode.name
+          if (matches) {
+            console.log('[useDevGuide] 매칭 샘플:', sample.name, 'topLevel:', sampleTopLevel)
+          }
+          return matches
+        })
+      } else if (folderNode.type === 'category') {
+        result = result.filter((sample) => {
+          const sampleTopLevel = getTopLevel(sample.componentPath)
+          const sampleCategory = sample.category || getComponentCategory(sample.componentPath)
+          const matches = sampleTopLevel === folderNode.topLevel && sampleCategory === folderNode.name
+          if (matches) {
+            console.log('[useDevGuide] 매칭 샘플:', sample.name, 'topLevel:', sampleTopLevel, 'category:', sampleCategory)
+          } else {
+            console.log('[useDevGuide] 미매칭 샘플:', sample.name, 'topLevel:', sampleTopLevel, 'category:', sampleCategory, '기대값:', folderNode.topLevel, folderNode.name)
+          }
+          return matches
+        })
+      }
+
+      console.log('[useDevGuide] 필터 후 샘플 개수:', result.length)
+    }
+
+    return result
   })
 
   // 필터링된 최근 샘플
@@ -178,6 +215,13 @@ export function useDevGuide() {
    */
   function handleSearchChange(query) {
     searchQuery.value = query
+    // 검색어가 비어있으면 폴더 필터도 해제 (전체 리스트 표시)
+    if (!query || !query.trim()) {
+      selectedFolderNode.value = null
+    } else {
+      // 검색어가 있으면 선택된 샘플을 해제하여 검색 결과를 컨텐츠 창에 표시
+      selectedSample.value = null
+    }
     window.dispatchEvent(new CustomEvent('dev-guide-search-changed', { detail: { query } }))
   }
 
@@ -205,15 +249,42 @@ export function useDevGuide() {
   }
 
   /**
+   * 리스트 필터링 토글 변경 핸들러
+   * @param {boolean} enabled - 리스트 필터링 활성화 여부
+   */
+  function handleFilterListOnSearchChange(enabled) {
+    filterListOnSearch.value = enabled
+    // localStorage에 저장
+    try {
+      localStorage.setItem('dev-guide-filter-list-on-search', String(enabled))
+    } catch (error) {
+      console.error('[useDevGuide] 리스트 필터링 설정 저장 실패:', error)
+    }
+  }
+
+  /**
    * 샘플 선택 핸들러
    * @param {Object} sample - 선택된 샘플
    */
   function handleSampleSelect(sample) {
     selectedSample.value = sample
+    selectedFolderNode.value = null // 샘플 선택 시 폴더 필터 해제
     // 최근 사용 목록에 추가
     addToRecentSamples(sample)
     // 전역 이벤트 발생
     window.dispatchEvent(new CustomEvent('dev-guide-sample-selected', { detail: { sample } }))
+  }
+
+  /**
+   * 폴더 선택 핸들러
+   * @param {Object} folderNode - 선택된 폴더 노드 { type: 'topLevel' | 'category', name: string, topLevel?: string }
+   */
+  function handleFolderSelect(folderNode) {
+    console.log('[useDevGuide] 폴더 선택:', folderNode)
+    selectedFolderNode.value = folderNode
+    selectedSample.value = null // 폴더 선택 시 샘플 선택 해제
+    console.log('[useDevGuide] 필터링된 샘플 개수:', filteredSamples.value.length)
+    window.dispatchEvent(new CustomEvent('dev-guide-folder-selected', { detail: { folderNode } }))
   }
 
   /**
@@ -455,8 +526,13 @@ export function useDevGuide() {
       if (savedViewMode) {
         viewMode.value = savedViewMode
       }
+      // localStorage에서 리스트 필터링 설정 복원
+      const savedFilterListOnSearch = localStorage.getItem('dev-guide-filter-list-on-search')
+      if (savedFilterListOnSearch !== null) {
+        filterListOnSearch.value = savedFilterListOnSearch === 'true'
+      }
     } catch (error) {
-      console.error('[useDevGuide] 뷰 모드 복원 실패:', error)
+      console.error('[useDevGuide] 설정 복원 실패:', error)
     }
 
     // 파일 시스템에서 샘플 데이터 로드
@@ -475,11 +551,12 @@ export function useDevGuide() {
 
   /**
    * 계층적 구조 (최상위 레벨 > 카테고리 > 샘플)
+   * 트리는 항상 전체 샘플을 표시해야 하므로 filteredSamples가 아닌 samples를 사용
    */
   const hierarchicalStructure = computed(() => {
     const topLevelMap = new Map()
 
-    filteredSamples.value.forEach((sample) => {
+    samples.value.forEach((sample) => {
       const topLevel = sample.topLevel || '기타'
       const category = sample.category || '기타'
 
@@ -535,6 +612,8 @@ export function useDevGuide() {
     viewMode,
     activeTab,
     selectedSample,
+    selectedFolderNode,
+    filterListOnSearch,
     samples,
     recentSamples,
     favoriteSamples,
@@ -547,13 +626,16 @@ export function useDevGuide() {
     handleSearchChange,
     handleCategoryFilterChange,
     handleViewModeChange,
+    handleFilterListOnSearchChange,
     handleSampleSelect,
+    handleFolderSelect,
     toggleFavorite,
     refresh,
     loadSamplesFromFilesystem,
     getTopLevel,
     getIconForTopLevel,
     getLabelForTopLevel,
+    getIconForCategory,
     init,
   }
 }

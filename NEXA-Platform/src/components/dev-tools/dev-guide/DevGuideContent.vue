@@ -22,7 +22,7 @@
             <div class="sample-card-category">{{ sample.category }}</div>
             <div class="sample-card-description">{{ sample.description || '설명 없음' }}</div>
             <div v-if="sample.tags && sample.tags.length > 0" class="sample-card-tags">
-              <q-chip v-for="tag in sample.tags.slice(0, 3)" :key="tag" dense size="sm">
+              <q-chip v-for="tag in sample.tags.slice(0, 3)" :key="tag" class="sample-card-tag">
                 {{ tag }}
               </q-chip>
             </div>
@@ -50,7 +50,10 @@
         <div class="detail-section">
           <div class="preview-header">
             <h3 class="section-title">미리보기</h3>
-            <q-btn :icon="previewControlsExpanded ? 'expand_less' : 'expand_more'" :label="previewControlsExpanded ? '컨트롤 숨김' : '컨트롤 보기'" dense flat @click="previewControlsExpanded = !previewControlsExpanded" />
+            <div class="preview-header-actions">
+              <q-btn :icon="isFavorite ? 'star' : 'star_border'" :color="isFavorite ? 'warning' : 'grey-7'" dense flat round :title="isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'" @click="handleToggleFavorite" />
+              <q-btn :icon="previewControlsExpanded ? 'expand_less' : 'expand_more'" :label="previewControlsExpanded ? '컨트롤 숨김' : '컨트롤 보기'" dense flat @click="previewControlsExpanded = !previewControlsExpanded" />
+            </div>
           </div>
 
           <!-- 테스트 컨트롤 패널 -->
@@ -118,19 +121,21 @@
         </div>
 
         <!-- 사용 예제 & Import 정보 -->
+        <!-- TODO: 특정 샘플에서 필요할 수 있으므로 주석 처리만 함 -->
+        <!--
         <div v-if="selectedSample?.componentPath" class="detail-section">
           <div class="section-header">
             <h3 class="section-title">사용 예제</h3>
             <q-btn flat dense icon="content_copy" size="sm" label="전체 복사" @click="handleCopyUsageExample" />
           </div>
 
-          <!-- 사용 예제 코드 -->
           <div class="info-section">
             <div class="usage-example-code">
               <pre><code>{{ usageExampleCode }}</code></pre>
             </div>
           </div>
         </div>
+        -->
 
         <!-- 디자인 결정 요소 -->
         <div v-if="selectedSample.designDecisions" class="detail-section">
@@ -186,11 +191,11 @@ import { useQuasar } from 'quasar'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 import { copyTextToClipboard } from 'src/utils/clipboard'
 import CodeEditor from './CodeEditor.vue'
-import { generateUsageExample } from 'src/utils/dev-guide/usage-example-generator.js'
+// import { generateUsageExample } from 'src/utils/dev-guide/usage-example-generator.js'
 import { analyzeSampleDependencies } from 'src/utils/dev-guide/dependency-analyzer.js'
 
 const $q = useQuasar()
-const { selectedSample, filteredSamples, handleSampleSelect } = useDevGuide()
+const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, toggleFavorite } = useDevGuide()
 
 // 샘플 컴포넌트 로딩 상태
 const sampleComponent = shallowRef(null)
@@ -245,9 +250,7 @@ const previewContainerStyle = computed(() => {
   }
 
   const baseStyle = {
-    width: `${previewWidth.value}px`,
-    maxWidth: '100%',
-    margin: '0 auto',
+    width: '100%',
     position: 'relative',
     backgroundColor,
     paddingTop: '0',
@@ -400,6 +403,8 @@ watch(autoHeight, (newValue) => {
 })
 
 // 사용 예제 코드 생성
+// TODO: 특정 샘플에서 필요할 수 있으므로 주석 처리만 함
+/*
 const usageExampleCode = computed(() => {
   if (!selectedSample.value?.componentPath) return ''
 
@@ -421,6 +426,7 @@ const usageExampleCode = computed(() => {
   // 외부 유틸리티 함수 사용 (Vue 컴파일러 오류 방지)
   return generateUsageExample(componentName, importPath, displayName)
 })
+*/
 
 // Vite의 import.meta.glob을 사용하여 모든 샘플 컴포넌트 미리 등록
 const guideModules = import.meta.glob('/src/guides/**/*.vue', { eager: false })
@@ -582,6 +588,8 @@ function handleBack() {
 }
 
 // 사용 예제 코드 복사 핸들러
+// TODO: 특정 샘플에서 필요할 수 있으므로 주석 처리만 함
+/*
 async function handleCopyUsageExample() {
   if (usageExampleCode.value) {
     await copyTextToClipboard(usageExampleCode.value)
@@ -592,6 +600,26 @@ async function handleCopyUsageExample() {
       timeout: 1000,
     })
   }
+}
+*/
+
+// 즐겨찾기 상태 확인
+const isFavorite = computed(() => {
+  if (!selectedSample.value) return false
+  return favoriteSamples.value.some((s) => s.id === selectedSample.value.id)
+})
+
+// 즐겨찾기 토글 핸들러
+function handleToggleFavorite() {
+  if (!selectedSample.value) return
+  const wasFavorite = isFavorite.value
+  toggleFavorite(selectedSample.value)
+  $q.notify({
+    type: 'positive',
+    message: wasFavorite ? '즐겨찾기에서 제거되었습니다.' : '즐겨찾기에 추가되었습니다.',
+    position: 'top',
+    timeout: 1000,
+  })
 }
 
 // 키워드 복사 핸들러
@@ -666,14 +694,14 @@ watch(previewContainerRef, (newRef) => {
     .sample-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
+      gap: 6px;
     }
 
     .sample-card {
       background-color: var(--nexa-surface);
       border: 1px solid var(--nexa-border-color);
       border-radius: 8px;
-      padding: 0 16px;
+      padding: 12px 16px;
       cursor: pointer;
       transition: all 0.2s;
 
@@ -713,8 +741,14 @@ watch(previewContainerRef, (newRef) => {
 
         .sample-card-tags {
           display: flex;
-          gap: 4px;
+          gap: 1px;
           flex-wrap: wrap;
+        }
+
+        .sample-card-tag {
+          padding: 3px 10px;
+          font-size: 0.575rem !important;
+          color: var(--nexa-text-secondary);
         }
       }
     }
@@ -765,6 +799,13 @@ watch(previewContainerRef, (newRef) => {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          gap: 8px;
+
+          .preview-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
         }
 
         .preview-controls {

@@ -71,14 +71,30 @@ function updateVueMetadata(content, metadata) {
   @description: ${metadata.description || ''}
 -->`
 
-  // 기존 메타데이터가 있으면 교체
-  const existingMetadataRegex = /<!--\s*@tags:[\s\S]*?-->\s*\n?/
+  // 기존 메타데이터 주석 블록 찾기
+  // @tags, @category, @description이 모두 포함된 주석 블록만 찾음 (파일 설명 주석과 구분)
+  const existingMetadataRegex = /<!--[\s\S]*?@tags:\s*[\s\S]*?@category:\s*[\s\S]*?@description:\s*[\s\S]*?-->\s*\n?/i
 
   if (existingMetadataRegex.test(content)) {
+    // 기존 메타데이터 주석 블록만 교체
     return content.replace(existingMetadataRegex, metadataComment + '\n')
   } else {
-    // <template> 태그 앞에 추가
-    return content.replace(/<template>/, metadataComment + '\n<template>')
+    // 메타데이터가 없으면 첫 번째 주석 블록이 있는지 확인
+    const firstCommentRegex = /(<!--[\s\S]*?-->)\s*\n?/
+    const firstCommentMatch = content.match(firstCommentRegex)
+    
+    if (firstCommentMatch && firstCommentMatch.index === 0) {
+      // 첫 번째 주석 블록이 있고 파일 시작 부분에 있으면, 그 뒤에 메타데이터 주석 추가
+      const insertPosition = firstCommentMatch.index + firstCommentMatch[0].length
+      return (
+        content.slice(0, insertPosition) +
+        '\n' + metadataComment + '\n' +
+        content.slice(insertPosition)
+      )
+    } else {
+      // <template> 태그 앞에 추가
+      return content.replace(/<template>/, metadataComment + '\n<template>')
+    }
   }
 }
 

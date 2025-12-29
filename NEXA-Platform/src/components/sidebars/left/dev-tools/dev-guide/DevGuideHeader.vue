@@ -35,7 +35,7 @@
       </div>
 
       <!-- 필터 및 옵션 -->
-      <div class="row q-gutter-sm q-mb-sm">
+      <div class="row q-gutter-sm q-mb-sm items-center">
         <!-- 카테고리 필터 -->
         <div class="col">
           <q-select v-model="localFilterCategory" :options="categoryOptions" option-label="label" option-value="value" emit-value map-options dense outlined clearable placeholder="카테고리 필터" class="filter-select" @update:model-value="handleCategoryFilterChangeLocal">
@@ -43,6 +43,12 @@
               <q-icon name="filter_alt" />
             </template>
           </q-select>
+        </div>
+        <!-- 리스트 필터링 토글 버튼 -->
+        <div class="filter-list-toggle">
+          <q-btn :label="localFilterListOnSearch ? '리스트필터' : '리스트보존'" :icon="localFilterListOnSearch ? 'filter_list' : 'list'" rounded :class="{ 'filter-toggle-active': localFilterListOnSearch, 'filter-toggle-inactive': !localFilterListOnSearch }" @click="handleFilterListOnSearchToggle">
+            <q-tooltip>리스트 필터링 {{ localFilterListOnSearch ? 'ON' : 'OFF' }}</q-tooltip>
+          </q-btn>
         </div>
       </div>
     </div>
@@ -62,12 +68,13 @@ defineProps({
 
 const emit = defineEmits(['refresh', 'settings'])
 
-const { searchQuery, filterCategory, viewMode, categories, handleSearchChange, handleCategoryFilterChange, handleViewModeChange } = useDevGuide()
+const { searchQuery, filterCategory, viewMode, filterListOnSearch, categories, handleSearchChange, handleCategoryFilterChange, handleViewModeChange, handleFilterListOnSearchChange } = useDevGuide()
 
 // 로컬 상태 (양방향 바인딩)
 const localSearchQuery = ref(searchQuery.value)
 const localFilterCategory = ref(filterCategory.value)
 const localViewMode = ref(viewMode.value)
+const localFilterListOnSearch = ref(filterListOnSearch.value)
 
 // 카테고리 옵션
 const categoryOptions = computed(() => categories.value)
@@ -82,6 +89,13 @@ function handleSearchChangeLocal(value) {
 function handleCategoryFilterChangeLocal(value) {
   localFilterCategory.value = value
   handleCategoryFilterChange(value)
+}
+
+// 리스트 필터링 토글 버튼 클릭 핸들러
+function handleFilterListOnSearchToggle() {
+  const newValue = !localFilterListOnSearch.value
+  localFilterListOnSearch.value = newValue
+  handleFilterListOnSearchChange(newValue)
 }
 
 // 뷰 모드 토글 핸들러
@@ -128,6 +142,15 @@ watch(
     }
   },
 )
+
+watch(
+  () => filterListOnSearch.value,
+  (newValue) => {
+    if (localFilterListOnSearch.value !== newValue) {
+      localFilterListOnSearch.value = newValue
+    }
+  },
+)
 </script>
 
 <style lang="scss" scoped>
@@ -164,10 +187,94 @@ watch(
   .header-section {
     .search-input {
       width: 100%;
+
+      :deep(.q-field__control) {
+        border: 2px solid var(--nexa-primary);
+        border-radius: 4px;
+      }
+
+      :deep(.q-field__native) {
+        color: var(--nexa-text-primary);
+      }
+
+      :deep(.q-field__prepend) {
+        color: var(--nexa-primary);
+      }
+
+      &:focus-within {
+        :deep(.q-field__control) {
+          border-color: var(--nexa-primary);
+        }
+      }
     }
 
     .filter-select {
       width: 100%;
+    }
+
+    .filter-list-toggle {
+      flex-shrink: 0;
+
+      .q-btn {
+        height: 30px; // 입력 필터와 동일한 높이
+        min-width: auto; // 최소 너비 자동
+        padding: 0 12px; // 좌우 패딩으로 여백 확보
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        border-radius: 4px;
+        transition:
+          background-color 0.2s ease,
+          color 0.2s ease;
+        overflow: hidden; // 버튼 전체 줄바꿈 방지
+
+        // 버튼 컨텐츠 왼쪽 정렬 및 한 줄 유지
+        :deep(.q-btn__content) {
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+          flex-wrap: nowrap;
+          width: 100%;
+        }
+
+        // 아이콘 크기 및 간격 설정
+        :deep(.q-icon) {
+          font-size: 16px;
+          margin-right: 4px;
+          flex-shrink: 0; // 아이콘 크기 고정
+        }
+
+        // 라벨 줄바꿈 방지
+        :deep(.q-btn__label) {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex-shrink: 1; // 라벨은 필요시 축소 가능
+          min-width: 0; // flex 축소 허용
+        }
+
+        &.filter-toggle-active {
+          background-color: var(--nexa-button-primary-bg);
+          color: var(--nexa-button-primary-text);
+
+          :deep(.q-icon) {
+            color: var(--nexa-button-primary-text);
+          }
+        }
+
+        &.filter-toggle-inactive {
+          background-color: var(--nexa-surface);
+          color: var(--nexa-text-secondary);
+
+          :deep(.q-icon) {
+            color: var(--nexa-text-secondary);
+          }
+        }
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
     }
   }
 }

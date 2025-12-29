@@ -26,10 +26,20 @@
           <q-tab-panels v-model="activeTab" class="samples-tab-panels">
             <!-- 전체 샘플 탭 -->
             <q-tab-panel name="all" class="q-pa-sm">
-              <div v-if="filteredSamples.length > 0" class="samples-list">
+              <div v-if="listSamples.length > 0" class="samples-list">
                 <!-- 평면 분류 모드 -->
                 <template v-if="currentViewMode === 'flat'">
-                  <div v-for="sample in filteredSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
+                  <div
+                    v-for="sample in listSamples"
+                    :key="sample.id"
+                    :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]"
+                    @click="
+                      () => {
+                        console.log('🟢 샘플 클릭:', sample.name)
+                        handleSampleSelect(sample)
+                      }
+                    "
+                  >
                     <div class="sample-item-content">
                       <q-icon :name="sample.icon || 'style'" class="sample-icon" />
                       <div class="sample-info">
@@ -48,9 +58,37 @@
                 <!-- 계층적 분류 모드 (최상위 레벨 > 카테고리 > 샘플) -->
                 <template v-else-if="currentViewMode === 'hierarchy'">
                   <!-- q-tree 방식 (테스트용) -->
-                  <q-tree v-if="treeNodes && treeNodes.length > 0" :nodes="treeNodes" node-key="id" label-key="label" children-key="children" default-expand-all class="hierarchy-tree" @update:selected="handleTreeNodeSelect">
+                  <q-tree
+                    v-if="treeNodes && treeNodes.length > 0"
+                    :nodes="treeNodes"
+                    node-key="id"
+                    label-key="label"
+                    children-key="children"
+                    default-expand-all
+                    class="hierarchy-tree"
+                    @update:selected="handleTreeNodeSelect"
+                    @update:expanded="
+                      (expanded) => {
+                        console.log('🔴🔴🔴 @update:expanded 이벤트 발생:', expanded)
+                        handleTreeExpanded(expanded)
+                      }
+                    "
+                  >
                     <template v-slot:default-header="prop">
-                      <div class="row items-center full-width">
+                      <div
+                        class="row items-center full-width tree-folder-header"
+                        @click.capture="
+                          (e) => {
+                            // 샘플 노드가 아닌 폴더 노드인 경우에만 필터링 처리
+                            if (!prop.node.sample) {
+                              console.log('🔴🔴🔴 폴더 헤더 클릭 (capture):', prop.node.label, prop.node.id)
+                              // stopPropagation을 제거하여 q-tree의 기본 확장/축소 동작 허용
+                              handleFolderHeaderClick(prop.node)
+                            }
+                          }
+                        "
+                        style="pointer-events: auto !important"
+                      >
                         <q-icon v-if="prop.node.icon" :name="prop.node.icon" class="q-mr-sm" />
                         <div class="col">{{ prop.node.label }}</div>
                       </div>
@@ -311,7 +349,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 
 defineProps({
@@ -321,19 +359,76 @@ defineProps({
   },
 })
 
-const { activeTab, selectedSample, recentSamples, favoriteSamples, filteredSamples, filteredRecentSamples, filteredFavoriteSamples, viewMode, hierarchicalStructure, handleSampleSelect, toggleFavorite } = useDevGuide()
+const { activeTab, selectedSample, recentSamples, favoriteSamples, samples, filteredSamples, filteredRecentSamples, filteredFavoriteSamples, viewMode, filterListOnSearch, handleSampleSelect, handleFolderSelect, toggleFavorite, getIconForTopLevel, getLabelForTopLevel, getIconForCategory } = useDevGuide()
 
 // viewMode를 computed로 변환하여 템플릿에서 사용
 const currentViewMode = computed(() => viewMode.value)
 
-// q-tree용 노드 데이터 변환 (테스트용)
+// 리스트에 표시할 샘플 (필터링 토글에 따라 결정)
+const listSamples = computed(() => {
+  return filterListOnSearch.value ? filteredSamples.value : samples.value
+})
+
+// q-tree용 노드 데이터 변환 (필터링 토글에 따라 결정)
 const treeNodes = computed(() => {
-  if (!hierarchicalStructure.value || hierarchicalStructure.value.length === 0) {
+  // filterListOnSearch가 true면 filteredSamples, false면 samples 사용
+  const sourceSamples = filterListOnSearch.value ? filteredSamples.value : samples.value
+  
+  if (!sourceSamples || sourceSamples.length === 0) {
     return []
   }
 
+  // sourceSamples를 topLevel과 category로 그룹화
+  const topLevelMap = new Map()
+
+  sourceSamples.forEach((sample) => {
+    const topLevel = sample.topLevel || '기타'
+    const category = sample.category || '기타'
+
+    if (!topLevelMap.has(topLevel)) {
+      topLevelMap.set(topLevel, {
+        name: topLevel,
+        label: getLabelForTopLevel(topLevel),
+        icon: getIconForTopLevel(topLevel),
+        categories: new Map(),
+      })
+    }
+
+    const topLevelData = topLevelMap.get(topLevel)
+    if (!topLevelData.categories.has(category)) {
+      topLevelData.categories.set(category, {
+        name: category,
+        icon: getIconForCategory(category),
+        samples: [],
+      })
+    }
+
+    topLevelData.categories.get(category).samples.push(sample)
+  })
+
+  // Map을 배열로 변환하고 정렬
+  const hierarchicalData = Array.from(topLevelMap.values())
+    .map((topLevel) => ({
+      ...topLevel,
+      categories: Array.from(topLevel.categories.values())
+        .map((cat) => ({
+          ...cat,
+          samples: cat.samples.sort((a, b) => (a.displayName || a.name).localeCompare(b.displayName || b.name)),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    }))
+    .sort((a, b) => {
+      const order = ['styles', 'patterns', 'conventions', 'best-practices']
+      const aIndex = order.indexOf(a.name)
+      const bIndex = order.indexOf(b.name)
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
+      if (aIndex !== -1) return -1
+      if (bIndex !== -1) return 1
+      return a.label.localeCompare(b.label)
+    })
+
   let nodeId = 1
-  return hierarchicalStructure.value.map((topLevel) => {
+  return hierarchicalData.map((topLevel) => {
     const topLevelId = nodeId++
     const children = topLevel.categories.map((category) => {
       const categoryId = nodeId++
@@ -349,6 +444,8 @@ const treeNodes = computed(() => {
         id: categoryId,
         label: category.name,
         icon: category.icon,
+        name: category.name, // 폴더 필터를 위한 name
+        topLevel: topLevel.name, // 폴더 필터를 위한 topLevel
         children: sampleChildren,
       }
     })
@@ -356,10 +453,28 @@ const treeNodes = computed(() => {
       id: topLevelId,
       label: topLevel.label,
       icon: topLevel.icon,
+      name: topLevel.name, // 폴더 필터를 위한 name
       children: children,
     }
   })
 })
+
+// 확장 상태 추적
+const expandedNodes = ref({})
+
+// 노드 ID로 노드 찾기 헬퍼 함수
+function findNodeById(nodes, targetId) {
+  for (const node of nodes) {
+    if (node.id === targetId) {
+      return node
+    }
+    if (node.children) {
+      const found = findNodeById(node.children, targetId)
+      if (found) return found
+    }
+  }
+  return null
+}
 
 // q-tree 노드 선택 핸들러
 function handleTreeNodeSelect(selectedId) {
@@ -381,19 +496,123 @@ function handleTreeNodeSelect(selectedId) {
   findSampleInNodes(treeNodes.value)
 }
 
+// 폴더 헤더 클릭 핸들러
+function handleFolderHeaderClick(node) {
+  console.log('🔴 handleFolderHeaderClick 호출:', node.label, node.id, 'hasSample:', !!node.sample)
+
+  // 샘플 노드는 무시
+  if (node.sample) {
+    console.log('🔴 샘플 노드이므로 무시')
+    return
+  }
+
+  // 폴더 노드인 경우 필터링 처리
+  console.log('🔴 폴더 노드 클릭, 필터링 처리 시작')
+
+  // 최상위 레벨 폴더인지 확인
+  const topLevelNode = treeNodes.value.find((topLevel) => topLevel.id === node.id)
+  if (topLevelNode) {
+    console.log('🔴 최상위 레벨 폴더 선택:', topLevelNode.name)
+    handleFolderSelect({
+      type: 'topLevel',
+      name: topLevelNode.name,
+    })
+    return
+  }
+
+  // 카테고리 폴더인지 확인
+  for (const topLevel of treeNodes.value) {
+    const categoryNode = topLevel.children?.find((cat) => cat.id === node.id)
+    if (categoryNode) {
+      console.log('🔴 카테고리 폴더 선택:', categoryNode.name, 'topLevel:', topLevel.name)
+      handleFolderSelect({
+        type: 'category',
+        name: categoryNode.name,
+        topLevel: topLevel.name,
+      })
+      return
+    }
+  }
+
+  console.log('🔴 폴더를 찾을 수 없음')
+}
+
+// q-tree 확장/축소 핸들러 (폴더 클릭 감지)
+function handleTreeExpanded(expanded) {
+  console.log('🟣 트리 확장/축소 이벤트:', expanded)
+  console.log('🟣 이전 확장 상태:', expandedNodes.value)
+
+  if (!expanded || typeof expanded !== 'object') {
+    return
+  }
+
+  // expanded는 { [nodeId]: boolean } 형태의 객체
+  // 이전 상태와 비교하여 새로 확장된 노드만 감지
+  for (const [nodeId, isExpanded] of Object.entries(expanded)) {
+    const nodeIdNum = parseInt(nodeId, 10)
+    const wasExpanded = expandedNodes.value[nodeId] || false
+
+    // 새로 확장된 노드만 처리 (축소된 노드는 무시)
+    if (isExpanded && !wasExpanded) {
+      console.log('🟣 새로 확장된 노드 감지:', nodeId)
+      const node = findNodeById(treeNodes.value, nodeIdNum)
+
+      if (!node) {
+        continue
+      }
+
+      // 샘플 노드가 아닌 폴더 노드인 경우에만 필터링 처리
+      if (!node.sample) {
+        console.log('🟣 폴더 노드 확장:', node.label, node.name)
+
+        // 최상위 레벨 폴더인지 확인
+        const topLevelNode = treeNodes.value.find((topLevel) => topLevel.id === node.id)
+        if (topLevelNode) {
+          console.log('🟣 최상위 레벨 폴더 선택:', topLevelNode.name)
+          handleFolderSelect({
+            type: 'topLevel',
+            name: topLevelNode.name,
+          })
+          break
+        }
+
+        // 카테고리 폴더인지 확인
+        for (const topLevel of treeNodes.value) {
+          const categoryNode = topLevel.children?.find((cat) => cat.id === node.id)
+          if (categoryNode) {
+            console.log('🟣 카테고리 폴더 선택:', categoryNode.name, 'topLevel:', topLevel.name)
+            handleFolderSelect({
+              type: 'category',
+              name: categoryNode.name,
+              topLevel: topLevel.name,
+            })
+            break
+          }
+        }
+      }
+    }
+  }
+
+  // 확장 상태 업데이트
+  expandedNodes.value = { ...expanded }
+}
+
 // 즐겨찾기 확인
 function isFavorite(sampleId) {
   return favoriteSamples.value.some((s) => s.id === sampleId)
 }
 
 // 탭 변경 핸들러
-function handleTabChange() {
+function handleTabChange(newTab) {
+  console.log('🟡 탭 변경:', newTab, '이전 탭:', activeTab.value)
   // activeTab은 useDevGuide에서 관리
 }
 
 // 즐겨찾기 토글
 function handleToggleFavorite(sample) {
+  console.log('🟠 즐겨찾기 토글:', sample.name, '현재 상태:', isFavorite(sample.id))
   toggleFavorite(sample)
+  console.log('🟠 즐겨찾기 토글 후 상태:', isFavorite(sample.id))
 }
 
 // 최근 사용에서 삭제
@@ -419,6 +638,18 @@ function handleDeleteFavorite(sampleId) {
 
   .list-scroll-area {
     height: 100%;
+  }
+
+  // 트리 폴더 헤더 스타일
+  .tree-folder-header {
+    pointer-events: auto !important;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      background-color: var(--nexa-surface-hover);
+      border-radius: 4px;
+    }
   }
 
   // 샘플 아이템 스타일 (최근, 즐겨찾기, 전체 탭의 평면 모드)
