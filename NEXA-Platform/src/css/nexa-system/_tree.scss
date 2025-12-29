@@ -98,7 +98,7 @@
 
   // 폴더 body와 children 사이 간격 제거
   .q-tree__node-body {
-    padding: 0;
+    display: none;
   }
 
   // ============================================
@@ -220,8 +220,10 @@
     }
   }
 
-  // 레벨 1 (하위 폴더) - q-tree__children 내부
-  .q-tree__children > .q-tree__node {
+  // 레벨 1 이상 (하위 폴더) - 모두 동일한 색상과 크기로 통일
+  .q-tree__children > .q-tree__node,
+  .q-tree__children .q-tree__children > .q-tree__node,
+  .q-tree__children .q-tree__children .q-tree__children > .q-tree__node {
     .tree-folder-header {
       .q-icon {
         color: var(--nexa-text-primary);
@@ -236,52 +238,18 @@
     }
   }
 
-  // 레벨 2 이상 (더 하위 폴더) - 중첩된 q-tree__children
-  .q-tree__children .q-tree__children > .q-tree__node {
-    .tree-folder-header {
-      .q-icon {
-        color: var(--nexa-text-secondary);
-        font-size: 16px;
-      }
-
-      .col,
-      div {
-        color: var(--nexa-text-secondary);
-        font-size: 0.9rem;
-      }
-    }
-  }
-
   // ============================================
-  // 파일 아이콘 레벨별 크기 및 색상
+  // 파일 아이콘 - 모든 레벨 동일한 색상과 크기로 통일
   // ============================================
 
-  // 레벨 0 하위 파일 (직접 children)
-  .q-tree__children > .q-tree__node--child {
-    .tree-file-header {
-      .q-icon {
-        color: var(--nexa-text-secondary);
-        font-size: 19px;
-      }
-    }
-  }
-
-  // 레벨 1 하위 파일 (중첩된 children)
-  .q-tree__children .q-tree__children > .q-tree__node--child {
+  // 모든 레벨의 파일은 동일한 스타일
+  .q-tree__children .q-tree__node--child,
+  .q-tree__children .q-tree__children .q-tree__node--child,
+  .q-tree__children .q-tree__children .q-tree__children .q-tree__node--child {
     .tree-file-header {
       .q-icon {
         color: var(--nexa-text-secondary);
         font-size: 16px;
-      }
-    }
-  }
-
-  // 레벨 2 이상 하위 파일 (더 깊은 중첩)
-  .q-tree__children .q-tree__children .q-tree__children > .q-tree__node--child {
-    .tree-file-header {
-      .q-icon {
-        color: var(--nexa-text-secondary);
-        font-size: 18px;
       }
     }
   }

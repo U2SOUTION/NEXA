@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getComponentCategory } from 'src/utils/path-categorizer/index.js'
 import { filterByPath } from 'src/utils/path-tree-builder'
+import { getTopLevelIcon, getTopLevelLabel } from 'src/config/devGuideConfig'
 
 /**
  * 개발 가이드 Store
@@ -670,54 +671,18 @@ export const useDevGuideStore = defineStore('devGuide', () => {
    * 최상위 레벨 아이콘 가져오기
    * @param {string} topLevel - 최상위 레벨명
    * @returns {string} 아이콘명
-   *
-   * 폴더별 개념:
-   * - library: 바로 사용할 수 있는 완성된 재사용 컴포넌트 라이브러리
-   * - cores: 코어 컴포넌트를 사용하는 응용 가이드 (학습/참고용)
-   * - styles: UI 스타일 가이드 (버튼, 카드 등 디자인 요소)
-   * - patterns: 아키텍처 패턴 가이드
-   * - conventions: 코딩 컨벤션 가이드
-   * - practices: 베스트 프랙티스 가이드
    */
   function getIconForTopLevel(topLevel) {
-    const iconMap = {
-      styles: 'palette',
-      patterns: 'extension',
-      library: 'widgets', // 바로 사용할 수 있는 완성된 컴포넌트
-      cores: 'integration_instructions', // 코어 컴포넌트 응용 가이드
-      conventions: 'rule',
-      practices: 'star',
-    }
-    // 대소문자 구분 없이 매핑 (실제 폴더명이 Library처럼 대문자일 수 있음)
-    const lowerTopLevel = topLevel.toLowerCase()
-    return iconMap[lowerTopLevel] || iconMap[topLevel] || 'folder'
+    return getTopLevelIcon(topLevel)
   }
 
   /**
    * 최상위 레벨 라벨 가져오기
    * @param {string} topLevel - 최상위 레벨명
    * @returns {string} 라벨
-   *
-   * 폴더별 개념:
-   * - library: 바로 사용할 수 있는 완성된 재사용 컴포넌트 라이브러리
-   * - cores: 코어 컴포넌트를 사용하는 응용 가이드 (학습/참고용)
-   * - styles: UI 스타일 가이드 (버튼, 카드 등 디자인 요소)
-   * - patterns: 아키텍처 패턴 가이드
-   * - conventions: 코딩 컨벤션 가이드
-   * - practices: 베스트 프랙티스 가이드
    */
   function getLabelForTopLevel(topLevel) {
-    const labelMap = {
-      styles: 'UI 스타일', // 컴포턴트를 퀘이사와 적절한 타협과 오버라이드 샘플
-      patterns: '설계 패턴', // 아키텍처 패턴 가이드
-      library: '라이브러리', // 바로 사용할 수 있는 완성된 컴포넌트
-      cores: '핵심 컴포넌트', // NEXA Platform의 핵심 컴포넌트 응용 가이드
-      conventions: '코딩 규칙', // 코딩 컨벤션 가이드
-      practices: '모범 사례', // 베스트 프랙티스 가이드
-    }
-    // 대소문자 구분 없이 매핑 (실제 폴더명이 Library처럼 대문자일 수 있음)
-    const lowerTopLevel = topLevel.toLowerCase()
-    return labelMap[lowerTopLevel] || labelMap[topLevel] || topLevel
+    return getTopLevelLabel(topLevel)
   }
 
   /**

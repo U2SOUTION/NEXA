@@ -11,6 +11,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDevGuideStore } from 'src/stores/devGuideStore'
 import { getComponentCategory } from 'src/utils/path-categorizer/index.js'
+import { getTopLevelOrder } from 'src/config/devGuideConfig'
 
 /**
  * 개발 가이드 Composable
@@ -85,8 +86,7 @@ export function useDevGuide() {
           .sort((a, b) => a.name.localeCompare(b.name)),
       }))
       .sort((a, b) => {
-        // ⚠️ 하드코딩: 정렬 순서가 하드코딩되어 있음 (DevGuideList.vue와 일관성 유지 필요)
-        const order = ['styles', 'patterns', 'library', 'cores', 'conventions', 'practices']
+        const order = getTopLevelOrder()
         const aIndex = order.indexOf(a.name)
         const bIndex = order.indexOf(b.name)
         if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex

@@ -3,6 +3,7 @@
  * 폴더 구조 기반 동적 카테고리 분류 (하드코딩 제거)
  */
 import { loadSupportedExtensions } from 'src/config/documentConfig.js'
+import { getTopLevelOrder } from 'src/config/devGuideConfig'
 
 /**
  * 경로를 레벨별로 분리
@@ -121,8 +122,7 @@ export function getComponentCategory(componentPath) {
   // 'guides' 다음의 첫 번째 디렉토리를 카테고리로 사용 (개발 가이드 샘플용)
   const guidesIndex = parts.findIndex((part) => part === 'guides')
   if (guidesIndex >= 0 && guidesIndex < parts.length - 1) {
-    // ⚠️ 하드코딩: topLevelFolders가 useDevGuide.js와 중복됨 (일관성 유지 필요)
-    const topLevelFolders = ['styles', 'patterns', 'library', 'cores', 'conventions', 'practices']
+    const topLevelFolders = getTopLevelOrder()
     const topLevelIndex = parts.findIndex((part, idx) => idx > guidesIndex && topLevelFolders.includes(part.toLowerCase()))
     
     if (topLevelIndex >= 0 && topLevelIndex < parts.length - 1) {

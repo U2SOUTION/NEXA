@@ -400,7 +400,6 @@ const {
   toggleFavorite,
   getIconForTopLevel,
   getLabelForTopLevel,
-  getIconForCategory,
   handleViewModeChange,
   handleAccordionModeChange,
 } = useDevGuide()
@@ -431,12 +430,8 @@ const treeNodes = computed(() => {
       if (level === 0) {
         return getIconForTopLevel(dirName)
       }
-      // 레벨 1 이상은 카테고리 아이콘 getter 사용
-      if (level === 1) {
-        return getIconForCategory(dirName)
-      }
-      // 그 외는 기본 폴더 아이콘
-      return null
+      // 레벨 1 이상은 모두 동일한 폴더 아이콘 사용
+      return 'folder'
     },
     labelGetter: (dirName, level) => {
       // 레벨 0 (최상위)는 기존 라벨 getter 사용
