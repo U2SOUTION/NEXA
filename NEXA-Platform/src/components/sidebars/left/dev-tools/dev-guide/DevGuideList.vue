@@ -151,27 +151,6 @@
                     </template>
                   </q-tree>
 
-                  <!-- 기존 아코디언 방식 (주석 처리) -->
-                  <!--
-                  <div v-if="hierarchicalStructure && hierarchicalStructure.length > 0">
-                    <div v-for="topLevel in hierarchicalStructure" :key="topLevel.name" class="top-level-group">
-                      <q-expansion-item :label="topLevel.label" :icon="topLevel.icon" class="top-level-expansion">
-                        <div v-for="category in topLevel.categories" :key="category.name" class="accordion-wrapper">
-                          <q-expansion-item :label="category.name" :icon="category.icon" class="category-expansion">
-                            <div v-for="sample in category.samples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id }]" @click="handleSampleSelect(sample)">
-                              <div class="sample-item-content">
-                                <q-icon :name="sample.icon || 'style'" class="sample-icon" />
-                                <div class="sample-info">
-                                  <div class="sample-name">{{ sample.displayName || sample.name }}</div>
-                                </div>
-                              </div>
-                            </div>
-                          </q-expansion-item>
-                        </div>
-                      </q-expansion-item>
-                    </div>
-                  </div>
-                  -->
                   <div v-if="!treeNodes || treeNodes.length === 0" class="empty-state">
                     <q-icon name="account_tree" size="48px" class="q-mb-sm" />
                     <div class="empty-message">계층 구조 데이터가 없습니다.</div>
@@ -395,7 +374,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
-import { buildPathTree } from 'src/utils/path-tree-builder'
+import { buildPathTree, getLabelForDirectory } from 'src/utils/path-tree-builder'
 
 defineProps({
   headerHovered: {
@@ -464,8 +443,8 @@ const treeNodes = computed(() => {
       if (level === 0) {
         return getLabelForTopLevel(dirName)
       }
-      // 그 외는 디렉토리 이름 그대로 사용
-      return dirName
+      // 그 외는 한글명 getter 사용
+      return getLabelForDirectory(dirName, level) || dirName
     },
     onNodeCreate: () => {
       // 노드 생성 시 추가 메타데이터 설정 (필요시)
@@ -930,34 +909,7 @@ function handleDeleteFavorite(sampleId) {
     }
   }
 
-  // 트리 폴더 헤더 스타일
-  .tree-file-header {
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    color: var(--nexa-text-primary);
-    transition: background-color 0.2s ease;
-
-    &:hover {
-      background-color: var(--nexa-surface-hover);
-    }
-
-    &.tree-file-header-selected {
-      background-color: var(--nexa-surface-hover);
-      color: var(--nexa-primary);
-    }
-  }
-
-  .tree-folder-header {
-    pointer-events: auto;
-    cursor: pointer;
-    user-select: none;
-
-    &:hover {
-      background-color: var(--nexa-surface-hover);
-      border-radius: 4px;
-    }
-  }
+  // 트리 스타일은 전역 _tree.scss에서 관리
 
   // 샘플 아이템 스타일 (최근, 즐겨찾기, 전체 탭의 평면 모드)
   .sample-item {

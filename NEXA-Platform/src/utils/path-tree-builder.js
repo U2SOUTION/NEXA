@@ -13,6 +13,83 @@
  */
 
 /**
+ * 디렉토리 이름에 따른 한글 라벨 반환
+ * @param {string} dirName - 디렉토리 이름
+ * @param {number} level - 레벨 (0부터 시작)
+ * @returns {string} 한글 라벨
+ * 
+ * 폴더별 개념:
+ * - library: 바로 사용할 수 있는 완성된 재사용 컴포넌트 라이브러리
+ * - cores: 코어 컴포넌트를 사용하는 응용 가이드 (학습/참고용)
+ * - styles: UI 스타일 가이드 (버튼, 카드 등 디자인 요소)
+ * - patterns: 아키텍처 패턴 가이드
+ * - conventions: 코딩 컨벤션 가이드
+ * - practices: 베스트 프랙티스 가이드
+ */
+export function getLabelForDirectory(dirName, level = 0) {
+  // 최상위 레벨 폴더 한글명 (모두 두 단어로 통일)
+  const topLevelLabelMap = {
+    'styles': 'UI 스타일', // 두 단어
+    'patterns': '설계 패턴', // 두 단어
+    'library': '컴포넌트 라이브러리', // 두 단어 - 바로 사용할 수 있는 완성된 컴포넌트
+    'cores': '핵심 컴포넌트', // 두 단어 - 코어 컴포넌트 응용 가이드
+    'conventions': '코딩 규칙', // 두 단어
+    'practices': '모범 사례', // 두 단어
+  }
+  
+  // 대소문자 구분 없이 매핑 (실제 폴더명이 Library처럼 대문자일 수 있음)
+  const lowerDirName = dirName.toLowerCase()
+
+  // 서브 카테고리 한글명
+  const subCategoryLabelMap = {
+    'buttons': '버튼',
+    'cards': '카드',
+    'charts': '차트',
+    'diagrams': '다이어그램',
+    'panels': '패널',
+    'boards': '보드',
+    'blocks': '블록',
+    'sidebars': '사이드바',
+    'layouts': '레이아웃',
+    'widgets': '위젯',
+    'left': '왼쪽',
+    'right': '오른쪽',
+    'forms': '폼',
+    'inputs': '입력',
+    'lists': '리스트',
+    'modals': '모달',
+    'tables': '테이블',
+    // cores 하위 폴더
+    'erd': 'ERD',
+    'flow': '플로우',
+    'network': '네트워크',
+    'bar': '막대',
+    'line': '선',
+    'pie': '파이',
+    'dashboard': '대시보드',
+    'split-layout': '분할 레이아웃',
+    'chart': '차트',
+    'time': '시간',
+    'weather': '날씨',
+    'card': '카드',
+    'gauge': '게이지',
+  }
+  
+  // 최상위 레벨인 경우 (대소문자 구분 없이)
+  if (level === 0) {
+    return topLevelLabelMap[lowerDirName] || topLevelLabelMap[dirName] || dirName
+  }
+  
+  // 서브 카테고리인 경우 (대소문자 구분 없이)
+  if (subCategoryLabelMap[lowerDirName]) {
+    return subCategoryLabelMap[lowerDirName]
+  }
+  
+  // 기본값: 원본 이름 반환
+  return dirName
+}
+
+/**
  * 경로에서 디렉토리 경로 추출
  * @param {string} filePath - 파일 경로
  * @param {string} rootPrefix - 제거할 루트 접두사 (예: 'guides')
@@ -48,6 +125,14 @@ export function extractDirectoryPath(filePath, rootPrefix = '') {
  * @param {number} level - 레벨 (0부터 시작)
  * @param {Function} customIconGetter - 커스텀 아이콘 getter 함수 (optional)
  * @returns {string} 아이콘 이름
+ * 
+ * 폴더별 개념:
+ * - library: 바로 사용할 수 있는 완성된 재사용 컴포넌트 라이브러리
+ * - cores: 코어 컴포넌트를 사용하는 응용 가이드 (학습/참고용)
+ * - styles: UI 스타일 가이드 (버튼, 카드 등 디자인 요소)
+ * - patterns: 아키텍처 패턴 가이드
+ * - conventions: 코딩 컨벤션 가이드
+ * - practices: 베스트 프랙티스 가이드
  */
 export function getIconForDirectory(dirName, level = 0, customIconGetter = null) {
   if (customIconGetter && typeof customIconGetter === 'function') {
@@ -57,23 +142,45 @@ export function getIconForDirectory(dirName, level = 0, customIconGetter = null)
 
   // 기본 아이콘 매핑
   const iconMap = {
-    styles: 'palette',
-    patterns: 'extension',
-    library: 'widgets',
-    conventions: 'rule',
-    'best-practices': 'star',
-    buttons: 'smart_button',
-    cards: 'view_module',
-    charts: 'bar_chart',
-    panels: 'dashboard',
-    sidebars: 'view_sidebar',
-    left: 'chevron_left',
-    right: 'chevron_right',
-    forms: 'description',
-    inputs: 'input',
-    lists: 'list',
-    modals: 'modal',
-    tables: 'table_chart',
+    // 최상위 레벨 폴더
+    'styles': 'palette',
+    'patterns': 'extension',
+    'library': 'widgets', // 바로 사용할 수 있는 완성된 컴포넌트
+    'cores': 'integration_instructions', // 코어 컴포넌트 응용 가이드
+    'conventions': 'rule',
+    'practices': 'star',
+    // 서브 카테고리
+    'buttons': 'smart_button',
+    'cards': 'view_module',
+    'charts': 'bar_chart',
+    'diagrams': 'account_tree', // 다이어그램
+    'panels': 'dashboard',
+    'boards': 'view_quilt', // 보드
+    'blocks': 'apps', // 블록
+    'sidebars': 'view_sidebar',
+    'layouts': 'view_week', // 레이아웃
+    'widgets': 'widgets', // 위젯
+    'left': 'chevron_left',
+    'right': 'chevron_right',
+    'forms': 'description',
+    'inputs': 'input',
+    'lists': 'list',
+    'modals': 'modal',
+    'tables': 'table_chart',
+    // cores 하위 폴더
+    'erd': 'schema', // ERD 다이어그램
+    'flow': 'account_tree', // 플로우 다이어그램
+    'network': 'hub', // 네트워크 다이어그램
+    'bar': 'bar_chart', // 막대 차트
+    'line': 'show_chart', // 선 차트
+    'pie': 'pie_chart', // 파이 차트
+    'dashboard': 'dashboard', // 대시보드 보드
+    'split-layout': 'view_quilt', // 분할 레이아웃 보드
+    'chart': 'bar_chart', // 차트 블록
+    'time': 'schedule', // 시간 블록
+    'weather': 'wb_sunny', // 날씨 블록
+    'card': 'view_module', // 카드 패널
+    'gauge': 'gauge', // 게이지 패널
   }
 
   const lowerName = dirName.toLowerCase()

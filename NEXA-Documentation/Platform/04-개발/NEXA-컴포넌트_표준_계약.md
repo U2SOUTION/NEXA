@@ -1,7 +1,7 @@
 # 컴포넌트 표준 계약 (Component Standard Contract)
 
 **작성일**: 2024년  
-**목적**: 모든 컴포넌트(노드, 보드, 차트, 블록, 패널)가 따라야 하는 최소한의 공통 규약 정의  
+**목적**: 모든 컴포넌트(노드, 보드, 차트, 블록, 패널, 다이어그램)가 따라야 하는 최소한의 공통 규약 정의  
 **버전**: 1.0
 
 ---
@@ -26,7 +26,7 @@
 interface ComponentContract {
     // 필수 필드
     id: string; // 고유 식별자 (UUID 권장)
-    type: string; // 컴포넌트 타입 (예: 'board', 'node', 'chart', 'block', 'panel')
+    type: string; // 컴포넌트 타입 (예: 'board', 'node', 'chart', 'block', 'panel', 'diagram')
     version: string; // 버전 정보 (예: '1.0', '2.1')
 
     // 메타데이터 (표준)

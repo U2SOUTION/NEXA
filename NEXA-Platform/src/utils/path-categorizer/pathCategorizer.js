@@ -122,7 +122,7 @@ export function getComponentCategory(componentPath) {
   const guidesIndex = parts.findIndex((part) => part === 'guides')
   if (guidesIndex >= 0 && guidesIndex < parts.length - 1) {
     // ⚠️ 하드코딩: topLevelFolders가 useDevGuide.js와 중복됨 (일관성 유지 필요)
-    const topLevelFolders = ['styles', 'patterns', 'conventions', 'best-practices', 'library']
+    const topLevelFolders = ['styles', 'patterns', 'library', 'cores', 'conventions', 'practices']
     const topLevelIndex = parts.findIndex((part, idx) => idx > guidesIndex && topLevelFolders.includes(part.toLowerCase()))
     
     if (topLevelIndex >= 0 && topLevelIndex < parts.length - 1) {

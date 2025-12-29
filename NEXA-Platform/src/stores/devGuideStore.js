@@ -115,7 +115,8 @@ export const useDevGuideStore = defineStore('devGuide', () => {
       스타일: ['style', 'styles'],
       패턴: ['pattern', 'patterns'],
       컨벤션: ['convention', 'conventions'],
-      베스트프랙티스: ['best-practice', 'best-practices'],
+      베스트프랙티스: ['best-practice', 'best-practices', 'practices'],
+      모범사례: ['practices', 'best-practice', 'best-practices'],
     }
 
     // 한글 키워드가 매핑에 있으면 영문 키워드 추가
@@ -167,7 +168,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
     // 폴더 필터
     if (selectedFolderNode.value) {
       const folderNode = selectedFolderNode.value
-      
+
       // 경로 기반 필터링 (모든 레벨 지원, 우선순위 높음)
       if (folderNode.type === 'path' && folderNode.path) {
         result = filterByPath(result, folderNode.path, 'componentPath', 'guides')
@@ -649,7 +650,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
   // ============================================
 
   /**
-   * 경로에서 최상위 레벨 추출 (styles, patterns, conventions, best-practices)
+   * 경로에서 최상위 레벨 추출 (styles, patterns, library, cores, conventions, practices)
    * @param {string} componentPath - 컴포넌트 경로
    * @returns {string|null} 최상위 레벨명
    */
@@ -669,32 +670,54 @@ export const useDevGuideStore = defineStore('devGuide', () => {
    * 최상위 레벨 아이콘 가져오기
    * @param {string} topLevel - 최상위 레벨명
    * @returns {string} 아이콘명
+   *
+   * 폴더별 개념:
+   * - library: 바로 사용할 수 있는 완성된 재사용 컴포넌트 라이브러리
+   * - cores: 코어 컴포넌트를 사용하는 응용 가이드 (학습/참고용)
+   * - styles: UI 스타일 가이드 (버튼, 카드 등 디자인 요소)
+   * - patterns: 아키텍처 패턴 가이드
+   * - conventions: 코딩 컨벤션 가이드
+   * - practices: 베스트 프랙티스 가이드
    */
   function getIconForTopLevel(topLevel) {
     const iconMap = {
       styles: 'palette',
       patterns: 'extension',
-      library: 'widgets',
+      library: 'widgets', // 바로 사용할 수 있는 완성된 컴포넌트
+      cores: 'integration_instructions', // 코어 컴포넌트 응용 가이드
       conventions: 'rule',
-      'best-practices': 'star',
+      practices: 'star',
     }
-    return iconMap[topLevel] || 'folder'
+    // 대소문자 구분 없이 매핑 (실제 폴더명이 Library처럼 대문자일 수 있음)
+    const lowerTopLevel = topLevel.toLowerCase()
+    return iconMap[lowerTopLevel] || iconMap[topLevel] || 'folder'
   }
 
   /**
    * 최상위 레벨 라벨 가져오기
    * @param {string} topLevel - 최상위 레벨명
    * @returns {string} 라벨
+   *
+   * 폴더별 개념:
+   * - library: 바로 사용할 수 있는 완성된 재사용 컴포넌트 라이브러리
+   * - cores: 코어 컴포넌트를 사용하는 응용 가이드 (학습/참고용)
+   * - styles: UI 스타일 가이드 (버튼, 카드 등 디자인 요소)
+   * - patterns: 아키텍처 패턴 가이드
+   * - conventions: 코딩 컨벤션 가이드
+   * - practices: 베스트 프랙티스 가이드
    */
   function getLabelForTopLevel(topLevel) {
     const labelMap = {
-      styles: '스타일',
-      patterns: '패턴',
-      library: '라이브러리',
-      conventions: '컨벤션',
-      'best-practices': '베스트 프랙티스',
+      styles: 'UI 스타일', // 컴포턴트를 퀘이사와 적절한 타협과 오버라이드 샘플
+      patterns: '설계 패턴', // 아키텍처 패턴 가이드
+      library: '라이브러리', // 바로 사용할 수 있는 완성된 컴포넌트
+      cores: '핵심 컴포넌트', // NEXA Platform의 핵심 컴포넌트 응용 가이드
+      conventions: '코딩 규칙', // 코딩 컨벤션 가이드
+      practices: '모범 사례', // 베스트 프랙티스 가이드
     }
-    return labelMap[topLevel] || topLevel
+    // 대소문자 구분 없이 매핑 (실제 폴더명이 Library처럼 대문자일 수 있음)
+    const lowerTopLevel = topLevel.toLowerCase()
+    return labelMap[lowerTopLevel] || labelMap[topLevel] || topLevel
   }
 
   /**

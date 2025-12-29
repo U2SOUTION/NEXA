@@ -86,7 +86,7 @@ export function useDevGuide() {
       }))
       .sort((a, b) => {
         // ⚠️ 하드코딩: 정렬 순서가 하드코딩되어 있음 (DevGuideList.vue와 일관성 유지 필요)
-        const order = ['styles', 'patterns', 'library', 'conventions', 'best-practices']
+        const order = ['styles', 'patterns', 'library', 'cores', 'conventions', 'practices']
         const aIndex = order.indexOf(a.name)
         const bIndex = order.indexOf(b.name)
         if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex

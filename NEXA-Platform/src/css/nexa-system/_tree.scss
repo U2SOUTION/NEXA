@@ -2,15 +2,28 @@
 // 트리 컴포넌트 (tree)
 // ============================================
 // Quasar q-tree 컴포넌트 전역 스타일 오버라이드
-// 최소한의 스타일만 유지
+// 레벨별 마진, 간격, 색상 등을 세밀하게 제어
 
 .q-tree {
-  //color: var(--nexa-text-primary);
+  // ============================================
+  // 기본 설정
+  // ============================================
 
-  // 노드 간격 최소화 및 연결선 완전 제거
+  // 연결선 완전 제거
+  &::before,
+  &::after {
+    display: none;
+    content: none;
+  }
+
+  // ============================================
+  // 노드 기본 스타일
+  // ============================================
+
   .q-tree__node {
     margin: 0;
     padding: 0;
+    margin-bottom: 0; // 노드 간 상하 간격 0
 
     // Quasar의 기본 연결선 제거
     .q-tree__node-connector {
@@ -24,20 +37,32 @@
       content: none;
     }
 
-    .q-tree__node-header {
-      padding: 0; //아이템 끼리 상하 간격
-      margin: 0;
-      cursor: pointer; // 클릭 가능하도록
+    // ============================================
+    // 화살표 아이콘 제어
+    // ============================================
 
-      transition: background-color 0.2s ease;
+    // 화살표 아이콘 숨기기 (기본값: 숨김)
+    .q-tree__arrow {
+      display: none !important;
+    }
 
-      // 헤더 클릭 가능하도록
-      pointer-events: auto;
-
-      // 호버 효과
-      &:hover {
-        background-color: var(--nexa-surface-hover);
+    // 화살표 보이기 (필요시 사용)
+    &.tree-show-arrow {
+      .q-tree__arrow {
+        display: block !important;
       }
+    }
+
+    // ============================================
+    // 노드 헤더 (폴더/파일 헤더)
+    // ============================================
+
+    .q-tree__node-header {
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      pointer-events: auto;
 
       // 헤더의 연결선 제거
       &::before,
@@ -46,29 +71,18 @@
         content: none;
       }
 
-      // 폴더명(헤더 텍스트) 색상
-      .row,
-      .col,
-      div {
-        color: var(--nexa-text-primary);
-        pointer-events: none; // 텍스트 클릭 이벤트는 헤더로 전달
-      }
-
-      // 헤더 아이콘 색상 (기본 - 모든 레벨에 적용, 하위 레벨은 아래에서 오버라이드)
-      .row {
-        .q-icon {
-          color: var(--nexa-text-primary) !important;
-          font-size: 16px !important; // 기본 크기 (하위 레벨)
-          pointer-events: none; // 아이콘 클릭 이벤트는 헤더로 전달
-        }
+      // 호버 효과
+      &:hover {
+        background-color: var(--nexa-surface-hover);
+        border-radius: 4px;
       }
     }
 
-    .q-tree__node-body {
-      //   margin: 0;
-      //   padding: 0;
-      //position: relative;
+    // ============================================
+    // 노드 본문
+    // ============================================
 
+    .q-tree__node-body {
       // 본문의 연결선 제거
       &::before,
       &::after {
@@ -78,98 +92,196 @@
     }
   }
 
-  // 트리 전체의 연결선 제거
-  &::before,
-  &::after {
-    display: none;
-    content: none;
+  // ============================================
+  // 파일 노드 간 상하 간격 제어
+  // ============================================
+
+  // 폴더 body와 children 사이 간격 제거
+  .q-tree__node-body {
+    padding: 0;
   }
 
-  // 최상위 폴더 아이콘 (루트 레벨) - .q-tree의 직접 자식 노드만
-  // 하위 레벨보다 더 구체적인 선택자로 최상위만 선택
-  > .q-tree__node {
-    .q-tree__node-header {
-      .row {
-        .q-icon {
-          color: var(--nexa-primary); // 최상위 폴더 아이콘 색상
-          font-size: 22px !important; // 최상위 폴더 아이콘 크기
-        }
-      }
-    }
+  // ============================================
+  // 폴더 헤더 스타일
+  // ============================================
 
-    // 최상위 노드의 하위 노드는 제외 (16px 유지)
-    .q-tree__node {
-      .q-tree__node-header {
-        .row {
-          .q-icon {
-            font-size: 16px; // 최상위의 하위는 16px
-            color: var(--nexa-text-primary);
-          }
-        }
-      }
-    }
-  }
+  .tree-folder-header {
+    //border: 2px solid rgb(0, 34, 255) !important;
 
-  // 트리 샘플 아이템 (body slot에서 렌더링되는 샘플 아이템)
-  .tree-sample-item {
+    pointer-events: auto;
     cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 4px;
     transition: background-color 0.2s ease;
 
-    //구제적인 아이템
-    .tree-sample-item-content {
-      display: flex;
-
-      .tree-sample-icon {
-        color: var(--nexa-text-ㅔㄱ);
-        font-size: 15px;
-        margin-right: 4px;
-      }
-
-      .tree-sample-info {
-        display: flex;
-        align-items: center;
-        gap: 4px; //아이템 이름과 카테고리 간격
-        flex: 1;
-        min-width: 0;
-
-        //각 아이템 이름 스타일
-        .tree-sample-name {
-          font-size: 0.9rem;
-          white-space: nowrap;
-        }
-
-        .tree-sample-category {
-          font-size: 0.75rem;
-          color: var(--nexa-text-secondary);
-          white-space: nowrap;
-        }
-      }
+    // 폴더 텍스트 색상
+    .col,
+    div {
+      color: var(--nexa-text-primary);
+      pointer-events: none;
     }
 
+    // 폴더 아이콘 색상
+    .q-icon {
+      color: var(--nexa-text-primary);
+      pointer-events: none;
+    }
+
+    // 호버 상태
     &:hover {
       background-color: var(--nexa-surface-hover);
+
+      .col,
+      div {
+        color: var(--nexa-text-primary);
+      }
+
+      .q-icon {
+        color: var(--nexa-primary);
+      }
+    }
+  }
+
+  // ============================================
+  // 파일 헤더 스타일
+  // ============================================
+
+  .tree-file-header {
+    //border: 2px solid rgb(255, 0, 0) !important;
+
+    cursor: pointer;
+    padding: 2px 8px; // 파일은 폴더보다 작은 패딩
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    margin-top: 0 !important;
+
+    // 파일명 색상
+    .col,
+    div {
+      color: var(--nexa-text-secondary);
+      pointer-events: none;
+      font-size: 0.9rem;
+    }
+
+    // 파일 아이콘 색상
+    .q-icon {
+      color: var(--nexa-text-secondary);
+      pointer-events: none;
+      font-size: 14px;
+    }
+
+    // 호버 상태
+    &:hover {
+      background-color: var(--nexa-surface-hover);
+
+      .col,
+      div {
+        color: var(--nexa-text-primary);
+      }
+
+      .q-icon {
+        color: var(--nexa-text-primary);
+      }
     }
 
     // 선택된 상태
-    &.tree-sample-item-selected {
-      background-color: var(--nexa-item-selected-bg);
-      border-left: 3px solid var(--nexa-primary);
-      padding-left: 9px;
+    &.tree-file-header-selected {
+      background-color: var(--nexa-surface-hover);
 
-      .tree-sample-item-content {
-        .tree-sample-icon {
-          color: var(--nexa-primary);
-        }
-
-        .tree-sample-info {
-          .tree-sample-name {
-            color: var(--nexa-item-selected-text);
-          }
-        }
+      .col,
+      div {
+        color: var(--nexa-primary);
       }
 
-      &:hover {
-        background-color: var(--nexa-item-selected-hover-bg);
+      .q-icon {
+        color: var(--nexa-primary);
+      }
+    }
+  }
+
+  // ============================================
+  // 레벨별 아이콘 색상 및 크기
+  // ============================================
+
+  // 레벨 0 (최상위 폴더)
+  > .q-tree__node {
+    .tree-folder-header {
+      .q-icon {
+        color: var(--nexa-primary);
+        font-size: 20px;
+      }
+
+      .col,
+      div {
+        color: var(--nexa-text-primary);
+        font-weight: 500;
+      }
+    }
+  }
+
+  // 레벨 1 (하위 폴더) - q-tree__children 내부
+  .q-tree__children > .q-tree__node {
+    .tree-folder-header {
+      .q-icon {
+        color: var(--nexa-text-primary);
+        font-size: 18px;
+      }
+
+      .col,
+      div {
+        color: var(--nexa-text-primary);
+        font-size: 0.95rem;
+      }
+    }
+  }
+
+  // 레벨 2 이상 (더 하위 폴더) - 중첩된 q-tree__children
+  .q-tree__children .q-tree__children > .q-tree__node {
+    .tree-folder-header {
+      .q-icon {
+        color: var(--nexa-text-secondary);
+        font-size: 16px;
+      }
+
+      .col,
+      div {
+        color: var(--nexa-text-secondary);
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  // ============================================
+  // 파일 아이콘 레벨별 크기 및 색상
+  // ============================================
+
+  // 레벨 0 하위 파일 (직접 children)
+  .q-tree__children > .q-tree__node--child {
+    .tree-file-header {
+      .q-icon {
+        color: var(--nexa-text-secondary);
+        font-size: 19px;
+      }
+    }
+  }
+
+  // 레벨 1 하위 파일 (중첩된 children)
+  .q-tree__children .q-tree__children > .q-tree__node--child {
+    .tree-file-header {
+      .q-icon {
+        color: var(--nexa-text-secondary);
+        font-size: 16px;
+      }
+    }
+  }
+
+  // 레벨 2 이상 하위 파일 (더 깊은 중첩)
+  .q-tree__children .q-tree__children .q-tree__children > .q-tree__node--child {
+    .tree-file-header {
+      .q-icon {
+        color: var(--nexa-text-secondary);
+        font-size: 18px;
       }
     }
   }
