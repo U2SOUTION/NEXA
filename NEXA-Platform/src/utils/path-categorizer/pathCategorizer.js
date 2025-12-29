@@ -121,9 +121,9 @@ export function getComponentCategory(componentPath) {
   // 'guides' 다음의 첫 번째 디렉토리를 카테고리로 사용 (개발 가이드 샘플용)
   const guidesIndex = parts.findIndex((part) => part === 'guides')
   if (guidesIndex >= 0 && guidesIndex < parts.length - 1) {
-    // 최상위 레벨 폴더 (styles, patterns, conventions, best-practices 등)
-    const topLevelFolders = ['styles', 'patterns', 'conventions', 'best-practices']
-    const topLevelIndex = parts.findIndex((part, idx) => idx > guidesIndex && topLevelFolders.includes(part))
+    // ⚠️ 하드코딩: topLevelFolders가 useDevGuide.js와 중복됨 (일관성 유지 필요)
+    const topLevelFolders = ['styles', 'patterns', 'conventions', 'best-practices', 'library']
+    const topLevelIndex = parts.findIndex((part, idx) => idx > guidesIndex && topLevelFolders.includes(part.toLowerCase()))
     
     if (topLevelIndex >= 0 && topLevelIndex < parts.length - 1) {
       // 최상위 레벨 다음의 첫 디렉토리를 카테고리로 사용

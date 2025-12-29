@@ -345,16 +345,22 @@ export function useDevGuide() {
    * 경로에서 최상위 레벨 추출 (styles, patterns, conventions, best-practices)
    * @param {string} componentPath - 컴포넌트 경로
    * @returns {string|null} 최상위 레벨명
+   *
+   * ⚠️ 하드코딩 주의: topLevelFolders 배열이 여러 곳에 분산되어 있음
+   * - useDevGuide.js (여기)
+   * - DevGuideList.vue (정렬 순서)
+   * - pathCategorizer.js (경로 파싱)
+   * 새 레벨 추가 시 모든 위치를 일관되게 수정해야 함
    */
   function getTopLevel(componentPath) {
     if (!componentPath) return null
     const parts = componentPath.split('/').filter((part) => part && part.trim() !== '')
     const guidesIndex = parts.findIndex((part) => part === 'guides')
     if (guidesIndex >= 0 && guidesIndex < parts.length - 1) {
-      const topLevelFolders = ['styles', 'patterns', 'conventions', 'best-practices']
-      const topLevel = parts[guidesIndex + 1]
+      const topLevelFolders = ['styles', 'patterns', 'conventions', 'best-practices', 'library']
+      const topLevel = parts[guidesIndex + 1].toLowerCase() // 대소문자 무시 비교를 위해 소문자로 변환
       if (topLevelFolders.includes(topLevel)) {
-        return topLevel
+        return topLevel // 소문자로 정규화하여 반환
       }
     }
     return null
@@ -364,6 +370,8 @@ export function useDevGuide() {
    * 최상위 레벨에 따른 아이콘 반환
    * @param {string} topLevel - 최상위 레벨명
    * @returns {string} 아이콘명
+   *
+   * ⚠️ 하드코딩: 새 레벨 추가 시 iconMap에 아이콘 추가 필요
    */
   function getIconForTopLevel(topLevel) {
     const iconMap = {
@@ -371,6 +379,7 @@ export function useDevGuide() {
       patterns: 'account_tree',
       conventions: 'code',
       'best-practices': 'star',
+      library: 'apps',
     }
     return iconMap[topLevel] || 'folder'
   }
@@ -379,6 +388,8 @@ export function useDevGuide() {
    * 최상위 레벨에 따른 라벨 반환
    * @param {string} topLevel - 최상위 레벨명
    * @returns {string} 라벨명
+   *
+   * ⚠️ 하드코딩: 새 레벨 추가 시 labelMap에 한글 라벨 추가 필요
    */
   function getLabelForTopLevel(topLevel) {
     const labelMap = {
@@ -386,6 +397,7 @@ export function useDevGuide() {
       patterns: '패턴',
       conventions: '컨벤션',
       'best-practices': '베스트 프랙티스',
+      library: '라이브러리',
     }
     return labelMap[topLevel] || topLevel
   }
@@ -593,8 +605,8 @@ export function useDevGuide() {
           .sort((a, b) => a.name.localeCompare(b.name)),
       }))
       .sort((a, b) => {
-        // styles, patterns, conventions, best-practices 순서로 정렬
-        const order = ['styles', 'patterns', 'conventions', 'best-practices']
+        // ⚠️ 하드코딩: 정렬 순서가 하드코딩되어 있음 (DevGuideList.vue와 일관성 유지 필요)
+        const order = ['styles', 'patterns', 'library', 'conventions', 'best-practices']
         const aIndex = order.indexOf(a.name)
         const bIndex = order.indexOf(b.name)
         if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
