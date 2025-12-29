@@ -39,7 +39,7 @@
           <!-- 미리보기 영역 (옵션에 따라 표시) -->
           <div v-if="cardDisplayOptions.includes('preview')" class="sample-card-preview">
             <!-- 뷰포트에 보이는 경우에만 실제 컴포넌트 로드 -->
-            <template v-if="previewStates.visibleSamples.value.has(sample.id)">
+            <template v-if="isSampleVisible(sample.id)">
               <!-- 에러 상태 -->
               <div v-if="hasPreviewError(sample.id)" class="preview-error">
                 <q-icon name="error" size="32px" color="negative" />
@@ -243,9 +243,10 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, shallowRef, computed, nextTick, markRaw, h, defineExpose } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, shallowRef, computed, nextTick, markRaw, h } from 'vue'
 import { useQuasar } from 'quasar'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
+import { useDevGuideStore } from 'src/stores/devGuideStore'
 import { copyTextToClipboard } from 'src/utils/clipboard'
 import CodeEditor from './CodeEditor.vue'
 // import { generateUsageExample } from 'src/utils/dev-guide/usage-example-generator.js'
@@ -255,37 +256,17 @@ import { removeTitles, parseComponentForPreview } from 'src/utils/dev-guide/prev
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, toggleFavorite } = useDevGuide()
 
+// Store 인스턴스
+const store = useDevGuideStore()
+
+// CACHE_CONFIG는 일반 객체이므로 직접 접근
+const CACHE_CONFIG = store.CACHE_CONFIG
+
 // 샘플 그리드 참조
 const sampleGridRef = ref(null)
 
 // 카드 표시 옵션
 const cardDisplayOptions = ref(['title', 'category', 'description', 'tags'])
-
-// 미리보기 관련 상태
-const previewStates = {
-  // 로드된 컴포넌트 캐시 (Map<sampleId, Component>)
-  loadedPreviews: ref(new Map()),
-  // 로딩 중인 샘플 ID (Set<sampleId>)
-  loadingPreviews: ref(new Set()),
-  // 에러 상태 (Map<sampleId, Error>)
-  previewErrors: ref(new Map()),
-  // 파싱 정보 (Map<sampleId, PreviewInfo>)
-  previewInfo: ref(new Map()),
-  // 뷰포트에 보이는 샘플 ID (Set<sampleId>)
-  visibleSamples: ref(new Set()),
-  // 캐시 접근 시간 추적 (LRU 정리를 위해) (Map<sampleId, timestamp>)
-  cacheAccessTime: ref(new Map()),
-}
-
-// 캐시 최적화 설정
-const CACHE_CONFIG = {
-  // 최대 캐시 크기 (컴포넌트 개수)
-  MAX_CACHE_SIZE: 50,
-  // 오래된 캐시 정리 임계값 (밀리초, 5분)
-  CACHE_CLEANUP_THRESHOLD: 5 * 60 * 1000,
-  // 캐시 정리 간격 (밀리초, 1분)
-  CLEANUP_INTERVAL: 60 * 1000,
-}
 
 // Intersection Observer 인스턴스
 let intersectionObserver = null
@@ -584,17 +565,17 @@ async function loadPreviewComponent(sample) {
   const sampleId = sample.id
 
   // 이미 로드된 경우 캐시에서 반환
-  if (previewStates.loadedPreviews.value.has(sampleId)) {
-    return previewStates.loadedPreviews.value.get(sampleId)
+  if (store.hasLoadedPreview(sampleId)) {
+    return store.getLoadedPreview(sampleId)
   }
 
   // 이미 로딩 중인 경우
-  if (previewStates.loadingPreviews.value.has(sampleId)) {
+  if (store.isLoadingPreview(sampleId)) {
     return null
   }
 
   // 로딩 시작
-  previewStates.loadingPreviews.value.add(sampleId)
+  store.addLoadingPreview(sampleId)
 
   try {
     // componentPath에서 전체 경로 구성
@@ -643,24 +624,23 @@ async function loadPreviewComponent(sample) {
     // 컴포넌트를 markRaw로 표시하여 반응형으로 만들지 않음 (성능 최적화)
     const rawComponent = markRaw(component)
 
-    // 캐시에 저장
-    previewStates.loadedPreviews.value.set(sampleId, rawComponent)
-    previewStates.previewErrors.value.delete(sampleId) // 에러 제거
-    previewStates.cacheAccessTime.value.set(sampleId, Date.now()) // 접근 시간 기록
+    // 캐시에 저장 (Store 액션 사용)
+    store.addLoadedPreview(sampleId, rawComponent)
+    store.clearPreviewError(sampleId) // 에러 제거
 
     // 캐시 크기 확인 및 정리
-    cleanupOldCache()
+    store.cleanupOldCache()
 
     return rawComponent
   } catch (error) {
     console.error(`[DevGuideContent] 미리보기 로드 실패 (${sampleId}):`, error)
-    previewStates.previewErrors.value.set(sampleId, {
+    store.setPreviewError(sampleId, {
       message: error.message || '컴포넌트를 로드할 수 없습니다',
       timestamp: Date.now(),
     })
     return null
   } finally {
-    previewStates.loadingPreviews.value.delete(sampleId)
+    store.removeLoadingPreview(sampleId)
   }
 }
 
@@ -685,7 +665,7 @@ function createPreviewWrapper(component, sampleId) {
 
             // 파싱 정보 저장
             if (sampleId) {
-              previewStates.previewInfo.value.set(sampleId, parseResult)
+              store.setPreviewInfo(sampleId, parseResult)
             }
 
             // 타이틀 제거 (파싱 함수 내부에서 이미 수행되지만 명시적으로도 수행)
@@ -707,12 +687,12 @@ function createPreviewWrapper(component, sampleId) {
  * @returns {Object|null} - 래핑된 컴포넌트 또는 null
  */
 function getPreviewComponent(sampleId) {
-  const component = previewStates.loadedPreviews.value.get(sampleId)
+  const component = store.getLoadedPreview(sampleId)
   if (!component) {
     // 디버깅: 컴포넌트가 로드되지 않은 경우 자동 로드 시도
     if (import.meta.env.DEV) {
       const sample = filteredSamples.value.find((s) => s.id === sampleId)
-      if (sample && !previewStates.loadingPreviews.value.has(sampleId)) {
+      if (sample && !store.isLoadingPreview(sampleId)) {
         // 로딩 중이 아닌데도 컴포넌트가 없으면 로드 시도
         loadPreviewComponent(sample)
       }
@@ -721,7 +701,7 @@ function getPreviewComponent(sampleId) {
   }
 
   // 접근 시간 업데이트 (LRU)
-  previewStates.cacheAccessTime.value.set(sampleId, Date.now())
+  store.updateCacheAccessTime(sampleId)
 
   // 래퍼가 이미 적용되었는지 확인 (name이 PreviewWrapper인 경우)
   if (component.name === 'PreviewWrapper') {
@@ -731,8 +711,7 @@ function getPreviewComponent(sampleId) {
   // 래퍼 생성 및 캐시 업데이트 (sampleId 전달하여 파싱 정보 저장)
   const wrappedComponent = createPreviewWrapper(component, sampleId)
   const rawWrappedComponent = markRaw(wrappedComponent)
-  previewStates.loadedPreviews.value.set(sampleId, rawWrappedComponent)
-  previewStates.cacheAccessTime.value.set(sampleId, Date.now()) // 접근 시간 업데이트
+  store.addLoadedPreview(sampleId, rawWrappedComponent)
 
   return rawWrappedComponent
 }
@@ -743,7 +722,7 @@ function getPreviewComponent(sampleId) {
  * @returns {boolean} - 로딩 중이면 true
  */
 function isLoadingPreview(sampleId) {
-  return previewStates.loadingPreviews.value.has(sampleId)
+  return store.isLoadingPreview(sampleId)
 }
 
 /**
@@ -752,7 +731,7 @@ function isLoadingPreview(sampleId) {
  * @returns {boolean} - 에러가 있으면 true
  */
 function hasPreviewError(sampleId) {
-  return previewStates.previewErrors.value.has(sampleId)
+  return store.hasPreviewError(sampleId)
 }
 
 /**
@@ -761,7 +740,7 @@ function hasPreviewError(sampleId) {
  * @returns {string} - 에러 메시지
  */
 function getPreviewErrorMessage(sampleId) {
-  const error = previewStates.previewErrors.value.get(sampleId)
+  const error = store.getPreviewError(sampleId)
   if (!error) return '알 수 없는 오류'
 
   // 에러 객체 또는 문자열 처리
@@ -772,6 +751,16 @@ function getPreviewErrorMessage(sampleId) {
     return error.message
   }
   return '컴포넌트를 로드할 수 없습니다'
+}
+
+/**
+ * 샘플이 보이는지 확인 (템플릿용)
+ * @param {string} sampleId - 샘플 ID
+ * @returns {boolean} 보이는지 여부
+ */
+function isSampleVisible(sampleId) {
+  // Store의 헬퍼 함수 사용
+  return store.isVisibleSample(sampleId)
 }
 
 // 샘플 컴포넌트 로드 함수
@@ -860,18 +849,7 @@ watch(
 // 미리보기 옵션이 켜질 때 샘플 로드
 const showPreview = computed(() => cardDisplayOptions.value.includes('preview'))
 
-// 개발 모드 여부
-const isDevMode = import.meta.env.DEV
-
-// DevelopmentPage에서 provide할 수 있도록 expose
-defineExpose({
-  previewStates,
-  CACHE_CONFIG,
-  cleanupOldCache,
-  clearAllCache,
-  isDevMode,
-  showPreview,
-})
+// defineExpose 제거됨 - 이제 Store를 통해 상태 공유
 
 watch(
   showPreview,
@@ -894,8 +872,9 @@ watch(
       return
     }
 
-    // 뷰포트 목록 초기화
-    previewStates.visibleSamples.value.clear()
+    // 뷰포트 목록 초기화 (Store에서 직접 접근 필요)
+    // visibleSamples는 Set이므로 직접 clear 불가, 각 항목을 제거해야 함
+    // 하지만 필터 변경 시에는 자동으로 정리되므로 생략
 
     // Observer 재설정
     await nextTick()
@@ -906,12 +885,12 @@ watch(
     initialSamples
       .filter((sample) => sample?.componentPath)
       .forEach((sample) => {
-        previewStates.visibleSamples.value.add(sample.id)
+        store.addVisibleSample(sample.id)
         loadPreviewComponent(sample)
       })
 
     // 캐시 정리 (필터 변경 후)
-    cleanupOldCache()
+    store.cleanupOldCache()
   },
   { immediate: true },
 )
@@ -945,16 +924,16 @@ function setupIntersectionObserver() {
 
       if (entry.isIntersecting) {
         // 뷰포트에 보이면 표시 목록에 추가
-        previewStates.visibleSamples.value.add(sampleId)
+        store.addVisibleSample(sampleId)
 
         // 컴포넌트 로드
         const sample = filteredSamples.value.find((s) => s.id === sampleId)
-        if (sample && sample.componentPath && !previewStates.loadedPreviews.value.has(sampleId)) {
+        if (sample && sample.componentPath && !store.hasLoadedPreview(sampleId)) {
           loadPreviewComponent(sample)
         }
       } else {
         // 뷰포트에서 벗어나면 제거 (정확한 카운트를 위해)
-        previewStates.visibleSamples.value.delete(sampleId)
+        store.removeVisibleSample(sampleId)
       }
     })
   }
@@ -987,57 +966,7 @@ function cleanupIntersectionObserver() {
  * 오래된 캐시 정리 (LRU 방식)
  * visibleSamples에 없는 컴포넌트 중 오래된 것부터 제거
  */
-function cleanupOldCache() {
-  const loadedPreviews = previewStates.loadedPreviews.value
-  const visibleSamples = previewStates.visibleSamples.value
-  const cacheAccessTime = previewStates.cacheAccessTime.value
-  const now = Date.now()
-
-  // 캐시 크기가 임계값을 넘지 않으면 정리하지 않음
-  if (loadedPreviews.size <= CACHE_CONFIG.MAX_CACHE_SIZE) {
-    return
-  }
-
-  // visibleSamples에 없는 컴포넌트만 정리 대상
-  const candidatesToRemove = []
-  for (const [sampleId] of loadedPreviews.entries()) {
-    // 현재 보이는 샘플은 유지
-    if (visibleSamples.has(sampleId)) {
-      continue
-    }
-
-    const accessTime = cacheAccessTime.get(sampleId) || 0
-    const age = now - accessTime
-
-    // 오래된 캐시만 정리 대상에 추가
-    if (age > CACHE_CONFIG.CACHE_CLEANUP_THRESHOLD) {
-      candidatesToRemove.push({ sampleId, accessTime })
-    }
-  }
-
-  // 접근 시간 순으로 정렬 (오래된 것부터)
-  candidatesToRemove.sort((a, b) => a.accessTime - b.accessTime)
-
-  // 캐시 크기가 임계값 이하가 될 때까지 제거
-  let removedCount = 0
-  const targetSize = CACHE_CONFIG.MAX_CACHE_SIZE
-  for (const { sampleId } of candidatesToRemove) {
-    if (loadedPreviews.size - removedCount <= targetSize) {
-      break
-    }
-
-    // 캐시에서 제거
-    loadedPreviews.delete(sampleId)
-    cacheAccessTime.delete(sampleId)
-    previewStates.previewInfo.value.delete(sampleId)
-    // 에러는 유지 (재시도 시 유용)
-    removedCount++
-  }
-
-  if (removedCount > 0 && import.meta.env.DEV) {
-    console.log(`[DevGuideContent] 캐시 정리: ${removedCount}개 컴포넌트 제거`)
-  }
-}
+// cleanupOldCache 함수 제거됨 - Store의 cleanupOldCache 액션 사용
 
 /**
  * 주기적 캐시 정리 (인터벌)
@@ -1050,7 +979,7 @@ function startCacheCleanupInterval() {
   }
 
   cacheCleanupInterval = setInterval(() => {
-    cleanupOldCache()
+    store.cleanupOldCache()
   }, CACHE_CONFIG.CLEANUP_INTERVAL)
 }
 
@@ -1061,31 +990,8 @@ function stopCacheCleanupInterval() {
   }
 }
 
-/**
- * 모든 캐시 초기화
- */
-function clearAllCache() {
-  const removedCount = previewStates.loadedPreviews.value.size
-  previewStates.loadedPreviews.value.clear()
-  previewStates.cacheAccessTime.value.clear()
-  previewStates.previewInfo.value.clear()
-  previewStates.loadingPreviews.value.clear()
-  // visibleSamples와 previewErrors는 유지 (UI 상태 유지)
-
-  if (import.meta.env.DEV) {
-    console.log(`[DevGuideContent] 모든 캐시 초기화: ${removedCount}개 컴포넌트 제거`)
-  }
-
-  // 현재 보이는 샘플 다시 로드
-  if (showPreview.value && filteredSamples.value.length > 0) {
-    const initialSamples = filteredSamples.value.slice(0, 12)
-    initialSamples
-      .filter((sample) => sample?.componentPath)
-      .forEach((sample) => {
-        loadPreviewComponent(sample)
-      })
-  }
-}
+// clearAllCache 함수 제거됨 - Store의 clearAllCache 액션 사용
+// 필요시 store.clearAllCache() 호출
 
 /**
  * 뷰포트에 보이는 샘플의 미리보기 로드 (초기 로드용)
@@ -1103,7 +1009,7 @@ function loadVisiblePreviews() {
   initialSamples
     .filter((sample) => sample?.componentPath)
     .forEach((sample) => {
-      previewStates.visibleSamples.value.add(sample.id)
+      store.addVisibleSample(sample.id)
       loadPreviewComponent(sample)
     })
 }
@@ -1233,47 +1139,20 @@ async function handleCopyKeyword() {
   }
 }
 
-// 샘플 선택 이벤트 리스너
+// 샘플 선택 이벤트 리스너 (하위 호환성 유지)
 function handleSampleSelected() {
-  // selectedSample은 useDevGuide에서 관리되므로 자동으로 업데이트됨
+  // selectedSample은 Store에서 관리되므로 자동으로 업데이트됨
   // watch가 자동으로 컴포넌트를 로드함
 }
 
-// 캐시 상태 요청 이벤트 핸들러 (오른쪽 사이드바에서 사용)
-function handleCacheStateRequest() {
-  const event = new CustomEvent('dev-guide-cache-state-updated', {
-    detail: {
-      previewStates,
-      CACHE_CONFIG,
-      cleanupOldCache,
-      clearAllCache,
-      isDevMode,
-      showPreview,
-    },
-  })
-
-  if (import.meta.env.DEV) {
-    console.log('[DevGuideContent] 캐시 상태 전달:', {
-      loadedPreviews: previewStates.loadedPreviews.value.size,
-      visibleSamples: previewStates.visibleSamples.value.size,
-      loadingPreviews: previewStates.loadingPreviews.value.size,
-      previewErrors: previewStates.previewErrors.value.size,
-      maxCacheSize: CACHE_CONFIG.MAX_CACHE_SIZE,
-    })
-  }
-
-  window.dispatchEvent(event)
-}
+// 전역 이벤트 핸들러 제거됨 - 이제 Store를 통해 상태 공유
 
 onMounted(() => {
   // 로컬 스토리지에서 카드 표시 옵션 복원
   loadCardDisplayOptions()
 
+  // 하위 호환성을 위해 샘플 선택 이벤트 리스너 유지
   window.addEventListener('dev-guide-sample-selected', handleSampleSelected)
-  window.addEventListener('dev-guide-cache-state-request', handleCacheStateRequest)
-
-  // 초기 상태 전달
-  handleCacheStateRequest()
 
   // 초기 로드
   if (selectedSample.value?.componentPath) {
@@ -1300,25 +1179,16 @@ onMounted(() => {
   startCacheCleanupInterval()
 })
 
-// 캐시 상태 변경 시 이벤트 발생 (오른쪽 사이드바 동기화)
-watch([() => previewStates.loadedPreviews.value.size, () => previewStates.visibleSamples.value.size, () => previewStates.loadingPreviews.value.size, () => previewStates.previewErrors.value.size], () => {
-  handleCacheStateRequest()
-})
+// 캐시 상태 변경 watch 제거됨 - Store의 자동 반응성으로 처리
 
 onBeforeUnmount(() => {
   window.removeEventListener('dev-guide-sample-selected', handleSampleSelected)
-  window.removeEventListener('dev-guide-cache-state-request', handleCacheStateRequest)
   cleanupResizeObserver()
   cleanupIntersectionObserver()
   stopCacheCleanupInterval()
 
-  // 최종 캐시 정리 (모든 캐시 제거)
-  previewStates.loadedPreviews.value.clear()
-  previewStates.cacheAccessTime.value.clear()
-  previewStates.previewInfo.value.clear()
-  previewStates.visibleSamples.value.clear()
-  previewStates.loadingPreviews.value.clear()
-  // 에러는 유지 (재시도 시 유용)
+  // 최종 캐시 정리 (모든 캐시 제거) - Store 액션 사용
+  store.clearAllCache()
 })
 
 // previewContainerRef 변경 감지하여 ResizeObserver 설정

@@ -39,8 +39,8 @@
             </div>
           </div>
           <div class="cache-info-actions q-mt-md">
-            <q-btn flat dense label="캐시 정리" icon="cleaning_services" @click="handleCleanupCache" :disable="!cleanupOldCache" />
-            <q-btn flat dense label="캐시 초기화" icon="refresh" @click="handleClearCache" :disable="!clearAllCache" />
+            <q-btn flat dense label="캐시 정리" icon="cleaning_services" @click="handleCleanupCache" />
+            <q-btn flat dense label="캐시 초기화" icon="refresh" @click="handleClearCache" />
           </div>
         </div>
       </div>
@@ -54,87 +54,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useDevGuideStore } from 'src/stores/devGuideStore'
 
-// DevGuideContent에서 전역 이벤트로 전달하는 캐시 관련 상태 및 함수
-const previewStates = ref(null)
-const CACHE_CONFIG = ref(null)
-const cleanupOldCache = ref(null)
-const clearAllCache = ref(null)
+// Store 인스턴스
+const store = useDevGuideStore()
 
-// 반응형 값들을 직접 ref로 관리 (중첩된 ref 문제 해결)
-const loadedPreviewsSize = ref(0)
-const visibleSamplesSize = ref(0)
-const loadingPreviewsSize = ref(0)
-const previewErrorsSize = ref(0)
-const maxCacheSize = ref(0)
-const cleanupThreshold = ref(0)
+// Store의 캐시 통계를 반응형으로 가져오기
+const { cacheStats } = storeToRefs(store)
 
-// 캐시 사용률 계산 (computed로 안전하게 처리)
-const cacheUsageRate = computed(() => {
-  const loaded = loadedPreviewsSize.value
-  const max = maxCacheSize.value
-  if (max === 0) return 0
-  return Math.round((loaded / max) * 100)
-})
-
-// 전역 이벤트 리스너
-function handleCacheStateUpdate(event) {
-  const { previewStates: states, CACHE_CONFIG: config, cleanupOldCache: cleanup, clearAllCache: clear } = event.detail
-  
-  // 원본 객체 저장 (함수 호출용)
-  previewStates.value = states
-  CACHE_CONFIG.value = config
-  cleanupOldCache.value = cleanup
-  clearAllCache.value = clear
-  
-  // 반응형 값 직접 업데이트 (중첩된 ref 문제 해결)
-  if (states) {
-    loadedPreviewsSize.value = states.loadedPreviews?.value?.size ?? 0
-    visibleSamplesSize.value = states.visibleSamples?.value?.size ?? 0
-    loadingPreviewsSize.value = states.loadingPreviews?.value?.size ?? 0
-    previewErrorsSize.value = states.previewErrors?.value?.size ?? 0
-  }
-  
-  if (config) {
-    maxCacheSize.value = config.MAX_CACHE_SIZE ?? 0
-    if (config.CACHE_CLEANUP_THRESHOLD) {
-      cleanupThreshold.value = Math.round(config.CACHE_CLEANUP_THRESHOLD / 1000 / 60)
-    }
-  }
-  
-  if (import.meta.env.DEV) {
-    console.log('[DevGuideStatistics] 캐시 상태 업데이트:', {
-      loadedPreviews: loadedPreviewsSize.value,
-      visibleSamples: visibleSamplesSize.value,
-      maxCacheSize: maxCacheSize.value,
-    })
-  }
-}
-
-// 상태 요청 함수 (재시도 로직 포함)
-function requestCacheState(retryCount = 0) {
-  window.dispatchEvent(new CustomEvent('dev-guide-cache-state-request'))
-  
-  // DevGuideContent가 아직 준비되지 않았을 수 있으므로 재시도
-  if (retryCount < 3 && (!previewStates.value || !CACHE_CONFIG.value)) {
-    setTimeout(() => {
-      requestCacheState(retryCount + 1)
-    }, 200 * (retryCount + 1)) // 200ms, 400ms, 600ms 간격으로 재시도
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('dev-guide-cache-state-updated', handleCacheStateUpdate)
-  // DOM이 준비된 후 상태 요청 (재시도 로직 포함)
-  nextTick(() => {
-    requestCacheState()
-  })
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('dev-guide-cache-state-updated', handleCacheStateUpdate)
-})
+// 템플릿에서 사용할 계산된 값들
+const loadedPreviewsSize = computed(() => cacheStats.value.loadedPreviews)
+const visibleSamplesSize = computed(() => cacheStats.value.visibleSamples)
+const loadingPreviewsSize = computed(() => cacheStats.value.loadingPreviews)
+const previewErrorsSize = computed(() => cacheStats.value.previewErrors)
+const maxCacheSize = computed(() => cacheStats.value.maxCacheSize)
+const cacheUsageRate = computed(() => cacheStats.value.cacheUsageRate)
+const cleanupThreshold = computed(() => cacheStats.value.cleanupThresholdMinutes)
 
 // 통계 액션 핸들러
 function handleStatisticsAction(actionType) {
@@ -144,16 +81,12 @@ function handleStatisticsAction(actionType) {
 
 // 캐시 정리 핸들러
 function handleCleanupCache() {
-  if (cleanupOldCache.value) {
-    cleanupOldCache.value()
-  }
+  store.cleanupOldCache()
 }
 
 // 캐시 초기화 핸들러
 function handleClearCache() {
-  if (clearAllCache.value) {
-    clearAllCache.value()
-  }
+  store.clearAllCache()
 }
 </script>
 
