@@ -153,6 +153,18 @@
                           </div>
                         </div>
                       </div>
+                      <!-- 폴더 노드의 파일 아이템들 직접 렌더링 -->
+                      <template v-else-if="prop.node.items && prop.node.items.length > 0">
+                        <div v-for="item in prop.node.items" :key="item.id" :class="['tree-sample-item', { 'tree-sample-item-selected': selectedSample?.id === item.id }]" @click="handleSampleSelect(item)">
+                          <div class="tree-sample-item-content">
+                            <q-icon :name="item.icon || 'style'" class="tree-sample-icon" />
+                            <div class="tree-sample-info">
+                              <div class="tree-sample-name">{{ item.displayName || item.name }}</div>
+                              <div v-if="item.category" class="tree-sample-category">{{ item.category }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
                     </template>
                   </q-tree>
 
@@ -400,6 +412,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
+import { buildPathTree } from 'src/utils/path-tree-builder'
 
 defineProps({
   headerHovered: {
@@ -438,7 +451,7 @@ const listSamples = computed(() => {
   return filterListOnSearch.value ? filteredSamples.value : samples.value
 })
 
-// q-tree용 노드 데이터 변환 (필터링 토글에 따라 결정)
+// q-tree용 노드 데이터 변환 (실제 디렉토리 구조 기반)
 const treeNodes = computed(() => {
   // filterListOnSearch가 true면 filteredSamples, false면 samples 사용
   const sourceSamples = filterListOnSearch.value ? filteredSamples.value : samples.value
@@ -447,85 +460,34 @@ const treeNodes = computed(() => {
     return []
   }
 
-  // sourceSamples를 topLevel과 category로 그룹화
-  const topLevelMap = new Map()
-
-  sourceSamples.forEach((sample) => {
-    const topLevel = sample.topLevel || '기타'
-    const category = sample.category || '기타'
-
-    if (!topLevelMap.has(topLevel)) {
-      topLevelMap.set(topLevel, {
-        name: topLevel,
-        label: getLabelForTopLevel(topLevel),
-        icon: getIconForTopLevel(topLevel),
-        categories: new Map(),
-      })
-    }
-
-    const topLevelData = topLevelMap.get(topLevel)
-    if (!topLevelData.categories.has(category)) {
-      topLevelData.categories.set(category, {
-        name: category,
-        icon: getIconForCategory(category),
-        samples: [],
-      })
-    }
-
-    topLevelData.categories.get(category).samples.push(sample)
-  })
-
-  // Map을 배열로 변환하고 정렬
-  const hierarchicalData = Array.from(topLevelMap.values())
-    .map((topLevel) => ({
-      ...topLevel,
-      categories: Array.from(topLevel.categories.values())
-        .map((cat) => ({
-          ...cat,
-          samples: cat.samples.sort((a, b) => (a.displayName || a.name).localeCompare(b.displayName || b.name)),
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    }))
-    .sort((a, b) => {
-      // ⚠️ 하드코딩: 정렬 순서가 하드코딩되어 있음 (useDevGuide.js의 hierarchicalStructure와 일관성 유지 필요)
-      const order = ['styles', 'patterns', 'library', 'conventions', 'best-practices']
-      const aIndex = order.indexOf(a.name)
-      const bIndex = order.indexOf(b.name)
-      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
-      if (aIndex !== -1) return -1
-      if (bIndex !== -1) return 1
-      return a.label.localeCompare(b.label)
-    })
-
-  let nodeId = 1
-  return hierarchicalData.map((topLevel) => {
-    const topLevelId = nodeId++
-    const children = topLevel.categories.map((category) => {
-      const categoryId = nodeId++
-      const sampleChildren = category.samples.map((sample) => {
-        return {
-          id: nodeId++,
-          label: sample.displayName || sample.name,
-          icon: sample.icon || 'style',
-          sample: sample, // 원본 샘플 데이터 보관
-        }
-      })
-      return {
-        id: categoryId,
-        label: category.name,
-        icon: category.icon,
-        name: category.name, // 폴더 필터를 위한 name
-        topLevel: topLevel.name, // 폴더 필터를 위한 topLevel
-        children: sampleChildren,
+  // 경로 기반 트리 구조 생성 (재사용 가능한 유틸리티 사용)
+  return buildPathTree(sourceSamples, {
+    rootPrefix: 'guides',
+    pathKey: 'componentPath',
+    iconGetter: (dirName, level) => {
+      // 레벨 0 (최상위)는 기존 아이콘 getter 사용
+      if (level === 0) {
+        return getIconForTopLevel(dirName)
       }
-    })
-    return {
-      id: topLevelId,
-      label: topLevel.label,
-      icon: topLevel.icon,
-      name: topLevel.name, // 폴더 필터를 위한 name
-      children: children,
-    }
+      // 레벨 1 이상은 카테고리 아이콘 getter 사용
+      if (level === 1) {
+        return getIconForCategory(dirName)
+      }
+      // 그 외는 기본 폴더 아이콘
+      return null
+    },
+    labelGetter: (dirName, level) => {
+      // 레벨 0 (최상위)는 기존 라벨 getter 사용
+      if (level === 0) {
+        return getLabelForTopLevel(dirName)
+      }
+      // 그 외는 디렉토리 이름 그대로 사용
+      return dirName
+    },
+    onNodeCreate: () => {
+      // 노드 생성 시 추가 메타데이터 설정 (필요시)
+      // 예: node.customData = ...
+    },
   })
 })
 
@@ -632,9 +594,9 @@ function handleTreeNodeSelect(selectedId) {
   findSampleInNodes(treeNodes.value)
 }
 
-// 폴더 헤더 클릭 핸들러
+// 폴더 헤더 클릭 핸들러 (실제 디렉토리 구조 기반)
 function handleFolderHeaderClick(node) {
-  console.log('🔴 handleFolderHeaderClick 호출:', node.label, node.id, 'hasSample:', !!node.sample)
+  console.log('🔴 handleFolderHeaderClick 호출:', node.label, node.id, 'hasSample:', !!node.sample, 'path:', node.path)
 
   // 샘플 노드는 무시
   if (node.sample) {
@@ -645,10 +607,25 @@ function handleFolderHeaderClick(node) {
   // 폴더 노드인 경우 필터링 처리
   console.log('🔴 폴더 노드 클릭, 필터링 처리 시작')
 
+  // 경로 기반 필터링 (모든 레벨 지원)
+  if (node.path) {
+    console.log('🔴 경로 기반 폴더 선택:', node.path, 'level:', node.level)
+    handleFolderSelect({
+      type: 'path',
+      path: node.path,
+      fullPath: node.fullPath,
+      level: node.level,
+      name: node.name,
+      label: node.label,
+    })
+    return
+  }
+
+  // 하위 호환성: 기존 방식 (레벨 0, 1만)
   // 최상위 레벨 폴더인지 확인
   const topLevelNode = treeNodes.value.find((topLevel) => topLevel.id === node.id)
   if (topLevelNode) {
-    console.log('🔴 최상위 레벨 폴더 선택:', topLevelNode.name)
+    console.log('🔴 최상위 레벨 폴더 선택 (하위 호환):', topLevelNode.name)
     handleFolderSelect({
       type: 'topLevel',
       name: topLevelNode.name,
@@ -660,7 +637,7 @@ function handleFolderHeaderClick(node) {
   for (const topLevel of treeNodes.value) {
     const categoryNode = topLevel.children?.find((cat) => cat.id === node.id)
     if (categoryNode) {
-      console.log('🔴 카테고리 폴더 선택:', categoryNode.name, 'topLevel:', topLevel.name)
+      console.log('🔴 카테고리 폴더 선택 (하위 호환):', categoryNode.name, 'topLevel:', topLevel.name)
       handleFolderSelect({
         type: 'category',
         name: categoryNode.name,
@@ -698,12 +675,27 @@ function handleTreeExpanded(expanded) {
 
       // 샘플 노드가 아닌 폴더 노드인 경우에만 필터링 처리
       if (!node.sample) {
-        console.log('🟣 폴더 노드 확장:', node.label, node.name)
+        console.log('🟣 폴더 노드 확장:', node.label, node.name, 'path:', node.path)
 
+        // 경로 기반 필터링 (모든 레벨 지원)
+        if (node.path) {
+          console.log('🟣 경로 기반 폴더 선택:', node.path, 'level:', node.level)
+          handleFolderSelect({
+            type: 'path',
+            path: node.path,
+            fullPath: node.fullPath,
+            level: node.level,
+            name: node.name,
+            label: node.label,
+          })
+          break
+        }
+
+        // 하위 호환성: 기존 방식 (레벨 0, 1만)
         // 최상위 레벨 폴더인지 확인
         const topLevelNode = treeNodes.value.find((topLevel) => topLevel.id === node.id)
         if (topLevelNode) {
-          console.log('🟣 최상위 레벨 폴더 선택:', topLevelNode.name)
+          console.log('🟣 최상위 레벨 폴더 선택 (하위 호환):', topLevelNode.name)
           handleFolderSelect({
             type: 'topLevel',
             name: topLevelNode.name,
@@ -715,7 +707,7 @@ function handleTreeExpanded(expanded) {
         for (const topLevel of treeNodes.value) {
           const categoryNode = topLevel.children?.find((cat) => cat.id === node.id)
           if (categoryNode) {
-            console.log('🟣 카테고리 폴더 선택:', categoryNode.name, 'topLevel:', topLevel.name)
+            console.log('🟣 카테고리 폴더 선택 (하위 호환):', categoryNode.name, 'topLevel:', topLevel.name)
             handleFolderSelect({
               type: 'category',
               name: categoryNode.name,
@@ -728,10 +720,12 @@ function handleTreeExpanded(expanded) {
     }
   }
 
-  // 아코디언 모드: 최상위 레벨 폴더가 확장되면 다른 최상위 레벨 폴더들을 접기
+  // 아코디언 모드: 최상위 레벨 폴더(level 0)가 확장되면 다른 최상위 레벨 폴더들을 접기
   if (accordionMode.value) {
-    // 모든 최상위 레벨 폴더 ID 수집
-    const topLevelIds = treeNodes.value.map((topLevel) => topLevel.id)
+    // 모든 최상위 레벨 폴더 ID 수집 (level 0인 노드들)
+    const topLevelIds = treeNodes.value
+      .filter((node) => node.level === 0 || node.level === undefined) // 레벨 0 또는 레벨 정보가 없는 경우 (하위 호환)
+      .map((topLevel) => topLevel.id)
 
     // 확장된 노드 중 최상위 레벨 폴더 찾기
     const expandedTopLevelIds = expanded.filter((nodeId) => topLevelIds.includes(nodeId))

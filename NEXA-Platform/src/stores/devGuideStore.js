@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getComponentCategory } from 'src/utils/path-categorizer/index.js'
+import { filterByPath } from 'src/utils/path-tree-builder'
 
 /**
  * 개발 가이드 Store
@@ -166,12 +167,20 @@ export const useDevGuideStore = defineStore('devGuide', () => {
     // 폴더 필터
     if (selectedFolderNode.value) {
       const folderNode = selectedFolderNode.value
-      if (folderNode.type === 'topLevel') {
+      
+      // 경로 기반 필터링 (모든 레벨 지원, 우선순위 높음)
+      if (folderNode.type === 'path' && folderNode.path) {
+        result = filterByPath(result, folderNode.path, 'componentPath', 'guides')
+      }
+      // 하위 호환성: 기존 topLevel 필터링
+      else if (folderNode.type === 'topLevel') {
         result = result.filter((sample) => {
           const sampleTopLevel = getTopLevel(sample.componentPath)
           return sampleTopLevel === folderNode.name
         })
-      } else if (folderNode.type === 'category') {
+      }
+      // 하위 호환성: 기존 category 필터링
+      else if (folderNode.type === 'category') {
         result = result.filter((sample) => {
           const sampleTopLevel = getTopLevel(sample.componentPath)
           const sampleCategory = sample.category || getComponentCategory(sample.componentPath)
