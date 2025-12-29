@@ -183,15 +183,6 @@
       </div>
 
       <q-separator v-if="selectedSample" />
-
-      <!-- 사용 통계 (향후 구현) -->
-      <div class="panel-section q-pa-md">
-        <div class="section-header">
-          <q-icon name="analytics" class="section-icon" />
-          <div class="section-title">사용 통계</div>
-        </div>
-        <div class="statistics-placeholder q-mt-sm text-caption">사용 통계는 향후 구현 예정입니다.</div>
-      </div>
     </template>
 
     <!-- 선택된 샘플이 없을 때 -->
@@ -667,6 +658,39 @@ onBeforeUnmount(() => {
 
     .statistics-placeholder {
       color: var(--nexa-text-disabled);
+    }
+
+    // 캐시 최적화 정보 스타일
+    .cache-info-content {
+      .cache-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 12px;
+
+        .cache-info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          .cache-info-label {
+            font-size: 0.75rem;
+            color: var(--nexa-text-secondary);
+          }
+
+          .cache-info-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--nexa-text-primary);
+          }
+        }
+      }
+
+      .cache-info-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-start;
+      }
     }
 
     // 공통 아이템 스타일

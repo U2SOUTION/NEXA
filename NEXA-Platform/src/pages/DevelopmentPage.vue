@@ -38,7 +38,7 @@
       <SettingsManagerContent v-else-if="activeMenu === 'settings-manager'" />
 
       <!-- 개발 가이드 -->
-      <DevGuideContent v-else-if="activeMenu === 'dev-guide'" />
+      <DevGuideContent v-else-if="activeMenu === 'dev-guide'" ref="devGuideContentRef" />
 
       <!-- 테스트 러너 -->
       <TestRunnerContent v-else-if="activeMenu === 'test-runner'" />
