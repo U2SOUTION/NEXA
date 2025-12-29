@@ -87,6 +87,44 @@
         </div>
       </div>
 
+      <!-- 캐시 최적화 정보 (개발 모드에서만 표시) -->
+      <div v-if="isDevMode && showPreview" class="cache-info-section">
+        <q-expansion-item icon="memory" label="캐시 최적화 정보" default-opened class="cache-info-expansion">
+          <div class="cache-info-content">
+            <div class="cache-info-grid">
+              <div class="cache-info-item">
+                <div class="cache-info-label">캐시된 컴포넌트</div>
+                <div class="cache-info-value">{{ previewStates.loadedPreviews.value.size }} / {{ CACHE_CONFIG.MAX_CACHE_SIZE }}</div>
+              </div>
+              <div class="cache-info-item">
+                <div class="cache-info-label">현재 보이는 샘플</div>
+                <div class="cache-info-value">{{ previewStates.visibleSamples.value.size }}</div>
+              </div>
+              <div class="cache-info-item">
+                <div class="cache-info-label">로딩 중</div>
+                <div class="cache-info-value">{{ previewStates.loadingPreviews.value.size }}</div>
+              </div>
+              <div class="cache-info-item">
+                <div class="cache-info-label">에러</div>
+                <div class="cache-info-value">{{ previewStates.previewErrors.value.size }}</div>
+              </div>
+              <div class="cache-info-item">
+                <div class="cache-info-label">캐시 사용률</div>
+                <div class="cache-info-value">{{ Math.round((previewStates.loadedPreviews.value.size / CACHE_CONFIG.MAX_CACHE_SIZE) * 100) }}%</div>
+              </div>
+              <div class="cache-info-item">
+                <div class="cache-info-label">정리 임계값</div>
+                <div class="cache-info-value">{{ Math.round(CACHE_CONFIG.CACHE_CLEANUP_THRESHOLD / 1000 / 60) }}분</div>
+              </div>
+            </div>
+            <div class="cache-info-actions">
+              <q-btn flat dense label="캐시 정리" icon="cleaning_services" @click="cleanupOldCache" />
+              <q-btn flat dense label="캐시 초기화" icon="refresh" @click="clearAllCache" />
+            </div>
+          </div>
+        </q-expansion-item>
+      </div>
+
       <!-- 샘플이 없을 때 -->
       <div v-else class="no-samples q-pa-lg text-center">
         <q-icon name="style" size="64px" color="grey-5" class="q-mb-md" />
@@ -273,6 +311,18 @@ const previewStates = {
   previewInfo: ref(new Map()),
   // 뷰포트에 보이는 샘플 ID (Set<sampleId>)
   visibleSamples: ref(new Set()),
+  // 캐시 접근 시간 추적 (LRU 정리를 위해) (Map<sampleId, timestamp>)
+  cacheAccessTime: ref(new Map()),
+}
+
+// 캐시 최적화 설정
+const CACHE_CONFIG = {
+  // 최대 캐시 크기 (컴포넌트 개수)
+  MAX_CACHE_SIZE: 50,
+  // 오래된 캐시 정리 임계값 (밀리초, 5분)
+  CACHE_CLEANUP_THRESHOLD: 5 * 60 * 1000,
+  // 캐시 정리 간격 (밀리초, 1분)
+  CLEANUP_INTERVAL: 60 * 1000,
 }
 
 // Intersection Observer 인스턴스
@@ -634,6 +684,10 @@ async function loadPreviewComponent(sample) {
     // 캐시에 저장
     previewStates.loadedPreviews.value.set(sampleId, rawComponent)
     previewStates.previewErrors.value.delete(sampleId) // 에러 제거
+    previewStates.cacheAccessTime.value.set(sampleId, Date.now()) // 접근 시간 기록
+
+    // 캐시 크기 확인 및 정리
+    cleanupOldCache()
 
     return rawComponent
   } catch (error) {
@@ -704,6 +758,9 @@ function getPreviewComponent(sampleId) {
     return null
   }
 
+  // 접근 시간 업데이트 (LRU)
+  previewStates.cacheAccessTime.value.set(sampleId, Date.now())
+
   // 래퍼가 이미 적용되었는지 확인 (name이 PreviewWrapper인 경우)
   if (component.name === 'PreviewWrapper') {
     return component
@@ -713,6 +770,7 @@ function getPreviewComponent(sampleId) {
   const wrappedComponent = createPreviewWrapper(component, sampleId)
   const rawWrappedComponent = markRaw(wrappedComponent)
   previewStates.loadedPreviews.value.set(sampleId, rawWrappedComponent)
+  previewStates.cacheAccessTime.value.set(sampleId, Date.now()) // 접근 시간 업데이트
 
   return rawWrappedComponent
 }
@@ -743,7 +801,7 @@ function hasPreviewError(sampleId) {
 function getPreviewErrorMessage(sampleId) {
   const error = previewStates.previewErrors.value.get(sampleId)
   if (!error) return '알 수 없는 오류'
-  
+
   // 에러 객체 또는 문자열 처리
   if (typeof error === 'string') {
     return error
@@ -840,6 +898,9 @@ watch(
 // 미리보기 옵션이 켜질 때 샘플 로드
 const showPreview = computed(() => cardDisplayOptions.value.includes('preview'))
 
+// 개발 모드 여부
+const isDevMode = import.meta.env.DEV
+
 watch(
   showPreview,
   (newValue) => {
@@ -876,6 +937,9 @@ watch(
         previewStates.visibleSamples.value.add(sample.id)
         loadPreviewComponent(sample)
       })
+
+    // 캐시 정리 (필터 변경 후)
+    cleanupOldCache()
   },
   { immediate: true },
 )
@@ -945,6 +1009,110 @@ function cleanupIntersectionObserver() {
   if (intersectionObserver) {
     intersectionObserver.disconnect()
     intersectionObserver = null
+  }
+}
+
+/**
+ * 오래된 캐시 정리 (LRU 방식)
+ * visibleSamples에 없는 컴포넌트 중 오래된 것부터 제거
+ */
+function cleanupOldCache() {
+  const loadedPreviews = previewStates.loadedPreviews.value
+  const visibleSamples = previewStates.visibleSamples.value
+  const cacheAccessTime = previewStates.cacheAccessTime.value
+  const now = Date.now()
+
+  // 캐시 크기가 임계값을 넘지 않으면 정리하지 않음
+  if (loadedPreviews.size <= CACHE_CONFIG.MAX_CACHE_SIZE) {
+    return
+  }
+
+  // visibleSamples에 없는 컴포넌트만 정리 대상
+  const candidatesToRemove = []
+  for (const [sampleId] of loadedPreviews.entries()) {
+    // 현재 보이는 샘플은 유지
+    if (visibleSamples.has(sampleId)) {
+      continue
+    }
+
+    const accessTime = cacheAccessTime.get(sampleId) || 0
+    const age = now - accessTime
+
+    // 오래된 캐시만 정리 대상에 추가
+    if (age > CACHE_CONFIG.CACHE_CLEANUP_THRESHOLD) {
+      candidatesToRemove.push({ sampleId, accessTime })
+    }
+  }
+
+  // 접근 시간 순으로 정렬 (오래된 것부터)
+  candidatesToRemove.sort((a, b) => a.accessTime - b.accessTime)
+
+  // 캐시 크기가 임계값 이하가 될 때까지 제거
+  let removedCount = 0
+  const targetSize = CACHE_CONFIG.MAX_CACHE_SIZE
+  for (const { sampleId } of candidatesToRemove) {
+    if (loadedPreviews.size - removedCount <= targetSize) {
+      break
+    }
+
+    // 캐시에서 제거
+    loadedPreviews.delete(sampleId)
+    cacheAccessTime.delete(sampleId)
+    previewStates.previewInfo.value.delete(sampleId)
+    // 에러는 유지 (재시도 시 유용)
+    removedCount++
+  }
+
+  if (removedCount > 0 && import.meta.env.DEV) {
+    console.log(`[DevGuideContent] 캐시 정리: ${removedCount}개 컴포넌트 제거`)
+  }
+}
+
+/**
+ * 주기적 캐시 정리 (인터벌)
+ */
+let cacheCleanupInterval = null
+
+function startCacheCleanupInterval() {
+  if (cacheCleanupInterval) {
+    return
+  }
+
+  cacheCleanupInterval = setInterval(() => {
+    cleanupOldCache()
+  }, CACHE_CONFIG.CLEANUP_INTERVAL)
+}
+
+function stopCacheCleanupInterval() {
+  if (cacheCleanupInterval) {
+    clearInterval(cacheCleanupInterval)
+    cacheCleanupInterval = null
+  }
+}
+
+/**
+ * 모든 캐시 초기화
+ */
+function clearAllCache() {
+  const removedCount = previewStates.loadedPreviews.value.size
+  previewStates.loadedPreviews.value.clear()
+  previewStates.cacheAccessTime.value.clear()
+  previewStates.previewInfo.value.clear()
+  previewStates.loadingPreviews.value.clear()
+  // visibleSamples와 previewErrors는 유지 (UI 상태 유지)
+
+  if (import.meta.env.DEV) {
+    console.log(`[DevGuideContent] 모든 캐시 초기화: ${removedCount}개 컴포넌트 제거`)
+  }
+
+  // 현재 보이는 샘플 다시 로드
+  if (showPreview.value && filteredSamples.value.length > 0) {
+    const initialSamples = filteredSamples.value.slice(0, 12)
+    initialSamples
+      .filter((sample) => sample?.componentPath)
+      .forEach((sample) => {
+        loadPreviewComponent(sample)
+      })
   }
 }
 
@@ -1125,12 +1293,24 @@ onMounted(() => {
       }, 100)
     })
   }
+
+  // 주기적 캐시 정리 시작
+  startCacheCleanupInterval()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('dev-guide-sample-selected', handleSampleSelected)
   cleanupResizeObserver()
   cleanupIntersectionObserver()
+  stopCacheCleanupInterval()
+
+  // 최종 캐시 정리 (모든 캐시 제거)
+  previewStates.loadedPreviews.value.clear()
+  previewStates.cacheAccessTime.value.clear()
+  previewStates.previewInfo.value.clear()
+  previewStates.visibleSamples.value.clear()
+  previewStates.loadingPreviews.value.clear()
+  // 에러는 유지 (재시도 시 유용)
 })
 
 // previewContainerRef 변경 감지하여 ResizeObserver 설정
@@ -1235,6 +1415,108 @@ watch(previewContainerRef, (newRef) => {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 6px;
+    }
+
+    .cache-info-section {
+      margin-top: 24px;
+      padding: 16px;
+      background-color: var(--nexa-surface);
+      border: 1px solid var(--nexa-border-color);
+      border-radius: 8px;
+
+      .cache-info-expansion {
+        :deep(.q-expansion-item__container) {
+          border: none;
+        }
+
+        :deep(.q-expansion-item__content) {
+          padding: 16px 0 0 0;
+        }
+      }
+
+      .cache-info-content {
+        .cache-info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 16px;
+          margin-bottom: 16px;
+
+          .cache-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            .cache-info-label {
+              font-size: 0.75rem;
+              color: var(--nexa-text-secondary);
+            }
+
+            .cache-info-value {
+              font-size: 1.125rem;
+              font-weight: 600;
+              color: var(--nexa-text-primary);
+            }
+          }
+        }
+
+        .cache-info-actions {
+          display: flex;
+          gap: 8px;
+          padding-top: 16px;
+          border-top: 1px solid var(--nexa-border-color);
+        }
+      }
+    }
+
+    .cache-info-section {
+      margin-top: 24px;
+      padding: 16px;
+      background-color: var(--nexa-surface);
+      border: 1px solid var(--nexa-border-color);
+      border-radius: 8px;
+
+      .cache-info-expansion {
+        :deep(.q-expansion-item__container) {
+          border: none;
+        }
+
+        :deep(.q-expansion-item__content) {
+          padding: 16px 0 0 0;
+        }
+      }
+
+      .cache-info-content {
+        .cache-info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 16px;
+          margin-bottom: 16px;
+
+          .cache-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            .cache-info-label {
+              font-size: 0.75rem;
+              color: var(--nexa-text-secondary);
+            }
+
+            .cache-info-value {
+              font-size: 1.125rem;
+              font-weight: 600;
+              color: var(--nexa-text-primary);
+            }
+          }
+        }
+
+        .cache-info-actions {
+          display: flex;
+          gap: 8px;
+          padding-top: 16px;
+          border-top: 1px solid var(--nexa-border-color);
+        }
+      }
     }
 
     .sample-card {
