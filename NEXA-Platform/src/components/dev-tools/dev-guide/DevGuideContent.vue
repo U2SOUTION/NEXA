@@ -21,12 +21,10 @@
                 :label="option.label"
                 :class="{
                   'display-option-btn': true,
-                  'option-active': option.value === 'preview' ? false : cardDisplayOptions.includes(option.value),
-                  'option-disabled': option.value === 'preview',
+                  'option-active': cardDisplayOptions.includes(option.value),
                   'first-btn': index === 0,
                   'last-btn': index === displayOptionButtons.length - 1,
                 }"
-                :disable="option.value === 'preview'"
                 dense
                 @click="toggleDisplayOption(option.value)"
               />
@@ -37,18 +35,40 @@
 
       <!-- 샘플 그리드 -->
       <div v-if="filteredSamples.length > 0" class="sample-grid">
-        <div v-for="sample in filteredSamples" :key="sample.id" class="sample-card" @click="handleSampleSelect(sample)">
-          <div v-if="cardDisplayOptions.includes('title')" class="sample-card-header">
-            <q-icon :name="sample.icon || 'style'" class="sample-card-icon" />
-            <div class="sample-card-title">{{ sample.displayName || sample.name }}</div>
+        <div v-for="sample in filteredSamples" :key="sample.id" :data-sample-id="sample.id" class="sample-card" @click="handleSampleSelect(sample)">
+          <!-- 미리보기 영역 (옵션에 따라 표시) -->
+          <div v-if="cardDisplayOptions.includes('preview')" class="sample-card-preview">
+            <!-- 파싱된 미리보기 컴포넌트 -->
+            <template v-if="getPreviewComponent(sample.id)">
+              <div class="card-preview-component">
+                <component :is="getPreviewComponent(sample.id)" />
+              </div>
+            </template>
+            <!-- 로딩 상태 -->
+            <div v-else-if="isLoadingPreview(sample.id)" class="preview-loading">
+              <q-spinner size="24px" color="primary" />
+            </div>
+            <!-- 플레이스홀더 -->
+            <div v-else class="preview-placeholder">
+              <q-icon name="preview" size="32px" color="grey-5" />
+              <p class="preview-text">미리보기</p>
+            </div>
           </div>
-          <div class="sample-card-body">
-            <div v-if="cardDisplayOptions.includes('category')" class="sample-card-category">{{ sample.category }}</div>
-            <div v-if="cardDisplayOptions.includes('description')" class="sample-card-description">{{ sample.description || '설명 없음' }}</div>
-            <div v-if="cardDisplayOptions.includes('tags') && sample.tags && sample.tags.length > 0" class="sample-card-tags">
-              <q-chip v-for="tag in sample.tags.slice(0, 3)" :key="tag" class="sample-card-tag">
-                {{ tag }}
-              </q-chip>
+
+          <!-- 정보 영역 -->
+          <div class="sample-card-info">
+            <div v-if="cardDisplayOptions.includes('title')" class="sample-card-header">
+              <q-icon :name="sample.icon || 'style'" class="sample-card-icon" />
+              <div class="sample-card-title">{{ sample.displayName || sample.name }}</div>
+            </div>
+            <div class="sample-card-body">
+              <div v-if="cardDisplayOptions.includes('category')" class="sample-card-category">{{ sample.category }}</div>
+              <div v-if="cardDisplayOptions.includes('description')" class="sample-card-description">{{ sample.description || '설명 없음' }}</div>
+              <div v-if="cardDisplayOptions.includes('tags') && sample.tags && sample.tags.length > 0" class="sample-card-tags">
+                <q-chip v-for="tag in sample.tags.slice(0, 3)" :key="tag" class="sample-card-tag">
+                  {{ tag }}
+                </q-chip>
+              </div>
             </div>
           </div>
         </div>
@@ -210,7 +230,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, shallowRef, computed, nextTick } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, shallowRef, computed, nextTick, markRaw, h } from 'vue'
 import { useQuasar } from 'quasar'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
 import { copyTextToClipboard } from 'src/utils/clipboard'
@@ -223,6 +243,16 @@ const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, to
 
 // 카드 표시 옵션
 const cardDisplayOptions = ref(['title', 'category', 'description', 'tags'])
+
+// 미리보기 관련 상태
+const previewStates = {
+  // 로드된 컴포넌트 캐시 (Map<sampleId, Component>)
+  loadedPreviews: ref(new Map()),
+  // 로딩 중인 샘플 ID (Set<sampleId>)
+  loadingPreviews: ref(new Set()),
+  // 에러 상태 (Map<sampleId, Error>)
+  previewErrors: ref(new Map()),
+}
 
 // 로컬 스토리지에서 카드 표시 옵션 복원
 function loadCardDisplayOptions() {
@@ -248,13 +278,8 @@ const displayOptionButtons = computed(() => [
   { label: '태그', value: 'tags', icon: 'label' },
 ])
 
-// 표시 옵션 토글 함수 (미리보기 제외)
+// 표시 옵션 토글 함수
 function toggleDisplayOption(optionValue) {
-  // 미리보기는 토글하지 않음
-  if (optionValue === 'preview') {
-    return
-  }
-
   const index = cardDisplayOptions.value.indexOf(optionValue)
   if (index > -1) {
     // 이미 활성화되어 있으면 제거
@@ -506,6 +531,157 @@ const usageExampleCode = computed(() => {
 // Vite의 import.meta.glob을 사용하여 모든 샘플 컴포넌트 미리 등록
 const guideModules = import.meta.glob('/src/guides/**/*.vue', { eager: false })
 
+// ============================================
+// 미리보기 관련 함수 (Phase 1: 기본 미리보기)
+// ============================================
+
+/**
+ * 샘플 컴포넌트를 미리보기용으로 로드
+ * @param {Object} sample - 샘플 객체
+ * @returns {Promise<Object|null>} - 로드된 컴포넌트 또는 null
+ */
+async function loadPreviewComponent(sample) {
+  if (!sample?.componentPath) {
+    return null
+  }
+
+  const sampleId = sample.id
+
+  // 이미 로드된 경우 캐시에서 반환
+  if (previewStates.loadedPreviews.value.has(sampleId)) {
+    return previewStates.loadedPreviews.value.get(sampleId)
+  }
+
+  // 이미 로딩 중인 경우
+  if (previewStates.loadingPreviews.value.has(sampleId)) {
+    return null
+  }
+
+  // 로딩 시작
+  previewStates.loadingPreviews.value.add(sampleId)
+
+  try {
+    // componentPath에서 전체 경로 구성
+    let fullPath = sample.componentPath
+
+    // src/ 접두사가 없으면 추가
+    if (!fullPath.startsWith('src/')) {
+      fullPath = `src/${fullPath}`
+    }
+
+    // /src/로 시작하도록 정규화
+    if (!fullPath.startsWith('/src/')) {
+      fullPath = `/${fullPath}`
+    }
+
+    // import.meta.glob으로 등록된 모듈 찾기
+    let moduleLoader = guideModules[fullPath]
+
+    // 정확한 매칭이 실패하면 대체 경로 시도
+    if (!moduleLoader) {
+      const availableKeys = Object.keys(guideModules)
+      const alternativeKey = availableKeys.find((key) => {
+        const keyWithoutPrefix = key.replace('/src/', '')
+        return keyWithoutPrefix === sample.componentPath || key.endsWith(sample.componentPath)
+      })
+
+      if (alternativeKey) {
+        moduleLoader = guideModules[alternativeKey]
+      }
+    }
+
+    if (!moduleLoader) {
+      throw new Error(`컴포넌트를 찾을 수 없습니다: ${fullPath}`)
+    }
+
+    // 모듈 로드
+    const module = await moduleLoader()
+
+    // 모듈에서 default export 또는 named export 가져오기
+    const component = module.default || module
+
+    if (!component) {
+      throw new Error('컴포넌트를 찾을 수 없습니다 (default export 없음)')
+    }
+
+    // 컴포넌트를 markRaw로 표시하여 반응형으로 만들지 않음 (성능 최적화)
+    const rawComponent = markRaw(component)
+
+    // 캐시에 저장
+    previewStates.loadedPreviews.value.set(sampleId, rawComponent)
+    previewStates.previewErrors.value.delete(sampleId) // 에러 제거
+
+    return rawComponent
+  } catch (error) {
+    console.error(`[DevGuideContent] 미리보기 로드 실패 (${sampleId}):`, error)
+    previewStates.previewErrors.value.set(sampleId, {
+      message: error.message || '컴포넌트를 로드할 수 없습니다',
+      timestamp: Date.now(),
+    })
+    return null
+  } finally {
+    previewStates.loadingPreviews.value.delete(sampleId)
+  }
+}
+
+/**
+ * 미리보기용 래퍼 컴포넌트 생성
+ * 여러 루트 노드를 가진 컴포넌트를 단일 루트로 감싸기
+ * @param {Object} component - 원본 컴포넌트
+ * @returns {Object} - 래핑된 컴포넌트
+ */
+function createPreviewWrapper(component) {
+  return {
+    name: 'PreviewWrapper',
+    setup() {
+      return () => {
+        return h('div', { class: 'preview-component-wrapper' }, [h(component)])
+      }
+    },
+  }
+}
+
+/**
+ * 미리보기 컴포넌트 가져오기 (래핑된 버전)
+ * @param {string} sampleId - 샘플 ID
+ * @returns {Object|null} - 래핑된 컴포넌트 또는 null
+ */
+function getPreviewComponent(sampleId) {
+  const component = previewStates.loadedPreviews.value.get(sampleId)
+  if (!component) {
+    // 디버깅: 컴포넌트가 로드되지 않은 경우 자동 로드 시도
+    if (import.meta.env.DEV) {
+      const sample = filteredSamples.value.find((s) => s.id === sampleId)
+      if (sample && !previewStates.loadingPreviews.value.has(sampleId)) {
+        // 로딩 중이 아닌데도 컴포넌트가 없으면 로드 시도
+        loadPreviewComponent(sample)
+      }
+    }
+    return null
+  }
+
+  // 래퍼가 이미 적용되었는지 확인 (name이 PreviewWrapper인 경우)
+  if (component.name === 'PreviewWrapper') {
+    return component
+  }
+
+  // 래퍼 생성 및 캐시 업데이트
+  const wrappedComponent = createPreviewWrapper(component)
+  const rawWrappedComponent = markRaw(wrappedComponent)
+  previewStates.loadedPreviews.value.set(sampleId, rawWrappedComponent)
+
+  return rawWrappedComponent
+}
+
+/**
+ * 미리보기 로딩 중인지 확인
+ * @param {string} sampleId - 샘플 ID
+ * @returns {boolean} - 로딩 중이면 true
+ */
+function isLoadingPreview(sampleId) {
+  return previewStates.loadingPreviews.value.has(sampleId)
+}
+
 // 샘플 컴포넌트 로드 함수
 async function loadSampleComponent() {
   if (!selectedSample.value?.componentPath) {
@@ -584,6 +760,53 @@ watch(
     }
   },
 )
+
+// ============================================
+// 미리보기 자동 로드 (Phase 1)
+// ============================================
+
+// 미리보기 옵션이 켜질 때 샘플 로드
+const showPreview = computed(() => cardDisplayOptions.value.includes('preview'))
+
+watch(showPreview, (newValue) => {
+  if (newValue && filteredSamples.value.length > 0) {
+    // 뷰포트에 보이는 샘플만 먼저 로드 (성능 최적화)
+    loadVisiblePreviews()
+  }
+})
+
+// 필터링된 샘플 변경 시 미리보기 로드 (최대 20개만)
+watch(
+  () => filteredSamples.value,
+  async (newSamples) => {
+    if (!showPreview.value) {
+      return
+    }
+
+    // 보이는 샘플 중 최대 20개만 미리 로드
+    const samplesToLoad = newSamples.slice(0, 20)
+    const loadPromises = samplesToLoad.filter((sample) => sample?.componentPath).map((sample) => loadPreviewComponent(sample))
+    await Promise.all(loadPromises)
+  },
+  { immediate: true },
+)
+
+/**
+ * 뷰포트에 보이는 샘플의 미리보기 로드
+ */
+function loadVisiblePreviews() {
+  if (!showPreview.value) {
+    return
+  }
+
+  // Intersection Observer가 없으면 기본적으로 처음 12개만 로드
+  const samplesToLoad = filteredSamples.value.slice(0, 12)
+  samplesToLoad
+    .filter((sample) => sample?.componentPath)
+    .forEach((sample) => {
+      loadPreviewComponent(sample)
+    })
+}
 
 // 파일 내용 로드 함수
 async function loadFileContent() {
@@ -731,6 +954,13 @@ onMounted(() => {
       setupResizeObserver()
     }
   })
+
+  // 미리보기 옵션이 켜져있으면 초기 로드
+  if (showPreview.value && filteredSamples.value.length > 0) {
+    nextTick(() => {
+      loadVisiblePreviews()
+    })
+  }
 })
 
 onBeforeUnmount(() => {
@@ -846,15 +1076,85 @@ watch(previewContainerRef, (newRef) => {
       background-color: var(--nexa-surface);
       border: 1px solid var(--nexa-border-color);
       border-radius: 8px;
-      padding: 12px 16px;
+      overflow: hidden;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
 
       &:hover {
         background-color: var(--nexa-surface-hover);
         border-color: var(--nexa-border-hover);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .sample-card-preview {
+        width: 100%;
+        height: 180px;
+        background-color: var(--nexa-background);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid var(--nexa-border-color);
+        overflow: hidden;
+        position: relative;
+
+        .card-preview-component {
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          padding: 8px;
+          box-sizing: border-box;
+
+          // 래퍼 컴포넌트 스타일
+          :deep(.preview-component-wrapper) {
+            width: 100%;
+            min-height: 100%;
+            display: block;
+            position: relative;
+          }
+
+          // 컴포넌트 내부 요소 스타일 보정
+          :deep(.sample-header) {
+            margin-bottom: 16px;
+          }
+
+          :deep(.sample-container) {
+            width: 100%;
+            min-height: 100px; // 최소 높이 보장
+          }
+
+          // Quasar 컴포넌트 스타일 보정
+          :deep(.q-card) {
+            min-height: 60px; // 카드 최소 높이
+          }
+        }
+
+        .preview-loading {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+        }
+
+        .preview-placeholder {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          color: var(--nexa-text-secondary);
+
+          .preview-text {
+            font-size: 0.75rem;
+            margin: 0;
+          }
+        }
+      }
+
+      .sample-card-info {
+        padding: 12px 16px;
       }
 
       .sample-card-header {
