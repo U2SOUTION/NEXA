@@ -34,24 +34,37 @@
       </div>
 
       <!-- 샘플 그리드 -->
-      <div v-if="filteredSamples.length > 0" class="sample-grid">
+      <div v-if="filteredSamples.length > 0" class="sample-grid" ref="sampleGridRef">
         <div v-for="sample in filteredSamples" :key="sample.id" :data-sample-id="sample.id" class="sample-card" @click="handleSampleSelect(sample)">
           <!-- 미리보기 영역 (옵션에 따라 표시) -->
           <div v-if="cardDisplayOptions.includes('preview')" class="sample-card-preview">
-            <!-- 파싱된 미리보기 컴포넌트 (설명글 포함 모든 내용 표시) -->
-            <template v-if="getPreviewComponent(sample.id)">
-              <div class="card-preview-component">
-                <component :is="getPreviewComponent(sample.id)" />
+            <!-- 뷰포트에 보이는 경우에만 실제 컴포넌트 로드 -->
+            <template v-if="previewStates.visibleSamples.value.has(sample.id)">
+              <!-- 에러 상태 -->
+              <div v-if="hasPreviewError(sample.id)" class="preview-error">
+                <q-icon name="error" size="32px" color="negative" />
+                <p class="preview-text">로드 실패</p>
+                <p class="preview-error-message">{{ getPreviewErrorMessage(sample.id) }}</p>
+              </div>
+              <!-- 파싱된 미리보기 컴포넌트 (설명글 포함 모든 내용 표시) -->
+              <template v-else-if="getPreviewComponent(sample.id)">
+                <div class="card-preview-component">
+                  <component :is="getPreviewComponent(sample.id)" />
+                </div>
+              </template>
+              <!-- 로딩 상태 -->
+              <div v-else-if="isLoadingPreview(sample.id)" class="preview-loading">
+                <q-spinner size="24px" color="primary" />
+              </div>
+              <!-- 플레이스홀더 -->
+              <div v-else class="preview-placeholder">
+                <q-icon name="preview" size="32px" color="grey-5" />
+                <p class="preview-text">미리보기</p>
               </div>
             </template>
-            <!-- 로딩 상태 -->
-            <div v-else-if="isLoadingPreview(sample.id)" class="preview-loading">
-              <q-spinner size="24px" color="primary" />
-            </div>
-            <!-- 플레이스홀더 -->
-            <div v-else class="preview-placeholder">
+            <!-- 뷰포트에 보이지 않는 경우 스켈레톤 표시 -->
+            <div v-else class="preview-skeleton">
               <q-icon name="preview" size="32px" color="grey-5" />
-              <p class="preview-text">미리보기</p>
             </div>
           </div>
 
@@ -242,6 +255,9 @@ import { removeTitles, parseComponentForPreview } from 'src/utils/dev-guide/prev
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, toggleFavorite } = useDevGuide()
 
+// 샘플 그리드 참조
+const sampleGridRef = ref(null)
+
 // 카드 표시 옵션
 const cardDisplayOptions = ref(['title', 'category', 'description', 'tags'])
 
@@ -255,7 +271,12 @@ const previewStates = {
   previewErrors: ref(new Map()),
   // 파싱 정보 (Map<sampleId, PreviewInfo>)
   previewInfo: ref(new Map()),
+  // 뷰포트에 보이는 샘플 ID (Set<sampleId>)
+  visibleSamples: ref(new Set()),
 }
+
+// Intersection Observer 인스턴스
+let intersectionObserver = null
 
 // 로컬 스토리지에서 카드 표시 옵션 복원
 function loadCardDisplayOptions() {
@@ -705,6 +726,34 @@ function isLoadingPreview(sampleId) {
   return previewStates.loadingPreviews.value.has(sampleId)
 }
 
+/**
+ * 미리보기 에러가 있는지 확인
+ * @param {string} sampleId - 샘플 ID
+ * @returns {boolean} - 에러가 있으면 true
+ */
+function hasPreviewError(sampleId) {
+  return previewStates.previewErrors.value.has(sampleId)
+}
+
+/**
+ * 미리보기 에러 메시지 가져오기
+ * @param {string} sampleId - 샘플 ID
+ * @returns {string} - 에러 메시지
+ */
+function getPreviewErrorMessage(sampleId) {
+  const error = previewStates.previewErrors.value.get(sampleId)
+  if (!error) return '알 수 없는 오류'
+  
+  // 에러 객체 또는 문자열 처리
+  if (typeof error === 'string') {
+    return error
+  }
+  if (error.message) {
+    return error.message
+  }
+  return '컴포넌트를 로드할 수 없습니다'
+}
+
 // 샘플 컴포넌트 로드 함수
 async function loadSampleComponent() {
   if (!selectedSample.value?.componentPath) {
@@ -791,42 +840,131 @@ watch(
 // 미리보기 옵션이 켜질 때 샘플 로드
 const showPreview = computed(() => cardDisplayOptions.value.includes('preview'))
 
-watch(showPreview, (newValue) => {
-  if (newValue && filteredSamples.value.length > 0) {
-    // 뷰포트에 보이는 샘플만 먼저 로드 (성능 최적화)
-    loadVisiblePreviews()
-  }
-})
+watch(
+  showPreview,
+  (newValue) => {
+    if (newValue && filteredSamples.value.length > 0) {
+      // DOM이 준비될 때까지 대기 후 로드
+      nextTick(() => {
+        loadVisiblePreviews()
+      })
+    }
+  },
+  { immediate: true },
+) // 초기 로드 보장
 
-// 필터링된 샘플 변경 시 미리보기 로드 (최대 20개만)
+// 필터링된 샘플 변경 시 Intersection Observer 재설정
 watch(
   () => filteredSamples.value,
-  async (newSamples) => {
+  async () => {
     if (!showPreview.value) {
       return
     }
 
-    // 보이는 샘플 중 최대 20개만 미리 로드
-    const samplesToLoad = newSamples.slice(0, 20)
-    const loadPromises = samplesToLoad.filter((sample) => sample?.componentPath).map((sample) => loadPreviewComponent(sample))
-    await Promise.all(loadPromises)
+    // 뷰포트 목록 초기화
+    previewStates.visibleSamples.value.clear()
+
+    // Observer 재설정
+    await nextTick()
+    setupIntersectionObserver()
+
+    // 초기 로드: 처음 12개는 즉시 로드
+    const initialSamples = filteredSamples.value.slice(0, 12)
+    initialSamples
+      .filter((sample) => sample?.componentPath)
+      .forEach((sample) => {
+        previewStates.visibleSamples.value.add(sample.id)
+        loadPreviewComponent(sample)
+      })
   },
   { immediate: true },
 )
 
 /**
- * 뷰포트에 보이는 샘플의 미리보기 로드
+ * Intersection Observer 설정
+ * 뷰포트에 보이는 카드만 실제 컴포넌트 로드
+ */
+function setupIntersectionObserver() {
+  if (!sampleGridRef.value || !showPreview.value) {
+    return
+  }
+
+  // 기존 Observer 정리
+  if (intersectionObserver) {
+    intersectionObserver.disconnect()
+  }
+
+  // Intersection Observer 옵션
+  const options = {
+    root: null, // 뷰포트 기준
+    rootMargin: '100px', // 뷰포트 밖 100px 전에 미리 로드
+    threshold: 0.1, // 10% 이상 보이면 트리거
+  }
+
+  // Observer 콜백
+  const callback = (entries) => {
+    entries.forEach((entry) => {
+      const sampleId = entry.target.getAttribute('data-sample-id')
+      if (!sampleId) return
+
+      if (entry.isIntersecting) {
+        // 뷰포트에 보이면 표시 목록에 추가
+        previewStates.visibleSamples.value.add(sampleId)
+
+        // 컴포넌트 로드
+        const sample = filteredSamples.value.find((s) => s.id === sampleId)
+        if (sample && sample.componentPath && !previewStates.loadedPreviews.value.has(sampleId)) {
+          loadPreviewComponent(sample)
+        }
+      } else {
+        // 뷰포트에서 벗어나면 제거 (메모리 절약을 위해 선택적)
+        // 주석 처리: 스크롤 시 깜빡임 방지를 위해 유지
+        // previewStates.visibleSamples.value.delete(sampleId)
+      }
+    })
+  }
+
+  // Observer 생성
+  intersectionObserver = new IntersectionObserver(callback, options)
+
+  // 모든 카드 관찰 시작
+  nextTick(() => {
+    if (sampleGridRef.value) {
+      const cards = sampleGridRef.value.querySelectorAll('.sample-card[data-sample-id]')
+      cards.forEach((card) => {
+        intersectionObserver.observe(card)
+      })
+    }
+  })
+}
+
+/**
+ * Intersection Observer 정리
+ */
+function cleanupIntersectionObserver() {
+  if (intersectionObserver) {
+    intersectionObserver.disconnect()
+    intersectionObserver = null
+  }
+}
+
+/**
+ * 뷰포트에 보이는 샘플의 미리보기 로드 (초기 로드용)
  */
 function loadVisiblePreviews() {
   if (!showPreview.value) {
     return
   }
 
-  // Intersection Observer가 없으면 기본적으로 처음 12개만 로드
-  const samplesToLoad = filteredSamples.value.slice(0, 12)
-  samplesToLoad
+  // Intersection Observer 설정
+  setupIntersectionObserver()
+
+  // 초기 로드: 처음 12개는 즉시 로드 (빠른 초기 렌더링)
+  const initialSamples = filteredSamples.value.slice(0, 12)
+  initialSamples
     .filter((sample) => sample?.componentPath)
     .forEach((sample) => {
+      previewStates.visibleSamples.value.add(sample.id)
       loadPreviewComponent(sample)
     })
 }
@@ -978,10 +1116,13 @@ onMounted(() => {
     }
   })
 
-  // 미리보기 옵션이 켜져있으면 초기 로드
+  // 미리보기 옵션이 켜져있으면 초기 로드 (watch와 중복되지만 보장)
   if (showPreview.value && filteredSamples.value.length > 0) {
     nextTick(() => {
-      loadVisiblePreviews()
+      // DOM이 완전히 준비될 때까지 추가 대기
+      setTimeout(() => {
+        loadVisiblePreviews()
+      }, 100)
     })
   }
 })
@@ -989,6 +1130,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('dev-guide-sample-selected', handleSampleSelected)
   cleanupResizeObserver()
+  cleanupIntersectionObserver()
 })
 
 // previewContainerRef 변경 감지하여 ResizeObserver 설정
@@ -1172,6 +1314,45 @@ watch(previewContainerRef, (newRef) => {
           .preview-text {
             font-size: 0.75rem;
             margin: 0;
+          }
+        }
+
+        .preview-skeleton {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          background-color: var(--nexa-background);
+          opacity: 0.5;
+        }
+
+        .preview-error {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          width: 100%;
+          height: 100%;
+          padding: 16px;
+          background-color: var(--nexa-background);
+          color: var(--nexa-text-secondary);
+
+          .preview-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0;
+            color: var(--nexa-error);
+          }
+
+          .preview-error-message {
+            font-size: 0.75rem;
+            margin: 0;
+            text-align: center;
+            color: var(--nexa-text-secondary);
+            word-break: break-word;
+            max-width: 100%;
           }
         }
 
