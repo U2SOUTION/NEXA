@@ -38,7 +38,7 @@
         <div v-for="sample in filteredSamples" :key="sample.id" :data-sample-id="sample.id" class="sample-card" @click="handleSampleSelect(sample)">
           <!-- 미리보기 영역 (옵션에 따라 표시) -->
           <div v-if="cardDisplayOptions.includes('preview')" class="sample-card-preview">
-            <!-- 파싱된 미리보기 컴포넌트 -->
+            <!-- 파싱된 미리보기 컴포넌트 (설명글 포함 모든 내용 표시) -->
             <template v-if="getPreviewComponent(sample.id)">
               <div class="card-preview-component">
                 <component :is="getPreviewComponent(sample.id)" />
@@ -237,6 +237,7 @@ import { copyTextToClipboard } from 'src/utils/clipboard'
 import CodeEditor from './CodeEditor.vue'
 // import { generateUsageExample } from 'src/utils/dev-guide/usage-example-generator.js'
 import { analyzeSampleDependencies } from 'src/utils/dev-guide/dependency-analyzer.js'
+import { removeTitles, parseComponentForPreview } from 'src/utils/dev-guide/previewParser.js'
 
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, toggleFavorite } = useDevGuide()
@@ -252,6 +253,8 @@ const previewStates = {
   loadingPreviews: ref(new Set()),
   // 에러 상태 (Map<sampleId, Error>)
   previewErrors: ref(new Map()),
+  // 파싱 정보 (Map<sampleId, PreviewInfo>)
+  previewInfo: ref(new Map()),
 }
 
 // 로컬 스토리지에서 카드 표시 옵션 복원
@@ -630,12 +633,32 @@ async function loadPreviewComponent(sample) {
  * @param {Object} component - 원본 컴포넌트
  * @returns {Object} - 래핑된 컴포넌트
  */
-function createPreviewWrapper(component) {
+function createPreviewWrapper(component, sampleId) {
   return {
     name: 'PreviewWrapper',
     setup() {
+      const containerRef = ref(null)
+
+      onMounted(() => {
+        // DOM 마운트 후 헤더 제거 및 파싱
+        nextTick(() => {
+          if (containerRef.value) {
+            // 파싱 수행
+            const parseResult = parseComponentForPreview(containerRef.value)
+
+            // 파싱 정보 저장
+            if (sampleId) {
+              previewStates.previewInfo.value.set(sampleId, parseResult)
+            }
+
+            // 타이틀 제거 (파싱 함수 내부에서 이미 수행되지만 명시적으로도 수행)
+            removeTitles(containerRef.value)
+          }
+        })
+      })
+
       return () => {
-        return h('div', { class: 'preview-component-wrapper' }, [h(component)])
+        return h('div', { ref: containerRef, class: 'preview-component-wrapper' }, [h(component)])
       }
     },
   }
@@ -665,8 +688,8 @@ function getPreviewComponent(sampleId) {
     return component
   }
 
-  // 래퍼 생성 및 캐시 업데이트
-  const wrappedComponent = createPreviewWrapper(component)
+  // 래퍼 생성 및 캐시 업데이트 (sampleId 전달하여 파싱 정보 저장)
+  const wrappedComponent = createPreviewWrapper(component, sampleId)
   const rawWrappedComponent = markRaw(wrappedComponent)
   previewStates.loadedPreviews.value.set(sampleId, rawWrappedComponent)
 
@@ -1092,7 +1115,7 @@ watch(previewContainerRef, (newRef) => {
       .sample-card-preview {
         width: 100%;
         height: 180px;
-        background-color: var(--nexa-background);
+        background-color: var(--nexa-surface);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1103,7 +1126,7 @@ watch(previewContainerRef, (newRef) => {
         .card-preview-component {
           width: 100%;
           height: 100%;
-          overflow: auto;
+          overflow: hidden;
           padding: 8px;
           box-sizing: border-box;
 
@@ -1149,6 +1172,23 @@ watch(previewContainerRef, (newRef) => {
           .preview-text {
             font-size: 0.75rem;
             margin: 0;
+          }
+        }
+
+        .preview-description-only {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          width: 100%;
+          height: 100%;
+          color: var(--nexa-text-secondary);
+
+          .preview-text {
+            font-size: 0.75rem;
+            margin: 0;
+            text-align: center;
           }
         }
       }
