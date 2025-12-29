@@ -69,6 +69,39 @@
               >
                 <q-tooltip>{{ isAllExpanded ? '모든 노드 접기' : '모든 노드 펴기' }}</q-tooltip>
               </q-btn>
+
+              <!-- 정렬 버튼 (최근 탭에서만 표시) -->
+              <q-btn v-if="activeTab === 'recent'" flat dense size="sm" icon="sort" :label="getSortLabel(recentSortMode)" :class="{ 'sort-toggle-active': true }" class="sort-toggle-btn">
+                <q-tooltip>정렬 방식 변경</q-tooltip>
+                <q-menu>
+                  <q-list>
+                    <q-item clickable @click="setRecentSortMode('newest')">
+                      <q-item-section side>
+                        <q-icon :name="recentSortMode === 'newest' ? 'check' : ''" />
+                      </q-item-section>
+                      <q-item-section>최신순</q-item-section>
+                    </q-item>
+                    <q-item clickable @click="setRecentSortMode('oldest')">
+                      <q-item-section side>
+                        <q-icon :name="recentSortMode === 'oldest' ? 'check' : ''" />
+                      </q-item-section>
+                      <q-item-section>오래된순</q-item-section>
+                    </q-item>
+                    <q-item clickable @click="setRecentSortMode('name')">
+                      <q-item-section side>
+                        <q-icon :name="recentSortMode === 'name' ? 'check' : ''" />
+                      </q-item-section>
+                      <q-item-section>이름순</q-item-section>
+                    </q-item>
+                    <q-item clickable @click="setRecentSortMode('category')">
+                      <q-item-section side>
+                        <q-icon :name="recentSortMode === 'category' ? 'check' : ''" />
+                      </q-item-section>
+                      <q-item-section>카테고리순</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
             </div>
           </div>
 
@@ -141,7 +174,7 @@
                         "
                         style="pointer-events: auto"
                       >
-                        <q-icon v-if="prop.node.icon" :name="prop.node.icon" class="q-mr-sm" />
+                        <q-icon v-if="prop.node.icon || !prop.node.sample" :name="prop.node.sample ? prop.node.icon : expandedNodes.includes(prop.node.id) ? 'folder_open' : 'folder'" class="q-mr-sm" />
                         <div class="col">{{ prop.node.label }}</div>
                       </div>
                     </template>
@@ -163,8 +196,8 @@
 
             <!-- 최근 사용 탭 -->
             <q-tab-panel name="recent" class="q-pa-sm">
-              <div v-if="filteredRecentSamples.length > 0" class="samples-list">
-                <div v-for="sample in filteredRecentSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id, 'has-favorite': isFavorite(sample.id) }]" @click="handleSampleSelect(sample)">
+              <div v-if="sortedRecentSamples.length > 0" class="samples-list">
+                <div v-for="sample in sortedRecentSamples" :key="sample.id" :class="['sample-item', { 'sample-item-selected': selectedSample?.id === sample.id, 'has-favorite': isFavorite(sample.id) }]" @click="handleSampleSelect(sample)">
                   <div class="sample-item-content">
                     <div class="sample-actions">
                       <q-btn flat dense round :icon="isFavorite(sample.id) ? 'star' : 'star_border'" size="sm" :class="{ 'favorite-btn': true, active: isFavorite(sample.id) }" @click.stop="handleToggleFavorite(sample)" />
@@ -406,6 +439,65 @@ const currentViewMode = computed(() => viewMode.value)
 const listSamples = computed(() => {
   return filterListOnSearch.value ? filteredSamples.value : samples.value
 })
+
+// 최근 샘플 정렬 모드 (localStorage에 저장)
+const recentSortMode = ref(localStorage.getItem('dev-guide-recent-sort-mode') || 'newest')
+
+// 정렬된 최근 샘플
+const sortedRecentSamples = computed(() => {
+  const samples = filteredRecentSamples.value || []
+  if (samples.length === 0) return []
+
+  const sorted = [...samples] // 복사본 생성
+
+  switch (recentSortMode.value) {
+    case 'newest':
+      // 이미 최신순 (unshift로 추가되므로)
+      return sorted
+    case 'oldest':
+      // 배열 뒤집기
+      return sorted.reverse()
+    case 'name':
+      // 이름순 정렬
+      return sorted.sort((a, b) => {
+        const nameA = (a.displayName || a.name || '').toLowerCase()
+        const nameB = (b.displayName || b.name || '').toLowerCase()
+        return nameA.localeCompare(nameB, 'ko')
+      })
+    case 'category':
+      // 카테고리순 정렬
+      return sorted.sort((a, b) => {
+        const catA = (a.category || '').toLowerCase()
+        const catB = (b.category || '').toLowerCase()
+        if (catA !== catB) {
+          return catA.localeCompare(catB, 'ko')
+        }
+        // 카테고리가 같으면 이름순
+        const nameA = (a.displayName || a.name || '').toLowerCase()
+        const nameB = (b.displayName || b.name || '').toLowerCase()
+        return nameA.localeCompare(nameB, 'ko')
+      })
+    default:
+      return sorted
+  }
+})
+
+// 정렬 모드 설정
+function setRecentSortMode(mode) {
+  recentSortMode.value = mode
+  localStorage.setItem('dev-guide-recent-sort-mode', mode)
+}
+
+// 정렬 라벨 가져오기
+function getSortLabel(mode) {
+  const labels = {
+    newest: '최신순',
+    oldest: '오래된순',
+    name: '이름순',
+    category: '카테고리순',
+  }
+  return labels[mode] || '정렬'
+}
 
 // q-tree용 노드 데이터 변환 (실제 디렉토리 구조 기반)
 const treeNodes = computed(() => {
@@ -779,6 +871,9 @@ function handleDeleteFavorite(sampleId) {
 <style lang="scss" scoped>
 .dev-guide-list {
   height: 100%;
+  // width: 100%;
+  // min-width: 0; // flex 아이템이 줄어들 수 있도록
+  // overflow: hidden; // 내용이 넘치지 않도록
 
   .list-scroll-area {
     height: 100%;
@@ -893,11 +988,24 @@ function handleDeleteFavorite(sampleId) {
         }
       }
     }
+
+    .sort-toggle-btn {
+      &.sort-toggle-active {
+        background-color: var(--nexa-button-primary-bg);
+        color: var(--nexa-button-primary-text);
+        padding: 0 10px;
+
+        :deep(.q-icon) {
+          color: var(--nexa-button-primary-text);
+        }
+      }
+    }
   }
 
   // 트리 스타일은 전역 _tree.scss에서 관리
 
   // 샘플 아이템 스타일 (최근, 즐겨찾기, 전체 탭의 평면 모드)
+  // SidebarOverflowPrevention 패턴 적용
   .sample-item {
     .sample-item-content {
       display: flex;
@@ -927,6 +1035,8 @@ function handleDeleteFavorite(sampleId) {
         gap: 6px;
         flex: 1;
         min-width: 0;
+        overflow: hidden; //⚠️⚠️⚠️⚠️⚠️ 넘치는 내용을 가림
+        width: 0; //⚠️⚠️⚠️⚠️⚠️ 사이드바 넘치면 잘려 밀지 않고 ! flex 아이템이 부모 크기를 초과하지 않도록
 
         .sample-name {
           font-size: 0.9rem;
