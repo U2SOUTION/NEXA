@@ -12,35 +12,43 @@
           <span class="cache-info-title">캐시 최적화 정보</span>
         </div>
         <div class="cache-info-content">
-          <div class="cache-info-grid">
+          <div class="cache-info-list">
             <div class="cache-info-item">
-              <div class="cache-info-label">캐시된 컴포넌트</div>
-              <div class="cache-info-value">{{ loadedPreviewsSize }} / {{ maxCacheSize }}</div>
+              <span class="cache-info-label">캐시된 컴포넌트</span>
+              <span class="cache-info-value">{{ loadedPreviewsSize }} / {{ maxCacheSize }}</span>
             </div>
             <div class="cache-info-item">
-              <div class="cache-info-label">현재 보이는 샘플</div>
-              <div class="cache-info-value">{{ visibleSamplesSize }}</div>
+              <span class="cache-info-label">현재 보이는 샘플</span>
+              <span class="cache-info-value">{{ visibleSamplesSize }}</span>
             </div>
             <div class="cache-info-item">
-              <div class="cache-info-label">로딩 중</div>
-              <div class="cache-info-value">{{ loadingPreviewsSize }}</div>
+              <span class="cache-info-label">로딩 중</span>
+              <span class="cache-info-value">{{ loadingPreviewsSize }}</span>
             </div>
             <div class="cache-info-item">
-              <div class="cache-info-label">에러</div>
-              <div class="cache-info-value">{{ previewErrorsSize }}</div>
+              <span class="cache-info-label">에러</span>
+              <span class="cache-info-value">{{ previewErrorsSize }}</span>
             </div>
             <div class="cache-info-item">
-              <div class="cache-info-label">캐시 사용률</div>
-              <div class="cache-info-value">{{ cacheUsageRate }}%</div>
+              <span class="cache-info-label">캐시 사용률</span>
+              <span class="cache-info-value">{{ cacheUsageRate }}%</span>
             </div>
             <div class="cache-info-item">
-              <div class="cache-info-label">정리 임계값</div>
-              <div class="cache-info-value">{{ cleanupThreshold }}분</div>
+              <span class="cache-info-label">정리 임계값</span>
+              <span class="cache-info-value">{{ cleanupThreshold }}분</span>
             </div>
           </div>
           <div class="cache-info-actions q-mt-md">
-            <q-btn flat dense label="캐시 정리" icon="cleaning_services" @click="handleCleanupCache" />
-            <q-btn flat dense label="캐시 초기화" icon="refresh" @click="handleClearCache" />
+            <q-btn flat dense :disable="isCleaningCache" @click="handleCleanupCache">
+              <q-spinner v-if="isCleaningCache" size="16px" color="primary" class="q-mr-xs" />
+              <q-icon v-else name="cleaning_services" class="q-mr-xs" />
+              <span>캐시 정리</span>
+            </q-btn>
+            <q-btn flat dense :disable="isClearingCache" @click="handleClearCache">
+              <q-spinner v-if="isClearingCache" size="16px" color="primary" class="q-mr-xs" />
+              <q-icon v-else name="refresh" class="q-mr-xs" />
+              <span>캐시 초기화</span>
+            </q-btn>
           </div>
         </div>
       </div>
@@ -54,7 +62,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDevGuideStore } from 'src/stores/devGuideStore'
 
@@ -63,6 +71,10 @@ const store = useDevGuideStore()
 
 // Store의 캐시 통계를 반응형으로 가져오기
 const { cacheStats } = storeToRefs(store)
+
+// 로딩 상태
+const isCleaningCache = ref(false)
+const isClearingCache = ref(false)
 
 // 템플릿에서 사용할 계산된 값들
 const loadedPreviewsSize = computed(() => cacheStats.value.loadedPreviews)
@@ -80,13 +92,33 @@ function handleStatisticsAction(actionType) {
 }
 
 // 캐시 정리 핸들러
-function handleCleanupCache() {
-  store.cleanupOldCache()
+async function handleCleanupCache() {
+  isCleaningCache.value = true
+  try {
+    // 비동기로 처리하여 UI 업데이트 보장
+    await new Promise((resolve) => {
+      store.cleanupOldCache()
+      // 애니메이션이 보이도록 충분한 지연
+      setTimeout(resolve, 500)
+    })
+  } finally {
+    isCleaningCache.value = false
+  }
 }
 
 // 캐시 초기화 핸들러
-function handleClearCache() {
-  store.clearAllCache()
+async function handleClearCache() {
+  isClearingCache.value = true
+  try {
+    // 비동기로 처리하여 UI 업데이트 보장
+    await new Promise((resolve) => {
+      store.clearAllCache()
+      // 애니메이션이 보이도록 충분한 지연
+      setTimeout(resolve, 500)
+    })
+  } finally {
+    isClearingCache.value = false
+  }
 }
 </script>
 
@@ -111,27 +143,30 @@ function handleClearCache() {
         .cache-info-title {
           color: var(--nexa-text-primary);
           font-weight: 600;
-          font-size: 0.875rem;
+          font-size: 1rem;
         }
       }
 
       .cache-info-content {
         margin-top: 12px;
+        padding-left: 24px; /* 타이틀보다 들여쓰기 */
 
-        .cache-info-grid {
+        .cache-info-list {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
+          gap: 8px 12px;
           margin-bottom: 12px;
 
           .cache-info-item {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            align-items: center;
+            gap: 12px;
 
             .cache-info-label {
               font-size: 0.75rem;
               color: var(--nexa-text-secondary);
+              width: 90px; /* 라벨 폭 고정 */
+              flex-shrink: 0; /* 라벨 폭 유지 */
             }
 
             .cache-info-value {
@@ -146,6 +181,10 @@ function handleClearCache() {
           display: flex;
           gap: 8px;
           justify-content: flex-start;
+
+          :deep(.q-btn) {
+            font-size: 0.7rem;
+          }
         }
       }
     }
@@ -156,4 +195,3 @@ function handleClearCache() {
   }
 }
 </style>
-

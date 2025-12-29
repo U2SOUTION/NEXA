@@ -36,6 +36,9 @@ export const useDevGuideStore = defineStore('devGuide', () => {
   const recentSamples = ref([])
   const favoriteSamples = ref([])
 
+  // 스크롤 위치 저장 (뒤로가기 시 복원용)
+  const scrollPosition = ref(0)
+
   // 미리보기 캐시 상태 (컨텐츠 ↔ 통계 패널 간 공유)
   const previewStates = {
     // 로드된 컴포넌트 캐시 (Map<sampleId, Component>)
@@ -301,6 +304,22 @@ export const useDevGuideStore = defineStore('devGuide', () => {
   function selectFolder(folderNode) {
     selectedFolderNode.value = folderNode
     selectedSample.value = null // 폴더 선택 시 샘플 선택 해제
+  }
+
+  /**
+   * 스크롤 위치 저장
+   * @param {number} position - 스크롤 위치
+   */
+  function setScrollPosition(position) {
+    scrollPosition.value = position
+  }
+
+  /**
+   * 스크롤 위치 가져오기
+   * @returns {number} 스크롤 위치
+   */
+  function getScrollPosition() {
+    return scrollPosition.value
   }
 
   /**
@@ -719,6 +738,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
     selectedFolderNode,
     recentSamples,
     favoriteSamples,
+    scrollPosition,
     previewStates,
     CACHE_CONFIG,
 
@@ -739,6 +759,8 @@ export const useDevGuideStore = defineStore('devGuide', () => {
     setFilterListOnSearch,
     selectSample,
     selectFolder,
+    setScrollPosition,
+    getScrollPosition,
     addToRecentSamples,
     toggleFavorite,
     setSamples,

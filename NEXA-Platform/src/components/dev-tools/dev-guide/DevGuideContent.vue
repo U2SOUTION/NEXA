@@ -35,8 +35,8 @@
 
       <!-- 샘플 그리드 -->
       <div v-if="filteredSamples.length > 0" class="sample-grid" ref="sampleGridRef">
-        <div v-for="sample in filteredSamples" :key="sample.id" :data-sample-id="sample.id" class="sample-card" @click="handleSampleSelect(sample)">
-          <!-- 미리보기 영역 (옵션에 따라 표시) -->
+        <div v-for="sample in filteredSamples" :key="sample.id" :data-sample-id="sample.id" class="sample-card" @click="handleSampleClick(sample)">
+          <!-- 썸네일 영역 (옵션에 따라 표시) -->
           <div v-if="cardDisplayOptions.includes('preview')" class="sample-card-preview">
             <!-- 뷰포트에 보이는 경우에만 실제 컴포넌트 로드 -->
             <template v-if="isSampleVisible(sample.id)">
@@ -46,7 +46,7 @@
                 <p class="preview-text">로드 실패</p>
                 <p class="preview-error-message">{{ getPreviewErrorMessage(sample.id) }}</p>
               </div>
-              <!-- 파싱된 미리보기 컴포넌트 (설명글 포함 모든 내용 표시) -->
+              <!-- 파싱된 썸네일 컴포넌트 (설명글 포함 모든 내용 표시) -->
               <template v-else-if="getPreviewComponent(sample.id)">
                 <div class="card-preview-component">
                   <component :is="getPreviewComponent(sample.id)" />
@@ -59,7 +59,7 @@
               <!-- 플레이스홀더 -->
               <div v-else class="preview-placeholder">
                 <q-icon name="preview" size="32px" color="grey-5" />
-                <p class="preview-text">미리보기</p>
+                <p class="preview-text">썸네일</p>
               </div>
             </template>
             <!-- 뷰포트에 보이지 않는 경우 스켈레톤 표시 -->
@@ -288,7 +288,7 @@ function loadCardDisplayOptions() {
 
 // 표시 옵션 버튼 설정
 const displayOptionButtons = computed(() => [
-  { label: '미리보기', value: 'preview', icon: 'preview' },
+  { label: '썸네일', value: 'preview', icon: 'preview' },
   { label: '제목', value: 'title', icon: 'text_fields' },
   { label: '카테고리', value: 'category', icon: 'category' },
   { label: '설명', value: 'description', icon: 'description' },
@@ -549,11 +549,11 @@ const usageExampleCode = computed(() => {
 const guideModules = import.meta.glob('/src/guides/**/*.vue', { eager: false })
 
 // ============================================
-// 미리보기 관련 함수 (Phase 1: 기본 미리보기)
+// 썸네일 관련 함수 (Phase 1: 기본 썸네일)
 // ============================================
 
 /**
- * 샘플 컴포넌트를 미리보기용으로 로드
+ * 샘플 컴포넌트를 썸네일용으로 로드
  * @param {Object} sample - 샘플 객체
  * @returns {Promise<Object|null>} - 로드된 컴포넌트 또는 null
  */
@@ -633,7 +633,7 @@ async function loadPreviewComponent(sample) {
 
     return rawComponent
   } catch (error) {
-    console.error(`[DevGuideContent] 미리보기 로드 실패 (${sampleId}):`, error)
+    console.error(`[DevGuideContent] 썸네일 로드 실패 (${sampleId}):`, error)
     store.setPreviewError(sampleId, {
       message: error.message || '컴포넌트를 로드할 수 없습니다',
       timestamp: Date.now(),
@@ -645,7 +645,7 @@ async function loadPreviewComponent(sample) {
 }
 
 /**
- * 미리보기용 래퍼 컴포넌트 생성
+ * 썸네일용 래퍼 컴포넌트 생성
  * 여러 루트 노드를 가진 컴포넌트를 단일 루트로 감싸기
  * @param {Object} component - 원본 컴포넌트
  * @returns {Object} - 래핑된 컴포넌트
@@ -682,7 +682,7 @@ function createPreviewWrapper(component, sampleId) {
 }
 
 /**
- * 미리보기 컴포넌트 가져오기 (래핑된 버전)
+ * 썸네일 컴포넌트 가져오기 (래핑된 버전)
  * @param {string} sampleId - 샘플 ID
  * @returns {Object|null} - 래핑된 컴포넌트 또는 null
  */
@@ -717,7 +717,7 @@ function getPreviewComponent(sampleId) {
 }
 
 /**
- * 미리보기 로딩 중인지 확인
+ * 썸네일 로딩 중인지 확인
  * @param {string} sampleId - 샘플 ID
  * @returns {boolean} - 로딩 중이면 true
  */
@@ -726,7 +726,7 @@ function isLoadingPreview(sampleId) {
 }
 
 /**
- * 미리보기 에러가 있는지 확인
+ * 썸네일 에러가 있는지 확인
  * @param {string} sampleId - 샘플 ID
  * @returns {boolean} - 에러가 있으면 true
  */
@@ -735,7 +735,7 @@ function hasPreviewError(sampleId) {
 }
 
 /**
- * 미리보기 에러 메시지 가져오기
+ * 썸네일 에러 메시지 가져오기
  * @param {string} sampleId - 샘플 ID
  * @returns {string} - 에러 메시지
  */
@@ -843,10 +843,10 @@ watch(
 )
 
 // ============================================
-// 미리보기 자동 로드 (Phase 1)
+// 썸네일 자동 로드 (Phase 1)
 // ============================================
 
-// 미리보기 옵션이 켜질 때 샘플 로드
+// 썸네일 옵션이 켜질 때 샘플 로드
 const showPreview = computed(() => cardDisplayOptions.value.includes('preview'))
 
 // defineExpose 제거됨 - 이제 Store를 통해 상태 공유
@@ -994,7 +994,7 @@ function stopCacheCleanupInterval() {
 // 필요시 store.clearAllCache() 호출
 
 /**
- * 뷰포트에 보이는 샘플의 미리보기 로드 (초기 로드용)
+ * 뷰포트에 보이는 샘플의 썸네일 로드 (초기 로드용)
  */
 function loadVisiblePreviews() {
   if (!showPreview.value) {
@@ -1080,10 +1080,72 @@ watch(
       fileContent.value = ''
       fileLoadError.value = null
       isLoadingFile.value = false
+
+      // 뒤로가기 후 카드 리스트로 돌아왔을 때 Intersection Observer 재설정 및 스크롤 위치 복원
+      // Observer가 자동으로 보이는 카드를 감지하고, 캐시에 없을 때만 로드함
+      // 이미 캐시된 컴포넌트는 재사용되므로 불필요한 재로드 방지
+      if (showPreview.value && filteredSamples.value.length > 0) {
+        nextTick(() => {
+          // DOM이 완전히 렌더링될 때까지 대기
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              setupIntersectionObserver()
+              // Observer가 자동으로 보이는 카드를 감지하므로 별도 로드 불필요
+              // 이미 캐시된 컴포넌트는 재사용됨
+
+              // 저장된 스크롤 위치로 복원
+              const savedScrollPosition = store.getScrollPosition()
+              console.log('[DevGuideContent] 스크롤 위치 복원 시도:', savedScrollPosition)
+              if (savedScrollPosition > 0) {
+                const scrollContainer = getScrollContainer()
+                if (scrollContainer === window) {
+                  // window 스크롤
+                  window.scrollTo({
+                    top: savedScrollPosition,
+                    behavior: 'instant',
+                  })
+                  document.documentElement.scrollTop = savedScrollPosition
+                  document.body.scrollTop = savedScrollPosition
+                } else {
+                  // q-page 스크롤
+                  scrollContainer.scrollTo({
+                    top: savedScrollPosition,
+                    behavior: 'instant',
+                  })
+                  scrollContainer.scrollTop = savedScrollPosition
+                }
+                console.log('[DevGuideContent] 스크롤 위치 복원 완료:', savedScrollPosition, '컨테이너:', scrollContainer === window ? 'window' : 'q-page')
+              }
+            })
+          })
+        })
+      }
     }
   },
   { immediate: true },
 )
+
+// 스크롤 컨테이너 찾기 (q-page 요소)
+function getScrollContainer() {
+  // q-page 요소 찾기 (실제 스크롤 컨테이너)
+  const qPage = document.querySelector('.q-page')
+  if (qPage) {
+    return qPage
+  }
+  // fallback: window
+  return window
+}
+
+// 샘플 클릭 핸들러 (스크롤 위치 저장 후 샘플 선택)
+function handleSampleClick(sample) {
+  // 현재 스크롤 위치 저장
+  const scrollContainer = getScrollContainer()
+  const scrollY = scrollContainer === window ? window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0 : scrollContainer.scrollTop || 0
+  store.setScrollPosition(scrollY)
+  console.log('[DevGuideContent] 스크롤 위치 저장:', scrollY, '컨테이너:', scrollContainer === window ? 'window' : 'q-page')
+  // 샘플 선택
+  handleSampleSelect(sample)
+}
 
 // 뒤로 가기 핸들러
 function handleBack() {
@@ -1165,7 +1227,7 @@ onMounted(() => {
     }
   })
 
-  // 미리보기 옵션이 켜져있으면 초기 로드 (watch와 중복되지만 보장)
+  // 썸네일 옵션이 켜져있으면 초기 로드 (watch와 중복되지만 보장)
   if (showPreview.value && filteredSamples.value.length > 0) {
     nextTick(() => {
       // DOM이 완전히 준비될 때까지 추가 대기
