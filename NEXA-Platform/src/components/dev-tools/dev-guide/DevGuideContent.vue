@@ -21,10 +21,12 @@
                 :label="option.label"
                 :class="{
                   'display-option-btn': true,
-                  'option-active': cardDisplayOptions.includes(option.value),
+                  'option-active': option.value === 'preview' ? false : cardDisplayOptions.includes(option.value),
+                  'option-disabled': option.value === 'preview',
                   'first-btn': index === 0,
                   'last-btn': index === displayOptionButtons.length - 1,
                 }"
+                :disable="option.value === 'preview'"
                 dense
                 @click="toggleDisplayOption(option.value)"
               />
@@ -36,14 +38,14 @@
       <!-- 샘플 그리드 -->
       <div v-if="filteredSamples.length > 0" class="sample-grid">
         <div v-for="sample in filteredSamples" :key="sample.id" class="sample-card" @click="handleSampleSelect(sample)">
-          <div class="sample-card-header">
+          <div v-if="cardDisplayOptions.includes('title')" class="sample-card-header">
             <q-icon :name="sample.icon || 'style'" class="sample-card-icon" />
             <div class="sample-card-title">{{ sample.displayName || sample.name }}</div>
           </div>
           <div class="sample-card-body">
-            <div class="sample-card-category">{{ sample.category }}</div>
-            <div class="sample-card-description">{{ sample.description || '설명 없음' }}</div>
-            <div v-if="sample.tags && sample.tags.length > 0" class="sample-card-tags">
+            <div v-if="cardDisplayOptions.includes('category')" class="sample-card-category">{{ sample.category }}</div>
+            <div v-if="cardDisplayOptions.includes('description')" class="sample-card-description">{{ sample.description || '설명 없음' }}</div>
+            <div v-if="cardDisplayOptions.includes('tags') && sample.tags && sample.tags.length > 0" class="sample-card-tags">
               <q-chip v-for="tag in sample.tags.slice(0, 3)" :key="tag" class="sample-card-tag">
                 {{ tag }}
               </q-chip>
@@ -222,6 +224,21 @@ const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, to
 // 카드 표시 옵션
 const cardDisplayOptions = ref(['title', 'category', 'description', 'tags'])
 
+// 로컬 스토리지에서 카드 표시 옵션 복원
+function loadCardDisplayOptions() {
+  try {
+    const saved = localStorage.getItem('dev-guide-card-display-options')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) {
+        cardDisplayOptions.value = parsed
+      }
+    }
+  } catch (error) {
+    console.error('[DevGuideContent] 카드 표시 옵션 복원 실패:', error)
+  }
+}
+
 // 표시 옵션 버튼 설정
 const displayOptionButtons = computed(() => [
   { label: '미리보기', value: 'preview', icon: 'preview' },
@@ -231,8 +248,13 @@ const displayOptionButtons = computed(() => [
   { label: '태그', value: 'tags', icon: 'label' },
 ])
 
-// 표시 옵션 토글 함수
+// 표시 옵션 토글 함수 (미리보기 제외)
 function toggleDisplayOption(optionValue) {
+  // 미리보기는 토글하지 않음
+  if (optionValue === 'preview') {
+    return
+  }
+
   const index = cardDisplayOptions.value.indexOf(optionValue)
   if (index > -1) {
     // 이미 활성화되어 있으면 제거
@@ -240,6 +262,13 @@ function toggleDisplayOption(optionValue) {
   } else {
     // 비활성화되어 있으면 추가
     cardDisplayOptions.value.push(optionValue)
+  }
+
+  // localStorage에 저장
+  try {
+    localStorage.setItem('dev-guide-card-display-options', JSON.stringify(cardDisplayOptions.value))
+  } catch (error) {
+    console.error('[DevGuideContent] 카드 표시 옵션 저장 실패:', error)
   }
 }
 
@@ -688,6 +717,9 @@ function handleSampleSelected() {
 }
 
 onMounted(() => {
+  // 로컬 스토리지에서 카드 표시 옵션 복원
+  loadCardDisplayOptions()
+
   window.addEventListener('dev-guide-sample-selected', handleSampleSelected)
   // 초기 로드
   if (selectedSample.value?.componentPath) {
@@ -770,6 +802,11 @@ watch(previewContainerRef, (newRef) => {
             &.option-active {
               background-color: var(--nexa-button-primary-bg);
               color: var(--nexa-button-primary-text);
+            }
+
+            &.option-disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
             }
 
             &.first-btn {
