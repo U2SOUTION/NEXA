@@ -15,47 +15,41 @@ export const devGuideConfig = {
   description: '개발 가이드 최상위 카테고리 설정',
 
   // 최상위 레벨 폴더 정의 (정렬 순서 포함)
-  // 모든 폴더 아이콘은 'folder'로 통일
+  // 모든 폴더 아이콘은 기본 'folder' 아이콘 사용
   topLevelCategories: [
     {
       id: 'styles',
       label: 'UI 스타일',
-      icon: 'folder',
       description: '컴포턴트를 퀘이사와 적절한 타협과 오버라이드 샘플',
       order: 0,
     },
     {
       id: 'patterns',
       label: '설계 패턴',
-      icon: 'folder',
       description: '아키텍처 패턴 가이드',
       order: 1,
     },
     {
       id: 'library',
       label: '컴포넌트 라이브러리',
-      icon: 'folder',
       description: '바로 사용할 수 있는 완성된 컴포넌트',
       order: 2,
     },
     {
       id: 'cores',
       label: '핵심 컴포넌트',
-      icon: 'folder',
       description: 'NEXA Platform의 핵심 컴포넌트 응용 가이드',
       order: 3,
     },
     {
       id: 'conventions',
       label: '코딩 규칙',
-      icon: 'folder',
       description: '코딩 컨벤션 가이드',
       order: 4,
     },
     {
       id: 'practices',
       label: '모범 사례',
-      icon: 'folder',
       description: '베스트 프랙티스 가이드',
       order: 5,
     },
@@ -75,12 +69,6 @@ export function getTopLevelCategory(id) {
   if (!id) return null
   const lowerId = id.toLowerCase()
   return topLevelMap.get(lowerId) || null
-}
-
-// 편의 함수: 아이콘 조회
-export function getTopLevelIcon(id) {
-  const category = getTopLevelCategory(id)
-  return category?.icon || 'folder'
 }
 
 // 편의 함수: 라벨 조회

@@ -2,7 +2,7 @@
  * 개발 가이드 Composable
  *
  * 개발 가이드의 상태 관리, 검색, 필터, 샘플 관리 등을 담당합니다.
- * 
+ *
  * ⚠️ 리팩토링: 이제 내부적으로 devGuideStore를 사용합니다.
  * 기존 API는 유지되지만, 실제 상태는 Store에서 관리됩니다.
  */
@@ -22,24 +22,7 @@ export function useDevGuide() {
   const store = useDevGuideStore()
 
   // Store 상태를 반응형으로 가져오기
-  const {
-    searchQuery,
-    filterCategory,
-    filterTags,
-    viewMode,
-    activeTab,
-    accordionMode,
-    filterListOnSearch,
-    samples,
-    selectedSample,
-    selectedFolderNode,
-    recentSamples,
-    favoriteSamples,
-    categories,
-    filteredSamples,
-    filteredRecentSamples,
-    filteredFavoriteSamples,
-  } = storeToRefs(store)
+  const { searchQuery, filterCategory, filterTags, viewMode, activeTab, accordionMode, filterListOnSearch, samples, selectedSample, selectedFolderNode, recentSamples, favoriteSamples, categories, filteredSamples, filteredRecentSamples, filteredFavoriteSamples } = storeToRefs(store)
 
   // ============================================
   // Computed (Store의 computed를 그대로 사용)
@@ -57,7 +40,7 @@ export function useDevGuide() {
         topLevelMap.set(topLevel, {
           name: topLevel,
           label: store.getLabelForTopLevel(topLevel),
-          icon: store.getIconForTopLevel(topLevel),
+          icon: 'folder', // 모든 폴더 아이콘 통일
           categories: new Map(),
         })
       }
@@ -325,7 +308,6 @@ export function useDevGuide() {
 
     // 유틸리티 함수 (Store에서 가져옴)
     getTopLevel: store.getTopLevel,
-    getIconForTopLevel: store.getIconForTopLevel,
     getLabelForTopLevel: store.getLabelForTopLevel,
     getIconForCategory: store.getIconForCategory,
     init,

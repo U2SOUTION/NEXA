@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getComponentCategory } from 'src/utils/path-categorizer/index.js'
 import { filterByPath } from 'src/utils/path-tree-builder'
-import { getTopLevelIcon, getTopLevelLabel } from 'src/config/devGuideConfig'
+import { getTopLevelLabel } from 'src/config/devGuideConfig'
 
 /**
  * 개발 가이드 Store
@@ -668,15 +668,6 @@ export const useDevGuideStore = defineStore('devGuide', () => {
   }
 
   /**
-   * 최상위 레벨 아이콘 가져오기
-   * @param {string} topLevel - 최상위 레벨명
-   * @returns {string} 아이콘명
-   */
-  function getIconForTopLevel(topLevel) {
-    return getTopLevelIcon(topLevel)
-  }
-
-  /**
    * 최상위 레벨 라벨 가져오기
    * @param {string} topLevel - 최상위 레벨명
    * @returns {string} 라벨
@@ -912,7 +903,6 @@ export const useDevGuideStore = defineStore('devGuide', () => {
 
     // 유틸리티
     getTopLevel,
-    getIconForTopLevel,
     getLabelForTopLevel,
     getIconForCategory,
     init,

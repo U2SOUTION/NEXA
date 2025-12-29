@@ -145,10 +145,6 @@
                         <div class="col">{{ prop.node.label }}</div>
                       </div>
                     </template>
-                    <template v-slot:default-body>
-                      <!-- 파일 노드는 body에서 렌더링하지 않음 (헤더에서만 표시) -->
-                      <!-- 폴더 노드의 하위 항목들은 q-tree가 자동으로 렌더링 -->
-                    </template>
                   </q-tree>
 
                   <div v-if="!treeNodes || treeNodes.length === 0" class="empty-state">
@@ -398,7 +394,6 @@ const {
   handleSampleSelect,
   handleFolderSelect,
   toggleFavorite,
-  getIconForTopLevel,
   getLabelForTopLevel,
   handleViewModeChange,
   handleAccordionModeChange,
@@ -425,12 +420,8 @@ const treeNodes = computed(() => {
   return buildPathTree(sourceSamples, {
     rootPrefix: 'guides',
     pathKey: 'componentPath',
-    iconGetter: (dirName, level) => {
-      // 레벨 0 (최상위)는 기존 아이콘 getter 사용
-      if (level === 0) {
-        return getIconForTopLevel(dirName)
-      }
-      // 레벨 1 이상은 모두 동일한 폴더 아이콘 사용
+    iconGetter: () => {
+      // 모든 레벨에서 동일한 폴더 아이콘 사용
       return 'folder'
     },
     labelGetter: (dirName, level) => {
