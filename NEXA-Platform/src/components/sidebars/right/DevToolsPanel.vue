@@ -127,6 +127,16 @@
         </div>
       </template>
 
+      <!-- GraphDoc 패널들 (activeMenu === 'graph-doc' 또는 'document-generator') -->
+      <template v-if="activeMenu === 'graph-doc' || activeMenu === 'document-generator'">
+        <!-- 히스토리 패널 -->
+        <div class="accordion-wrapper">
+          <q-expansion-item icon="history" label="히스토리" :model-value="graphDocHistoryExpanded" @update:model-value="graphDocHistoryExpanded = $event" default-opened>
+            <HistoryTab />
+          </q-expansion-item>
+        </div>
+      </template>
+
       <!-- 에러 트래킹 패널들 (activeMenu === 'error-tracking') -->
       <template v-if="activeMenu === 'error-tracking'">
         <!-- 에러 설정 패널 -->
@@ -260,6 +270,7 @@ import ComponentLibraryQuickActions from './dev-tools/component-library/Componen
 import ComponentLibraryRelatedDocs from './dev-tools/component-library/ComponentLibraryRelatedDocs.vue'
 import DevGuidePanel from './dev-tools/DevGuidePanel.vue'
 import DevGuideStatistics from './dev-tools/DevGuideStatistics.vue'
+import HistoryTab from './dev-tools/graph-doc/HistoryTab.vue'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)
@@ -299,6 +310,8 @@ function getInitialActiveMenu() {
           'package-manager',
           'document-generator',
           'deployment-manager',
+          'graph-doc',
+          'devops',
         ]
         if (validMenus.includes(saved)) {
           return saved
@@ -313,6 +326,7 @@ function getInitialActiveMenu() {
 
 // Active menu 상태 (DevelopmentPage와 동기화)
 const activeMenu = ref(getInitialActiveMenu())
+console.log('[DevToolsPanel] 초기 activeMenu:', activeMenu.value)
 
 // 테마 색상 패널 상태
 const selectedColor = ref(null)
@@ -364,9 +378,13 @@ const errorTrackingAnalysisExpanded = ref(false)
 const devGuidePanelExpanded = ref(true)
 const devGuideStatisticsExpanded = ref(true)
 
+// GraphDoc 패널 상태
+const graphDocHistoryExpanded = ref(true)
+
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {
   const menuId = event.detail.activeMenu
+  console.log('[DevToolsPanel] activeMenu 변경:', menuId)
   // null 포함하여 항상 동기화 (메인 페이지로 리셋 시에도 처리)
   activeMenu.value = menuId
   // 테마 관리 메뉴로 변경 시 아코디언 자동으로 열기
@@ -380,7 +398,7 @@ function handleActiveMenuChange(event) {
     diagramSettingsExpanded.value = false
   }
   // 그래프독 메뉴로 변경 시 다이어그램 타입 초기화
-  else if (activeMenu.value === 'graph-doc') {
+  else if (activeMenu.value === 'graph-doc' || activeMenu.value === 'document-generator') {
     // 활성 아코디언에 따라 타입 결정 (기본값: dependency)
     activeDiagramType.value = 'dependency'
     diagramSettingsExpanded.value = false
@@ -593,17 +611,28 @@ function handleExpandTOCSection() {
 }
 
 onMounted(() => {
+  console.log('[DevToolsPanel] 마운트 완료, 초기 activeMenu:', activeMenu.value)
+  
   // 초기 다이어그램 타입 설정
   if (activeMenu.value === 'database-viewer') {
     activeDiagramType.value = diagramTypes.ERD
-  } else if (activeMenu.value === 'graph-doc') {
+  } else if (activeMenu.value === 'graph-doc' || activeMenu.value === 'document-generator') {
     activeDiagramType.value = 'dependency'
+    console.log('[DevToolsPanel] graph-doc 메뉴 감지, 히스토리 패널 표시 예정')
   }
   
   // 전역 이벤트 리스너 등록
   window.addEventListener('expand-mermaid-section', handleExpandMermaidSection)
   window.addEventListener('expand-toc-section', handleExpandTOCSection)
   window.addEventListener('dev-menu-changed', handleActiveMenuChange)
+  
+  // 초기 동기화: DevelopmentPage에서 이벤트가 발생할 때까지 대기 후 확인
+  setTimeout(() => {
+    console.log('[DevToolsPanel] 초기 동기화 확인, 현재 activeMenu:', activeMenu.value)
+    if (activeMenu.value === 'graph-doc') {
+      console.log('[DevToolsPanel] ✅ graph-doc 메뉴 활성화 확인됨')
+    }
+  }, 500)
   window.addEventListener('theme-color-selected', handleThemeColorSelected)
   window.addEventListener('database-table-selected', handleDatabaseTableSelected)
   window.addEventListener('component-library-component-selected', handleComponentLibraryComponentSelected)

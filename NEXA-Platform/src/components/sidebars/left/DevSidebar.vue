@@ -124,6 +124,10 @@
         @code-search-settings="handleGraphDocCodeSearchSettings"
         @code-search-result-selected="handleGraphDocCodeSearchResultSelected"
         @accordion-change="handleGraphDocAccordionChange"
+        @circular-dependencies="handleGraphDocCircularDependencies"
+        @unused-files="handleGraphDocUnusedFiles"
+        @dependency-stats="handleGraphDocDependencyStats"
+        @code-complexity="handleGraphDocCodeComplexity"
       />
     </template>
 
@@ -527,9 +531,11 @@ function handlePerformanceMonitorTabChange(tab) {
 }
 
 // 그래프독 핸들러
-function handleGraphDocDependencyGraphAnalyze() {
-  console.log('[DevSidebar] 의존성 그래프 분석 요청')
-  window.dispatchEvent(new CustomEvent('graph-doc-dependency-graph-analyze'))
+function handleGraphDocDependencyGraphAnalyze(target) {
+  console.log('[DevSidebar] 의존성 그래프 분석 요청:', target)
+  // 사이드바의 입력값을 이벤트에 포함
+  const analysisTarget = target || graphDocDependencyGraphAnalysisTarget.value
+  window.dispatchEvent(new CustomEvent('graph-doc-dependency-graph-analyze', { detail: { target: analysisTarget } }))
 }
 
 function handleGraphDocDependencyGraphAnalysisTargetChange(value) {
@@ -597,6 +603,27 @@ function handleGraphDocAccordionChange(event) {
   console.log('[DevSidebar] 아코디언 변경:', item, expanded)
   // 전역 이벤트로 GraphDocContent에 아코디언 변경 알림
   window.dispatchEvent(new CustomEvent('graph-doc-accordion-change', { detail: { item, expanded } }))
+}
+
+// 간단한 메뉴 항목 핸들러
+function handleGraphDocCircularDependencies() {
+  console.log('[DevSidebar] 순환 의존성 감지')
+  window.dispatchEvent(new CustomEvent('graph-doc-circular-dependencies'))
+}
+
+function handleGraphDocUnusedFiles() {
+  console.log('[DevSidebar] 사용되지 않는 파일')
+  window.dispatchEvent(new CustomEvent('graph-doc-unused-files'))
+}
+
+function handleGraphDocDependencyStats() {
+  console.log('[DevSidebar] 의존성 통계')
+  window.dispatchEvent(new CustomEvent('graph-doc-dependency-stats'))
+}
+
+function handleGraphDocCodeComplexity() {
+  console.log('[DevSidebar] 코드 복잡도 분석')
+  window.dispatchEvent(new CustomEvent('graph-doc-code-complexity'))
 }
 
 // 설정 관리 (composable 사용)

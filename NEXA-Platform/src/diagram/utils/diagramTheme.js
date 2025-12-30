@@ -104,4 +104,3 @@ export function createLabelStyle(isSelected = false, customStyle = {}) {
     })
     .join(' ')
 }
-

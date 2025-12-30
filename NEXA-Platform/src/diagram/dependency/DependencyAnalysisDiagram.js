@@ -140,7 +140,7 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
     .enter()
     .append('line')
     .attr('class', 'link')
-    .attr('stroke', 'var(--nexa-border-color)')
+    .attr('stroke', 'var(--nexa-primary)')
     .attr('stroke-width', 2)
     .attr('stroke-opacity', 0.6)
     .attr('data-source-id', (d) => d.source.id || d.source.name)
@@ -215,7 +215,7 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
         return 0.1
       } else {
         // 강조 해제: 원래 상태
-        d3.select(this).classed('link-highlighted', false).attr('stroke', 'var(--nexa-border-color)').attr('stroke-width', 2).attr('stroke-opacity', 0.6)
+        d3.select(this).classed('link-highlighted', false).attr('stroke', 'var(--nexa-primary)').attr('stroke-width', 2).attr('stroke-opacity', 0.6)
         return 0.6
       }
     })
@@ -335,9 +335,24 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
     node.attr('transform', (d) => `translate(${d.x},${d.y})`)
   })
 
-  // 줌/팬 설정
+  // 폰트 크기 제한 상수
+  const MAX_FONT_SIZE = 18
+  const BASE_FONT_SIZE = 12
+
+  // 노드 라벨 폰트 크기 제한 적용
+  node.selectAll('text').attr('font-size', `${BASE_FONT_SIZE}px`).style('font-size', `${BASE_FONT_SIZE}px`)
+
+  // 줌/팬 설정 (폰트 크기 제한 포함)
   const zoom = createZoom((event) => {
     svgGroup.attr('transform', event.transform)
+
+    // 줌 레벨에 관계없이 폰트 크기 제한 (역스케일링)
+    const currentScale = event.transform.k
+    const inverseScale = 1 / currentScale
+    const fixedFontSize = Math.max(8, Math.min(MAX_FONT_SIZE, BASE_FONT_SIZE * inverseScale))
+
+    // 모든 노드 라벨의 폰트 크기 제한
+    svgGroup.selectAll('.node text').attr('font-size', `${fixedFontSize}px`).style('font-size', `${fixedFontSize}px`)
   })
 
   svg.call(zoom)
@@ -359,6 +374,11 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
         const translate = [containerWidth / 2 - optimalScale * midX, containerHeight / 2 - optimalScale * midY]
 
         svg.call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(optimalScale))
+
+        // 초기 줌 후 폰트 크기 제한 적용
+        const inverseScale = 1 / optimalScale
+        const fixedFontSize = Math.max(8, Math.min(MAX_FONT_SIZE, BASE_FONT_SIZE * inverseScale))
+        svgGroup.selectAll('.node text').attr('font-size', `${fixedFontSize}px`).style('font-size', `${fixedFontSize}px`)
       }
     } catch (err) {
       console.warn('[DependencyAnalysisDiagram] 초기 줌 설정 실패:', err)

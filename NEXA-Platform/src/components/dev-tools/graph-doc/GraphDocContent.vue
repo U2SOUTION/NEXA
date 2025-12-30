@@ -10,8 +10,8 @@
           <div class="empty-state-features q-mt-lg">
             <h4 class="features-subtitle">사용 가능한 기능</h4>
             <ul class="features-list">
-              <li>의존성 그래프 - 파일 간 의존성 관계 시각화</li>
-              <li>의존성 분석 - 패키지 및 코드 의존성 분석</li>
+              <li>파일 의존성 그래프 - 파일 간 의존성 관계 시각화</li>
+              <li>패키지 의존성 그래프 - 패키지 및 코드 의존성 분석</li>
               <li>파일 구조 - 프로젝트 파일 구조 분석</li>
               <li>코드 검색 - 프로젝트 전체 코드 검색</li>
             </ul>
@@ -29,6 +29,19 @@
           <div class="col-auto">
             <q-icon name="account_tree" size="24px" color="primary" />
           </div>
+          <!-- 뒤로가기/앞으로가기 버튼 -->
+          <div class="col-auto">
+            <div class="row items-center q-gutter-xs">
+              <q-btn flat dense round icon="arrow_back" :disable="!canGoBack" @click="handleGoBack" class="history-nav-btn">
+                <q-tooltip>뒤로가기</q-tooltip>
+              </q-btn>
+              <q-btn flat dense round icon="arrow_forward" :disable="!canGoForward" @click="handleGoForward" class="history-nav-btn">
+                <q-tooltip>앞으로가기</q-tooltip>
+              </q-btn>
+              <!-- 현재 위치 표시 -->
+              <span v-if="hasHistory" class="history-position text-caption text-grey-6"> {{ currentPosition.current }} / {{ currentPosition.total }} </span>
+            </div>
+          </div>
           <div class="col">
             <q-input v-model="analysisTarget" label="분석 대상 (URL 또는 파일 경로)" placeholder="예: /dev, /portfolio, src/pages/DevelopmentPage.vue" outlined dense @keyup.enter="handleAnalyze">
               <template #prepend>
@@ -40,11 +53,22 @@
             <q-btn color="primary" label="분석" icon="play_arrow" :loading="isAnalyzing" @click="handleAnalyze" />
           </div>
         </div>
+        <!-- 현재 URL 입력 버튼 -->
+        <div class="row q-mt-sm">
+          <div class="col">
+            <q-btn flat dense size="sm" icon="link" label="현재 URL 사용" color="primary" @click="handleUseCurrentUrl">
+              <q-tooltip>현재 브라우저 URL을 분석 대상으로 사용합니다</q-tooltip>
+            </q-btn>
+            <span v-if="currentUrl" class="q-ml-md text-caption text-grey-6"> 현재: {{ currentUrl }} </span>
+          </div>
+        </div>
       </div>
 
       <!-- 다이어그램이 있을 때: 전체 컨텐츠 창에 다이어그램 렌더링 -->
       <div v-if="graphData" class="graph-doc-diagram-full">
         <div class="graph-container-full">
+          <!-- 렌더링 중 스피너 -->
+          <NexaSpinner v-if="isAnalyzing" size="md" message="렌더링 중..." centered />
           <NexaDiagram
             ref="dependencyDiagramRef"
             type="dependency-analysis"
@@ -74,7 +98,7 @@
                     <q-icon name="account_tree" size="20px" color="primary" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label class="feature-label">의존성 그래프 시각화</q-item-label>
+                    <q-item-label class="feature-label">파일 의존성 그래프 시각화</q-item-label>
                     <q-item-label caption>파일 간 관계를 인터랙티브 그래프로 표시</q-item-label>
                   </q-item-section>
                 </q-item>
@@ -144,6 +168,8 @@
       <!-- 다이어그램이 있을 때: 전체 컨텐츠 창에 다이어그램 렌더링 -->
       <div v-if="dependencyAnalysisData" class="graph-doc-diagram-full">
         <div class="graph-container-full">
+          <!-- 렌더링 중 스피너 -->
+          <NexaSpinner v-if="isAnalyzing" size="md" message="렌더링 중..." centered />
           <NexaDiagram
             ref="dependencyAnalysisDiagramRef"
             type="dependency-analysis"
@@ -161,9 +187,9 @@
         <div class="graph-sidebar q-pa-md">
           <div class="sidebar-empty-state">
             <q-icon name="hub" size="120px" color="grey-5" class="q-mb-md" />
-            <h3 class="empty-state-title">의존성 분석</h3>
+            <h3 class="empty-state-title">패키지 의존성 그래프</h3>
             <p class="empty-state-description">
-              의존성 분석 기능을 준비 중입니다.<br />
+              패키지 의존성 그래프 기능을 준비 중입니다.<br />
               곧 패키지 및 코드 의존성을 분석하고 시각화할 수 있습니다.
             </p>
           </div>
@@ -176,6 +202,8 @@
       <!-- 다이어그램이 있을 때: 전체 컨텐츠 창에 다이어그램 렌더링 -->
       <div v-if="fileTreeData" class="graph-doc-diagram-full">
         <div class="graph-container-full">
+          <!-- 렌더링 중 스피너 -->
+          <NexaSpinner v-if="isAnalyzing" size="md" message="렌더링 중..." centered />
           <NexaDiagram ref="fileTreeDiagramRef" type="filetree" :data="fileTreeDiagramData" :options="fileTreeDiagramOptions" @node-click="handleFileTreeNodeClick" @node-hover="handleFileTreeNodeHover" @loaded="handleFileTreeDiagramLoaded" @error="handleFileTreeDiagramError" />
         </div>
       </div>
@@ -219,16 +247,64 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRoute } from 'vue-router'
 import NexaDiagram from 'src/diagram/NexaDiagram.vue'
+import NexaSpinner from 'src/components/ui/NexaSpinner.vue'
 import { diagramTypes } from 'src/diagram/config/diagramMetadata.js'
+import { analyzeDependencyGraph } from 'src/utils/graph-doc/dependencyGraphAnalyzer.js'
+import { useGraphDocHistory } from 'src/composables/dev-tools/useGraphDocHistory.js'
 
 const $q = useQuasar()
+const route = useRoute()
+
+// 히스토리 관리
+const { canGoBack, canGoForward, currentPosition, hasHistory, addToHistory, goBack, goForward } = useGraphDocHistory()
 
 // 활성 아코디언 (사이드바와 동기화)
 const activeAccordion = ref(null)
 
-// 분석 대상 (URL 또는 파일 경로) - 사이드바와 동기화
+// 분석 대상 (URL 또는 파일 경로) - 컨텐츠창 전용 (사이드바와 독립적)
 const analysisTarget = ref('')
+
+// 사이드바 분석 대상 (사이드바 전용, 컨텐츠와 독립적)
+const sidebarAnalysisTarget = ref('')
+
+// 현재 URL
+const currentUrl = computed(() => {
+  const path = route.path
+  const query = route.query
+  if (Object.keys(query).length > 0) {
+    const queryString = new URLSearchParams(query).toString()
+    return `${path}?${queryString}`
+  }
+  return path
+})
+
+// 현재 URL 사용
+function handleUseCurrentUrl() {
+  analysisTarget.value = currentUrl.value
+  // 자동으로 분석 실행하지 않음 (사용자가 직접 분석 버튼 클릭)
+}
+
+// 뒤로가기
+async function handleGoBack() {
+  const historyItem = goBack()
+  if (historyItem) {
+    // 히스토리 항목의 타겟으로 분석 재실행 (히스토리 추가 스킵)
+    analysisTarget.value = historyItem.target
+    await handleAnalyzeWithTarget(historyItem.target, true)
+  }
+}
+
+// 앞으로가기
+async function handleGoForward() {
+  const historyItem = goForward()
+  if (historyItem) {
+    // 히스토리 항목의 타겟으로 분석 재실행 (히스토리 추가 스킵)
+    analysisTarget.value = historyItem.target
+    await handleAnalyzeWithTarget(historyItem.target, true)
+  }
+}
 
 // 분석 중 상태
 const isAnalyzing = ref(false)
@@ -362,38 +438,89 @@ const dependencyAnalysisDiagramOptions = computed(() => ({
   selectedNode: selectedNode.value?.id || selectedNode.value?.name || null,
 }))
 
-// 분석 실행
-function handleAnalyze() {
-  // 테스트용: analysisTarget이 비어있어도 임시 데이터 생성
-  const target = analysisTarget.value.trim() || 'test'
+// 분석 실행 (컨텐츠창 입력값 사용)
+async function handleAnalyze() {
+  const target = analysisTarget.value.trim()
+  handleAnalyzeWithTarget(target)
+}
+
+// 분석 실행 (대상 지정)
+async function handleAnalyzeWithTarget(target, skipHistory = false) {
+  if (!target || target === 'test') {
+    $q.notify({
+      type: 'warning',
+      message: '분석 대상을 입력해주세요. 예: /dev, src/pages/DevelopmentPage.vue, components/ui',
+      position: 'center',
+      timeout: 5000,
+    })
+    return
+  }
+
+  // 중복 요청 방지
+  if (isAnalyzing.value) {
+    console.log('[GraphDocContent] 이미 분석 중입니다.')
+    return
+  }
 
   console.log('[GraphDocContent] 의존성 그래프 분석 시작:', target)
   isAnalyzing.value = true
 
-  // TODO: 실제 분석 API 호출
-  setTimeout(() => {
-    // 임시 데이터 (테스트용)
-    graphData.value = {
-      nodes: [
-        { id: 'file1', name: 'File1.vue', path: 'src/components/File1.vue', type: 'vue' },
-        { id: 'file2', name: 'File2.js', path: 'src/utils/File2.js', type: 'js' },
-        { id: 'file3', name: 'File3.ts', path: 'src/types/File3.ts', type: 'ts' },
-      ],
-      edges: [
-        { from: 'file1', to: 'file2', label: 'imports' },
-        { from: 'file2', to: 'file3', label: 'imports' },
-      ],
+  try {
+    // 실제 파일 분석
+    const graphDataResult = await analyzeDependencyGraph(target)
+
+    if (graphDataResult.nodes.length === 0) {
+      $q.notify({
+        type: 'warning',
+        message: `분석 대상 파일을 찾을 수 없습니다: "${target}". 예시: /dev, /portfolio, src/pages/DevelopmentPage.vue`,
+        position: 'top',
+        timeout: 5000,
+      })
+      isAnalyzing.value = false
+      return
     }
+
+    graphData.value = graphDataResult
     isAnalyzing.value = false
+
+    // 히스토리에 추가 (히스토리 네비게이션으로 인한 호출이 아닌 경우만)
+    if (!skipHistory) {
+      // 파일명 추출 (표시용)
+      let fileName = null
+      if (target.includes('/')) {
+        const parts = target.split('/')
+        fileName = parts[parts.length - 1]
+        // 확장자 제거
+        if (fileName.includes('.')) {
+          fileName = fileName.split('.')[0]
+        }
+      } else {
+        fileName = target
+      }
+
+      // 최소한의 정보만 저장 (표시용)
+      // 클릭 시 target을 사용하여 실제 파일에서 다시 읽어옴
+      addToHistory({
+        diagramType: 'dependencyGraph',
+        target: target, // 이것만으로 재분석 가능
+        metadata: {
+          // 표시용 정보만 저장 (클릭 시 재계산됨)
+          nodeCount: graphDataResult.nodes.length,
+          edgeCount: graphDataResult.edges.length,
+          fileName: fileName,
+          comment: graphDataResult.metadata?.mainFileComment || null, // 표시용 (클릭 시 재읽음)
+        },
+      })
+    }
+
     console.log('[GraphDocContent] 의존성 그래프 데이터 설정 완료:', graphData.value)
     console.log('[GraphDocContent] activeAccordion:', activeAccordion.value)
     console.log('[GraphDocContent] dependencyDiagramData:', dependencyDiagramData.value)
-    $q.notify({
-      type: 'success',
-      message: '분석이 완료되었습니다.',
-      position: 'top',
-    })
-  }, 1000)
+  } catch (error) {
+    console.error('[GraphDocContent] 의존성 그래프 분석 실패:', error)
+    isAnalyzing.value = false
+    // 오류는 콘솔에만 기록 (토스트 메시지 제거)
+  }
 }
 
 // TODO: 향후 노드 정보 패널 추가 시 사용 예정
@@ -427,19 +554,30 @@ function handleAccordionChange(event) {
   console.log('[GraphDocContent] activeAccordion 업데이트:', activeAccordion.value)
 }
 
-// 분석 대상 변경 이벤트 리스너
+// 분석 대상 변경 이벤트 리스너 (사이드바에서 호출)
 function handleAnalysisTargetChange(event) {
   const { value } = event.detail
-  analysisTarget.value = value
+  // 사이드바 입력값은 sidebarAnalysisTarget에 저장 (컨텐츠와 독립적)
+  sidebarAnalysisTarget.value = value
 }
 
-// 분석 요청 이벤트 리스너
+// 분석 요청 이벤트 리스너 (사이드바에서 호출)
 function handleAnalyzeRequest(event) {
-  // 이벤트에서 분석 대상을 가져오거나, 비어있으면 기본값 사용
-  const target = event?.detail?.target || analysisTarget.value || 'test'
-  if (!analysisTarget.value) {
-    analysisTarget.value = target
+  // 사이드바의 분석 대상을 가져옴
+  const target = event?.detail?.target || sidebarAnalysisTarget.value
+
+  if (!target || target.trim() === '') {
+    $q.notify({
+      type: 'warning',
+      message: '분석 대상을 입력해주세요.',
+      position: 'center',
+      timeout: 5000,
+    })
+    return
   }
+
+  // 사이드바 분석 대상 저장 (컨텐츠와 독립적)
+  sidebarAnalysisTarget.value = target.trim()
 
   // activeAccordion이 dependencyGraph가 아니면 설정
   if (activeAccordion.value !== 'dependencyGraph') {
@@ -447,7 +585,8 @@ function handleAnalyzeRequest(event) {
     console.log('[GraphDocContent] activeAccordion을 dependencyGraph로 설정')
   }
 
-  handleAnalyze()
+  // 사이드바 분석 실행 (사이드바 입력값 사용)
+  handleAnalyzeWithTarget(target.trim())
 }
 
 // 노드 선택 이벤트 리스너
@@ -460,6 +599,15 @@ function handleNodeSelected(event) {
 function handleDependencyNodeClick(event) {
   const { nodeId, nodeData } = event
   selectedNode.value = nodeData || { path: nodeId, name: nodeId }
+
+  // 노드의 파일 경로를 입력 필드에 설정하고 분석 재실행
+  if (nodeData?.path || nodeId) {
+    const filePath = nodeData?.path || nodeId
+    analysisTarget.value = filePath
+
+    // 자동으로 분석 실행
+    handleAnalyze()
+  }
 }
 
 function handleDependencyNodeHover(event) {
@@ -470,21 +618,28 @@ function handleDependencyNodeHover(event) {
 
 function handleDependencyDiagramLoaded(renderResult) {
   console.log('[GraphDocContent] 의존성 그래프 다이어그램 로드 완료:', renderResult)
+  isAnalyzing.value = false
 }
 
 function handleDependencyDiagramError(error) {
   console.error('[GraphDocContent] 의존성 그래프 다이어그램 오류:', error)
-  $q.notify({
-    type: 'negative',
-    message: '다이어그램 렌더링 중 오류가 발생했습니다.',
-    position: 'top',
-  })
+  isAnalyzing.value = false
+  // 오류는 콘솔에만 기록 (토스트 메시지 제거)
 }
 
 // 파일 트리 다이어그램 이벤트 핸들러
 function handleFileTreeNodeClick(event) {
   const { nodeId, nodeData } = event
   selectedNode.value = nodeData || { path: nodeId, name: nodeId }
+
+  // 노드의 파일 경로를 입력 필드에 설정하고 분석 재실행
+  if (nodeData?.path || nodeId) {
+    const filePath = nodeData?.path || nodeId
+    analysisTarget.value = filePath
+
+    // 자동으로 분석 실행
+    handleAnalyze()
+  }
 }
 
 function handleFileTreeNodeHover(event) {
@@ -495,21 +650,30 @@ function handleFileTreeNodeHover(event) {
 
 function handleFileTreeDiagramLoaded(renderResult) {
   console.log('[GraphDocContent] 파일 트리 다이어그램 로드 완료:', renderResult)
+  isAnalyzing.value = false
 }
 
 function handleFileTreeDiagramError(error) {
   console.error('[GraphDocContent] 파일 트리 다이어그램 오류:', error)
-  $q.notify({
-    type: 'negative',
-    message: '다이어그램 렌더링 중 오류가 발생했습니다.',
-    position: 'top',
-  })
+  isAnalyzing.value = false
+  // 오류는 콘솔에만 기록 (토스트 메시지 제거)
 }
 
 // 의존성 분석 다이어그램 이벤트 핸들러
 function handleDependencyAnalysisNodeClick(event) {
   const { nodeId, nodeData } = event
   selectedNode.value = nodeData || { id: nodeId, name: nodeId }
+
+  // 노드의 파일 경로를 입력 필드에 설정하고 분석 재실행
+  // 의존성 분석은 패키지 ID이므로 파일 경로가 아닐 수 있음
+  if (nodeData?.path) {
+    analysisTarget.value = nodeData.path
+    handleAnalyze()
+  } else if (nodeData?.id && nodeData.id.includes('/')) {
+    // ID가 경로 형태인 경우
+    analysisTarget.value = nodeData.id
+    handleAnalyze()
+  }
 }
 
 function handleDependencyAnalysisNodeHover(event) {
@@ -520,15 +684,35 @@ function handleDependencyAnalysisNodeHover(event) {
 
 function handleDependencyAnalysisDiagramLoaded(renderResult) {
   console.log('[GraphDocContent] 의존성 분석 다이어그램 로드 완료:', renderResult)
+  isAnalyzing.value = false
 }
 
 function handleDependencyAnalysisDiagramError(error) {
   console.error('[GraphDocContent] 의존성 분석 다이어그램 오류:', error)
-  $q.notify({
-    type: 'negative',
-    message: '다이어그램 렌더링 중 오류가 발생했습니다.',
-    position: 'top',
-  })
+  isAnalyzing.value = false
+  // 오류는 콘솔에만 기록 (토스트 메시지 제거)
+}
+
+// 히스토리 항목 클릭 이벤트 리스너
+async function handleHistoryItemClicked(event) {
+  const { target, diagramType } = event.detail
+
+  console.log('[GraphDocContent] 히스토리 항목 클릭:', { target, diagramType })
+
+  // activeAccordion 설정 (다이어그램 타입에 따라)
+  if (diagramType === 'dependencyGraph') {
+    activeAccordion.value = 'dependencyGraph'
+  } else if (diagramType === 'dependencyAnalysis') {
+    activeAccordion.value = 'dependencyAnalysis'
+  } else if (diagramType === 'fileStructure') {
+    activeAccordion.value = 'fileStructure'
+  }
+
+  // 분석 대상 설정
+  analysisTarget.value = target
+
+  // 재분석 실행 (히스토리 추가 스킵)
+  await handleAnalyzeWithTarget(target, true)
 }
 
 // 설정 변경 이벤트 리스너
@@ -608,7 +792,53 @@ onMounted(() => {
   window.addEventListener('graph-doc-dependency-graph-node-selected', handleNodeSelected)
   window.addEventListener('dependency-diagram-settings-changed', handleDiagramSettingsChanged)
   window.addEventListener('filetree-diagram-settings-changed', handleDiagramSettingsChanged)
+  window.addEventListener('graph-doc-circular-dependencies', handleCircularDependencies)
+  window.addEventListener('graph-doc-unused-files', handleUnusedFiles)
+  window.addEventListener('graph-doc-dependency-stats', handleDependencyStats)
+  window.addEventListener('graph-doc-code-complexity', handleCodeComplexity)
+  window.addEventListener('graph-doc-history-item-clicked', handleHistoryItemClicked)
 })
+
+// 간단한 메뉴 항목 핸들러
+function handleCircularDependencies() {
+  console.log('[GraphDocContent] 순환 의존성 감지')
+  $q.notify({
+    type: 'info',
+    message: '순환 의존성 감지 기능은 준비 중입니다.',
+    position: 'top',
+  })
+  // TODO: 순환 의존성 감지 로직 구현
+}
+
+function handleUnusedFiles() {
+  console.log('[GraphDocContent] 사용되지 않는 파일')
+  $q.notify({
+    type: 'info',
+    message: '사용되지 않는 파일 찾기 기능은 준비 중입니다.',
+    position: 'top',
+  })
+  // TODO: 사용되지 않는 파일 찾기 로직 구현
+}
+
+function handleDependencyStats() {
+  console.log('[GraphDocContent] 의존성 통계')
+  $q.notify({
+    type: 'info',
+    message: '의존성 통계 기능은 준비 중입니다.',
+    position: 'top',
+  })
+  // TODO: 의존성 통계 로직 구현
+}
+
+function handleCodeComplexity() {
+  console.log('[GraphDocContent] 코드 복잡도 분석')
+  $q.notify({
+    type: 'info',
+    message: '코드 복잡도 분석 기능은 준비 중입니다.',
+    position: 'top',
+  })
+  // TODO: 코드 복잡도 분석 로직 구현
+}
 
 onBeforeUnmount(() => {
   // 전역 이벤트 리스너 제거
@@ -618,6 +848,11 @@ onBeforeUnmount(() => {
   window.removeEventListener('graph-doc-dependency-graph-node-selected', handleNodeSelected)
   window.removeEventListener('dependency-diagram-settings-changed', handleDiagramSettingsChanged)
   window.removeEventListener('filetree-diagram-settings-changed', handleDiagramSettingsChanged)
+  window.removeEventListener('graph-doc-circular-dependencies', handleCircularDependencies)
+  window.removeEventListener('graph-doc-unused-files', handleUnusedFiles)
+  window.removeEventListener('graph-doc-dependency-stats', handleDependencyStats)
+  window.removeEventListener('graph-doc-code-complexity', handleCodeComplexity)
+  window.removeEventListener('graph-doc-history-item-clicked', handleHistoryItemClicked)
 })
 </script>
 
@@ -839,6 +1074,20 @@ onBeforeUnmount(() => {
 
 .node-info-content {
   color: var(--nexa-text-primary);
+}
+
+/* 히스토리 네비게이션 버튼 */
+.history-nav-btn {
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.history-position {
+  min-width: 40px;
+  text-align: center;
+  padding: 0 4px;
+  font-size: 0.75rem;
 }
 
 .info-item {

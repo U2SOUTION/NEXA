@@ -264,7 +264,7 @@ export async function renderFileTree(container, data, options = {}) {
     .enter()
     .append('line')
     .attr('class', 'link')
-    .attr('stroke', 'var(--nexa-border-color)')
+    .attr('stroke', 'var(--nexa-primary)')
     .attr('stroke-width', 2)
     .attr('stroke-opacity', 0.6)
     .attr('data-source-id', (d) => d.source.id || d.source.name)
@@ -339,7 +339,7 @@ export async function renderFileTree(container, data, options = {}) {
         return 0.1
       } else {
         // 강조 해제: 원래 상태
-        d3.select(this).classed('link-highlighted', false).attr('stroke', 'var(--nexa-border-color)').attr('stroke-width', 2).attr('stroke-opacity', 0.6)
+        d3.select(this).classed('link-highlighted', false).attr('stroke', 'var(--nexa-primary)').attr('stroke-width', 2).attr('stroke-opacity', 0.6)
         return 0.6
       }
     })

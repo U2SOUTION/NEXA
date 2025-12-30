@@ -2,11 +2,15 @@
  * DependencyDiagram.js
  * 의존성 그래프 다이어그램 렌더러
  * D3.js + dagre-d3-es를 사용하여 파일 간 의존성 관계 시각화
+ *
+ * 근본적인 폰트 크기 문제 해결:
+ * - 텍스트를 별도 그룹으로 분리하여 transform의 영향을 받지 않도록 함
+ * - 줌 이벤트에서 텍스트 위치를 수동으로 업데이트
  */
 
 import * as d3 from 'd3'
 import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
-import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
+import { createZoom } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
 
@@ -48,48 +52,17 @@ function getFileTypeColor(filePath) {
 
   const ext = filePath.split('.').pop()?.toLowerCase()
   const colorMap = {
-    vue: 'var(--nexa-primary)',
-    js: 'var(--nexa-success)',
-    ts: 'var(--nexa-info)',
-    scss: 'var(--nexa-warning)',
-    css: 'var(--nexa-warning)',
-    json: 'var(--nexa-accent)',
+    vue: '#42b883',
+    js: '#f7df1e',
+    ts: '#007acc',
+    scss: '#c6538c',
+    css: '#563d7c',
+    json: '#f39c12',
+    md: '#08c',
+    html: '#e34c26',
   }
-
   return colorMap[ext] || 'var(--nexa-surface)'
 }
-
-/**
- * 엣지 경로 생성 (스타일에 따라)
- * 향후 엣지 스타일 커스터마이징 시 사용 예정
- * @param {String} edgeStyle - 엣지 스타일 (straight, curved, bezier)
- * @param {Object} source - 소스 노드 위치
- * @param {Object} target - 타겟 노드 위치
- * @returns {String} SVG 경로 문자열
- */
-// function createEdgePath(edgeStyle, source, target) {
-//   const dx = target.x - source.x
-//   const dy = target.y - source.y
-//
-//   if (edgeStyle === 'straight') {
-//     return `M ${source.x} ${source.y} L ${target.x} ${target.y}`
-//   } else if (edgeStyle === 'curved') {
-//     const midX = (source.x + target.x) / 2
-//     const midY = (source.y + target.y) / 2
-//     const curvature = 20
-//     const controlX = midX + (dy > 0 ? curvature : -curvature)
-//     const controlY = midY - (dx > 0 ? curvature : -curvature)
-//     return `M ${source.x} ${source.y} Q ${controlX} ${controlY} ${target.x} ${target.y}`
-//   } else if (edgeStyle === 'bezier') {
-//     const controlX1 = source.x + dx * 0.5
-//     const controlY1 = source.y
-//     const controlX2 = target.x - dx * 0.5
-//     const controlY2 = target.y
-//     return `M ${source.x} ${source.y} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${target.x} ${target.y}`
-//   }
-//
-//   return `M ${source.x} ${source.y} L ${target.x} ${target.y}`
-// }
 
 /**
  * 의존성 그래프 다이어그램 렌더링
@@ -122,7 +95,7 @@ export async function renderDependency(container, data, options = {}) {
   // 기존 SVG 제거
   d3.select(container).selectAll('*').remove()
 
-  // 컨테이너 크기 확인 (최적화: 가로폭 100%, 높이는 브라우저 크기 기반)
+  // 컨테이너 크기 확인
   const containerWidth = container.clientWidth || 800
   let containerHeight = container.clientHeight
   if (!containerHeight || containerHeight === 0) {
@@ -136,7 +109,14 @@ export async function renderDependency(container, data, options = {}) {
   // SVG 생성
   const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', '100%').attr('viewBox', `0 0 ${containerWidth} ${containerHeight}`)
 
-  const svgGroup = svg.append('g')
+  // 그래프 요소 그룹 (줌/팬 transform 적용)
+  const svgGroup = svg.append('g').attr('class', 'graph-group')
+
+  // 텍스트 전용 그룹 (transform 영향 없음, 별도 관리)
+  const textGroup = svg.append('g').attr('class', 'text-group')
+
+  // 폰트 크기 상수
+  const FONT_SIZE = 12
 
   // Dagre 그래프 생성
   const layoutOpts = getLayoutOptions(layoutType, { ...settings.layout, ...layoutOptions })
@@ -172,7 +152,6 @@ export async function renderDependency(container, data, options = {}) {
       width: nodeWidth,
       height: nodeHeight,
       class: isSelected ? 'node-selected' : '',
-      // 파일 타입별 색상 정보 저장
       fileType: file.path.split('.').pop()?.toLowerCase(),
       filePath: file.path,
     })
@@ -185,13 +164,7 @@ export async function renderDependency(container, data, options = {}) {
       return
     }
 
-    // 노드가 존재하는지 확인
-    if (!graph.hasNode(dep.from)) {
-      console.warn('[DependencyDiagram] 엣지의 from 노드가 존재하지 않음:', dep.from)
-      return
-    }
-    if (!graph.hasNode(dep.to)) {
-      console.warn('[DependencyDiagram] 엣지의 to 노드가 존재하지 않음:', dep.to)
+    if (!graph.hasNode(dep.from) || !graph.hasNode(dep.to)) {
       return
     }
 
@@ -204,44 +177,21 @@ export async function renderDependency(container, data, options = {}) {
   })
 
   // 노드가 없으면 에러
-  const nodeCount = graph.nodes().length
-  if (nodeCount === 0) {
+  if (graph.nodes().length === 0) {
     throw new Error('그래프에 노드가 없습니다.')
   }
 
   // Dagre 레이아웃 계산
   if (dagre && typeof dagre.layout === 'function') {
     dagre.layout(graph)
-    console.log('[DependencyDiagram] 레이아웃 계산 완료, 노드 개수:', nodeCount, '엣지 개수:', graph.edges().length)
   } else {
     throw new Error('dagre layout 함수를 찾을 수 없습니다.')
   }
 
   // D3.js로 렌더링
   if (render) {
-    // renderer 생성 및 호출
     const renderer = new render()
-
-    // graph 객체 유효성 확인
-    if (!graph || typeof graph !== 'object') {
-      throw new Error('graph 객체가 유효하지 않습니다.')
-    }
-
-    try {
-      renderer(svgGroup, graph)
-      console.log('[DependencyDiagram] D3.js 렌더링 완료')
-    } catch (renderError) {
-      console.error('[DependencyDiagram] 렌더링 중 오류:', renderError)
-      console.error('[DependencyDiagram] Graph 상태:', {
-        nodes: graph.nodes(),
-        edges: graph.edges(),
-        nodeCount: graph.nodes().length,
-        edgeCount: graph.edges().length,
-        graphType: typeof graph,
-        graphConstructor: graph.constructor?.name,
-      })
-      throw renderError
-    }
+    renderer(svgGroup, graph)
 
     // 노드에 data-node-id 속성 추가 및 파일 타입별 색상 적용
     svgGroup.selectAll('.node').each(function (d) {
@@ -251,105 +201,100 @@ export async function renderDependency(container, data, options = {}) {
 
       node.attr('data-node-id', nodeId)
 
-      // 선택 상태 확인
-      const isSelected = selectedNode === nodeId
-      if (isSelected) {
+      if (selectedNode === nodeId) {
         node.classed('node-selected', true)
       }
 
-      // 파일 타입별 색상 적용
       const fileType = graphNode?.fileType
       const rect = node.select('rect')
       if (rect.node() && fileType) {
-        const color = getFileTypeColor(nodeId)
-        rect.attr('fill', color)
+        rect.attr('fill', getFileTypeColor(nodeId))
       }
     })
   } else {
     throw new Error('render를 찾을 수 없습니다.')
   }
 
-  // 노드 라벨 중앙 정렬
-  svgGroup.selectAll('.node').each(function () {
+  // 텍스트를 textGroup으로 이동하고 원본은 숨김
+  const textElements = new Map() // 노드 ID -> 텍스트 요소 매핑
+
+  svgGroup.selectAll('.node').each(function (d) {
     const node = d3.select(this)
     const rect = node.select('rect')
-    const text = node.select('text')
+    const originalText = node.select('text')
 
-    if (!rect.node() || !text.node()) return
+    if (!rect.node() || !originalText.node()) return
+
+    // 원본 텍스트 숨김
+    originalText.style('display', 'none')
+
+    // textGroup에 새 텍스트 생성
+    const graphNode = graph.node(d)
+    const nodeId = graphNode?.filePath || graphNode?.label || d
+    const label = graphNode?.label || ''
 
     const bbox = rect.node().getBBox()
     const centerX = bbox.x + bbox.width / 2
     const centerY = bbox.y + bbox.height / 2
 
-    text.selectAll('tspan').attr('x', 0)
-    text.select('tspan').attr('dy', 0)
-    text.attr('x', centerX).attr('y', centerY).attr('dy', 0).attr('text-anchor', 'middle')
+    const newText = textGroup.append('text').attr('class', 'node-label').attr('data-node-id', nodeId).attr('x', centerX).attr('y', centerY).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').attr('font-size', `${FONT_SIZE}px`).style('font-size', `${FONT_SIZE}px`).text(label)
+
+    textElements.set(nodeId, { element: newText, node: d, graphNode })
   })
 
-  // 엣지 렌더링 확인
-  const edgePathCount = svgGroup.selectAll('.edgePath').size()
-  const edgeLabelCount = svgGroup.selectAll('.edgeLabel').size()
-  console.log('[DependencyDiagram] 엣지 렌더링 확인:', { edgePathCount, edgeLabelCount, expectedEdges: graph.edges().length })
+  // 엣지 라벨도 textGroup으로 이동
+  const edgeTextElements = new Map()
 
-  // 엣지 스타일 적용 (설정에서 edgeStyle 사용)
-  const edgeStyle = settings.edgeStyle || 'curved'
-  if (edgeStyle !== 'straight') {
-    svgGroup.selectAll('.edgePath').each(function () {
-      const edgePath = d3.select(this)
-      const path = edgePath.select('path')
+  svgGroup.selectAll('.edgeLabel').each(function (d, i) {
+    const edgeLabel = d3.select(this)
+    const originalText = edgeLabel.select('text')
 
-      if (!path.node()) return
+    if (!originalText.node()) return
 
-      // 경로 데이터 가져오기
-      const pathData = path.attr('d')
-      if (!pathData || pathData.startsWith('M')) {
-        // 이미 경로가 있으면 스킵
-        return
+    // 원본 텍스트 숨김
+    originalText.style('display', 'none')
+
+    // textGroup에 새 텍스트 생성
+    const label = originalText.text() || ''
+    const edgeBbox = edgeLabel.node().getBBox()
+    const centerX = edgeBbox.x + edgeBbox.width / 2
+    const centerY = edgeBbox.y + edgeBbox.height / 2
+
+    const newText = textGroup.append('text').attr('class', 'edge-label').attr('x', centerX).attr('y', centerY).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').attr('font-size', `${FONT_SIZE}px`).style('font-size', `${FONT_SIZE}px`).text(label)
+
+    edgeTextElements.set(i, { element: newText, edgeLabel })
+  })
+
+  // 텍스트 위치 업데이트 함수
+  function updateTextPositions(transform) {
+    // 노드 라벨 위치 업데이트
+    textElements.forEach(({ element, node: d, graphNode }) => {
+      const nodeElement = svgGroup.select(`.node[data-node-id="${graphNode?.filePath || graphNode?.label || d}"]`)
+      const rect = nodeElement.select('rect')
+
+      if (rect.node()) {
+        const bbox = rect.node().getBBox()
+        const centerX = transform.applyX(bbox.x + bbox.width / 2)
+        const centerY = transform.applyY(bbox.y + bbox.height / 2)
+
+        element.attr('x', centerX).attr('y', centerY)
       }
+    })
 
-      // dagre가 생성한 경로를 사용하되, 스타일에 따라 재생성할 수도 있음
-      // 현재는 dagre의 기본 경로를 사용
+    // 엣지 라벨 위치 업데이트
+    edgeTextElements.forEach(({ element, edgeLabel }) => {
+      if (edgeLabel.node()) {
+        const currentBbox = edgeLabel.node().getBBox()
+        const centerX = transform.applyX(currentBbox.x + currentBbox.width / 2)
+        const centerY = transform.applyY(currentBbox.y + currentBbox.height / 2)
+
+        element.attr('x', centerX).attr('y', centerY)
+      }
     })
   }
 
-  // 엣지 색상 및 스타일 명시적 설정
+  // 엣지 색상 설정
   svgGroup.selectAll('.edgePath path').attr('stroke', 'var(--nexa-primary)').attr('stroke-width', '2px').attr('fill', 'none')
-
-  // 엣지 라벨 배치
-  const edgePaths = svgGroup.selectAll('.edgePath').nodes()
-  const edgeLabels = svgGroup.selectAll('.edgeLabel').nodes()
-
-  edgePaths.forEach((edgePathNode, index) => {
-    const edgePath = d3.select(edgePathNode)
-    const path = edgePath.select('path')
-
-    if (!path.node() || !edgeLabels[index]) return
-
-    const pathLength = path.node().getTotalLength()
-    const midPoint = path.node().getPointAtLength(pathLength / 2)
-
-    const beforePoint = path.node().getPointAtLength(Math.max(0, pathLength / 2 - 5))
-    const afterPoint = path.node().getPointAtLength(Math.min(pathLength, pathLength / 2 + 5))
-    const angle = Math.atan2(afterPoint.y - beforePoint.y, afterPoint.x - beforePoint.x) * (180 / Math.PI)
-
-    const offsetDistance = -10
-    const perpendicularAngle = angle + 90
-    const offsetX = offsetDistance * Math.cos((perpendicularAngle * Math.PI) / 180)
-    const offsetY = offsetDistance * Math.sin((perpendicularAngle * Math.PI) / 180)
-
-    const edgeLabelGroup = d3.select(edgeLabels[index])
-    const labelGroup = edgeLabelGroup.select('.label')
-    const textElement = edgeLabelGroup.select('text')
-
-    if (textElement.node()) {
-      edgeLabelGroup.attr('transform', `translate(${midPoint.x + offsetX}, ${midPoint.y + offsetY}) rotate(${angle})`)
-      if (labelGroup.node()) {
-        labelGroup.attr('transform', 'translate(0, 0)')
-      }
-      textElement.attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').attr('x', 0).attr('y', 0)
-      textElement.selectAll('tspan').attr('x', 0).attr('text-anchor', 'middle').attr('dy', 0)
-    }
-  })
 
   // 노드 클릭 이벤트
   if (onNodeClick) {
@@ -406,46 +351,41 @@ export async function renderDependency(container, data, options = {}) {
   // 줌/팬 설정
   const zoom = createZoom((event) => {
     svgGroup.attr('transform', event.transform)
+    // 텍스트 위치 업데이트 (transform 적용)
+    updateTextPositions(event.transform)
   })
 
   svg.call(zoom)
 
-  // 초기 줌 설정 (최적화: 가로폭 100%, 스크롤 없이)
-  // 렌더링 완료 후 실행되도록 setTimeout 사용
+  // 초기 줌 설정
   setTimeout(() => {
     try {
       const bounds = svgGroup.node().getBBox()
       const graphWidth = bounds.width
       const graphHeight = bounds.height
 
-      console.log('[DependencyDiagram] 초기 줌 설정 - 그래프 크기:', { graphWidth, graphHeight, bounds })
-
       if (graphWidth > 0 && graphHeight > 0) {
-        // 최적 스케일 계산 (가로폭 100% 활용, 스크롤 없이)
         const scaleX = containerWidth / graphWidth
         const scaleY = containerHeight / graphHeight
-        const optimalScale = Math.min(scaleX, scaleY) * 0.95 // 5% 여유 공간
+        const optimalScale = Math.min(scaleX, scaleY) * 0.95
 
         const midX = bounds.x + graphWidth / 2
         const midY = bounds.y + graphHeight / 2
         const translate = [containerWidth / 2 - optimalScale * midX, containerHeight / 2 - optimalScale * midY]
 
-        console.log('[DependencyDiagram] 초기 줌 설정 - 변환:', { optimalScale, translate, midX, midY })
-
-        svg.call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(optimalScale))
-      } else {
-        console.warn('[DependencyDiagram] 그래프 크기가 0입니다.')
+        const initialTransform = d3.zoomIdentity.translate(translate[0], translate[1]).scale(optimalScale)
+        svg.call(zoom.transform, initialTransform)
+        updateTextPositions(initialTransform)
       }
     } catch (err) {
       console.warn('[DependencyDiagram] 초기 줌 설정 실패:', err)
-      // 기본 fitToScreen 사용
-      fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom)
     }
-  }, 100) // 렌더링 완료 후 실행
+  }, 100)
 
   return {
     svg,
     svgGroup,
+    textGroup,
     zoom,
     graph,
   }
@@ -463,7 +403,6 @@ export function updateDependencyNodeSizes(renderResult) {
   const nodeWidth = settings.nodeSize?.width || 120
   const nodeHeight = settings.nodeSize?.height || 40
 
-  // 모든 노드 크기 업데이트
   svgGroup.selectAll('.node').each(function () {
     const node = d3.select(this)
     const rect = node.select('rect')
@@ -474,7 +413,6 @@ export function updateDependencyNodeSizes(renderResult) {
       const currentWidth = parseFloat(rect.attr('width')) || nodeWidth
       const currentHeight = parseFloat(rect.attr('height')) || nodeHeight
 
-      // 크기 변경에 따른 위치 조정 (중앙 기준)
       const deltaX = (nodeWidth - currentWidth) / 2
       const deltaY = (nodeHeight - currentHeight) / 2
 
@@ -483,14 +421,6 @@ export function updateDependencyNodeSizes(renderResult) {
         .attr('height', nodeHeight)
         .attr('x', currentX - deltaX)
         .attr('y', currentY - deltaY)
-
-      // 라벨 중앙 정렬 재조정
-      const text = node.select('text')
-      if (text.node()) {
-        const centerX = currentX - deltaX + nodeWidth / 2
-        const centerY = currentY - deltaY + nodeHeight / 2
-        text.attr('x', centerX).attr('y', centerY)
-      }
     }
   })
 }

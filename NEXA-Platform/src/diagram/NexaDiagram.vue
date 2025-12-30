@@ -167,11 +167,15 @@ watch(
 watch(
   () => props.data,
   (newData, oldData) => {
-    // 렌더링 중이면 무시
-    if (isRendering) return
-    
     // 데이터가 실제로 변경되었는지 확인 (참조 비교)
     if (newData === oldData) return
+    
+    // 데이터가 변경되면 이전 렌더링을 취소하고 새로 시작
+    // (렌더링 중이어도 새로운 데이터로 재렌더링해야 함)
+    if (isRendering) {
+      console.log('[NexaDiagram] 데이터 변경 감지: 이전 렌더링 취소하고 새로 시작')
+      isRendering = false // 이전 렌더링 취소
+    }
     
     // 의존성 분석 다이어그램의 경우, packages와 dependencies 배열의 길이와 내용을 비교
     if (props.type === diagramTypes.DEPENDENCY_ANALYSIS) {
@@ -194,10 +198,8 @@ watch(
     }
     
     if (props.autoLoad) {
-      isRendering = true
-      renderDiagram().finally(() => {
-        isRendering = false
-      })
+      // isRendering을 먼저 설정하지 말고, renderDiagram() 내부에서 설정하도록 함
+      renderDiagram()
     }
   },
   { deep: false }, // deep watch 제거하여 성능 개선

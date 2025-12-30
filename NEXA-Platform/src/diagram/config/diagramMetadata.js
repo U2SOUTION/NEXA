@@ -36,7 +36,7 @@ export const diagramMetadata = {
   },
   [diagramTypes.DEPENDENCY]: {
     name: 'Dependency',
-    label: 'Dependency Graph',
+    label: '파일 의존성 그래프',
     description: '파일 간 의존성 관계 시각화',
     icon: 'account_tree',
     supportedFeatures: ['zoom', 'pan', 'node-drag', 'export'],
@@ -50,7 +50,7 @@ export const diagramMetadata = {
   },
   [diagramTypes.DEPENDENCY_ANALYSIS]: {
     name: 'DependencyAnalysis',
-    label: 'Dependency Analysis Graph',
+    label: '패키지 의존성 그래프',
     description: '패키지 의존성 분석 시각화',
     icon: 'hub',
     supportedFeatures: ['zoom', 'pan', 'node-drag', 'export', 'node-hover', 'force-layout'],

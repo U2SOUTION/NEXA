@@ -303,43 +303,43 @@ a {
   }
 }
 
-// ===== 토스트/알림 색상 =====
-// Quasar q-notify 컴포넌트 스타일 오버라이드
-.q-notifications__list {
-  .q-notification {
-    background-color: var(--nexa-toast-bg);
-    color: var(--nexa-toast-text);
-    border: 1px solid var(--nexa-toast-border);
+// // ===== 토스트/알림 색상 =====
+// // Quasar q-notify 컴포넌트 스타일 오버라이드
+// .q-notifications__list {
+//   .q-notification {
+//     background-color: var(--nexa-toast-bg);
+//     color: var(--nexa-toast-text);
+//     border: 1px solid var(--nexa-toast-border);
 
-    // 성공 토스트
-    &.q-notification--positive {
-      background-color: var(--nexa-toast-success-bg);
-      color: var(--nexa-toast-success-text);
-      border-color: var(--nexa-toast-success-border);
-    }
+//     // 성공 토스트
+//     &.q-notification--positive {
+//       background-color: var(--nexa-toast-success-bg);
+//       color: var(--nexa-toast-success-text);
+//       border-color: var(--nexa-toast-success-border);
+//     }
 
-    // 경고 토스트
-    &.q-notification--warning {
-      background-color: var(--nexa-toast-warning-bg);
-      color: var(--nexa-toast-warning-text);
-      border-color: var(--nexa-toast-warning-border);
-    }
+//     // 경고 토스트
+//     &.q-notification--warning {
+//       background-color: var(--nexa-toast-warning-bg);
+//       color: var(--nexa-toast-warning-text);
+//       border-color: var(--nexa-toast-warning-border);
+//     }
 
-    // 에러 토스트
-    &.q-notification--negative {
-      background-color: var(--nexa-toast-error-bg);
-      color: var(--nexa-toast-error-text);
-      border-color: var(--nexa-toast-error-border);
-    }
+//     // 에러 토스트
+//     &.q-notification--negative {
+//       background-color: var(--nexa-toast-error-bg);
+//       color: var(--nexa-toast-error-text);
+//       border-color: var(--nexa-toast-error-border);
+//     }
 
-    // 정보 토스트
-    &.q-notification--info {
-      background-color: var(--nexa-toast-info-bg);
-      color: var(--nexa-toast-info-text);
-      border-color: var(--nexa-toast-info-border);
-    }
-  }
-}
+//     // 정보 토스트
+//     &.q-notification--info {
+//       background-color: var(--nexa-toast-info-bg);
+//       color: var(--nexa-toast-info-text);
+//       border-color: var(--nexa-toast-info-border);
+//     }
+//   }
+// }
 
 // ===== 프로그레스 바 색상 =====
 // Quasar q-linear-progress 컴포넌트 스타일 오버라이드

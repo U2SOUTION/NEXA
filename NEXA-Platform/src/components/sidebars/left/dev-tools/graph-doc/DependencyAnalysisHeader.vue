@@ -9,7 +9,7 @@
       <div class="row items-center justify-between">
         <div class="row items-center q-gutter-sm">
           <q-icon name="hub" size="20px" color="primary" />
-          <div class="header-title">의존성 분석</div>
+          <div class="header-title">패키지 의존성 그래프</div>
         </div>
         <div class="row items-center q-gutter-xs">
           <q-btn
