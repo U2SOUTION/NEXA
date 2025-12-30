@@ -87,7 +87,6 @@ const devMenus = [
   { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
   // 개발 유틸리티 도구
   { id: 'build-tools', label: '빌드 도구', icon: 'build' },
-  { id: 'network-monitor', label: '네트워크 모니터', icon: 'network_check' },
   { id: 'environment-variables', label: '환경 변수', icon: 'tune' },
   { id: 'package-manager', label: '패키지 관리', icon: 'inventory_2' },
   // 문서/분석 도구

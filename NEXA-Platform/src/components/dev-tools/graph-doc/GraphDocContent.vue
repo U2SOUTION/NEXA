@@ -1,17 +1,28 @@
 <template>
   <div class="graph-doc-content">
-    <!-- 탭 메뉴 -->
-    <div class="graph-doc-tabs q-pa-md">
-      <q-tabs v-model="activeTab" dense class="text-grey" active-color="primary" indicator-color="primary" align="left">
-        <q-tab name="dependency-graph" label="의존성 그래프" icon="account_tree" />
-        <q-tab name="dependency-analysis" label="의존성 분석" icon="hub" />
-        <q-tab name="file-structure" label="파일 구조" icon="view_module" />
-        <q-tab name="code-search" label="코드 검색" icon="search" />
-      </q-tabs>
+    <!-- 아무것도 선택되지 않았을 때 기본 메시지 -->
+    <div v-if="!activeAccordion" class="graph-doc-empty-state">
+      <div class="empty-state-content">
+        <q-icon name="hub" size="120px" color="grey-5" class="q-mb-md" />
+        <h3 class="empty-state-title">GraphDoc</h3>
+        <p class="empty-state-description">
+          왼쪽 사이드바에서 아코디언을 열어 기능을 선택하세요.
+        </p>
+        <div class="empty-state-features q-mt-lg">
+          <h4 class="features-subtitle">사용 가능한 기능</h4>
+          <ul class="features-list">
+            <li>의존성 그래프 - 파일 간 의존성 관계 시각화</li>
+            <li>의존성 분석 - 패키지 및 코드 의존성 분석</li>
+            <li>파일 구조 - 프로젝트 파일 구조 분석</li>
+            <li>코드 검색 - 프로젝트 전체 코드 검색</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
-    <!-- 의존성 그래프 탭 -->
-    <div v-if="activeTab === 'dependency-graph'" class="graph-doc-main-content">
+    <!-- 활성 아코디언에 따른 컨텐츠 표시 -->
+    <!-- 의존성 그래프 -->
+    <div v-else-if="activeAccordion === 'dependencyGraph'" class="graph-doc-main-content">
     <!-- 헤더: 분석 대상 입력 -->
     <div class="graph-doc-header q-pa-md">
       <div class="row items-center q-gutter-md">
@@ -161,8 +172,8 @@
     </div>
     </div>
 
-    <!-- 의존성 분석 탭 -->
-    <div v-else-if="activeTab === 'dependency-analysis'" class="graph-doc-main-content">
+    <!-- 의존성 분석 -->
+    <div v-else-if="activeAccordion === 'dependencyAnalysis'" class="graph-doc-main-content">
       <div class="coming-soon-wrapper">
         <div class="coming-soon-content">
           <q-icon name="hub" size="80px" color="grey-7" class="q-mb-md" />
@@ -182,8 +193,8 @@
       </div>
     </div>
 
-    <!-- 파일 구조 분석 탭 -->
-    <div v-else-if="activeTab === 'file-structure'" class="graph-doc-main-content">
+    <!-- 파일 구조 -->
+    <div v-else-if="activeAccordion === 'fileStructure'" class="graph-doc-main-content">
       <div class="coming-soon-wrapper">
         <div class="coming-soon-content">
           <q-icon name="view_module" size="80px" color="grey-7" class="q-mb-md" />
@@ -201,8 +212,8 @@
       </div>
     </div>
 
-    <!-- 코드 검색 탭 -->
-    <div v-else-if="activeTab === 'code-search'" class="graph-doc-main-content">
+    <!-- 코드 검색 -->
+    <div v-else-if="activeAccordion === 'codeSearch'" class="graph-doc-main-content">
       <div class="coming-soon-wrapper">
         <div class="coming-soon-content">
           <q-icon name="search" size="80px" color="grey-7" class="q-mb-md" />
@@ -224,15 +235,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 
-// 활성 탭
-const activeTab = ref('dependency-graph')
+// 활성 아코디언 (사이드바와 동기화)
+const activeAccordion = ref(null)
 
-// 분석 대상 (URL 또는 파일 경로)
+// 분석 대상 (URL 또는 파일 경로) - 사이드바와 동기화
 const analysisTarget = ref('')
 
 // 분석 중 상태
@@ -296,6 +307,47 @@ function handleGenerateDocument() {
     position: 'top',
   })
 }
+
+// 아코디언 변경 이벤트 리스너
+function handleAccordionChange(event) {
+  const { item, expanded } = event.detail
+  console.log('[GraphDocContent] 아코디언 변경 이벤트 수신:', item, expanded)
+  activeAccordion.value = expanded ? item : null
+  console.log('[GraphDocContent] activeAccordion 업데이트:', activeAccordion.value)
+}
+
+// 분석 대상 변경 이벤트 리스너
+function handleAnalysisTargetChange(event) {
+  const { value } = event.detail
+  analysisTarget.value = value
+}
+
+// 분석 요청 이벤트 리스너
+function handleAnalyzeRequest() {
+  handleAnalyze()
+}
+
+// 노드 선택 이벤트 리스너
+function handleNodeSelected(event) {
+  const { node } = event.detail
+  selectedNode.value = node
+}
+
+onMounted(() => {
+  // 전역 이벤트 리스너 등록
+  window.addEventListener('graph-doc-accordion-change', handleAccordionChange)
+  window.addEventListener('graph-doc-dependency-graph-analysis-target-change', handleAnalysisTargetChange)
+  window.addEventListener('graph-doc-dependency-graph-analyze', handleAnalyzeRequest)
+  window.addEventListener('graph-doc-dependency-graph-node-selected', handleNodeSelected)
+})
+
+onBeforeUnmount(() => {
+  // 전역 이벤트 리스너 제거
+  window.removeEventListener('graph-doc-accordion-change', handleAccordionChange)
+  window.removeEventListener('graph-doc-dependency-graph-analysis-target-change', handleAnalysisTargetChange)
+  window.removeEventListener('graph-doc-dependency-graph-analyze', handleAnalyzeRequest)
+  window.removeEventListener('graph-doc-dependency-graph-node-selected', handleNodeSelected)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -306,10 +358,6 @@ function handleGenerateDocument() {
   background: var(--nexa-background);
 }
 
-.graph-doc-tabs {
-  background: var(--nexa-surface);
-  border-bottom: 1px solid var(--nexa-border-color);
-}
 
 .graph-doc-main-content {
   flex: 1;
@@ -355,6 +403,45 @@ function handleGenerateDocument() {
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
+}
+
+.graph-doc-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.empty-state-content {
+  text-align: center;
+  max-width: 600px;
+}
+
+.empty-state-title {
+  color: var(--nexa-text-primary);
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+
+.empty-state-features {
+  text-align: left;
+  margin-top: 2rem;
+}
+
+.features-subtitle {
+  color: var(--nexa-text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state-features .features-list {
+  color: var(--nexa-text-secondary);
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  line-height: 1.8;
 }
 
 .graph-container {

@@ -113,6 +113,41 @@
       />
     </template>
 
+    <!-- 그래프독 -->
+    <template v-else-if="activeMenu === 'document-generator'">
+      <GraphDocSidebar
+        :dependency-graph-analysis-target="graphDocDependencyGraphAnalysisTarget"
+        :dependency-graph-is-analyzing="graphDocDependencyGraphIsAnalyzing"
+        :dependency-graph-data="graphDocDependencyGraphData"
+        :dependency-graph-selected-node="graphDocDependencyGraphSelectedNode"
+        :dependency-graph-is-loading="graphDocDependencyGraphIsLoading"
+        :dependency-analysis-results="graphDocDependencyAnalysisResults"
+        :dependency-analysis-selected-result="graphDocDependencyAnalysisSelectedResult"
+        :dependency-analysis-is-loading="graphDocDependencyAnalysisIsLoading"
+        :file-structure-data="graphDocFileStructureData"
+        :file-structure-selected-file="graphDocFileStructureSelectedFile"
+        :file-structure-is-loading="graphDocFileStructureIsLoading"
+        :code-search-query="graphDocCodeSearchQuery"
+        :code-search-results="graphDocCodeSearchResults"
+        :code-search-selected-result="graphDocCodeSearchSelectedResult"
+        :code-search-is-loading="graphDocCodeSearchIsLoading"
+        @dependency-graph-analyze="handleGraphDocDependencyGraphAnalyze"
+        @dependency-graph-analysis-target-change="handleGraphDocDependencyGraphAnalysisTargetChange"
+        @dependency-graph-node-selected="handleGraphDocDependencyGraphNodeSelected"
+        @dependency-analysis-refresh="handleGraphDocDependencyAnalysisRefresh"
+        @dependency-analysis-settings="handleGraphDocDependencyAnalysisSettings"
+        @dependency-analysis-result-selected="handleGraphDocDependencyAnalysisResultSelected"
+        @file-structure-refresh="handleGraphDocFileStructureRefresh"
+        @file-structure-settings="handleGraphDocFileStructureSettings"
+        @file-structure-file-selected="handleGraphDocFileStructureFileSelected"
+        @code-search-change="handleGraphDocCodeSearchChange"
+        @code-search="handleGraphDocCodeSearch"
+        @code-search-settings="handleGraphDocCodeSearchSettings"
+        @code-search-result-selected="handleGraphDocCodeSearchResultSelected"
+        @accordion-change="handleGraphDocAccordionChange"
+      />
+    </template>
+
     <!-- 성능 모니터 -->
     <template v-else-if="activeMenu === 'performance-monitor'">
       <PerformanceMonitorSidebar
@@ -178,6 +213,7 @@ import DatabaseViewerHeader from './dev-tools/database-viewer/DatabaseViewerHead
 import DatabaseViewerList from './dev-tools/database-viewer/DatabaseViewerList.vue'
 import ComponentLibrarySidebar from './dev-tools/component-library/ComponentLibrarySidebar.vue'
 import ErrorTrackingSidebar from './dev-tools/error-tracking/ErrorTrackingSidebar.vue'
+import GraphDocSidebar from './dev-tools/graph-doc/GraphDocSidebar.vue'
 import PerformanceMonitorSidebar from './dev-tools/performance-monitor/PerformanceMonitorSidebar.vue'
 import DevGuideHeader from './dev-tools/dev-guide/DevGuideHeader.vue'
 import DevGuideList from './dev-tools/dev-guide/DevGuideList.vue'
@@ -323,6 +359,23 @@ const {
   handleStatisticsRequest,
 } = useComponentLibrary()
 
+// 그래프독 상태
+const graphDocDependencyGraphAnalysisTarget = ref('')
+const graphDocDependencyGraphIsAnalyzing = ref(false)
+const graphDocDependencyGraphData = ref(null)
+const graphDocDependencyGraphSelectedNode = ref(null)
+const graphDocDependencyGraphIsLoading = ref(false)
+const graphDocDependencyAnalysisResults = ref([])
+const graphDocDependencyAnalysisSelectedResult = ref(null)
+const graphDocDependencyAnalysisIsLoading = ref(false)
+const graphDocFileStructureData = ref(null)
+const graphDocFileStructureSelectedFile = ref(null)
+const graphDocFileStructureIsLoading = ref(false)
+const graphDocCodeSearchQuery = ref('')
+const graphDocCodeSearchResults = ref([])
+const graphDocCodeSearchSelectedResult = ref(null)
+const graphDocCodeSearchIsLoading = ref(false)
+
 // 에러 트래킹 관리 (composable 사용)
 const {
   errors: errorTrackingErrors,
@@ -435,6 +488,79 @@ function handlePerformanceMonitorTabChange(tab) {
   console.log('[DevSidebar] 성능 모니터 탭 변경:', tab)
   // 전역 이벤트로 PerformanceMonitorContent에 탭 변경 알림
   window.dispatchEvent(new CustomEvent('performance-monitor-tab-change', { detail: { tab } }))
+}
+
+// 그래프독 핸들러
+function handleGraphDocDependencyGraphAnalyze() {
+  console.log('[DevSidebar] 의존성 그래프 분석 요청')
+  window.dispatchEvent(new CustomEvent('graph-doc-dependency-graph-analyze'))
+}
+
+function handleGraphDocDependencyGraphAnalysisTargetChange(value) {
+  graphDocDependencyGraphAnalysisTarget.value = value
+  window.dispatchEvent(new CustomEvent('graph-doc-dependency-graph-analysis-target-change', { detail: { value } }))
+}
+
+function handleGraphDocDependencyGraphNodeSelected(node) {
+  graphDocDependencyGraphSelectedNode.value = node
+  window.dispatchEvent(new CustomEvent('graph-doc-dependency-graph-node-selected', { detail: { node } }))
+}
+
+function handleGraphDocDependencyAnalysisRefresh() {
+  console.log('[DevSidebar] 의존성 분석 새로고침')
+  // TODO: 의존성 분석 새로고침
+}
+
+function handleGraphDocDependencyAnalysisSettings() {
+  console.log('[DevSidebar] 의존성 분석 설정')
+  // TODO: 설정 모달 열기
+}
+
+function handleGraphDocDependencyAnalysisResultSelected(result) {
+  graphDocDependencyAnalysisSelectedResult.value = result
+  window.dispatchEvent(new CustomEvent('graph-doc-dependency-analysis-result-selected', { detail: { result } }))
+}
+
+function handleGraphDocFileStructureRefresh() {
+  console.log('[DevSidebar] 파일 구조 새로고침')
+  // TODO: 파일 구조 새로고침
+}
+
+function handleGraphDocFileStructureSettings() {
+  console.log('[DevSidebar] 파일 구조 설정')
+  // TODO: 설정 모달 열기
+}
+
+function handleGraphDocFileStructureFileSelected(file) {
+  graphDocFileStructureSelectedFile.value = file
+  window.dispatchEvent(new CustomEvent('graph-doc-file-structure-file-selected', { detail: { file } }))
+}
+
+function handleGraphDocCodeSearchChange(value) {
+  graphDocCodeSearchQuery.value = value
+  window.dispatchEvent(new CustomEvent('graph-doc-code-search-change', { detail: { value } }))
+}
+
+function handleGraphDocCodeSearch() {
+  console.log('[DevSidebar] 코드 검색 실행:', graphDocCodeSearchQuery.value)
+  window.dispatchEvent(new CustomEvent('graph-doc-code-search', { detail: { query: graphDocCodeSearchQuery.value } }))
+}
+
+function handleGraphDocCodeSearchSettings() {
+  console.log('[DevSidebar] 코드 검색 설정')
+  // TODO: 설정 모달 열기
+}
+
+function handleGraphDocCodeSearchResultSelected(result) {
+  graphDocCodeSearchSelectedResult.value = result
+  window.dispatchEvent(new CustomEvent('graph-doc-code-search-result-selected', { detail: { result } }))
+}
+
+function handleGraphDocAccordionChange(event) {
+  const { item, expanded } = event
+  console.log('[DevSidebar] 아코디언 변경:', item, expanded)
+  // 전역 이벤트로 GraphDocContent에 아코디언 변경 알림
+  window.dispatchEvent(new CustomEvent('graph-doc-accordion-change', { detail: { item, expanded } }))
 }
 
 // 설정 관리 (composable 사용)
