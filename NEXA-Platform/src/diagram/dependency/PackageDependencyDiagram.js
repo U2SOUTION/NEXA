@@ -1,16 +1,16 @@
 /**
- * DependencyAnalysisDiagram.js
- * 의존성 분석 다이어그램 렌더러
+ * PackageDependencyDiagram.js
+ * 패키지 의존성 그래프 다이어그램 렌더러
  * D3.js force-directed graph를 사용하여 패키지 의존성 관계 시각화
  */
 
 import * as d3 from 'd3'
-import { createZoom } from '../utils/diagramZoom.js'
+import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
 
 /**
- * 의존성 분석 다이어그램 렌더링
+ * 패키지 의존성 그래프 다이어그램 렌더링
  * @param {HTMLElement} container - 다이어그램 컨테이너 DOM 요소
  * @param {Object} data - 다이어그램 데이터
  * @param {Array} data.packages - 패키지 목록
@@ -66,7 +66,7 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
 
       // 패키지가 존재하는지 확인
       if (!packageIdMap.has(sourceId) || !packageIdMap.has(targetId)) {
-        console.warn('[DependencyAnalysisDiagram] 엣지의 패키지를 찾을 수 없음:', { sourceId, targetId })
+        console.warn('[PackageDependencyDiagram] 엣지의 패키지를 찾을 수 없음:', { sourceId, targetId })
         return null
       }
 
@@ -89,7 +89,7 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
       const sourceNode = packageIdMap.get(link.source)
       const targetNode = packageIdMap.get(link.target)
       if (!sourceNode || !targetNode) {
-        console.warn('[DependencyAnalysisDiagram] 링크의 노드를 찾을 수 없음:', link)
+        console.warn('[PackageDependencyDiagram] 링크의 노드를 찾을 수 없음:', link)
         return null
       }
       return {
@@ -357,33 +357,17 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
 
   svg.call(zoom)
 
-  // 초기 줌 설정 (전체 그래프가 보이도록)
-  setTimeout(() => {
-    try {
-      const bounds = svgGroup.node().getBBox()
-      const graphWidth = bounds.width || containerWidth
-      const graphHeight = bounds.height || containerHeight
-
-      if (graphWidth > 0 && graphHeight > 0) {
-        const scaleX = containerWidth / graphWidth
-        const scaleY = containerHeight / graphHeight
-        const optimalScale = Math.min(scaleX, scaleY) * 0.9
-
-        const midX = bounds.x + graphWidth / 2
-        const midY = bounds.y + graphHeight / 2
-        const translate = [containerWidth / 2 - optimalScale * midX, containerHeight / 2 - optimalScale * midY]
-
-        svg.call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(optimalScale))
-
-        // 초기 줌 후 폰트 크기 제한 적용
-        const inverseScale = 1 / optimalScale
-        const fixedFontSize = Math.max(8, Math.min(MAX_FONT_SIZE, BASE_FONT_SIZE * inverseScale))
-        svgGroup.selectAll('.node text').attr('font-size', `${fixedFontSize}px`).style('font-size', `${fixedFontSize}px`)
-      }
-    } catch (err) {
-      console.warn('[DependencyAnalysisDiagram] 초기 줌 설정 실패:', err)
-    }
-  }, 500) // 시뮬레이션이 어느 정도 진행된 후 줌 설정
+  // 초기 줌 설정 (공통 유틸리티 사용, Force 시뮬레이션 완료 대기)
+  fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, {
+    margin: 0.9,
+    delay: 500, // 시뮬레이션이 어느 정도 진행된 후 줌 설정
+    onComplete: (transform) => {
+      // 초기 줌 후 폰트 크기 제한 적용
+      const inverseScale = 1 / transform.k
+      const fixedFontSize = Math.max(8, Math.min(MAX_FONT_SIZE, BASE_FONT_SIZE * inverseScale))
+      svgGroup.selectAll('.node text').attr('font-size', `${fixedFontSize}px`).style('font-size', `${fixedFontSize}px`)
+    },
+  })
 
   return {
     svg,

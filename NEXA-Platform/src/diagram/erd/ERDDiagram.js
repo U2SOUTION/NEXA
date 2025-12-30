@@ -391,15 +391,11 @@ export async function renderERD(container, data, options = {}) {
 
   svg.call(zoom)
 
-  // 초기 줌 설정 (렌더링이 완전히 끝난 후 실행)
-  setTimeout(() => {
-    try {
-      fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom)
-      console.log('[ERDDiagram] 초기 줌 설정 완료')
-    } catch (err) {
-      console.warn('[ERDDiagram] 초기 줌 설정 실패:', err)
-    }
-  }, 200) // 지연 시간 증가 (50ms -> 200ms)
+  // 초기 줌 설정 (공통 유틸리티 사용)
+  fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, {
+    margin: 0.9,
+    delay: 200, // 렌더링이 완전히 끝난 후 실행
+  })
 
   return {
     svg,

@@ -1,6 +1,6 @@
 /**
- * DependencyDiagram.js
- * 의존성 그래프 다이어그램 렌더러
+ * FileDependencyDiagram.js
+ * 파일 의존성 그래프 다이어그램 렌더러
  * D3.js + dagre-d3-es를 사용하여 파일 간 의존성 관계 시각화
  *
  * 근본적인 폰트 크기 문제 해결:
@@ -10,7 +10,7 @@
 
 import * as d3 from 'd3'
 import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
-import { createZoom } from '../utils/diagramZoom.js'
+import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
 
@@ -37,7 +37,7 @@ async function loadDagreLibraries() {
 
     return { dagre, graphlib, render }
   } catch (importError) {
-    console.error('[DependencyDiagram] dagre/dagre-d3-es 임포트 실패:', importError)
+    console.error('[FileDependencyDiagram] dagre/dagre-d3-es 임포트 실패:', importError)
     throw new Error('dagre 또는 dagre-d3-es 라이브러리를 찾을 수 없습니다. npm install dagre dagre-d3-es를 실행하세요.')
   }
 }
@@ -65,7 +65,7 @@ function getFileTypeColor(filePath) {
 }
 
 /**
- * 의존성 그래프 다이어그램 렌더링
+ * 파일 의존성 그래프 다이어그램 렌더링
  * @param {HTMLElement} container - 다이어그램 컨테이너 DOM 요소
  * @param {Object} data - 다이어그램 데이터
  * @param {Array} data.files - 파일 목록
@@ -137,7 +137,7 @@ export async function renderDependency(container, data, options = {}) {
   // 노드 추가 (파일)
   files.forEach((file) => {
     if (!file || !file.path) {
-      console.warn('[DependencyDiagram] 잘못된 파일 데이터:', file)
+      console.warn('[FileDependencyDiagram] 잘못된 파일 데이터:', file)
       return
     }
 
@@ -160,7 +160,7 @@ export async function renderDependency(container, data, options = {}) {
   // 엣지 추가 (의존성 관계)
   dependencies.forEach((dep) => {
     if (!dep.from || !dep.to) {
-      console.warn('[DependencyDiagram] 잘못된 의존성 데이터:', dep)
+      console.warn('[FileDependencyDiagram] 잘못된 의존성 데이터:', dep)
       return
     }
 
@@ -357,30 +357,15 @@ export async function renderDependency(container, data, options = {}) {
 
   svg.call(zoom)
 
-  // 초기 줌 설정
-  setTimeout(() => {
-    try {
-      const bounds = svgGroup.node().getBBox()
-      const graphWidth = bounds.width
-      const graphHeight = bounds.height
-
-      if (graphWidth > 0 && graphHeight > 0) {
-        const scaleX = containerWidth / graphWidth
-        const scaleY = containerHeight / graphHeight
-        const optimalScale = Math.min(scaleX, scaleY) * 0.95
-
-        const midX = bounds.x + graphWidth / 2
-        const midY = bounds.y + graphHeight / 2
-        const translate = [containerWidth / 2 - optimalScale * midX, containerHeight / 2 - optimalScale * midY]
-
-        const initialTransform = d3.zoomIdentity.translate(translate[0], translate[1]).scale(optimalScale)
-        svg.call(zoom.transform, initialTransform)
-        updateTextPositions(initialTransform)
-      }
-    } catch (err) {
-      console.warn('[DependencyDiagram] 초기 줌 설정 실패:', err)
-    }
-  }, 100)
+  // 초기 줌 설정 (공통 유틸리티 사용)
+  fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, {
+    margin: 0.95, // 5% 여유 공간
+    delay: 100,
+    onComplete: (transform) => {
+      // 텍스트 위치 업데이트
+      updateTextPositions(transform)
+    },
+  })
 
   return {
     svg,

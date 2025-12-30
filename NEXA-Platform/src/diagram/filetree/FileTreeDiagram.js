@@ -5,7 +5,7 @@
  */
 
 import * as d3 from 'd3'
-import { createZoom } from '../utils/diagramZoom.js'
+import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
 
@@ -466,28 +466,11 @@ export async function renderFileTree(container, data, options = {}) {
 
   svg.call(zoom)
 
-  // 초기 줌 설정 (전체 그래프가 보이도록)
-  setTimeout(() => {
-    try {
-      const bounds = svgGroup.node().getBBox()
-      const graphWidth = bounds.width || containerWidth
-      const graphHeight = bounds.height || containerHeight
-
-      if (graphWidth > 0 && graphHeight > 0) {
-        const scaleX = containerWidth / graphWidth
-        const scaleY = containerHeight / graphHeight
-        const optimalScale = Math.min(scaleX, scaleY) * 0.9
-
-        const midX = bounds.x + graphWidth / 2
-        const midY = bounds.y + graphHeight / 2
-        const translate = [containerWidth / 2 - optimalScale * midX, containerHeight / 2 - optimalScale * midY]
-
-        svg.call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(optimalScale))
-      }
-    } catch (err) {
-      console.warn('[FileTreeDiagram] 초기 줌 설정 실패:', err)
-    }
-  }, 500) // 시뮬레이션이 어느 정도 진행된 후 줌 설정
+  // 초기 줌 설정 (공통 유틸리티 사용, Force 시뮬레이션 완료 대기)
+  fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, {
+    margin: 0.9,
+    delay: 500, // 시뮬레이션이 어느 정도 진행된 후 줌 설정
+  })
 
   return {
     svg,
