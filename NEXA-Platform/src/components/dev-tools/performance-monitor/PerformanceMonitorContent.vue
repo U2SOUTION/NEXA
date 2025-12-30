@@ -66,10 +66,15 @@
           </div>
         </div>
       </div>
+
+      <!-- ERROR TRACKING 탭 컨텐츠 -->
+      <div v-else-if="activeTab === 'error-tracking'" class="error-tracking-tab-content">
+        <ErrorTrackingContent />
+      </div>
     </div>
 
     <!-- 선택된 메트릭/요청이 있을 때: 상세 페이지 -->
-    <div v-else class="performance-monitor-detail-view">
+    <div v-else-if="activeTab !== 'error-tracking'" class="performance-monitor-detail-view">
       <!-- 상세 정보 표시 (나중에 구현) -->
       <div class="detail-placeholder q-pa-lg text-center">
         <q-icon name="info" size="48px" color="grey-5" class="q-mb-md" />
@@ -84,6 +89,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import PerformanceMetricsCards from './PerformanceMetricsCards.vue'
 import ApiTesterContent from '../api-tester/ApiTesterContent.vue'
+import ErrorTrackingContent from '../error-tracking/ErrorTrackingContent.vue'
 import { startFPSMonitoring, stopFPSMonitoring, getCurrentFPS, getAverageFPS, getMinFPS } from 'src/utils/performance/fpsMonitor'
 import { startMemoryMonitoring, stopMemoryMonitoring, collectMemorySnapshot } from 'src/utils/performance/memoryMonitor'
 import { onWebVitals, getWebVitals } from 'src/utils/performance/webVitalsCollector'
@@ -318,10 +324,12 @@ function handleTabChange(event) {
   const tab = event.detail?.tab
   if (tab) {
     activeTab.value = tab
-    // 탭 변경 시 선택 해제
-    selectedMetric.value = null
-    selectedApiRequest.value = null
-    selectedNetworkRequest.value = null
+    // 탭 변경 시 선택 해제 (에러 트래킹 탭 제외)
+    if (tab !== 'error-tracking') {
+      selectedMetric.value = null
+      selectedApiRequest.value = null
+      selectedNetworkRequest.value = null
+    }
   }
 }
 

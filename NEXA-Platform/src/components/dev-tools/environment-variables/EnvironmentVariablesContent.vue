@@ -12,6 +12,12 @@
 
 <script setup>
 // EnvironmentVariablesContent.vue - 환경 변수 관리
+defineProps({
+  selectedVariable: {
+    type: Object,
+    default: null,
+  },
+})
 </script>
 
 <style lang="scss" scoped>

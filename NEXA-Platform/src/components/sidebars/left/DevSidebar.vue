@@ -92,27 +92,6 @@
       <DevGuideList :header-hovered="isLeftHeaderHovered" />
     </template>
 
-    <!-- 에러 트래킹 -->
-    <template v-else-if="activeMenu === 'error-tracking'">
-      <ErrorTrackingSidebar
-        :errors="errorTrackingErrors"
-        :filtered-errors="errorTrackingFilteredErrors"
-        :selected-error="errorTrackingSelectedError"
-        :search-query="errorTrackingSearchQuery"
-        :is-collecting="errorTrackingIsCollecting"
-        :is-loading="errorTrackingIsLoading"
-        :statistics="errorTrackingStatistics"
-        @refresh="handleErrorTrackingRefresh"
-        @search-change="handleErrorTrackingSearchChange"
-        @settings="handleErrorTrackingSettings"
-        @filter-change="handleErrorTrackingFilterChange"
-        @sort-change="handleErrorTrackingSortChange"
-        @collecting-toggle="handleErrorTrackingCollectingToggle"
-        @error-selected="handleErrorTrackingErrorSelected"
-        @tab-change="handleErrorTrackingTabChange"
-      />
-    </template>
-
     <!-- 그래프독 -->
     <template v-else-if="activeMenu === 'document-generator'">
       <GraphDocSidebar
@@ -159,6 +138,13 @@
         :selected-network-request="performanceMonitorSelectedNetworkRequest"
         :network-statistics="performanceMonitorNetworkStatistics"
         :is-loading="performanceMonitorIsLoading"
+        :errors="errorTrackingErrors"
+        :filtered-errors="errorTrackingFilteredErrors"
+        :selected-error="errorTrackingSelectedError"
+        :search-query="errorTrackingSearchQuery"
+        :is-collecting="errorTrackingIsCollecting"
+        :error-tracking-is-loading="errorTrackingIsLoading"
+        :statistics="errorTrackingStatistics"
         @refresh="handlePerformanceMonitorRefresh"
         @monitoring-toggle="handlePerformanceMonitorMonitoringToggle"
         @settings="handlePerformanceMonitorSettings"
@@ -172,27 +158,52 @@
         @network-filter-change="handlePerformanceMonitorNetworkFilterChange"
         @network-settings="handlePerformanceMonitorNetworkSettings"
         @network-request-selected="handlePerformanceMonitorNetworkRequestSelected"
+        @error-tracking-refresh="handleErrorTrackingRefresh"
+        @error-tracking-search-change="handleErrorTrackingSearchChange"
+        @error-tracking-settings="handleErrorTrackingSettings"
+        @error-tracking-filter-change="handleErrorTrackingFilterChange"
+        @error-tracking-sort-change="handleErrorTrackingSortChange"
+        @error-tracking-collecting-toggle="handleErrorTrackingCollectingToggle"
+        @error-tracking-error-selected="handleErrorTrackingErrorSelected"
+        @error-tracking-tab-change="handleErrorTrackingTabChange"
         @tab-change="handlePerformanceMonitorTabChange"
       />
     </template>
 
     <!-- 설정 관리 -->
     <template v-else-if="activeMenu === 'settings-manager'">
-      <SettingsManagerHeader
+      <SettingsManagerSidebar
         :header-hovered="isLeftHeaderHovered"
-        :search-query="settingsManagerSearchQuery"
-        :filter-category="settingsManagerFilterCategory"
-        :filter-type="settingsManagerFilterType"
-        :categories="settingsManagerCategories"
-        :types="settingsManagerTypes"
-        :is-loading="settingsManagerIsLoading"
-        @search-change="handleSettingsManagerSearchChange"
-        @category-filter-change="handleSettingsManagerCategoryFilterChange"
-        @type-filter-change="handleSettingsManagerTypeFilterChange"
-        @refresh="handleSettingsManagerRefresh"
-        @settings="handleSettingsManagerSettings"
+        :settings-search-query="settingsManagerSearchQuery"
+        :settings-filter-category="settingsManagerFilterCategory"
+        :settings-filter-type="settingsManagerFilterType"
+        :settings-categories="settingsManagerCategories"
+        :settings-types="settingsManagerTypes"
+        :settings-filtered-settings="settingsManagerFilteredSettings"
+        :settings-selected-setting="settingsManagerSelectedSetting"
+        :settings-is-loading="settingsManagerIsLoading"
+        :environment-variables="settingsManagerEnvironmentVariables"
+        :environment-variables-selected-variable="settingsManagerEnvironmentVariablesSelectedVariable"
+        :environment-variables-is-loading="settingsManagerEnvironmentVariablesIsLoading"
+        :packages="settingsManagerPackages"
+        :packages-selected-package="settingsManagerPackagesSelectedPackage"
+        :packages-is-loading="settingsManagerPackagesIsLoading"
+        @settings-search-change="handleSettingsManagerSearchChange"
+        @settings-category-filter-change="handleSettingsManagerCategoryFilterChange"
+        @settings-type-filter-change="handleSettingsManagerTypeFilterChange"
+        @settings-refresh="handleSettingsManagerRefresh"
+        @settings-settings="handleSettingsManagerSettings"
+        @settings-setting-selected="handleSettingsManagerSettingSelected"
+        @environment-variables-refresh="handleSettingsManagerEnvironmentVariablesRefresh"
+        @environment-variables-search-change="handleSettingsManagerEnvironmentVariablesSearchChange"
+        @environment-variables-settings="handleSettingsManagerEnvironmentVariablesSettings"
+        @environment-variable-selected="handleSettingsManagerEnvironmentVariableSelected"
+        @package-manager-refresh="handleSettingsManagerPackageManagerRefresh"
+        @package-manager-search-change="handleSettingsManagerPackageManagerSearchChange"
+        @package-manager-settings="handleSettingsManagerPackageManagerSettings"
+        @package-selected="handleSettingsManagerPackageSelected"
+        @tab-change="handleSettingsManagerTabChange"
       />
-      <SettingsManagerList :filtered-settings="settingsManagerFilteredSettings" :selected-setting="settingsManagerSelectedSetting" :is-loading="settingsManagerIsLoading" @setting-selected="handleSettingsManagerSettingSelected" />
     </template>
 
     <!-- 설정 모달 -->
@@ -212,13 +223,11 @@ import ThemeManagerList from './dev-tools/theme-manager/ThemeManagerList.vue'
 import DatabaseViewerHeader from './dev-tools/database-viewer/DatabaseViewerHeader.vue'
 import DatabaseViewerList from './dev-tools/database-viewer/DatabaseViewerList.vue'
 import ComponentLibrarySidebar from './dev-tools/component-library/ComponentLibrarySidebar.vue'
-import ErrorTrackingSidebar from './dev-tools/error-tracking/ErrorTrackingSidebar.vue'
 import GraphDocSidebar from './dev-tools/graph-doc/GraphDocSidebar.vue'
 import PerformanceMonitorSidebar from './dev-tools/performance-monitor/PerformanceMonitorSidebar.vue'
 import DevGuideHeader from './dev-tools/dev-guide/DevGuideHeader.vue'
 import DevGuideList from './dev-tools/dev-guide/DevGuideList.vue'
-import SettingsManagerHeader from './dev-tools/settings-manager/SettingsManagerHeader.vue'
-import SettingsManagerList from './dev-tools/settings-manager/SettingsManagerList.vue'
+import SettingsManagerSidebar from './dev-tools/settings-manager/SettingsManagerSidebar.vue'
 import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.vue'
 import { loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentMultiSelection } from 'src/composables/dev-tools/useDocumentMultiSelection.js'
@@ -253,7 +262,6 @@ const menuHeaders = {
   'database-viewer': { title: 'Database Viewer', subtitle: 'Database tables and data query' },
   'log-viewer': { title: 'Log Viewer', subtitle: 'Application log viewing and analysis' },
   'performance-monitor': { title: 'Performance Monitor', subtitle: 'Performance metrics monitoring and analysis' },
-  'error-tracking': { title: 'Error Tracking', subtitle: 'Error tracking and debugging' },
   'settings-manager': { title: 'Settings Manager', subtitle: 'System settings integrated management' },
   'build-tools': { title: 'Build Tools', subtitle: 'Build and deployment tools management' },
   'network-monitor': { title: 'Network Monitor', subtitle: 'Network request monitoring' },
@@ -375,6 +383,15 @@ const graphDocCodeSearchQuery = ref('')
 const graphDocCodeSearchResults = ref([])
 const graphDocCodeSearchSelectedResult = ref(null)
 const graphDocCodeSearchIsLoading = ref(false)
+
+// 설정 관리 탭 상태
+const settingsManagerActiveTab = ref('settings')
+const settingsManagerEnvironmentVariables = ref([])
+const settingsManagerEnvironmentVariablesSelectedVariable = ref(null)
+const settingsManagerEnvironmentVariablesIsLoading = ref(false)
+const settingsManagerPackages = ref([])
+const settingsManagerPackagesSelectedPackage = ref(null)
+const settingsManagerPackagesIsLoading = ref(false)
 
 // 에러 트래킹 관리 (composable 사용)
 const {
@@ -606,6 +623,60 @@ function handleSettingsManagerSettings() {
   // TODO: 설정 모달 열기
 }
 
+// 설정 관리 탭 변경 핸들러
+function handleSettingsManagerTabChange(tab) {
+  settingsManagerActiveTab.value = tab
+  console.log('[DevSidebar] 설정 관리 탭 변경:', tab)
+  // 전역 이벤트로 DevelopmentPage에 탭 변경 알림
+  window.dispatchEvent(new CustomEvent('settings-manager-tab-change', { detail: { tab } }))
+}
+
+// 환경변수 핸들러
+function handleSettingsManagerEnvironmentVariablesRefresh() {
+  console.log('[DevSidebar] 환경변수 새로고침')
+  // TODO: 환경변수 새로고침
+}
+
+function handleSettingsManagerEnvironmentVariablesSearchChange(value) {
+  console.log('[DevSidebar] 환경변수 검색:', value)
+  // TODO: 환경변수 검색
+}
+
+function handleSettingsManagerEnvironmentVariablesSettings() {
+  console.log('[DevSidebar] 환경변수 설정')
+  // TODO: 환경변수 설정 모달 열기
+}
+
+function handleSettingsManagerEnvironmentVariableSelected(variable) {
+  settingsManagerEnvironmentVariablesSelectedVariable.value = variable
+  console.log('[DevSidebar] 환경변수 선택:', variable)
+  // 전역 이벤트로 DevelopmentPage에 알림
+  window.dispatchEvent(new CustomEvent('settings-manager-environment-variable-selected', { detail: { variable } }))
+}
+
+// 패키지 관리 핸들러
+function handleSettingsManagerPackageManagerRefresh() {
+  console.log('[DevSidebar] 패키지 관리 새로고침')
+  // TODO: 패키지 새로고침
+}
+
+function handleSettingsManagerPackageManagerSearchChange(value) {
+  console.log('[DevSidebar] 패키지 검색:', value)
+  // TODO: 패키지 검색
+}
+
+function handleSettingsManagerPackageManagerSettings() {
+  console.log('[DevSidebar] 패키지 관리 설정')
+  // TODO: 패키지 관리 설정 모달 열기
+}
+
+function handleSettingsManagerPackageSelected(packageItem) {
+  settingsManagerPackagesSelectedPackage.value = packageItem
+  console.log('[DevSidebar] 패키지 선택:', packageItem)
+  // 전역 이벤트로 DevelopmentPage에 알림
+  window.dispatchEvent(new CustomEvent('settings-manager-package-selected', { detail: { package: packageItem } }))
+}
+
 // Content 컴포넌트 참조
 const contentRef = ref(null)
 
@@ -749,12 +820,11 @@ watch(
     } else if (newMenu === 'component-library') {
       // 컴포넌트 라이브러리 메뉴 활성화 시 초기 스캔
       initializeComponentLibrary()
-    } else if (newMenu === 'error-tracking') {
-      // 에러 트래킹 메뉴 활성화 시 초기화
-      initializeErrorTracking()
     } else if (newMenu === 'performance-monitor') {
       // 성능 모니터 메뉴 활성화 시 초기화
       handlePerformanceMonitorRefresh()
+      // 에러 트래킹도 함께 초기화
+      initializeErrorTracking()
     } else if (newMenu === 'settings-manager') {
       // 설정 관리 메뉴 활성화 시 초기 스캔
       handleSettingsManagerScanSettings()
@@ -774,23 +844,7 @@ function getInitialActiveMenu() {
       const saved = localStorage.getItem('dev-active-menu')
       if (saved) {
         // 유효한 메뉴 ID인지 확인
-        const validMenus = [
-          'document-manager',
-          'theme-manager',
-          'dev-guide',
-          'component-library',
-          'database-viewer',
-          'log-viewer',
-          'performance-monitor',
-          'error-tracking',
-          'settings-manager',
-          'build-tools',
-          'network-monitor',
-          'environment-variables',
-          'package-manager',
-          'document-generator',
-          'deployment-manager',
-        ]
+        const validMenus = ['document-manager', 'theme-manager', 'dev-guide', 'component-library', 'database-viewer', 'log-viewer', 'performance-monitor', 'settings-manager', 'build-tools', 'network-monitor', 'environment-variables', 'package-manager', 'document-generator', 'deployment-manager']
         if (validMenus.includes(saved)) {
           return saved
         }

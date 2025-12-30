@@ -33,7 +33,14 @@
       <DatabaseViewerContent v-else-if="activeMenu === 'database-viewer'" />
 
       <!-- 설정 관리 -->
-      <SettingsManagerContent v-else-if="activeMenu === 'settings-manager'" :selected-setting="settingsManagerSelectedSetting" :statistics="settingsManagerStatistics" />
+      <template v-else-if="activeMenu === 'settings-manager'">
+        <!-- 셋팅관리 탭 -->
+        <SettingsManagerContent v-if="settingsManagerActiveTab === 'settings'" :selected-setting="settingsManagerSelectedSetting" :statistics="settingsManagerStatistics" />
+        <!-- 환경변수 탭 -->
+        <EnvironmentVariablesContent v-else-if="settingsManagerActiveTab === 'environment-variables'" :selected-variable="settingsManagerEnvironmentVariablesSelectedVariable" />
+        <!-- 패키지 탭 -->
+        <PackageManagerContent v-else-if="settingsManagerActiveTab === 'package-manager'" :selected-package="settingsManagerPackagesSelectedPackage" />
+      </template>
 
       <!-- 개발 가이드 -->
       <DevGuideContent v-else-if="activeMenu === 'dev-guide'" ref="devGuideContentRef" />
@@ -50,8 +57,6 @@
       <!-- 네트워크 모니터 -->
       <NetworkMonitorContent v-else-if="activeMenu === 'network-monitor'" />
 
-      <!-- 에러 트래킹 -->
-      <ErrorTrackingContent v-else-if="activeMenu === 'error-tracking'" />
 
       <!-- 배포 관리 -->
       <DeploymentManagerContent v-else-if="activeMenu === 'deployment-manager'" />
@@ -77,7 +82,6 @@ import BuildToolsContent from 'src/components/dev-tools/build-tools/BuildToolsCo
 import PackageManagerContent from 'src/components/dev-tools/package-manager/PackageManagerContent.vue'
 import EnvironmentVariablesContent from 'src/components/dev-tools/environment-variables/EnvironmentVariablesContent.vue'
 import NetworkMonitorContent from 'src/components/dev-tools/network-monitor/NetworkMonitorContent.vue'
-import ErrorTrackingContent from 'src/components/dev-tools/error-tracking/ErrorTrackingContent.vue'
 import DeploymentManagerContent from 'src/components/dev-tools/deployment-manager/DeploymentManagerContent.vue'
 
 // Active menu 상태 (설정에 따라 이전 메뉴 복원 또는 null로 시작)
@@ -129,6 +133,9 @@ const themeSortOption = ref('category')
 // 설정 관리 상태 (DevSidebar와 동기화)
 const settingsManagerSelectedSetting = ref(null)
 const settingsManagerStatistics = ref(null)
+const settingsManagerActiveTab = ref('settings')
+const settingsManagerEnvironmentVariablesSelectedVariable = ref(null)
+const settingsManagerPackagesSelectedPackage = ref(null)
 
 // 테마 관리 상태 변경 이벤트 핸들러
 function handleThemeSearchChange(event) {
@@ -165,14 +172,39 @@ function handleSettingsManagerSettingDeleted() {
   window.dispatchEvent(new CustomEvent('settings-manager-refresh-request'))
 }
 
+// 설정 관리 탭 변경 핸들러
+function handleSettingsManagerTabChange(event) {
+  const { tab } = event.detail
+  settingsManagerActiveTab.value = tab
+  // 탭 변경 시 선택 항목 초기화
+  settingsManagerSelectedSetting.value = null
+  settingsManagerEnvironmentVariablesSelectedVariable.value = null
+  settingsManagerPackagesSelectedPackage.value = null
+}
+
+// 환경변수 선택 핸들러
+function handleSettingsManagerEnvironmentVariableSelected(event) {
+  const { variable } = event.detail
+  settingsManagerEnvironmentVariablesSelectedVariable.value = variable
+}
+
+// 패키지 선택 핸들러
+function handleSettingsManagerPackageSelected(event) {
+  const { package: packageItem } = event.detail
+  settingsManagerPackagesSelectedPackage.value = packageItem
+}
+
 // 메뉴 메인 페이지로 이동 핸들러
 function handleMenuMainPage(event) {
   const menuId = event.detail.menuId
   if (menuId === activeMenu.value) {
-    // 현재 메뉴의 메인 페이지로 이동
-    if (menuId === 'settings-manager') {
-      settingsManagerSelectedSetting.value = null
-    } else if (menuId === 'dev-guide') {
+      // 현재 메뉴의 메인 페이지로 이동
+      if (menuId === 'settings-manager') {
+        settingsManagerSelectedSetting.value = null
+        settingsManagerEnvironmentVariablesSelectedVariable.value = null
+        settingsManagerPackagesSelectedPackage.value = null
+        settingsManagerActiveTab.value = 'settings'
+      } else if (menuId === 'dev-guide') {
       // DevGuideContent의 메인 페이지로 이동
       window.dispatchEvent(new CustomEvent('dev-guide-main-page'))
     } else if (menuId === 'error-tracking') {
@@ -211,6 +243,9 @@ onMounted(async () => {
   window.addEventListener('settings-manager-statistics-updated', handleSettingsManagerStatisticsUpdated)
   window.addEventListener('settings-manager-setting-updated', handleSettingsManagerSettingUpdated)
   window.addEventListener('settings-manager-setting-deleted', handleSettingsManagerSettingDeleted)
+  window.addEventListener('settings-manager-tab-change', handleSettingsManagerTabChange)
+  window.addEventListener('settings-manager-environment-variable-selected', handleSettingsManagerEnvironmentVariableSelected)
+  window.addEventListener('settings-manager-package-selected', handleSettingsManagerPackageSelected)
 
   // 모든 컴포넌트가 마운트된 후에 초기 메뉴를 사이드바에 전파
   await nextTick()

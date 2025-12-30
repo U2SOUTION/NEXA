@@ -12,6 +12,12 @@
 
 <script setup>
 // PackageManagerContent.vue - 패키지 관리
+defineProps({
+  selectedPackage: {
+    type: Object,
+    default: null,
+  },
+})
 </script>
 
 <style lang="scss" scoped>

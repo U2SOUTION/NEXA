@@ -82,13 +82,10 @@ const devMenus = [
   // 개발/테스트 도구 (중요도 높음)
   { id: 'log-viewer', label: '로그 뷰어', icon: 'list_alt' },
   { id: 'performance-monitor', label: '성능 모니터', icon: 'speed' },
-  { id: 'error-tracking', label: '에러 트래킹', icon: 'bug_report' },
   // 시스템 관리 도구
   { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
   // 개발 유틸리티 도구
   { id: 'build-tools', label: '빌드 도구', icon: 'build' },
-  { id: 'environment-variables', label: '환경 변수', icon: 'tune' },
-  { id: 'package-manager', label: '패키지 관리', icon: 'inventory_2' },
   // 문서/분석 도구
   { id: 'document-generator', label: '그래프독', icon: 'account_tree' },
   { id: 'deployment-manager', label: '배포 관리', icon: 'cloud_upload' },

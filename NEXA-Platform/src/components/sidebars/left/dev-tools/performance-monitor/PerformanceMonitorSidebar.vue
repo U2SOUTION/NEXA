@@ -1,6 +1,6 @@
 <!-- PerformanceMonitorSidebar.vue
   성능 모니터 왼쪽 사이드바 통합 컴포넌트
-  탭 구조: 성능 MONITOR, API TESTER, NETWORK
+  탭 구조: MONITOR, API, NETWORK, ERROR
   헤더 + 목록
 -->
 
@@ -9,9 +9,10 @@
     <!-- 탭 메뉴 -->
     <div class="sidebar-tabs q-pa-sm">
       <q-tabs v-model="activeTab" dense class="text-grey" active-color="primary" indicator-color="primary" align="left">
-        <q-tab name="performance" label="성능 MONITOR" icon="speed" />
-        <q-tab name="api-tester" label="API TESTER" icon="api" />
+        <q-tab name="performance" label="MONITOR" icon="speed" />
+        <q-tab name="api-tester" label="API" icon="api" />
         <q-tab name="network" label="NETWORK" icon="network_check" />
+        <q-tab name="error-tracking" label="ERROR" icon="bug_report" />
       </q-tabs>
     </div>
 
@@ -62,6 +63,27 @@
         @request-selected="handleNetworkRequestSelected"
       />
     </template>
+
+    <!-- ERROR TRACKING 탭 -->
+    <template v-else-if="activeTab === 'error-tracking'">
+      <ErrorTrackingSidebar
+        :errors="errors"
+        :filtered-errors="filteredErrors"
+        :selected-error="selectedError"
+        :search-query="searchQuery"
+        :is-collecting="isCollecting"
+        :is-loading="errorTrackingIsLoading"
+        :statistics="statistics"
+        @refresh="handleErrorTrackingRefresh"
+        @search-change="handleErrorTrackingSearchChange"
+        @settings="handleErrorTrackingSettings"
+        @filter-change="handleErrorTrackingFilterChange"
+        @sort-change="handleErrorTrackingSortChange"
+        @collecting-toggle="handleErrorTrackingCollectingToggle"
+        @error-selected="handleErrorTrackingErrorSelected"
+        @tab-change="handleErrorTrackingTabChange"
+      />
+    </template>
   </div>
 </template>
 
@@ -73,6 +95,7 @@ import ApiTesterHeader from './ApiTesterHeader.vue'
 import ApiTesterList from './ApiTesterList.vue'
 import NetworkHeader from './NetworkHeader.vue'
 import NetworkList from './NetworkList.vue'
+import ErrorTrackingSidebar from '../error-tracking/ErrorTrackingSidebar.vue'
 
 // 활성 탭
 const activeTab = ref('performance')
@@ -117,6 +140,42 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  // 에러 트래킹 관련
+  errors: {
+    type: Array,
+    default: () => [],
+  },
+  filteredErrors: {
+    type: Array,
+    default: () => [],
+  },
+  selectedError: {
+    type: Object,
+    default: null,
+  },
+  searchQuery: {
+    type: String,
+    default: '',
+  },
+  isCollecting: {
+    type: Boolean,
+    default: true,
+  },
+  statistics: {
+    type: Object,
+    default: () => ({
+      total: 0,
+      new: 0,
+      resolved: 0,
+      ignored: 0,
+      today: 0,
+    }),
+  },
+  // 에러 트래킹 isLoading (ErrorTrackingSidebar에서 사용)
+  errorTrackingIsLoading: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits([
@@ -136,6 +195,15 @@ const emit = defineEmits([
   'network-filter-change',
   'network-settings',
   'network-request-selected',
+  // 에러 트래킹
+  'error-tracking-refresh',
+  'error-tracking-search-change',
+  'error-tracking-settings',
+  'error-tracking-filter-change',
+  'error-tracking-sort-change',
+  'error-tracking-collecting-toggle',
+  'error-tracking-error-selected',
+  'error-tracking-tab-change',
   // 탭 변경
   'tab-change',
 ])
@@ -193,6 +261,39 @@ function handleNetworkSettings() {
 
 function handleNetworkRequestSelected(request) {
   emit('network-request-selected', request)
+}
+
+// 에러 트래킹 핸들러
+function handleErrorTrackingRefresh() {
+  emit('error-tracking-refresh')
+}
+
+function handleErrorTrackingSearchChange(value) {
+  emit('error-tracking-search-change', value)
+}
+
+function handleErrorTrackingSettings() {
+  emit('error-tracking-settings')
+}
+
+function handleErrorTrackingFilterChange(filters) {
+  emit('error-tracking-filter-change', filters)
+}
+
+function handleErrorTrackingSortChange(option) {
+  emit('error-tracking-sort-change', option)
+}
+
+function handleErrorTrackingCollectingToggle(enabled) {
+  emit('error-tracking-collecting-toggle', enabled)
+}
+
+function handleErrorTrackingErrorSelected(error) {
+  emit('error-tracking-error-selected', error)
+}
+
+function handleErrorTrackingTabChange(tab) {
+  emit('error-tracking-tab-change', tab)
 }
 
 // 탭 변경 감지
