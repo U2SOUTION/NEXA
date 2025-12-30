@@ -6,6 +6,31 @@
 
 <template>
   <div class="graph-doc-sidebar">
+    <!-- 아코디언 동작 옵션 -->
+    <div class="accordion-options q-pa-sm">
+      <div class="row items-center justify-between q-gutter-xs">
+        <div class="row items-center q-gutter-xs">
+          <!-- 단일 열림 모드 토글 -->
+          <q-btn flat dense size="sm" :icon="singleMode ? 'radio_button_checked' : 'radio_button_unchecked'" :label="singleMode ? '단일' : '다중'" :class="{ 'option-active': singleMode, 'option-inactive': !singleMode }" class="option-btn" @click="handleSingleModeToggle">
+            <q-tooltip>{{ singleMode ? '단일 열림 모드 (하나만 열기)' : '다중 열림 모드 (여러 개 열기)' }}</q-tooltip>
+          </q-btn>
+
+          <!-- 모든 항목 열기/닫기 -->
+          <q-btn flat dense size="sm" icon="unfold_more" label="모두 열기" class="option-btn" @click="handleExpandAll">
+            <q-tooltip>모든 항목 열기</q-tooltip>
+          </q-btn>
+          <q-btn flat dense size="sm" icon="unfold_less" label="모두 닫기" class="option-btn" @click="handleCollapseAll">
+            <q-tooltip>모든 항목 닫기</q-tooltip>
+          </q-btn>
+        </div>
+
+        <!-- 설정 버튼 -->
+        <q-btn flat dense round size="sm" icon="settings" @click="handleSettings">
+          <q-tooltip>설정</q-tooltip>
+        </q-btn>
+      </div>
+    </div>
+
     <!-- 아코디언 메뉴 -->
     <q-list>
       <!-- 의존성 그래프 -->
@@ -36,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import DependencyGraphHeader from './DependencyGraphHeader.vue'
 import DependencyGraphList from './DependencyGraphList.vue'
 import DependencyAnalysisHeader from './DependencyAnalysisHeader.vue'
@@ -45,6 +70,9 @@ import FileStructureHeader from './FileStructureHeader.vue'
 import FileStructureList from './FileStructureList.vue'
 import CodeSearchHeader from './CodeSearchHeader.vue'
 import CodeSearchList from './CodeSearchList.vue'
+
+// 단일 열림 모드 (하나만 열기)
+const singleMode = ref(false)
 
 // 아코디언 확장 상태
 const expandedItems = ref({
@@ -142,21 +170,107 @@ const emit = defineEmits([
   'code-search-result-selected',
   // 아코디언 확장 변경
   'accordion-change',
+  // 설정
+  'settings',
 ])
+
+// 단일 열림 모드 토글
+function handleSingleModeToggle() {
+  singleMode.value = !singleMode.value
+  // localStorage에 저장
+  try {
+    localStorage.setItem('graph-doc-single-mode', String(singleMode.value))
+  } catch (error) {
+    console.error('[GraphDocSidebar] 단일 모드 설정 저장 실패:', error)
+  }
+}
+
+// 모든 항목 열기
+function handleExpandAll() {
+  Object.keys(expandedItems.value).forEach((key) => {
+    expandedItems.value[key] = true
+  })
+}
+
+// 모든 항목 닫기
+function handleCollapseAll() {
+  Object.keys(expandedItems.value).forEach((key) => {
+    expandedItems.value[key] = false
+  })
+}
+
+// 설정 핸들러
+function handleSettings() {
+  emit('settings')
+}
 
 // 아코디언 확장 변경 핸들러
 function handleExpansionChange(item, expanded) {
   expandedItems.value[item] = expanded
   emit('accordion-change', { item, expanded })
-  // 다른 항목은 자동으로 닫히도록 (선택적)
-  // if (expanded) {
-  //   Object.keys(expandedItems.value).forEach(key => {
-  //     if (key !== item) {
-  //       expandedItems.value[key] = false
-  //     }
-  //   })
-  // }
+
+  // 단일 열림 모드일 때 다른 항목 자동으로 닫기
+  if (singleMode.value && expanded) {
+    Object.keys(expandedItems.value).forEach((key) => {
+      if (key !== item) {
+        expandedItems.value[key] = false
+      }
+    })
+  }
 }
+
+// 단일 모드 설정 로드
+function loadSingleMode() {
+  try {
+    const saved = localStorage.getItem('graph-doc-single-mode')
+    if (saved !== null) {
+      singleMode.value = saved === 'true'
+    }
+  } catch (error) {
+    console.error('[GraphDocSidebar] 단일 모드 설정 로드 실패:', error)
+  }
+}
+
+// 아코디언 상태 저장
+function saveAccordionState() {
+  try {
+    localStorage.setItem('graph-doc-accordion-state', JSON.stringify(expandedItems.value))
+  } catch (error) {
+    console.error('[GraphDocSidebar] 아코디언 상태 저장 실패:', error)
+  }
+}
+
+// 아코디언 상태 복원
+function loadAccordionState() {
+  try {
+    const saved = localStorage.getItem('graph-doc-accordion-state')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      Object.keys(expandedItems.value).forEach((key) => {
+        if (parsed[key] !== undefined) {
+          expandedItems.value[key] = parsed[key]
+        }
+      })
+    }
+  } catch (error) {
+    console.error('[GraphDocSidebar] 아코디언 상태 복원 실패:', error)
+  }
+}
+
+// 아코디언 상태 변경 감지하여 저장
+watch(
+  expandedItems,
+  () => {
+    saveAccordionState()
+  },
+  { deep: true },
+)
+
+// 컴포넌트 마운트 시 설정 로드
+onMounted(() => {
+  loadSingleMode()
+  loadAccordionState()
+})
 
 // 의존성 그래프 핸들러
 function handleDependencyGraphAnalyze() {
@@ -225,6 +339,53 @@ function handleCodeSearchResultSelected(result) {
   // Container Query 활성화 (사이드바 너비 기준)
   container-type: inline-size;
   container-name: graph-doc-sidebar;
+}
+
+.accordion-options {
+  background: var(--nexa-background-darker);
+  border-bottom: 1px solid var(--nexa-border-color);
+}
+
+.option-btn {
+  font-size: 0.75rem;
+  color: var(--nexa-text-secondary);
+  padding: 4px 8px;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+
+  &:hover {
+    color: var(--nexa-primary);
+    background-color: color-mix(in srgb, var(--nexa-primary) 10%, transparent);
+  }
+
+  &.option-active {
+    background-color: var(--nexa-button-primary-bg);
+    color: var(--nexa-button-primary-text);
+
+    :deep(.q-icon) {
+      color: var(--nexa-button-primary-text);
+    }
+  }
+
+  &.option-inactive {
+    background-color: var(--nexa-surface);
+    color: var(--nexa-text-secondary);
+
+    :deep(.q-icon) {
+      color: var(--nexa-text-secondary);
+    }
+  }
+
+  :deep(.q-btn__content) {
+    font-size: 0.75rem;
+    padding: 0 4px;
+  }
+
+  :deep(.q-icon) {
+    font-size: 16px;
+    margin-right: 4px;
+  }
 }
 
 .accordion-header {

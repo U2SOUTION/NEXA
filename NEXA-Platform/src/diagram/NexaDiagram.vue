@@ -28,14 +28,22 @@ import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { renderERD, updateERD } from './erd/ERDDiagram.js'
 import { renderFlow } from './flow/FlowDiagram.js'
 import { renderNetwork } from './network/NetworkDiagram.js'
+import { renderDependency } from './dependency/DependencyDiagram.js'
+import { renderDependencyAnalysis } from './dependency/DependencyAnalysisDiagram.js'
+import { renderFileTree } from './filetree/FileTreeDiagram.js'
 import { diagramTypes } from './config/diagramMetadata.js'
+import { fitToScreen } from './utils/diagramZoom.js'
 
 const props = defineProps({
   // 다이어그램 타입
   type: {
     type: String,
     required: true,
-    validator: (value) => Object.values(diagramTypes).includes(value),
+    validator: (value) => {
+      // diagramTypes의 모든 값 허용
+      const validTypes = Object.values(diagramTypes)
+      return validTypes.includes(value)
+    },
   },
   // 다이어그램 데이터
   data: {
@@ -66,12 +74,17 @@ const diagramInnerContainer = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
 let renderResult = null
+let resizeObserver = null
+let isRendering = false // 렌더링 중 플래그
 
 // 렌더러 맵핑
 const renderers = {
   [diagramTypes.ERD]: renderERD,
   [diagramTypes.FLOW]: renderFlow,
   [diagramTypes.NETWORK]: renderNetwork,
+  [diagramTypes.DEPENDENCY]: renderDependency,
+  [diagramTypes.DEPENDENCY_ANALYSIS]: renderDependencyAnalysis,
+  [diagramTypes.FILETREE]: renderFileTree,
 }
 
 // 다이어그램 렌더링
@@ -81,6 +94,13 @@ async function renderDiagram() {
     return
   }
 
+  // 렌더링 중이면 무시
+  if (isRendering) {
+    console.warn('[NexaDiagram] 이미 렌더링 중입니다.')
+    return
+  }
+
+  isRendering = true
   isLoading.value = true
   error.value = null
 
@@ -116,6 +136,7 @@ async function renderDiagram() {
     emit('error', err)
   } finally {
     isLoading.value = false
+    isRendering = false
   }
 }
 
@@ -128,9 +149,16 @@ function handleRetry() {
 watch(
   () => props.options?.selectedNode,
   (newSelectedNode, oldSelectedNode) => {
-    if (newSelectedNode !== oldSelectedNode && renderResult && props.type === diagramTypes.ERD) {
-      // ERD 업데이트 - 스타일만 변경, 레이아웃 재계산 없음
-      updateERD(renderResult, props.data, props.options)
+    if (newSelectedNode !== oldSelectedNode && renderResult) {
+      if (props.type === diagramTypes.ERD) {
+        // ERD 업데이트 - 스타일만 변경, 레이아웃 재계산 없음
+        updateERD(renderResult, props.data, props.options)
+      } else if (props.type === diagramTypes.DEPENDENCY || props.type === 'dependency') {
+        // 의존성 그래프는 전체 재렌더링 (향후 부분 업데이트 추가 가능)
+        renderDiagram()
+      }
+      // 파일 트리와 의존성 분석은 Force-Directed Graph이므로
+      // selectedNode 변경 시 내부에서 스타일만 업데이트하므로 재렌더링 불필요
     }
   },
 )
@@ -138,25 +166,130 @@ watch(
 // 데이터 변경 감지
 watch(
   () => props.data,
-  () => {
+  (newData, oldData) => {
+    // 렌더링 중이면 무시
+    if (isRendering) return
+    
+    // 데이터가 실제로 변경되었는지 확인 (참조 비교)
+    if (newData === oldData) return
+    
+    // 의존성 분석 다이어그램의 경우, packages와 dependencies 배열의 길이와 내용을 비교
+    if (props.type === diagramTypes.DEPENDENCY_ANALYSIS) {
+      const newPackages = newData?.packages || []
+      const oldPackages = oldData?.packages || []
+      const newDeps = newData?.dependencies || []
+      const oldDeps = oldData?.dependencies || []
+      
+      // 배열 길이와 첫 번째 요소만 비교 (성능 최적화)
+      if (
+        newPackages.length === oldPackages.length &&
+        newDeps.length === oldDeps.length &&
+        newPackages.length > 0 &&
+        newPackages[0]?.id === oldPackages[0]?.id &&
+        newDeps.length > 0 &&
+        newDeps[0]?.from === oldDeps[0]?.from
+      ) {
+        return // 실제 변경 없음
+      }
+    }
+    
     if (props.autoLoad) {
-      renderDiagram()
+      isRendering = true
+      renderDiagram().finally(() => {
+        isRendering = false
+      })
     }
   },
-  { deep: true },
+  { deep: false }, // deep watch 제거하여 성능 개선
 )
 
-// 컴포넌트 마운트 시 렌더링
+// ResizeObserver로 컨테이너 크기 변경 감지
+function setupResizeObserver() {
+  if (!diagramInnerContainer.value) return
+
+  // ResizeObserver가 지원되지 않는 브라우저는 스킵
+  if (typeof ResizeObserver === 'undefined') {
+    console.warn('[NexaDiagram] ResizeObserver가 지원되지 않습니다.')
+    return
+  }
+
+  let debounceTimer = null
+
+  let lastWidth = 0
+  let lastHeight = 0
+  
+  resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const { width, height } = entry.contentRect
+      
+      // 크기가 0이 아니고, 실제로 크기가 변경되었으며, 렌더링 중이 아닐 때만 재렌더링
+      if (
+        width > 0 && 
+        height > 0 && 
+        renderResult &&
+        !isRendering &&
+        (width !== lastWidth || height !== lastHeight)
+      ) {
+        // 디바운싱: 연속된 크기 변경을 하나로 묶음
+        if (debounceTimer) {
+          clearTimeout(debounceTimer)
+        }
+        debounceTimer = setTimeout(() => {
+          // 다시 한 번 크기 확인 (렌더링 중이 아닐 때만)
+          if (!isRendering && width !== lastWidth || height !== lastHeight) {
+            console.log('[NexaDiagram] 컨테이너 크기 변경 감지:', { width, height })
+            lastWidth = width
+            lastHeight = height
+            // 크기 변경 시 다이어그램 재렌더링
+            // 의존성 분석은 제외 (force 시뮬레이션이 자동으로 조정)
+            // 파일 트리는 제외 (Radial Tree는 크기 변경 시 fitToScreen만 필요)
+            if (props.type !== diagramTypes.DEPENDENCY_ANALYSIS && props.type !== diagramTypes.FILETREE) {
+              renderDiagram()
+            } else if (props.type === diagramTypes.FILETREE) {
+              // 파일 트리는 fitToScreen만 호출 (재렌더링 없이 줌만 조정)
+              if (renderResult.value && renderResult.value.zoom) {
+                const container = diagramInnerContainer.value
+                const containerWidth = container?.clientWidth || 800
+                const containerHeight = container?.clientHeight || 600
+                fitToScreen(renderResult.value.svg, renderResult.value.svgGroup, containerWidth, containerHeight, renderResult.value.zoom)
+              }
+            }
+          }
+        }, 300) // 300ms 디바운스
+      }
+    }
+  })
+
+  resizeObserver.observe(diagramInnerContainer.value)
+}
+
+// 컴포넌트 마운트 시 렌더링 및 ResizeObserver 설정
 onMounted(() => {
   if (props.autoLoad) {
     nextTick(() => {
       renderDiagram()
+      // 렌더링 후 ResizeObserver 설정
+      nextTick(() => {
+        setupResizeObserver()
+      })
+    })
+  } else {
+    // autoLoad가 false여도 ResizeObserver는 설정
+    nextTick(() => {
+      setupResizeObserver()
     })
   }
 })
 
 // 컴포넌트 언마운트 시 정리
 onBeforeUnmount(() => {
+  // ResizeObserver 정리
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+
+  // 다이어그램 정리
   if (renderResult?.zoom && renderResult?.svg) {
     renderResult.svg.on('.zoom', null)
   }
@@ -258,6 +391,29 @@ defineExpose({
       stroke: var(--nexa-primary) !important;
       stroke-width: 1px !important;
       opacity: 0.9;
+    }
+
+    circle {
+      stroke: var(--nexa-primary) !important;
+      stroke-width: 4px !important;
+      filter: drop-shadow(0 0 8px var(--nexa-primary));
+    }
+  }
+
+  // 강조된 링크 스타일 (Force-Directed Graph용)
+  .link.link-highlighted {
+    stroke: var(--nexa-primary) !important;
+    stroke-width: 3px !important;
+    stroke-opacity: 1 !important;
+    filter: drop-shadow(0 0 4px var(--nexa-primary));
+  }
+
+  // 연결된 노드 스타일 (Force-Directed Graph용)
+  .node.node-connected {
+    circle {
+      stroke: var(--nexa-primary) !important;
+      stroke-width: 3px !important;
+      opacity: 0.8;
     }
   }
 

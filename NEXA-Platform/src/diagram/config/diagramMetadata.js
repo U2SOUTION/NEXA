@@ -7,6 +7,9 @@ export const diagramTypes = {
   ERD: 'erd',
   FLOW: 'flow',
   NETWORK: 'network',
+  DEPENDENCY: 'dependency',
+  FILETREE: 'filetree',
+  DEPENDENCY_ANALYSIS: 'dependency-analysis',
 }
 
 export const diagramMetadata = {
@@ -30,6 +33,27 @@ export const diagramMetadata = {
     description: '네트워크 토폴로지 시각화',
     icon: 'hub',
     supportedFeatures: ['zoom', 'pan', 'node-drag', 'export'],
+  },
+  [diagramTypes.DEPENDENCY]: {
+    name: 'Dependency',
+    label: 'Dependency Graph',
+    description: '파일 간 의존성 관계 시각화',
+    icon: 'account_tree',
+    supportedFeatures: ['zoom', 'pan', 'node-drag', 'export'],
+  },
+  [diagramTypes.FILETREE]: {
+    name: 'FileTree',
+    label: 'File Tree',
+    description: '파일 구조 트리 시각화',
+    icon: 'view_module',
+    supportedFeatures: ['zoom', 'pan', 'expand-collapse', 'export'],
+  },
+  [diagramTypes.DEPENDENCY_ANALYSIS]: {
+    name: 'DependencyAnalysis',
+    label: 'Dependency Analysis Graph',
+    description: '패키지 의존성 분석 시각화',
+    icon: 'hub',
+    supportedFeatures: ['zoom', 'pan', 'node-drag', 'export', 'node-hover', 'force-layout'],
   },
 }
 

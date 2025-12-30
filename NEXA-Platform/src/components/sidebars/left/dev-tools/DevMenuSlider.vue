@@ -34,7 +34,7 @@
           </div>
         </q-btn>
         <!-- 원본 메뉴 항목 -->
-                <q-btn v-for="(menu, index) in devMenus" :key="menu.id" :class="{ 'menu-active': activeMenu === menu.id && activeMenu !== null }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
+        <q-btn v-for="(menu, index) in devMenus" :key="menu.id" :class="{ 'menu-active': activeMenu === menu.id && activeMenu !== null }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
           <div class="menu-item-content">
             <div class="menu-item-number">{{ index + 1 }}</div>
             <q-icon :name="menu.icon" class="q-mr-xs menu-icon" />
@@ -42,7 +42,7 @@
           </div>
         </q-btn>
         <!-- 무한 스크롤을 위한 복제: 처음 부분 복제 (뒤에 배치) -->
-                <q-btn v-for="(menu, index) in devMenus" :key="`clone-start-${menu.id}`" :class="{ 'menu-active': activeMenu === menu.id && activeMenu !== null }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
+        <q-btn v-for="(menu, index) in devMenus" :key="`clone-start-${menu.id}`" :class="{ 'menu-active': activeMenu === menu.id && activeMenu !== null }" :style="menuItemStyle" flat dense no-caps class="menu-item" @click="handleMenuItemClick(index)">
           <div class="menu-item-content">
             <div class="menu-item-number">{{ index + 1 }}</div>
             <q-icon :name="menu.icon" class="q-mr-xs menu-icon" />
@@ -69,24 +69,23 @@ const emit = defineEmits(['openSettings', 'update:activeMenu'])
 
 const $q = useQuasar()
 
-// 메뉴 항목 정의 (18개)
-// 중요도 순서: 문서관리/테마관리(최우선) → 구현된 도구 → 개발/디버깅 도구 → 관리/유틸리티 도구
+// 배치 방법 : 가장 빈번한 도구를 센터에 배치 좌우로 점차 사용되지 않는 도구를 배치
 const devMenus = [
+  // DevOps 도구
+  { id: 'devops', label: 'DevOps', icon: 'build' },
+  // 구현된 개발 도구 (높은 중요도)
+  { id: 'database-viewer', label: '데이터베이스', icon: 'storage' },
+  { id: 'component-library', label: '컴포넌트', icon: 'widgets' },
   // 최우선: 핵심 관리 도구
   { id: 'dev-guide', label: '개발 가이드', icon: 'style' },
   { id: 'document-manager', label: '문서 관리', icon: 'description' },
   { id: 'theme-manager', label: '테마 관리', icon: 'palette' },
-  // 구현된 개발 도구 (높은 중요도)
-  { id: 'component-library', label: '컴포넌트', icon: 'widgets' },
-  { id: 'database-viewer', label: '데이터베이스', icon: 'storage' },
-  // 개발/테스트 도구 (중요도 높음)
-  { id: 'performance-monitor', label: '성능 모니터', icon: 'speed' },
+  // 문서/분석 도구
+  { id: 'document-generator', label: '그래프독', icon: 'flowchart' },
   // 시스템 관리 도구
   { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
-  // 문서/분석 도구
-  { id: 'document-generator', label: '그래프독', icon: 'account_tree' },
-  // DevOps 도구
-  { id: 'devops', label: 'DevOps', icon: 'build' },
+  // 개발/테스트 도구 (중요도 높음)
+  { id: 'performance-monitor', label: '성능 모니터', icon: 'speed' },
 ]
 
 // 초기 activeMenu 로드 함수 (DevelopmentPage와 동일한 로직)
@@ -122,9 +121,7 @@ const containerRef = ref(null)
 const wrapperRef = ref(null)
 
 // 활성화된 점 인덱스 (초기 activeMenu에 맞게 설정)
-const initialActiveDotIndex = initialActiveMenu
-  ? devMenus.findIndex((menu) => menu.id === initialActiveMenu)
-  : 0
+const initialActiveDotIndex = initialActiveMenu ? devMenus.findIndex((menu) => menu.id === initialActiveMenu) : 0
 const activeDotIndex = ref(initialActiveDotIndex >= 0 ? initialActiveDotIndex : 0)
 
 // 메뉴 컨테이너 호버 상태
@@ -749,7 +746,7 @@ onMounted(() => {
         activeDotIndex.value = 0 // 기본 인덱스로 리셋
         return
       }
-      
+
       const menuIndex = devMenus.findIndex((menu) => menu.id === menuId)
       if (menuIndex !== -1) {
         activeMenu.value = menuId

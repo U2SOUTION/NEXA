@@ -1,127 +1,221 @@
 /**
  * diagramSettings.js
- * 다이어그램 설정 관리 (ERD 전용)
+ * 다이어그램 설정 관리 (타입 기반 범용 시스템)
  * localStorage에 저장/로드
  */
 
-const STORAGE_KEY = 'nexa-diagram-erd-settings'
+import { getDefaultDiagramSettings, validateDiagramSettings } from './diagramSettingsConfig.js'
+import { diagramTypes } from './diagramMetadata.js'
 
 /**
- * 기본 설정값
+ * 타입별 localStorage 키 생성
+ * @param {String} type - 다이어그램 타입
+ * @returns {String} localStorage 키
  */
-export const defaultERDSettings = {
-  // 노드 크기 (단일 크기)
-  nodeSize: {
-    width: 100,
-    height: 25,
-  },
-  // 레이아웃 간격
-  layout: {
-    nodesep: 200, // 같은 레벨 내 노드 간 수평 최소 간격
-    ranksep: 120, // 서로 다른 레벨 간 수직 최소 간격
-    marginx: 150, // 마진 X
-    marginy: 150, // 마진 Y
-    rankdir: 'LR', // 레이아웃 방향 (TB: 상하, LR: 좌우, BT: 하상, RL: 우좌)
-  },
+function getStorageKey(type) {
+  return `nexa-diagram-${type}-settings`
 }
 
 /**
- * 설정 로드 (localStorage에서)
+ * 타입별 설정 로드
+ * @param {String} type - 다이어그램 타입 (erd, dependency, filetree, ...)
  * @returns {Object} 설정 객체
  */
-export function loadERDSettings() {
+export function loadDiagramSettings(type) {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const storageKey = getStorageKey(type)
+    const stored = localStorage.getItem(storageKey)
+    
     if (stored) {
       const parsed = JSON.parse(stored)
+      const defaults = getDefaultDiagramSettings(type)
+      
+      if (!defaults) {
+        console.warn(`[diagramSettings] 기본 설정을 찾을 수 없음: ${type}`)
+        return parsed
+      }
+      
       // 기본값과 병합하여 누락된 항목 보완
-      // 기존 설정 호환성: selected/unselected가 있으면 단일 크기로 변환
-      let nodeSize = { ...defaultERDSettings.nodeSize }
-      if (parsed.nodeSize) {
-        // 새로운 단일 크기 구조
-        if (parsed.nodeSize.width && parsed.nodeSize.height) {
-          nodeSize = {
-            ...defaultERDSettings.nodeSize,
-            ...parsed.nodeSize,
-          }
-        } else if (parsed.nodeSize.unselected) {
-          // 기존 구조에서 unselected 크기 사용
-          nodeSize = {
-            width: parsed.nodeSize.unselected.width || defaultERDSettings.nodeSize.width,
-            height: parsed.nodeSize.unselected.height || defaultERDSettings.nodeSize.height,
+      const merged = deepMerge(defaults, parsed)
+      
+      // ERD 호환성: selected/unselected가 있으면 단일 크기로 변환
+      if (type === diagramTypes.ERD && merged.nodeSize) {
+        if (merged.nodeSize.unselected) {
+          merged.nodeSize = {
+            width: merged.nodeSize.unselected.width || defaults.nodeSize.width,
+            height: merged.nodeSize.unselected.height || defaults.nodeSize.height,
           }
         }
       }
       
-      return {
-        nodeSize,
-        layout: {
-          ...defaultERDSettings.layout,
-          ...parsed.layout,
-        },
-      }
+      // 검증 및 반환
+      return validateDiagramSettings(type, merged)
     }
   } catch (error) {
-    console.warn('[diagramSettings] 설정 로드 실패:', error)
+    console.warn(`[diagramSettings] 설정 로드 실패 (${type}):`, error)
   }
-  return defaultERDSettings
+  
+  // 기본값 반환
+  const defaults = getDefaultDiagramSettings(type)
+  return defaults || {}
 }
 
 /**
- * 설정 저장 (localStorage에)
+ * 타입별 설정 저장
+ * @param {String} type - 다이어그램 타입
+ * @param {Object} settings - 설정 객체
+ */
+export function saveDiagramSettings(type, settings) {
+  try {
+    const storageKey = getStorageKey(type)
+    const validated = validateDiagramSettings(type, settings)
+    localStorage.setItem(storageKey, JSON.stringify(validated))
+  } catch (error) {
+    console.error(`[diagramSettings] 설정 저장 실패 (${type}):`, error)
+    throw error
+  }
+}
+
+/**
+ * 타입별 기본값 가져오기
+ * @param {String} type - 다이어그램 타입
+ * @returns {Object} 기본 설정 객체
+ */
+export function getDefaultDiagramSettingsForType(type) {
+  return getDefaultDiagramSettings(type) || {}
+}
+
+/**
+ * 설정 업데이트 (부분 업데이트 지원)
+ * @param {String} type - 다이어그램 타입
+ * @param {Object} updates - 업데이트할 설정 (부분 가능)
+ * @returns {Object} 업데이트된 설정
+ */
+export function updateDiagramSettings(type, updates) {
+  const current = loadDiagramSettings(type)
+  const defaults = getDefaultDiagramSettings(type)
+  
+  if (!defaults) {
+    console.warn(`[diagramSettings] 기본 설정을 찾을 수 없음: ${type}`)
+    return current
+  }
+  
+  // 깊은 병합
+  const updated = deepMerge(defaults, current, updates)
+  
+  // 검증 및 저장
+  const validated = validateDiagramSettings(type, updated)
+  saveDiagramSettings(type, validated)
+  
+  return validated
+}
+
+/**
+ * 설정 초기화
+ * @param {String} type - 다이어그램 타입
+ */
+export function resetDiagramSettings(type) {
+  try {
+    const storageKey = getStorageKey(type)
+    localStorage.removeItem(storageKey)
+  } catch (error) {
+    console.error(`[diagramSettings] 설정 초기화 실패 (${type}):`, error)
+    throw error
+  }
+}
+
+/**
+ * 깊은 병합 유틸리티
+ * @param {...Object} objects - 병합할 객체들
+ * @returns {Object} 병합된 객체
+ */
+function deepMerge(...objects) {
+  const result = {}
+  
+  for (const obj of objects) {
+    if (!obj || typeof obj !== 'object') continue
+    
+    for (const [key, value] of Object.entries(obj)) {
+      if (value && typeof value === 'object' && !Array.isArray(value) && result[key] && typeof result[key] === 'object' && !Array.isArray(result[key])) {
+        // 중첩 객체는 재귀적으로 병합
+        result[key] = deepMerge(result[key], value)
+      } else {
+        // 그 외는 덮어쓰기
+        result[key] = value
+      }
+    }
+  }
+  
+  return result
+}
+
+// ============================================================================
+// ERD 전용 함수 (호환성 유지)
+// ============================================================================
+
+/**
+ * ERD 기본 설정값 (호환성 유지)
+ * @deprecated getDefaultDiagramSettingsForType('erd') 사용 권장
+ */
+export const defaultERDSettings = getDefaultDiagramSettings(diagramTypes.ERD) || {
+  nodeSize: {
+    width: 100,
+    height: 25,
+  },
+  layout: {
+    nodesep: 200,
+    ranksep: 120,
+    marginx: 150,
+    marginy: 150,
+    rankdir: 'LR',
+  },
+}
+
+/**
+ * ERD 설정 로드 (호환성 유지)
+ * @deprecated loadDiagramSettings('erd') 사용 권장
+ * @returns {Object} 설정 객체
+ */
+export function loadERDSettings() {
+  return loadDiagramSettings(diagramTypes.ERD)
+}
+
+/**
+ * ERD 설정 저장 (호환성 유지)
+ * @deprecated saveDiagramSettings('erd', settings) 사용 권장
  * @param {Object} settings - 설정 객체
  */
 export function saveERDSettings(settings) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
-  } catch (error) {
-    console.error('[diagramSettings] 설정 저장 실패:', error)
-    throw error
-  }
+  return saveDiagramSettings(diagramTypes.ERD, settings)
 }
 
 /**
- * 설정 초기화 (기본값으로 리셋)
+ * ERD 설정 초기화 (호환성 유지)
+ * @deprecated resetDiagramSettings('erd') 사용 권장
  */
 export function resetERDSettings() {
-  try {
-    localStorage.removeItem(STORAGE_KEY)
-  } catch (error) {
-    console.error('[diagramSettings] 설정 초기화 실패:', error)
-    throw error
-  }
+  return resetDiagramSettings(diagramTypes.ERD)
 }
 
 /**
- * 현재 설정 가져오기 (싱글톤 패턴)
- * 주의: 설정이 변경되면 캐시를 무효화해야 함
+ * ERD 현재 설정 가져오기 (호환성 유지)
+ * @deprecated loadDiagramSettings('erd') 사용 권장
+ * @returns {Object} 설정 객체
  */
-let currentSettings = null
+let currentERDSettings = null
 
 export function getERDSettings() {
   // 항상 최신 설정을 로드 (캐시 무효화)
-  currentSettings = loadERDSettings()
-  return currentSettings
+  currentERDSettings = loadDiagramSettings(diagramTypes.ERD)
+  return currentERDSettings
 }
 
 /**
- * 설정 업데이트
+ * ERD 설정 업데이트 (호환성 유지)
+ * @deprecated updateDiagramSettings('erd', updates) 사용 권장
  * @param {Object} updates - 업데이트할 설정 (부분 업데이트 가능)
+ * @returns {Object} 업데이트된 설정
  */
 export function updateERDSettings(updates) {
-  const current = getERDSettings()
-  const updated = {
-    nodeSize: {
-      ...defaultERDSettings.nodeSize,
-      ...current.nodeSize,
-      ...updates.nodeSize,
-    },
-    layout: {
-      ...current.layout,
-      ...updates.layout,
-    },
-  }
-  currentSettings = updated
-  saveERDSettings(updated)
-  return updated
+  return updateDiagramSettings(diagramTypes.ERD, updates)
 }

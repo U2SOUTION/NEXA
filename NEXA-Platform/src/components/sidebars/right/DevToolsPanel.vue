@@ -51,8 +51,15 @@
         </q-expansion-item>
       </div>
 
-      <!-- ERD 다이어그램 설정 패널 (activeMenu === 'database-viewer') -->
-      <div v-if="activeMenu === 'database-viewer'" class="accordion-wrapper">
+      <!-- 다이어그램 설정 패널 (범용) -->
+      <div v-if="activeDiagramType" class="accordion-wrapper">
+        <q-expansion-item icon="tune" :label="diagramSettingsLabel" :model-value="diagramSettingsExpanded" @update:model-value="diagramSettingsExpanded = $event">
+          <DiagramSettingsPanel :diagram-type="activeDiagramType" @settings-changed="handleDiagramSettingsChanged" @settings-saved="handleDiagramSettingsSaved" @settings-reset="handleDiagramSettingsReset" />
+        </q-expansion-item>
+      </div>
+
+      <!-- ERD 다이어그램 설정 패널 (호환성 유지 - database-viewer) -->
+      <div v-if="activeMenu === 'database-viewer' && !activeDiagramType" class="accordion-wrapper">
         <q-expansion-item icon="tune" label="ERD 다이어그램 설정" :model-value="erdSettingsExpanded" @update:model-value="erdSettingsExpanded = $event">
           <ERDDiagramSettingsPanel />
         </q-expansion-item>
@@ -241,6 +248,8 @@ import PanelMermaidStyle from 'src/panel/components/PanelMermaidStyle.vue'
 import PanelTOC from 'src/panel/components/PanelTOC.vue'
 import ThemeColorPanel from './dev-tools/ThemeColorPanel.vue'
 import ERDDiagramSettingsPanel from './dev-tools/ERDDiagramSettingsPanel.vue'
+import DiagramSettingsPanel from 'src/diagram/panels/DiagramSettingsPanel.vue'
+import { diagramTypes } from 'src/diagram/config/diagramMetadata.js'
 import SampleSection from 'src/modules/document-manager/components/sections/SampleSection.vue'
 import DatabaseTableDetailSimple from 'src/components/dev-tools/database-viewer/TableDetailSimple.vue'
 import ComponentLibraryWarning from './dev-tools/component-library/ComponentLibraryWarning.vue'
@@ -315,8 +324,25 @@ const themeColorPanelExpanded = ref(true)
 const selectedTableName = ref(null)
 const databaseTableDetailExpanded = ref(false)
 
-// ERD 다이어그램 설정 패널 상태
+// ERD 다이어그램 설정 패널 상태 (호환성 유지)
 const erdSettingsExpanded = ref(false)
+
+// 범용 다이어그램 설정 패널 상태
+const diagramSettingsExpanded = ref(false)
+const activeDiagramType = ref(null)
+
+// 다이어그램 설정 패널 라벨
+const diagramSettingsLabel = computed(() => {
+  if (!activeDiagramType.value) return '다이어그램 설정'
+  const labels = {
+    [diagramTypes.ERD]: 'ERD 다이어그램 설정',
+    dependency: '의존성 그래프 설정',
+    filetree: '파일 트리 설정',
+    [diagramTypes.FLOW]: 'Flow 다이어그램 설정',
+    [diagramTypes.NETWORK]: 'Network 다이어그램 설정',
+  }
+  return labels[activeDiagramType.value] || '다이어그램 설정'
+})
 
 // 컴포넌트 라이브러리 패널 상태
 const componentLibrarySelectedComponent = ref(null)
@@ -350,6 +376,19 @@ function handleActiveMenuChange(event) {
   // 데이터베이스 뷰어 메뉴로 변경 시 아코디언 닫기 (테이블 선택 시 자동으로 열림)
   if (activeMenu.value === 'database-viewer') {
     databaseTableDetailExpanded.value = false
+    activeDiagramType.value = diagramTypes.ERD
+    diagramSettingsExpanded.value = false
+  }
+  // 그래프독 메뉴로 변경 시 다이어그램 타입 초기화
+  else if (activeMenu.value === 'graph-doc') {
+    // 활성 아코디언에 따라 타입 결정 (기본값: dependency)
+    activeDiagramType.value = 'dependency'
+    diagramSettingsExpanded.value = false
+  }
+  // 다른 메뉴로 변경 시 다이어그램 타입 초기화
+  else {
+    activeDiagramType.value = null
+    diagramSettingsExpanded.value = false
   }
   // 컴포넌트 라이브러리 메뉴로 변경 시 상태 초기화
   if (activeMenu.value === 'component-library') {
@@ -455,6 +494,77 @@ function handleComponentLibraryShowFileStructure() {
   // TODO: 파일 구조 표시 구현
 }
 
+// 다이어그램 설정 변경 핸들러
+function handleDiagramSettingsChanged(event) {
+  const { type, settings, changedTypes } = event
+  console.log('[DevToolsPanel] 다이어그램 설정 변경:', type, settings, changedTypes)
+  
+  // 타입별 전역 이벤트 발생
+  if (type === diagramTypes.ERD) {
+    window.dispatchEvent(
+      new CustomEvent('erd-settings-changed', {
+        detail: { settings, changedTypes },
+      }),
+    )
+  } else if (type === 'dependency') {
+    window.dispatchEvent(
+      new CustomEvent('dependency-diagram-settings-changed', {
+        detail: { settings, changedTypes },
+      }),
+    )
+  } else if (type === 'filetree') {
+    window.dispatchEvent(
+      new CustomEvent('filetree-diagram-settings-changed', {
+        detail: { settings, changedTypes },
+      }),
+    )
+  }
+}
+
+// 다이어그램 설정 저장 핸들러
+function handleDiagramSettingsSaved(event) {
+  const { type, settings } = event
+  console.log('[DevToolsPanel] 다이어그램 설정 저장:', type, settings)
+  
+  // 타입별 전역 이벤트 발생
+  if (type === diagramTypes.ERD) {
+    window.dispatchEvent(
+      new CustomEvent('erd-settings-saved', {
+        detail: { settings },
+      }),
+    )
+  }
+}
+
+// 다이어그램 설정 초기화 핸들러
+function handleDiagramSettingsReset(event) {
+  const { type } = event
+  console.log('[DevToolsPanel] 다이어그램 설정 초기화:', type)
+  
+  // 설정 변경 이벤트도 발생시켜 다이어그램에 반영
+  handleDiagramSettingsChanged({ type, settings: {}, changedTypes: ['layout'] })
+}
+
+// 그래프독 아코디언 변경 이벤트 리스너 (다이어그램 타입 결정)
+function handleGraphDocAccordionChange(event) {
+  const { item, expanded } = event.detail
+  if (!expanded) return
+  
+  // 활성 아코디언에 따라 다이어그램 타입 결정
+  const typeMap = {
+    dependencyGraph: 'dependency',
+    fileStructure: 'filetree',
+    dependencyAnalysis: 'dependency',
+    codeSearch: null, // 코드 검색은 다이어그램 없음
+  }
+  
+  const newType = typeMap[item]
+  if (newType && newType !== activeDiagramType.value) {
+    activeDiagramType.value = newType
+    diagramSettingsExpanded.value = false
+  }
+}
+
 function handleComponentLibraryOpenDocument(docType) {
   console.log('[DevToolsPanel] 문서 열기:', docType)
   // TODO: 문서 열기 구현
@@ -483,6 +593,13 @@ function handleExpandTOCSection() {
 }
 
 onMounted(() => {
+  // 초기 다이어그램 타입 설정
+  if (activeMenu.value === 'database-viewer') {
+    activeDiagramType.value = diagramTypes.ERD
+  } else if (activeMenu.value === 'graph-doc') {
+    activeDiagramType.value = 'dependency'
+  }
+  
   // 전역 이벤트 리스너 등록
   window.addEventListener('expand-mermaid-section', handleExpandMermaidSection)
   window.addEventListener('expand-toc-section', handleExpandTOCSection)
@@ -491,6 +608,7 @@ onMounted(() => {
   window.addEventListener('database-table-selected', handleDatabaseTableSelected)
   window.addEventListener('component-library-component-selected', handleComponentLibraryComponentSelected)
   window.addEventListener('component-library-violation-selected', handleComponentLibraryViolationSelected)
+  window.addEventListener('graph-doc-accordion-change', handleGraphDocAccordionChange)
 })
 
 onUnmounted(() => {
@@ -501,6 +619,7 @@ onUnmounted(() => {
   window.removeEventListener('database-table-selected', handleDatabaseTableSelected)
   window.removeEventListener('component-library-component-selected', handleComponentLibraryComponentSelected)
   window.removeEventListener('component-library-violation-selected', handleComponentLibraryViolationSelected)
+  window.removeEventListener('graph-doc-accordion-change', handleGraphDocAccordionChange)
 })
 
 // 아코디언 상태 변경 핸들러
