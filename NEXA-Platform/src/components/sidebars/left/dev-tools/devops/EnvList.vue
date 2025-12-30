@@ -1,9 +1,10 @@
-<!-- EnvironmentVariablesList.vue
+<!-- EnvList.vue
   환경 변수 리스트 컴포넌트
   환경 변수 목록 표시
 -->
+
 <template>
-  <q-scroll-area class="environment-variables-list-scroll-area">
+  <q-scroll-area class="env-list-scroll-area">
     <!-- 로딩 상태 -->
     <div v-if="isLoading" class="loading-state q-pa-lg text-center">
       <q-spinner size="32px" color="primary" />
@@ -65,51 +66,42 @@ defineProps({
 
 const emit = defineEmits(['variable-selected'])
 
-// 환경 변수 클릭 핸들러
 function handleVariableClick(variable) {
   emit('variable-selected', variable)
 }
 </script>
 
 <style lang="scss" scoped>
-.environment-variables-list-scroll-area {
-  height: calc(100vh - 200px);
+.env-list-scroll-area {
+  flex: 1;
+  height: 100%;
 }
 
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
+.variable-item-selected {
+  background-color: var(--nexa-surface-hover);
 }
 
-.variables-list {
-  .variable-item-selected {
-    background-color: var(--nexa-surface-hover);
-  }
+.variable-item-name {
+  font-weight: 500;
+  color: var(--nexa-text-primary);
+}
 
-  .variable-item-name {
-    font-weight: 600;
-    color: var(--nexa-text-primary);
-  }
-
-  .variable-item-path {
-    color: var(--nexa-text-secondary);
-    font-size: 0.75rem;
-  }
+.variable-item-path {
+  color: var(--nexa-text-secondary);
 }
 
 .empty-state {
-  .empty-message {
-    color: var(--nexa-text-primary);
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
+  color: var(--nexa-text-secondary);
+}
 
-  .empty-hint {
-    color: var(--nexa-text-secondary);
-    font-size: 0.875rem;
-  }
+.empty-message {
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.empty-hint {
+  font-size: 0.875rem;
+  margin-top: 4px;
+  opacity: 0.7;
 }
 </style>

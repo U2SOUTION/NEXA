@@ -1,13 +1,13 @@
-<!-- PackageManagerHeader.vue
+<!-- PackageHeader.vue
   패키지 관리 헤더 컴포넌트
-  검색, 새로고침 등 포함
+  검색, 새로고침, 설정 버튼 포함
 -->
+
 <template>
-  <div class="package-manager-header">
-    <!-- 헤더 타이틀 및 액션 버튼 -->
+  <div class="package-header">
     <div class="header-title-section q-px-sm q-pt-sm q-pb-sm">
       <div class="row items-center justify-between">
-        <div class="header-title">패키지 관리</div>
+        <div class="header-title">PACKAGE</div>
         <div class="row q-gutter-xs">
           <q-btn flat dense icon="refresh" size="sm" :loading="isRefreshing" @click="handleRefresh">
             <q-tooltip>새로고침</q-tooltip>
@@ -41,9 +41,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
-const props = defineProps({
+defineProps({
   searchQuery: {
     type: String,
     default: '',
@@ -56,18 +56,15 @@ const props = defineProps({
 
 const emit = defineEmits(['search-change', 'refresh', 'settings'])
 
-// 로컬 상태
-const localSearchQuery = ref(props.searchQuery)
+const localSearchQuery = ref('')
 const isRefreshing = ref(false)
 
-// 검색 변경 핸들러
 function handleSearchChangeLocal(value) {
   localSearchQuery.value = value
   emit('search-change', value)
 }
 
-// 새로고침 핸들러
-async function handleRefresh() {
+function handleRefresh() {
   isRefreshing.value = true
   emit('refresh')
   setTimeout(() => {
@@ -75,73 +72,22 @@ async function handleRefresh() {
   }, 500)
 }
 
-// 설정 핸들러
 function handleSettings() {
   emit('settings')
 }
-
-// 외부 상태 변경 감시
-watch(
-  () => props.searchQuery,
-  (newValue) => {
-    if (localSearchQuery.value !== newValue) {
-      localSearchQuery.value = newValue
-    }
-  },
-)
 </script>
 
 <style lang="scss" scoped>
-.package-manager-header {
-  .header-title-section {
-    border-bottom: 1px solid var(--nexa-border-color);
+.package-header {
+  background-color: var(--nexa-surface);
+}
 
-    .header-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--nexa-text-primary);
-    }
+.header-title {
+  font-weight: 600;
+  color: var(--nexa-text-primary);
+}
 
-    .q-btn {
-      color: var(--nexa-text-secondary);
-      transition:
-        color 0.2s ease,
-        background-color 0.2s ease;
-
-      &:hover {
-        color: var(--nexa-primary);
-        background-color: color-mix(in srgb, var(--nexa-primary) 10%, transparent);
-      }
-
-      :deep(.q-icon) {
-        font-size: 18px;
-      }
-    }
-  }
-
-  .header-section {
-    .search-input {
-      width: 100%;
-
-      :deep(.q-field__control) {
-        border: 2px solid var(--nexa-primary);
-        border-radius: 4px;
-      }
-
-      :deep(.q-field__native) {
-        color: var(--nexa-text-primary);
-      }
-
-      :deep(.q-field__prepend) {
-        color: var(--nexa-primary);
-      }
-
-      &:focus-within {
-        :deep(.q-field__control) {
-          border-color: var(--nexa-primary);
-        }
-      }
-    }
-  }
+.search-input {
+  width: 100%;
 }
 </style>

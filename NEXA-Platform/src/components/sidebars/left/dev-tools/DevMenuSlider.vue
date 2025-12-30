@@ -80,15 +80,13 @@ const devMenus = [
   { id: 'component-library', label: '컴포넌트', icon: 'widgets' },
   { id: 'database-viewer', label: '데이터베이스', icon: 'storage' },
   // 개발/테스트 도구 (중요도 높음)
-  { id: 'log-viewer', label: '로그 뷰어', icon: 'list_alt' },
   { id: 'performance-monitor', label: '성능 모니터', icon: 'speed' },
   // 시스템 관리 도구
   { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
-  // 개발 유틸리티 도구
-  { id: 'build-tools', label: '빌드 도구', icon: 'build' },
   // 문서/분석 도구
   { id: 'document-generator', label: '그래프독', icon: 'account_tree' },
-  { id: 'deployment-manager', label: '배포 관리', icon: 'cloud_upload' },
+  // DevOps 도구
+  { id: 'devops', label: 'DevOps', icon: 'build' },
 ]
 
 // 초기 activeMenu 로드 함수 (DevelopmentPage와 동일한 로직)

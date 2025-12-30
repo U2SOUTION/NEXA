@@ -1,9 +1,10 @@
-<!-- PackageManagerList.vue
+<!-- PackageList.vue
   패키지 관리 리스트 컴포넌트
   패키지 목록 표시
 -->
+
 <template>
-  <q-scroll-area class="package-manager-list-scroll-area">
+  <q-scroll-area class="package-list-scroll-area">
     <!-- 로딩 상태 -->
     <div v-if="isLoading" class="loading-state q-pa-lg text-center">
       <q-spinner size="32px" color="primary" />
@@ -65,62 +66,51 @@ defineProps({
 
 const emit = defineEmits(['package-selected'])
 
-// 패키지 클릭 핸들러
 function handlePackageClick(packageItem) {
   emit('package-selected', packageItem)
 }
 
-// 패키지 타입별 색상
 function getPackageTypeColor(type) {
-  const colorMap = {
-    'dependencies': 'primary',
-    'devDependencies': 'secondary',
-    'peerDependencies': 'accent',
-    'optionalDependencies': 'positive',
+  const colors = {
+    dependency: 'primary',
+    devDependency: 'secondary',
+    peerDependency: 'accent',
   }
-  return colorMap[type] || 'grey'
+  return colors[type] || 'grey'
 }
 </script>
 
 <style lang="scss" scoped>
-.package-manager-list-scroll-area {
-  height: calc(100vh - 200px);
+.package-list-scroll-area {
+  flex: 1;
+  height: 100%;
 }
 
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
+.package-item-selected {
+  background-color: var(--nexa-surface-hover);
 }
 
-.packages-list {
-  .package-item-selected {
-    background-color: var(--nexa-surface-hover);
-  }
+.package-item-name {
+  font-weight: 500;
+  color: var(--nexa-text-primary);
+}
 
-  .package-item-name {
-    font-weight: 600;
-    color: var(--nexa-text-primary);
-  }
-
-  .package-item-version {
-    color: var(--nexa-text-secondary);
-    font-size: 0.75rem;
-  }
+.package-item-version {
+  color: var(--nexa-text-secondary);
 }
 
 .empty-state {
-  .empty-message {
-    color: var(--nexa-text-primary);
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
+  color: var(--nexa-text-secondary);
+}
 
-  .empty-hint {
-    color: var(--nexa-text-secondary);
-    font-size: 0.875rem;
-  }
+.empty-message {
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.empty-hint {
+  font-size: 0.875rem;
+  margin-top: 4px;
+  opacity: 0.7;
 }
 </style>

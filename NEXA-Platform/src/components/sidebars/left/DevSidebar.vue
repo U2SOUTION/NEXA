@@ -182,27 +182,44 @@
         :settings-filtered-settings="settingsManagerFilteredSettings"
         :settings-selected-setting="settingsManagerSelectedSetting"
         :settings-is-loading="settingsManagerIsLoading"
-        :environment-variables="settingsManagerEnvironmentVariables"
-        :environment-variables-selected-variable="settingsManagerEnvironmentVariablesSelectedVariable"
-        :environment-variables-is-loading="settingsManagerEnvironmentVariablesIsLoading"
-        :packages="settingsManagerPackages"
-        :packages-selected-package="settingsManagerPackagesSelectedPackage"
-        :packages-is-loading="settingsManagerPackagesIsLoading"
         @settings-search-change="handleSettingsManagerSearchChange"
         @settings-category-filter-change="handleSettingsManagerCategoryFilterChange"
         @settings-type-filter-change="handleSettingsManagerTypeFilterChange"
         @settings-refresh="handleSettingsManagerRefresh"
         @settings-settings="handleSettingsManagerSettings"
         @settings-setting-selected="handleSettingsManagerSettingSelected"
-        @environment-variables-refresh="handleSettingsManagerEnvironmentVariablesRefresh"
-        @environment-variables-search-change="handleSettingsManagerEnvironmentVariablesSearchChange"
-        @environment-variables-settings="handleSettingsManagerEnvironmentVariablesSettings"
-        @environment-variable-selected="handleSettingsManagerEnvironmentVariableSelected"
-        @package-manager-refresh="handleSettingsManagerPackageManagerRefresh"
-        @package-manager-search-change="handleSettingsManagerPackageManagerSearchChange"
-        @package-manager-settings="handleSettingsManagerPackageManagerSettings"
-        @package-selected="handleSettingsManagerPackageSelected"
-        @tab-change="handleSettingsManagerTabChange"
+      />
+    </template>
+
+    <!-- DevOps -->
+    <template v-else-if="activeMenu === 'devops'">
+      <DevOpsSidebar
+        :builds="devOpsBuilds"
+        :selected-build="devOpsSelectedBuild"
+        :deployments="devOpsDeployments"
+        :selected-deployment="devOpsSelectedDeployment"
+        :environment-variables="devOpsEnvironmentVariables"
+        :selected-environment-variable="devOpsSelectedEnvironmentVariable"
+        :packages="devOpsPackages"
+        :selected-package="devOpsSelectedPackage"
+        :is-loading="devOpsIsLoading"
+        @build-refresh="handleDevOpsBuildRefresh"
+        @build="handleDevOpsBuild"
+        @build-settings="handleDevOpsBuildSettings"
+        @build-selected="handleDevOpsBuildSelected"
+        @deploy-refresh="handleDevOpsDeployRefresh"
+        @deploy="handleDevOpsDeploy"
+        @deploy-settings="handleDevOpsDeploySettings"
+        @deployment-selected="handleDevOpsDeploymentSelected"
+        @env-refresh="handleDevOpsEnvRefresh"
+        @env-search-change="handleDevOpsEnvSearchChange"
+        @env-settings="handleDevOpsEnvSettings"
+        @environment-variable-selected="handleDevOpsEnvironmentVariableSelected"
+        @package-refresh="handleDevOpsPackageRefresh"
+        @package-search-change="handleDevOpsPackageSearchChange"
+        @package-settings="handleDevOpsPackageSettings"
+        @package-selected="handleDevOpsPackageSelected"
+        @tab-change="handleDevOpsTabChange"
       />
     </template>
 
@@ -228,6 +245,7 @@ import PerformanceMonitorSidebar from './dev-tools/performance-monitor/Performan
 import DevGuideHeader from './dev-tools/dev-guide/DevGuideHeader.vue'
 import DevGuideList from './dev-tools/dev-guide/DevGuideList.vue'
 import SettingsManagerSidebar from './dev-tools/settings-manager/SettingsManagerSidebar.vue'
+import DevOpsSidebar from './dev-tools/devops/DevOpsSidebar.vue'
 import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.vue'
 import { loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentMultiSelection } from 'src/composables/dev-tools/useDocumentMultiSelection.js'
@@ -260,7 +278,6 @@ const menuHeaders = {
   'theme-manager': { title: 'Theme Manager', subtitle: 'Color and theme settings management' },
   'component-library': { title: 'Componen', subtitle: 'Component library and classification' },
   'database-viewer': { title: 'Database Viewer', subtitle: 'Database tables and data query' },
-  'log-viewer': { title: 'Log Viewer', subtitle: 'Application log viewing and analysis' },
   'performance-monitor': { title: 'Performance Monitor', subtitle: 'Performance metrics monitoring and analysis' },
   'settings-manager': { title: 'Settings Manager', subtitle: 'System settings integrated management' },
   'build-tools': { title: 'Build Tools', subtitle: 'Build and deployment tools management' },
@@ -384,14 +401,16 @@ const graphDocCodeSearchResults = ref([])
 const graphDocCodeSearchSelectedResult = ref(null)
 const graphDocCodeSearchIsLoading = ref(false)
 
-// 설정 관리 탭 상태
-const settingsManagerActiveTab = ref('settings')
-const settingsManagerEnvironmentVariables = ref([])
-const settingsManagerEnvironmentVariablesSelectedVariable = ref(null)
-const settingsManagerEnvironmentVariablesIsLoading = ref(false)
-const settingsManagerPackages = ref([])
-const settingsManagerPackagesSelectedPackage = ref(null)
-const settingsManagerPackagesIsLoading = ref(false)
+// DevOps 관리
+const devOpsBuilds = ref([])
+const devOpsSelectedBuild = ref(null)
+const devOpsDeployments = ref([])
+const devOpsSelectedDeployment = ref(null)
+const devOpsEnvironmentVariables = ref([])
+const devOpsSelectedEnvironmentVariable = ref(null)
+const devOpsPackages = ref([])
+const devOpsSelectedPackage = ref(null)
+const devOpsIsLoading = ref(false)
 
 // 에러 트래킹 관리 (composable 사용)
 const {
@@ -623,58 +642,94 @@ function handleSettingsManagerSettings() {
   // TODO: 설정 모달 열기
 }
 
-// 설정 관리 탭 변경 핸들러
-function handleSettingsManagerTabChange(tab) {
-  settingsManagerActiveTab.value = tab
-  console.log('[DevSidebar] 설정 관리 탭 변경:', tab)
-  // 전역 이벤트로 DevelopmentPage에 탭 변경 알림
-  window.dispatchEvent(new CustomEvent('settings-manager-tab-change', { detail: { tab } }))
+// DevOps 핸들러
+function handleDevOpsBuildRefresh() {
+  console.log('[DevSidebar] DevOps 빌드 새로고침')
+  // TODO: 빌드 이력 새로고침
 }
 
-// 환경변수 핸들러
-function handleSettingsManagerEnvironmentVariablesRefresh() {
-  console.log('[DevSidebar] 환경변수 새로고침')
-  // TODO: 환경변수 새로고침
+function handleDevOpsBuild() {
+  console.log('[DevSidebar] DevOps 빌드 실행')
+  // TODO: 빌드 실행
 }
 
-function handleSettingsManagerEnvironmentVariablesSearchChange(value) {
-  console.log('[DevSidebar] 환경변수 검색:', value)
-  // TODO: 환경변수 검색
+function handleDevOpsBuildSettings() {
+  console.log('[DevSidebar] DevOps 빌드 설정')
+  // TODO: 빌드 설정 모달 열기
 }
 
-function handleSettingsManagerEnvironmentVariablesSettings() {
-  console.log('[DevSidebar] 환경변수 설정')
-  // TODO: 환경변수 설정 모달 열기
+function handleDevOpsBuildSelected(build) {
+  devOpsSelectedBuild.value = build
+  console.log('[DevSidebar] DevOps 빌드 선택:', build)
+  window.dispatchEvent(new CustomEvent('devops-build-selected', { detail: { build } }))
 }
 
-function handleSettingsManagerEnvironmentVariableSelected(variable) {
-  settingsManagerEnvironmentVariablesSelectedVariable.value = variable
-  console.log('[DevSidebar] 환경변수 선택:', variable)
-  // 전역 이벤트로 DevelopmentPage에 알림
-  window.dispatchEvent(new CustomEvent('settings-manager-environment-variable-selected', { detail: { variable } }))
+function handleDevOpsDeployRefresh() {
+  console.log('[DevSidebar] DevOps 배포 새로고침')
+  // TODO: 배포 이력 새로고침
 }
 
-// 패키지 관리 핸들러
-function handleSettingsManagerPackageManagerRefresh() {
-  console.log('[DevSidebar] 패키지 관리 새로고침')
+function handleDevOpsDeploy() {
+  console.log('[DevSidebar] DevOps 배포 실행')
+  // TODO: 배포 실행
+}
+
+function handleDevOpsDeploySettings() {
+  console.log('[DevSidebar] DevOps 배포 설정')
+  // TODO: 배포 설정 모달 열기
+}
+
+function handleDevOpsDeploymentSelected(deployment) {
+  devOpsSelectedDeployment.value = deployment
+  console.log('[DevSidebar] DevOps 배포 선택:', deployment)
+  window.dispatchEvent(new CustomEvent('devops-deployment-selected', { detail: { deployment } }))
+}
+
+function handleDevOpsEnvRefresh() {
+  console.log('[DevSidebar] DevOps 환경 변수 새로고침')
+  // TODO: 환경 변수 새로고침
+}
+
+function handleDevOpsEnvSearchChange(value) {
+  console.log('[DevSidebar] DevOps 환경 변수 검색:', value)
+  // TODO: 환경 변수 검색
+}
+
+function handleDevOpsEnvSettings() {
+  console.log('[DevSidebar] DevOps 환경 변수 설정')
+  // TODO: 환경 변수 설정 모달 열기
+}
+
+function handleDevOpsEnvironmentVariableSelected(variable) {
+  devOpsSelectedEnvironmentVariable.value = variable
+  console.log('[DevSidebar] DevOps 환경 변수 선택:', variable)
+  window.dispatchEvent(new CustomEvent('devops-environment-variable-selected', { detail: { variable } }))
+}
+
+function handleDevOpsPackageRefresh() {
+  console.log('[DevSidebar] DevOps 패키지 새로고침')
   // TODO: 패키지 새로고침
 }
 
-function handleSettingsManagerPackageManagerSearchChange(value) {
-  console.log('[DevSidebar] 패키지 검색:', value)
+function handleDevOpsPackageSearchChange(value) {
+  console.log('[DevSidebar] DevOps 패키지 검색:', value)
   // TODO: 패키지 검색
 }
 
-function handleSettingsManagerPackageManagerSettings() {
-  console.log('[DevSidebar] 패키지 관리 설정')
-  // TODO: 패키지 관리 설정 모달 열기
+function handleDevOpsPackageSettings() {
+  console.log('[DevSidebar] DevOps 패키지 설정')
+  // TODO: 패키지 설정 모달 열기
 }
 
-function handleSettingsManagerPackageSelected(packageItem) {
-  settingsManagerPackagesSelectedPackage.value = packageItem
-  console.log('[DevSidebar] 패키지 선택:', packageItem)
-  // 전역 이벤트로 DevelopmentPage에 알림
-  window.dispatchEvent(new CustomEvent('settings-manager-package-selected', { detail: { package: packageItem } }))
+function handleDevOpsPackageSelected(packageItem) {
+  devOpsSelectedPackage.value = packageItem
+  console.log('[DevSidebar] DevOps 패키지 선택:', packageItem)
+  window.dispatchEvent(new CustomEvent('devops-package-selected', { detail: { package: packageItem } }))
+}
+
+function handleDevOpsTabChange(tab) {
+  console.log('[DevSidebar] DevOps 탭 변경:', tab)
+  window.dispatchEvent(new CustomEvent('devops-tab-change', { detail: { tab } }))
 }
 
 // Content 컴포넌트 참조
@@ -828,6 +883,10 @@ watch(
     } else if (newMenu === 'settings-manager') {
       // 설정 관리 메뉴 활성화 시 초기 스캔
       handleSettingsManagerScanSettings()
+    } else if (newMenu === 'devops') {
+      // DevOps 메뉴 활성화 시 초기화
+      console.log('[DevSidebar] DevOps 초기화')
+      // TODO: DevOps 초기화
     }
   },
   { immediate: true },
@@ -844,7 +903,7 @@ function getInitialActiveMenu() {
       const saved = localStorage.getItem('dev-active-menu')
       if (saved) {
         // 유효한 메뉴 ID인지 확인
-        const validMenus = ['document-manager', 'theme-manager', 'dev-guide', 'component-library', 'database-viewer', 'log-viewer', 'performance-monitor', 'settings-manager', 'build-tools', 'network-monitor', 'environment-variables', 'package-manager', 'document-generator', 'deployment-manager']
+        const validMenus = ['document-manager', 'theme-manager', 'dev-guide', 'component-library', 'database-viewer', 'performance-monitor', 'settings-manager', 'document-generator', 'devops']
         if (validMenus.includes(saved)) {
           return saved
         }

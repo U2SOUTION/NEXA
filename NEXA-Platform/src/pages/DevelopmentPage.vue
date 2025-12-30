@@ -25,41 +25,17 @@
       <!-- 성능 모니터 -->
       <PerformanceMonitorContent v-else-if="activeMenu === 'performance-monitor'" />
 
-      <!-- 로그 뷰어 -->
-      <LogViewerContent v-else-if="activeMenu === 'log-viewer'" />
-
-
       <!-- 데이터베이스 -->
       <DatabaseViewerContent v-else-if="activeMenu === 'database-viewer'" />
 
       <!-- 설정 관리 -->
-      <template v-else-if="activeMenu === 'settings-manager'">
-        <!-- 셋팅관리 탭 -->
-        <SettingsManagerContent v-if="settingsManagerActiveTab === 'settings'" :selected-setting="settingsManagerSelectedSetting" :statistics="settingsManagerStatistics" />
-        <!-- 환경변수 탭 -->
-        <EnvironmentVariablesContent v-else-if="settingsManagerActiveTab === 'environment-variables'" :selected-variable="settingsManagerEnvironmentVariablesSelectedVariable" />
-        <!-- 패키지 탭 -->
-        <PackageManagerContent v-else-if="settingsManagerActiveTab === 'package-manager'" :selected-package="settingsManagerPackagesSelectedPackage" />
-      </template>
+      <SettingsManagerContent v-else-if="activeMenu === 'settings-manager'" :selected-setting="settingsManagerSelectedSetting" :statistics="settingsManagerStatistics" />
 
       <!-- 개발 가이드 -->
       <DevGuideContent v-else-if="activeMenu === 'dev-guide'" ref="devGuideContentRef" />
 
-      <!-- 빌드 도구 -->
-      <BuildToolsContent v-else-if="activeMenu === 'build-tools'" />
-
-      <!-- 패키지 관리 -->
-      <PackageManagerContent v-else-if="activeMenu === 'package-manager'" />
-
-      <!-- 환경 변수 -->
-      <EnvironmentVariablesContent v-else-if="activeMenu === 'environment-variables'" />
-
-      <!-- 네트워크 모니터 -->
-      <NetworkMonitorContent v-else-if="activeMenu === 'network-monitor'" />
-
-
-      <!-- 배포 관리 -->
-      <DeploymentManagerContent v-else-if="activeMenu === 'deployment-manager'" />
+      <!-- DevOps -->
+      <DevOpsContent v-else-if="activeMenu === 'devops'" />
     </div>
 
     <!-- 컴포넌트 라이브러리 (q-pa-lg 밖으로 분리하여 높이 문제 해결) -->
@@ -73,16 +49,11 @@ import DocumentManagerContent from 'src/components/dev-tools/document-manager/Do
 import ThemeManagerContent from 'src/components/dev-tools/theme-manager/ThemeManagerContent.vue'
 import GraphDocContent from 'src/components/dev-tools/graph-doc/GraphDocContent.vue'
 import PerformanceMonitorContent from 'src/components/dev-tools/performance-monitor/PerformanceMonitorContent.vue'
-import LogViewerContent from 'src/components/dev-tools/log-viewer/LogViewerContent.vue'
 import DatabaseViewerContent from 'src/components/dev-tools/database-viewer/DatabaseViewerContent.vue'
 import SettingsManagerContent from 'src/components/dev-tools/settings-manager/SettingsManagerContent.vue'
 import ComponentLibraryContent from 'src/components/dev-tools/component-library/ComponentLibraryContent.vue'
 import DevGuideContent from 'src/components/dev-tools/dev-guide/DevGuideContent.vue'
-import BuildToolsContent from 'src/components/dev-tools/build-tools/BuildToolsContent.vue'
-import PackageManagerContent from 'src/components/dev-tools/package-manager/PackageManagerContent.vue'
-import EnvironmentVariablesContent from 'src/components/dev-tools/environment-variables/EnvironmentVariablesContent.vue'
-import NetworkMonitorContent from 'src/components/dev-tools/network-monitor/NetworkMonitorContent.vue'
-import DeploymentManagerContent from 'src/components/dev-tools/deployment-manager/DeploymentManagerContent.vue'
+import DevOpsContent from 'src/components/dev-tools/devops/DevOpsContent.vue'
 
 // Active menu 상태 (설정에 따라 이전 메뉴 복원 또는 null로 시작)
 function getInitialActiveMenu() {
@@ -101,16 +72,10 @@ function getInitialActiveMenu() {
           'dev-guide',
           'component-library',
           'database-viewer',
-          'log-viewer',
           'performance-monitor',
-          'error-tracking',
           'settings-manager',
-          'build-tools',
-          'network-monitor',
-          'environment-variables',
-          'package-manager',
           'document-generator',
-          'deployment-manager',
+          'devops',
         ]
         if (validMenus.includes(saved)) {
           return saved
@@ -133,9 +98,13 @@ const themeSortOption = ref('category')
 // 설정 관리 상태 (DevSidebar와 동기화)
 const settingsManagerSelectedSetting = ref(null)
 const settingsManagerStatistics = ref(null)
-const settingsManagerActiveTab = ref('settings')
-const settingsManagerEnvironmentVariablesSelectedVariable = ref(null)
-const settingsManagerPackagesSelectedPackage = ref(null)
+
+// DevOps 상태
+const devOpsActiveTab = ref('build')
+const devOpsSelectedBuild = ref(null)
+const devOpsSelectedDeployment = ref(null)
+const devOpsSelectedEnvironmentVariable = ref(null)
+const devOpsSelectedPackage = ref(null)
 
 // 테마 관리 상태 변경 이벤트 핸들러
 function handleThemeSearchChange(event) {
@@ -172,26 +141,35 @@ function handleSettingsManagerSettingDeleted() {
   window.dispatchEvent(new CustomEvent('settings-manager-refresh-request'))
 }
 
-// 설정 관리 탭 변경 핸들러
-function handleSettingsManagerTabChange(event) {
+// DevOps 핸들러
+function handleDevOpsTabChange(event) {
   const { tab } = event.detail
-  settingsManagerActiveTab.value = tab
+  devOpsActiveTab.value = tab
   // 탭 변경 시 선택 항목 초기화
-  settingsManagerSelectedSetting.value = null
-  settingsManagerEnvironmentVariablesSelectedVariable.value = null
-  settingsManagerPackagesSelectedPackage.value = null
+  devOpsSelectedBuild.value = null
+  devOpsSelectedDeployment.value = null
+  devOpsSelectedEnvironmentVariable.value = null
+  devOpsSelectedPackage.value = null
 }
 
-// 환경변수 선택 핸들러
-function handleSettingsManagerEnvironmentVariableSelected(event) {
+function handleDevOpsBuildSelected(event) {
+  const { build } = event.detail
+  devOpsSelectedBuild.value = build
+}
+
+function handleDevOpsDeploymentSelected(event) {
+  const { deployment } = event.detail
+  devOpsSelectedDeployment.value = deployment
+}
+
+function handleDevOpsEnvironmentVariableSelected(event) {
   const { variable } = event.detail
-  settingsManagerEnvironmentVariablesSelectedVariable.value = variable
+  devOpsSelectedEnvironmentVariable.value = variable
 }
 
-// 패키지 선택 핸들러
-function handleSettingsManagerPackageSelected(event) {
+function handleDevOpsPackageSelected(event) {
   const { package: packageItem } = event.detail
-  settingsManagerPackagesSelectedPackage.value = packageItem
+  devOpsSelectedPackage.value = packageItem
 }
 
 // 메뉴 메인 페이지로 이동 핸들러
@@ -201,9 +179,12 @@ function handleMenuMainPage(event) {
       // 현재 메뉴의 메인 페이지로 이동
       if (menuId === 'settings-manager') {
         settingsManagerSelectedSetting.value = null
-        settingsManagerEnvironmentVariablesSelectedVariable.value = null
-        settingsManagerPackagesSelectedPackage.value = null
-        settingsManagerActiveTab.value = 'settings'
+      } else if (menuId === 'devops') {
+        devOpsSelectedBuild.value = null
+        devOpsSelectedDeployment.value = null
+        devOpsSelectedEnvironmentVariable.value = null
+        devOpsSelectedPackage.value = null
+        devOpsActiveTab.value = 'build'
       } else if (menuId === 'dev-guide') {
       // DevGuideContent의 메인 페이지로 이동
       window.dispatchEvent(new CustomEvent('dev-guide-main-page'))
@@ -243,9 +224,11 @@ onMounted(async () => {
   window.addEventListener('settings-manager-statistics-updated', handleSettingsManagerStatisticsUpdated)
   window.addEventListener('settings-manager-setting-updated', handleSettingsManagerSettingUpdated)
   window.addEventListener('settings-manager-setting-deleted', handleSettingsManagerSettingDeleted)
-  window.addEventListener('settings-manager-tab-change', handleSettingsManagerTabChange)
-  window.addEventListener('settings-manager-environment-variable-selected', handleSettingsManagerEnvironmentVariableSelected)
-  window.addEventListener('settings-manager-package-selected', handleSettingsManagerPackageSelected)
+  window.addEventListener('devops-tab-change', handleDevOpsTabChange)
+  window.addEventListener('devops-build-selected', handleDevOpsBuildSelected)
+  window.addEventListener('devops-deployment-selected', handleDevOpsDeploymentSelected)
+  window.addEventListener('devops-environment-variable-selected', handleDevOpsEnvironmentVariableSelected)
+  window.addEventListener('devops-package-selected', handleDevOpsPackageSelected)
 
   // 모든 컴포넌트가 마운트된 후에 초기 메뉴를 사이드바에 전파
   await nextTick()
@@ -262,6 +245,15 @@ onUnmounted(() => {
   window.removeEventListener('theme-manager-search-changed', handleThemeSearchChange)
   window.removeEventListener('theme-manager-filter-changed', handleThemeCategoryFilterChange)
   window.removeEventListener('theme-manager-sort-changed', handleThemeSortChange)
+  window.removeEventListener('settings-manager-setting-selected', handleSettingsManagerSettingSelected)
+  window.removeEventListener('settings-manager-statistics-updated', handleSettingsManagerStatisticsUpdated)
+  window.removeEventListener('settings-manager-setting-updated', handleSettingsManagerSettingUpdated)
+  window.removeEventListener('settings-manager-setting-deleted', handleSettingsManagerSettingDeleted)
+  window.removeEventListener('devops-tab-change', handleDevOpsTabChange)
+  window.removeEventListener('devops-build-selected', handleDevOpsBuildSelected)
+  window.removeEventListener('devops-deployment-selected', handleDevOpsDeploymentSelected)
+  window.removeEventListener('devops-environment-variable-selected', handleDevOpsEnvironmentVariableSelected)
+  window.removeEventListener('devops-package-selected', handleDevOpsPackageSelected)
 })
 </script>
 

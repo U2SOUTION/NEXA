@@ -1,87 +1,36 @@
 <!-- SettingsManagerSidebar.vue
-  설정 관리 왼쪽 사이드바 통합 컴포넌트
-  탭 구조: 셋팅관리, 환경변수, 패키지
-  헤더 + 목록
+  설정 관리 왼쪽 사이드바 컴포넌트
+  애플리케이션 내부 설정만 관리 (환경변수, 패키지는 DevOps로 이동)
 -->
 
 <template>
   <div class="settings-manager-sidebar">
-    <!-- 탭 메뉴 -->
-    <div class="sidebar-tabs q-pa-sm">
-      <q-tabs v-model="activeTab" dense class="text-grey" active-color="primary" indicator-color="primary" align="left">
-        <q-tab name="settings" label="셋팅관리" icon="settings" />
-        <q-tab name="environment-variables" label="환경변수" icon="tune" />
-        <q-tab name="package-manager" label="패키지" icon="inventory_2" />
-      </q-tabs>
-    </div>
-
-    <!-- 셋팅관리 탭 -->
-    <template v-if="activeTab === 'settings'">
-      <SettingsHeader
-        :header-hovered="props.headerHovered"
-        :search-query="props.settingsSearchQuery"
-        :filter-category="props.settingsFilterCategory"
-        :filter-type="props.settingsFilterType"
-        :categories="props.settingsCategories"
-        :types="props.settingsTypes"
-        :is-loading="props.settingsIsLoading"
-        @search-change="handleSettingsSearchChange"
-        @category-filter-change="handleSettingsCategoryFilterChange"
-        @type-filter-change="handleSettingsTypeFilterChange"
-        @refresh="handleSettingsRefresh"
-        @settings="handleSettingsSettings"
-      />
-      <SettingsList
-        :filtered-settings="props.settingsFilteredSettings"
-        :selected-setting="props.settingsSelectedSetting"
-        :is-loading="props.settingsIsLoading"
-        @setting-selected="handleSettingsSettingSelected"
-      />
-    </template>
-
-    <!-- 환경변수 탭 -->
-    <template v-else-if="activeTab === 'environment-variables'">
-      <EnvironmentVariablesHeader
-        @refresh="handleEnvironmentVariablesRefresh"
-        @search-change="handleEnvironmentVariablesSearchChange"
-        @settings="handleEnvironmentVariablesSettings"
-      />
-      <EnvironmentVariablesList
-        :variables="props.environmentVariables"
-        :selected-variable="props.environmentVariablesSelectedVariable"
-        :is-loading="props.environmentVariablesIsLoading"
-        @variable-selected="handleEnvironmentVariableSelected"
-      />
-    </template>
-
-    <!-- 패키지 탭 -->
-    <template v-else-if="activeTab === 'package-manager'">
-      <PackageManagerHeader
-        @refresh="handlePackageManagerRefresh"
-        @search-change="handlePackageManagerSearchChange"
-        @settings="handlePackageManagerSettings"
-      />
-      <PackageManagerList
-        :packages="props.packages"
-        :selected-package="props.packagesSelectedPackage"
-        :is-loading="props.packagesIsLoading"
-        @package-selected="handlePackageSelected"
-      />
-    </template>
+    <SettingsHeader
+      :header-hovered="props.headerHovered"
+      :search-query="props.settingsSearchQuery"
+      :filter-category="props.settingsFilterCategory"
+      :filter-type="props.settingsFilterType"
+      :categories="props.settingsCategories"
+      :types="props.settingsTypes"
+      :is-loading="props.settingsIsLoading"
+      @search-change="handleSettingsSearchChange"
+      @category-filter-change="handleSettingsCategoryFilterChange"
+      @type-filter-change="handleSettingsTypeFilterChange"
+      @refresh="handleSettingsRefresh"
+      @settings="handleSettingsSettings"
+    />
+    <SettingsList
+      :filtered-settings="props.settingsFilteredSettings"
+      :selected-setting="props.settingsSelectedSetting"
+      :is-loading="props.settingsIsLoading"
+      @setting-selected="handleSettingsSettingSelected"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
 import SettingsHeader from './SettingsHeader.vue'
 import SettingsList from './SettingsList.vue'
-import EnvironmentVariablesHeader from './EnvironmentVariablesHeader.vue'
-import EnvironmentVariablesList from './EnvironmentVariablesList.vue'
-import PackageManagerHeader from './PackageManagerHeader.vue'
-import PackageManagerList from './PackageManagerList.vue'
-
-// 활성 탭
-const activeTab = ref('settings')
 
 // Props
 const props = defineProps({
@@ -123,32 +72,6 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  // 환경변수 관련
-  environmentVariables: {
-    type: Array,
-    default: () => [],
-  },
-  environmentVariablesSelectedVariable: {
-    type: Object,
-    default: null,
-  },
-  environmentVariablesIsLoading: {
-    type: Boolean,
-    default: false,
-  },
-  // 패키지 관련
-  packages: {
-    type: Array,
-    default: () => [],
-  },
-  packagesSelectedPackage: {
-    type: Object,
-    default: null,
-  },
-  packagesIsLoading: {
-    type: Boolean,
-    default: false,
-  },
 })
 
 const emit = defineEmits([
@@ -159,18 +82,6 @@ const emit = defineEmits([
   'settings-refresh',
   'settings-settings',
   'settings-setting-selected',
-  // 환경변수
-  'environment-variables-refresh',
-  'environment-variables-search-change',
-  'environment-variables-settings',
-  'environment-variable-selected',
-  // 패키지
-  'package-manager-refresh',
-  'package-manager-search-change',
-  'package-manager-settings',
-  'package-selected',
-  // 탭 변경
-  'tab-change',
 ])
 
 // 셋팅관리 핸들러
@@ -197,45 +108,6 @@ function handleSettingsSettings() {
 function handleSettingsSettingSelected(setting) {
   emit('settings-setting-selected', setting)
 }
-
-// 환경변수 핸들러
-function handleEnvironmentVariablesRefresh() {
-  emit('environment-variables-refresh')
-}
-
-function handleEnvironmentVariablesSearchChange(value) {
-  emit('environment-variables-search-change', value)
-}
-
-function handleEnvironmentVariablesSettings() {
-  emit('environment-variables-settings')
-}
-
-function handleEnvironmentVariableSelected(variable) {
-  emit('environment-variable-selected', variable)
-}
-
-// 패키지 핸들러
-function handlePackageManagerRefresh() {
-  emit('package-manager-refresh')
-}
-
-function handlePackageManagerSearchChange(value) {
-  emit('package-manager-search-change', value)
-}
-
-function handlePackageManagerSettings() {
-  emit('package-manager-settings')
-}
-
-function handlePackageSelected(packageItem) {
-  emit('package-selected', packageItem)
-}
-
-// 탭 변경 감지
-watch(activeTab, (newTab) => {
-  emit('tab-change', newTab)
-})
 </script>
 
 <style lang="scss" scoped>
