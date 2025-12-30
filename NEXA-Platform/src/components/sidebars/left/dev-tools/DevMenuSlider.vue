@@ -69,7 +69,7 @@ const emit = defineEmits(['openSettings', 'update:activeMenu'])
 
 const $q = useQuasar()
 
-// 메뉴 항목 정의 (17개)
+// 메뉴 항목 정의 (18개)
 // 중요도 순서: 문서관리/테마관리(최우선) → 구현된 도구 → 개발/디버깅 도구 → 관리/유틸리티 도구
 const devMenus = [
   // 최우선: 핵심 관리 도구
@@ -87,12 +87,11 @@ const devMenus = [
   // 시스템 관리 도구
   { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
   // 개발 유틸리티 도구
-  { id: 'test-runner', label: '테스트 러너', icon: 'play_arrow' },
   { id: 'build-tools', label: '빌드 도구', icon: 'build' },
   { id: 'network-monitor', label: '네트워크 모니터', icon: 'network_check' },
   { id: 'environment-variables', label: '환경 변수', icon: 'tune' },
   { id: 'package-manager', label: '패키지 관리', icon: 'inventory_2' },
-  // 문서/배포 도구
+  // 문서/분석 도구
   { id: 'document-generator', label: '그래프독', icon: 'account_tree' },
   { id: 'deployment-manager', label: '배포 관리', icon: 'cloud_upload' },
 ]

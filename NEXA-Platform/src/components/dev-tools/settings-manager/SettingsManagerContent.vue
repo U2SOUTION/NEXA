@@ -1,6 +1,13 @@
 <!-- SettingsManagerContent.vue
   설정 관리 메인 컨텐츠 컴포넌트
   설정 상세 정보 및 전체 현황 표시
+
+  TODO: 향후 스토리지 관리 기능 통합 예정
+  - localStorage, sessionStorage, IndexedDB 통합 관리
+  - 스토리지 데이터 편집/삭제 기능
+  - 스토리지 사용량 분석
+  - 스토리지 백업/복원 기능
+  - 메뉴 이름도 "설정 및 스토리지 관리" 등으로 변경 검토
 -->
 <template>
   <!-- 설정이 선택되지 않았을 때: 전체 현황 및 가이드 -->

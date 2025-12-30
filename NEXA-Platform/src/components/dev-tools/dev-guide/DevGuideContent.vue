@@ -1215,6 +1215,7 @@ onMounted(() => {
 
   // 하위 호환성을 위해 샘플 선택 이벤트 리스너 유지
   window.addEventListener('dev-guide-sample-selected', handleSampleSelected)
+  window.addEventListener('dev-guide-main-page', handleMainPage)
 
   // 초기 로드
   if (selectedSample.value?.componentPath) {
@@ -1243,8 +1244,15 @@ onMounted(() => {
 
 // 캐시 상태 변경 watch 제거됨 - Store의 자동 반응성으로 처리
 
+// 메인 페이지로 이동 핸들러
+function handleMainPage() {
+  selectedSample.value = null
+  window.dispatchEvent(new CustomEvent('dev-guide-sample-deselected'))
+}
+
 onBeforeUnmount(() => {
   window.removeEventListener('dev-guide-sample-selected', handleSampleSelected)
+  window.removeEventListener('dev-guide-main-page', handleMainPage)
   cleanupResizeObserver()
   cleanupIntersectionObserver()
   stopCacheCleanupInterval()

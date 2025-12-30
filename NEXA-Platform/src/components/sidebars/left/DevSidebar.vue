@@ -5,8 +5,8 @@
 
 <template>
   <div class="dev-sidebar">
-    <!-- 공통 헤더 -->
-    <LeftSidebarHeader title="DEV" subtitle="개발 문서 및 요구사항 관리" title-link="/dev" :show-restore-option="true" @header-hover="isLeftHeaderHovered = $event" @title-click="handleDevHeaderClick" />
+    <!-- 동적 헤더 (메뉴별로 변경) -->
+    <LeftSidebarHeader :title="currentHeaderTitle" :subtitle="currentHeaderSubtitle" title-link="/dev" :show-restore-option="true" @header-hover="isLeftHeaderHovered = $event" @title-click="handleHeaderClick" />
 
     <!-- DevMenuSlider (항상 표시) -->
     <DevMenuSlider :header-hovered="isLeftHeaderHovered" @update:active-menu="handleActiveMenuChange" @open-settings="openSettings" />
@@ -113,6 +113,34 @@
       />
     </template>
 
+    <!-- 성능 모니터 -->
+    <template v-else-if="activeMenu === 'performance-monitor'">
+      <PerformanceMonitorSidebar
+        :is-monitoring="performanceMonitorIsMonitoring"
+        :performance-metrics="performanceMonitorMetrics"
+        :api-requests="performanceMonitorApiRequests"
+        :selected-api-request="performanceMonitorSelectedApiRequest"
+        :network-requests="performanceMonitorNetworkRequests"
+        :selected-network-request="performanceMonitorSelectedNetworkRequest"
+        :network-statistics="performanceMonitorNetworkStatistics"
+        :is-loading="performanceMonitorIsLoading"
+        @refresh="handlePerformanceMonitorRefresh"
+        @monitoring-toggle="handlePerformanceMonitorMonitoringToggle"
+        @settings="handlePerformanceMonitorSettings"
+        @metric-selected="handlePerformanceMonitorMetricSelected"
+        @api-tester-refresh="handlePerformanceMonitorApiTesterRefresh"
+        @api-tester-search-change="handlePerformanceMonitorApiTesterSearchChange"
+        @api-tester-settings="handlePerformanceMonitorApiTesterSettings"
+        @api-request-selected="handlePerformanceMonitorApiRequestSelected"
+        @network-refresh="handlePerformanceMonitorNetworkRefresh"
+        @network-search-change="handlePerformanceMonitorNetworkSearchChange"
+        @network-filter-change="handlePerformanceMonitorNetworkFilterChange"
+        @network-settings="handlePerformanceMonitorNetworkSettings"
+        @network-request-selected="handlePerformanceMonitorNetworkRequestSelected"
+        @tab-change="handlePerformanceMonitorTabChange"
+      />
+    </template>
+
     <!-- 설정 관리 -->
     <template v-else-if="activeMenu === 'settings-manager'">
       <SettingsManagerHeader
@@ -129,12 +157,7 @@
         @refresh="handleSettingsManagerRefresh"
         @settings="handleSettingsManagerSettings"
       />
-      <SettingsManagerList
-        :filtered-settings="settingsManagerFilteredSettings"
-        :selected-setting="settingsManagerSelectedSetting"
-        :is-loading="settingsManagerIsLoading"
-        @setting-selected="handleSettingsManagerSettingSelected"
-      />
+      <SettingsManagerList :filtered-settings="settingsManagerFilteredSettings" :selected-setting="settingsManagerSelectedSetting" :is-loading="settingsManagerIsLoading" @setting-selected="handleSettingsManagerSettingSelected" />
     </template>
 
     <!-- 설정 모달 -->
@@ -143,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, toRef, watch, onMounted, onUnmounted } from 'vue'
+import { ref, toRef, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import LeftSidebarHeader from './LeftSidebarHeader.vue'
 import DevMenuSlider from './dev-tools/DevMenuSlider.vue'
@@ -155,6 +178,7 @@ import DatabaseViewerHeader from './dev-tools/database-viewer/DatabaseViewerHead
 import DatabaseViewerList from './dev-tools/database-viewer/DatabaseViewerList.vue'
 import ComponentLibrarySidebar from './dev-tools/component-library/ComponentLibrarySidebar.vue'
 import ErrorTrackingSidebar from './dev-tools/error-tracking/ErrorTrackingSidebar.vue'
+import PerformanceMonitorSidebar from './dev-tools/performance-monitor/PerformanceMonitorSidebar.vue'
 import DevGuideHeader from './dev-tools/dev-guide/DevGuideHeader.vue'
 import DevGuideList from './dev-tools/dev-guide/DevGuideList.vue'
 import SettingsManagerHeader from './dev-tools/settings-manager/SettingsManagerHeader.vue'
@@ -184,6 +208,37 @@ const documentStore = useDocumentManagerStore()
 // Active menu 상태 (DevelopmentPage와 동기화)
 const activeMenu = ref(null)
 
+// 메뉴별 헤더 정보 정의 (영문)
+const menuHeaders = {
+  'dev-guide': { title: 'Dev Guide', subtitle: 'Component samples and development guides' },
+  'document-manager': { title: 'DOC Manager', subtitle: 'Development documents and requirements management' },
+  'theme-manager': { title: 'Theme Manager', subtitle: 'Color and theme settings management' },
+  'component-library': { title: 'Componen', subtitle: 'Component library and classification' },
+  'database-viewer': { title: 'Database Viewer', subtitle: 'Database tables and data query' },
+  'api-tester': { title: 'API Tester', subtitle: 'API endpoint testing and debugging' },
+  'log-viewer': { title: 'Log Viewer', subtitle: 'Application log viewing and analysis' },
+  'performance-monitor': { title: 'Performance Monitor', subtitle: 'Performance metrics monitoring and analysis' },
+  'error-tracking': { title: 'Error Tracking', subtitle: 'Error tracking and debugging' },
+  'settings-manager': { title: 'Settings Manager', subtitle: 'System settings integrated management' },
+  'build-tools': { title: 'Build Tools', subtitle: 'Build and deployment tools management' },
+  'network-monitor': { title: 'Network Monitor', subtitle: 'Network request monitoring' },
+  'environment-variables': { title: 'Environment Variables', subtitle: 'Environment variables settings and management' },
+  'package-manager': { title: 'Package Manager', subtitle: 'Dependency package management' },
+  'document-generator': { title: 'GraphDoc', subtitle: 'Dependency analysis, file structure & document generation' },
+  'deployment-manager': { title: 'Deployment Manager', subtitle: 'Deployment process management' },
+}
+
+// 현재 헤더 정보 (computed)
+const currentHeaderTitle = computed(() => {
+  if (!activeMenu.value) return 'DEV'
+  return menuHeaders[activeMenu.value]?.title || 'DEV'
+})
+
+const currentHeaderSubtitle = computed(() => {
+  if (!activeMenu.value) return 'Development Tools Integrated Management'
+  return menuHeaders[activeMenu.value]?.subtitle || 'Development Tools'
+})
+
 // Active menu 변경 핸들러
 function handleActiveMenuChange(menuId) {
   activeMenu.value = menuId
@@ -191,11 +246,17 @@ function handleActiveMenuChange(menuId) {
   window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: menuId } }))
 }
 
-// DEV 헤더 클릭 핸들러 (메인 페이지로 이동)
-function handleDevHeaderClick() {
-  // activeMenu를 null로 리셋하여 DevelopmentPage 기본 뷰 표시
-  activeMenu.value = null
-  window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: null } }))
+// 헤더 클릭 핸들러 (해당 메뉴의 메인 페이지로 이동)
+function handleHeaderClick() {
+  if (activeMenu.value) {
+    // 현재 메뉴가 선택되어 있으면 해당 메뉴의 메인 페이지로 이동
+    // 전역 이벤트로 DevelopmentPage에 메인 페이지 표시 요청
+    window.dispatchEvent(new CustomEvent('dev-menu-main-page', { detail: { menuId: activeMenu.value } }))
+  } else {
+    // 메뉴가 선택되지 않았으면 기본 DEV 페이지로
+    activeMenu.value = null
+    window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: null } }))
+  }
 }
 
 // 테마 관리 (composable 사용)
@@ -286,6 +347,93 @@ const {
   batchDeleteError: errorTrackingBatchDeleteError,
 } = useErrorTracking()
 
+// 성능 모니터 관리 (기본 상태 - composable은 나중에 추가 예정)
+const performanceMonitorIsMonitoring = ref(false)
+const performanceMonitorMetrics = ref([])
+const performanceMonitorApiRequests = ref([])
+const performanceMonitorSelectedApiRequest = ref(null)
+const performanceMonitorNetworkRequests = ref([])
+const performanceMonitorSelectedNetworkRequest = ref(null)
+const performanceMonitorNetworkStatistics = ref({
+  total: 0,
+  active: 0,
+})
+const performanceMonitorIsLoading = ref(false)
+
+// 성능 모니터 핸들러
+function handlePerformanceMonitorRefresh() {
+  console.log('[DevSidebar] 성능 모니터 새로고침')
+  // TODO: 성능 모니터 데이터 새로고침
+}
+
+function handlePerformanceMonitorMonitoringToggle(enabled) {
+  performanceMonitorIsMonitoring.value = enabled
+  console.log('[DevSidebar] 성능 모니터링 토글:', enabled)
+  // TODO: 모니터링 시작/중지
+}
+
+function handlePerformanceMonitorSettings() {
+  console.log('[DevSidebar] 성능 모니터 설정')
+  // TODO: 설정 모달 열기
+}
+
+function handlePerformanceMonitorMetricSelected(metric) {
+  console.log('[DevSidebar] 성능 메트릭 선택:', metric)
+  // TODO: 메트릭 상세 정보 표시
+}
+
+function handlePerformanceMonitorApiTesterRefresh() {
+  console.log('[DevSidebar] API 테스터 새로고침')
+  // TODO: API 요청 목록 새로고침
+}
+
+function handlePerformanceMonitorApiTesterSearchChange(value) {
+  console.log('[DevSidebar] API 테스터 검색:', value)
+  // TODO: API 요청 검색
+}
+
+function handlePerformanceMonitorApiTesterSettings() {
+  console.log('[DevSidebar] API 테스터 설정')
+  // TODO: API 테스터 설정
+}
+
+function handlePerformanceMonitorApiRequestSelected(request) {
+  performanceMonitorSelectedApiRequest.value = request
+  console.log('[DevSidebar] API 요청 선택:', request)
+  // TODO: API 요청 상세 정보 표시
+}
+
+function handlePerformanceMonitorNetworkRefresh() {
+  console.log('[DevSidebar] 네트워크 새로고침')
+  // TODO: 네트워크 요청 목록 새로고침
+}
+
+function handlePerformanceMonitorNetworkSearchChange(value) {
+  console.log('[DevSidebar] 네트워크 검색:', value)
+  // TODO: 네트워크 요청 검색
+}
+
+function handlePerformanceMonitorNetworkFilterChange(filters) {
+  console.log('[DevSidebar] 네트워크 필터 변경:', filters)
+  // TODO: 네트워크 요청 필터링
+}
+
+function handlePerformanceMonitorNetworkSettings() {
+  console.log('[DevSidebar] 네트워크 설정')
+  // TODO: 네트워크 설정
+}
+
+function handlePerformanceMonitorNetworkRequestSelected(request) {
+  performanceMonitorSelectedNetworkRequest.value = request
+  console.log('[DevSidebar] 네트워크 요청 선택:', request)
+  // TODO: 네트워크 요청 상세 정보 표시
+}
+
+function handlePerformanceMonitorTabChange(tab) {
+  console.log('[DevSidebar] 성능 모니터 탭 변경:', tab)
+  // TODO: 탭 변경 처리
+}
+
 // 설정 관리 (composable 사용)
 const {
   isLoading: settingsManagerIsLoading,
@@ -323,7 +471,6 @@ function handleSettingsManagerSettingSelected(setting) {
   // 전역 이벤트로 DevelopmentPage에 알림
   window.dispatchEvent(new CustomEvent('settings-manager-setting-selected', { detail: { setting } }))
 }
-
 
 function handleSettingsManagerSettings() {
   console.log('[DevSidebar] 설정 관리 설정')
@@ -476,6 +623,9 @@ watch(
     } else if (newMenu === 'error-tracking') {
       // 에러 트래킹 메뉴 활성화 시 초기화
       initializeErrorTracking()
+    } else if (newMenu === 'performance-monitor') {
+      // 성능 모니터 메뉴 활성화 시 초기화
+      handlePerformanceMonitorRefresh()
     } else if (newMenu === 'settings-manager') {
       // 설정 관리 메뉴 활성화 시 초기 스캔
       handleSettingsManagerScanSettings()
@@ -506,7 +656,6 @@ function getInitialActiveMenu() {
           'performance-monitor',
           'error-tracking',
           'settings-manager',
-          'test-runner',
           'build-tools',
           'network-monitor',
           'environment-variables',
@@ -544,7 +693,7 @@ onMounted(() => {
     const menuId = event.detail.activeMenu
     // null 포함하여 항상 동기화 (메인 페이지로 리셋 시에도 처리)
     activeMenu.value = menuId
-    
+
     // 테마 관리 메뉴가 활성화되어 있으면 카테고리 로드
     if (menuId === 'theme-manager') {
       loadThemeCategories()
@@ -556,7 +705,7 @@ onMounted(() => {
 
   // 언마운트 시 제거를 위해 참조 저장
   window.__devSidebarMenuChangedHandler = handleMenuChanged
-  
+
   // 설정 관리 새로고침 요청 리스너 등록
   window.addEventListener('settings-manager-refresh-request', handleSettingsManagerRefreshRequest)
 

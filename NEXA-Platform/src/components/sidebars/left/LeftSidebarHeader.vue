@@ -15,7 +15,11 @@
             <div class="text-caption sidebar-subtitle">{{ subtitle }}</div>
           </div>
           <div v-if="showRestoreOption" class="header-options">
-            <q-checkbox v-model="restoreLastMenu" dense size="sm" label="이전 메뉴 복원" @update:model-value="handleRestoreOptionChange" />
+            <q-btn :icon="restoreLastMenu ? 'restore' : 'memory'" :color="restoreLastMenu ? 'primary' : 'grey-7'" flat dense round size="md" @click="toggleRestoreOption">
+              <q-tooltip>
+                {{ restoreLastMenu ? '마지막 사용 메뉴 기억' : '마지막 사용 메뉴 기억 안 함' }}
+              </q-tooltip>
+            </q-btn>
           </div>
         </div>
       </div>
@@ -78,9 +82,10 @@ function handleTitleClick() {
   emit('title-click')
 }
 
-// 복원 옵션 변경 핸들러
-function handleRestoreOptionChange(value) {
-  saveRestoreOption(value)
+// 복원 옵션 토글 핸들러
+function toggleRestoreOption() {
+  restoreLastMenu.value = !restoreLastMenu.value
+  saveRestoreOption(restoreLastMenu.value)
 }
 
 onMounted(() => {

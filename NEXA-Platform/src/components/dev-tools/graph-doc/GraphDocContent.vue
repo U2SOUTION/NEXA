@@ -1,5 +1,17 @@
 <template>
   <div class="graph-doc-content">
+    <!-- 탭 메뉴 -->
+    <div class="graph-doc-tabs q-pa-md">
+      <q-tabs v-model="activeTab" dense class="text-grey" active-color="primary" indicator-color="primary" align="left">
+        <q-tab name="dependency-graph" label="의존성 그래프" icon="account_tree" />
+        <q-tab name="dependency-analysis" label="의존성 분석" icon="hub" />
+        <q-tab name="file-structure" label="파일 구조" icon="view_module" />
+        <q-tab name="code-search" label="코드 검색" icon="search" />
+      </q-tabs>
+    </div>
+
+    <!-- 의존성 그래프 탭 -->
+    <div v-if="activeTab === 'dependency-graph'" class="graph-doc-main-content">
     <!-- 헤더: 분석 대상 입력 -->
     <div class="graph-doc-header q-pa-md">
       <div class="row items-center q-gutter-md">
@@ -147,6 +159,67 @@
         </div>
       </div>
     </div>
+    </div>
+
+    <!-- 의존성 분석 탭 -->
+    <div v-else-if="activeTab === 'dependency-analysis'" class="graph-doc-main-content">
+      <div class="coming-soon-wrapper">
+        <div class="coming-soon-content">
+          <q-icon name="hub" size="80px" color="grey-7" class="q-mb-md" />
+          <h2 class="coming-soon-title">의존성 분석</h2>
+          <p class="coming-soon-description">의존성 분석 기능은 곧 출시될 예정입니다.</p>
+          <div class="coming-soon-features q-mt-lg">
+            <h3 class="features-title">예정된 기능</h3>
+            <ul class="features-list">
+              <li>package.json 분석 (설치된 패키지 목록)</li>
+              <li>실제 코드 스캔 (import 문 분석)</li>
+              <li>사용되지 않는 의존성 탐지</li>
+              <li>의존성 그래프 시각화</li>
+              <li>통계 및 리포트</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 파일 구조 분석 탭 -->
+    <div v-else-if="activeTab === 'file-structure'" class="graph-doc-main-content">
+      <div class="coming-soon-wrapper">
+        <div class="coming-soon-content">
+          <q-icon name="view_module" size="80px" color="grey-7" class="q-mb-md" />
+          <h2 class="coming-soon-title">파일 구조 분석</h2>
+          <p class="coming-soon-description">파일 구조 분석 기능은 곧 출시될 예정입니다.</p>
+          <div class="coming-soon-features q-mt-lg">
+            <h3 class="features-title">예정된 기능</h3>
+            <ul class="features-list">
+              <li><strong>파일 구조 시각화:</strong> 프로젝트 파일 구조 트리 뷰</li>
+              <li><strong>파일 크기 분석:</strong> 폴더별/파일별 크기 통계</li>
+              <li><strong>폴더별 통계:</strong> 파일 개수, 라인 수, 용량 분석</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 코드 검색 탭 -->
+    <div v-else-if="activeTab === 'code-search'" class="graph-doc-main-content">
+      <div class="coming-soon-wrapper">
+        <div class="coming-soon-content">
+          <q-icon name="search" size="80px" color="grey-7" class="q-mb-md" />
+          <h2 class="coming-soon-title">코드 검색</h2>
+          <p class="coming-soon-description">코드 검색 기능은 곧 출시될 예정입니다.</p>
+          <div class="coming-soon-features q-mt-lg">
+            <h3 class="features-title">예정된 기능</h3>
+            <ul class="features-list">
+              <li><strong>프로젝트 전체 검색:</strong> 모든 파일에서 코드 검색</li>
+              <li><strong>정규식 검색:</strong> 고급 검색 패턴 지원</li>
+              <li><strong>파일/함수/변수 검색:</strong> 심볼 기반 검색</li>
+              <li><strong>검색 결과 하이라이트:</strong> 검색된 코드 위치 표시</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -155,6 +228,9 @@ import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
+
+// 활성 탭
+const activeTab = ref('dependency-graph')
 
 // 분석 대상 (URL 또는 파일 경로)
 const analysisTarget = ref('')
@@ -228,6 +304,16 @@ function handleGenerateDocument() {
   display: flex;
   flex-direction: column;
   background: var(--nexa-background);
+}
+
+.graph-doc-tabs {
+  background: var(--nexa-surface);
+  border-bottom: 1px solid var(--nexa-border-color);
+}
+
+.graph-doc-main-content {
+  flex: 1;
+  overflow: hidden;
 }
 
 .graph-doc-header {
@@ -371,5 +457,57 @@ function handleGenerateDocument() {
 
 .node-actions {
   margin-top: 1rem;
+}
+
+.coming-soon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.coming-soon-content {
+  text-align: center;
+  max-width: 600px;
+}
+
+.coming-soon-title {
+  color: var(--nexa-text-primary);
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 1rem 0;
+}
+
+.coming-soon-description {
+  color: var(--nexa-text-secondary);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.coming-soon-features {
+  text-align: left;
+  margin-top: 2rem;
+}
+
+.features-title {
+  color: var(--nexa-text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.features-list {
+  color: var(--nexa-text-secondary);
+  list-style-type: disc;
+  margin-left: 1.5rem;
+
+  li {
+    margin-bottom: 0.5rem;
+
+    strong {
+      color: var(--nexa-text-primary);
+    }
+  }
 }
 </style>

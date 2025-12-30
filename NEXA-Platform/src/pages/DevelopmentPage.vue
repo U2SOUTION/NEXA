@@ -35,17 +35,10 @@
       <DatabaseViewerContent v-else-if="activeMenu === 'database-viewer'" />
 
       <!-- 설정 관리 -->
-      <SettingsManagerContent
-        v-else-if="activeMenu === 'settings-manager'"
-        :selected-setting="settingsManagerSelectedSetting"
-        :statistics="settingsManagerStatistics"
-      />
+      <SettingsManagerContent v-else-if="activeMenu === 'settings-manager'" :selected-setting="settingsManagerSelectedSetting" :statistics="settingsManagerStatistics" />
 
       <!-- 개발 가이드 -->
       <DevGuideContent v-else-if="activeMenu === 'dev-guide'" ref="devGuideContentRef" />
-
-      <!-- 테스트 러너 -->
-      <TestRunnerContent v-else-if="activeMenu === 'test-runner'" />
 
       <!-- 빌드 도구 -->
       <BuildToolsContent v-else-if="activeMenu === 'build-tools'" />
@@ -83,7 +76,6 @@ import DatabaseViewerContent from 'src/components/dev-tools/database-viewer/Data
 import SettingsManagerContent from 'src/components/dev-tools/settings-manager/SettingsManagerContent.vue'
 import ComponentLibraryContent from 'src/components/dev-tools/component-library/ComponentLibraryContent.vue'
 import DevGuideContent from 'src/components/dev-tools/dev-guide/DevGuideContent.vue'
-import TestRunnerContent from 'src/components/dev-tools/test-runner/TestRunnerContent.vue'
 import BuildToolsContent from 'src/components/dev-tools/build-tools/BuildToolsContent.vue'
 import PackageManagerContent from 'src/components/dev-tools/package-manager/PackageManagerContent.vue'
 import EnvironmentVariablesContent from 'src/components/dev-tools/environment-variables/EnvironmentVariablesContent.vue'
@@ -113,7 +105,6 @@ function getInitialActiveMenu() {
           'performance-monitor',
           'error-tracking',
           'settings-manager',
-          'test-runner',
           'build-tools',
           'network-monitor',
           'environment-variables',
@@ -178,6 +169,24 @@ function handleSettingsManagerSettingDeleted() {
   window.dispatchEvent(new CustomEvent('settings-manager-refresh-request'))
 }
 
+// 메뉴 메인 페이지로 이동 핸들러
+function handleMenuMainPage(event) {
+  const menuId = event.detail.menuId
+  if (menuId === activeMenu.value) {
+    // 현재 메뉴의 메인 페이지로 이동
+    if (menuId === 'settings-manager') {
+      settingsManagerSelectedSetting.value = null
+    } else if (menuId === 'dev-guide') {
+      // DevGuideContent의 메인 페이지로 이동
+      window.dispatchEvent(new CustomEvent('dev-guide-main-page'))
+    } else if (menuId === 'error-tracking') {
+      // ErrorTrackingContent의 메인 페이지로 이동
+      window.dispatchEvent(new CustomEvent('error-tracking-main-page'))
+    }
+    // 기타 메뉴는 이미 메인 페이지 구조를 가지고 있음
+  }
+}
+
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {
   const newMenu = event.detail.activeMenu
@@ -195,6 +204,7 @@ function handleActiveMenuChange(event) {
 onMounted(async () => {
   // Active menu 변경 이벤트 리스너 등록
   window.addEventListener('dev-menu-changed', handleActiveMenuChange)
+  window.addEventListener('dev-menu-main-page', handleMenuMainPage)
   window.addEventListener('theme-manager-search-changed', handleThemeSearchChange)
   window.addEventListener('theme-manager-filter-changed', handleThemeCategoryFilterChange)
   window.addEventListener('theme-manager-sort-changed', handleThemeSortChange)
@@ -214,6 +224,7 @@ onMounted(async () => {
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
 onUnmounted(() => {
   window.removeEventListener('dev-menu-changed', handleActiveMenuChange)
+  window.removeEventListener('dev-menu-main-page', handleMenuMainPage)
   window.removeEventListener('theme-manager-search-changed', handleThemeSearchChange)
   window.removeEventListener('theme-manager-filter-changed', handleThemeCategoryFilterChange)
   window.removeEventListener('theme-manager-sort-changed', handleThemeSortChange)

@@ -1495,11 +1495,17 @@ function handleRefreshErrors() {
   window.dispatchEvent(new CustomEvent('error-tracking-request-errors'))
 }
 
+// 메인 페이지로 이동 핸들러
+function handleMainPage() {
+  selectedError.value = null
+}
+
 onMounted(() => {
   window.addEventListener('error-tracking-error-selected', handleErrorSelected)
   window.addEventListener('error-tracking-statistics-updated', handleStatisticsUpdated)
   window.addEventListener('error-tracking-similar-errors-count', handleSimilarErrorsCount)
   window.addEventListener('error-tracking-errors-updated', handleErrorsUpdated)
+  window.addEventListener('error-tracking-main-page', handleMainPage)
 
   // 에러 목록 요청 (약간의 지연을 두어 useErrorTracking이 초기화된 후 요청)
   setTimeout(() => {
@@ -1521,6 +1527,7 @@ onUnmounted(() => {
   window.removeEventListener('error-tracking-statistics-updated', handleStatisticsUpdated)
   window.removeEventListener('error-tracking-similar-errors-count', handleSimilarErrorsCount)
   window.removeEventListener('error-tracking-errors-updated', handleErrorsUpdated)
+  window.removeEventListener('error-tracking-main-page', handleMainPage)
 
   // 다이어그램 정리
   if (diagramSimulation) {
