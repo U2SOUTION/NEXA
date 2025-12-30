@@ -34,11 +34,7 @@
       <!-- 카테고리별 통계 -->
       <div v-if="actualStatistics.categoryStats" class="category-stats">
         <h3 class="subsection-title">카테고리별 통계</h3>
-        <div
-          v-for="(stats, category) in actualStatistics.categoryStats"
-          :key="category"
-          class="category-stat-item"
-        >
+        <div v-for="(stats, category) in actualStatistics.categoryStats" :key="category" class="category-stat-item">
           <div class="category-name">{{ category }}</div>
           <div class="category-count">{{ stats.count }}개</div>
           <div class="category-size">{{ formatSize(stats.size) }}</div>
@@ -109,144 +105,86 @@
   <!-- 설정이 선택되었을 때: 설정 상세 정보 -->
   <div v-else class="setting-detail">
     <header class="detail-header">
-      <q-btn flat dense icon="arrow_back" @click="handleBack">
-        <q-tooltip>뒤로 가기</q-tooltip>
-      </q-btn>
+      <q-btn flat dense icon="arrow_back" @click="handleBack" size="sm" />
       <h2 class="detail-title">{{ actualSelectedSetting.name }}</h2>
-      <div class="detail-path">{{ actualSelectedSetting.path }}</div>
       <q-chip :color="getCategoryColor(actualSelectedSetting.category)" text-color="white" size="sm">
         {{ actualSelectedSetting.category }}
       </q-chip>
       <q-chip :color="getTypeColor(actualSelectedSetting.type)" text-color="white" size="sm">
         {{ actualSelectedSetting.type }}
       </q-chip>
-      <q-btn v-if="actualSelectedSetting.type === 'localStorage'" flat dense icon="edit" size="sm" @click="showEditDialog = true">
-        <q-tooltip>수정</q-tooltip>
-      </q-btn>
-      <q-btn v-if="actualSelectedSetting.type === 'localStorage'" flat dense icon="delete" size="sm" color="negative" @click="handleDelete">
-        <q-tooltip>삭제</q-tooltip>
-      </q-btn>
+      <q-btn v-if="actualSelectedSetting.type === 'localStorage'" flat dense icon="edit" size="sm" @click="showEditDialog = true" />
+      <q-btn v-if="actualSelectedSetting.type === 'localStorage'" flat dense icon="delete" size="sm" color="negative" @click="handleDelete" />
     </header>
 
-    <q-separator />
-    <!-- 기본 정보 -->
-    <section class="detail-section">
-      <h3 class="section-title">기본 정보</h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <div class="info-label">이름</div>
-          <div class="info-value">{{ actualSelectedSetting.name }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">경로</div>
-          <div class="info-value">{{ actualSelectedSetting.path }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">카테고리</div>
-          <div class="info-value">{{ actualSelectedSetting.category }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">타입</div>
-          <div class="info-value">{{ actualSelectedSetting.type }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">크기</div>
-          <div class="info-value">{{ formatSize(actualSelectedSetting.size) }}</div>
-        </div>
-        <div v-if="actualSelectedSetting.lastModified" class="info-item">
-          <div class="info-label">수정일</div>
-          <div class="info-value">{{ formatDate(actualSelectedSetting.lastModified) }}</div>
-        </div>
+    <div class="detail-info-row">
+      <div class="info-item">
+        <span class="info-label">경로:</span>
+        <span class="info-value">{{ actualSelectedSetting.path }}</span>
       </div>
-    </section>
+      <div class="info-item">
+        <span class="info-label">크기:</span>
+        <span class="info-value">{{ formatSize(actualSelectedSetting.size) }}</span>
+      </div>
+      <div v-if="actualSelectedSetting.lastModified" class="info-item">
+        <span class="info-label">수정일:</span>
+        <span class="info-value">{{ formatDate(actualSelectedSetting.lastModified) }}</span>
+      </div>
+    </div>
 
-    <!-- 설정 데이터 -->
     <section class="detail-section">
       <h3 class="section-title">설정 데이터</h3>
       <pre class="data-viewer">{{ formatJSON(actualSelectedSetting.data) }}</pre>
     </section>
 
-    <!-- 원본 데이터 (localStorage인 경우) -->
     <section v-if="actualSelectedSetting.type === 'localStorage' && actualSelectedSetting.rawValue" class="detail-section">
       <div class="section-header">
         <h3 class="section-title">원본 데이터</h3>
-        <q-btn flat dense icon="content_copy" size="sm" @click="copyToClipboard(actualSelectedSetting.rawValue)">
-          <q-tooltip>복사</q-tooltip>
-        </q-btn>
+        <q-btn flat dense icon="content_copy" size="sm" @click="copyToClipboard(actualSelectedSetting.rawValue)" />
       </div>
       <pre class="data-viewer">{{ actualSelectedSetting.rawValue }}</pre>
     </section>
 
-    <!-- 발생 위치 추적 -->
     <section class="detail-section">
       <h3 class="section-title">발생 위치</h3>
       <div v-if="getUsageLocations(actualSelectedSetting.name).length > 0" class="usage-list">
-        <div
-          v-for="(location, index) in getUsageLocations(actualSelectedSetting.name)"
-          :key="index"
-          class="usage-item"
-        >
-          <q-icon name="code" size="16px" />
-          <div class="usage-path">{{ location.path }}</div>
-          <q-chip size="sm" dense :color="location.type === 'store' ? 'purple' : location.type === 'service' ? 'blue' : 'grey'">
+        <div v-for="(location, index) in getUsageLocations(actualSelectedSetting.name)" :key="index" class="usage-item">
+          <q-icon name="code" size="14px" />
+          <span class="usage-path">{{ location.path }}</span>
+          <q-chip size="xs" dense :color="location.type === 'store' ? 'purple' : location.type === 'service' ? 'blue' : 'grey'">
             {{ location.type }}
           </q-chip>
         </div>
       </div>
       <div v-else class="usage-empty">
-        <q-icon name="help_outline" size="24px" color="grey-5" />
-        <div class="usage-empty-text">사용 위치를 찾을 수 없습니다</div>
-        <div class="usage-empty-hint">키 이름 패턴을 분석하여 추정된 위치를 표시합니다</div>
+        <q-icon name="help_outline" size="20px" color="grey-5" />
+        <span class="usage-empty-text">사용 위치를 찾을 수 없습니다</span>
       </div>
     </section>
 
-    <!-- DB 이전 계획 -->
     <section class="detail-section">
       <h3 class="section-title">DB 이전 계획</h3>
-      <div class="plan-label">이전 대상</div>
-      <q-select
-        v-model="migrationTarget"
-        :options="migrationTargetOptions"
-        option-label="label"
-        option-value="value"
-        emit-value
-        map-options
-        dense
-        outlined
-        placeholder="이전 대상 선택"
-        class="plan-select"
-      />
-      <div class="plan-label">테이블명</div>
-      <q-input
-        v-model="migrationTableName"
-        dense
-        outlined
-        placeholder="예: user_settings, app_config"
-        class="plan-input"
-      />
-      <div class="plan-label">컬럼 구조</div>
-      <q-input
-        v-model="migrationColumnStructure"
-        type="textarea"
-        dense
-        outlined
-        placeholder="예: key VARCHAR(255), value TEXT, category VARCHAR(50)"
-        rows="3"
-        class="plan-textarea"
-      />
-      <div class="plan-label">메모</div>
-      <q-input
-        v-model="migrationNotes"
-        type="textarea"
-        dense
-        outlined
-        placeholder="이전 시 고려사항, 주의사항 등을 기록하세요"
-        rows="3"
-        class="plan-textarea"
-      />
+      <div class="plan-row">
+        <div class="plan-item">
+          <span class="plan-label">이전 대상:</span>
+          <q-select v-model="migrationTarget" :options="migrationTargetOptions" option-label="label" option-value="value" emit-value map-options dense outlined placeholder="선택" class="plan-select" />
+        </div>
+        <div class="plan-item">
+          <span class="plan-label">테이블명:</span>
+          <q-input v-model="migrationTableName" dense outlined placeholder="예: user_settings" class="plan-input" />
+        </div>
+      </div>
+      <div class="plan-item">
+        <span class="plan-label">컬럼 구조:</span>
+        <q-input v-model="migrationColumnStructure" type="textarea" dense outlined placeholder="예: key VARCHAR(255), value TEXT" rows="2" class="plan-textarea" />
+      </div>
+      <div class="plan-item">
+        <span class="plan-label">메모:</span>
+        <q-input v-model="migrationNotes" type="textarea" dense outlined placeholder="고려사항, 주의사항 등" rows="2" class="plan-textarea" />
+      </div>
       <div class="plan-actions">
-        <q-btn flat dense icon="save" label="계획 저장" color="primary" @click="saveMigrationPlan" />
-        <q-btn flat dense icon="clear" label="초기화" @click="resetMigrationPlan" />
+        <q-btn flat dense icon="save" label="저장" size="sm" color="primary" @click="saveMigrationPlan" />
+        <q-btn flat dense icon="clear" label="초기화" size="sm" @click="resetMigrationPlan" />
       </div>
     </section>
   </div>
@@ -260,17 +198,8 @@
       </q-card-section>
 
       <q-card-section>
-        <q-input
-          v-model="editValue"
-          type="textarea"
-          label="값"
-          outlined
-          rows="10"
-          :rules="[val => val.length > 0 || '값을 입력해주세요']"
-        >
-          <template v-slot:hint>
-            JSON 형식으로 입력하거나 문자열로 입력할 수 있습니다.
-          </template>
+        <q-input v-model="editValue" type="textarea" label="값" outlined rows="10" :rules="[(val) => val.length > 0 || '값을 입력해주세요']">
+          <template v-slot:hint> JSON 형식으로 입력하거나 문자열로 입력할 수 있습니다. </template>
         </q-input>
       </q-card-section>
 
@@ -326,7 +255,7 @@ const migrationTargetOptions = [
 // 발생 위치 추적 함수
 function getUsageLocations(keyName) {
   const locations = []
-  
+
   // Config 파일인 경우 (type이 'config-file'인 경우)
   // 실제로는 keyName이 아니라 setting 객체 전체를 받아야 하지만,
   // 현재 구조에서는 keyName만 받으므로 actualSelectedSetting을 사용
@@ -337,10 +266,10 @@ function getUsageLocations(keyName) {
       type: 'config-file',
       description: '설정 파일',
     })
-    
+
     // Config 파일을 import하는 일반적인 위치들
     const configFileName = actualSelectedSetting.value.name
-    
+
     if (configFileName.includes('devGuide')) {
       locations.push({
         path: 'src/stores/devGuideStore.js',
@@ -430,13 +359,13 @@ function getUsageLocations(keyName) {
         description: '뷰 모드 선택기에서 사용',
       })
     }
-    
+
     return locations
   }
-  
+
   // localStorage 키인 경우 (기존 로직)
   // 키 이름 패턴 분석 (우선순위 순)
-  
+
   // 1. TOC 관련
   if (keyName.startsWith('dev-toc-expanded-')) {
     locations.push({
@@ -451,7 +380,7 @@ function getUsageLocations(keyName) {
       description: 'TOC 설정 저장/로드',
     })
   }
-  
+
   // 2. 개발 가이드 관련
   if (keyName.startsWith('dev-guide-')) {
     // 세부 패턴별로 분기
@@ -476,7 +405,7 @@ function getUsageLocations(keyName) {
       })
     }
   }
-  
+
   // 3. 메뉴 관련
   if (keyName === 'dev-active-menu') {
     locations.push({
@@ -512,7 +441,7 @@ function getUsageLocations(keyName) {
       description: '메뉴 스크롤 스텝 설정',
     })
   }
-  
+
   // 4. 문서 관리 관련
   if (keyName.startsWith('dev-checkbox-states')) {
     locations.push({
@@ -557,7 +486,7 @@ function getUsageLocations(keyName) {
       description: '즐겨찾기 상태 저장',
     })
   }
-  
+
   // 5. 모달 관련
   if (keyName.startsWith('modal-state-')) {
     locations.push({
@@ -566,7 +495,7 @@ function getUsageLocations(keyName) {
       description: '모달 상태 관리',
     })
   }
-  
+
   // 6. 에러 추적 관련
   if (keyName.startsWith('Error-') || keyName.startsWith('error-')) {
     locations.push({
@@ -580,7 +509,7 @@ function getUsageLocations(keyName) {
       description: '에러 추적 UI',
     })
   }
-  
+
   // 7. 사용자 설정
   if (keyName === 'userSettings' || keyName.startsWith('user-')) {
     locations.push({
@@ -589,7 +518,7 @@ function getUsageLocations(keyName) {
       description: '사용자 설정 관리',
     })
   }
-  
+
   // 8. 부품 관리 관련
   if (keyName.startsWith('Part-')) {
     locations.push({
@@ -598,7 +527,7 @@ function getUsageLocations(keyName) {
       description: '부품 관리 설정',
     })
   }
-  
+
   // 9. 보드 메뉴 관련
   if (keyName.startsWith('Board-')) {
     locations.push({
@@ -607,7 +536,7 @@ function getUsageLocations(keyName) {
       description: '보드 메뉴 설정',
     })
   }
-  
+
   // 10. Mermaid 스타일 관련
   if (keyName.startsWith('Mermaid-') || keyName.startsWith('mermaid-style:')) {
     locations.push({
@@ -616,7 +545,7 @@ function getUsageLocations(keyName) {
       description: 'Mermaid 스타일 저장',
     })
   }
-  
+
   // 11. 테마 관련
   if (keyName.startsWith('Theme-')) {
     locations.push({
@@ -630,7 +559,7 @@ function getUsageLocations(keyName) {
       description: '최근 색상 관리',
     })
   }
-  
+
   // 12. 성능 모니터 관련
   if (keyName.startsWith('Performance-')) {
     locations.push({
@@ -639,7 +568,7 @@ function getUsageLocations(keyName) {
       description: '성능 데이터 저장',
     })
   }
-  
+
   // 13. 토스트 설정
   if (keyName === 'dev-toast-settings') {
     locations.push({
@@ -648,14 +577,14 @@ function getUsageLocations(keyName) {
       description: '토스트 설정 저장',
     })
   }
-  
+
   // 패턴을 찾지 못한 경우, 키 이름에서 추론
   if (locations.length === 0) {
     // 키 이름에서 모듈명 추론
     const keyParts = keyName.split('-')
     if (keyParts.length > 1) {
       const moduleName = keyParts[1] // 예: 'dev-guide-*' -> 'guide'
-      
+
       // 일반적인 패턴 추론
       if (moduleName === 'toc' || keyName.includes('toc')) {
         locations.push({
@@ -684,14 +613,14 @@ function getUsageLocations(keyName) {
       }
     }
   }
-  
+
   return locations
 }
 
 // DB 이전 계획 저장
 function saveMigrationPlan() {
   if (!actualSelectedSetting.value) return
-  
+
   const plan = {
     target: migrationTarget.value,
     tableName: migrationTableName.value,
@@ -699,7 +628,7 @@ function saveMigrationPlan() {
     notes: migrationNotes.value,
     updatedAt: new Date().toISOString(),
   }
-  
+
   try {
     const key = `migration-plan-${actualSelectedSetting.value.name}`
     localStorage.setItem(key, JSON.stringify(plan))
@@ -712,7 +641,7 @@ function saveMigrationPlan() {
 // DB 이전 계획 로드
 function loadMigrationPlan() {
   if (!actualSelectedSetting.value) return
-  
+
   try {
     const key = `migration-plan-${actualSelectedSetting.value.name}`
     const saved = localStorage.getItem(key)
@@ -791,7 +720,7 @@ function handleSave() {
     })
 
     showEditDialog.value = false
-    
+
     // 전역 이벤트로 업데이트 알림
     window.dispatchEvent(new CustomEvent('settings-manager-setting-updated', { detail: { keyName: actualSelectedSetting.value.name } }))
   } catch (error) {
@@ -818,7 +747,7 @@ function handleDelete() {
   }).onOk(() => {
     try {
       localStorage.removeItem(actualSelectedSetting.value.name)
-      
+
       $q.notify({
         type: 'positive',
         message: '설정이 삭제되었습니다',
@@ -828,7 +757,7 @@ function handleDelete() {
 
       // 전역 이벤트로 삭제 알림
       window.dispatchEvent(new CustomEvent('settings-manager-setting-deleted', { detail: { keyName: actualSelectedSetting.value.name } }))
-      
+
       // 뒤로 가기
       handleBack()
     } catch (error) {
@@ -844,21 +773,24 @@ function handleDelete() {
 
 // 클립보드에 복사
 function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    $q.notify({
-      type: 'positive',
-      message: '클립보드에 복사되었습니다',
-      position: 'top',
-      timeout: 2000,
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      $q.notify({
+        type: 'positive',
+        message: '클립보드에 복사되었습니다',
+        position: 'top',
+        timeout: 2000,
+      })
     })
-  }).catch((error) => {
-    $q.notify({
-      type: 'negative',
-      message: `복사 실패: ${error.message}`,
-      position: 'top',
-      timeout: 3000,
+    .catch((error) => {
+      $q.notify({
+        type: 'negative',
+        message: `복사 실패: ${error.message}`,
+        position: 'top',
+        timeout: 3000,
+      })
     })
-  })
 }
 
 // 뒤로 가기 핸들러
@@ -903,8 +835,8 @@ function getCategoryColor(category) {
     '에러 추적': 'red',
     '성능 모니터': 'amber',
     '문서 관리': 'indigo',
-    '시스템': 'grey-8',
-    '기타': 'grey-6',
+    시스템: 'grey-8',
+    기타: 'grey-6',
   }
   return colorMap[category] || 'grey'
 }
@@ -913,7 +845,7 @@ function getCategoryColor(category) {
 function getTypeColor(type) {
   const colorMap = {
     'config-file': 'primary',
-    'localStorage': 'secondary',
+    localStorage: 'secondary',
     'system-config': 'accent',
   }
   return colorMap[type] || 'grey'
@@ -1047,6 +979,7 @@ function getTypeColor(type) {
 }
 
 .setting-detail {
+  padding-top: 50px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -1054,61 +987,66 @@ function getTypeColor(type) {
 .detail-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
 
   .detail-title {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 2.25rem;
+    font-weight: 900;
     color: var(--nexa-text-primary);
     margin: 0;
     flex: 1;
   }
+}
 
-  .detail-path {
-    font-size: 0.875rem;
-    color: var(--nexa-text-secondary);
+.detail-info-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .info-label {
+      color: var(--nexa-text-secondary);
+      font-weight: 500;
+    }
+
+    .info-value {
+      color: var(--nexa-text-primary);
+    }
   }
 }
 
 .detail-section {
-  margin-bottom: 32px;
-  padding: 24px;
+  margin-bottom: 12px;
+  padding: 12px;
   background-color: var(--nexa-surface);
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid var(--nexa-border-color);
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--nexa-text-primary);
+    margin: 0 0 8px 0;
+  }
 
   .section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
-  }
-}
+    margin-bottom: 8px;
 
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-}
-
-.info-item {
-  padding: 12px;
-  background-color: var(--nexa-background);
-  border-radius: 4px;
-  border: 1px solid var(--nexa-border-color);
-
-  .info-label {
-    font-size: 0.75rem;
-    color: var(--nexa-text-secondary);
-    margin-bottom: 4px;
-  }
-
-  .info-value {
-    font-size: 0.875rem;
-    color: var(--nexa-text-primary);
-    word-break: break-word;
+    .section-title {
+      margin: 0;
+    }
   }
 }
 
@@ -1116,37 +1054,37 @@ function getTypeColor(type) {
   background-color: var(--nexa-background);
   border: 1px solid var(--nexa-border-color);
   border-radius: 4px;
-  padding: 16px;
+  padding: 8px;
   overflow-x: auto;
-  max-height: 600px;
-  overflow-y: auto;
+  overflow-y: visible;
   margin: 0;
   font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--nexa-text-primary);
   white-space: pre-wrap;
   word-break: break-word;
+  line-height: 1.4;
 }
 
 .usage-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .usage-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 8px;
+  padding: 6px 8px;
   background-color: var(--nexa-background);
   border-radius: 4px;
   border: 1px solid var(--nexa-border-color);
+  font-size: 0.8125rem;
 
   .usage-path {
     flex: 1;
     font-family: 'Courier New', monospace;
-    font-size: 0.875rem;
     color: var(--nexa-text-primary);
     word-break: break-word;
   }
@@ -1154,48 +1092,50 @@ function getTypeColor(type) {
 
 .usage-empty {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 32px;
-  text-align: center;
+  gap: 8px;
+  padding: 8px;
+  color: var(--nexa-text-secondary);
+  font-size: 0.8125rem;
 
   .usage-empty-text {
-    color: var(--nexa-text-primary);
-    font-weight: 600;
-    margin-top: 12px;
-    margin-bottom: 4px;
-  }
-
-  .usage-empty-hint {
     color: var(--nexa-text-secondary);
-    font-size: 0.875rem;
   }
 }
 
-.plan-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--nexa-text-primary);
+.plan-row {
+  display: flex;
+  gap: 12px;
   margin-bottom: 8px;
-  margin-top: 16px;
-
-  &:first-child {
-    margin-top: 0;
-  }
 }
 
-.plan-select,
-.plan-input,
-.plan-textarea {
-  width: 100%;
+.plan-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
+  flex: 1;
+
+  .plan-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--nexa-text-secondary);
+    white-space: nowrap;
+    min-width: fit-content;
+  }
+
+  .plan-select,
+  .plan-input,
+  .plan-textarea {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .plan-actions {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 </style>
