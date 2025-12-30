@@ -35,7 +35,11 @@
       <DatabaseViewerContent v-else-if="activeMenu === 'database-viewer'" />
 
       <!-- 설정 관리 -->
-      <SettingsManagerContent v-else-if="activeMenu === 'settings-manager'" />
+      <SettingsManagerContent
+        v-else-if="activeMenu === 'settings-manager'"
+        :selected-setting="settingsManagerSelectedSetting"
+        :statistics="settingsManagerStatistics"
+      />
 
       <!-- 개발 가이드 -->
       <DevGuideContent v-else-if="activeMenu === 'dev-guide'" ref="devGuideContentRef" />
@@ -135,6 +139,10 @@ const themeSearchQuery = ref('')
 const themeCategoryFilter = ref(null)
 const themeSortOption = ref('category')
 
+// 설정 관리 상태 (DevSidebar와 동기화)
+const settingsManagerSelectedSetting = ref(null)
+const settingsManagerStatistics = ref(null)
+
 // 테마 관리 상태 변경 이벤트 핸들러
 function handleThemeSearchChange(event) {
   themeSearchQuery.value = event.detail.query || ''
@@ -146,6 +154,28 @@ function handleThemeCategoryFilterChange(event) {
 
 function handleThemeSortChange(event) {
   themeSortOption.value = event.detail.option || 'category'
+}
+
+// 설정 관리 상태 변경 이벤트 핸들러
+function handleSettingsManagerSettingSelected(event) {
+  settingsManagerSelectedSetting.value = event.detail.setting || null
+}
+
+function handleSettingsManagerStatisticsUpdated(event) {
+  settingsManagerStatistics.value = event.detail.statistics || null
+}
+
+// 설정 업데이트 핸들러
+function handleSettingsManagerSettingUpdated() {
+  // 설정이 업데이트되면 DevSidebar에 알림하여 스캔 새로고침
+  window.dispatchEvent(new CustomEvent('settings-manager-refresh-request'))
+}
+
+// 설정 삭제 핸들러
+function handleSettingsManagerSettingDeleted() {
+  // 설정이 삭제되면 선택 해제 및 DevSidebar에 알림하여 스캔 새로고침
+  settingsManagerSelectedSetting.value = null
+  window.dispatchEvent(new CustomEvent('settings-manager-refresh-request'))
 }
 
 // Active menu 변경 이벤트 리스너
@@ -168,6 +198,10 @@ onMounted(async () => {
   window.addEventListener('theme-manager-search-changed', handleThemeSearchChange)
   window.addEventListener('theme-manager-filter-changed', handleThemeCategoryFilterChange)
   window.addEventListener('theme-manager-sort-changed', handleThemeSortChange)
+  window.addEventListener('settings-manager-setting-selected', handleSettingsManagerSettingSelected)
+  window.addEventListener('settings-manager-statistics-updated', handleSettingsManagerStatisticsUpdated)
+  window.addEventListener('settings-manager-setting-updated', handleSettingsManagerSettingUpdated)
+  window.addEventListener('settings-manager-setting-deleted', handleSettingsManagerSettingDeleted)
 
   // 모든 컴포넌트가 마운트된 후에 초기 메뉴를 사이드바에 전파
   await nextTick()

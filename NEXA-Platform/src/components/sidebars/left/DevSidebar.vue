@@ -113,6 +113,30 @@
       />
     </template>
 
+    <!-- 설정 관리 -->
+    <template v-else-if="activeMenu === 'settings-manager'">
+      <SettingsManagerHeader
+        :header-hovered="isLeftHeaderHovered"
+        :search-query="settingsManagerSearchQuery"
+        :filter-category="settingsManagerFilterCategory"
+        :filter-type="settingsManagerFilterType"
+        :categories="settingsManagerCategories"
+        :types="settingsManagerTypes"
+        :is-loading="settingsManagerIsLoading"
+        @search-change="handleSettingsManagerSearchChange"
+        @category-filter-change="handleSettingsManagerCategoryFilterChange"
+        @type-filter-change="handleSettingsManagerTypeFilterChange"
+        @refresh="handleSettingsManagerRefresh"
+        @settings="handleSettingsManagerSettings"
+      />
+      <SettingsManagerList
+        :filtered-settings="settingsManagerFilteredSettings"
+        :selected-setting="settingsManagerSelectedSetting"
+        :is-loading="settingsManagerIsLoading"
+        @setting-selected="handleSettingsManagerSettingSelected"
+      />
+    </template>
+
     <!-- 설정 모달 -->
     <DocumentSettingsModal v-model="showSettingsModal" @save="handleSettingsSave" @reset-usage="handleResetUsage" @reset-priority="handleResetPriority" />
   </div>
@@ -133,6 +157,8 @@ import ComponentLibrarySidebar from './dev-tools/component-library/ComponentLibr
 import ErrorTrackingSidebar from './dev-tools/error-tracking/ErrorTrackingSidebar.vue'
 import DevGuideHeader from './dev-tools/dev-guide/DevGuideHeader.vue'
 import DevGuideList from './dev-tools/dev-guide/DevGuideList.vue'
+import SettingsManagerHeader from './dev-tools/settings-manager/SettingsManagerHeader.vue'
+import SettingsManagerList from './dev-tools/settings-manager/SettingsManagerList.vue'
 import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.vue'
 import { loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentMultiSelection } from 'src/composables/dev-tools/useDocumentMultiSelection.js'
@@ -144,6 +170,7 @@ import { useThemeManager } from 'src/composables/dev-tools/useThemeManager.js'
 import { useDocumentFilters } from 'src/composables/dev-tools/useDocumentFilters.js'
 import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide.js'
+import { useSettingsManager } from 'src/composables/dev-tools/useSettingsManager.js'
 
 // Quasar 인스턴스
 const $q = useQuasar()
@@ -258,6 +285,50 @@ const {
   batchUpdateErrorStatus: errorTrackingBatchUpdateErrorStatus,
   batchDeleteError: errorTrackingBatchDeleteError,
 } = useErrorTracking()
+
+// 설정 관리 (composable 사용)
+const {
+  isLoading: settingsManagerIsLoading,
+  selectedSetting: settingsManagerSelectedSetting,
+  searchQuery: settingsManagerSearchQuery,
+  filterCategory: settingsManagerFilterCategory,
+  filterType: settingsManagerFilterType,
+  statistics: settingsManagerStatistics,
+  filteredSettings: settingsManagerFilteredSettings,
+  categories: settingsManagerCategories,
+  types: settingsManagerTypes,
+  scanSettings: handleSettingsManagerScanSettings,
+  selectSetting: handleSettingsManagerSelectSetting,
+  handleSearchChange: handleSettingsManagerSearchChange,
+  handleCategoryFilterChange: handleSettingsManagerCategoryFilterChange,
+  handleTypeFilterChange: handleSettingsManagerTypeFilterChange,
+} = useSettingsManager()
+
+// 설정 관리 핸들러
+async function handleSettingsManagerRefresh() {
+  await handleSettingsManagerScanSettings()
+  // 통계도 함께 업데이트
+  if (settingsManagerStatistics.value) {
+    window.dispatchEvent(new CustomEvent('settings-manager-statistics-updated', { detail: { statistics: settingsManagerStatistics.value } }))
+  }
+}
+
+// 설정 새로고침 요청 리스너
+function handleSettingsManagerRefreshRequest() {
+  handleSettingsManagerRefresh()
+}
+
+function handleSettingsManagerSettingSelected(setting) {
+  handleSettingsManagerSelectSetting(setting)
+  // 전역 이벤트로 DevelopmentPage에 알림
+  window.dispatchEvent(new CustomEvent('settings-manager-setting-selected', { detail: { setting } }))
+}
+
+
+function handleSettingsManagerSettings() {
+  console.log('[DevSidebar] 설정 관리 설정')
+  // TODO: 설정 모달 열기
+}
 
 // Content 컴포넌트 참조
 const contentRef = ref(null)
@@ -405,6 +476,9 @@ watch(
     } else if (newMenu === 'error-tracking') {
       // 에러 트래킹 메뉴 활성화 시 초기화
       initializeErrorTracking()
+    } else if (newMenu === 'settings-manager') {
+      // 설정 관리 메뉴 활성화 시 초기 스캔
+      handleSettingsManagerScanSettings()
     }
   },
   { immediate: true },
@@ -482,6 +556,9 @@ onMounted(() => {
 
   // 언마운트 시 제거를 위해 참조 저장
   window.__devSidebarMenuChangedHandler = handleMenuChanged
+  
+  // 설정 관리 새로고침 요청 리스너 등록
+  window.addEventListener('settings-manager-refresh-request', handleSettingsManagerRefreshRequest)
 
   // 데이터베이스 뷰어 새로고침 이벤트 리스너 등록
   window.addEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
@@ -574,6 +651,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('database-viewer-refresh', handleDatabaseViewerRefreshEvent)
   window.removeEventListener('component-library-statistics-request', handleStatisticsRequest)
+  window.removeEventListener('settings-manager-refresh-request', handleSettingsManagerRefreshRequest)
   if (window.__devSidebarMenuChangedHandler) {
     window.removeEventListener('dev-menu-changed', window.__devSidebarMenuChangedHandler)
     delete window.__devSidebarMenuChangedHandler
