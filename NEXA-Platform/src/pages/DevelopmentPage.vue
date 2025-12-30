@@ -28,8 +28,6 @@
       <!-- 로그 뷰어 -->
       <LogViewerContent v-else-if="activeMenu === 'log-viewer'" />
 
-      <!-- API 테스터 -->
-      <ApiTesterContent v-else-if="activeMenu === 'api-tester'" />
 
       <!-- 데이터베이스 -->
       <DatabaseViewerContent v-else-if="activeMenu === 'database-viewer'" />
@@ -71,7 +69,6 @@ import ThemeManagerContent from 'src/components/dev-tools/theme-manager/ThemeMan
 import GraphDocContent from 'src/components/dev-tools/graph-doc/GraphDocContent.vue'
 import PerformanceMonitorContent from 'src/components/dev-tools/performance-monitor/PerformanceMonitorContent.vue'
 import LogViewerContent from 'src/components/dev-tools/log-viewer/LogViewerContent.vue'
-import ApiTesterContent from 'src/components/dev-tools/api-tester/ApiTesterContent.vue'
 import DatabaseViewerContent from 'src/components/dev-tools/database-viewer/DatabaseViewerContent.vue'
 import SettingsManagerContent from 'src/components/dev-tools/settings-manager/SettingsManagerContent.vue'
 import ComponentLibraryContent from 'src/components/dev-tools/component-library/ComponentLibraryContent.vue'
@@ -100,7 +97,6 @@ function getInitialActiveMenu() {
           'dev-guide',
           'component-library',
           'database-viewer',
-          'api-tester',
           'log-viewer',
           'performance-monitor',
           'error-tracking',
@@ -182,6 +178,9 @@ function handleMenuMainPage(event) {
     } else if (menuId === 'error-tracking') {
       // ErrorTrackingContent의 메인 페이지로 이동
       window.dispatchEvent(new CustomEvent('error-tracking-main-page'))
+    } else if (menuId === 'performance-monitor') {
+      // PerformanceMonitorContent의 메인 페이지로 이동
+      window.dispatchEvent(new CustomEvent('performance-monitor-main-page'))
     }
     // 기타 메뉴는 이미 메인 페이지 구조를 가지고 있음
   }

@@ -1,47 +1,79 @@
 <template>
   <div class="performance-monitor-content">
-    <!-- 대형 타이틀 -->
-    <div class="performance-monitor-large-title">PERFORMANCE MONITOR</div>
+    <!-- 선택된 메트릭/요청이 없을 때: 메인 페이지 -->
+    <div v-if="!selectedMetric && !selectedApiRequest && !selectedNetworkRequest" class="performance-monitor-main-view">
+      <!-- 대형 타이틀 -->
+      <div class="performance-monitor-large-title">PERFORMANCE MONITOR</div>
 
-    <!-- 헤더 -->
-    <div class="performance-monitor-header q-pa-md">
-      <div class="row items-center justify-between">
-        <div class="row items-center q-gutter-md">
-          <q-icon name="speed" size="24px" color="primary" />
-          <div class="performance-monitor-title-section">
-            <h3 class="performance-monitor-title">Performance Monitor</h3>
-            <p class="performance-monitor-subtitle">성능 모니터</p>
+      <!-- 성능 MONITOR 탭 컨텐츠 -->
+      <div v-if="activeTab === 'performance'" class="performance-tab-content">
+        <!-- 헤더 -->
+        <div class="performance-monitor-header q-pa-md">
+          <div class="row items-center justify-between">
+            <div class="row items-center q-gutter-md">
+              <q-icon name="speed" size="24px" color="primary" />
+              <div class="performance-monitor-title-section">
+                <h3 class="performance-monitor-title">Performance Monitor</h3>
+                <p class="performance-monitor-subtitle">성능 모니터</p>
+              </div>
+            </div>
+            <div class="row items-center q-gutter-sm">
+              <q-btn :color="isMonitoring ? 'negative' : 'positive'" :label="isMonitoring ? '중지' : '시작'" :icon="isMonitoring ? 'stop' : 'play_arrow'" @click="toggleMonitoring" />
+              <q-btn flat color="grey-7" icon="settings" @click="showSettings = !showSettings" />
+            </div>
           </div>
         </div>
-        <div class="row items-center q-gutter-sm">
-          <q-btn :color="isMonitoring ? 'negative' : 'positive'" :label="isMonitoring ? '중지' : '시작'" :icon="isMonitoring ? 'stop' : 'play_arrow'" @click="toggleMonitoring" />
-          <q-btn flat color="grey-7" icon="settings" @click="showSettings = !showSettings" />
+
+        <!-- 메인 컨텐츠 -->
+        <div class="performance-monitor-main">
+          <!-- 성능 지표 카드 -->
+          <PerformanceMetricsCards
+            :current-fps="currentFPS"
+            :average-fps="averageFPS"
+            :min-fps="minFPS"
+            :memory-used="memoryUsed"
+            :memory-usage-percent="memoryUsagePercent"
+            :memory-limit="memoryLimit"
+            :lcp-value="lcpValue"
+            :api-duration="apiDuration"
+            :api-count="apiCount"
+            :api-error-rate="apiErrorRate"
+          />
+
+          <!-- 성능 차트 영역 (구현 예정) -->
+          <div class="performance-chart-area q-mt-md">
+            <div class="chart-placeholder q-pa-lg text-center">
+              <q-icon name="show_chart" size="48px" color="grey-5" class="q-mb-md" />
+              <p class="text-grey-7">성능 차트 (구현 예정)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- API TESTER 탭 컨텐츠 -->
+      <div v-else-if="activeTab === 'api-tester'" class="api-tester-tab-content">
+        <ApiTesterContent />
+      </div>
+
+      <!-- NETWORK 탭 컨텐츠 -->
+      <div v-else-if="activeTab === 'network'" class="network-tab-content">
+        <!-- 네트워크 컨텐츠는 나중에 통합 예정 -->
+        <div class="coming-soon-wrapper">
+          <div class="coming-soon-content">
+            <q-icon name="network_check" size="80px" color="grey-7" class="q-mb-md" />
+            <h2 class="coming-soon-title">NETWORK</h2>
+            <p class="coming-soon-description">네트워크 모니터 기능은 곧 통합될 예정입니다.</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 메인 컨텐츠 -->
-    <div class="performance-monitor-main">
-      <!-- 성능 지표 카드 -->
-      <PerformanceMetricsCards
-        :current-fps="currentFPS"
-        :average-fps="averageFPS"
-        :min-fps="minFPS"
-        :memory-used="memoryUsed"
-        :memory-usage-percent="memoryUsagePercent"
-        :memory-limit="memoryLimit"
-        :lcp-value="lcpValue"
-        :api-duration="apiDuration"
-        :api-count="apiCount"
-        :api-error-rate="apiErrorRate"
-      />
-
-      <!-- 성능 차트 영역 (구현 예정) -->
-      <div class="performance-chart-area q-mt-md">
-        <div class="chart-placeholder q-pa-lg text-center">
-          <q-icon name="show_chart" size="48px" color="grey-5" class="q-mb-md" />
-          <p class="text-grey-7">성능 차트 (구현 예정)</p>
-        </div>
+    <!-- 선택된 메트릭/요청이 있을 때: 상세 페이지 -->
+    <div v-else class="performance-monitor-detail-view">
+      <!-- 상세 정보 표시 (나중에 구현) -->
+      <div class="detail-placeholder q-pa-lg text-center">
+        <q-icon name="info" size="48px" color="grey-5" class="q-mb-md" />
+        <p class="text-grey-7">상세 정보 (구현 예정)</p>
       </div>
     </div>
   </div>
@@ -51,6 +83,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import PerformanceMetricsCards from './PerformanceMetricsCards.vue'
+import ApiTesterContent from '../api-tester/ApiTesterContent.vue'
 import { startFPSMonitoring, stopFPSMonitoring, getCurrentFPS, getAverageFPS, getMinFPS } from 'src/utils/performance/fpsMonitor'
 import { startMemoryMonitoring, stopMemoryMonitoring, collectMemorySnapshot } from 'src/utils/performance/memoryMonitor'
 import { onWebVitals, getWebVitals } from 'src/utils/performance/webVitalsCollector'
@@ -59,6 +92,14 @@ import { collectAllBasicMetrics } from 'src/utils/performance/performanceCollect
 import { savePerformanceData } from 'src/utils/performance/performanceStorage'
 
 const $q = useQuasar()
+
+// 활성 탭 (사이드바와 동기화)
+const activeTab = ref('performance')
+
+// 선택된 항목
+const selectedMetric = ref(null)
+const selectedApiRequest = ref(null)
+const selectedNetworkRequest = ref(null)
 
 // 모니터링 상태
 const isMonitoring = ref(false)
@@ -272,6 +313,55 @@ function saveMetricsData() {
   savePerformanceData(metricsData)
 }
 
+// 탭 변경 이벤트 리스너
+function handleTabChange(event) {
+  const tab = event.detail?.tab
+  if (tab) {
+    activeTab.value = tab
+    // 탭 변경 시 선택 해제
+    selectedMetric.value = null
+    selectedApiRequest.value = null
+    selectedNetworkRequest.value = null
+  }
+}
+
+// 메트릭 선택 이벤트 리스너
+function handleMetricSelected(event) {
+  const metric = event.detail?.metric
+  if (metric) {
+    selectedMetric.value = metric
+    selectedApiRequest.value = null
+    selectedNetworkRequest.value = null
+  }
+}
+
+// API 요청 선택 이벤트 리스너
+function handleApiRequestSelected(event) {
+  const request = event.detail?.request
+  if (request) {
+    selectedApiRequest.value = request
+    selectedMetric.value = null
+    selectedNetworkRequest.value = null
+  }
+}
+
+// 네트워크 요청 선택 이벤트 리스너
+function handleNetworkRequestSelected(event) {
+  const request = event.detail?.request
+  if (request) {
+    selectedNetworkRequest.value = request
+    selectedMetric.value = null
+    selectedApiRequest.value = null
+  }
+}
+
+// 메인 페이지로 이동 이벤트 리스너
+function handleMainPage() {
+  selectedMetric.value = null
+  selectedApiRequest.value = null
+  selectedNetworkRequest.value = null
+}
+
 onMounted(() => {
   // 컴포넌트 마운트 시 기본 메트릭 수집 (모니터링 시작 전)
   const basicMetrics = collectAllBasicMetrics()
@@ -286,12 +376,33 @@ onMounted(() => {
   if (webVitals.lcp && webVitals.lcp.value) {
     lcpValue.value = `${webVitals.lcp.value.toFixed(0)}ms`
   }
+
+  // 전역 이벤트 리스너 등록
+  window.addEventListener('performance-monitor-tab-change', handleTabChange)
+  window.addEventListener('performance-monitor-metric-selected', handleMetricSelected)
+  window.addEventListener('performance-monitor-api-request-selected', handleApiRequestSelected)
+  window.addEventListener('performance-monitor-network-request-selected', handleNetworkRequestSelected)
+  window.addEventListener('performance-monitor-main-page', handleMainPage)
 })
 
 onBeforeUnmount(() => {
   if (isMonitoring.value) {
     stopMonitoring()
   }
+
+  // 전역 이벤트 리스너 제거
+  window.removeEventListener('performance-monitor-tab-change', handleTabChange)
+  window.removeEventListener('performance-monitor-metric-selected', handleMetricSelected)
+  window.removeEventListener('performance-monitor-api-request-selected', handleApiRequestSelected)
+  window.removeEventListener('performance-monitor-network-request-selected', handleNetworkRequestSelected)
+  window.removeEventListener('performance-monitor-main-page', handleMainPage)
+
+  // 전역 이벤트 리스너 제거
+  window.removeEventListener('performance-monitor-tab-change', handleTabChange)
+  window.removeEventListener('performance-monitor-metric-selected', handleMetricSelected)
+  window.removeEventListener('performance-monitor-api-request-selected', handleApiRequestSelected)
+  window.removeEventListener('performance-monitor-network-request-selected', handleNetworkRequestSelected)
+  window.removeEventListener('performance-monitor-main-page', handleMainPage)
 })
 </script>
 
@@ -353,5 +464,56 @@ onBeforeUnmount(() => {
   border: 1px solid var(--nexa-border-color);
   border-radius: 8px;
   min-height: 300px;
+}
+
+.performance-monitor-main-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.performance-tab-content,
+.api-tester-tab-content,
+.network-tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.coming-soon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.coming-soon-content {
+  text-align: center;
+  max-width: 600px;
+}
+
+.coming-soon-title {
+  color: var(--nexa-text-primary);
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 1rem 0;
+}
+
+.coming-soon-description {
+  color: var(--nexa-text-secondary);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.performance-monitor-detail-view {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-placeholder {
+  text-align: center;
 }
 </style>

@@ -215,7 +215,6 @@ const menuHeaders = {
   'theme-manager': { title: 'Theme Manager', subtitle: 'Color and theme settings management' },
   'component-library': { title: 'Componen', subtitle: 'Component library and classification' },
   'database-viewer': { title: 'Database Viewer', subtitle: 'Database tables and data query' },
-  'api-tester': { title: 'API Tester', subtitle: 'API endpoint testing and debugging' },
   'log-viewer': { title: 'Log Viewer', subtitle: 'Application log viewing and analysis' },
   'performance-monitor': { title: 'Performance Monitor', subtitle: 'Performance metrics monitoring and analysis' },
   'error-tracking': { title: 'Error Tracking', subtitle: 'Error tracking and debugging' },
@@ -379,7 +378,8 @@ function handlePerformanceMonitorSettings() {
 
 function handlePerformanceMonitorMetricSelected(metric) {
   console.log('[DevSidebar] 성능 메트릭 선택:', metric)
-  // TODO: 메트릭 상세 정보 표시
+  // 전역 이벤트로 PerformanceMonitorContent에 메트릭 선택 알림
+  window.dispatchEvent(new CustomEvent('performance-monitor-metric-selected', { detail: { metric } }))
 }
 
 function handlePerformanceMonitorApiTesterRefresh() {
@@ -400,7 +400,8 @@ function handlePerformanceMonitorApiTesterSettings() {
 function handlePerformanceMonitorApiRequestSelected(request) {
   performanceMonitorSelectedApiRequest.value = request
   console.log('[DevSidebar] API 요청 선택:', request)
-  // TODO: API 요청 상세 정보 표시
+  // 전역 이벤트로 PerformanceMonitorContent에 API 요청 선택 알림
+  window.dispatchEvent(new CustomEvent('performance-monitor-api-request-selected', { detail: { request } }))
 }
 
 function handlePerformanceMonitorNetworkRefresh() {
@@ -426,12 +427,14 @@ function handlePerformanceMonitorNetworkSettings() {
 function handlePerformanceMonitorNetworkRequestSelected(request) {
   performanceMonitorSelectedNetworkRequest.value = request
   console.log('[DevSidebar] 네트워크 요청 선택:', request)
-  // TODO: 네트워크 요청 상세 정보 표시
+  // 전역 이벤트로 PerformanceMonitorContent에 네트워크 요청 선택 알림
+  window.dispatchEvent(new CustomEvent('performance-monitor-network-request-selected', { detail: { request } }))
 }
 
 function handlePerformanceMonitorTabChange(tab) {
   console.log('[DevSidebar] 성능 모니터 탭 변경:', tab)
-  // TODO: 탭 변경 처리
+  // 전역 이벤트로 PerformanceMonitorContent에 탭 변경 알림
+  window.dispatchEvent(new CustomEvent('performance-monitor-tab-change', { detail: { tab } }))
 }
 
 // 설정 관리 (composable 사용)
@@ -651,7 +654,6 @@ function getInitialActiveMenu() {
           'dev-guide',
           'component-library',
           'database-viewer',
-          'api-tester',
           'log-viewer',
           'performance-monitor',
           'error-tracking',

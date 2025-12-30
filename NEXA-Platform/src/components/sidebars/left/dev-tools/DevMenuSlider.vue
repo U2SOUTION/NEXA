@@ -80,7 +80,6 @@ const devMenus = [
   { id: 'component-library', label: '컴포넌트', icon: 'widgets' },
   { id: 'database-viewer', label: '데이터베이스', icon: 'storage' },
   // 개발/테스트 도구 (중요도 높음)
-  { id: 'api-tester', label: 'API 테스터', icon: 'api' },
   { id: 'log-viewer', label: '로그 뷰어', icon: 'list_alt' },
   { id: 'performance-monitor', label: '성능 모니터', icon: 'speed' },
   { id: 'error-tracking', label: '에러 트래킹', icon: 'bug_report' },
