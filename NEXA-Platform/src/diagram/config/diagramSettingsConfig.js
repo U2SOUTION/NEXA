@@ -118,12 +118,16 @@ export function getDefaultDiagramSettings(type, context = {}) {
         settings[key] = {}
         for (const [subKey, subValue] of Object.entries(value)) {
           if (subValue && typeof subValue === 'object' && subValue.default !== undefined) {
-            // filetree 타입의 layout.nodesep, layout.ranksep은 orientation에 따라 기본값 분기
+            // filetree 타입의 layout 설정값들은 orientation에 따라 기본값 분기 (diagramSettingsConfig.js에서만 관리)
             if (type === 'filetree' && key === 'layout' && filetreeOrientation) {
               if (subKey === 'nodesep') {
                 settings[key][subKey] = filetreeOrientation === 'horizontal' ? 60 : 55
               } else if (subKey === 'ranksep') {
                 settings[key][subKey] = filetreeOrientation === 'horizontal' ? 50 : 160
+              } else if (subKey === 'marginx') {
+                settings[key][subKey] = filetreeOrientation === 'horizontal' ? 10 : 10
+              } else if (subKey === 'marginy') {
+                settings[key][subKey] = filetreeOrientation === 'horizontal' ? 1 : 1
               } else {
                 settings[key][subKey] = subValue.default
               }

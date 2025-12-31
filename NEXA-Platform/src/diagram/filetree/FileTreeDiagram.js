@@ -5,7 +5,6 @@
  */
 
 import * as d3 from 'd3'
-import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
 import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
@@ -154,28 +153,16 @@ export async function renderFileTree(container, data, options = {}) {
   // 그래프 요소 그룹 (줌/팬 transform 적용)
   const svgGroup = svg.append('g').attr('class', 'graph-group')
 
-  // Dagre 그래프 생성 (설정값 사용)
-  const layoutType = layoutTypes.HIERARCHICAL
-  const layoutOpts = getLayoutOptions(layoutType, { ...settings.layout, ...{} })
-
   // filetree 설정의 orientation에 따라 rankdir 결정
   const rankdir = currentOrientation === 'horizontal' ? 'LR' : 'TB'
 
   const graph = new graphlib.Graph()
     .setGraph({
       rankdir: rankdir, // 방향: LR(좌→우), TB(상→하), RL(우→좌), BT(하→상)
-      // nodesep: 같은 rank(층) 내에서 인접한 노드 간의 최소 간격 (px)
-
-      nodesep: layoutOpts.nodesep || settings.layout?.nodesep || 80, // diagramSettingsConfig.js filetree.layout.nodesep 기본값과 일치
-      // ranksep: 서로 다른 rank(층) 간의 최소 간격 (px)
-
-      ranksep: layoutOpts.ranksep || settings.layout?.ranksep || 90, // diagramSettingsConfig.js filetree.layout.ranksep 기본값과 일치
-      // marginx: 그래프 전체의 좌우 여백 (px)
-
-      marginx: layoutOpts.marginx || settings.layout?.marginx || 50,
-      // marginy: 그래프 전체의 상하 여백 (px)
-
-      marginy: layoutOpts.marginy || settings.layout?.marginy || 10,
+      nodesep: settings.layout?.nodesep,
+      ranksep: settings.layout?.ranksep,
+      marginx: settings.layout?.marginx,
+      marginy: settings.layout?.marginy,
     })
     .setDefaultEdgeLabel(() => ({}))
 
