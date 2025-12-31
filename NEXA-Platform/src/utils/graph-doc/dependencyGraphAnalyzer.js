@@ -27,10 +27,28 @@ function extractImports(content) {
     let match
     while ((match = pattern.exec(content)) !== null) {
       const importPath = match[1]
-      // vue, quasar 등 외부 라이브러리는 제외
-      if (importPath && !importPath.startsWith('vue') && !importPath.startsWith('quasar') && !importPath.startsWith('pinia')) {
-        imports.push(importPath)
+      if (!importPath) continue
+
+      // ⚠️ npm 패키지 필터링 (@로 시작하는 scoped 패키지, 단 @/는 제외)
+      // ⚠️ 주의: 나중에 패키지 의존성 분석 기능 구현 시 이 부분 수정 필요!
+      // 예: @tiptap/extension-youtube, @vite-plugin-checker-runtime 등
+      if (importPath.startsWith('@') && !importPath.startsWith('@/')) {
+        continue // npm scoped 패키지는 제외
       }
+
+      // vue, quasar 등 외부 라이브러리는 제외
+      if (importPath.startsWith('vue') || importPath.startsWith('quasar') || importPath.startsWith('pinia')) {
+        continue
+      }
+
+      // ⚠️ node_modules에 있는 일반 패키지 필터링 (확장자가 없는 경우)
+      // ⚠️ 주의: 나중에 패키지 의존성 분석 기능 구현 시 이 부분 수정 필요!
+      // 예: 'lodash', 'axios' 등
+      if (!importPath.includes('/') && !importPath.startsWith('.') && !importPath.startsWith('src/') && !importPath.startsWith('@/')) {
+        continue // npm 패키지로 추정
+      }
+
+      imports.push(importPath)
     }
   }
 
@@ -44,6 +62,18 @@ function extractImports(content) {
  * @returns {string} 절대 경로 (예: 'src/components/ui/BaseModal.vue')
  */
 function resolveImportPath(importPath, basePath) {
+  // ⚠️ npm 패키지는 null 반환 (의존성 그래프에서 제외)
+  // ⚠️ 주의: 나중에 패키지 의존성 분석 기능 구현 시 이 부분 수정 필요!
+  if (importPath.startsWith('@') && !importPath.startsWith('@/')) {
+    return null // npm scoped 패키지
+  }
+
+  // ⚠️ 확장자가 없고 경로 구분자도 없는 경우 npm 패키지로 추정
+  // ⚠️ 주의: 나중에 패키지 의존성 분석 기능 구현 시 이 부분 수정 필요!
+  if (!importPath.includes('/') && !importPath.startsWith('.') && !importPath.startsWith('src/') && !importPath.startsWith('@/')) {
+    return null // npm 패키지 (예: 'lodash', 'axios')
+  }
+
   // 이미 절대 경로인 경우 (src/ 또는 @/로 시작)
   if (importPath.startsWith('src/') || importPath.startsWith('@/')) {
     let resolved = importPath.replace('@/', 'src/')
@@ -272,7 +302,7 @@ async function findTargetFiles(target) {
     // 모든 Vue, JS, TS 파일 스캔
     const modules = import.meta.glob('/src/**/*.{vue,js,ts}', { eager: false })
     console.log('[DependencyGraphAnalyzer] import.meta.glob 모듈 개수:', Object.keys(modules).length)
-    
+
     // target에 맞는 파일 필터링
     let targetPath = ''
     if (normalizedTarget.startsWith('/')) {
@@ -293,14 +323,14 @@ async function findTargetFiles(target) {
     for (const path in modules) {
       // '/src/pages/dev/DevelopmentPage.vue' → 'src/pages/dev/DevelopmentPage.vue'
       const normalizedPath = path.replace('/src/', 'src/')
-      
+
       // targetPath로 시작하는 경로인지 확인
       if (normalizedPath.startsWith(targetPath)) {
         files.push(normalizedPath)
         console.log('[DependencyGraphAnalyzer] 파일 발견:', normalizedPath)
       }
     }
-    
+
     console.log('[DependencyGraphAnalyzer] 찾은 파일 개수:', files.length)
   } catch (error) {
     console.error('[DependencyGraphAnalyzer] 파일 찾기 실패:', error)
@@ -367,6 +397,11 @@ export async function analyzeDependencyGraph(target) {
         for (const importPath of imports) {
           const resolvedPath = resolveImportPath(importPath, filePath)
 
+          // ⚠️ npm 패키지 등은 null 반환되므로 제외 (패키지 의존성 분석 기능 구현 시 수정 필요)
+          if (!resolvedPath) {
+            continue
+          }
+
           // 노드가 없으면 추가 (외부 의존성)
           if (!nodeMap.has(resolvedPath)) {
             // 실제 파일이 존재하는지 확인 (간단한 체크)
@@ -378,7 +413,7 @@ export async function analyzeDependencyGraph(target) {
             }
             nodes.push(node)
             nodeMap.set(resolvedPath, node)
-            
+
             // 다음 깊이에서 처리할 파일로 추가 (vue, js, ts 파일만)
             if ((resolvedPath.endsWith('.vue') || resolvedPath.endsWith('.js') || resolvedPath.endsWith('.ts')) && !processedFiles.has(resolvedPath)) {
               filesToProcess.push(resolvedPath)

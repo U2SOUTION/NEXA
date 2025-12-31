@@ -79,6 +79,29 @@
             @loaded="handleDependencyDiagramLoaded"
             @error="handleDependencyDiagramError"
           />
+          
+          <!-- 플로팅 노드 정보 패널 -->
+          <div v-if="hoveredNode" class="node-hover-panel">
+            <q-card class="node-info-card">
+              <q-card-section class="q-pa-sm">
+                <div class="node-info-header">
+                  <q-icon name="info" size="16px" class="q-mr-xs" />
+                  <span class="text-caption text-weight-medium">노드 정보</span>
+                </div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="q-pa-sm">
+                <div class="node-info-item">
+                  <span class="node-info-label">경로:</span>
+                  <span class="node-info-value">{{ hoveredNode.path }}</span>
+                </div>
+                <div v-if="hoveredNode.name !== hoveredNode.path" class="node-info-item q-mt-xs">
+                  <span class="node-info-label">이름:</span>
+                  <span class="node-info-value">{{ hoveredNode.name }}</span>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
       </div>
 
@@ -180,6 +203,29 @@
             @loaded="handleDependencyAnalysisDiagramLoaded"
             @error="handleDependencyAnalysisDiagramError"
           />
+          
+          <!-- 플로팅 노드 정보 패널 -->
+          <div v-if="hoveredNode" class="node-hover-panel">
+            <q-card class="node-info-card">
+              <q-card-section class="q-pa-sm">
+                <div class="node-info-header">
+                  <q-icon name="info" size="16px" class="q-mr-xs" />
+                  <span class="text-caption text-weight-medium">노드 정보</span>
+                </div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="q-pa-sm">
+                <div class="node-info-item">
+                  <span class="node-info-label">ID:</span>
+                  <span class="node-info-value">{{ hoveredNode.nodeId }}</span>
+                </div>
+                <div v-if="hoveredNode.name" class="node-info-item q-mt-xs">
+                  <span class="node-info-label">이름:</span>
+                  <span class="node-info-value">{{ hoveredNode.name }}</span>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
       </div>
       <!-- 다이어그램이 없을 때: 사이드바 정보 표시 -->
@@ -205,6 +251,29 @@
           <!-- 렌더링 중 스피너 -->
           <NexaSpinner v-if="isAnalyzing" size="md" message="렌더링 중..." centered />
           <NexaDiagram ref="fileTreeDiagramRef" type="filetree" :data="fileTreeDiagramData" :options="fileTreeDiagramOptions" @node-click="handleFileTreeNodeClick" @node-hover="handleFileTreeNodeHover" @loaded="handleFileTreeDiagramLoaded" @error="handleFileTreeDiagramError" />
+          
+          <!-- 플로팅 노드 정보 패널 -->
+          <div v-if="hoveredNode" class="node-hover-panel">
+            <q-card class="node-info-card">
+              <q-card-section class="q-pa-sm">
+                <div class="node-info-header">
+                  <q-icon name="info" size="16px" class="q-mr-xs" />
+                  <span class="text-caption text-weight-medium">노드 정보</span>
+                </div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="q-pa-sm">
+                <div class="node-info-item">
+                  <span class="node-info-label">경로:</span>
+                  <span class="node-info-value">{{ hoveredNode.path }}</span>
+                </div>
+                <div v-if="hoveredNode.name !== hoveredNode.path" class="node-info-item q-mt-xs">
+                  <span class="node-info-label">이름:</span>
+                  <span class="node-info-value">{{ hoveredNode.name }}</span>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
       </div>
       <!-- 다이어그램이 없을 때: 사이드바 정보 표시 -->
@@ -286,6 +355,50 @@ function handleUseCurrentUrl() {
   // 자동으로 분석 실행하지 않음 (사용자가 직접 분석 버튼 클릭)
 }
 
+// 경로를 루트 기준으로 정규화 (src/ 접두사 추가)
+function normalizePath(path) {
+  if (!path) return path
+  
+  // 앞뒤 공백 제거
+  path = path.trim()
+  
+  // npm 패키지 경로는 그대로 반환 (@로 시작하는 scoped 패키지 또는 npm 패키지)
+  // 예: @tiptap/extension-font-family, @vue/core, @vite-plugin-checker-runtime 등
+  // 주의: @/는 경로 별칭이므로 제외
+  if (path.startsWith('@') && !path.startsWith('@/')) {
+    return path
+  }
+  
+  // 이미 src/로 시작하면 그대로 반환
+  if (path.startsWith('src/')) {
+    return path
+  }
+  
+  // /src/로 시작하면 src/로 변경
+  if (path.startsWith('/src/')) {
+    return path.substring(1)
+  }
+  
+  // /로 시작하는 경로는 / 제거
+  if (path.startsWith('/')) {
+    path = path.substring(1)
+  }
+  
+  // 상대 경로(./ 또는 ../)의 경우 ./ 또는 ../ 제거
+  if (path.startsWith('./')) {
+    path = path.substring(2)
+  } else if (path.startsWith('../')) {
+    // ../는 일단 유지 (상위 디렉토리)
+    return `src/${path}`
+  }
+  
+  // src/ 접두사 추가
+  const normalized = `src/${path}`
+  
+  // 중복 슬래시 제거 (src//path -> src/path)
+  return normalized.replace(/\/+/g, '/')
+}
+
 // 뒤로가기
 async function handleGoBack() {
   const historyItem = goBack()
@@ -314,6 +427,9 @@ const graphData = ref(null)
 
 // 선택된 노드
 const selectedNode = ref(null)
+
+// 호버된 노드 정보
+const hoveredNode = ref(null)
 
 // 다이어그램 refs
 const dependencyDiagramRef = ref(null)
@@ -611,9 +727,18 @@ function handleDependencyNodeClick(event) {
 }
 
 function handleDependencyNodeHover(event) {
-  // 호버 이벤트 처리 (필요 시)
-  // 향후 확장 시 사용 예정
-  void event
+  const { nodeId, nodeData, isEntering } = event
+  if (isEntering) {
+    const rawPath = nodeData?.path || nodeId
+    hoveredNode.value = {
+      nodeId: nodeId,
+      nodeData: nodeData,
+      path: normalizePath(rawPath),
+      name: nodeData?.name || nodeId?.split('/').pop() || nodeId,
+    }
+  } else {
+    hoveredNode.value = null
+  }
 }
 
 function handleDependencyDiagramLoaded(renderResult) {
@@ -643,9 +768,18 @@ function handleFileTreeNodeClick(event) {
 }
 
 function handleFileTreeNodeHover(event) {
-  // 호버 이벤트 처리 (필요 시)
-  // 향후 확장 시 사용 예정
-  void event
+  const { nodeId, nodeData, isEntering } = event
+  if (isEntering) {
+    const rawPath = nodeData?.path || nodeId
+    hoveredNode.value = {
+      nodeId: nodeId,
+      nodeData: nodeData,
+      path: normalizePath(rawPath),
+      name: nodeData?.name || nodeId?.split('/').pop() || nodeId,
+    }
+  } else {
+    hoveredNode.value = null
+  }
 }
 
 function handleFileTreeDiagramLoaded(renderResult) {
@@ -677,9 +811,17 @@ function handleDependencyAnalysisNodeClick(event) {
 }
 
 function handleDependencyAnalysisNodeHover(event) {
-  // 호버 이벤트 처리 (필요 시)
-  // 향후 확장 시 사용 예정
-  void event
+  const { nodeId, nodeData, isEntering } = event
+  if (isEntering) {
+    hoveredNode.value = {
+      nodeId: nodeId,
+      nodeData: nodeData,
+      path: nodeId, // 패키지 ID
+      name: nodeData?.name || nodeId,
+    }
+  } else {
+    hoveredNode.value = null
+  }
 }
 
 function handleDependencyAnalysisDiagramLoaded(renderResult) {
@@ -1111,6 +1253,47 @@ onBeforeUnmount(() => {
 
 .node-actions {
   margin-top: 1rem;
+}
+
+/* 플로팅 노드 정보 패널 */
+.node-hover-panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.node-info-card {
+  min-width: 300px;
+  max-width: 400px;
+  background: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+}
+
+.node-info-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.node-info-item .node-info-label {
+  font-size: 0.75rem;
+  color: var(--nexa-text-secondary);
+  font-weight: 500;
+  min-width: 50px;
+  flex-shrink: 0;
+}
+
+.node-info-item .node-info-value {
+  font-size: 0.875rem;
+  color: var(--nexa-text-primary);
+  word-break: break-all;
+  font-family: monospace;
+  flex: 1;
 }
 
 .coming-soon-wrapper {
