@@ -50,20 +50,20 @@ export const diagramSettingsSchemas = {
     },
     layout: {
       // orientation: 레이아웃(데이터의 흐름) 방향 ('horizontal': 좌→우, 'vertical': 상→하)
-      orientation: { default: 'horizontal', options: ['vertical', 'horizontal'] },
-      // 세로 방향 설정
+      orientation: { default: 'vertical', options: ['vertical', 'horizontal'] },
+
+      //TB(Top to Bottom) 세로 방향 설정
       vertical: {
-        widthDistance: 165, //노드간의 가로 간격 (ranksep: 좌우 간격)
-        heightDistance: 60, //노드간의 세로 간격 (nodesep: 상하 간격)
-        minWidthDistance: 150,
+        widthDistance: 165, //노드간의 가로 간격 (nodesep: 좌우 간격) - 같은 레벨(형제)에서의 간격
+        heightDistance: 100, //노드간의 세로 간격 (ranksep: 상하 간격) - 계층(부모-자식)
         maxWidthDistance: 300,
         minHeightDistance: 50,
         maxHeightDistance: 400,
       },
-      // 가로 방향 설정
+      // LR(Left to Right) 가로 방향 설정
       horizontal: {
-        widthDistance: 160, //노드간의 가로 간격 (ranksep: 좌우 간격)
-        heightDistance: 60, //노드간의 세로 간격 (nodesep: 상하 간격)
+        widthDistance: 160, //노드간의 가로 간격 (ranksep: 좌우 간격) - 계층(부모-자식)
+        heightDistance: 60, //노드간의 세로 간격 (nodesep: 상하 간격) - 같은 레벨(형제)에서의 간격
         minWidthDistance: 120,
         maxWidthDistance: 400,
         minHeightDistance: 150,
