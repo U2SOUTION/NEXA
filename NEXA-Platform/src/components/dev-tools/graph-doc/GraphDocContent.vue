@@ -79,7 +79,7 @@
             @loaded="handleDependencyDiagramLoaded"
             @error="handleDependencyDiagramError"
           />
-          
+
           <!-- 플로팅 노드 정보 패널 -->
           <div v-if="hoveredNode" class="node-hover-panel">
             <q-card class="node-info-card">
@@ -203,7 +203,7 @@
             @loaded="handleDependencyAnalysisDiagramLoaded"
             @error="handleDependencyAnalysisDiagramError"
           />
-          
+
           <!-- 플로팅 노드 정보 패널 -->
           <div v-if="hoveredNode" class="node-hover-panel">
             <q-card class="node-info-card">
@@ -251,7 +251,7 @@
           <!-- 렌더링 중 스피너 -->
           <NexaSpinner v-if="isAnalyzing" size="md" message="렌더링 중..." centered />
           <NexaDiagram ref="fileTreeDiagramRef" type="filetree" :data="fileTreeDiagramData" :options="fileTreeDiagramOptions" @node-click="handleFileTreeNodeClick" @node-hover="handleFileTreeNodeHover" @loaded="handleFileTreeDiagramLoaded" @error="handleFileTreeDiagramError" />
-          
+
           <!-- 플로팅 노드 정보 패널 -->
           <div v-if="hoveredNode" class="node-hover-panel">
             <q-card class="node-info-card">
@@ -320,7 +320,7 @@ import { useRoute } from 'vue-router'
 import NexaDiagram from 'src/diagram/NexaDiagram.vue'
 import NexaSpinner from 'src/components/ui/NexaSpinner.vue'
 import { diagramTypes } from 'src/diagram/config/diagramMetadata.js'
-import { analyzeDependencyGraph } from 'src/utils/graph-doc/dependencyGraphAnalyzer.js'
+import { analyzeDependencyGraph, isNpmPackage } from 'src/utils/graph-doc/dependencyGraphAnalyzer.js'
 import { useGraphDocHistory } from 'src/composables/dev-tools/useGraphDocHistory.js'
 
 const $q = useQuasar()
@@ -358,32 +358,32 @@ function handleUseCurrentUrl() {
 // 경로를 루트 기준으로 정규화 (src/ 접두사 추가)
 function normalizePath(path) {
   if (!path) return path
-  
+
   // 앞뒤 공백 제거
   path = path.trim()
-  
+
   // npm 패키지 경로는 그대로 반환 (@로 시작하는 scoped 패키지 또는 npm 패키지)
   // 예: @tiptap/extension-font-family, @vue/core, @vite-plugin-checker-runtime 등
   // 주의: @/는 경로 별칭이므로 제외
   if (path.startsWith('@') && !path.startsWith('@/')) {
     return path
   }
-  
+
   // 이미 src/로 시작하면 그대로 반환
   if (path.startsWith('src/')) {
     return path
   }
-  
+
   // /src/로 시작하면 src/로 변경
   if (path.startsWith('/src/')) {
     return path.substring(1)
   }
-  
+
   // /로 시작하는 경로는 / 제거
   if (path.startsWith('/')) {
     path = path.substring(1)
   }
-  
+
   // 상대 경로(./ 또는 ../)의 경우 ./ 또는 ../ 제거
   if (path.startsWith('./')) {
     path = path.substring(2)
@@ -391,10 +391,10 @@ function normalizePath(path) {
     // ../는 일단 유지 (상위 디렉토리)
     return `src/${path}`
   }
-  
+
   // src/ 접두사 추가
   const normalized = `src/${path}`
-  
+
   // 중복 슬래시 제거 (src//path -> src/path)
   return normalized.replace(/\/+/g, '/')
 }
@@ -436,6 +436,14 @@ const dependencyDiagramRef = ref(null)
 const fileTreeDiagramRef = ref(null)
 const dependencyAnalysisDiagramRef = ref(null)
 
+// 다이어그램 renderResult 저장
+const dependencyDiagramRenderResult = ref(null)
+const fileTreeDiagramRenderResult = ref(null)
+
+// 고정된 노드 목록
+const fixedNodeList = ref([])
+const fixedNodeListUpdateInterval = ref(null)
+
 // 의존성 그래프 다이어그램 데이터 및 옵션 (Force-Directed Graph용)
 const dependencyDiagramData = computed(() => {
   if (!graphData.value) {
@@ -467,12 +475,29 @@ const dependencyDiagramData = computed(() => {
   }
 
   // 파일 데이터를 패키지 형식으로 변환 (Force-Directed Graph용)
-  const packages = nodes.map((node) => ({
-    id: node.path || node.id || node.name,
-    name: node.name || node.id,
-    radius: 25, // 파일은 작은 크기
-    color: getFileTypeColor(node.path || node.id),
-  }))
+  // npm 패키지 필터링 (추가 안전장치)
+  const packages = nodes
+    .filter((node) => {
+      const path = node.path || node.id || node.name
+      if (!path) return false
+
+      // src/@... 형태인 경우도 npm 패키지로 인식
+      // 예: src/@vite-plugin-checker-runtime.vue -> @vite-plugin-checker-runtime.vue
+      const npmPackagePath = path.startsWith('src/@') ? path.substring(4) : path
+
+      // npm 패키지 필터링
+      if (isNpmPackage(npmPackagePath)) {
+        return false
+      }
+
+      return true
+    })
+    .map((node) => ({
+      id: node.path || node.id || node.name,
+      name: node.name || node.id,
+      radius: 25, // 파일은 작은 크기
+      color: getFileTypeColor(node.path || node.id),
+    }))
 
   // 엣지의 from/to를 노드의 id로 변환
   const dependencies = edges
@@ -744,6 +769,10 @@ function handleDependencyNodeHover(event) {
 function handleDependencyDiagramLoaded(renderResult) {
   console.log('[GraphDocContent] 의존성 그래프 다이어그램 로드 완료:', renderResult)
   isAnalyzing.value = false
+  dependencyDiagramRenderResult.value = renderResult
+  fileTreeDiagramRenderResult.value = null // 다른 다이어그램 초기화
+  // 고정 노드 목록 업데이트 시작
+  startFixedNodeListUpdate()
 }
 
 function handleDependencyDiagramError(error) {
@@ -785,6 +814,10 @@ function handleFileTreeNodeHover(event) {
 function handleFileTreeDiagramLoaded(renderResult) {
   console.log('[GraphDocContent] 파일 트리 다이어그램 로드 완료:', renderResult)
   isAnalyzing.value = false
+  fileTreeDiagramRenderResult.value = renderResult
+  dependencyDiagramRenderResult.value = null // 다른 다이어그램 초기화
+  // 고정 노드 목록 업데이트 시작
+  startFixedNodeListUpdate()
 }
 
 function handleFileTreeDiagramError(error) {
@@ -939,6 +972,8 @@ onMounted(() => {
   window.addEventListener('graph-doc-dependency-stats', handleDependencyStats)
   window.addEventListener('graph-doc-code-complexity', handleCodeComplexity)
   window.addEventListener('graph-doc-history-item-clicked', handleHistoryItemClicked)
+  window.addEventListener('graph-doc-unfix-node', handleUnfixNodeRequest)
+  window.addEventListener('graph-doc-unfix-all-nodes', handleUnfixAllNodesRequest)
 })
 
 // 간단한 메뉴 항목 핸들러
@@ -982,7 +1017,81 @@ function handleCodeComplexity() {
   // TODO: 코드 복잡도 분석 로직 구현
 }
 
+// 고정 노드 목록 업데이트 시작
+function startFixedNodeListUpdate() {
+  // 기존 인터벌 제거
+  if (fixedNodeListUpdateInterval.value) {
+    clearInterval(fixedNodeListUpdateInterval.value)
+  }
+
+  // 500ms마다 고정 노드 목록 업데이트
+  fixedNodeListUpdateInterval.value = setInterval(() => {
+    updateFixedNodeList()
+  }, 500)
+}
+
+// 고정 노드 목록 업데이트
+function updateFixedNodeList() {
+  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value
+  if (renderResult && renderResult.getFixedNodeIds) {
+    fixedNodeList.value = renderResult.getFixedNodeIds()
+
+    // 사이드바 탭에 고정 노드 목록 전달
+    window.dispatchEvent(
+      new CustomEvent('graph-doc-fixed-nodes-updated', {
+        detail: {
+          nodeIds: fixedNodeList.value,
+        },
+      }),
+    )
+  } else {
+    fixedNodeList.value = []
+    // 사이드바 탭에 빈 목록 전달
+    window.dispatchEvent(
+      new CustomEvent('graph-doc-fixed-nodes-updated', {
+        detail: {
+          nodeIds: [],
+        },
+      }),
+    )
+  }
+}
+
+// 특정 노드 고정 해제
+function handleUnfixNode(nodeId) {
+  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value
+  if (renderResult && renderResult.unfixNodes) {
+    renderResult.unfixNodes(nodeId)
+    updateFixedNodeList()
+  }
+}
+
+// 전체 노드 고정 해제
+function handleUnfixAllNodes() {
+  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value
+  if (renderResult && renderResult.unfixNodes) {
+    renderResult.unfixNodes()
+    updateFixedNodeList()
+  }
+}
+
+// 사이드바에서 노드 고정 해제 요청 이벤트 리스너
+function handleUnfixNodeRequest(event) {
+  const { nodeId } = event.detail
+  handleUnfixNode(nodeId)
+}
+
+// 사이드바에서 전체 노드 고정 해제 요청 이벤트 리스너
+function handleUnfixAllNodesRequest() {
+  handleUnfixAllNodes()
+}
+
 onBeforeUnmount(() => {
+  // 고정 노드 목록 업데이트 인터벌 제거
+  if (fixedNodeListUpdateInterval.value) {
+    clearInterval(fixedNodeListUpdateInterval.value)
+  }
+
   // 전역 이벤트 리스너 제거
   window.removeEventListener('graph-doc-accordion-change', handleAccordionChange)
   window.removeEventListener('graph-doc-dependency-graph-analysis-target-change', handleAnalysisTargetChange)
@@ -1132,6 +1241,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .graph-container-full {
@@ -1259,14 +1369,14 @@ onBeforeUnmount(() => {
 .node-hover-panel {
   position: absolute;
   top: 16px;
+  left: 16px;
   right: 16px;
   z-index: 1000;
   pointer-events: none;
 }
 
 .node-info-card {
-  min-width: 300px;
-  max-width: 400px;
+  width: 100%;
   background: var(--nexa-surface);
   border: 1px solid var(--nexa-border-color);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -1291,9 +1401,11 @@ onBeforeUnmount(() => {
 .node-info-item .node-info-value {
   font-size: 0.875rem;
   color: var(--nexa-text-primary);
-  word-break: break-all;
   font-family: monospace;
   flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .coming-soon-wrapper {

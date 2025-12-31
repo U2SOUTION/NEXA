@@ -138,6 +138,9 @@ export async function renderFileTree(container, data, options = {}) {
 
   const { selectedNode = null, onNodeClick = null, onNodeHover = null, onNodeDrag = null } = options
 
+  // 고정된 노드 ID 목록 (Set으로 관리)
+  const fixedNodeIds = new Set()
+
   // 설정 로드 (network 타입 설정 사용 - 의존성 분석과 동일)
   const settings = loadDiagramSettings(diagramTypes.NETWORK)
 
@@ -435,10 +438,13 @@ export async function renderFileTree(container, data, options = {}) {
 
   const dragEnded = (event, d) => {
     if (!event.active) simulation.alphaTarget(0)
-    d.fx = null
-    d.fy = null
+    // 노드를 놓은 위치에 고정 (fx, fy를 null로 해제하지 않음)
+    const nodeId = d.id || d.name || d.path
+    d.fx = event.x
+    d.fy = event.y
+    fixedNodeIds.add(nodeId) // 고정 목록에 추가
     if (onNodeDrag) {
-      onNodeDrag(d.id || d.name || d.path, d, 'end')
+      onNodeDrag(nodeId, d, 'end')
     }
   }
 
@@ -469,11 +475,45 @@ export async function renderFileTree(container, data, options = {}) {
     delay: 500, // 시뮬레이션이 어느 정도 진행된 후 줌 설정
   })
 
+  /**
+   * 노드 고정 해제
+   * @param {string|string[]} nodeIds - 해제할 노드 ID 또는 ID 배열 (없으면 모두 해제)
+   */
+  const unfixNodes = (nodeIds = null) => {
+    const nodesToUnfix = nodeIds
+      ? Array.isArray(nodeIds)
+        ? nodeIds
+        : [nodeIds]
+      : Array.from(fixedNodeIds)
+
+    nodesToUnfix.forEach((nodeId) => {
+      const node = files.find((f) => (f.id || f.name || f.path) === nodeId)
+      if (node) {
+        node.fx = null
+        node.fy = null
+        fixedNodeIds.delete(nodeId)
+      }
+    })
+
+    // 시뮬레이션 재시작하여 노드가 다시 움직이도록 함
+    simulation.alpha(0.3).restart()
+  }
+
+  /**
+   * 고정된 노드 ID 목록 반환
+   * @returns {string[]} 고정된 노드 ID 배열
+   */
+  const getFixedNodeIds = () => {
+    return Array.from(fixedNodeIds)
+  }
+
   return {
     svg,
     svgGroup,
     zoom,
     simulation,
+    unfixNodes,
+    getFixedNodeIds,
   }
 }
 

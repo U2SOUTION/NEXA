@@ -135,6 +135,13 @@
             <HistoryTab />
           </q-expansion-item>
         </div>
+
+        <!-- 고정 노드 관리 패널 -->
+        <div class="accordion-wrapper">
+          <q-expansion-item icon="lock" label="고정 노드" :model-value="graphDocFixedNodesExpanded" @update:model-value="graphDocFixedNodesExpanded = $event">
+            <FixedNodesTab />
+          </q-expansion-item>
+        </div>
       </template>
 
       <!-- 에러 트래킹 패널들 (activeMenu === 'error-tracking') -->
@@ -271,6 +278,7 @@ import ComponentLibraryRelatedDocs from './dev-tools/component-library/Component
 import DevGuidePanel from './dev-tools/DevGuidePanel.vue'
 import DevGuideStatistics from './dev-tools/DevGuideStatistics.vue'
 import HistoryTab from './dev-tools/graph-doc/HistoryTab.vue'
+import FixedNodesTab from './dev-tools/graph-doc/FixedNodesTab.vue'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)
@@ -380,6 +388,7 @@ const devGuideStatisticsExpanded = ref(true)
 
 // GraphDoc 패널 상태
 const graphDocHistoryExpanded = ref(true)
+const graphDocFixedNodesExpanded = ref(false)
 
 // Active menu 변경 이벤트 리스너
 function handleActiveMenuChange(event) {

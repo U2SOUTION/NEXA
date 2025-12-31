@@ -1,14 +1,181 @@
 /**
  * GraphDoc 의존성 그래프 분석기
  * 파일 경로나 디렉토리 경로를 기반으로 실제 파일 의존성을 분석
+ *
+ * 필터 옵션 객체 구조:
+ * - includeNpmPackages: boolean (기본: false) - npm 패키지 포함 여부
+ * - npmPackagePatterns: string[] (기본: []) - 포함/제외할 npm 패키지 패턴
+ * - excludedPaths: string[] (기본: []) - 제외할 경로 패턴
+ * - includedFileTypes: string[] (기본: []) - 포함할 파일 타입. 빈 배열이면 모두 포함
+ * - excludedFileTypes: string[] (기본: []) - 제외할 파일 타입
+ * - maxDepth: number (기본: 3) - 최대 탐색 깊이
+ * - customFilter: Function (기본: null) - 커스텀 필터 함수 (node) => boolean
  */
+
+/**
+ * 기본 필터 옵션
+ */
+const DEFAULT_FILTER_OPTIONS = {
+  includeNpmPackages: false,
+  npmPackagePatterns: [],
+  excludedPaths: [],
+  includedFileTypes: [],
+  excludedFileTypes: [],
+  maxDepth: 3,
+  customFilter: null,
+}
+
+/**
+ * npm 패키지인지 확인
+ * @param {string} importPath - import 경로
+ * @returns {boolean} npm 패키지 여부
+ */
+function isNpmPackage(importPath) {
+  if (!importPath || typeof importPath !== 'string') return false
+
+  // @로 시작하는 scoped 패키지 (단, @/는 경로 별칭이므로 제외)
+  if (importPath.startsWith('@') && !importPath.startsWith('@/')) {
+    return true
+  }
+
+  // 확장자가 없고 경로 구분자도 없는 경우 npm 패키지로 추정
+  if (!importPath.includes('/') && !importPath.startsWith('.') && !importPath.startsWith('src/') && !importPath.startsWith('@/')) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * 경로가 패턴과 일치하는지 확인 (간단한 glob 패턴 지원)
+ * @param {string} path - 경로
+ * @param {string[]} patterns - 패턴 배열
+ * @returns {boolean} 일치 여부
+ */
+function matchesPattern(path, patterns) {
+  if (!patterns || patterns.length === 0) return false
+
+  return patterns.some((pattern) => {
+    // 간단한 glob 패턴 지원 (*, **)
+    const regex = new RegExp('^' + pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*') + '$')
+    return regex.test(path)
+  })
+}
+
+/**
+ * 파일 타입 추출 (이미 getFileType 함수가 존재하므로 재사용)
+ * @param {string} path - 파일 경로
+ * @returns {string|null} 파일 타입 (예: 'vue', 'js')
+ */
+function extractFileType(path) {
+  if (!path) return null
+  const match = path.match(/\.([^.]+)$/)
+  return match ? match[1].toLowerCase() : null
+}
+
+/**
+ * 의존성 필터 생성
+ * @param {DependencyFilterOptions} options - 필터 옵션
+ * @returns {Object} 필터 함수 객체
+ */
+function createDependencyFilter(options = {}) {
+  const opts = { ...DEFAULT_FILTER_OPTIONS, ...options }
+
+  /**
+   * import 경로 필터
+   * @param {string} importPath - import 경로
+   * @returns {boolean} 포함 여부
+   */
+  function shouldIncludeImport(importPath) {
+    if (!importPath) return false
+
+    // npm 패키지 처리
+    if (isNpmPackage(importPath)) {
+      if (!opts.includeNpmPackages) {
+        return false
+      }
+
+      // npm 패키지 패턴 필터링
+      if (opts.npmPackagePatterns.length > 0) {
+        return matchesPattern(importPath, opts.npmPackagePatterns)
+      }
+
+      return true
+    }
+
+    // 경로 패턴 필터링
+    if (opts.excludedPaths.length > 0 && matchesPattern(importPath, opts.excludedPaths)) {
+      return false
+    }
+
+    return true
+  }
+
+  /**
+   * 노드 필터
+   * @param {Object} node - 노드 객체
+   * @returns {boolean} 포함 여부
+   */
+  function shouldIncludeNode(node) {
+    const path = node.path || node.id || node.name
+    if (!path) return false
+
+    // src/@... 형태인 경우도 npm 패키지로 인식
+    // 예: src/@vite-plugin-checker-runtime.vue -> @vite-plugin-checker-runtime.vue
+    const npmPackagePath = path.startsWith('src/@') ? path.substring(4) : path
+
+    // npm 패키지 처리
+    if (isNpmPackage(npmPackagePath)) {
+      if (!opts.includeNpmPackages) {
+        return false
+      }
+
+      if (opts.npmPackagePatterns.length > 0) {
+        return matchesPattern(npmPackagePath, opts.npmPackagePatterns)
+      }
+
+      return true
+    }
+
+    // 경로 패턴 필터링
+    if (opts.excludedPaths.length > 0 && matchesPattern(path, opts.excludedPaths)) {
+      return false
+    }
+
+    // 파일 타입 필터링
+    const fileType = extractFileType(path)
+    if (fileType) {
+      if (opts.excludedFileTypes.length > 0 && opts.excludedFileTypes.includes(fileType)) {
+        return false
+      }
+
+      if (opts.includedFileTypes.length > 0 && !opts.includedFileTypes.includes(fileType)) {
+        return false
+      }
+    }
+
+    // 커스텀 필터
+    if (opts.customFilter && typeof opts.customFilter === 'function') {
+      return opts.customFilter(node)
+    }
+
+    return true
+  }
+
+  return {
+    shouldIncludeImport,
+    shouldIncludeNode,
+    options: opts,
+  }
+}
 
 /**
  * 파일 내용에서 import 문 추출
  * @param {string} content - 파일 내용
+ * @param {Function} importFilter - import 필터 함수 (optional)
  * @returns {Array<string>} import 경로 배열
  */
-function extractImports(content) {
+function extractImports(content, importFilter = null) {
   const imports = []
 
   // 정규식 패턴들
@@ -29,23 +196,16 @@ function extractImports(content) {
       const importPath = match[1]
       if (!importPath) continue
 
-      // ⚠️ npm 패키지 필터링 (@로 시작하는 scoped 패키지, 단 @/는 제외)
-      // ⚠️ 주의: 나중에 패키지 의존성 분석 기능 구현 시 이 부분 수정 필요!
-      // 예: @tiptap/extension-youtube, @vite-plugin-checker-runtime 등
-      if (importPath.startsWith('@') && !importPath.startsWith('@/')) {
-        continue // npm scoped 패키지는 제외
-      }
-
-      // vue, quasar 등 외부 라이브러리는 제외
-      if (importPath.startsWith('vue') || importPath.startsWith('quasar') || importPath.startsWith('pinia')) {
-        continue
-      }
-
-      // ⚠️ node_modules에 있는 일반 패키지 필터링 (확장자가 없는 경우)
-      // ⚠️ 주의: 나중에 패키지 의존성 분석 기능 구현 시 이 부분 수정 필요!
-      // 예: 'lodash', 'axios' 등
-      if (!importPath.includes('/') && !importPath.startsWith('.') && !importPath.startsWith('src/') && !importPath.startsWith('@/')) {
-        continue // npm 패키지로 추정
+      // 필터 사용 (제공된 경우)
+      if (importFilter && typeof importFilter === 'function') {
+        if (!importFilter(importPath)) {
+          continue
+        }
+      } else {
+        // 기본 필터: npm 패키지 제외 (하위 호환성)
+        if (isNpmPackage(importPath)) {
+          continue
+        }
       }
 
       imports.push(importPath)
@@ -59,19 +219,20 @@ function extractImports(content) {
  * 상대 경로를 절대 경로로 변환
  * @param {string} importPath - import 경로
  * @param {string} basePath - 현재 파일 경로 (예: 'src/pages/DevelopmentPage.vue')
- * @returns {string} 절대 경로 (예: 'src/components/ui/BaseModal.vue')
+ * @param {Function} importFilter - import 필터 함수 (optional)
+ * @returns {string|null} 절대 경로 (예: 'src/components/ui/BaseModal.vue') 또는 null (필터링된 경우)
  */
-function resolveImportPath(importPath, basePath) {
-  // ⚠️ npm 패키지는 null 반환 (의존성 그래프에서 제외)
-  // ⚠️ 주의: 나중에 패키지 의존성 분석 기능 구현 시 이 부분 수정 필요!
-  if (importPath.startsWith('@') && !importPath.startsWith('@/')) {
-    return null // npm scoped 패키지
-  }
-
-  // ⚠️ 확장자가 없고 경로 구분자도 없는 경우 npm 패키지로 추정
-  // ⚠️ 주의: 나중에 패키지 의존성 분석 기능 구현 시 이 부분 수정 필요!
-  if (!importPath.includes('/') && !importPath.startsWith('.') && !importPath.startsWith('src/') && !importPath.startsWith('@/')) {
-    return null // npm 패키지 (예: 'lodash', 'axios')
+function resolveImportPath(importPath, basePath, importFilter = null) {
+  // 필터 사용 (제공된 경우)
+  if (importFilter && typeof importFilter === 'function') {
+    if (!importFilter(importPath)) {
+      return null
+    }
+  } else {
+    // 기본 필터: npm 패키지 제외 (하위 호환성)
+    if (isNpmPackage(importPath)) {
+      return null
+    }
   }
 
   // 이미 절대 경로인 경우 (src/ 또는 @/로 시작)
@@ -109,6 +270,11 @@ function resolveImportPath(importPath, basePath) {
   }
 
   // 그 외의 경우 (절대 경로로 가정)
+  // 하지만 npm 패키지인 경우 null 반환 (안전장치)
+  if (isNpmPackage(importPath)) {
+    return null
+  }
+
   let resolved = importPath
   if (resolved.includes('/') && !resolved.endsWith('.vue') && !resolved.endsWith('.js') && !resolved.endsWith('.ts') && !resolved.endsWith('.scss') && !resolved.endsWith('.css')) {
     resolved += '.vue'
@@ -342,9 +508,14 @@ async function findTargetFiles(target) {
 /**
  * 의존성 그래프 분석
  * @param {string} target - 분석 대상 (예: '/dev', '/portfolio', 'src/pages/DevelopmentPage.vue', '/parts-management?mode=physical')
+ * @param {DependencyFilterOptions} filterOptions - 필터 옵션
  * @returns {Promise<Object>} 그래프 데이터 { nodes: [], edges: [] }
  */
-export async function analyzeDependencyGraph(target) {
+export async function analyzeDependencyGraph(target, filterOptions = {}) {
+  // 필터 생성
+  const filter = createDependencyFilter(filterOptions)
+  const { maxDepth } = filter.options
+
   // 쿼리 파라미터와 해시 제거
   const cleanedTarget = cleanPath(target)
   console.log('[DependencyGraphAnalyzer] 분석 시작:', cleanedTarget, '(원본:', target, ')')
@@ -363,7 +534,7 @@ export async function analyzeDependencyGraph(target) {
   const nodeMap = new Map() // path -> node
   const processedFiles = new Set() // 이미 처리한 파일
 
-  // 2. 대상 파일들을 노드로 추가
+  // 2. 대상 파일들을 노드로 추가 (필터 적용)
   for (const filePath of targetFiles) {
     if (!processedFiles.has(filePath)) {
       const node = {
@@ -372,6 +543,12 @@ export async function analyzeDependencyGraph(target) {
         path: filePath,
         type: getFileType(filePath),
       }
+
+      // 필터 적용
+      if (!filter.shouldIncludeNode(node)) {
+        continue
+      }
+
       nodes.push(node)
       nodeMap.set(filePath, node)
       processedFiles.add(filePath)
@@ -380,7 +557,6 @@ export async function analyzeDependencyGraph(target) {
 
   // 3. 각 파일의 import 관계 분석
   const filesToProcess = [...targetFiles]
-  const maxDepth = 3 // 최대 깊이 제한 (무한 루프 방지)
   let currentDepth = 0
 
   while (filesToProcess.length > 0 && currentDepth < maxDepth) {
@@ -392,25 +568,30 @@ export async function analyzeDependencyGraph(target) {
         const content = await readFile(filePath)
         if (!content) continue
 
-        const imports = extractImports(content)
+        const imports = extractImports(content, filter.shouldIncludeImport)
 
         for (const importPath of imports) {
-          const resolvedPath = resolveImportPath(importPath, filePath)
+          const resolvedPath = resolveImportPath(importPath, filePath, filter.shouldIncludeImport)
 
-          // ⚠️ npm 패키지 등은 null 반환되므로 제외 (패키지 의존성 분석 기능 구현 시 수정 필요)
+          // 필터에 의해 제외된 경우
           if (!resolvedPath) {
             continue
           }
 
           // 노드가 없으면 추가 (외부 의존성)
           if (!nodeMap.has(resolvedPath)) {
-            // 실제 파일이 존재하는지 확인 (간단한 체크)
             const node = {
               id: resolvedPath,
               name: getFileName(resolvedPath),
               path: resolvedPath,
               type: getFileType(resolvedPath),
             }
+
+            // 노드 필터 적용
+            if (!filter.shouldIncludeNode(node)) {
+              continue
+            }
+
             nodes.push(node)
             nodeMap.set(resolvedPath, node)
 
@@ -421,7 +602,13 @@ export async function analyzeDependencyGraph(target) {
             }
           }
 
-          // 엣지 추가 (중복 체크)
+          // 엣지 추가 (중복 체크, 양쪽 노드가 모두 필터를 통과한 경우만)
+          const fromNode = nodeMap.get(filePath)
+          const toNode = nodeMap.get(resolvedPath)
+          if (!fromNode || !toNode) {
+            continue
+          }
+
           const fromId = filePath
           const toId = resolvedPath
           const edgeExists = edges.some((edge) => edge.from === fromId && edge.to === toId)
@@ -442,7 +629,20 @@ export async function analyzeDependencyGraph(target) {
     currentDepth++
   }
 
-  console.log('[DependencyGraphAnalyzer] 분석 완료:', { nodesCount: nodes.length, edgesCount: edges.length })
+  // 최종 노드 및 엣지 필터링 (추가 안전장치)
+  const filteredNodes = nodes.filter((node) => filter.shouldIncludeNode(node))
+  const filteredEdges = edges.filter((edge) => {
+    const fromNode = filteredNodes.find((n) => (n.id || n.path) === edge.from)
+    const toNode = filteredNodes.find((n) => (n.id || n.path) === edge.to)
+    return fromNode && toNode
+  })
+
+  console.log('[DependencyGraphAnalyzer] 분석 완료:', {
+    nodesCount: filteredNodes.length,
+    edgesCount: filteredEdges.length,
+    originalNodesCount: nodes.length,
+    originalEdgesCount: edges.length,
+  })
 
   // 메인 파일의 주석 추출 (첫 번째 파일만)
   let mainFileComment = null
@@ -464,11 +664,14 @@ export async function analyzeDependencyGraph(target) {
   }
 
   return {
-    nodes,
-    edges,
+    nodes: filteredNodes,
+    edges: filteredEdges,
     metadata: {
       mainFileComment,
       mainFilePath,
     },
   }
 }
+
+// 필터 유틸리티 함수 export (외부에서 사용 가능하도록)
+export { isNpmPackage, createDependencyFilter }
