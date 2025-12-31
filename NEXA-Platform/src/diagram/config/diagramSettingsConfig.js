@@ -49,12 +49,26 @@ export const diagramSettingsSchemas = {
       height: { default: 30, min: 20, max: 400, step: 5 },
     },
     layout: {
-      // orientation: 레이아웃 방향 ('horizontal': 좌→우, 'vertical': 상→하)
-      orientation: { default: 'horizontal', options: ['vertical', 'horizontal'] },
-      // nodesep: 같은 rank(층) 내 노드 간 간격 (px) - horizontal: 너비 영향(권장 60-80), vertical: 높이 영향(권장 55-70)
-      nodesep: { default: 55, min: 50, max: 300, step: 10 }, // orientation에 따라 기본값 자동 분기됨
-      // ranksep: rank(층) 간 간격 (px) - horizontal: 높이 영향(권장 50-70), vertical: 너비 영향(권장 150-200)
-      ranksep: { default: 160, min: 20, max: 400, step: 10 }, // orientation에 따라 기본값 자동 분기됨
+      // orientation: 레이아웃(데이터의 흐름) 방향 ('horizontal': 좌→우, 'vertical': 상→하)
+      orientation: { default: 'vertical', options: ['vertical', 'horizontal'] },
+      // 세로 방향 설정
+      vertical: {
+        widthDistance: 165, //노드간의 가로 간격 (ranksep: 좌우 간격)
+        heightDistance: 60, //노드간의 세로 간격 (nodesep: 상하 간격)
+        minWidthDistance: 150,
+        maxWidthDistance: 300,
+        minHeightDistance: 50,
+        maxHeightDistance: 400,
+      },
+      // 가로 방향 설정
+      horizontal: {
+        widthDistance: 160, //노드간의 가로 간격 (ranksep: 좌우 간격)
+        heightDistance: 60, //노드간의 세로 간격 (nodesep: 상하 간격)
+        minWidthDistance: 120,
+        maxWidthDistance: 400,
+        minHeightDistance: 150,
+        maxHeightDistance: 300,
+      },
       // marginx: 그래프 전체의 좌우 여백 (px) (확인은 잘 안됨 , css 스타일 확인해보기)
       marginx: { default: 10, min: 0, max: 300, step: 10 },
       // marginy: 마진 상하 (확인은 잘 안됨 , css 스타일 확인해보기)
@@ -116,22 +130,35 @@ export function getDefaultDiagramSettings(type, context = {}) {
         settings[key] = value.default
       } else {
         settings[key] = {}
-        for (const [subKey, subValue] of Object.entries(value)) {
-          if (subValue && typeof subValue === 'object' && subValue.default !== undefined) {
-            // filetree 타입의 layout 설정값들은 orientation에 따라 기본값 분기 (diagramSettingsConfig.js에서만 관리)
-            if (type === 'filetree' && key === 'layout' && filetreeOrientation) {
-              if (subKey === 'nodesep') {
-                settings[key][subKey] = filetreeOrientation === 'horizontal' ? 60 : 55
-              } else if (subKey === 'ranksep') {
-                settings[key][subKey] = filetreeOrientation === 'horizontal' ? 50 : 160
-              } else if (subKey === 'marginx') {
-                settings[key][subKey] = filetreeOrientation === 'horizontal' ? 10 : 10
-              } else if (subKey === 'marginy') {
-                settings[key][subKey] = filetreeOrientation === 'horizontal' ? 1 : 1
-              } else {
-                settings[key][subKey] = subValue.default
+        // filetree 타입의 layout은 특별 처리: vertical/horizontal 객체를 먼저 처리한 후 nodesep/ranksep 생성
+        if (type === 'filetree' && key === 'layout' && filetreeOrientation) {
+          // 1단계: vertical, horizontal 객체와 일반 속성들 처리
+          for (const [subKey, subValue] of Object.entries(value)) {
+            if (subValue && typeof subValue === 'object') {
+              if (subKey === 'vertical' || subKey === 'horizontal') {
+                // orientation별 설정 객체를 그대로 사용
+                settings[key][subKey] = subValue
+              } else if (subKey === 'orientation' || subKey === 'marginx' || subKey === 'marginy') {
+                // orientation, marginx, marginy는 default 값 사용
+                if (subValue.default !== undefined) {
+                  settings[key][subKey] = subValue.default
+                }
               }
-            } else {
+            }
+          }
+          // 2단계: orientation에 따라 nodesep, ranksep 동적 생성
+          const orientationConfig = settings[key][filetreeOrientation]
+          if (orientationConfig) {
+            // 주석 기반 매핑: orientation별 widthDistance/heightDistance를 nodesep/ranksep으로 변환
+            // vertical: nodesep = 좌우 간격 = widthDistance, ranksep = 상하 간격 = heightDistance
+            // horizontal: nodesep = 상하 간격 = heightDistance, ranksep = 좌우 간격 = widthDistance
+            settings[key].nodesep = filetreeOrientation === 'vertical' ? orientationConfig.widthDistance : orientationConfig.heightDistance
+            settings[key].ranksep = filetreeOrientation === 'vertical' ? orientationConfig.heightDistance : orientationConfig.widthDistance
+          }
+        } else {
+          // 일반 타입 또는 layout이 아닌 경우
+          for (const [subKey, subValue] of Object.entries(value)) {
+            if (subValue && typeof subValue === 'object' && subValue.default !== undefined) {
               settings[key][subKey] = subValue.default
             }
           }
