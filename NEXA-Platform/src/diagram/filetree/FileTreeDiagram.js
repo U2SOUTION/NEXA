@@ -128,9 +128,11 @@ export async function renderFileTree(container, data, options = {}) {
 
   // 컨테이너 크기 확인
   const containerWidth = container.clientWidth || 800
+  // 1단계: 브라우저 높이에서 헤더 높이(300px)를 뺀 값 사용
+  // 브라우저 세로 높이 - 전체메뉴헤더 - 컨텐츠 창 헤더 = window.innerHeight - 300
   let containerHeight = container.clientHeight
   if (!containerHeight || containerHeight === 0) {
-    containerHeight = window.innerHeight * 0.8
+    containerHeight = window.innerHeight - 300
   }
 
   if (containerWidth === 0 || containerHeight === 0) {
@@ -148,6 +150,7 @@ export async function renderFileTree(container, data, options = {}) {
   console.log('[FileTreeDiagram] 트리 구조 생성 완료:', root)
 
   // SVG 생성
+  // FileDependencyDiagram과 동일한 방식으로 변경 (height: '100%' 사용)
   const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', '100%').attr('viewBox', `0 0 ${containerWidth} ${containerHeight}`)
 
   // 그래프 요소 그룹 (줌/팬 transform 적용)
@@ -156,13 +159,16 @@ export async function renderFileTree(container, data, options = {}) {
   // filetree 설정의 orientation에 따라 rankdir 결정
   const rankdir = currentOrientation === 'horizontal' ? 'LR' : 'TB'
 
+  // dagre 레이아웃 설정
+  // marginx, marginy는 그래프의 여백을 설정하므로 중앙 정렬에 영향을 줄 수 있음
+  // 의존성 그래프와 동일하게 테스트하기 위해 marginx, marginy를 0으로 설정
   const graph = new graphlib.Graph()
     .setGraph({
       rankdir: rankdir, // 방향: LR(좌→우), TB(상→하), RL(우→좌), BT(하→상)
       nodesep: settings.layout?.nodesep,
       ranksep: settings.layout?.ranksep,
-      marginx: settings.layout?.marginx,
-      marginy: settings.layout?.marginy,
+      marginx: 0, // 임시 테스트: 0으로 설정하여 의존성 그래프와 비교
+      marginy: 0, // 임시 테스트: 0으로 설정하여 의존성 그래프와 비교
     })
     .setDefaultEdgeLabel(() => ({}))
 
@@ -233,9 +239,43 @@ export async function renderFileTree(container, data, options = {}) {
   }
 
   // Dagre 레이아웃 계산
+  let actualGraphBounds = null // dagre 레이아웃 계산 후 실제 노드 위치 범위 저장
   if (dagre && typeof dagre.layout === 'function') {
     dagre.layout(graph)
     console.log('[FileTreeDiagram] 레이아웃 계산 완료, 노드 개수:', graph.nodes().length)
+
+    // 노드 위치 확인 (boundsX가 음수인 원인 파악)
+    const nodePositions = graph.nodes().map((nodeId) => {
+      const node = graph.node(nodeId)
+      return { nodeId, x: node.x, y: node.y, width: node.width, height: node.height }
+    })
+    const minX = Math.min(...nodePositions.map((n) => n.x - n.width / 2))
+    const maxX = Math.max(...nodePositions.map((n) => n.x + n.width / 2))
+    const minY = Math.min(...nodePositions.map((n) => n.y - n.height / 2))
+    const maxY = Math.max(...nodePositions.map((n) => n.y + n.height / 2))
+
+    // 실제 그래프 바운딩 박스 저장 (getBBox() 대신 사용)
+    actualGraphBounds = {
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY,
+      centerX: (minX + maxX) / 2,
+      centerY: (minY + maxY) / 2,
+    }
+
+    console.log('[FileTreeDiagram] actualGraphBounds 저장:', actualGraphBounds)
+
+    console.log('[FileTreeDiagram] 노드 위치 범위:', {
+      minX,
+      maxX,
+      minY,
+      maxY,
+      calculatedWidth: actualGraphBounds.width,
+      calculatedHeight: actualGraphBounds.height,
+      calculatedCenterX: actualGraphBounds.centerX,
+      calculatedCenterY: actualGraphBounds.centerY,
+    })
   } else {
     throw new Error('dagre layout 함수를 찾을 수 없습니다.')
   }
@@ -360,15 +400,15 @@ export async function renderFileTree(container, data, options = {}) {
   svg.call(zoom)
 
   // 초기 줌 설정 (공통 유틸리티 사용)
-  // dagre 렌더링 완료 후 getBBox()가 정확한 값을 반환하도록 충분한 delay 설정
   fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, {
     margin: 0.95, // 5% 여유 공간
-    delay: 300, // dagre 렌더링 완료 대기 (getBBox() 정확성 보장)
+    delay: 300, // dagre 렌더링 완료 대기
     onComplete: (transform) => {
-      // 렌더링 완료 후 디버깅 정보 출력 (캔버스 크기 최적화 문제 분석용)
+      // 렌더링 완료 후 디버깅 정보 출력
       try {
         const bounds = svgGroup.node().getBBox()
         const currentOrientation = settings.layout?.orientation || 'horizontal'
+
         console.log('[FileTreeDiagram] fitToScreen 완료:', {
           bounds: { width: bounds.width, height: bounds.height, x: bounds.x, y: bounds.y },
           container: { width: containerWidth, height: containerHeight },
@@ -403,5 +443,6 @@ export async function renderFileTree(container, data, options = {}) {
     graph,
     unfixNodes,
     getFixedNodeIds,
+    orientation: currentOrientation, // 4단계: ResizeObserver에서 fitToHeightOnly 옵션 사용을 위해 orientation 저장
   }
 }

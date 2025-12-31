@@ -1499,7 +1499,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* fitToScreen이 그래프를 중앙에 맞추므로 overflow는 hidden 유지 */
 
   :deep(.nexa-diagram) {
     width: 100%;
@@ -1509,6 +1509,21 @@ onBeforeUnmount(() => {
   :deep(.nexa-diagram-container) {
     width: 100%;
     height: 100%;
+  }
+
+  /* 3단계: 파일 트리 다이어그램의 최대 높이 제한 */
+  /* 브라우저 높이를 넘지 않도록 제한 (헤더 300px 제외) */
+  /* 가로가 커져도 세로는 calc(100vh - 300px)를 넘지 않음 */
+  :deep(.nexa-diagram[data-diagram-type='filetree']) {
+    max-height: calc(100vh - 300px);
+  }
+
+  :deep(.nexa-diagram[data-diagram-type='filetree'] .nexa-diagram-container) {
+    max-height: calc(100vh - 300px);
+  }
+
+  :deep(.nexa-diagram[data-diagram-type='filetree'] .nexa-diagram-container svg) {
+    max-height: calc(100vh - 300px);
   }
 }
 

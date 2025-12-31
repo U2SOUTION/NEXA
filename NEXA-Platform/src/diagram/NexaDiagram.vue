@@ -4,7 +4,7 @@
 -->
 
 <template>
-  <div ref="diagramContainer" class="nexa-diagram">
+  <div ref="diagramContainer" class="nexa-diagram" :data-diagram-type="type">
     <!-- 로딩 상태 -->
     <div v-if="isLoading" class="nexa-diagram-loading q-pa-lg text-center">
       <q-spinner color="primary" size="3em" />
@@ -19,7 +19,7 @@
     </div>
 
     <!-- 다이어그램 컨테이너 -->
-    <div v-show="!isLoading && !error" ref="diagramInnerContainer" class="nexa-diagram-container"></div>
+    <div v-show="!isLoading && !error" ref="diagramInnerContainer" class="nexa-diagram-container" :data-diagram-type="type"></div>
   </div>
 </template>
 
@@ -32,7 +32,6 @@ import { renderDependency } from './dependency/FileDependencyDiagram.js'
 import { renderDependencyAnalysis } from './dependency/PackageDependencyDiagram.js'
 import { renderFileTree } from './filetree/FileTreeDiagram.js'
 import { diagramTypes } from './config/diagramMetadata.js'
-import { fitToScreen } from './utils/diagramZoom.js'
 
 const props = defineProps({
   // 다이어그램 타입
@@ -74,7 +73,6 @@ const diagramInnerContainer = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
 let renderResult = null
-let resizeObserver = null
 let isRendering = false // 렌더링 중 플래그
 
 // 렌더러 맵핑
@@ -198,86 +196,17 @@ watch(
   { deep: false }, // deep watch 제거하여 성능 개선
 )
 
-// ResizeObserver로 컨테이너 크기 변경 감지
-function setupResizeObserver() {
-  if (!diagramInnerContainer.value) return
-
-  // ResizeObserver가 지원되지 않는 브라우저는 스킵
-  if (typeof ResizeObserver === 'undefined') {
-    console.warn('[NexaDiagram] ResizeObserver가 지원되지 않습니다.')
-    return
-  }
-
-  let debounceTimer = null
-
-  let lastWidth = 0
-  let lastHeight = 0
-
-  resizeObserver = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      const { width, height } = entry.contentRect
-
-      // 크기가 0이 아니고, 실제로 크기가 변경되었으며, 렌더링 중이 아닐 때만 재렌더링
-      if (width > 0 && height > 0 && renderResult && !isRendering && (width !== lastWidth || height !== lastHeight)) {
-        // 디바운싱: 연속된 크기 변경을 하나로 묶음
-        if (debounceTimer) {
-          clearTimeout(debounceTimer)
-        }
-        debounceTimer = setTimeout(() => {
-          // 다시 한 번 크기 확인 (렌더링 중이 아닐 때만)
-          if ((!isRendering && width !== lastWidth) || height !== lastHeight) {
-            console.log('[NexaDiagram] 컨테이너 크기 변경 감지:', { width, height })
-            lastWidth = width
-            lastHeight = height
-            // 크기 변경 시 다이어그램 재렌더링
-            // 의존성 분석은 제외 (force 시뮬레이션이 자동으로 조정)
-            // 파일 트리는 제외 (Radial Tree는 크기 변경 시 fitToScreen만 필요)
-            if (props.type !== diagramTypes.DEPENDENCY_ANALYSIS && props.type !== diagramTypes.FILETREE) {
-              renderDiagram()
-            } else if (props.type === diagramTypes.FILETREE) {
-              // 파일 트리는 fitToScreen만 호출 (재렌더링 없이 줌만 조정)
-              if (renderResult.value && renderResult.value.zoom) {
-                const container = diagramInnerContainer.value
-                const containerWidth = container?.clientWidth || 800
-                const containerHeight = container?.clientHeight || 600
-                fitToScreen(renderResult.value.svg, renderResult.value.svgGroup, containerWidth, containerHeight, renderResult.value.zoom)
-              }
-            }
-          }
-        }, 300) // 300ms 디바운스
-      }
-    }
-  })
-
-  resizeObserver.observe(diagramInnerContainer.value)
-}
-
-// 컴포넌트 마운트 시 렌더링 및 ResizeObserver 설정
+// 컴포넌트 마운트 시 렌더링
 onMounted(() => {
   if (props.autoLoad) {
     nextTick(() => {
       renderDiagram()
-      // 렌더링 후 ResizeObserver 설정
-      nextTick(() => {
-        setupResizeObserver()
-      })
-    })
-  } else {
-    // autoLoad가 false여도 ResizeObserver는 설정
-    nextTick(() => {
-      setupResizeObserver()
     })
   }
 })
 
 // 컴포넌트 언마운트 시 정리
 onBeforeUnmount(() => {
-  // ResizeObserver 정리
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
-  }
-
   // 다이어그램 정리
   if (renderResult?.zoom && renderResult?.svg) {
     renderResult.svg.on('.zoom', null)

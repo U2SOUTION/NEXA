@@ -31,68 +31,61 @@ export function createZoom(onZoom, options = {}) {
  * @param {Number} containerHeight - 컨테이너 높이
  * @param {Object} zoom - D3 zoom 객체
  * @param {Object} options - 옵션
- * @param {Number} options.margin - 여유 공간 비율 (기본값: 0.9, 0.95는 5% 여유)
+ * @param {Number} options.margin - 여유 공간 비율 (기본값: 0.95)
  * @param {Number} options.delay - 지연 시간 (ms, 기본값: 100)
- * @param {Function} options.onComplete - 줌 설정 완료 후 콜백 (transform 전달)
- * @param {Boolean} options.immediate - 즉시 실행 여부 (기본값: false, setTimeout 사용)
- * @param {Boolean} options.animate - 애니메이션 사용 여부 (기본값: true)
- * @param {Number} options.duration - 애니메이션 지속 시간 (ms, 기본값: 750)
- * @param {Function|String} options.easing - 이징 함수 또는 문자열 ('cubic-in-out', 'elastic-out', 'bounce-out', 'back-out', 'exp-out')
- *                                           기본값: 'cubic-in-out'
+ * @param {Function} options.onComplete - 줌 설정 완료 후 콜백
+ * @param {Boolean} options.immediate - 즉시 실행 여부
+ * @param {Boolean} options.animate - 애니메이션 사용 여부
+ * @param {Number} options.duration - 애니메이션 지속 시간 (ms)
+ * @param {Function|String} options.easing - 이징 함수 또는 문자열
  */
 export function fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, options = {}) {
-  const { margin = 0.95, delay = 900, onComplete = null, immediate = false, animate = true, duration = 750, easing = 'elastic-out' } = options
+  const { margin = 0.95, delay = 100, onComplete = null, animate = true, duration = 750, easing = 'elastic-out' } = options
 
   // 이징 함수 매핑
   const easingMap = {
     'cubic-in-out': d3.easeCubicInOut,
-    'elastic-out': d3.easeElasticOut, // 탄성 효과 (가장 극적)
-    'bounce-out': d3.easeBounceOut, // 바운스 효과
-    'back-out': d3.easeBackOut, // 오버슈트 효과
-    'exp-out': d3.easeExpOut, // 지수적 감속
-    'quad-in-out': d3.easeQuadInOut,
-    'sin-in-out': d3.easeSinInOut,
+    'elastic-out': d3.easeElasticOut,
+    'bounce-out': d3.easeBounceOut,
+    'back-out': d3.easeBackOut,
+    'exp-out': d3.easeExpOut,
   }
-
-  // 이징 함수 결정 (문자열이면 매핑에서 찾고, 함수면 그대로 사용)
   const easingFunction = typeof easing === 'string' ? easingMap[easing] || d3.easeCubicInOut : easing
 
   const applyFit = () => {
     try {
+      // getBBox()로 그래프 크기 가져오기
       const bounds = svgGroup.node().getBBox()
       const fullWidth = bounds.width || containerWidth
       const fullHeight = bounds.height || containerHeight
-      const width = containerWidth
-      const height = containerHeight
-      const midX = bounds.x + fullWidth / 2
-      const midY = bounds.y + fullHeight / 2
 
       if (fullWidth > 0 && fullHeight > 0) {
-        const scale = Math.min(width / fullWidth, height / fullHeight) * margin
-        const translate = [width / 2 - scale * midX, height / 2 - scale * midY]
-        const targetTransform = d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+        // 스케일 계산
+        const scale = Math.min(containerWidth / fullWidth, containerHeight / fullHeight) * margin
+
+        // 중심점 계산
+        const midX = bounds.x + fullWidth / 2
+        const midY = bounds.y + fullHeight / 2
+
+        // translate 계산
+        const translateX = containerWidth / 2 - scale * midX
+        const translateY = containerHeight / 2 - scale * midY
+
+        // transform 생성
+        const targetTransform = d3.zoomIdentity.translate(translateX, translateY).scale(scale)
 
         if (animate) {
-          // 부드러운 애니메이션으로 전환
           svg
             .transition()
             .duration(duration)
             .ease(easingFunction)
             .call(zoom.transform, targetTransform)
             .on('end', () => {
-              // 애니메이션 완료 후 콜백 호출
-              if (onComplete && typeof onComplete === 'function') {
-                onComplete(targetTransform)
-              }
+              if (onComplete) onComplete(targetTransform)
             })
         } else {
-          // 즉시 적용
           svg.call(zoom.transform, targetTransform)
-
-          // 콜백 호출 (텍스트 위치 업데이트 등)
-          if (onComplete && typeof onComplete === 'function') {
-            onComplete(targetTransform)
-          }
+          if (onComplete) onComplete(targetTransform)
         }
       }
     } catch (err) {
@@ -100,11 +93,7 @@ export function fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom
     }
   }
 
-  if (immediate) {
-    applyFit()
-  } else {
-    setTimeout(applyFit, delay)
-  }
+  setTimeout(applyFit, delay)
 }
 
 /**

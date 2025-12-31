@@ -39,13 +39,15 @@ const props = defineProps({
 const emit = defineEmits(['analyze', 'analysis-target-change'])
 
 // 로컬 입력값 상태 (사용자가 입력한 최신 값 추적)
-const localAnalysisTarget = ref(props.analysisTarget)
+// 테스트를 위해 기본값을 "/"로 설정
+const localAnalysisTarget = ref(props.analysisTarget || '/')
 
 // props 변경 시 로컬 상태 동기화
+// 빈 문자열일 때는 기본값 "/"로 설정 (테스트 편의)
 watch(
   () => props.analysisTarget,
   (newValue) => {
-    localAnalysisTarget.value = newValue
+    localAnalysisTarget.value = newValue || '/'
   },
   { immediate: true },
 )

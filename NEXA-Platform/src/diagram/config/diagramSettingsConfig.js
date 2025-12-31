@@ -50,7 +50,7 @@ export const diagramSettingsSchemas = {
     },
     layout: {
       // orientation: 레이아웃(데이터의 흐름) 방향 ('horizontal': 좌→우, 'vertical': 상→하)
-      orientation: { default: 'vertical', options: ['vertical', 'horizontal'] },
+      orientation: { default: 'horizontal', options: ['vertical', 'horizontal'] },
       // 세로 방향 설정
       vertical: {
         widthDistance: 165, //노드간의 가로 간격 (ranksep: 좌우 간격)
