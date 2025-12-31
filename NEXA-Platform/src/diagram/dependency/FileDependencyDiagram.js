@@ -318,7 +318,7 @@ export async function renderDependency(container, data, options = {}) {
     })
   }
 
-  // 노드 호버 이벤트 (공통 유틸리티 사용 + 라벨 처리)
+  // 노드 호버 이벤트 (공통 유틸리티 사용)
   if (onNodeHover) {
     const { onMouseenter, onMouseleave } = createNodeHoverHandlers({
       onNodeHover,
@@ -331,14 +331,6 @@ export async function renderDependency(container, data, options = {}) {
         return nodeId
       },
       getNodeData: (nodeId) => files.find((f) => f.path === nodeId),
-      // 라벨 요소 가져오기 함수 (FileDependencyDiagram은 textGroup에 별도 관리)
-      getLabelElement: (nodeId, textGroup) => {
-        if (textGroup) {
-          return textGroup.select(`text.node-label[data-node-id="${nodeId}"]`)
-        }
-        return null
-      },
-      textGroup: textGroup, // textGroup 전달
     })
 
     if (onMouseenter && onMouseleave) {

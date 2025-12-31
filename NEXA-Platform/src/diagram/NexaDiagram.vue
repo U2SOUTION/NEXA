@@ -390,14 +390,9 @@ defineExpose({
 
     //노드 내부 라벨 호버 스타일 (PackageDependencyDiagram, FileTreeDiagram용)
     text {
-      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.684));
     }
   }
-
-  // // 라벨 호버 스타일 (별도 관리되는 라벨용 - FileDependencyDiagram)
-  // .node-label.node-label-hover {
-  //   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
-  // }
 
   // 강조된 링크 스타일 (Force-Directed Graph용)
   .link.link-highlighted {

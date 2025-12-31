@@ -84,33 +84,14 @@ export function applyNodeHoverEffect(nodeElement, isEntering) {
 }
 
 /**
- * 라벨 호버 효과 적용 (공통 유틸리티)
- * CSS 클래스만 추가/제거하고, 실제 스타일은 CSS에서 처리
- * @param {d3.Selection} labelElement - D3 라벨 요소 선택
- * @param {Boolean} isEntering - 호버 진입 여부
- */
-export function applyLabelHoverEffect(labelElement, isEntering) {
-  if (!labelElement || !labelElement.node()) return
-
-  if (isEntering) {
-    labelElement.classed('node-label-hover', true)
-    labelElement.raise() // 최상위로 이동
-  } else {
-    labelElement.classed('node-label-hover', false)
-  }
-}
-
-/**
  * 노드 호버 이벤트 핸들러 생성 (공통 유틸리티)
  * @param {Object} options - 옵션
  * @param {Function} options.onNodeHover - 노드 호버 콜백 함수
  * @param {Function} options.getNodeId - 노드 ID를 가져오는 함수 (event, d, nodeElement) => nodeId
  * @param {Function} options.getNodeData - 노드 데이터를 가져오는 함수 (nodeId) => nodeData
- * @param {Function} options.getLabelElement - 라벨 요소를 가져오는 함수 (nodeId, textGroup) => labelElement (선택적)
- * @param {d3.Selection} options.textGroup - 텍스트 그룹 (FileDependencyDiagram용, 선택적)
  * @returns {Object} { onMouseenter, onMouseleave } 이벤트 핸들러
  */
-export function createNodeHoverHandlers({ onNodeHover, getNodeId, getNodeData, getLabelElement = null, textGroup = null }) {
+export function createNodeHoverHandlers({ onNodeHover, getNodeId, getNodeData }) {
   if (!onNodeHover) {
     return { onMouseenter: null, onMouseleave: null }
   }
@@ -123,14 +104,6 @@ export function createNodeHoverHandlers({ onNodeHover, getNodeId, getNodeData, g
     // CSS 클래스 추가 (호버 효과)
     applyNodeHoverEffect(nodeElement, true)
 
-    // 라벨 호버 효과 (옵션)
-    if (getLabelElement) {
-      const labelElement = getLabelElement(nodeId, textGroup)
-      if (labelElement && labelElement.node()) {
-        applyLabelHoverEffect(labelElement, true)
-      }
-    }
-
     // 콜백 호출
     onNodeHover(nodeId, nodeData, true)
   }
@@ -142,14 +115,6 @@ export function createNodeHoverHandlers({ onNodeHover, getNodeId, getNodeData, g
 
     // CSS 클래스 제거
     applyNodeHoverEffect(nodeElement, false)
-
-    // 라벨 호버 효과 제거 (옵션)
-    if (getLabelElement) {
-      const labelElement = getLabelElement(nodeId, textGroup)
-      if (labelElement && labelElement.node()) {
-        applyLabelHoverEffect(labelElement, false)
-      }
-    }
 
     // 콜백 호출
     onNodeHover(nodeId, nodeData, false)
