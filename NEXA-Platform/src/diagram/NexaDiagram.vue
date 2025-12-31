@@ -411,6 +411,14 @@ defineExpose({
     }
   }
 
+  // 고정된 노드 스타일 (Force-Directed Graph용)
+  .node.node-fixed {
+    circle {
+      stroke: var(--nexa-accent) !important;
+      stroke-width: 5px !important;
+    }
+  }
+
   // 엣지 기본 스타일
   .edgePath path {
     stroke: var(--nexa-primary);

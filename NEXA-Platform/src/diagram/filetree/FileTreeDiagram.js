@@ -443,6 +443,11 @@ export async function renderFileTree(container, data, options = {}) {
     d.fx = event.x
     d.fy = event.y
     fixedNodeIds.add(nodeId) // 고정 목록에 추가
+    
+    // 고정 노드 클래스 추가
+    const nodeElement = svgGroup.select(`.node[data-node-id="${nodeId}"]`)
+    nodeElement.classed('node-fixed', true)
+    
     if (onNodeDrag) {
       onNodeDrag(nodeId, d, 'end')
     }
@@ -492,6 +497,10 @@ export async function renderFileTree(container, data, options = {}) {
         node.fx = null
         node.fy = null
         fixedNodeIds.delete(nodeId)
+        
+        // 고정 노드 클래스 제거
+        const nodeElement = svgGroup.select(`.node[data-node-id="${nodeId}"]`)
+        nodeElement.classed('node-fixed', false)
       }
     })
 

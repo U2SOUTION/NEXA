@@ -10,6 +10,7 @@
           <div class="empty-state-features q-mt-lg">
             <h4 class="features-subtitle">사용 가능한 기능</h4>
             <ul class="features-list">
+              <li>Force-Directed Graph - 물리 시뮬레이션 기반 그래프</li>
               <li>파일 의존성 그래프 - 파일 간 의존성 관계 시각화</li>
               <li>패키지 의존성 그래프 - 패키지 및 코드 의존성 분석</li>
               <li>파일 구조 - 프로젝트 파일 구조 분석</li>
@@ -389,6 +390,9 @@ const dependencyAnalysisDiagramRenderResult = ref(null)
 // 고정된 노드 목록
 const fixedNodeList = ref([])
 const fixedNodeListUpdateInterval = ref(null)
+
+// 이전 고정 노드 목록 (변경 감지용)
+let previousFixedNodeIds = []
 
 // 의존성 그래프 다이어그램 데이터 및 옵션 (Force-Directed Graph용)
 const dependencyDiagramData = computed(() => {
@@ -1071,7 +1075,13 @@ function startFixedNodeListUpdate() {
     clearInterval(fixedNodeListUpdateInterval.value)
   }
 
-  // 500ms마다 고정 노드 목록 업데이트
+  // 이전 목록 초기화 (새 다이어그램 로드 시)
+  previousFixedNodeIds = []
+
+  // 초기 업데이트 (즉시 한 번 실행)
+  updateFixedNodeList()
+
+  // 500ms마다 고정 노드 목록 업데이트 (변경 감지 로직으로 불필요한 업데이트 방지)
   fixedNodeListUpdateInterval.value = setInterval(() => {
     updateFixedNodeList()
   }, 500)
@@ -1079,28 +1089,43 @@ function startFixedNodeListUpdate() {
 
 // 고정 노드 목록 업데이트
 function updateFixedNodeList() {
-  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value
+  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value || dependencyAnalysisDiagramRenderResult.value
   if (renderResult && renderResult.getFixedNodeIds) {
-    fixedNodeList.value = renderResult.getFixedNodeIds()
+    const newFixedNodeIds = renderResult.getFixedNodeIds()
 
-    // 사이드바 탭에 고정 노드 목록 전달
-    window.dispatchEvent(
-      new CustomEvent('graph-doc-fixed-nodes-updated', {
-        detail: {
-          nodeIds: fixedNodeList.value,
-        },
-      }),
-    )
+    // 변경 감지: 배열 길이와 내용 비교
+    const hasChanged = newFixedNodeIds.length !== previousFixedNodeIds.length || newFixedNodeIds.some((id, i) => id !== previousFixedNodeIds[i])
+
+    // 변경된 경우에만 업데이트 및 이벤트 발생
+    if (hasChanged) {
+      fixedNodeList.value = newFixedNodeIds
+      previousFixedNodeIds = newFixedNodeIds // 참조 저장 (다음 비교용)
+
+      // 사이드바 탭에 고정 노드 목록 전달
+      window.dispatchEvent(
+        new CustomEvent('graph-doc-fixed-nodes-updated', {
+          detail: {
+            nodeIds: fixedNodeList.value,
+          },
+        }),
+      )
+    }
+    // 변경되지 않았으면 아무것도 하지 않음 (불필요한 업데이트 방지)
   } else {
-    fixedNodeList.value = []
-    // 사이드바 탭에 빈 목록 전달
-    window.dispatchEvent(
-      new CustomEvent('graph-doc-fixed-nodes-updated', {
-        detail: {
-          nodeIds: [],
-        },
-      }),
-    )
+    // renderResult가 없는 경우에도 변경 감지
+    if (previousFixedNodeIds.length > 0) {
+      fixedNodeList.value = []
+      previousFixedNodeIds = []
+
+      // 사이드바 탭에 빈 목록 전달
+      window.dispatchEvent(
+        new CustomEvent('graph-doc-fixed-nodes-updated', {
+          detail: {
+            nodeIds: [],
+          },
+        }),
+      )
+    }
   }
 }
 
