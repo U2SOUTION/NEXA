@@ -8,6 +8,7 @@ import * as d3 from 'd3'
 import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
+import { createNodeHoverHandlers } from '../utils/diagramEvents.js'
 
 /**
  * 패키지 의존성 그래프 다이어그램 렌더링
@@ -265,33 +266,29 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
     })
   }
 
-  // 노드 호버 이벤트
+  // 노드 호버 이벤트 (공통 유틸리티 사용)
   if (onNodeHover) {
-    node
-      .on('mouseenter', function (event, d) {
-        const nodeId = d.id || d.name
-        d3.select(this).classed('node-hover', true)
-
-        // 선택된 노드가 아니면 임시 강조
-        if (currentSelectedNode !== nodeId) {
+    const { onMouseenter, onMouseleave } = createNodeHoverHandlers({
+      onNodeHover: (nodeId, nodeData, isEntering) => {
+        // 선택된 노드가 아니면 임시 강조/해제
+        if (!isEntering && currentSelectedNode !== nodeId) {
+          highlightConnectedEdges(nodeId, false)
+          highlightConnectedNodes(nodeId, false)
+        } else if (isEntering && currentSelectedNode !== nodeId) {
           highlightConnectedEdges(nodeId, true)
           highlightConnectedNodes(nodeId, true)
         }
 
-        onNodeHover(nodeId, d, true)
-      })
-      .on('mouseleave', function (event, d) {
-        const nodeId = d.id || d.name
-        d3.select(this).classed('node-hover', false)
+        // 콜백 호출
+        onNodeHover(nodeId, nodeData, isEntering)
+      },
+      getNodeId: (event, d) => d.id || d.name,
+      getNodeData: (nodeId) => packages.find((p) => (p.id || p.name) === nodeId),
+    })
 
-        // 선택된 노드가 아니면 강조 해제
-        if (currentSelectedNode !== nodeId) {
-          highlightConnectedEdges(nodeId, false)
-          highlightConnectedNodes(nodeId, false)
-        }
-
-        onNodeHover(nodeId, d, false)
-      })
+    if (onMouseenter && onMouseleave) {
+      node.on('mouseenter', onMouseenter).on('mouseleave', onMouseleave)
+    }
   }
 
   // 노드 드래그 이벤트

@@ -13,6 +13,7 @@ import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
 import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
+import { createNodeHoverHandlers } from '../utils/diagramEvents.js'
 
 // dagre-d3-es는 동적 임포트
 let dagre = null
@@ -317,35 +318,32 @@ export async function renderDependency(container, data, options = {}) {
     })
   }
 
-  // 노드 호버 이벤트
+  // 노드 호버 이벤트 (공통 유틸리티 사용 + 라벨 처리)
   if (onNodeHover) {
-    svgGroup
-      .selectAll('.node')
-      .style('pointer-events', 'all')
-      .on('mouseenter', function (event, d) {
-        const nodeElement = d3.select(this)
+    const { onMouseenter, onMouseleave } = createNodeHoverHandlers({
+      onNodeHover,
+      getNodeId: (event, d, nodeElement) => {
         let nodeId = nodeElement.attr('data-node-id')
-
         if (!nodeId) {
           const graphNode = graph.node(d)
           nodeId = graphNode?.filePath || graphNode?.label || d
         }
-
-        const nodeData = files.find((f) => f.path === nodeId)
-        onNodeHover(nodeId, nodeData, true)
-      })
-      .on('mouseleave', function (event, d) {
-        const nodeElement = d3.select(this)
-        let nodeId = nodeElement.attr('data-node-id')
-
-        if (!nodeId) {
-          const graphNode = graph.node(d)
-          nodeId = graphNode?.filePath || graphNode?.label || d
+        return nodeId
+      },
+      getNodeData: (nodeId) => files.find((f) => f.path === nodeId),
+      // 라벨 요소 가져오기 함수 (FileDependencyDiagram은 textGroup에 별도 관리)
+      getLabelElement: (nodeId, textGroup) => {
+        if (textGroup) {
+          return textGroup.select(`text.node-label[data-node-id="${nodeId}"]`)
         }
+        return null
+      },
+      textGroup: textGroup, // textGroup 전달
+    })
 
-        const nodeData = files.find((f) => f.path === nodeId)
-        onNodeHover(nodeId, nodeData, false)
-      })
+    if (onMouseenter && onMouseleave) {
+      svgGroup.selectAll('.node').style('pointer-events', 'all').on('mouseenter', onMouseenter).on('mouseleave', onMouseleave)
+    }
   }
 
   // 줌/팬 설정

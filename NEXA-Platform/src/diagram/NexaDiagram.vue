@@ -169,34 +169,27 @@ watch(
   (newData, oldData) => {
     // 데이터가 실제로 변경되었는지 확인 (참조 비교)
     if (newData === oldData) return
-    
+
     // 데이터가 변경되면 이전 렌더링을 취소하고 새로 시작
     // (렌더링 중이어도 새로운 데이터로 재렌더링해야 함)
     if (isRendering) {
       console.log('[NexaDiagram] 데이터 변경 감지: 이전 렌더링 취소하고 새로 시작')
       isRendering = false // 이전 렌더링 취소
     }
-    
+
     // 의존성 분석 다이어그램의 경우, packages와 dependencies 배열의 길이와 내용을 비교
     if (props.type === diagramTypes.DEPENDENCY_ANALYSIS) {
       const newPackages = newData?.packages || []
       const oldPackages = oldData?.packages || []
       const newDeps = newData?.dependencies || []
       const oldDeps = oldData?.dependencies || []
-      
+
       // 배열 길이와 첫 번째 요소만 비교 (성능 최적화)
-      if (
-        newPackages.length === oldPackages.length &&
-        newDeps.length === oldDeps.length &&
-        newPackages.length > 0 &&
-        newPackages[0]?.id === oldPackages[0]?.id &&
-        newDeps.length > 0 &&
-        newDeps[0]?.from === oldDeps[0]?.from
-      ) {
+      if (newPackages.length === oldPackages.length && newDeps.length === oldDeps.length && newPackages.length > 0 && newPackages[0]?.id === oldPackages[0]?.id && newDeps.length > 0 && newDeps[0]?.from === oldDeps[0]?.from) {
         return // 실제 변경 없음
       }
     }
-    
+
     if (props.autoLoad) {
       // isRendering을 먼저 설정하지 말고, renderDiagram() 내부에서 설정하도록 함
       renderDiagram()
@@ -219,26 +212,20 @@ function setupResizeObserver() {
 
   let lastWidth = 0
   let lastHeight = 0
-  
+
   resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
       const { width, height } = entry.contentRect
-      
+
       // 크기가 0이 아니고, 실제로 크기가 변경되었으며, 렌더링 중이 아닐 때만 재렌더링
-      if (
-        width > 0 && 
-        height > 0 && 
-        renderResult &&
-        !isRendering &&
-        (width !== lastWidth || height !== lastHeight)
-      ) {
+      if (width > 0 && height > 0 && renderResult && !isRendering && (width !== lastWidth || height !== lastHeight)) {
         // 디바운싱: 연속된 크기 변경을 하나로 묶음
         if (debounceTimer) {
           clearTimeout(debounceTimer)
         }
         debounceTimer = setTimeout(() => {
           // 다시 한 번 크기 확인 (렌더링 중이 아닐 때만)
-          if (!isRendering && width !== lastWidth || height !== lastHeight) {
+          if ((!isRendering && width !== lastWidth) || height !== lastHeight) {
             console.log('[NexaDiagram] 컨테이너 크기 변경 감지:', { width, height })
             lastWidth = width
             lastHeight = height
@@ -400,7 +387,17 @@ defineExpose({
       stroke-width: 4px !important;
       filter: drop-shadow(0 0 8px var(--nexa-primary));
     }
+
+    //노드 내부 라벨 호버 스타일 (PackageDependencyDiagram, FileTreeDiagram용)
+    text {
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
+    }
   }
+
+  // // 라벨 호버 스타일 (별도 관리되는 라벨용 - FileDependencyDiagram)
+  // .node-label.node-label-hover {
+  //   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
+  // }
 
   // 강조된 링크 스타일 (Force-Directed Graph용)
   .link.link-highlighted {

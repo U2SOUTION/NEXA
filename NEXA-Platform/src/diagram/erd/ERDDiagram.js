@@ -8,6 +8,7 @@ import * as d3 from 'd3'
 import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
 import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
 import { getERDSettings, defaultERDSettings } from '../config/diagramSettings.js'
+import { createNodeHoverHandlers } from '../utils/diagramEvents.js'
 
 // dagre-d3-es는 동적 임포트
 let dagre = null
@@ -315,16 +316,12 @@ export async function renderERD(container, data, options = {}) {
     })
   }
 
-  // 노드 호버 이벤트 추가
+  // 노드 호버 이벤트 (공통 유틸리티 사용)
   // 노드 그룹 전체에 이벤트를 바인딩하여 rect와 text 모두에서 호버 가능
-  // CSS 클래스를 사용하여 스타일 적용
   if (onNodeHover) {
-    svgGroup
-      .selectAll('.node')
-      .style('pointer-events', 'all')
-      .on('mouseenter', function (event, d) {
-        const nodeElement = d3.select(this)
-
+    const { onMouseenter, onMouseleave } = createNodeHoverHandlers({
+      onNodeHover,
+      getNodeId: (event, d, nodeElement) => {
         // data 속성에서 노드 ID 가져오기 (가장 안전)
         let nodeId = nodeElement.attr('data-node-id')
 
@@ -341,47 +338,14 @@ export async function renderERD(container, data, options = {}) {
         }
 
         // 최후의 수단으로 d 사용
-        if (!nodeId) {
-          nodeId = d
-        }
+        return nodeId || d
+      },
+      getNodeData: (nodeId) => tables.find((t) => t.name === nodeId),
+    })
 
-        const nodeData = tables.find((t) => t.name === nodeId)
-        onNodeHover(nodeId, nodeData, true)
-
-        // 호버 시 CSS 클래스 추가
-        nodeElement.classed('node-hover', true)
-      })
-      .on('mouseleave', function (event, d) {
-        const nodeElement = d3.select(this)
-
-        // data 속성에서 노드 ID 가져오기 (가장 안전)
-        let nodeId = nodeElement.attr('data-node-id')
-
-        // data 속성이 없으면 텍스트에서 가져오기
-        if (!nodeId) {
-          const textElement = nodeElement.select('text')
-          nodeId = textElement.text()?.trim()
-        }
-
-        // 그래도 없으면 graph에서 가져오기
-        if (!nodeId) {
-          const graphNode = graph.node(d)
-          nodeId = graphNode?.label || d
-        }
-
-        // 최후의 수단으로 d 사용
-        if (!nodeId) {
-          nodeId = d
-        }
-
-        const nodeData = tables.find((t) => t.name === nodeId)
-        onNodeHover(nodeId, nodeData, false)
-
-        // 호버 해제 시 CSS 클래스 제거
-        nodeElement.classed('node-hover', false)
-      })
-
-    // pointer-events는 CSS에서 처리
+    if (onMouseenter && onMouseleave) {
+      svgGroup.selectAll('.node').style('pointer-events', 'all').on('mouseenter', onMouseenter).on('mouseleave', onMouseleave)
+    }
   }
 
   // 줌/팬 기능
