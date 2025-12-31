@@ -116,8 +116,8 @@
         @dependency-analysis-refresh="handleGraphDocDependencyAnalysisRefresh"
         @dependency-analysis-settings="handleGraphDocDependencyAnalysisSettings"
         @dependency-analysis-result-selected="handleGraphDocDependencyAnalysisResultSelected"
-        @file-structure-refresh="handleGraphDocFileStructureRefresh"
-        @file-structure-settings="handleGraphDocFileStructureSettings"
+        @file-structure-analyze="handleGraphDocFileStructureAnalyze"
+        @file-structure-analysis-target-change="handleGraphDocFileStructureAnalysisTargetChange"
         @file-structure-file-selected="handleGraphDocFileStructureFileSelected"
         @code-search-change="handleGraphDocCodeSearchChange"
         @code-search="handleGraphDocCodeSearch"
@@ -563,14 +563,21 @@ function handleGraphDocDependencyAnalysisResultSelected(result) {
   window.dispatchEvent(new CustomEvent('graph-doc-dependency-analysis-result-selected', { detail: { result } }))
 }
 
-function handleGraphDocFileStructureRefresh() {
-  console.log('[DevSidebar] 파일 구조 새로고침')
-  // TODO: 파일 구조 새로고침
+function handleGraphDocFileStructureAnalyze(target) {
+  console.log('[DevSidebar] 파일 구조 분석:', target)
+  window.dispatchEvent(
+    new CustomEvent('graph-doc-file-structure-analyze', {
+      detail: { target },
+    }),
+  )
 }
 
-function handleGraphDocFileStructureSettings() {
-  console.log('[DevSidebar] 파일 구조 설정')
-  // TODO: 설정 모달 열기
+function handleGraphDocFileStructureAnalysisTargetChange(value) {
+  window.dispatchEvent(
+    new CustomEvent('graph-doc-file-structure-analysis-target-change', {
+      detail: { value },
+    }),
+  )
 }
 
 function handleGraphDocFileStructureFileSelected(file) {

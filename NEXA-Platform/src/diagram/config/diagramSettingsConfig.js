@@ -43,13 +43,22 @@ export const diagramSettingsSchemas = {
   // 파일 트리 (향후 추가)
   filetree: {
     nodeSize: {
-      width: { default: 200, min: 1, max: 400, step: 10 },
-      height: { default: 30, min: 1, max: 400, step: 5 },
+      // width: 각 노드의 너비 (px)
+      width: { default: 130, min: 1, max: 200, step: 1 },
+      // height: 각 노드의 높이 (px)
+      height: { default: 30, min: 20, max: 400, step: 5 },
     },
     layout: {
-      orientation: { default: 'vertical', options: ['vertical', 'horizontal'] },
-      nodesep: { default: 100, min: 50, max: 500, step: 10 },
-      ranksep: { default: 80, min: 50, max: 400, step: 10 },
+      // orientation: 레이아웃 방향 ('horizontal': 좌→우, 'vertical': 상→하)
+      orientation: { default: 'horizontal', options: ['vertical', 'horizontal'] },
+      // nodesep: 같은 rank(층) 내 노드 간 간격 (px) - horizontal: 너비 영향(권장 60-80), vertical: 높이 영향(권장 55-70)
+      nodesep: { default: 55, min: 50, max: 300, step: 10 }, // orientation에 따라 기본값 자동 분기됨
+      // ranksep: rank(층) 간 간격 (px) - horizontal: 높이 영향(권장 50-70), vertical: 너비 영향(권장 150-200)
+      ranksep: { default: 160, min: 20, max: 400, step: 10 }, // orientation에 따라 기본값 자동 분기됨
+      // marginx: 그래프 전체의 좌우 여백 (px) (확인은 잘 안됨 , css 스타일 확인해보기)
+      marginx: { default: 10, min: 0, max: 300, step: 10 },
+      // marginy: 마진 상하 (확인은 잘 안됨 , css 스타일 확인해보기)
+      marginy: { default: 1, min: 0, max: 300, step: 10 },
     },
     // 파일 트리 전용 설정
     showFileIcons: { default: true },
@@ -86,11 +95,9 @@ export const diagramSettingsSchemas = {
 }
 
 /**
- * 타입별 기본 설정값 생성
- * @param {String} type - 다이어그램 타입
- * @returns {Object} 기본 설정 객체
+ * 타입별 기본 설정값 생성 (filetree는 orientation에 따라 nodesep, ranksep 기본값 자동 분기)
  */
-export function getDefaultDiagramSettings(type) {
+export function getDefaultDiagramSettings(type, context = {}) {
   const schema = diagramSettingsSchemas[type]
   if (!schema) {
     console.warn(`[diagramSettingsConfig] 알 수 없는 다이어그램 타입: ${type}`)
@@ -99,18 +106,30 @@ export function getDefaultDiagramSettings(type) {
 
   const settings = {}
 
+  // filetree 타입의 경우 orientation을 먼저 확인하여 nodesep, ranksep 분기
+  const filetreeOrientation = type === 'filetree' ? context.orientation || schema.layout?.orientation?.default || 'horizontal' : null
+
   // 스키마를 순회하며 기본값 추출
   for (const [key, value] of Object.entries(schema)) {
     if (typeof value === 'object' && value !== null) {
       if (value.default !== undefined) {
-        // 단순 값 (예: showLabels: { default: true })
         settings[key] = value.default
       } else {
-        // 중첩 객체 (예: nodeSize: { width: { default: 100, ... }, ... })
         settings[key] = {}
         for (const [subKey, subValue] of Object.entries(value)) {
           if (subValue && typeof subValue === 'object' && subValue.default !== undefined) {
-            settings[key][subKey] = subValue.default
+            // filetree 타입의 layout.nodesep, layout.ranksep은 orientation에 따라 기본값 분기
+            if (type === 'filetree' && key === 'layout' && filetreeOrientation) {
+              if (subKey === 'nodesep') {
+                settings[key][subKey] = filetreeOrientation === 'horizontal' ? 60 : 55
+              } else if (subKey === 'ranksep') {
+                settings[key][subKey] = filetreeOrientation === 'horizontal' ? 50 : 160
+              } else {
+                settings[key][subKey] = subValue.default
+              }
+            } else {
+              settings[key][subKey] = subValue.default
+            }
           }
         }
       }

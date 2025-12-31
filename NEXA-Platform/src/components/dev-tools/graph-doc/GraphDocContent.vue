@@ -201,6 +201,44 @@
 
     <!-- 파일 구조 -->
     <div v-else-if="activeAccordion === 'fileStructure'" class="graph-doc-main-content">
+      <!-- 헤더: 분석 대상 입력 -->
+      <div class="graph-doc-header q-pa-md">
+        <div class="row items-center q-gutter-md">
+          <!-- 뒤로가기/앞으로가기 버튼 -->
+          <div class="col-auto">
+            <div class="row items-center q-gutter-xs">
+              <q-btn flat dense round icon="arrow_back" :disable="!canGoBack" @click="handleGoBack" class="history-nav-btn">
+                <q-tooltip>뒤로가기</q-tooltip>
+              </q-btn>
+              <q-btn flat dense round icon="arrow_forward" :disable="!canGoForward" @click="handleGoForward" class="history-nav-btn">
+                <q-tooltip>앞으로가기</q-tooltip>
+              </q-btn>
+              <!-- 현재 위치 표시 -->
+              <span v-if="hasHistory" class="history-position"> {{ currentPosition.current }} / {{ currentPosition.total }} </span>
+            </div>
+          </div>
+          <div class="col">
+            <q-input v-model="analysisTarget" label="분석 대상 (URL 또는 디렉토리 경로)" placeholder="예: /dev, src/pages, src/components/ui" outlined dense @keyup.enter="handleAnalyzeFileStructureWithTarget">
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </div>
+          <div class="col-auto">
+            <q-btn color="primary" label="분석" icon="play_arrow" :loading="isAnalyzing" @click="handleAnalyzeFileStructureWithTarget" />
+          </div>
+        </div>
+        <!-- 현재 URL 입력 버튼 -->
+        <div class="row q-mt-sm">
+          <div class="col">
+            <q-btn flat dense size="sm" icon="link" label="URL" color="primary" @click="handleUseCurrentUrlForFileStructure">
+              <q-tooltip>현재 브라우저 URL을 분석 대상으로 사용합니다</q-tooltip>
+            </q-btn>
+            <span v-if="currentUrl" size="sm"> {{ currentUrl }} </span>
+          </div>
+        </div>
+      </div>
+
       <!-- 다이어그램이 있을 때: 전체 컨텐츠 창에 다이어그램 렌더링 -->
       <div v-if="fileTreeData" class="graph-doc-diagram-full">
         <div class="graph-container-full">
@@ -213,12 +251,8 @@
       <div v-else class="graph-doc-sidebar-only">
         <div class="graph-sidebar q-pa-md">
           <div class="sidebar-empty-state">
-            <q-icon name="view_module" size="120px" color="grey-5" class="q-mb-md" />
-            <h3 class="empty-state-title">파일 구조</h3>
-            <p class="empty-state-description">
-              파일 구조 분석 기능을 준비 중입니다.<br />
-              곧 프로젝트 파일 구조를 트리 형태로 시각화할 수 있습니다.
-            </p>
+            <q-icon name="view_module" size="48px" color="grey-5" class="q-mb-md" />
+            <p class="text-grey-7 q-mb-lg">분석 대상을 입력하고 분석 버튼을 클릭하면<br />프로젝트 파일 구조가 트리 형태로 시각화됩니다.</p>
           </div>
         </div>
       </div>
@@ -254,6 +288,7 @@ import NexaDiagram from 'src/diagram/NexaDiagram.vue'
 import NexaSpinner from 'src/components/ui/NexaSpinner.vue'
 import { diagramTypes } from 'src/diagram/config/diagramMetadata.js'
 import { analyzeDependencyGraph, isNpmPackage } from 'src/utils/graph-doc/dependencyGraphAnalyzer.js'
+import { analyzeFileStructure } from 'src/utils/graph-doc/fileStructureAnalyzer.js'
 import { useGraphDocHistory } from 'src/composables/dev-tools/useGraphDocHistory.js'
 
 const $q = useQuasar()
@@ -535,6 +570,18 @@ async function handleAnalyze() {
   handleAnalyzeWithTarget(target)
 }
 
+// 현재 URL을 파일 구조 분석 대상으로 사용
+function handleUseCurrentUrlForFileStructure() {
+  analysisTarget.value = currentUrl.value
+  handleAnalyzeFileStructureWithTarget()
+}
+
+// 파일 구조 분석 실행 (컨텐츠창 입력값 사용)
+async function handleAnalyzeFileStructureWithTarget() {
+  const target = analysisTarget.value.trim()
+  await handleAnalyzeFileStructure(target)
+}
+
 // 분석 실행 (대상 지정)
 async function handleAnalyzeWithTarget(target, skipHistory = false) {
   if (!target || target === 'test') {
@@ -650,6 +697,41 @@ function handleAnalysisTargetChange(event) {
   const { value } = event.detail
   // 사이드바 입력값은 sidebarAnalysisTarget에 저장 (컨텐츠와 독립적)
   sidebarAnalysisTarget.value = value
+}
+
+// 파일 구조 분석 대상 변경 이벤트 리스너 (사이드바에서 호출)
+function handleFileStructureAnalysisTargetChange(event) {
+  const { value } = event.detail
+  // 사이드바 입력값 저장
+  sidebarAnalysisTarget.value = value
+}
+
+// 파일 구조 분석 요청 이벤트 리스너 (사이드바에서 호출)
+function handleFileStructureAnalyzeRequest(event) {
+  // 사이드바의 분석 대상을 가져옴
+  const target = event?.detail?.target || sidebarAnalysisTarget.value
+
+  if (!target || target.trim() === '') {
+    $q.notify({
+      type: 'warning',
+      message: '분석 대상을 입력해주세요.',
+      position: 'center',
+      timeout: 5000,
+    })
+    return
+  }
+
+  // 사이드바 분석 대상 저장
+  sidebarAnalysisTarget.value = target.trim()
+
+  // activeAccordion이 fileStructure가 아니면 설정
+  if (activeAccordion.value !== 'fileStructure') {
+    activeAccordion.value = 'fileStructure'
+    console.log('[GraphDocContent] activeAccordion을 fileStructure로 설정')
+  }
+
+  // 사이드바 분석 실행 (사이드바 입력값 사용)
+  handleAnalyzeFileStructure(target.trim())
 }
 
 // 분석 요청 이벤트 리스너 (사이드바에서 호출)
@@ -917,6 +999,71 @@ function handleDependencyAnalysisDiagramError(error) {
   // 오류는 콘솔에만 기록 (토스트 메시지 제거)
 }
 
+// 파일 구조 분석 실행
+async function handleAnalyzeFileStructure(target, skipHistory = false) {
+  if (!target || target === 'test') {
+    $q.notify({
+      type: 'warning',
+      message: '분석 대상을 입력해주세요. 예: /dev, src/pages, src/components/ui',
+      position: 'center',
+      timeout: 5000,
+    })
+    return
+  }
+
+  // 중복 요청 방지
+  if (isAnalyzing.value) {
+    console.log('[GraphDocContent] 이미 분석 중입니다.')
+    return
+  }
+
+  console.log('[GraphDocContent] 파일 구조 분석 시작:', target)
+  isAnalyzing.value = true
+
+  try {
+    // 실제 파일 구조 분석
+    const files = await analyzeFileStructure(target)
+
+    if (files.length === 0) {
+      $q.notify({
+        type: 'warning',
+        message: `분석 대상 파일을 찾을 수 없습니다: "${target}". 예시: /dev, src/pages, src/components/ui`,
+        position: 'top',
+        timeout: 5000,
+      })
+      isAnalyzing.value = false
+      return
+    }
+
+    fileTreeData.value = files
+    isAnalyzing.value = false
+
+    // 히스토리에 추가 (히스토리 네비게이션으로 인한 호출이 아닌 경우만)
+    if (!skipHistory) {
+      // 파일명 추출 (표시용)
+      const displayName = target.split('/').pop() || target
+      addToHistory({
+        target: target,
+        diagramType: 'fileStructure',
+        title: displayName,
+        displayName: `${displayName} (${files.length}개 파일, 파일 구조)`,
+        metadata: {
+          filesCount: files.length,
+        },
+      })
+    }
+  } catch (error) {
+    console.error('[GraphDocContent] 파일 구조 분석 오류:', error)
+    isAnalyzing.value = false
+    $q.notify({
+      type: 'negative',
+      message: '파일 구조 분석 중 오류가 발생했습니다.',
+      position: 'top',
+      timeout: 5000,
+    })
+  }
+}
+
 // 히스토리 항목 클릭 이벤트 리스너
 async function handleHistoryItemClicked(event) {
   const { target, diagramType } = event.detail
@@ -926,17 +1073,20 @@ async function handleHistoryItemClicked(event) {
   // activeAccordion 설정 (다이어그램 타입에 따라)
   if (diagramType === 'dependencyGraph') {
     activeAccordion.value = 'dependencyGraph'
+    // 분석 대상 설정
+    analysisTarget.value = target
+    // 재분석 실행 (히스토리 추가 스킵)
+    await handleAnalyzeWithTarget(target, true)
   } else if (diagramType === 'dependencyAnalysis') {
     activeAccordion.value = 'dependencyAnalysis'
+    // TODO: 의존성 분석 재분석 로직
   } else if (diagramType === 'fileStructure') {
     activeAccordion.value = 'fileStructure'
+    // 분석 대상 설정
+    analysisTarget.value = target
+    // 재분석 실행 (히스토리 추가 스킵)
+    await handleAnalyzeFileStructure(target, true)
   }
-
-  // 분석 대상 설정
-  analysisTarget.value = target
-
-  // 재분석 실행 (히스토리 추가 스킵)
-  await handleAnalyzeWithTarget(target, true)
 }
 
 // 설정 변경 이벤트 리스너
@@ -971,26 +1121,8 @@ function handleDiagramSettingsChanged(event) {
 }
 
 onMounted(() => {
-  // 테스트용 파일 구조 데이터 생성
+  // 테스트용 의존성 분석 데이터 생성 (파일 구조는 실제 스캔 사용)
   nextTick(() => {
-    fileTreeData.value = [
-      { path: 'src/components/Button.vue', type: 'vue' },
-      { path: 'src/components/Card.vue', type: 'vue' },
-      { path: 'src/utils/helpers.js', type: 'js' },
-      { path: 'src/utils/constants.js', type: 'js' },
-      { path: 'src/stores/userStore.js', type: 'js' },
-      { path: 'src/stores/appStore.js', type: 'js' },
-      { path: 'src/router/index.js', type: 'js' },
-      { path: 'src/router/routes.js', type: 'js' },
-      { path: 'src/pages/Home.vue', type: 'vue' },
-      { path: 'src/pages/About.vue', type: 'vue' },
-      { path: 'src/css/app.scss', type: 'scss' },
-      { path: 'src/css/themes/dark.scss', type: 'scss' },
-      { path: 'package.json', type: 'json' },
-      { path: 'README.md', type: 'md' },
-    ]
-
-    // 테스트용 의존성 분석 데이터 생성
     dependencyAnalysisData.value = {
       packages: [
         { id: 'vue', name: 'vue', radius: 50, color: '#42b883' },
@@ -1014,6 +1146,8 @@ onMounted(() => {
   window.addEventListener('graph-doc-dependency-graph-analysis-target-change', handleAnalysisTargetChange)
   window.addEventListener('graph-doc-dependency-graph-analyze', handleAnalyzeRequest)
   window.addEventListener('graph-doc-dependency-graph-node-selected', handleNodeSelected)
+  window.addEventListener('graph-doc-file-structure-analyze', handleFileStructureAnalyzeRequest)
+  window.addEventListener('graph-doc-file-structure-analysis-target-change', handleFileStructureAnalysisTargetChange)
   window.addEventListener('dependency-diagram-settings-changed', handleDiagramSettingsChanged)
   window.addEventListener('filetree-diagram-settings-changed', handleDiagramSettingsChanged)
   window.addEventListener('graph-doc-circular-dependencies', handleCircularDependencies)
@@ -1208,6 +1342,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('graph-doc-dependency-graph-analysis-target-change', handleAnalysisTargetChange)
   window.removeEventListener('graph-doc-dependency-graph-analyze', handleAnalyzeRequest)
   window.removeEventListener('graph-doc-dependency-graph-node-selected', handleNodeSelected)
+  window.removeEventListener('graph-doc-file-structure-analyze', handleFileStructureAnalyzeRequest)
+  window.removeEventListener('graph-doc-file-structure-analysis-target-change', handleFileStructureAnalysisTargetChange)
   window.removeEventListener('dependency-diagram-settings-changed', handleDiagramSettingsChanged)
   window.removeEventListener('filetree-diagram-settings-changed', handleDiagramSettingsChanged)
   window.removeEventListener('graph-doc-circular-dependencies', handleCircularDependencies)

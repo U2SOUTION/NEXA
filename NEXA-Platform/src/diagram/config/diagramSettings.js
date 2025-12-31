@@ -28,7 +28,10 @@ export function loadDiagramSettings(type) {
     
     if (stored) {
       const parsed = JSON.parse(stored)
-      const defaults = getDefaultDiagramSettings(type)
+      // filetree 타입의 경우 저장된 orientation을 사용하여 기본값 생성 (orientation 기반 nodesep, ranksep 분기)
+      const defaults = (type === 'filetree' || type === diagramTypes.FILETREE) && parsed.layout?.orientation
+        ? getDefaultDiagramSettings(type, { orientation: parsed.layout.orientation })
+        : getDefaultDiagramSettings(type)
       
       if (!defaults) {
         console.warn(`[diagramSettings] 기본 설정을 찾을 수 없음: ${type}`)

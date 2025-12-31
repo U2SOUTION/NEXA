@@ -47,7 +47,7 @@
 
       <!-- 파일 구조 -->
       <q-expansion-item v-model="expandedItems.fileStructure" icon="view_module" label="파일 구조" header-class="accordion-header" @update:model-value="handleExpansionChange('fileStructure', $event)">
-        <FileStructureHeader @refresh="handleFileStructureRefresh" @settings="handleFileStructureSettings" />
+        <FileStructureHeader :analysis-target="fileStructureAnalysisTarget" :is-analyzing="props.fileStructureIsLoading" @analyze="handleFileStructureAnalyze" @analysis-target-change="handleFileStructureAnalysisTargetChange" />
         <FileStructureList :file-structure="props.fileStructureData" :selected-file="props.fileStructureSelectedFile" :is-loading="props.fileStructureIsLoading" @file-selected="handleFileStructureFileSelected" />
       </q-expansion-item>
 
@@ -204,8 +204,8 @@ const emit = defineEmits([
   'dependency-analysis-settings',
   'dependency-analysis-result-selected',
   // 파일 구조
-  'file-structure-refresh',
-  'file-structure-settings',
+  'file-structure-analyze',
+  'file-structure-analysis-target-change',
   'file-structure-file-selected',
   // 코드 검색
   'code-search-change',
@@ -349,13 +349,17 @@ function handleDependencyAnalysisResultSelected(result) {
   emit('dependency-analysis-result-selected', result)
 }
 
+// 파일 구조 분석 대상 (로컬 상태)
+const fileStructureAnalysisTarget = ref('')
+
 // 파일 구조 핸들러
-function handleFileStructureRefresh() {
-  emit('file-structure-refresh')
+function handleFileStructureAnalyze(target) {
+  emit('file-structure-analyze', target)
 }
 
-function handleFileStructureSettings() {
-  emit('file-structure-settings')
+function handleFileStructureAnalysisTargetChange(value) {
+  fileStructureAnalysisTarget.value = value
+  emit('file-structure-analysis-target-change', value)
 }
 
 function handleFileStructureFileSelected(file) {
