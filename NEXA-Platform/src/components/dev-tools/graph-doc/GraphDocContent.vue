@@ -26,9 +26,6 @@
       <!-- 헤더: 분석 대상 입력 -->
       <div class="graph-doc-header q-pa-md">
         <div class="row items-center q-gutter-md">
-          <div class="col-auto">
-            <q-icon name="account_tree" size="24px" color="primary" />
-          </div>
           <!-- 뒤로가기/앞으로가기 버튼 -->
           <div class="col-auto">
             <div class="row items-center q-gutter-xs">
@@ -39,7 +36,7 @@
                 <q-tooltip>앞으로가기</q-tooltip>
               </q-btn>
               <!-- 현재 위치 표시 -->
-              <span v-if="hasHistory" class="history-position text-caption text-grey-6"> {{ currentPosition.current }} / {{ currentPosition.total }} </span>
+              <span v-if="hasHistory" class="history-position"> {{ currentPosition.current }} / {{ currentPosition.total }} </span>
             </div>
           </div>
           <div class="col">
@@ -56,10 +53,14 @@
         <!-- 현재 URL 입력 버튼 -->
         <div class="row q-mt-sm">
           <div class="col">
-            <q-btn flat dense size="sm" icon="link" label="현재 URL 사용" color="primary" @click="handleUseCurrentUrl">
+            <q-btn flat dense size="sm" icon="link" label="URL" color="primary" @click="handleUseCurrentUrl">
               <q-tooltip>현재 브라우저 URL을 분석 대상으로 사용합니다</q-tooltip>
             </q-btn>
-            <span v-if="currentUrl" class="q-ml-md text-caption text-grey-6"> 현재: {{ currentUrl }} </span>
+            <span v-if="currentUrl" size="sm"> {{ currentUrl }} </span>
+          </div>
+          <!-- 노드 경로 표시 (오른쪽 정렬) -->
+          <div class="col-auto">
+            <span v-if="displayNodePath" class="node-path-display">{{ displayNodePath }}</span>
           </div>
         </div>
       </div>
@@ -79,29 +80,6 @@
             @loaded="handleDependencyDiagramLoaded"
             @error="handleDependencyDiagramError"
           />
-
-          <!-- 플로팅 노드 정보 패널 -->
-          <div v-if="hoveredNode" class="node-hover-panel">
-            <q-card class="node-info-card">
-              <q-card-section class="q-pa-sm">
-                <div class="node-info-header">
-                  <q-icon name="info" size="16px" class="q-mr-xs" />
-                  <span class="text-caption text-weight-medium">노드 정보</span>
-                </div>
-              </q-card-section>
-              <q-separator />
-              <q-card-section class="q-pa-sm">
-                <div class="node-info-item">
-                  <span class="node-info-label">경로:</span>
-                  <span class="node-info-value">{{ hoveredNode.path }}</span>
-                </div>
-                <div v-if="hoveredNode.name !== hoveredNode.path" class="node-info-item q-mt-xs">
-                  <span class="node-info-label">이름:</span>
-                  <span class="node-info-value">{{ hoveredNode.name }}</span>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
         </div>
       </div>
 
@@ -203,29 +181,6 @@
             @loaded="handleDependencyAnalysisDiagramLoaded"
             @error="handleDependencyAnalysisDiagramError"
           />
-
-          <!-- 플로팅 노드 정보 패널 -->
-          <div v-if="hoveredNode" class="node-hover-panel">
-            <q-card class="node-info-card">
-              <q-card-section class="q-pa-sm">
-                <div class="node-info-header">
-                  <q-icon name="info" size="16px" class="q-mr-xs" />
-                  <span class="text-caption text-weight-medium">노드 정보</span>
-                </div>
-              </q-card-section>
-              <q-separator />
-              <q-card-section class="q-pa-sm">
-                <div class="node-info-item">
-                  <span class="node-info-label">ID:</span>
-                  <span class="node-info-value">{{ hoveredNode.nodeId }}</span>
-                </div>
-                <div v-if="hoveredNode.name" class="node-info-item q-mt-xs">
-                  <span class="node-info-label">이름:</span>
-                  <span class="node-info-value">{{ hoveredNode.name }}</span>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
         </div>
       </div>
       <!-- 다이어그램이 없을 때: 사이드바 정보 표시 -->
@@ -251,29 +206,6 @@
           <!-- 렌더링 중 스피너 -->
           <NexaSpinner v-if="isAnalyzing" size="md" message="렌더링 중..." centered />
           <NexaDiagram ref="fileTreeDiagramRef" type="filetree" :data="fileTreeDiagramData" :options="fileTreeDiagramOptions" @node-click="handleFileTreeNodeClick" @node-hover="handleFileTreeNodeHover" @loaded="handleFileTreeDiagramLoaded" @error="handleFileTreeDiagramError" />
-
-          <!-- 플로팅 노드 정보 패널 -->
-          <div v-if="hoveredNode" class="node-hover-panel">
-            <q-card class="node-info-card">
-              <q-card-section class="q-pa-sm">
-                <div class="node-info-header">
-                  <q-icon name="info" size="16px" class="q-mr-xs" />
-                  <span class="text-caption text-weight-medium">노드 정보</span>
-                </div>
-              </q-card-section>
-              <q-separator />
-              <q-card-section class="q-pa-sm">
-                <div class="node-info-item">
-                  <span class="node-info-label">경로:</span>
-                  <span class="node-info-value">{{ hoveredNode.path }}</span>
-                </div>
-                <div v-if="hoveredNode.name !== hoveredNode.path" class="node-info-item q-mt-xs">
-                  <span class="node-info-label">이름:</span>
-                  <span class="node-info-value">{{ hoveredNode.name }}</span>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
         </div>
       </div>
       <!-- 다이어그램이 없을 때: 사이드바 정보 표시 -->
@@ -431,6 +363,19 @@ const selectedNode = ref(null)
 // 호버된 노드 정보
 const hoveredNode = ref(null)
 
+// 표시할 노드 경로 (selectedNode 우선, 없으면 hoveredNode)
+const displayNodePath = computed(() => {
+  const node = selectedNode.value || hoveredNode.value
+  if (!node) return null
+
+  // 경로 추출 (path, id, nodeId 순서로 시도)
+  const path = node.path || node.id || node.nodeId || node.name || null
+  if (!path) return null
+
+  // 정규화된 경로 반환
+  return normalizePath(path)
+})
+
 // 다이어그램 refs
 const dependencyDiagramRef = ref(null)
 const fileTreeDiagramRef = ref(null)
@@ -439,6 +384,7 @@ const dependencyAnalysisDiagramRef = ref(null)
 // 다이어그램 renderResult 저장
 const dependencyDiagramRenderResult = ref(null)
 const fileTreeDiagramRenderResult = ref(null)
+const dependencyAnalysisDiagramRenderResult = ref(null)
 
 // 고정된 노드 목록
 const fixedNodeList = ref([])
@@ -761,8 +707,40 @@ function handleDependencyNodeHover(event) {
       path: normalizePath(rawPath),
       name: nodeData?.name || nodeId?.split('/').pop() || nodeId,
     }
+
+    // 고정 노드인지 확인하고 리스트 아이템 하이라이트
+    const renderResult = dependencyDiagramRenderResult.value
+    if (renderResult && renderResult.getFixedNodeIds) {
+      const fixedNodeIds = renderResult.getFixedNodeIds()
+      const nodePath = nodeData?.path || nodeId
+      if (fixedNodeIds.includes(nodePath)) {
+        window.dispatchEvent(
+          new CustomEvent('graph-doc-highlight-fixed-node-item', {
+            detail: {
+              nodeId: nodePath,
+            },
+          }),
+        )
+      }
+    }
   } else {
     hoveredNode.value = null
+
+    // 고정 노드인지 확인하고 리스트 아이템 하이라이트 해제
+    const renderResult = dependencyDiagramRenderResult.value
+    if (renderResult && renderResult.getFixedNodeIds) {
+      const fixedNodeIds = renderResult.getFixedNodeIds()
+      const nodePath = nodeData?.path || nodeId
+      if (fixedNodeIds.includes(nodePath)) {
+        window.dispatchEvent(
+          new CustomEvent('graph-doc-unhighlight-fixed-node-item', {
+            detail: {
+              nodeId: nodePath,
+            },
+          }),
+        )
+      }
+    }
   }
 }
 
@@ -806,8 +784,40 @@ function handleFileTreeNodeHover(event) {
       path: normalizePath(rawPath),
       name: nodeData?.name || nodeId?.split('/').pop() || nodeId,
     }
+
+    // 고정 노드인지 확인하고 리스트 아이템 하이라이트
+    const renderResult = fileTreeDiagramRenderResult.value
+    if (renderResult && renderResult.getFixedNodeIds) {
+      const fixedNodeIds = renderResult.getFixedNodeIds()
+      const nodePath = nodeData?.path || nodeId
+      if (fixedNodeIds.includes(nodePath)) {
+        window.dispatchEvent(
+          new CustomEvent('graph-doc-highlight-fixed-node-item', {
+            detail: {
+              nodeId: nodePath,
+            },
+          }),
+        )
+      }
+    }
   } else {
     hoveredNode.value = null
+
+    // 고정 노드인지 확인하고 리스트 아이템 하이라이트 해제
+    const renderResult = fileTreeDiagramRenderResult.value
+    if (renderResult && renderResult.getFixedNodeIds) {
+      const fixedNodeIds = renderResult.getFixedNodeIds()
+      const nodePath = nodeData?.path || nodeId
+      if (fixedNodeIds.includes(nodePath)) {
+        window.dispatchEvent(
+          new CustomEvent('graph-doc-unhighlight-fixed-node-item', {
+            detail: {
+              nodeId: nodePath,
+            },
+          }),
+        )
+      }
+    }
   }
 }
 
@@ -852,14 +862,49 @@ function handleDependencyAnalysisNodeHover(event) {
       path: nodeId, // 패키지 ID
       name: nodeData?.name || nodeId,
     }
+
+    // 고정 노드인지 확인하고 리스트 아이템 하이라이트
+    const renderResult = dependencyAnalysisDiagramRenderResult.value
+    if (renderResult && renderResult.getFixedNodeIds) {
+      const fixedNodeIds = renderResult.getFixedNodeIds()
+      if (fixedNodeIds.includes(nodeId)) {
+        window.dispatchEvent(
+          new CustomEvent('graph-doc-highlight-fixed-node-item', {
+            detail: {
+              nodeId: nodeId,
+            },
+          }),
+        )
+      }
+    }
   } else {
     hoveredNode.value = null
+
+    // 고정 노드인지 확인하고 리스트 아이템 하이라이트 해제
+    const renderResult = dependencyAnalysisDiagramRenderResult.value
+    if (renderResult && renderResult.getFixedNodeIds) {
+      const fixedNodeIds = renderResult.getFixedNodeIds()
+      if (fixedNodeIds.includes(nodeId)) {
+        window.dispatchEvent(
+          new CustomEvent('graph-doc-unhighlight-fixed-node-item', {
+            detail: {
+              nodeId: nodeId,
+            },
+          }),
+        )
+      }
+    }
   }
 }
 
 function handleDependencyAnalysisDiagramLoaded(renderResult) {
   console.log('[GraphDocContent] 의존성 분석 다이어그램 로드 완료:', renderResult)
   isAnalyzing.value = false
+  dependencyAnalysisDiagramRenderResult.value = renderResult
+  dependencyDiagramRenderResult.value = null // 다른 다이어그램 초기화
+  fileTreeDiagramRenderResult.value = null // 다른 다이어그램 초기화
+  // 고정 노드 목록 업데이트 시작
+  startFixedNodeListUpdate()
 }
 
 function handleDependencyAnalysisDiagramError(error) {
@@ -974,6 +1019,8 @@ onMounted(() => {
   window.addEventListener('graph-doc-history-item-clicked', handleHistoryItemClicked)
   window.addEventListener('graph-doc-unfix-node', handleUnfixNodeRequest)
   window.addEventListener('graph-doc-unfix-all-nodes', handleUnfixAllNodesRequest)
+  window.addEventListener('graph-doc-highlight-node', handleHighlightNodeRequest)
+  window.addEventListener('graph-doc-unhighlight-node', handleUnhighlightNodeRequest)
 })
 
 // 간단한 메뉴 항목 핸들러
@@ -1059,7 +1106,7 @@ function updateFixedNodeList() {
 
 // 특정 노드 고정 해제
 function handleUnfixNode(nodeId) {
-  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value
+  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value || dependencyAnalysisDiagramRenderResult.value
   if (renderResult && renderResult.unfixNodes) {
     renderResult.unfixNodes(nodeId)
     updateFixedNodeList()
@@ -1068,7 +1115,7 @@ function handleUnfixNode(nodeId) {
 
 // 전체 노드 고정 해제
 function handleUnfixAllNodes() {
-  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value
+  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value || dependencyAnalysisDiagramRenderResult.value
   if (renderResult && renderResult.unfixNodes) {
     renderResult.unfixNodes()
     updateFixedNodeList()
@@ -1084,6 +1131,45 @@ function handleUnfixNodeRequest(event) {
 // 사이드바에서 전체 노드 고정 해제 요청 이벤트 리스너
 function handleUnfixAllNodesRequest() {
   handleUnfixAllNodes()
+}
+
+// 사이드바에서 노드 하이라이트 요청 이벤트 리스너
+function handleHighlightNodeRequest(event) {
+  const { nodeId } = event.detail
+  highlightNode(nodeId, true)
+}
+
+// 사이드바에서 노드 하이라이트 해제 요청 이벤트 리스너
+function handleUnhighlightNodeRequest(event) {
+  const { nodeId } = event.detail
+  highlightNode(nodeId, false)
+}
+
+// 노드 하이라이트 처리
+function highlightNode(nodeId, highlight) {
+  if (!nodeId) return
+
+  const renderResult = dependencyDiagramRenderResult.value || fileTreeDiagramRenderResult.value
+  if (!renderResult || !renderResult.svgGroup) {
+    console.warn('[GraphDocContent] 다이어그램이 로드되지 않았습니다.')
+    return
+  }
+
+  // SVG 그룹에서 노드 찾기 (data-node-id 속성 사용)
+  const nodeElement = renderResult.svgGroup.select(`.node[data-node-id="${nodeId}"]`)
+
+  if (nodeElement.empty()) {
+    console.warn('[GraphDocContent] 노드를 찾을 수 없습니다:', nodeId)
+    return
+  }
+
+  // node-hover 클래스 추가/제거
+  nodeElement.classed('node-hover', highlight)
+
+  // 하이라이트 시 노드를 최상위로 올림
+  if (highlight) {
+    nodeElement.raise()
+  }
 }
 
 onBeforeUnmount(() => {
@@ -1104,6 +1190,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('graph-doc-dependency-stats', handleDependencyStats)
   window.removeEventListener('graph-doc-code-complexity', handleCodeComplexity)
   window.removeEventListener('graph-doc-history-item-clicked', handleHistoryItemClicked)
+  window.removeEventListener('graph-doc-unfix-node', handleUnfixNodeRequest)
+  window.removeEventListener('graph-doc-unfix-all-nodes', handleUnfixAllNodesRequest)
+  window.removeEventListener('graph-doc-highlight-node', handleHighlightNodeRequest)
+  window.removeEventListener('graph-doc-unhighlight-node', handleUnhighlightNodeRequest)
 })
 </script>
 
@@ -1306,10 +1396,6 @@ onBeforeUnmount(() => {
   line-height: 1.4;
 }
 
-.node-info-panel {
-  height: 100%;
-}
-
 .node-info-header {
   display: flex;
   align-items: center;
@@ -1361,26 +1447,20 @@ onBeforeUnmount(() => {
   word-break: break-all;
 }
 
-.node-actions {
-  margin-top: 1rem;
+.node-path-display {
+  color: var(--nexa-text-primary);
+  font-family: monospace;
+  font-weight: 500;
 }
 
-/* 플로팅 노드 정보 패널 */
-.node-hover-panel {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 16px;
-  z-index: 1000;
-  pointer-events: none;
+.node-actions {
+  margin-top: 1rem;
 }
 
 .node-info-card {
   width: 100%;
   background: var(--nexa-surface);
   border: 1px solid var(--nexa-border-color);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  pointer-events: auto;
 }
 
 .node-info-item {
