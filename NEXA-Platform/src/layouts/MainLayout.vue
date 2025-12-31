@@ -1397,6 +1397,7 @@ onBeforeUnmount(() => {
   background-color: var(--nexa-drawer-bg) !important;
   color: var(--nexa-drawer-text) !important;
   border-right: 1px solid var(--nexa-drawer-border) !important;
+  z-index: 1999; /* 토글 버튼(2001)보다 낮게 설정하여 버튼이 항상 위에 오도록 */
 
   /* Quasar bordered prop 오버라이드 */
   &.q-drawer--bordered {
@@ -1612,7 +1613,8 @@ onBeforeUnmount(() => {
   justify-content: center;
   gap: 4px;
   cursor: pointer;
-  z-index: 1002; /* resize handle(1001) 위, header(2000) 아래 */
+  z-index: 2001; /* header(2000)보다 높게 설정하여 항상 클릭 가능하도록 */
+  pointer-events: auto; /* 마우스 이벤트 명시적으로 활성화 */
   transition:
     top 0.5s ease-out,
     background-color 2s ease;
@@ -1664,15 +1666,23 @@ onBeforeUnmount(() => {
   left: 0;
   border-radius: 0 8px 8px 0; /* 오른쪽 상단, 오른쪽 하단만 라운드 */
   border-left: none;
+  pointer-events: auto; /* 마우스 이벤트 명시적으로 활성화 */
 
   &.is-drawer-open {
     border-left: 1px solid var(--nexa-border-color);
+    /* drawer가 열려있을 때도 버튼이 위에 오도록 z-index 유지 */
+    z-index: 2001;
   }
 
   &:hover {
     .q-icon {
       animation: shake-left-toggle 0.6s ease-in-out forwards;
     }
+  }
+
+  /* 자식 요소도 pointer-events 활성화 */
+  * {
+    pointer-events: auto;
   }
 }
 
@@ -1681,6 +1691,7 @@ onBeforeUnmount(() => {
   right: 0;
   border-radius: 8px 0 0 8px; /* 왼쪽 상단, 왼쪽 하단만 라운드 */
   border-right: none;
+  pointer-events: auto; /* 마우스 이벤트 명시적으로 활성화 */
 
   /* Drawer가 열려있을 때: 리사이즈 핸들 위치 (drawer 왼쪽 가장자리) */
   &.is-drawer-open {
@@ -1688,6 +1699,8 @@ onBeforeUnmount(() => {
     border-left: 1px solid var(--nexa-border-color);
     border-right: none;
     border-radius: 8px 0 0 8px; /* drawer 열림 시 왼쪽 상단, 왼쪽 하단만 라운드 (유지) */
+    /* drawer가 열려있을 때도 버튼이 위에 오도록 z-index 유지 */
+    z-index: 2001;
   }
 
   /* 오버레이 모드일 때는 drawer보다 위에 표시되도록 z-index 높임 */
@@ -1704,6 +1717,11 @@ onBeforeUnmount(() => {
     .q-icon {
       animation: shake-right-toggle 0.6s ease-in-out forwards;
     }
+  }
+
+  /* 자식 요소도 pointer-events 활성화 */
+  * {
+    pointer-events: auto;
   }
 }
 
