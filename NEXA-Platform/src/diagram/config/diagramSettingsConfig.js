@@ -23,24 +23,41 @@ export const diagramSettingsSchemas = {
       rankdir: { default: 'LR', options: ['LR', 'TB', 'RL', 'BT'] },
     },
   },
-  // 의존성 그래프 (향후 추가)
+  // 파일 의존성 그래프 (force-directed)
   dependency: {
     nodeSize: {
-      width: { default: 120, min: 1, max: 400, step: 10 },
-      height: { default: 40, min: 1, max: 400, step: 5 },
+      width: { default: 80, min: 1, max: 400, step: 10 },
+      height: { default: 80, min: 1, max: 400, step: 5 },
     },
     layout: {
-      nodesep: { default: 150, min: 50, max: 500, step: 10 },
-      ranksep: { default: 100, min: 50, max: 400, step: 10 },
-      marginx: { default: 150, min: 0, max: 300, step: 10 },
-      marginy: { default: 150, min: 0, max: 300, step: 10 },
-      rankdir: { default: 'LR', options: ['LR', 'TB', 'RL', 'BT'] },
+      // force-directed 그래프 설정
+      force: {
+        charge: { default: -300, min: -1000, max: 0, step: 10 }, // 반발력
+        linkDistance: { default: 100, min: 10, max: 500, step: 10 }, // 연결된 노드 간 목표 거리
+        linkStrength: { default: 0.5, min: 0, max: 1, step: 0.1 }, // 링크 강도
+        collision: { default: 5, min: 0, max: 20, step: 1 }, // 충돌 방지 거리 보정값
+      },
     },
-    // 의존성 그래프 전용 설정
-    showLabels: { default: true },
-    edgeStyle: { default: 'curved', options: ['straight', 'curved', 'bezier'] },
     // 수동 최적 줌값 (자동 줌 대신 사용, 모든 그래프/모드에 공통 적용)
     // manualZoom: { scale: 1.0, translateX: 0, translateY: 0 } 형태로 저장
+    manualZoom: null, // null이면 자동 줌 사용, 값이 있으면 수동 줌 적용
+  },
+  // 패키지 의존성 그래프 (force-directed)
+  [diagramTypes.DEPENDENCY_ANALYSIS]: {
+    nodeSize: {
+      width: { default: 80, min: 1, max: 400, step: 10 },
+      height: { default: 80, min: 1, max: 400, step: 5 },
+    },
+    layout: {
+      // force-directed 그래프 설정 (패키지 의존성 그래프 전용)
+      force: {
+        charge: { default: -50, min: -100, max: 0, step: 10 }, // 반발력 (기본값: -300 → -150으로 감소)
+        linkDistance: { default: 30, min: 10, max: 100, step: 10 }, // 연결된 노드 간 목표 거리
+        linkStrength: { default: 0.3, min: 0, max: 1, step: 0.1 }, // 링크 강도
+        collision: { default: 5, min: 0, max: 20, step: 1 }, // 충돌 방지 거리 보정값
+      },
+    },
+    // 수동 최적 줌값 (자동 줌 대신 사용, 모든 그래프/모드에 공통 적용)
     manualZoom: null, // null이면 자동 줌 사용, 값이 있으면 수동 줌 적용
   },
   // 파일 트리 (향후 추가)
@@ -164,8 +181,20 @@ export function getDefaultDiagramSettings(type, context = {}) {
         } else {
           // 일반 타입 또는 layout이 아닌 경우
           for (const [subKey, subValue] of Object.entries(value)) {
-            if (subValue && typeof subValue === 'object' && subValue.default !== undefined) {
-              settings[key][subKey] = subValue.default
+            if (subValue && typeof subValue === 'object') {
+              // 중첩 객체인 경우 (예: force 객체)
+              if (subValue.default === undefined) {
+                // 중첩 객체 재귀 처리 (예: layout.force.charge)
+                settings[key][subKey] = {}
+                for (const [nestedKey, nestedValue] of Object.entries(subValue)) {
+                  if (nestedValue && typeof nestedValue === 'object' && nestedValue.default !== undefined) {
+                    settings[key][subKey][nestedKey] = nestedValue.default
+                  }
+                }
+              } else {
+                // 단순 값인 경우
+                settings[key][subKey] = subValue.default
+              }
             }
           }
         }

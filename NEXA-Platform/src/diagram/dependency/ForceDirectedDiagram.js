@@ -1,7 +1,8 @@
 /**
- * PackageDependencyDiagram.js
- * 패키지 의존성 그래프 다이어그램 렌더러
- * D3.js force-directed graph를 사용하여 패키지 의존성 관계 시각화
+ * ForceDirectedDiagram.js
+ * Force-Directed Graph 다이어그램 렌더러 (범용)
+ * D3.js force-directed graph를 사용하여 의존성 관계 시각화
+ * 파일 의존성 그래프와 패키지 의존성 그래프 모두에서 사용
  */
 
 import * as d3 from 'd3'
@@ -11,28 +12,29 @@ import { diagramTypes } from '../config/diagramMetadata.js'
 import { createNodeHoverHandlers } from '../utils/diagramEvents.js'
 
 /**
- * 패키지 의존성 그래프 다이어그램 렌더링
+ * Force-Directed Graph 다이어그램 렌더링 (범용)
  * @param {HTMLElement} container - 다이어그램 컨테이너 DOM 요소
  * @param {Object} data - 다이어그램 데이터
- * @param {Array} data.packages - 패키지 목록
- * @param {Array} data.dependencies - 패키지 간 의존성 관계
+ * @param {Array} data.packages - 노드 목록 (패키지 또는 파일)
+ * @param {Array} data.dependencies - 노드 간 의존성 관계
  * @param {Object} options - 렌더링 옵션
+ * @param {String} options.diagramType - 다이어그램 타입 ('dependency' 또는 'dependency-analysis')
  * @param {String} options.selectedNode - 선택된 노드 ID
  * @param {Function} options.onNodeClick - 노드 클릭 핸들러
  * @param {Function} options.onNodeHover - 노드 호버 핸들러
  * @param {Function} options.onNodeDrag - 노드 드래그 핸들러
  * @returns {Promise<Object>} 렌더링 결과 (svg, svgGroup, zoom, simulation)
  */
-export async function renderDependencyAnalysis(container, data, options = {}) {
+export async function renderForceDirected(container, data, options = {}) {
   const { packages = [], dependencies = [] } = data
 
-  const { selectedNode = null, onNodeClick = null, onNodeHover = null, onNodeDrag = null } = options
+  const { diagramType = diagramTypes.DEPENDENCY_ANALYSIS, selectedNode = null, onNodeClick = null, onNodeHover = null, onNodeDrag = null } = options
 
   // 고정된 노드 ID 목록 (Set으로 관리)
   const fixedNodeIds = new Set()
 
-  // 설정 로드 (network 타입 설정 사용)
-  const settings = loadDiagramSettings(diagramTypes.NETWORK)
+  // 설정 로드 (다이어그램 타입별로 분리된 설정 사용)
+  const settings = loadDiagramSettings(diagramType)
 
   // 기존 SVG 제거
   d3.select(container).selectAll('*').remove()
@@ -70,7 +72,7 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
 
       // 패키지가 존재하는지 확인
       if (!packageIdMap.has(sourceId) || !packageIdMap.has(targetId)) {
-        console.warn('[PackageDependencyDiagram] 엣지의 패키지를 찾을 수 없음:', { sourceId, targetId })
+        console.warn('[ForceDirectedDiagram] 엣지의 노드를 찾을 수 없음:', { sourceId, targetId })
         return null
       }
 
@@ -93,7 +95,7 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
       const sourceNode = packageIdMap.get(link.source)
       const targetNode = packageIdMap.get(link.target)
       if (!sourceNode || !targetNode) {
-        console.warn('[PackageDependencyDiagram] 링크의 노드를 찾을 수 없음:', link)
+        console.warn('[ForceDirectedDiagram] 링크의 노드를 찾을 수 없음:', link)
         return null
       }
       return {
@@ -104,11 +106,23 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
     })
     .filter((link) => link !== null)
 
-  // Force 시뮬레이션 설정
+  // Force 시뮬레이션 설정 (다이어그램 타입별로 분리된 설정 사용)
   const forceSettings = settings.layout?.force || {}
-  const charge = forceSettings.charge || -300
-  const linkDistance = forceSettings.linkDistance || 100
-  const linkStrength = forceSettings.linkStrength || 0.5
+  
+  // 디버깅: 설정 로드 확인
+  console.log('[ForceDirectedDiagram] 설정 로드:', {
+    diagramType,
+    forceSettings,
+    fullSettings: settings,
+  })
+  
+  // 기본값은 설정 파일의 기본값 사용 (하드코딩된 fallback 제거)
+  const charge = forceSettings.charge ?? (diagramType === diagramTypes.DEPENDENCY_ANALYSIS ? -50 : -300)
+  const linkDistance = forceSettings.linkDistance ?? (diagramType === diagramTypes.DEPENDENCY_ANALYSIS ? 10 : 100)
+  const linkStrength = forceSettings.linkStrength ?? (diagramType === diagramTypes.DEPENDENCY_ANALYSIS ? 0.4 : 0.5)
+  const collisionOffset = forceSettings.collision ?? 5
+  
+  console.log('[ForceDirectedDiagram] Force 파라미터:', { charge, linkDistance, linkStrength, collisionOffset })
 
   // Force 시뮬레이션 생성
   // linksWithNodes는 이미 노드 객체를 포함하므로 id 함수 불필요
@@ -119,7 +133,7 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
     .force('center', d3.forceCenter(containerWidth / 2, containerHeight / 2))
     .force(
       'collision',
-      d3.forceCollide().radius((d) => (d.radius || 40) + 5),
+      d3.forceCollide().radius((d) => (d.radius || 40) + collisionOffset),
     )
 
   // 노드 크기 설정
@@ -437,13 +451,14 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
 
 /**
  * Force 시뮬레이션 파라미터 업데이트
- * @param {Object} renderResult - renderDependencyAnalysis의 반환값
+ * @param {Object} renderResult - renderForceDirected의 반환값
+ * @param {String} diagramType - 다이어그램 타입 ('dependency' 또는 'dependency-analysis')
  */
-export function updateForceParameters(renderResult) {
+export function updateForceParameters(renderResult, diagramType = diagramTypes.DEPENDENCY_ANALYSIS) {
   if (!renderResult || !renderResult.simulation) return
 
   const { simulation } = renderResult
-  const settings = loadDiagramSettings(diagramTypes.NETWORK)
+  const settings = loadDiagramSettings(diagramType)
   const forceSettings = settings.layout?.force || {}
 
   // Force 업데이트

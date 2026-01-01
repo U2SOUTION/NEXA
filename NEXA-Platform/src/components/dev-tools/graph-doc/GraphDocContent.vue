@@ -73,7 +73,7 @@
           <NexaSpinner v-if="isAnalyzing" size="md" message="렌더링 중..." centered />
           <NexaDiagram
             ref="dependencyDiagramRef"
-            type="dependency-analysis"
+            type="dependency"
             :data="dependencyDiagramData"
             :options="dependencyDiagramOptions"
             @node-click="handleDependencyNodeClick"
@@ -430,7 +430,7 @@ const fixedNodeListUpdateInterval = ref(null)
 // 이전 고정 노드 목록 (변경 감지용)
 let previousFixedNodeIds = []
 
-// 의존성 그래프 다이어그램 데이터 및 옵션 (Force-Directed Graph용)
+// 의존성 그래프 다이어그램 데이터 및 옵션 (PackageDependencyDiagram용 - force-directed 물리 기반)
 const dependencyDiagramData = computed(() => {
   if (!graphData.value) {
     console.log('[GraphDocContent] dependencyDiagramData: graphData가 없음')

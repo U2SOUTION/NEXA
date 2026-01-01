@@ -28,8 +28,7 @@ import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { renderERD, updateERD } from './erd/ERDDiagram.js'
 import { renderFlow } from './flow/FlowDiagram.js'
 import { renderNetwork } from './network/NetworkDiagram.js'
-import { renderDependency } from './dependency/FileDependencyDiagram.js'
-import { renderDependencyAnalysis } from './dependency/PackageDependencyDiagram.js'
+import { renderForceDirected } from './dependency/ForceDirectedDiagram.js'
 import { renderFileTree } from './filetree/FileTreeDiagram.js'
 import { diagramTypes } from './config/diagramMetadata.js'
 
@@ -80,8 +79,9 @@ const renderers = {
   [diagramTypes.ERD]: renderERD,
   [diagramTypes.FLOW]: renderFlow,
   [diagramTypes.NETWORK]: renderNetwork,
-  [diagramTypes.DEPENDENCY]: renderDependency,
-  [diagramTypes.DEPENDENCY_ANALYSIS]: renderDependencyAnalysis,
+  // dependency 타입도 force-directed 그래프 사용 (파일 의존성 그래프는 물리 기반)
+  [diagramTypes.DEPENDENCY]: (container, data, options) => renderForceDirected(container, data, { ...options, diagramType: diagramTypes.DEPENDENCY }),
+  [diagramTypes.DEPENDENCY_ANALYSIS]: (container, data, options) => renderForceDirected(container, data, { ...options, diagramType: diagramTypes.DEPENDENCY_ANALYSIS }),
   [diagramTypes.FILETREE]: renderFileTree,
 }
 
