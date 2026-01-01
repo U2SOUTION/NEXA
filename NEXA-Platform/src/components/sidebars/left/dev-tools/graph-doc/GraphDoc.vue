@@ -1,59 +1,42 @@
-<!-- GraphDocSidebar.vue
-  그래프독 왼쪽 사이드바 통합 컴포넌트
+<!-- GraphDoc.vue
+  GraphDoc 통합 컴포넌트
   아코디언 구조: 의존성 그래프, 의존성 분석, 파일 구조, 코드 검색
   헤더 + 목록
 -->
 
 <template>
-  <div class="graph-doc-sidebar">
-    <!-- 아코디언 동작 옵션 -->
-    <div class="accordion-options q-pa-sm">
-      <div class="row items-center justify-between q-gutter-xs">
-        <div class="row items-center q-gutter-xs">
-          <!-- 단일 열림 모드 토글 -->
-          <q-btn flat dense size="sm" :icon="singleMode ? 'radio_button_checked' : 'radio_button_unchecked'" :label="singleMode ? '단일' : '다중'" :class="{ 'option-active': singleMode, 'option-inactive': !singleMode }" class="option-btn" @click="handleSingleModeToggle">
-            <q-tooltip>{{ singleMode ? '단일 열림 모드 (하나만 열기)' : '다중 열림 모드 (여러 개 열기)' }}</q-tooltip>
-          </q-btn>
-
-          <!-- 모든 항목 열기/닫기 -->
-          <q-btn flat dense size="sm" icon="unfold_more" label="모두 열기" class="option-btn" @click="handleExpandAll">
-            <q-tooltip>모든 항목 열기</q-tooltip>
-          </q-btn>
-          <q-btn flat dense size="sm" icon="unfold_less" label="모두 닫기" class="option-btn" @click="handleCollapseAll">
-            <q-tooltip>모든 항목 닫기</q-tooltip>
-          </q-btn>
-        </div>
-
-        <!-- 설정 버튼 -->
-        <q-btn flat dense round size="sm" icon="settings" @click="handleSettings">
-          <q-tooltip>설정</q-tooltip>
-        </q-btn>
-      </div>
-    </div>
+  <div class="graph-doc">
+    <!-- 전체 헤더 -->
+    <GraphDocHeader :single-mode="singleMode" @single-mode-toggle="handleSingleModeToggleFromHeader" @expand-all="handleExpandAll" @collapse-all="handleCollapseAll" @settings="handleSettings" />
 
     <!-- 아코디언 메뉴 -->
     <q-list>
       <!-- 파일 의존성 그래프 -->
       <q-expansion-item v-model="expandedItems.dependencyGraph" icon="account_tree" label="파일 의존성 그래프" header-class="accordion-header" @update:model-value="handleExpansionChange('dependencyGraph', $event)">
-        <DependencyGraphHeader :analysis-target="props.dependencyGraphAnalysisTarget" :is-analyzing="props.dependencyGraphIsAnalyzing" @analyze="handleDependencyGraphAnalyze" @analysis-target-change="handleDependencyGraphAnalysisTargetChange" />
+        <FileDependency :analysis-target="props.dependencyGraphAnalysisTarget" :is-analyzing="props.dependencyGraphIsAnalyzing" @analyze="handleDependencyGraphAnalyze" @analysis-target-change="handleDependencyGraphAnalysisTargetChange" />
         <DependencyGraphList :graph-data="props.dependencyGraphData" :selected-node="props.dependencyGraphSelectedNode" :is-loading="props.dependencyGraphIsLoading" @node-selected="handleDependencyGraphNodeSelected" />
       </q-expansion-item>
 
       <!-- 패키지 의존성 그래프 -->
       <q-expansion-item v-model="expandedItems.dependencyAnalysis" icon="hub" label="패키지 의존성 그래프" header-class="accordion-header" @update:model-value="handleExpansionChange('dependencyAnalysis', $event)">
-        <DependencyAnalysisHeader @refresh="handleDependencyAnalysisRefresh" @settings="handleDependencyAnalysisSettings" />
+        <PackageDependency
+          :is-analyzing="props.dependencyAnalysisIsLoading"
+          @analyze="handleDependencyAnalysisAnalyze"
+          @project-root-change="handleDependencyAnalysisProjectRootChange"
+          @settings="handleDependencyAnalysisSettings"
+        />
         <DependencyAnalysisList :analysis-results="props.dependencyAnalysisResults" :selected-result="props.dependencyAnalysisSelectedResult" :is-loading="props.dependencyAnalysisIsLoading" @result-selected="handleDependencyAnalysisResultSelected" />
       </q-expansion-item>
 
       <!-- 파일 구조 -->
       <q-expansion-item v-model="expandedItems.fileStructure" icon="view_module" label="파일 구조" header-class="accordion-header" @update:model-value="handleExpansionChange('fileStructure', $event)">
-        <FileStructureHeader :analysis-target="fileStructureAnalysisTarget" :is-analyzing="props.fileStructureIsLoading" @analyze="handleFileStructureAnalyze" @analysis-target-change="handleFileStructureAnalysisTargetChange" />
+        <FileStructure :analysis-target="fileStructureAnalysisTarget" :is-analyzing="props.fileStructureIsLoading" @analyze="handleFileStructureAnalyze" @analysis-target-change="handleFileStructureAnalysisTargetChange" />
         <FileStructureList :file-structure="props.fileStructureData" :selected-file="props.fileStructureSelectedFile" :is-loading="props.fileStructureIsLoading" @file-selected="handleFileStructureFileSelected" />
       </q-expansion-item>
 
       <!-- 코드 검색 -->
       <q-expansion-item v-model="expandedItems.codeSearch" icon="search" label="코드 검색" header-class="accordion-header" @update:model-value="handleExpansionChange('codeSearch', $event)">
-        <CodeSearchHeader :search-query="props.codeSearchQuery" @search-change="handleCodeSearchChange" @search="handleCodeSearch" @settings="handleCodeSearchSettings" />
+        <CodeSearch :search-query="props.codeSearchQuery" @search-change="handleCodeSearchChange" @search="handleCodeSearch" @settings="handleCodeSearchSettings" />
         <CodeSearchList :search-results="props.codeSearchResults" :selected-result="props.codeSearchSelectedResult" :is-loading="props.codeSearchIsLoading" @result-selected="handleCodeSearchResultSelected" />
       </q-expansion-item>
     </q-list>
@@ -106,13 +89,14 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import DependencyGraphHeader from './DependencyGraphHeader.vue'
+import GraphDocHeader from './GraphDocHeader.vue'
+import FileDependency from './FileDependency.vue'
 import DependencyGraphList from './DependencyGraphList.vue'
-import DependencyAnalysisHeader from './DependencyAnalysisHeader.vue'
+import PackageDependency from './PackageDependency.vue'
 import DependencyAnalysisList from './DependencyAnalysisList.vue'
-import FileStructureHeader from './FileStructureHeader.vue'
+import FileStructure from './FileStructure.vue'
 import FileStructureList from './FileStructureList.vue'
-import CodeSearchHeader from './CodeSearchHeader.vue'
+import CodeSearch from './CodeSearch.vue'
 import CodeSearchList from './CodeSearchList.vue'
 
 // 단일 열림 모드 (하나만 열기)
@@ -200,7 +184,8 @@ const emit = defineEmits([
   'dependency-graph-analysis-target-change',
   'dependency-graph-node-selected',
   // 의존성 분석
-  'dependency-analysis-refresh',
+  'dependency-analysis-analyze',
+  'dependency-analysis-project-root-change',
   'dependency-analysis-settings',
   'dependency-analysis-result-selected',
   // 파일 구조
@@ -223,14 +208,14 @@ const emit = defineEmits([
   'settings',
 ])
 
-// 단일 열림 모드 토글
-function handleSingleModeToggle() {
-  singleMode.value = !singleMode.value
+// 헤더에서 전달받은 단일 모드 토글
+function handleSingleModeToggleFromHeader(value) {
+  singleMode.value = value
   // localStorage에 저장
   try {
     localStorage.setItem('graph-doc-single-mode', String(singleMode.value))
   } catch (error) {
-    console.error('[GraphDocSidebar] 단일 모드 설정 저장 실패:', error)
+    console.error('[GraphDoc] 단일 모드 설정 저장 실패:', error)
   }
 }
 
@@ -276,7 +261,7 @@ function loadSingleMode() {
       singleMode.value = saved === 'true'
     }
   } catch (error) {
-    console.error('[GraphDocSidebar] 단일 모드 설정 로드 실패:', error)
+    console.error('[GraphDoc] 단일 모드 설정 로드 실패:', error)
   }
 }
 
@@ -285,7 +270,7 @@ function saveAccordionState() {
   try {
     localStorage.setItem('graph-doc-accordion-state', JSON.stringify(expandedItems.value))
   } catch (error) {
-    console.error('[GraphDocSidebar] 아코디언 상태 저장 실패:', error)
+    console.error('[GraphDoc] 아코디언 상태 저장 실패:', error)
   }
 }
 
@@ -302,7 +287,7 @@ function loadAccordionState() {
       })
     }
   } catch (error) {
-    console.error('[GraphDocSidebar] 아코디언 상태 복원 실패:', error)
+    console.error('[GraphDoc] 아코디언 상태 복원 실패:', error)
   }
 }
 
@@ -337,8 +322,12 @@ function handleDependencyGraphNodeSelected(node) {
 }
 
 // 의존성 분석 핸들러
-function handleDependencyAnalysisRefresh() {
-  emit('dependency-analysis-refresh')
+function handleDependencyAnalysisAnalyze(projectRoot) {
+  emit('dependency-analysis-analyze', projectRoot)
+}
+
+function handleDependencyAnalysisProjectRootChange(value) {
+  emit('dependency-analysis-project-root-change', value)
 }
 
 function handleDependencyAnalysisSettings() {
@@ -402,7 +391,7 @@ function handleCodeComplexity() {
 </script>
 
 <style lang="scss" scoped>
-.graph-doc-sidebar {
+.graph-doc {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -410,55 +399,9 @@ function handleCodeComplexity() {
 
   // Container Query 활성화 (사이드바 너비 기준)
   container-type: inline-size;
-  container-name: graph-doc-sidebar;
+  container-name: graph-doc;
 }
 
-.accordion-options {
-  background: var(--nexa-background-darker);
-  border-bottom: 1px solid var(--nexa-border-color);
-}
-
-.option-btn {
-  font-size: 0.75rem;
-  color: var(--nexa-text-secondary);
-  padding: 4px 8px;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
-
-  &:hover {
-    color: var(--nexa-primary);
-    background-color: color-mix(in srgb, var(--nexa-primary) 10%, transparent);
-  }
-
-  &.option-active {
-    background-color: var(--nexa-button-primary-bg);
-    color: var(--nexa-button-primary-text);
-
-    :deep(.q-icon) {
-      color: var(--nexa-button-primary-text);
-    }
-  }
-
-  &.option-inactive {
-    background-color: var(--nexa-surface);
-    color: var(--nexa-text-secondary);
-
-    :deep(.q-icon) {
-      color: var(--nexa-text-secondary);
-    }
-  }
-
-  :deep(.q-btn__content) {
-    font-size: 0.75rem;
-    padding: 0 4px;
-  }
-
-  :deep(.q-icon) {
-    font-size: 16px;
-    margin-right: 4px;
-  }
-}
 
 .accordion-header {
   background: var(--nexa-background-darker);

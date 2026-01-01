@@ -288,6 +288,7 @@ import NexaDiagram from 'src/diagram/NexaDiagram.vue'
 import NexaSpinner from 'src/components/ui/NexaSpinner.vue'
 import { diagramTypes } from 'src/diagram/config/diagramMetadata.js'
 import { analyzeDependencyGraph, isNpmPackage } from 'src/utils/graph-doc/dependencyGraphAnalyzer.js'
+import { analyzePackageDependencies } from 'src/utils/graph-doc/packageDependencyAnalyzer.js'
 import { analyzeFileStructure } from 'src/utils/graph-doc/fileStructureAnalyzer.js'
 import { useGraphDocHistory } from 'src/composables/dev-tools/useGraphDocHistory.js'
 
@@ -1146,27 +1147,67 @@ function handleDiagramSettingsChanged(event) {
   }
 }
 
-onMounted(() => {
-  // 테스트용 의존성 분석 데이터 생성 (파일 구조는 실제 스캔 사용)
-  nextTick(() => {
-    dependencyAnalysisData.value = {
-      packages: [
-        { id: 'vue', name: 'vue', radius: 50, color: '#42b883' },
-        { id: 'quasar', name: 'quasar', radius: 45, color: '#1976d2' },
-        { id: 'd3', name: 'd3', radius: 40, color: '#f9a03c' },
-        { id: 'dagre', name: 'dagre', radius: 35, color: '#ff6b6b' },
-        { id: 'pinia', name: 'pinia', radius: 30, color: '#ffd93d' },
-      ],
-      dependencies: [
-        { from: 'vue', to: 'quasar' },
-        { from: 'quasar', to: 'd3' },
-        { from: 'd3', to: 'dagre' },
-        { from: 'vue', to: 'pinia' },
-        { from: 'quasar', to: 'pinia' },
-      ],
-    }
-  })
+// 패키지 의존성 분석 실행
+async function handleAnalyzePackageDependencies(projectRoot = '') {
+  console.log('[GraphDocContent] 패키지 의존성 분석 시작:', projectRoot)
 
+  // 중복 요청 방지
+  if (isAnalyzing.value) {
+    console.log('[GraphDocContent] 이미 분석 중입니다.')
+    return
+  }
+
+  isAnalyzing.value = true
+
+  try {
+    // 패키지 의존성 분석
+    const result = await analyzePackageDependencies(projectRoot, {
+      includeDevDependencies: true,
+    })
+
+    if (result.packages.length === 0) {
+      $q.notify({
+        type: 'warning',
+        message: '분석된 패키지가 없습니다. package.json을 확인하세요.',
+        position: 'top',
+        timeout: 5000,
+      })
+      isAnalyzing.value = false
+      return
+    }
+
+    dependencyAnalysisData.value = result
+    isAnalyzing.value = false
+
+    // activeAccordion이 dependencyAnalysis가 아니면 설정
+    if (activeAccordion.value !== 'dependencyAnalysis') {
+      activeAccordion.value = 'dependencyAnalysis'
+      console.log('[GraphDocContent] activeAccordion을 dependencyAnalysis로 설정')
+    }
+
+    console.log('[GraphDocContent] 패키지 의존성 분석 완료:', {
+      packagesCount: result.packages.length,
+      dependenciesCount: result.dependencies.length,
+    })
+  } catch (error) {
+    console.error('[GraphDocContent] 패키지 의존성 분석 실패:', error)
+    $q.notify({
+      type: 'negative',
+      message: `패키지 의존성 분석 실패: ${error.message || error}`,
+      position: 'top',
+      timeout: 5000,
+    })
+    isAnalyzing.value = false
+  }
+}
+
+// 패키지 의존성 분석 요청 이벤트 리스너 (사이드바에서 호출)
+function handlePackageDependencyAnalyzeRequest(event) {
+  const projectRoot = event?.detail?.projectRoot || ''
+  handleAnalyzePackageDependencies(projectRoot)
+}
+
+onMounted(() => {
   // 전역 이벤트 리스너 등록
   window.addEventListener('graph-doc-accordion-change', handleAccordionChange)
   window.addEventListener('graph-doc-dependency-graph-analysis-target-change', handleAnalysisTargetChange)
@@ -1174,6 +1215,7 @@ onMounted(() => {
   window.addEventListener('graph-doc-dependency-graph-node-selected', handleNodeSelected)
   window.addEventListener('graph-doc-file-structure-analyze', handleFileStructureAnalyzeRequest)
   window.addEventListener('graph-doc-file-structure-analysis-target-change', handleFileStructureAnalysisTargetChange)
+  window.addEventListener('graph-doc-dependency-analysis-analyze', handlePackageDependencyAnalyzeRequest)
   window.addEventListener('dependency-diagram-settings-changed', handleDiagramSettingsChanged)
   window.addEventListener('filetree-diagram-settings-changed', handleDiagramSettingsChanged)
   window.addEventListener('graph-doc-circular-dependencies', handleCircularDependencies)

@@ -114,6 +114,23 @@ app.use('/uploads', async (req, res, next) => {
   }
 })
 
+// package.json 읽기 API (GraphDoc 패키지 의존성 분석용)
+app.get('/api/package-json', async (req, res) => {
+  try {
+    // 서버는 server 폴더에 있으므로, 상위 폴더의 package.json 읽기
+    const packageJsonPath = path.join(__dirname, '../package.json')
+    const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8')
+    const packageJson = JSON.parse(packageJsonContent)
+    res.json(packageJson)
+  } catch (error) {
+    console.error('[API] package.json 읽기 실패:', error)
+    res.status(500).json({
+      error: 'package.json을 읽을 수 없습니다.',
+      message: error.message,
+    })
+  }
+})
+
 // Express static 폴백 (한글 경로가 아닌 경우)
 const staticMiddleware = express.static(path.join(__dirname, '../uploads'), {
   dotfiles: 'ignore',

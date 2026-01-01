@@ -1,10 +1,10 @@
-<!-- CodeSearchHeader.vue
-  코드 검색 헤더 컴포넌트
+<!-- CodeSearch.vue
+  코드 검색 컴포넌트
   검색 입력, 검색 버튼, 설정
 -->
 
 <template>
-  <div class="code-search-header">
+  <div class="code-search">
     <div class="header-content q-pa-md">
       <div class="row items-center q-gutter-sm q-mb-sm">
         <q-icon name="search" size="20px" color="primary" />
@@ -75,7 +75,7 @@ function handleSettings() {
 </script>
 
 <style lang="scss" scoped>
-.code-search-header {
+.code-search {
   background: var(--nexa-background-darker);
   border-bottom: 1px solid var(--nexa-border-color);
 }

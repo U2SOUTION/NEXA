@@ -1,14 +1,14 @@
-<!-- DependencyGraphHeader.vue
-  의존성 그래프 헤더 컴포넌트
+<!-- FileStructure.vue
+  파일 구조 컴포넌트
   분석 대상 입력 및 분석 버튼
 -->
 
 <template>
-  <div class="dependency-graph-header">
+  <div class="file-structure">
     <div class="header-content q-pa-md">
       <div class="row items-center q-gutter-md">
         <div class="col">
-          <q-input v-model="localAnalysisTarget" label="분석 대상" placeholder="예: /dev, /portfolio, src/pages/DevelopmentPage.vue" outlined dense hint="라우트,디렉토리,파일 경로를 입력" @update:model-value="handleAnalysisTargetChange" @keyup.enter="handleAnalyze">
+          <q-input v-model="localAnalysisTarget" label="분석 대상" placeholder="예: /dev, src/pages, src/components/ui" outlined dense @update:model-value="handleAnalysisTargetChange" @keyup.enter="handleAnalyze">
             <template #prepend>
               <q-icon name="search" />
             </template>
@@ -17,6 +17,12 @@
         <div class="col-auto">
           <q-btn color="primary" label="분석" icon="play_arrow" :loading="isAnalyzing" @click="handleAnalyze" />
         </div>
+      </div>
+      <div class="hint-text">
+        라우트, 디렉토리 경로를 입력
+      </div>
+      <div class="hint-text">
+        메모: 그래프에서 줌 없이 호출하면 자동 줌만 사용합니다.
       </div>
     </div>
   </div>
@@ -66,8 +72,23 @@ function handleAnalysisTargetChange(value) {
 </script>
 
 <style lang="scss" scoped>
-.dependency-graph-header {
+.file-structure {
   background: var(--nexa-background-darker);
   border-bottom: 1px solid var(--nexa-border-color);
+}
+
+.header-content {
+  .header-title {
+    color: var(--nexa-text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+}
+
+.hint-text {
+  font-size: 0.75rem;
+  color: var(--nexa-text-secondary);
+  margin-top: 4px;
+  padding-left: 4px;
 }
 </style>

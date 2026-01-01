@@ -94,7 +94,7 @@
 
     <!-- 그래프독 -->
     <template v-else-if="activeMenu === 'document-generator'">
-      <GraphDocSidebar
+      <GraphDoc
         :dependency-graph-analysis-target="graphDocDependencyGraphAnalysisTarget"
         :dependency-graph-is-analyzing="graphDocDependencyGraphIsAnalyzing"
         :dependency-graph-data="graphDocDependencyGraphData"
@@ -113,7 +113,8 @@
         @dependency-graph-analyze="handleGraphDocDependencyGraphAnalyze"
         @dependency-graph-analysis-target-change="handleGraphDocDependencyGraphAnalysisTargetChange"
         @dependency-graph-node-selected="handleGraphDocDependencyGraphNodeSelected"
-        @dependency-analysis-refresh="handleGraphDocDependencyAnalysisRefresh"
+        @dependency-analysis-analyze="handleGraphDocDependencyAnalysisAnalyze"
+        @dependency-analysis-project-root-change="handleGraphDocDependencyAnalysisProjectRootChange"
         @dependency-analysis-settings="handleGraphDocDependencyAnalysisSettings"
         @dependency-analysis-result-selected="handleGraphDocDependencyAnalysisResultSelected"
         @file-structure-analyze="handleGraphDocFileStructureAnalyze"
@@ -244,7 +245,7 @@ import ThemeManagerList from './dev-tools/theme-manager/ThemeManagerList.vue'
 import DatabaseViewerHeader from './dev-tools/database-viewer/DatabaseViewerHeader.vue'
 import DatabaseViewerList from './dev-tools/database-viewer/DatabaseViewerList.vue'
 import ComponentLibrarySidebar from './dev-tools/component-library/ComponentLibrarySidebar.vue'
-import GraphDocSidebar from './dev-tools/graph-doc/GraphDocSidebar.vue'
+import GraphDoc from './dev-tools/graph-doc/GraphDoc.vue'
 import PerformanceMonitorSidebar from './dev-tools/performance-monitor/PerformanceMonitorSidebar.vue'
 import DevGuideHeader from './dev-tools/dev-guide/DevGuideHeader.vue'
 import DevGuideList from './dev-tools/dev-guide/DevGuideList.vue'
@@ -548,9 +549,18 @@ function handleGraphDocDependencyGraphNodeSelected(node) {
   window.dispatchEvent(new CustomEvent('graph-doc-dependency-graph-node-selected', { detail: { node } }))
 }
 
-function handleGraphDocDependencyAnalysisRefresh() {
-  console.log('[DevSidebar] 의존성 분석 새로고침')
-  // TODO: 의존성 분석 새로고침
+function handleGraphDocDependencyAnalysisAnalyze(projectRoot) {
+  console.log('[DevSidebar] 패키지 의존성 분석:', projectRoot)
+  window.dispatchEvent(
+    new CustomEvent('graph-doc-dependency-analysis-analyze', {
+      detail: { projectRoot },
+    }),
+  )
+}
+
+function handleGraphDocDependencyAnalysisProjectRootChange(value) {
+  console.log('[DevSidebar] 패키지 의존성 분석 프로젝트 루트 변경:', value)
+  // 필요시 상태 저장
 }
 
 function handleGraphDocDependencyAnalysisSettings() {
