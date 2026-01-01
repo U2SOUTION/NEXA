@@ -72,16 +72,16 @@ const $q = useQuasar()
 // 배치 방법 : 가장 빈번한 도구를 센터에 배치 좌우로 점차 사용되지 않는 도구를 배치
 const devMenus = [
   // DevOps 도구
-  { id: 'devops', label: 'DevOps', icon: 'build' },
+  { id: 'devops', label: 'DevOps', icon: 'Barcode' },
   // 구현된 개발 도구 (높은 중요도)
   { id: 'database-viewer', label: '데이터베이스', icon: 'storage' },
   { id: 'component-library', label: '컴포넌트', icon: 'widgets' },
   // 최우선: 핵심 관리 도구
-  { id: 'dev-guide', label: '개발 가이드', icon: 'style' },
-  { id: 'document-manager', label: '문서 관리', icon: 'description' },
+  { id: 'dev-guide', label: '개발 가이드', icon: 'Sdk' },
+  { id: 'document-manager', label: '문서 관리', icon: 'Docs' },
   { id: 'theme-manager', label: '테마 관리', icon: 'palette' },
   // 문서/분석 도구
-  { id: 'document-generator', label: '그래프독', icon: 'flowchart' },
+  { id: 'document-generator', label: '그래프독', icon: 'Polymer' },
   // 시스템 관리 도구
   { id: 'settings-manager', label: '설정 관리', icon: 'settings' },
   // 개발/테스트 도구 (중요도 높음)
