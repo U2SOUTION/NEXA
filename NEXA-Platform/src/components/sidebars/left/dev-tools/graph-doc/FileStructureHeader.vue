@@ -17,6 +17,8 @@
         <div class="col-auto">
           <q-btn color="primary" label="분석" icon="play_arrow" :loading="isAnalyzing" @click="handleAnalyze" />
         </div>
+
+        <div class="col-auto" style="font-size: 0.75rem; color: var(--nexa-text-secondary)">메모: 그래프에서 줌 없이 호출하면 자동 줌만 사용합니다.</div>
       </div>
     </div>
   </div>

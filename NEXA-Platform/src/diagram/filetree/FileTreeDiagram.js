@@ -5,7 +5,7 @@
  */
 
 import * as d3 from 'd3'
-import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
+import { createZoom, fitToScreen, setOptimalZoom, getCurrentZoom } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
 import { createNodeHoverHandlers } from '../utils/diagramEvents.js'
@@ -400,9 +400,12 @@ export async function renderFileTree(container, data, options = {}) {
   svg.call(zoom)
 
   // 초기 줌 설정 (공통 유틸리티 사용)
+  // 수동 줌값이 설정에 있으면 사용, 없으면 자동 계산
+  const manualZoom = settings.manualZoom || null
   fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, {
     margin: 0.95, // 5% 여유 공간
     delay: 300, // dagre 렌더링 완료 대기
+    manualZoom: manualZoom, // 수동 줌값 (있으면 자동 계산 대신 사용)
     onComplete: (transform) => {
       // 렌더링 완료 후 디버깅 정보 출력
       try {
@@ -443,6 +446,19 @@ export async function renderFileTree(container, data, options = {}) {
     graph,
     unfixNodes,
     getFixedNodeIds,
-    orientation: currentOrientation, // 4단계: ResizeObserver에서 fitToHeightOnly 옵션 사용을 위해 orientation 저장
+    orientation: currentOrientation,
+    // 수동 최적 줌 함수 (모든 그래프/모드에 공통 적용)
+    // translateX, translateY가 null이면 자동으로 중앙정렬 계산
+    setOptimalZoom: (scale, translateX = null, translateY = null, options = {}) => {
+      return setOptimalZoom(svg, zoom, scale, translateX, translateY, {
+        ...options,
+        svgGroup,
+        containerWidth,
+        containerHeight,
+      })
+    },
+    getCurrentZoom: () => {
+      return getCurrentZoom(svg)
+    },
   }
 }

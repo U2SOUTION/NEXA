@@ -39,6 +39,9 @@ export const diagramSettingsSchemas = {
     // 의존성 그래프 전용 설정
     showLabels: { default: true },
     edgeStyle: { default: 'curved', options: ['straight', 'curved', 'bezier'] },
+    // 수동 최적 줌값 (자동 줌 대신 사용, 모든 그래프/모드에 공통 적용)
+    // manualZoom: { scale: 1.0, translateX: 0, translateY: 0 } 형태로 저장
+    manualZoom: null, // null이면 자동 줌 사용, 값이 있으면 수동 줌 적용
   },
   // 파일 트리 (향후 추가)
   filetree: {
@@ -50,7 +53,7 @@ export const diagramSettingsSchemas = {
     },
     layout: {
       // orientation: 레이아웃(데이터의 흐름) 방향 ('horizontal': 좌→우, 'vertical': 상→하)
-      orientation: { default: 'vertical', options: ['vertical', 'horizontal'] },
+      orientation: { default: 'horizontal', options: ['vertical', 'horizontal'] },
 
       //TB(Top to Bottom) 세로 방향 설정
       vertical: {
@@ -77,6 +80,9 @@ export const diagramSettingsSchemas = {
     // 파일 트리 전용 설정
     showFileIcons: { default: true },
     expandLevel: { default: 2, min: 0, max: 10, step: 1 }, // 0 = 모두 닫힘, -1 = 모두 열림
+    // 수동 최적 줌값 (자동 줌 대신 사용, 모든 그래프/모드에 공통 적용)
+    // manualZoom: { scale: 1.0, translateX: 0, translateY: 0 } 형태로 저장
+    manualZoom: null, // null이면 자동 줌 사용, 값이 있으면 수동 줌 적용
   },
   // Flow (향후 추가)
   [diagramTypes.FLOW]: {

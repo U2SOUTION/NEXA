@@ -10,7 +10,7 @@
 
 import * as d3 from 'd3'
 import { getLayoutOptions, layoutTypes } from '../utils/diagramLayout.js'
-import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
+import { createZoom, fitToScreen, setOptimalZoom, getCurrentZoom } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
 import { createNodeHoverHandlers } from '../utils/diagramEvents.js'
@@ -348,9 +348,12 @@ export async function renderDependency(container, data, options = {}) {
   svg.call(zoom)
 
   // 초기 줌 설정 (공통 유틸리티 사용)
+  // 수동 줌값이 설정에 있으면 사용, 없으면 자동 계산
+  const manualZoom = settings.manualZoom || null
   fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, {
     margin: 0.95, // 5% 여유 공간
     delay: 100,
+    manualZoom: manualZoom, // 수동 줌값 (있으면 자동 계산 대신 사용)
     onComplete: (transform) => {
       // 텍스트 위치 업데이트
       updateTextPositions(transform)
@@ -363,6 +366,19 @@ export async function renderDependency(container, data, options = {}) {
     textGroup,
     zoom,
     graph,
+    // 수동 최적 줌 함수 (모든 그래프/모드에 공통 적용)
+    // translateX, translateY가 null이면 자동으로 중앙정렬 계산
+    setOptimalZoom: (scale, translateX = null, translateY = null, options = {}) => {
+      return setOptimalZoom(svg, zoom, scale, translateX, translateY, {
+        ...options,
+        svgGroup,
+        containerWidth,
+        containerHeight,
+      })
+    },
+    getCurrentZoom: () => {
+      return getCurrentZoom(svg)
+    },
   }
 }
 

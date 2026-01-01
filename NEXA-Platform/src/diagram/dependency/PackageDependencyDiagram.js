@@ -5,7 +5,7 @@
  */
 
 import * as d3 from 'd3'
-import { createZoom, fitToScreen } from '../utils/diagramZoom.js'
+import { createZoom, fitToScreen, setOptimalZoom, getCurrentZoom } from '../utils/diagramZoom.js'
 import { loadDiagramSettings } from '../config/diagramSettings.js'
 import { diagramTypes } from '../config/diagramMetadata.js'
 import { createNodeHoverHandlers } from '../utils/diagramEvents.js'
@@ -366,9 +366,12 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
   svg.call(zoom)
 
   // 초기 줌 설정 (공통 유틸리티 사용, Force 시뮬레이션 완료 대기)
+  // 수동 줌값이 설정에 있으면 사용, 없으면 자동 계산
+  const manualZoom = settings.manualZoom || null
   fitToScreen(svg, svgGroup, containerWidth, containerHeight, zoom, {
     margin: 0.9,
     delay: 500, // 시뮬레이션이 어느 정도 진행된 후 줌 설정
+    manualZoom: manualZoom, // 수동 줌값 (있으면 자동 계산 대신 사용)
     onComplete: (transform) => {
       // 초기 줌 후 폰트 크기 제한 적용
       const inverseScale = 1 / transform.k
@@ -416,6 +419,19 @@ export async function renderDependencyAnalysis(container, data, options = {}) {
     simulation,
     unfixNodes,
     getFixedNodeIds,
+    // 수동 최적 줌 함수 (모든 그래프/모드에 공통 적용)
+    // translateX, translateY가 null이면 자동으로 중앙정렬 계산
+    setOptimalZoom: (scale, translateX = null, translateY = null, options = {}) => {
+      return setOptimalZoom(svg, zoom, scale, translateX, translateY, {
+        ...options,
+        svgGroup,
+        containerWidth,
+        containerHeight: containerHeight || window.innerHeight * 0.8,
+      })
+    },
+    getCurrentZoom: () => {
+      return getCurrentZoom(svg)
+    },
   }
 }
 

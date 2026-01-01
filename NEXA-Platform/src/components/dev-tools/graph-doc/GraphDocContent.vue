@@ -837,6 +837,7 @@ function handleDependencyDiagramLoaded(renderResult) {
   fileTreeDiagramRenderResult.value = null // 다른 다이어그램 초기화
   // 고정 노드 목록 업데이트 시작
   startFixedNodeListUpdate()
+  // 줌 없이 호출 예제: fitToScreen의 자동 줌만 사용 (setOptimalZoom 호출 없음)
 }
 
 function handleDependencyDiagramError(error) {
@@ -907,6 +908,30 @@ function handleFileTreeNodeHover(event) {
   }
 }
 
+// ===== 줌 있는 코드 (주석 처리) =====
+// function handleFileTreeDiagramLoaded(renderResult) {
+//   console.log('[GraphDocContent] 파일 트리 다이어그램 로드 완료:', renderResult)
+//   isAnalyzing.value = false
+//   fileTreeDiagramRenderResult.value = renderResult
+//   dependencyDiagramRenderResult.value = null // 다른 다이어그램 초기화
+//   // 고정 노드 목록 업데이트 시작
+//   startFixedNodeListUpdate()
+//
+//   // 파일 구조 그래프에만 2배 스케일 적용 (자동 중앙정렬)
+//   if (renderResult && renderResult.setOptimalZoom) {
+//     setTimeout(() => {
+//       try {
+//         // 스케일만 전달하면 setOptimalZoom에서 자동으로 중앙정렬 계산
+//         renderResult.setOptimalZoom(1.6, null, null, { animate: true })
+//         console.log('[GraphDocContent] 파일 구조 그래프 2배 스케일 적용 (자동 중앙정렬)')
+//       } catch (err) {
+//         console.warn('[GraphDocContent] 스케일 적용 실패:', err)
+//       }
+//     }, 500) // fitToScreen 완료 후 적용
+//   }
+// }
+
+// ===== 줌 없이 호출 (자동 줌만 사용) =====
 function handleFileTreeDiagramLoaded(renderResult) {
   console.log('[GraphDocContent] 파일 트리 다이어그램 로드 완료:', renderResult)
   isAnalyzing.value = false
@@ -914,6 +939,7 @@ function handleFileTreeDiagramLoaded(renderResult) {
   dependencyDiagramRenderResult.value = null // 다른 다이어그램 초기화
   // 고정 노드 목록 업데이트 시작
   startFixedNodeListUpdate()
+  // 줌 없이 호출: fitToScreen의 자동 줌만 사용 (setOptimalZoom 호출 없음)
 }
 
 function handleFileTreeDiagramError(error) {
