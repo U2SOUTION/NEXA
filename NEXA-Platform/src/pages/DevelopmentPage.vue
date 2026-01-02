@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import DocumentManagerContent from 'src/components/dev-tools/document-manager/DocumentManagerContent.vue'
 import ThemeManagerContent from 'src/components/dev-tools/theme-manager/ThemeManagerContent.vue'
 import GraphDocContent from 'src/components/dev-tools/graph-doc/GraphDocContent.vue'
@@ -54,25 +54,23 @@ import SettingsManagerContent from 'src/components/dev-tools/settings-manager/Se
 import ComponentLibraryContent from 'src/components/dev-tools/component-library/ComponentLibraryContent.vue'
 import DevGuideContent from 'src/components/dev-tools/dev-guide/DevGuideContent.vue'
 import DevOpsContent from 'src/components/dev-tools/devops/DevOpsContent.vue'
+import { useDevMenuState } from 'src/composables/dev-tools/useDevMenuState'
 
-// Active menu 상태 (DevSidebar가 완전히 관리, 여기서는 이벤트로만 동기화)
-const activeMenu = ref(null)
-
-// 테마 관리 상태 (DevSidebar와 동기화)
-const themeSearchQuery = ref('')
-const themeCategoryFilter = ref(null)
-const themeSortOption = ref('category')
-
-// 설정 관리 상태 (DevSidebar와 동기화)
-const settingsManagerSelectedSetting = ref(null)
-const settingsManagerStatistics = ref(null)
-
-// DevOps 상태
-const devOpsActiveTab = ref('build')
-const devOpsSelectedBuild = ref(null)
-const devOpsSelectedDeployment = ref(null)
-const devOpsSelectedEnvironmentVariable = ref(null)
-const devOpsSelectedPackage = ref(null)
+// 메뉴 상태 관리 (composable 사용 - DevSidebar와 동일한 인스턴스)
+const {
+  activeMenu,
+  themeSearchQuery,
+  themeCategoryFilter,
+  themeSortOption,
+  settingsManagerSelectedSetting,
+  settingsManagerStatistics,
+  devOpsActiveTab,
+  devOpsSelectedBuild,
+  devOpsSelectedDeployment,
+  devOpsSelectedEnvironmentVariable,
+  devOpsSelectedPackage,
+  initialize: initializeMenuState,
+} = useDevMenuState()
 
 // 테마 관리 상태 변경 이벤트 핸들러
 function handleThemeSearchChange(event) {
@@ -182,27 +180,8 @@ function handleSettingsManagerSettingDeleted() {
   window.dispatchEvent(new CustomEvent('settings-manager-refresh-request'))
 }
 
-// DevOps 상태 저장 헬퍼 함수
-function saveDevOpsState() {
-  if (activeMenu.value === 'devops') {
-    window.dispatchEvent(
-      new CustomEvent('dev-menu-state-save', {
-        detail: {
-          menuId: 'devops',
-          state: {
-            activeTab: devOpsActiveTab.value,
-            selectedBuild: devOpsSelectedBuild.value,
-            selectedDeployment: devOpsSelectedDeployment.value,
-            selectedEnvironmentVariable: devOpsSelectedEnvironmentVariable.value,
-            selectedPackage: devOpsSelectedPackage.value,
-          },
-        },
-      }),
-    )
-  }
-}
-
 // DevOps 핸들러
+// composable의 상태를 직접 업데이트 (자동 저장됨)
 function handleDevOpsTabChange(event) {
   const { tab } = event.detail
   devOpsActiveTab.value = tab
@@ -211,36 +190,26 @@ function handleDevOpsTabChange(event) {
   devOpsSelectedDeployment.value = null
   devOpsSelectedEnvironmentVariable.value = null
   devOpsSelectedPackage.value = null
-  // 상태 저장
-  saveDevOpsState()
 }
 
 function handleDevOpsBuildSelected(event) {
   const { build } = event.detail
   devOpsSelectedBuild.value = build
-  // 상태 저장
-  saveDevOpsState()
 }
 
 function handleDevOpsDeploymentSelected(event) {
   const { deployment } = event.detail
   devOpsSelectedDeployment.value = deployment
-  // 상태 저장
-  saveDevOpsState()
 }
 
 function handleDevOpsEnvironmentVariableSelected(event) {
   const { variable } = event.detail
   devOpsSelectedEnvironmentVariable.value = variable
-  // 상태 저장
-  saveDevOpsState()
 }
 
 function handleDevOpsPackageSelected(event) {
   const { package: packageItem } = event.detail
   devOpsSelectedPackage.value = packageItem
-  // 상태 저장
-  saveDevOpsState()
 }
 
 // 메뉴 메인 페이지로 이동 핸들러
@@ -333,7 +302,10 @@ function handleActiveMenuChange(event) {
 }
 
 onMounted(async () => {
-  // Active menu 변경 이벤트 리스너 등록
+  // 메뉴 상태 초기화 (composable에서 URL, localStorage 처리)
+  initializeMenuState()
+
+  // 이벤트 리스너 등록 (다른 컴포넌트와의 통신용)
   window.addEventListener('dev-menu-changed', handleActiveMenuChange)
   window.addEventListener('dev-menu-main-page', handleMenuMainPage)
   window.addEventListener('theme-manager-search-changed', handleThemeSearchChange)
@@ -348,9 +320,6 @@ onMounted(async () => {
   window.addEventListener('devops-deployment-selected', handleDevOpsDeploymentSelected)
   window.addEventListener('devops-environment-variable-selected', handleDevOpsEnvironmentVariableSelected)
   window.addEventListener('devops-package-selected', handleDevOpsPackageSelected)
-
-  // DevSidebar가 메뉴 상태를 완전히 관리하므로, 여기서는 이벤트만 수신
-  // 초기 메뉴는 DevSidebar에서 dev-menu-changed 이벤트로 전달됨
 })
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거

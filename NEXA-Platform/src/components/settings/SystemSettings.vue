@@ -323,15 +323,6 @@
             <q-toggle v-model="enableHotReload" />
           </q-item-section>
         </q-item>
-        <q-item>
-          <q-item-section>
-            <q-item-label>이전 메뉴 복원</q-item-label>
-            <q-item-label caption>메인 메뉴 [DEV] 클릭 시 이전에 사용한 메뉴로 복원합니다</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-toggle v-model="restoreLastMenu" />
-          </q-item-section>
-        </q-item>
       </q-list>
     </div>
 
@@ -557,35 +548,6 @@ const enableDevTools = ref(props.settings.developer.enableDevTools)
 const showDebugInfo = ref(props.settings.developer.showDebugInfo)
 const enableHotReload = ref(props.settings.developer.enableHotReload)
 
-// 이전 메뉴 복원 설정 (localStorage에서 직접 관리)
-const RESTORE_OPTION_KEY = 'dev-restore-last-menu'
-const restoreLastMenu = ref(true) // 기본값: true
-
-// 설정 로드
-function loadRestoreOption() {
-  try {
-    const saved = localStorage.getItem(RESTORE_OPTION_KEY)
-    if (saved !== null) {
-      restoreLastMenu.value = saved === 'true'
-    }
-  } catch (error) {
-    console.error('[SystemSettings] 이전 메뉴 복원 설정 로드 실패:', error)
-  }
-}
-
-// 설정 저장
-function saveRestoreOption(value) {
-  try {
-    localStorage.setItem(RESTORE_OPTION_KEY, value.toString())
-  } catch (error) {
-    console.error('[SystemSettings] 이전 메뉴 복원 설정 저장 실패:', error)
-  }
-}
-
-// 복원 옵션 변경 핸들러
-function handleRestoreOptionChange(value) {
-  saveRestoreOption(value)
-}
 
 // 언어 및 지역 설정
 const locale = ref(props.settings.language.locale)
@@ -694,13 +656,7 @@ function clearBrowserCache() {
 }
 
 // 컴포넌트 마운트 시 사용량 계산
-// 이전 메뉴 복원 옵션 변경 감시
-watch(restoreLastMenu, (newValue) => {
-  handleRestoreOptionChange(newValue)
-})
-
 onMounted(() => {
-  loadRestoreOption()
   if (localStorageShowUsage.value) {
     calculateLocalStorageUsage()
   }

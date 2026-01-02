@@ -425,22 +425,6 @@ function getUsageLocations(keyName) {
       type: 'component',
       description: '활성 메뉴 상태 복원',
     })
-  } else if (keyName === 'dev-restore-last-menu') {
-    locations.push({
-      path: 'src/pages/DevelopmentPage.vue',
-      type: 'component',
-      description: '이전 메뉴 복원 옵션',
-    })
-    locations.push({
-      path: 'src/components/sidebars/left/DevSidebar.vue',
-      type: 'component',
-      description: '이전 메뉴 복원 옵션',
-    })
-    locations.push({
-      path: 'src/components/settings/SystemSettings.vue',
-      type: 'component',
-      description: '시스템 설정에서 관리',
-    })
   } else if (keyName === 'dev-menu-wheel-scroll-step') {
     locations.push({
       path: 'src/components/sidebars/left/dev-tools/DevMenuSlider.vue',

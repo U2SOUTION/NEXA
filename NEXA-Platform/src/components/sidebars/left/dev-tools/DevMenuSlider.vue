@@ -88,31 +88,9 @@ const devMenus = [
   { id: 'performance-monitor', label: '성능 모니터', icon: 'speed' },
 ]
 
-// 초기 activeMenu 로드 함수 (DevelopmentPage와 동일한 로직)
-function getInitialActiveMenu() {
-  try {
-    // 이전 메뉴 복원 옵션 확인
-    const restoreOption = localStorage.getItem('dev-restore-last-menu')
-    const shouldRestore = restoreOption === null || restoreOption === 'true' // 기본값: true
-
-    if (shouldRestore) {
-      const saved = localStorage.getItem('dev-active-menu')
-      if (saved) {
-        // 유효한 메뉴 ID인지 확인
-        const validMenus = devMenus.map((menu) => menu.id)
-        if (validMenus.includes(saved)) {
-          return saved
-        }
-      }
-    }
-  } catch (error) {
-    console.error('[DevMenuSlider] 초기 메뉴 로드 실패:', error)
-  }
-  return null
-}
-
-// 현재 선택된 메뉴 (기본값: null - DevelopmentPage와 동기화)
-const initialActiveMenu = getInitialActiveMenu()
+// 초기 activeMenu는 null (URL 기반으로만 동작)
+// localStorage 복원 로직 제거 (URL만 사용)
+const initialActiveMenu = null
 const activeMenu = ref(initialActiveMenu)
 
 // 슬라이더 참조
