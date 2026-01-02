@@ -1136,9 +1136,10 @@ function handleMainContentDoubleClick(event) {
   // 케이스 2: 둘 다 열려 있음 → 둘 다 닫기
   if (isLeftOpen && isRightOpen) {
     dashboardLayoutStore.toggleMainNavigation()
-    setTimeout(() => {
+    // nextTick으로 Vue 반응성 시스템과 동기화하여 상태 변경 충돌 방지
+    nextTick(() => {
       togglePropertyPanel()
-    }, 50)
+    })
     return
   }
 
