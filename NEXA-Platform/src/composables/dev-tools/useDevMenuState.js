@@ -217,8 +217,9 @@ export function useDevMenuState() {
   /**
    * 메뉴 변경 핸들러
    * @param {string|null} menuId - 메뉴 ID 또는 null
+   * @param {boolean} skipUrlUpdate - URL 업데이트를 건너뛸지 여부 (브라우저 뒤로가기 등에서 사용)
    */
-  function setActiveMenu(menuId) {
+  function setActiveMenu(menuId, skipUrlUpdate = false) {
     // 이전 메뉴 상태 저장
     if (activeMenu.value) {
       saveCurrentMenuState()
@@ -226,34 +227,36 @@ export function useDevMenuState() {
 
     activeMenu.value = menuId
 
-    // URL 업데이트
-    if (menuId) {
-      router.push({
-        path: route.path,
-        query: { ...route.query, menu: menuId },
-        hash: route.hash,
-      })
-      // localStorage에 저장 (다음 접속 시 복원용)
-      try {
-        localStorage.setItem('dev-active-menu', menuId)
-      } catch (error) {
-        console.error('[useDevMenuState] 메뉴 상태 저장 실패:', error)
-      }
-    } else {
-      // 메뉴가 없으면 쿼리 파라미터에서 menu 제거
-      const newQuery = { ...route.query }
-      delete newQuery.menu
-      router.push({
-        path: route.path,
-        query: newQuery,
-        hash: route.hash,
-      })
-      // localStorage에서도 제거 (명시적으로 기본 페이지로 이동)
-      try {
-        localStorage.removeItem('dev-active-menu')
-        localStorage.removeItem('dev-active-menu-state-key')
-      } catch (error) {
-        console.error('[useDevMenuState] 메뉴 상태 삭제 실패:', error)
+    // URL 업데이트 (skipUrlUpdate가 false일 때만)
+    if (!skipUrlUpdate) {
+      if (menuId) {
+        router.push({
+          path: route.path,
+          query: { ...route.query, menu: menuId },
+          hash: route.hash,
+        })
+        // localStorage에 저장 (다음 접속 시 복원용)
+        try {
+          localStorage.setItem('dev-active-menu', menuId)
+        } catch (error) {
+          console.error('[useDevMenuState] 메뉴 상태 저장 실패:', error)
+        }
+      } else {
+        // 메뉴가 없으면 쿼리 파라미터에서 menu 제거
+        const newQuery = { ...route.query }
+        delete newQuery.menu
+        router.push({
+          path: route.path,
+          query: newQuery,
+          hash: route.hash,
+        })
+        // localStorage에서도 제거 (명시적으로 기본 페이지로 이동)
+        try {
+          localStorage.removeItem('dev-active-menu')
+          localStorage.removeItem('dev-active-menu-state-key')
+        } catch (error) {
+          console.error('[useDevMenuState] 메뉴 상태 삭제 실패:', error)
+        }
       }
     }
 
@@ -294,11 +297,12 @@ export function useDevMenuState() {
         if (newMenu && typeof newMenu === 'string') {
           const validMenus = ['document-manager', 'theme-manager', 'dev-guide', 'component-library', 'database-viewer', 'performance-monitor', 'settings-manager', 'document-generator', 'devops']
           if (validMenus.includes(newMenu) && activeMenu.value !== newMenu) {
-            setActiveMenu(newMenu)
+            // URL 변경 감지 시에는 URL 업데이트를 건너뜀 (브라우저 뒤로가기 등)
+            setActiveMenu(newMenu, true)
           }
         } else if (!newMenu && activeMenu.value) {
           // URL에서 menu가 제거되면 메뉴도 초기화
-          // 단, localStorage에서 복원된 메뉴는 유지하지 않음 (URL이 우선)
+          // URL 업데이트는 필요 없음 (이미 URL에서 제거됨)
           activeMenu.value = null
         }
       },

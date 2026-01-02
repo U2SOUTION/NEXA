@@ -1,7 +1,7 @@
 <!--전체적인 레이아웃 구성-->
 <template>
   <q-layout view="hHh Lpr fFf">
-    <q-header>
+    <q-header ref="headerRef">
       <q-toolbar class="bg-grey-10" dense>
         <div class="row items-center no-wrap q-mr-md">
           <q-btn flat dense class="nexa-logo-btn" style="padding: 5px">
@@ -151,7 +151,8 @@
         '--icon-rotation': leftIconRotation,
         '--hover-rotation': leftHoverRotation,
       }"
-      @click="dashboardLayoutStore.toggleMainNavigation()"
+      @mousedown="handleLeftToggleMouseDown"
+      @touchstart="handleLeftToggleMouseDown"
     >
       <q-icon name="double_arrow" />
       <span class="toggle-label">LEFT NAV</span>
@@ -169,7 +170,8 @@
         '--icon-rotation': rightIconRotation,
         '--hover-rotation': rightHoverRotation,
       }"
-      @click="togglePropertyPanel()"
+      @mousedown="handleRightToggleMouseDown"
+      @touchstart="handleRightToggleMouseDown"
     >
       <q-icon name="double_arrow" />
       <span class="toggle-label">RIGHT PANEL</span>
@@ -323,6 +325,7 @@ const showTabIcons = computed(() => $q.screen.gt.md)
 
 const highlightedNodeId = ref(null)
 const showWindowPresetModal = ref(false)
+const headerRef = ref(null) // 헤더 ref (실제 높이 측정용)
 const headerIconGroupRef = ref(null)
 const contextIconGroupRef = ref(null)
 const rightIconAreaRef = ref(null) // 오른쪽 아이콘 영역 전체
@@ -347,19 +350,19 @@ function handlePartsManagementTabClick() {
 
 // 메인 메뉴 탭 정의
 const mainMenuTabs = [
-  { name: 'home', label: 'HOME', displayLabel: 'HOME', icon: 'home', route: '/', exact: true, nexaPrefix: false },
-  { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: true, nexaPrefix: true },
-  { name: 'nexa-pannel', label: 'NEXA PANNEL', displayLabel: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', exact: true, nexaPrefix: true },
-  { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: true, nexaPrefix: true },
-  { name: 'nexa-teach', label: 'NEXA TEACH', displayLabel: 'TEACH', icon: 'school', route: '/nexa-teach', exact: true, nexaPrefix: true },
-  { name: 'erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: true, nexaPrefix: true },
-  { name: 'parts-management', label: '부품관리', displayLabel: '부품관리', icon: 'inventory_2', route: '/parts-management', exact: true, onClick: handlePartsManagementTabClick, nexaPrefix: false },
-  { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: true, nexaPrefix: false },
-  { name: 'system', label: 'SYSTEM', displayLabel: 'SYSTEM', icon: 'settings', route: '/system', exact: true, nexaPrefix: false },
-  { name: 'network', label: 'NETWORK', displayLabel: 'NETWORK', icon: 'router', route: '/network', exact: true, nexaPrefix: false },
-  { name: 'solutions', label: 'SOLUTIONS', displayLabel: 'SOLUTIONS', icon: 'lightbulb', route: '/solutions', exact: true, nexaPrefix: false },
-  { name: 'help', label: 'HELP', displayLabel: 'HELP', icon: 'help_outline', route: '/help', exact: true, nexaPrefix: false },
-  { name: 'dev', label: 'DEV', displayLabel: 'DEV', icon: 'code', route: '/dev', exact: true, nexaPrefix: false },
+  { name: 'home', label: 'HOME', displayLabel: 'HOME', icon: 'home', route: '/', exact: false, nexaPrefix: false },
+  { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: false, nexaPrefix: true },
+  { name: 'nexa-pannel', label: 'NEXA PANNEL', displayLabel: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', exact: false, nexaPrefix: true },
+  { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
+  { name: 'nexa-teach', label: 'NEXA TEACH', displayLabel: 'TEACH', icon: 'school', route: '/nexa-teach', exact: false, nexaPrefix: true },
+  { name: 'erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
+  { name: 'parts-management', label: '부품관리', displayLabel: '부품관리', icon: 'inventory_2', route: '/parts-management', exact: false, onClick: handlePartsManagementTabClick, nexaPrefix: false },
+  { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },
+  { name: 'system', label: 'SYSTEM', displayLabel: 'SYSTEM', icon: 'settings', route: '/system', exact: false, nexaPrefix: false },
+  { name: 'network', label: 'NETWORK', displayLabel: 'NETWORK', icon: 'router', route: '/network', exact: false, nexaPrefix: false },
+  { name: 'solutions', label: 'SOLUTIONS', displayLabel: 'SOLUTIONS', icon: 'lightbulb', route: '/solutions', exact: false, nexaPrefix: false },
+  { name: 'help', label: 'HELP', displayLabel: 'HELP', icon: 'help_outline', route: '/help', exact: false, nexaPrefix: false },
+  { name: 'dev', label: 'DEV', displayLabel: 'DEV', icon: 'code', route: '/dev', exact: false, nexaPrefix: false },
 ]
 
 // 가려진 탭 이름 집합
@@ -697,10 +700,18 @@ const handleMainNavigationResize = (event) => {
 
   // 화면 크기에 따라 최대 너비 동적 계산 (화면의 60% 또는 600px 중 작은 값)
   const maxWidth = Math.min(600, Math.floor(window.innerWidth * 0.6))
-  const newWidth = Math.max(200, Math.min(startMainNavigationWidth.value + diff, maxWidth))
+  const newWidth = Math.max(0, Math.min(startMainNavigationWidth.value + diff, maxWidth))
 
-  // 리사이즈 중에는 저장하지 않고 값만 업데이트
-  userSettings.settings.drawer.leftWidth = newWidth
+  // 일정 폭 이하(50px)로 줄어들면 자동으로 닫기
+  if (newWidth <= 50) {
+    userSettings.settings.drawer.leftWidth = 0
+    if (dashboardLayoutStore.mainNavigationOpen) {
+      dashboardLayoutStore.toggleMainNavigation()
+    }
+  } else {
+    // 리사이즈 중에는 저장하지 않고 값만 업데이트
+    userSettings.settings.drawer.leftWidth = newWidth
+  }
 }
 
 // 메인 네비게이션 리사이즈 종료
@@ -754,10 +765,18 @@ const handleResize = (event) => {
 
   // 화면 크기에 따라 최대 너비 동적 계산 (화면의 60% 또는 800px 중 작은 값)
   const maxWidth = Math.min(800, Math.floor(window.innerWidth * 0.6))
-  const newWidth = Math.max(200, Math.min(startWidth.value + diff, maxWidth))
+  const newWidth = Math.max(0, Math.min(startWidth.value + diff, maxWidth))
 
-  // 리사이즈 중에는 저장하지 않고 값만 업데이트
-  userSettings.settings.drawer.rightWidth = newWidth
+  // 일정 폭 이하(50px)로 줄어들면 자동으로 닫기
+  if (newWidth <= 50) {
+    userSettings.settings.drawer.rightWidth = 0
+    if (userSettings.settings.drawer.rightOpen) {
+      togglePropertyPanel()
+    }
+  } else {
+    // 리사이즈 중에는 저장하지 않고 값만 업데이트
+    userSettings.settings.drawer.rightWidth = newWidth
+  }
 }
 
 // 오른쪽 도구 패널 리사이즈 종료
@@ -778,6 +797,258 @@ const stopResize = () => {
   document.removeEventListener('touchmove', handleResize)
   document.removeEventListener('mouseup', stopResize)
   document.removeEventListener('touchend', stopResize)
+}
+
+// ============================================
+// 토글 버튼 드래그 기능
+// ============================================
+
+// 왼쪽 토글 버튼 드래그 상태
+const leftToggleDragState = {
+  isDragging: false,
+  startX: 0,
+  startY: 0,
+  startWidth: 0,
+  hasMoved: false,
+  wasClosed: false, // mousedown 시점의 상태 저장
+}
+
+// 왼쪽 토글 버튼 mousedown
+function handleLeftToggleMouseDown(event) {
+  event.preventDefault()
+  event.stopPropagation()
+
+  leftToggleDragState.isDragging = false
+  leftToggleDragState.startX = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX
+  leftToggleDragState.startY = event.type === 'mousedown' ? event.clientY : event.touches[0].clientY
+  leftToggleDragState.startWidth = userSettings.settings.drawer.leftWidth
+  leftToggleDragState.hasMoved = false
+  leftToggleDragState.wasClosed = !dashboardLayoutStore.mainNavigationOpen // 상태 저장
+
+  // 닫힌 상태에서는 mousedown에서 열지 않음 (mouseup 또는 mousemove에서 처리)
+  if (!leftToggleDragState.wasClosed) {
+    startMainNavigationWidth.value = leftToggleDragState.startWidth
+  }
+
+  document.addEventListener('mousemove', handleLeftToggleMouseMove)
+  document.addEventListener('mouseup', handleLeftToggleMouseUp)
+  document.addEventListener('touchmove', handleLeftToggleMouseMove, { passive: true })
+  document.addEventListener('touchend', handleLeftToggleMouseUp, { passive: true })
+}
+
+// 왼쪽 토글 버튼 mousemove
+function handleLeftToggleMouseMove(event) {
+  const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
+  const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY
+  const deltaX = Math.abs(currentX - leftToggleDragState.startX)
+  const deltaY = Math.abs(currentY - leftToggleDragState.startY)
+
+  // 일정 거리 이상 이동하면 드래그로 간주 (5px)
+  if (deltaX > 5 || deltaY > 5) {
+    leftToggleDragState.hasMoved = true
+    leftToggleDragState.isDragging = true
+
+    // 닫힌 상태에서 드래그 시작 시 열기 (마우스 위치에 맞춰 열기)
+    if (leftToggleDragState.wasClosed && !dashboardLayoutStore.mainNavigationOpen) {
+      // 마우스의 현재 X 좌표를 직접 너비로 사용 (마우스 커서와 핸들 동기화, 최소 폭 제한 없음)
+      const maxWidth = Math.min(600, Math.floor(window.innerWidth * 0.6))
+      const initialWidth = Math.max(0, Math.min(currentX, maxWidth))
+      userSettings.settings.drawer.leftWidth = initialWidth
+      dashboardLayoutStore.toggleMainNavigation()
+      leftToggleDragState.startWidth = initialWidth
+      startMainNavigationWidth.value = initialWidth
+      // 드래그가 감지된 시점의 마우스 위치를 시작점으로 설정
+      startMainNavigationX.value = currentX
+    }
+
+    // 기존 리사이즈 로직 사용
+    if (!isMainNavigationResizing.value) {
+      isMainNavigationResizing.value = true
+      // 닫힌 상태에서 열었으면 이미 위에서 설정했으므로, 열린 상태에서만 mousedown 시점 사용
+      if (!leftToggleDragState.wasClosed || dashboardLayoutStore.mainNavigationOpen) {
+        startMainNavigationX.value = leftToggleDragState.startX
+      }
+
+      document.body.style.cursor = 'ew-resize'
+      document.body.style.userSelect = 'none'
+      document.body.style.webkitUserSelect = 'none'
+      document.body.style.mozUserSelect = 'none'
+      document.body.style.msUserSelect = 'none'
+    }
+
+    // 리사이즈 처리 (최소 폭 제한 없음, 일정 폭 이하면 자동으로 닫기)
+    const diff = currentX - startMainNavigationX.value
+    const maxWidth = Math.min(600, Math.floor(window.innerWidth * 0.6))
+    const newWidth = Math.max(0, Math.min(startMainNavigationWidth.value + diff, maxWidth))
+
+    // 일정 폭 이하(50px)로 줄어들면 자동으로 닫기
+    if (newWidth <= 50) {
+      userSettings.settings.drawer.leftWidth = 0
+      if (dashboardLayoutStore.mainNavigationOpen) {
+        dashboardLayoutStore.toggleMainNavigation()
+      }
+    } else {
+      userSettings.settings.drawer.leftWidth = newWidth
+    }
+  }
+}
+
+// 왼쪽 토글 버튼 mouseup
+// eslint-disable-next-line no-unused-vars
+function handleLeftToggleMouseUp(event) {
+  const wasDragging = leftToggleDragState.isDragging
+
+  document.removeEventListener('mousemove', handleLeftToggleMouseMove)
+  document.removeEventListener('mouseup', handleLeftToggleMouseUp)
+  document.removeEventListener('touchmove', handleLeftToggleMouseMove)
+  document.removeEventListener('touchend', handleLeftToggleMouseUp)
+
+  if (wasDragging) {
+    // 드래그였으면 리사이즈 종료
+    stopMainNavigationResize()
+  } else if (!leftToggleDragState.hasMoved) {
+    // 이동이 없었으면 클릭으로 간주
+    if (leftToggleDragState.wasClosed) {
+      // 닫힌 상태에서 클릭만 했으면 이전 크기로 열기 (저장된 값 사용)
+      // 너비가 0이거나 50px 이하면 기본값(250px) 사용
+      const savedWidth = leftToggleDragState.startWidth
+      const restoreWidth = savedWidth > 50 ? savedWidth : 250
+      userSettings.settings.drawer.leftWidth = restoreWidth
+      dashboardLayoutStore.toggleMainNavigation()
+      userSettings.saveSettings()
+    } else {
+      // 열린 상태에서 클릭만 했으면 토글 (닫기)
+      dashboardLayoutStore.toggleMainNavigation()
+    }
+  }
+
+  // 상태 초기화
+  leftToggleDragState.isDragging = false
+  leftToggleDragState.hasMoved = false
+}
+
+// 오른쪽 토글 버튼 드래그 상태
+const rightToggleDragState = {
+  isDragging: false,
+  startX: 0,
+  startY: 0,
+  startWidth: 0,
+  hasMoved: false,
+  wasClosed: false, // mousedown 시점의 상태 저장
+}
+
+// 오른쪽 토글 버튼 mousedown
+function handleRightToggleMouseDown(event) {
+  event.preventDefault()
+  event.stopPropagation()
+
+  rightToggleDragState.isDragging = false
+  rightToggleDragState.startX = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX
+  rightToggleDragState.startY = event.type === 'mousedown' ? event.clientY : event.touches[0].clientY
+  rightToggleDragState.startWidth = userSettings.settings.drawer.rightWidth
+  rightToggleDragState.hasMoved = false
+  rightToggleDragState.wasClosed = !userSettings.settings.drawer.rightOpen // 상태 저장
+
+  // 닫힌 상태에서는 mousedown에서 열지 않음 (mouseup 또는 mousemove에서 처리)
+  if (!rightToggleDragState.wasClosed) {
+    startWidth.value = rightToggleDragState.startWidth
+  }
+
+  document.addEventListener('mousemove', handleRightToggleMouseMove)
+  document.addEventListener('mouseup', handleRightToggleMouseUp)
+  document.addEventListener('touchmove', handleRightToggleMouseMove, { passive: true })
+  document.addEventListener('touchend', handleRightToggleMouseUp, { passive: true })
+}
+
+// 오른쪽 토글 버튼 mousemove
+function handleRightToggleMouseMove(event) {
+  const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
+  const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY
+  const deltaX = Math.abs(currentX - rightToggleDragState.startX)
+  const deltaY = Math.abs(currentY - rightToggleDragState.startY)
+
+  // 일정 거리 이상 이동하면 드래그로 간주 (5px)
+  if (deltaX > 5 || deltaY > 5) {
+    rightToggleDragState.hasMoved = true
+    rightToggleDragState.isDragging = true
+
+    // 닫힌 상태에서 드래그 시작 시 열기 (마우스 위치에 맞춰 열기)
+    if (rightToggleDragState.wasClosed && !userSettings.settings.drawer.rightOpen) {
+      // 오른쪽 사이드바는 화면 오른쪽에서 왼쪽으로 열리므로, 화면 너비에서 마우스 X 좌표를 뺀 값이 너비 (최소 폭 제한 없음)
+      const maxWidth = Math.min(800, Math.floor(window.innerWidth * 0.6))
+      const initialWidth = Math.max(0, Math.min(window.innerWidth - currentX, maxWidth))
+      userSettings.settings.drawer.rightWidth = initialWidth
+      togglePropertyPanel()
+      rightToggleDragState.startWidth = initialWidth
+      startWidth.value = initialWidth
+      // 드래그가 감지된 시점의 마우스 위치를 시작점으로 설정
+      startX.value = currentX
+    }
+
+    // 기존 리사이즈 로직 사용
+    if (!isResizing.value) {
+      isResizing.value = true
+      // 닫힌 상태에서 열었으면 이미 위에서 설정했으므로, 열린 상태에서만 mousedown 시점 사용
+      if (!rightToggleDragState.wasClosed || userSettings.settings.drawer.rightOpen) {
+        startX.value = rightToggleDragState.startX
+      }
+
+      document.body.style.cursor = 'ew-resize'
+      document.body.style.userSelect = 'none'
+      document.body.style.webkitUserSelect = 'none'
+      document.body.style.mozUserSelect = 'none'
+      document.body.style.msUserSelect = 'none'
+    }
+
+    // 리사이즈 처리 (오른쪽은 반대 방향, 최소 폭 제한 없음, 일정 폭 이하면 자동으로 닫기)
+    const diff = startX.value - currentX
+    const maxWidth = Math.min(800, Math.floor(window.innerWidth * 0.6))
+    const newWidth = Math.max(0, Math.min(startWidth.value + diff, maxWidth))
+
+    // 일정 폭 이하(50px)로 줄어들면 자동으로 닫기
+    if (newWidth <= 50) {
+      userSettings.settings.drawer.rightWidth = 0
+      if (userSettings.settings.drawer.rightOpen) {
+        togglePropertyPanel()
+      }
+    } else {
+      userSettings.settings.drawer.rightWidth = newWidth
+    }
+  }
+}
+
+// 오른쪽 토글 버튼 mouseup
+// eslint-disable-next-line no-unused-vars
+function handleRightToggleMouseUp(event) {
+  const wasDragging = rightToggleDragState.isDragging
+
+  document.removeEventListener('mousemove', handleRightToggleMouseMove)
+  document.removeEventListener('mouseup', handleRightToggleMouseUp)
+  document.removeEventListener('touchmove', handleRightToggleMouseMove)
+  document.removeEventListener('touchend', handleRightToggleMouseUp)
+
+  if (wasDragging) {
+    // 드래그였으면 리사이즈 종료
+    stopResize()
+  } else if (!rightToggleDragState.hasMoved) {
+    // 이동이 없었으면 클릭으로 간주
+    if (rightToggleDragState.wasClosed) {
+      // 닫힌 상태에서 클릭만 했으면 이전 크기로 열기 (저장된 값 사용)
+      // 너비가 0이거나 50px 이하면 기본값(300px) 사용
+      const savedWidth = rightToggleDragState.startWidth
+      const restoreWidth = savedWidth > 50 ? savedWidth : 300
+      userSettings.settings.drawer.rightWidth = restoreWidth
+      togglePropertyPanel()
+      userSettings.saveSettings()
+    } else {
+      // 열린 상태에서 클릭만 했으면 토글 (닫기)
+      togglePropertyPanel()
+    }
+  }
+
+  // 상태 초기화
+  rightToggleDragState.isDragging = false
+  rightToggleDragState.hasMoved = false
 }
 
 const rightDrawerStyles = computed(() => {
@@ -810,6 +1081,47 @@ const getAutoMoveDelay = () => 300
 // 타이머 ref
 let autoMoveTimer = null
 
+// 메인 메뉴 영역 높이 계산 (헤더 전체의 실제 높이를 직접 측정)
+const menuAreaHeight = computed(() => {
+  // q-header 요소의 실제 높이를 직접 측정 (가장 정확함)
+  if (headerRef.value && headerRef.value.$el) {
+    const headerElement = headerRef.value.$el
+    const actualHeight = headerElement.offsetHeight || 0
+    if (actualHeight > 0) {
+      return actualHeight
+    }
+  }
+
+  // fallback: 메뉴 탭 높이만 계산 (헤더가 아직 마운트되지 않은 경우)
+  let menuTabsHeight = 0
+  if (mainMenuTabsRef.value) {
+    const tabsElement = mainMenuTabsRef.value.$el
+    if (tabsElement) {
+      menuTabsHeight = tabsElement.offsetHeight || 0
+    }
+  }
+
+  // CSS 변수는 참고용으로만 사용 (실제 높이와 다를 수 있음)
+  const fallbackHeaderHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 42
+  return fallbackHeaderHeight + menuTabsHeight
+})
+
+// 메뉴 영역 높이 변경 감지 (리사이즈, 메뉴 추가/제거 등)
+const menuAreaHeightRef = ref(menuAreaHeight.value)
+watch(
+  menuAreaHeight,
+  (newHeight) => {
+    menuAreaHeightRef.value = newHeight
+    // 버튼 위치가 메뉴 영역 아래에 있는지 확인하고 필요시 조정
+    const buttonHalfHeight = BUTTON_HEIGHT / 2
+    const minY = newHeight + buttonHalfHeight
+    if (buttonY.value < minY) {
+      buttonY.value = minY
+    }
+  },
+  { immediate: true },
+)
+
 // 버튼 위치를 마우스 위치로 업데이트하는 함수
 const updateButtonPosition = () => {
   const buttonHalfHeight = BUTTON_HEIGHT / 2
@@ -819,7 +1131,8 @@ const updateButtonPosition = () => {
 
   // 마우스가 버튼의 상단이나 하단을 벗어났을 때만 버튼 위치 업데이트
   if (currentMouseY < buttonTop || currentMouseY > buttonBottom) {
-    const minY = buttonHalfHeight // 버튼이 화면 상단을 벗어나지 않도록
+    // 메뉴 영역 아래에 버튼이 위치하도록 minY 계산
+    const minY = menuAreaHeight.value + buttonHalfHeight
     const maxY = window.innerHeight - buttonHalfHeight // 버튼이 화면 하단을 벗어나지 않도록
 
     // 마우스 Y좌표를 화면 경계 내로 제한하여 버튼 위치 업데이트
@@ -915,15 +1228,19 @@ onMounted(() => {
   userSettings.initializeTheme()
 
   // 초기 버튼 Y좌표 설정 (화면 중앙, 경계 체크 포함)
-  const buttonHalfHeight = BUTTON_HEIGHT / 2
-  const initialY = window.innerHeight / 2
-  const minY = buttonHalfHeight
-  const maxY = window.innerHeight - buttonHalfHeight
-  const initialButtonY = Math.max(minY, Math.min(maxY, initialY))
-  buttonY.value = initialButtonY
+  // nextTick을 사용하여 메뉴 영역 높이가 계산된 후 설정
+  nextTick(() => {
+    const buttonHalfHeight = BUTTON_HEIGHT / 2
+    const initialY = window.innerHeight / 2
+    // 메뉴 영역 아래에 버튼이 위치하도록 minY 계산
+    const minY = menuAreaHeight.value + buttonHalfHeight
+    const maxY = window.innerHeight - buttonHalfHeight
+    const initialButtonY = Math.max(minY, Math.min(maxY, initialY))
+    buttonY.value = initialButtonY
 
-  // 초기 마우스 위치를 버튼 위치와 동기화
-  mouseY.value = initialButtonY
+    // 초기 마우스 위치를 버튼 위치와 동기화
+    mouseY.value = initialButtonY
+  })
 
   // 마우스 이동 이벤트 리스너 등록
   window.addEventListener('mousemove', handleMouseMove)
