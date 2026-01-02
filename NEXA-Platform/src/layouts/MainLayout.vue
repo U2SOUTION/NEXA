@@ -110,7 +110,7 @@
       <component v-if="leftSidebarComponent" :is="leftSidebarComponent" :highlighted-node-id="highlightedNodeId" />
     </q-drawer>
 
-    <q-page-container :class="{ 'parts-management-container': currentMenu === 'parts-management' }">
+    <q-page-container :class="{ 'parts-management-container': currentMenu === 'parts-management' }" @dblclick="handleMainContentDoubleClick">
       <router-view />
     </q-page-container>
 
@@ -1049,6 +1049,112 @@ function handleRightToggleMouseUp(event) {
   // 상태 초기화
   rightToggleDragState.isDragging = false
   rightToggleDragState.hasMoved = false
+}
+
+// ============================================
+// 더블클릭으로 사이드바 제어
+// ============================================
+
+// 헬퍼 함수: 사이드바 너비 계산 및 복원
+function calculateRestoreWidth(savedWidth, maxWidthLimit, defaultWidth) {
+  const maxWidth = Math.min(maxWidthLimit, Math.floor(window.innerWidth * 0.6))
+  return savedWidth > 50 ? Math.min(savedWidth, maxWidth) : defaultWidth
+}
+
+// 헬퍼 함수: 왼쪽 사이드바 열기
+function openLeftSidebar() {
+  const restoreWidth = calculateRestoreWidth(
+    userSettings.settings.drawer.leftWidth,
+    600, // maxWidthLimit
+    250, // defaultWidth
+  )
+  userSettings.settings.drawer.leftWidth = restoreWidth
+  dashboardLayoutStore.toggleMainNavigation()
+}
+
+// 헬퍼 함수: 오른쪽 사이드바 열기
+function openRightSidebar() {
+  const restoreWidth = calculateRestoreWidth(
+    userSettings.settings.drawer.rightWidth,
+    800, // maxWidthLimit
+    300, // defaultWidth
+  )
+  userSettings.settings.drawer.rightWidth = restoreWidth
+  togglePropertyPanel()
+}
+
+// 헬퍼 함수: 마지막으로 연 사이드바 기록
+function setLastOpenedSidebar(side) {
+  localStorage.setItem('last-opened-sidebar', side)
+}
+
+// 더블클릭 핸들러 (메인 콘텐츠 영역)
+function handleMainContentDoubleClick(event) {
+  // 사이드바, 토글 버튼, 입력 필드 등은 제외
+  const target = event.target
+  if (target.closest('.q-drawer') || target.closest('.sidebar-toggle-button') || target.closest('input') || target.closest('textarea') || target.closest('[contenteditable="true"]') || target.closest('button') || target.closest('a') || target.closest('.q-btn')) {
+    return
+  }
+
+  const isLeftOpen = dashboardLayoutStore.mainNavigationOpen
+  const isRightOpen = userSettings.settings.drawer.rightOpen
+
+  // Shift + 더블클릭: 둘 다 열기 (상태와 관계없이)
+  if (event.shiftKey) {
+    if (!isLeftOpen) openLeftSidebar()
+    if (!isRightOpen) openRightSidebar()
+
+    // 마지막으로 연 사이드바 기록
+    if (!isLeftOpen && !isRightOpen) {
+      setLastOpenedSidebar('right') // 둘 다 닫혀있었으면 오른쪽 기록 (다음 번갈아가며 열 때 왼쪽이 열리도록)
+    } else if (!isLeftOpen) {
+      setLastOpenedSidebar('left')
+    } else if (!isRightOpen) {
+      setLastOpenedSidebar('right')
+    }
+
+    userSettings.saveSettings()
+    return
+  }
+
+  // 케이스 1: 둘 다 닫혀 있음 → 마지막에 열었던 쪽과 반대 쪽 열기 (번갈아가며 열기)
+  if (!isLeftOpen && !isRightOpen) {
+    const lastOpenedSidebar = localStorage.getItem('last-opened-sidebar') || 'right' // 기본값 'right'면 첫 번째는 왼쪽이 열림
+
+    if (lastOpenedSidebar === 'right') {
+      openLeftSidebar()
+      setLastOpenedSidebar('left')
+    } else {
+      openRightSidebar()
+      setLastOpenedSidebar('right')
+    }
+
+    userSettings.saveSettings()
+    return
+  }
+
+  // 케이스 2: 둘 다 열려 있음 → 둘 다 닫기
+  if (isLeftOpen && isRightOpen) {
+    dashboardLayoutStore.toggleMainNavigation()
+    setTimeout(() => {
+      togglePropertyPanel()
+    }, 50)
+    return
+  }
+
+  // 케이스 3: 왼쪽만 열려 있음 → 왼쪽 닫기
+  if (isLeftOpen && !isRightOpen) {
+    setLastOpenedSidebar('left')
+    dashboardLayoutStore.toggleMainNavigation()
+    return
+  }
+
+  // 케이스 4: 오른쪽만 열려 있음 → 오른쪽 닫기
+  if (!isLeftOpen && isRightOpen) {
+    setLastOpenedSidebar('right')
+    togglePropertyPanel()
+    return
+  }
 }
 
 const rightDrawerStyles = computed(() => {
