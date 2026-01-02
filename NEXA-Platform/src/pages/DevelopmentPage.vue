@@ -240,65 +240,12 @@ function handleMenuMainPage(event) {
 }
 
 // Active menu 변경 이벤트 리스너
-// 메뉴 상태 복원 함수
-function restoreMenuState(menuId, state) {
-  if (!state) return
-
-  switch (menuId) {
-    case 'settings-manager':
-      if (state.selectedSetting) {
-        settingsManagerSelectedSetting.value = state.selectedSetting
-      }
-      if (state.statistics) {
-        settingsManagerStatistics.value = state.statistics
-      }
-      break
-    case 'devops':
-      if (state.activeTab) {
-        devOpsActiveTab.value = state.activeTab
-      }
-      if (state.selectedBuild) {
-        devOpsSelectedBuild.value = state.selectedBuild
-      }
-      if (state.selectedDeployment) {
-        devOpsSelectedDeployment.value = state.selectedDeployment
-      }
-      if (state.selectedEnvironmentVariable) {
-        devOpsSelectedEnvironmentVariable.value = state.selectedEnvironmentVariable
-      }
-      if (state.selectedPackage) {
-        devOpsSelectedPackage.value = state.selectedPackage
-      }
-      break
-    case 'theme-manager':
-      if (state.searchQuery !== undefined) {
-        themeSearchQuery.value = state.searchQuery
-      }
-      if (state.categoryFilter !== undefined) {
-        themeCategoryFilter.value = state.categoryFilter
-      }
-      if (state.sortOption) {
-        themeSortOption.value = state.sortOption
-      }
-      break
-    // 다른 메뉴들의 상태 복원은 필요시 추가
-  }
-}
-
-// Active menu 변경 이벤트 리스너
-// DevSidebar가 메뉴 상태를 관리하므로, 여기서는 동기화만 수행
+// Active menu 변경 이벤트 리스너 (호환성을 위해 유지)
+// composable이 상태를 관리하므로 여기서는 추가 작업 불필요
+// eslint-disable-next-line no-unused-vars
 function handleActiveMenuChange(event) {
-  const newMenu = event.detail.activeMenu
-  const restoreState = event.detail.restoreState
-
-  if (activeMenu.value !== newMenu) {
-    activeMenu.value = newMenu
-
-    // 메뉴 상태 복원
-    if (newMenu && restoreState) {
-      restoreMenuState(newMenu, restoreState)
-    }
-  }
+  // composable이 이미 상태를 관리하므로 이벤트는 무시
+  // 다른 컴포넌트와의 호환성을 위해 이벤트 리스너는 유지
 }
 
 onMounted(async () => {
