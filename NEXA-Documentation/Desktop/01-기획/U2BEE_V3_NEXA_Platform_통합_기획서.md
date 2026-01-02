@@ -67,23 +67,15 @@
 
 ### 1. 역할 분리 원칙
 
+```mermaid
+flowchart TD
+    A[Chrome Extension<br/>최소 역할] -->|postMessage| B[NEXA Platform<br/>핵심 역할]
 ```
-┌─────────────────────────────────────┐
-│   Chrome Extension (최소 역할)       │
-│   - 콘텐츠 수집 (Content Script)     │
-│   - Chrome API 접근                  │
-│   - Platform과 통신                  │
-└─────────────────────────────────────┘
-              │ postMessage
-              ▼
-┌─────────────────────────────────────┐
-│   NEXA Platform (핵심 역할)          │
-│   - 모든 UI 제공                     │
-│   - 비즈니스 로직                    │
-│   - 데이터 관리                      │
-│   - 자가 치유 시스템                 │
-└─────────────────────────────────────┘
-```
+
+**역할 상세 설명:**
+
+-   **Chrome Extension (최소 역할)**: 콘텐츠 수집 (Content Script), Chrome API 접근, Platform과 통신
+-   **NEXA Platform (핵심 역할)**: 모든 UI 제공, 비즈니스 로직, 데이터 관리, 자가 치유 시스템
 
 ### 2. 단일 진실의 원천 (Single Source of Truth)
 
@@ -105,100 +97,51 @@
 
 ### 전체 구조
 
+```mermaid
+flowchart TB
+    subgraph Extension["Chrome Extension (Manifest V3)"]
+        CS[Content Script]
+        BG[Background Service Worker]
+        POP[Popup / Side Panel]
+    end
+
+    subgraph Platform["NEXA Platform 웹 서버"]
+        FE[Frontend]
+        API[Backend API]
+        DB[Database]
+    end
+
+    subgraph Desktop["NEXA Desktop Python"]
+        MW[Main Window]
+        BC[Browser Controller]
+        PC[Platform Communicator]
+    end
+
+    CS -->|postMessage| BG
+    BG -->|postMessage| POP
+    BG -->|HTTP/WebSocket| API
+    POP -->|HTTP/WebSocket| FE
+    FE --> API
+    API --> DB
+    API -->|WebSocket| PC
+    PC --> BC
+    PC --> MW
+
+    classDef subgraphStyle fill:transparent,stroke:#333,stroke-width:2px
+    class Extension,Platform,Desktop subgraphStyle
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Chrome Extension                          │
-│                    (Manifest V3)                            │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Content Script                                    │     │
-│  │  - YouTube DOM 모니터링                           │     │
-│  │  - 정보 추출 시도                                  │     │
-│  │  - 실패 시 DOM 스냅샷 생성                         │     │
-│  └────────────────────────────────────────────────────┘     │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Background (Service Worker)                       │     │
-│  │  - 메시지 라우팅                                    │     │
-│  │  - 스토리지 관리                                    │     │
-│  │  - 배치 처리 스케줄링                               │     │
-│  │  - 로컬 스토리지 자동 정리 (필수)                    │     │
-│  └────────────────────────────────────────────────────┘     │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Popup / Side Panel                                │     │
-│  │  ┌──────────────────────────────────────────────┐ │     │
-│  │  │  <iframe>                                     │ │     │
-│  │  │  src="https://platform/u2bee?embed=true"      │ │     │
-│  │  │                                               │ │     │
-│  │  │  ┌─────────────────────────────────────────┐ │ │     │
-│  │  │  │  NEXA Platform                         │ │ │     │
-│  │  │  │  /u2bee 페이지                         │ │ │     │
-│  │  │  │  (Vue 3 + Quasar)                      │ │ │     │
-│  │  │  │  - 모든 UI                              │ │ │     │
-│  │  │  │  - 비즈니스 로직                        │ │ │     │
-│  │  │  │  - 데이터 관리                           │ │ │     │
-│  │  │  └─────────────────────────────────────────┘ │ │     │
-│  │  └──────────────────────────────────────────────┘ │     │
-│  └────────────────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-         │                    │                    │
-         │ postMessage        │ postMessage        │ HTTP/WebSocket
-         ▼                    ▼                    ▼
-┌─────────────────────────────────────────────────────────────┐
-│              NEXA Platform (웹 서버)                         │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Frontend (Vue 3 + Quasar)                        │     │
-│  │  - /u2bee 페이지                                   │     │
-│  │  - 모든 UI 컴포넌트 (반응형)                        │     │
-│  │  - 상태 관리 (Pinia)                               │     │
-│  └────────────────────────────────────────────────────┘     │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Backend API                                       │     │
-│  │  - /api/content/*                                  │     │
-│  │  - 플랫폼 API 통합 (YouTube, TikTok 등)            │     │
-│  │  - DOM 분석 엔진                                   │     │
-│  │  - 선택자 관리                                     │     │
-│  │  - WebSocket 서버 (Desktop 통신)                   │     │
-│  └────────────────────────────────────────────────────┘     │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Database                                          │     │
-│  │  - 콘텐츠 데이터                                    │     │
-│  │  - 선택자 데이터베이스                              │     │
-│  │  - 실패 이력                                       │     │
-│  │  - 시스템 상태                                     │     │
-│  └────────────────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-         │                    │                    │
-         │ WebSocket          │ HTTP               │ WebSocket
-         ▼                    ▼                    ▼
-┌─────────────────────────────────────────────────────────────┐
-│              NEXA Desktop (Python)                        │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Main Window (PySide6)                           │     │
-│  │  - 메인 UI                                         │     │
-│  │  - 웹뷰 컨테이너                                   │     │
-│  └────────────────────────────────────────────────────┘     │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Browser Controller                               │     │
-│  │  - Chrome 제어                                     │     │
-│  │  - 탭 관리                                         │     │
-│  │  - URL 열기/닫기                                   │     │
-│  └────────────────────────────────────────────────────┘     │
-│                                                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │  Platform Communicator                           │     │
-│  │  - WebSocket 클라이언트                            │     │
-│  │  - 메시지 라우팅                                   │     │
-│  │  - Extension 통신 중계                              │     │
-│  └────────────────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-```
+
+**컴포넌트 상세 설명:**
+
+-   **Content Script**: YouTube DOM 모니터링, 정보 추출 시도, 실패 시 DOM 스냅샷 생성
+-   **Background Service Worker**: 메시지 라우팅, 스토리지 관리, 배치 처리 스케줄링, 로컬 스토리지 자동 정리 (필수)
+-   **Popup / Side Panel**: iframe으로 NEXA Platform /u2bee 페이지 로드 (Vue 3 + Quasar), 모든 UI, 비즈니스 로직, 데이터 관리
+-   **Frontend**: Vue 3 + Quasar, /u2bee 페이지, 모든 UI 컴포넌트 (반응형), 상태 관리 (Pinia)
+-   **Backend API**: /api/content/\*, 플랫폼 API 통합 (YouTube, TikTok 등), DOM 분석 엔진, 선택자 관리, WebSocket 서버 (Desktop 통신)
+-   **Database**: 콘텐츠 데이터, 선택자 데이터베이스, 실패 이력, 시스템 상태
+-   **Main Window**: PySide6, 메인 UI, 웹뷰 컨테이너
+-   **Browser Controller**: Chrome 제어, 탭 관리, URL 열기/닫기
+-   **Platform Communicator**: WebSocket 클라이언트, 메시지 라우팅, Extension 통신 중계
 
 ### 컴포넌트 상세 구조
 
@@ -506,17 +449,21 @@ router.post("/content/analyze-dom", async (req, res) => {
 
 ### 다중 전략 Fallback 시스템
 
+```mermaid
+flowchart TD
+    A[전략 1: 플랫폼 내부 데이터] -->|실패| B[전략 2: JSON-LD 구조화 데이터]
+    B -->|실패| C[전략 3: 플랫폼 공식 API]
+    C -->|실패| D[전략 4: 동적 DOM 선택자]
+    D -->|실패| E[전략 5: 자가 치유 시스템]
 ```
-전략 1: 플랫폼 내부 데이터 (예: YouTube의 ytInitialData, TikTok의 __UNIVERSAL_DATA 등)
-    ↓ 실패
-전략 2: JSON-LD 구조화 데이터 (Schema.org)
-    ↓ 실패
-전략 3: 플랫폼 공식 API (YouTube Data API, TikTok API 등)
-    ↓ 실패
-전략 4: 동적 DOM 선택자 (플랫폼별)
-    ↓ 실패
-전략 5: 자가 치유 시스템 (DOM 분석, 플랫폼별)
-```
+
+**전략 상세 설명:**
+
+-   **전략 1: 플랫폼 내부 데이터**: YouTube의 ytInitialData, TikTok의 \_\_UNIVERSAL_DATA 등
+-   **전략 2: JSON-LD 구조화 데이터**: Schema.org 표준
+-   **전략 3: 플랫폼 공식 API**: YouTube Data API, TikTok API 등
+-   **전략 4: 동적 DOM 선택자**: 플랫폼별 동적 선택자 사용
+-   **전략 5: 자가 치유 시스템**: DOM 분석을 통한 플랫폼별 자동 복구
 
 ### 전략별 상세 구현
 
@@ -739,49 +686,55 @@ getPlatformAnalyzer(platform) {
 
 ### 전체 통신 아키텍처
 
+```mermaid
+flowchart TB
+    subgraph Extension["Chrome Extension"]
+        CS[Content Script]
+        BG[Background Service Worker]
+        POP[Popup/Side Panel]
+    end
+
+    subgraph Platform["NEXA Platform"]
+        FE[Frontend Vue 3]
+        API[Backend API]
+        DB[Database]
+    end
+
+    subgraph Desktop["NEXA Desktop Python"]
+        MW[Main Window<br/>웹뷰: NEXA Platform UI]
+        BC[Browser Controller]
+        PC[Platform Communicator]
+        LM[Local Manager<br/>로컬 시스템 접근]
+    end
+
+    CS -->|postMessage| BG
+    BG -->|postMessage| POP
+    BG -->|HTTP/WebSocket| API
+    BG -.->|오프라인 대비<br/>직접 통신| PC
+    FE --> API
+    API --> DB
+    API -->|WebSocket/HTTP| PC
+    PC --> MW
+    PC --> BC
+    PC --> LM
+    MW -->|웹뷰| FE
+    MW -->|Native Messaging 선택적<br/>또는 WebSocket| PC
+
+    classDef subgraphStyle fill:transparent,stroke:#333,stroke-width:2px
+    class Extension,Platform,Desktop subgraphStyle
 ```
-┌─────────────────────────────────────────────────────────────┐
-│              Chrome Extension                                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │ Content      │  │ Background   │  │ Popup/Side   │     │
-│  │ Script       │  │ (Service     │  │ Panel        │     │
-│  │              │  │  Worker)     │  │              │     │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘     │
-│         │                 │                  │              │
-│         └─────────────────┼──────────────────┘              │
-│                           │ postMessage                     │
-└───────────────────────────┼─────────────────────────────────┘
-                            │
-                            │ HTTP/WebSocket
-                            │
-┌───────────────────────────┼─────────────────────────────────┐
-│              NEXA Platform                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │ Frontend     │  │ Backend API  │  │ Database     │     │
-│  │ (Vue 3)      │  │              │  │              │     │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘     │
-│         │                 │                  │              │
-│         └─────────────────┼──────────────────┘              │
-└───────────────────────────┼─────────────────────────────────┘
-                            │
-                            │ WebSocket/HTTP
-                            │
-┌───────────────────────────┼─────────────────────────────────┐
-│              NEXA Desktop (Python)                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │ Main Window  │  │ Browser      │  │ Platform     │     │
-│  │ (PySide6)    │  │ Controller   │  │ Communicator │     │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘     │
-│         │                 │                  │              │
-│         └─────────────────┼──────────────────┘              │
-│                           │                                 │
-│         ┌─────────────────┴─────────────────┐               │
-│         │  Native Messaging (선택적)        │               │
-│         │  또는 WebSocket                   │               │
-└─────────┼───────────────────────────────────┘               │
-          │                                                  │
-          └──────────────────────────────────────────────────┘
-```
+
+**통신 구조 설명:**
+
+-   **Chrome Extension**: Content Script, Background Service Worker, Popup/Side Panel로 구성
+-   **NEXA Platform**: Frontend (Vue 3), Backend API, Database로 구성
+-   **NEXA Desktop (Python)**:
+    -   **Main Window**: 웹뷰를 통해 NEXA Platform의 UI를 대부분 구성
+    -   **Browser Controller**: Chrome 제어, 탭 관리 등
+    -   **Platform Communicator**: Platform과의 통신 관리
+    -   **Local Manager**: 로컬 시스템 접근이 필요한 경우 처리 (파일 시스템, 네이티브 기능 등)
+-   **오프라인 대비**: Extension과 Desktop 간 직접 통신 경로 (점선) - Platform이 오프라인일 때 사용
+-   **특별한 경우 (로컬 시스템 접근)**: UI는 Platform에서 구현하고, Desktop의 Local Manager가 내부적으로 처리
 
 ### 통신 프로토콜
 
@@ -890,16 +843,12 @@ interface PlatformToExtensionMessage {
 
 #### 시나리오 3: 사용자 액션 (저장)
 
-```
-1. Platform UI: 사용자가 "저장" 클릭
-   ↓
-2. Platform Frontend: Extension에 메시지 전송
-   ↓
-3. Extension Background: 로컬 스토리지에 저장
-   ↓
-4. Extension Background: Platform에 동기화 요청
-   ↓
-5. Platform Backend: 데이터베이스에 저장
+```mermaid
+flowchart TD
+    A[Platform UI: 사용자가 저장 클릭] --> B[Platform Frontend: Extension에 메시지 전송]
+    B --> C[Extension Background: 로컬 스토리지에 저장]
+    C --> D[Extension Background: Platform에 동기화 요청]
+    D --> E[Platform Backend: 데이터베이스에 저장]
 ```
 
 ### 통신 구현
@@ -987,17 +936,44 @@ export function useExtension() {
 
 NEXA Desktop (Python) 프로그램과 Extension/Platform 간 통신을 통해 브라우저를 제어하고 데이터를 동기화합니다.
 
+#### UI 구성 방식
+
+**대부분의 UI는 웹뷰를 통해 NEXA Platform에서 제공:**
+
+-   Main Window는 PySide6의 웹뷰 컨테이너로 NEXA Platform의 Frontend를 로드
+-   U2BEE를 포함한 대부분의 기능은 Platform의 UI를 사용
+-   웹뷰를 통해 Platform의 Vue 3 + Quasar UI가 렌더링됨
+
+**특별한 경우 (로컬 시스템 접근):**
+
+-   파일 시스템 접근, 네이티브 다이얼로그, 시스템 설정 등이 필요한 경우
+-   **UI는 Platform에서 구현**: 사용자에게 보이는 인터페이스는 Platform의 UI 사용
+-   **처리는 Desktop에서 내부적으로 수행**: Platform에서 사용자 액션을 받아 Desktop의 Local Manager가 내부적으로 처리
+-   예: 파일 선택 다이얼로그는 Platform UI로 표시되지만, 실제 파일 접근은 Desktop이 처리
+
 #### 통신 경로
+
+**정상 경로 (온라인):**
 
 ```
 Extension ←→ Platform ←→ NEXA Desktop (Python)
 ```
 
+**오프라인 대비 경로:**
+
+```
+Extension ←→ NEXA Desktop (Python) (직접 통신)
+```
+
+-   Platform이 오프라인일 때 Extension과 Desktop 간 직접 양방향 통신
+-   Native Messaging 또는 로컬 WebSocket 사용
+-   기본 데이터는 로컬에서 처리하고, Platform 복구 시 동기화
+
 **역할:**
 
 -   **Extension**: 브라우저 내 콘텐츠 수집 및 제어
--   **Platform**: 중앙 통신 허브 및 데이터 관리
--   **Desktop**: 브라우저 제어 및 네이티브 기능 제공
+-   **Platform**: 중앙 통신 허브 및 데이터 관리, 대부분의 UI 제공
+-   **Desktop**: 브라우저 제어, 네이티브 기능 제공, 웹뷰를 통한 UI 표시, 로컬 시스템 접근 처리
 
 #### 통신 방법
 
@@ -1212,12 +1188,18 @@ class DesktopCommunicator {
 module.exports = DesktopCommunicator;
 ```
 
-##### 방법 2: Native Messaging (선택적)
+##### 방법 2: Native Messaging (오프라인 대비)
+
+**용도:**
+
+-   Platform이 오프라인일 때 Extension과 Desktop 간 직접 통신
+-   정상 경로는 Platform을 통한 통신 사용
 
 **장점:**
 
 -   직접 통신 (Platform 경유 불필요)
 -   낮은 지연시간
+-   오프라인 환경에서도 기본 기능 사용 가능
 
 **단점:**
 
@@ -1303,43 +1285,31 @@ while True:
 
 ##### 시나리오 1: Desktop에서 브라우저 제어
 
-```
-1. Desktop: 브라우저 액션 요청
-   (예: 특정 URL 열기, 탭 전환 등)
-   ↓
-2. Platform: Extension에 요청 전달
-   ↓
-3. Extension: Chrome API로 브라우저 제어
-   ↓
-4. Extension: 결과를 Platform으로 전달
-   ↓
-5. Platform: Desktop에 결과 전달
+```mermaid
+flowchart TD
+    A[Desktop: 브라우저 액션 요청<br/>예: 특정 URL 열기, 탭 전환 등] --> B[Platform: Extension에 요청 전달]
+    B --> C[Extension: Chrome API로 브라우저 제어]
+    C --> D[Extension: 결과를 Platform으로 전달]
+    D --> E[Platform: Desktop에 결과 전달]
 ```
 
 ##### 시나리오 2: Extension에서 콘텐츠 수집 → Desktop 동기화
 
-```
-1. Extension: 콘텐츠 정보 수집
-   ↓
-2. Extension: Platform으로 전송
-   ↓
-3. Platform: 데이터베이스 저장
-   ↓
-4. Platform: Desktop에 실시간 알림
-   ↓
-5. Desktop: UI 업데이트 또는 알림 표시
+```mermaid
+flowchart TD
+    A[Extension: 콘텐츠 정보 수집] --> B[Extension: Platform으로 전송]
+    B --> C[Platform: 데이터베이스 저장]
+    C --> D[Platform: Desktop에 실시간 알림]
+    D --> E[Desktop: UI 업데이트 또는 알림 표시]
 ```
 
 ##### 시나리오 3: Desktop에서 콘텐츠 관리
 
-```
-1. Desktop: 콘텐츠 삭제/수정 요청
-   ↓
-2. Platform: 데이터베이스 업데이트
-   ↓
-3. Platform: Extension에 동기화 요청
-   ↓
-4. Extension: 로컬 스토리지 업데이트
+```mermaid
+flowchart TD
+    A[Desktop: 콘텐츠 삭제/수정 요청] --> B[Platform: 데이터베이스 업데이트]
+    B --> C[Platform: Extension에 동기화 요청]
+    C --> D[Extension: 로컬 스토리지 업데이트]
 ```
 
 #### 메시지 타입 정의

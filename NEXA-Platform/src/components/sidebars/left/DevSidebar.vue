@@ -6,7 +6,7 @@
 <template>
   <div class="dev-sidebar">
     <!-- 동적 헤더 (메뉴별로 변경) -->
-    <LeftSidebarHeader :title="currentHeaderTitle" :subtitle="currentHeaderSubtitle" title-link="/dev" :show-restore-option="true" @header-hover="isLeftHeaderHovered = $event" @title-click="handleHeaderClick" />
+    <LeftSidebarHeader :title="currentHeaderTitle" :subtitle="currentHeaderSubtitle" :route-url="currentRouteUrl" :full-url="fullUrl" title-link="/dev" :show-restore-option="true" @header-hover="isLeftHeaderHovered = $event" @title-click="handleHeaderClick" />
 
     <!-- DevMenuSlider (항상 표시) -->
     <DevMenuSlider :header-hovered="isLeftHeaderHovered" @update:active-menu="handleActiveMenuChange" @open-settings="openSettings" />
@@ -263,9 +263,14 @@ import { useDocumentFilters } from 'src/composables/dev-tools/useDocumentFilters
 import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
 import { useDevGuide } from 'src/composables/dev-tools/useDevGuide.js'
 import { useSettingsManager } from 'src/composables/dev-tools/useSettingsManager.js'
+import { useRouter, useRoute } from 'vue-router'
 
 // Quasar 인스턴스
 const $q = useQuasar()
+
+// Router 인스턴스
+const router = useRouter()
+const route = useRoute()
 
 // LeftSidebarHeader 호버 상태
 const isLeftHeaderHovered = ref(false)
@@ -274,7 +279,8 @@ const isLeftHeaderHovered = ref(false)
 const documentStore = useDocumentManagerStore()
 
 // Active menu 상태 (DevelopmentPage와 동기화)
-const activeMenu = ref(null)
+// 초기값은 URL 또는 localStorage에서 로드
+const activeMenu = ref(getInitialActiveMenu())
 
 // 메뉴별 헤더 정보 정의 (영문)
 const menuHeaders = {
@@ -300,16 +306,178 @@ const currentHeaderTitle = computed(() => {
 })
 
 const currentHeaderSubtitle = computed(() => {
-  if (!activeMenu.value) return 'Development Tools Integrated Management'
+  if (!activeMenu.value) {
+    return 'Development Tools Integrated Management'
+  }
   return menuHeaders[activeMenu.value]?.subtitle || 'Development Tools'
 })
+
+// 현재 라우터 주소 (간단한 표현)
+const currentRouteUrl = computed(() => {
+  const currentRoute = router.currentRoute.value
+  const path = currentRoute.path
+  const query = currentRoute.query && Object.keys(currentRoute.query).length > 0 ? '?' + new URLSearchParams(currentRoute.query).toString() : ''
+  const hash = currentRoute.hash || ''
+  return `${path}${query}${hash}`
+})
+
+// 전체 URL (클립보드 복사용) - 현재 라우터 상태 기반으로 생성
+const fullUrl = computed(() => {
+  const currentRoute = router.currentRoute.value
+  const origin = window.location.origin
+  const path = currentRoute.path
+  const query = currentRoute.query && Object.keys(currentRoute.query).length > 0 ? '?' + new URLSearchParams(currentRoute.query).toString() : ''
+  const hash = currentRoute.hash || ''
+  return `${origin}${path}${query}${hash}`
+})
+
+// 메뉴 상태 저장 함수
+function saveMenuState(menuId, state) {
+  try {
+    const stateKey = `dev-menu-state-${menuId}`
+    localStorage.setItem(stateKey, JSON.stringify(state))
+    // 현재 활성 메뉴의 상태 키도 저장 (빠른 복원용)
+    localStorage.setItem('dev-active-menu-state-key', stateKey)
+  } catch (error) {
+    console.error(`[DevSidebar] 메뉴 상태 저장 실패 (${menuId}):`, error)
+  }
+}
+
+// 메뉴 상태 로드 함수
+function loadMenuState(menuId) {
+  try {
+    const stateKey = `dev-menu-state-${menuId}`
+    const saved = localStorage.getItem(stateKey)
+    return saved ? JSON.parse(saved) : null
+  } catch (error) {
+    console.error(`[DevSidebar] 메뉴 상태 로드 실패 (${menuId}):`, error)
+    return null
+  }
+}
 
 // Active menu 변경 핸들러
 function handleActiveMenuChange(menuId) {
   activeMenu.value = menuId
-  // 전역 이벤트로 DevelopmentPage와 DevToolsPanel에 알림
-  window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: menuId } }))
+
+  // URL 업데이트 (쿼리 파라미터로 메뉴 정보 저장)
+  if (menuId) {
+    router.push({
+      path: route.path,
+      query: { ...route.query, menu: menuId },
+      hash: route.hash,
+    })
+    // localStorage에 저장 (다음 접속 시 복원용)
+    try {
+      localStorage.setItem('dev-active-menu', menuId)
+      // 메뉴 상태도 복원하여 전달
+      const menuState = loadMenuState(menuId)
+      // 전역 이벤트로 DevelopmentPage와 DevToolsPanel에 알림 (상태 포함)
+      window.dispatchEvent(
+        new CustomEvent('dev-menu-changed', {
+          detail: {
+            activeMenu: menuId,
+            restoreState: menuState,
+          },
+        }),
+      )
+    } catch (error) {
+      console.error('[DevSidebar] 메뉴 상태 저장 실패:', error)
+      // 에러가 나도 이벤트는 보내기
+      window.dispatchEvent(
+        new CustomEvent('dev-menu-changed', {
+          detail: { activeMenu: menuId },
+        }),
+      )
+    }
+  } else {
+    // 메뉴가 없으면 쿼리 파라미터에서 menu 제거
+    const newQuery = { ...route.query }
+    delete newQuery.menu
+    router.push({
+      path: route.path,
+      query: newQuery,
+      hash: route.hash,
+    })
+    // localStorage에서도 제거 (명시적으로 기본 페이지로 이동)
+    try {
+      localStorage.removeItem('dev-active-menu')
+      // 메뉴 상태도 제거
+      localStorage.removeItem('dev-active-menu-state-key')
+    } catch (error) {
+      console.error('[DevSidebar] 메뉴 상태 삭제 실패:', error)
+    }
+    // 전역 이벤트로 DevelopmentPage와 DevToolsPanel에 알림
+    window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: menuId } }))
+  }
 }
+
+// URL에서 메뉴 읽기
+function getMenuFromURL() {
+  const menuFromURL = route.query.menu
+  if (menuFromURL && typeof menuFromURL === 'string') {
+    // 유효한 메뉴 ID인지 확인
+    const validMenus = Object.keys(menuHeaders)
+    if (validMenus.includes(menuFromURL)) {
+      return menuFromURL
+    }
+  }
+  return null
+}
+
+// URL 변경 감지하여 메뉴 자동 선택
+// 주의: localStorage 복원은 초기 로드 시에만 수행되므로, watch에서는 URL 변경만 감지
+let isInitialLoad = true // 초기 로드 플래그
+watch(
+  () => route.query.menu,
+  (newMenu) => {
+    if (newMenu && typeof newMenu === 'string') {
+      const validMenus = Object.keys(menuHeaders)
+      if (validMenus.includes(newMenu) && activeMenu.value !== newMenu) {
+        activeMenu.value = newMenu
+        // 전역 이벤트로 DevelopmentPage와 DevToolsPanel에 알림
+        window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: newMenu } }))
+      }
+      isInitialLoad = false // URL에 menu가 있으면 초기 로드 완료
+    } else if (!newMenu && activeMenu.value) {
+      // URL에서 menu가 제거되면 메뉴도 초기화
+      // 단, 초기 로드 시 localStorage에서 복원된 메뉴는 유지 (이전 메뉴 기억 기능)
+      if (isInitialLoad) {
+        // 초기 로드 시에는 localStorage 확인
+        const restoreOption = localStorage.getItem('dev-restore-last-menu')
+        const shouldRestore = restoreOption === null || restoreOption === 'true'
+        if (shouldRestore) {
+          const saved = localStorage.getItem('dev-active-menu')
+          if (saved) {
+            const validMenus = Object.keys(menuHeaders)
+            if (validMenus.includes(saved)) {
+              // localStorage에서 복원된 메뉴 유지 및 이벤트 전송
+              activeMenu.value = saved
+              const menuState = loadMenuState(saved)
+              window.dispatchEvent(
+                new CustomEvent('dev-menu-changed', {
+                  detail: {
+                    activeMenu: saved,
+                    restoreState: menuState,
+                  },
+                }),
+              )
+              isInitialLoad = false
+              return
+            }
+          }
+        }
+      }
+      // 초기 로드가 아니거나 localStorage에 없으면 초기화
+      // handleHeaderClick()에서 명시적으로 기본 페이지로 이동한 경우는 이미 localStorage가 제거됨
+      activeMenu.value = null
+      window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: null } }))
+      isInitialLoad = false
+    } else {
+      isInitialLoad = false
+    }
+  },
+  { immediate: true },
+)
 
 // 헤더 클릭 핸들러 (해당 메뉴의 메인 페이지로 이동)
 function handleHeaderClick() {
@@ -318,9 +486,8 @@ function handleHeaderClick() {
     // 전역 이벤트로 DevelopmentPage에 메인 페이지 표시 요청
     window.dispatchEvent(new CustomEvent('dev-menu-main-page', { detail: { menuId: activeMenu.value } }))
   } else {
-    // 메뉴가 선택되지 않았으면 기본 DEV 페이지로
-    activeMenu.value = null
-    window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: null } }))
+    // 메뉴가 선택되지 않았으면 기본 DEV 페이지로 (URL도 함께 업데이트)
+    handleActiveMenuChange(null)
   }
 }
 
@@ -936,10 +1103,17 @@ watch(
   { immediate: true },
 )
 
-// 초기 activeMenu 로드 함수 (DevelopmentPage와 동일한 로직)
+// 초기 activeMenu 로드 함수 (URL 우선, 그 다음 localStorage)
 function getInitialActiveMenu() {
+  // 1. URL에서 메뉴 읽기 (최우선)
+  const menuFromURL = getMenuFromURL()
+  if (menuFromURL) {
+    return menuFromURL
+  }
+
+  // 2. localStorage에서 메뉴 읽기 (URL에 없을 때만)
+  // 이전 메뉴 기억 기능: URL에 menu가 없으면 localStorage에서 복원
   try {
-    // 이전 메뉴 복원 옵션 확인
     const restoreOption = localStorage.getItem('dev-restore-last-menu')
     const shouldRestore = restoreOption === null || restoreOption === 'true' // 기본값: true
 
@@ -947,8 +1121,10 @@ function getInitialActiveMenu() {
       const saved = localStorage.getItem('dev-active-menu')
       if (saved) {
         // 유효한 메뉴 ID인지 확인
-        const validMenus = ['document-manager', 'theme-manager', 'dev-guide', 'component-library', 'database-viewer', 'performance-monitor', 'settings-manager', 'document-generator', 'devops']
+        const validMenus = Object.keys(menuHeaders)
         if (validMenus.includes(saved)) {
+          // localStorage에 저장된 메뉴를 URL에 반영하지 않고 바로 반환
+          // (URL watch가 자동으로 동기화하지 않도록)
           return saved
         }
       }
@@ -956,6 +1132,7 @@ function getInitialActiveMenu() {
   } catch (error) {
     console.error('[DevSidebar] 초기 메뉴 로드 실패:', error)
   }
+
   return null
 }
 
@@ -967,10 +1144,32 @@ onMounted(() => {
     searchMode,
   })
 
-  // 초기 activeMenu 설정 (DevelopmentPage와 동기화)
+  // 초기 activeMenu 설정 (localStorage에서 복원된 경우 URL에 반영)
   const initialMenu = getInitialActiveMenu()
-  if (initialMenu !== null) {
+  if (initialMenu && initialMenu !== activeMenu.value) {
     activeMenu.value = initialMenu
+    // localStorage에서 복원된 메뉴는 URL에 반영하지 않음 (이전 메뉴 기억 기능)
+    // 하지만 DevelopmentPage에 이벤트는 보내야 함
+    const menuState = loadMenuState(initialMenu)
+    window.dispatchEvent(
+      new CustomEvent('dev-menu-changed', {
+        detail: {
+          activeMenu: initialMenu,
+          restoreState: menuState,
+        },
+      }),
+    )
+  } else if (activeMenu.value) {
+    // activeMenu가 이미 설정되어 있으면 (URL watch에서 설정된 경우) 이벤트 보내기
+    const menuState = loadMenuState(activeMenu.value)
+    window.dispatchEvent(
+      new CustomEvent('dev-menu-changed', {
+        detail: {
+          activeMenu: activeMenu.value,
+          restoreState: menuState,
+        },
+      }),
+    )
   }
 
   // DevelopmentPage에서 메뉴 변경 이벤트를 받아서 동기화 (지속적으로 리스닝)
@@ -990,6 +1189,16 @@ onMounted(() => {
 
   // 언마운트 시 제거를 위해 참조 저장
   window.__devSidebarMenuChangedHandler = handleMenuChanged
+
+  // 메뉴 상태 저장 이벤트 리스너
+  function handleMenuStateSave(event) {
+    const { menuId, state } = event.detail
+    if (menuId && state) {
+      saveMenuState(menuId, state)
+    }
+  }
+  window.addEventListener('dev-menu-state-save', handleMenuStateSave)
+  window.__devSidebarMenuStateSaveHandler = handleMenuStateSave
 
   // 설정 관리 새로고침 요청 리스너 등록
   window.addEventListener('settings-manager-refresh-request', handleSettingsManagerRefreshRequest)
@@ -1089,6 +1298,10 @@ onUnmounted(() => {
   if (window.__devSidebarMenuChangedHandler) {
     window.removeEventListener('dev-menu-changed', window.__devSidebarMenuChangedHandler)
     delete window.__devSidebarMenuChangedHandler
+  }
+  if (window.__devSidebarMenuStateSaveHandler) {
+    window.removeEventListener('dev-menu-state-save', window.__devSidebarMenuStateSaveHandler)
+    delete window.__devSidebarMenuStateSaveHandler
   }
 })
 

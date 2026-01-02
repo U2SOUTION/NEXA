@@ -805,7 +805,7 @@ const BUTTON_HEIGHT = 120 // 버튼 높이
 const mouseY = ref(0)
 
 // 대기 시간 설정 (밀리초 단위, 쉽게 조정 가능)
-const getAutoMoveDelay = () => 500
+const getAutoMoveDelay = () => 300
 
 // 타이머 ref
 let autoMoveTimer = null

@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import DocumentManagerContent from 'src/components/dev-tools/document-manager/DocumentManagerContent.vue'
 import ThemeManagerContent from 'src/components/dev-tools/theme-manager/ThemeManagerContent.vue'
 import GraphDocContent from 'src/components/dev-tools/graph-doc/GraphDocContent.vue'
@@ -55,40 +55,8 @@ import ComponentLibraryContent from 'src/components/dev-tools/component-library/
 import DevGuideContent from 'src/components/dev-tools/dev-guide/DevGuideContent.vue'
 import DevOpsContent from 'src/components/dev-tools/devops/DevOpsContent.vue'
 
-// Active menu 상태 (설정에 따라 이전 메뉴 복원 또는 null로 시작)
-function getInitialActiveMenu() {
-  try {
-    // 이전 메뉴 복원 옵션 확인
-    const restoreOption = localStorage.getItem('dev-restore-last-menu')
-    const shouldRestore = restoreOption === null || restoreOption === 'true' // 기본값: true
-
-    if (shouldRestore) {
-      const saved = localStorage.getItem('dev-active-menu')
-      if (saved) {
-        // 유효한 메뉴 ID인지 확인 (DevMenuSlider.vue의 순서와 동일하게 유지)
-        const validMenus = [
-          'document-manager',
-          'theme-manager',
-          'dev-guide',
-          'component-library',
-          'database-viewer',
-          'performance-monitor',
-          'settings-manager',
-          'document-generator',
-          'devops',
-        ]
-        if (validMenus.includes(saved)) {
-          return saved
-        }
-      }
-    }
-  } catch (error) {
-    console.error('[DevelopmentPage] 초기 메뉴 로드 실패:', error)
-  }
-  return null // 기본값: DevelopmentPage 자체를 보여줌
-}
-
-const activeMenu = ref(getInitialActiveMenu())
+// Active menu 상태 (DevSidebar가 완전히 관리, 여기서는 이벤트로만 동기화)
+const activeMenu = ref(null)
 
 // 테마 관리 상태 (DevSidebar와 동기화)
 const themeSearchQuery = ref('')
@@ -109,23 +77,96 @@ const devOpsSelectedPackage = ref(null)
 // 테마 관리 상태 변경 이벤트 핸들러
 function handleThemeSearchChange(event) {
   themeSearchQuery.value = event.detail.query || ''
+  // 상태 저장 (DevSidebar에 저장 요청)
+  if (activeMenu.value === 'theme-manager') {
+    window.dispatchEvent(
+      new CustomEvent('dev-menu-state-save', {
+        detail: {
+          menuId: 'theme-manager',
+          state: {
+            searchQuery: themeSearchQuery.value,
+            categoryFilter: themeCategoryFilter.value,
+            sortOption: themeSortOption.value,
+          },
+        },
+      }),
+    )
+  }
 }
 
 function handleThemeCategoryFilterChange(event) {
   themeCategoryFilter.value = event.detail.category || null
+  // 상태 저장
+  if (activeMenu.value === 'theme-manager') {
+    window.dispatchEvent(
+      new CustomEvent('dev-menu-state-save', {
+        detail: {
+          menuId: 'theme-manager',
+          state: {
+            searchQuery: themeSearchQuery.value,
+            categoryFilter: themeCategoryFilter.value,
+            sortOption: themeSortOption.value,
+          },
+        },
+      }),
+    )
+  }
 }
 
 function handleThemeSortChange(event) {
   themeSortOption.value = event.detail.option || 'category'
+  // 상태 저장
+  if (activeMenu.value === 'theme-manager') {
+    window.dispatchEvent(
+      new CustomEvent('dev-menu-state-save', {
+        detail: {
+          menuId: 'theme-manager',
+          state: {
+            searchQuery: themeSearchQuery.value,
+            categoryFilter: themeCategoryFilter.value,
+            sortOption: themeSortOption.value,
+          },
+        },
+      }),
+    )
+  }
 }
 
 // 설정 관리 상태 변경 이벤트 핸들러
 function handleSettingsManagerSettingSelected(event) {
   settingsManagerSelectedSetting.value = event.detail.setting || null
+  // 상태 저장
+  if (activeMenu.value === 'settings-manager') {
+    window.dispatchEvent(
+      new CustomEvent('dev-menu-state-save', {
+        detail: {
+          menuId: 'settings-manager',
+          state: {
+            selectedSetting: settingsManagerSelectedSetting.value,
+            statistics: settingsManagerStatistics.value,
+          },
+        },
+      }),
+    )
+  }
 }
 
 function handleSettingsManagerStatisticsUpdated(event) {
   settingsManagerStatistics.value = event.detail.statistics || null
+  // 상태 저장
+  if (activeMenu.value === 'settings-manager') {
+    window.dispatchEvent(
+      new CustomEvent('dev-menu-state-save', {
+        detail: {
+          menuId: 'settings-manager',
+          state: {
+            selectedSetting: settingsManagerSelectedSetting.value,
+            statistics: settingsManagerStatistics.value,
+          },
+        },
+      }),
+    )
+  }
 }
 
 // 설정 업데이트 핸들러
@@ -141,6 +182,26 @@ function handleSettingsManagerSettingDeleted() {
   window.dispatchEvent(new CustomEvent('settings-manager-refresh-request'))
 }
 
+// DevOps 상태 저장 헬퍼 함수
+function saveDevOpsState() {
+  if (activeMenu.value === 'devops') {
+    window.dispatchEvent(
+      new CustomEvent('dev-menu-state-save', {
+        detail: {
+          menuId: 'devops',
+          state: {
+            activeTab: devOpsActiveTab.value,
+            selectedBuild: devOpsSelectedBuild.value,
+            selectedDeployment: devOpsSelectedDeployment.value,
+            selectedEnvironmentVariable: devOpsSelectedEnvironmentVariable.value,
+            selectedPackage: devOpsSelectedPackage.value,
+          },
+        },
+      }),
+    )
+  }
+}
+
 // DevOps 핸들러
 function handleDevOpsTabChange(event) {
   const { tab } = event.detail
@@ -150,42 +211,52 @@ function handleDevOpsTabChange(event) {
   devOpsSelectedDeployment.value = null
   devOpsSelectedEnvironmentVariable.value = null
   devOpsSelectedPackage.value = null
+  // 상태 저장
+  saveDevOpsState()
 }
 
 function handleDevOpsBuildSelected(event) {
   const { build } = event.detail
   devOpsSelectedBuild.value = build
+  // 상태 저장
+  saveDevOpsState()
 }
 
 function handleDevOpsDeploymentSelected(event) {
   const { deployment } = event.detail
   devOpsSelectedDeployment.value = deployment
+  // 상태 저장
+  saveDevOpsState()
 }
 
 function handleDevOpsEnvironmentVariableSelected(event) {
   const { variable } = event.detail
   devOpsSelectedEnvironmentVariable.value = variable
+  // 상태 저장
+  saveDevOpsState()
 }
 
 function handleDevOpsPackageSelected(event) {
   const { package: packageItem } = event.detail
   devOpsSelectedPackage.value = packageItem
+  // 상태 저장
+  saveDevOpsState()
 }
 
 // 메뉴 메인 페이지로 이동 핸들러
 function handleMenuMainPage(event) {
   const menuId = event.detail.menuId
   if (menuId === activeMenu.value) {
-      // 현재 메뉴의 메인 페이지로 이동
-      if (menuId === 'settings-manager') {
-        settingsManagerSelectedSetting.value = null
-      } else if (menuId === 'devops') {
-        devOpsSelectedBuild.value = null
-        devOpsSelectedDeployment.value = null
-        devOpsSelectedEnvironmentVariable.value = null
-        devOpsSelectedPackage.value = null
-        devOpsActiveTab.value = 'build'
-      } else if (menuId === 'dev-guide') {
+    // 현재 메뉴의 메인 페이지로 이동
+    if (menuId === 'settings-manager') {
+      settingsManagerSelectedSetting.value = null
+    } else if (menuId === 'devops') {
+      devOpsSelectedBuild.value = null
+      devOpsSelectedDeployment.value = null
+      devOpsSelectedEnvironmentVariable.value = null
+      devOpsSelectedPackage.value = null
+      devOpsActiveTab.value = 'build'
+    } else if (menuId === 'dev-guide') {
       // DevGuideContent의 메인 페이지로 이동
       window.dispatchEvent(new CustomEvent('dev-guide-main-page'))
     } else if (menuId === 'error-tracking') {
@@ -200,15 +271,63 @@ function handleMenuMainPage(event) {
 }
 
 // Active menu 변경 이벤트 리스너
+// 메뉴 상태 복원 함수
+function restoreMenuState(menuId, state) {
+  if (!state) return
+
+  switch (menuId) {
+    case 'settings-manager':
+      if (state.selectedSetting) {
+        settingsManagerSelectedSetting.value = state.selectedSetting
+      }
+      if (state.statistics) {
+        settingsManagerStatistics.value = state.statistics
+      }
+      break
+    case 'devops':
+      if (state.activeTab) {
+        devOpsActiveTab.value = state.activeTab
+      }
+      if (state.selectedBuild) {
+        devOpsSelectedBuild.value = state.selectedBuild
+      }
+      if (state.selectedDeployment) {
+        devOpsSelectedDeployment.value = state.selectedDeployment
+      }
+      if (state.selectedEnvironmentVariable) {
+        devOpsSelectedEnvironmentVariable.value = state.selectedEnvironmentVariable
+      }
+      if (state.selectedPackage) {
+        devOpsSelectedPackage.value = state.selectedPackage
+      }
+      break
+    case 'theme-manager':
+      if (state.searchQuery !== undefined) {
+        themeSearchQuery.value = state.searchQuery
+      }
+      if (state.categoryFilter !== undefined) {
+        themeCategoryFilter.value = state.categoryFilter
+      }
+      if (state.sortOption) {
+        themeSortOption.value = state.sortOption
+      }
+      break
+    // 다른 메뉴들의 상태 복원은 필요시 추가
+  }
+}
+
+// Active menu 변경 이벤트 리스너
+// DevSidebar가 메뉴 상태를 관리하므로, 여기서는 동기화만 수행
 function handleActiveMenuChange(event) {
   const newMenu = event.detail.activeMenu
+  const restoreState = event.detail.restoreState
+
   if (activeMenu.value !== newMenu) {
     activeMenu.value = newMenu
-    // localStorage에 저장하여 다음 접속 시 복원
-    try {
-      localStorage.setItem('dev-active-menu', newMenu)
-    } catch (error) {
-      console.error('[DevelopmentPage] 메뉴 상태 저장 실패:', error)
+
+    // 메뉴 상태 복원
+    if (newMenu && restoreState) {
+      restoreMenuState(newMenu, restoreState)
     }
   }
 }
@@ -230,12 +349,8 @@ onMounted(async () => {
   window.addEventListener('devops-environment-variable-selected', handleDevOpsEnvironmentVariableSelected)
   window.addEventListener('devops-package-selected', handleDevOpsPackageSelected)
 
-  // 모든 컴포넌트가 마운트된 후에 초기 메뉴를 사이드바에 전파
-  await nextTick()
-  // 추가 대기 시간을 두어 DevSidebar와 DevMenuSlider가 완전히 마운트되도록 함
-  setTimeout(() => {
-    window.dispatchEvent(new CustomEvent('dev-menu-changed', { detail: { activeMenu: activeMenu.value } }))
-  }, 100)
+  // DevSidebar가 메뉴 상태를 완전히 관리하므로, 여기서는 이벤트만 수신
+  // 초기 메뉴는 DevSidebar에서 dev-menu-changed 이벤트로 전달됨
 })
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
