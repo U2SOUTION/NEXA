@@ -10,73 +10,37 @@
 
         <div class="row items-center q-gutter-sm q-mb-sm">
           <div class="col-auto text-caption slider-label">노드 너비</div>
-          <q-slider
-            v-model.number="localSettings.nodeSize.width"
-            :min="schema.nodeSize.width.min"
-            :max="schema.nodeSize.width.max"
-            :step="schema.nodeSize.width.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.nodeSize.width" :min="schema.nodeSize.width.min" :max="schema.nodeSize.width.max" :step="schema.nodeSize.width.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.width }}px</div>
         </div>
 
         <div class="row items-center q-gutter-sm">
           <div class="col-auto text-caption slider-label">노드 높이</div>
-          <q-slider
-            v-model.number="localSettings.nodeSize.height"
-            :min="schema.nodeSize.height.min"
-            :max="schema.nodeSize.height.max"
-            :step="schema.nodeSize.height.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.nodeSize.height" :min="schema.nodeSize.height.min" :max="schema.nodeSize.height.max" :step="schema.nodeSize.height.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.height }}px</div>
         </div>
       </div>
 
-      <!-- 레이아웃 간격 설정 -->
-      <div class="settings-section q-mb-md">
+      <!-- 레이아웃 간격 설정 (hierarchical 그래프만 표시) -->
+      <div v-if="schema.layout?.nodesep && schema.layout?.ranksep" class="settings-section q-mb-md">
         <h4 class="section-title">레이아웃 간격</h4>
 
         <div class="row items-center q-gutter-sm q-mb-sm">
           <div class="col-auto text-caption slider-label">노드 간격</div>
-          <q-slider
-            v-model.number="localSettings.layout.nodesep"
-            :min="schema.layout.nodesep.min"
-            :max="schema.layout.nodesep.max"
-            :step="schema.layout.nodesep.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.layout.nodesep" :min="schema.layout.nodesep.min" :max="schema.layout.nodesep.max" :step="schema.layout.nodesep.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.nodesep }}px</div>
         </div>
 
         <div class="row items-center q-gutter-sm">
           <div class="col-auto text-caption slider-label">레벨 간격</div>
-          <q-slider
-            v-model.number="localSettings.layout.ranksep"
-            :min="schema.layout.ranksep.min"
-            :max="schema.layout.ranksep.max"
-            :step="schema.layout.ranksep.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.layout.ranksep" :min="schema.layout.ranksep.min" :max="schema.layout.ranksep.max" :step="schema.layout.ranksep.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.ranksep }}px</div>
         </div>
 
-        <!-- 레이아웃 방향 -->
-        <div class="q-mt-md">
+        <!-- 레이아웃 방향 (hierarchical 그래프만 표시) -->
+        <div v-if="schema.layout?.rankdir" class="q-mt-md">
           <div class="subsection-title">레이아웃 방향</div>
-          <q-select
-            v-model="localSettings.layout.rankdir"
-            :options="rankdirOptions"
-            dense
-            outlined
-            emit-value
-            map-options
-            @update:model-value="handleSettingsChange"
-          >
+          <q-select v-model="localSettings.layout.rankdir" :options="rankdirOptions" dense outlined emit-value map-options @update:model-value="handleSettingsChange">
             <template v-slot:option="scope">
               <q-item v-bind="scope.itemProps">
                 <q-item-section avatar>
@@ -92,6 +56,35 @@
         </div>
       </div>
 
+      <!-- Force 시뮬레이션 설정 (force-directed 그래프만 표시) -->
+      <div v-if="schema.layout?.force" class="settings-section q-mb-md">
+        <h4 class="section-title">Force 시뮬레이션</h4>
+
+        <div class="row items-center q-gutter-sm q-mb-sm">
+          <div class="col-auto text-caption slider-label">반발력</div>
+          <q-slider v-model.number="localSettings.layout.force.charge" :min="schema.layout.force.charge.min" :max="schema.layout.force.charge.max" :step="schema.layout.force.charge.step" class="col" @update:model-value="handleSettingsChange" />
+          <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.force.charge }}</div>
+        </div>
+
+        <div class="row items-center q-gutter-sm q-mb-sm">
+          <div class="col-auto text-caption slider-label">링크 거리</div>
+          <q-slider v-model.number="localSettings.layout.force.linkDistance" :min="schema.layout.force.linkDistance.min" :max="schema.layout.force.linkDistance.max" :step="schema.layout.force.linkDistance.step" class="col" @update:model-value="handleSettingsChange" />
+          <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.force.linkDistance }}px</div>
+        </div>
+
+        <div class="row items-center q-gutter-sm q-mb-sm">
+          <div class="col-auto text-caption slider-label">링크 강도</div>
+          <q-slider v-model.number="localSettings.layout.force.linkStrength" :min="schema.layout.force.linkStrength.min" :max="schema.layout.force.linkStrength.max" :step="schema.layout.force.linkStrength.step" class="col" @update:model-value="handleSettingsChange" />
+          <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.force.linkStrength }}</div>
+        </div>
+
+        <div class="row items-center q-gutter-sm">
+          <div class="col-auto text-caption slider-label">충돌 거리</div>
+          <q-slider v-model.number="localSettings.layout.force.collision" :min="schema.layout.force.collision.min" :max="schema.layout.force.collision.max" :step="schema.layout.force.collision.step" class="col" @update:model-value="handleSettingsChange" />
+          <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.force.collision }}px</div>
+        </div>
+      </div>
+
       <!-- 의존성 그래프 전용 설정 -->
       <div class="settings-section">
         <h4 class="section-title">의존성 그래프 옵션</h4>
@@ -99,15 +92,7 @@
         <!-- 엣지 스타일 -->
         <div class="q-mb-md">
           <div class="subsection-title">엣지 스타일</div>
-          <q-select
-            v-model="localSettings.edgeStyle"
-            :options="edgeStyleOptions"
-            dense
-            outlined
-            emit-value
-            map-options
-            @update:model-value="handleSettingsChange"
-          />
+          <q-select v-model="localSettings.edgeStyle" :options="edgeStyleOptions" dense outlined emit-value map-options @update:model-value="handleSettingsChange" />
         </div>
 
         <!-- 노드 라벨 표시 -->
@@ -186,9 +171,23 @@ function handleSettingsChange() {
   if (localSettings.value.nodeSize?.width !== oldSettings.nodeSize?.width || localSettings.value.nodeSize?.height !== oldSettings.nodeSize?.height) {
     changedTypes.push('nodeSize')
   }
-  if (localSettings.value.layout?.nodesep !== oldSettings.layout?.nodesep || localSettings.value.layout?.ranksep !== oldSettings.layout?.ranksep || localSettings.value.layout?.rankdir !== oldSettings.layout?.rankdir) {
-    changedTypes.push('layout')
+
+  // hierarchical 그래프 설정 (nodesep, ranksep, rankdir)
+  if (schema.value.layout?.nodesep) {
+    if (localSettings.value.layout?.nodesep !== oldSettings.layout?.nodesep || localSettings.value.layout?.ranksep !== oldSettings.layout?.ranksep || localSettings.value.layout?.rankdir !== oldSettings.layout?.rankdir) {
+      changedTypes.push('layout')
+    }
   }
+
+  // force-directed 그래프 설정 (force 파라미터)
+  if (schema.value.layout?.force) {
+    const oldForce = oldSettings.layout?.force || {}
+    const newForce = localSettings.value.layout?.force || {}
+    if (newForce.charge !== oldForce.charge || newForce.linkDistance !== oldForce.linkDistance || newForce.linkStrength !== oldForce.linkStrength || newForce.collision !== oldForce.collision) {
+      changedTypes.push('layout')
+    }
+  }
+
   if (localSettings.value.edgeStyle !== oldSettings.edgeStyle || localSettings.value.showLabels !== oldSettings.showLabels) {
     changedTypes.push('theme')
   }

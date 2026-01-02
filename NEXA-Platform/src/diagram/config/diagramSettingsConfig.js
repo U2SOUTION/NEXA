@@ -7,6 +7,39 @@
 import { diagramTypes } from './diagramMetadata.js'
 
 /**
+ * 성능 최적화 임계값 상수 (전역)
+ * 노드 수에 따라 UX와 성능의 균형을 조절하는 기준값
+ */
+export const PERFORMANCE_THRESHOLDS = {
+  /**
+   * 라벨 자동 숨김 임계값
+   * 노드 수가 이 값 이상이면 라벨을 자동으로 숨김 (성능 최적화)
+   * 이 값 미만이면 항상 라벨 표시 (UX 향상)
+   */
+  AUTO_HIDE_LABELS: 200,
+
+  /**
+   * 라인 실시간 업데이트 임계값
+   * 노드 수가 이 값 미만이면 드래그 중에도 라인을 실시간으로 업데이트 (UX 향상)
+   * 이 값 이상이면 드래그 중 라인 업데이트를 스킵하고 종료 시에만 업데이트 (성능 우선)
+   */
+  REALTIME_LINK_UPDATE: 200,
+
+  /**
+   * 대량 데이터 모드 임계값
+   * 노드 수가 이 값 이상이면 Canvas 모드나 추가 최적화 고려
+   */
+  LARGE_DATA_MODE: 500,
+
+  /**
+   * 드래그 중 시뮬레이션 정지 임계값
+   * 노드 수가 이 값 이상이면 드래그 중 시뮬레이션을 완전히 정지 (성능 최적화, INP 개선)
+   * 이 값 미만이면 드래그 중에도 시뮬레이션을 느리게 실행 (UX 향상)
+   */
+  PAUSE_SIMULATION_ON_DRAG: 500,
+}
+
+/**
  * 다이어그램 타입별 설정 스키마
  */
 export const diagramSettingsSchemas = {
@@ -38,6 +71,8 @@ export const diagramSettingsSchemas = {
         collision: { default: 5, min: 0, max: 20, step: 1 }, // 충돌 방지 거리 보정값
       },
     },
+    // 노드 라벨 표시 여부 (기본값: true, 노드 수가 200개 이상이면 자동으로 숨김)
+    showLabels: { default: true },
     // 수동 최적 줌값 (자동 줌 대신 사용, 모든 그래프/모드에 공통 적용)
     // manualZoom: { scale: 1.0, translateX: 0, translateY: 0 } 형태로 저장
     manualZoom: null, // null이면 자동 줌 사용, 값이 있으면 수동 줌 적용
@@ -57,6 +92,8 @@ export const diagramSettingsSchemas = {
         collision: { default: 5, min: 0, max: 20, step: 1 }, // 충돌 방지 거리 보정값
       },
     },
+    // 노드 라벨 표시 여부 (기본값: true, 노드 수가 200개 이상이면 자동으로 숨김)
+    showLabels: { default: true },
     // 수동 최적 줌값 (자동 줌 대신 사용, 모든 그래프/모드에 공통 적용)
     manualZoom: null, // null이면 자동 줌 사용, 값이 있으면 수동 줌 적용
   },

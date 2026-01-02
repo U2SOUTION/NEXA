@@ -6,18 +6,175 @@
 import * as d3 from 'd3'
 
 /**
- * 줌 객체 생성
+ * 줌 객체 생성 (관성 효과 포함)
  * @param {Function} onZoom - 줌 이벤트 핸들러
  * @param {Object} options - 줌 옵션
+ * @param {Array<Number>} options.scaleExtent - 줌 스케일 범위 [최소값, 최대값] (기본값: [0.1, 3])
+ *   - 최소값: 줌 아웃 최대 한계 (0.1 = 원본 크기의 10%)
+ *   - 최대값: 줌 인 최대 한계 (3 = 원본 크기의 300%)
+ * @param {Function} options.wheelDelta - 마우스 휠 델타 계산 함수 (기본값: null, D3 기본값 사용)
+ * @param {Boolean} options.inertia - 관성 효과 사용 여부 (기본값: true)
+ * @param {Number} options.inertiaDecay - 관성 감쇠 계수 (기본값: 0.9, 0~1 사이)
+ * @param {Number} options.inertiaDuration - 관성 지속 시간 (ms, 기본값: 300)
+ * @param {Function} options.onInertiaStart - 관성 애니메이션 시작 시 콜백 (성능 최적화용)
+ * @param {Function} options.onInertiaEnd - 관성 애니메이션 종료 시 콜백 (성능 최적화용)
+ * @param {Boolean} options.skipFontUpdateDuringInertia - 관성 애니메이션 중 폰트 업데이트 스킵 (기본값: true)
  * @returns {Object} D3 zoom 객체
  */
 export function createZoom(onZoom, options = {}) {
-  const { scaleExtent = [0.1, 3], wheelDelta = null } = options
+  const {
+    scaleExtent = [0.1, 3], // 줌 스케일 범위 [최소값, 최대값]: 0.1(10%) ~ 3(300%)
+    wheelDelta = null,
+    inertia = true, // 관성 효과 활성화
+    inertiaDecay = 0.9, // 관성 감쇠 (0.9 = 매 프레임마다 10% 감소)
+    inertiaDuration = 1000, // 관성 지속 시간 (ms)
+    onInertiaStart = null, // 관성 애니메이션 시작 콜백
+    onInertiaEnd = null, // 관성 애니메이션 종료 콜백
+    skipFontUpdateDuringInertia = true, // 관성 중 폰트 업데이트 스킵
+  } = options
 
-  const zoom = d3.zoom().scaleExtent(scaleExtent).on('zoom', onZoom)
+  // 관성 효과 관련 변수 선언 (줌 핸들러 래퍼에서 사용)
+  let isInertiaAnimating = false // 관성 애니메이션 중 여부
+
+  // 줌 핸들러 래퍼 (관성 중 폰트 업데이트 스킵 옵션)
+  let wrappedOnZoom = null
+  if (inertia) {
+    wrappedOnZoom = (event) => {
+      // 관성 애니메이션 중이고 폰트 업데이트 스킵 옵션이 활성화된 경우
+      // 이벤트에 플래그 추가
+      if (isInertiaAnimating && skipFontUpdateDuringInertia) {
+        event.skipFontUpdate = true
+      }
+      onZoom(event)
+    }
+  }
+
+  const zoom = d3
+    .zoom()
+    .scaleExtent(scaleExtent)
+    .on('zoom', inertia ? wrappedOnZoom : onZoom)
 
   if (wheelDelta) {
     zoom.wheelDelta(wheelDelta)
+  }
+
+  // 관성 효과 추가
+  if (inertia) {
+    let velocity = { x: 0, y: 0 } // 속도 벡터
+    let lastPosition = { x: 0, y: 0, time: Date.now() } // 마지막 위치와 시간
+    let isDragging = false // 드래그 중 여부
+    let animationFrame = null // 애니메이션 프레임
+    let svgElement = null // SVG 요소 참조 저장
+
+    // 드래그 시작
+    zoom.on('start', function () {
+      isDragging = true
+      velocity = { x: 0, y: 0 }
+      svgElement = this
+      const transform = d3.zoomTransform(this)
+      lastPosition = {
+        x: transform.x,
+        y: transform.y,
+        time: Date.now(),
+      }
+
+      // 기존 관성 애니메이션 취소
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame)
+        animationFrame = null
+      }
+
+      // 관성 애니메이션 종료 처리 (드래그 시작 시 이전 관성 종료)
+      if (isInertiaAnimating) {
+        isInertiaAnimating = false
+        if (onInertiaEnd) onInertiaEnd()
+      }
+    })
+
+    // 드래그 중 (속도 추적)
+    zoom.on('zoom', function (event) {
+      // 래핑된 zoom 핸들러 호출
+      wrappedOnZoom(event)
+
+      if (isDragging && event.sourceEvent) {
+        const now = Date.now()
+        const deltaTime = now - lastPosition.time
+
+        if (deltaTime > 0) {
+          const transform = d3.zoomTransform(this)
+          const deltaX = transform.x - lastPosition.x
+          const deltaY = transform.y - lastPosition.y
+
+          // 속도 계산 (픽셀/밀리초)
+          velocity = {
+            x: deltaX / deltaTime,
+            y: deltaY / deltaTime,
+          }
+
+          lastPosition = {
+            x: transform.x,
+            y: transform.y,
+            time: now,
+          }
+        }
+      }
+    })
+
+    // 드래그 종료 (관성 애니메이션 시작)
+    zoom.on('end', function () {
+      isDragging = false
+
+      // 속도가 충분히 클 때만 관성 효과 적용
+      const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y)
+      const minSpeed = 0.1 // 최소 속도 (픽셀/밀리초)
+
+      if (speed > minSpeed && svgElement) {
+        // 관성 애니메이션 시작 콜백 호출 (Force 시뮬레이션 일시정지 등)
+        isInertiaAnimating = true
+        if (onInertiaStart) onInertiaStart()
+
+        const startTime = Date.now()
+        const startTransform = d3.zoomTransform(svgElement)
+        let currentVelocity = { ...velocity }
+        let accumulatedX = 0
+        let accumulatedY = 0
+
+        // 관성 애니메이션 함수
+        const animate = () => {
+          const elapsed = Date.now() - startTime
+
+          if (elapsed < inertiaDuration && (Math.abs(currentVelocity.x) > 0.01 || Math.abs(currentVelocity.y) > 0.01)) {
+            // 현재 속도로 이동
+            const deltaTime = 16 // 약 60fps
+            const deltaX = currentVelocity.x * deltaTime
+            const deltaY = currentVelocity.y * deltaTime
+
+            accumulatedX += deltaX
+            accumulatedY += deltaY
+
+            // 새로운 transform 계산
+            const newTransform = d3.zoomIdentity.translate(startTransform.x + accumulatedX, startTransform.y + accumulatedY).scale(startTransform.k)
+
+            // transform 적용 (이벤트에 skipFontUpdate 플래그가 자동으로 추가됨)
+            d3.select(svgElement).call(zoom.transform, newTransform)
+
+            // 속도 감쇠
+            currentVelocity.x *= inertiaDecay
+            currentVelocity.y *= inertiaDecay
+
+            animationFrame = requestAnimationFrame(animate)
+          } else {
+            // 관성 애니메이션 종료
+            animationFrame = null
+            isInertiaAnimating = false
+            if (onInertiaEnd) onInertiaEnd()
+          }
+        }
+
+        // 관성 애니메이션 시작
+        animationFrame = requestAnimationFrame(animate)
+      }
+    })
   }
 
   return zoom

@@ -1429,6 +1429,7 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .graph-doc-content {
   height: 100%;
+  min-height: 100vh; /* 뷰포트 전체 높이 보장 */
   display: flex;
   flex-direction: column;
   background: var(--nexa-background);
@@ -1601,17 +1602,21 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center; /* 상하 중앙 정렬 */
   padding: 2rem;
+  min-height: 100vh; /* 뷰포트 전체 높이 사용 */
+  box-sizing: border-box;
 }
 
 .sidebar-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100%;
+  justify-content: center; /* 내부 콘텐츠도 상하 중앙 정렬 */
   text-align: center;
   padding: 1rem 0;
+  width: 100%;
+  max-width: 600px; /* 최대 너비 제한으로 가독성 향상 */
 }
 
 .features-list {

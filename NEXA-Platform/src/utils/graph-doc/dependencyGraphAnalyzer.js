@@ -493,7 +493,11 @@ async function findTargetFiles(target) {
       // targetPath로 시작하는 경로인지 확인
       if (normalizedPath.startsWith(targetPath)) {
         files.push(normalizedPath)
-        console.log('[DependencyGraphAnalyzer] 파일 발견:', normalizedPath)
+        // 성능 최적화: 개별 파일 발견 로그는 제거 (요약 로그만 출력)
+        // 개발 모드에서만 필요시 주석 해제
+        // if (import.meta.env.DEV) {
+        //   console.log('[DependencyGraphAnalyzer] 파일 발견:', normalizedPath)
+        // }
       }
     }
 

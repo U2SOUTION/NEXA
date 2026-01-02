@@ -207,6 +207,10 @@ onMounted(() => {
 
 // 컴포넌트 언마운트 시 정리
 onBeforeUnmount(() => {
+  // cleanup 함수 호출 (툴팁 제거 등)
+  if (renderResult?.cleanup) {
+    renderResult.cleanup()
+  }
   // 다이어그램 정리
   if (renderResult?.zoom && renderResult?.svg) {
     renderResult.svg.on('.zoom', null)
