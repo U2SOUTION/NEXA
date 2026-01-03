@@ -36,13 +36,12 @@
 
       <!-- 제목 및 정보 -->
       <div class="col content-info">
-        <div class="content-title">Tangled up in Blue | Luke Winslow-King & Roberto Luti | Playing For Change | Live Outside</div>
+        <div class="content-title">{{ pageInfo.title || '페이지 정보를 기다리는 중...' }}</div>
         <div class="content-meta-line">
-          <span>CHANNEL: @PlayingForChange</span>
-          <span class="meta-separator">|</span>
-          <span>Video ID: x6XJNPOmKIM</span>
-          <span class="meta-separator">|</span>
-          <a href="#">https://www.youtube.com/watch?v=x6XJNPOmKIM</a>
+          <span v-if="pageInfo.url">
+            <a :href="pageInfo.url" target="_blank" rel="noopener noreferrer">{{ pageInfo.url }}</a>
+          </span>
+          <span v-else class="text-grey-6">URL 정보 없음</span>
         </div>
       </div>
     </div>
@@ -91,6 +90,18 @@
 
 <script setup>
 import { ref } from 'vue'
+
+// Props: Extension에서 전달받은 페이지 정보
+defineProps({
+  pageInfo: {
+    type: Object,
+    default: () => ({
+      url: '',
+      title: '',
+      timestamp: null
+    })
+  }
+})
 
 // 목업 데이터
 const mockRating = ref({
