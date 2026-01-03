@@ -1,5 +1,5 @@
 <template>
-  <q-page class="extension-page">
+  <q-page :class="['extension-page', { 'iframe-mode': isIframeMode }]">
     <!-- 확장 프로그램이 선택된 경우 (U2BEE UI 등) -->
     <template v-if="selectedExtension === 'u2bee'">
       <div class="u2bee-container">
@@ -140,6 +140,7 @@ const router = useRouter()
 // URL query parameter에서 activeTab 및 extension 초기화
 const activeTab = ref(route.query.tab || 'chrome')
 const selectedExtension = computed(() => route.query.extension || null)
+const isIframeMode = computed(() => route.query.mode === 'popup' || route.query.mode === 'sidepanel' || window.self !== window.top)
 
 // U2BEE 탭 관리
 const { visibleTabs } = useTabConfig()
@@ -196,6 +197,20 @@ watch(
   flex-direction: column;
   padding: 40px;
   overflow-y: visible; // MainLayout의 q-page 기본 overflow-y: auto 오버라이드
+
+  // iframe 모드일 때 패딩 제거 및 스크롤 방지
+  &.iframe-mode {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 100vh !important;
+    max-height: 100vh !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    // MainLayout의 q-page 기본 overflow-y: auto 오버라이드
+    overflow-y: hidden !important;
+  }
 }
 
 // U2BEE 컨테이너 (사이드바 없이 메인 콘텐츠만)
@@ -204,6 +219,15 @@ watch(
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+
+  // iframe 모드일 때 추가 스크롤 방지
+  .extension-page.iframe-mode & {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
 }
 
 .header-section {
@@ -295,16 +319,42 @@ watch(
   flex: 1;
   padding: 0;
   overflow: hidden;
+  min-height: 0;
+  max-height: 100%;
+
+  // iframe 모드일 때 추가 스크롤 방지
+  .extension-page.iframe-mode & {
+    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    max-height: calc(100vh - var(--header-height, 48px) - var(--tabs-height, 48px));
+  }
 }
 
 .u2bee-panels .q-tab-panels {
   overflow: hidden;
   height: 100%;
+  max-height: 100%;
+
+  // iframe 모드일 때 추가 스크롤 방지
+  .extension-page.iframe-mode & {
+    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: hidden;
+  }
 }
 
 .u2bee-panels .q-tab-panel {
   overflow: visible;
   height: auto;
+
+  // iframe 모드일 때 스크롤 방지 (내부 콘텐츠는 필요시 스크롤 가능)
+  .extension-page.iframe-mode & {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 100%;
+    height: 100%;
+  }
 }
 
 // 기존 스타일 (메인 페이지용)
