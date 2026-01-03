@@ -4,8 +4,8 @@
     <q-header ref="headerRef">
       <q-toolbar class="bg-grey-10" dense>
         <div class="row items-center no-wrap q-mr-md">
-          <q-btn flat dense class="nexa-logo-btn" style="padding: 5px">
-            <img src="/LOGO.svg" alt="NEXA" class="nexa-logo" style="width: 90px; height: 26px; display: block" />
+          <q-btn flat dense class="nexa-logo-btn">
+            <img src="/LOGO.svg" alt="NEXA" class="nexa-logo" />
             <q-menu>
               <q-list>
                 <q-item v-for="tab in mainMenuTabs" :key="tab.name" clickable v-close-popup @click="handleTabClick(tab)">
@@ -363,6 +363,7 @@ const mainMenuTabs = [
   { name: 'system', label: 'SYSTEM', displayLabel: 'SYSTEM', icon: 'settings', route: '/system', exact: false, nexaPrefix: false },
   { name: 'network', label: 'NETWORK', displayLabel: 'NETWORK', icon: 'router', route: '/network', exact: false, nexaPrefix: false },
   { name: 'solutions', label: 'SOLUTIONS', displayLabel: 'SOLUTIONS', icon: 'lightbulb', route: '/solutions', exact: false, nexaPrefix: false },
+  { name: 'extension', label: 'Extension', displayLabel: 'Extension', icon: 'extension', route: '/extension', exact: false, nexaPrefix: false },
   { name: 'help', label: 'HELP', displayLabel: 'HELP', icon: 'help_outline', route: '/help', exact: false, nexaPrefix: false },
   { name: 'dev', label: 'DEV', displayLabel: 'DEV', icon: 'code', route: '/dev', exact: false, nexaPrefix: false },
 ]
@@ -555,6 +556,7 @@ const currentMenu = computed({
     if (path.startsWith('/system')) return 'system'
     if (path.startsWith('/network')) return 'network'
     if (path.startsWith('/solutions')) return 'solutions'
+    if (path.startsWith('/extension')) return 'extension'
     if (path.startsWith('/help')) return 'help'
     if (path.startsWith('/dev')) return 'dev'
     return 'home'
@@ -1591,9 +1593,11 @@ onBeforeUnmount(() => {
 /* NEXA svg logo 크기 조절*/
 .nexa-logo {
   display: block;
+  width: 50px;
+  height: 26px;
   object-fit: contain;
   object-position: left center;
-  transform: scaleX(3.5);
+  transform: scaleX(2.5);
   transform-origin: left center;
   transition: filter var(--transition-duration) ease;
   filter: brightness(1);
@@ -1603,9 +1607,12 @@ onBeforeUnmount(() => {
 .nexa-logo-btn {
   cursor: pointer;
   transition: all var(--transition-duration) ease;
-  padding: 0;
+  padding: 5px;
   margin: 0;
-  background: transparent !important;
+  background: transparent;
+  width: auto;
+  min-width: auto;
+  height: auto;
 }
 
 // 호버 시 SVG 밝기만 두 배로 변경
@@ -1630,25 +1637,25 @@ onBeforeUnmount(() => {
 }
 /* 메뉴 탭 스타일 */
 .main-menu-tabs .q-tab {
-  padding-left: clamp(2px, 0.6vw, 12px); //동적으로 조절
-  padding-right: clamp(2px, 0.6vw, 12px); //동적으로 조절
-  padding-top: 7px !important;
-  padding-bottom: 7px !important;
+  padding-left: clamp(2px, 0.58vw, 12px); //동적으로 조절
+  padding-right: clamp(2px, 0.58vw, 12px); //동적으로 조절
+  letter-spacing: clamp(0px, 0.06vw, 0.08px);
+
+  padding-top: 7px;
+  padding-bottom: 7px;
   margin: 1px;
   white-space: nowrap;
   flex-wrap: nowrap;
   flex-shrink: 0;
-  min-height: auto !important;
-  height: auto !important;
-  align-items: center !important;
+  min-height: auto;
+  height: auto;
+  align-items: center;
 
   border-radius: var(--border-radius);
   background-color: var(--nexa-surface);
   border: 1px solid var(--nexa-border-color);
   color: var(--nexa-text-primary);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: clamp(0px, 0.15vw, 0.3px);
+  font-weight: 400;
   text-align: center;
   box-shadow: 0 0 1px 1px var(--nexa-shadow-3);
   transition: all var(--transition-duration) ease;

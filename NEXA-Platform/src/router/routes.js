@@ -62,6 +62,11 @@ const routes = [
         component: () => import('pages/SolutionsPage.vue'),
       },
       {
+        path: 'extension',
+        name: 'Extension',
+        component: () => import('pages/ExtensionPage.vue'),
+      },
+      {
         path: 'help',
         name: 'Help',
         component: () => import('pages/HelpPage.vue'),
