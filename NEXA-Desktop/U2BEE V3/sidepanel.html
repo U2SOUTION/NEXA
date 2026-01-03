@@ -22,23 +22,6 @@
             border: none;
             display: block;
         }
-        .mode-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.2s;
-        }
-        .mode-toggle:hover {
-            background: rgba(0, 0, 0, 0.9);
-        }
         .loading {
             position: absolute;
             top: 50%;
@@ -52,7 +35,6 @@
 </head>
 <body>
     <div class="loading" id="loading">로딩 중...</div>
-    <button id="mode-toggle" class="mode-toggle">팝업으로</button>
     <iframe 
         id="u2bee-iframe" 
         src="http://localhost:9000/#/extension?extension=u2bee&mode=sidepanel" 

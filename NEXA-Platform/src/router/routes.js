@@ -65,6 +65,19 @@ const routes = [
         path: 'extension',
         name: 'Extension',
         component: () => import('pages/ExtensionPage.vue'),
+        // 라우터 가드에서 U2BEE 모드 확인하여 리다이렉트
+        beforeEnter: (to, from, next) => {
+          // U2BEE 레이아웃을 사용할 조건 확인
+          const isU2BeeMode = (to.query.mode === 'popup' || to.query.mode === 'sidepanel') && to.query.extension === 'u2bee'
+          
+          if (isU2BeeMode) {
+            // U2BEE 레이아웃으로 리다이렉트
+            next({ name: 'ExtensionU2Bee', query: to.query, params: to.params })
+          } else {
+            // 일반 Extension 페이지 표시
+            next()
+          }
+        },
       },
       {
         path: 'help',
@@ -80,6 +93,19 @@ const routes = [
         path: 'my',
         name: 'My',
         component: () => import('pages/MyPage.vue'),
+      },
+    ],
+  },
+  // Extension 경로: U2BEE 전용 레이아웃 (크롬 확장 프로그램용)
+  // query parameter로 mode=popup 또는 mode=sidepanel이 있고 extension=u2bee인 경우 U2BeeLayout 사용
+  {
+    path: '/extension',
+    component: () => import('layouts/U2BeeLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'ExtensionU2Bee',
+        component: () => import('pages/ExtensionPage.vue'),
       },
     ],
   },

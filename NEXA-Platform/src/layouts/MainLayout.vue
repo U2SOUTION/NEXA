@@ -1,7 +1,7 @@
 <!--전체적인 레이아웃 구성-->
 <template>
   <q-layout view="hHh Lpr fFf">
-    <q-header ref="headerRef">
+    <q-header v-if="!isIframeMode" ref="headerRef">
       <q-toolbar class="bg-grey-10" dense>
         <div class="row items-center no-wrap q-mr-md">
           <q-btn flat dense class="nexa-logo-btn">
@@ -95,7 +95,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="dashboardLayoutStore.mainNavigationOpen" show-if-above bordered :width="userSettings.settings.drawer.leftWidth" :style="editModeDrawerStyles" @click.self="handleDrawerEmptySpaceClick" class="drawer-border">
+    <q-drawer v-if="!isIframeMode" v-model="dashboardLayoutStore.mainNavigationOpen" show-if-above bordered :width="userSettings.settings.drawer.leftWidth" :style="editModeDrawerStyles" @click.self="handleDrawerEmptySpaceClick" class="drawer-border">
       <!-- 리사이즈 핸들 -->
       <div class="resize-handle-right" @mousedown="startMainNavigationResize" :class="{ resizing: isMainNavigationResizing }">
         <div class="resize-dots">
@@ -110,12 +110,13 @@
       <component v-if="leftSidebarComponent" :is="leftSidebarComponent" :highlighted-node-id="highlightedNodeId" />
     </q-drawer>
 
-    <q-page-container :class="{ 'parts-management-container': currentMenu === 'parts-management' }" @dblclick="handleMainContentDoubleClick">
+    <q-page-container :class="{ 'parts-management-container': currentMenu === 'parts-management', 'iframe-mode': isIframeMode }" @dblclick="handleMainContentDoubleClick">
       <router-view />
     </q-page-container>
 
     <!-- 우측 드로어 추가 -->
     <q-drawer
+      v-if="!isIframeMode"
       v-model="userSettings.settings.drawer.rightOpen"
       side="right"
       bordered
@@ -144,6 +145,7 @@
 
     <!-- 왼쪽 사이드바 토글 버튼 (항상 표시) -->
     <div
+      v-if="!isIframeMode"
       ref="leftToggleButtonRef"
       class="sidebar-toggle-button sidebar-toggle-button--left"
       :class="{ 'is-drawer-open': dashboardLayoutStore.mainNavigationOpen }"
@@ -160,6 +162,7 @@
 
     <!-- 오른쪽 사이드바 토글 버튼 (항상 표시) -->
     <div
+      v-if="!isIframeMode"
       ref="rightToggleButtonRef"
       class="sidebar-toggle-button sidebar-toggle-button--right"
       :class="{
@@ -178,7 +181,7 @@
     </div>
 
     <!-- Footer -->
-    <q-footer class="bg-grey-10 text-grey-6">
+    <q-footer v-if="!isIframeMode" class="bg-grey-10 text-grey-6">
       <q-toolbar dense>
         <div class="row items-center full-width justify-between">
           <div class="row items-center q-gutter-md">
@@ -210,7 +213,7 @@
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount, shallowRef } from 'vue'
 import { useDashboardLayoutStore } from 'src/stores/dashboardLayoutStore'
 import { useBoardMenuStore } from 'src/stores/boardMenuStore'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useBoardEditorStore } from 'src/stores/boardEditorStore'
 import { useUserSettingsStore } from 'src/stores/userSettingsStore'
 import { usePartsManagementStore } from 'src/stores/partsManagementStore'
@@ -227,6 +230,12 @@ const boardEditorStore = useBoardEditorStore()
 const userSettings = useUserSettingsStore()
 const partsManagementStore = usePartsManagementStore()
 const router = useRouter()
+const route = useRoute()
+
+// iframe 모드 감지 (Extension iframe에서 로드될 때)
+const isIframeMode = computed(() => {
+  return route.query.mode === 'popup' || route.query.mode === 'sidepanel' || window.self !== window.top
+})
 
 // 전역 단축키 관리
 const { registerShortcuts, setupGlobalShortcuts, cleanupGlobalShortcuts } = useGlobalShortcuts()
@@ -1991,6 +2000,13 @@ onBeforeUnmount(() => {
   max-height: calc(100vh - var(--header-height));
   overflow: hidden;
   box-sizing: border-box;
+
+  // iframe 모드일 때 전체 화면 사용
+  &.iframe-mode {
+    padding-top: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+  }
 }
 
 .q-page-container.parts-management-container {

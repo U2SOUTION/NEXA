@@ -1,0 +1,106 @@
+// U2BEE Layout 전용 스타일
+// 팝업/사이드패널 환경에서 사용되는 레이아웃 스타일
+
+// ============================================
+// 기본 리셋
+// ============================================
+// html {
+//   margin: 0;
+//   padding: 30px;
+//   width: 100%;
+//   height: 100%;
+// }
+
+body {
+  margin: 0;
+  padding: 30px;
+  width: 100%;
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+// ============================================
+// Layout Container
+// ============================================
+.u2bee-layout-container {
+  width: 100%;
+  min-height: 100%;
+}
+
+// ============================================
+// U2BEE Container
+// ============================================
+.u2bee-container {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+// ============================================
+// Header Section
+// ============================================
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--nexa-border-color);
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.logo-text {
+  white-space: nowrap;
+}
+
+.logo-red {
+  color: #ff4444;
+}
+
+.logo-green {
+  color: #44ff44;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-toggle-btn {
+  margin-right: 8px;
+  font-size: 12px;
+}
+
+.theme-label {
+  font-size: 12px;
+  color: var(--nexa-text-secondary);
+  margin-right: 4px;
+}
+
+// ============================================
+// Tabs
+// ============================================
+// .u2bee-tabs {
+//   flex-shrink: 0;
+//   border-bottom: 1px solid var(--nexa-border-color);
+//   background: var(--nexa-background);
+// }
+
+// ============================================
+// Tab Panels
+// ============================================
+// .u2bee-panels {
+//   flex: 1;
+//   min-height: 0;
+// }

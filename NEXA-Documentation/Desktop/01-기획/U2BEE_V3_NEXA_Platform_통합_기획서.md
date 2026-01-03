@@ -3587,6 +3587,10 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
     -   [ ] 모바일: 미디어 쿼리 기반 UI
 -   [ ] 브레이크포인트 시스템 (Container Queries + 미디어 쿼리)
 -   [x] 기본 스타일 시스템 (NEXA 테마 적용) ✅ **완료** (2024-12, 모든 컴포넌트에 `var(--nexa-*)` 변수 적용)
+-   [x] CSS 통합 관리 시스템 ✅ **완료** (2024-12)
+    -   [x] U2BEE 스타일 중앙화 (u2bee-layout.scss)
+    -   [x] Popup 스타일 분리 (popup.css)
+    -   [x] 스타일 단순화 및 최적화
 -   [ ] CSS 격리 시스템 (Shadow DOM, 고유 클래스명, iframe)
 
 #### 1.2 기본 UI 컴포넌트 (목업 데이터)
@@ -3620,11 +3624,11 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 
 #### 2.2 Extension 최소 구조
 
--   [ ] Manifest V3 설정
--   [ ] Popup iframe 구조
+-   [x] Manifest V3 설정 ✅ **완료** (manifest.json)
+-   [x] Popup iframe 구조 ✅ **완료** (popup.html, popup.css, popup.js 분리 완료)
 -   [ ] Side Panel iframe 구조
 -   [ ] Content Script 기본 구조 (빈 스크립트)
--   [ ] Background 기본 구조 (빈 스크립트)
+-   [x] Background 기본 구조 ✅ **완료** (background.js)
     -   [ ] 🔥 **플로팅 메뉴 삽입 시스템** (사용자 선택 옵션)
     -   [ ] Shadow DOM 기반 플로팅 메뉴 삽입 로직
     -   [ ] 사이트 정책 확인 시스템 (`SitePolicyChecker`)
@@ -3641,7 +3645,12 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 #### 2.3 환경별 UI 확인 및 조정
 
 -   [x] NEXA Platform 웹 브라우저에서 UI 확인 및 조정 ✅ **완료** (2024-12, http://localhost:9000/#/extension)
--   [ ] Extension Popup에서 UI 확인 및 조정
+-   [x] Extension Popup에서 UI 확인 및 조정 ✅ **부분 완료** (2024-12)
+    -   [x] Popup HTML/CSS 구조 분리 완료 (popup.html, popup.css)
+    -   [x] iframe 크기 문제 해결 (800x600 정상 표시)
+    -   [x] 스크롤 기능 구현 (body 스크롤바)
+    -   [x] CSS 통합 관리 (u2bee-layout.scss 단순화)
+    -   [ ] iframe 보더 간극 문제 (보류)
 -   [ ] Extension Side Panel에서 UI 확인 및 조정
 -   [ ] 모바일 브라우저에서 UI 확인 및 조정
 -   [ ] PC 브라우저에서 UI 확인 및 조정
