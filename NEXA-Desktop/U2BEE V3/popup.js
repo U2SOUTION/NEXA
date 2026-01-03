@@ -7,6 +7,48 @@
     // 대기 중인 메시지 큐
     const pendingMessages = [];
 
+    // 이 Extension 인스턴스가 속한 창의 windowId (초기화 시 설정)
+    let myWindowId = null;
+
+    // 자신이 속한 창의 windowId 초기화
+    async function initializeMyWindowId() {
+        try {
+            // 방법 1: currentWindow를 사용하여 자신이 속한 창의 활성 탭 조회
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length > 0) {
+                const newWindowId = tabs[0].windowId;
+                if (newWindowId !== myWindowId) {
+                    myWindowId = newWindowId;
+                    console.log("[Popup] 내 창 ID 초기화/업데이트:", myWindowId, "탭 ID:", tabs[0].id);
+                }
+                return myWindowId;
+            }
+
+            // 방법 2: currentWindow가 실패하면 windows.getCurrent() 시도
+            try {
+                const currentWindow = await chrome.windows.getCurrent();
+                if (currentWindow && currentWindow.id) {
+                    const newWindowId = currentWindow.id;
+                    if (newWindowId !== myWindowId) {
+                        myWindowId = newWindowId;
+                        console.log("[Popup] 내 창 ID 초기화/업데이트 (getCurrent 사용):", myWindowId);
+                    }
+                    return myWindowId;
+                }
+            } catch (getCurrentError) {
+                console.warn("[Popup] windows.getCurrent() 실패:", getCurrentError);
+            }
+
+            console.warn("[Popup] 활성 탭을 찾을 수 없음");
+        } catch (error) {
+            console.error("[Popup] 창 ID 초기화 실패:", error);
+        }
+        return null;
+    }
+
+    // 초기화 시 창 ID 설정
+    initializeMyWindowId();
+
     // iframe으로 메시지 전달 (큐에 추가)
     function queueMessage(message) {
         pendingMessages.push(message);
@@ -16,11 +58,9 @@
     // 대기 중인 메시지 전송 시도
     function sendPendingMessages() {
         if (iframe.contentWindow && pendingMessages.length > 0) {
-            console.log("[Popup] 대기 중인 메시지 전송:", pendingMessages.length);
             pendingMessages.forEach((msg) => {
                 try {
                     iframe.contentWindow.postMessage(msg, "*");
-                    console.log("[Popup] 큐 메시지 전송 완료:", msg);
                 } catch (error) {
                     console.error("[Popup] 큐 메시지 전송 실패:", error);
                 }
@@ -36,15 +76,8 @@
         iframe.style.outline = "none";
         iframe.style.boxShadow = "none";
 
-        // 디버깅: 크기 확인
-        console.log("U2BEE UI 로드 완료");
-        console.log("iframe 크기:", iframe.offsetWidth, "x", iframe.offsetHeight);
-        console.log("body 크기:", document.body.offsetWidth, "x", document.body.offsetHeight);
-        console.log("html 크기:", document.documentElement.offsetWidth, "x", document.documentElement.offsetHeight);
-
         // iframe이 body를 완전히 덮는지 확인 및 강제 설정
         if (iframe.offsetWidth < document.body.offsetWidth || iframe.offsetHeight < document.body.offsetHeight) {
-            console.warn("iframe이 body를 완전히 덮지 못함! 강제로 크기 설정");
             iframe.style.width = document.body.offsetWidth + "px";
             iframe.style.height = document.body.offsetHeight + "px";
             iframe.style.position = "absolute";
@@ -55,16 +88,13 @@
         }
 
         // iframe 로드 완료 후 대기 중인 메시지 전송 (fallback)
-        // 주로 IFRAME_READY 메시지로 처리되지만, 혹시 모를 경우를 대비한 fallback
         setTimeout(() => {
-            console.log("[Popup] iframe 로드 완료 (fallback), 대기 중인 메시지 전송 시도");
             sendPendingMessages();
-        }, 2000); // fallback 딜레이 (IFRAME_READY가 오지 않을 경우를 대비)
+        }, 2000);
     });
 
     // 초기 로드 시에도 iframe 크기 설정 및 현재 페이지 정보 요청
     window.addEventListener("DOMContentLoaded", async () => {
-        console.log("DOM 로드 완료");
         // 초기 크기 강제 설정
         iframe.style.width = "100%";
         iframe.style.height = "100%";
@@ -74,17 +104,24 @@
         iframe.style.right = "0";
         iframe.style.bottom = "0";
 
+        // 창 ID가 아직 설정되지 않았으면 다시 시도
+        const initializedWindowId = await initializeMyWindowId();
+        if (!initializedWindowId) {
+            setTimeout(async () => {
+                await initializeMyWindowId();
+            }, 500);
+        }
+
         // 현재 활성 탭의 페이지 정보 요청
         try {
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             const currentTab = tabs[0];
             if (currentTab && currentTab.id) {
-                console.log("[Popup] 현재 탭 정보 요청:", currentTab.url);
-                // Background에 현재 탭 정보 요청
                 chrome.runtime
                     .sendMessage({
                         type: "REQUEST_CURRENT_PAGE_INFO",
                         tabId: currentTab.id,
+                        windowId: myWindowId || currentTab.windowId,
                     })
                     .catch((error) => {
                         console.error("[Popup] 현재 페이지 정보 요청 실패:", error);
@@ -110,7 +147,7 @@
         if (event.data && event.data.type === "TOGGLE_EXTENSION_MODE") {
             try {
                 // 사이드 패널로 전환
-                await chrome.sidePanel.open({ windowId: (await chrome.windows.getCurrent()).id });
+                await chrome.sidePanel.open({ windowId: myWindowId || (await chrome.windows.getCurrent()).id });
                 // Popup 닫기
                 window.close();
             } catch (error) {
@@ -119,18 +156,25 @@
             }
         } else if (event.data && event.data.type === "IFRAME_READY") {
             // iframe이 준비 완료되었다는 메시지 수신
-            console.log("[Popup] iframe 준비 완료 메시지 수신, 대기 중인 메시지 전송");
             sendPendingMessages();
+
+            // 창 ID가 아직 설정되지 않았으면 다시 시도
+            const initializedWindowId = await initializeMyWindowId();
+            if (!initializedWindowId) {
+                setTimeout(async () => {
+                    await initializeMyWindowId();
+                }, 500);
+            }
 
             // 현재 페이지 정보 즉시 요청
             chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
                 const currentTab = tabs[0];
                 if (currentTab && currentTab.id) {
-                    console.log("[Popup] iframe 준비 완료 후 페이지 정보 즉시 요청");
                     chrome.runtime
                         .sendMessage({
                             type: "REQUEST_CURRENT_PAGE_INFO",
                             tabId: currentTab.id,
+                            windowId: myWindowId || currentTab.windowId,
                         })
                         .catch((error) => {
                             console.error("[Popup] 페이지 정보 요청 실패:", error);
@@ -142,33 +186,57 @@
 
     // Extension 메시지 수신 및 iframe으로 전달
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log("[Popup] Background 메시지 수신:", message);
+        // PAGE_INFO_UPDATE 메시지인 경우, 자신의 창에 해당하는 메시지만 처리
+        if (message.type === "PAGE_INFO_UPDATE" && message.data) {
+            const messageWindowId = message.data.windowId;
 
+            // 메시지에 창 ID가 없으면 무시 (필터링 불가)
+            if (!messageWindowId) {
+                sendResponse({ success: true });
+                return true;
+            }
+
+            // 창 ID가 설정되지 않았으면 즉시 설정 시도
+            if (!myWindowId) {
+                initializeMyWindowId().then((initializedWindowId) => {
+                    if (!initializedWindowId || messageWindowId !== initializedWindowId) {
+                        return;
+                    }
+                    processPageInfoMessage(message);
+                });
+            } else {
+                // 자신의 창 메시지인지 확인
+                if (messageWindowId !== myWindowId) {
+                    sendResponse({ success: true });
+                    return true;
+                }
+                processPageInfoMessage(message);
+            }
+        } else {
+            // 다른 타입의 메시지는 그대로 처리
+            processPageInfoMessage(message);
+        }
+
+        sendResponse({ success: true });
+        return true;
+    });
+
+    // 페이지 정보 메시지 처리 함수
+    function processPageInfoMessage(message) {
         // iframe으로 메시지 전달 함수
         function sendToIframe() {
             if (iframe.contentWindow) {
-                // 메시지 구조 확인 및 전달
                 const messageToSend = {
                     type: "EXTENSION_MESSAGE",
                     data: message.type === "PAGE_INFO_UPDATE" ? { type: "PAGE_INFO_UPDATE", data: message.data } : message.data || message,
                 };
 
-                console.log("[Popup] iframe으로 메시지 전달:", messageToSend);
-                console.log("[Popup] iframe src:", iframe.src);
-                console.log("[Popup] iframe contentWindow:", iframe.contentWindow);
-                console.log("[Popup] 현재 window.location.origin:", window.location.origin);
-
                 try {
-                    // targetOrigin을 "*"로 설정하여 모든 origin에서 수신 가능하도록 함
-                    iframe.contentWindow.postMessage(
-                        messageToSend,
-                        "*" // 보안: 실제 배포 시에는 특정 origin으로 제한
-                    );
-                    console.log("[Popup] postMessage 전송 완료, 메시지:", JSON.stringify(messageToSend));
+                    iframe.contentWindow.postMessage(messageToSend, "*");
+                    return true;
                 } catch (error) {
                     console.error("[Popup] postMessage 전송 실패:", error);
                 }
-                return true;
             }
             return false;
         }
@@ -176,15 +244,11 @@
         // 즉시 전달 시도
         if (!sendToIframe()) {
             // iframe이 아직 로드되지 않았으면 큐에 추가
-            console.warn("[Popup] iframe이 아직 로드되지 않음, 메시지를 큐에 추가");
             const messageToSend = {
                 type: "EXTENSION_MESSAGE",
                 data: message.type === "PAGE_INFO_UPDATE" ? { type: "PAGE_INFO_UPDATE", data: message.data } : message.data || message,
             };
             queueMessage(messageToSend);
         }
-
-        sendResponse({ success: true });
-        return true;
-    });
+    }
 })();

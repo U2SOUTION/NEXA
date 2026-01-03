@@ -11,8 +11,6 @@
         return; // Content Script 실행 중단
     }
 
-    console.log('U2BEE V3 Content Script 로드됨');
-
     // 현재 페이지 정보 수집
     function collectPageInfo() {
         return {
@@ -25,7 +23,6 @@
     // Background로 페이지 정보 전송
     function sendPageInfoToBackground() {
         const pageInfo = collectPageInfo();
-        console.log('[Content Script] 페이지 정보 수집:', pageInfo);
 
         chrome.runtime.sendMessage({
             type: 'PAGE_INFO_UPDATE',
@@ -96,8 +93,6 @@
 
     // Extension 메시지 수신
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log('[Content Script] 메시지 수신:', message);
-
         switch (message.type) {
             case 'COLLECT_CONTENT':
                 // 콘텐츠 수집 요청
@@ -109,7 +104,6 @@
                 sendResponse({ success: true, data: collectPageInfo() });
                 return true;
             default:
-                console.warn('[Content Script] 알 수 없는 메시지 타입:', message.type);
                 sendResponse({ success: false, error: 'Unknown message type' });
         }
     });

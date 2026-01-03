@@ -6,7 +6,7 @@
     "content_security_policy": {
         "extension_pages": "script-src 'self'; object-src 'self'; frame-src http://localhost:* https://localhost:*"
     },
-    "permissions": ["storage", "tabs", "activeTab", "sidePanel"],
+    "permissions": ["storage", "tabs", "activeTab", "sidePanel", "scripting"],
     "host_permissions": ["http://localhost:*/*", "https://localhost:*/*", "*://*.youtube.com/*", "https://*.youtube.com/*", "https://img.youtube.com/*", "<all_urls>"],
     "content_scripts": [
         {
