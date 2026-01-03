@@ -1,0 +1,10 @@
+// ============================================
+// Extension SCSS 믹스인
+// ============================================
+// Extension 환경에 특화된 SCSS 믹스인
+// (utils/_mixins.scss에서 필요한 믹스인만 가져와서 확장)
+
+// Container Queries 믹스인 (breakpoints에서 import)
+@import './container-queries/breakpoints';
+
+// Extension 전용 믹스인 추가 (필요시)

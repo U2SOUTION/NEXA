@@ -1,0 +1,45 @@
+// ============================================
+// Extension Side Panel 레이아웃 (세로 형태, 아코디언/세로 탭 메뉴)
+// ============================================
+// Container Queries로 자동 적용
+
+@import './breakpoints';
+
+@include container-query('extension-sidepanel') {
+  .u2bee-container {
+    // 세로 아코디언 메뉴 또는 세로 탭 메뉴
+    .u2bee-nav {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    // 옵션 1: 세로 탭 메뉴
+    .u2bee-tabs {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+
+      .q-tab {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    // 옵션 2: 아코디언 메뉴
+    .u2bee-accordion {
+      .q-expansion-item {
+        width: 100%;
+      }
+    }
+
+    // 더 많은 정보 표시 가능
+    .u2bee-page {
+      padding: 12px;
+    }
+
+    .u2bee-panels {
+      padding-top: 12px;
+    }
+  }
+}

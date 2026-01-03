@@ -1,0 +1,27 @@
+// ============================================
+// Extension SCSS 함수
+// ============================================
+// Extension 환경에 특화된 SCSS 함수
+// (utils/_functions.scss에서 필요한 함수만 가져와서 확장)
+
+// 기존 utils/_functions.scss의 함수들을 재사용하거나
+// Extension에 특화된 함수만 추가
+
+// Container Query 브레이크포인트 가져오기
+@function get-container-breakpoint($name) {
+  $breakpoints: (
+    "extension-popup": 800px,
+    "extension-sidepanel": 500px,
+  );
+  @return map-get($breakpoints, $name);
+}
+
+// 미디어 쿼리 브레이크포인트 가져오기
+@function get-media-breakpoint($name) {
+  $breakpoints: (
+    "mobile": 640px,
+    "tablet": 1024px,
+    "desktop": 1440px,
+  );
+  @return map-get($breakpoints, $name);
+}

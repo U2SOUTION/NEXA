@@ -1,0 +1,23 @@
+// ============================================
+// Extension 메인 SCSS
+// ============================================
+// Extension 환경에 특화된 모든 SCSS 파일을 import
+
+// 1. Container Queries
+@import './container-queries/breakpoints';
+
+// 2. 함수 및 믹스인
+@import './functions';
+@import './mixins';
+
+// 3. 헬퍼 및 유틸리티
+@import './helpers';
+@import './utilities';
+
+// 4. 컴포넌트 스타일 (Container Queries 포함)
+@import './components';
+
+// 5. 테마 (나중에 추가)
+// @import './themes/variables';
+// @import './themes/blender';
+// @import './themes/auto-theme';

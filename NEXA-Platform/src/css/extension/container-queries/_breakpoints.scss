@@ -1,0 +1,44 @@
+// ============================================
+// Extension Container Queries 브레이크포인트
+// ============================================
+// 확장 프로그램 전용 Container Queries 브레이크포인트
+
+// Container Queries 브레이크포인트 (Extension 환경 구분)
+$container-breakpoints: (
+  "extension-popup": 800px,      // Extension Popup 최대 너비
+  "extension-sidepanel": 500px,  // Extension Side Panel 최대 너비
+);
+
+// 미디어 쿼리 브레이크포인트 (모바일/PC 구분)
+$media-breakpoints: (
+  "mobile": 640px,    // 모바일
+  "tablet": 1024px,   // 태블릿
+  "desktop": 1440px,  // 데스크톱
+);
+
+// Container Query 믹스인
+@mixin container-query($breakpoint) {
+  @container u2bee (max-width: map-get($container-breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+// 미디어 쿼리 믹스인
+@mixin media-query($breakpoint) {
+  @media (max-width: map-get($media-breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+// Container Query 높이 포함 믹스인
+@mixin container-query-with-height($breakpoint, $height: null) {
+  @if $height {
+    @container u2bee (max-width: map-get($container-breakpoints, $breakpoint)) and (max-height: $height) {
+      @content;
+    }
+  } @else {
+    @container u2bee (max-width: map-get($container-breakpoints, $breakpoint)) {
+      @content;
+    }
+  }
+}

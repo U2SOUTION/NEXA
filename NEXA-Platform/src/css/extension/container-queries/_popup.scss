@@ -1,0 +1,34 @@
+// ============================================
+// Extension Popup 레이아웃 (가로 형태, 탭 메뉴)
+// ============================================
+// Container Queries로 자동 적용
+
+@import './breakpoints';
+
+@include container-query-with-height('extension-popup', 600px) {
+  .u2bee-container {
+    // 가로 탭 메뉴 레이아웃
+    .u2bee-nav {
+      display: flex;
+      flex-direction: row;
+      border-bottom: 1px solid var(--nexa-border-color);
+    }
+
+    .u2bee-tabs {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      height: 40px;
+      min-height: 40px;
+    }
+
+    // 컴팩트한 UI
+    .u2bee-page {
+      padding: 8px;
+    }
+
+    .u2bee-panels {
+      padding-top: 8px;
+    }
+  }
+}

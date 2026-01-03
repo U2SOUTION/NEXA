@@ -423,3 +423,7 @@ a {
     background-color: var(--nexa-drawer-item-hover-bg);
   }
 }
+
+// ===== Extension 스타일 =====
+// Extension 환경에 특화된 스타일 (Container Queries, 테마 등)
+@import './extension/extension';
