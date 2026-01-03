@@ -1,45 +1,51 @@
 <template>
-  <div class="u2bee-content-list">
-    <div class="list-header q-mb-md">
-      <div class="text-h6">콘텐츠 목록</div>
-      <div class="text-body2 text-grey-7">저장된 콘텐츠를 검색하고 관리합니다</div>
+  <!-- Breadcrumb 및 액션 버튼 -->
+  <div class="breadcrumb-section">
+    <div class="breadcrumb">
+      <span class="breadcrumb-item">:: U2BEE</span>
+      <span class="breadcrumb-separator">></span>
+      <span class="breadcrumb-item active">저장목록</span>
     </div>
+    <div class="action-buttons">
+      <q-btn flat dense label="검색" size="sm" />
+      <q-btn flat dense label="필터" size="sm" />
+      <q-btn flat dense label="정렬" size="sm" />
+    </div>
+  </div>
 
-    <!-- 검색 및 필터 (목업) -->
-    <q-card class="q-mb-md">
-      <q-card-section>
-        <div class="row q-gutter-md">
-          <div class="col">
-            <q-input v-model="searchQuery" placeholder="검색..." dense outlined>
-              <template v-slot:prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-          </div>
-          <q-select v-model="selectedPlatform" :options="platformOptions" label="플랫폼" dense outlined style="min-width: 120px" />
-          <q-select v-model="selectedCategory" :options="categoryOptions" label="카테고리" dense outlined style="min-width: 120px" />
-        </div>
-      </q-card-section>
-    </q-card>
+  <!-- 검색 및 필터 -->
+  <div class="list-section">
+    <div class="row q-gutter-sm">
+      <q-input v-model="searchQuery" placeholder="검색..." dense outlined class="col">
+        <template v-slot:prepend>
+          <q-icon name="search" />
+        </template>
+      </q-input>
+      <q-select v-model="selectedPlatform" :options="platformOptions" label="플랫폼" dense outlined class="platform-select" />
+      <q-select v-model="selectedCategory" :options="categoryOptions" label="카테고리" dense outlined class="category-select" />
+    </div>
+  </div>
 
-    <!-- 콘텐츠 목록 (목업) -->
-    <q-list bordered separator>
+  <!-- 콘텐츠 목록 -->
+  <div class="list-section">
+    <q-list>
       <q-item
         v-for="content in mockContents"
         :key="content.id"
         clickable
         v-ripple
+        class="content-item"
         @click="handleContentClick(content)"
       >
         <q-item-section avatar>
-          <q-avatar color="primary" text-color="white">
+          <q-avatar class="content-avatar">
             <q-icon name="play_circle" />
           </q-avatar>
         </q-item-section>
 
         <q-item-section>
-          <q-item-label>{{ content.title }}</q-item-label>
-          <q-item-label caption>{{ content.author }} • {{ content.platform }}</q-item-label>
+          <q-item-label class="content-item-title">{{ content.title }}</q-item-label>
+          <q-item-label class="content-item-meta">{{ content.author }} • {{ content.platform }}</q-item-label>
         </q-item-section>
 
         <q-item-section side>
@@ -49,8 +55,7 @@
               :key="category"
               :label="category"
               size="sm"
-              color="primary"
-              text-color="white"
+              class="content-category-chip"
             />
           </div>
         </q-item-section>
@@ -58,20 +63,19 @@
         <q-item-section side>
           <q-icon
             :name="content.rating === 'like' ? 'thumb_up' : content.rating === 'dislike' ? 'thumb_down' : ''"
-            :color="content.rating === 'like' ? 'positive' : content.rating === 'dislike' ? 'negative' : ''"
+            class="content-rating-icon"
+            :class="content.rating === 'like' ? 'rating-like' : content.rating === 'dislike' ? 'rating-dislike' : ''"
           />
         </q-item-section>
       </q-item>
     </q-list>
+  </div>
 
-    <!-- 빈 상태 (목업) -->
-    <q-card v-if="mockContents.length === 0" class="q-mt-md">
-      <q-card-section class="text-center q-pa-xl">
-        <q-icon name="inbox" size="64px" color="grey-5" class="q-mb-md" />
-        <div class="text-h6 text-grey-7">콘텐츠가 없습니다</div>
-        <div class="text-body2 text-grey-6 q-mt-sm">콘텐츠를 평가하여 목록에 추가하세요</div>
-      </q-card-section>
-    </q-card>
+  <!-- 빈 상태 -->
+  <div v-if="mockContents.length === 0" class="empty-state">
+    <q-icon name="inbox" class="empty-icon" />
+    <div class="empty-title">콘텐츠가 없습니다</div>
+    <div class="empty-description">콘텐츠를 평가하여 목록에 추가하세요</div>
   </div>
 </template>
 
@@ -115,16 +119,122 @@ const mockContents = ref([
 
 function handleContentClick(content) {
   console.log('Content clicked:', content)
-  // TODO: 콘텐츠 상세 보기
 }
 </script>
 
 <style lang="scss" scoped>
-.u2bee-content-list {
-  padding: 16px;
+.breadcrumb-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
 
-  .list-header {
-    margin-bottom: 16px;
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.breadcrumb-item {
+  color: var(--nexa-text-secondary);
+
+  &.active {
+    color: var(--nexa-text-primary);
+    font-weight: 600;
   }
+}
+
+.breadcrumb-separator {
+  color: var(--nexa-text-disabled);
+}
+
+.action-buttons {
+  color: var(--nexa-text-secondary);
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.list-section {
+  margin-bottom: 5px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--nexa-border-color); // 임시 확인용
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.platform-select,
+.category-select {
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.content-item {
+  padding: 8px 0;
+}
+
+.content-avatar {
+  background-color: var(--nexa-button-primary-bg);
+  color: var(--nexa-button-primary-text);
+}
+
+.content-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nexa-text-primary);
+}
+
+.content-item-meta {
+  font-size: 12px;
+  color: var(--nexa-text-secondary);
+}
+
+.content-category-chip {
+  background-color: var(--nexa-surface);
+  color: var(--nexa-text-primary);
+}
+
+.content-rating-icon {
+  font-size: 20px;
+}
+
+.rating-like {
+  color: var(--nexa-success);
+}
+
+.rating-dislike {
+  color: var(--nexa-error);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: var(--nexa-text-disabled);
+  margin-bottom: 16px;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--nexa-text-secondary);
+  margin-bottom: 8px;
+}
+
+.empty-description {
+  font-size: 14px;
+  color: var(--nexa-text-disabled);
 }
 </style>

@@ -1,46 +1,53 @@
 <template>
-  <div class="u2bee-content-history">
-    <div class="history-header q-mb-md">
-      <div class="text-h6">히스토리</div>
-      <div class="text-body2 text-grey-7">방문한 콘텐츠의 히스토리를 확인합니다</div>
+  <!-- Breadcrumb 및 액션 버튼 -->
+  <div class="breadcrumb-section">
+    <div class="breadcrumb">
+      <span class="breadcrumb-item">:: U2BEE</span>
+      <span class="breadcrumb-separator">></span>
+      <span class="breadcrumb-item active">히스토리</span>
     </div>
+    <div class="action-buttons">
+      <q-btn flat dense label="정렬" size="sm" />
+      <q-btn flat dense label="필터" size="sm" />
+    </div>
+  </div>
 
-    <!-- 히스토리 목록 (목업) -->
-    <q-list bordered separator>
+  <!-- 히스토리 목록 -->
+  <div class="list-section">
+    <q-list>
       <q-item
         v-for="history in mockHistory"
         :key="history.id"
         clickable
         v-ripple
+        class="history-item"
         @click="handleHistoryClick(history)"
       >
         <q-item-section avatar>
-          <q-avatar color="primary" text-color="white">
+          <q-avatar class="history-avatar">
             <q-icon name="history" />
           </q-avatar>
         </q-item-section>
 
         <q-item-section>
-          <q-item-label>{{ history.title }}</q-item-label>
-          <q-item-label caption>
+          <q-item-label class="history-item-title">{{ history.title }}</q-item-label>
+          <q-item-label class="history-item-meta">
             {{ history.url }} • {{ formatDate(history.visitedAt) }}
           </q-item-label>
         </q-item-section>
 
         <q-item-section side>
-          <q-btn flat dense round icon="open_in_new" @click.stop="openUrl(history.url)" />
+          <q-btn flat dense round icon="open_in_new" class="open-button" @click.stop="openUrl(history.url)" />
         </q-item-section>
       </q-item>
     </q-list>
+  </div>
 
-    <!-- 빈 상태 (목업) -->
-    <q-card v-if="mockHistory.length === 0" class="q-mt-md">
-      <q-card-section class="text-center q-pa-xl">
-        <q-icon name="history" size="64px" color="grey-5" class="q-mb-md" />
-        <div class="text-h6 text-grey-7">히스토리가 없습니다</div>
-        <div class="text-body2 text-grey-6 q-mt-sm">콘텐츠를 방문하면 히스토리가 기록됩니다</div>
-      </q-card-section>
-    </q-card>
+  <!-- 빈 상태 -->
+  <div v-if="mockHistory.length === 0" class="empty-state">
+    <q-icon name="history" class="empty-icon" />
+    <div class="empty-title">히스토리가 없습니다</div>
+    <div class="empty-description">콘텐츠를 방문하면 히스토리가 기록됩니다</div>
   </div>
 </template>
 
@@ -88,7 +95,6 @@ function formatDate(date) {
 
 function handleHistoryClick(history) {
   console.log('History clicked:', history)
-  // TODO: 히스토리 상세 보기
 }
 
 function openUrl(url) {
@@ -97,11 +103,99 @@ function openUrl(url) {
 </script>
 
 <style lang="scss" scoped>
-.u2bee-content-history {
-  padding: 16px;
+.breadcrumb-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
 
-  .history-header {
-    margin-bottom: 16px;
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.breadcrumb-item {
+  color: var(--nexa-text-secondary);
+
+  &.active {
+    color: var(--nexa-text-primary);
+    font-weight: 600;
   }
+}
+
+.breadcrumb-separator {
+  color: var(--nexa-text-disabled);
+}
+
+.action-buttons {
+  color: var(--nexa-text-secondary);
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.list-section {
+  margin-bottom: 5px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--nexa-border-color); // 임시 확인용
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.history-item {
+  padding: 8px 0;
+}
+
+.history-avatar {
+  background-color: var(--nexa-button-primary-bg);
+  color: var(--nexa-button-primary-text);
+}
+
+.history-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nexa-text-primary);
+}
+
+.history-item-meta {
+  font-size: 12px;
+  color: var(--nexa-text-secondary);
+}
+
+.open-button {
+  color: var(--nexa-button-primary-bg);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: var(--nexa-text-disabled);
+  margin-bottom: 16px;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--nexa-text-secondary);
+  margin-bottom: 8px;
+}
+
+.empty-description {
+  font-size: 14px;
+  color: var(--nexa-text-disabled);
 }
 </style>

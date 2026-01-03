@@ -1,40 +1,33 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <q-card>
-    <q-card-section>
-      <div class="text-h6">탭 구성 설정</div>
-      <div class="text-body2 text-grey-7 q-mt-xs">탭의 표시/숨김과 순서를 설정할 수 있습니다</div>
-    </q-card-section>
+  <div class="tab-customizer">
+    <q-list>
+      <q-item
+        v-for="tab in tabConfig"
+        :key="tab.name"
+        class="tab-config-item"
+      >
+        <q-item-section avatar>
+          <q-icon :name="tab.icon" class="tab-config-icon" />
+        </q-item-section>
 
-    <q-card-section>
-      <q-list bordered separator>
-        <q-item
-          v-for="tab in tabConfig"
-          :key="tab.name"
-          class="tab-config-item"
-        >
-          <q-item-section avatar>
-            <q-icon :name="tab.icon" />
-          </q-item-section>
+        <q-item-section>
+          <q-item-label class="tab-config-label">{{ tab.label }}</q-item-label>
+        </q-item-section>
 
-          <q-item-section>
-            <q-item-label>{{ tab.label }}</q-item-label>
-          </q-item-section>
+        <q-item-section side>
+          <q-toggle
+            :model-value="tab.visible"
+            @update:model-value="toggleTabVisibility(tab.name)"
+            class="tab-config-toggle"
+          />
+        </q-item-section>
+      </q-item>
+    </q-list>
 
-          <q-item-section side>
-            <q-toggle
-              :model-value="tab.visible"
-              @update:model-value="toggleTabVisibility(tab.name)"
-            />
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-card-section>
-
-    <q-card-actions align="right">
-      <q-btn flat label="기본 구성으로 복원" color="primary" @click="handleReset" />
-    </q-card-actions>
-  </q-card>
+    <div class="tab-customizer-actions">
+      <q-btn flat dense label="기본 구성으로 복원" class="reset-button" @click="handleReset" />
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -48,7 +41,37 @@ function handleReset() {
 </script>
 
 <style lang="scss" scoped>
+.tab-customizer {
+  padding: 0;
+}
+
 .tab-config-item {
-  padding: 8px 16px;
+  padding: 8px 0;
+}
+
+.tab-config-icon {
+  font-size: 20px;
+  color: var(--nexa-text-primary);
+}
+
+.tab-config-label {
+  font-size: 14px;
+  color: var(--nexa-text-primary);
+}
+
+.tab-config-toggle {
+  color: var(--nexa-button-primary-bg);
+}
+
+.tab-customizer-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 0 0 0;
+  border-top: 1px solid var(--nexa-border-color);
+  margin-top: 8px;
+}
+
+.reset-button {
+  color: var(--nexa-button-primary-bg);
 }
 </style>

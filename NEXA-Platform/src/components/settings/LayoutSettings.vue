@@ -18,7 +18,7 @@
     <div class="settings-section">
       <div class="text-h6 q-mb-md">사이드바 제어</div>
       <div class="control-info">
-        <q-list>
+      <q-list>
           <!-- 토글 버튼 -->
           <q-item>
             <q-item-section>
@@ -107,13 +107,13 @@
           <q-separator class="q-my-md" />
 
           <!-- 추가 기능 -->
-          <q-item>
-            <q-item-section>
+        <q-item>
+          <q-item-section>
               <q-item-label class="control-title">
                 <q-icon name="info" class="q-mr-sm" />
                 추가 기능
               </q-item-label>
-            </q-item-section>
+          </q-item-section>
           </q-item>
           <q-item>
             <q-item-section>
@@ -131,9 +131,9 @@
                   <span class="method-description">저장된 크기가 없거나 너무 작을 경우 기본 크기로 열립니다 (왼쪽: 250px, 오른쪽: 300px).</span>
                 </div>
               </div>
-            </q-item-section>
-          </q-item>
-        </q-list>
+          </q-item-section>
+        </q-item>
+      </q-list>
       </div>
     </div>
   </div>

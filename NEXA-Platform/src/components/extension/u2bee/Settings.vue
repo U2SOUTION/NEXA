@@ -1,78 +1,79 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <div class="u2bee-settings">
-    <div class="settings-header q-mb-md">
-      <div class="text-h6">설정</div>
-      <div class="text-body2 text-grey-7">U2BEE 설정을 관리합니다</div>
+  <!-- Breadcrumb 및 액션 버튼 -->
+  <div class="breadcrumb-section">
+    <div class="breadcrumb">
+      <span class="breadcrumb-item">:: U2BEE</span>
+      <span class="breadcrumb-separator">></span>
+      <span class="breadcrumb-item active">설정</span>
     </div>
-
-    <!-- 일반 설정 (목업) -->
-    <q-card class="q-mb-md">
-      <q-card-section>
-        <div class="text-subtitle1 q-mb-md">일반 설정</div>
-        <q-list bordered separator>
-          <q-item>
-            <q-item-section>
-              <q-item-label>자동 수집</q-item-label>
-              <q-item-label caption>콘텐츠를 자동으로 수집합니다</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-toggle v-model="mockSettings.autoCollect" />
-            </q-item-section>
-          </q-item>
-
-          <q-item>
-            <q-item-section>
-              <q-item-label>알림</q-item-label>
-              <q-item-label caption>알림을 표시합니다</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-toggle v-model="mockSettings.notifications" />
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-card-section>
-    </q-card>
-
-    <!-- 탭 구성 설정 -->
-    <div class="q-mb-md">
-      <TabCustomizer />
+    <div class="action-buttons">
+      <q-btn flat dense label="저장" size="sm" />
+      <q-btn flat dense label="초기화" size="sm" />
     </div>
+  </div>
 
-    <!-- 테마 설정 (목업) -->
-    <q-card class="q-mb-md">
-      <q-card-section>
-        <div class="text-subtitle1 q-mb-md">테마</div>
-        <q-list bordered separator>
-          <q-item>
-            <q-item-section>
-              <q-item-label>테마 모드</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-select v-model="mockSettings.theme" :options="themeOptions" dense outlined style="min-width: 120px" />
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-card-section>
-    </q-card>
+  <!-- 일반 설정 -->
+  <div class="list-section">
+    <div class="section-label">일반 설정</div>
+    <q-list>
+      <q-item class="settings-item">
+        <q-item-section>
+          <q-item-label class="settings-item-label">자동 수집</q-item-label>
+          <q-item-label class="settings-item-caption">콘텐츠를 자동으로 수집합니다</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-toggle v-model="mockSettings.autoCollect" class="settings-toggle" />
+        </q-item-section>
+      </q-item>
 
-    <!-- 데이터 관리 설정 (목업) -->
-    <q-card>
-      <q-card-section>
-        <div class="text-subtitle1 q-mb-md">데이터 관리</div>
-        <q-list bordered separator>
-          <q-item>
-            <q-item-section>
-              <q-item-label>자동 정리</q-item-label>
-              <q-item-label caption>오래된 데이터를 자동으로 정리합니다</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-toggle v-model="mockSettings.autoClean" />
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-card-section>
-    </q-card>
+      <q-item class="settings-item">
+        <q-item-section>
+          <q-item-label class="settings-item-label">알림</q-item-label>
+          <q-item-label class="settings-item-caption">알림을 표시합니다</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-toggle v-model="mockSettings.notifications" class="settings-toggle" />
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </div>
+
+  <!-- 탭 구성 설정 -->
+  <div class="list-section">
+    <div class="section-label">탭 구성 설정</div>
+    <TabCustomizer />
+  </div>
+
+  <!-- 테마 설정 -->
+  <div class="list-section">
+    <div class="section-label">테마</div>
+    <q-list>
+      <q-item class="settings-item">
+        <q-item-section>
+          <q-item-label class="settings-item-label">테마 모드</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-select v-model="mockSettings.theme" :options="themeOptions" dense outlined class="theme-select" />
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </div>
+
+  <!-- 데이터 관리 설정 -->
+  <div class="list-section">
+    <div class="section-label">데이터 관리</div>
+    <q-list>
+      <q-item class="settings-item">
+        <q-item-section>
+          <q-item-label class="settings-item-label">자동 정리</q-item-label>
+          <q-item-label class="settings-item-caption">오래된 데이터를 자동으로 정리합니다</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-toggle v-model="mockSettings.autoClean" class="settings-toggle" />
+        </q-item-section>
+      </q-item>
+    </q-list>
   </div>
 </template>
 
@@ -92,11 +93,80 @@ const themeOptions = ['light', 'dark', 'auto']
 </script>
 
 <style lang="scss" scoped>
-.u2bee-settings {
-  padding: 16px;
+.breadcrumb-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
 
-  .settings-header {
-    margin-bottom: 16px;
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.breadcrumb-item {
+  color: var(--nexa-text-secondary);
+
+  &.active {
+    color: var(--nexa-text-primary);
+    font-weight: 600;
   }
+}
+
+.breadcrumb-separator {
+  color: var(--nexa-text-disabled);
+}
+
+.action-buttons {
+  color: var(--nexa-text-secondary);
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.list-section {
+  margin-bottom: 5px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--nexa-border-color); // 임시 확인용
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nexa-text-primary);
+  padding: 12px 0 8px 0;
+  border-bottom: 1px solid var(--nexa-border-color);
+  margin-bottom: 8px;
+}
+
+.settings-item {
+  padding: 8px 0;
+}
+
+.settings-item-label {
+  font-size: 14px;
+  color: var(--nexa-text-primary);
+}
+
+.settings-item-caption {
+  font-size: 12px;
+  color: var(--nexa-text-secondary);
+}
+
+.settings-toggle {
+  color: var(--nexa-button-primary-bg);
+}
+
+.theme-select {
+  min-width: 120px;
+  flex-shrink: 0;
 }
 </style>

@@ -259,6 +259,11 @@ const leftSidebarConfigs = {
     preset: 'leftDefault',
     overrides: {},
   },
+  extension: {
+    component: () => import('src/components/sidebars/left/ExtensionSidebar.vue'),
+    preset: 'leftDefault',
+    overrides: {},
+  },
   help: {
     component: () => import('src/components/sidebars/left/HelpSidebar.vue'),
     preset: 'leftDefault',
