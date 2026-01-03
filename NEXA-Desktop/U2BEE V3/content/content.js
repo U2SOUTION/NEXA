@@ -1,40 +1,65 @@
 // Content Script - 타이틀 및 URL 수집
 (function () {
-    'use strict';
+    "use strict";
 
     // 특수 스키마 URL에서 실행되지 않도록 필터링
     const currentUrl = window.location.href;
-    if (currentUrl.startsWith('chrome://') || 
-        currentUrl.startsWith('chrome-extension://') ||
-        currentUrl.startsWith('moz-extension://') ||
-        currentUrl.startsWith('edge://')) {
+    if (currentUrl.startsWith("chrome://") || currentUrl.startsWith("chrome-extension://") || currentUrl.startsWith("moz-extension://") || currentUrl.startsWith("edge://")) {
         return; // Content Script 실행 중단
     }
+
+    // 마지막 전송 정보 추적 (중복 방지)
+    let lastSentInfo = {
+        url: "",
+        title: "",
+    };
+    let lastSendTime = 0;
+    const MIN_SEND_INTERVAL = 100; // 최소 전송 간격 (ms)
 
     // 현재 페이지 정보 수집
     function collectPageInfo() {
         return {
             url: window.location.href,
             title: document.title,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
     }
 
-    // Background로 페이지 정보 전송
+    // Background로 페이지 정보 전송 (중복 방지)
     function sendPageInfoToBackground() {
         const pageInfo = collectPageInfo();
+        const now = Date.now();
 
-        chrome.runtime.sendMessage({
-            type: 'PAGE_INFO_UPDATE',
-            data: pageInfo
-        }).catch((error) => {
-            console.error('[Content Script] Background로 메시지 전송 실패:', error);
-        });
+        // 중복 체크: 같은 URL과 타이틀이면 무시
+        if (lastSentInfo.url === pageInfo.url && lastSentInfo.title === pageInfo.title) {
+            return;
+        }
+
+        // 너무 빠른 연속 전송 방지
+        if (now - lastSendTime < MIN_SEND_INTERVAL) {
+            return;
+        }
+
+        // 전송 정보 업데이트
+        lastSentInfo = {
+            url: pageInfo.url,
+            title: pageInfo.title,
+        };
+        lastSendTime = now;
+
+        chrome.runtime
+            .sendMessage({
+                type: "PAGE_INFO_UPDATE",
+                data: pageInfo,
+            })
+            .catch((error) => {
+                console.error("[Content Script] Background로 메시지 전송 실패:", error);
+            });
     }
 
     // 초기 로드 시 정보 전송
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
             setTimeout(sendPageInfoToBackground, 500); // DOM 로드 후 약간의 지연
         });
     } else {
@@ -54,17 +79,17 @@
     });
 
     // 타이틀 요소 감시 시작
-    const titleElement = document.querySelector('title');
+    const titleElement = document.querySelector("title");
     if (titleElement) {
         titleObserver.observe(titleElement, {
             childList: true,
             subtree: true,
-            characterData: true
+            characterData: true,
         });
     }
 
     // URL 변경 감지 (popstate, pushstate)
-    window.addEventListener('popstate', () => {
+    window.addEventListener("popstate", () => {
         if (window.location.href !== lastUrl) {
             lastUrl = window.location.href;
             sendPageInfoToBackground();
@@ -75,7 +100,7 @@
     const originalPushState = history.pushState;
     const originalReplaceState = history.replaceState;
 
-    history.pushState = function() {
+    history.pushState = function () {
         originalPushState.apply(history, arguments);
         if (window.location.href !== lastUrl) {
             lastUrl = window.location.href;
@@ -83,7 +108,7 @@
         }
     };
 
-    history.replaceState = function() {
+    history.replaceState = function () {
         originalReplaceState.apply(history, arguments);
         if (window.location.href !== lastUrl) {
             lastUrl = window.location.href;
@@ -94,17 +119,17 @@
     // Extension 메시지 수신
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         switch (message.type) {
-            case 'COLLECT_CONTENT':
+            case "COLLECT_CONTENT":
                 // 콘텐츠 수집 요청
                 const pageInfo = collectPageInfo();
                 sendResponse({ success: true, data: pageInfo });
                 return true; // 비동기 응답
-            case 'REQUEST_PAGE_INFO':
+            case "REQUEST_PAGE_INFO":
                 // 페이지 정보 요청
                 sendResponse({ success: true, data: collectPageInfo() });
                 return true;
             default:
-                sendResponse({ success: false, error: 'Unknown message type' });
+                sendResponse({ success: false, error: "Unknown message type" });
         }
     });
 })();

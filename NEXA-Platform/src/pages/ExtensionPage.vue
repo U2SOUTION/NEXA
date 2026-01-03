@@ -225,45 +225,47 @@ const currentPageInfo = ref({
   timestamp: null,
 })
 
+// 중복 메시지 필터링을 위한 마지막 업데이트 정보
+let lastUpdateInfo = {
+  url: '',
+  title: '',
+  timestamp: null,
+}
+
 // Extension에서 오는 메시지 수신 핸들러
 function handleExtensionMessage(event) {
-  // 모든 메시지 로깅 (디버깅용)
-  console.log('[ExtensionPage] 메시지 이벤트 수신:', {
-    origin: event.origin,
-    data: event.data,
-    source: event.source,
-    type: event.data?.type,
-  })
-
   // 보안: localhost, 127.0.0.1, chrome-extension, 또는 빈 origin 허용 (file:// 또는 같은 origin)
   const allowedOrigins = ['localhost', '127.0.0.1', 'chrome-extension', 'null']
   const isAllowedOrigin = !event.origin || allowedOrigins.some((allowed) => event.origin.includes(allowed))
 
   if (!isAllowedOrigin) {
-    console.log('[ExtensionPage] 허용되지 않은 origin:', event.origin, '현재 window.location.origin:', window.location.origin)
     return
   }
 
-  console.log('[ExtensionPage] 메시지 수신 (origin 허용됨):', event.data)
-
   if (event.data && event.data.type === 'EXTENSION_MESSAGE') {
     const messageData = event.data.data
-    console.log('[ExtensionPage] 메시지 데이터:', messageData)
 
     if (messageData && messageData.type === 'PAGE_INFO_UPDATE') {
       const pageData = messageData.data || messageData
-      console.log('[ExtensionPage] 페이지 정보 업데이트:', pageData)
+
+      // 중복 메시지 필터링: 같은 URL, 타이틀, timestamp면 무시
+      if (lastUpdateInfo.url === pageData.url && lastUpdateInfo.title === pageData.title && lastUpdateInfo.timestamp === pageData.timestamp) {
+        return
+      }
+
+      // 업데이트 정보 저장
+      lastUpdateInfo = {
+        url: pageData.url || '',
+        title: pageData.title || '',
+        timestamp: pageData.timestamp || null,
+      }
 
       currentPageInfo.value = {
         url: pageData.url || '',
         title: pageData.title || '',
         timestamp: pageData.timestamp || null,
       }
-
-      console.log('[ExtensionPage] currentPageInfo 업데이트됨:', currentPageInfo.value)
     }
-  } else {
-    console.log('[ExtensionPage] 메시지 타입이 EXTENSION_MESSAGE가 아님:', event.data?.type)
   }
 }
 
@@ -272,11 +274,8 @@ onMounted(() => {
   if (isIframeMode.value) {
     // 즉시 리스너 등록
     window.addEventListener('message', handleExtensionMessage)
-    console.log('[ExtensionPage] Extension 메시지 리스너 등록됨')
-    console.log('[ExtensionPage] 현재 window.location.origin:', window.location.origin)
-    console.log('[ExtensionPage] 현재 window.location.href:', window.location.href)
 
-    // 부모 창에 준비 완료 메시지 전송 (선택사항)
+    // 부모 창에 준비 완료 메시지 전송
     if (window.parent && window.parent !== window) {
       try {
         window.parent.postMessage(
@@ -286,7 +285,6 @@ onMounted(() => {
           },
           '*',
         )
-        console.log('[ExtensionPage] 부모 창에 준비 완료 메시지 전송')
       } catch (error) {
         console.error('[ExtensionPage] 부모 창 메시지 전송 실패:', error)
       }

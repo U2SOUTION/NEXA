@@ -1,8 +1,8 @@
 # U2BEE V3 NEXA Platform 통합 기획서
 
 **작성일**: 2024년 12월  
-**버전**: 3.0.1 (Platform 통합 버전)  
-**상태**: 개발 진행 중 (Phase 1-2 진행 중)  
+**버전**: 3.0.2 (Platform 통합 버전)  
+**상태**: 개발 진행 중 (Phase 3 완료, Phase 4 진행 예정)  
 **아키텍처**: NEXA Platform UI 통합 + Chrome Extension  
 **프레임워크**: Vue 3 + Quasar Framework (NEXA Platform)
 
@@ -22,13 +22,20 @@
 - ✅ ExtensionSidebar.vue 구현 (카테고리별 확장 프로그램 메뉴)
 - ✅ 기본 레이아웃 구성 완료
 - ✅ NEXA Platform 웹 브라우저에서 UI 확인 완료
+- ✅ Extension Popup/Side Panel iframe 구조 완료
+- ✅ Side Panel 지원 완료 (sidepanel.html, sidepanel.js)
+
+**Phase 3: 기본 통신 구조**
+- ✅ 웹 브라우저 컨텐츠 타이틀/URL 수집 및 전송 구조 구축
+- ✅ Content Script → Background → Extension UI → Platform 통신 파이프라인 완료
+- ✅ 각 Extension 인스턴스 독립적 동작 (브라우저 창별 정보 분리)
+- ✅ 중복 메시지 필터링 및 로그 최적화
 
 ### 🚧 진행 중인 작업
 
-- Phase 1: Container Queries 설정 및 기본 구조
 - Phase 1: 플로팅 메뉴 시스템 (미구현)
-- Phase 2: Extension 최소 구조 (미구현)
-- Phase 2: 환경별 UI 확인 및 조정 (Extension 환경 미확인)
+- Phase 2: 환경별 UI 확인 및 조정 (모바일/PC 브라우저, Desktop 웹뷰 미확인)
+- Phase 4: 콘텐츠 평가 기능 (미구현)
 
 ### 📝 주요 개선 사항
 
@@ -36,6 +43,8 @@
 - **CSS 변수 통일**: 모든 인라인 색상/스타일을 `var(--nexa-*)` 변수로 통일
 - **작은 영역 최적화**: Chrome Extension 환경을 고려한 간격 최소화 및 한 줄 레이아웃 우선
 - **공통 구조 통일**: 모든 탭 컴포넌트에 Breadcrumb 및 액션 버튼 섹션 추가
+- **통신 구조 최적화**: 중복 메시지 필터링, 핵심 로그만 유지, 각 Extension 인스턴스 독립적 동작
+- **Content Script 자동 주입**: 프로그래밍 방식 Content Script 주입으로 안정성 향상
 
 ---
 
@@ -3626,8 +3635,8 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 
 -   [x] Manifest V3 설정 ✅ **완료** (manifest.json)
 -   [x] Popup iframe 구조 ✅ **완료** (popup.html, popup.css, popup.js 분리 완료)
--   [ ] Side Panel iframe 구조
--   [ ] Content Script 기본 구조 (빈 스크립트)
+-   [x] Side Panel iframe 구조 ✅ **완료** (2024-12, sidepanel.html, sidepanel.js)
+-   [x] Content Script 기본 구조 ✅ **완료** (2024-12, content.js - 페이지 정보 수집)
 -   [x] Background 기본 구조 ✅ **완료** (background.js)
     -   [ ] 🔥 **플로팅 메뉴 삽입 시스템** (사용자 선택 옵션)
     -   [ ] Shadow DOM 기반 플로팅 메뉴 삽입 로직
@@ -3645,13 +3654,17 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 #### 2.3 환경별 UI 확인 및 조정
 
 -   [x] NEXA Platform 웹 브라우저에서 UI 확인 및 조정 ✅ **완료** (2024-12, http://localhost:9000/#/extension)
--   [x] Extension Popup에서 UI 확인 및 조정 ✅ **부분 완료** (2024-12)
+-   [x] Extension Popup에서 UI 확인 및 조정 ✅ **완료** (2024-12)
     -   [x] Popup HTML/CSS 구조 분리 완료 (popup.html, popup.css)
     -   [x] iframe 크기 문제 해결 (800x600 정상 표시)
     -   [x] 스크롤 기능 구현 (body 스크롤바)
     -   [x] CSS 통합 관리 (u2bee-layout.scss 단순화)
+    -   [x] 페이지 정보 수신 및 UI 업데이트 확인
     -   [ ] iframe 보더 간극 문제 (보류)
--   [ ] Extension Side Panel에서 UI 확인 및 조정
+-   [x] Extension Side Panel에서 UI 확인 및 조정 ✅ **완료** (2024-12)
+    -   [x] Side Panel HTML/JS 구조 완료 (sidepanel.html, sidepanel.js)
+    -   [x] 페이지 정보 수신 및 UI 업데이트 확인
+    -   [x] 각 Extension 인스턴스 독립적 동작 확인
 -   [ ] 모바일 브라우저에서 UI 확인 및 조정
 -   [ ] PC 브라우저에서 UI 확인 및 조정
 -   [ ] Desktop 웹뷰에서 UI 확인 및 조정
@@ -3663,10 +3676,57 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 
 #### 3.1 Extension ↔ Platform 통신 기반
 
--   [ ] postMessage 통신 기본 구조
--   [ ] 메시지 타입 정의
--   [ ] 기본 에러 처리
--   [ ] 통신 테스트 (UI에서 메시지 송수신 확인)
+-   [x] postMessage 통신 기본 구조 ✅ **완료** (2024-12)
+    -   [x] Content Script → Background 통신 (chrome.runtime.sendMessage)
+    -   [x] Background → Extension UI 통신 (chrome.runtime.sendMessage)
+    -   [x] Extension UI → Platform iframe 통신 (postMessage)
+    -   [x] Platform iframe → Extension UI 통신 (postMessage, IFRAME_READY)
+-   [x] 메시지 타입 정의 ✅ **완료** (2024-12)
+    -   [x] PAGE_INFO_UPDATE: 페이지 정보 업데이트
+    -   [x] REQUEST_CURRENT_PAGE_INFO: 현재 페이지 정보 요청
+    -   [x] REQUEST_PAGE_INFO: Content Script 페이지 정보 요청
+    -   [x] EXTENSION_MESSAGE: Extension ↔ Platform 통신 래퍼
+    -   [x] IFRAME_READY: iframe 준비 완료 알림
+-   [x] 기본 에러 처리 ✅ **완료** (2024-12)
+    -   [x] Content Script 주입 실패 시 fallback 처리
+    -   [x] 메시지 전송 실패 시 에러 로깅
+    -   [x] iframe 로드 실패 시 에러 표시
+-   [x] 통신 테스트 (UI에서 메시지 송수신 확인) ✅ **완료** (2024-12)
+    -   [x] 웹 브라우저 타이틀/URL 수집 및 UI 업데이트 확인
+    -   [x] 각 Extension 인스턴스 독립적 동작 확인
+    -   [x] 중복 메시지 필터링 동작 확인
+
+#### 3.2 페이지 정보 수집 및 전송
+
+-   [x] Content Script 페이지 정보 수집 ✅ **완료** (2024-12)
+    -   [x] URL 수집 (window.location.href)
+    -   [x] 타이틀 수집 (document.title)
+    -   [x] URL 변경 감지 (popstate, pushState, replaceState)
+    -   [x] 타이틀 변경 감지 (MutationObserver)
+    -   [x] 중복 전송 방지 (URL/타이틀 비교, 최소 전송 간격)
+-   [x] Background 메시지 라우팅 ✅ **완료** (2024-12)
+    -   [x] 활성 탭 필터링 (windowId 기반)
+    -   [x] Content Script 자동 주입 (chrome.scripting.executeScript)
+    -   [x] Extension UI로 메시지 브로드캐스트
+-   [x] Extension UI 메시지 필터링 ✅ **완료** (2024-12)
+    -   [x] 각 인스턴스 windowId 추적 (myWindowId)
+    -   [x] 자신의 창 메시지만 처리 (엄격한 windowId 비교)
+    -   [x] 창 ID 초기화 로직 (currentWindow, getCurrent fallback)
+-   [x] Platform UI 메시지 수신 및 업데이트 ✅ **완료** (2024-12)
+    -   [x] postMessage 이벤트 리스너 등록
+    -   [x] origin 검증 (localhost, chrome-extension 허용)
+    -   [x] 중복 메시지 필터링 (URL/타이틀/timestamp 비교)
+    -   [x] 페이지 정보 UI 업데이트 (currentPageInfo)
+
+#### 3.3 로그 및 디버깅 최적화
+
+-   [x] 핵심 로그만 유지 ✅ **완료** (2024-12)
+    -   [x] 창 ID 초기화/업데이트 로그 유지
+    -   [x] 에러 로그 유지 (console.error, console.warn)
+    -   [x] 불필요한 디버깅 로그 제거
+-   [x] 중복 메시지 필터링 ✅ **완료** (2024-12)
+    -   [x] Content Script: URL/타이틀 중복 체크, 최소 전송 간격
+    -   [x] Platform UI: URL/타이틀/timestamp 중복 체크
 
 ---
 
@@ -3943,6 +4003,7 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 
 | 버전  | 날짜    | 변경 내용                                                                 | 작성자      |
 | ----- | ------- | ------------------------------------------------------------------------- | ----------- |
+| 3.0.2 | 2024-12 | Phase 3 기본 통신 구조 완료: 페이지 정보 수집/전송, Extension 인스턴스 독립 동작, 중복 메시지 필터링, 로그 최적화 | NEXA 개발팀 |
 | 3.0.1 | 2024-12 | 개발 로드맵 체크리스트 업데이트 (Phase 1-2 진행 상황 반영)                | NEXA 개발팀 |
 | 3.0.0 | 2024-12 | 초안 작성 (Platform 통합 버전)                                          | NEXA 개발팀 |
 
