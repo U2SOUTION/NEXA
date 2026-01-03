@@ -15,26 +15,34 @@
       </div>
     </div>
 
-    <!-- 단축키 목록 -->
+    <!-- 단축키 목록 (카테고리별 정리) -->
     <div class="shortcuts-list q-mb-lg">
-      <q-list>
-        <q-item v-for="shortcut in shortcuts" :key="shortcut.id" class="shortcut-item">
-          <q-item-section>
-            <div class="shortcut-label-row">
-              <q-item-label class="shortcut-description">{{ shortcut.description || shortcut.id }}</q-item-label>
-              <kbd class="shortcut-key" @click="executeShortcut(shortcut)">{{ formatCombo(shortcut.setting?.combo || shortcut.combo || getComboFromSetting(shortcut.setting)) }}</kbd>
-            </div>
-          </q-item-section>
-          <q-item-section side>
-            <div class="row q-gutter-xs">
-              <q-btn flat dense round icon="edit" color="primary" size="sm" @click="editShortcut(shortcut)">
-                <q-tooltip>수정</q-tooltip>
-              </q-btn>
-              <q-toggle :model-value="getShortcutEnabled(shortcut)" :true-value="true" :false-value="false" @update:model-value="toggleShortcut(shortcut.id, $event)" />
-            </div>
-          </q-item-section>
-        </q-item>
-      </q-list>
+      <template v-for="category in categorizedShortcuts" :key="category.name">
+        <div class="category-section">
+          <div class="category-header">
+            <q-icon :name="category.icon" size="20px" class="q-mr-sm" />
+            <span class="category-title">{{ category.title }}</span>
+          </div>
+          <q-list>
+            <q-item v-for="shortcut in category.shortcuts" :key="shortcut.id" class="shortcut-item">
+              <q-item-section>
+                <div class="shortcut-label-row">
+                  <q-item-label class="shortcut-description">{{ shortcut.description || shortcut.id }}</q-item-label>
+                  <kbd class="shortcut-key" @click="executeShortcut(shortcut)">{{ formatCombo(shortcut.setting?.combo || shortcut.combo || getComboFromSetting(shortcut.setting)) }}</kbd>
+                </div>
+              </q-item-section>
+              <q-item-section side>
+                <div class="row q-gutter-xs">
+                  <q-btn flat dense round icon="edit" color="primary" size="sm" @click="editShortcut(shortcut)">
+                    <q-tooltip>수정</q-tooltip>
+                  </q-btn>
+                  <q-toggle :model-value="getShortcutEnabled(shortcut)" :true-value="true" :false-value="false" @update:model-value="toggleShortcut(shortcut.id, $event)" />
+                </div>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </div>
+      </template>
     </div>
   </div>
 
@@ -108,7 +116,7 @@ import { useGlobalShortcuts } from 'src/composables/useGlobalShortcuts'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
-const { getRegisteredShortcuts, updateShortcut, setShortcutEnabled, registerShortcut, unregisterShortcut, getShortcutHandler } = useGlobalShortcuts()
+const { getRegisteredShortcuts, updateShortcut, setShortcutEnabled, registerShortcut, unregisterShortcut, getShortcutHandler, getCategorizedShortcuts } = useGlobalShortcuts()
 
 // 브라우저 단축키 컨테이너 스타일
 const browserContainerStyle = computed(() => {
@@ -151,6 +159,11 @@ function showBrowserShortcutInfo(browserShortcut) {
     icon: 'info',
   })
 }
+
+// 카테고리별로 정리된 단축키 (useGlobalShortcuts에서 관리)
+const categorizedShortcuts = computed(() => {
+  return getCategorizedShortcuts(shortcuts.value)
+})
 
 // 단축키 목록 로드
 function loadShortcuts() {
@@ -517,6 +530,29 @@ watch(showAddDialog, (newVal) => {
     border: none !important;
   }
 
+  .category-section {
+    margin-bottom: 24px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 26px;
+      background-color: var(--nexa-surface);
+      border-bottom: 1px solid var(--nexa-border-color);
+      margin-bottom: 0;
+
+      .category-title {
+        color: var(--nexa-text-primary);
+        font-weight: 600;
+        font-size: 1rem;
+      }
+    }
+  }
+
   .shortcut-item {
     padding: 8px 26px;
 
@@ -525,6 +561,10 @@ watch(showAddDialog, (newVal) => {
 
     &:hover {
       background-color: var(--nexa-surface);
+    }
+
+    &:last-child {
+      border-bottom: none;
     }
 
     // 라벨과 핫키를 한 줄로 배치

@@ -144,6 +144,7 @@
 
     <!-- 왼쪽 사이드바 토글 버튼 (항상 표시) -->
     <div
+      ref="leftToggleButtonRef"
       class="sidebar-toggle-button sidebar-toggle-button--left"
       :class="{ 'is-drawer-open': dashboardLayoutStore.mainNavigationOpen }"
       :style="{
@@ -152,7 +153,6 @@
         '--hover-rotation': leftHoverRotation,
       }"
       @mousedown="handleLeftToggleMouseDown"
-      @touchstart="handleLeftToggleMouseDown"
     >
       <q-icon name="double_arrow" />
       <span class="toggle-label">LEFT NAV</span>
@@ -160,6 +160,7 @@
 
     <!-- 오른쪽 사이드바 토글 버튼 (항상 표시) -->
     <div
+      ref="rightToggleButtonRef"
       class="sidebar-toggle-button sidebar-toggle-button--right"
       :class="{
         'is-drawer-open': userSettings.settings.drawer.rightOpen,
@@ -171,7 +172,6 @@
         '--hover-rotation': rightHoverRotation,
       }"
       @mousedown="handleRightToggleMouseDown"
-      @touchstart="handleRightToggleMouseDown"
     >
       <q-icon name="double_arrow" />
       <span class="toggle-label">RIGHT PANEL</span>
@@ -330,6 +330,8 @@ const headerIconGroupRef = ref(null)
 const contextIconGroupRef = ref(null)
 const rightIconAreaRef = ref(null) // 오른쪽 아이콘 영역 전체
 const mainMenuTabsRef = ref(null)
+const leftToggleButtonRef = ref(null) // 왼쪽 토글 버튼 ref
+const rightToggleButtonRef = ref(null) // 오른쪽 토글 버튼 ref
 const isMainMenuOverflowing = ref(false) // 메인 메뉴 탭이 가려지는지 여부
 const hiddenTabs = ref([]) // 가려진 탭 목록
 const tabSizes = ref([]) // 각 탭의 실제 너비 저장
@@ -1096,6 +1098,20 @@ function handleMainContentDoubleClick(event) {
     return
   }
 
+  // 텍스트 선택 방지
+  event.preventDefault()
+
+  // 이미 선택된 텍스트 해제
+  if (window.getSelection) {
+    const selection = window.getSelection()
+    if (selection.rangeCount > 0) {
+      selection.removeAllRanges()
+    }
+  } else if (document.selection) {
+    // IE 호환성
+    document.selection.empty()
+  }
+
   const isLeftOpen = dashboardLayoutStore.mainNavigationOpen
   const isRightOpen = userSettings.settings.drawer.rightOpen
 
@@ -1394,6 +1410,16 @@ onMounted(() => {
     handle.addEventListener('touchstart', startResize, { passive: true })
   }
 
+  // 토글 버튼에 touchstart 이벤트 리스너 등록 (passive: true)
+  nextTick(() => {
+    if (leftToggleButtonRef.value) {
+      leftToggleButtonRef.value.addEventListener('touchstart', handleLeftToggleMouseDown, { passive: true })
+    }
+    if (rightToggleButtonRef.value) {
+      rightToggleButtonRef.value.addEventListener('touchstart', handleRightToggleMouseDown, { passive: true })
+    }
+  })
+
   // 초기 오버플로우 감지 (아이콘은 항상 표시되므로 메인 메뉴만 확인)
   nextTick(() => {
     checkMainMenuOverflow()
@@ -1475,6 +1501,14 @@ onBeforeUnmount(() => {
   const handle = document.querySelector('.resize-handle')
   if (handle) {
     handle.removeEventListener('touchstart', startResize)
+  }
+
+  // 토글 버튼 touchstart 이벤트 리스너 제거
+  if (leftToggleButtonRef.value) {
+    leftToggleButtonRef.value.removeEventListener('touchstart', handleLeftToggleMouseDown)
+  }
+  if (rightToggleButtonRef.value) {
+    rightToggleButtonRef.value.removeEventListener('touchstart', handleRightToggleMouseDown)
   }
 
   // ResizeObserver 정리

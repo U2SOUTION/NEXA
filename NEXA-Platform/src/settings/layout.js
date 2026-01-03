@@ -3,8 +3,4 @@ export const layoutSettings = {
     height: 64,
     fixed: true,
   },
-  sidebar: {
-    width: 250,
-    collapsed: false,
-  },
 }

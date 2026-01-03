@@ -98,7 +98,14 @@
         <!-- 빠른 액션 -->
         <div class="accordion-wrapper">
           <q-expansion-item icon="flash_on" label="빠른 액션" :model-value="componentLibraryQuickActionsExpanded" @update:model-value="componentLibraryQuickActionsExpanded = $event">
-            <ComponentLibraryQuickActions :selected-component="componentLibrarySelectedComponent" :is-scanning="componentLibraryIsScanning" @copy-path="handleComponentLibraryCopyPath" @scan-and-validate="handleComponentLibraryScanAndValidate" @show-rule-settings="handleComponentLibraryShowRuleSettings" @show-file-structure="handleComponentLibraryShowFileStructure" />
+            <ComponentLibraryQuickActions
+              :selected-component="componentLibrarySelectedComponent"
+              :is-scanning="componentLibraryIsScanning"
+              @copy-path="handleComponentLibraryCopyPath"
+              @scan-and-validate="handleComponentLibraryScanAndValidate"
+              @show-rule-settings="handleComponentLibraryShowRuleSettings"
+              @show-file-structure="handleComponentLibraryShowFileStructure"
+            />
           </q-expansion-item>
         </div>
 
@@ -118,7 +125,7 @@
             <DevGuidePanel />
           </q-expansion-item>
         </div>
-        
+
         <!-- 통계 (별도 아코디언) -->
         <div class="accordion-wrapper">
           <q-expansion-item icon="analytics" label="통계" :model-value="devGuideStatisticsExpanded" @update:model-value="devGuideStatisticsExpanded = $event" default-opened>
@@ -257,7 +264,7 @@
 </template>
 
 <script setup>
-import { computed, ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { computed, ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useDocumentManagerStore } from 'src/stores/documentManagerStore'
 import { QExpansionItem, QScrollArea } from 'quasar'
 import RightSidebarHeader from './RightSidebarHeader.vue'
@@ -279,6 +286,7 @@ import DevGuidePanel from './dev-tools/DevGuidePanel.vue'
 import DevGuideStatistics from './dev-tools/DevGuideStatistics.vue'
 import HistoryTab from './dev-tools/graph-doc/HistoryTab.vue'
 import FixedNodesTab from './dev-tools/graph-doc/FixedNodesTab.vue'
+import { useDevMenuState } from 'src/composables/dev-tools/useDevMenuState'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)
@@ -290,8 +298,8 @@ const tocShouldAutoExpand = ref(false)
 const tocAutoCollapse = computed(() => documentStore.tocAutoCollapse)
 
 // Active menu 상태 (DevelopmentPage와 동기화)
-// localStorage 복원 로직 제거 (URL만 사용)
-const activeMenu = ref(null)
+// useDevMenuState composable 사용으로 변경
+const { activeMenu, initialize: initializeMenuState } = useDevMenuState()
 
 // 테마 색상 패널 상태
 const selectedColor = ref(null)
@@ -347,47 +355,57 @@ const devGuideStatisticsExpanded = ref(true)
 const graphDocHistoryExpanded = ref(true)
 const graphDocFixedNodesExpanded = ref(false)
 
-// Active menu 변경 이벤트 리스너
+// Active menu 변경 이벤트 리스너 (호환성을 위해 유지하되, composable이 우선)
 function handleActiveMenuChange(event) {
   const menuId = event.detail.activeMenu
-  console.log('[DevToolsPanel] activeMenu 변경:', menuId)
-  // null 포함하여 항상 동기화 (메인 페이지로 리셋 시에도 처리)
-  activeMenu.value = menuId
-  // 테마 관리 메뉴로 변경 시 아코디언 자동으로 열기
-  if (menuId === 'theme-manager') {
-    themeColorPanelExpanded.value = true
-  }
-  // 데이터베이스 뷰어 메뉴로 변경 시 아코디언 닫기 (테이블 선택 시 자동으로 열림)
-  if (activeMenu.value === 'database-viewer') {
-    databaseTableDetailExpanded.value = false
-    activeDiagramType.value = diagramTypes.ERD
-    diagramSettingsExpanded.value = false
-  }
-  // 그래프독 메뉴로 변경 시 다이어그램 타입 초기화
-  else if (activeMenu.value === 'graph-doc' || activeMenu.value === 'document-generator') {
-    // 활성 아코디언에 따라 타입 결정 (기본값: dependency)
-    activeDiagramType.value = 'dependency'
-    diagramSettingsExpanded.value = false
-  }
-  // 다른 메뉴로 변경 시 다이어그램 타입 초기화
-  else {
-    activeDiagramType.value = null
-    diagramSettingsExpanded.value = false
-  }
-  // 컴포넌트 라이브러리 메뉴로 변경 시 상태 초기화
-  if (activeMenu.value === 'component-library') {
-    componentLibrarySelectedComponent.value = null
-    componentLibrarySelectedViolation.value = null
-    componentLibraryWarningExpanded.value = false
-    componentLibraryMoveExpanded.value = false
-  }
-  // 에러 트래킹 메뉴로 변경 시 상태 초기화
-  if (activeMenu.value === 'error-tracking') {
-    errorTrackingSettingsExpanded.value = false
-    errorTrackingActionsExpanded.value = false
-    errorTrackingAnalysisExpanded.value = false
-  }
+  console.log('[DevToolsPanel] activeMenu 변경 (이벤트):', menuId)
+  // composable의 activeMenu는 이미 반응형이므로, 이벤트는 로깅만
+  // 실제로는 watch를 통해 처리
 }
+
+// activeMenu 변경 감지 (composable의 반응형 상태 사용)
+watch(
+  () => activeMenu.value,
+  (newMenuId, oldMenuId) => {
+    console.log('[DevToolsPanel] activeMenu 변경 (watch):', oldMenuId, '->', newMenuId)
+
+    // 테마 관리 메뉴로 변경 시 아코디언 자동으로 열기
+    if (newMenuId === 'theme-manager') {
+      themeColorPanelExpanded.value = true
+    }
+    // 데이터베이스 뷰어 메뉴로 변경 시 아코디언 닫기 (테이블 선택 시 자동으로 열림)
+    if (newMenuId === 'database-viewer') {
+      databaseTableDetailExpanded.value = false
+      activeDiagramType.value = diagramTypes.ERD
+      diagramSettingsExpanded.value = false
+    }
+    // 그래프독 메뉴로 변경 시 다이어그램 타입 초기화
+    else if (newMenuId === 'graph-doc' || newMenuId === 'document-generator') {
+      // 활성 아코디언에 따라 타입 결정 (기본값: dependency)
+      activeDiagramType.value = 'dependency'
+      diagramSettingsExpanded.value = false
+    }
+    // 다른 메뉴로 변경 시 다이어그램 타입 초기화
+    else {
+      activeDiagramType.value = null
+      diagramSettingsExpanded.value = false
+    }
+    // 컴포넌트 라이브러리 메뉴로 변경 시 상태 초기화
+    if (newMenuId === 'component-library') {
+      componentLibrarySelectedComponent.value = null
+      componentLibrarySelectedViolation.value = null
+      componentLibraryWarningExpanded.value = false
+      componentLibraryMoveExpanded.value = false
+    }
+    // 에러 트래킹 메뉴로 변경 시 상태 초기화
+    if (newMenuId === 'error-tracking') {
+      errorTrackingSettingsExpanded.value = false
+      errorTrackingActionsExpanded.value = false
+      errorTrackingAnalysisExpanded.value = false
+    }
+  },
+  { immediate: true }, // 초기값도 처리
+)
 
 // 데이터베이스 테이블 선택 이벤트 리스너
 function handleDatabaseTableSelected(event) {
@@ -482,7 +500,7 @@ function handleComponentLibraryShowFileStructure() {
 function handleDiagramSettingsChanged(event) {
   const { type, settings, changedTypes } = event
   console.log('[DevToolsPanel] 다이어그램 설정 변경:', type, settings, changedTypes)
-  
+
   // 타입별 전역 이벤트 발생
   if (type === diagramTypes.ERD) {
     window.dispatchEvent(
@@ -509,7 +527,7 @@ function handleDiagramSettingsChanged(event) {
 function handleDiagramSettingsSaved(event) {
   const { type, settings } = event
   console.log('[DevToolsPanel] 다이어그램 설정 저장:', type, settings)
-  
+
   // 타입별 전역 이벤트 발생
   if (type === diagramTypes.ERD) {
     window.dispatchEvent(
@@ -524,7 +542,7 @@ function handleDiagramSettingsSaved(event) {
 function handleDiagramSettingsReset(event) {
   const { type } = event
   console.log('[DevToolsPanel] 다이어그램 설정 초기화:', type)
-  
+
   // 설정 변경 이벤트도 발생시켜 다이어그램에 반영
   handleDiagramSettingsChanged({ type, settings: {}, changedTypes: ['layout'] })
 }
@@ -533,7 +551,7 @@ function handleDiagramSettingsReset(event) {
 function handleGraphDocAccordionChange(event) {
   const { item, expanded } = event.detail
   if (!expanded) return
-  
+
   // 활성 아코디언에 따라 다이어그램 타입 결정
   const typeMap = {
     dependencyGraph: 'dependency',
@@ -541,7 +559,7 @@ function handleGraphDocAccordionChange(event) {
     dependencyAnalysis: 'dependency',
     codeSearch: null, // 코드 검색은 다이어그램 없음
   }
-  
+
   const newType = typeMap[item]
   if (newType && newType !== activeDiagramType.value) {
     activeDiagramType.value = newType
@@ -578,7 +596,10 @@ function handleExpandTOCSection() {
 
 onMounted(() => {
   console.log('[DevToolsPanel] 마운트 완료, 초기 activeMenu:', activeMenu.value)
-  
+
+  // 메뉴 상태 초기화 (composable 초기화)
+  initializeMenuState()
+
   // 초기 다이어그램 타입 설정
   if (activeMenu.value === 'database-viewer') {
     activeDiagramType.value = diagramTypes.ERD
@@ -586,12 +607,12 @@ onMounted(() => {
     activeDiagramType.value = 'dependency'
     console.log('[DevToolsPanel] graph-doc 메뉴 감지, 히스토리 패널 표시 예정')
   }
-  
-  // 전역 이벤트 리스너 등록
+
+  // 전역 이벤트 리스너 등록 (다른 컴포넌트와의 호환성을 위해 유지)
   window.addEventListener('expand-mermaid-section', handleExpandMermaidSection)
   window.addEventListener('expand-toc-section', handleExpandTOCSection)
   window.addEventListener('dev-menu-changed', handleActiveMenuChange)
-  
+
   // 초기 동기화: DevelopmentPage에서 이벤트가 발생할 때까지 대기 후 확인
   setTimeout(() => {
     console.log('[DevToolsPanel] 초기 동기화 확인, 현재 activeMenu:', activeMenu.value)

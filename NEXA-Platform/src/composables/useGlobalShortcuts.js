@@ -6,9 +6,51 @@
  * - 단축키 설정 저장/로드 (localStorage)
  * - 입력 필드 포커스 감지 및 예외 처리
  * - Ctrl/Cmd 키 자동 감지 (크로스 플랫폼 지원)
+ * - 단축키 카테고리별 정렬
  */
 
 import { ref } from 'vue'
+
+// ============================================
+// 단축키 카테고리 정의
+// ============================================
+
+/**
+ * 단축키 카테고리 정의
+ * 네비게이션 관련 단축키를 가장 위에 배치
+ */
+export const SHORTCUT_CATEGORIES = [
+  {
+    name: 'navigation',
+    title: '네비게이션',
+    icon: 'navigation',
+    ids: ['goToHome', 'goToSettings', 'goToDev', 'goToSettingsTheme', 'goBack', 'goForward'],
+  },
+  {
+    name: 'sidebar',
+    title: '사이드바',
+    icon: 'view_sidebar',
+    ids: ['toggleLeftSidebarCtrlLeft', 'toggleRightSidebarCtrlRight', 'toggleRightSidebarMode', 'openRightSidebarPush', 'openRightSidebarOverlay'],
+  },
+  {
+    name: 'theme',
+    title: '테마 및 UI',
+    icon: 'palette',
+    ids: ['toggleTheme'],
+  },
+  {
+    name: 'utility',
+    title: '유틸리티',
+    icon: 'build',
+    ids: ['refreshPage', 'hardRefresh', 'clearConsole'],
+  },
+  {
+    name: 'custom',
+    title: '사용자 정의',
+    icon: 'star',
+    ids: [], // 동적으로 추가됨
+  },
+]
 
 // 단축키 레지스트리 (key → handler 매핑)
 const shortcutRegistry = new Map()
@@ -613,6 +655,47 @@ export function useGlobalShortcuts() {
     isGlobalShortcutsActive = false
   }
 
+  /**
+   * 카테고리별로 정리된 단축키 반환
+   * @param {Array} shortcuts - 정렬할 단축키 배열 (getRegisteredShortcuts() 결과)
+   * @returns {Array} 카테고리별로 정리된 단축키 배열
+   */
+  function getCategorizedShortcuts(shortcuts = []) {
+    const categorized = []
+
+    // 각 카테고리에 해당하는 단축키 찾기
+    SHORTCUT_CATEGORIES.forEach((category) => {
+      const categoryShortcuts = []
+
+      if (category.name === 'custom') {
+        // 사용자 정의 단축키는 custom_로 시작하는 것들
+        shortcuts.forEach((shortcut) => {
+          if (shortcut.id.startsWith('custom_')) {
+            categoryShortcuts.push(shortcut)
+          }
+        })
+      } else {
+        // 다른 카테고리는 ids로 매칭
+        category.ids.forEach((id) => {
+          const shortcut = shortcuts.find((s) => s.id === id)
+          if (shortcut) {
+            categoryShortcuts.push(shortcut)
+          }
+        })
+      }
+
+      // 단축키가 있는 카테고리만 추가
+      if (categoryShortcuts.length > 0) {
+        categorized.push({
+          ...category,
+          shortcuts: categoryShortcuts,
+        })
+      }
+    })
+
+    return categorized
+  }
+
   return {
     // 단축키 관리
     registerShortcut,
@@ -631,5 +714,8 @@ export function useGlobalShortcuts() {
     getShortcutSetting,
     loadShortcutSettings,
     saveShortcutSettings,
+
+    // 카테고리 관리
+    getCategorizedShortcuts,
   }
 }
