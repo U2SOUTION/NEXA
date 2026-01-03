@@ -6,7 +6,7 @@
       <span class="breadcrumb-separator">></span>
       <span class="breadcrumb-item">컨텐츠 정보</span>
       <span class="breadcrumb-separator">></span>
-      <span class="breadcrumb-item">YOUTUBE</span>
+      <span class="breadcrumb-item">{{ getPageTypeLabel() }}</span>
       <span class="breadcrumb-separator">></span>
       <span class="breadcrumb-item active">컨텐츠 평가</span>
     </div>
@@ -26,7 +26,8 @@
     <div class="row items-start q-gutter-md">
       <!-- 썸네일 -->
       <div class="content-thumbnail">
-        <svg viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg" class="thumbnail-svg">
+        <img v-if="pageInfo.thumbnail" :src="pageInfo.thumbnail" alt="Thumbnail" class="thumbnail-image" @error="handleThumbnailError" />
+        <svg v-else viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg" class="thumbnail-svg">
           <rect width="120" height="90" fill="var(--nexa-surface)" stroke="var(--nexa-border-color)" stroke-width="1" rx="4" />
           <circle cx="60" cy="35" r="12" fill="var(--nexa-text-secondary)" opacity="0.3" />
           <path d="M 55 30 L 55 40 L 65 35 Z" fill="var(--nexa-text-secondary)" opacity="0.5" />
@@ -37,11 +38,48 @@
       <!-- 제목 및 정보 -->
       <div class="col content-info">
         <div class="content-title">{{ pageInfo.title || '페이지 정보를 기다리는 중...' }}</div>
+
+        <!-- 채널명 (YouTube/Shorts) -->
+        <div v-if="pageInfo.channelName" class="content-meta-line">
+          <q-icon name="account_circle" size="14px" class="q-mr-xs" />
+          <span>{{ pageInfo.channelName }}</span>
+        </div>
+
+        <!-- 게시자 (Website) -->
+        <div v-if="pageInfo.publisher && !pageInfo.channelName" class="content-meta-line">
+          <q-icon name="public" size="14px" class="q-mr-xs" />
+          <span>{{ pageInfo.publisher }}</span>
+        </div>
+
+        <!-- 조회수 (YouTube/Shorts) -->
+        <div v-if="pageInfo.viewCount" class="content-meta-line">
+          <q-icon name="visibility" size="14px" class="q-mr-xs" />
+          <span>{{ formatNumber(pageInfo.viewCount) }}회</span>
+        </div>
+
+        <!-- 재생 시간 (YouTube/Shorts) -->
+        <div v-if="pageInfo.duration" class="content-meta-line">
+          <q-icon name="schedule" size="14px" class="q-mr-xs" />
+          <span>{{ formatDuration(pageInfo.duration) }}</span>
+        </div>
+
+        <!-- 게시일 -->
+        <div v-if="pageInfo.publishedAt" class="content-meta-line">
+          <q-icon name="calendar_today" size="14px" class="q-mr-xs" />
+          <span>{{ formatDate(pageInfo.publishedAt) }}</span>
+        </div>
+
+        <!-- URL -->
         <div class="content-meta-line">
           <span v-if="pageInfo.url">
-            <a :href="pageInfo.url" target="_blank" rel="noopener noreferrer">{{ pageInfo.url }}</a>
+            <a :href="pageInfo.url" target="_blank" rel="noopener noreferrer" class="content-url">{{ pageInfo.url }}</a>
           </span>
           <span v-else class="text-grey-6">URL 정보 없음</span>
+        </div>
+
+        <!-- 설명 -->
+        <div v-if="pageInfo.description" class="content-description q-mt-sm">
+          {{ truncateText(pageInfo.description, 200) }}
         </div>
       </div>
     </div>
@@ -92,16 +130,94 @@
 import { ref } from 'vue'
 
 // Props: Extension에서 전달받은 페이지 정보
-defineProps({
+const props = defineProps({
   pageInfo: {
     type: Object,
     default: () => ({
       url: '',
       title: '',
-      timestamp: null
-    })
-  }
+      timestamp: null,
+      pageType: null,
+      videoId: null,
+      channelName: null,
+      channelId: null,
+      thumbnail: null,
+      description: null,
+      viewCount: null,
+      likeCount: null,
+      publishedAt: null,
+      duration: null,
+      publisher: null,
+      image: null,
+      author: null,
+    }),
+  },
 })
+
+// 썸네일 로드 실패 처리
+function handleThumbnailError(event) {
+  event.target.style.display = 'none'
+}
+
+// 숫자 포맷팅 (예: 1234567 -> 123.5만)
+function formatNumber(num) {
+  if (!num) return ''
+  if (num >= 100000000) {
+    return (num / 100000000).toFixed(1) + '억'
+  }
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + '만'
+  }
+  return num.toLocaleString()
+}
+
+// ISO 8601 duration 포맷팅 (예: PT10M30S -> 10:30)
+function formatDuration(duration) {
+  if (!duration) return ''
+  try {
+    // PT10M30S 형식 파싱
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+    if (!match) return duration
+
+    const hours = parseInt(match[1] || 0)
+    const minutes = parseInt(match[2] || 0)
+    const seconds = parseInt(match[3] || 0)
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  } catch {
+    return duration
+  }
+}
+
+// 날짜 포맷팅
+function formatDate(dateString) {
+  if (!dateString) return ''
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+  } catch {
+    return dateString
+  }
+}
+
+// 텍스트 자르기
+function truncateText(text, maxLength) {
+  if (!text) return ''
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength) + '...'
+}
+
+// 페이지 타입 레이블 반환
+function getPageTypeLabel() {
+  const pageType = props.pageInfo?.pageType
+  if (pageType === 'YOUTUBE') return 'YOUTUBE'
+  if (pageType === 'SHORTS') return 'SHORTS'
+  if (pageType === 'WEBSITE') return 'WEBSITE'
+  return 'UNKNOWN'
+}
 
 // 목업 데이터
 const mockRating = ref({
@@ -237,6 +353,15 @@ function toggleCategory(categoryId) {
   border-radius: 4px;
 }
 
+.thumbnail-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--nexa-surface);
+}
+
 .content-info {
   min-width: 0;
 }
@@ -286,6 +411,24 @@ function toggleCategory(categoryId) {
 .content-meta-line > a {
   color: var(--nexa-text-secondary);
   text-decoration: none;
+}
+
+.content-url {
+  color: var(--nexa-primary);
+  text-decoration: underline;
+  word-break: break-all;
+
+  &:hover {
+    color: var(--nexa-primary-dark);
+  }
+}
+
+.content-description {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--nexa-text-secondary);
+  margin-top: 8px;
+  word-break: break-word;
 
   &:hover {
     color: var(--nexa-text-primary);

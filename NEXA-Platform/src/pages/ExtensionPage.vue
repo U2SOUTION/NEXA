@@ -223,6 +223,21 @@ const currentPageInfo = ref({
   url: '',
   title: '',
   timestamp: null,
+  pageType: null,
+  // YouTube/Shorts 공통
+  videoId: null,
+  channelName: null,
+  channelId: null,
+  thumbnail: null,
+  description: null,
+  viewCount: null,
+  likeCount: null,
+  publishedAt: null,
+  duration: null,
+  // Website 전용
+  publisher: null,
+  image: null,
+  author: null,
 })
 
 // 중복 메시지 필터링을 위한 마지막 업데이트 정보
@@ -260,10 +275,26 @@ function handleExtensionMessage(event) {
         timestamp: pageData.timestamp || null,
       }
 
+      // 모든 페이지 정보 업데이트
       currentPageInfo.value = {
         url: pageData.url || '',
         title: pageData.title || '',
         timestamp: pageData.timestamp || null,
+        pageType: pageData.pageType || null,
+        // YouTube/Shorts 공통
+        videoId: pageData.videoId || null,
+        channelName: pageData.channelName || null,
+        channelId: pageData.channelId || null,
+        thumbnail: pageData.thumbnail || null,
+        description: pageData.description || null,
+        viewCount: pageData.viewCount || null,
+        likeCount: pageData.likeCount || null,
+        publishedAt: pageData.publishedAt || null,
+        duration: pageData.duration || null,
+        // Website 전용
+        publisher: pageData.publisher || null,
+        image: pageData.image || null,
+        author: pageData.author || null,
       }
     }
   }

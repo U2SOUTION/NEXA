@@ -1,7 +1,7 @@
 # U2BEE V3 NEXA Platform 통합 기획서
 
 **작성일**: 2024년 12월  
-**버전**: 3.0.2 (Platform 통합 버전)  
+**버전**: 3.0.3 (Platform 통합 버전)  
 **상태**: 개발 진행 중 (Phase 3 완료, Phase 4 진행 예정)  
 **아키텍처**: NEXA Platform UI 통합 + Chrome Extension  
 **프레임워크**: Vue 3 + Quasar Framework (NEXA Platform)
@@ -486,6 +486,125 @@ router.post("/content/analyze-dom", async (req, res) => {
 ---
 
 ## 정보 추출 전략
+
+### V3 현재 구현 상태 (2024-12)
+
+**현재 수집 중인 정보:**
+
+#### 기본 정보 (모든 페이지 타입)
+- `url`: 현재 페이지 URL (`window.location.href`)
+- `title`: 페이지 제목 (`document.title`, 앞의 숫자 `(1)`, `(2)` 제거, 끝의 `- YouTube` 제거)
+- `pageType`: 페이지 타입 (`"YOUTUBE" | "SHORTS" | "WEBSITE"`)
+- `timestamp`: 수집 시점 (`Date.now()`)
+
+#### 수집 방식
+- **초기 로드**: DOM 로드 완료 후 500ms 지연 후 수집
+- **URL 변경 감지**: `popstate`, `pushState`, `replaceState` 이벤트 감지
+- **타이틀 변경 감지**: `MutationObserver`로 `<title>` 요소 감시
+- **중복 방지**: URL/타이틀 비교, 최소 전송 간격 100ms
+
+---
+
+### V3 추가 수집 가능한 정보
+
+#### YouTube 전용 정보 (`/watch`)
+**현재 수집:**
+- `videoId`: URL 파라미터 `?v=` 값
+- `channelName`: 채널명 (`@` 포함, 예: `@channelname`)
+  - 선택자: `#owner #channel-name a`
+  - 채널 URL에서 `@` 이후 추출 또는 텍스트 내용 사용
+
+**추가 수집 가능:**
+- `channelId`: 채널 고유 ID (채널 URL에서 추출)
+- `description`: 비디오 설명 (메타 태그 또는 DOM)
+- `thumbnail`: 썸네일 URL (`https://img.youtube.com/vi/{videoId}/hqdefault.jpg`)
+- `duration`: 재생 시간 (ISO 8601 형식, 예: `PT10M30S`)
+- `viewCount`: 조회수 (예: `1,234,567`)
+- `likeCount`: 좋아요 수
+- `publishedAt`: 게시일 (ISO 8601 형식)
+- `tags`: 태그 목록 (배열)
+
+**수집 소스:**
+1. **플랫폼 내부 데이터**: `window.ytInitialData`, `window.ytInitialPlayerResponse`
+2. **JSON-LD 구조화 데이터**: `script[type="application/ld+json"]`
+3. **DOM 선택자**: 플랫폼별 동적 선택자
+
+#### YouTube Shorts 전용 정보 (`/shorts/`)
+**현재 수집:**
+- `videoId`: URL pathname에서 `/shorts/` 이후 값
+- `channelName`: 채널명 (`@` 포함)
+  - 선택자: `ytd-reel-video-renderer[is-active] .ytReelChannelBarViewModelChannelName a`
+  - MutationObserver로 활성 쇼츠 변경 감지
+
+**추가 수집 가능:**
+- `channelId`: 채널 고유 ID
+- `description`: 쇼츠 설명
+- `thumbnail`: 썸네일 URL (`https://img.youtube.com/vi/{videoId}/hqdefault.jpg`)
+- `duration`: 재생 시간
+- `viewCount`: 조회수
+- `likeCount`: 좋아요 수
+- `publishedAt`: 게시일
+
+**수집 소스:**
+1. **활성 쇼츠 감지**: `ytd-reel-video-renderer[is-active]` 속성 변경 감지
+2. **플랫폼 내부 데이터**: `window.ytInitialData`
+3. **DOM 선택자**: 쇼츠 전용 선택자
+
+#### 웹사이트 전용 정보
+**현재 수집:**
+- `publisher`: 게시자/사이트명 (우선순위)
+  1. `meta[property="og:site_name"]`
+  2. Schema.org JSON-LD의 `publisher.name` 또는 `author.name`
+  3. `meta[name="publisher"]` 또는 `meta[name="author"]`
+  4. 호스트명 (fallback)
+
+**추가 수집 가능:**
+- `description`: 페이지 설명
+  - `meta[name="description"]`
+  - `meta[property="og:description"]`
+  - Schema.org의 `description`
+- `image`: 대표 이미지 URL
+  - `meta[property="og:image"]`
+  - `meta[property="twitter:image"]`
+  - Schema.org의 `image`
+- `author`: 작성자 정보
+  - `meta[name="author"]`
+  - Schema.org의 `author.name`
+- `publishedAt`: 게시일
+  - `meta[property="article:published_time"]`
+  - Schema.org의 `datePublished`
+
+---
+
+### 썸네일 처리 방식 (기존 버전 참고)
+
+**썸네일 수집 및 처리:**
+
+#### 1. 썸네일 URL 추출
+- **YouTube/Shorts**: `https://img.youtube.com/vi/{videoId}/hqdefault.jpg`
+- **웹사이트**: 메타 태그 우선 (`og:image`, `twitter:image` 등)
+- **채널**: `extractImageUrl()` 사용
+
+#### 2. 썸네일 처리 (Background Service Worker)
+- **다운로드**: 썸네일 URL에서 이미지 다운로드
+- **리사이징**: 최대 200px × 80px로 리사이징
+  - Shorts: 좌우 크롭 (중앙 기준), 상하 약간 압축
+  - 일반: 비율 유지, 상하 중앙 크롭
+- **최적화**: JPEG 품질 0.6, Base64 변환
+- **저장**: `chrome.storage.local`에 Base64 데이터 저장
+  - 키 형식: `{url}_{pageType}`
+  - 캐시 유효 기간: 24시간
+
+#### 3. 데이터 구조
+```typescript
+interface ThumbnailResponse {
+    imageData: string;      // Base64 인코딩된 이미지 데이터
+    url: string;            // 원본 썸네일 URL
+    timestamp: number;       // 생성/저장 시점
+}
+```
+
+---
 
 ### 다중 전략 Fallback 시스템
 
@@ -2957,6 +3076,83 @@ function setupExtensionCommunication() {
 
 ## 데이터 모델
 
+### V3 페이지 정보 데이터 구조
+
+#### 현재 수집 중인 정보 (2024-12)
+
+```typescript
+// Content Script에서 수집하는 기본 페이지 정보
+interface PageInfo {
+    url: string;              // 현재 페이지 URL
+    title: string;            // 페이지 제목 (정제됨)
+    timestamp: number;        // 수집 시점 (Unix timestamp)
+    pageType?: "YOUTUBE" | "SHORTS" | "WEBSITE";  // 페이지 타입 (선택적)
+}
+```
+
+#### 향후 수집 예정 정보
+
+```typescript
+// YouTube 전용 정보
+interface YouTubePageInfo extends PageInfo {
+    pageType: "YOUTUBE";
+    videoId: string;          // 비디오 ID (URL 파라미터 ?v=)
+    channelName?: string;     // 채널명 (@포함, 예: @channelname)
+    channelId?: string;       // 채널 고유 ID
+    description?: string;     // 비디오 설명
+    thumbnail?: string;       // 썸네일 URL
+    duration?: string;        // 재생 시간 (ISO 8601, 예: PT10M30S)
+    viewCount?: number;       // 조회수
+    likeCount?: number;       // 좋아요 수
+    publishedAt?: string;    // 게시일 (ISO 8601)
+    tags?: string[];         // 태그 목록
+}
+
+// YouTube Shorts 전용 정보
+interface ShortsPageInfo extends PageInfo {
+    pageType: "SHORTS";
+    videoId: string;          // 쇼츠 ID (URL pathname에서 추출)
+    channelName?: string;     // 채널명 (@포함)
+    channelId?: string;       // 채널 고유 ID
+    description?: string;     // 쇼츠 설명
+    thumbnail?: string;       // 썸네일 URL
+    duration?: string;        // 재생 시간
+    viewCount?: number;       // 조회수
+    likeCount?: number;       // 좋아요 수
+    publishedAt?: string;    // 게시일
+}
+
+// 웹사이트 전용 정보
+interface WebsitePageInfo extends PageInfo {
+    pageType: "WEBSITE";
+    publisher?: string;       // 게시자/사이트명
+    description?: string;     // 페이지 설명
+    image?: string;           // 대표 이미지 URL
+    author?: string;          // 작성자 정보
+    publishedAt?: string;    // 게시일
+}
+```
+
+#### 썸네일 데이터 구조
+
+```typescript
+// Background에서 처리하는 썸네일 정보
+interface ThumbnailData {
+    imageData: string;        // Base64 인코딩된 이미지 데이터
+    url: string;             // 원본 썸네일 URL
+    timestamp: number;        // 생성/저장 시점
+}
+
+// 썸네일 요청
+interface ThumbnailRequest {
+    url: string;             // 콘텐츠 URL
+    pageType: "youtube" | "shorts" | "channel" | "website";
+    noSaveThumbnail?: boolean;  // 저장하지 않고 URL만 반환
+}
+```
+
+---
+
 ### Extension 로컬 스토리지
 
 **⚠️ 중요: 로컬 스토리지 용량 제한**
@@ -3734,9 +3930,33 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 
 #### 4.1 정보 추출 (기본 전략)
 
+**현재 구현 상태 (2024-12):**
+-   [x] 기본 정보 수집 (URL, 타이틀, 페이지 타입) ✅ **완료**
+-   [x] URL/타이틀 변경 감지 ✅ **완료**
+-   [x] 중복 전송 방지 ✅ **완료**
+
+**향후 구현 계획:**
 -   [ ] YouTube 내부 데이터 추출 (기본)
+    -   [ ] `window.ytInitialData`에서 채널명, 설명, 통계 정보 추출
+    -   [ ] `window.ytInitialPlayerResponse`에서 비디오 상세 정보 추출
+    -   [ ] videoId, channelId 추출 및 검증
+-   [ ] YouTube Shorts 정보 추출
+    -   [ ] 활성 쇼츠 감지 (`ytd-reel-video-renderer[is-active]`)
+    -   [ ] 쇼츠 전용 데이터 추출
 -   [ ] JSON-LD 구조화 데이터 추출
+    -   [ ] Schema.org 표준 데이터 파싱
+    -   [ ] 플랫폼별 구조화 데이터 추출
+-   [ ] 썸네일 수집 및 처리
+    -   [ ] 썸네일 URL 추출 (YouTube API, 메타 태그)
+    -   [ ] Background에서 썸네일 다운로드 및 리사이징
+    -   [ ] Base64 변환 및 저장
+-   [ ] 웹사이트 정보 추출 강화
+    -   [ ] 메타 태그 기반 정보 추출 (description, image, author)
+    -   [ ] Schema.org 데이터 추출
+    -   [ ] 게시일 정보 추출
 -   [ ] Content Script와 UI 연동
+    -   [ ] 수집된 정보를 Platform UI로 전송
+    -   [ ] 실시간 정보 업데이트
 
 #### 4.2 평가 기능
 
@@ -4003,6 +4223,7 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 
 | 버전  | 날짜    | 변경 내용                                                                 | 작성자      |
 | ----- | ------- | ------------------------------------------------------------------------- | ----------- |
+| 3.0.3 | 2024-12 | 정보 추출 전략 문서화: V3 현재 수집 정보 및 추가 수집 가능 정보 정리, 썸네일 처리 방식 문서화, 데이터 모델 업데이트 | NEXA 개발팀 |
 | 3.0.2 | 2024-12 | Phase 3 기본 통신 구조 완료: 페이지 정보 수집/전송, Extension 인스턴스 독립 동작, 중복 메시지 필터링, 로그 최적화 | NEXA 개발팀 |
 | 3.0.1 | 2024-12 | 개발 로드맵 체크리스트 업데이트 (Phase 1-2 진행 상황 반영)                | NEXA 개발팀 |
 | 3.0.0 | 2024-12 | 초안 작성 (Platform 통합 버전)                                          | NEXA 개발팀 |
