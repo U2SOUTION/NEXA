@@ -37,44 +37,52 @@
 
       <!-- 제목 및 정보 -->
       <div class="col content-info">
+        <!-- 타이틀 (가장 먼저) -->
         <div class="content-title">{{ pageInfo.title || '페이지 정보를 기다리는 중...' }}</div>
 
-        <!-- 채널명 (YouTube/Shorts) -->
-        <div v-if="pageInfo.channelName" class="content-meta-line">
-          <q-icon name="account_circle" size="14px" class="q-mr-xs" />
-          <span>{{ pageInfo.channelName }}</span>
-        </div>
+        <!-- 한 줄 메타 정보: 타입, 채널/게시자, 조회수, 재생시간, 게시일, URL -->
+        <div class="content-meta-single-line">
+          <!-- 타입 배지 -->
+          <q-chip :color="getPageTypeColor()" text-color="white" dense size="sm" class="type-chip">
+            <q-icon :name="getPageTypeIcon()" size="12px" class="q-mr-xs" />
+            {{ getPageTypeLabel() }}
+          </q-chip>
 
-        <!-- 게시자 (Website) -->
-        <div v-if="pageInfo.publisher && !pageInfo.channelName" class="content-meta-line">
-          <q-icon name="public" size="14px" class="q-mr-xs" />
-          <span>{{ pageInfo.publisher }}</span>
-        </div>
+          <!-- 구분자 (타입 배지 다음) -->
+          <span v-if="pageInfo.channelName || pageInfo.publisher || pageInfo.viewCount || pageInfo.duration || (pageInfo.publishedAt && pageInfo.pageType !== 'SHORTS') || pageInfo.url" class="meta-separator">•</span>
 
-        <!-- 조회수 (YouTube/Shorts) -->
-        <div v-if="pageInfo.viewCount" class="content-meta-line">
-          <q-icon name="visibility" size="14px" class="q-mr-xs" />
-          <span>{{ formatNumber(pageInfo.viewCount) }}회</span>
-        </div>
-
-        <!-- 재생 시간 (YouTube/Shorts) -->
-        <div v-if="pageInfo.duration" class="content-meta-line">
-          <q-icon name="schedule" size="14px" class="q-mr-xs" />
-          <span>{{ formatDuration(pageInfo.duration) }}</span>
-        </div>
-
-        <!-- 게시일 -->
-        <div v-if="pageInfo.publishedAt" class="content-meta-line">
-          <q-icon name="calendar_today" size="14px" class="q-mr-xs" />
-          <span>{{ formatDate(pageInfo.publishedAt) }}</span>
-        </div>
-
-        <!-- URL -->
-        <div class="content-meta-line">
-          <span v-if="pageInfo.url">
-            <a :href="pageInfo.url" target="_blank" rel="noopener noreferrer" class="content-url">{{ pageInfo.url }}</a>
+          <!-- 채널명 (YouTube/Shorts) -->
+          <span v-if="pageInfo.channelName" class="meta-item">
+            {{ pageInfo.channelName }}
           </span>
-          <span v-else class="text-grey-6">URL 정보 없음</span>
+
+          <!-- 게시자 (Website) -->
+          <span v-if="pageInfo.publisher && !pageInfo.channelName" class="meta-item">
+            {{ pageInfo.publisher }}
+          </span>
+
+          <!-- 구분자 (채널/게시자 다음 - 다음 항목이 있을 때만) -->
+          <span v-if="(pageInfo.channelName || pageInfo.publisher) && (pageInfo.viewCount || pageInfo.duration || (pageInfo.publishedAt && pageInfo.pageType !== 'SHORTS') || pageInfo.url)" class="meta-separator">•</span>
+
+          <!-- 조회수 (YouTube/Shorts) -->
+          <span v-if="pageInfo.viewCount" class="meta-item"> {{ formatNumber(pageInfo.viewCount) }}회 </span>
+
+          <!-- 재생 시간 (YouTube/Shorts) -->
+          <span v-if="pageInfo.duration" class="meta-item">
+            {{ formatDuration(pageInfo.duration) }}
+          </span>
+
+          <!-- 게시일 (쇼츠 제외) -->
+          <span v-if="pageInfo.publishedAt && pageInfo.pageType !== 'SHORTS'" class="meta-item">
+            {{ formatDate(pageInfo.publishedAt) }}
+          </span>
+
+          <!-- 구분자 (조회수/재생시간/게시일 다음 - URL이 있을 때만) -->
+          <span v-if="(pageInfo.viewCount || pageInfo.duration || (pageInfo.publishedAt && pageInfo.pageType !== 'SHORTS')) && pageInfo.url" class="meta-separator">•</span>
+
+          <!-- URL (작은 스타일, 잘려도 됨) -->
+          <span v-if="pageInfo.url" class="meta-item content-url-text">{{ pageInfo.url }}</span>
+          <span v-else class="meta-item text-grey-6">URL 정보 없음</span>
         </div>
 
         <!-- 설명 -->
@@ -213,10 +221,28 @@ function truncateText(text, maxLength) {
 // 페이지 타입 레이블 반환
 function getPageTypeLabel() {
   const pageType = props.pageInfo?.pageType
-  if (pageType === 'YOUTUBE') return 'YOUTUBE'
-  if (pageType === 'SHORTS') return 'SHORTS'
-  if (pageType === 'WEBSITE') return 'WEBSITE'
-  return 'UNKNOWN'
+  if (pageType === 'YOUTUBE') return '유튜브'
+  if (pageType === 'SHORTS') return '쇼츠'
+  if (pageType === 'WEBSITE') return '일반'
+  return '알 수 없음'
+}
+
+// 페이지 타입 아이콘 반환
+function getPageTypeIcon() {
+  const pageType = props.pageInfo?.pageType
+  if (pageType === 'YOUTUBE') return 'play_circle'
+  if (pageType === 'SHORTS') return 'video_library'
+  if (pageType === 'WEBSITE') return 'language'
+  return 'help'
+}
+
+// 페이지 타입 색상 반환
+function getPageTypeColor() {
+  const pageType = props.pageInfo?.pageType
+  if (pageType === 'YOUTUBE') return 'red'
+  if (pageType === 'SHORTS') return 'purple'
+  if (pageType === 'WEBSITE') return 'blue-grey'
+  return 'grey'
 }
 
 // 목업 데이터
@@ -413,21 +439,64 @@ function toggleCategory(categoryId) {
   text-decoration: none;
 }
 
-.content-url {
-  color: var(--nexa-primary);
-  text-decoration: underline;
-  word-break: break-all;
+.content-meta-single-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--nexa-text-secondary);
+  overflow: hidden;
+}
 
-  &:hover {
-    color: var(--nexa-primary-dark);
-  }
+.content-meta-single-line .type-chip {
+  font-weight: 600;
+  font-size: 10px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.content-meta-single-line .meta-item {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.content-meta-single-line .meta-item :deep(.q-icon) {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1;
+  margin: 0;
+}
+
+.content-meta-single-line .meta-separator {
+  color: var(--nexa-text-disabled);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+.content-meta-single-line .content-url-text {
+  color: var(--nexa-text-disabled);
+  text-decoration: none;
+  cursor: default;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .content-description {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.1;
   color: var(--nexa-text-secondary);
-  margin-top: 8px;
+  margin-top: 2px;
   word-break: break-word;
 
   &:hover {

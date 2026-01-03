@@ -16,17 +16,42 @@
     let lastSendTime = 0;
     const MIN_SEND_INTERVAL = 100; // 최소 전송 간격 (ms)
 
-    // 페이지 타입 감지
+    // 페이지 타입 감지 (정확한 분류)
     function getPageType() {
         const url = window.location.href;
-        if (url.includes("youtube.com")) {
-            if (url.includes("/shorts/")) {
-                return "SHORTS";
+        const pathname = window.location.pathname;
+        const hostname = window.location.hostname;
+
+        try {
+            // YouTube 도메인 체크 (youtube.com, youtu.be, m.youtube.com 등)
+            if (hostname.includes("youtube.com") || hostname.includes("youtu.be")) {
+                // Shorts 확인 (정확한 패턴: /shorts/VIDEO_ID)
+                if (pathname.match(/^\/shorts\/[a-zA-Z0-9_-]{11}/)) {
+                    return "SHORTS";
+                }
+
+                // YouTube 비디오 확인
+                // 1. /watch?v=VIDEO_ID 형식
+                if (pathname === "/watch" && new URL(url).searchParams.has("v")) {
+                    const videoId = new URL(url).searchParams.get("v");
+                    if (videoId && videoId.length === 11) {
+                        return "YOUTUBE";
+                    }
+                }
+                // 2. youtu.be/VIDEO_ID 형식
+                if (hostname.includes("youtu.be") && pathname.match(/^\/[a-zA-Z0-9_-]{11}/)) {
+                    return "YOUTUBE";
+                }
+                // 3. /embed/VIDEO_ID 형식
+                if (pathname.match(/^\/embed\/[a-zA-Z0-9_-]{11}/)) {
+                    return "YOUTUBE";
+                }
             }
-            if (url.includes("/watch")) {
-                return "YOUTUBE";
-            }
+        } catch (e) {
+            // URL 파싱 실패 시 기본값 반환
         }
+
+        // 그 외는 일반 웹사이트
         return "WEBSITE";
     }
 
@@ -116,46 +141,43 @@
         };
     }
 
-    // YouTube Shorts 상세 정보 수집
+    // YouTube Shorts 상세 정보 수집 (기본 정보만 수집)
+    // 참고: 쇼츠는 게시자의 자율성이 많아 설명글 등 부가 정보는 일정한 패턴이 없어 수집하지 않음
     async function collectShortsDetails() {
         const videoId = window.location.pathname.split("/shorts/")[1];
 
-        // 활성 쇼츠의 채널 정보 수집
-        let activeContainer = document.querySelector("ytd-reel-video-renderer[is-active] .ytReelChannelBarViewModelChannelName a");
+        // 활성 쇼츠의 채널 정보 수집 (여러 셀렉터 시도)
+        const channelSelectors = ["ytd-reel-video-renderer[is-active] .ytReelChannelBarViewModelChannelName a", "ytd-reel-video-renderer[is-active] a[href*='/@']", "a.yt-core-attributed-string__link[href*='/@']", "a[href^='/@'][href*='/shorts']"];
+
+        let activeContainer = null;
+        for (const selector of channelSelectors) {
+            activeContainer = document.querySelector(selector);
+            if (activeContainer) break;
+        }
+
+        // 요소가 없으면 대기 후 재시도
         let retryCount = 0;
-        while (!activeContainer && retryCount < 3) {
+        while (!activeContainer && retryCount < 5) {
             await new Promise((resolve) => setTimeout(resolve, 500));
-            activeContainer = document.querySelector("ytd-reel-video-renderer[is-active] .ytReelChannelBarViewModelChannelName a");
+            for (const selector of channelSelectors) {
+                activeContainer = document.querySelector(selector);
+                if (activeContainer) break;
+            }
             retryCount++;
         }
 
         const channelUrl = activeContainer?.getAttribute("href") || "";
-        const channelIdentifier = channelUrl.split("/@")[1]?.split("/")[0];
+        const channelIdentifier = channelUrl.split("/@")[1]?.split("/")[0] || activeContainer?.textContent?.trim()?.replace("@", "");
 
         // 썸네일 URL 생성
         const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : undefined;
 
-        // 플랫폼 내부 데이터에서 정보 추출 시도
-        let description, viewCount, likeCount;
-        try {
-            if (window.ytInitialData) {
-                const reelData = window.ytInitialData?.contents?.twoColumnBrowseResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.richGridRenderer?.contents?.[0]?.reelItemRenderer;
-                if (reelData) {
-                    viewCount = reelData.viewCountText?.simpleText ? parseInt(reelData.viewCountText.simpleText.replace(/[^0-9]/g, "")) : undefined;
-                }
-            }
-        } catch (e) {
-            // 내부 데이터 접근 실패 시 무시
-        }
-
+        // 기본 정보만 반환 (설명글, 조회수, 날짜 등 부가 정보는 수집하지 않음)
         return {
             videoId,
-            channelName: formatChannelName(channelIdentifier),
+            channelName: channelIdentifier ? formatChannelName(channelIdentifier) : undefined,
             channelId: channelUrl.split("/channel/")[1]?.split("/")[0] || channelUrl.split("/c/")[1]?.split("/")[0] || undefined,
             thumbnail: thumbnailUrl,
-            description,
-            viewCount,
-            likeCount,
         };
     }
 
@@ -326,7 +348,10 @@
                 const videoId = activeVideo.getAttribute("video-id");
                 if (videoId && videoId !== lastShortsVideoId) {
                     lastShortsVideoId = videoId;
-                    sendPageInfoToBackground();
+                    // DOM이 완전히 로드될 때까지 대기 후 정보 수집
+                    setTimeout(() => {
+                        sendPageInfoToBackground();
+                    }, 800); // 설명글 등이 로드될 때까지 충분한 시간 대기
                 }
             }
         }
