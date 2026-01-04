@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Extension Popup UI: iframe 방식으로 NEXA Platform의 U2BEE UI를 표시 -->
 <html lang="ko">
     <head>
         <meta charset="UTF-8" />
@@ -7,6 +8,7 @@
         <link rel="stylesheet" href="popup.css" />
     </head>
     <body>
+        <!-- TODO: 외부 서버 배포 시 localhost를 공인 도메인으로 변경 필요 -->
         <iframe
             id="u2bee-iframe"
             src="http://localhost:9000/#/extension?extension=u2bee&mode=popup"

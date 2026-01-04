@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "U2BEE V3",
     "version": "3.0.0",
-    "description": "YouTube Content Manager - NEXA Platform 통합 버전",
+    "description": "NEXA U2BEE V3 제작중(Content Script에서 주입하는 iframe은 localhost 권한 요청 문제가 있음. 외부 서버 배포 시 해결 예정)",
     "content_security_policy": {
         "extension_pages": "script-src 'self'; object-src 'self'; frame-src http://localhost:* https://localhost:*"
     },

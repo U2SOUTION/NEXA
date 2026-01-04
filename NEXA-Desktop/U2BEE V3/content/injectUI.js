@@ -1,5 +1,54 @@
 // Content Script - 사이트에 UI 주입 (옵션 2)
 // 기능 플래그 기반으로 안전하게 구현
+//
+// ============================================================================
+// ⚠️ 알려진 문제점 및 향후 계획
+// ============================================================================
+//
+// 【현재 문제점】
+// 1. Content Script에서 주입하는 iframe의 localhost 권한 요청 문제
+//    - 이 파일(injectUI.js)은 Content Script로 실행되며, 웹 페이지에
+//      U2BEE UI를 주입하기 위해 Shadow DOM 내부에 iframe을 삽입합니다.
+//    - 웹 페이지 컨텍스트에서 localhost iframe을 삽입할 때
+//      Chrome의 Private Network Access (PNA) 정책에 의해 각 사이트마다
+//      "로컬 네트워크에서 원하는 기기를 찾아 연결" 권한을 요청합니다.
+//    - Extension의 host_permissions로는 이 문제를 우회할 수 없습니다.
+//    - 권한을 거부하면 주입된 iframe이 로드되지 않고 빈 창이 표시될 수 있습니다.
+//    - 참고: Popup/Side Panel의 iframe은 Extension 페이지 컨텍스트에서 실행되므로
+//            이 문제의 영향을 받지 않습니다.
+//
+// 2. 사이트별 권한 관리
+//    - 각 웹 사이트 도메인별로 권한이 개별 관리됩니다.
+//    - 한 번 허용해도 다른 사이트에서는 다시 요청됩니다.
+//    - Extension 권한과 웹 페이지 권한은 별개로 동작합니다.
+//
+// 【해결 방안】
+// 외부 서버(공인 도메인)로 이동 시 문제 해결:
+//    - HTTPS 공인 도메인 사용 시 localhost 권한 요청이 발생하지 않습니다.
+//    - 예: http://localhost:9000 → https://u2bee.nexa.com
+//    - manifest.json의 host_permissions에 공인 도메인 추가 필요
+//    - Content Script에서 주입하는 iframe src를 공인 도메인으로 변경 필요
+//    - (Popup/Side Panel iframe도 함께 변경 필요)
+//
+// 【향후 계획】
+// 1. 단기: 현재 기능 유지 (개발 및 테스트 계속 진행)
+// 2. 중기: 외부 서버 배포 준비
+//    - 도메인 및 호스팅 환경 구축
+//    - HTTPS 인증서 설정
+//    - 환경 변수 기반 URL 관리 구조 도입
+// 3. 장기: 외부 서버로 마이그레이션
+//    - localhost → 공인 도메인 전환
+//    - manifest.json 및 모든 iframe src 업데이트
+//    - 권한 요청 문제 완전 해결
+//
+// 【참고 사항】
+// - 이 기능은 개발 중이며, 외부 서버 배포 후 완전히 해결될 예정입니다.
+// - 현재는 사용자가 권한을 허용해야 Content Script에서 주입하는 iframe이 정상 작동합니다.
+// - Popup/Side Panel의 iframe은 Extension 페이지 컨텍스트에서 실행되므로 이 문제의 영향을 받지 않습니다.
+// - Inject UI 기능을 사용하지 않으면(Popup/Side Panel만 사용) 이 문제가 발생하지 않습니다.
+//
+// ============================================================================
+
 (function () {
     "use strict";
 
@@ -74,9 +123,13 @@
         return true;
     });
 
-    // iframe으로부터 오는 메시지 수신 (탭 클릭 시 사이드 패널 열기)
+    // Content Script에서 주입한 iframe으로부터 오는 메시지 수신 (탭 클릭 시 사이드 패널 열기)
+    // 이 이벤트 리스너는 웹 페이지 컨텍스트에서 실행되며, Shadow DOM 내부의 iframe과 통신합니다.
     window.addEventListener("message", async (event) => {
         // 보안: localhost에서만 메시지 수신
+        // TODO: 외부 서버 배포 시 공인 도메인으로 변경 필요
+        // 예: event.origin.includes("u2bee.nexa.com")
+        // 참고: Popup/Side Panel의 메시지 수신 로직과는 별개입니다.
         if (!event.origin.includes("localhost") && !event.origin.includes("127.0.0.1")) {
             return;
         }
@@ -245,7 +298,11 @@
             container.className = "u2bee-sidebar-container";
             shadow.appendChild(container);
 
-            // 5. iframe 생성 및 삽입 - 완전히 투명하게
+            // 5. Content Script에서 웹 페이지에 주입할 iframe 생성 및 삽입
+            //    이 iframe은 Shadow DOM 내부에 삽입되어 웹 페이지에 U2BEE UI를 표시합니다.
+            //    TODO: 외부 서버 배포 시 localhost를 공인 도메인으로 변경 필요
+            //    예: "http://localhost:9000" → "https://u2bee.nexa.com"
+            //    참고: Popup/Side Panel의 iframe과는 별개로 관리됩니다.
             const iframe = document.createElement("iframe");
             iframe.className = "u2bee-sidebar-iframe";
             iframe.src = "http://localhost:9000/#/extension?extension=u2bee&mode=injected";
