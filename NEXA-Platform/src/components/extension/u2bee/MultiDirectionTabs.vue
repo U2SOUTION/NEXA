@@ -97,20 +97,29 @@ function selectTab(tabName) {
 .multi-direction-tabs-container {
   background: transparent !important;
   pointer-events: none; // 배경은 클릭 통과
+  display: flex; // flex container로 설정
+  height: 100vh; // 전체 높이 사용
+  align-items: center; // 상하 중앙 정렬
 
   &.injected-mode {
     background: transparent !important;
     pointer-events: none;
+    height: 100vh; // injected 모드에서도 전체 높이 사용
+    display: flex;
+    align-items: center;
   }
 }
 
 // 우측 탭 (세로, 원형 아이콘)
 .tabs-right {
   width: 100px;
-  height: 100%;
+  height: 100%; // 부모의 전체 높이 사용
   border: none !important;
   background: transparent !important;
   pointer-events: auto; // 탭은 클릭 가능
+  display: flex; // flex container로 설정
+  align-items: center; // 상하 중앙 정렬
+  justify-content: center; // 좌우 중앙 정렬
 
   .tabs-wrapper {
     display: flex;
@@ -118,8 +127,9 @@ function selectTab(tabName) {
     align-items: center;
     padding: 8px 0;
     gap: 8px;
-    height: 100%;
+    height: auto; // 높이를 auto로 변경하여 내용에 맞춤
     background: transparent !important;
+    justify-content: center; // 상하 중앙 정렬
   }
 
   .tab-right {

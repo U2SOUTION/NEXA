@@ -398,6 +398,9 @@ body.injected-mode {
   .u2bee-container.injected-layout {
     background: transparent !important;
     background-color: transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    height: 100vh !important;
   }
 }
 
