@@ -385,6 +385,34 @@ onUnmounted(() => {
 // U2BEE 관련 스타일은 u2bee-layout.scss에서 통합 관리
 @import 'src/css/extension/u2bee-layout.scss';
 
+// Injected 모드 전용 스타일 - 완전히 투명하게
+body.injected-mode {
+  background: transparent !important;
+  background-color: transparent !important;
+
+  #q-app {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .u2bee-container.injected-layout {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+}
+
+// Quasar 기본 스타일 덮어쓰기 (injected 모드)
+body.injected-mode {
+  .q-page,
+  .q-page-container,
+  .q-layout,
+  .q-layout__section,
+  .q-layout__container {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+}
+
 // 일반 Extension 페이지 스타일 (U2BEE가 아닌 경우)
 .extension-page {
   min-height: 100vh;

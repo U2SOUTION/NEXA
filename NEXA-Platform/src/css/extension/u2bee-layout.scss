@@ -19,11 +19,19 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
 
-  // Injected 모드에서는 패딩 제거
+  // Injected 모드에서는 패딩 제거 및 배경 완전히 투명하게
   &.injected-mode {
     padding: 0;
     overflow: hidden;
+    background: transparent !important;
+    background-color: transparent !important;
   }
+}
+
+// Injected 모드에서 html도 투명하게
+html.injected-mode {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 // ============================================
@@ -50,6 +58,8 @@ body {
     height: 100vh;
     min-height: 100vh;
     overflow: hidden;
+    background: transparent !important;
+    background-color: transparent !important;
   }
 }
 

@@ -4,14 +4,9 @@
     <!-- 탭만 표시 (콘텐츠 패널 제거) -->
     <div v-if="allTabs.length > 0" class="tabs-section tabs-right">
       <div class="tabs-wrapper">
-        <button
-          v-for="tab in allTabs"
-          :key="tab.name"
-          :class="['tab-button', 'tab-right', { active: activeTab === tab.name }]"
-          @click="selectTab(tab.name)"
-        >
-          <span class="tab-label-vertical">{{ tab.label }}</span>
-          <q-icon v-if="tab.icon" :name="tab.icon" size="16px" class="tab-icon-vertical" />
+        <button v-for="tab in allTabs" :key="tab.name" :class="['tab-button', 'tab-right', { active: activeTab === tab.name }]" @click="selectTab(tab.name)">
+          <span v-if="!isInjectedMode" class="tab-label-vertical">{{ tab.label }}</span>
+          <q-icon v-if="tab.icon" :name="tab.icon" :size="isInjectedMode ? '20px' : '16px'" class="tab-icon-vertical" />
         </button>
       </div>
     </div>
@@ -52,7 +47,7 @@ function selectTab(tabName) {
           type: 'OPEN_SIDE_PANEL',
           tabName: tabName,
         },
-        '*'
+        '*',
       )
     } else {
       // 직접 Chrome API 사용 시도 (일반 모드일 경우)
@@ -61,13 +56,15 @@ function selectTab(tabName) {
           if (tabs.length > 0 && tabs[0].windowId) {
             chrome.sidePanel.open({ windowId: tabs[0].windowId }).then(() => {
               setTimeout(() => {
-                chrome.runtime.sendMessage({
-                  type: 'SWITCH_TAB',
-                  tabName: tabName,
-                  windowId: tabs[0].windowId,
-                }).catch((error) => {
-                  console.error('[MultiDirectionTabs] 탭 전환 메시지 전송 실패:', error)
-                })
+                chrome.runtime
+                  .sendMessage({
+                    type: 'SWITCH_TAB',
+                    tabName: tabName,
+                    windowId: tabs[0].windowId,
+                  })
+                  .catch((error) => {
+                    console.error('[MultiDirectionTabs] 탭 전환 메시지 전송 실패:', error)
+                  })
               }, 100)
             })
           }
@@ -84,79 +81,86 @@ function selectTab(tabName) {
 </script>
 
 <style lang="scss" scoped>
+// 전체 배경 완전히 제거
+:deep(html),
+:deep(body),
+:deep(#q-app),
+:deep(.q-page),
+:deep(.q-page-container),
+:deep(.q-layout),
+:deep(.q-layout__section),
+:deep(.q-layout__container) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 .multi-direction-tabs-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  min-height: 100vh;
-  box-sizing: border-box;
+  background: transparent !important;
+  pointer-events: none; // 배경은 클릭 통과
 
   &.injected-mode {
-    min-height: 100%;
-    height: 100vh;
-    overflow: hidden;
+    background: transparent !important;
+    pointer-events: none;
   }
 }
 
-// 우측 탭 (세로, 둥근 왼쪽 모서리)
+// 우측 탭 (세로, 원형 아이콘)
 .tabs-right {
-  width: 100%;
+  width: 100px;
   height: 100%;
-  border-left: 1px solid var(--nexa-border-color);
-  background: var(--nexa-background);
+  border: none !important;
+  background: transparent !important;
+  pointer-events: auto; // 탭은 클릭 가능
 
   .tabs-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     padding: 8px 0;
     gap: 8px;
     height: 100%;
+    background: transparent !important;
   }
 
   .tab-right {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    min-height: 80px;
-    padding: 12px 8px;
+    width: 60px; // 원형 아이콘 크기
+    min-height: 60px; // 원형 아이콘 크기
+    padding: 8px;
     border: none;
-    background: #2d893e; // 녹색 배경
+    background: rgba(45, 137, 62, 0.9); // 탭 자체만 배경색
     color: #ffffff;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    border-radius: 20px 0 0 20px; // 왼쪽만 둥글게
+    border-radius: 50%; // 원형 아이콘
     transition: all 0.2s ease;
-    gap: 6px;
-    margin-right: 0; // 오른쪽 경계선에 붙임
-    position: relative;
+    gap: 4px;
+    margin: 4px auto; // 중앙 정렬
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 
-    // 왼쪽 둥근 부분 강조
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 20px;
-      border-radius: 20px 0 0 20px;
-      background: inherit;
+    // Injected 모드에서 아이콘만 표시하도록 조정
+    .multi-direction-tabs-container.injected-mode & {
+      gap: 0;
+      padding: 12px;
     }
 
     &:hover {
-      background: #256b32; // 더 어두운 녹색
-      transform: translateX(-2px); // 약간 왼쪽으로 이동
+      background: rgba(37, 107, 50, 0.95);
+      transform: scale(1.1);
     }
 
     &.active {
-      background: #1e5a28; // 가장 어두운 녹색
+      background: rgba(30, 90, 40, 1);
       font-weight: 700;
-      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
-      transform: translateX(-4px); // 활성화 시 더 왼쪽으로
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transform: scale(1.15);
+      border-radius: 20px 0 0 20px; // 활성화 시 왼쪽으로 확장
+      width: 80px; // 확장된 너비
     }
 
     .tab-label-vertical {
@@ -165,6 +169,24 @@ function selectTab(tabName) {
       text-align: center;
       line-height: 1.4;
       letter-spacing: 1px;
+      font-size: 10px;
+
+      // Injected 모드에서는 텍스트 레이블 숨기기 (아이콘만 표시)
+      .multi-direction-tabs-container.injected-mode & {
+        display: none !important;
+      }
+    }
+
+    // Injected 모드에서 아이콘만 표시
+    .multi-direction-tabs-container.injected-mode & {
+      .tab-label-vertical {
+        display: none !important;
+      }
+
+      // 아이콘만 중앙 정렬
+      .tab-icon-vertical {
+        margin: 0;
+      }
     }
 
     .tab-icon-vertical {

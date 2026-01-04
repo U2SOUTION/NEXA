@@ -210,37 +210,32 @@
             // 2. Shadow DOM 생성
             const shadow = host.attachShadow({ mode: "closed" });
 
-            // 3. 스타일 주입
+            // 3. 스타일 주입 - 완전히 투명하게
             const style = document.createElement("style");
             style.textContent = `
                 :host {
                     display: block;
+                    background: transparent !important;
                 }
                 .u2bee-sidebar-container {
                     width: 100%;
                     height: 100%;
-                    background: #ffffff;
-                    border-left: 1px solid #e0e0e0;
+                    background: transparent !important;
+                    border: none !important;
                     pointer-events: auto;
-                    overflow-y: auto;
-                    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-                }
-                .u2bee-sidebar-container.dark {
-                    background: #1e1e1e;
-                    border-left-color: #333333;
+                    overflow: visible !important;
+                    box-shadow: none !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
                 }
                 .u2bee-sidebar-iframe {
                     width: 100%;
                     height: 100%;
-                    border: none;
+                    border: none !important;
                     display: block;
-                }
-                @media (max-width: 768px) {
-                    .u2bee-sidebar-container {
-                        width: 100vw;
-                        border-left: none;
-                        border-top: 1px solid #e0e0e0;
-                    }
+                    background: transparent !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
                 }
             `;
             shadow.appendChild(style);
@@ -250,11 +245,18 @@
             container.className = "u2bee-sidebar-container";
             shadow.appendChild(container);
 
-            // 5. iframe 생성 및 삽입
+            // 5. iframe 생성 및 삽입 - 완전히 투명하게
             const iframe = document.createElement("iframe");
             iframe.className = "u2bee-sidebar-iframe";
             iframe.src = "http://localhost:9000/#/extension?extension=u2bee&mode=injected";
             iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox");
+            iframe.setAttribute("allowtransparency", "true");
+            iframe.style.cssText = `
+                background: transparent !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            `;
             container.appendChild(iframe);
             injectedIframe = iframe; // 전역 변수에 저장
 
