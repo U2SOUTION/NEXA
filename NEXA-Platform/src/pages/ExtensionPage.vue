@@ -4,7 +4,7 @@
     <!--U2BEE Injected 모드: 세 방향 탭 레이아웃 -->
     <template v-if="currentMode === 'injected'">
       <div class="u2bee-container injected-layout">
-        <MultiDirectionTabs :active-tab="u2beeActiveTab" :is-injected-mode="true" :panel-props="{ pageInfo: currentPageInfo }" @update:active-tab="u2beeActiveTab = $event">
+        <InjectedFloatingTabs :active-tab="u2beeActiveTab" :is-injected-mode="true" :panel-props="{ pageInfo: currentPageInfo }" @update:active-tab="u2beeActiveTab = $event">
           <template #rating>
             <ContentRating :page-info="currentPageInfo" />
           </template>
@@ -29,7 +29,7 @@
           <template #about>
             <HelpPage />
           </template>
-        </MultiDirectionTabs>
+        </InjectedFloatingTabs>
       </div>
     </template>
 
@@ -170,7 +170,7 @@ import Statistics from 'src/components/extension/u2bee/Statistics.vue'
 import DataManagement from 'src/components/extension/u2bee/DataManagement.vue'
 import Settings from 'src/components/extension/u2bee/Settings.vue'
 import HelpPage from 'src/components/extension/u2bee/HelpPage.vue'
-import MultiDirectionTabs from 'src/components/extension/u2bee/MultiDirectionTabs.vue'
+import InjectedFloatingTabs from 'src/components/extension/u2bee/InjectedFloatingTabs.vue'
 import { useTabConfig } from 'src/composables/extension/u2bee/useTabConfig'
 
 const route = useRoute()

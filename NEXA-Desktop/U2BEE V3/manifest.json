@@ -16,7 +16,7 @@
             "run_at": "document_idle"
         },
         {
-            "matches": ["*://*.youtube.com/*"],
+            "matches": ["<all_urls>"],
             "exclude_matches": ["*://localhost/*", "*://127.0.0.1/*"],
             "js": ["content/injectUI.js"],
             "run_at": "document_idle",
