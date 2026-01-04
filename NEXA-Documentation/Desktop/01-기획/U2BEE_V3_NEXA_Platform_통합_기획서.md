@@ -1,8 +1,8 @@
 # U2BEE V3 NEXA Platform 통합 기획서
 
 **작성일**: 2024년 12월  
-**버전**: 3.0.3 (Platform 통합 버전)  
-**상태**: 개발 진행 중 (Phase 3 완료, Phase 4 진행 예정)  
+**버전**: 3.0.4 (Platform 통합 버전)  
+**상태**: 개발 진행 중 (Phase 3 완료, Phase 4 정보 추출 완료, 평가 데이터 처리 진행 예정)  
 **아키텍처**: NEXA Platform UI 통합 + Chrome Extension  
 **프레임워크**: Vue 3 + Quasar Framework (NEXA Platform)
 
@@ -31,11 +31,21 @@
 - ✅ 각 Extension 인스턴스 독립적 동작 (브라우저 창별 정보 분리)
 - ✅ 중복 메시지 필터링 및 로그 최적화
 
+**Phase 4: 정보 추출 및 UI 표시 (부분 완료)**
+- ✅ 페이지 타입 정확한 분류 (YOUTUBE, SHORTS, WEBSITE)
+- ✅ YouTube 상세 정보 수집 (videoId, channelName, channelId, description, publishedAt, duration, viewCount, thumbnail)
+- ✅ YouTube Shorts 기본 정보 수집 (videoId, channelName, channelId, thumbnail)
+- ✅ JSON-LD 구조화 데이터 추출 (Schema.org VideoObject)
+- ✅ 웹사이트 정보 추출 강화 (publisher, description, image, author, publishedAt)
+- ✅ 썸네일 URL 추출 (YouTube, 웹사이트 메타 태그)
+- ✅ UI에 상세 정보 표시 (타입 배지, 채널명, 조회수, 재생시간, 게시일, 설명 등)
+- ✅ 페이지 타입별 UI 차별화 (쇼츠는 부가 정보 제외)
+
 ### 🚧 진행 중인 작업
 
 - Phase 1: 플로팅 메뉴 시스템 (미구현)
 - Phase 2: 환경별 UI 확인 및 조정 (모바일/PC 브라우저, Desktop 웹뷰 미확인)
-- Phase 4: 콘텐츠 평가 기능 (미구현)
+- Phase 4: 콘텐츠 평가 기능 (정보 추출 완료, 평가 데이터 저장 및 처리 진행 예정)
 
 ### 📝 주요 개선 사항
 
@@ -45,6 +55,9 @@
 - **공통 구조 통일**: 모든 탭 컴포넌트에 Breadcrumb 및 액션 버튼 섹션 추가
 - **통신 구조 최적화**: 중복 메시지 필터링, 핵심 로그만 유지, 각 Extension 인스턴스 독립적 동작
 - **Content Script 자동 주입**: 프로그래밍 방식 Content Script 주입으로 안정성 향상
+- **정보 추출 고도화**: YouTube/Shorts/Website 상세 정보 수집 (채널명, 조회수, 재생시간, 게시일, 설명 등)
+- **페이지 타입 정확한 분류**: YOUTUBE, SHORTS, WEBSITE 정확한 구분 및 UI 차별화
+- **쇼츠 최적화**: 쇼츠는 게시자 자율성이 높아 기본 정보만 수집, 부가 정보 제외
 
 ---
 
@@ -3934,29 +3947,39 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 -   [x] 기본 정보 수집 (URL, 타이틀, 페이지 타입) ✅ **완료**
 -   [x] URL/타이틀 변경 감지 ✅ **완료**
 -   [x] 중복 전송 방지 ✅ **완료**
+-   [x] 페이지 타입 정확한 분류 (YOUTUBE, SHORTS, WEBSITE) ✅ **완료** (2024-12)
+-   [x] YouTube 내부 데이터 추출 ✅ **완료** (2024-12)
+    -   [x] `window.ytInitialPlayerResponse`에서 비디오 상세 정보 추출
+    -   [x] videoId, channelId, channelName 추출 및 검증
+    -   [x] description, publishedAt, duration, viewCount 추출
+-   [x] YouTube Shorts 정보 추출 ✅ **완료** (2024-12, 기본 정보만)
+    -   [x] 활성 쇼츠 감지 (`ytd-reel-video-renderer[is-active]`)
+    -   [x] 쇼츠 기본 정보 추출 (videoId, channelName, channelId, thumbnail)
+    -   [x] MutationObserver로 쇼츠 변경 감지
+-   [x] JSON-LD 구조화 데이터 추출 ✅ **완료** (2024-12)
+    -   [x] Schema.org 표준 데이터 파싱 (VideoObject)
+    -   [x] description, publishedAt, duration 추출
+-   [x] 썸네일 URL 추출 ✅ **완료** (2024-12)
+    -   [x] YouTube 썸네일 URL 생성 (`https://img.youtube.com/vi/{videoId}/hqdefault.jpg`)
+    -   [x] 웹사이트 메타 태그에서 썸네일 URL 추출 (og:image, twitter:image)
+    -   [ ] Background에서 썸네일 다운로드 및 리사이징 (플랫폼 처리 예정)
+    -   [ ] Base64 변환 및 저장 (플랫폼 처리 예정)
+-   [x] 웹사이트 정보 추출 강화 ✅ **완료** (2024-12)
+    -   [x] 메타 태그 기반 정보 추출 (description, image, author)
+    -   [x] Schema.org 데이터 추출 (Article, WebPage, BlogPosting)
+    -   [x] 게시일 정보 추출 (article:published_time, datePublished)
+    -   [x] 게시자 정보 추출 (og:site_name, publisher, author)
+-   [x] Content Script와 UI 연동 ✅ **완료** (2024-12)
+    -   [x] 수집된 정보를 Platform UI로 전송
+    -   [x] 실시간 정보 업데이트
+    -   [x] UI에 상세 정보 표시 (채널명, 조회수, 재생시간, 게시일, 설명 등)
+    -   [x] 페이지 타입별 UI 차별화 (쇼츠는 부가 정보 제외)
 
 **향후 구현 계획:**
--   [ ] YouTube 내부 데이터 추출 (기본)
-    -   [ ] `window.ytInitialData`에서 채널명, 설명, 통계 정보 추출
-    -   [ ] `window.ytInitialPlayerResponse`에서 비디오 상세 정보 추출
-    -   [ ] videoId, channelId 추출 및 검증
--   [ ] YouTube Shorts 정보 추출
-    -   [ ] 활성 쇼츠 감지 (`ytd-reel-video-renderer[is-active]`)
-    -   [ ] 쇼츠 전용 데이터 추출
--   [ ] JSON-LD 구조화 데이터 추출
-    -   [ ] Schema.org 표준 데이터 파싱
-    -   [ ] 플랫폼별 구조화 데이터 추출
--   [ ] 썸네일 수집 및 처리
-    -   [ ] 썸네일 URL 추출 (YouTube API, 메타 태그)
-    -   [ ] Background에서 썸네일 다운로드 및 리사이징
+-   [ ] 썸네일 처리 (플랫폼 백엔드)
+    -   [ ] 썸네일 다운로드 및 리사이징
     -   [ ] Base64 변환 및 저장
--   [ ] 웹사이트 정보 추출 강화
-    -   [ ] 메타 태그 기반 정보 추출 (description, image, author)
-    -   [ ] Schema.org 데이터 추출
-    -   [ ] 게시일 정보 추출
--   [ ] Content Script와 UI 연동
-    -   [ ] 수집된 정보를 Platform UI로 전송
-    -   [ ] 실시간 정보 업데이트
+    -   [ ] 썸네일 캐싱 및 최적화
 
 #### 4.2 평가 기능
 
@@ -4223,6 +4246,7 @@ GROUP BY c.id, c.user_id, c.name, c.order_index;
 
 | 버전  | 날짜    | 변경 내용                                                                 | 작성자      |
 | ----- | ------- | ------------------------------------------------------------------------- | ----------- |
+| 3.0.4 | 2024-12 | Phase 4 정보 추출 완료: YouTube/Shorts/Website 상세 정보 수집 완료, 페이지 타입 분류 정확화, UI에 상세 정보 표시, 쇼츠 부가 정보 제외 처리 | NEXA 개발팀 |
 | 3.0.3 | 2024-12 | 정보 추출 전략 문서화: V3 현재 수집 정보 및 추가 수집 가능 정보 정리, 썸네일 처리 방식 문서화, 데이터 모델 업데이트 | NEXA 개발팀 |
 | 3.0.2 | 2024-12 | Phase 3 기본 통신 구조 완료: 페이지 정보 수집/전송, Extension 인스턴스 독립 동작, 중복 메시지 필터링, 로그 최적화 | NEXA 개발팀 |
 | 3.0.1 | 2024-12 | 개발 로드맵 체크리스트 업데이트 (Phase 1-2 진행 상황 반영)                | NEXA 개발팀 |
