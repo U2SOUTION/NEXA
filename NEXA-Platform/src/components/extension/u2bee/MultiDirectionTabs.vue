@@ -5,8 +5,8 @@
     <div v-if="allTabs.length > 0" class="tabs-section tabs-right">
       <div class="tabs-wrapper">
         <button v-for="tab in allTabs" :key="tab.name" :class="['tab-button', 'tab-right', { active: activeTab === tab.name }]" @click="selectTab(tab.name)">
-          <span v-if="!isInjectedMode" class="tab-label-vertical">{{ tab.label }}</span>
           <q-icon v-if="tab.icon" :name="tab.icon" :size="isInjectedMode ? '20px' : '16px'" class="tab-icon-vertical" />
+          <span class="tab-label-vertical" :class="{ 'injected-label': isInjectedMode }">{{ tab.label }}</span>
         </button>
       </div>
     </div>
@@ -125,8 +125,8 @@ function selectTab(tabName) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 0;
-    gap: 8px;
+    padding: 1px 0;
+    gap: 1px;
     height: auto; // 높이를 auto로 변경하여 내용에 맞춤
     background: transparent !important;
     justify-content: center; // 상하 중앙 정렬
@@ -138,25 +138,25 @@ function selectTab(tabName) {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 60px; // 원형 아이콘 크기
-    min-height: 60px; // 원형 아이콘 크기
-    padding: 8px;
+    width: 50px; // 원형 아이콘 크기
+    min-height: 50px; // 원형 아이콘 크기
+    padding: 2px;
     border: none;
-    background: rgba(45, 137, 62, 0.9); // 탭 자체만 배경색
+    background: rgba(45, 137, 62, 0.4); // 탭 자체만 배경색
     color: #ffffff;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     border-radius: 50%; // 원형 아이콘
     transition: all 0.2s ease;
-    gap: 4px;
-    margin: 4px auto; // 중앙 정렬
+    gap: 2px;
+    margin: 2px auto; // 중앙 정렬
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 
-    // Injected 모드에서 아이콘만 표시하도록 조정
+    // Injected 모드에서 아이콘과 라벨 배치 조정
     .multi-direction-tabs-container.injected-mode & {
-      gap: 0;
-      padding: 12px;
+      gap: 0; // 아이콘과 라벨 사이 간격 0
+      padding: 0px 12px; // 패딩 조정
     }
 
     &:hover {
@@ -167,7 +167,7 @@ function selectTab(tabName) {
     &.active {
       background: rgba(30, 90, 40, 1);
       font-weight: 700;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
       transform: scale(1.15);
       border-radius: 20px 0 0 20px; // 활성화 시 왼쪽으로 확장
       width: 80px; // 확장된 너비
@@ -181,26 +181,30 @@ function selectTab(tabName) {
       letter-spacing: 1px;
       font-size: 10px;
 
-      // Injected 모드에서는 텍스트 레이블 숨기기 (아이콘만 표시)
-      .multi-direction-tabs-container.injected-mode & {
-        display: none !important;
+      // Injected 모드에서 아이콘 아래에 라벨 표시 (가로 방향)
+      &.injected-label {
+        writing-mode: horizontal-tb; // 가로 방향으로 변경
+        text-orientation: mixed;
+        font-size: 9px;
+        line-height: 1.2;
+        margin-top: 0; // 상하 간격 0
+        white-space: nowrap;
       }
     }
 
-    // Injected 모드에서 아이콘만 표시
+    // Injected 모드에서 아이콘과 라벨 배치
     .multi-direction-tabs-container.injected-mode & {
-      .tab-label-vertical {
-        display: none !important;
-      }
-
-      // 아이콘만 중앙 정렬
       .tab-icon-vertical {
         margin: 0;
       }
     }
 
     .tab-icon-vertical {
-      margin-top: 4px;
+      // Injected 모드에서 아이콘 하단 여백 제거
+      .multi-direction-tabs-container.injected-mode & {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
     }
   }
 }
