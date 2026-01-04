@@ -1,7 +1,7 @@
 <template>
   <!-- 확장 프로그램이 선택된 경우 (U2BEE UI 등) -->
   <template v-if="selectedExtension === 'u2bee'">
-    <!-- Injected 모드: 세 방향 탭 레이아웃 -->
+    <!--U2BEE Injected 모드: 세 방향 탭 레이아웃 -->
     <template v-if="currentMode === 'injected'">
       <div class="u2bee-container injected-layout">
         <MultiDirectionTabs :active-tab="u2beeActiveTab" :is-injected-mode="true" :panel-props="{ pageInfo: currentPageInfo }" @update:active-tab="u2beeActiveTab = $event">

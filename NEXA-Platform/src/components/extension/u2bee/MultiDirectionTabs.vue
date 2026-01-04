@@ -3,18 +3,26 @@
   <div class="multi-direction-tabs-container" :class="{ 'injected-mode': isInjectedMode }">
     <!-- 탭만 표시 (콘텐츠 패널 제거) -->
     <div v-if="allTabs.length > 0" class="tabs-section tabs-right">
-      <div class="tabs-wrapper">
-        <button v-for="tab in allTabs" :key="tab.name" :class="['tab-button', 'tab-right', { active: activeTab === tab.name }]" @click="selectTab(tab.name)">
-          <q-icon v-if="tab.icon" :name="tab.icon" :size="isInjectedMode ? '20px' : '16px'" class="tab-icon-vertical" />
-          <span class="tab-label-vertical" :class="{ 'injected-label': isInjectedMode }">{{ tab.label }}</span>
-        </button>
+      <div class="tabs-wrapper" :class="{ 'tabs-hidden': !isTabsVisible }">
+        <div class="title-container" @click="toggleTabs">
+          <div class="nexa-title">NEXA</div>
+          <div class="nexa-subtitle">U2 SOLUTION</div>
+        </div>
+        <transition name="fade-tabs">
+          <div v-show="isTabsVisible" class="tabs-container">
+            <button v-for="tab in allTabs" :key="tab.name" :class="['tab-button', 'tab-right', { active: activeTab === tab.name }]" @click="selectTab(tab.name)">
+              <q-icon v-if="tab.icon" :name="tab.icon" :size="isInjectedMode ? '20px' : '16px'" class="tab-icon-vertical" />
+              <span class="tab-label-vertical" :class="{ 'injected-label': isInjectedMode }">{{ tab.label }}</span>
+            </button>
+          </div>
+        </transition>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useTabConfig } from 'src/composables/extension/u2bee/useTabConfig'
 
 defineProps({
@@ -31,6 +39,14 @@ defineProps({
 const emit = defineEmits(['update:activeTab'])
 
 const { visibleTabs } = useTabConfig()
+
+// 아이콘 표시/숨김 상태
+const isTabsVisible = ref(true)
+
+// 타이틀 클릭 시 토글
+function toggleTabs() {
+  isTabsVisible.value = !isTabsVisible.value
+}
 
 // 모든 탭을 우측에 세로로 배치
 const allTabs = computed(() => {
@@ -81,7 +97,7 @@ function selectTab(tabName) {
 </script>
 
 <style lang="scss" scoped>
-// 전체 배경 완전히 제거
+// 전체 배경 투명화
 :deep(html),
 :deep(body),
 :deep(#q-app),
@@ -91,35 +107,25 @@ function selectTab(tabName) {
 :deep(.q-layout__section),
 :deep(.q-layout__container) {
   background: transparent !important;
-  background-color: transparent !important;
 }
 
 .multi-direction-tabs-container {
   background: transparent !important;
-  pointer-events: none; // 배경은 클릭 통과
-  display: flex; // flex container로 설정
-  height: 100vh; // 전체 높이 사용
-  align-items: center; // 상하 중앙 정렬
-
-  &.injected-mode {
-    background: transparent !important;
-    pointer-events: none;
-    height: 100vh; // injected 모드에서도 전체 높이 사용
-    display: flex;
-    align-items: center;
-  }
+  pointer-events: none;
+  display: flex;
+  height: 100vh;
+  align-items: center;
 }
 
-// 우측 탭 (세로, 원형 아이콘)
 .tabs-right {
-  width: 100px;
-  height: 100%; // 부모의 전체 높이 사용
+  width: 80px;
+  height: 100%;
   border: none !important;
   background: transparent !important;
-  pointer-events: auto; // 탭은 클릭 가능
-  display: flex; // flex container로 설정
-  align-items: center; // 상하 중앙 정렬
-  justify-content: center; // 좌우 중앙 정렬
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   .tabs-wrapper {
     display: flex;
@@ -127,83 +133,144 @@ function selectTab(tabName) {
     align-items: center;
     padding: 1px 0;
     gap: 1px;
-    height: auto; // 높이를 auto로 변경하여 내용에 맞춤
+    height: auto;
     background: transparent !important;
-    justify-content: center; // 상하 중앙 정렬
+    justify-content: flex-start;
+    transition: justify-content 0.9s ease;
+    margin-left: 10px;
+
+    &.tabs-hidden {
+      justify-content: center;
+    }
+  }
+
+  .title-container {
+    pointer-events: auto;
+    cursor: pointer;
+    user-select: none;
+    background: rgba(45, 137, 62, 0.7);
+    padding: 3px 8px;
+    border-radius: 4px 0 0 4px;
+    transition: all 0.9s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 3px;
+
+    &:hover {
+      background: rgba(45, 137, 62, 0.85);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .nexa-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.95);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    line-height: 1.2;
+  }
+
+  .nexa-subtitle {
+    font-size: 5px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1;
+    margin-top: -2px;
+  }
+
+  .tabs-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+
+  // 아이콘 사라질 때: 먼저 사라지고, 그 후 NEXA가 센터로 이동
+  .fade-tabs-leave-active {
+    transition:
+      opacity 0.3s ease,
+      transform 0.9s ease;
+  }
+
+  /* 탭 아이콘 사라질 때 */
+  .fade-tabs-leave-to {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+
+  // 아이콘 나타날 때: NEXA가 먼저 상단으로 이동한 후 나타남
+  .fade-tabs-enter-active {
+    transition:
+      opacity 0.3s ease 0.3s,
+      transform 0.3s ease 0.9s;
+  }
+
+  // 탭 아이콘 나타날 때
+  .fade-tabs-enter-from {
+    opacity: 0;
+    transform: translateX(10px);
   }
 
   .tab-right {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 50px; // 원형 아이콘 크기
-    min-height: 50px; // 원형 아이콘 크기
+    width: 38px;
+    min-height: 38px;
     padding: 2px;
     border: none;
-    background: rgba(45, 137, 62, 0.4); // 탭 자체만 배경색
+    background: rgba(45, 137, 62, 0.4);
     color: #ffffff;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    border-radius: 50%; // 원형 아이콘
+    border-radius: 50%;
     transition: all 0.2s ease;
-    gap: 2px;
-    margin: 2px auto; // 중앙 정렬
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    gap: 0;
+    margin: 2px auto;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 
-    // Injected 모드에서 아이콘과 라벨 배치 조정
-    .multi-direction-tabs-container.injected-mode & {
-      gap: 0; // 아이콘과 라벨 사이 간격 0
-      padding: 0px 12px; // 패딩 조정
-    }
+    // .multi-direction-tabs-container.injected-mode & {
+    //   padding: 0 2px 0 1px;
+    // }
 
     &:hover {
       background: rgba(37, 107, 50, 0.95);
-      transform: scale(1.1);
+      transform: scale(1.05);
     }
 
     &.active {
       background: rgba(30, 90, 40, 1);
       font-weight: 700;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
-      transform: scale(1.15);
-      border-radius: 20px 0 0 20px; // 활성화 시 왼쪽으로 확장
-      width: 80px; // 확장된 너비
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.9);
+      transform: scale(1.1);
+      border-radius: 16px 0 0 16px;
+      width: 40px;
+      padding-left: 12px;
+      align-items: flex-start;
     }
 
     .tab-label-vertical {
       writing-mode: vertical-rl;
       text-orientation: mixed;
       text-align: center;
-      line-height: 1.4;
-      letter-spacing: 1px;
-      font-size: 10px;
+      line-height: 1;
+      letter-spacing: 0.5px;
+      font-size: 7px;
+      //margin-top: -1px;
 
-      // Injected 모드에서 아이콘 아래에 라벨 표시 (가로 방향)
       &.injected-label {
-        writing-mode: horizontal-tb; // 가로 방향으로 변경
-        text-orientation: mixed;
-        font-size: 9px;
-        line-height: 1.2;
-        margin-top: 0; // 상하 간격 0
+        writing-mode: horizontal-tb;
+        font-size: 6px;
+        line-height: 1;
         white-space: nowrap;
-      }
-    }
-
-    // Injected 모드에서 아이콘과 라벨 배치
-    .multi-direction-tabs-container.injected-mode & {
-      .tab-icon-vertical {
-        margin: 0;
-      }
-    }
-
-    .tab-icon-vertical {
-      // Injected 모드에서 아이콘 하단 여백 제거
-      .multi-direction-tabs-container.injected-mode & {
-        margin-top: 0;
-        margin-bottom: 0;
+        margin-top: -2px;
       }
     }
   }

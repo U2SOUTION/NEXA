@@ -9,14 +9,14 @@ const STORAGE_KEY = 'u2bee_tab_config'
 
 // 기본 탭 구성
 const defaultTabConfig = [
-  { name: 'rating', label: '평가', icon: 'star', visible: true, order: 0 },
-  { name: 'list', label: '리스트', icon: 'list', visible: true, order: 1 },
-  { name: 'playbox', label: '플레이박스', icon: 'playlist_play', visible: true, order: 2 },
-  { name: 'history', label: '히스토리', icon: 'history', visible: true, order: 3 },
-  { name: 'statistics', label: '통계', icon: 'bar_chart', visible: true, order: 4 },
-  { name: 'data', label: '데이터 관리', icon: 'storage', visible: true, order: 5 },
-  { name: 'config', label: '설정', icon: 'settings', visible: true, order: 6 },
-  { name: 'about', label: '도움말', icon: 'help_outline', visible: true, order: 7 },
+  { name: 'rating', label: 'Rate', icon: 'star', visible: true, order: 0 },
+  { name: 'list', label: 'List', icon: 'list', visible: true, order: 1 },
+  { name: 'playbox', label: 'Play', icon: 'playlist_play', visible: true, order: 2 },
+  { name: 'history', label: 'History', icon: 'history', visible: true, order: 3 },
+  { name: 'statistics', label: 'Stats', icon: 'bar_chart', visible: true, order: 4 },
+  { name: 'data', label: 'Data', icon: 'storage', visible: true, order: 5 },
+  { name: 'config', label: 'Config', icon: 'settings', visible: true, order: 6 },
+  { name: 'about', label: 'Help', icon: 'help_outline', visible: true, order: 7 },
 ]
 
 /**
