@@ -138,7 +138,71 @@
     });
 
     // iframe에서 오는 메시지 수신 (팝업/사이드 패널 전환 및 준비 완료)
+    // 설정 저장/로드 핸들러
+    async function handleSettingsMessage(event) {
+        if (!event.data || (event.data.type !== "SAVE_SETTINGS" && event.data.type !== "REQUEST_SETTINGS")) {
+            return false; // 다른 메시지는 처리하지 않음
+        }
+
+        try {
+            if (event.data.type === "REQUEST_SETTINGS") {
+                // 설정 로드 요청
+                const settings = await chrome.storage.local.get(["u2bee_ui_mode", "u2bee_injectUI_enabled"]);
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(
+                        {
+                            type: "SETTINGS_RESPONSE",
+                            data: {
+                                u2bee_ui_mode: settings.u2bee_ui_mode || "sidepanel",
+                                u2bee_injectUI_enabled: settings.u2bee_injectUI_enabled || false,
+                            },
+                        },
+                        "*"
+                    );
+                }
+            } else if (event.data.type === "SAVE_SETTINGS") {
+                // 설정 저장 요청
+                const settingsToSave = {};
+                if (event.data.data.u2bee_ui_mode !== undefined) {
+                    settingsToSave.u2bee_ui_mode = event.data.data.u2bee_ui_mode;
+                }
+                if (event.data.data.u2bee_injectUI_enabled !== undefined) {
+                    settingsToSave.u2bee_injectUI_enabled = event.data.data.u2bee_injectUI_enabled;
+                }
+                await chrome.storage.local.set(settingsToSave);
+                console.log("[Popup] 설정 저장 완료:", settingsToSave);
+
+                // 설정 저장 후 현재 활성 탭에 메시지 전송하여 즉시 반영
+                try {
+                    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+                    if (tabs.length > 0 && tabs[0].id) {
+                        chrome.tabs
+                            .sendMessage(tabs[0].id, {
+                                type: "SETTINGS_UPDATED",
+                                data: settingsToSave,
+                            })
+                            .catch((error) => {
+                                // Content Script가 없거나 로드되지 않은 경우 무시 (정상)
+                                console.log("[Popup] 설정 변경 알림 전송 실패 (정상일 수 있음):", error.message);
+                            });
+                    }
+                } catch (error) {
+                    console.error("[Popup] 설정 변경 알림 전송 실패:", error);
+                }
+            }
+            return true;
+        } catch (error) {
+            console.error("[Popup] 설정 처리 실패:", error);
+            return false;
+        }
+    }
+
     window.addEventListener("message", async (event) => {
+        // 설정 관련 메시지 처리
+        if (event.data && (event.data.type === "SAVE_SETTINGS" || event.data.type === "REQUEST_SETTINGS")) {
+            await handleSettingsMessage(event);
+            return;
+        }
         // 보안: localhost에서만 메시지 수신
         if (!event.origin.includes("localhost") && !event.origin.includes("127.0.0.1")) {
             return;

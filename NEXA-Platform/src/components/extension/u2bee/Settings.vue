@@ -13,6 +13,42 @@
     </div>
   </div>
 
+  <!-- UI 모드 설정 -->
+  <div class="list-section">
+    <div class="section-label">UI 모드 설정</div>
+    <q-list>
+      <q-item class="settings-item">
+        <q-item-section>
+          <q-item-label class="settings-item-label">UI 표시 방식</q-item-label>
+          <q-item-label class="settings-item-caption">사이드 패널 또는 사이트에 직접 삽입</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-select
+            v-model="uiMode"
+            :options="uiModeOptions"
+            option-label="label"
+            option-value="value"
+            emit-value
+            map-options
+            dense
+            outlined
+            class="ui-mode-select"
+            @update:model-value="handleUIModeChange"
+          />
+        </q-item-section>
+      </q-item>
+      <q-item v-if="uiMode === 'injected'" class="settings-item">
+        <q-item-section>
+          <q-item-label class="settings-item-label">사이트 삽입 활성화</q-item-label>
+          <q-item-label class="settings-item-caption">YouTube 등 사이트에 사이드바로 삽입</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-toggle v-model="injectUIEnabled" class="settings-toggle" @update:model-value="handleInjectUIChange" />
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </div>
+
   <!-- 일반 설정 -->
   <div class="list-section">
     <div class="section-label">일반 설정</div>
@@ -78,8 +114,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import TabCustomizer from './TabCustomizer.vue'
+
+// UI 모드 설정
+const uiMode = ref('sidepanel') // 'sidepanel' | 'injected'
+const injectUIEnabled = ref(false)
+const uiModeOptions = [
+  { label: '사이드 패널', value: 'sidepanel' },
+  { label: '사이트 삽입', value: 'injected' },
+]
 
 // 목업 데이터
 const mockSettings = ref({
@@ -90,6 +134,89 @@ const mockSettings = ref({
 })
 
 const themeOptions = ['light', 'dark', 'auto']
+
+// 설정 로드
+onMounted(async () => {
+  try {
+    // Extension Storage에서 설정 로드 시도
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        {
+          type: 'REQUEST_SETTINGS',
+        },
+        '*'
+      )
+
+      // 설정 수신 대기
+      window.addEventListener('message', handleSettingsMessage, { once: true })
+    }
+  } catch (error) {
+    console.warn('[Settings] 설정 로드 실패, 기본값 사용:', error)
+  }
+})
+
+// 설정 메시지 처리
+function handleSettingsMessage(event) {
+  if (event.data && event.data.type === 'SETTINGS_RESPONSE') {
+    const settings = event.data.data
+    if (settings) {
+      uiMode.value = settings.u2bee_ui_mode || 'sidepanel'
+      injectUIEnabled.value = settings.u2bee_injectUI_enabled || false
+    }
+  }
+}
+
+// UI 모드 변경 처리
+function handleUIModeChange(newMode) {
+  uiMode.value = newMode
+  saveSettings()
+  
+  if (newMode === 'injected') {
+    // 사이트 삽입 모드로 전환 시 자동으로 활성화 (사용자 편의)
+    if (!injectUIEnabled.value) {
+      injectUIEnabled.value = true
+      saveSettings()
+      console.log('[Settings] 사이트 삽입 모드가 활성화되었습니다. 페이지를 새로고침하면 적용됩니다.')
+    }
+  } else {
+    // 사이드 패널 모드로 전환 시 삽입 UI 비활성화
+    injectUIEnabled.value = false
+    saveSettings()
+  }
+}
+
+// 사이트 삽입 활성화 변경 처리
+function handleInjectUIChange(enabled) {
+  injectUIEnabled.value = enabled
+  saveSettings()
+  
+  if (enabled) {
+    console.log('[Settings] 사이트 삽입이 활성화되었습니다. 페이지를 새로고침하면 적용됩니다.')
+  } else {
+    console.log('[Settings] 사이트 삽입이 비활성화되었습니다.')
+  }
+}
+
+// 설정 저장
+function saveSettings() {
+  try {
+    // Extension Storage에 설정 저장 요청
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        {
+          type: 'SAVE_SETTINGS',
+          data: {
+            u2bee_ui_mode: uiMode.value,
+            u2bee_injectUI_enabled: injectUIEnabled.value,
+          },
+        },
+        '*'
+      )
+    }
+  } catch (error) {
+    console.error('[Settings] 설정 저장 실패:', error)
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -167,6 +294,11 @@ const themeOptions = ['light', 'dark', 'auto']
 
 .theme-select {
   min-width: 120px;
+  flex-shrink: 0;
+}
+
+.ui-mode-select {
+  min-width: 140px;
   flex-shrink: 0;
 }
 </style>

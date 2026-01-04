@@ -182,6 +182,28 @@
                 sendResponse({ success: true });
                 return true;
 
+            case 'OPEN_SIDE_PANEL':
+                // Content Script에서 사이드 패널 열기 요청 수신
+                const tabName = message.tabName;
+                const senderTabId = sender.tab?.id;
+                const senderWindowId = sender.tab?.windowId;
+
+                if (!senderWindowId) {
+                    // sender.tab이 없으면 현재 활성 탭 조회
+                    chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+                        if (tabs.length > 0) {
+                            openSidePanelAndSwitchTab(tabs[0].windowId, tabName);
+                        }
+                    }).catch((error) => {
+                        console.error('[Background] 활성 탭 조회 실패:', error);
+                    });
+                } else {
+                    openSidePanelAndSwitchTab(senderWindowId, tabName);
+                }
+
+                sendResponse({ success: true });
+                return true;
+
             case 'CONTENT_TO_PLATFORM':
                 // Content Script → Platform 통신
                 forwardToPlatform(message);
@@ -204,11 +226,48 @@
                 sendResponse({ success: true });
                 return true;
 
+            case 'SWITCH_TAB':
+                // 탭 전환 메시지 (이미 열려있는 사이드 패널에 전달)
+                const switchTabName = message.tabName;
+                const switchWindowId = message.windowId;
+
+                // 사이드 패널로 탭 전환 메시지 전달
+                chrome.runtime.sendMessage({
+                    type: 'SWITCH_TAB',
+                    tabName: switchTabName,
+                    windowId: switchWindowId,
+                }).catch((error) => {
+                    console.error('[Background] 탭 전환 메시지 전송 실패:', error);
+                });
+
+                sendResponse({ success: true });
+                return true;
+
             default:
                 sendResponse({ success: false, error: 'Unknown message type' });
         }
     });
 
+    // 사이드 패널 열기 및 탭 전환 함수
+    async function openSidePanelAndSwitchTab(windowId, tabName) {
+        try {
+            // 사이드 패널 열기
+            await chrome.sidePanel.open({ windowId: windowId });
+
+            // 사이드 패널에 탭 정보 전달 (약간의 지연 후)
+            setTimeout(() => {
+                chrome.runtime.sendMessage({
+                    type: 'SWITCH_TAB',
+                    tabName: tabName,
+                    windowId: windowId,
+                }).catch((error) => {
+                    console.error('[Background] 탭 전환 메시지 전송 실패:', error);
+                });
+            }, 100);
+        } catch (error) {
+            console.error('[Background] 사이드 패널 열기 실패:', error);
+        }
+    }
 
     // Content Script로 메시지 전달
     function forwardToContent(message) {

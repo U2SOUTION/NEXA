@@ -14,6 +14,13 @@
             "exclude_matches": ["*://localhost/*", "*://127.0.0.1/*"],
             "js": ["content/content.js"],
             "run_at": "document_idle"
+        },
+        {
+            "matches": ["*://*.youtube.com/*"],
+            "exclude_matches": ["*://localhost/*", "*://127.0.0.1/*"],
+            "js": ["content/injectUI.js"],
+            "run_at": "document_idle",
+            "all_frames": false
         }
     ],
     "background": {

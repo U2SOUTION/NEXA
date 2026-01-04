@@ -1,59 +1,94 @@
 <template>
   <!-- 확장 프로그램이 선택된 경우 (U2BEE UI 등) -->
   <template v-if="selectedExtension === 'u2bee'">
-    <div class="u2bee-container">
-      <!-- 상단 헤더: 로고 + 액션 버튼 -->
-      <div class="header-section">
-        <div class="logo">
-          <span class="logo-text logo-red">U2BEE</span>
-          <span class="logo-text logo-green">NEXA SYSTEM</span>
-          <span class="logo-text logo-red">U2SOLUTION</span>
-        </div>
-        <div class="header-actions">
-          <!-- 사이드 패널로 전환 버튼 (팝업 모드일 때만 표시) -->
-          <!-- 주의: Chrome Extension API에서 사이드 패널을 프로그래밍 방식으로 닫는 공식 API가 없으므로, -->
-          <!-- 사이드 패널에서 팝업으로 전환하는 버튼은 제공하지 않습니다. -->
-          <!-- 사용자는 확장 프로그램 아이콘을 클릭하여 팝업을 열 수 있습니다. -->
-          <q-btn v-if="isIframeMode && currentMode === 'popup'" flat dense label="사이드 패널로" icon="view_sidebar" size="sm" @click="toggleExtensionMode" class="mode-toggle-btn" />
-          <span class="theme-label">THEME</span>
-          <q-btn-toggle v-model="selectedTheme" :options="themeOptions" dense size="sm" />
-          <q-btn flat dense label="설정" size="sm" />
-          <q-btn flat dense label="로그인" size="sm" />
-        </div>
+    <!-- Injected 모드: 세 방향 탭 레이아웃 -->
+    <template v-if="currentMode === 'injected'">
+      <div class="u2bee-container injected-layout">
+        <MultiDirectionTabs :active-tab="u2beeActiveTab" :is-injected-mode="true" :panel-props="{ pageInfo: currentPageInfo }" @update:active-tab="u2beeActiveTab = $event">
+          <template #rating>
+            <ContentRating :page-info="currentPageInfo" />
+          </template>
+          <template #list>
+            <ContentList />
+          </template>
+          <template #playbox>
+            <PlayBox />
+          </template>
+          <template #history>
+            <ContentHistory />
+          </template>
+          <template #statistics>
+            <Statistics />
+          </template>
+          <template #data>
+            <DataManagement />
+          </template>
+          <template #config>
+            <Settings />
+          </template>
+          <template #about>
+            <HelpPage />
+          </template>
+        </MultiDirectionTabs>
       </div>
+    </template>
 
-      <!-- 탭 영역 (꽉 차도록 배치) -->
-      <q-tabs v-model="u2beeActiveTab" dense class="u2bee-tabs">
-        <q-tab v-for="tab in visibleTabs" :key="tab.name" :name="tab.name" :label="tab.label" :icon="tab.icon" />
-      </q-tabs>
+    <!-- 일반 모드 (팝업/사이드 패널): 기존 레이아웃 -->
+    <template v-else>
+      <div class="u2bee-container">
+        <!-- 상단 헤더: 로고 + 액션 버튼 -->
+        <div class="header-section">
+          <div class="logo">
+            <span class="logo-text logo-red">U2BEE</span>
+            <span class="logo-text logo-green">NEXA SYSTEM</span>
+            <span class="logo-text logo-red">U2SOLUTION</span>
+          </div>
+          <div class="header-actions">
+            <!-- 사이드 패널로 전환 버튼 (팝업 모드일 때만 표시) -->
+            <!-- 주의: Chrome Extension API에서 사이드 패널을 프로그래밍 방식으로 닫는 공식 API가 없으므로, -->
+            <!-- 사이드 패널에서 팝업으로 전환하는 버튼은 제공하지 않습니다. -->
+            <!-- 사용자는 확장 프로그램 아이콘을 클릭하여 팝업을 열 수 있습니다. -->
+            <q-btn v-if="isIframeMode && currentMode === 'popup'" flat dense label="사이드 패널로" icon="view_sidebar" size="sm" @click="toggleExtensionMode" class="mode-toggle-btn" />
+            <span class="theme-label">THEME</span>
+            <q-btn-toggle v-model="selectedTheme" :options="themeOptions" dense size="sm" />
+            <q-btn flat dense label="설정" size="sm" />
+            <q-btn flat dense label="로그인" size="sm" />
+          </div>
+        </div>
 
-      <q-tab-panels v-model="u2beeActiveTab" class="u2bee-panels">
-        <q-tab-panel name="rating">
-          <ContentRating :page-info="currentPageInfo" />
-        </q-tab-panel>
-        <q-tab-panel name="list">
-          <ContentList />
-        </q-tab-panel>
-        <q-tab-panel name="playbox">
-          <PlayBox />
-        </q-tab-panel>
-        <q-tab-panel name="history">
-          <ContentHistory />
-        </q-tab-panel>
-        <q-tab-panel name="statistics">
-          <Statistics />
-        </q-tab-panel>
-        <q-tab-panel name="data">
-          <DataManagement />
-        </q-tab-panel>
-        <q-tab-panel name="config">
-          <Settings />
-        </q-tab-panel>
-        <q-tab-panel name="about">
-          <HelpPage />
-        </q-tab-panel>
-      </q-tab-panels>
-    </div>
+        <!-- 탭 영역 (꽉 차도록 배치) -->
+        <q-tabs v-model="u2beeActiveTab" dense class="u2bee-tabs">
+          <q-tab v-for="tab in visibleTabs" :key="tab.name" :name="tab.name" :label="tab.label" :icon="tab.icon" />
+        </q-tabs>
+
+        <q-tab-panels v-model="u2beeActiveTab" class="u2bee-panels">
+          <q-tab-panel name="rating">
+            <ContentRating :page-info="currentPageInfo" />
+          </q-tab-panel>
+          <q-tab-panel name="list">
+            <ContentList />
+          </q-tab-panel>
+          <q-tab-panel name="playbox">
+            <PlayBox />
+          </q-tab-panel>
+          <q-tab-panel name="history">
+            <ContentHistory />
+          </q-tab-panel>
+          <q-tab-panel name="statistics">
+            <Statistics />
+          </q-tab-panel>
+          <q-tab-panel name="data">
+            <DataManagement />
+          </q-tab-panel>
+          <q-tab-panel name="config">
+            <Settings />
+          </q-tab-panel>
+          <q-tab-panel name="about">
+            <HelpPage />
+          </q-tab-panel>
+        </q-tab-panels>
+      </div>
+    </template>
   </template>
 
   <!-- 확장 프로그램이 선택되지 않은 경우 (메인 페이지) -->
@@ -135,6 +170,7 @@ import Statistics from 'src/components/extension/u2bee/Statistics.vue'
 import DataManagement from 'src/components/extension/u2bee/DataManagement.vue'
 import Settings from 'src/components/extension/u2bee/Settings.vue'
 import HelpPage from 'src/components/extension/u2bee/HelpPage.vue'
+import MultiDirectionTabs from 'src/components/extension/u2bee/MultiDirectionTabs.vue'
 import { useTabConfig } from 'src/composables/extension/u2bee/useTabConfig'
 
 const route = useRoute()
@@ -143,11 +179,12 @@ const router = useRouter()
 // URL query parameter에서 activeTab 및 extension 초기화
 const activeTab = ref(route.query.tab || 'chrome')
 const selectedExtension = computed(() => route.query.extension || null)
-const isIframeMode = computed(() => route.query.mode === 'popup' || route.query.mode === 'sidepanel' || window.self !== window.top)
+const isIframeMode = computed(() => route.query.mode === 'popup' || route.query.mode === 'sidepanel' || route.query.mode === 'injected' || window.self !== window.top)
 const currentMode = computed(() => {
   // URL query parameter에서 모드 확인
   if (route.query.mode === 'popup') return 'popup'
   if (route.query.mode === 'sidepanel') return 'sidepanel'
+  if (route.query.mode === 'injected') return 'injected'
   // window.self !== window.top으로 iframe 감지 (fallback)
   if (window.self !== window.top) {
     // 기본적으로 popup으로 간주 (사이드 패널로 전환 가능)
@@ -296,12 +333,23 @@ function handleExtensionMessage(event) {
         image: pageData.image || null,
         author: pageData.author || null,
       }
+    } else if (messageData && messageData.type === 'SWITCH_TAB') {
+      // 탭 전환 메시지 처리
+      const tabName = messageData.tabName
+      if (tabName && ['rating', 'list', 'playbox', 'history', 'statistics', 'data', 'config', 'about'].includes(tabName)) {
+        u2beeActiveTab.value = tabName
+      }
     }
   }
 }
 
 // iframe 모드일 때만 메시지 리스너 등록
 onMounted(() => {
+  // Injected 모드일 때 body에 클래스 추가
+  if (currentMode.value === 'injected') {
+    document.body.classList.add('injected-mode')
+  }
+
   if (isIframeMode.value) {
     // 즉시 리스너 등록
     window.addEventListener('message', handleExtensionMessage)
@@ -324,6 +372,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  // Injected 모드 클래스 제거
+  document.body.classList.remove('injected-mode')
+
   if (isIframeMode.value) {
     window.removeEventListener('message', handleExtensionMessage)
   }

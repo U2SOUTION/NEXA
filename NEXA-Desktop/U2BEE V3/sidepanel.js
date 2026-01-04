@@ -203,10 +203,73 @@
         });
     });
 
+    // 설정 저장/로드 핸들러
+    async function handleSettingsMessage(event) {
+        if (!event.data || event.data.type !== 'SAVE_SETTINGS' && event.data.type !== 'REQUEST_SETTINGS') {
+            return false; // 다른 메시지는 처리하지 않음
+        }
+
+        try {
+            if (event.data.type === 'REQUEST_SETTINGS') {
+                // 설정 로드 요청
+                const settings = await chrome.storage.local.get(['u2bee_ui_mode', 'u2bee_injectUI_enabled']);
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(
+                        {
+                            type: 'SETTINGS_RESPONSE',
+                            data: {
+                                u2bee_ui_mode: settings.u2bee_ui_mode || 'sidepanel',
+                                u2bee_injectUI_enabled: settings.u2bee_injectUI_enabled || false,
+                            },
+                        },
+                        '*'
+                    );
+                }
+            } else if (event.data.type === 'SAVE_SETTINGS') {
+                // 설정 저장 요청
+                const settingsToSave = {};
+                if (event.data.data.u2bee_ui_mode !== undefined) {
+                    settingsToSave.u2bee_ui_mode = event.data.data.u2bee_ui_mode;
+                }
+                if (event.data.data.u2bee_injectUI_enabled !== undefined) {
+                    settingsToSave.u2bee_injectUI_enabled = event.data.data.u2bee_injectUI_enabled;
+                }
+                await chrome.storage.local.set(settingsToSave);
+                console.log('[Side Panel] 설정 저장 완료:', settingsToSave);
+
+                // 설정 저장 후 현재 활성 탭에 메시지 전송하여 즉시 반영
+                try {
+                    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+                    if (tabs.length > 0 && tabs[0].id) {
+                        chrome.tabs.sendMessage(tabs[0].id, {
+                            type: 'SETTINGS_UPDATED',
+                            data: settingsToSave,
+                        }).catch((error) => {
+                            // Content Script가 없거나 로드되지 않은 경우 무시 (정상)
+                            console.log('[Side Panel] 설정 변경 알림 전송 실패 (정상일 수 있음):', error.message);
+                        });
+                    }
+                } catch (error) {
+                    console.error('[Side Panel] 설정 변경 알림 전송 실패:', error);
+                }
+            }
+            return true;
+        } catch (error) {
+            console.error('[Side Panel] 설정 처리 실패:', error);
+            return false;
+        }
+    }
+
     // iframe에서 오는 메시지 수신 (준비 완료)
     window.addEventListener("message", async (event) => {
         // 보안: localhost에서만 메시지 수신
         if (!event.origin.includes("localhost") && !event.origin.includes("127.0.0.1")) {
+            return;
+        }
+
+        // 설정 관련 메시지 처리
+        if (event.data && (event.data.type === 'SAVE_SETTINGS' || event.data.type === 'REQUEST_SETTINGS')) {
+            await handleSettingsMessage(event);
             return;
         }
 
@@ -241,8 +304,44 @@
         }
     });
 
+    // 탭 전환 함수
+    function switchTab(tabName) {
+        if (iframe.contentWindow) {
+            try {
+                iframe.contentWindow.postMessage({
+                    type: "EXTENSION_MESSAGE",
+                    data: {
+                        type: "SWITCH_TAB",
+                        tabName: tabName,
+                    },
+                }, "*");
+            } catch (error) {
+                console.error("[Side Panel] 탭 전환 메시지 전송 실패:", error);
+            }
+        }
+    }
+
     // Extension 메시지 수신 및 iframe으로 전달
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        // 탭 전환 메시지 처리
+        if (message.type === "SWITCH_TAB") {
+            const messageWindowId = message.windowId;
+            
+            // 자신의 창 메시지인지 확인
+            if (!myWindowId) {
+                initializeMyWindowId().then((initializedWindowId) => {
+                    if (initializedWindowId === messageWindowId) {
+                        switchTab(message.tabName);
+                    }
+                });
+            } else if (messageWindowId === myWindowId) {
+                switchTab(message.tabName);
+            }
+            
+            sendResponse({ success: true });
+            return true;
+        }
+
         // PAGE_INFO_UPDATE 메시지인 경우, 자신의 창에 해당하는 메시지만 처리
         if (message.type === "PAGE_INFO_UPDATE" && message.data) {
             const messageWindowId = message.data.windowId;
