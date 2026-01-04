@@ -86,12 +86,14 @@
 
             try {
                 // Content Script에서는 chrome.tabs API를 사용할 수 없으므로 Background Script로 요청
-                chrome.runtime.sendMessage({
-                    type: "OPEN_SIDE_PANEL",
-                    tabName: tabName,
-                }).catch((error) => {
-                    console.error("[U2BEE InjectUI] 사이드 패널 열기 요청 실패:", error);
-                });
+                chrome.runtime
+                    .sendMessage({
+                        type: "OPEN_SIDE_PANEL",
+                        tabName: tabName,
+                    })
+                    .catch((error) => {
+                        console.error("[U2BEE InjectUI] 사이드 패널 열기 요청 실패:", error);
+                    });
             } catch (error) {
                 console.error("[U2BEE InjectUI] 사이드 패널 열기 실패:", error);
             }

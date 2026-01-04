@@ -24,7 +24,7 @@
                 }
                 return myWindowId;
             }
-            
+
             // 방법 2: currentWindow가 실패하면 windows.getCurrent() 시도
             try {
                 const currentWindow = await chrome.windows.getCurrent();
@@ -39,7 +39,7 @@
             } catch (getCurrentError) {
                 console.warn("[Side Panel] windows.getCurrent() 실패:", getCurrentError);
             }
-            
+
             console.warn("[Side Panel] 활성 탭을 찾을 수 없음");
         } catch (error) {
             console.error("[Side Panel] 창 ID 초기화 실패:", error);
@@ -67,13 +67,15 @@
                 const currentTab = tabs[0];
                 if (currentTab && currentTab.id) {
                     const windowIdToUse = myWindowId || currentTab.windowId;
-                    chrome.runtime.sendMessage({
-                        type: 'REQUEST_CURRENT_PAGE_INFO',
-                        tabId: currentTab.id,
-                        windowId: windowIdToUse,
-                    }).catch((error) => {
-                        console.error("[Side Panel] 페이지 정보 요청 실패:", error);
-                    });
+                    chrome.runtime
+                        .sendMessage({
+                            type: "REQUEST_CURRENT_PAGE_INFO",
+                            tabId: currentTab.id,
+                            windowId: windowIdToUse,
+                        })
+                        .catch((error) => {
+                            console.error("[Side Panel] 페이지 정보 요청 실패:", error);
+                        });
                 }
             } catch (error) {
                 console.error("[Side Panel] 탭 정보 조회 실패:", error);
@@ -86,25 +88,29 @@
         // 자신의 창인지 확인
         if (myWindowId && activeInfo.windowId === myWindowId) {
             setTimeout(() => {
-                chrome.runtime.sendMessage({
-                    type: 'REQUEST_CURRENT_PAGE_INFO',
-                    tabId: activeInfo.tabId,
-                    windowId: activeInfo.windowId,
-                }).catch((error) => {
-                    console.error("[Side Panel] 탭 변경 후 페이지 정보 요청 실패:", error);
-                });
+                chrome.runtime
+                    .sendMessage({
+                        type: "REQUEST_CURRENT_PAGE_INFO",
+                        tabId: activeInfo.tabId,
+                        windowId: activeInfo.windowId,
+                    })
+                    .catch((error) => {
+                        console.error("[Side Panel] 탭 변경 후 페이지 정보 요청 실패:", error);
+                    });
             }, 200);
         } else if (!myWindowId) {
             initializeMyWindowId().then((newWindowId) => {
                 if (newWindowId === activeInfo.windowId) {
                     setTimeout(() => {
-                        chrome.runtime.sendMessage({
-                            type: 'REQUEST_CURRENT_PAGE_INFO',
-                            tabId: activeInfo.tabId,
-                            windowId: activeInfo.windowId,
-                        }).catch((error) => {
-                            console.error("[Side Panel] 탭 변경 후 페이지 정보 요청 실패:", error);
-                        });
+                        chrome.runtime
+                            .sendMessage({
+                                type: "REQUEST_CURRENT_PAGE_INFO",
+                                tabId: activeInfo.tabId,
+                                windowId: activeInfo.windowId,
+                            })
+                            .catch((error) => {
+                                console.error("[Side Panel] 탭 변경 후 페이지 정보 요청 실패:", error);
+                            });
                     }, 200);
                 }
             });
@@ -155,13 +161,15 @@
                 const currentTab = tabs[0];
                 if (currentTab && currentTab.id) {
                     const windowIdToUse = myWindowId || currentTab.windowId;
-                    chrome.runtime.sendMessage({
-                        type: 'REQUEST_CURRENT_PAGE_INFO',
-                        tabId: currentTab.id,
-                        windowId: windowIdToUse,
-                    }).catch((error) => {
-                        console.error("[Side Panel] 현재 페이지 정보 요청 실패:", error);
-                    });
+                    chrome.runtime
+                        .sendMessage({
+                            type: "REQUEST_CURRENT_PAGE_INFO",
+                            tabId: currentTab.id,
+                            windowId: windowIdToUse,
+                        })
+                        .catch((error) => {
+                            console.error("[Side Panel] 현재 페이지 정보 요청 실패:", error);
+                        });
                 }
             } catch (error) {
                 console.error("[Side Panel] 탭 정보 조회 실패:", error);
@@ -184,19 +192,21 @@
         if (windowId === chrome.windows.WINDOW_ID_NONE) {
             return; // 모든 창이 포커스를 잃은 경우
         }
-        
+
         initializeMyWindowId().then((newWindowId) => {
             if (newWindowId && newWindowId !== myWindowId) {
                 chrome.tabs.query({ active: true, windowId: newWindowId }).then((tabs) => {
                     if (tabs.length > 0) {
                         const currentTab = tabs[0];
-                        chrome.runtime.sendMessage({
-                            type: 'REQUEST_CURRENT_PAGE_INFO',
-                            tabId: currentTab.id,
-                            windowId: newWindowId,
-                        }).catch((error) => {
-                            console.error("[Side Panel] 페이지 정보 요청 실패:", error);
-                        });
+                        chrome.runtime
+                            .sendMessage({
+                                type: "REQUEST_CURRENT_PAGE_INFO",
+                                tabId: currentTab.id,
+                                windowId: newWindowId,
+                            })
+                            .catch((error) => {
+                                console.error("[Side Panel] 페이지 정보 요청 실패:", error);
+                            });
                     }
                 });
             }
@@ -205,27 +215,27 @@
 
     // 설정 저장/로드 핸들러
     async function handleSettingsMessage(event) {
-        if (!event.data || event.data.type !== 'SAVE_SETTINGS' && event.data.type !== 'REQUEST_SETTINGS') {
+        if (!event.data || (event.data.type !== "SAVE_SETTINGS" && event.data.type !== "REQUEST_SETTINGS")) {
             return false; // 다른 메시지는 처리하지 않음
         }
 
         try {
-            if (event.data.type === 'REQUEST_SETTINGS') {
+            if (event.data.type === "REQUEST_SETTINGS") {
                 // 설정 로드 요청
-                const settings = await chrome.storage.local.get(['u2bee_ui_mode', 'u2bee_injectUI_enabled']);
+                const settings = await chrome.storage.local.get(["u2bee_ui_mode", "u2bee_injectUI_enabled"]);
                 if (iframe.contentWindow) {
                     iframe.contentWindow.postMessage(
                         {
-                            type: 'SETTINGS_RESPONSE',
+                            type: "SETTINGS_RESPONSE",
                             data: {
-                                u2bee_ui_mode: settings.u2bee_ui_mode || 'sidepanel',
+                                u2bee_ui_mode: settings.u2bee_ui_mode || "sidepanel",
                                 u2bee_injectUI_enabled: settings.u2bee_injectUI_enabled || false,
                             },
                         },
-                        '*'
+                        "*"
                     );
                 }
-            } else if (event.data.type === 'SAVE_SETTINGS') {
+            } else if (event.data.type === "SAVE_SETTINGS") {
                 // 설정 저장 요청
                 const settingsToSave = {};
                 if (event.data.data.u2bee_ui_mode !== undefined) {
@@ -235,27 +245,29 @@
                     settingsToSave.u2bee_injectUI_enabled = event.data.data.u2bee_injectUI_enabled;
                 }
                 await chrome.storage.local.set(settingsToSave);
-                console.log('[Side Panel] 설정 저장 완료:', settingsToSave);
+                console.log("[Side Panel] 설정 저장 완료:", settingsToSave);
 
                 // 설정 저장 후 현재 활성 탭에 메시지 전송하여 즉시 반영
                 try {
                     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
                     if (tabs.length > 0 && tabs[0].id) {
-                        chrome.tabs.sendMessage(tabs[0].id, {
-                            type: 'SETTINGS_UPDATED',
-                            data: settingsToSave,
-                        }).catch((error) => {
-                            // Content Script가 없거나 로드되지 않은 경우 무시 (정상)
-                            console.log('[Side Panel] 설정 변경 알림 전송 실패 (정상일 수 있음):', error.message);
-                        });
+                        chrome.tabs
+                            .sendMessage(tabs[0].id, {
+                                type: "SETTINGS_UPDATED",
+                                data: settingsToSave,
+                            })
+                            .catch((error) => {
+                                // Content Script가 없거나 로드되지 않은 경우 무시 (정상)
+                                console.log("[Side Panel] 설정 변경 알림 전송 실패 (정상일 수 있음):", error.message);
+                            });
                     }
                 } catch (error) {
-                    console.error('[Side Panel] 설정 변경 알림 전송 실패:', error);
+                    console.error("[Side Panel] 설정 변경 알림 전송 실패:", error);
                 }
             }
             return true;
         } catch (error) {
-            console.error('[Side Panel] 설정 처리 실패:', error);
+            console.error("[Side Panel] 설정 처리 실패:", error);
             return false;
         }
     }
@@ -268,7 +280,7 @@
         }
 
         // 설정 관련 메시지 처리
-        if (event.data && (event.data.type === 'SAVE_SETTINGS' || event.data.type === 'REQUEST_SETTINGS')) {
+        if (event.data && (event.data.type === "SAVE_SETTINGS" || event.data.type === "REQUEST_SETTINGS")) {
             await handleSettingsMessage(event);
             return;
         }
@@ -291,13 +303,15 @@
                     const currentTab = tabs[0];
                     if (currentTab && currentTab.id) {
                         const windowIdToUse = myWindowId || currentTab.windowId;
-                        chrome.runtime.sendMessage({
-                            type: 'REQUEST_CURRENT_PAGE_INFO',
-                            tabId: currentTab.id,
-                            windowId: windowIdToUse,
-                        }).catch((error) => {
-                            console.error("[Side Panel] 페이지 정보 요청 실패:", error);
-                        });
+                        chrome.runtime
+                            .sendMessage({
+                                type: "REQUEST_CURRENT_PAGE_INFO",
+                                tabId: currentTab.id,
+                                windowId: windowIdToUse,
+                            })
+                            .catch((error) => {
+                                console.error("[Side Panel] 페이지 정보 요청 실패:", error);
+                            });
                     }
                 });
             }, 300);
@@ -308,13 +322,16 @@
     function switchTab(tabName) {
         if (iframe.contentWindow) {
             try {
-                iframe.contentWindow.postMessage({
-                    type: "EXTENSION_MESSAGE",
-                    data: {
-                        type: "SWITCH_TAB",
-                        tabName: tabName,
+                iframe.contentWindow.postMessage(
+                    {
+                        type: "EXTENSION_MESSAGE",
+                        data: {
+                            type: "SWITCH_TAB",
+                            tabName: tabName,
+                        },
                     },
-                }, "*");
+                    "*"
+                );
             } catch (error) {
                 console.error("[Side Panel] 탭 전환 메시지 전송 실패:", error);
             }
@@ -326,7 +343,7 @@
         // 탭 전환 메시지 처리
         if (message.type === "SWITCH_TAB") {
             const messageWindowId = message.windowId;
-            
+
             // 자신의 창 메시지인지 확인
             if (!myWindowId) {
                 initializeMyWindowId().then((initializedWindowId) => {
@@ -337,7 +354,7 @@
             } else if (messageWindowId === myWindowId) {
                 switchTab(message.tabName);
             }
-            
+
             sendResponse({ success: true });
             return true;
         }
@@ -384,11 +401,9 @@
             if (iframe.contentWindow) {
                 const messageToSend = {
                     type: "EXTENSION_MESSAGE",
-                    data: message.type === 'PAGE_INFO_UPDATE' 
-                        ? { type: 'PAGE_INFO_UPDATE', data: message.data }
-                        : (message.data || message)
+                    data: message.type === "PAGE_INFO_UPDATE" ? { type: "PAGE_INFO_UPDATE", data: message.data } : message.data || message,
                 };
-                
+
                 iframe.contentWindow.postMessage(messageToSend, "*");
                 return true;
             }
@@ -400,9 +415,7 @@
             // iframe이 아직 로드되지 않았으면 큐에 추가
             const messageToSend = {
                 type: "EXTENSION_MESSAGE",
-                data: message.type === 'PAGE_INFO_UPDATE' 
-                    ? { type: 'PAGE_INFO_UPDATE', data: message.data }
-                    : (message.data || message)
+                data: message.type === "PAGE_INFO_UPDATE" ? { type: "PAGE_INFO_UPDATE", data: message.data } : message.data || message,
             };
             queueMessage(messageToSend);
         }
