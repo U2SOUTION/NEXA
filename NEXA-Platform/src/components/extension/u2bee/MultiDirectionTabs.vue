@@ -3,8 +3,8 @@
   <div class="multi-direction-tabs-container" :class="{ 'injected-mode': isInjectedMode }">
     <!-- 탭만 표시 (콘텐츠 패널 제거) -->
     <div v-if="allTabs.length > 0" class="tabs-section tabs-right">
-      <div class="tabs-wrapper" :class="{ 'tabs-hidden': !isTabsVisible }">
-        <div class="title-container" @click="toggleTabs">
+      <div class="tabs-wrapper" :class="{ 'tabs-hidden': !isTabsVisible }" :style="{ transform: `translateY(${titlePosition}px)` }">
+        <div class="title-container" @mousedown="startDrag" @click="handleTitleClick">
           <div class="nexa-title">NEXA</div>
           <div class="nexa-subtitle">U2 SOLUTION</div>
         </div>
@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useTabConfig } from 'src/composables/extension/u2bee/useTabConfig'
 
 defineProps({
@@ -43,10 +43,97 @@ const { visibleTabs } = useTabConfig()
 // 아이콘 표시/숨김 상태
 const isTabsVisible = ref(true)
 
+// 타이틀 위치 관리
+const STORAGE_KEY_TITLE_POSITION = 'u2bee_title_position'
+const titlePosition = ref(0)
+const isDragging = ref(false)
+const dragStartY = ref(0)
+const dragStartPosition = ref(0)
+const dragEndY = ref(0)
+const DRAG_THRESHOLD = 5 // 5px 이상 이동하면 드래그로 간주
+
+// 저장된 위치 로드
+function loadTitlePosition() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_TITLE_POSITION)
+    if (saved !== null) {
+      titlePosition.value = parseInt(saved, 10)
+    }
+  } catch (error) {
+    console.error('Failed to load title position:', error)
+  }
+}
+
+// 위치 저장
+function saveTitlePosition() {
+  try {
+    localStorage.setItem(STORAGE_KEY_TITLE_POSITION, titlePosition.value.toString())
+  } catch (error) {
+    console.error('Failed to save title position:', error)
+  }
+}
+
+// 드래그 시작
+function startDrag(event) {
+  isDragging.value = true
+  dragStartY.value = event.clientY
+  dragStartPosition.value = titlePosition.value
+  event.preventDefault()
+}
+
+// 드래그 중
+function handleMouseMove(event) {
+  if (!isDragging.value) return
+
+  const deltaY = event.clientY - dragStartY.value
+  const newPosition = dragStartPosition.value + deltaY
+
+  // 화면 경계 체크 (선택사항)
+  const maxPosition = window.innerHeight / 2 - 50
+  const minPosition = -window.innerHeight / 2 + 50
+
+  titlePosition.value = Math.max(minPosition, Math.min(maxPosition, newPosition))
+}
+
+// 드래그 종료
+function handleMouseUp(event) {
+  if (isDragging.value) {
+    dragEndY.value = event.clientY
+    const dragDistance = Math.abs(dragEndY.value - dragStartY.value)
+
+    isDragging.value = false
+
+    // 드래그 거리가 작으면 클릭으로 간주하여 토글
+    if (dragDistance < DRAG_THRESHOLD) {
+      toggleTabs()
+    } else {
+      // 드래그가 발생했으면 위치 저장
+      saveTitlePosition()
+    }
+  }
+}
+
+// 타이틀 클릭 처리 (드래그가 아닌 경우에만 토글)
+function handleTitleClick() {
+  // 클릭 이벤트는 handleMouseUp에서 처리하므로 여기서는 아무것도 하지 않음
+}
+
 // 타이틀 클릭 시 토글
 function toggleTabs() {
   isTabsVisible.value = !isTabsVisible.value
 }
+
+// 이벤트 리스너 등록/해제
+onMounted(() => {
+  loadTitlePosition()
+  window.addEventListener('mousemove', handleMouseMove)
+  window.addEventListener('mouseup', handleMouseUp)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('mousemove', handleMouseMove)
+  window.removeEventListener('mouseup', handleMouseUp)
+})
 
 // 모든 탭을 우측에 세로로 배치
 const allTabs = computed(() => {
@@ -138,6 +225,7 @@ function selectTab(tabName) {
     justify-content: flex-start;
     transition: justify-content 0.9s ease;
     margin-left: 10px;
+    position: relative;
 
     &.tabs-hidden {
       justify-content: center;
@@ -151,7 +239,9 @@ function selectTab(tabName) {
     background: rgba(45, 137, 62, 0.7);
     padding: 3px 8px;
     border-radius: 4px 0 0 4px;
-    transition: all 0.9s ease;
+    transition:
+      background 0.3s ease,
+      box-shadow 0.3s ease;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
@@ -161,6 +251,10 @@ function selectTab(tabName) {
     &:hover {
       background: rgba(45, 137, 62, 0.85);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    &:active {
+      cursor: grabbing;
     }
   }
 
