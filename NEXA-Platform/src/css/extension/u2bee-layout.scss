@@ -26,6 +26,11 @@ body {
     background: transparent !important;
     background-color: transparent !important;
   }
+
+  // 사이드 패널 모드에서는 패딩을 반으로 줄임
+  &.sidepanel-mode {
+    padding: 20px 12px;
+  }
 }
 
 // Injected 모드에서 html도 투명하게
@@ -60,6 +65,7 @@ html.injected-mode {
     overflow: hidden;
     background: transparent !important;
     background-color: transparent !important;
+    align-items: center !important;
   }
 }
 
@@ -115,16 +121,15 @@ html.injected-mode {
 // ============================================
 // Tabs
 // ============================================
-// .u2bee-tabs {
-//   flex-shrink: 0;
-//   border-bottom: 1px solid var(--nexa-border-color);
-//   background: var(--nexa-background);
-// }
+.u2bee-tabs {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--nexa-border-color);
+}
 
 // ============================================
 // Tab Panels
 // ============================================
-// .u2bee-panels {
-//   flex: 1;
-//   min-height: 0;
-// }
+.u2bee-panels {
+  flex: 1;
+  min-height: 0;
+}

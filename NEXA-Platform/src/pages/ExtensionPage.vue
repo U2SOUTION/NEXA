@@ -255,6 +255,23 @@ watch(
   { immediate: true },
 )
 
+// currentMode 변경 시 body 클래스 업데이트
+watch(
+  currentMode,
+  (mode) => {
+    // 기존 모드 클래스 제거
+    document.body.classList.remove('injected-mode', 'sidepanel-mode')
+
+    // 새 모드에 따른 클래스 추가
+    if (mode === 'injected') {
+      document.body.classList.add('injected-mode')
+    } else if (mode === 'sidepanel') {
+      document.body.classList.add('sidepanel-mode')
+    }
+  },
+  { immediate: true },
+)
+
 // 현재 페이지 정보 (Extension에서 수신)
 const currentPageInfo = ref({
   url: '',
@@ -349,6 +366,10 @@ onMounted(() => {
   if (currentMode.value === 'injected') {
     document.body.classList.add('injected-mode')
   }
+  // 사이드 패널 모드일 때 body에 클래스 추가
+  if (currentMode.value === 'sidepanel') {
+    document.body.classList.add('sidepanel-mode')
+  }
 
   if (isIframeMode.value) {
     // 즉시 리스너 등록
@@ -374,6 +395,8 @@ onMounted(() => {
 onUnmounted(() => {
   // Injected 모드 클래스 제거
   document.body.classList.remove('injected-mode')
+  // 사이드 패널 모드 클래스 제거
+  document.body.classList.remove('sidepanel-mode')
 
   if (isIframeMode.value) {
     window.removeEventListener('message', handleExtensionMessage)
@@ -382,41 +405,15 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss">
-// U2BEE 관련 스타일은 u2bee-layout.scss에서 통합 관리
-@import 'src/css/extension/u2bee-layout.scss';
+// ============================================
+// U2BEE 관련 스타일
+// ============================================
 
-// Injected 모드 전용 스타일 - 완전히 투명하게
-body.injected-mode {
-  background: transparent !important;
-  background-color: transparent !important;
+@import 'src/css/extension/u2bee-layout.scss'; // U2BEE 관련 스타일은 u2bee-layout.scss에서 통합 관리
 
-  #q-app {
-    background: transparent !important;
-    background-color: transparent !important;
-  }
-
-  .u2bee-container.injected-layout {
-    background: transparent !important;
-    background-color: transparent !important;
-    display: flex !important;
-    align-items: center !important;
-    height: 100vh !important;
-  }
-}
-
-// Quasar 기본 스타일 덮어쓰기 (injected 모드)
-body.injected-mode {
-  .q-page,
-  .q-page-container,
-  .q-layout,
-  .q-layout__section,
-  .q-layout__container {
-    background: transparent !important;
-    background-color: transparent !important;
-  }
-}
-
-// 일반 Extension 페이지 스타일 (U2BEE가 아닌 경우)
+// ============================================
+// Extension 메인 페이지 스타일 (넥사 플렛폼 확장 프로그램 관리 페이지)
+// ============================================
 .extension-page {
   min-height: 100vh;
   display: flex;
@@ -425,27 +422,9 @@ body.injected-mode {
   overflow-y: visible;
 }
 
-// 기존 스타일 (메인 페이지용)
+//메인페이지 카테고리별 패널 스타일 (크롬 확장 프로그램, NEXA Desktop, 기타)
 .extension-category-panel {
   border-radius: 4px;
   padding: 16px 35px;
-}
-
-.extension-page .q-tab-panels {
-  background: transparent;
-}
-
-.extension-page .q-tab-panel {
-  padding: 0;
-}
-
-.extension-item {
-  cursor: pointer;
-  padding: 1rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-  &:hover {
-    background-color: var(--nexa-surface-hover);
-  }
 }
 </style>

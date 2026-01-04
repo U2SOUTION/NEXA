@@ -24,11 +24,34 @@
     background-color: var(--nexa-border-color);
   }
 
-  // 탭 내부 아이콘과 라벨을 가로 배치 강제
+  // 탭 내부 아이콘과 라벨 배치 (가로/세로 분기)
   .q-tab__content {
+    // 기본: 가로 배치 강제 (column 클래스가 있어도 가로 배치 유지)
     flex-direction: row;
     align-items: center;
     gap: 4px;
+  }
+
+  // 기본 라벨 크기 (가로 배치일 때)
+  .q-tab__content .q-tab__label {
+    font-size: 14px !important; // (실패) 가로 배치일 때 기본 폰트 크기
+  }
+
+  // 세로 배치일 때 아이콘과 라벨의 마진 제거 및 크기 조정
+  .q-tab__content.column {
+    // 아이콘 마진 제거 및 크기 확대
+    .q-tab__icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+
+    // 라벨 마진 제거 및 음수 마진으로 간격 최소화, 크기 축소
+    .q-tab__label {
+      margin-top: -10px !important; // 음수 마진으로 간격 최소화
+      line-height: 1;
+      font-size: 10px !important; // 라벨 크기 축소 (세로 배치일 때만)
+    }
   }
 }
 
@@ -38,4 +61,4 @@
   //border: 1px solid var(--nexa-border-color);
 }
 
-// 탭 패널 내부 아코디언 간격은 _expansion-item.scss에서 전역 제어
+// 탭 패널 내부  _expansion-item.scss에서 전역 제어
