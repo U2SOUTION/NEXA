@@ -31,7 +31,7 @@
           <rect width="120" height="90" fill="var(--nexa-surface)" stroke="var(--nexa-border-color)" stroke-width="1" rx="4" />
           <circle cx="60" cy="35" r="12" fill="var(--nexa-text-secondary)" opacity="0.3" />
           <path d="M 55 30 L 55 40 L 65 35 Z" fill="var(--nexa-text-secondary)" opacity="0.5" />
-          <text x="60" y="65" text-anchor="middle" font-size="10" fill="var(--nexa-text-secondary)" opacity="0.5">Thumbnail</text>
+          <text x="60" y="60" text-anchor="middle" font-size="10" fill="var(--nexa-text-secondary)" opacity="0.5">Thumbnail</text>
         </svg>
       </div>
 
@@ -94,11 +94,11 @@
   </div>
 
   <!-- 카테고리 -->
-  <div class="rating-section">
+  <div class="rating-section category-section">
     <div class="row items-center q-gutter-xs">
       <q-btn flat dense round icon="add" size="sm" />
       <q-btn flat dense round icon="remove" size="sm" />
-      <q-chip v-for="category in mockCategories" :key="category.id" :label="category.name" :class="category.selected ? 'category-chip-selected' : 'category-chip'" clickable @click="toggleCategory(category.id)" size="sm" />
+      <q-btn v-for="category in mockCategories" :key="category.id" :label="category.name" :class="category.selected ? 'category-chip-selected' : 'category-chip'" clickable @click="toggleCategory(category.id)" size="sm" />
     </div>
   </div>
 
@@ -403,164 +403,10 @@ function toggleCategory(categoryId) {
   color: var(--nexa-text-primary);
 }
 
-.content-meta-line {
-  font-size: 12px;
-  line-height: 1.4;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-  color: var(--nexa-text-secondary);
-}
-
-.content-meta-line > span,
-.content-meta-line > a {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.content-meta-line > a {
-  flex-shrink: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.meta-separator {
-  color: var(--nexa-text-disabled);
-  margin: 0 2px;
-}
-
-.content-meta-line > a {
-  color: var(--nexa-text-secondary);
-  text-decoration: none;
-}
-
-.content-meta-single-line {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--nexa-text-secondary);
-  overflow: hidden;
-}
-
-.content-meta-single-line .type-chip {
-  font-weight: 600;
-  font-size: 10px;
-  padding: 2px 6px;
-  flex-shrink: 0;
-}
-
-.content-meta-single-line .meta-item {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  flex-shrink: 0;
-  vertical-align: middle;
-}
-
-.content-meta-single-line .meta-item :deep(.q-icon) {
-  display: inline-flex;
-  align-items: center;
-  vertical-align: middle;
-  line-height: 1;
-  margin: 0;
-}
-
-.content-meta-single-line .meta-separator {
-  color: var(--nexa-text-disabled);
-  margin: 0 2px;
-  flex-shrink: 0;
-}
-
-.content-meta-single-line .content-url-text {
-  color: var(--nexa-text-disabled);
-  text-decoration: none;
-  cursor: default;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.content-description {
-  font-size: 11px;
-  line-height: 1.1;
-  color: var(--nexa-text-secondary);
-  margin-top: 2px;
-  word-break: break-word;
-
-  &:hover {
-    color: var(--nexa-text-primary);
-    text-decoration: underline;
-  }
-}
-
-.category-chip {
-  background-color: var(--nexa-surface);
-  color: var(--nexa-text-secondary);
-}
-
-.category-chip-selected {
-  background-color: var(--nexa-button-primary-bg);
-  color: var(--nexa-button-primary-text);
-}
-
-.like-rating :deep(.q-icon) {
-  color: var(--nexa-warning);
-}
-
-.dislike-slider :deep(.q-slider__track) {
-  background-color: var(--nexa-form-track-color) !important;
-}
-
-.dislike-slider :deep(.q-slider__selection) {
-  background-color: var(--nexa-error) !important;
-}
-
-.dislike-slider :deep(.q-slider__thumb-shape path) {
-  fill: var(--nexa-error) !important;
-  stroke: var(--nexa-error) !important;
-}
-
-.dislike-slider :deep(.q-slider__text-container) {
-  display: none;
-}
-
-.dislike-slider :deep(.q-slider__pin) {
-  display: none;
-}
-
-.memo-button {
-  color: var(--nexa-text-secondary);
-}
-
-.save-button {
-  background-color: var(--nexa-success);
-  color: var(--nexa-text-primary);
-}
-
-.rating-label {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--nexa-text-primary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.rating-actions {
-  margin-top: 16px;
-  display: flex;
-  justify-content: center;
+.category-section {
+  margin-top: 10px;
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 4px;
+  padding: 6px;
 }
 </style>

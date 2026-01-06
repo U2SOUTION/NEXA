@@ -369,7 +369,7 @@ const mainMenuTabs = [
   { name: 'erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
   { name: 'parts-management', label: '부품관리', displayLabel: '부품관리', icon: 'inventory_2', route: '/parts-management', exact: false, onClick: handlePartsManagementTabClick, nexaPrefix: false },
   { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },
-  { name: 'system', label: 'SYSTEM', displayLabel: 'SYSTEM', icon: 'settings', route: '/system', exact: false, nexaPrefix: false },
+  { name: 'system', label: 'SYSTEM', displayLabel: 'SYSTEM', icon: 'settings', route: '/system', exact: false, nexaPrefix: false }, // TODO: INFRA 로 변경 예정
   { name: 'network', label: 'NETWORK', displayLabel: 'NETWORK', icon: 'router', route: '/network', exact: false, nexaPrefix: false },
   { name: 'solutions', label: 'SOLUTIONS', displayLabel: 'SOLUTIONS', icon: 'lightbulb', route: '/solutions', exact: false, nexaPrefix: false },
   { name: 'extension', label: 'Extension', displayLabel: 'Extension', icon: 'extension', route: '/extension', exact: false, nexaPrefix: false },
@@ -1602,11 +1602,11 @@ onBeforeUnmount(() => {
 /* NEXA svg logo 크기 조절*/
 .nexa-logo {
   display: block;
-  width: 50px;
+  width: 30px;
   height: 26px;
+  transform: scaleX(1.6);
   object-fit: contain;
   object-position: left center;
-  transform: scaleX(2.5);
   transform-origin: left center;
   transition: filter var(--transition-duration) ease;
   filter: brightness(1);
@@ -1646,9 +1646,9 @@ onBeforeUnmount(() => {
 }
 /* 메뉴 탭 스타일 */
 .main-menu-tabs .q-tab {
-  padding-left: clamp(2px, 0.58vw, 12px); //동적으로 조절
-  padding-right: clamp(2px, 0.58vw, 12px); //동적으로 조절
-  letter-spacing: clamp(0px, 0.06vw, 0.08px);
+  padding-left: clamp(2px, 0.57vw, 22px); //동적으로 조절
+  padding-right: clamp(2px, 0.57vw, 22px); //동적으로 조절
+  letter-spacing: clamp(0px, 0.06vw, 0.08px); //동적으로 조절
 
   padding-top: 7px;
   padding-bottom: 7px;
@@ -1803,6 +1803,9 @@ onBeforeUnmount(() => {
 .header-icon-group .q-btn {
   white-space: nowrap;
   flex-shrink: 0;
+  padding: clamp(1px, 0.01vw, 3vw); //동적으로 조절
+  margin-right: clamp(1px, 0.1vw, 3vw); //동적으로 조절
+  //border: 1px solid red;
 }
 
 .header-icon-group .q-btn__content {
