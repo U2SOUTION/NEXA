@@ -3,13 +3,54 @@
  -->
 
 <template>
-  <q-page class="automation-page">
+  <q-page class="nexa-node-page">
     <div class="q-pa-lg">
       <div class="page-header q-mb-lg">
-        <h1 class="text-h4 text-primary q-mb-sm">NEXA NODE</h1>
-        <p class="text-body1 text-grey-7">NEXA 노드 에디터를 통한 자동화 규칙 구상 및 검증</p>
-      </div>
+        <div class="header-title">NEXA NODE 그래픽 에디터</div>
+        <div class="header-description">NEXA 노드 에디터를 통한 자동화 규칙 구상 및 검증을 위한 도구</div>
 
+        <div class="toolbar-rows q-mt-md">
+          <div class="toolbar-group">
+            <span class="toolbar-label">View:</span>
+            <q-btn flat dense label="+" />
+            <q-btn flat dense label="-" />
+            <q-btn flat dense label="1:1" />
+            <q-btn flat dense label="꽉차기" />
+            <q-btn flat dense label="Grid" />
+            <q-btn flat dense label="줌 초기화" />
+            <q-btn flat dense label="그리드 배경" />
+            <q-btn flat dense label="토글" />
+          </div>
+          <div class="toolbar-group">
+            <span class="toolbar-label">Layout:</span>
+            <q-btn flat dense label="Auto" />
+            <q-btn flat dense label="Snap" />
+            <q-btn flat dense label="물리 엔진" />
+            <q-btn flat dense label="격자 정렬" />
+            <q-btn flat dense label="선택 노드 수동이동" />
+          </div>
+          <div class="toolbar-group">
+            <span class="toolbar-label">Link:</span>
+            <q-btn flat dense label="Bezier" />
+            <q-btn flat dense label="곡선" />
+            <q-btn flat dense label="직각" />
+          </div>
+          <div class="toolbar-group">
+            <span class="toolbar-label">Engine:</span>
+            <q-btn flat dense label="Mock" />
+            <q-btn flat dense label="Live" />
+            <q-btn flat dense label="렌덤" />
+          </div>
+          <div class="toolbar-group">
+            <span class="toolbar-label">Control:</span>
+            <q-btn flat dense label="▶" />
+            <q-btn flat dense label="⏸" />
+            <q-btn flat dense label="⏭" />
+            <span class="toolbar-info">시뮬레이션 실행 / 일시정지 / 단계별 실행</span>
+          </div>
+        </div>
+      </div>
+      <!-- 가상 장비 시뮬레이터 -->
       <div v-if="isSimulatorVisible" class="simulator-overlay">
         <div class="simulator-header row items-center justify-between">
           <div>
@@ -32,9 +73,6 @@
           <NodeCanvas class="canvas-full" :nodes="canvasNodes" :links="canvasLinks" />
         </div>
         <div v-else class="doc-stage">
-          <div class="canvas-hint text-caption q-mb-lg">
-            {{ canvasHintText }}
-          </div>
           <!-- 메인 탭 -->
           <q-tabs v-model="mainTab" class="q-mb-lg" align="left" dense>
             <q-tab name="basic" label="기본 개념" icon="lightbulb" />
@@ -263,7 +301,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import NodeCanvas from 'src/components/nexa-node/NodeCanvas.vue'
 import VirtualCanvas from 'src/components/nexa-node/VirtualCanvas.vue'
@@ -274,13 +312,6 @@ import { useNexaNodeStore } from 'src/stores/nexaNodeStore'
 const mainTab = ref('basic')
 const nexNodeStore = useNexaNodeStore()
 const { canvasNodes, canvasLinks, canvasReady, isSimulatorVisible } = storeToRefs(nexNodeStore)
-
-const canvasHintText = computed(() => {
-  if (canvasReady.value) {
-    return ''
-  }
-  return '왼쪽 사이드바의 [New]를 눌러 기본 다이어그램 캔버스를 생성하세요.'
-})
 
 const closeSimulator = () => nexNodeStore.closeSimulator()
 
@@ -293,14 +324,15 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.automation-page {
+.nexa-node-page {
   background: var(--nexa-background);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-.automation-page > .q-pa-lg {
+//페이지 컨테이너 - 켄버스 꽉차도록
+.nexa-node-page > .q-pa-lg {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -308,7 +340,54 @@ onMounted(() => {
 
 .page-header {
   border-bottom: 1px solid var(--nexa-border-color);
-  padding-bottom: 16px;
+  font-weight: 900;
+}
+
+.header-title {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--nexa-primary);
+}
+
+.header-description {
+  font-size: 0.8rem;
+  color: var(--nexa-text-secondary);
+}
+
+.toolbar-rows {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px;
+  //margin-top: 12px;
+  justify-content: flex-start;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 4px;
+  padding: 4px;
+  background-color: var(--nexa-background-lower);
+}
+
+.toolbar-group :deep(.q-btn) {
+  min-width: 50px;
+  background-color: var(--nexa-background-upper);
+}
+
+.toolbar-label {
+  font-weight: 600;
+  margin: 0 6px;
+  color: var(--nexa-text-secondary);
+}
+
+.toolbar-info {
+  margin: 0 12px;
+  font-size: 0.7rem;
+  color: var(--nexa-text-secondary);
 }
 
 .page-content {

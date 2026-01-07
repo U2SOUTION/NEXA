@@ -20,6 +20,14 @@ const mapGroupToType = (group: FormulatorGroup) => {
   return 'action'
 }
 
+const deviceCatalog = [
+  { id: 'dev-01', name: 'NEXA V-EDGE 01', type: '온도/냉각', status: 'online' },
+  { id: 'dev-02', name: 'NEXA V-EDGE 02', type: '습도/환기', status: 'online' },
+  { id: 'dev-03', name: 'NEXA V-EDGE 03', type: '전력/조명', status: 'offline' },
+]
+
+export const getDeviceCatalog = () => deviceCatalog
+
 export const useNexaNodeStore = defineStore('nexaNode', () => {
   const viewMode = ref<'doc' | 'canvas'>('doc')
   const activeBlueprint = ref<Blueprint | null>(null)
@@ -39,16 +47,32 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
     return null
   })
 
+  const selectedDeviceIds = ref<string[]>([])
+
+  const selectedDevices = computed(() => {
+    return deviceCatalog.filter((device) => selectedDeviceIds.value.includes(device.id))
+  })
+
   const canvasNodes = computed(() => {
-    if (!activeBlueprint.value) return []
-    return activeBlueprint.value.composition.formulators.map((formulator, index) => ({
-      id: formulator.metadata.id,
-      label: formulator.display.label,
-      type: mapGroupToType(formulator.identity.group),
-      x: 180 + index * 260,
-      y: 160,
+    if (selectedDevices.value.length === 0) return []
+    return selectedDevices.value.map((device, index) => ({
+      id: device.id,
+      label: device.name,
+      type: 'trigger',
+      x: 180 + (index % 3) * 260,
+      y: 140 + Math.floor(index / 3) * 180,
+      ports: createPorts(),
     }))
   })
+
+  function createPorts() {
+    const count = Math.floor(Math.random() * 3) + 2
+    const portTypes = ['input', 'output', 'control'] as const
+    return Array.from({ length: count }).map((_, idx) => ({
+      id: `port-${idx}`,
+      type: portTypes[idx % portTypes.length],
+    }))
+  }
 
   const canvasLinks = computed(() => {
     if (!activeBlueprint.value) return []
@@ -60,61 +84,18 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
 
   const canvasReady = computed(() => Boolean(activeBlueprint.value))
 
-  function createDefaultBlueprint() {
-    const nodesMetadata = [
-      { id: 'trigger-sensor', label: 'Sensor Trigger', group: 'TIME' as FormulatorGroup },
-      { id: 'logic-adder', label: 'Adder Logic', group: 'MATH' as FormulatorGroup },
-      { id: 'action-device', label: 'Device Control', group: 'CONVERT' as FormulatorGroup },
-    ]
-
-    const formulators = nodesMetadata.map((node) => ({
-      metadata: { ...defaultMetadata(node.id) },
-      identity: {
-        group: node.group,
-        type: node.label.replace(' ', '_').toUpperCase(),
-        version: '1.0.0',
-      },
-      interface: {
-        ingredients: [{ id: 'input', label: 'Input', type: 'NUMBER' as const }],
-        results: [{ id: 'output', label: 'Output', type: 'NUMBER' as const }],
-      },
-      display: {
-        label: node.label,
-        icon: 'spark_line',
-        color: node.group === 'TIME' ? 'var(--nexa-success)' : node.group === 'MATH' ? 'var(--nexa-button-primary-bg)' : 'var(--nexa-accent)',
-        description: `${node.label}의 기본 자동화 노드`,
-      },
-      settings: {},
-    }))
-
-    const connections = [
-      {
-        metadata: { ...defaultMetadata('conn-trigger-logic') },
-        source: { formulatorId: 'trigger-sensor', resultId: 'output' },
-        target: { formulatorId: 'logic-adder', ingredientId: 'input' },
-        status: { isActive: true, isValidated: true },
-        display: { color: 'var(--nexa-text-secondary)' },
-      },
-      {
-        metadata: { ...defaultMetadata('conn-logic-action') },
-        source: { formulatorId: 'logic-adder', resultId: 'output' },
-        target: { formulatorId: 'action-device', ingredientId: 'input' },
-        status: { isActive: true, isValidated: true },
-        display: { color: 'var(--nexa-text-secondary)' },
-      },
-    ]
-
+  function createDefaultBlueprint(skipHelperNotification = false) {
     const blueprint: Blueprint = {
       metadata: defaultMetadata('blueprint-default'),
       config: {
-        name: '기본 자동화 흐름',
-        description: '센서 → 연산 → 디바이스 순의 기본 흐름',
+        name: '기본 설계도',
+        description: '초기 캔버스 (노드 없음)',
         isLocked: false,
       },
       composition: {
         panels: [],
-        formulators,
-        connections,
+        formulators: [],
+        connections: [],
       },
       viewport: {
         zoom: 1,
@@ -127,6 +108,31 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
     }
 
     activeBlueprint.value = blueprint
+    if (!skipHelperNotification) {
+      window.dispatchEvent(new CustomEvent('nexa-node-new-canvas'))
+    }
+  }
+
+  function toggleDeviceSelection(deviceId: string) {
+    const index = selectedDeviceIds.value.indexOf(deviceId)
+    if (index >= 0) {
+      selectedDeviceIds.value.splice(index, 1)
+      if (selectedDeviceIds.value.length === 0) {
+        window.dispatchEvent(new CustomEvent('nexa-node-helper-hide'))
+      }
+      return
+    }
+    selectedDeviceIds.value.push(deviceId)
+    if (!activeBlueprint.value) {
+      createDefaultBlueprint(true)
+    }
+    if (selectedDeviceIds.value.length === 1) {
+      window.dispatchEvent(new CustomEvent('nexa-node-helper-hide'))
+    }
+  }
+
+  function isDeviceSelected(deviceId: string) {
+    return selectedDeviceIds.value.includes(deviceId)
   }
 
   function resetBlueprint() {
@@ -158,5 +164,9 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
     isSimulatorVisible,
     openSimulator,
     closeSimulator,
+    selectedDeviceIds,
+    selectedDevices,
+    toggleDeviceSelection,
+    isDeviceSelected,
   }
 })

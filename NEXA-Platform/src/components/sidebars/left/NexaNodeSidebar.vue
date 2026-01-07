@@ -33,6 +33,27 @@
       <q-btn outline icon="terminal" label="시물레이터" class="full-width btn-action tmp-developer-mode-btn" @click="nexNodeStore.openSimulator()" />
     </div>
 
+    <div class="device-accordion q-mt-sm">
+      <q-expansion-item label="연결된 장비" icon="memory" default-opened>
+        <div v-if="devices.length === 0" class="no-device">
+          <div class="text-caption text-grey-6">등록된 장비가 없습니다.</div>
+          <q-btn flat dense label="장비 등록" color="primary" class="full-width" @click="handleRegisterClick" />
+        </div>
+        <div v-else class="device-list">
+          <div v-for="device in devices" :key="device.id" class="device-item" :class="{ 'device-active': nexNodeStore.isDeviceSelected(device.id) }" @click="() => nexNodeStore.toggleDeviceSelection(device.id)">
+            <div class="row items-center justify-between">
+              <div>
+                <div class="text-caption text-bold">{{ device.name }}</div>
+                <div class="text-caption text-grey-6">{{ device.type }}</div>
+              </div>
+              <q-badge :color="device.status === 'online' ? 'green-6' : 'grey-6'" outline>{{ device.status }}</q-badge>
+            </div>
+          </div>
+          <q-btn flat dense label="장비 등록" color="primary" class="full-width addDeviceBtn" @click="handleRegisterClick" />
+        </div>
+      </q-expansion-item>
+    </div>
+
     <div class="tabs-container">
       <q-tabs v-model="resourceTab" dense active-color="primary" indicator-color="primary" align="justify">
         <q-tab name="nodes" label="Nodes" icon="hub" />
@@ -87,11 +108,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useNexaNodeStore } from 'src/stores/nexaNodeStore'
+import { getDeviceCatalog, useNexaNodeStore } from 'src/stores/nexaNodeStore'
 
 const resourceTab = ref('nodes')
 const searchQuery = ref('')
 const nexNodeStore = useNexaNodeStore()
+const devices = getDeviceCatalog()
 
 const handleNewCanvas = () => nexNodeStore.createDefaultBlueprint()
 const handleHeaderClick = () => nexNodeStore.resetBlueprint()
@@ -132,9 +154,14 @@ const compositionGroups = [
   },
 ]
 
+const handleRegisterClick = () => {
+  console.log('장비 등록 UI') // placeholder for future modal
+}
+
 const handleDrag = (event, type, item) => {
   event.dataTransfer.setData('resourceType', type)
   event.dataTransfer.setData('itemData', JSON.stringify(item))
+  window.dispatchEvent(new CustomEvent('nexa-node-helper-hide'))
 }
 
 const loadComposition = (comp) => console.log('로드:', comp.name)
@@ -160,6 +187,35 @@ const printCanvas = () => console.log('프린트')
 .node-sidebar-buttons > * {
   flex: 1;
   min-width: 0;
+}
+
+.device-accordion {
+  margin-top: 2px;
+}
+
+.device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 3px;
+}
+
+.device-item {
+  padding: 6px 8px;
+  border: 1px solid var(--nexa-border-color);
+  border-radius: 6px;
+  background: var(--nexa-surface);
+}
+
+.device-item.device-active {
+  border-color: var(--nexa-success);
+  background: rgba(40, 167, 69, 0.12);
+}
+
+.no-addDeviceBtn {
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
 }
 
 .tabs-container {

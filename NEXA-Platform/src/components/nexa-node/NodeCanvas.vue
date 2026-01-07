@@ -15,14 +15,18 @@
       </g>
     </svg>
     <div v-if="!hasDiagram" class="canvas-empty-state">
-      <div class="canvas-empty-title">NEW 클릭으로 다이어그램을 시작하세요</div>
-      <p class="canvas-empty-text">기본 트리거 → 로직 → 액션 흐름이 자동 배치됩니다.</p>
+      <slot name="canvas-template">
+        <div class="canvas-empty-title">NEXA NODE를 드래그하여 제어 로직을 구성하세요</div>
+        <div class="canvas-empty-process">장비선택 - 노드선택 - 패널선택 - 연결 - 뷰포트 - 런타임 정책</div>
+        <div class="canvas-empty-template">템플릿 선택하면 빠르게 시작 할 수 있습니다.</div>
+        <p class="canvas-empty-text">기본 트리거 → 로직 → 액션 흐름이 자동 배치됩니다.</p>
+      </slot>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
@@ -38,6 +42,24 @@ const props = defineProps({
 
 const canvasRef = ref(null)
 let zoomGroup = null
+const showHelper = ref(true)
+let simulation = null
+
+function getDiagramSize() {
+  if (!canvasRef.value) return { width: 0, height: 0 }
+  return {
+    width: canvasRef.value.clientWidth || 0,
+    height: canvasRef.value.clientHeight || 0,
+  }
+}
+
+function hideHelper() {
+  showHelper.value = false
+}
+
+function showHelperHint() {
+  showHelper.value = true
+}
 
 const hasDiagram = computed(() => Array.isArray(props.nodes) && props.nodes.length > 0)
 
@@ -65,31 +87,28 @@ function renderDiagram() {
 
   const nodes = props.nodes || []
   const links = props.links || []
-  const nodeMap = new Map(nodes.map((node) => [node.id, node]))
 
   const linkLayer = diagramGroup.append('g').attr('class', 'link-layer')
-  links.forEach((link) => {
-    const source = nodeMap.get(link.source)
-    const target = nodeMap.get(link.target)
-    if (!source || !target) return
-    linkLayer.append('line').attr('class', 'link').attr('x1', source.x).attr('y1', source.y).attr('x2', target.x).attr('y2', target.y).attr('marker-end', 'url(#diagram-arrow)')
-  })
+  const linkSelection = linkLayer.selectAll('.link').data(links).enter().append('line').attr('class', 'link').attr('marker-end', 'url(#diagram-arrow)')
 
   const nodeLayer = diagramGroup.append('g').attr('class', 'node-layer')
   const nodeSelection = nodeLayer
     .selectAll('.node')
     .data(nodes, (d) => d.id)
-    .enter()
-    .append('g')
-    .attr('class', 'node')
-    .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
+    .join((enter) => {
+      return enter.append('g').attr('class', 'node').call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+    })
 
+  nodeSelection.attr('class', 'node') // keep classes
+
+  //노드 색상
+  // TODO: 노드 색상 변경 필요
   const nodeWidth = 140
   const nodeHeight = 52
   const colorMap = {
-    trigger: 'var(--nexa-success)',
-    logic: 'var(--nexa-button-primary-bg)',
-    action: 'var(--nexa-accent)',
+    trigger: 'var(--nexa-background-lower)',
+    logic: 'var(--nexa-surface)',
+    action: 'var(--nexa-border-hover)',
   }
 
   nodeSelection
@@ -112,6 +131,87 @@ function renderDiagram() {
     .attr('text-anchor', 'middle')
     .attr('class', 'node-label')
     .text((d) => d.label || d.id)
+
+  const portColorMap = {
+    input: 'var(--nexa-primary)',
+    output: 'var(--nexa-secondary)',
+    control: 'var(--nexa-accent)',
+  }
+
+  nodeSelection.each(function (d) {
+    const ports = d.ports || []
+    const portGroup = d3
+      .select(this)
+      .selectAll('.node-port')
+      .data(ports, (p) => p.id)
+
+    portGroup
+      .enter()
+      .append('circle')
+      .attr('class', 'node-port')
+      .attr('r', 4)
+      .attr('cx', (_, idx) => -nodeWidth / 2 + 12 + idx * 18)
+      .attr('cy', nodeHeight / 2 + 10)
+      .attr('fill', (p) => portColorMap[p.type] || 'var(--nexa-primary)')
+
+    portGroup.attr('cx', (_, idx) => -nodeWidth / 2 + 12 + idx * 18).attr('fill', (p) => portColorMap[p.type] || 'var(--nexa-primary)')
+    portGroup.exit().remove()
+  })
+
+  updateSimulation(nodes, links, nodeSelection, linkSelection)
+
+  diagramGroup.selectAll('.helper-node').remove()
+}
+
+const dragstarted = (event) => {
+  if (!event.active && simulation) simulation.alphaTarget(0.3).restart()
+  event.subject.fx = event.subject.x
+  event.subject.fy = event.subject.y
+}
+
+const dragged = (event) => {
+  event.subject.fx = event.x
+  event.subject.fy = event.y
+}
+
+const dragended = (event) => {
+  if (!event.active && simulation) simulation.alphaTarget(0)
+  event.subject.fx = null
+  event.subject.fy = null
+}
+
+function updateSimulation(nodes, links, nodeSelection, linkSelection) {
+  if (simulation) {
+    simulation.stop()
+  }
+
+  const { width, height } = getDiagramSize()
+  simulation = d3
+    .forceSimulation(nodes)
+    .alphaDecay(0.03)
+    .velocityDecay(0.4)
+    .force(
+      'link',
+      d3
+        .forceLink(links)
+        .id((d) => d.id)
+        .distance(links.length ? 120 : 0)
+        .strength(0.1),
+    )
+    .force('charge', d3.forceManyBody().strength(-200))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force(
+      'collision',
+      d3.forceCollide().radius(() => 80),
+    )
+    .on('tick', () => {
+      nodeSelection.attr('transform', (d) => `translate(${d.x}, ${d.y})`)
+      linkSelection
+        .attr('x1', (d) => (d.source ? d.source.x : 0))
+        .attr('y1', (d) => (d.source ? d.source.y : 0))
+        .attr('x2', (d) => (d.target ? d.target.x : 0))
+        .attr('y2', (d) => (d.target ? d.target.y : 0))
+    })
 }
 
 function setupZoom() {
@@ -137,9 +237,20 @@ watch(
   { deep: true },
 )
 
+watch(showHelper, () => {
+  renderDiagram()
+})
+
 onMounted(() => {
   setupZoom()
   renderDiagram()
+  window.addEventListener('nexa-node-helper-hide', hideHelper)
+  window.addEventListener('nexa-node-new-canvas', showHelperHint)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('nexa-node-helper-hide', hideHelper)
+  window.removeEventListener('nexa-node-new-canvas', showHelperHint)
 })
 </script>
 
@@ -166,11 +277,11 @@ onMounted(() => {
 .node-canvas {
   width: 100%;
   height: 100%;
-  cursor: grab;
+  cursor: default;
 }
 
 .node-canvas:active {
-  cursor: grabbing;
+  cursor: default;
 }
 
 .canvas-empty-state {
@@ -203,14 +314,23 @@ onMounted(() => {
   stroke-linecap: round;
 }
 
-.node {
-  cursor: pointer;
+:deep(.node:hover) {
+  fill: var(--nexa-primary);
 }
 
-.node-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  fill: #ffffff;
-  pointer-events: none;
+:deep(.node-label) {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+:deep(.node-port) {
+  pointer-events: auto;
+  transition: transform 0.15s ease;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+:deep(.node-port:hover) {
+  transform: scale(1.8);
 }
 </style>
