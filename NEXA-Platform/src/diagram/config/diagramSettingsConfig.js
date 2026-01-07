@@ -97,6 +97,22 @@ export const diagramSettingsSchemas = {
     // 수동 최적 줌값 (자동 줌 대신 사용, 모든 그래프/모드에 공통 적용)
     manualZoom: null, // null이면 자동 줌 사용, 값이 있으면 수동 줌 적용
   },
+  [diagramTypes.IOT_NETWORK]: {
+    nodeSize: {
+      width: { default: 80, min: 1, max: 400, step: 10 },
+      height: { default: 80, min: 1, max: 400, step: 5 },
+    },
+    layout: {
+      force: {
+        charge: { default: -150, min: -400, max: 0, step: 10 },
+        linkDistance: { default: 80, min: 10, max: 500, step: 10 },
+        linkStrength: { default: 0.5, min: 0, max: 1, step: 0.1 },
+        collision: { default: 5, min: 0, max: 20, step: 1 },
+      },
+    },
+    showLabels: { default: true },
+    manualZoom: null,
+  },
   // 파일 트리 (향후 추가)
   filetree: {
     nodeSize: {

@@ -1,13 +1,13 @@
 <template>
   <div class="nexa-node-sidebar">
-    <div class="text-h3 text-bold text-primary">NEXA NODE</div>
+    <div class="text-h4 text-bold text-primary sidebar-title" role="button" @click="handleHeaderClick">NEXA NODE</div>
 
     <q-input v-model="searchQuery" dense filled placeholder="검색어 입력..." class="q-mt-sm" bg-color="black">
       <template v-slot:append><q-icon name="search" size="xs" /></template>
     </q-input>
 
     <div class="q-mb-md node-sidebar-buttons">
-      <q-btn outline icon="add" label="New" class="btn-action" />
+      <q-btn outline icon="add" label="New" class="btn-action" @click="handleNewCanvas" />
       <q-btn outline icon="folder" label="Open" class="btn-action" />
       <q-btn outline icon="save" label="Save" class="btn-action" />
       <q-btn-dropdown outline icon="more" label="More" class="btn-action">
@@ -29,7 +29,9 @@
       </q-btn-dropdown>
     </div>
 
-    <div class="tmp-developer-mode"><q-btn outline icon="terminal" label="시물레이터" class="full-width btn-action tmp-developer-mode-btn" /></div>
+    <div class="tmp-developer-mode">
+      <q-btn outline icon="terminal" label="시물레이터" class="full-width btn-action tmp-developer-mode-btn" @click="nexNodeStore.openSimulator()" />
+    </div>
 
     <div class="tabs-container">
       <q-tabs v-model="resourceTab" dense active-color="primary" indicator-color="primary" align="justify">
@@ -85,9 +87,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useNexaNodeStore } from 'src/stores/nexaNodeStore'
 
 const resourceTab = ref('nodes')
 const searchQuery = ref('')
+const nexNodeStore = useNexaNodeStore()
+
+const handleNewCanvas = () => nexNodeStore.createDefaultBlueprint()
+const handleHeaderClick = () => nexNodeStore.resetBlueprint()
 
 const nodeGroups = [
   {
@@ -188,5 +195,9 @@ const printCanvas = () => console.log('프린트')
 
 .btn-action {
   font-size: 0.7rem;
+}
+
+.sidebar-title {
+  cursor: pointer;
 }
 </style>

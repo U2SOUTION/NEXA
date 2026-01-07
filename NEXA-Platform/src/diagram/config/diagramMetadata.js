@@ -10,6 +10,7 @@ export const diagramTypes = {
   DEPENDENCY: 'dependency',
   FILETREE: 'filetree',
   DEPENDENCY_ANALYSIS: 'dependency-analysis',
+  IOT_NETWORK: 'iot-network',
 }
 
 export const diagramMetadata = {
@@ -55,9 +56,15 @@ export const diagramMetadata = {
     icon: 'hub',
     supportedFeatures: ['zoom', 'pan', 'node-drag', 'export', 'node-hover', 'force-layout'],
   },
+  [diagramTypes.IOT_NETWORK]: {
+    name: 'IoTNetwork',
+    label: 'IoT Device Network',
+    description: '가상 장비 연동 시뮬레이터 그래프',
+    icon: 'devices',
+    supportedFeatures: ['zoom', 'pan', 'node-drag', 'export'],
+  },
 }
 
 export function getDiagramMetadata(type) {
   return diagramMetadata[type] || null
 }
-

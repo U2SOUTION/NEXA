@@ -2,44 +2,54 @@
 // 사용하지 않는 watch를 제거하여 ESLint 오류를 해결합니다.
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 // 수정 코드 (상대 경로로 직접 지정)
-import { renderForceDirected } from '../../services/diagram/ForceDirectedDiagram'
+import { renderForceDirected } from 'src/diagram/dependency/ForceDirectedDiagram.js'
 import { nodeAdapter } from 'src/services/device/VirtualNodeAdapter'
+import { vdm } from 'src/services/device/VirtualDeviceManager'
 
 const dgContainer = ref(null)
 const packages = ref([])
 let dgInstance = null
 
-/**
- * D3 렌더링 실행
- */
 const runRender = async () => {
   if (!dgContainer.value || packages.value.length === 0) return
 
-  // 기존 시뮬레이션 종료
   if (dgInstance && dgInstance.cleanup) {
     dgInstance.cleanup()
   }
 
-  // 데이터 구조 형성
   const data = {
     packages: packages.value,
     dependencies: [],
   }
 
-  // 범용 렌더러 호출
   dgInstance = await renderForceDirected(dgContainer.value, data, {
     diagramType: 'iot-network',
     onNodeClick: (id) => console.log(`✨ Device Selected: ${id}`),
   })
 }
 
+function handleVdmEvent(event, data) {
+  switch (event) {
+    case 'DEVICE_REGISTERED':
+      nodeAdapter.syncWithDiagram(data.deviceId, data.ports)
+      packages.value = [...nodeAdapter.currentDiagramData.packages]
+      runRender()
+      break
+    case 'ID_ROTATED':
+      nodeAdapter.handleSecurityUpdate(data.deviceId, data.rotationMap)
+      packages.value = [...nodeAdapter.currentDiagramData.packages]
+      runRender()
+      break
+    case 'PORT_UPDATED':
+      // optional: re-render if needed
+      runRender()
+      break
+  }
+}
+
 onMounted(() => {
-  // 어댑터로부터 데이터 구독
   nodeAdapter.init()
-  nodeAdapter.subscribeToUpdates((updatedData) => {
-    packages.value = [...updatedData.packages]
-    runRender()
-  })
+  vdm.subscribe(handleVdmEvent)
 })
 
 onBeforeUnmount(() => {
