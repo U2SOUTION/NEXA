@@ -44,6 +44,14 @@ const canvasRef = ref(null)
 let zoomGroup = null
 const showHelper = ref(true)
 let simulation = null
+const activePort = ref(null)
+let tempLayer = null
+let tempLineElement = null
+let pointerMoveHandler = null
+let currentTransform = d3.zoomIdentity
+const pointerTarget = { x: 0, y: 0 }
+const NODE_WIDTH = 140
+const NODE_HEIGHT = 52
 
 function getDiagramSize() {
   if (!canvasRef.value) return { width: 0, height: 0 }
@@ -78,8 +86,11 @@ function renderDiagram() {
   if (!diagramGroup) return
 
   // 기존 요소 제거
+  diagramGroup.selectAll('.temp-layer').remove()
   diagramGroup.selectAll('.link-layer').remove()
   diagramGroup.selectAll('.node-layer').remove()
+  tempLayer = diagramGroup.append('g').attr('class', 'temp-layer')
+  tempLineElement = null
 
   if (!hasDiagram.value) {
     return
@@ -138,23 +149,34 @@ function renderDiagram() {
     control: 'var(--nexa-accent)',
   }
 
-  nodeSelection.each(function (d) {
-    const ports = d.ports || []
+  nodeSelection.each(function (nodeData) {
+    const ports = nodeData.ports || []
     const portGroup = d3
       .select(this)
       .selectAll('.node-port')
       .data(ports, (p) => p.id)
 
-    portGroup
+    const portEnter = portGroup
       .enter()
       .append('circle')
       .attr('class', 'node-port')
       .attr('r', 4)
-      .attr('cx', (_, idx) => -nodeWidth / 2 + 12 + idx * 18)
       .attr('cy', nodeHeight / 2 + 10)
-      .attr('fill', (p) => portColorMap[p.type] || 'var(--nexa-primary)')
 
-    portGroup.attr('cx', (_, idx) => -nodeWidth / 2 + 12 + idx * 18).attr('fill', (p) => portColorMap[p.type] || 'var(--nexa-primary)')
+    const portSelection = portEnter.merge(portGroup)
+
+    portSelection
+      .attr('cx', (p) => -nodeWidth / 2 + 12 + (p.index ?? 0) * 18)
+      .attr('fill', (p) => portColorMap[p.type] || 'var(--nexa-primary)')
+      .on('pointerdown', (event) => {
+        event.stopPropagation()
+        event.preventDefault()
+      })
+      .on('click', function (event, port) {
+        event.stopPropagation()
+        handlePortClick(nodeData, port)
+      })
+
     portGroup.exit().remove()
   })
 
@@ -211,7 +233,79 @@ function updateSimulation(nodes, links, nodeSelection, linkSelection) {
         .attr('y1', (d) => (d.source ? d.source.y : 0))
         .attr('x2', (d) => (d.target ? d.target.x : 0))
         .attr('y2', (d) => (d.target ? d.target.y : 0))
+      updateTempLine()
     })
+}
+
+function getPortPosition(node, port) {
+  if (!node || !port) return { x: 0, y: 0 }
+  const offsetX = -NODE_WIDTH / 2 + 12 + (port.index ?? 0) * 18
+  return {
+    x: node.x + offsetX,
+    y: node.y + NODE_HEIGHT / 2 + 10,
+  }
+}
+
+function ensureTempLine() {
+  if (!tempLayer) return
+  if (!tempLineElement) {
+    tempLineElement = tempLayer.append('line').attr('class', 'temp-link').attr('stroke', 'var(--nexa-error)').attr('stroke-width', 3).attr('stroke-linecap', 'round')
+  }
+}
+
+function updateTempLine() {
+  if (!activePort.value || !tempLineElement) return
+  const start = getPortPosition(activePort.value.node, activePort.value.port)
+  tempLineElement.attr('x1', start.x).attr('y1', start.y)
+  tempLineElement.attr('x2', pointerTarget.x).attr('y2', pointerTarget.y)
+}
+
+function attachPointerTracker() {
+  if (!canvasRef.value) return
+  detachPointerTracker()
+  pointerMoveHandler = (event) => {
+    const [x, y] = d3.pointer(event, canvasRef.value)
+    const inverted = currentTransform.invert([x, y])
+    pointerTarget.x = inverted[0]
+    pointerTarget.y = inverted[1]
+    updateTempLine()
+  }
+  canvasRef.value.addEventListener('pointermove', pointerMoveHandler)
+}
+
+function detachPointerTracker() {
+  if (!canvasRef.value || !pointerMoveHandler) return
+  canvasRef.value.removeEventListener('pointermove', pointerMoveHandler)
+  pointerMoveHandler = null
+}
+
+function cancelTempLine() {
+  activePort.value = null
+  if (tempLineElement) {
+    tempLineElement.remove()
+    tempLineElement = null
+  }
+  detachPointerTracker()
+}
+
+function setActivePort(nodeData, port) {
+  if (!tempLayer || !port) return
+  activePort.value = { node: nodeData, port }
+  ensureTempLine()
+  const start = getPortPosition(nodeData, port)
+  pointerTarget.x = start.x
+  pointerTarget.y = start.y
+  updateTempLine()
+  attachPointerTracker()
+}
+
+function handlePortClick(nodeData, port) {
+  if (!tempLayer || !port) return
+  if (activePort.value && activePort.value.node.id === nodeData.id && activePort.value.port.id === port.id) {
+    cancelTempLine()
+    return
+  }
+  setActivePort(nodeData, port)
 }
 
 function setupZoom() {
@@ -222,11 +316,24 @@ function setupZoom() {
     .zoom()
     .scaleExtent([0.4, 3])
     .on('zoom', (event) => {
+      currentTransform = event.transform
       if (zoomGroup) {
         zoomGroup.attr('transform', event.transform)
       }
+      updateTempLine()
     })
   svg.call(zoom)
+  svg.on('click.temp-line', (event) => {
+    if (event.target === svg.node()) {
+      cancelTempLine()
+    }
+  })
+}
+
+function handleGlobalKeydown(event) {
+  if (event.key === 'Escape') {
+    cancelTempLine()
+  }
 }
 
 watch(
@@ -246,11 +353,14 @@ onMounted(() => {
   renderDiagram()
   window.addEventListener('nexa-node-helper-hide', hideHelper)
   window.addEventListener('nexa-node-new-canvas', showHelperHint)
+  window.addEventListener('keydown', handleGlobalKeydown)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('nexa-node-helper-hide', hideHelper)
   window.removeEventListener('nexa-node-new-canvas', showHelperHint)
+  window.removeEventListener('keydown', handleGlobalKeydown)
+  cancelTempLine()
 })
 </script>
 
@@ -312,6 +422,14 @@ onBeforeUnmount(() => {
   stroke: var(--nexa-text-secondary);
   stroke-width: 2px;
   stroke-linecap: round;
+}
+
+.temp-link {
+  stroke: var(--nexa-error);
+  stroke-width: 3px;
+  stroke-dasharray: 4 4;
+  stroke-linecap: round;
+  pointer-events: none;
 }
 
 :deep(.node:hover) {

@@ -61,16 +61,17 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
       type: 'trigger',
       x: 180 + (index % 3) * 260,
       y: 140 + Math.floor(index / 3) * 180,
-      ports: createPorts(),
+      ports: createPorts(device.id),
     }))
   })
 
-  function createPorts() {
+  function createPorts(nodeId: string) {
     const count = Math.floor(Math.random() * 3) + 2
     const portTypes = ['input', 'output', 'control'] as const
     return Array.from({ length: count }).map((_, idx) => ({
-      id: `port-${idx}`,
+      id: `${nodeId}-port-${idx}`,
       type: portTypes[idx % portTypes.length],
+      index: idx,
     }))
   }
 
