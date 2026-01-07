@@ -1,140 +1,192 @@
-<!-- NexaNodeSidebar.vue
-  넥사노드 페이지 왼쪽 사이드바
-  노드 에디터 및 자동화 네비게이션
--->
-
 <template>
   <div class="nexa-node-sidebar">
-    <q-list>
-      <!-- 헤더 -->
-      <div class="sidebar-header q-pa-md">
-        <div class="text-h4 text-primary q-mb-xs text-bold">NEXA NODE</div>
-        <div class="text-caption text-grey-7">자동화 규칙 구상 및 검증</div>
-      </div>
+    <div class="text-h3 text-bold text-primary">NEXA NODE</div>
 
-      <q-separator />
+    <q-input v-model="searchQuery" dense filled placeholder="검색어 입력..." class="q-mt-sm" bg-color="black">
+      <template v-slot:append><q-icon name="search" size="xs" /></template>
+    </q-input>
 
-      <!-- 메뉴 -->
-      <div class="q-pa-sm">
-        <q-btn flat dense @click="selectTab('basic')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'basic' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="lightbulb" class="q-mr-sm" />
-              <span>기본 개념</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('node-types')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'node-types' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="category" class="q-mr-sm" />
-              <span>노드 타입</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('global-modules')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'global-modules' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="extension" class="q-mr-sm" />
-              <span>전역 모듈</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('workflow')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'workflow' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="work" class="q-mr-sm" />
-              <span>작업 관리 시스템</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('goals')" :class="['btn-nexa-primary text-bold full-width q-py-xs', { 'active-menu': activeTab === 'goals' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="flag" class="q-mr-sm" />
-              <span>목표 및 효과</span>
-            </div>
-          </template>
-        </q-btn>
-      </div>
+    <div class="q-mb-md node-sidebar-buttons">
+      <q-btn outline icon="add" label="New" class="btn-action" />
+      <q-btn outline icon="folder" label="Open" class="btn-action" />
+      <q-btn outline icon="save" label="Save" class="btn-action" />
+      <q-btn-dropdown outline icon="more" label="More" class="btn-action">
+        <q-list dense>
+          <q-item clickable v-close-popup @click="exportCanvas">
+            <q-item-section avatar><q-icon name="download" /></q-item-section>
+            <q-item-section>내보내기 (Export)</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="printCanvas">
+            <q-item-section avatar><q-icon name="print" /></q-item-section>
+            <q-item-section>프린트 (Print)</q-item-section>
+          </q-item>
+          <q-separator />
+          <q-item clickable v-close-popup class="text-negative">
+            <q-item-section avatar><q-icon name="close" /></q-item-section>
+            <q-item-section>캔버스 닫기</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+    </div>
 
-      <q-separator />
+    <div class="tmp-developer-mode"><q-btn outline icon="terminal" label="시물레이터" class="full-width btn-action tmp-developer-mode-btn" /></div>
 
-      <!-- 워크플로우 정보 -->
-      <div class="q-pa-sm">
-        <div class="text-subtitle2 text-bold q-mb-sm q-px-sm">워크플로우</div>
-        <div class="workflow-info q-pa-sm">
-          <div class="text-caption text-grey-6 q-mb-xs">
-            <q-icon name="info" size="14px" class="q-mr-xs" />
-            트리거 → 처리 → 액션
-          </div>
-          <div class="workflow-steps">
-            <div class="workflow-step">트리거</div>
-            <q-icon name="arrow_forward" size="16px" />
-            <div class="workflow-step">처리</div>
-            <q-icon name="arrow_forward" size="16px" />
-            <div class="workflow-step">액션</div>
-          </div>
-        </div>
-      </div>
-    </q-list>
+    <div class="tabs-container">
+      <q-tabs v-model="resourceTab" dense active-color="primary" indicator-color="primary" align="justify">
+        <q-tab name="nodes" label="Nodes" icon="hub" />
+        <q-tab name="panels" label="Panels" icon="dashboard" />
+        <q-tab name="compositions" label="Composition" icon="auto_awesome" />
+      </q-tabs>
+
+      <q-tab-panels v-model="resourceTab" animated class="bg-transparent tab-panels-content">
+        <q-tab-panel name="nodes" class="q-pa-none">
+          <q-expansion-item v-for="group in nodeGroups" :key="group.name" :label="group.name" :icon="group.icon" default-opened header-class="text-bold">
+            <div class="row q-pa-xs">
+              <div v-for="node in group.items" :key="node.id" class="col-6 q-pa-xs">
+                <div class="resource-item draggable text-center q-pa-sm" draggable="true" @dragstart="handleDrag($event, 'node', node)">
+                  <q-icon :name="node.icon" :color="node.color" size="sm" />
+                  <div class="text-caption q-mt-xs">{{ node.name }}</div>
+                </div>
+              </div>
+            </div>
+          </q-expansion-item>
+        </q-tab-panel>
+
+        <q-tab-panel name="panels" class="q-pa-none">
+          <q-expansion-item label="Visualizers" icon="visibility" default-opened header-class="text-bold">
+            <div class="row q-pa-xs">
+              <div v-for="n in 4" :key="n" class="col-6 q-pa-xs">
+                <div class="resource-item draggable text-center q-pa-sm" draggable="true">
+                  <q-icon name="analytics" color="green" size="sm" />
+                  <div class="text-caption q-mt-xs">Gauge {{ n }}</div>
+                </div>
+              </div>
+            </div>
+          </q-expansion-item>
+        </q-tab-panel>
+
+        <q-tab-panel name="compositions" class="q-pa-none">
+          <q-expansion-item v-for="group in compositionGroups" :key="group.name" :label="group.name" :icon="group.icon" default-opened header-class="text-bold">
+            <div class="q-pa-xs">
+              <div v-for="comp in group.items" :key="comp.id" class="comp-item q-mb-sm q-pa-sm" @click="loadComposition(comp)">
+                <div class="row items-center no-wrap">
+                  <q-icon :name="comp.icon" color="primary" size="xs" class="q-mr-sm" />
+                  <div class="text-caption text-bold">{{ comp.name }}</div>
+                </div>
+                <div class="text-grey-7" style="font-size: 0.6rem">{{ comp.desc }}</div>
+              </div>
+            </div>
+          </q-expansion-item>
+        </q-tab-panel>
+      </q-tab-panels>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 
-const activeTab = ref('basic')
+const resourceTab = ref('nodes')
+const searchQuery = ref('')
 
-function selectTab(tab) {
-  activeTab.value = tab
-  // 페이지의 탭도 변경 (emit 또는 store 사용)
-  // 현재는 로컬 상태만 관리
+const nodeGroups = [
+  {
+    name: 'Trigger',
+    icon: 'bolt',
+    items: [
+      { id: 't1', name: 'Timer', icon: 'timer', color: 'orange' },
+      { id: 't2', name: 'Sensor', icon: 'sensors', color: 'orange' },
+    ],
+  },
+  {
+    name: 'Logic/Math',
+    icon: 'calculate',
+    items: [
+      { id: 'l1', name: 'Adder', icon: 'add_circle', color: 'blue' },
+      { id: 'l2', name: 'If-Else', icon: 'alt_route', color: 'blue' },
+    ],
+  },
+]
+
+// ✨ Composition 데이터 정의
+const compositionGroups = [
+  {
+    name: 'Basic Templates',
+    icon: 'star',
+    items: [
+      { id: 'c1', name: 'Blank Logic', desc: '초기화된 빈 캔버스', icon: 'crop_square' },
+      { id: 'c2', name: 'Data Logger', desc: '데이터 수집 표준 구조', icon: 'history' },
+    ],
+  },
+  {
+    name: 'Industrial Logic',
+    icon: 'precision_manufacturing',
+    items: [{ id: 'c3', name: 'Conveyor Control', desc: '물류 벨트 제어 알고리즘', icon: 'settings_input_component' }],
+  },
+]
+
+const handleDrag = (event, type, item) => {
+  event.dataTransfer.setData('resourceType', type)
+  event.dataTransfer.setData('itemData', JSON.stringify(item))
 }
+
+const loadComposition = (comp) => console.log('로드:', comp.name)
+const exportCanvas = () => console.log('내보내기')
+const printCanvas = () => console.log('프린트')
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .nexa-node-sidebar {
-  height: 100%;
+  padding: 10px;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
 
-  .sidebar-header {
-    background: var(--nexa-surface-header-bg);
-    border-bottom: 1px solid var(--nexa-border-color);
-  }
+.node-sidebar-buttons {
+  margin-top: 10px;
+  gap: 3px;
+  display: flex;
+}
 
-  .q-list {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-  }
+.node-sidebar-buttons > * {
+  flex: 1;
+  min-width: 0;
+}
 
-  .active-menu {
-    background-color: rgba(65, 170, 223, 0.15) !important;
-    border-left: 3px solid var(--nexa-button-primary-bg);
-  }
+.tabs-container {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--nexa-border-color);
+}
 
-  .workflow-info {
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
+.tab-panels-content {
+  padding: 10px;
+  overflow-y: auto;
+  flex: 1;
+  border-top: 1px solid var(--nexa-border-color);
+}
 
-    .workflow-steps {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 8px;
+.resource-item,
+.comp-item {
+  background: var(--nexa-surface);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
-      .workflow-step {
-        font-size: 11px;
-        padding: 4px 8px;
-        background: rgba(65, 170, 223, 0.2);
-        border-radius: 4px;
-        color: var(--q-primary);
-      }
-    }
-  }
+.resource-item:hover,
+.comp-item:hover {
+  background: var(--nexa-item-hover-bg);
+  transform: translateY(-2px);
+}
+
+.btn-action {
+  font-size: 0.7rem;
 }
 </style>
-

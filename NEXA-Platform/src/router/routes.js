@@ -69,7 +69,7 @@ const routes = [
         beforeEnter: (to, from, next) => {
           // U2BEE 레이아웃을 사용할 조건 확인
           const isU2BeeMode = (to.query.mode === 'popup' || to.query.mode === 'sidepanel') && to.query.extension === 'u2bee'
-          
+
           if (isU2BeeMode) {
             // U2BEE 레이아웃으로 리다이렉트
             next({ name: 'ExtensionU2Bee', query: to.query, params: to.params })

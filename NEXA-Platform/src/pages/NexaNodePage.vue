@@ -233,7 +233,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+// 1. 기존 import 문에 onMounted를 추가해야 합니다.
+import { ref, onMounted } from 'vue'
+
+// 2. 우리가 만든 어댑터 임포트
+import { nodeAdapter } from 'src/services/device/VirtualNodeAdapter'
+
+/**
+ * 페이지가 로드될 때 실행되는 라이프사이클 훅
+ */
+onMounted(() => {
+  // 가상 노드 어댑터를 초기화하여 VDM 이벤트를 감시하기 시작합니다.
+  if (nodeAdapter && typeof nodeAdapter.init === 'function') {
+    nodeAdapter.init()
+    console.log('✨ NEXA_SYSTEM: Virtual Node Adapter 연결 완료')
+  }
+})
 
 const mainTab = ref('basic')
 </script>

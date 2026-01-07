@@ -45,16 +45,12 @@
 
 // Outlined 보더 스타일
 // 모든 outlined 입력 폼에 적용되는 보더 스타일
+//Akill code
 .q-field--outlined .q-field__control {
   border: none;
 
   &::before {
-    border: 1px solid var(--nexa-border-color);
-  }
-
-  &::after {
-    border: none;
-    border-color: transparent;
+    border: 2px solid var(--nexa-primary);
   }
 }
 
