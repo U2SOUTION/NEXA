@@ -6,16 +6,22 @@
         <template v-if="infraStore.activeSubMenu === 'my-devices'">
           <DeviceList />
         </template>
-        <template v-else-if="infraStore.activeSubMenu === 'physical-map'">
-          <div class="placeholder-view q-pa-xl text-center">
-            <q-icon name="map" size="64px" color="grey-5" />
-            <div class="text-h6 text-grey-5">물리 맵 준비 중...</div>
-          </div>
-        </template>
         <template v-else-if="infraStore.activeSubMenu === 'system-status'">
           <div class="placeholder-view q-pa-xl text-center">
             <q-icon name="monitor_heart" size="64px" color="grey-5" />
             <div class="text-h6 text-grey-5">시스템 상태 모니터링 준비 중...</div>
+          </div>
+        </template>
+        <template v-else-if="infraStore.activeSubMenu === 'agw'">
+          <div class="placeholder-view q-pa-xl text-center">
+            <q-icon name="dns" size="64px" color="grey-5" />
+            <div class="text-h6 text-grey-5">AGW System 준비 중...</div>
+          </div>
+        </template>
+        <template v-else-if="infraStore.activeSubMenu === 'monitoring'">
+          <div class="placeholder-view q-pa-xl text-center">
+            <q-icon name="timeline" size="64px" color="grey-5" />
+            <div class="text-h6 text-grey-5">실시간 모니터링 준비 중...</div>
           </div>
         </template>
       </div>

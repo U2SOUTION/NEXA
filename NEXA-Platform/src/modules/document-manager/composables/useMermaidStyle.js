@@ -4,8 +4,8 @@
  */
 
 import { ref, computed, watch } from 'vue'
-import { saveMermaidStyle, loadMermaidStyle } from 'src/modules/document-manager/services/mermaidStyleStorage.js'
-import { getCurrentMermaidStyles } from 'src/modules/document-manager/config/mermaidStyles.js'
+import { saveMermaidStyle, loadMermaidStyle } from '@modules/document-manager/services/mermaidStyleStorage.js'
+import { getCurrentMermaidStyles } from '@modules/document-manager/config/mermaidStyles.js'
 
 // 중앙 스타일 관리 모듈에서 기본 스타일 가져오기
 function getDefaultStyles() {

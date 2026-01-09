@@ -32,7 +32,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('agw')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'agw' }]">
+        <q-btn flat dense @click="selectTab('agw')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': infraStore.activeSubMenu === 'agw' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="dns" class="q-mr-sm" />
@@ -40,7 +40,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('monitoring')" :class="['btn-nexa-primary text-bold full-width q-py-xs', { 'active-menu': activeTab === 'monitoring' }]">
+        <q-btn flat dense @click="selectTab('monitoring')" :class="['btn-nexa-primary text-bold full-width q-py-xs', { 'active-menu': infraStore.activeSubMenu === 'monitoring' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="timeline" class="q-mr-sm" />
@@ -96,7 +96,13 @@ import DeviceTree from '@infra/my-devices/views/left/DeviceTree.vue'
 const infraStore = useInfraStore()
 
 function selectTab(tab) {
-  infraStore.setActiveSubMenu(tab === 'device' ? 'my-devices' : tab === 'status' ? 'system-status' : 'my-devices')
+  const menuMap = {
+    device: 'my-devices',
+    status: 'system-status',
+    agw: 'agw',
+    monitoring: 'monitoring',
+  }
+  infraStore.setActiveSubMenu(menuMap[tab] || 'my-devices')
 }
 </script>
 

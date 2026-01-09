@@ -158,7 +158,7 @@ const currentMenu = computed(() => {
   if (path.startsWith('/nexa-pannel')) return 'nexa-pannel'
   if (path.startsWith('/nexa-node')) return 'automation'
   if (path.startsWith('/nexa-trace')) return 'nexa-trace'
-  if (path.startsWith('/erp')) return 'erp'
+  if (path.startsWith('/erp')) return 'nexa-erp'
   if (path.startsWith('/infra')) return 'infra'
   if (path.startsWith('/network')) return 'network'
   if (path.startsWith('/portfolio')) return 'portfolio'
@@ -178,7 +178,7 @@ const mainMenuTabs = [
   { name: 'nexa-pannel', label: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', nexaPrefix: true },
   { name: 'automation', label: 'NODE', icon: 'hub', route: '/nexa-node', nexaPrefix: true },
   { name: 'nexa-trace', label: 'TRACE', icon: 'analytics', route: '/nexa-trace', nexaPrefix: true },
-  { name: 'erp', label: 'ERP', icon: 'business', route: '/erp', nexaPrefix: true },
+  { name: 'nexa-erp', label: 'ERP', icon: 'business', route: '/erp', nexaPrefix: true },
   { name: 'parts-management', label: '부품관리', icon: 'inventory_2', route: '/parts-management' },
   { name: 'infra', label: 'INFRA', icon: 'settings', route: '/infra' },
   { name: 'network', label: 'NETWORK', icon: 'lan', route: '/network' },

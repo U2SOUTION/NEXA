@@ -266,17 +266,17 @@
 <script setup>
 // DevRightPanel.vue - 개발 도구 우측 패널
 import { computed, ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { useDocumentManagerStore } from 'src/system/store/documentManagerStore'
+import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
 import { QExpansionItem, QScrollArea } from 'quasar'
-import RightSidebarHeader from 'src/components/sidebars/right/RightSidebarHeader.vue'
+import RightSidebarHeader from '@frame/layout/components/sidebars/right/RightSidebarHeader.vue'
 import PanelMermaidStyle from '@domains/panel/components/components/PanelMermaidStyle.vue'
 import PanelTOC from '@domains/panel/components/components/PanelTOC.vue'
 import ThemeColorPanel from './right-dev-tools/ThemeColorPanel.vue'
 import ERDDiagramSettingsPanel from './right-dev-tools/ERDDiagramSettingsPanel.vue'
 import DiagramSettingsPanel from '@engines/diagram/panels/DiagramSettingsPanel.vue'
 import { diagramTypes } from '@engines/diagram/config/diagramMetadata.js'
-import SampleSection from 'src/modules/document-manager/components/sections/SampleSection.vue'
-import DatabaseTableDetailSimple from 'src/components/dev-tools/database-viewer/TableDetailSimple.vue'
+import SampleSection from '@modules/document-manager/components/sections/SampleSection.vue'
+import DatabaseTableDetailSimple from './dev-tools/database-viewer/TableDetailSimple.vue'
 import ComponentLibraryWarning from './right-dev-tools/component-library/ComponentLibraryWarning.vue'
 import ComponentLibraryMoveManagement from './right-dev-tools/component-library/ComponentLibraryMoveManagement.vue'
 import ComponentLibraryMergeSplit from './right-dev-tools/component-library/ComponentLibraryMergeSplit.vue'
@@ -287,7 +287,7 @@ import DevGuidePanel from './right-dev-tools/DevGuidePanel.vue'
 import DevGuideStatistics from './right-dev-tools/DevGuideStatistics.vue'
 import HistoryTab from './right-dev-tools/graph-doc/HistoryTab.vue'
 import FixedNodesTab from './right-dev-tools/graph-doc/FixedNodesTab.vue'
-import { useDevMenuState } from 'src/system/composables/useDevMenuState'
+import { useDevMenuState } from '@system/composables/useDevMenuState.js'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)

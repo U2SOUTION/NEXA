@@ -162,16 +162,16 @@
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ContentRating from 'src/components/extension/u2bee/ContentRating.vue'
-import ContentList from 'src/components/extension/u2bee/ContentList.vue'
-import PlayBox from 'src/components/extension/u2bee/PlayBox.vue'
-import ContentHistory from 'src/components/extension/u2bee/ContentHistory.vue'
-import Statistics from 'src/components/extension/u2bee/Statistics.vue'
-import DataManagement from 'src/components/extension/u2bee/DataManagement.vue'
-import Settings from 'src/components/extension/u2bee/Settings.vue'
-import HelpPage from 'src/components/extension/u2bee/HelpPage.vue'
-import InjectedFloatingTabs from 'src/components/extension/u2bee/InjectedFloatingTabs.vue'
-import { useTabConfig } from 'src/system/composables/extension/u2bee/useTabConfig'
+import ContentRating from '../../components/u2bee/ContentRating.vue'
+import ContentList from '../../components/u2bee/ContentList.vue'
+import PlayBox from '../../components/u2bee/PlayBox.vue'
+import ContentHistory from '../../components/u2bee/ContentHistory.vue'
+import Statistics from '../../components/u2bee/Statistics.vue'
+import DataManagement from '../../components/u2bee/DataManagement.vue'
+import Settings from '../../components/u2bee/Settings.vue'
+import HelpPage from '../../components/u2bee/HelpPage.vue'
+import InjectedFloatingTabs from '../../components/u2bee/InjectedFloatingTabs.vue'
+import { useTabConfig } from '@system/composables/extension/u2bee/useTabConfig.js'
 
 const route = useRoute()
 const router = useRouter()

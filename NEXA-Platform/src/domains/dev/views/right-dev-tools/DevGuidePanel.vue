@@ -201,9 +201,9 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
-import { useDevGuide } from 'src/system/composables/useDevGuide'
-import { copyTextToClipboard } from 'src/system/utils/clipboard'
-import { analyzeSampleDependencies } from 'src/system/utils/dependency-analyzer.js'
+import { useDevGuide } from '@system/composables/useDevGuide.js'
+import { copyTextToClipboard } from '@system/utils/clipboard.js'
+import { analyzeSampleDependencies } from '@system/utils/dependency-analyzer.js'
 
 const $q = useQuasar()
 const { selectedSample } = useDevGuide()

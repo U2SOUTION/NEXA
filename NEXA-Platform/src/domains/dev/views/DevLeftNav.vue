@@ -237,7 +237,7 @@
 // DevLeftNav.vue - 개발 도구 좌측 사이드바
 import { ref, toRef, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
-import LeftSidebarHeader from 'src/components/sidebars/left/LeftSidebarHeader.vue'
+import LeftSidebarHeader from '@frame/layout/components/sidebars/left/LeftSidebarHeader.vue'
 import DevMenuSlider from './dev-tools/DevMenuSlider.vue'
 import DocumentManagerHeader from './dev-tools/document-manager/DocumentManagerHeader.vue'
 import DocumentManagerList from './dev-tools/document-manager/DocumentManagerList.vue'
@@ -252,20 +252,20 @@ import DevGuideHeader from './dev-tools/dev-guide/DevGuideHeader.vue'
 import DevGuideList from './dev-tools/dev-guide/DevGuideList.vue'
 import SettingsManagerSidebar from './dev-tools/settings-manager/SettingsManagerSidebar.vue'
 import DevOpsSidebar from './dev-tools/devops/DevOpsSidebar.vue'
-import DocumentSettingsModal from 'src/components/modals/DocumentSettingsModal.vue'
-import { loadTOCSettings, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
-import { useDocumentMultiSelection } from 'src/system/composables/useDocumentMultiSelection.js'
-import { useDocumentManagerStore } from 'src/system/store/documentManagerStore.js'
-import { useDocumentSearch } from 'src/modules/document-manager/composables/useDocumentSearch.js'
-import { useComponentLibrary } from 'src/system/composables/useComponentLibrary.js'
-import { useDatabaseViewer } from 'src/system/composables/useDatabaseViewer.js'
-import { useThemeManager } from 'src/system/composables/useThemeManager.js'
-import { useDocumentFilters } from 'src/system/composables/useDocumentFilters.js'
-import { useErrorTracking } from 'src/system/composables/useErrorTracking.js'
-import { useDevGuide } from 'src/system/composables/useDevGuide.js'
-import { useSettingsManager } from 'src/system/composables/useSettingsManager.js'
+import DocumentSettingsModal from './dev-tools/document-manager/components/modals/DocumentSettingsModal.vue'
+import { loadTOCSettings, saveTOCSettings } from '@modules/document-manager/services/documentStorage.js'
+import { useDocumentMultiSelection } from '@system/composables/useDocumentMultiSelection.js'
+import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
+import { useDocumentSearch } from '@modules/document-manager/composables/useDocumentSearch.js'
+import { useComponentLibrary } from '@system/composables/useComponentLibrary.js'
+import { useDatabaseViewer } from '@system/composables/useDatabaseViewer.js'
+import { useThemeManager } from '@system/composables/useThemeManager.js'
+import { useDocumentFilters } from '@system/composables/useDocumentFilters.js'
+import { useErrorTracking } from '@system/composables/useErrorTracking.js'
+import { useDevGuide } from '@system/composables/useDevGuide.js'
+import { useSettingsManager } from '@system/composables/useSettingsManager.js'
 import { useRouter } from 'vue-router'
-import { useDevMenuState } from 'src/system/composables/useDevMenuState'
+import { useDevMenuState } from '@system/composables/useDevMenuState.js'
 
 // Quasar 인스턴스
 const $q = useQuasar()
@@ -284,7 +284,7 @@ const { activeMenu, setActiveMenu, initialize: initializeMenuState } = useDevMen
 
 // 메뉴별 헤더 정보 정의 (영문)
 const menuHeaders = {
-  'devops': { title: 'DevOps', subtitle: 'Build, deployment and infrastructure management' },
+  devops: { title: 'DevOps', subtitle: 'Build, deployment and infrastructure management' },
   'dev-guide': { title: 'Dev Guide', subtitle: 'Component samples and development guides' },
   'document-manager': { title: 'DOC Manager', subtitle: 'Development documents and requirements management' },
   'theme-manager': { title: 'Theme Manager', subtitle: 'Color and theme settings management' },

@@ -1,5 +1,5 @@
 import { nextTick } from 'vue'
-import { saveTOCExpandedState, saveTOCSettings } from 'src/modules/document-manager/services/documentStorage.js'
+import { saveTOCExpandedState, saveTOCSettings } from '@modules/document-manager/services/documentStorage.js'
 
 /**
  * TOC (목차) 관련 로직 Composable

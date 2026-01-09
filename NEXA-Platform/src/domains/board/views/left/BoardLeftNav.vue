@@ -50,10 +50,10 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore'
-import { useBoardMenuStore } from 'src/system/store/boardMenuStore'
-import { useBoardEditorStore } from 'src/system/store/boardEditorStore'
-import TreeNavItem from 'src/components/TreeNavItem.vue'
+import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
+import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
+import { useBoardEditorStore } from '@system/store/boardEditorStore.js'
+import TreeNavItem from '@components/ui/TreeNavItem.vue'
 
 const router = useRouter()
 const dashboardLayoutStore = useDashboardLayoutStore()

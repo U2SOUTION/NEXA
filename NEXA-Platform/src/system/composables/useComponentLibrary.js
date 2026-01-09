@@ -5,9 +5,9 @@
  */
 
 import { ref, watch } from 'vue'
-import { scanAndCategorizeComponents } from 'src/system/utils/componentScanner.js'
+import { scanAndCategorizeComponents } from '@system/utils/componentScanner.js'
 import { buildCategoryStructure, mapComponentToCategory, getAllCategoriesFlat } from '@system/config/componentCategories.js'
-import { calculateComponentLibraryStatistics } from 'src/system/utils/componentLibraryStatistics.js'
+import { calculateComponentLibraryStatistics } from '@system/utils/componentLibraryStatistics.js'
 
 /**
  * 컴포넌트 라이브러리 관리 Composable

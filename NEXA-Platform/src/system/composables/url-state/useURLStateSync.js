@@ -8,7 +8,7 @@
  *
  * 사용법:
  * ```javascript
- * import { useURLStateSync } from 'src/system/composables/url-state'
+ * import { useURLStateSync } from '@system/composables/url-state'
  *
  * const selectedCategory = ref(null)
  * const statusFilter = ref(null)

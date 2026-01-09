@@ -5,9 +5,9 @@
  */
 
 import { ref, computed } from 'vue'
-import { errorAnalysisIndex } from 'src/system/utils/error-tracking/errorAnalysisIndex.js'
-import { extractDocumentMetadata, parseErrorAnalysisFrontmatter } from 'src/system/utils/error-tracking/errorAnalysisParser.js'
-import { quietFetch } from 'src/system/utils/error-tracking/quietFetch.js'
+import { errorAnalysisIndex } from '@system/utils/error-tracking/errorAnalysisIndex.js'
+import { extractDocumentMetadata, parseErrorAnalysisFrontmatter } from '@system/utils/error-tracking/errorAnalysisParser.js'
+import { quietFetch } from '@system/utils/error-tracking/quietFetch.js'
 
 
 /**

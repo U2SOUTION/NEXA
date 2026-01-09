@@ -21,8 +21,8 @@
 <script setup>
 import { computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore'
-import { useBoardPreset } from 'src/system/composables/useBoardPreset'
+import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
+import { useBoardPreset } from '@system/composables/useBoardPreset.js'
 import WindowPresetSelector from '@domains/board/components/window/WindowPresetSelector.vue'
 
 const props = defineProps({

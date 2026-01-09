@@ -6,8 +6,8 @@
 
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { useUserSettingsStore } from 'src/system/store/userSettingsStore'
-import { extractThemeColors } from 'src/system/utils/themeColorParser'
+import { useUserSettingsStore } from '@system/store/userSettingsStore.js'
+import { extractThemeColors } from '@system/utils/themeColorParser.js'
 
 /**
  * 테마 관리 Composable

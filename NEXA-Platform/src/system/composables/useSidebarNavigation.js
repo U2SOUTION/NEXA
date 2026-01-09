@@ -6,7 +6,7 @@
  * 사이드바 네비게이션 설정은 viewModeSettings.js의
  * defaultSidebarNavigationSettings를 참조하세요.
  *
- * @see src/components/parts-management/config/viewModeSettings.js - 뷰 모드 설정 (사이드바 네비게이션 설정 포함)
+ * @see @domains/parts-management/components/config/viewModeSettings.js - 뷰 모드 설정 (사이드바 네비게이션 설정 포함)
  * @see docs/sidebar-navigation-settings-location-review.md - 사이드바 네비게이션 설정 위치 검토
  *
  * @param {Object} options - 설정 옵션

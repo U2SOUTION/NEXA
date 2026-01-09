@@ -19,14 +19,14 @@
 
 <script setup>
 import { computed } from 'vue'
-import { usePartsManagementStore } from 'src/system/store/partsManagementStore'
-import PartsManagementDashboard from 'src/components/parts-management/PartsManagementDashboard.vue'
-import PartsDataDashboard from 'src/components/parts-management/PartsDataDashboard.vue'
-import StorageBlockGrid from 'src/components/parts-management/StorageBlockGrid.vue'
-import PartClassesView from 'src/components/parts-management/PartClassesView.vue'
-import PartModelsView from 'src/components/parts-management/PartModelsView.vue'
-import PartSpecsView from 'src/components/parts-management/PartSpecsView.vue'
-import PartClassesTrashView from 'src/components/parts-management/PartClassesTrashView.vue'
+import { usePartsManagementStore } from '@system/store/partsManagementStore.js'
+import PartsManagementDashboard from '../../components/PartsManagementDashboard.vue'
+import PartsDataDashboard from '../../components/PartsDataDashboard.vue'
+import StorageBlockGrid from '../../components/StorageBlockGrid.vue'
+import PartClassesView from '../../components/PartClassesView.vue'
+import PartModelsView from '../../components/PartModelsView.vue'
+import PartSpecsView from '../../components/PartSpecsView.vue'
+import PartClassesTrashView from '../../components/PartClassesTrashView.vue'
 
 const partsStore = usePartsManagementStore()
 const sidebarMode = computed(() => partsStore.sidebarMode)

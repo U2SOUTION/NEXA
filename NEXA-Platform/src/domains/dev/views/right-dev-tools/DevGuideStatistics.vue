@@ -191,7 +191,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useDevGuideStore } from 'src/system/store/devGuideStore'
+import { useDevGuideStore } from '@system/store/devGuideStore.js'
 
 // Store 인스턴스
 const store = useDevGuideStore()

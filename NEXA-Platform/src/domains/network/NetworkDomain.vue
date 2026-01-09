@@ -1,13 +1,13 @@
 <template>
   <q-page class="network-domain-container">
-    <NetworkPage />
+    <NetworkContent />
   </q-page>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
 import { useDomainIntercom } from '@system/composables/useDomainIntercom'
-import NetworkPage from 'pages/NetworkPage.vue'
+import NetworkContent from './views/content/NetworkContent.vue'
 
 const { reportActive } = useDomainIntercom('network')
 

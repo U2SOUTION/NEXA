@@ -25,7 +25,7 @@ export async function scanConfigFiles() {
       import('@system/config/fileTypes.js').then((m) => ({ name: 'fileTypes', path: '@system/config/fileTypes.js', module: m })),
       import('@system/config/url-state/urlStateConfig.js').then((m) => ({ name: 'urlStateConfig', path: '@system/config/url-state/urlStateConfig.js', module: m })),
       import('@engines/diagram/config/diagramSettings.js').then((m) => ({ name: 'diagramSettings', path: '@engines/diagram/config/diagramSettings.js', module: m })),
-      import('../../../components/parts-management/config/viewModeSettings.js').then((m) => ({ name: 'viewModeSettings', path: 'src/components/parts-management/config/viewModeSettings.js', module: m })),
+      import('@domains/parts-management/components/config/viewModeSettings.js').then((m) => ({ name: 'viewModeSettings', path: '@domains/parts-management/components/config/viewModeSettings.js', module: m })),
     ])
 
     configModules.forEach((result) => {

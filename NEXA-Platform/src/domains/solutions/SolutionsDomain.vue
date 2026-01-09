@@ -1,13 +1,13 @@
 <template>
   <q-page class="solutions-domain-container">
-    <SolutionsPage />
+    <SolutionsContent />
   </q-page>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
 import { useDomainIntercom } from '@system/composables/useDomainIntercom'
-import SolutionsPage from 'pages/SolutionsPage.vue'
+import SolutionsContent from './views/content/SolutionsContent.vue'
 
 const { reportActive } = useDomainIntercom('solutions')
 

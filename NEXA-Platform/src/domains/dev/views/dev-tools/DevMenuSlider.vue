@@ -57,7 +57,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
-import { useDevMenuState } from 'src/system/composables/useDevMenuState'
+import { useDevMenuState } from '@system/composables/useDevMenuState.js'
 
 const props = defineProps({
   headerHovered: {

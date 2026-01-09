@@ -403,8 +403,8 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useDevGuide } from 'src/system/composables/useDevGuide'
-import { buildPathTree, getLabelForDirectory } from 'src/system/utils/path-tree-builder'
+import { useDevGuide } from '@system/composables/useDevGuide.js'
+import { buildPathTree, getLabelForDirectory } from '@system/utils/path-tree-builder.js'
 
 defineProps({
   headerHovered: {

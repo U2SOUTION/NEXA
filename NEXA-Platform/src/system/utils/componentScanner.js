@@ -35,16 +35,28 @@ const CATEGORY_ICONS = {
 
 /**
  * 컴포넌트 경로에서 디렉토리 경로 배열 추출
- * @param {string} path - 컴포넌트 경로 (예: 'src/components/ui/BaseModal.vue')
- * @returns {Array<string>} 디렉토리 경로 배열 (예: ['ui'])
+ * @param {string} path - 컴포넌트 경로 (예: 'src/components/ui/BaseModal.vue' 또는 'src/domains/board/components/BoardConfigEditor.vue')
+ * @returns {Array<string>} 디렉토리 경로 배열 (예: ['ui'] 또는 ['domains', 'board'])
  */
 function extractDirectoryPath(path) {
-  // 'src/components/ui/BaseModal.vue' → ['ui']
-  // 'src/components/sidebars/left/dev-tools/component-library/ComponentLibraryList.vue' → ['sidebars', 'left', 'dev-tools', 'component-library']
-  const match = path.match(/components\/(.+)\/[^/]+\.vue$/)
-  if (match) {
-    return match[1].split('/')
+  // src/components/.../Name.vue 형식
+  const componentsMatch = path.match(/src\/components\/(.+)\/[^/]+\.vue$/)
+  if (componentsMatch) {
+    return componentsMatch[1].split('/')
   }
+
+  // src/domains/.../components/.../Name.vue 형식
+  const domainsMatch = path.match(/src\/domains\/(.+)\/components\/(.+)\/[^/]+\.vue$/)
+  if (domainsMatch) {
+    return ['domains', ...domainsMatch[1].split('/'), ...domainsMatch[2].split('/')]
+  }
+
+  // src/domains/.../components/Name.vue 형식
+  const domainsDirectMatch = path.match(/src\/domains\/(.+)\/components\/[^/]+\.vue$/)
+  if (domainsDirectMatch) {
+    return ['domains', ...domainsDirectMatch[1].split('/')]
+  }
+
   return []
 }
 
@@ -58,6 +70,9 @@ function extractCategoryFromPath(path, maxDepth = 0) {
   const directories = extractDirectoryPath(path)
 
   if (directories.length === 0) {
+    // 매칭되지 않는 경우 (예: src/frame/... 등)
+    if (path.includes('src/frame/')) return 'frame'
+    if (path.includes('src/engines/')) return 'engines'
     return 'other'
   }
 
@@ -170,8 +185,8 @@ function formatCategoryDisplayName(categoryName) {
 export async function scanAndCategorizeComponents(maxDepth = 0) {
   try {
     // Vite의 import.meta.glob을 사용하여 모든 .vue 파일 스캔
-    // src/components/ 하위의 모든 .vue 파일 (node_modules, dist 제외)
-    const componentModules = import.meta.glob('/src/components/**/*.vue', { eager: false })
+    // src/components/, src/domains/**/components/ 하위의 모든 .vue 파일
+    const componentModules = import.meta.glob(['/src/components/**/*.vue', '/src/domains/**/components/**/*.vue'], { eager: false })
 
     const categoryMap = new Map()
 

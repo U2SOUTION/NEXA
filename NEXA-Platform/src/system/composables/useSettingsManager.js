@@ -5,7 +5,7 @@
  */
 
 import { ref, computed, onMounted } from 'vue'
-import { scanAllSettings, searchSettings, filterSettings } from 'src/system/utils/settings-scanner/settingsScanner.js'
+import { scanAllSettings, searchSettings, filterSettings } from '@system/utils/settings-scanner/settingsScanner.js'
 
 export function useSettingsManager() {
   // 상태

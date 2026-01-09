@@ -98,7 +98,7 @@ const routes = [
   },
   {
     path: '/:catchAll(.*)*',
-    component: () => import('@frame/views/common/Error404.vue'),
+    component: () => import('@frame/views/common/ErrorNotFound.vue'),
   },
 ]
 

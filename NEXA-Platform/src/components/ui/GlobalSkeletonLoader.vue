@@ -84,7 +84,7 @@
 </template>
 
 <script setup>
-import { useSkeletonLoader } from 'src/system/composables/useSkeletonLoader'
+import { useSkeletonLoader } from '@system/composables/useSkeletonLoader.js'
 
 const { isLoading, skeletonConfig } = useSkeletonLoader()
 

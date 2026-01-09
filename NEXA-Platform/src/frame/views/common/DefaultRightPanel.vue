@@ -27,7 +27,7 @@
 
 <script setup>
 import { QScrollArea } from 'quasar'
-import RightSidebarHeader from 'src/components/sidebars/right/RightSidebarHeader.vue'
+import RightSidebarHeader from '@frame/layout/components/sidebars/right/RightSidebarHeader.vue'
 import NexaBlock from '@engines/block/NexaBlock.vue'
 // 기본 우측 패널 - 향후 전역 도구나 설정 등을 추가할 수 있음
 </script>

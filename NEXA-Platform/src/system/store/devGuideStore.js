@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getComponentCategory } from 'src/system/utils/path-categorizer/index.js'
-import { filterByPath } from 'src/system/utils/path-tree-builder'
+import { getComponentCategory } from '@system/utils/path-categorizer/index.js'
+import { filterByPath } from '@system/utils/path-tree-builder.js'
 import { getTopLevelLabel } from '@system/config/devGuideConfig.js'
 
 /**

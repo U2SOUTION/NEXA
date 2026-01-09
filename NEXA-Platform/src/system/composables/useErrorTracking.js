@@ -5,11 +5,11 @@
  */
 
 import { ref, computed, nextTick } from 'vue'
-import { loadErrors, saveErrors, updateError as updateErrorStorage, deleteError as deleteErrorStorage } from 'src/system/utils/error-tracking/errorStorage.js'
-import { setCollectingEnabled } from 'src/system/utils/error-tracking/errorCollector.js'
-import { findSimilarErrors, areErrorsSimilar } from 'src/system/utils/error-tracking/errorGrouper.js'
-import { watchFileChanges } from 'src/system/utils/error-tracking/lintCollector.js'
-import { classifyErrorType } from 'src/system/utils/error-tracking/errorTypeClassifier.js'
+import { loadErrors, saveErrors, updateError as updateErrorStorage, deleteError as deleteErrorStorage } from '@system/utils/error-tracking/errorStorage.js'
+import { setCollectingEnabled } from '@system/utils/error-tracking/errorCollector.js'
+import { findSimilarErrors, areErrorsSimilar } from '@system/utils/error-tracking/errorGrouper.js'
+import { watchFileChanges } from '@system/utils/error-tracking/lintCollector.js'
+import { classifyErrorType } from '@system/utils/error-tracking/errorTypeClassifier.js'
 
 /**
  * 에러 트래킹 관리 Composable

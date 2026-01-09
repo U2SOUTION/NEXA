@@ -7,7 +7,7 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { useUserSettingsStore } from 'src/system/store/userSettingsStore'
+import { useUserSettingsStore } from '@system/store/userSettingsStore.js'
 
 // U2BEE 전용 레이아웃 - 헤더, 사이드바, 푸터 없이 컨텐츠 영역만 표시
 

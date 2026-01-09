@@ -72,7 +72,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { useGraphDocHistory } from 'src/system/composables/useGraphDocHistory.js'
+import { useGraphDocHistory } from '@system/composables/useGraphDocHistory.js'
 
 const $q = useQuasar()
 

@@ -16,7 +16,7 @@
 
       <!-- 메뉴 -->
       <div class="q-pa-sm">
-        <q-btn flat dense @click="selectTab('project')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'project' }]">
+        <q-btn flat dense @click="selectTab('project')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'project' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="folder" class="q-mr-sm" />
@@ -24,7 +24,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('work-document')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'work-document' }]">
+        <q-btn flat dense @click="selectTab('work-document')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'work-document' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="description" class="q-mr-sm" />
@@ -32,7 +32,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('schedule')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'schedule' }]">
+        <q-btn flat dense @click="selectTab('schedule')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'schedule' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="event" class="q-mr-sm" />
@@ -40,7 +40,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('collaboration')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'collaboration' }]">
+        <q-btn flat dense @click="selectTab('collaboration')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'collaboration' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="chat" class="q-mr-sm" />
@@ -48,7 +48,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('reference')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'reference' }]">
+        <q-btn flat dense @click="selectTab('reference')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'reference' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="attach_file" class="q-mr-sm" />
@@ -56,7 +56,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('logbook')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'logbook' }]">
+        <q-btn flat dense @click="selectTab('logbook')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'logbook' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="book" class="q-mr-sm" />
@@ -64,7 +64,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('parts')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'parts' }]">
+        <q-btn flat dense @click="selectTab('parts')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'parts' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="inventory_2" class="q-mr-sm" />
@@ -72,7 +72,7 @@
             </div>
           </template>
         </q-btn>
-        <q-btn flat dense @click="selectTab('finance')" :class="['btn-nexa-primary text-bold full-width q-py-xs', { 'active-menu': activeTab === 'finance' }]">
+        <q-btn flat dense @click="selectTab('finance')" :class="['btn-nexa-primary text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'finance' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="account_balance" class="q-mr-sm" />
@@ -103,14 +103,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { useErpStore } from '@domains/erp/store/erpStore'
 
-const activeTab = ref('project')
+const erpStore = useErpStore()
 
 function selectTab(tab) {
-  activeTab.value = tab
-  // 페이지의 탭도 변경 (emit 또는 store 사용)
-  // 현재는 로컬 상태만 관리
+  erpStore.setActiveSubMenu(tab)
 }
 </script>
 

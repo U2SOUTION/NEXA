@@ -96,8 +96,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useBoardMenuStore } from 'src/system/store/boardMenuStore'
-import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore'
+import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
+import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
 
 const router = useRouter()
 const boardMenuStore = useBoardMenuStore()

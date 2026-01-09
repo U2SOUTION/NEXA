@@ -31,7 +31,7 @@
  * })
  */
 import { ref, computed, nextTick } from 'vue'
-import { useModalSystemStore } from 'src/system/store/modalSystemStore'
+import { useModalSystemStore } from '@system/store/modalSystemStore.js'
 
 export function useDraggableResizableModal(modalId, options = {}) {
   const modalStore = useModalSystemStore()

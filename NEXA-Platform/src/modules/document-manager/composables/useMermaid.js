@@ -3,8 +3,8 @@
  * Mermaid 코드를 SVG로 렌더링하는 로직 담당
  */
 
-import { getDefaultMermaidCss, loadMermaidStyle, loadMermaidBlockStyle } from 'src/modules/document-manager/services/mermaidStyleStorage.js'
-import { getCurrentMermaidStyles } from 'src/modules/document-manager/config/mermaidStyles.js'
+import { getDefaultMermaidCss, loadMermaidStyle, loadMermaidBlockStyle } from '@modules/document-manager/services/mermaidStyleStorage.js'
+import { getCurrentMermaidStyles } from '@modules/document-manager/config/mermaidStyles.js'
 
 /**
  * DOM이 준비될 때까지 대기

@@ -29,7 +29,7 @@
 
 <script setup>
 import { storeToRefs } from 'pinia'
-import StandardLeftHeader from 'src/frame/layout/components/StandardLeftHeader.vue'
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { useSettingsStore } from '../../store/settingsStore'
 
 const settingsStore = useSettingsStore()

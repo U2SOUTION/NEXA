@@ -40,12 +40,12 @@
 
 <script setup>
 import { QExpansionItem, QScrollArea } from 'quasar'
-import RightSidebarHeader from 'src/components/sidebars/right/RightSidebarHeader.vue'
-import LayoutSection from 'src/components/side-panel/sections/LayoutSection.vue'
-import NexaPanelSection from 'src/components/side-panel/sections/NexaPanelSection.vue'
-import DeviceSection from 'src/components/side-panel/sections/DeviceSection.vue'
-import HistorySection from 'src/components/side-panel/sections/HistorySection.vue'
-import NotificationSection from 'src/components/side-panel/sections/NotificationSection.vue'
+import RightSidebarHeader from '@frame/layout/components/sidebars/right/RightSidebarHeader.vue'
+import LayoutSection from '@domains/panel/components/side-panel/LayoutSection.vue'
+import NexaPanelSection from '@domains/panel/components/side-panel/NexaPanelSection.vue'
+import DeviceSection from '@domains/panel/components/side-panel/DeviceSection.vue'
+import HistorySection from '@domains/panel/components/side-panel/HistorySection.vue'
+import NotificationSection from '@domains/panel/components/side-panel/NotificationSection.vue'
 </script>
 
 <style lang="scss" scoped>

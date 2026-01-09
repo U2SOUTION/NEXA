@@ -109,9 +109,9 @@
 
 <script setup>
 import { ref, computed, watch, reactive, nextTick } from 'vue'
-import DataPageNavigation from 'src/components/ui/DataPageNavigation.vue'
-import { getRowNumberWithPagination } from 'src/system/utils/dataViewUtils'
-import { getFieldValue, normalizeFieldMapping, getDefaultFieldMapping } from 'src/system/utils/view-mode/viewFieldMapping'
+import DataPageNavigation from '@components/ui/DataPageNavigation.vue'
+import { getRowNumberWithPagination } from '@system/utils/dataViewUtils.js'
+import { getFieldValue, normalizeFieldMapping, getDefaultFieldMapping } from '@system/utils/view-mode/viewFieldMapping.js'
 
 const props = defineProps({
   // 기본 데이터

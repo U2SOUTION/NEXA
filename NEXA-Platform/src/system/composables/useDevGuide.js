@@ -9,9 +9,9 @@
 
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useDevGuideStore } from 'src/system/store/devGuideStore'
-import { getComponentCategory } from 'src/system/utils/path-categorizer/index.js'
-import { getTopLevelOrder } from '@system/config/devGuideConfig.js'
+import { useDevGuideStore } from '@system/store/devGuideStore'
+import { getComponentCategory } from '@system/utils/path-categorizer/index.js'
+import { getTopLevelOrder } from '@system/config/devGuideConfig'
 
 /**
  * 개발 가이드 Composable

@@ -243,7 +243,8 @@ export function analyzeSampleDependencies(content, filePath) {
   )
   
   const stores = resolvedImports.filter(imp => 
-    imp.fullPath.includes('/stores/')
+    imp.fullPath.includes('/stores/') ||
+    imp.fullPath.includes('/store/')
   )
   
   const styles = resolvedImports.filter(imp => 

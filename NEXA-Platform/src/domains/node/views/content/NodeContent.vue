@@ -42,7 +42,7 @@ import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import NodeCanvas from '@engines/diagram/NodeCanvas.vue'
 import { useNexaNodeStore } from '@system/store/nexaNodeStore'
-import { nodeAdapter } from 'src/services/device/VirtualNodeAdapter'
+import { nodeAdapter } from '../../../../services/device/VirtualNodeAdapter'
 
 const activeTab = ref('basic')
 const nexaNodeStore = useNexaNodeStore()

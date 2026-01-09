@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
-import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from 'src/system/utils/file-sorter/index.js'
-import { getFileCategory, getMainCategory } from 'src/system/utils/path-categorizer/index.js'
+import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from '@system/utils/file-sorter/index.js'
+import { getFileCategory, getMainCategory } from '@system/utils/path-categorizer/index.js'
 
 /**
  * 문서 목록 모드 및 정렬 Composable
