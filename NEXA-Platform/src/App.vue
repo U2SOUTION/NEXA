@@ -5,5 +5,5 @@
 </template>
 
 <script setup>
-import GlobalSkeletonLoader from '@components/ui/GlobalSkeletonLoader.vue'
+import GlobalSkeletonLoader from '@system/components/ui/GlobalSkeletonLoader.vue'
 </script>

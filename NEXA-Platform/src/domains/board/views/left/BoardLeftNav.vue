@@ -53,7 +53,7 @@ import { useRouter } from 'vue-router'
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
 import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
 import { useBoardEditorStore } from '@system/store/boardEditorStore.js'
-import TreeNavItem from '@components/ui/TreeNavItem.vue'
+import TreeNavItem from '@system/components/ui/TreeNavItem.vue'
 
 const router = useRouter()
 const dashboardLayoutStore = useDashboardLayoutStore()

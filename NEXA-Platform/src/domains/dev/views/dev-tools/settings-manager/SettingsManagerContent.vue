@@ -563,7 +563,7 @@ function getUsageLocations(keyName) {
   // 13. 토스트 설정
   if (keyName === 'dev-toast-settings') {
     locations.push({
-      path: 'src/components/ui/TableFilterBar.vue',
+      path: 'src/system/components/ui/TableFilterBar.vue',
       type: 'component',
       description: '토스트 설정 저장',
     })

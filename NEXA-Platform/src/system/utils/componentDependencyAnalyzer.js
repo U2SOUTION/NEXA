@@ -90,7 +90,7 @@ function pathToNodeId(path) {
 async function readComponentFile(path) {
   try {
     // Vite의 동적 import with ?raw를 사용하여 파일 내용 읽기
-    // 경로 정규화: 'components/ui/BaseModal.vue' → '/src/components/ui/BaseModal.vue?raw'
+    // 경로 정규화: 'system/components/ui/BaseModal.vue' → '/src/system/components/ui/BaseModal.vue?raw'
     const fullPath = path.startsWith('src/') ? `/${path}?raw` : `/src/${path}?raw`
 
     // 동적 import는 빌드 타임에 알 수 없는 경로를 처리하기 어려움

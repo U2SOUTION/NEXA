@@ -11,8 +11,12 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig((/* ctx */) => {
   return {
-    // app boot file (/src/boot)
-    boot: ['pinia', 'errorTracking'],
+    // app boot file (/src/system/boot)
+    boot: [
+      '../system/boot/pinia',
+      '../system/boot/errorTracking',
+      '../system/boot/notify'
+    ],
 
     // 전역 스타일 설정
     css: [
@@ -45,7 +49,7 @@ export default defineConfig((/* ctx */) => {
           '@infra': path.resolve(__dirname, './src/domains/infra'),
           '@erp': path.resolve(__dirname, './src/domains/erp'),
           '@board': path.resolve(__dirname, './src/domains/board'),
-          '@components': path.resolve(__dirname, './src/components'),
+          '@components': path.resolve(__dirname, './src/system/components'),
           '@modules': path.resolve(__dirname, './src/modules'),
         }
 

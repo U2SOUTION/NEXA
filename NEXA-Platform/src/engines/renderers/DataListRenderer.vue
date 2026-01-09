@@ -109,7 +109,7 @@
 
 <script setup>
 import { ref, computed, watch, reactive, nextTick } from 'vue'
-import DataPageNavigation from '@components/ui/DataPageNavigation.vue'
+import DataPageNavigation from '@system/components/ui/DataPageNavigation.vue'
 import { getRowNumberWithPagination } from '@system/utils/dataViewUtils.js'
 import { getFieldValue, normalizeFieldMapping, getDefaultFieldMapping } from '@system/utils/view-mode/viewFieldMapping.js'
 

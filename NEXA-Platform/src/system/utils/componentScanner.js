@@ -35,12 +35,12 @@ const CATEGORY_ICONS = {
 
 /**
  * 컴포넌트 경로에서 디렉토리 경로 배열 추출
- * @param {string} path - 컴포넌트 경로 (예: 'src/components/ui/BaseModal.vue' 또는 'src/domains/board/components/BoardConfigEditor.vue')
+ * @param {string} path - 컴포넌트 경로 (예: 'src/system/components/ui/BaseModal.vue' 또는 'src/domains/board/components/BoardConfigEditor.vue')
  * @returns {Array<string>} 디렉토리 경로 배열 (예: ['ui'] 또는 ['domains', 'board'])
  */
 function extractDirectoryPath(path) {
-  // src/components/.../Name.vue 형식
-  const componentsMatch = path.match(/src\/components\/(.+)\/[^/]+\.vue$/)
+  // src/system/components/.../Name.vue 형식
+  const componentsMatch = path.match(/src\/system\/components\/(.+)\/[^/]+\.vue$/)
   if (componentsMatch) {
     return componentsMatch[1].split('/')
   }
@@ -185,14 +185,14 @@ function formatCategoryDisplayName(categoryName) {
 export async function scanAndCategorizeComponents(maxDepth = 0) {
   try {
     // Vite의 import.meta.glob을 사용하여 모든 .vue 파일 스캔
-    // src/components/, src/domains/**/components/ 하위의 모든 .vue 파일
-    const componentModules = import.meta.glob(['/src/components/**/*.vue', '/src/domains/**/components/**/*.vue'], { eager: false })
+    // src/system/components/, src/domains/**/components/ 하위의 모든 .vue 파일
+    const componentModules = import.meta.glob(['/src/system/components/**/*.vue', '/src/domains/**/components/**/*.vue'], { eager: false })
 
     const categoryMap = new Map()
 
     // 각 컴포넌트 파일 처리
     for (const path in componentModules) {
-      // 'src/components/ui/BaseModal.vue' 형식
+      // 'src/system/components/ui/BaseModal.vue' 형식
       const categoryName = extractCategoryFromPath(path, maxDepth)
       const componentName = extractComponentName(path)
       const icon = inferComponentIcon(componentName)

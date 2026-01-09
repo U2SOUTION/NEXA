@@ -168,7 +168,7 @@ import { useQuasar } from 'quasar'
 import { usePartsDataStore } from '@system/store/partsDataStore.js'
 import { DEFAULT_CATEGORIES, CATEGORY_ABBREVIATIONS } from '@system/constants/categories.js'
 import TiptapEditor from '../../TiptapEditor.vue'
-import UploadProgress from '@components/ui/UploadProgress.vue'
+import UploadProgress from '@system/components/ui/UploadProgress.vue'
 
 const props = defineProps({
   modelValue: {

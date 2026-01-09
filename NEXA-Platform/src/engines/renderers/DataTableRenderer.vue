@@ -91,7 +91,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import DataPageNavigation from '@components/ui/DataPageNavigation.vue'
+import DataPageNavigation from '@system/components/ui/DataPageNavigation.vue'
 import { applyTableViewSettings } from '@system/utils/view-mode/viewSettingsApplier.js'
 import { getFieldValue, normalizeFieldMapping, getDefaultFieldMapping } from '@system/utils/view-mode/viewFieldMapping.js'
 
