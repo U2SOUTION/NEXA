@@ -199,7 +199,7 @@
 import { ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
-import { saveTOCSettings, loadSupportedExtensions, saveSupportedExtensions } from '@modules/document-manager/services/documentStorage.js'
+import { saveTOCSettings, loadSupportedExtensions, saveSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage.js'
 import BaseModal from '@system/components/ui/BaseModal.vue'
 
 const props = defineProps({

@@ -108,10 +108,10 @@ import { ref, onMounted, onUnmounted, nextTick, watch, toRef, computed } from 'v
 import { useQuasar } from 'quasar'
 import TiptapEditor from '@domains/parts-management/components/TiptapEditor.vue'
 import { parseMarkdown } from '@system/utils/markdown/index.js'
-import { useMermaid } from '@modules/document-manager/composables/useMermaid.js'
+import { useMermaid } from '@domains/dev/modules/document-manager/composables/useMermaid.js'
 import { useUserSettingsStore } from '@system/store/userSettingsStore'
-import { loadCheckboxStates, loadTOCSettings, moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash, emptyTrash, renameFile } from '@modules/document-manager/services/documentStorage.js'
-import { useDocumentStats } from '@modules/document-manager/composables/useDocumentStats.js'
+import { loadCheckboxStates, loadTOCSettings, moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash, emptyTrash, renameFile } from '@domains/dev/modules/document-manager/services/documentStorage.js'
+import { useDocumentStats } from '@domains/dev/modules/document-manager/composables/useDocumentStats.js'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
 import { copyTextToClipboard } from '@system/utils/clipboard.js'
 

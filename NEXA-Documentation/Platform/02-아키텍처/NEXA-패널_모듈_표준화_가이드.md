@@ -402,10 +402,10 @@ interface ColorItem {
 src/components/sidebars/right/dev-tools/
 └── ColorTemplatePanel.vue          [신규] 칼라 템플릿 패널 메인 컴포넌트
 
-src/modules/theme-manager/services/
+src/domains/dev/modules/theme-manager/services/
 └── colorTemplateManager.js         [신규] 템플릿 CRUD 서비스
 
-src/modules/theme-manager/config/
+src/domains/dev/modules/theme-manager/config/
 └── defaultTemplates.js             [신규] 기본 템플릿 정의
 ```
 

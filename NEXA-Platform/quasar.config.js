@@ -50,7 +50,6 @@ export default defineConfig((/* ctx */) => {
           '@erp': path.resolve(__dirname, './src/domains/erp'),
           '@board': path.resolve(__dirname, './src/domains/board'),
           '@components': path.resolve(__dirname, './src/system/components'),
-          '@modules': path.resolve(__dirname, './src/modules'),
         }
 
         // SCSS 전역 변수 설정

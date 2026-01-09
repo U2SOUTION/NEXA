@@ -3,7 +3,7 @@
  * CSS 파일을 읽고 쓰는 함수들
  */
 
-import { getCurrentMermaidStyles } from '@modules/document-manager/config/mermaidStyles.js'
+import { getCurrentMermaidStyles } from '@domains/dev/modules/document-manager/config/mermaidStyles.js'
 
 // 요청 캐시 (같은 파일에 대한 반복 요청 방지)
 const loadCache = new Map() // filePath -> { content: string | null, timestamp: number, checked: boolean }

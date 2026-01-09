@@ -5,7 +5,7 @@
  */
 
 import { useQuasar } from 'quasar'
-import { moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash } from 'src/modules/document-manager/services/documentStorage.js'
+import { moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash } from '@domains/dev/modules/document-manager/services/documentStorage.js'
 
 /**
  * 문서 멀티 셀렉션 작업 Composable

@@ -300,7 +300,7 @@ function getUsageLocations(keyName) {
         description: '문서 관리 Store에서 사용',
       })
       locations.push({
-        path: 'src/modules/document-manager/services/documentStorage.js',
+        path: 'src/domains/dev/modules/document-manager/services/documentStorage.js',
         type: 'service',
         description: '문서 저장소 서비스에서 사용',
       })
@@ -376,13 +376,13 @@ function getUsageLocations(keyName) {
   // 1. TOC 관련
   if (keyName.startsWith('dev-toc-expanded-')) {
     locations.push({
-      path: 'src/modules/document-manager/services/documentStorage.js',
+      path: 'src/domains/dev/modules/document-manager/services/documentStorage.js',
       type: 'service',
       description: 'TOC 확장 상태 저장/로드',
     })
   } else if (keyName === 'dev-toc-settings') {
     locations.push({
-      path: 'src/modules/document-manager/services/documentStorage.js',
+      path: 'src/domains/dev/modules/document-manager/services/documentStorage.js',
       type: 'service',
       description: 'TOC 설정 저장/로드',
     })
@@ -436,7 +436,7 @@ function getUsageLocations(keyName) {
   // 4. 문서 관리 관련
   if (keyName.startsWith('dev-checkbox-states')) {
     locations.push({
-      path: 'src/modules/document-manager/services/documentStorage.js',
+      path: 'src/domains/dev/modules/document-manager/services/documentStorage.js',
       type: 'service',
       description: '체크박스 상태 저장',
     })
@@ -531,7 +531,7 @@ function getUsageLocations(keyName) {
   // 10. Mermaid 스타일 관련
   if (keyName.startsWith('Mermaid-') || keyName.startsWith('mermaid-style:')) {
     locations.push({
-      path: 'src/modules/document-manager/services/mermaidStyleStorage.js',
+      path: 'src/domains/dev/modules/document-manager/services/mermaidStyleStorage.js',
       type: 'service',
       description: 'Mermaid 스타일 저장',
     })
@@ -540,12 +540,12 @@ function getUsageLocations(keyName) {
   // 11. 테마 관련
   if (keyName.startsWith('Theme-')) {
     locations.push({
-      path: 'src/modules/theme-manager/services/favoriteColorsManager.js',
+      path: 'src/domains/dev/modules/theme-manager/services/favoriteColorsManager.js',
       type: 'service',
       description: '테마 색상 관리',
     })
     locations.push({
-      path: 'src/modules/theme-manager/services/recentColorsManager.js',
+      path: 'src/domains/dev/modules/theme-manager/services/recentColorsManager.js',
       type: 'service',
       description: '최근 색상 관리',
     })
@@ -579,7 +579,7 @@ function getUsageLocations(keyName) {
       // 일반적인 패턴 추론
       if (moduleName === 'toc' || keyName.includes('toc')) {
         locations.push({
-          path: 'src/modules/document-manager/services/documentStorage.js',
+          path: 'src/domains/dev/modules/document-manager/services/documentStorage.js',
           type: 'service',
           description: 'TOC 관련 설정 (추정)',
         })

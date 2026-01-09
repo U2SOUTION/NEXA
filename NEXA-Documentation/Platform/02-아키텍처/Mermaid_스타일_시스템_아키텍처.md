@@ -9,7 +9,7 @@
 ### 1. 주요 컴포넌트
 
 ```
-src/modules/document-manager/
+src/domains/dev/modules/document-manager/
 ├── composables/
 │   ├── useMermaid.js          # Mermaid 렌더링 및 스타일 주입
 │   └── useMermaidStyle.js     # 스타일 상태 관리 및 CSS 생성

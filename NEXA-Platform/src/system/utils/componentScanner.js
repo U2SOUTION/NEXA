@@ -186,7 +186,7 @@ export async function scanAndCategorizeComponents(maxDepth = 0) {
   try {
     // Vite의 import.meta.glob을 사용하여 모든 .vue 파일 스캔
     // src/system/components/, src/domains/**/components/ 하위의 모든 .vue 파일
-    const componentModules = import.meta.glob(['/src/system/components/**/*.vue', '/src/domains/**/components/**/*.vue'], { eager: false })
+    const componentModules = import.meta.glob(['/src/system/components/**/*.vue', '/src/domains/**/components/**/*.vue', '/src/domains/dev/modules/**/*.vue'], { eager: false })
 
     const categoryMap = new Map()
 

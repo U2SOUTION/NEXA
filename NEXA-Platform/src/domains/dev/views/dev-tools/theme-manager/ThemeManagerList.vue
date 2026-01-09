@@ -105,8 +105,8 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
-import { getRecentColors, removeRecentColor, reorderRecentColors } from 'src/modules/theme-manager/services/recentColorsManager'
-import { getFavoriteColors, toggleFavoriteColor, removeFavoriteColor, reorderFavoriteColors } from 'src/modules/theme-manager/services/favoriteColorsManager'
+import { getRecentColors, removeRecentColor, reorderRecentColors } from '@domains/dev/modules/theme-manager/services/recentColorsManager'
+import { getFavoriteColors, toggleFavoriteColor, removeFavoriteColor, reorderFavoriteColors } from '@domains/dev/modules/theme-manager/services/favoriteColorsManager'
 
 const $q = useQuasar()
 

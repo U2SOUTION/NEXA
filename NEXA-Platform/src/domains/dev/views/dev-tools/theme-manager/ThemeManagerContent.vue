@@ -44,7 +44,7 @@
 import { ref, watch, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import { extractThemeColors } from '@system/utils/themeColorParser'
-import { addRecentColor } from 'src/modules/theme-manager/services/recentColorsManager'
+import { addRecentColor } from '@domains/dev/modules/theme-manager/services/recentColorsManager'
 
 const props = defineProps({
   sortOption: {

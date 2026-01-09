@@ -27,7 +27,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useTOC } from 'src/modules/document-manager/composables/useTOC.js'
+import { useTOC } from '@domains/dev/modules/document-manager/composables/useTOC.js'
 
 const props = defineProps({
   item: { type: Object, required: true },
