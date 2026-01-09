@@ -38,10 +38,10 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { themeSettings } from '../settings/theme'
-import { layoutSettings } from '../settings/layout'
-import { iotSettings } from '../settings/iot'
-import { systemSettings } from '../settings/system'
+import { themeSettings } from '@system/settings/theme'
+import { layoutSettings } from '@system/settings/layout'
+import { iotSettings } from '@system/settings/iot'
+import { systemSettings } from '@system/settings/system'
 
 import ThemeSettings from '../components/settings/ThemeSettings.vue'
 import LayoutSettings from '../components/settings/LayoutSettings.vue'

@@ -29,7 +29,7 @@
 
 import { watch, onMounted, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { URL_STATE_PARAMS } from 'src/config/url-state'
+import { URL_STATE_PARAMS } from '@system/config/url-state/index.js'
 
 export function useURLStateSync(stateMap, options = {}) {
   // options는 향후 확장용 (URL 단축 기능 등)

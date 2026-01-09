@@ -238,7 +238,7 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits } from 'vue'
-import componentTaxonomy from 'src/config/componentTaxonomy.js'
+import componentTaxonomy from '@system/config/componentTaxonomy.js'
 
 const props = defineProps({
   activeTab: {

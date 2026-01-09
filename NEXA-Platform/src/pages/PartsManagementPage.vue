@@ -50,7 +50,7 @@ import PartClassesTrashView from 'src/components/parts-management/PartClassesTra
 import NexaBlock from '@engines/block/NexaBlock.vue'
 import { usePartsManagementStore } from 'src/system/store/partsManagementStore'
 import { useURLStateManagement } from 'src/system/composables/url-state'
-import { getDefaultShareView, getURLStateParamName } from 'src/config/url-state'
+import { getDefaultShareView, getURLStateParamName } from '@system/config/url-state/index.js'
 
 const route = useRoute()
 const partsStore = usePartsManagementStore()

@@ -11,7 +11,7 @@
  */
 
 import { useRoute } from 'vue-router'
-import { getURLStateParamName } from 'src/config/url-state'
+import { getURLStateParamName } from '@system/config/url-state/index.js'
 
 export function useDeepLinking(config = {}) {
   const { onDeepLink, onDefaultInit, defaultView } = config

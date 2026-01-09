@@ -113,7 +113,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import { themeSettings } from 'src/settings/theme'
+import { themeSettings } from '@system/settings/theme'
 
 const $q = useQuasar()
 

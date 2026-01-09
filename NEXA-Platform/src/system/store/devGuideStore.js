@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getComponentCategory } from 'src/system/utils/path-categorizer/index.js'
 import { filterByPath } from 'src/system/utils/path-tree-builder'
-import { getTopLevelLabel } from 'src/config/devGuideConfig'
+import { getTopLevelLabel } from '@system/config/devGuideConfig.js'
 
 /**
  * 개발 가이드 Store

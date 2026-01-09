@@ -3,7 +3,7 @@
  * 로컬 스토리지에 데이터를 저장하고 불러오는 함수들
  */
 import { isRef, nextTick } from 'vue'
-import { loadSupportedExtensions as loadExtensions, saveSupportedExtensions as saveExtensions, removeExtension } from 'src/config/documentConfig.js'
+import { loadSupportedExtensions as loadExtensions, saveSupportedExtensions as saveExtensions, removeExtension } from '@system/config/documentConfig.js'
 
 /**
  * 체크박스 상태 불러오기

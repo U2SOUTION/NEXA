@@ -142,7 +142,7 @@
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { getDefaultShareView, getURLStateParamName } from 'src/config/url-state'
+import { getDefaultShareView, getURLStateParamName } from '@system/config/url-state/index.js'
 
 const props = defineProps({
   modelValue: {

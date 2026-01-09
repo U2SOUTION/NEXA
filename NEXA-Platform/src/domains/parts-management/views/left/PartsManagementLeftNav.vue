@@ -507,7 +507,7 @@ import TemporaryBinStorage from 'src/components/parts-management/TemporaryBinSto
 import BinModelManagementModal from 'src/components/parts-management/BinModelManagementModal.vue'
 import SpaceManagementModal from 'src/components/parts-management/SpaceManagementModal.vue'
 import DetailedDescriptionViewer from 'src/components/parts-management/DetailedDescriptionViewer.vue'
-import { getFileIcon as getFileIconFromConfig, isIconUrl, getFileColor } from 'src/config/fileTypes.js'
+import { getFileIcon as getFileIconFromConfig, isIconUrl, getFileColor } from '@system/config/fileTypes.js'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()

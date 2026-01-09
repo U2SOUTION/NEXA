@@ -12,7 +12,7 @@
  * const tree = buildPathTree(samples, { rootPrefix: 'guides' })
  */
 
-import { getTopLevelLabel } from 'src/config/devGuideConfig'
+import { getTopLevelLabel } from '@system/config/devGuideConfig.js'
 
 /**
  * 디렉토리 이름에 따른 라벨 반환

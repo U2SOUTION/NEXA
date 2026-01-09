@@ -162,7 +162,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import componentTaxonomy from 'src/config/componentTaxonomy.js'
+import componentTaxonomy from '@system/config/componentTaxonomy.js'
 import TabInfo from './TabInfo.vue'
 
 const taxonomy = componentTaxonomy

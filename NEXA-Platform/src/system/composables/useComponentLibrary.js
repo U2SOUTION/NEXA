@@ -6,7 +6,7 @@
 
 import { ref, watch } from 'vue'
 import { scanAndCategorizeComponents } from 'src/system/utils/componentScanner.js'
-import { buildCategoryStructure, mapComponentToCategory, getAllCategoriesFlat } from 'src/config/componentCategories.js'
+import { buildCategoryStructure, mapComponentToCategory, getAllCategoriesFlat } from '@system/config/componentCategories.js'
 import { calculateComponentLibraryStatistics } from 'src/system/utils/componentLibraryStatistics.js'
 
 /**

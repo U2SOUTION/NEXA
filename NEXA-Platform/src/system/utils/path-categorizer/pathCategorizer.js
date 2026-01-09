@@ -2,8 +2,8 @@
  * 경로 카테고리 분류 함수
  * 폴더 구조 기반 동적 카테고리 분류 (하드코딩 제거)
  */
-import { loadSupportedExtensions } from 'src/config/documentConfig.js'
-import { getTopLevelOrder } from 'src/config/devGuideConfig'
+import { loadSupportedExtensions } from '@system/config/documentConfig.js'
+import { getTopLevelOrder } from '@system/config/devGuideConfig.js'
 
 /**
  * 경로를 레벨별로 분리

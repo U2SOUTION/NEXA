@@ -11,7 +11,7 @@
 
 import { nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getURLStateParamName } from 'src/config/url-state'
+import { getURLStateParamName } from '@system/config/url-state/index.js'
 
 export function useClearURLState(options = {}) {
   const { exclude = [], useNextTick = false } = options

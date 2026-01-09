@@ -428,7 +428,7 @@ import TableActionsOverlay from 'src/components/ui/TableActionsOverlay.vue'
 import { useContextMenu } from 'src/system/composables/useContextMenu'
 import { getPartClassesContextMenuItems } from 'src/components/context-menu-items/partsManagementContextMenu'
 import { exportData as exportDataUtil } from 'src/system/utils/export'
-import { getURLStateParamName } from 'src/config/url-state'
+import { getURLStateParamName } from '@system/config/url-state/index.js'
 import { addActionMenuItems, workActionAdditionalItems, getMenuItems } from 'src/components/parts-management/config/partClassesMenuConfig'
 
 const $q = useQuasar()
