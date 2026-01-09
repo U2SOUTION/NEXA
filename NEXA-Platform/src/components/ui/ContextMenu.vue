@@ -25,7 +25,7 @@
   <script setup>
   import { computed } from 'vue'
   import ContextMenu from '@/components/ui/ContextMenu.vue'
-  import { useContextMenu } from '@/composables/useContextMenu'
+  import { useContextMenu } from '@system/composables/useContextMenu'
 
   const { showContextMenu, hideContextMenu, contextMenuState } = useContextMenu()
 

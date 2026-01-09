@@ -49,7 +49,7 @@ const codeExample = [
   '',
   '// 컴포넌트에서 사용',
   '<' + 'script setup>',
-  "import { useCounter } from '@/composables/useCounter'",
+  "import { useCounter } from '@system/composables/useCounter'",
   '',
   'const { count, increment, decrement } = useCounter(10)',
   '</' + 'script>',

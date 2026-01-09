@@ -521,8 +521,8 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import { GridLayout, GridItem } from 'vue3-grid-layout-next'
 import 'vue3-grid-layout-next/dist/style.css'
-import { useLayoutStore } from 'src/stores/layout'
-import NexaPanelDialog from 'src/panel/NexaPanelDialog.vue'
+import { useLayoutStore } from 'src/system/store/layout'
+import NexaPanelDialog from '@domains/panel/components/NexaPanelDialog.vue'
 import { useQuasar } from 'quasar'
 
 const layoutStore = useLayoutStore()

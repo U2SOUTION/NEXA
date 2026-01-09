@@ -28,7 +28,7 @@
 
 <script setup>
 // 코어 컴포넌트 import (실제 사용 시)
-// import NexaBlock from 'src/block/NexaBlock.vue'
+// import NexaBlock from '@engines/block/NexaBlock.vue'
 
 // 예제 데이터 (참고용)
 // eslint-disable-next-line no-unused-vars

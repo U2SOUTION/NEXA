@@ -3,8 +3,8 @@
  * 역할: 설계도(Blueprint) 내의 노드 간 데이터 흐름을 관제하고 실행 순서를 관리합니다.
  */
 
-import { Blueprint } from '../../schemas/modules/blueprint' // 설계도 규격
-import { Connection } from '../../schemas/modules/connection' // 연결선 규격
+import { Blueprint } from '@system/schemas/modules/blueprint' // 설계도 규격
+import { Connection } from '@system/schemas/modules/connection' // 연결선 규격
 import { evaluateFormulator } from './evaluatorService' // 연산 엔진
 
 /**

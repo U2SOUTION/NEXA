@@ -17,7 +17,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import ChartComponent from 'src/charts/NexaChart.vue'
+import ChartComponent from '@engines/charts/NexaChart.vue'
 
 // 차트 컨테이너 ref
 const chartContainerRef = ref(null)

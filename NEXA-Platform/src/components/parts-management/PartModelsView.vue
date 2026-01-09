@@ -144,8 +144,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { usePartsDataStore } from 'src/stores/partsDataStore'
-import { useSkeletonLoader } from 'src/composables/useSkeletonLoader'
+import { usePartsDataStore } from 'src/system/store/partsDataStore'
+import { useSkeletonLoader } from 'src/system/composables/useSkeletonLoader'
 
 const $q = useQuasar()
 const partsDataStore = usePartsDataStore()

@@ -37,7 +37,7 @@ const codeExample = [
   '',
   '// 컴포넌트에서 사용',
   '<' + 'script setup>',
-  "import { useLocalStorage } from '@/composables/useLocalStorage'",
+  "import { useLocalStorage } from '@system/composables/useLocalStorage'",
   '',
   "const userSettings = useLocalStorage('userSettings', {",
   "  theme: 'dark',",

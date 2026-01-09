@@ -245,13 +245,13 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, shallowRef, computed, nextTick, markRaw, h } from 'vue'
 import { useQuasar } from 'quasar'
-import { useDevGuide } from 'src/composables/dev-tools/useDevGuide'
-import { useDevGuideStore } from 'src/stores/devGuideStore'
-import { copyTextToClipboard } from 'src/utils/clipboard'
+import { useDevGuide } from 'src/system/composables/useDevGuide'
+import { useDevGuideStore } from 'src/system/store/devGuideStore'
+import { copyTextToClipboard } from 'src/system/utils/clipboard'
 import CodeEditor from './CodeEditor.vue'
-// import { generateUsageExample } from 'src/utils/dev-guide/usage-example-generator.js'
-import { analyzeSampleDependencies } from 'src/utils/dev-guide/dependency-analyzer.js'
-import { removeTitles, parseComponentForPreview } from 'src/utils/dev-guide/previewParser.js'
+// import { generateUsageExample } from 'src/system/utils/usage-example-generator.js'
+import { analyzeSampleDependencies } from 'src/system/utils/dependency-analyzer.js'
+import { removeTitles, parseComponentForPreview } from 'src/system/utils/previewParser.js'
 
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, toggleFavorite } = useDevGuide()

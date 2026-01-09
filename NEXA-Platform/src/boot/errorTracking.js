@@ -4,7 +4,7 @@
  * 앱 시작 시 전역 에러 핸들러를 등록합니다.
  */
 
-import { initializeErrorCollector } from 'src/utils/error-tracking/errorCollector.js'
+import { initializeErrorCollector } from 'src/system/utils/error-tracking/errorCollector.js'
 
 export default ({ app }) => {
   // 에러 수집기 초기화

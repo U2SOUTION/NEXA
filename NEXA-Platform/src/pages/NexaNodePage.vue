@@ -303,11 +303,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import NodeCanvas from 'src/components/nexa-node/NodeCanvas.vue'
+import NodeCanvas from '@engines/diagram/NodeCanvas.vue'
 import VirtualCanvas from 'src/components/nexa-node/VirtualCanvas.vue'
 import VirtualIotDevice from 'src/components/nexa-node/VirtualIotDevice.vue'
 import { nodeAdapter } from 'src/services/device/VirtualNodeAdapter'
-import { useNexaNodeStore } from 'src/stores/nexaNodeStore'
+import { useNexaNodeStore } from 'src/system/store/nexaNodeStore'
 
 const mainTab = ref('basic')
 const nexNodeStore = useNexaNodeStore()

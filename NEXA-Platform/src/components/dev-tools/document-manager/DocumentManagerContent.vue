@@ -107,13 +107,13 @@
 import { ref, onMounted, onUnmounted, nextTick, watch, toRef, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import TiptapEditor from 'src/components/parts-management/TiptapEditor.vue'
-import { parseMarkdown } from 'src/utils/markdown/index.js'
+import { parseMarkdown } from 'src/system/utils/markdown/index.js'
 import { useMermaid } from 'src/modules/document-manager/composables/useMermaid.js'
-import { useUserSettingsStore } from 'src/stores/userSettingsStore'
+import { useUserSettingsStore } from 'src/system/store/userSettingsStore'
 import { loadCheckboxStates, loadTOCSettings, moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash, emptyTrash, renameFile } from 'src/modules/document-manager/services/documentStorage.js'
 import { useDocumentStats } from 'src/modules/document-manager/composables/useDocumentStats.js'
-import { useDocumentManagerStore } from 'src/stores/documentManagerStore.js'
-import { copyTextToClipboard } from 'src/utils/clipboard.js'
+import { useDocumentManagerStore } from 'src/system/store/documentManagerStore.js'
+import { copyTextToClipboard } from 'src/system/utils/clipboard.js'
 
 const $q = useQuasar()
 const documentStore = useDocumentManagerStore()
@@ -1110,5 +1110,5 @@ onUnmounted(() => {
 }
 
 // .markdown-content 스타일은 전역으로 이동됨
-// src/css/nexa-system/_markdown.scss 참조
+// src/system/css/nexa-system/_markdown.scss 참조
 </style>

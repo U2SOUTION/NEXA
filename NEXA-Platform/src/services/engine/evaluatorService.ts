@@ -6,9 +6,9 @@
 import { z } from 'zod' // 데이터 규격 검증을 위한 Zod 라이브러리
 
 // 필요한 스키마 및 타입 임포트
-import { Blueprint } from '../../schemas/modules/blueprint' // 설계도 규격
-import { Formulator } from '../../schemas/modules/formulator' // 포뮬레이터 규격
-import { FeedbackStatusEnum } from '../../schemas/common/display' // 피드백 상태 규격
+import { Blueprint } from '@system/schemas/modules/blueprint' // 설계도 규격
+import { Formulator } from '@system/schemas/modules/formulator' // 포뮬레이터 규격
+import { FeedbackStatusEnum } from '@system/schemas/common/display' // 피드백 상태 규격
 
 /**
  * [ evaluateFormulator ]

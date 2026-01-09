@@ -318,7 +318,7 @@ import { FontFamily } from '@tiptap/extension-font-family'
 import { Subscript } from '@tiptap/extension-subscript'
 import { Superscript } from '@tiptap/extension-superscript'
 import YouTube from '@tiptap/extension-youtube'
-import { usePartsDataStore } from 'src/stores/partsDataStore'
+import { usePartsDataStore } from 'src/system/store/partsDataStore'
 
 const $q = useQuasar()
 const partsDataStore = usePartsDataStore()

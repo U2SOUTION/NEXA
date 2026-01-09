@@ -279,23 +279,23 @@ function getUsageLocations(keyName) {
 
     if (configFileName.includes('devGuide')) {
       locations.push({
-        path: 'src/stores/devGuideStore.js',
+        path: 'src/system/store/devGuideStore.js',
         type: 'store',
         description: '개발 가이드 Store에서 사용',
       })
       locations.push({
-        path: 'src/composables/dev-tools/useDevGuide.js',
+        path: 'src/system/composables/useDevGuide.js',
         type: 'composable',
         description: '개발 가이드 Composable에서 사용',
       })
       locations.push({
-        path: 'src/utils/path-tree-builder.js',
+        path: 'src/system/utils/path-tree-builder.js',
         type: 'utility',
         description: '경로 트리 빌더에서 사용',
       })
     } else if (configFileName.includes('document')) {
       locations.push({
-        path: 'src/stores/documentManagerStore.js',
+        path: 'src/system/store/documentManagerStore.js',
         type: 'store',
         description: '문서 관리 Store에서 사용',
       })
@@ -306,18 +306,18 @@ function getUsageLocations(keyName) {
       })
     } else if (configFileName.includes('sidebar')) {
       locations.push({
-        path: 'src/components/sidebars/left/DevSidebar.vue',
+        path: 'src/domains/dev/views/DevLeftNav.vue',
         type: 'component',
         description: '사이드바 컴포넌트에서 사용',
       })
       locations.push({
-        path: 'src/layouts/MainLayout.vue',
+        path: 'src/frame/layout/MainLayout.vue',
         type: 'component',
         description: '메인 레이아웃에서 사용',
       })
     } else if (configFileName.includes('componentTaxonomy') || configFileName.includes('componentCategories')) {
       locations.push({
-        path: 'src/composables/dev-tools/useComponentLibrary.js',
+        path: 'src/system/composables/useComponentLibrary.js',
         type: 'composable',
         description: '컴포넌트 라이브러리 Composable에서 사용',
       })
@@ -328,29 +328,29 @@ function getUsageLocations(keyName) {
       })
     } else if (configFileName.includes('urlState')) {
       locations.push({
-        path: 'src/composables/url-state/useURLStateSync.js',
+        path: 'src/system/composables/url-state/useURLStateSync.js',
         type: 'composable',
         description: 'URL 상태 동기화에서 사용',
       })
       locations.push({
-        path: 'src/composables/url-state/useDeepLinking.js',
+        path: 'src/system/composables/url-state/useDeepLinking.js',
         type: 'composable',
         description: '딥 링킹에서 사용',
       })
     } else if (configFileName.includes('fileTypes')) {
       locations.push({
-        path: 'src/stores/documentManagerStore.js',
+        path: 'src/system/store/documentManagerStore.js',
         type: 'store',
         description: '문서 관리 Store에서 사용',
       })
     } else if (configFileName.includes('diagram')) {
       locations.push({
-        path: 'src/diagram/config/diagramSettings.js',
+        path: '@engines/diagram/config/diagramSettings.js',
         type: 'config',
         description: '다이어그램 설정에서 사용',
       })
       locations.push({
-        path: 'src/components/sidebars/right/dev-tools/ERDDiagramSettingsPanel.vue',
+        path: 'src/domains/dev/views/right-dev-tools/ERDDiagramSettingsPanel.vue',
         type: 'component',
         description: 'ERD 다이어그램 설정 패널에서 사용',
       })
@@ -393,7 +393,7 @@ function getUsageLocations(keyName) {
     // 세부 패턴별로 분기
     if (keyName.includes('sort-mode')) {
       locations.push({
-        path: 'src/components/sidebars/left/dev-tools/dev-guide/DevGuideList.vue',
+        path: 'src/domains/dev/views/dev-tools/dev-guide/DevGuideList.vue',
         type: 'component',
         description: '정렬 모드 저장/로드',
       })
@@ -406,7 +406,7 @@ function getUsageLocations(keyName) {
     } else {
       // 일반적인 dev-guide-* 패턴
       locations.push({
-        path: 'src/stores/devGuideStore.js',
+        path: 'src/system/store/devGuideStore.js',
         type: 'store',
         description: '개발 가이드 설정 관리',
       })
@@ -421,13 +421,13 @@ function getUsageLocations(keyName) {
       description: '활성 메뉴 상태 저장',
     })
     locations.push({
-      path: 'src/components/sidebars/left/DevSidebar.vue',
+      path: 'src/domains/dev/views/DevLeftNav.vue',
       type: 'component',
       description: '활성 메뉴 상태 복원',
     })
   } else if (keyName === 'dev-menu-wheel-scroll-step') {
     locations.push({
-      path: 'src/components/sidebars/left/dev-tools/DevMenuSlider.vue',
+      path: 'src/domains/dev/views/dev-tools/DevMenuSlider.vue',
       type: 'component',
       description: '메뉴 스크롤 스텝 설정',
     })
@@ -442,37 +442,37 @@ function getUsageLocations(keyName) {
     })
   } else if (keyName === 'dev-trash-files') {
     locations.push({
-      path: 'src/stores/documentManagerStore.js',
+      path: 'src/system/store/documentManagerStore.js',
       type: 'store',
       description: '휴지통 파일 목록 저장',
     })
   } else if (keyName === 'dev-previous-file-list' || keyName === 'dev-previous-file-hashes') {
     locations.push({
-      path: 'src/stores/documentManagerStore.js',
+      path: 'src/system/store/documentManagerStore.js',
       type: 'store',
       description: '이전 파일 목록/해시 저장',
     })
   } else if (keyName === 'dev-document-folder-name') {
     locations.push({
-      path: 'src/stores/documentManagerStore.js',
+      path: 'src/system/store/documentManagerStore.js',
       type: 'store',
       description: '문서 폴더명 저장',
     })
   } else if (keyName === 'dev-file-usage-counts') {
     locations.push({
-      path: 'src/stores/documentManagerStore.js',
+      path: 'src/system/store/documentManagerStore.js',
       type: 'store',
       description: '파일 사용 횟수 저장',
     })
   } else if (keyName === 'dev-priority-states') {
     locations.push({
-      path: 'src/stores/documentManagerStore.js',
+      path: 'src/system/store/documentManagerStore.js',
       type: 'store',
       description: '우선순위 상태 저장',
     })
   } else if (keyName === 'dev-favorite-states') {
     locations.push({
-      path: 'src/stores/documentManagerStore.js',
+      path: 'src/system/store/documentManagerStore.js',
       type: 'store',
       description: '즐겨찾기 상태 저장',
     })
@@ -481,7 +481,7 @@ function getUsageLocations(keyName) {
   // 5. 모달 관련
   if (keyName.startsWith('modal-state-')) {
     locations.push({
-      path: 'src/stores/modalSystemStore.js',
+      path: 'src/system/store/modalSystemStore.js',
       type: 'store',
       description: '모달 상태 관리',
     })
@@ -490,7 +490,7 @@ function getUsageLocations(keyName) {
   // 6. 에러 추적 관련
   if (keyName.startsWith('Error-') || keyName.startsWith('error-')) {
     locations.push({
-      path: 'src/utils/error-tracking/errorStorage.js',
+      path: 'src/system/utils/error-tracking/errorStorage.js',
       type: 'service',
       description: '에러 추적 데이터 저장',
     })
@@ -504,7 +504,7 @@ function getUsageLocations(keyName) {
   // 7. 사용자 설정
   if (keyName === 'userSettings' || keyName.startsWith('user-')) {
     locations.push({
-      path: 'src/stores/userSettingsStore.js',
+      path: 'src/system/store/userSettingsStore.js',
       type: 'store',
       description: '사용자 설정 관리',
     })
@@ -513,7 +513,7 @@ function getUsageLocations(keyName) {
   // 8. 부품 관리 관련
   if (keyName.startsWith('Part-')) {
     locations.push({
-      path: 'src/stores/partsManagementStore.js',
+      path: 'src/system/store/partsManagementStore.js',
       type: 'store',
       description: '부품 관리 설정',
     })
@@ -522,7 +522,7 @@ function getUsageLocations(keyName) {
   // 9. 보드 메뉴 관련
   if (keyName.startsWith('Board-')) {
     locations.push({
-      path: 'src/stores/boardMenuStore.js',
+      path: 'src/system/store/boardMenuStore.js',
       type: 'store',
       description: '보드 메뉴 설정',
     })
@@ -554,7 +554,7 @@ function getUsageLocations(keyName) {
   // 12. 성능 모니터 관련
   if (keyName.startsWith('Performance-')) {
     locations.push({
-      path: 'src/utils/performance/performanceStorage.js',
+      path: 'src/system/utils/performance/performanceStorage.js',
       type: 'service',
       description: '성능 데이터 저장',
     })
@@ -585,19 +585,19 @@ function getUsageLocations(keyName) {
         })
       } else if (moduleName === 'guide' || keyName.includes('guide')) {
         locations.push({
-          path: 'src/stores/devGuideStore.js',
+          path: 'src/system/store/devGuideStore.js',
           type: 'store',
           description: '개발 가이드 관련 설정 (추정)',
         })
       } else if (moduleName === 'document' || keyName.includes('document')) {
         locations.push({
-          path: 'src/stores/documentManagerStore.js',
+          path: 'src/system/store/documentManagerStore.js',
           type: 'store',
           description: '문서 관리 관련 설정 (추정)',
         })
       } else if (keyName.includes('menu')) {
         locations.push({
-          path: 'src/components/sidebars/left/dev-tools/DevMenuSlider.vue',
+          path: 'src/domains/dev/views/dev-tools/DevMenuSlider.vue',
           type: 'component',
           description: '메뉴 관련 설정 (추정)',
         })

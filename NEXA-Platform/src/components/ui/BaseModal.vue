@@ -54,8 +54,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useDraggableResizableModal } from 'src/composables/useDraggableResizableModal'
-import { useModalSystemStore } from 'src/stores/modalSystemStore'
+import { useDraggableResizableModal } from 'src/system/composables/useDraggableResizableModal'
+import { useModalSystemStore } from 'src/system/store/modalSystemStore'
 
 const props = defineProps({
   // v-model

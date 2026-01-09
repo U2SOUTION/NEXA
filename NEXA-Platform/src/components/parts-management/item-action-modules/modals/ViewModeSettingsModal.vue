@@ -92,8 +92,8 @@ import GalleryViewSettings from '../../view-settings/GalleryViewSettings.vue'
 import TimelineViewSettings from '../../view-settings/TimelineViewSettings.vue'
 import ChartViewSettings from '../../view-settings/ChartViewSettings.vue'
 import { VIEW_MODES, VIEW_MODE_OPTIONS, defaultViewModeSettings, loadViewModeSettings, saveViewModeSettings, resetViewModeSettings, getViewModeLabel } from '../../config/viewModeSettings'
-import { useDraggableResizableModal } from 'src/composables/useDraggableResizableModal'
-import { useModalSystemStore } from 'src/stores/modalSystemStore'
+import { useDraggableResizableModal } from 'src/system/composables/useDraggableResizableModal'
+import { useModalSystemStore } from 'src/system/store/modalSystemStore'
 
 const props = defineProps({
   modelValue: {

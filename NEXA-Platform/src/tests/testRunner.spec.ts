@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest'
 // [경로] tsconfig.json의 paths 설정(@/)을 사용하여 안전하게 임포트합니다.
-import { Blueprint } from '@/schemas/modules/blueprint'
+import { Blueprint } from '@system/schemas/modules/blueprint'
 import { processFlow } from '@/services/engine/flowManager'
 
 describe('NEXA 엔진 통합 시뮬레이션', () => {

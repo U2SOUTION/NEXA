@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import ThemeColorPanel from 'src/components/sidebars/right/dev-tools/ThemeColorPanel.vue'
+import ThemeColorPanel from 'src/domains/dev/views/right-dev-tools/ThemeColorPanel.vue'
 
 defineProps({
   selectedColor: {

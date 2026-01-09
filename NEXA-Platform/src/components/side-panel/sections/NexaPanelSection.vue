@@ -23,8 +23,8 @@
 </template>
 
 <script setup>
-import { useDashboardLayoutStore } from 'src/stores/dashboardLayoutStore'
-import { panelTypes } from 'src/panel/config/panelTypes'
+import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore'
+import { panelTypes } from '@domains/panel/components/config/panelTypes'
 
 const dashboardLayoutStore = useDashboardLayoutStore()
 

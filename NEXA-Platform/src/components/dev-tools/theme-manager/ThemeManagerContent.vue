@@ -43,7 +43,7 @@
 <script setup>
 import { ref, watch, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
-import { extractThemeColors } from 'src/utils/themeColorParser'
+import { extractThemeColors } from 'src/system/utils/themeColorParser'
 import { addRecentColor } from 'src/modules/theme-manager/services/recentColorsManager'
 
 const props = defineProps({

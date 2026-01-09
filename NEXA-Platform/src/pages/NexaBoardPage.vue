@@ -232,11 +232,11 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { useDashboardLayoutStore } from 'src/stores/dashboardLayoutStore'
-import { useBoardMenuStore } from 'src/stores/boardMenuStore'
+import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore'
+import { useBoardMenuStore } from 'src/system/store/boardMenuStore'
 import { useRouter } from 'vue-router'
-import NexaDashboardRenderer from 'src/board/NexaDashboardRenderer.vue'
-import NexaBoardSetup from 'src/board/NexaBoardSetup.vue'
+import NexaDashboardRenderer from '@domains/board/components/NexaDashboardRenderer.vue'
+import NexaBoardSetup from '@domains/board/components/NexaBoardSetup.vue'
 
 const dashboardLayoutStore = useDashboardLayoutStore()
 const boardMenuStore = useBoardMenuStore()

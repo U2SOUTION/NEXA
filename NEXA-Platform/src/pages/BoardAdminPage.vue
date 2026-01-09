@@ -128,15 +128,15 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useBoardMenuStore } from 'src/stores/boardMenuStore'
-import { useDashboardLayoutStore } from 'src/stores/dashboardLayoutStore'
+import { useBoardMenuStore } from 'src/system/store/boardMenuStore'
+import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore'
 import { useQuasar } from 'quasar'
 import DirectorySelection from 'src/components/DirectorySelection.vue'
 import TypeSelection from 'src/components/TypeSelection.vue'
 import BoardGuide from 'src/components/BoardGuide.vue'
 import AddGroupForm from 'src/components/form/AddGroupForm.vue'
 import AddBoardForm from 'src/components/form/AddBoardForm.vue'
-import { useBoardEditorStore } from 'src/stores/boardEditorStore'
+import { useBoardEditorStore } from 'src/system/store/boardEditorStore'
 
 const boardMenuStore = useBoardMenuStore()
 const dashboardLayoutStore = useDashboardLayoutStore()

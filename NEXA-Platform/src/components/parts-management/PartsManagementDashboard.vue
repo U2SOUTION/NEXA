@@ -78,9 +78,9 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
-import { usePartsManagementStore } from 'src/stores/partsManagementStore'
-import { usePartsDataStore } from 'src/stores/partsDataStore'
-import ChartComponent from 'src/charts/NexaChart.vue'
+import { usePartsManagementStore } from 'src/system/store/partsManagementStore'
+import { usePartsDataStore } from 'src/system/store/partsDataStore'
+import ChartComponent from '@engines/charts/NexaChart.vue'
 
 const partsManagementStore = usePartsManagementStore()
 const partsDataStore = usePartsDataStore()

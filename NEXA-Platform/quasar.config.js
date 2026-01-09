@@ -2,7 +2,12 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers'
-import path from 'node:path' // 경로 계산을 위한 path 모듈 추가
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// ESM 환경에서 __dirname 정의
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -10,7 +15,13 @@ export default defineConfig((/* ctx */) => {
     boot: ['pinia', 'errorTracking'],
 
     // 전역 스타일 설정
-    css: ['app.scss', 'themes/light.scss', 'themes/dark.scss', 'nexa-system/nexa-system.scss', '~vue3-grid-layout-next/dist/style.css'],
+    css: [
+      '../system/css/app.scss',
+      '../system/css/themes/light.scss',
+      '../system/css/themes/dark.scss',
+      '../system/css/nexa-system/nexa-system.scss',
+      '~vue3-grid-layout-next/dist/style.css'
+    ],
 
     extras: ['roboto-font', 'material-icons'],
 
@@ -34,6 +45,17 @@ export default defineConfig((/* ctx */) => {
           '@infra': path.resolve(__dirname, './src/domains/infra'),
           '@erp': path.resolve(__dirname, './src/domains/erp'),
           '@board': path.resolve(__dirname, './src/domains/board'),
+          '@components': path.resolve(__dirname, './src/components'),
+          '@modules': path.resolve(__dirname, './src/modules'),
+        }
+
+        // SCSS 전역 변수 설정
+        viteConf.css = {
+          preprocessorOptions: {
+            scss: {
+              // additionalData는 이제 src/css/quasar.variables.scss 심(Shim) 파일이 처리합니다.
+            },
+          },
         }
 
         // HMR 설정

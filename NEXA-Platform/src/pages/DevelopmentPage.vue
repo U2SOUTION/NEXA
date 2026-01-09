@@ -54,7 +54,7 @@ import SettingsManagerContent from 'src/components/dev-tools/settings-manager/Se
 import ComponentLibraryContent from 'src/components/dev-tools/component-library/ComponentLibraryContent.vue'
 import DevGuideContent from 'src/components/dev-tools/dev-guide/DevGuideContent.vue'
 import DevOpsContent from 'src/components/dev-tools/devops/DevOpsContent.vue'
-import { useDevMenuState } from 'src/composables/dev-tools/useDevMenuState'
+import { useDevMenuState } from 'src/system/composables/useDevMenuState'
 
 // 메뉴 상태 관리 (composable 사용 - DevSidebar와 동일한 인스턴스)
 const {

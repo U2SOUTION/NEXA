@@ -41,8 +41,8 @@ import { javascript } from '@codemirror/lang-javascript'
 import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { indentUnit } from '@codemirror/language'
-import { parseVueFile, combineVueFile } from 'src/utils/vue-file-parser.js'
-import { useUserSettingsStore } from 'src/stores/userSettingsStore'
+import { parseVueFile, combineVueFile } from 'src/system/utils/vue-file-parser.js'
+import { useUserSettingsStore } from 'src/system/store/userSettingsStore'
 
 const props = defineProps({
   filePath: {

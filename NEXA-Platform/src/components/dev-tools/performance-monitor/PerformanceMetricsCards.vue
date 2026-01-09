@@ -59,7 +59,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { evaluateWebVital } from 'src/utils/performance/webVitalsCollector'
+import { evaluateWebVital } from 'src/system/utils/performance/webVitalsCollector'
 
 const props = defineProps({
   currentFPS: {

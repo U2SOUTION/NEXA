@@ -429,15 +429,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
-import NexaChart from 'src/charts/NexaChart.vue'
+import NexaChart from '@engines/charts/NexaChart.vue'
 import * as d3 from 'd3'
-import { useErrorTracking } from 'src/composables/dev-tools/useErrorTracking.js'
-import { useErrorAnalysis } from 'src/composables/dev-tools/useErrorAnalysis.js'
-import { classifyErrorType, getErrorIcon, getErrorTypeLabel, getErrorTypeChartLabel } from 'src/utils/error-tracking/errorTypeClassifier.js'
-import { normalizeFilePathForAI, normalizeStackForAI } from 'src/utils/error-tracking/pathNormalizer.js'
-import { formatTimeRelative, formatTimeAbsolute, formatTime, formatDuration } from 'src/utils/error-tracking/timeFormatter.js'
-import { copyTextToClipboard } from 'src/utils/clipboard.js'
-import { parseMarkdown } from 'src/utils/markdown/index.js'
+import { useErrorTracking } from 'src/system/composables/useErrorTracking.js'
+import { useErrorAnalysis } from 'src/system/composables/useErrorAnalysis.js'
+import { classifyErrorType, getErrorIcon, getErrorTypeLabel, getErrorTypeChartLabel } from 'src/system/utils/error-tracking/errorTypeClassifier.js'
+import { normalizeFilePathForAI, normalizeStackForAI } from 'src/system/utils/error-tracking/pathNormalizer.js'
+import { formatTimeRelative, formatTimeAbsolute, formatTime, formatDuration } from 'src/system/utils/error-tracking/timeFormatter.js'
+import { copyTextToClipboard } from 'src/system/utils/clipboard.js'
+import { parseMarkdown } from 'src/system/utils/markdown/index.js'
 
 const $q = useQuasar()
 

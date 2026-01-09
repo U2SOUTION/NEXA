@@ -29,7 +29,7 @@
 
 <script setup>
 // 코어 컴포넌트 import (실제 사용 시)
-// import NexaChart from 'src/charts/NexaChart.vue'
+// import NexaChart from '@engines/charts/NexaChart.vue'
 
 // 예제 데이터 (참고용)
 // eslint-disable-next-line no-unused-vars

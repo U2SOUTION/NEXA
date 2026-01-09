@@ -284,13 +284,13 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
-import NexaDiagram from 'src/diagram/NexaDiagram.vue'
+import NexaDiagram from '@engines/diagram/NexaDiagram.vue'
 import NexaSpinner from 'src/components/ui/NexaSpinner.vue'
-import { diagramTypes } from 'src/diagram/config/diagramMetadata.js'
-import { analyzeDependencyGraph, isNpmPackage } from 'src/utils/graph-doc/dependencyGraphAnalyzer.js'
-import { analyzePackageDependencies } from 'src/utils/graph-doc/packageDependencyAnalyzer.js'
-import { analyzeFileStructure } from 'src/utils/graph-doc/fileStructureAnalyzer.js'
-import { useGraphDocHistory } from 'src/composables/dev-tools/useGraphDocHistory.js'
+import { diagramTypes } from '@engines/diagram/config/diagramMetadata.js'
+import { analyzeDependencyGraph, isNpmPackage } from 'src/system/utils/graph-doc/dependencyGraphAnalyzer.js'
+import { analyzePackageDependencies } from 'src/system/utils/graph-doc/packageDependencyAnalyzer.js'
+import { analyzeFileStructure } from 'src/system/utils/graph-doc/fileStructureAnalyzer.js'
+import { useGraphDocHistory } from 'src/system/composables/useGraphDocHistory.js'
 
 const $q = useQuasar()
 const route = useRoute()

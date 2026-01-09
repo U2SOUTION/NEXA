@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useUserSettingsStore } from 'src/stores/userSettingsStore'
+import { useUserSettingsStore } from 'src/system/store/userSettingsStore'
 import { QBtnToggle } from 'quasar'
 
 const { title, subtitle, pushIcon } = defineProps({

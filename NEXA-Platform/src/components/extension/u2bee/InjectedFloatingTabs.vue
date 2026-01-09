@@ -24,7 +24,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useTabConfig } from 'src/composables/extension/u2bee/useTabConfig'
+import { useTabConfig } from 'src/system/composables/extension/u2bee/useTabConfig'
 
 defineProps({
   activeTab: { type: String, required: true },

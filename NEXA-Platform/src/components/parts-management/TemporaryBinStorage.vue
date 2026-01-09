@@ -105,7 +105,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { usePartsManagementStore } from 'src/stores/partsManagementStore'
+import { usePartsManagementStore } from 'src/system/store/partsManagementStore'
 import { useQuasar } from 'quasar'
 
 const emit = defineEmits(['position-changed'])

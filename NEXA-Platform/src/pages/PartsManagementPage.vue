@@ -47,9 +47,9 @@ import PartClassesView from 'src/components/parts-management/PartClassesView.vue
 import PartModelsView from 'src/components/parts-management/PartModelsView.vue'
 import PartSpecsView from 'src/components/parts-management/PartSpecsView.vue'
 import PartClassesTrashView from 'src/components/parts-management/PartClassesTrashView.vue'
-import NexaBlock from 'src/block/NexaBlock.vue'
-import { usePartsManagementStore } from 'src/stores/partsManagementStore'
-import { useURLStateManagement } from 'src/composables/url-state'
+import NexaBlock from '@engines/block/NexaBlock.vue'
+import { usePartsManagementStore } from 'src/system/store/partsManagementStore'
+import { useURLStateManagement } from 'src/system/composables/url-state'
 import { getDefaultShareView, getURLStateParamName } from 'src/config/url-state'
 
 const route = useRoute()

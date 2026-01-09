@@ -198,7 +198,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import { useDocumentManagerStore } from 'src/stores/documentManagerStore'
+import { useDocumentManagerStore } from 'src/system/store/documentManagerStore'
 import { saveTOCSettings, loadSupportedExtensions, saveSupportedExtensions } from 'src/modules/document-manager/services/documentStorage.js'
 import BaseModal from 'src/components/ui/BaseModal.vue'
 

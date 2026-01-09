@@ -247,9 +247,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { usePartsDataStore } from 'src/stores/partsDataStore'
+import { usePartsDataStore } from 'src/system/store/partsDataStore'
 import { defineAsyncComponent } from 'vue'
-import { useSkeletonLoader } from 'src/composables/useSkeletonLoader'
+import { useSkeletonLoader } from 'src/system/composables/useSkeletonLoader'
 
 // TiptapEditor를 비동기 컴포넌트로 로드 (에러 방지)
 const TiptapEditor = defineAsyncComponent({

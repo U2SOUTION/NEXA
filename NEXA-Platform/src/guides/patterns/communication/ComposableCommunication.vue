@@ -39,7 +39,7 @@ const codeExample = [
   '',
   '// 컴포넌트에서 사용',
   '<' + 'script setup>',
-  "import { useSharedState } from '@/composables/useSharedState'",
+  "import { useSharedState } from '@system/composables/useSharedState'",
   '',
   'const { state, increment } = useSharedState()',
   '</' + 'script>',

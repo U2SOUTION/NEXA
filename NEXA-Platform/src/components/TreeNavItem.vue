@@ -41,9 +41,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useBoardMenuStore } from 'src/stores/boardMenuStore'
-import { useDashboardLayoutStore } from 'src/stores/dashboardLayoutStore'
-import { useBoardEditorStore } from 'src/stores/boardEditorStore'
+import { useBoardMenuStore } from 'src/system/store/boardMenuStore'
+import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore'
+import { useBoardEditorStore } from 'src/system/store/boardEditorStore'
 
 // 컴포넌트 자신의 이름을 명시적으로 선언 (재귀 컴포넌트의 경우 권장)
 // Vue 3 <script setup>에서는 자동으로 이름이 추론되지만, 명시하는 것이 좋을 때도 있음 (이 경우 파일명 기반)

@@ -110,9 +110,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useBoardMenuStore } from 'src/stores/boardMenuStore'
-import { useDashboardLayoutStore } from 'src/stores/dashboardLayoutStore'
-import NexaBlock from 'src/block/NexaBlock.vue'
+import { useBoardMenuStore } from 'src/system/store/boardMenuStore'
+import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore'
+import NexaBlock from '@engines/block/NexaBlock.vue'
 
 const router = useRouter()
 const boardMenuStore = useBoardMenuStore()

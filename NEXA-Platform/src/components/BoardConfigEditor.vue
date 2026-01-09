@@ -55,8 +55,8 @@ BoardAdminPage.vue에서 dashboardLayoutStore.selectedNodeIdForEditor 값이 있
 
 <script setup>
 import { ref, watch, computed, nextTick } from 'vue'
-import { useBoardMenuStore } from 'src/stores/boardMenuStore'
-import { useDashboardLayoutStore } from 'src/stores/dashboardLayoutStore' // 대시보드 프리셋 목록 가져오기용
+import { useBoardMenuStore } from 'src/system/store/boardMenuStore'
+import { useDashboardLayoutStore } from 'src/system/store/dashboardLayoutStore' // 대시보드 프리셋 목록 가져오기용
 import { useQuasar, Notify } from 'quasar'
 import _isEqual from 'lodash/isEqual' // 배열/객체 비교를 위해 lodash.isEqual 사용
 

@@ -171,7 +171,7 @@ import DataManagement from 'src/components/extension/u2bee/DataManagement.vue'
 import Settings from 'src/components/extension/u2bee/Settings.vue'
 import HelpPage from 'src/components/extension/u2bee/HelpPage.vue'
 import InjectedFloatingTabs from 'src/components/extension/u2bee/InjectedFloatingTabs.vue'
-import { useTabConfig } from 'src/composables/extension/u2bee/useTabConfig'
+import { useTabConfig } from 'src/system/composables/extension/u2bee/useTabConfig'
 
 const route = useRoute()
 const router = useRouter()
@@ -409,7 +409,7 @@ onUnmounted(() => {
 // U2BEE 관련 스타일
 // ============================================
 
-@import 'src/css/extension/u2bee-layout.scss'; // U2BEE 관련 스타일은 u2bee-layout.scss에서 통합 관리
+@import 'src/system/css/extension/u2bee-layout.scss'; // U2BEE 관련 스타일은 u2bee-layout.scss에서 통합 관리
 
 // ============================================
 // Extension 메인 페이지 스타일 (넥사 플렛폼 확장 프로그램 관리 페이지)

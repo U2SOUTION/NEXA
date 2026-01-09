@@ -93,7 +93,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { usePartsManagementStore } from 'src/stores/partsManagementStore'
+import { usePartsManagementStore } from 'src/system/store/partsManagementStore'
 
 const props = defineProps({
   node: {

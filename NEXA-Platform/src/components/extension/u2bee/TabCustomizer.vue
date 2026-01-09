@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { useTabConfig } from 'src/composables/extension/u2bee/useTabConfig'
+import { useTabConfig } from 'src/system/composables/extension/u2bee/useTabConfig'
 
 const { tabConfig, toggleTabVisibility, resetToDefault } = useTabConfig()
 

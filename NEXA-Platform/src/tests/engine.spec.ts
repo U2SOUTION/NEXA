@@ -3,7 +3,7 @@
  * 역할: Vitest 환경에서 엔진 로직을 검증합니다.
  */
 import { describe, it, expect } from 'vitest'
-import { Blueprint } from '@/schemas/modules/blueprint'
+import { Blueprint } from '@system/schemas/modules/blueprint'
 import { processFlow } from '@/services/engine/flowManager'
 
 describe('NEXA 엔진 흐름 테스트', () => {

@@ -2,7 +2,7 @@
 // 사용하지 않는 watch를 제거하여 ESLint 오류를 해결합니다.
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 // 수정 코드 (상대 경로로 직접 지정)
-import { renderForceDirected } from 'src/diagram/dependency/ForceDirectedDiagram.js'
+import { renderForceDirected } from '@engines/diagram/dependency/ForceDirectedDiagram.js'
 import { nodeAdapter } from 'src/services/device/VirtualNodeAdapter'
 import { vdm } from 'src/services/device/VirtualDeviceManager'
 

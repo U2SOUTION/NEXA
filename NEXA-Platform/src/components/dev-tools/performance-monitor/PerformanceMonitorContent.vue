@@ -90,12 +90,12 @@ import { useQuasar } from 'quasar'
 import PerformanceMetricsCards from './PerformanceMetricsCards.vue'
 import ApiTesterContent from '../api-tester/ApiTesterContent.vue'
 import ErrorTrackingContent from '../error-tracking/ErrorTrackingContent.vue'
-import { startFPSMonitoring, stopFPSMonitoring, getCurrentFPS, getAverageFPS, getMinFPS } from 'src/utils/performance/fpsMonitor'
-import { startMemoryMonitoring, stopMemoryMonitoring, collectMemorySnapshot } from 'src/utils/performance/memoryMonitor'
-import { onWebVitals, getWebVitals } from 'src/utils/performance/webVitalsCollector'
-import { enableAPIMonitoring, disableAPIMonitoring, getAPIStats } from 'src/utils/performance/apiPerformanceInterceptor'
-import { collectAllBasicMetrics } from 'src/utils/performance/performanceCollector'
-import { savePerformanceData } from 'src/utils/performance/performanceStorage'
+import { startFPSMonitoring, stopFPSMonitoring, getCurrentFPS, getAverageFPS, getMinFPS } from 'src/system/utils/performance/fpsMonitor'
+import { startMemoryMonitoring, stopMemoryMonitoring, collectMemorySnapshot } from 'src/system/utils/performance/memoryMonitor'
+import { onWebVitals, getWebVitals } from 'src/system/utils/performance/webVitalsCollector'
+import { enableAPIMonitoring, disableAPIMonitoring, getAPIStats } from 'src/system/utils/performance/apiPerformanceInterceptor'
+import { collectAllBasicMetrics } from 'src/system/utils/performance/performanceCollector'
+import { savePerformanceData } from 'src/system/utils/performance/performanceStorage'
 
 const $q = useQuasar()
 
