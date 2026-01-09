@@ -39,46 +39,67 @@
 
 ```text
 src/
-├── nodes/                    // [신규] 노드 타입별 독립 관리
-│   ├── trigger/              // 트리거 계열 (Sensor, Timer...)
-│   │   ├── SensorNode.ts     // 노드 정의 (설정 스키마, 기본값 등)
-│   │   └── TimerNode.ts
-│   ├── logic/                // 논리/연산 계열 (Math, Filter...)
-│   │   ├── AdderNode.ts
-│   │   └── ScalerNode.ts
-│   └── action/               // 액션 계열 (Hardware, API...)
-│       └── DeviceControl.ts
-├── panels/                    // [기존] 패널 타입별 관리
-│   ├── Gauge/
-│   ├── Chart/
-│   └── ...
-├── components/
-│   ├── sidebars/
-│   │   ├── NexaNodeSidebar.vue           // 사이드바 메인 제어 컴포넌트
-│   │   ├── left/
-│   │   │   └── nexa-node/
-│   │   │       ├── CanvasManage.vue      // 새 캔버스, 저장, 불러오기, 내보내기 등
-│   │   │       ├── NodeLibrary.vue      // 노드 타입별 리스트 (Trigger/Math/Logic 등)
-│   │   │       ├── PanelGallery.vue     // 장착 가능한 패널 검색 및 리스트 (Gauge/Chart 등)
-│   │   │       └── AssetSearch.vue      // 통합 검색창 (노드 및 패널 검색)
-│   │   └── right/
-│   │       └── nexa-node/
-│   │           ├── PropertyInspector.vue // 선택된 노드/패널의 상세 속성 편집
-│   │           ├── NodeExecutionLog.vue  // 노드별 개별 실행 로그 및 상태 확인
-│   │           └── DataPreview.vue      // 노드 단자에 흐르는 데이터 실시간 프리뷰
-│   └── nexa-node/
-│       ├── NodeCanvas.vue               // [핵심] D3.js 기반 메인 무대
-│       ├── NodeFrame.vue                // 노드 공통 외형 (패널 슬롯 포함)
-│       └── NodeToolbar.vue              // 상단 최소화 툴바 (저장, 스냅샷 등)
+├── frame/                        # 플랫폼 중앙 제어 및 프레임워크 기반
+├── layout/                       #MainLayout.vue (3단 레이아웃 슬롯 정의)
+│   │   ├── components/           # 레이아웃을 구성하는 공통 부품들
+│   │   │   ├── StandardLeftHeader.vue #헤더는 버튼이 들어갈 slot이나 props만 제공
+│   │   │   └── StandardRightHeader.vue #헤더는 버튼이 들어갈 slot이나 props만 제공
+│   │   ├── MainLayout.vue        # 전체 3단 슬롯 정의 (StandardHeader들을 배치)
+│   │   └── U2BeeLayout.vue       # 크롬 확장용 레이아웃
+│   ├── router/                   # 전체 라우팅 및 Infra 리다이렉션 가드
+│   ├── registry/                 # domainRegistry
+│   └── boot/                     # 초기화 및 플러그인 설정
+│
+├── engines/                      # 핵심 기술 엔진 (내부 라이브러리)
+│   ├── block/                    # NexaBlock 엔진
+│   ├── board/                    # NexaBoard 렌더러
+│   ├── panel/                    # 공통 패널 시스템
+│   ├── diagram/                  # 다이어그램 엔진
+│   ├── sound/                    # 사운드 처리 엔진
+│   └── charts/                   # 차트 시각화 모듈
+│
+├── system/                       # 전역 표준 및 강제 규칙 (Strict Layer)
+│   ├── store/                    # eventBus, systemState
+│   ├── css/                      # 전역 디자인 시스템 (디자인 토큰)
+│   ├── schemas/                  # 모든 데이터 모델 표준 (도메인 내 생성 금지)  infra/erp/node.....
+│   ├── composables/              # useDomainIntercom, useSystemWatcher
+│   ├── components/               # 시스템 표준 공통 UI 컴포넌트
+│   └── utils/                    # 전역 공통 유틸리티
+│
+├── domains/                          # 메뉴별 독립 프로젝트 영역
+│   ├── infra/                        # 인프라 자산 및 장치 관리 도메인
+│   │   ├── my-devices/               # 하위메뉴 1: 장치 목록 및 상세 관리
+│   │   │   └── views/                # 3단 UI 실제 구현부
+│   │   │       ├── left/             # 장치 트리, 그룹 필터링
+│   │   │       ├── content/          # 등록/수정 폼, 장치 상세 제어
+│   │   │       └── right/            # 장치별 통신 로그, 실시간 센서 값
+│   │   │
+│   │   ├── physical-map/             # 하위메뉴 2: 도면 기반 자산 배치 조회
+│   │   │   └── views/
+│   │   │       ├── left/             # 맵 네비게이션 (지역/건물/층)
+│   │   │       ├── content/          # 2D/3D 맵 렌더링 컨테이너
+│   │   │       └── right/            # 선택된 자산의 시스템 상태 요약
+│   │   │
+│   │   ├── store/                    # 도메인 로컬 상태 (infra 전용 데이터 가공)
+│   │   ├── components/               # infra 내 여러 메뉴에서 재사용되는 UI
+│   │   │   ├── InfraDeviceTree.vue   # 여러 메뉴에서 공유하는 장치 트리
+│   │   │   ├── LogStreamViewer.vue   # 실시간 로그 표시용 공통 부품
+│   │   │   └── StatusBadge.vue       # 인프라 전용 장치 상태 표시 아이콘
+│   │   │
+│   │   └── index.vue                 # Frame 레이아웃에 맞춰 3단 영역을 조립하는 루트
+│   │
+│   ├── erp/                      # 부품 관리 통합 도메인
+│   │   ├── views/                # [left, content, right] 구조 준수
+│   │   └── index.vue
+│   │
+│   ├── board/                    # Nexa Board 도메인
+│   ├── pannel/                   # Nexa Pannel 도메인
+│   ├── node/                     # Nexa Node 도메인
+│   ├── teach/                    # Nexa Teach 도메인
+│   └── ...                       # 기타 도메인 (Network, Portfolio 등)
+│
+└── App.vue                       # 메인 진입점
 
-```
-
-```text
-src/
-├── nodes/            // 노드의 "두뇌" (Logic & Schema)
-├── panels/            // 노드에 장착될 "얼굴" (UI Modules)
-├── services/engine/  // 노드들을 연결해 실행하는 "심장" (Flow Manager)
-└── components/       // 이 모든 것을 화면에 그리는 "손" (Canvas, Sidebar)
 ```
 
 ## ✨ NEXA NODE 레이아웃과 기능과 UI 설계

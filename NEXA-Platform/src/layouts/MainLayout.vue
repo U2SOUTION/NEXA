@@ -58,7 +58,7 @@
 
         <q-space />
 
-        <!-- 오른쪽 아이콘 영역 (전체 래퍼) -->
+        <!-- 헤더 토글 버튼 오른쪽 아이콘 영역 (전체 래퍼) -->
         <div ref="rightIconAreaRef" class="row items-center no-wrap">
           <!-- 컨텍스트 기능 버튼 (NEXA BOARD에서만 표시) -->
           <div v-if="isNexaBoardMenu" ref="contextIconGroupRef" class="row items-center no-wrap header-icon-group">
@@ -365,7 +365,7 @@ const mainMenuTabs = [
   { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: false, nexaPrefix: true },
   { name: 'nexa-pannel', label: 'NEXA PANNEL', displayLabel: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', exact: false, nexaPrefix: true },
   { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
-  { name: 'nexa-teach', label: 'NEXA TEACH', displayLabel: 'TEACH', icon: 'school', route: '/nexa-teach', exact: false, nexaPrefix: true },
+  { name: 'nexa-teach', label: 'NEXA TEACH', displayLabel: 'TEACH', icon: 'school', route: '/nexa-teach', exact: false, nexaPrefix: true }, // TODO: TRACE 로 변경 예정
   { name: 'erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
   { name: 'parts-management', label: '부품관리', displayLabel: '부품관리', icon: 'inventory_2', route: '/parts-management', exact: false, onClick: handlePartsManagementTabClick, nexaPrefix: false },
   { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },

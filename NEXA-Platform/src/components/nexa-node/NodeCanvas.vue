@@ -52,6 +52,7 @@ let currentTransform = d3.zoomIdentity
 const pointerTarget = { x: 0, y: 0 }
 const NODE_WIDTH = 140
 const NODE_HEIGHT = 52
+const isolatedNodeId = ref(null)
 
 function getDiagramSize() {
   if (!canvasRef.value) return { width: 0, height: 0 }
@@ -111,6 +112,10 @@ function renderDiagram() {
     })
 
   nodeSelection.attr('class', 'node') // keep classes
+  nodeSelection.on('click', (event, node) => {
+    event.stopPropagation()
+    isolateNode(node)
+  })
 
   //노드 색상
   // TODO: 노드 색상 변경 필요
@@ -234,7 +239,35 @@ function updateSimulation(nodes, links, nodeSelection, linkSelection) {
         .attr('x2', (d) => (d.target ? d.target.x : 0))
         .attr('y2', (d) => (d.target ? d.target.y : 0))
       updateTempLine()
+      maintainIsolation()
     })
+}
+
+function maintainIsolation() {
+  if (!simulation) return
+  const nodes = simulation.nodes()
+  nodes.forEach((node) => {
+    if (isolatedNodeId.value === node.id) {
+      node.fx = node.x
+      node.fy = node.y
+    } else if (node.fx !== null || node.fy !== null) {
+      node.fx = null
+      node.fy = null
+    }
+  })
+}
+
+function isolateNode(node) {
+  if (!simulation) return
+  if (isolatedNodeId.value === node.id) {
+    isolatedNodeId.value = null
+    node.fx = null
+    node.fy = null
+    return
+  }
+  isolatedNodeId.value = node.id
+  node.fx = node.x
+  node.fy = node.y
 }
 
 function getPortPosition(node, port) {

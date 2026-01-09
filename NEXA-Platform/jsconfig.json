@@ -1,3 +1,16 @@
 {
-  "extends": "./.quasar/tsconfig.json"
+  "extends": "./.quasar/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["src/core/*"],
+      "@sdk/*": ["src/sdk/*"],
+      "@system/*": ["src/system/*"],
+      "@domains/*": ["src/domains/*"],
+      "@infra/*": ["src/domains/infra/*"],
+      "@erp/*": ["src/domains/erp/*"],
+      "@board/*": ["src/domains/board/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".quasar"]
 }

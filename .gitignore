@@ -5,6 +5,7 @@
 # 의존성 (모든 하위 프로젝트)
 **/node_modules/
 node_modules/
+NEXA-Platform-V1/
 
 # 빌드 결과물
 **/dist/
