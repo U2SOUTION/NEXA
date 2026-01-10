@@ -29,10 +29,7 @@
         spread
         no-caps
         unelevated
-        toggle-color="primary"
-        color="rgba(0,0,0,0.1)"
-        text-color="grey-7"
-        class="full-width"
+        class="nexa-mode-toggle full-width"
       />
     </div>
     <q-separator class="header-separator" />
@@ -79,7 +76,7 @@ watch(
 .standard-right-header {
   .tools-panel-header {
     min-height: 60px;
-    background: var(--nexa-surface-header-bg, var(--nexa-background-darker));
+
     display: flex;
     align-items: center;
     padding: 16px 20px 8px;
@@ -110,16 +107,8 @@ watch(
   }
 
   .tools-panel-subtitle {
-    margin-top: 4px;
-    line-height: 1.2;
-  }
-
-  .mode-toggle-section {
-    background: var(--nexa-surface-header-bg, var(--nexa-background-darker));
-  }
-
-  .header-separator {
-    opacity: 0.6;
+    font-size: 1em;
+    line-height: 1;
   }
 }
 </style>

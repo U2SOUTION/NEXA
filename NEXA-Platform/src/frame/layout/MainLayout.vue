@@ -9,7 +9,7 @@
     <q-header v-if="!isIframeMode" ref="headerRef">
       <q-toolbar class="bg-grey-10" dense>
         <!-- 왼쪽 헤더: 로고 및 메인 메뉴 -->
-        <GlobalNavbarLeft :menu-tabs="mainMenuTabs" :current-menu="currentMenu" :show-labels="showLabels" :show-tab-icons="showTabIcons" :is-overflowing="isMainMenuOverflowing" :hidden-tabs="hiddenTabs" :hidden-tab-names="hiddenTabNames" @tab-click="handleTabClick" />
+        <GlobalNavbarLeft ref="mainMenuTabsRef" :menu-tabs="mainMenuTabs" :current-menu="currentMenu" :show-labels="showLabels" :show-tab-icons="showTabIcons" :is-overflowing="isMainMenuOverflowing" :hidden-tabs="hiddenTabs" :hidden-tab-names="hiddenTabNames" @tab-click="handleTabClick" />
 
         <q-space />
 
@@ -136,6 +136,14 @@ const leftToggleButtonRef = ref(null)
 const rightToggleButtonRef = ref(null)
 const highlightedNodeId = ref(null)
 
+// 메인 메뉴 오버플로우 관리를 위한 Ref들
+const mainMenuTabsRef = ref(null)
+const isMainMenuOverflowing = ref(false)
+const hiddenTabs = ref([])
+const tabSizes = ref([])
+const moreButtonWidth = ref(60)
+const isMeasuringTabs = ref(false)
+
 // 메인 메뉴 영역 높이 계산 (헤더 전체의 실제 높이를 직접 측정)
 const menuAreaHeight = computed(() => {
   if (headerRef.value && headerRef.value.$el) {
@@ -144,9 +152,6 @@ const menuAreaHeight = computed(() => {
   }
   return 42 // Fallback: --header-height 기본값
 })
-
-const isMainMenuOverflowing = ref(false)
-const hiddenTabs = ref([])
 
 const leftSidebarComponent = shallowRef(null)
 const rightSidebarComponent = shallowRef(null)
@@ -183,21 +188,27 @@ const currentMenu = computed(() => {
 
 const isNexaBoardMenu = computed(() => currentMenu.value === 'nexa-board')
 
+// 부품관리 탭 클릭 핸들러 (같은 라우트에서도 동작하도록)
+function handlePartsManagementTabClick() {
+  // 부품관리 전용 스토어가 있다면 여기서 초기화 로직 수행
+  console.log('부품관리 초기화 로직 실행')
+}
+
 const mainMenuTabs = [
-  { name: 'home', label: 'HOME', icon: 'home', route: '/' },
-  { name: 'nexa-board', label: 'BOARD', icon: 'dashboard', route: '/nexa-board', nexaPrefix: true },
-  { name: 'nexa-pannel', label: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', nexaPrefix: true },
-  { name: 'automation', label: 'NODE', icon: 'hub', route: '/nexa-node', nexaPrefix: true },
-  { name: 'nexa-trace', label: 'TRACE', icon: 'analytics', route: '/nexa-trace', nexaPrefix: true },
-  { name: 'nexa-erp', label: 'ERP', icon: 'business', route: '/erp', nexaPrefix: true },
-  { name: 'parts-management', label: '부품관리', icon: 'inventory_2', route: '/parts-management' },
-  { name: 'infra', label: 'INFRA', icon: 'settings', route: '/infra' },
-  { name: 'network', label: 'NETWORK', icon: 'lan', route: '/network' },
-  { name: 'portfolio', label: 'PORTFOLIO', icon: 'portrait', route: '/portfolio' },
-  { name: 'solutions', label: 'SOLUTIONS', icon: 'lightbulb', route: '/solutions' },
-  { name: 'extension', label: 'EXTENSION', icon: 'extension', route: '/extension' },
-  { name: 'dev', label: 'DEV', icon: 'code', route: '/dev' },
-  { name: 'help', label: 'HELP', icon: 'help_outline', route: '/help' },
+  { name: 'home', label: 'HOME', displayLabel: 'HOME', icon: 'home', route: '/', exact: false, nexaPrefix: false },
+  { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: false, nexaPrefix: true },
+  { name: 'nexa-pannel', label: 'NEXA PANNEL', displayLabel: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', exact: false, nexaPrefix: true },
+  { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
+  { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
+  { name: 'nexa-erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
+  { name: 'parts-management', label: '부품관리', displayLabel: '부품관리', icon: 'inventory_2', route: '/parts-management', exact: false, onClick: handlePartsManagementTabClick, nexaPrefix: false },
+  { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },
+  { name: 'infra', label: 'INFRA', displayLabel: 'INFRA', icon: 'settings', route: '/infra', exact: false, nexaPrefix: false },
+  { name: 'network', label: 'NETWORK', displayLabel: 'NETWORK', icon: 'router', route: '/network', exact: false, nexaPrefix: false },
+  { name: 'solutions', label: 'SOLUTIONS', displayLabel: 'SOLUTIONS', icon: 'lightbulb', route: '/solutions', exact: false, nexaPrefix: false },
+  { name: 'extension', label: 'EXTENSION', displayLabel: 'EXTENSION', icon: 'extension', route: '/extension', exact: false, nexaPrefix: false },
+  { name: 'dev', label: 'DEV', displayLabel: 'DEV', icon: 'code', route: '/dev', exact: false, nexaPrefix: false },
+  { name: 'help', label: 'HELP', displayLabel: 'HELP', icon: 'help_outline', route: '/help', exact: false, nexaPrefix: false },
 ]
 
 const hiddenTabNames = computed(() => new Set(hiddenTabs.value.map((t) => t.name)))
@@ -207,6 +218,87 @@ const handleTabClick = (tab) => {
   if (tab.onClick) tab.onClick()
   router.push(tab.route)
 }
+
+// --- 오버플로우 감지 로직 (V1 복구) ---
+const debounce = (func, wait) => {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+let mainMenuResizeObserver = null
+const checkMainMenuOverflow = debounce(() => {
+  if (isMeasuringTabs.value || !mainMenuTabsRef.value) return
+  isMeasuringTabs.value = true
+
+  nextTick(() => {
+    const tabsContainer = mainMenuTabsRef.value.$el
+    if (!tabsContainer) {
+      isMeasuringTabs.value = false
+      return
+    }
+
+    const viewportWidth = window.innerWidth
+    const tabElements = tabsContainer.querySelectorAll('.q-tab')
+
+    // 측정 모드 (일시적으로 모든 탭 표시)
+    const originalVisibilities = Array.from(tabElements).map((el) => {
+      const original = el.style.visibility
+      if (el.style.display === 'none') {
+        el.style.display = 'flex'
+        el.style.visibility = 'hidden'
+      } else {
+        el.style.visibility = 'visible'
+      }
+      return original
+    })
+
+    requestAnimationFrame(() => {
+      // 탭 크기 측정
+      tabSizes.value = Array.from(tabElements).map((el, index) => ({
+        name: mainMenuTabs[index]?.name || '',
+        width: el.getBoundingClientRect().width,
+        index,
+      }))
+
+      // 더보기 및 우측 아이콘 영역 너비 계산
+      const moreButton = document.querySelector('.main-menu-more-button')
+      moreButtonWidth.value = moreButton ? moreButton.getBoundingClientRect().width + 16 : 60
+
+      const rightArea = document.querySelector('.row.items-center.no-wrap.header-icon-group') // GlobalNavbarRight 내부
+      const rightIconWidth = rightArea ? rightArea.getBoundingClientRect().width + 40 : 250
+
+      // 표시 가능 탭 계산
+      const reservedWidth = moreButtonWidth.value + rightIconWidth + 100
+      const availableWidth = viewportWidth - reservedWidth
+
+      let totalWidth = 0
+      let visibleCount = 0
+      for (let i = 0; i < tabSizes.value.length; i++) {
+        if (totalWidth + tabSizes.value[i].width <= availableWidth) {
+          totalWidth += tabSizes.value[i].width
+          visibleCount++
+        } else break
+      }
+
+      const hiddenTabsList = mainMenuTabs.slice(visibleCount)
+      isMainMenuOverflowing.value = hiddenTabsList.length > 0
+      hiddenTabs.value = hiddenTabsList
+
+      // 상태 복원
+      tabElements.forEach((el, index) => {
+        el.style.visibility = originalVisibilities[index] || ''
+      })
+      isMeasuringTabs.value = false
+    })
+  })
+}, 150)
 
 const togglePropertyPanel = () => {
   userSettings.setRightDrawerOpen(!userSettings.settings.drawer.rightOpen)
@@ -704,7 +796,7 @@ function handleMainContentDoubleClick(event) {
 onMounted(() => {
   userSettings.initializeTheme()
 
-  // 초기 버튼 Y좌표 설정 (화면 중앙, 경계 체크 포함)
+  // 초기 버튼 Y좌표 설정
   nextTick(() => {
     const buttonHalfHeight = BUTTON_HEIGHT / 2
     const initialY = window.innerHeight / 2
@@ -716,11 +808,24 @@ onMounted(() => {
   })
 
   window.addEventListener('mousemove', handleMouseMove)
-  // ... more initializations ...
+
+  // 메인 메뉴 오버플로우 감지 시작
+  nextTick(() => {
+    checkMainMenuOverflow()
+    if (mainMenuTabsRef.value && mainMenuTabsRef.value.$el) {
+      mainMenuResizeObserver = new ResizeObserver(checkMainMenuOverflow)
+      mainMenuResizeObserver.observe(mainMenuTabsRef.value.$el)
+    }
+  })
+  window.addEventListener('resize', checkMainMenuOverflow)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('mousemove', handleMouseMove)
+  window.removeEventListener('resize', checkMainMenuOverflow)
+  if (mainMenuResizeObserver) {
+    mainMenuResizeObserver.disconnect()
+  }
 })
 
 const editModeDrawerStyles = computed(() => ({ borderRight: 'none' }))
@@ -773,6 +878,7 @@ const rightDrawerStyles = computed(() =>
 .drawer-border {
   border-color: var(--nexa-border-color);
 }
+
 .resize-handle,
 .resize-handle-right {
   position: absolute;
