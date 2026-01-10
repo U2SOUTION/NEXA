@@ -3,7 +3,7 @@
     <!-- 공통 헤더 -->
     <StandardRightHeader title="Tools Panel" subtitle="Automation Node Properties" push-icon="menu_open" />
 
-    <q-scroll-area class="panel-scroll-area">
+    <div class="panel-scroll-area">
       <div class="q-pa-md">
         <div class="text-subtitle2 text-primary q-mb-sm">NODE PROPERTIES</div>
         <q-card flat bordered class="bg-surface">
@@ -13,12 +13,11 @@
           </q-card-section>
         </q-card>
       </div>
-    </q-scroll-area>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { QScrollArea } from 'quasar'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 </script>
 
@@ -30,6 +29,9 @@ import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vu
 
   .panel-scroll-area {
     flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
   }
 }
 </style>

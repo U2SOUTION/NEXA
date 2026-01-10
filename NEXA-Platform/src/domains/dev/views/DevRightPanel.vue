@@ -7,7 +7,7 @@
   <div class="dev-tools-panel column no-wrap">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
     <StandardRightHeader title="Tools Panel" subtitle="Control & Customize Your Documents" push-icon="menu_open" />
-    <q-scroll-area class="col">
+    <div class="panel-scroll col">
       <!-- 아코디언 방식으로 모든 섹션 나열 -->
       <!-- 목차 섹션 (문서 관리자 메뉴이고 목차가 있을 때만 표시) -->
       <div v-if="activeMenu === 'document-manager' && hasTOCItems" class="accordion-wrapper">
@@ -270,7 +270,7 @@
         </q-expansion-item>
       </div>
       -->
-    </q-scroll-area>
+    </div>
   </div>
 </template>
 
@@ -278,7 +278,7 @@
 // DevRightPanel.vue - 개발 도구 우측 패널
 import { computed, ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
-import { QExpansionItem, QScrollArea } from 'quasar'
+import { QExpansionItem } from 'quasar'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 import PanelMermaidStyle from '@domains/panel/components/components/PanelMermaidStyle.vue'
 import PanelTOC from '@domains/panel/components/components/PanelTOC.vue'
@@ -676,13 +676,16 @@ defineExpose({
   width: 100%;
   max-width: 100%;
   overflow-x: visible; // 보더가 잘리지 않도록 visible로 변경
-  overflow-y: hidden; // 세로 스크롤은 q-scroll-area가 처리
+  overflow-y: hidden;
   box-sizing: border-box;
 
-  .q-scroll-area {
+  .panel-scroll {
+    flex: 1;
+    min-height: 0;
     width: 100%;
     max-width: 100%;
-    /* overflow-y: auto 제거: Quasar q-scroll-area가 자체적으로 관리함 */
+    overflow-y: auto;
+    overflow-x: hidden;
     box-sizing: border-box;
   }
 }

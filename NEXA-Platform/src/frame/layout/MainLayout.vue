@@ -861,22 +861,17 @@ const rightDrawerStyles = computed(() =>
 }
 
 .q-page-container {
-  height: 100vh;
+  height: 100vh; // ⚠️ 제거 시 부품관리 컨테이너 높이 계산 로직과 충돌(페이징)
   box-sizing: border-box;
   overflow: hidden; /* 컨테이너 스크롤 방지 */
   display: flex;
   flex-direction: column;
 
-  &.iframe-mode {
-    height: 100vh;
-  }
-
   /* 실제 컨텐츠 영역만 독립 스크롤 */
   .q-page {
     flex: 1;
-    height: 100%;
-    min-height: 0 !important; /* Quasar 기본 min-height 무력화 */
-    overflow-y: auto !important; /* 세로 스크롤 활성화 */
+    min-height: 0; /* Quasar 기본 min-height 무력화 */
+    overflow-y: auto; /* 세로 스크롤 활성화 */
     overflow-x: hidden;
     scroll-behavior: smooth;
   }

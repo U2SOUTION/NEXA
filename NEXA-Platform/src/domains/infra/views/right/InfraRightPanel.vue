@@ -3,7 +3,7 @@
     <!-- 공통 헤더 -->
     <StandardRightHeader title="Tools Panel" subtitle="Infrastructure & Assets" push-icon="menu_open" />
 
-    <q-scroll-area class="panel-scroll-area">
+    <div class="panel-scroll-area">
       <transition name="fade" mode="out-in">
         <div :key="infraStore.activeSubMenu" class="panel-container">
           <template v-if="infraStore.activeSubMenu === 'my-devices'">
@@ -17,12 +17,11 @@
           </template>
         </div>
       </transition>
-    </q-scroll-area>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { QScrollArea } from 'quasar'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 import { useInfraStore } from '@infra/store/infraStore'
 import DeviceDetails from '@infra/my-devices/views/right/DeviceDetails.vue'
@@ -38,6 +37,9 @@ const infraStore = useInfraStore()
 
   .panel-scroll-area {
     flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
   }
 }
 .fade-enter-active,
