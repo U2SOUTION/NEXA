@@ -911,18 +911,11 @@ onBeforeUnmount(() => {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch; // iOS 부드러운 스크롤
-  scrollbar-width: none; // Firefox 스크롤바 숨김
-  -ms-overflow-style: none; // IE/Edge 스크롤바 숨김
   // scroll-behavior: smooth 제거 - 무한 스크롤 전환 시 즉시 이동해야 함
   position: relative;
   padding-top: 0; // 상단 패딩 제거로 인디케이터 위치 고정
   height: 56px; // 높이 고정으로 레이아웃 시프트 방지
   min-height: 56px; // 최소 높이 고정
-
-  // Webkit 브라우저 스크롤바 숨김
-  &::-webkit-scrollbar {
-    display: none;
-  }
 
   .dev-menu-container {
     display: flex;

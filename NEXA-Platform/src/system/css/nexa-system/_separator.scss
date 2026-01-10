@@ -1,6 +1,19 @@
 // ============================================
-// NEXA q-separator 전역 스타일
+// NEXA 구분선(Separator/hr) 전역 스타일
 // ============================================
+
+// 0. 전역 가로선(hr) 스타일
+// 넥사 테마 색상을 사용한 가로선 오버라이드
+hr,
+.workflow-separator {
+  border: none;
+  border-top: 1px solid var(--nexa-border-color);
+  background-color: transparent;
+  margin: 0;
+  opacity: 1;
+}
+
+// 1. Quasar q-separator 오버라이드
 // Quasar의 기본 separator 색상을 넥사 테마 border 색상으로 오버라이드
 // 모든 q-separator 컴포넌트에 전역적으로 적용
 

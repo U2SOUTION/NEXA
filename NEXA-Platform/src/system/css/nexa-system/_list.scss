@@ -1,4 +1,29 @@
-// 리스트 뷰 전용 스타일
+// ============================================
+// 0. 기본 리스트 디자인
+// ============================================
+// Quasar q-list 컴포넌트 스타일 오버라이드
+.q-list {
+  background-color: var(--nexa-list-bg);
+  border: 1px solid var(--nexa-list-border);
+
+  .q-item {
+    &:hover {
+      background-color: var(--nexa-list-item-hover-bg);
+    }
+  }
+}
+
+// ===== 드로어/사이드바 아이템 호버 스타일 =====
+// 드로어 내부의 q-item 호버 효과
+.q-drawer .q-item {
+  &:hover {
+    background-color: var(--nexa-drawer-item-hover-bg);
+  }
+}
+
+// ============================================
+// 1. 리스트 뷰 전용 스타일
+// ============================================
 // DataListRenderer 컴포넌트에서 사용
 
 .data-list-renderer {

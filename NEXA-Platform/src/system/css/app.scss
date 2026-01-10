@@ -1,43 +1,29 @@
-// Quasar Sass (& SCSS) Variables (설정에서 이미 설정되어 있음)
-//@import 'quasar/dist/quasar.sass';
+// ============================================
+// NEXA Platform Global Style (Level 3)
+// ============================================
 
-// 테마 파일 (설정에서 이미 설정되어 있음)
-// @import './themes/light';
-// @import './themes/dark';
+// 전역 스타일 - 레이아웃 초기화
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* 브라우저 최우측 스크롤바 원천 차단 */
+}
 
-// 전역 스타일
 body {
   font-family: 'Pretendard', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  line-height: 1.3; //body의 기본 line-height를 1로 설정
+  line-height: 1.3; //body의 기본 line-height를 1.3으로 설정
+
   * {
-    line-height: 1.2; //자식 요소의 기본 line-height를 1로 설정
+    line-height: 1.2; //자식 요소의 기본 line-height를 1.2로 설정
   }
 }
 
-// Material Symbols 아이콘 지원
-.q-icon {
-  font-family: 'Material Symbols Outlined', 'Material Icons', sans-serif;
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-feature-settings: 'liga';
-  font-feature-settings: 'liga';
-  -webkit-font-smoothing: antialiased;
-}
-
-// 테마별 기본 배경색 및 텍스트 색상
+// 테마별 기본 배경색 및 텍스트 색상 바인딩
 body.dark {
   background-color: var(--nexa-background);
   color: var(--nexa-text-primary);
@@ -48,293 +34,18 @@ body:not(.dark) {
   color: var(--nexa-text-primary);
 }
 
-// 스크롤바 스타일 (전역 통제)
-// 모든 요소에 대해 네이티브 스크롤바 화살표 및 두께 제어 (최상위 우선순위)
-::-webkit-scrollbar {
-  width: 2px !important;
-  height: 2px !important;
-}
-
-::-webkit-scrollbar-button,
-::-webkit-scrollbar-button:start,
-::-webkit-scrollbar-button:end,
-::-webkit-scrollbar-button:vertical:start:increment,
-::-webkit-scrollbar-button:vertical:start:decrement,
-::-webkit-scrollbar-button:vertical:end:increment,
-::-webkit-scrollbar-button:vertical:end:decrement,
-::-webkit-scrollbar-button:horizontal:start:increment,
-::-webkit-scrollbar-button:horizontal:start:decrement,
-::-webkit-scrollbar-button:horizontal:end:increment,
-::-webkit-scrollbar-button:horizontal:end:decrement,
-::-webkit-scrollbar-corner {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--nexa-scrollbar-track) !important;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--nexa-scrollbar-thumb) !important;
-  border-radius: 4px !important;
-  border: none !important;
-  background-clip: border-box !important;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--nexa-scrollbar-thumb-hover) !important;
-}
-
-// Firefox 등 비-Webkit 브라우저 지원
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--nexa-scrollbar-thumb) var(--nexa-scrollbar-track);
-}
-
-// 사이드바 가로 스크롤 절대 방지
-.q-drawer {
-  overflow-x: hidden !important;
-
-  .q-drawer__content {
-    overflow-x: hidden !important;
-  }
-
-  // 가상 스크롤바 가로 바 숨김
-  .q-scrollarea__bar--h,
-  .q-scrollarea__thumb--h {
-    display: none !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-  }
-}
-
-// 가상 스크롤바를 사용하는 Quasar QScrollArea 스타일 통합
-.q-scrollarea__thumb,
-.q-scrollarea__thumb--v,
-.q-scrollarea__thumb--h {
-  background: var(--nexa-scrollbar-thumb) !important;
-  opacity: 0.6 !important; // 기본적으로 약간 투명하게 하여 겹침 현상 방지
-  border-radius: 4px !important;
-  transition:
-    opacity 0.2s,
-    background 0.2s !important;
-
-  &:hover,
-  &.q-scrollarea__thumb--active {
-    opacity: 1 !important;
-    background: var(--nexa-scrollbar-thumb-hover) !important;
-  }
-}
-
-.q-scrollarea__thumb--v {
-  width: 2px !important; // 2px로 두께 조정
-}
-
-.q-scrollarea__thumb--h {
-  height: 2px !important; // 2px로 두께 조정
-}
-
-// 트랙(Bar)은 배경색만 유지하고 썸(Thumb)과 겹쳐 보이지 않도록 투명하게 처리
-.q-scrollarea__bar,
-.q-scrollarea__bar--v,
-.q-scrollarea__bar--h {
-  background: transparent !important;
-  opacity: 0 !important;
-}
-
-// 사이드바 및 컨텐츠 영역에서 q-scroll-area를 사용할 때를 위한 추가 보강
-.q-drawer,
-.q-page-container {
-  .q-scrollarea__thumb {
-    background: var(--nexa-scrollbar-thumb) !important;
-  }
-}
-
-// 테마 색상 클래스
+// 테마 기본 클래스
 .theme-primary {
   background-color: var(--nexa-primary);
 }
-
 .theme-secondary {
   background-color: var(--nexa-secondary);
 }
-
 .theme-accent {
   background-color: var(--nexa-accent);
 }
 
-// 숫자 입력 필드 스피너 화살표 숨기기
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  appearance: none;
-  margin: 0;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-// Quasar q-input 내부의 숫자 입력 필드에도 적용
-q-input input[type='number']::-webkit-inner-spin-button,
-q-input input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  appearance: none;
-  margin: 0;
-}
-
-q-input input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-// 텍스트 필드 크기 조정 아이콘 숨기기
-textarea {
-  resize: none;
-}
-
-// Quasar q-input 내부의 textarea에도 적용
-.q-input textarea,
-.q-field textarea {
-  resize: none;
-}
-
-// =====부품 분류 추가 모달 중복 체크 에러 상태 (경고 색상 적용) =====
-// 다이얼로그 내부의 에러 필드에 경고 색상 적용
-.add-class-dialog-form {
-  // Quasar의 negative 색상 변수 오버라이드
-  .q-field--error {
-    --q-negative: var(--nexa-warning);
-  }
-
-  // 에러 상태 보더 색상 (::before와 ::after 모두 처리)
-  .q-field--error.q-field--outlined .q-field__control::before,
-  .q-field--error.q-field--outlined .q-field__control::after {
-    border-color: var(--nexa-warning);
-  }
-
-  .q-field--error.q-field--outlined.q-field--focused .q-field__control::before,
-  .q-field--error.q-field--outlined.q-field--focused .q-field__control::after,
-  .q-field--error.q-field--outlined:hover .q-field__control::before,
-  .q-field--error.q-field--outlined:hover .q-field__control::after {
-    border-color: var(--nexa-warning);
-  }
-
-  // 에러 상태 아이콘 색상
-  .q-field--error .q-field__append .q-icon,
-  .q-field--error .q-field__prepend .q-icon {
-    color: var(--nexa-warning);
-  }
-
-  // 에러 메시지 텍스트 색상 및 줄바꿈 허용
-  .q-field--error .q-field__messages,
-  .q-field--error .q-field__bottom {
-    color: var(--nexa-warning);
-    white-space: normal;
-    word-break: break-word;
-    overflow: visible;
-  }
-}
-
-// 롱프레스 스타일은 nexa-table-features.scss로 이동됨
-
-// ===== Quasar q-card 전역 그림자 스타일 (테마 변수 사용) =====
-// 모든 q-card의 기본 그림자를 테마 변수로 적용 (더 크고 부드러운 그림자)
-.q-card {
-  box-shadow:
-    0 2px 6px var(--nexa-shadow-1),
-    0 4px 12px var(--nexa-shadow-2),
-    0 6px 10px var(--nexa-shadow-3);
-}
-
-// ===== Quasar 전역 모달(다이얼로그) 기본 크기 & 패딩 =====
-// 우선 전역 최소 폭을 지정해서 너무 좁아지지 않도록 보호
-body .q-dialog .q-card {
-  min-width: 460px; // 모바일에서도 너무 쪼그라들지 않도록 기본 폭 확보
-}
-
-// ===== 1단계: 기본 테이블 디자인 (기능 없음) =====
-// 모든 q-table에 기본 디자인 적용
-.q-table {
-  thead {
-    background-color: var(--nexa-table-header-bg);
-  }
-
-  thead th {
-    border-bottom: 1px solid var(--nexa-table-border);
-    background-color: var(--nexa-table-header-bg);
-    color: var(--nexa-table-header-text);
-  }
-
-  tbody {
-    tr {
-      background-color: var(--nexa-table-bg);
-
-      // 호버 효과
-      &:hover {
-        background-color: var(--nexa-table-row-hover-bg);
-      }
-
-      // 선택된 행
-      &.q-tr--selected {
-        background-color: var(--nexa-table-row-selected-bg);
-      }
-    }
-
-    td {
-      background-color: inherit; // 부모 tr의 배경색 상속
-      border-bottom: 1px solid var(--nexa-table-border);
-      color: var(--nexa-table-text);
-    }
-  }
-
-  // 스트라이프 행 (짝수 행) - 선택적 사용
-  // .table-striped 클래스가 있을 때만 스트라이프 적용
-  // 사용 예: 인터랙티브가 필요없는 데이터, 로우가 많은 데이터 등
-  .parts-table.table-striped & tbody tr:nth-child(even),
-  &.table-striped tbody tr:nth-child(even) {
-    background-color: var(--nexa-table-row-striped-bg);
-  }
-
-  // 테이블 푸터(페이징 영역)
-  .q-table__bottom {
-    background-color: var(--nexa-table-bg);
-  }
-}
-
-// ===== 전역 유틸리티 클래스 =====
-
-// C Code 토스트 메시지 커스텀 위치
-.c-code-toast-custom {
-  position: fixed;
-  margin-top: 0;
-  z-index: 9999;
-}
-
-// 수정된 ROW 하이라이트
-.updated-row-highlight {
-  background-color: rgba(65, 170, 223, 0.2);
-  transition: background-color 2s ease-out;
-}
-
-// ===== 전역 가로선(hr) 스타일 =====
-// 넥사 테마 색상을 사용한 가로선 오버라이드
-hr,
-.workflow-separator {
-  border: none;
-  border-top: 1px solid var(--nexa-border-color);
-  background-color: transparent;
-  margin: 0;
-  opacity: 1;
-}
-
-// ===== 링크 색상 =====
-// 전역 링크 스타일 (테마 변수 사용)
+// 전역 링크 스타일
 a {
   color: var(--nexa-link-color);
   text-decoration: none;
@@ -350,164 +61,6 @@ a {
 
   &:active {
     color: var(--nexa-link-active-color);
-  }
-}
-
-// ===== 마크다운 테이블 스타일 =====
-// markdownParser.js에서 생성된 테이블에 적용되는 스타일
-.markdown-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  .markdown-table-header {
-    padding: 8px;
-    text-align: left;
-    border: 1px solid var(--nexa-table-cell-border);
-    background-color: var(--nexa-table-header-bg);
-    color: var(--nexa-table-header-text);
-    font-weight: 600;
-  }
-
-  .markdown-table-cell {
-    padding: 8px;
-    border: 1px solid var(--nexa-table-cell-border);
-    color: var(--nexa-table-text);
-  }
-
-  tbody tr {
-    background-color: var(--nexa-table-bg);
-
-    &:hover {
-      background-color: var(--nexa-table-row-hover-bg);
-    }
-  }
-
-  // 스트라이프 행 (짝수 행) - 선택적 사용
-  // .table-striped 클래스가 있을 때만 스트라이프 적용
-  // 사용 예: 로우가 10개 이상인 경우 (markdownParser.js에서 조건부로 클래스 추가)
-  &.table-striped tbody tr:nth-child(even) {
-    background-color: var(--nexa-table-row-striped-bg);
-  }
-}
-
-// // ===== 토스트/알림 색상 =====
-// // Quasar q-notify 컴포넌트 스타일 오버라이드
-// .q-notifications__list {
-//   .q-notification {
-//     background-color: var(--nexa-toast-bg);
-//     color: var(--nexa-toast-text);
-//     border: 1px solid var(--nexa-toast-border);
-
-//     // 성공 토스트
-//     &.q-notification--positive {
-//       background-color: var(--nexa-toast-success-bg);
-//       color: var(--nexa-toast-success-text);
-//       border-color: var(--nexa-toast-success-border);
-//     }
-
-//     // 경고 토스트
-//     &.q-notification--warning {
-//       background-color: var(--nexa-toast-warning-bg);
-//       color: var(--nexa-toast-warning-text);
-//       border-color: var(--nexa-toast-warning-border);
-//     }
-
-//     // 에러 토스트
-//     &.q-notification--negative {
-//       background-color: var(--nexa-toast-error-bg);
-//       color: var(--nexa-toast-error-text);
-//       border-color: var(--nexa-toast-error-border);
-//     }
-
-//     // 정보 토스트
-//     &.q-notification--info {
-//       background-color: var(--nexa-toast-info-bg);
-//       color: var(--nexa-toast-info-text);
-//       border-color: var(--nexa-toast-info-border);
-//     }
-//   }
-// }
-
-// ===== 프로그레스 바 색상 =====
-// Quasar q-linear-progress 컴포넌트 스타일 오버라이드
-.q-linear-progress {
-  background-color: var(--nexa-progress-bg);
-  color: var(--nexa-progress-text);
-
-  .q-linear-progress__track {
-    background-color: var(--nexa-progress-bg);
-  }
-
-  .q-linear-progress__model {
-    background-color: var(--nexa-progress-value-bg);
-  }
-}
-
-// ===== 탭 색상 =====
-// 탭 스타일은 레벨 5 (nexa-system/_tab.scss)로 이동됨
-// NEXA-SCSS_ARCHITECTURE.md 문서 참고
-
-// ===== 아코디언 색상 =====
-// 아코디언 스타일은 레벨 5 (nexa-system/_expansion-item.scss)로 이동됨
-// NEXA-SCSS_ARCHITECTURE.md 문서 참고
-
-// ===== 리스트 색상 =====
-// Quasar q-list 컴포넌트 스타일 오버라이드
-.q-list {
-  background-color: var(--nexa-list-bg);
-  border: 1px solid var(--nexa-list-border);
-
-  .q-item {
-    &:hover {
-      background-color: var(--nexa-list-item-hover-bg);
-    }
-  }
-}
-
-// ===== 칩 색상 =====
-// Quasar q-chip 컴포넌트 전역 스타일 오버라이드
-.q-chip {
-  background-color: var(--nexa-surface);
-  color: var(--nexa-text-secondary);
-  border: 1px solid var(--nexa-border-color);
-  margin: 1px;
-
-  // 호버 상태
-  &:hover {
-    background-color: var(--nexa-surface-hover);
-    color: var(--nexa-text-primary);
-  }
-
-  // 아이콘 색상
-  .q-icon {
-    color: var(--nexa-text-secondary);
-  }
-
-  // 호버 시 아이콘 색상
-  &:hover .q-icon {
-    color: var(--nexa-text-primary);
-  }
-}
-
-// ===== 툴팁 색상 =====
-// Quasar q-tooltip 컴포넌트 스타일 오버라이드
-.q-tooltip {
-  background-color: var(--nexa-tooltip-bg);
-  color: var(--nexa-tooltip-text);
-  border: 1px solid var(--nexa-tooltip-border);
-
-  // 툴팁 화살표 색상
-  &::before {
-    background-color: var(--nexa-tooltip-arrow-color);
-    border-color: var(--nexa-tooltip-arrow-color);
-  }
-}
-
-// ===== 드로어/사이드바 아이템 호버 스타일 =====
-// 드로어 내부의 q-item 호버 효과
-.q-drawer .q-item {
-  &:hover {
-    background-color: var(--nexa-drawer-item-hover-bg);
   }
 }
 

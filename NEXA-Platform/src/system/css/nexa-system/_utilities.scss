@@ -1,0 +1,16 @@
+// ============================================
+// NEXA 전역 유틸리티 클래스
+// ============================================
+
+// C Code 토스트 메시지 커스텀 위치
+.c-code-toast-custom {
+  position: fixed;
+  margin-top: 0;
+  z-index: 9999;
+}
+
+// 수정된 ROW 하이라이트
+.updated-row-highlight {
+  background-color: rgba(65, 170, 223, 0.2);
+  transition: background-color 2s ease-out;
+}

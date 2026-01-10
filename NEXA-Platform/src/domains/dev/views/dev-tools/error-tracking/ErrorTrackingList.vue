@@ -209,12 +209,6 @@ function handleErrorSelect(error) {
     display: flex;
     width: 100%;
   }
-
-  // 스크롤바 숨김 (화살표만 표시)
-  &::-webkit-scrollbar {
-    display: none;
-  }
-  scrollbar-width: none;
 }
 
 .error-tracking-list-scroll-area {

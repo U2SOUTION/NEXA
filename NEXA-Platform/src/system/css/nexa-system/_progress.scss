@@ -1,0 +1,16 @@
+// ============================================
+// NEXA 프로그레스 바 전역 스타일
+// ============================================
+
+.q-linear-progress {
+  background-color: var(--nexa-progress-bg);
+  color: var(--nexa-progress-text);
+
+  .q-linear-progress__track {
+    background-color: var(--nexa-progress-bg);
+  }
+
+  .q-linear-progress__model {
+    background-color: var(--nexa-progress-value-bg);
+  }
+}

@@ -1,5 +1,44 @@
 // ============================================
-// 마크다운 콘텐츠 전역 스타일
+// 1. 마크다운 테이블 스타일
+// ============================================
+// markdownParser.js에서 생성된 테이블에 적용되는 스타일
+.markdown-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  .markdown-table-header {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid var(--nexa-table-cell-border);
+    background-color: var(--nexa-table-header-bg);
+    color: var(--nexa-table-header-text);
+    font-weight: 600;
+  }
+
+  .markdown-table-cell {
+    padding: 8px;
+    border: 1px solid var(--nexa-table-cell-border);
+    color: var(--nexa-table-text);
+  }
+
+  tbody tr {
+    background-color: var(--nexa-table-bg);
+
+    &:hover {
+      background-color: var(--nexa-table-row-hover-bg);
+    }
+  }
+
+  // 스트라이프 행 (짝수 행) - 선택적 사용
+  // .table-striped 클래스가 있을 때만 스트라이프 적용
+  // 사용 예: 로우가 10개 이상인 경우 (markdownParser.js에서 조건부로 클래스 추가)
+  &.table-striped tbody tr:nth-child(even) {
+    background-color: var(--nexa-table-row-striped-bg);
+  }
+}
+
+// ============================================
+// 2. 마크다운 콘텐츠 전역 스타일
 // ============================================
 // 문서 뷰어와 에러 분석 문서에서 공통 사용
 // 문서 뷰어의 .markdown-content 스타일을 전역으로 분리

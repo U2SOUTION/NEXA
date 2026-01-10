@@ -1,0 +1,15 @@
+// ============================================
+// NEXA 툴팁 전역 스타일
+// ============================================
+
+.q-tooltip {
+  background-color: var(--nexa-tooltip-bg);
+  color: var(--nexa-tooltip-text);
+  border: 1px solid var(--nexa-tooltip-border);
+
+  // 툴팁 화살표 색상
+  &::before {
+    background-color: var(--nexa-tooltip-arrow-color);
+    border-color: var(--nexa-tooltip-arrow-color);
+  }
+}

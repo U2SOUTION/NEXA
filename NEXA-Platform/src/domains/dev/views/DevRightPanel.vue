@@ -671,8 +671,7 @@ defineExpose({
   .q-scroll-area {
     width: 100%;
     max-width: 100%;
-    overflow-x: visible; // 보더가 잘리지 않도록 visible로 변경
-    overflow-y: auto; // 세로 스크롤은 유지
+    /* overflow-y: auto 제거: Quasar q-scroll-area가 자체적으로 관리함 */
     box-sizing: border-box;
   }
 }

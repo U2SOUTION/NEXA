@@ -1,4 +1,57 @@
-// 넥사 범용 테이블 기능 스타일 (2단계)
+// ============================================
+// 0. 기본 테이블 디자인 (기능 없음)
+// ============================================
+// 모든 q-table에 기본 디자인 적용
+.q-table {
+  thead {
+    background-color: var(--nexa-table-header-bg);
+  }
+
+  thead th {
+    border-bottom: 1px solid var(--nexa-table-border);
+    background-color: var(--nexa-table-header-bg);
+    color: var(--nexa-table-header-text);
+  }
+
+  tbody {
+    tr {
+      background-color: var(--nexa-table-bg);
+
+      // 호버 효과
+      &:hover {
+        background-color: var(--nexa-table-row-hover-bg);
+      }
+
+      // 선택된 행
+      &.q-tr--selected {
+        background-color: var(--nexa-table-row-selected-bg);
+      }
+    }
+
+    td {
+      background-color: inherit; // 부모 tr의 배경색 상속
+      border-bottom: 1px solid var(--nexa-table-border);
+      color: var(--nexa-table-text);
+    }
+  }
+
+  // 스트라이프 행 (짝수 행) - 선택적 사용
+  // .table-striped 클래스가 있을 때만 스트라이프 적용
+  // 사용 예: 인터랙티브가 필요없는 데이터, 로우가 많은 데이터 등
+  .parts-table.table-striped & tbody tr:nth-child(even),
+  &.table-striped tbody tr:nth-child(even) {
+    background-color: var(--nexa-table-row-striped-bg);
+  }
+
+  // 테이블 푸터(페이징 영역)
+  .q-table__bottom {
+    background-color: var(--nexa-table-bg);
+  }
+}
+
+// ============================================
+// 1. 넥사 범용 테이블 기능 스타일 (2단계)
+// ============================================
 // 드래그앤드롭, 호버 등 테이블 특화 기능 관련 스타일
 // 아이템 색상 관련 스타일은 _item.scss에서 관리
 

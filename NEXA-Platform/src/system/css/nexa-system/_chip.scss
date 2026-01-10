@@ -1,0 +1,26 @@
+// ============================================
+// NEXA 칩(Chip) 전역 스타일
+// ============================================
+
+.q-chip {
+  background-color: var(--nexa-surface);
+  color: var(--nexa-text-secondary);
+  border: 1px solid var(--nexa-border-color);
+  margin: 1px;
+
+  // 호버 상태
+  &:hover {
+    background-color: var(--nexa-surface-hover);
+    color: var(--nexa-text-primary);
+  }
+
+  // 아이콘 색상
+  .q-icon {
+    color: var(--nexa-text-secondary);
+  }
+
+  // 호버 시 아이콘 색상
+  &:hover .q-icon {
+    color: var(--nexa-text-primary);
+  }
+}

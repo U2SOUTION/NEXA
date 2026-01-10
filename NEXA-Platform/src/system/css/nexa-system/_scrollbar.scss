@@ -1,0 +1,63 @@
+// ==================================================
+// NEXA 시스템 스크롤바 통합 관리
+// ==================================================
+
+// 1. 네이티브 스크롤바 (컨텐츠 영역 전용)
+// 브라우저 최우측이나 개별 컴포넌트의 기본 스크롤바 제어
+::-webkit-scrollbar {
+  width: 2px !important;
+  height: 0px !important; /* 가로 스크롤바 제거 */
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--nexa-scrollbar-thumb) !important;
+  border-radius: 0 !important;
+  min-height: 30px !important;
+}
+
+// 2. 표준 속성 (최소화)
+html {
+  overflow-x: hidden; /* 전체 가로 스크롤만 차단 */
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--nexa-scrollbar-thumb) transparent;
+}
+
+// 3. Quasar 가상 스크롤바 (QScrollArea)
+// 가상 스크롤바 컴포넌트 내부의 진짜 스크롤바는 완전히 숨김 (이중 스크롤 방지)
+.q-scrollarea__native {
+  scrollbar-width: none !important;
+  &::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+// 가상 핸들(Thumb) 디자인만 2px로 정합
+.q-scrollarea__thumb--v {
+  width: 2px !important;
+  right: 0 !important;
+  background-color: var(--nexa-scrollbar-thumb) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border-radius: 0 !important;
+}
+
+.q-scrollarea__thumb--h {
+  display: none !important; /* 가로 가상 핸들 제거 */
+}
+
+.q-scrollarea__bar {
+  display: none !important; /* 트랙 제거 */
+}

@@ -5,26 +5,35 @@
 // 이 파일 하나만 import하면 모든 NEXA 스타일이 적용됨
 //
 // Import 순서:
-// 1. 변수 (필요 시)
+// 1. 기본/기초 스타일 (스크롤바, 아이콘 등)
 // 2. 공통 스타일 (의존성 순서)
 // 3. 뷰별 특화 스타일
+// 4. 기타 유틸리티
 
-// 1. 변수 (필요 시 추가)
-// @import 'variables';
+// 1. 기본/기초 스타일
+@import 'scrollbar'; // 전역 스크롤바 제어
+@import 'icons';     // Material Symbols 아이콘
 
 // 2. 공통 스타일 (의존성 순서)
-@import 'item'; // 가장 기본, 다른 파일에서 참조 가능
-@import 'form'; // 입력 폼 전역 스타일
-@import 'button'; // 버튼 전역 스타일
+@import 'item';      // 가장 기본, 다른 파일에서 참조 가능
+@import 'form';      // 입력 폼 전역 스타일
+@import 'button';    // 버튼 전역 스타일
 @import 'separator'; // Quasar separator 전역 스타일
-@import 'tab'; // Quasar 탭 전역 스타일
+@import 'tab';       // Quasar 탭 전역 스타일
 @import 'expansion-item'; // Quasar 아코디언 전역 스타일
-@import 'tree'; // Quasar 트리 전역 스타일
+@import 'tree';      // Quasar 트리 전역 스타일
+@import 'dialog';    // 다이얼로그/모달 전역 스타일
+@import 'tooltip';   // 툴팁 전역 스타일
+@import 'chip';      // 칩 전역 스타일
+@import 'progress';  // 프로그레스 바 전역 스타일
 
 // 3. 뷰별 특화 스타일
 @import 'card';
 @import 'table';
 @import 'list';
-@import 'chart'; // 차트 뷰 스타일
-@import 'panel'; // 패널 컴포넌트 스타일
-@import 'markdown'; // 마크다운 콘텐츠 전역 스타일
+@import 'chart';     // 차트 뷰 스타일
+@import 'panel';     // 패널 컴포넌트 스타일
+@import 'markdown';  // 마크다운 콘텐츠 전역 스타일
+
+// 4. 기타 유틸리티
+@import 'utilities';

@@ -53,6 +53,7 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     const isDark = settings.value.theme.isDarkMode
     $q.dark.set(isDark)
     document.body.classList.toggle('dark', isDark)
+    document.documentElement.classList.toggle('dark', isDark) // html 태그에도 추가
   }
 
   const toggleTheme = () => {
@@ -60,6 +61,7 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     const isDark = settings.value.theme.isDarkMode
     $q.dark.set(isDark)
     document.body.classList.toggle('dark', isDark)
+    document.documentElement.classList.toggle('dark', isDark) // html 태그에도 추가
     saveSettings()
   }
 

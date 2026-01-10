@@ -4,7 +4,7 @@
   - 중앙 관제형 설계를 위해 로직을 최소화하고 슬롯 위주로 구성
 -->
 <template>
-  <q-layout view="hHh Lpr fFf">
+  <q-layout view="HHH Lpr fFf">
     <!-- 헤더 영역 -->
     <q-header v-if="!isIframeMode" ref="headerRef">
       <q-toolbar class="bg-grey-10" dense>
@@ -54,16 +54,7 @@
     </q-page-container>
 
     <!-- 오른쪽 사이드바 -->
-    <q-drawer
-      v-if="!isIframeMode"
-      v-model="userSettings.settings.drawer.rightOpen"
-      side="right"
-      bordered
-      :width="userSettings.settings.drawer.rightWidth"
-      :overlay="userSettings.settings.drawer.rightMode === 'overlay'"
-      :style="rightDrawerStyles"
-      :class="['drawer-border', userSettings.settings.drawer.rightMode === 'overlay' ? 'drawer-overlay' : 'drawer-push']"
-    >
+    <q-drawer v-if="!isIframeMode" v-model="userSettings.settings.drawer.rightOpen" side="right" bordered :width="userSettings.settings.drawer.rightWidth" :overlay="userSettings.settings.drawer.rightMode === 'overlay'" :style="rightDrawerStyles" class="drawer-border">
       <div class="resize-handle" @mousedown="startResize" :class="{ resizing: isResizing }">
         <div class="resize-dots">
           <div class="dot"></div>
@@ -75,7 +66,7 @@
     </q-drawer>
 
     <!-- 토글 버튼 -->
-    <div v-if="!isIframeMode" ref="leftToggleButtonRef" class="sidebar-toggle-button sidebar-toggle-button--left" :class="{ 'is-drawer-open': dashboardLayoutStore.mainNavigationOpen }" :style="leftButtonStyle" @mousedown="handleLeftToggleMouseDown">
+    <div v-if="!isIframeMode" ref="leftToggleButtonRef" class="sidebar-toggle-button sidebar-toggle-button--left" :class="{ 'is-drawer-open': dashboardLayoutStore.mainNavigationOpen, 'is-resizing': isMainNavigationResizing }" :style="leftButtonStyle" @mousedown="handleLeftToggleMouseDown">
       <q-icon name="double_arrow" :style="{ transform: `rotate(${leftIconRotation})` }" />
       <span class="toggle-label">LEFT NAV</span>
     </div>
@@ -84,7 +75,7 @@
       v-if="!isIframeMode"
       ref="rightToggleButtonRef"
       class="sidebar-toggle-button sidebar-toggle-button--right"
-      :class="{ 'is-drawer-open': userSettings.settings.drawer.rightOpen, 'is-overlay-mode': userSettings.settings.drawer.rightMode === 'overlay' }"
+      :class="{ 'is-drawer-open': userSettings.settings.drawer.rightOpen, 'is-overlay-mode': userSettings.settings.drawer.rightMode === 'overlay', 'is-resizing': isResizing }"
       :style="rightButtonStyle"
       @mousedown="handleRightToggleMouseDown"
     >
@@ -145,6 +136,15 @@ const leftToggleButtonRef = ref(null)
 const rightToggleButtonRef = ref(null)
 const highlightedNodeId = ref(null)
 
+// 메인 메뉴 영역 높이 계산 (헤더 전체의 실제 높이를 직접 측정)
+const menuAreaHeight = computed(() => {
+  if (headerRef.value && headerRef.value.$el) {
+    const actualHeight = headerRef.value.$el.offsetHeight || 0
+    if (actualHeight > 0) return actualHeight
+  }
+  return 42 // Fallback: --header-height 기본값
+})
+
 const isMainMenuOverflowing = ref(false)
 const hiddenTabs = ref([])
 
@@ -159,21 +159,26 @@ const showTabIcons = computed(() => $q.screen.gt.md)
 const currentMenu = computed(() => {
   const path = route.path
   if (path === '/' || path === '') return 'home'
-  if (path.startsWith('/nexa-board')) return 'nexa-board'
-  if (path.startsWith('/parts-management')) return 'parts-management'
-  if (path.startsWith('/nexa-pannel')) return 'nexa-pannel'
-  if (path.startsWith('/nexa-node')) return 'automation'
-  if (path.startsWith('/nexa-trace')) return 'nexa-trace'
-  if (path.startsWith('/erp')) return 'nexa-erp'
-  if (path.startsWith('/infra')) return 'infra'
-  if (path.startsWith('/network')) return 'network'
-  if (path.startsWith('/portfolio')) return 'portfolio'
-  if (path.startsWith('/solutions')) return 'solutions'
-  if (path.startsWith('/extension')) return 'extension'
-  if (path.startsWith('/dev')) return 'dev'
-  if (path.startsWith('/help')) return 'help'
-  if (path.startsWith('/my')) return 'my'
-  return 'home'
+
+  const menuMap = {
+    '/nexa-board': 'nexa-board',
+    '/parts-management': 'parts-management',
+    '/nexa-pannel': 'nexa-pannel',
+    '/nexa-node': 'automation',
+    '/nexa-trace': 'nexa-trace',
+    '/erp': 'nexa-erp',
+    '/infra': 'infra',
+    '/network': 'network',
+    '/portfolio': 'portfolio',
+    '/solutions': 'solutions',
+    '/extension': 'extension',
+    '/dev': 'dev',
+    '/help': 'help',
+    '/my': 'my',
+  }
+
+  const found = Object.entries(menuMap).find(([key]) => path.startsWith(key))
+  return found ? found[1] : 'home'
 })
 
 const isNexaBoardMenu = computed(() => currentMenu.value === 'nexa-board')
@@ -226,26 +231,53 @@ const startMainNavigationResize = (event) => {
   isMainNavigationResizing.value = true
   startMainNavigationX.value = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX
   startMainNavigationWidth.value = userSettings.settings.drawer.leftWidth
+
   document.body.style.cursor = 'ew-resize'
+  document.body.style.userSelect = 'none'
+  document.body.style.webkitUserSelect = 'none'
+  document.body.style.mozUserSelect = 'none'
+  document.body.style.msUserSelect = 'none'
   document.addEventListener('mousemove', handleMainNavigationResize)
+  document.addEventListener('touchmove', handleMainNavigationResize, { passive: true })
   document.addEventListener('mouseup', stopMainNavigationResize)
+  document.addEventListener('touchend', stopMainNavigationResize, { passive: true })
 }
 
 const handleMainNavigationResize = (event) => {
   if (!isMainNavigationResizing.value) return
+
   const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
   const diff = currentX - startMainNavigationX.value
+
   const maxWidth = Math.min(600, Math.floor(window.innerWidth * 0.6))
   const newWidth = Math.max(0, Math.min(startMainNavigationWidth.value + diff, maxWidth))
-  userSettings.settings.drawer.leftWidth = newWidth
+
+  if (newWidth <= 50) {
+    userSettings.settings.drawer.leftWidth = 0
+    if (dashboardLayoutStore.mainNavigationOpen) {
+      dashboardLayoutStore.toggleMainNavigation()
+    }
+  } else {
+    userSettings.settings.drawer.leftWidth = newWidth
+  }
 }
 
 const stopMainNavigationResize = () => {
+  if (!isMainNavigationResizing.value) return
+
   isMainNavigationResizing.value = false
   document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+  document.body.style.webkitUserSelect = ''
+  document.body.style.mozUserSelect = ''
+  document.body.style.msUserSelect = ''
+
   userSettings.saveSettings()
+
   document.removeEventListener('mousemove', handleMainNavigationResize)
+  document.removeEventListener('touchmove', handleMainNavigationResize)
   document.removeEventListener('mouseup', stopMainNavigationResize)
+  document.removeEventListener('touchend', stopMainNavigationResize)
 }
 
 const isResizing = ref(false)
@@ -256,26 +288,53 @@ const startResize = (event) => {
   isResizing.value = true
   startX.value = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX
   startWidth.value = userSettings.settings.drawer.rightWidth
+
   document.body.style.cursor = 'ew-resize'
+  document.body.style.userSelect = 'none'
+  document.body.style.webkitUserSelect = 'none'
+  document.body.style.mozUserSelect = 'none'
+  document.body.style.msUserSelect = 'none'
   document.addEventListener('mousemove', handleResize)
+  document.addEventListener('touchmove', handleResize, { passive: true })
   document.addEventListener('mouseup', stopResize)
+  document.addEventListener('touchend', stopResize, { passive: true })
 }
 
 const handleResize = (event) => {
   if (!isResizing.value) return
+
   const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
   const diff = startX.value - currentX
+
   const maxWidth = Math.min(800, Math.floor(window.innerWidth * 0.6))
   const newWidth = Math.max(0, Math.min(startWidth.value + diff, maxWidth))
-  userSettings.settings.drawer.rightWidth = newWidth
+
+  if (newWidth <= 50) {
+    userSettings.settings.drawer.rightWidth = 0
+    if (userSettings.settings.drawer.rightOpen) {
+      togglePropertyPanel()
+    }
+  } else {
+    userSettings.settings.drawer.rightWidth = newWidth
+  }
 }
 
 const stopResize = () => {
+  if (!isResizing.value) return
+
   isResizing.value = false
   document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+  document.body.style.webkitUserSelect = ''
+  document.body.style.mozUserSelect = ''
+  document.body.style.msUserSelect = ''
+
   userSettings.saveSettings()
+
   document.removeEventListener('mousemove', handleResize)
+  document.removeEventListener('touchmove', handleResize)
   document.removeEventListener('mouseup', stopResize)
+  document.removeEventListener('touchend', stopResize)
 }
 
 // --- Floating Toggle Buttons Logic ---
@@ -323,48 +382,204 @@ const leftIconRotation = computed(() => (dashboardLayoutStore.mainNavigationOpen
 const rightIconRotation = computed(() => (userSettings.settings.drawer.rightOpen ? '180deg' : '0deg'))
 
 // Dragging for toggle buttons
-const leftToggleDragState = { isDragging: false, startX: 0, startWidth: 0 }
+const leftToggleDragState = { isDragging: false, startX: 0, startY: 0, startWidth: 0, hasMoved: false, wasClosed: false }
 function handleLeftToggleMouseDown(event) {
-  leftToggleDragState.startX = event.clientX
+  event.preventDefault()
+  event.stopPropagation()
+
+  leftToggleDragState.isDragging = false
+  leftToggleDragState.startX = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX
+  leftToggleDragState.startY = event.type === 'mousedown' ? event.clientY : event.touches[0].clientY
   leftToggleDragState.startWidth = userSettings.settings.drawer.leftWidth
+  leftToggleDragState.hasMoved = false
+  leftToggleDragState.wasClosed = !dashboardLayoutStore.mainNavigationOpen
+
+  if (!leftToggleDragState.wasClosed) {
+    startMainNavigationWidth.value = leftToggleDragState.startWidth
+  }
+
   document.addEventListener('mousemove', handleLeftToggleMouseMove)
   document.addEventListener('mouseup', handleLeftToggleMouseUp)
+  document.addEventListener('touchmove', handleLeftToggleMouseMove, { passive: true })
+  document.addEventListener('touchend', handleLeftToggleMouseUp, { passive: true })
 }
 function handleLeftToggleMouseMove(event) {
-  const diff = event.clientX - leftToggleDragState.startX
-  if (Math.abs(diff) > 5) {
+  const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
+  const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY
+  const deltaX = Math.abs(currentX - leftToggleDragState.startX)
+  const deltaY = Math.abs(currentY - leftToggleDragState.startY)
+
+  if (deltaX > 5 || deltaY > 5) {
+    leftToggleDragState.hasMoved = true
     leftToggleDragState.isDragging = true
-    if (!dashboardLayoutStore.mainNavigationOpen) dashboardLayoutStore.toggleMainNavigation()
-    userSettings.settings.drawer.leftWidth = Math.max(0, leftToggleDragState.startWidth + diff)
+
+    if (leftToggleDragState.wasClosed && !dashboardLayoutStore.mainNavigationOpen) {
+      const maxWidth = Math.min(600, Math.floor(window.innerWidth * 0.6))
+      const initialWidth = Math.max(0, Math.min(currentX, maxWidth))
+      userSettings.settings.drawer.leftWidth = initialWidth
+      dashboardLayoutStore.toggleMainNavigation()
+      leftToggleDragState.startWidth = initialWidth
+      startMainNavigationWidth.value = initialWidth
+      startMainNavigationX.value = currentX
+    }
+
+    if (!isMainNavigationResizing.value) {
+      isMainNavigationResizing.value = true
+      if (!leftToggleDragState.wasClosed || dashboardLayoutStore.mainNavigationOpen) {
+        startMainNavigationX.value = leftToggleDragState.startX
+      }
+
+      document.body.style.cursor = 'ew-resize'
+      document.body.style.userSelect = 'none'
+      document.body.style.webkitUserSelect = 'none'
+      document.body.style.mozUserSelect = 'none'
+      document.body.style.msUserSelect = 'none'
+    }
+
+    const diff = currentX - startMainNavigationX.value
+    const maxWidth = Math.min(600, Math.floor(window.innerWidth * 0.6))
+    const newWidth = Math.max(0, Math.min(startMainNavigationWidth.value + diff, maxWidth))
+
+    // 드래그 중에는 Y 위치도 실시간 업데이트 (지연 없이)
+    const buttonHalfHeight = BUTTON_HEIGHT / 2
+    const minY = menuAreaHeight.value + buttonHalfHeight
+    const maxY = window.innerHeight - buttonHalfHeight
+    buttonY.value = Math.max(minY, Math.min(maxY, currentY))
+
+    if (newWidth <= 50) {
+      userSettings.settings.drawer.leftWidth = 0
+      if (dashboardLayoutStore.mainNavigationOpen) {
+        dashboardLayoutStore.toggleMainNavigation()
+      }
+    } else {
+      userSettings.settings.drawer.leftWidth = newWidth
+    }
   }
 }
 function handleLeftToggleMouseUp() {
-  if (!leftToggleDragState.isDragging) dashboardLayoutStore.toggleMainNavigation()
-  leftToggleDragState.isDragging = false
+  const wasDragging = leftToggleDragState.isDragging
+
   document.removeEventListener('mousemove', handleLeftToggleMouseMove)
   document.removeEventListener('mouseup', handleLeftToggleMouseUp)
+  document.removeEventListener('touchmove', handleLeftToggleMouseMove)
+  document.removeEventListener('touchend', handleLeftToggleMouseUp)
+
+  if (wasDragging) {
+    stopMainNavigationResize()
+  } else if (!leftToggleDragState.hasMoved) {
+    if (leftToggleDragState.wasClosed) {
+      const savedWidth = leftToggleDragState.startWidth
+      const restoreWidth = savedWidth > 50 ? savedWidth : 250
+      userSettings.settings.drawer.leftWidth = restoreWidth
+      dashboardLayoutStore.toggleMainNavigation()
+      userSettings.saveSettings()
+    } else {
+      dashboardLayoutStore.toggleMainNavigation()
+    }
+  }
+
+  leftToggleDragState.isDragging = false
+  leftToggleDragState.hasMoved = false
 }
 
-const rightToggleDragState = { isDragging: false, startX: 0, startWidth: 0 }
+const rightToggleDragState = { isDragging: false, startX: 0, startY: 0, startWidth: 0, hasMoved: false, wasClosed: false }
 function handleRightToggleMouseDown(event) {
-  rightToggleDragState.startX = event.clientX
+  event.preventDefault()
+  event.stopPropagation()
+
+  rightToggleDragState.isDragging = false
+  rightToggleDragState.startX = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX
+  rightToggleDragState.startY = event.type === 'mousedown' ? event.clientY : event.touches[0].clientY
   rightToggleDragState.startWidth = userSettings.settings.drawer.rightWidth
+  rightToggleDragState.hasMoved = false
+  rightToggleDragState.wasClosed = !userSettings.settings.drawer.rightOpen
+
+  if (!rightToggleDragState.wasClosed) {
+    startWidth.value = rightToggleDragState.startWidth
+  }
+
   document.addEventListener('mousemove', handleRightToggleMouseMove)
   document.addEventListener('mouseup', handleRightToggleMouseUp)
+  document.addEventListener('touchmove', handleRightToggleMouseMove, { passive: true })
+  document.addEventListener('touchend', handleRightToggleMouseUp, { passive: true })
 }
 function handleRightToggleMouseMove(event) {
-  const diff = rightToggleDragState.startX - event.clientX
-  if (Math.abs(diff) > 5) {
+  const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
+  const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY
+  const deltaX = Math.abs(currentX - rightToggleDragState.startX)
+  const deltaY = Math.abs(currentY - rightToggleDragState.startY)
+
+  if (deltaX > 5 || deltaY > 5) {
+    rightToggleDragState.hasMoved = true
     rightToggleDragState.isDragging = true
-    if (!userSettings.settings.drawer.rightOpen) togglePropertyPanel()
-    userSettings.settings.drawer.rightWidth = Math.max(0, rightToggleDragState.startWidth + diff)
+
+    if (rightToggleDragState.wasClosed && !userSettings.settings.drawer.rightOpen) {
+      const maxWidth = Math.min(800, Math.floor(window.innerWidth * 0.6))
+      const initialWidth = Math.max(0, Math.min(window.innerWidth - currentX, maxWidth))
+      userSettings.settings.drawer.rightWidth = initialWidth
+      togglePropertyPanel()
+      rightToggleDragState.startWidth = initialWidth
+      startWidth.value = initialWidth
+      startX.value = currentX
+    }
+
+    if (!isResizing.value) {
+      isResizing.value = true
+      if (!rightToggleDragState.wasClosed || userSettings.settings.drawer.rightOpen) {
+        startX.value = rightToggleDragState.startX
+      }
+
+      document.body.style.cursor = 'ew-resize'
+      document.body.style.userSelect = 'none'
+      document.body.style.webkitUserSelect = 'none'
+      document.body.style.mozUserSelect = 'none'
+      document.body.style.msUserSelect = 'none'
+    }
+
+    const diff = startX.value - currentX
+    const maxWidth = Math.min(800, Math.floor(window.innerWidth * 0.6))
+    const newWidth = Math.max(0, Math.min(startWidth.value + diff, maxWidth))
+
+    // 드래그 중에는 Y 위치도 실시간 업데이트 (지연 없이)
+    const buttonHalfHeight = BUTTON_HEIGHT / 2
+    const minY = menuAreaHeight.value + buttonHalfHeight
+    const maxY = window.innerHeight - buttonHalfHeight
+    buttonY.value = Math.max(minY, Math.min(maxY, currentY))
+
+    if (newWidth <= 50) {
+      userSettings.settings.drawer.rightWidth = 0
+      if (userSettings.settings.drawer.rightOpen) {
+        togglePropertyPanel()
+      }
+    } else {
+      userSettings.settings.drawer.rightWidth = newWidth
+    }
   }
 }
 function handleRightToggleMouseUp() {
-  if (!rightToggleDragState.isDragging) togglePropertyPanel()
-  rightToggleDragState.isDragging = false
+  const wasDragging = rightToggleDragState.isDragging
+
   document.removeEventListener('mousemove', handleRightToggleMouseMove)
   document.removeEventListener('mouseup', handleRightToggleMouseUp)
+  document.removeEventListener('touchmove', handleRightToggleMouseMove)
+  document.removeEventListener('touchend', handleRightToggleMouseUp)
+
+  if (wasDragging) {
+    stopResize()
+  } else if (!rightToggleDragState.hasMoved) {
+    if (rightToggleDragState.wasClosed) {
+      const savedWidth = rightToggleDragState.startWidth
+      const restoreWidth = savedWidth > 50 ? savedWidth : 300
+      userSettings.settings.drawer.rightWidth = restoreWidth
+      togglePropertyPanel()
+      userSettings.saveSettings()
+    } else {
+      togglePropertyPanel()
+    }
+  }
+
+  rightToggleDragState.isDragging = false
+  rightToggleDragState.hasMoved = false
 }
 
 // ============================================
@@ -528,37 +743,38 @@ const rightDrawerStyles = computed(() =>
   --footer-height: 48px;
 }
 
-/* 레이아웃 및 사이드바 스크롤 격리 */
+/* 레이아웃 및 사이드바 영역 고정 */
 .q-drawer {
-  top: var(--header-height) !important;
-  height: calc(100vh - var(--header-height) - var(--footer-height)) !important;
-  overflow-x: hidden !important; // 가로 스크롤 차단
-
   .q-drawer__content {
     height: 100%;
-    overflow: hidden !important; /* 드로어 자체 스크롤 방지 -> 내부 q-scroll-area가 스크롤 담당 */
-    overflow-x: hidden !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 드로어 자체 스크롤 방지 (내부 q-scroll-area가 담당하도록) */
   }
 }
 
 .q-page-container {
-  height: calc(100vh - var(--header-height));
-  overflow: hidden;
+  height: 100vh;
+  overflow: hidden; /* 컨테이너 스크롤 방지 */
+  display: flex;
+  flex-direction: column;
 
   &.iframe-mode {
     height: 100vh;
   }
 
-  /* 컨텐츠 내부 스크롤 허용 (푸터 높이 제외) */
+  /* 실제 컨텐츠 영역만 독립 스크롤 */
   .q-page {
-    height: calc(100vh - var(--header-height) - var(--footer-height)) !important;
-    overflow-y: auto !important;
+    flex: 1;
+    height: 100%;
+    overflow-y: auto !important; /* 세로 스크롤 활성화 */
     overflow-x: hidden;
+    min-height: 0 !important; /* Quasar 기본 min-height 무력화 */
     scroll-behavior: smooth;
   }
 }
 
-/* Styles from original MainLayout.vue */
+/* 사이드바 보더 */
 .drawer-border {
   border-color: var(--nexa-border-color);
 }
@@ -612,6 +828,10 @@ const rightDrawerStyles = computed(() =>
     left 0.3s ease-in-out,
     right 0.3s ease-in-out,
     background-color 0.3s ease;
+
+  &.is-resizing {
+    transition: none !important;
+  }
   .q-icon {
     font-size: 14px;
     color: var(--nexa-primary);
