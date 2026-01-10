@@ -9,15 +9,14 @@
 // 시각적 균형을 위해 좌우 동일한 패딩 적용
 .accordion-wrapper {
   padding: 0 4px;
-  margin-top: 4px; //아코디언간의 상하 간격
-  margin-bottom: 4px; //아코디언간의 상하 간격
+  margin-top: 2px; //아코디언간의 상하 간격
+  margin-bottom: 2px; //아코디언간의 상하 간격
 }
 
 .q-expansion-item {
-  padding: 4px 4px 0px 4px;
-  background-color: var(--nexa-accordion-bg);
-  border-radius: 4px; // 입력 필드와 동일한 코너 라운드
-  overflow: hidden; // border-radius가 적용되도록
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: none; // 그림자 제거
 
   .q-expansion-item__container {
     border-radius: 4px;
@@ -26,23 +25,67 @@
   .q-item {
     font-size: 0.975rem;
     font-weight: 500;
-    border: 1px solid var(--nexa-accordion-header-bg);
+    border-bottom: 1px solid var(--nexa-border-color-darker) !important; // 하단 구분선만 유지
     background-color: var(--nexa-accordion-header-bg);
-    border-radius: 4px 4px 0 0; // 헤더는 상단만 라운드
-    color: var(--nexa-text-primary); // 아코디언 헤더 텍스트 색상
+    border-radius: 0px;
+    color: var(--nexa-text-primary);
+    flex-wrap: nowrap;
+    overflow: hidden;
+
+    // 가이드(SidebarOverflowPrevention.vue) 기반 오버플로우 방지 패턴
+    .q-item__section--main {
+      flex: 1;
+      width: 0; // ⚠️ 핵심: flex 아이템이 부모 크기를 초과하지 않도록 함
+      min-width: 0; // 수축 허용
+      overflow: hidden; // ⚠️ 핵심: 넘치는 내용을 숨김
+      white-space: nowrap;
+      text-overflow: clip; // 생략 기호 없이 자름
+      padding-right: 8px;
+
+      // 내부 요소들이 너비를 강제하지 못하도록 설정
+      .row,
+      .q-item-label {
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: clip;
+      }
+    }
+
+    // 우측 영역 (화살표/아이콘): 자신의 크기를 유지하고 밀리지 않음
+    .q-item__section--side {
+      flex: 0 0 auto;
+    }
 
     // 화살표 아이콘 색상도 텍스트와 동일하게 통일
     .q-item__section--side .q-icon,
     .q-expansion-item__icon {
       color: var(--nexa-text-primary);
     }
+
+    // 아이콘과 라벨 간격 축소
+    .q-item__section--main ~ .q-item__section--side,
+    .q-item__section--side ~ .q-item__section--main {
+      padding-left: 0px; // 기본값에서 축소
+    }
+
+    .q-item__section--avatar {
+      min-width: 32px; // 아이콘 영역 너비 축소 (기본 56px)
+    }
+
+    // 아코디언 헤더 내부의 캡션(서브 타이틀) 스타일
+    .text-caption {
+      color: var(--nexa-text-primary-focus);
+      font-size: 0.75rem;
+      letter-spacing: 0.2px;
+      line-height: 1;
+      opacity: 0.8;
+    }
   }
 
   .q-expansion-item__content {
     background-color: var(--nexa-accordion-content-bg);
-    border-radius: 0 0 4px 4px; // 컨텐츠는 하단만 라운드
-    border: 1px solid var(--nexa-accordion-header-bg);
-    border-top: none; // 헤더와 보더가 겹치지 않도록
+    border-radius: 0;
   }
 
   // 접혀있을 때는 전체 라운드

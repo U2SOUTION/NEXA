@@ -46,10 +46,10 @@ import TableSample from './samples/TableSample.vue'
 import FormSample from './samples/FormSample.vue'
 </script>
 
-<!-- <style lang="scss" scoped>
+<style lang="scss" scoped>
 .sample-section {
   width: 100%;
   overflow: hidden;
   min-width: 0;
 }
-</style> -->
+</style>

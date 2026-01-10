@@ -246,7 +246,18 @@
 
       <!-- 샘플 기능 섹션 (테스트용) -->
       <div class="accordion-wrapper">
-        <q-expansion-item icon="extension" label="샘플 아코디언">
+        <q-expansion-item>
+          <template #header>
+            <q-item-section avatar>
+              <q-icon name="extension" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="row items-baseline no-wrap">
+                <span>샘플 아코디언</span>
+                <span class="text-caption q-ml-xs text-uppercase">Sample Section</span>
+              </q-item-label>
+            </q-item-section>
+          </template>
           <SampleSection />
         </q-expansion-item>
       </div>

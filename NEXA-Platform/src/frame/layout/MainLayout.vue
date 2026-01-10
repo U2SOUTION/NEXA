@@ -850,6 +850,14 @@ const rightDrawerStyles = computed(() =>
     flex-direction: column;
     overflow: hidden; /* 드로어 자체 스크롤 방지 (내부 q-scroll-area가 담당하도록) */
   }
+
+  // 오른쪽 드로어에만 4px 패딩 추가
+  &.q-drawer--right {
+    .q-drawer__content {
+      padding: 4px;
+      box-sizing: border-box;
+    }
+  }
 }
 
 .q-page-container {
@@ -874,9 +882,18 @@ const rightDrawerStyles = computed(() =>
   }
 }
 
-/* 사이드바 보더 */
-.drawer-border {
-  border-color: var(--nexa-border-color);
+/* 퀘이사 드로어 기본 보더 오버라이드 */
+.q-drawer--bordered {
+  border: 1px solid var(--nexa-border-color-darker) !important;
+  transition: border-color 0.3s ease;
+
+  // 리사이징 핸들 호버 또는 드래그 시 보더 강조 (넥사 메인 컬러)
+  &:has(.resize-handle:hover),
+  &:has(.resize-handle-right:hover),
+  &:has(.resize-handle.resizing),
+  &:has(.resize-handle-right.resizing) {
+    border-color: var(--nexa-primary) !important;
+  }
 }
 
 .resize-handle,

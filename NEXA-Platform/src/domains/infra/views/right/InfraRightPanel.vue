@@ -12,7 +12,7 @@
           <template v-else>
             <div class="q-pa-md text-center text-grey-6">
               <q-icon name="info" size="32px" class="q-mb-sm" />
-              <div>이 메뉴에서는<br>상세 정보를 제공하지 않습니다.</div>
+              <div>이 메뉴에서는<br />상세 정보를 제공하지 않습니다.</div>
             </div>
           </template>
         </div>
@@ -40,10 +40,12 @@ const infraStore = useInfraStore()
     flex: 1;
   }
 }
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.2s ease;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>
