@@ -36,7 +36,7 @@ const routes = [
       {
         path: 'erp',
         name: 'Erp',
-        component: () => import('@domains/erp/ErpDomain.vue'),
+        redirect: '/erp/parts-management',
       },
       {
         path: 'erp/parts-management',

@@ -18,10 +18,10 @@
 
         <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'project'" @update:model-value="onToggle('project', $event)" label="프로젝트" icon="folder">
           <div class="sub-list">
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>프로젝트 개요</q-item-section>
             </q-item>
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>마일스톤</q-item-section>
             </q-item>
           </div>
@@ -29,10 +29,10 @@
 
         <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'work-document'" @update:model-value="onToggle('work-document', $event)" label="작업 문서" icon="description">
           <div class="sub-list">
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>문서함</q-item-section>
             </q-item>
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>템플릿</q-item-section>
             </q-item>
           </div>
@@ -40,10 +40,10 @@
 
         <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'schedule'" @update:model-value="onToggle('schedule', $event)" label="일정 관리" icon="event">
           <div class="sub-list">
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>캘린더</q-item-section>
             </q-item>
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>리소스 배정</q-item-section>
             </q-item>
           </div>
@@ -51,10 +51,10 @@
 
         <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'collaboration'" @update:model-value="onToggle('collaboration', $event)" label="실시간 협업" icon="chat">
           <div class="sub-list">
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>채팅</q-item-section>
             </q-item>
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>공지사항</q-item-section>
             </q-item>
           </div>
@@ -62,10 +62,10 @@
 
         <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'reference'" @update:model-value="onToggle('reference', $event)" label="참고자료" icon="attach_file">
           <div class="sub-list">
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>파일 보관함</q-item-section>
             </q-item>
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>링크 모음</q-item-section>
             </q-item>
           </div>
@@ -73,10 +73,10 @@
 
         <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'logbook'" @update:model-value="onToggle('logbook', $event)" label="로그북" icon="book">
           <div class="sub-list">
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>활동 로그</q-item-section>
             </q-item>
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>감사 추적</q-item-section>
             </q-item>
           </div>
@@ -84,10 +84,10 @@
 
         <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'finance'" @update:model-value="onToggle('finance', $event)" label="재무 관리" icon="account_balance">
           <div class="sub-list">
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>매출/매입</q-item-section>
             </q-item>
-            <q-item dense clickable>
+            <q-item dense clickable @click="navigate('/erp')">
               <q-item-section>예산</q-item-section>
             </q-item>
           </div>
@@ -118,7 +118,25 @@ syncFromRoute(route.path)
 
 watch(
   () => route.path,
-  (path) => syncFromRoute(path),
+  (path) => {
+    syncFromRoute(path)
+  },
+)
+
+// activeSubMenu 변화를 감지해 라우트와 동기화 (새로고침 없이 진입 보장)
+watch(
+  () => erpStore.activeSubMenu,
+  (sub) => {
+    if (sub === 'parts') {
+      if (!route.path.startsWith('/erp/parts-management')) {
+        router.push('/erp/parts-management')
+      }
+    } else {
+      if (route.path.startsWith('/erp/parts-management')) {
+        router.push('/erp')
+      }
+    }
+  },
 )
 
 function onToggle(tab, isOpen) {
