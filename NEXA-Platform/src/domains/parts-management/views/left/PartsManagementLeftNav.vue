@@ -6,12 +6,8 @@
 <template>
   <div class="parts-management-sidebar">
     <q-list ref="qListRef">
-      <!-- 헤더 -->
-      <StandardLeftHeader
-        title="LOGISTICS"
-        subtitle="System for managing logistics and inventory"
-        icon="inventory_2"
-      />
+      <!-- 사이드바 헤더 주입내용 -->
+      <!-- <StandardLeftHeader title="PARTS Management" subtitle="System for managing logistics and inventory" icon="inventory_2" /> -->
 
       <!-- 모드 전환 탭 -->
       <div class="sidebar-tabs-section">
@@ -495,7 +491,6 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
-import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { usePartsManagementStore } from '@system/store/partsManagementStore.js'
 import { usePartsDataStore } from '@system/store/partsDataStore.js'
 import { useClearURLState } from '@system/composables/url-state/index.js'
@@ -746,7 +741,7 @@ function getCurrentViewMode() {
   try {
     const storageKey = 'part-classes-view-mode'
     let saved = localStorage.getItem(storageKey)
-    
+
     // 새 키에 없으면 구형 키에서 확인 (하위 호환성)
     if (!saved) {
       const oldKey = 'NEXA-part-classes-view-mode'
@@ -757,7 +752,7 @@ function getCurrentViewMode() {
         localStorage.removeItem(oldKey)
       }
     }
-    
+
     if (saved && ['table', 'card', 'list', 'gallery', 'timeline', 'chart'].includes(saved)) {
       return saved
     }
@@ -772,7 +767,7 @@ function getSidebarNavigationSettings() {
   try {
     const viewMode = getCurrentViewMode()
     let stored = localStorage.getItem(viewModeSettingsStorageKey)
-    
+
     // 새 키에 없으면 구형 키에서 확인 (하위 호환성)
     if (!stored) {
       const oldKey = 'NEXA-part-classes-view-mode-settings'
@@ -783,7 +778,7 @@ function getSidebarNavigationSettings() {
         localStorage.removeItem(oldKey)
       }
     }
-    
+
     if (stored) {
       const allSettings = JSON.parse(stored)
       const viewSettings = allSettings[viewMode]

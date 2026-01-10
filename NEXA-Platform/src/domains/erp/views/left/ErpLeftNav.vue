@@ -7,95 +7,91 @@
   <div class="erp-sidebar">
     <q-list>
       <!-- 헤더 -->
-      <StandardLeftHeader
-        title="ERP"
-        subtitle="프로젝트 및 업무 관리"
-        icon="business"
-      />
+      <StandardLeftHeader title="ERP" subtitle="프로젝트 및 업무 관리" icon="business" />
 
-      <!-- 메뉴 -->
-      <div class="q-pa-sm">
-        <q-btn flat dense @click="selectTab('project')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'project' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="folder" class="q-mr-sm" />
-              <span>프로젝트</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('work-document')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'work-document' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="description" class="q-mr-sm" />
-              <span>작업 문서</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('schedule')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'schedule' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="event" class="q-mr-sm" />
-              <span>일정 관리</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('collaboration')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'collaboration' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="chat" class="q-mr-sm" />
-              <span>실시간 협업</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('reference')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'reference' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="attach_file" class="q-mr-sm" />
-              <span>참고자료</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('logbook')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'logbook' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="book" class="q-mr-sm" />
-              <span>로그북</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('parts')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'parts' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="inventory_2" class="q-mr-sm" />
-              <span>부품관리</span>
-            </div>
-          </template>
-        </q-btn>
-        <q-btn flat dense @click="selectTab('finance')" :class="['btn-nexa-primary text-bold full-width q-py-xs', { 'active-menu': erpStore.activeSubMenu === 'finance' }]">
-          <template v-slot:default>
-            <div class="full-width row items-center justify-center">
-              <q-icon name="account_balance" class="q-mr-sm" />
-              <span>재무 관리</span>
-            </div>
-          </template>
-        </q-btn>
-      </div>
+      <!-- 아코디언 네비게이션 -->
+      <div class="accordion-wrapper">
+        <!--부품관리 메뉴 배치 -->
+        <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'parts'" @update:model-value="onToggle('parts', $event)" label="PARTS Management" icon="inventory_2">
+          <PartsManagementLeftNav />
+        </q-expansion-item>
 
-      <q-separator />
-
-      <!-- 프로젝트 요약 -->
-      <div class="q-pa-sm">
-        <div class="text-subtitle2 text-bold q-mb-sm q-px-sm">프로젝트 요약</div>
-        <div class="project-summary q-pa-sm">
-          <div class="summary-item q-mb-xs">
-            <div class="summary-label text-caption text-grey-6">진행 중</div>
-            <div class="summary-value text-h6 text-primary">-</div>
+        <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'project'" @update:model-value="onToggle('project', $event)" label="프로젝트" icon="folder">
+          <div class="sub-list">
+            <q-item dense clickable>
+              <q-item-section>프로젝트 개요</q-item-section>
+            </q-item>
+            <q-item dense clickable>
+              <q-item-section>마일스톤</q-item-section>
+            </q-item>
           </div>
-          <div class="summary-item">
-            <div class="summary-label text-caption text-grey-6">완료</div>
-            <div class="summary-value text-h6 text-primary">-</div>
+        </q-expansion-item>
+
+        <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'work-document'" @update:model-value="onToggle('work-document', $event)" label="작업 문서" icon="description">
+          <div class="sub-list">
+            <q-item dense clickable>
+              <q-item-section>문서함</q-item-section>
+            </q-item>
+            <q-item dense clickable>
+              <q-item-section>템플릿</q-item-section>
+            </q-item>
           </div>
-        </div>
+        </q-expansion-item>
+
+        <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'schedule'" @update:model-value="onToggle('schedule', $event)" label="일정 관리" icon="event">
+          <div class="sub-list">
+            <q-item dense clickable>
+              <q-item-section>캘린더</q-item-section>
+            </q-item>
+            <q-item dense clickable>
+              <q-item-section>리소스 배정</q-item-section>
+            </q-item>
+          </div>
+        </q-expansion-item>
+
+        <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'collaboration'" @update:model-value="onToggle('collaboration', $event)" label="실시간 협업" icon="chat">
+          <div class="sub-list">
+            <q-item dense clickable>
+              <q-item-section>채팅</q-item-section>
+            </q-item>
+            <q-item dense clickable>
+              <q-item-section>공지사항</q-item-section>
+            </q-item>
+          </div>
+        </q-expansion-item>
+
+        <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'reference'" @update:model-value="onToggle('reference', $event)" label="참고자료" icon="attach_file">
+          <div class="sub-list">
+            <q-item dense clickable>
+              <q-item-section>파일 보관함</q-item-section>
+            </q-item>
+            <q-item dense clickable>
+              <q-item-section>링크 모음</q-item-section>
+            </q-item>
+          </div>
+        </q-expansion-item>
+
+        <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'logbook'" @update:model-value="onToggle('logbook', $event)" label="로그북" icon="book">
+          <div class="sub-list">
+            <q-item dense clickable>
+              <q-item-section>활동 로그</q-item-section>
+            </q-item>
+            <q-item dense clickable>
+              <q-item-section>감사 추적</q-item-section>
+            </q-item>
+          </div>
+        </q-expansion-item>
+
+        <q-expansion-item expand-icon="chevron_right" :model-value="erpStore.activeSubMenu === 'finance'" @update:model-value="onToggle('finance', $event)" label="재무 관리" icon="account_balance">
+          <div class="sub-list">
+            <q-item dense clickable>
+              <q-item-section>매출/매입</q-item-section>
+            </q-item>
+            <q-item dense clickable>
+              <q-item-section>예산</q-item-section>
+            </q-item>
+          </div>
+        </q-expansion-item>
       </div>
     </q-list>
   </div>
@@ -104,11 +100,35 @@
 <script setup>
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { useErpStore } from '@domains/erp/store/erpStore'
+import PartsManagementLeftNav from '@domains/parts-management/views/left/PartsManagementLeftNav.vue'
+import { useRoute, useRouter } from 'vue-router'
+import { watch } from 'vue'
 
 const erpStore = useErpStore()
+const route = useRoute()
+const router = useRouter()
 
-function selectTab(tab) {
+function syncFromRoute(path) {
+  if (path.startsWith('/erp/parts-management')) {
+    erpStore.setActiveSubMenu('parts')
+  }
+}
+
+syncFromRoute(route.path)
+
+watch(
+  () => route.path,
+  (path) => syncFromRoute(path),
+)
+
+function onToggle(tab, isOpen) {
+  if (!isOpen) return
   erpStore.setActiveSubMenu(tab)
+  if (tab === 'parts') {
+    router.push('/erp/parts-management')
+  } else {
+    router.push('/erp')
+  }
 }
 </script>
 
@@ -129,30 +149,16 @@ function selectTab(tab) {
     min-height: 0;
   }
 
-  .active-menu {
-    background-color: rgba(65, 170, 223, 0.15) !important;
-    border-left: 3px solid var(--nexa-button-primary-bg);
+  .accordion-wrapper {
+    padding: 4px 0;
   }
 
-  .project-summary {
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
-
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-
-      .summary-label {
-        opacity: 0.7;
-      }
-
-      .summary-value {
-        font-weight: 600;
-      }
+  .sub-list {
+    :deep(.q-item) {
+      padding-left: 70px;
+      min-height: 28px;
+      color: var(--nexa-text-primary);
     }
   }
 }
 </style>
-

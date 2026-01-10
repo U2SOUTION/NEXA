@@ -133,7 +133,7 @@ function goToNexaBoard() {
 }
 
 function goToPartsManagement() {
-  router.push('/parts-management')
+  router.push('/erp/parts-management')
 }
 
 function goToAddDevice() {

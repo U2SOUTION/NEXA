@@ -14,11 +14,6 @@ const routes = [
         ],
       },
       {
-        path: 'parts-management',
-        name: 'PartsManagement',
-        component: () => import('@domains/parts-management/PartsManagementDomain.vue'),
-      },
-      {
         path: 'nexa-pannel',
         name: 'NexaPannel',
         component: () => import('@domains/panel/PanelDomain.vue'),
@@ -42,6 +37,11 @@ const routes = [
         path: 'erp',
         name: 'Erp',
         component: () => import('@domains/erp/ErpDomain.vue'),
+      },
+      {
+        path: 'erp/parts-management',
+        name: 'ErpPartsManagement',
+        component: () => import('@domains/parts-management/PartsManagementDomain.vue'),
       },
       {
         path: 'infra',

@@ -71,11 +71,17 @@ const domainConfigs = {
       message: '문서를 선택하거나 새로 만드세요.',
     },
   },
-  // 부품 관리
-  'parts-management': {
-    left: () => import('@domains/parts-management/views/left/PartsManagementLeftNav.vue'),
+  // ERP
+  'nexa-erp': {
+    left: () => import('@domains/erp/views/left/ErpLeftNav.vue'),
+    content: () => import('@domains/erp/ErpDomain.vue'),
+    right: () => import('@domains/erp/views/right/ErpRightPanel.vue'),
+  },
+  // ERP - 부품 관리 (ERP 하위 전용 서브도메인)
+  'erp-parts-management': {
+    left: () => import('@domains/erp/views/left/ErpLeftNav.vue'), // ERP 네비 공유
     content: () => import('@domains/parts-management/PartsManagementDomain.vue'),
-    right: () => import('@domains/parts-management/views/right/PartsManagementRightPanel.vue'),
+    right: () => import('@domains/erp/views/right/ErpRightPanel.vue'), // ERP 패널 공유
   },
   // 포트폴리오
   portfolio: {
@@ -83,18 +89,13 @@ const domainConfigs = {
     content: () => import('@domains/portfolio/PortfolioDomain.vue'),
     right: null,
   },
-  // 추적
+  // 넥사트레이스
   'nexa-trace': {
     left: () => import('@domains/trace/views/left/TraceLeftNav.vue'),
     content: () => import('@domains/trace/TraceDomain.vue'),
     right: null,
   },
-  // ERP
-  'nexa-erp': {
-    left: () => import('@domains/erp/views/left/ErpLeftNav.vue'),
-    content: () => import('@domains/erp/ErpDomain.vue'),
-    right: () => import('@domains/erp/views/right/ErpRightPanel.vue'),
-  },
+
   // 확장 프로그램
   extension: {
     left: () => import('@domains/extension/views/ExtensionLeftNav.vue'),

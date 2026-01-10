@@ -43,7 +43,7 @@
       <component v-if="leftSidebarComponent" :is="leftSidebarComponent" :highlighted-node-id="highlightedNodeId" />
     </q-drawer>
 
-    <q-page-container :class="{ 'parts-management-container': currentMenu === 'parts-management', 'iframe-mode': isIframeMode }" @dblclick="handleMainContentDoubleClick">
+    <q-page-container :class="{ 'iframe-mode': isIframeMode }" @dblclick="handleMainContentDoubleClick">
       <router-view />
     </q-page-container>
 
@@ -170,11 +170,11 @@ const currentMenu = computed(() => {
 
   const menuMap = {
     '/nexa-board': 'nexa-board',
-    '/parts-management': 'parts-management',
     '/nexa-pannel': 'nexa-pannel',
     '/nexa-node': 'automation',
     '/nexa-trace': 'nexa-trace',
     '/erp': 'nexa-erp',
+    '/erp/parts-management': 'erp-parts-management', // ERP 하위 부품관리 서브도메인으로 분리
     '/infra': 'infra',
     '/network': 'network',
     '/portfolio': 'portfolio',
@@ -189,12 +189,6 @@ const currentMenu = computed(() => {
   return found ? found[1] : 'home'
 })
 
-// 부품관리 탭 클릭 핸들러 (같은 라우트에서도 동작하도록)
-function handlePartsManagementTabClick() {
-  // 부품관리 전용 스토어가 있다면 여기서 초기화 로직 수행
-  console.log('부품관리 초기화 로직 실행')
-}
-
 const mainMenuTabs = [
   { name: 'home', label: 'HOME', displayLabel: 'HOME', icon: 'home', route: '/', exact: false, nexaPrefix: false },
   { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: false, nexaPrefix: true },
@@ -202,7 +196,6 @@ const mainMenuTabs = [
   { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
   { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
   { name: 'nexa-erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
-  { name: 'parts-management', label: '부품관리', displayLabel: '부품관리', icon: 'inventory_2', route: '/parts-management', exact: false, onClick: handlePartsManagementTabClick, nexaPrefix: false },
   { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },
   { name: 'infra', label: 'INFRA', displayLabel: 'INFRA', icon: 'settings', route: '/infra', exact: false, nexaPrefix: false },
   { name: 'network', label: 'NETWORK', displayLabel: 'NETWORK', icon: 'router', route: '/network', exact: false, nexaPrefix: false },
