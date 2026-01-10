@@ -737,12 +737,6 @@ const rightDrawerStyles = computed(() =>
 <style lang="scss">
 @import '@system/css/app.scss';
 
-/* 전역 변수 */
-:root {
-  --header-height: 42px;
-  --footer-height: 48px;
-}
-
 /* 레이아웃 및 사이드바 영역 고정 */
 .q-drawer {
   .q-drawer__content {
@@ -755,6 +749,7 @@ const rightDrawerStyles = computed(() =>
 
 .q-page-container {
   height: 100vh;
+  box-sizing: border-box;
   overflow: hidden; /* 컨테이너 스크롤 방지 */
   display: flex;
   flex-direction: column;
@@ -767,9 +762,9 @@ const rightDrawerStyles = computed(() =>
   .q-page {
     flex: 1;
     height: 100%;
+    min-height: 0 !important; /* Quasar 기본 min-height 무력화 */
     overflow-y: auto !important; /* 세로 스크롤 활성화 */
     overflow-x: hidden;
-    min-height: 0 !important; /* Quasar 기본 min-height 무력화 */
     scroll-behavior: smooth;
   }
 }

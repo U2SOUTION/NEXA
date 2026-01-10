@@ -404,7 +404,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 // ============================================
 // U2BEE 관련 스타일
 // ============================================
@@ -414,12 +414,10 @@ onUnmounted(() => {
 // ============================================
 // Extension 메인 페이지 스타일 (넥사 플렛폼 확장 프로그램 관리 페이지)
 // ============================================
-.extension-page {
-  min-height: 100vh;
+.extension-page-container {
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 40px;
-  overflow-y: visible;
 }
 
 //메인페이지 카테고리별 패널 스타일 (크롬 확장 프로그램, NEXA Desktop, 기타)

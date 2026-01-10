@@ -11,7 +11,9 @@
 //   height: 100%;
 // }
 
-body {
+// NEXA 플랫폼 내부에서 사용될 때는 body 스타일을 건드리지 않도록 함
+// standalone-mode 클래스가 있을 때만 body 패딩 적용
+body.standalone-mode {
   margin: 0;
   padding: 30px;
   width: 100%;
