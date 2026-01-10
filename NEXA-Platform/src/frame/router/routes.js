@@ -3,7 +3,7 @@ const routes = [
     path: '/',
     component: () => import('@frame/layout/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('@frame/views/home/HomeView.vue'), name: 'Home' },
+      { path: '', component: () => import('@domains/home/views/content/HomeView.vue'), name: 'Home' },
       { path: 'nexa-board', component: () => import('@domains/board/BoardDomain.vue'), name: 'NexaBoard' },
       {
         path: 'parts-management',
@@ -66,7 +66,7 @@ const routes = [
       {
         path: 'help',
         name: 'Help',
-        component: () => import('@frame/views/help/HelpView.vue'),
+        component: () => import('@domains/help/views/content/HelpView.vue'),
       },
       {
         path: 'dev',
@@ -76,7 +76,7 @@ const routes = [
       {
         path: 'my',
         name: 'My',
-        component: () => import('@frame/views/my/MyView.vue'),
+        component: () => import('@domains/my/views/content/MyView.vue'),
       },
       {
         path: 'settings',

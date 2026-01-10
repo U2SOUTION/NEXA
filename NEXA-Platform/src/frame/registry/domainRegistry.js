@@ -13,8 +13,8 @@
 const domainConfigs = {
   // 홈
   home: {
-    left: () => import('@frame/views/home/HomeLeftNav.vue'),
-    content: () => import('@frame/views/home/HomeView.vue'),
+    left: () => import('@domains/home/views/left/HomeLeftNav.vue'),
+    content: () => import('@domains/home/views/content/HomeView.vue'),
     right: null
   },
   // 넥사보드
@@ -101,14 +101,14 @@ const domainConfigs = {
   },
   // 도움말
   help: {
-    left: () => import('@frame/views/help/HelpLeftNav.vue'),
-    content: () => import('@frame/views/help/HelpView.vue'),
+    left: () => import('@domains/help/views/left/HelpLeftNav.vue'),
+    content: () => import('@domains/help/views/content/HelpView.vue'),
     right: null
   },
   // 마이페이지
   my: {
-    left: () => import('@frame/views/my/MyLeftNav.vue'),
-    content: () => import('@frame/views/my/MyView.vue'),
+    left: () => import('@domains/my/views/left/MyLeftNav.vue'),
+    content: () => import('@domains/my/views/content/MyView.vue'),
     right: null
   }
 }

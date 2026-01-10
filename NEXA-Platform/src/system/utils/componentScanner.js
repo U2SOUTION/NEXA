@@ -45,6 +45,12 @@ function extractDirectoryPath(path) {
     return componentsMatch[1].split('/')
   }
 
+  // src/domains/dev/guides/.../Name.vue 형식
+  const guidesMatch = path.match(/src\/domains\/dev\/guides\/(.+)\/[^/]+\.vue$/)
+  if (guidesMatch) {
+    return ['guides', ...guidesMatch[1].split('/')]
+  }
+
   // src/domains/.../components/.../Name.vue 형식
   const domainsMatch = path.match(/src\/domains\/(.+)\/components\/(.+)\/[^/]+\.vue$/)
   if (domainsMatch) {
@@ -185,8 +191,8 @@ function formatCategoryDisplayName(categoryName) {
 export async function scanAndCategorizeComponents(maxDepth = 0) {
   try {
     // Vite의 import.meta.glob을 사용하여 모든 .vue 파일 스캔
-    // src/system/components/, src/domains/**/components/ 하위의 모든 .vue 파일
-    const componentModules = import.meta.glob(['/src/system/components/**/*.vue', '/src/domains/**/components/**/*.vue', '/src/domains/dev/modules/**/*.vue'], { eager: false })
+    // src/system/components/, src/domains/**/components/, src/domains/dev/guides/ 하위의 모든 .vue 파일
+    const componentModules = import.meta.glob(['/src/system/components/**/*.vue', '/src/domains/**/components/**/*.vue', '/src/domains/dev/modules/**/*.vue', '/src/domains/dev/guides/**/*.vue'], { eager: false })
 
     const categoryMap = new Map()
 

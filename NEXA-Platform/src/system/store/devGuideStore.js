@@ -658,8 +658,8 @@ export const useDevGuideStore = defineStore('devGuide', () => {
   function getTopLevel(componentPath) {
     if (!componentPath) return null
     const parts = componentPath.split('/')
-    // guides/styles/... -> styles
-    // guides/patterns/... -> patterns
+    // domains/dev/guides/styles/... -> styles
+    // domains/dev/guides/patterns/... -> patterns
     const guidesIndex = parts.indexOf('guides')
     if (guidesIndex >= 0 && guidesIndex < parts.length - 1) {
       return parts[guidesIndex + 1]

@@ -110,7 +110,7 @@ export function getFileCategory(file, groupLevel = 1) {
 
 /**
  * 컴포넌트 경로에서 카테고리 추출
- * @param {string} componentPath - 컴포넌트 경로 (예: '@engines/charts/NexaChart.vue' 또는 'src/guides/styles/charts/bar/NexaChartBar.vue')
+ * @param {string} componentPath - 컴포넌트 경로 (예: '@engines/charts/NexaChart.vue' 또는 'src/domains/dev/guides/styles/charts/bar/NexaChartBar.vue')
  * @returns {string|null} 카테고리명
  */
 export function getComponentCategory(componentPath) {

@@ -164,15 +164,15 @@ export function useDevGuide() {
    */
   async function loadSamplesFromFilesystem() {
     try {
-      // Vite의 import.meta.glob을 사용하여 src/guides/ 하위의 모든 .vue 파일 스캔
-      const guideModules = import.meta.glob('/src/guides/**/*.vue', { eager: false })
+      // Vite의 import.meta.glob을 사용하여 src/domains/dev/guides/ 하위의 모든 .vue 파일 스캔
+      const guideModules = import.meta.glob('/src/domains/dev/guides/**/*.vue', { eager: false })
 
       const loadedSamples = []
 
       // 각 샘플 파일 처리
       for (const path in guideModules) {
         // 경로에서 샘플 정보 추출
-        // 예: '/src/guides/styles/charts/bar/NexaChartBar.vue'
+        // 예: '/src/domains/dev/guides/styles/charts/bar/NexaChartBar.vue'
         const relativePath = path.replace('/src/', '')
         const pathParts = relativePath.split('/').filter((part) => part && part.trim() !== '')
         const fileName = pathParts[pathParts.length - 1]

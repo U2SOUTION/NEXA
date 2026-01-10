@@ -546,7 +546,7 @@ const usageExampleCode = computed(() => {
 */
 
 // Vite의 import.meta.glob을 사용하여 모든 샘플 컴포넌트 미리 등록
-const guideModules = import.meta.glob('/src/guides/**/*.vue', { eager: false })
+const guideModules = import.meta.glob('/src/domains/dev/guides/**/*.vue', { eager: false })
 
 // ============================================
 // 썸네일 관련 함수 (Phase 1: 기본 썸네일)
@@ -777,7 +777,7 @@ async function loadSampleComponent() {
 
   try {
     // componentPath에서 전체 경로 구성
-    // 예: "guides/styles/charts/bar/NexaChartBar.vue" -> "/src/guides/styles/charts/bar/NexaChartBar.vue"
+    // 예: "domains/dev/guides/styles/charts/bar/NexaChartBar.vue" -> "/src/domains/dev/guides/styles/charts/bar/NexaChartBar.vue"
     let fullPath = selectedSample.value.componentPath
 
     // src/ 접두사가 없으면 추가

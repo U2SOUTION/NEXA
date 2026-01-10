@@ -120,7 +120,7 @@ export function extractImports(content) {
 /**
  * 상대 경로를 절대 경로로 변환
  * @param {string} importPath - import 경로
- * @param {string} basePath - 현재 파일 경로 (예: 'guides/styles/buttons/IconButton.vue')
+ * @param {string} basePath - 현재 파일 경로 (예: 'domains/dev/guides/styles/buttons/IconButton.vue')
  * @returns {string} 절대 경로
  */
 export function resolveImportPath(importPath, basePath) {
@@ -217,7 +217,7 @@ export function analyzeSCSSDependencies(content) {
 /**
  * 샘플 파일의 전체 의존성 분석
  * @param {string} content - 파일 내용
- * @param {string} filePath - 파일 경로 (예: 'guides/styles/buttons/IconButton.vue')
+ * @param {string} filePath - 파일 경로 (예: 'domains/dev/guides/styles/buttons/IconButton.vue')
  * @returns {Object} 의존성 정보
  */
 export function analyzeSampleDependencies(content, filePath) {
