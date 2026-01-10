@@ -1,5 +1,5 @@
 /**
- * 파일명: src/services/engine/flowManager.ts
+ * 파일명: src/engines/services/flowManager.ts
  * 역할: 설계도(Blueprint) 내의 노드 간 데이터 흐름을 관제하고 실행 순서를 관리합니다.
  */
 

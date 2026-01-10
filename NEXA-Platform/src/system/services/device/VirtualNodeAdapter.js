@@ -1,6 +1,6 @@
 /**
  * File: VirtualNodeAdapter.js
- * Path: src/services/device/VirtualNodeAdapter.js
+ * Path: src/system/services/device/VirtualNodeAdapter.js
  * Description: VDM 데이터를 ForceDirectedDiagram 형식으로 변환하여 렌더링 엔진에 전달
  */
 

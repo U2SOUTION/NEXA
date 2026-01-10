@@ -3,7 +3,7 @@
     <div class="page-header q-mb-lg">
       <div class="header-title">NEXA NODE v2</div>
       <div class="header-description">자동화 워크플로우 설계 및 시뮬레이션</div>
-      
+
       <div class="toolbar-rows q-mt-md">
         <!-- 툴바 내용 (기존 NexaNodePage.vue에서 유지) -->
         <div class="toolbar-group">
@@ -42,7 +42,7 @@ import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import NodeCanvas from '@engines/diagram/NodeCanvas.vue'
 import { useNexaNodeStore } from '@system/store/nexaNodeStore'
-import { nodeAdapter } from '../../../../services/device/VirtualNodeAdapter'
+import { nodeAdapter } from '@system/services/device/VirtualNodeAdapter'
 
 const activeTab = ref('basic')
 const nexaNodeStore = useNexaNodeStore()

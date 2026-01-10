@@ -6,7 +6,7 @@
  * @see docs/표준_계약_적용_실전_예제.md
  */
 
-import type { BoardComponent, PanelComponent, ChartComponent, BlockComponent, MetadataContract } from '../types/component-contract'
+import type { BoardComponent, PanelComponent, ChartComponent, BlockComponent, MetadataContract } from '../schemas/common/component-contract'
 import { uid } from 'quasar'
 
 /**

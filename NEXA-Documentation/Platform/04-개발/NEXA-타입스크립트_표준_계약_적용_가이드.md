@@ -36,7 +36,7 @@ const board = {
 ### TypeScript (실수 방지)
 
 ```typescript
-import { BoardComponent } from '@/types/component-contract'
+import { BoardComponent } from '@system/schemas'
 
 // 컴파일 시점에 오류 발견!
 const board: BoardComponent = {
@@ -52,7 +52,7 @@ const board: BoardComponent = {
 
 ### 위치
 
-`src/types/component-contract.ts`
+`src/system/schemas/common/component-contract.ts`
 
 ### 주요 인터페이스
 
@@ -70,7 +70,7 @@ const board: BoardComponent = {
 ### 1. 보드 컴포넌트 생성
 
 ```typescript
-import { BoardComponent } from '@/types/component-contract'
+import { BoardComponent } from '@system/schemas'
 
 // ✅ 올바른 사용
 const board: BoardComponent = {
@@ -101,8 +101,8 @@ const invalidBoard: BoardComponent = {
 ### 2. 컴포넌트 타입 가드 사용
 
 ```typescript
-import { isBoardComponent, isNodeComponent } from '@/types/component-contract'
-import type { AnyComponent } from '@/types/component-contract'
+import { isBoardComponent, isNodeComponent } from '@system/schemas'
+import type { AnyComponent } from '@system/schemas'
 
 function processComponent(component: AnyComponent) {
   if (isBoardComponent(component)) {
@@ -120,7 +120,7 @@ function processComponent(component: AnyComponent) {
 ### 3. 번역기에서 사용
 
 ```typescript
-import type { BoardComponent, ComponentContract } from '@/types/component-contract'
+import type { BoardComponent, ComponentContract } from '@system/schemas'
 
 class BoardTranslator {
   toDocument(board: BoardComponent): ComponentContract {
@@ -142,7 +142,7 @@ class BoardTranslator {
 
 ### Phase 1: 타입 정의만 추가
 
-1. `src/types/component-contract.ts` 파일 생성
+1. `src/system/schemas/common/component-contract.ts` 파일 생성
 2. 기존 JavaScript 코드는 그대로 유지
 3. 새로운 코드부터 TypeScript 사용
 
@@ -198,7 +198,7 @@ npm install --save-dev typescript @types/node
 
 ```vue
 <script setup lang="ts">
-import type { BoardComponent } from '@/types/component-contract'
+import type { BoardComponent } from '@system/schemas'
 
 const board: BoardComponent = {
   // ...

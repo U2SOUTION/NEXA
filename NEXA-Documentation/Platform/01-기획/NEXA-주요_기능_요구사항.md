@@ -582,7 +582,7 @@
 - **필수 필드**: id, type, version, metadata
 - **선택 필드**: actions, dataSource
 - **표준 메서드**: toJSON()
-- **타입 정의**: TypeScript 인터페이스 (`src/types/component-contract.ts`)
+- **타입 정의**: TypeScript 인터페이스 (`src/system/schemas/common/component-contract.ts`)
 
 ### 데이터베이스
 

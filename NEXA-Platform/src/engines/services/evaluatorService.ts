@@ -1,5 +1,5 @@
 /**
- * 파일명: src/services/engine/evaluatorService.ts
+ * 파일명: src/engines/services/evaluatorService.ts
  * 역할: 개별 포뮬레이터(배합기) 노드의 실제 연산 로직을 실행하고 결과를 반환합니다.
  */
 

@@ -48,7 +48,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { vdm } from 'src/services/device/VirtualDeviceManager' // VDM 임포트
+import { vdm } from '@system/services/device/VirtualDeviceManager' // VDM 임포트
 
 // 1. 보안용 랜덤 ID 생성 함수
 const generateRandomId = () => `rnd_${Math.random().toString(36).substring(2, 8)}`

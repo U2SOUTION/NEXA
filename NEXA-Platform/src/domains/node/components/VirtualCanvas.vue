@@ -3,8 +3,8 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 // 수정 코드 (상대 경로로 직접 지정)
 import { renderForceDirected } from '@engines/diagram/dependency/ForceDirectedDiagram.js'
-import { nodeAdapter } from 'src/services/device/VirtualNodeAdapter'
-import { vdm } from 'src/services/device/VirtualDeviceManager'
+import { nodeAdapter } from '@system/services/device/VirtualNodeAdapter'
+import { vdm } from '@system/services/device/VirtualDeviceManager'
 
 const dgContainer = ref(null)
 const packages = ref([])

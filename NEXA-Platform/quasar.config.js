@@ -50,6 +50,10 @@ export default defineConfig((/* ctx */) => {
           '@erp': path.resolve(__dirname, './src/domains/erp'),
           '@board': path.resolve(__dirname, './src/domains/board'),
           '@components': path.resolve(__dirname, './src/system/components'),
+          // Quasar 엔진이 찾는 물리적 라우터 경로를 frame 내부로 리다이렉트
+          'src/router': path.resolve(__dirname, './src/frame/router'),
+          'app/src/router': path.resolve(__dirname, './src/frame/router'),
+          'app/src/router/index': path.resolve(__dirname, './src/frame/router/index.js'),
         }
 
         // SCSS 전역 변수 설정
@@ -144,6 +148,11 @@ export default defineConfig((/* ctx */) => {
       builder: {
         appId: 'quasar-project',
       },
+    },
+
+    // Quasar 표준 경로를 아키텍처 레이어에 맞게 공식적으로 변경
+    sourceFiles: {
+      router: 'src/frame/router/index',
     },
 
     bex: {

@@ -1,12 +1,12 @@
 /**
- * 파일명: src/tests/testRunner.spec.ts
+ * 파일명: src/system/tests/testRunner.spec.ts
  * 역할: Vitest 환경에서 설계도(Blueprint)의 데이터 흐름을 시뮬레이션하고 검증합니다.
  */
 
 import { describe, it, expect } from 'vitest'
 // [경로] tsconfig.json의 paths 설정(@/)을 사용하여 안전하게 임포트합니다.
 import { Blueprint } from '@system/schemas/modules/blueprint'
-import { processFlow } from '@/services/engine/flowManager'
+import { processFlow } from '@engines/services/flowManager'
 
 describe('NEXA 엔진 통합 시뮬레이션', () => {
   it('온도 센서 데이터가 합산 및 범위 변환 로직을 거쳐 최종 결과값에 도달해야 한다', () => {

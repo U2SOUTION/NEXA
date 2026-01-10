@@ -1,6 +1,6 @@
 /**
  * File: VirtualDeviceManager.js
- * Path: src/services/device/VirtualDeviceManager.js
+ * Path: src/system/services/device/VirtualDeviceManager.js
  * Description: 가상 IoT 장비와 NEXA 캔버스 간의 데이터 통신 및 보안 매핑 중재
  */
 
