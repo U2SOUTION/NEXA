@@ -1,27 +1,4 @@
-# NEXA 플랫폼 메인 메뉴 구조와 src/ 대응 폴더 분석과 리팩토링 계획
-
-## 리펙토링 전 현제 구조 메뉴 ↔ 폴더 매핑 (참고) , 잠재적 문제점 파악
-
-글로벌 메뉴( HOME, NEXA BOARD, NEXA NODE 등)가 `NEXA-Platform/src/` 내부의 어느 영역과 연결되는지를 구조 파악
-
-| 메뉴명     | 대표 파일 / 폴더                                                                                                                | 핵심 역할                                                              |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| HOME       | `src/pages/HomePage.vue`                                                                                                        | 대시보드 진입점, 메인 UX 레이아웃을 담당합니다.                        |
-| NEXA BOARD | `src/pages/NexaBoardPage.vue`, `src/pages/BoardAdminPage.vue`, `src/pages/IndexBoardPage.vue`, `src/board/`, `src/block/board/` | 대시보드 생성/설정, 블럭 기반 렌더링, 윈도우/보드 상태를 관리합니다.   |
-| NEXA PANEL | `src/pages/NexaPannelPage.vue`, `src/panel/`, `src/components/panel/`                                                           | 패널 전용 뷰와 관련 컴포넌트, 설정 윈도우를 포함합니다.                |
-| NEXA NODE  | `src/pages/NexaNodePage.vue`, `src/components/nexa-node/`, `src/stores/nexaNodeStore.ts`, `src/diagram/`                        | 노드 편집기, D3 캔버스, 시뮬레이터, 상태 저장 로직 등을 담고 있습니다. |
-| NEXA TEACH | `src/pages/NexaTeachPage.vue`                                                                                                   | 자동화된 학습/튜토리얼 콘텐츠를 보여주는 페이지입니다.                 |
-| NEXA ERP   | `src/pages/NexaErpPage.vue`                                                                                                     | ERP/비즈니스 흐름을 다루는 뷰와 관련 리소스를 포함합니다.              |
-| 부품관리   | `src/pages/PartsManagementPage.vue`, `src/components/parts-management/`, `src/stores/parts-management/`                         | 부품 테이블, 필터, UI/상태 관리를 위한 컴포넌트 모듈입니다.            |
-| PORTFOLIO  | `src/pages/PortfolioPage.vue`, `src/components/portfolio/` _(해당 폴더는 `components` 내부 참고)_                               | 프로젝트 포트폴리오, 시각화 위젯, 요약 카드 등을 제공합니다.           |
-| SYSTEM     | `src/pages/SystemPage.vue`, `src/components/settings/`, `src/settings/`                                                         | 시스템 설정/관리 화면과 글로벌 설정 초기화 로직을 포함합니다.          |
-| NETWORK    | `src/pages/NetworkPage.vue`, `src/components/network` _(필요 시)_                                                               | 네트워크 관련 뷰, 노드 토폴로지, 상태 모니터링 위젯입니다.             |
-| SOLUTIONS  | `src/pages/SolutionsPage.vue`, `src/components/solutions/`                                                                      | 솔루션 소개, 템플릿, 데모 컨텐츠 영역입니다.                           |
-| EXTENSION  | `src/pages/ExtensionPage.vue`, `src/components/extension/`, `src/composables/extension/`                                        | 확장 기능 리스트, 설치/관리 UX, 스토어 통합 로직이 들어 있습니다.      |
-| HELP       | `src/pages/HelpPage.vue`, `src/guides/`                                                                                         | 가이드, 도움말, 지원 문서를 연결하는 페이지와 컴포넌트를 포함합니다.   |
-| DEV        | `src/pages/DevelopmentPage.vue`, `src/components/dev-tools/`, `src/composables/dev-tools/`                                      | 개발 도구 모음, 퍼포먼스/디버깅 UI, 실험 기능을 담고 있습니다.         |
-
----
+# NEXA 플랫폼 디렉토리 구조와 기초 철학
 
 ### **NEXA 플랫폼의 리팩토링 철학적 설계 목적**
 
@@ -167,21 +144,6 @@ NEXA_Platform_v2/
 
 ```
 
-### ✨자산관리 폴더 특성 비교표
-
-| 기준            | `public/`           | `assets/`      |
-| --------------- | ------------------- | -------------- |
-| **빌드 처리**   | 그대로 복사         | 번들링/최적화  |
-| **접근 방법**   | 절대 경로 (`/file`) | import         |
-| **파일명 해시** | ❌ 없음             | ✅ 있음 (캐싱) |
-| **최적화**      | ❌ 없음             | ✅ 있음        |
-| **동적 경로**   | ✅ 가능             | ❌ 불가능      |
-| **캐싱 제어**   | ❌ 어려움           | ✅ 자동        |
-| **크기 제한**   | ❌ 없음             | ⚠️ 주의 필요   |
-| **용도**        | 정적 파일           | 앱 리소스      |
-
----
-
 ### ✨ 주요 특징 및 설계 철학
 
 -   **중앙 집중형 상태 공유:** 각 도메인은 고립되지 않습니다. `system/store`를 거울 삼아 서로의 상태를 실시간으로 감시하고 반응합니다.
@@ -202,13 +164,6 @@ Layout : StandardLeftHeader/StandardRightHeader.vue 는 전역적으로 사이�
 -   **중앙 관제 허브 (system/store):** 모든 도메인은 본인의 상태를 `system/store`에 보고하며, 이를 통해 도메인 간 상호 감시와 데이터 공유.
 -   **표준 강제 (System Layer):** 데이터 구조(Schemas)와 스타일(CSS)을 전역에서 관리하여 도메인별 파편화를 원천 차단했습니다.
 -
-
-아길이님, 방향 선택 **아주 정확합니다.**
-INFRA를 “교과서 도메인”으로 삼고, 그 전에 **문서화로 사고를 고정**하겠다는 판단은
-이 구조에서 가장 현명한 다음 수입니다.
-
-요청하신 대로 **“지금 파일 구조 기준에서 반드시 문서화해야 할 핵심 주의 사항”**을
-👉 *실수 포인트 중심*으로 정리해드릴게요. (이건 거의 **운영 규칙 문서 초안** 수준입니다)
 
 # 📘 도메인 기반 프레임워크 구조 – 핵심 주의 사항
 

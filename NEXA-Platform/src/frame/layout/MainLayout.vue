@@ -7,7 +7,7 @@
   <q-layout view="HHH Lpr fFf">
     <!-- 헤더 영역 -->
     <q-header v-if="!isIframeMode" ref="headerRef">
-      <q-toolbar class="bg-grey-10" dense>
+      <q-toolbar class="main-header-toolbar" dense>
         <!-- 왼쪽 헤더: 로고 및 메인 메뉴 -->
         <GlobalNavbarLeft ref="mainMenuTabsRef" :menu-tabs="mainMenuTabs" :current-menu="currentMenu" :show-labels="showLabels" :show-tab-icons="showTabIcons" :is-overflowing="isMainMenuOverflowing" :hidden-tabs="hiddenTabs" :hidden-tab-names="hiddenTabNames" @tab-click="handleTabClick" />
 
@@ -23,15 +23,9 @@
           @toggle-right="togglePropertyPanel"
           @toggle-theme="userSettings.toggleTheme"
         >
+          <!-- 도메인별 컨텍스트 액션 (현제 보드에만 적용, 차후 각 도메인에서 액션 버튼 또는 메세지 주입)-->
           <template #context-actions>
-            <template v-if="isNexaBoardMenu">
-              <q-btn flat dense icon="add_box" :label="showLabels ? '넥사패널 추가' : undefined" @click="dashboardLayoutStore.triggerGenericAddPanel" :disable="!dashboardLayoutStore.selectedPaneId" class="text-primary">
-                <q-tooltip>선택된 창에 넥사패널 추가</q-tooltip>
-              </q-btn>
-              <q-btn flat dense icon="view_quilt" :label="showLabels ? '보드창 선택' : undefined" class="text-primary" @click="showWindowPresetModal = true">
-                <q-tooltip>창 변경</q-tooltip>
-              </q-btn>
-            </template>
+            <component v-if="headerActionsComponent" :is="headerActionsComponent" :show-labels="showLabels" :can-add-panel="!!dashboardLayoutStore.selectedPaneId" @add-panel="dashboardLayoutStore.triggerGenericAddPanel()" @open-window-preset="showWindowPresetModal = true" />
           </template>
         </GlobalNavbarRight>
       </q-toolbar>
@@ -84,7 +78,7 @@
     </div>
 
     <!-- 푸터 -->
-    <q-footer v-if="!isIframeMode" class="bg-grey-10 text-grey-6">
+    <q-footer v-if="!isIframeMode" class="main-footer">
       <q-toolbar dense>
         <div class="row items-center full-width justify-between">
           <div class="row items-center q-gutter-md">
@@ -117,7 +111,7 @@ import { useUserSettingsStore } from '@system/store/userSettingsStore'
 // Frame Layer Components & Registry
 import GlobalNavbarLeft from './components/GlobalNavbarLeft.vue'
 import GlobalNavbarRight from './components/GlobalNavbarRight.vue'
-import { getLeftSidebarComponent, getRightSidebarComponent } from '@frame/registry/domainRegistry'
+import { getLeftSidebarComponent, getRightSidebarComponent, getHeaderActionsComponent } from '@frame/registry/domainRegistry'
 
 // Composables & Utils
 import WindowPresetEditModal from '@domains/board/components/window/WindowPresetEditModal.vue'
@@ -155,9 +149,18 @@ const menuAreaHeight = computed(() => {
 
 const leftSidebarComponent = shallowRef(null)
 const rightSidebarComponent = shallowRef(null)
+const headerActionsComponent = shallowRef(null)
 
 // --- Computed ---
-const isIframeMode = computed(() => route.query.mode === 'popup' || route.query.mode === 'sidepanel' || window.self !== window.top)
+const isIframeMode = computed(() => {
+  if (typeof window === 'undefined') return false
+  if (route.query.mode === 'popup' || route.query.mode === 'sidepanel') return true
+  try {
+    return window.self !== window.top
+  } catch {
+    return true
+  }
+})
 const showLabels = computed(() => $q.screen.gt.lg)
 const showTabIcons = computed(() => $q.screen.gt.md)
 
@@ -185,8 +188,6 @@ const currentMenu = computed(() => {
   const found = Object.entries(menuMap).find(([key]) => path.startsWith(key))
   return found ? found[1] : 'home'
 })
-
-const isNexaBoardMenu = computed(() => currentMenu.value === 'nexa-board')
 
 // 부품관리 탭 클릭 핸들러 (같은 라우트에서도 동작하도록)
 function handlePartsManagementTabClick() {
@@ -304,12 +305,13 @@ const togglePropertyPanel = () => {
   userSettings.setRightDrawerOpen(!userSettings.settings.drawer.rightOpen)
 }
 
-// --- Dynamic Sidebar Watcher ---
+// --- Dynamic Component Watcher ---
 watch(
   currentMenu,
   async (newMenu) => {
     leftSidebarComponent.value = await getLeftSidebarComponent(newMenu)
     rightSidebarComponent.value = await getRightSidebarComponent(newMenu)
+    headerActionsComponent.value = await getHeaderActionsComponent(newMenu)
   },
   { immediate: true },
 )
@@ -708,7 +710,13 @@ function openRightSidebar() {
 
 // 헬퍼 함수: 마지막으로 연 사이드바 기록
 function setLastOpenedSidebar(side) {
+  if (typeof localStorage === 'undefined') return
   localStorage.setItem('last-opened-sidebar', side)
+}
+
+function getLastOpenedSidebar() {
+  if (typeof localStorage === 'undefined') return 'right'
+  return localStorage.getItem('last-opened-sidebar') || 'right'
 }
 
 // 더블클릭 핸들러 (메인 콘텐츠 영역)
@@ -753,7 +761,7 @@ function handleMainContentDoubleClick(event) {
 
   // 케이스 1: 둘 다 닫혀 있음 → 마지막에 열었던 쪽과 반대 쪽 열기 (번갈아가며 열기)
   if (!isLeftOpen && !isRightOpen) {
-    const lastOpenedSidebar = localStorage.getItem('last-opened-sidebar') || 'right' // 기본값 'right'면 첫 번째는 왼쪽이 열림
+    const lastOpenedSidebar = getLastOpenedSidebar() // 기본값 'right'면 첫 번째는 왼쪽이 열림
 
     if (lastOpenedSidebar === 'right') {
       openLeftSidebar()
@@ -861,7 +869,7 @@ const rightDrawerStyles = computed(() =>
 }
 
 .q-page-container {
-  height: 100vh; // ⚠️ 제거 시 부품관리 컨테이너 높이 계산 로직과 충돌(페이징)
+  height: 100vh; // ⚠️ 제거금지!!! 제거시 부품관리 컨테이너 높이 계산 로직과 충돌(페이징)
   box-sizing: border-box;
   overflow: hidden; /* 컨테이너 스크롤 방지 */
   display: flex;
@@ -875,6 +883,20 @@ const rightDrawerStyles = computed(() =>
     overflow-x: hidden;
     scroll-behavior: smooth;
   }
+}
+
+.main-header-toolbar {
+  background: var(--nexa-surface);
+  color: var(--nexa-text-primary);
+}
+
+.main-header-action {
+  color: var(--nexa-primary);
+}
+
+.main-footer {
+  background: var(--nexa-surface);
+  color: var(--nexa-text-secondary);
 }
 
 /* 퀘이사 드로어 기본 보더 오버라이드 */

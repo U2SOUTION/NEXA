@@ -96,7 +96,7 @@ NEXA 생태계의 기술적 완성도를 높이기 위해, 핵심 모듈인 **Ch
 ### ✨ 1.시스템 핵심 모듈 규격 스키마 파일 구조 (Schema Directory)
 
 ```text
-src/schemas/
+system/schemas/
 ├── index.ts                 # 모든 스키마의 통합 Entry Point
 ├── constants/               # 고정값 관리 (Units, Status Codes)
 │   ├── units.ts             # °C, V, A, %, L 등 측정 단위
