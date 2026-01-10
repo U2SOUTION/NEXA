@@ -176,9 +176,9 @@ body.dark {
   --nexa-modal-accordion-expanded-bg: rgba(252, 0, 0, 0.411); // 아코디언 펼쳐진 상태 헤더 배경색 (의도적 실험적 색상, 디버깅용)
   --nexa-modal-scrollbar: rgba(59, 113, 2, 0.833); // 모달 스크롤바 색상
   --nexa-modal-scrollbar-hover: rgba(0, 105, 16, 1); // 모달 스크롤바 호버 색상
-  --nexa-scrollbar-track: rgba(5, 15, 0, 0.874); // 일반 스크롤바 트랙 색상 (Added: app.scss에서 사용)
-  --nexa-scrollbar-thumb: rgba(0, 220, 33, 0.3); // 일반 스크롤바 썸 색상 (Added: app.scss에서 사용)
-  --nexa-scrollbar-thumb-hover: rgba(255, 255, 255, 0.5); // 일반 스크롤바 썸 호버 색상 (Added: app.scss에서 사용)
+  --nexa-scrollbar-track: rgba(0, 0, 0, 0.2); // 일반 스크롤바 트랙 색상 (Added: app.scss에서 사용)
+  --nexa-scrollbar-thumb: rgba(0, 220, 33, 0.6); // 일반 스크롤바 썸 색상 (Added: app.scss에서 사용)
+  --nexa-scrollbar-thumb-hover: rgba(0, 255, 38, 0.9); // 일반 스크롤바 썸 호버 색상 (Added: app.scss에서 사용)
   --nexa-resize-handle-bg: rgba(0, 82, 1, 0.7); // 리사이즈 핸들 배경색
   --nexa-resize-handle-bg-hover: rgba(128, 128, 128, 0.9); // 리사이즈 핸들 호버 배경색
   --nexa-resize-handle-pattern: rgba(77, 164, 5, 0.95); // 리사이즈 핸들 패턴 색상

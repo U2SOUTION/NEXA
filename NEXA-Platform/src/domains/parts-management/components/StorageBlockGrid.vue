@@ -1148,27 +1148,6 @@ function handleShelfCellDrop(event, targetRow) {
   flex-grow: 0;
   overflow-x: auto;
   overflow-y: hidden;
-
-  /* 스크롤바 스타일 */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-
-  &::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-  }
 }
 
 .shelf-bin-empty-space {
@@ -1266,27 +1245,6 @@ function handleShelfCellDrop(event, targetRow) {
   overflow-x: auto; /* 가로 스크롤 활성화 */
   overflow-y: hidden; /* 세로 스크롤 비활성화 */
   align-items: stretch;
-
-  /* 스크롤바 스타일 */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-
-  &::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-  }
 
   &:hover {
     border-color: rgba(33, 150, 243, 0.4);

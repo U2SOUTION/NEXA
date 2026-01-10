@@ -6,11 +6,7 @@
   <div style="height: 100%; padding-bottom: 5px" class="dashboard-renderer-container bg-grey-10">
     <!-- 일반 (비중첩) 레이아웃 -->
     <splitpanes
-      v-if="
-        currentPresetConfig &&
-        currentPresetConfig.panes.length > 0 &&
-        !currentPresetConfig.panes.some((p) => p.isContainer)
-      "
+      v-if="currentPresetConfig && currentPresetConfig.panes.length > 0 && !currentPresetConfig.panes.some((p) => p.isContainer)"
       :key="dashboardLayoutStore.activePreset + '-root-normal' + paneSizesKeySuffix"
       class="default-theme"
       style="height: 100%"
@@ -30,54 +26,27 @@
         @click.stop="dashboardLayoutStore.setSelectedPaneId(paneConfig.id)"
         :ref="(el) => (paneRefs[paneConfig.id] = el)"
       >
-        <q-btn
-          v-if="dashboardLayoutStore.selectedPaneId === paneConfig.id"
-          flat
-          dense
-          round
-          icon="more_horiz"
-          size="md"
-          text-color="accent"
-          class="pane-menu-button"
-          @click.stop
-          @mouseenter="openMenu(paneConfig.id)"
-          @mouseleave="scheduleMenuHide(paneConfig.id)"
-        >
-          <q-menu
-            v-model="menuVisibility[paneConfig.id]"
-            anchor="bottom right"
-            self="top right"
-            @mouseenter="cancelMenuHide(paneConfig.id)"
-            @mouseleave="hideMenu(paneConfig.id)"
-          >
+        <q-btn v-if="dashboardLayoutStore.selectedPaneId === paneConfig.id" flat dense round icon="more_horiz" size="md" text-color="accent" class="pane-menu-button" @click.stop @mouseenter="openMenu(paneConfig.id)" @mouseleave="scheduleMenuHide(paneConfig.id)">
+          <q-menu v-model="menuVisibility[paneConfig.id]" anchor="bottom right" self="top right" @mouseenter="cancelMenuHide(paneConfig.id)" @mouseleave="hideMenu(paneConfig.id)">
             <q-list dense style="min-width: 150px">
               <q-item clickable v-close-popup @click="openAddNexaPanelDialog(paneConfig.id)">
-                <q-item-section avatar style="min-width: 30px"
-                  ><q-icon name="add_box" size="xs" />
-                </q-item-section>
+                <q-item-section avatar style="min-width: 30px"><q-icon name="add_box" size="xs" /> </q-item-section>
                 <q-item-section>패널 추가</q-item-section>
               </q-item>
               <q-separator />
               <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 분할')">
-                <q-item-section avatar style="min-width: 30px"
-                  ><q-icon name="splitscreen" size="xs" />
-                </q-item-section>
+                <q-item-section avatar style="min-width: 30px"><q-icon name="splitscreen" size="xs" /> </q-item-section>
                 <q-item-section>창 분할</q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 병합')">
-                <q-item-section avatar style="min-width: 30px"
-                  ><q-icon name="merge_type" size="xs" />
-                </q-item-section>
+                <q-item-section avatar style="min-width: 30px"><q-icon name="merge_type" size="xs" /> </q-item-section>
                 <q-item-section>창 병합</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
         </q-btn>
         <grid-layout
-          v-if="
-            dashboardLayoutStore.panes[paneConfig.id] &&
-            dashboardLayoutStore.panes[paneConfig.id].nexaPanels
-          "
+          v-if="dashboardLayoutStore.panes[paneConfig.id] && dashboardLayoutStore.panes[paneConfig.id].nexaPanels"
           v-model:layout="dashboardLayoutStore.panes[paneConfig.id].nexaPanels"
           :col-num="12"
           :row-height="30"
@@ -97,10 +66,7 @@
             :w="panel.w"
             :h="panel.h"
             :i="panel.i"
-            @resized="
-              (i, newH, newW, newHPx, newWPx) =>
-                handleGridItemResized(paneConfig.id, i, newH, newW, newHPx, newWPx)
-            "
+            @resized="(i, newH, newW, newHPx, newWPx) => handleGridItemResized(paneConfig.id, i, newH, newW, newHPx, newWPx)"
             @moved="(i, newX, newY) => handleGridItemMoved(paneConfig.id, i, newX, newY)"
             @dragstart.stop="() => handleItemDragStart(panel.i)"
             @dragend.stop="() => handleItemDragEnd(panel.i)"
@@ -109,29 +75,19 @@
             :draggable-cancel="'.no-drag'"
           >
             <q-card flat class="full-height column no-wrap bg-custom-dark-card">
-              <q-card-section
-                :data-nexa-panel-id="panel.i"
-                class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move"
-              >
+              <q-card-section :data-nexa-panel-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move">
                 <div class="text-caption col ellipsis q-pl-xs">{{ panel.title }}</div>
                 <q-space />
                 <q-btn flat dense round icon="more_vert" size="xs" @click.stop class="no-drag">
                   <q-menu auto-close anchor="bottom end" self="top end">
                     <q-list dense style="min-width: 150px">
                       <q-item clickable @click="requestMovePanelDialog(paneConfig.id, panel.i)">
-                        <q-item-section avatar style="min-width: 30px"
-                          ><q-icon name="open_with" size="xs"
-                        /></q-item-section>
+                        <q-item-section avatar style="min-width: 30px"><q-icon name="open_with" size="xs" /></q-item-section>
                         <q-item-section>다른 창으로 이동...</q-item-section>
                       </q-item>
                       <q-separator />
-                      <q-item
-                        clickable
-                        @click="dashboardLayoutStore.removePanelFromPane(paneConfig.id, panel.i)"
-                      >
-                        <q-item-section avatar style="min-width: 30px"
-                          ><q-icon name="delete_outline" size="xs"
-                        /></q-item-section>
+                      <q-item clickable @click="dashboardLayoutStore.removePanelFromPane(paneConfig.id, panel.i)">
+                        <q-item-section avatar style="min-width: 30px"><q-icon name="delete_outline" size="xs" /></q-item-section>
                         <q-item-section>패널 닫기</q-item-section>
                       </q-item>
                     </q-list>
@@ -145,14 +101,7 @@
             </q-card>
           </grid-item>
         </grid-layout>
-        <div
-          v-if="
-            !dashboardLayoutStore.panes[paneConfig.id] ||
-            !dashboardLayoutStore.panes[paneConfig.id].nexaPanels ||
-            dashboardLayoutStore.panes[paneConfig.id].nexaPanels.length === 0
-          "
-          class="text-grey-6 q-pa-md text-center flex flex-center full-height"
-        >
+        <div v-if="!dashboardLayoutStore.panes[paneConfig.id] || !dashboardLayoutStore.panes[paneConfig.id].nexaPanels || dashboardLayoutStore.panes[paneConfig.id].nexaPanels.length === 0" class="text-grey-6 q-pa-md text-center flex flex-center full-height">
           <div>
             <q-icon name="dashboard" size="xl" class="q-mb-md text-grey-6" />
             <div class="text-subtitle1 q-mb-sm">패널이 비어 있습니다</div>
@@ -161,14 +110,7 @@
               창 사이의 분할선을 드래그하여 크기를 자유롭게 조절할 수 있습니다.<br />
               나만의 맞춤형 대시보드를 구성하여 작업 효율을 높여보세요!
             </p>
-            <q-btn
-              flat
-              color="secondary"
-              label="이 창에 패널 추가"
-              icon="add_box"
-              @click="openAddNexaPanelDialog(paneConfig.id)"
-              class="q-mt-sm"
-            />
+            <q-btn flat color="secondary" label="이 창에 패널 추가" icon="add_box" @click="openAddNexaPanelDialog(paneConfig.id)" class="q-mt-sm" />
           </div>
         </div>
       </pane>
@@ -176,11 +118,7 @@
 
     <!-- L-Shape (중첩) 레이아웃 처리 -->
     <splitpanes
-      v-else-if="
-        currentPresetConfig &&
-        dashboardLayoutStore.activePreset === 'l-shape' &&
-        currentPresetConfig.panes.some((p) => p.isContainer)
-      "
+      v-else-if="currentPresetConfig && dashboardLayoutStore.activePreset === 'l-shape' && currentPresetConfig.panes.some((p) => p.isContainer)"
       :key="dashboardLayoutStore.activePreset + '-l-shape-root' + paneSizesKeySuffix"
       class="default-theme"
       style="height: 100%"
@@ -191,14 +129,10 @@
       <pane
         :key="currentPresetConfig.panes[0].id"
         :id="currentPresetConfig.panes[0].id"
-        :size="
-          dashboardLayoutStore.panes[currentPresetConfig.panes[0].id]?.size ||
-          currentPresetConfig.panes[0].defaultSize
-        "
+        :size="dashboardLayoutStore.panes[currentPresetConfig.panes[0].id]?.size || currentPresetConfig.panes[0].defaultSize"
         class="pane-container bg-grey-9"
         :class="{
-          'is-selected-pane':
-            dashboardLayoutStore.selectedPaneId === currentPresetConfig.panes[0].id,
+          'is-selected-pane': dashboardLayoutStore.selectedPaneId === currentPresetConfig.panes[0].id,
         }"
         @click.stop="dashboardLayoutStore.setSelectedPaneId(currentPresetConfig.panes[0].id)"
         :ref="(el) => (paneRefs[currentPresetConfig.panes[0].id] = el)"
@@ -216,45 +150,26 @@
           @mouseenter="openMenu(currentPresetConfig.panes[0].id)"
           @mouseleave="scheduleMenuHide(currentPresetConfig.panes[0].id)"
         >
-          <q-menu
-            v-model="menuVisibility[currentPresetConfig.panes[0].id]"
-            anchor="bottom right"
-            self="top right"
-            @mouseenter="cancelMenuHide(currentPresetConfig.panes[0].id)"
-            @mouseleave="hideMenu(currentPresetConfig.panes[0].id)"
-          >
+          <q-menu v-model="menuVisibility[currentPresetConfig.panes[0].id]" anchor="bottom right" self="top right" @mouseenter="cancelMenuHide(currentPresetConfig.panes[0].id)" @mouseleave="hideMenu(currentPresetConfig.panes[0].id)">
             <q-list dense style="min-width: 150px">
-              <q-item
-                clickable
-                v-close-popup
-                @click="openAddNexaPanelDialog(currentPresetConfig.panes[0].id)"
-              >
-                <q-item-section avatar style="min-width: 30px"
-                  ><q-icon name="add_box" size="xs"
-                /></q-item-section>
+              <q-item clickable v-close-popup @click="openAddNexaPanelDialog(currentPresetConfig.panes[0].id)">
+                <q-item-section avatar style="min-width: 30px"><q-icon name="add_box" size="xs" /></q-item-section>
                 <q-item-section>패널 추가</q-item-section>
               </q-item>
               <q-separator />
               <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 분할')">
-                <q-item-section avatar style="min-width: 30px"
-                  ><q-icon name="splitscreen" size="xs" />
-                </q-item-section>
+                <q-item-section avatar style="min-width: 30px"><q-icon name="splitscreen" size="xs" /> </q-item-section>
                 <q-item-section>창 분할</q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 병합')">
-                <q-item-section avatar style="min-width: 30px"
-                  ><q-icon name="merge_type" size="xs" />
-                </q-item-section>
+                <q-item-section avatar style="min-width: 30px"><q-icon name="merge_type" size="xs" /> </q-item-section>
                 <q-item-section>창 병합</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
         </q-btn>
         <grid-layout
-          v-if="
-            dashboardLayoutStore.panes[currentPresetConfig.panes[0].id] &&
-            dashboardLayoutStore.panes[currentPresetConfig.panes[0].id].nexaPanels
-          "
+          v-if="dashboardLayoutStore.panes[currentPresetConfig.panes[0].id] && dashboardLayoutStore.panes[currentPresetConfig.panes[0].id].nexaPanels"
           v-model:layout="dashboardLayoutStore.panes[currentPresetConfig.panes[0].id].nexaPanels"
           :col-num="12"
           :row-height="30"
@@ -264,9 +179,7 @@
           :vertical-compact="true"
           :use-css-transforms="true"
           class="grid-layout-container q-pa-xs"
-          @layout-updated="
-            (newLayout) => handleLayoutUpdate(newLayout, currentPresetConfig.panes[0].id)
-          "
+          @layout-updated="(newLayout) => handleLayoutUpdate(newLayout, currentPresetConfig.panes[0].id)"
         >
           <grid-item
             v-for="panel in dashboardLayoutStore.panes[currentPresetConfig.panes[0].id].nexaPanels"
@@ -276,20 +189,8 @@
             :w="panel.w"
             :h="panel.h"
             :i="panel.i"
-            @resized="
-              (i, newH, newW, newHPx, newWPx) =>
-                handleGridItemResized(
-                  currentPresetConfig.panes[0].id,
-                  i,
-                  newH,
-                  newW,
-                  newHPx,
-                  newWPx,
-                )
-            "
-            @moved="
-              (i, newX, newY) => handleGridItemMoved(currentPresetConfig.panes[0].id, i, newX, newY)
-            "
+            @resized="(i, newH, newW, newHPx, newWPx) => handleGridItemResized(currentPresetConfig.panes[0].id, i, newH, newW, newHPx, newWPx)"
+            @moved="(i, newX, newY) => handleGridItemMoved(currentPresetConfig.panes[0].id, i, newX, newY)"
             @dragstart.stop="() => handleItemDragStart(panel.i)"
             @dragend.stop="() => handleItemDragEnd(panel.i)"
             class="grid-item-card"
@@ -297,37 +198,19 @@
             :draggable-cancel="'.no-drag'"
           >
             <q-card flat class="full-height column no-wrap bg-custom-dark-card">
-              <q-card-section
-                :data-nexa-panel-id="panel.i"
-                class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move"
-              >
+              <q-card-section :data-nexa-panel-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move">
                 <div class="text-caption col ellipsis q-pl-xs">{{ panel.title }}</div>
                 <q-space />
                 <q-btn flat dense round icon="more_vert" size="xs" @click.stop class="no-drag">
                   <q-menu auto-close anchor="bottom end" self="top end">
                     <q-list dense style="min-width: 150px">
-                      <q-item
-                        clickable
-                        @click="requestMovePanelDialog(currentPresetConfig.panes[0].id, panel.i)"
-                      >
-                        <q-item-section avatar style="min-width: 30px"
-                          ><q-icon name="open_with" size="xs"
-                        /></q-item-section>
+                      <q-item clickable @click="requestMovePanelDialog(currentPresetConfig.panes[0].id, panel.i)">
+                        <q-item-section avatar style="min-width: 30px"><q-icon name="open_with" size="xs" /></q-item-section>
                         <q-item-section>다른 창으로 이동...</q-item-section>
                       </q-item>
                       <q-separator />
-                      <q-item
-                        clickable
-                        @click="
-                          dashboardLayoutStore.removePanelFromPane(
-                            currentPresetConfig.panes[0].id,
-                            panel.i,
-                          )
-                        "
-                      >
-                        <q-item-section avatar style="min-width: 30px"
-                          ><q-icon name="delete_outline" size="xs"
-                        /></q-item-section>
+                      <q-item clickable @click="dashboardLayoutStore.removePanelFromPane(currentPresetConfig.panes[0].id, panel.i)">
+                        <q-item-section avatar style="min-width: 30px"><q-icon name="delete_outline" size="xs" /></q-item-section>
                         <q-item-section>패널 닫기</q-item-section>
                       </q-item>
                     </q-list>
@@ -342,11 +225,7 @@
           </grid-item>
         </grid-layout>
         <div
-          v-if="
-            !dashboardLayoutStore.panes[currentPresetConfig.panes[0].id] ||
-            !dashboardLayoutStore.panes[currentPresetConfig.panes[0].id].nexaPanels ||
-            dashboardLayoutStore.panes[currentPresetConfig.panes[0].id].nexaPanels.length === 0
-          "
+          v-if="!dashboardLayoutStore.panes[currentPresetConfig.panes[0].id] || !dashboardLayoutStore.panes[currentPresetConfig.panes[0].id].nexaPanels || dashboardLayoutStore.panes[currentPresetConfig.panes[0].id].nexaPanels.length === 0"
           class="text-grey-6 q-pa-md text-center flex flex-center full-height"
         >
           <div>
@@ -357,32 +236,15 @@
               창 사이의 분할선을 드래그하여 크기를 자유롭게 조절할 수 있습니다.<br />
               나만의 맞춤형 대시보드를 구성하여 작업 효율을 높여보세요!
             </p>
-            <q-btn
-              flat
-              color="secondary"
-              label="이 창에 패널 추가"
-              icon="add_box"
-              @click="openAddNexaPanelDialog(currentPresetConfig.panes[0].id)"
-              class="q-mt-sm"
-            />
+            <q-btn flat color="secondary" label="이 창에 패널 추가" icon="add_box" @click="openAddNexaPanelDialog(currentPresetConfig.panes[0].id)" class="q-mt-sm" />
           </div>
         </div>
       </pane>
 
       <!-- L-shape 오른쪽 (중첩 Splitpanes) -->
-      <pane
-        :key="currentPresetConfig.panes[1].id"
-        :id="currentPresetConfig.panes[1].id"
-        :size="
-          dashboardLayoutStore.panes[currentPresetConfig.panes[1].id]?.size ||
-          currentPresetConfig.panes[1].defaultSize
-        "
-        class="nested-splitpanes-container"
-      >
+      <pane :key="currentPresetConfig.panes[1].id" :id="currentPresetConfig.panes[1].id" :size="dashboardLayoutStore.panes[currentPresetConfig.panes[1].id]?.size || currentPresetConfig.panes[1].defaultSize" class="nested-splitpanes-container">
         <splitpanes
-          v-if="
-            currentPresetConfig.panes[1].isContainer && currentPresetConfig.panes[1].nestedConfig
-          "
+          v-if="currentPresetConfig.panes[1].isContainer && currentPresetConfig.panes[1].nestedConfig"
           :key="dashboardLayoutStore.activePreset + '-l-shape-nested' + paneSizesKeySuffix"
           class="default-theme"
           style="height: 100%"
@@ -393,9 +255,7 @@
             v-for="nestedPaneConfig in currentPresetConfig.panes[1].nestedConfig.panes"
             :key="nestedPaneConfig.id"
             :id="nestedPaneConfig.id"
-            :size="
-              dashboardLayoutStore.panes[nestedPaneConfig.id]?.size || nestedPaneConfig.defaultSize
-            "
+            :size="dashboardLayoutStore.panes[nestedPaneConfig.id]?.size || nestedPaneConfig.defaultSize"
             class="pane-container bg-grey-9"
             :class="{
               'is-selected-pane': dashboardLayoutStore.selectedPaneId === nestedPaneConfig.id,
@@ -403,58 +263,27 @@
             @click.stop="dashboardLayoutStore.setSelectedPaneId(nestedPaneConfig.id)"
             :ref="(el) => (paneRefs[nestedPaneConfig.id] = el)"
           >
-            <q-btn
-              v-if="dashboardLayoutStore.selectedPaneId === nestedPaneConfig.id"
-              flat
-              dense
-              round
-              icon="more_horiz"
-              size="md"
-              text-color="accent"
-              class="pane-menu-button"
-              @click.stop
-              @mouseenter="openMenu(nestedPaneConfig.id)"
-              @mouseleave="scheduleMenuHide(nestedPaneConfig.id)"
-            >
-              <q-menu
-                v-model="menuVisibility[nestedPaneConfig.id]"
-                anchor="bottom right"
-                self="top right"
-                @mouseenter="cancelMenuHide(nestedPaneConfig.id)"
-                @mouseleave="hideMenu(nestedPaneConfig.id)"
-              >
+            <q-btn v-if="dashboardLayoutStore.selectedPaneId === nestedPaneConfig.id" flat dense round icon="more_horiz" size="md" text-color="accent" class="pane-menu-button" @click.stop @mouseenter="openMenu(nestedPaneConfig.id)" @mouseleave="scheduleMenuHide(nestedPaneConfig.id)">
+              <q-menu v-model="menuVisibility[nestedPaneConfig.id]" anchor="bottom right" self="top right" @mouseenter="cancelMenuHide(nestedPaneConfig.id)" @mouseleave="hideMenu(nestedPaneConfig.id)">
                 <q-list dense style="min-width: 150px">
-                  <q-item
-                    clickable
-                    v-close-popup
-                    @click="openAddNexaPanelDialog(nestedPaneConfig.id)"
-                  >
-                    <q-item-section avatar style="min-width: 30px"
-                      ><q-icon name="add_box" size="xs" />
-                    </q-item-section>
+                  <q-item clickable v-close-popup @click="openAddNexaPanelDialog(nestedPaneConfig.id)">
+                    <q-item-section avatar style="min-width: 30px"><q-icon name="add_box" size="xs" /> </q-item-section>
                     <q-item-section>패널 추가</q-item-section>
                   </q-item>
                   <q-separator />
                   <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 분할')">
-                    <q-item-section avatar style="min-width: 30px"
-                      ><q-icon name="splitscreen" size="xs" />
-                    </q-item-section>
+                    <q-item-section avatar style="min-width: 30px"><q-icon name="splitscreen" size="xs" /> </q-item-section>
                     <q-item-section>창 분할</q-item-section>
                   </q-item>
                   <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 병합')">
-                    <q-item-section avatar style="min-width: 30px"
-                      ><q-icon name="merge_type" size="xs" />
-                    </q-item-section>
+                    <q-item-section avatar style="min-width: 30px"><q-icon name="merge_type" size="xs" /> </q-item-section>
                     <q-item-section>창 병합</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
             </q-btn>
             <grid-layout
-              v-if="
-                dashboardLayoutStore.panes[nestedPaneConfig.id] &&
-                dashboardLayoutStore.panes[nestedPaneConfig.id].nexaPanels
-              "
+              v-if="dashboardLayoutStore.panes[nestedPaneConfig.id] && dashboardLayoutStore.panes[nestedPaneConfig.id].nexaPanels"
               v-model:layout="dashboardLayoutStore.panes[nestedPaneConfig.id].nexaPanels"
               :col-num="12"
               :row-height="30"
@@ -474,10 +303,7 @@
                 :w="panel.w"
                 :h="panel.h"
                 :i="panel.i"
-                @resized="
-                  (i, newH, newW, newHPx, newWPx) =>
-                    handleGridItemResized(nestedPaneConfig.id, i, newH, newW, newHPx, newWPx)
-                "
+                @resized="(i, newH, newW, newHPx, newWPx) => handleGridItemResized(nestedPaneConfig.id, i, newH, newW, newHPx, newWPx)"
                 @moved="(i, newX, newY) => handleGridItemMoved(nestedPaneConfig.id, i, newX, newY)"
                 @dragstart.stop="() => handleItemDragStart(panel.i)"
                 @dragend.stop="() => handleItemDragEnd(panel.i)"
@@ -486,34 +312,19 @@
                 :draggable-cancel="'.no-drag'"
               >
                 <q-card flat class="full-height column no-wrap bg-custom-dark-card">
-                  <q-card-section
-                    :data-nexa-panel-id="panel.i"
-                    class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move"
-                  >
+                  <q-card-section :data-nexa-panel-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move">
                     <div class="text-caption col ellipsis q-pl-xs">{{ panel.title }}</div>
                     <q-space />
                     <q-btn flat dense round icon="more_vert" size="xs" @click.stop class="no-drag">
                       <q-menu auto-close anchor="bottom end" self="top end">
                         <q-list dense style="min-width: 150px">
-                          <q-item
-                            clickable
-                            @click="requestMovePanelDialog(nestedPaneConfig.id, panel.i)"
-                          >
-                            <q-item-section avatar style="min-width: 30px"
-                              ><q-icon name="open_with" size="xs"
-                            /></q-item-section>
+                          <q-item clickable @click="requestMovePanelDialog(nestedPaneConfig.id, panel.i)">
+                            <q-item-section avatar style="min-width: 30px"><q-icon name="open_with" size="xs" /></q-item-section>
                             <q-item-section>다른 창으로 이동...</q-item-section>
                           </q-item>
                           <q-separator />
-                          <q-item
-                            clickable
-                            @click="
-                              dashboardLayoutStore.removePanelFromPane(nestedPaneConfig.id, panel.i)
-                            "
-                          >
-                            <q-item-section avatar style="min-width: 30px"
-                              ><q-icon name="delete_outline" size="xs"
-                            /></q-item-section>
+                          <q-item clickable @click="dashboardLayoutStore.removePanelFromPane(nestedPaneConfig.id, panel.i)">
+                            <q-item-section avatar style="min-width: 30px"><q-icon name="delete_outline" size="xs" /></q-item-section>
                             <q-item-section>패널 닫기</q-item-section>
                           </q-item>
                         </q-list>
@@ -522,21 +333,12 @@
                   </q-card-section>
                   <q-card-section class="col q-pa-sm text-grey-6 text-caption scroll">
                     {{ panel.content }}
-                    <div class="text-grey-7 text-caption">
-                      ID: {{ panel.id }} (i: {{ panel.i }})
-                    </div>
+                    <div class="text-grey-7 text-caption">ID: {{ panel.id }} (i: {{ panel.i }})</div>
                   </q-card-section>
                 </q-card>
               </grid-item>
             </grid-layout>
-            <div
-              v-if="
-                !dashboardLayoutStore.panes[nestedPaneConfig.id] ||
-                !dashboardLayoutStore.panes[nestedPaneConfig.id].nexaPanels ||
-                dashboardLayoutStore.panes[nestedPaneConfig.id].nexaPanels.length === 0
-              "
-              class="text-grey-6 q-pa-md text-center flex flex-center full-height"
-            >
+            <div v-if="!dashboardLayoutStore.panes[nestedPaneConfig.id] || !dashboardLayoutStore.panes[nestedPaneConfig.id].nexaPanels || dashboardLayoutStore.panes[nestedPaneConfig.id].nexaPanels.length === 0" class="text-grey-6 q-pa-md text-center flex flex-center full-height">
               <div>
                 <q-icon name="dashboard" size="xl" class="q-mb-md text-grey-6" />
                 <div class="text-subtitle1 q-mb-sm">패널이 비어 있습니다</div>
@@ -545,14 +347,7 @@
                   창 사이의 분할선을 드래그하여 크기를 자유롭게 조절할 수 있습니다.<br />
                   나만의 맞춤형 대시보드를 구성하여 작업 효율을 높여보세요!
                 </p>
-                <q-btn
-                  flat
-                  color="secondary"
-                  label="이 창에 패널 추가"
-                  icon="add_box"
-                  @click="openAddNexaPanelDialog(nestedPaneConfig.id)"
-                  class="q-mt-sm"
-                />
+                <q-btn flat color="secondary" label="이 창에 패널 추가" icon="add_box" @click="openAddNexaPanelDialog(nestedPaneConfig.id)" class="q-mt-sm" />
               </div>
             </div>
           </pane>
@@ -561,10 +356,7 @@
     </splitpanes>
 
     <!-- 패널 추가 다이얼로그 -->
-    <NexaPanelDialog
-      v-model="showAddNexaPanelDialog"
-      @addNexaPanel="handleNexaPanelAddedFromDialog"
-    />
+    <NexaPanelDialog v-model="showAddNexaPanelDialog" @addNexaPanel="handleNexaPanelAddedFromDialog" />
 
     <!-- 패널 이동 다이얼로그 -->
     <q-dialog v-model="showMovePanelDialog" persistent>
@@ -577,19 +369,10 @@
         <q-card-section>
           <p>'{{ panelToMove?.title || '패널' }}'을(를) 어느 창으로 이동하시겠습니까?</p>
           <q-list bordered separator>
-            <q-item
-              v-for="destPane in availableTargetPanes"
-              :key="destPane.id"
-              clickable
-              v-ripple
-              @click="movePanelToPane(destPane.id)"
-              :disable="destPane.id === panelToMove?.currentPaneId"
-            >
+            <q-item v-for="destPane in availableTargetPanes" :key="destPane.id" clickable v-ripple @click="movePanelToPane(destPane.id)" :disable="destPane.id === panelToMove?.currentPaneId">
               <q-item-section>
                 <q-item-label>{{ destPane.title || destPane.id }}</q-item-label>
-                <q-item-label caption v-if="destPane.id === panelToMove?.currentPaneId"
-                  >현재 창</q-item-label
-                >
+                <q-item-label caption v-if="destPane.id === panelToMove?.currentPaneId">현재 창</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <q-icon name="chevron_right" />
@@ -679,18 +462,11 @@ watch(
     if (newPanes && oldPanes) {
       const newPaneIds = Object.keys(newPanes)
       const oldPaneIds = Object.keys(oldPanes)
-      if (
-        newPaneIds.length !== oldPaneIds.length ||
-        !newPaneIds.every((id) => oldPaneIds.includes(id))
-      ) {
+      if (newPaneIds.length !== oldPaneIds.length || !newPaneIds.every((id) => oldPaneIds.includes(id))) {
         sizesChanged = true // Pane 구성 자체가 변경됨
       } else {
         for (const paneId in newPanes) {
-          if (
-            newPanes[paneId] &&
-            oldPanes[paneId] &&
-            newPanes[paneId].size !== oldPanes[paneId].size
-          ) {
+          if (newPanes[paneId] && oldPanes[paneId] && newPanes[paneId].size !== oldPanes[paneId].size) {
             sizesChanged = true
             break
           }
@@ -779,12 +555,7 @@ function cancelMenuHide(paneId) {
  * @param {string | null} splitpanesGroupIdentifier - 이벤트가 발생한 splitpanes 그룹 식별자 (예: 'root-normal', 'l-shape-root', 'l-shape-nested')
  */
 const handleSplitterResized = (eventData, splitpanesGroupIdentifier = null) => {
-  console.log(
-    '[DashboardRenderer] handleSplitterResized CALLED. Group:',
-    splitpanesGroupIdentifier,
-    'Raw event data:',
-    JSON.parse(JSON.stringify(eventData || {})),
-  )
+  console.log('[DashboardRenderer] handleSplitterResized CALLED. Group:', splitpanesGroupIdentifier, 'Raw event data:', JSON.parse(JSON.stringify(eventData || {})))
 
   let actualPanesArray = []
   if (eventData && Array.isArray(eventData.panes)) {
@@ -796,21 +567,11 @@ const handleSplitterResized = (eventData, splitpanesGroupIdentifier = null) => {
   }
 
   if (!actualPanesArray || actualPanesArray.length === 0) {
-    console.warn(
-      '[DashboardRenderer] No valid panes array found in resize event.',
-      JSON.stringify(eventData || {}),
-    )
+    console.warn('[DashboardRenderer] No valid panes array found in resize event.', JSON.stringify(eventData || {}))
     return
   }
 
-  console.log(
-    '[DashboardRenderer] Processing actualPanesArray (length:',
-    actualPanesArray.length,
-    '):',
-    JSON.parse(JSON.stringify(actualPanesArray)),
-    'Identifier:',
-    splitpanesGroupIdentifier,
-  )
+  console.log('[DashboardRenderer] Processing actualPanesArray (length:', actualPanesArray.length, '):', JSON.parse(JSON.stringify(actualPanesArray)), 'Identifier:', splitpanesGroupIdentifier)
 
   let effectivePaneConfigs = []
   const presetConfig = currentPresetConfig.value
@@ -818,65 +579,37 @@ const handleSplitterResized = (eventData, splitpanesGroupIdentifier = null) => {
   if (presetConfig) {
     if (splitpanesGroupIdentifier === 'l-shape-root') {
       effectivePaneConfigs = presetConfig.panes // L-Shape 루트 splitpanes의 설정
-      console.log(
-        '[DashboardRenderer L-Shape] Event identified as l-shape-root. Using presetConfig.panes. Count:',
-        effectivePaneConfigs.length,
-      )
+      console.log('[DashboardRenderer L-Shape] Event identified as l-shape-root. Using presetConfig.panes. Count:', effectivePaneConfigs.length)
     } else if (splitpanesGroupIdentifier === 'l-shape-nested') {
       if (presetConfig.panes[1]?.isContainer && presetConfig.panes[1]?.nestedConfig?.panes) {
         effectivePaneConfigs = presetConfig.panes[1].nestedConfig.panes
-        console.log(
-          '[DashboardRenderer L-Shape] Event identified as l-shape-nested. Using nestedConfig.panes. Count:',
-          effectivePaneConfigs.length,
-        )
+        console.log('[DashboardRenderer L-Shape] Event identified as l-shape-nested. Using nestedConfig.panes. Count:', effectivePaneConfigs.length)
       } else {
-        console.error(
-          '[DashboardRenderer L-Shape] Event identified as l-shape-nested, but nested config not found!',
-        )
+        console.error('[DashboardRenderer L-Shape] Event identified as l-shape-nested, but nested config not found!')
         return // 또는 오류 처리
       }
     } else if (splitpanesGroupIdentifier === 'root-normal') {
       // 일반 (비중첩) 프리셋
       effectivePaneConfigs = presetConfig.panes
-      console.log(
-        '[DashboardRenderer Non-L-Shape] Event identified as root-normal. Using presetConfig.panes. Count:',
-        effectivePaneConfigs.length,
-      )
+      console.log('[DashboardRenderer Non-L-Shape] Event identified as root-normal. Using presetConfig.panes. Count:', effectivePaneConfigs.length)
     } else {
       // 식별자가 없거나 예상치 못한 경우 (폴백 로직 또는 오류 처리)
-      console.warn(
-        '[DashboardRenderer] Unknown or missing splitpanesGroupIdentifier:',
-        splitpanesGroupIdentifier,
-        'Attempting to infer based on pane count for preset:',
-        dashboardLayoutStore.activePreset,
-      )
+      console.warn('[DashboardRenderer] Unknown or missing splitpanesGroupIdentifier:', splitpanesGroupIdentifier, 'Attempting to infer based on pane count for preset:', dashboardLayoutStore.activePreset)
       // 기존의 길이 기반 추론 로직을 폴백으로 사용할 수 있으나, 식별자를 사용하는 것이 더 정확함.
       // 현재는 식별자 기반으로만 처리하고, 문제가 지속되면 이 부분을 강화해야 함.
       if (dashboardLayoutStore.activePreset === 'l-shape') {
         // L-Shape인데 식별자가 없다면, 길이로 한번 더 추론 시도 (최후의 수단)
         const lShapeRootPanesConfig = presetConfig.panes
-        const lShapeNestedPanesConfig =
-          presetConfig.panes[1]?.isContainer && presetConfig.panes[1]?.nestedConfig?.panes
-            ? presetConfig.panes[1].nestedConfig.panes
-            : []
+        const lShapeNestedPanesConfig = presetConfig.panes[1]?.isContainer && presetConfig.panes[1]?.nestedConfig?.panes ? presetConfig.panes[1].nestedConfig.panes : []
         if (actualPanesArray.length === lShapeRootPanesConfig.length) {
           effectivePaneConfigs = lShapeRootPanesConfig
-        } else if (
-          lShapeNestedPanesConfig.length > 0 &&
-          actualPanesArray.length === lShapeNestedPanesConfig.length
-        ) {
+        } else if (lShapeNestedPanesConfig.length > 0 && actualPanesArray.length === lShapeNestedPanesConfig.length) {
           effectivePaneConfigs = lShapeNestedPanesConfig
         }
-        console.log(
-          '[DashboardRenderer L-Shape Fallback] Inferred effectivePaneConfigs count:',
-          effectivePaneConfigs.length,
-        )
+        console.log('[DashboardRenderer L-Shape Fallback] Inferred effectivePaneConfigs count:', effectivePaneConfigs.length)
       } else {
         effectivePaneConfigs = presetConfig.panes // 일반 프리셋으로 가정
-        console.log(
-          '[DashboardRenderer Fallback] Assuming general preset. EffectivePaneConfigs count:',
-          effectivePaneConfigs.length,
-        )
+        console.log('[DashboardRenderer Fallback] Assuming general preset. EffectivePaneConfigs count:', effectivePaneConfigs.length)
       }
     }
   } else {
@@ -885,11 +618,7 @@ const handleSplitterResized = (eventData, splitpanesGroupIdentifier = null) => {
   }
 
   if (!effectivePaneConfigs || effectivePaneConfigs.length === 0) {
-    console.error(
-      '[DashboardRenderer] CRITICAL: effectivePaneConfigs is empty or undefined after attempting to determine configuration.',
-      'Preset was:',
-      dashboardLayoutStore.activePreset,
-    )
+    console.error('[DashboardRenderer] CRITICAL: effectivePaneConfigs is empty or undefined after attempting to determine configuration.', 'Preset was:', dashboardLayoutStore.activePreset)
     return
   }
 
@@ -915,10 +644,7 @@ const handleSplitterResized = (eventData, splitpanesGroupIdentifier = null) => {
   let allPanesProcessedSuccessfully = true
 
   actualPanesArray.forEach((paneInfo, index) => {
-    console.log(
-      `[DashboardRenderer] Processing paneInfo at index ${index}:`,
-      JSON.parse(JSON.stringify(paneInfo || {})),
-    )
+    console.log(`[DashboardRenderer] Processing paneInfo at index ${index}:`, JSON.parse(JSON.stringify(paneInfo || {})))
 
     if (index < effectivePaneConfigs.length) {
       const paneConfig = effectivePaneConfigs[index]
@@ -926,9 +652,7 @@ const handleSplitterResized = (eventData, splitpanesGroupIdentifier = null) => {
 
       if (paneId && typeof paneInfo.size === 'number') {
         newSizes.push({ id: String(paneId), size: paneInfo.size })
-        console.log(
-          `[DashboardRenderer] VALID pane resize info (using index ${index} for ID): id=${paneId}, size=${paneInfo.size}`,
-        )
+        console.log(`[DashboardRenderer] VALID pane resize info (using index ${index} for ID): id=${paneId}, size=${paneInfo.size}`)
       } else {
         allPanesProcessedSuccessfully = false
         console.warn(
@@ -946,63 +670,42 @@ const handleSplitterResized = (eventData, splitpanesGroupIdentifier = null) => {
     } else {
       allPanesProcessedSuccessfully = false
       console.warn(
-        '[DashboardRenderer] Index ' +
-          index +
-          ' is out of bounds for effectivePaneConfigs (length: ' +
-          effectivePaneConfigs.length +
-          '). Skipping this paneInfo:', // 수정된 부분
+        '[DashboardRenderer] Index ' + index + ' is out of bounds for effectivePaneConfigs (length: ' + effectivePaneConfigs.length + '). Skipping this paneInfo:', // 수정된 부분
         JSON.parse(JSON.stringify(paneInfo || {})),
       )
     }
   })
 
   if (newSizes.length > 0) {
-    console.log(
-      '[DashboardRenderer] Attempting to call dashboardLayoutStore.updatePaneSizes with newSizes:',
-      JSON.parse(JSON.stringify(newSizes)),
-    )
+    console.log('[DashboardRenderer] Attempting to call dashboardLayoutStore.updatePaneSizes with newSizes:', JSON.parse(JSON.stringify(newSizes)))
     if (!allPanesProcessedSuccessfully) {
-      console.warn(
-        '[DashboardRenderer] Note: updatePaneSizes is being called, but not all pane info from the event was processed successfully or mapped to an ID. This might lead to partial updates or unexpected behavior.',
-      )
+      console.warn('[DashboardRenderer] Note: updatePaneSizes is being called, but not all pane info from the event was processed successfully or mapped to an ID. This might lead to partial updates or unexpected behavior.')
     }
     const uniqueIdsInNewSizes = new Set(newSizes.map((s) => s.id))
     if (uniqueIdsInNewSizes.size !== newSizes.length) {
-      console.error(
-        '[DashboardRenderer] CRITICAL: Duplicate IDs found in newSizes before calling updatePaneSizes. This should not happen if effectivePaneConfigs mapping is correct.',
-        newSizes,
-      )
+      console.error('[DashboardRenderer] CRITICAL: Duplicate IDs found in newSizes before calling updatePaneSizes. This should not happen if effectivePaneConfigs mapping is correct.', newSizes)
     }
     dashboardLayoutStore.updatePaneSizes(newSizes)
   } else {
-    console.warn(
-      '[DashboardRenderer] NO valid data was constructed to update pane sizes. newSizes array is empty. dashboardLayoutStore.updatePaneSizes will NOT be called. Review previous logs.',
-    )
+    console.warn('[DashboardRenderer] NO valid data was constructed to update pane sizes. newSizes array is empty. dashboardLayoutStore.updatePaneSizes will NOT be called. Review previous logs.')
   }
 }
 
 const handleLayoutUpdate = debounce((newLayout, paneId) => {
-  console.log(
-    `[DashboardRenderer] Layout updated for pane ${paneId}. Requesting save. Layout data (may be already reflected in store via v-model):`,
-    JSON.parse(JSON.stringify(newLayout)),
-  )
+  console.log(`[DashboardRenderer] Layout updated for pane ${paneId}. Requesting save. Layout data (may be already reflected in store via v-model):`, JSON.parse(JSON.stringify(newLayout)))
   // v-model:layout이 이미 dashboardLayoutStore.panes[paneId].nexaPanels를 직접 업데이트했을 것이므로,
   // 여기서는 변경된 전체 레이아웃 상태를 저장하도록 요청합니다.
   dashboardLayoutStore.requestSaveLayout()
 }, 300)
 
 function handleGridItemResized(paneIdForItem, i, newH, newW, newHPx, newWPx) {
-  console.log(
-    `[DashboardRenderer] Item Resized in pane ${paneIdForItem}: Item ${i}, H:${newH}, W:${newW}, HPx:${newHPx}, WPx:${newWPx}`,
-  )
+  console.log(`[DashboardRenderer] Item Resized in pane ${paneIdForItem}: Item ${i}, H:${newH}, W:${newW}, HPx:${newHPx}, WPx:${newWPx}`)
   // 실제 레이아웃 업데이트는 v-model:layout과 handleLayoutUpdate를 통해 처리됨
   // 이 함수는 개별 resize 이벤트에 대한 추가 작업이 필요할 경우 사용
 }
 
 function handleGridItemMoved(paneIdForItem, i, newX, newY) {
-  console.log(
-    `[DashboardRenderer] Item Moved in pane ${paneIdForItem}: Item ${i}, X:${newX}, Y:${newY}`,
-  )
+  console.log(`[DashboardRenderer] Item Moved in pane ${paneIdForItem}: Item ${i}, X:${newX}, Y:${newY}`)
   // 실제 레이아웃 업데이트는 v-model:layout과 handleLayoutUpdate를 통해 처리됨
   // 이 함수는 개별 move 이벤트에 대한 추가 작업이 필요할 경우 사용
 }
@@ -1012,7 +715,7 @@ function handleItemDragStart(panelId_i) {
   isDraggingEnabled.value = true
   const panel = findPanelInAnyPane(panelId_i)
   if (panel.item) {
-      draggingItem.value = { ...panel.item, title: panel.item.title || '패널' }
+    draggingItem.value = { ...panel.item, title: panel.item.title || '패널' }
   }
 }
 
@@ -1039,14 +742,8 @@ function openAddNexaPanelDialog(paneId) {
 }
 
 function handleNexaPanelAddedFromDialog(widgetData) {
-  console.log(
-    '[DashboardRenderer] handleNexaPanelAddedFromDialog called with widgetData:',
-    JSON.parse(JSON.stringify(widgetData || null)),
-  )
-  console.log(
-    '[DashboardRenderer] currentPaneIdForAddingWidget:',
-    currentPaneIdForAddingWidget.value,
-  )
+  console.log('[DashboardRenderer] handleNexaPanelAddedFromDialog called with widgetData:', JSON.parse(JSON.stringify(widgetData || null)))
+  console.log('[DashboardRenderer] currentPaneIdForAddingWidget:', currentPaneIdForAddingWidget.value)
 
   if (currentPaneIdForAddingWidget.value) {
     const newPanelData = {
@@ -1055,18 +752,11 @@ function handleNexaPanelAddedFromDialog(widgetData) {
     }
     newPanelData.i = newPanelData.id // i는 id와 동일하게
 
-    console.log(
-      '[DashboardRenderer] Preparing to add panel to store. Pane ID:',
-      currentPaneIdForAddingWidget.value,
-      'Panel Data:',
-      JSON.parse(JSON.stringify(newPanelData)),
-    )
+    console.log('[DashboardRenderer] Preparing to add panel to store. Pane ID:', currentPaneIdForAddingWidget.value, 'Panel Data:', JSON.parse(JSON.stringify(newPanelData)))
     dashboardLayoutStore.addPanelToPane(currentPaneIdForAddingWidget.value, newPanelData)
     console.log('[DashboardRenderer] Panel presumably added to store.')
   } else {
-    console.warn(
-      '[DashboardRenderer] handleNexaPanelAddedFromDialog called but currentPaneIdForAddingWidget is null.',
-    )
+    console.warn('[DashboardRenderer] handleNexaPanelAddedFromDialog called but currentPaneIdForAddingWidget is null.')
   }
   showAddNexaPanelDialog.value = false
   currentPaneIdForAddingWidget.value = null
@@ -1217,19 +907,5 @@ function showFeatureNotReadyAlert(featureName) {
 
 .scroll {
   overflow-y: auto;
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-  &::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    &:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-  }
 }
 </style>

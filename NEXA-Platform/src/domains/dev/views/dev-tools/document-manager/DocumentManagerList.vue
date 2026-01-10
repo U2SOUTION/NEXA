@@ -1412,13 +1412,6 @@ defineExpose({
 .file-list-scroll-area {
   height: 100%;
   flex: 1;
-  :deep(.q-scrollarea__thumb) {
-    // 스크롤바 폭 1px
-    width: 3px;
-  }
-  :deep(.q-scrollarea__bar) {
-    width: 2px;
-  }
 }
 
 .file-list-header {

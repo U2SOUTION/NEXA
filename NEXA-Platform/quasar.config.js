@@ -20,10 +20,10 @@ export default defineConfig((/* ctx */) => {
 
     // 전역 스타일 설정
     css: [
-      '../system/css/app.scss',
       '../system/css/themes/light.scss',
       '../system/css/themes/dark.scss',
       '../system/css/nexa-system/nexa-system.scss',
+      '../system/css/app.scss',
       '~vue3-grid-layout-next/dist/style.css'
     ],
 

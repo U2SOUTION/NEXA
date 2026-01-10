@@ -414,25 +414,6 @@ watch(
     overflow-y: auto;
     resize: none;
   }
-
-  // textarea의 스크롤바 스타일
-  :deep(.q-field__native::-webkit-scrollbar) {
-    width: 6px;
-  }
-
-  :deep(.q-field__native::-webkit-scrollbar-track) {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 3px;
-  }
-
-  :deep(.q-field__native::-webkit-scrollbar-thumb) {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-  }
-
-  :deep(.q-field__native::-webkit-scrollbar-thumb:hover) {
-    background: rgba(0, 0, 0, 0.3);
-  }
 }
 
 .share-url-copied-message {

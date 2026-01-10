@@ -569,16 +569,6 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   //min-height: 0;
-
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--nexa-modal-scrollbar);
-    &:hover {
-      background-color: var(--nexa-modal-scrollbar-hover);
-    }
-  }
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--nexa-modal-scrollbar) transparent;
 }
 
 .view-mode-settings-tab-panels {

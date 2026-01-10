@@ -48,23 +48,110 @@ body:not(.dark) {
   color: var(--nexa-text-primary);
 }
 
-// 스크롤바 스타일
+// 스크롤바 스타일 (전역 통제)
+// 모든 요소에 대해 네이티브 스크롤바 화살표 및 두께 제어 (최상위 우선순위)
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 4px;
+  width: 2px !important;
+  height: 2px !important;
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:start,
+::-webkit-scrollbar-button:end,
+::-webkit-scrollbar-button:vertical:start:increment,
+::-webkit-scrollbar-button:vertical:start:decrement,
+::-webkit-scrollbar-button:vertical:end:increment,
+::-webkit-scrollbar-button:vertical:end:decrement,
+::-webkit-scrollbar-button:horizontal:start:increment,
+::-webkit-scrollbar-button:horizontal:start:decrement,
+::-webkit-scrollbar-button:horizontal:end:increment,
+::-webkit-scrollbar-button:horizontal:end:decrement,
+::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--nexa-scrollbar-track);
+  background: var(--nexa-scrollbar-track) !important;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--nexa-scrollbar-thumb);
-  border-radius: 4px;
+  background: var(--nexa-scrollbar-thumb) !important;
+  border-radius: 4px !important;
+  border: none !important;
+  background-clip: border-box !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--nexa-scrollbar-thumb-hover);
+  background: var(--nexa-scrollbar-thumb-hover) !important;
+}
+
+// Firefox 등 비-Webkit 브라우저 지원
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--nexa-scrollbar-thumb) var(--nexa-scrollbar-track);
+}
+
+// 사이드바 가로 스크롤 절대 방지
+.q-drawer {
+  overflow-x: hidden !important;
+
+  .q-drawer__content {
+    overflow-x: hidden !important;
+  }
+
+  // 가상 스크롤바 가로 바 숨김
+  .q-scrollarea__bar--h,
+  .q-scrollarea__thumb--h {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+// 가상 스크롤바를 사용하는 Quasar QScrollArea 스타일 통합
+.q-scrollarea__thumb,
+.q-scrollarea__thumb--v,
+.q-scrollarea__thumb--h {
+  background: var(--nexa-scrollbar-thumb) !important;
+  opacity: 0.6 !important; // 기본적으로 약간 투명하게 하여 겹침 현상 방지
+  border-radius: 4px !important;
+  transition:
+    opacity 0.2s,
+    background 0.2s !important;
+
+  &:hover,
+  &.q-scrollarea__thumb--active {
+    opacity: 1 !important;
+    background: var(--nexa-scrollbar-thumb-hover) !important;
+  }
+}
+
+.q-scrollarea__thumb--v {
+  width: 2px !important; // 2px로 두께 조정
+}
+
+.q-scrollarea__thumb--h {
+  height: 2px !important; // 2px로 두께 조정
+}
+
+// 트랙(Bar)은 배경색만 유지하고 썸(Thumb)과 겹쳐 보이지 않도록 투명하게 처리
+.q-scrollarea__bar,
+.q-scrollarea__bar--v,
+.q-scrollarea__bar--h {
+  background: transparent !important;
+  opacity: 0 !important;
+}
+
+// 사이드바 및 컨텐츠 영역에서 q-scroll-area를 사용할 때를 위한 추가 보강
+.q-drawer,
+.q-page-container {
+  .q-scrollarea__thumb {
+    background: var(--nexa-scrollbar-thumb) !important;
+  }
 }
 
 // 테마 색상 클래스

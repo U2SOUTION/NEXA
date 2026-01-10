@@ -284,10 +284,21 @@ const BUTTON_HEIGHT = 120
 const mouseY = ref(0)
 let autoMoveTimer = null
 
+// 버튼 위치를 마우스 위치로 업데이트하는 함수
 const updateButtonPosition = () => {
-  const minY = (headerRef.value?.$el?.offsetHeight || 42) + BUTTON_HEIGHT / 2
-  const maxY = window.innerHeight - BUTTON_HEIGHT / 2
-  buttonY.value = Math.max(minY, Math.min(maxY, mouseY.value))
+  const buttonHalfHeight = BUTTON_HEIGHT / 2
+  const buttonTop = buttonY.value - buttonHalfHeight // 버튼 상단
+  const buttonBottom = buttonY.value + buttonHalfHeight // 버튼 하단
+  const currentMouseY = mouseY.value
+
+  // 마우스가 버튼의 상단이나 하단을 벗어났을 때만 버튼 위치 업데이트
+  if (currentMouseY < buttonTop || currentMouseY > buttonBottom) {
+    const minY = (headerRef.value?.$el?.offsetHeight || 42) + buttonHalfHeight
+    const maxY = window.innerHeight - buttonHalfHeight
+
+    // 마우스 Y좌표를 화면 경계 내로 제한하여 버튼 위치 업데이트
+    buttonY.value = Math.max(minY, Math.min(maxY, currentMouseY))
+  }
 }
 
 const handleMouseMove = (event) => {
@@ -299,11 +310,13 @@ const handleMouseMove = (event) => {
 const leftButtonStyle = computed(() => ({
   top: `${buttonY.value - BUTTON_HEIGHT / 2}px`,
   left: dashboardLayoutStore.mainNavigationOpen ? `${userSettings.settings.drawer.leftWidth}px` : '0',
+  transform: 'translateY(0)',
 }))
 
 const rightButtonStyle = computed(() => ({
   top: `${buttonY.value - BUTTON_HEIGHT / 2}px`,
   right: userSettings.settings.drawer.rightOpen ? `${userSettings.settings.drawer.rightWidth}px` : '0',
+  transform: 'translateY(0)',
 }))
 
 const leftIconRotation = computed(() => (dashboardLayoutStore.mainNavigationOpen ? '0deg' : '180deg'))
@@ -354,26 +367,139 @@ function handleRightToggleMouseUp() {
   document.removeEventListener('mouseup', handleRightToggleMouseUp)
 }
 
-// --- Double Click Handler ---
+// ============================================
+// 더블클릭으로 사이드바 제어
+// ============================================
+
+// 헬퍼 함수: 사이드바 너비 계산 및 복원
+function calculateRestoreWidth(savedWidth, maxWidthLimit, defaultWidth) {
+  const maxWidth = Math.min(maxWidthLimit, Math.floor(window.innerWidth * 0.6))
+  return savedWidth > 50 ? Math.min(savedWidth, maxWidth) : defaultWidth
+}
+
+// 헬퍼 함수: 왼쪽 사이드바 열기
+function openLeftSidebar() {
+  const restoreWidth = calculateRestoreWidth(
+    userSettings.settings.drawer.leftWidth,
+    600, // maxWidthLimit
+    250, // defaultWidth
+  )
+  userSettings.settings.drawer.leftWidth = restoreWidth
+  dashboardLayoutStore.toggleMainNavigation()
+}
+
+// 헬퍼 함수: 오른쪽 사이드바 열기
+function openRightSidebar() {
+  const restoreWidth = calculateRestoreWidth(
+    userSettings.settings.drawer.rightWidth,
+    800, // maxWidthLimit
+    300, // defaultWidth
+  )
+  userSettings.settings.drawer.rightWidth = restoreWidth
+  togglePropertyPanel()
+}
+
+// 헬퍼 함수: 마지막으로 연 사이드바 기록
+function setLastOpenedSidebar(side) {
+  localStorage.setItem('last-opened-sidebar', side)
+}
+
+// 더블클릭 핸들러 (메인 콘텐츠 영역)
 function handleMainContentDoubleClick(event) {
-  if (event.target.closest('.q-drawer') || event.target.closest('.sidebar-toggle-button')) return
+  // 사이드바, 토글 버튼, 입력 필드 등은 제외
+  const target = event.target
+  if (target.closest('.q-drawer') || target.closest('.sidebar-toggle-button') || target.closest('input') || target.closest('textarea') || target.closest('[contenteditable="true"]') || target.closest('button') || target.closest('a') || target.closest('.q-btn')) {
+    return
+  }
+
+  // 텍스트 선택 방지
+  event.preventDefault()
+
+  // 이미 선택된 텍스트 해제
+  if (window.getSelection) {
+    const selection = window.getSelection()
+    if (selection.rangeCount > 0) {
+      selection.removeAllRanges()
+    }
+  }
+
   const isLeftOpen = dashboardLayoutStore.mainNavigationOpen
   const isRightOpen = userSettings.settings.drawer.rightOpen
+
+  // Shift + 더블클릭: 둘 다 열기 (상태와 관계없이)
+  if (event.shiftKey) {
+    if (!isLeftOpen) openLeftSidebar()
+    if (!isRightOpen) openRightSidebar()
+
+    // 마지막으로 연 사이드바 기록
+    if (!isLeftOpen && !isRightOpen) {
+      setLastOpenedSidebar('right') // 둘 다 닫혀있었으면 오른쪽 기록 (다음 번갈아가며 열 때 왼쪽이 열리도록)
+    } else if (!isLeftOpen) {
+      setLastOpenedSidebar('left')
+    } else if (!isRightOpen) {
+      setLastOpenedSidebar('right')
+    }
+
+    userSettings.saveSettings()
+    return
+  }
+
+  // 케이스 1: 둘 다 닫혀 있음 → 마지막에 열었던 쪽과 반대 쪽 열기 (번갈아가며 열기)
+  if (!isLeftOpen && !isRightOpen) {
+    const lastOpenedSidebar = localStorage.getItem('last-opened-sidebar') || 'right' // 기본값 'right'면 첫 번째는 왼쪽이 열림
+
+    if (lastOpenedSidebar === 'right') {
+      openLeftSidebar()
+      setLastOpenedSidebar('left')
+    } else {
+      openRightSidebar()
+      setLastOpenedSidebar('right')
+    }
+
+    userSettings.saveSettings()
+    return
+  }
+
+  // 케이스 2: 둘 다 열려 있음 → 둘 다 닫기
   if (isLeftOpen && isRightOpen) {
     dashboardLayoutStore.toggleMainNavigation()
-    nextTick(togglePropertyPanel)
-  } else if (!isLeftOpen && !isRightOpen) {
+    // nextTick으로 Vue 반응성 시스템과 동기화하여 상태 변경 충돌 방지
+    nextTick(() => {
+      togglePropertyPanel()
+    })
+    return
+  }
+
+  // 케이스 3: 왼쪽만 열려 있음 → 왼쪽 닫기
+  if (isLeftOpen && !isRightOpen) {
+    setLastOpenedSidebar('left')
     dashboardLayoutStore.toggleMainNavigation()
-  } else if (isLeftOpen) {
-    dashboardLayoutStore.toggleMainNavigation()
-  } else {
+    return
+  }
+
+  // 케이스 4: 오른쪽만 열려 있음 → 오른쪽 닫기
+  if (!isLeftOpen && isRightOpen) {
+    setLastOpenedSidebar('right')
     togglePropertyPanel()
+    return
   }
 }
 
 // --- Lifecycle ---
 onMounted(() => {
   userSettings.initializeTheme()
+
+  // 초기 버튼 Y좌표 설정 (화면 중앙, 경계 체크 포함)
+  nextTick(() => {
+    const buttonHalfHeight = BUTTON_HEIGHT / 2
+    const initialY = window.innerHeight / 2
+    const minY = (headerRef.value?.$el?.offsetHeight || 42) + buttonHalfHeight
+    const maxY = window.innerHeight - buttonHalfHeight
+    const initialButtonY = Math.max(minY, Math.min(maxY, initialY))
+    buttonY.value = initialButtonY
+    mouseY.value = initialButtonY
+  })
+
   window.addEventListener('mousemove', handleMouseMove)
   // ... more initializations ...
 })
@@ -395,6 +521,43 @@ const rightDrawerStyles = computed(() =>
 
 <style lang="scss">
 @import '@system/css/app.scss';
+
+/* 전역 변수 */
+:root {
+  --header-height: 42px;
+  --footer-height: 48px;
+}
+
+/* 레이아웃 및 사이드바 스크롤 격리 */
+.q-drawer {
+  top: var(--header-height) !important;
+  height: calc(100vh - var(--header-height) - var(--footer-height)) !important;
+  overflow-x: hidden !important; // 가로 스크롤 차단
+
+  .q-drawer__content {
+    height: 100%;
+    overflow: hidden !important; /* 드로어 자체 스크롤 방지 -> 내부 q-scroll-area가 스크롤 담당 */
+    overflow-x: hidden !important;
+  }
+}
+
+.q-page-container {
+  height: calc(100vh - var(--header-height));
+  overflow: hidden;
+
+  &.iframe-mode {
+    height: 100vh;
+  }
+
+  /* 컨텐츠 내부 스크롤 허용 (푸터 높이 제외) */
+  .q-page {
+    height: calc(100vh - var(--header-height) - var(--footer-height)) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+}
+
 /* Styles from original MainLayout.vue */
 .drawer-border {
   border-color: var(--nexa-border-color);
@@ -444,6 +607,11 @@ const rightDrawerStyles = computed(() =>
   justify-content: center;
   z-index: 2001;
   cursor: pointer;
+  transition:
+    top 0.5s ease-out,
+    left 0.3s ease-in-out,
+    right 0.3s ease-in-out,
+    background-color 0.3s ease;
   .q-icon {
     font-size: 14px;
     color: var(--nexa-primary);
