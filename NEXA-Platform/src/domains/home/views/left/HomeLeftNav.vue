@@ -5,15 +5,13 @@
 
 <template>
   <div class="home-sidebar">
+    <StandardLeftHeader
+      title="HOME"
+      subtitle="NEXA Platform 대시보드"
+      icon="home"
+    />
+
     <q-list>
-      <!-- 헤더 -->
-      <div class="sidebar-header q-pa-md">
-        <div class="text-h4 text-primary q-mb-xs text-bold">HOME</div>
-        <div class="text-caption text-grey-7">NEXA Platform 대시보드</div>
-      </div>
-
-      <q-separator />
-
       <!-- 빠른 접근 -->
       <div class="q-pa-sm">
         <div class="text-subtitle2 text-bold q-mb-sm q-px-sm">빠른 접근</div>
@@ -96,6 +94,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
 
@@ -138,7 +137,7 @@ function goToPartsManagement() {
 }
 
 function goToAddDevice() {
-  router.push('/add-device')
+  router.push('/nexa-board/add-device')
 }
 
 function selectBoard(board) {

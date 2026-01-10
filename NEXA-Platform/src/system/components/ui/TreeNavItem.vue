@@ -146,8 +146,8 @@ function handleNodeClick() {
       toggleExpansion()
     }
 
-    if (router.currentRoute.value.path !== '/board-admin') {
-      router.push('/board-admin')
+    if (router.currentRoute.value.path !== '/nexa-board/admin') {
+      router.push('/nexa-board/admin')
     }
   }
 }

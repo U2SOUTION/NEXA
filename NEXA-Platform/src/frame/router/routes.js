@@ -4,7 +4,15 @@ const routes = [
     component: () => import('@frame/layout/MainLayout.vue'),
     children: [
       { path: '', component: () => import('@domains/home/views/content/HomeView.vue'), name: 'Home' },
-      { path: 'nexa-board', component: () => import('@domains/board/BoardDomain.vue'), name: 'NexaBoard' },
+      {
+        path: 'nexa-board',
+        component: () => import('@domains/board/BoardDomain.vue'),
+        children: [
+          { path: '', component: () => import('@domains/board/views/content/BoardContent.vue'), name: 'NexaBoard' },
+          { path: 'add-device', component: () => import('@domains/infra/components/AddDeviceForm.vue'), name: 'BoardAddDevice' },
+          { path: 'admin', component: () => import('@domains/board/views/admin/BoardAdminPage.vue'), name: 'BoardAdmin' },
+        ],
+      },
       {
         path: 'parts-management',
         name: 'PartsManagement',
@@ -37,8 +45,11 @@ const routes = [
       },
       {
         path: 'infra',
-        name: 'Infra',
         component: () => import('@domains/infra/InfraDomain.vue'),
+        children: [
+          { path: '', component: () => import('@domains/infra/views/content/InfraContent.vue'), name: 'Infra' },
+          { path: 'add-device', component: () => import('@domains/infra/components/AddDeviceForm.vue'), name: 'InfraAddDevice' },
+        ],
       },
       {
         path: 'network',

@@ -153,7 +153,13 @@ const resetForm = () => {
 
 const cancelAndGoBack = () => {
   resetForm()
-  router.push({ name: 'NexaBoardHome' })
+  // 현재 경로에 따라 부모 도메인으로 이동
+  const path = router.currentRoute.value.path
+  if (path.includes('/nexa-board')) {
+    router.push('/nexa-board')
+  } else {
+    router.push('/infra')
+  }
 }
 
 const handleWifiSubmit = () => {

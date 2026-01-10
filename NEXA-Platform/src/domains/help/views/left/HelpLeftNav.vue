@@ -5,15 +5,13 @@
 
 <template>
   <div class="help-sidebar">
+    <StandardLeftHeader
+      title="HELP"
+      subtitle="사용 가이드 및 지원"
+      icon="help_outline"
+    />
+
     <q-list>
-      <!-- 헤더 -->
-      <div class="sidebar-header q-pa-md">
-        <div class="text-h4 text-primary q-mb-xs text-bold">HELP</div>
-        <div class="text-caption text-grey-7">사용 가이드 및 지원</div>
-      </div>
-
-      <q-separator />
-
       <!-- 도움말 메뉴 -->
       <div class="q-pa-sm">
         <q-btn flat dense @click="selectTab('guide')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'guide' }]">
@@ -87,6 +85,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 
 const router = useRouter()
 const activeTab = ref('guide')

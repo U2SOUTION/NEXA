@@ -7,12 +7,11 @@
   <div class="erp-sidebar">
     <q-list>
       <!-- 헤더 -->
-      <div class="sidebar-header q-pa-md">
-        <div class="text-h4 text-primary q-mb-xs text-bold">ERP</div>
-        <div class="text-caption text-grey-7">프로젝트 및 업무 관리</div>
-      </div>
-
-      <q-separator />
+      <StandardLeftHeader
+        title="ERP"
+        subtitle="프로젝트 및 업무 관리"
+        icon="business"
+      />
 
       <!-- 메뉴 -->
       <div class="q-pa-sm">
@@ -103,6 +102,7 @@
 </template>
 
 <script setup>
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { useErpStore } from '@domains/erp/store/erpStore'
 
 const erpStore = useErpStore()

@@ -6,7 +6,7 @@
 <template>
   <div class="nexa-board-tools-panel">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
-    <RightSidebarHeader title="Tools Panel" subtitle="Control & Customize Your Dashboard" push-icon="menu_open" />
+    <StandardRightHeader title="Tools Panel" subtitle="Control & Customize Your Dashboard" push-icon="menu_open" />
     <q-scroll-area class="fit">
       <!-- 아코디언 방식으로 모든 섹션 나열 -->
       <div class="accordion-wrapper">
@@ -40,7 +40,7 @@
 
 <script setup>
 import { QExpansionItem, QScrollArea } from 'quasar'
-import RightSidebarHeader from '@frame/layout/components/sidebars/right/RightSidebarHeader.vue'
+import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 import LayoutSection from '@domains/panel/components/side-panel/LayoutSection.vue'
 import NexaPanelSection from '@domains/panel/components/side-panel/NexaPanelSection.vue'
 import DeviceSection from '@domains/panel/components/side-panel/DeviceSection.vue'

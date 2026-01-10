@@ -6,7 +6,7 @@
 <template>
   <div class="dev-tools-panel">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
-    <RightSidebarHeader title="Tools Panel" subtitle="Control & Customize Your Documents" push-icon="menu_open" />
+    <StandardRightHeader title="Tools Panel" subtitle="Control & Customize Your Documents" push-icon="menu_open" />
     <q-scroll-area class="fit">
       <!-- 아코디언 방식으로 모든 섹션 나열 -->
       <!-- 목차 섹션 (문서 관리자 메뉴이고 목차가 있을 때만 표시) -->
@@ -268,7 +268,7 @@
 import { computed, ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
 import { QExpansionItem, QScrollArea } from 'quasar'
-import RightSidebarHeader from '@frame/layout/components/sidebars/right/RightSidebarHeader.vue'
+import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 import PanelMermaidStyle from '@domains/panel/components/components/PanelMermaidStyle.vue'
 import PanelTOC from '@domains/panel/components/components/PanelTOC.vue'
 import ThemeColorPanel from './right-dev-tools/ThemeColorPanel.vue'

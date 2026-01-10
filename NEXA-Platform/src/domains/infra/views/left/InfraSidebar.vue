@@ -7,12 +7,11 @@
   <div class="infra-sidebar">
     <q-list>
       <!-- 헤더 -->
-      <div class="sidebar-header q-pa-md">
-        <div class="text-h4 text-primary q-mb-xs text-bold">INFRA</div>
-        <div class="text-caption text-grey-7">인프라 및 자산 관리</div>
-      </div>
-
-      <q-separator />
+      <StandardLeftHeader
+        title="INFRA"
+        subtitle="인프라 및 자산 관리"
+        icon="settings"
+      />
 
       <!-- 메뉴 -->
       <div class="q-pa-sm">
@@ -90,9 +89,12 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { useInfraStore } from '@infra/store/infraStore'
 import DeviceTree from '@infra/my-devices/views/left/DeviceTree.vue'
 
+const router = useRouter()
 const infraStore = useInfraStore()
 
 function selectTab(tab) {
@@ -102,7 +104,12 @@ function selectTab(tab) {
     agw: 'agw',
     monitoring: 'monitoring',
   }
-  infraStore.setActiveSubMenu(menuMap[tab] || 'my-devices')
+  const subMenu = menuMap[tab] || 'my-devices'
+  infraStore.setActiveSubMenu(subMenu)
+  
+  if (tab === 'device') {
+    router.push('/infra/add-device')
+  }
 }
 </script>
 

@@ -5,15 +5,13 @@
 
 <template>
   <div class="my-sidebar">
+    <StandardLeftHeader
+      title="MY"
+      subtitle="내 정보 및 기기 관리"
+      icon="account_circle"
+    />
+
     <q-list>
-      <!-- 헤더 -->
-      <div class="sidebar-header q-pa-md">
-        <div class="text-h4 text-primary q-mb-xs text-bold">MY</div>
-        <div class="text-caption text-grey-7">내 정보 및 기기 관리</div>
-      </div>
-
-      <q-separator />
-
       <!-- 메뉴 -->
       <div class="q-pa-sm">
         <q-btn flat dense @click="selectTab('profile')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'profile' }]">
@@ -74,6 +72,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 
 const activeTab = ref('profile')
 

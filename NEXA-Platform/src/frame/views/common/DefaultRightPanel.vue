@@ -6,7 +6,7 @@
 <template>
   <div class="default-right-panel">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
-    <RightSidebarHeader title="Tools Panel" subtitle="Default Tools Panel" push-icon="menu_open" />
+    <StandardRightHeader title="Tools Panel" subtitle="Default Tools Panel" push-icon="menu_open" />
     <!-- 넥사 시간블럭 (푸시/오버레이 버튼과 동일한 구조) -->
     <div class="q-pa-sm">
       <div class="time-block-container full-width">
@@ -27,7 +27,7 @@
 
 <script setup>
 import { QScrollArea } from 'quasar'
-import RightSidebarHeader from '@frame/layout/components/sidebars/right/RightSidebarHeader.vue'
+import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 import NexaBlock from '@engines/block/NexaBlock.vue'
 // 기본 우측 패널 - 향후 전역 도구나 설정 등을 추가할 수 있음
 </script>

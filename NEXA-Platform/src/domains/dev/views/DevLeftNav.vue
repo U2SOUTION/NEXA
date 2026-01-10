@@ -6,7 +6,15 @@
 <template>
   <div class="dev-sidebar">
     <!-- 동적 헤더 (메뉴별로 변경) -->
-    <LeftSidebarHeader :main-menu-title="'DEV'" :sub-menu-title="activeMenu ? menuHeaders[activeMenu]?.title : null" :subtitle="currentHeaderSubtitle" :full-url="fullUrl" @header-hover="isLeftHeaderHovered = $event" @main-menu-click="handleMainMenuClick" @sub-menu-click="handleSubMenuClick" />
+    <StandardLeftHeader 
+      title="DEV" 
+      :sub-menu-title="activeMenu ? menuHeaders[activeMenu]?.title : null" 
+      :subtitle="currentHeaderSubtitle" 
+      icon="code"
+      @header-hover="isLeftHeaderHovered = $event" 
+      @title-click="handleMainMenuClick" 
+      @sub-menu-click="handleSubMenuClick" 
+    />
 
     <!-- DevMenuSlider (항상 표시) -->
     <DevMenuSlider :header-hovered="isLeftHeaderHovered" @update:active-menu="handleActiveMenuChange" @open-settings="openSettings" />
@@ -237,7 +245,7 @@
 // DevLeftNav.vue - 개발 도구 좌측 사이드바
 import { ref, toRef, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
-import LeftSidebarHeader from '@frame/layout/components/sidebars/left/LeftSidebarHeader.vue'
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import DevMenuSlider from './dev-tools/DevMenuSlider.vue'
 import DocumentManagerHeader from './dev-tools/document-manager/DocumentManagerHeader.vue'
 import DocumentManagerList from './dev-tools/document-manager/DocumentManagerList.vue'
@@ -331,9 +339,42 @@ function handleMainMenuClick() {
   handleActiveMenuChange(null)
 }
 
-// 서브 메뉴 클릭 핸들러 (URL 복사는 LeftSidebarHeader에서 처리)
-function handleSubMenuClick() {
-  // URL 복사는 LeftSidebarHeader에서 처리되므로 여기서는 추가 작업 없음
+// 서브 메뉴 클릭 핸들러 (URL 복사)
+async function handleSubMenuClick() {
+  try {
+    await navigator.clipboard.writeText(fullUrl.value)
+    $q.notify({
+      type: 'positive',
+      message: 'URL이 클립보드에 복사되었습니다',
+      position: 'top',
+      timeout: 2000,
+    })
+  } catch {
+    // Fallback: 구형 브라우저 지원
+    const textArea = document.createElement('textarea')
+    textArea.value = fullUrl.value
+    textArea.style.position = 'fixed'
+    textArea.style.opacity = '0'
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      $q.notify({
+        type: 'positive',
+        message: 'URL이 클립보드에 복사되었습니다',
+        position: 'top',
+        timeout: 2000,
+      })
+    } catch {
+      $q.notify({
+        type: 'negative',
+        message: '복사 실패',
+        position: 'top',
+        timeout: 2000,
+      })
+    }
+    document.body.removeChild(textArea)
+  }
 }
 
 // 테마 관리 (composable 사용)

@@ -157,7 +157,7 @@ function goToAddDevice() {
 }
 
 function goToBoardAdmin() {
-  router.push('/board-admin')
+  router.push('/nexa-board/admin')
 }
 
 function selectBoard(board) {

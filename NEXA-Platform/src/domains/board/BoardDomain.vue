@@ -1,13 +1,12 @@
 <template>
   <q-page class="board-domain-container">
-    <BoardContent />
+    <router-view />
   </q-page>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
 import { useDomainIntercom } from '@system/composables/useDomainIntercom'
-import BoardContent from './views/content/BoardContent.vue'
 
 const { reportActive } = useDomainIntercom('nexa-board')
 

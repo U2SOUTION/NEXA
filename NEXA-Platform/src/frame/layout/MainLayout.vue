@@ -9,21 +9,12 @@
     <q-header v-if="!isIframeMode" ref="headerRef">
       <q-toolbar class="bg-grey-10" dense>
         <!-- 왼쪽 헤더: 로고 및 메인 메뉴 -->
-        <StandardLeftHeader 
-          :menu-tabs="mainMenuTabs"
-          :current-menu="currentMenu"
-          :show-labels="showLabels"
-          :show-tab-icons="showTabIcons"
-          :is-overflowing="isMainMenuOverflowing"
-          :hidden-tabs="hiddenTabs"
-          :hidden-tab-names="hiddenTabNames"
-          @tab-click="handleTabClick"
-        />
+        <GlobalNavbarLeft :menu-tabs="mainMenuTabs" :current-menu="currentMenu" :show-labels="showLabels" :show-tab-icons="showTabIcons" :is-overflowing="isMainMenuOverflowing" :hidden-tabs="hiddenTabs" :hidden-tab-names="hiddenTabNames" @tab-click="handleTabClick" />
 
         <q-space />
 
         <!-- 오른쪽 헤더: 도메인별 컨텍스트 액션 및 시스템 버튼 -->
-        <StandardRightHeader
+        <GlobalNavbarRight
           :left-sidebar-open="dashboardLayoutStore.mainNavigationOpen"
           :right-sidebar-open="userSettings.settings.drawer.rightOpen"
           :is-dark-mode="userSettings.settings.theme.isDarkMode"
@@ -42,14 +33,18 @@
               </q-btn>
             </template>
           </template>
-        </StandardRightHeader>
+        </GlobalNavbarRight>
       </q-toolbar>
     </q-header>
 
     <!-- 왼쪽 사이드바 -->
     <q-drawer v-if="!isIframeMode" v-model="dashboardLayoutStore.mainNavigationOpen" show-if-above bordered :width="userSettings.settings.drawer.leftWidth" :style="editModeDrawerStyles" class="drawer-border">
       <div class="resize-handle-right" @mousedown="startMainNavigationResize" :class="{ resizing: isMainNavigationResizing }">
-        <div class="resize-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <div class="resize-dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
       </div>
       <component v-if="leftSidebarComponent" :is="leftSidebarComponent" :highlighted-node-id="highlightedNodeId" />
     </q-drawer>
@@ -70,7 +65,11 @@
       :class="['drawer-border', userSettings.settings.drawer.rightMode === 'overlay' ? 'drawer-overlay' : 'drawer-push']"
     >
       <div class="resize-handle" @mousedown="startResize" :class="{ resizing: isResizing }">
-        <div class="resize-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <div class="resize-dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
       </div>
       <component v-if="rightSidebarComponent" :is="rightSidebarComponent" />
     </q-drawer>
@@ -81,7 +80,14 @@
       <span class="toggle-label">LEFT NAV</span>
     </div>
 
-    <div v-if="!isIframeMode" ref="rightToggleButtonRef" class="sidebar-toggle-button sidebar-toggle-button--right" :class="{ 'is-drawer-open': userSettings.settings.drawer.rightOpen, 'is-overlay-mode': userSettings.settings.drawer.rightMode === 'overlay' }" :style="rightButtonStyle" @mousedown="handleRightToggleMouseDown">
+    <div
+      v-if="!isIframeMode"
+      ref="rightToggleButtonRef"
+      class="sidebar-toggle-button sidebar-toggle-button--right"
+      :class="{ 'is-drawer-open': userSettings.settings.drawer.rightOpen, 'is-overlay-mode': userSettings.settings.drawer.rightMode === 'overlay' }"
+      :style="rightButtonStyle"
+      @mousedown="handleRightToggleMouseDown"
+    >
       <q-icon name="double_arrow" :style="{ transform: `rotate(${rightIconRotation})` }" />
       <span class="toggle-label">RIGHT PANEL</span>
     </div>
@@ -118,8 +124,8 @@ import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
 import { useUserSettingsStore } from '@system/store/userSettingsStore'
 
 // Frame Layer Components & Registry
-import StandardLeftHeader from './components/StandardLeftHeader.vue'
-import StandardRightHeader from './components/StandardRightHeader.vue'
+import GlobalNavbarLeft from './components/GlobalNavbarLeft.vue'
+import GlobalNavbarRight from './components/GlobalNavbarRight.vue'
 import { getLeftSidebarComponent, getRightSidebarComponent } from '@frame/registry/domainRegistry'
 
 // Composables & Utils
@@ -189,7 +195,7 @@ const mainMenuTabs = [
   { name: 'help', label: 'HELP', icon: 'help_outline', route: '/help' },
 ]
 
-const hiddenTabNames = computed(() => new Set(hiddenTabs.value.map(t => t.name)))
+const hiddenTabNames = computed(() => new Set(hiddenTabs.value.map((t) => t.name)))
 
 // --- Handlers ---
 const handleTabClick = (tab) => {
@@ -202,10 +208,14 @@ const togglePropertyPanel = () => {
 }
 
 // --- Dynamic Sidebar Watcher ---
-watch(currentMenu, async (newMenu) => {
-  leftSidebarComponent.value = await getLeftSidebarComponent(newMenu)
-  rightSidebarComponent.value = await getRightSidebarComponent(newMenu)
-}, { immediate: true })
+watch(
+  currentMenu,
+  async (newMenu) => {
+    leftSidebarComponent.value = await getLeftSidebarComponent(newMenu)
+    rightSidebarComponent.value = await getRightSidebarComponent(newMenu)
+  },
+  { immediate: true },
+)
 
 // --- Resize Logic (Ported from original) ---
 const isMainNavigationResizing = ref(false)
@@ -288,16 +298,16 @@ const handleMouseMove = (event) => {
 
 const leftButtonStyle = computed(() => ({
   top: `${buttonY.value - BUTTON_HEIGHT / 2}px`,
-  left: dashboardLayoutStore.mainNavigationOpen ? `${userSettings.settings.drawer.leftWidth}px` : '0'
+  left: dashboardLayoutStore.mainNavigationOpen ? `${userSettings.settings.drawer.leftWidth}px` : '0',
 }))
 
 const rightButtonStyle = computed(() => ({
   top: `${buttonY.value - BUTTON_HEIGHT / 2}px`,
-  right: userSettings.settings.drawer.rightOpen ? `${userSettings.settings.drawer.rightWidth}px` : '0'
+  right: userSettings.settings.drawer.rightOpen ? `${userSettings.settings.drawer.rightWidth}px` : '0',
 }))
 
-const leftIconRotation = computed(() => dashboardLayoutStore.mainNavigationOpen ? '0deg' : '180deg')
-const rightIconRotation = computed(() => userSettings.settings.drawer.rightOpen ? '180deg' : '0deg')
+const leftIconRotation = computed(() => (dashboardLayoutStore.mainNavigationOpen ? '0deg' : '180deg'))
+const rightIconRotation = computed(() => (userSettings.settings.drawer.rightOpen ? '180deg' : '0deg'))
 
 // Dragging for toggle buttons
 const leftToggleDragState = { isDragging: false, startX: 0, startWidth: 0 }
@@ -373,35 +383,103 @@ onBeforeUnmount(() => {
 })
 
 const editModeDrawerStyles = computed(() => ({ borderRight: 'none' }))
-const rightDrawerStyles = computed(() => userSettings.settings.drawer.rightMode === 'overlay' ? {
-  overflow: 'visible',
-  boxShadow: '-9px 0 8px var(--nexa-shadow-1)'
-} : {})
+const rightDrawerStyles = computed(() =>
+  userSettings.settings.drawer.rightMode === 'overlay'
+    ? {
+        overflow: 'visible',
+        boxShadow: '-9px 0 8px var(--nexa-shadow-1)',
+      }
+    : {},
+)
 </script>
 
 <style lang="scss">
-@import "@system/css/app.scss";
+@import '@system/css/app.scss';
 /* Styles from original MainLayout.vue */
-.drawer-border { border-color: var(--nexa-border-color); }
-.resize-handle, .resize-handle-right {
-  position: absolute; top: 0; bottom: 0; width: 4px; cursor: ew-resize; z-index: 1001;
-  display: flex; align-items: center; justify-content: center;
-  .resize-dots { display: flex; flex-direction: column; gap: 4px; }
-  .dot { width: 4px; height: 4px; background: var(--nexa-primary); border-radius: 50%; opacity: 0.3; }
-  &:hover .dot { opacity: 0.8; }
+.drawer-border {
+  border-color: var(--nexa-border-color);
 }
-.resize-handle-right { right: 0; }
-.resize-handle { left: 0; }
+.resize-handle,
+.resize-handle-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: ew-resize;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .resize-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .dot {
+    width: 4px;
+    height: 4px;
+    background: var(--nexa-primary);
+    border-radius: 50%;
+    opacity: 0.3;
+  }
+  &:hover .dot {
+    opacity: 0.8;
+  }
+}
+.resize-handle-right {
+  right: 0;
+}
+.resize-handle {
+  left: 0;
+}
 .sidebar-toggle-button {
-  position: fixed; width: 22px; height: 120px; background: var(--nexa-background-darker);
-  border: 1px solid var(--nexa-border-color); display: flex; flex-direction: column;
-  align-items: center; justify-content: center; z-index: 2001; cursor: pointer;
-  .q-icon { font-size: 14px; color: var(--nexa-primary); transition: transform 0.3s; }
-  .toggle-label { writing-mode: vertical-rl; font-size: 10px; color: var(--nexa-text-secondary); margin-top: 4px; }
-  &:hover { background: var(--nexa-surface); .q-icon { color: var(--nexa-accent); } }
+  position: fixed;
+  width: 22px;
+  height: 120px;
+  background: var(--nexa-background-darker);
+  border: 1px solid var(--nexa-border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2001;
+  cursor: pointer;
+  .q-icon {
+    font-size: 14px;
+    color: var(--nexa-primary);
+    transition: transform 0.3s;
+  }
+  .toggle-label {
+    writing-mode: vertical-rl;
+    font-size: 10px;
+    color: var(--nexa-text-secondary);
+    margin-top: 4px;
+  }
+  &:hover {
+    background: var(--nexa-surface);
+    .q-icon {
+      color: var(--nexa-accent);
+    }
+  }
 }
-.sidebar-toggle-button--left { left: 0; border-radius: 0 8px 8px 0; border-left: none; }
-.sidebar-toggle-button--right { right: 0; border-radius: 8px 0 0 8px; border-right: none; }
-.footer-nexa-logo { font-size: 18px; font-weight: 900; letter-spacing: 5px; color: var(--nexa-primary); }
-.footer-system-features { font-size: 8px; line-height: 1; }
+.sidebar-toggle-button--left {
+  left: 0;
+  border-radius: 0 8px 8px 0;
+  border-left: none;
+}
+.sidebar-toggle-button--right {
+  right: 0;
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+}
+.footer-nexa-logo {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  color: var(--nexa-primary);
+}
+.footer-system-features {
+  font-size: 8px;
+  line-height: 1;
+}
 </style>

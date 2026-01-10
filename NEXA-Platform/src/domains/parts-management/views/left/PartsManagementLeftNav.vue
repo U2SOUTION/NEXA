@@ -7,12 +7,11 @@
   <div class="parts-management-sidebar">
     <q-list ref="qListRef">
       <!-- 헤더 -->
-      <div class="sidebar-header q-pa-md">
-        <div class="text-h4 text-primary q-mb-xs text-bold">LOGISTICS MANAGEMENT</div>
-        <div class="text-caption text-grey-7">System for managing logistics and inventory</div>
-      </div>
-
-      <q-separator />
+      <StandardLeftHeader
+        title="LOGISTICS"
+        subtitle="System for managing logistics and inventory"
+        icon="inventory_2"
+      />
 
       <!-- 모드 전환 탭 -->
       <div class="sidebar-tabs-section">
@@ -496,6 +495,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { usePartsManagementStore } from '@system/store/partsManagementStore.js'
 import { usePartsDataStore } from '@system/store/partsDataStore.js'
 import { useClearURLState } from '@system/composables/url-state/index.js'

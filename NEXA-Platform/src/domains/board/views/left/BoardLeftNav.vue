@@ -5,33 +5,28 @@
 
 <template>
   <q-list @click="handleBoardListClick">
-    <div class="drawer-title text-primary" @click="goToHome">
-      U2 SOLUTION
-      <div class="drawer-subtitle text-secondary">NEXA GRID SYSTEM</div>
-      <div class="drawer-subtitle text-secondary">INNOVATION FOR CONNECTED FUTURE</div>
-      <div class="drawer-subtitle text-secondary">SMART IoT PLATFORM</div>
-      <div class="drawer-subtitle text-secondary">YOUR DATA, YOUR INSIGHT</div>
-      <div class="drawer-subtitle text-secondary">CONNECT. VISUALIZE. CONTROL.</div>
-    </div>
+    <StandardLeftHeader title="BOARD" subtitle="NEXA GRID SYSTEM" icon="dashboard" @title-click="goToHome" />
 
-    <q-btn flat dense @click="addDevice" class="btn-nexa-primary q-mb-xs text-bold full-width q-py-xs">
-      <template v-slot:default>
-        <div class="full-width row items-center justify-center">
-          <q-icon name="devices_other" class="q-mr-sm" />
-          <span class="text-uppercase">ADD DEVICE</span>
-        </div>
-      </template>
-    </q-btn>
-    <q-btn flat dense @click="handleBoardModeToggle" class="btn-nexa-secondary q-mb-xs text-bold full-width q-mx-none q-py-xs">
-      <template v-slot:default>
-        <div class="full-width row items-center justify-center">
-          <q-icon :name="currentViewMode === 'boardManagement' ? 'arrow_back' : 'dashboard_customize'" class="q-mr-sm" />
-          <span class="text-uppercase">
-            {{ currentViewMode === 'boardManagement' ? 'EXIT BOARD EDIT' : 'BOARD EDIT' }}
-          </span>
-        </div>
-      </template>
-    </q-btn>
+    <div class="q-pa-sm">
+      <q-btn flat dense @click="addDevice" class="btn-nexa-primary q-mb-xs text-bold full-width q-py-xs">
+        <template v-slot:default>
+          <div class="full-width row items-center justify-center">
+            <q-icon name="devices_other" class="q-mr-sm" />
+            <span class="text-uppercase">ADD DEVICE</span>
+          </div>
+        </template>
+      </q-btn>
+      <q-btn flat dense @click="handleBoardModeToggle" class="btn-nexa-secondary q-mb-xs text-bold full-width q-mx-none q-py-xs">
+        <template v-slot:default>
+          <div class="full-width row items-center justify-center">
+            <q-icon :name="currentViewMode === 'boardManagement' ? 'arrow_back' : 'dashboard_customize'" class="q-mr-sm" />
+            <span class="text-uppercase">
+              {{ currentViewMode === 'boardManagement' ? 'EXIT BOARD EDIT' : 'BOARD EDIT' }}
+            </span>
+          </div>
+        </template>
+      </q-btn>
+    </div>
 
     <div v-if="hasBoards">
       <tree-nav-item v-for="rootNodeInLayout in rootBoardNodes" :key="rootNodeInLayout.id" :node="rootNodeInLayout" :level="0" :highlighted-node-id-from-layout="props.highlightedNodeId" />
@@ -50,6 +45,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
 import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
 import { useBoardEditorStore } from '@system/store/boardEditorStore.js'
@@ -85,7 +81,7 @@ function addDevice() {
   dashboardLayoutStore.setCurrentViewMode('dashboard')
   dashboardLayoutStore.setSelectedNodeIdForEditor(null)
   dashboardLayoutStore.setSelectedNodeForDashboard(null)
-  router.push('/add-device')
+  router.push('/nexa-board/add-device')
 }
 
 function handleBoardModeToggle() {
@@ -94,12 +90,12 @@ function handleBoardModeToggle() {
 
   if (newMode === 'boardManagement') {
     boardEditorStore.clearDrawerSelectionForAdmin()
-    if (router.currentRoute.value.path !== '/board-admin') {
-      router.push('/board-admin')
+    if (router.currentRoute.value.path !== '/nexa-board/admin') {
+      router.push('/nexa-board/admin')
     }
   } else {
-    if (router.currentRoute.value.path === '/board-admin') {
-      router.push('/')
+    if (router.currentRoute.value.path === '/nexa-board/admin') {
+      router.push('/nexa-board')
     }
   }
 }
@@ -108,4 +104,3 @@ function handleBoardListClick() {
   // 현재 특별한 동작 없음
 }
 </script>
-
