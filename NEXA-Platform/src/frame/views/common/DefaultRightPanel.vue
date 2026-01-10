@@ -4,16 +4,16 @@
 -->
 
 <template>
-  <div class="default-right-panel">
+  <div class="default-right-panel column no-wrap">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
-    <StandardRightHeader title="Tools Panel" subtitle="Default Tools Panel" push-icon="menu_open" />
+    <StandardRightHeader title="Tools Panel" subtitle="General System Tools" push-icon="menu_open" />
     <!-- 넥사 시간블럭 (푸시/오버레이 버튼과 동일한 구조) -->
     <div class="q-pa-sm">
       <div class="time-block-container full-width">
         <NexaBlock type="time" variant="sidebar" />
       </div>
     </div>
-    <q-scroll-area class="fit">
+    <q-scroll-area class="col">
       <div class="default-panel-content q-pa-md">
         <div class="text-center text-grey-6">
           <q-icon name="info" size="48px" class="q-mb-md" />
@@ -35,10 +35,6 @@ import NexaBlock from '@engines/block/NexaBlock.vue'
 <style lang="scss" scoped>
 .default-right-panel {
   height: 100%;
-
-  .q-scroll-area {
-    height: calc(100% - 60px - 60px - 60px); // 헤더(60px) + Push/Overlay 버튼 영역(60px) + 시간블럭 영역(60px) 제외
-  }
 
   .default-panel-content {
     width: 100%;

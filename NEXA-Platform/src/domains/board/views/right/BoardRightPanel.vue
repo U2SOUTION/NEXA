@@ -4,10 +4,10 @@
 -->
 
 <template>
-  <div class="nexa-board-tools-panel">
+  <div class="nexa-board-tools-panel column no-wrap">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
     <StandardRightHeader title="Tools Panel" subtitle="Control & Customize Your Dashboard" push-icon="menu_open" />
-    <q-scroll-area class="fit">
+    <q-scroll-area class="col">
       <!-- 아코디언 방식으로 모든 섹션 나열 -->
       <div class="accordion-wrapper">
         <q-expansion-item icon="view_quilt" label="레이아웃" default-opened>
@@ -69,10 +69,5 @@ import NotificationSection from '@domains/panel/components/side-panel/Notificati
     padding-left: 14px;
     padding-right: 14px;
   }
-
-  .q-scroll-area {
-    height: calc(100% - 60px - 60px); // 헤더(60px) + Push/Overlay 버튼 영역(60px) 제외
-  }
 }
 </style>
-

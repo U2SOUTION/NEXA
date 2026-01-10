@@ -4,10 +4,10 @@
 -->
 
 <template>
-  <div class="dev-tools-panel">
+  <div class="dev-tools-panel column no-wrap">
     <!-- 공통 헤더 (헤더 + Push/Overlay 토글) -->
     <StandardRightHeader title="Tools Panel" subtitle="Control & Customize Your Documents" push-icon="menu_open" />
-    <q-scroll-area class="fit">
+    <q-scroll-area class="col">
       <!-- 아코디언 방식으로 모든 섹션 나열 -->
       <!-- 목차 섹션 (문서 관리자 메뉴이고 목차가 있을 때만 표시) -->
       <div v-if="activeMenu === 'document-manager' && hasTOCItems" class="accordion-wrapper">
@@ -669,7 +669,6 @@ defineExpose({
   box-sizing: border-box;
 
   .q-scroll-area {
-    height: calc(100% - 60px - 60px); // 헤더(60px) + Push/Overlay 버튼 영역(60px) 제외
     width: 100%;
     max-width: 100%;
     overflow-x: visible; // 보더가 잘리지 않도록 visible로 변경

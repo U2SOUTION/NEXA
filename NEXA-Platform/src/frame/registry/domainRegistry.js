@@ -142,9 +142,9 @@ export async function getContentComponent(domain) {
  * 오른쪽 패널 컴포넌트 가져오기
  */
 export async function getRightSidebarComponent(domain) {
-  const componentFn = domainConfigs[domain]?.right || (domain === 'default' ? () => import('@frame/views/common/DefaultRightPanel.vue') : null)
+  // 도메인 설정에서 우측 패널 컴포넌트 함수를 가져오거나, 없으면 기본 패널 사용
+  const componentFn = domainConfigs[domain]?.right || (() => import('@frame/views/common/DefaultRightPanel.vue'))
   
-  if (!componentFn) return null
   const module = await componentFn()
   return module.default || module
 }
