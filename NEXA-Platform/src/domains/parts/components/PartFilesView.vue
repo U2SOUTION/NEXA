@@ -175,10 +175,13 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { usePartsDataStore } from '@system/store/partsDataStore.js'
 import { useSkeletonLoader } from '@system/composables/useSkeletonLoader.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const $q = useQuasar()
 const partsDataStore = usePartsDataStore()
 const { showSkeleton, hideSkeleton } = useSkeletonLoader()
+const apiBaseUrl = getApiBaseUrl()
+const apiBaseOrigin = apiBaseUrl.replace(/\/api\/?$/, '')
 
 // 상태
 const loading = ref(false)
@@ -384,9 +387,9 @@ async function deleteFile(item) {
 function downloadFile(item) {
   if (item.file_url) {
     // 절대 URL인 경우 그대로 사용, 상대 경로인 경우 API 서버 URL과 결합
-    const url = item.file_url.startsWith('http') 
-      ? item.file_url 
-      : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}${item.file_url}`
+    const url = item.file_url.startsWith('http')
+      ? item.file_url
+      : `${apiBaseOrigin}${item.file_url}`
     
     window.open(url, '_blank')
   } else {

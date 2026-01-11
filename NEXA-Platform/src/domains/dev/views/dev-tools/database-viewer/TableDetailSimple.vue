@@ -316,6 +316,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const props = defineProps({
   tableName: {
@@ -323,6 +324,8 @@ const props = defineProps({
     default: null,
   },
 })
+
+const apiBaseUrl = getApiBaseUrl()
 
 const isLoading = ref(false)
 const error = ref(null)
@@ -544,7 +547,6 @@ async function loadTableStructure() {
   error.value = null
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
     const [structureResponse, relationshipsResponse] = await Promise.all([fetch(`${apiBaseUrl}/db/tables/${encodeURIComponent(props.tableName)}/structure`), fetch(`${apiBaseUrl}/db/relationships/${encodeURIComponent(props.tableName)}`)])
 
     const structureData = await structureResponse.json()

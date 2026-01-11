@@ -8,6 +8,9 @@ import { ref, computed } from 'vue'
 import { errorAnalysisIndex } from '@system/utils/error-tracking/errorAnalysisIndex.js'
 import { extractDocumentMetadata, parseErrorAnalysisFrontmatter } from '@system/utils/error-tracking/errorAnalysisParser.js'
 import { quietFetch } from '@system/utils/error-tracking/quietFetch.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
+
+const docsBaseUrl = getDocsBaseUrl()
 
 
 /**
@@ -21,7 +24,7 @@ async function searchKnownDocumentPaths(errorId) {
 
   try {
     // 문서 뷰어의 메타데이터 API를 통해 파일 목록 가져오기 (조용한 fetch 사용)
-    const metadataResponse = await quietFetch('http://localhost:3000/api/docs/metadata')
+    const metadataResponse = await quietFetch(`${docsBaseUrl}/metadata`)
     if (!metadataResponse || !metadataResponse.ok) {
       return []
     }
@@ -41,7 +44,7 @@ async function searchKnownDocumentPaths(errorId) {
       if (!filePath) continue
 
       try {
-        const contentResponse = await quietFetch(`http://localhost:3000/api/docs/${encodeURIComponent(filePath)}`)
+        const contentResponse = await quietFetch(`${docsBaseUrl}/${encodeURIComponent(filePath)}`)
         if (!contentResponse || !contentResponse.ok) continue
 
         const content = await contentResponse.text()
@@ -160,7 +163,7 @@ export function useErrorAnalysis() {
 
       for (const entry of indexEntries) {
         try {
-          const response = await quietFetch(`http://localhost:3000/api/docs/${encodeURIComponent(entry.path)}`)
+          const response = await quietFetch(`${docsBaseUrl}/${encodeURIComponent(entry.path)}`)
 
           if (!response || !response.ok) {
             continue

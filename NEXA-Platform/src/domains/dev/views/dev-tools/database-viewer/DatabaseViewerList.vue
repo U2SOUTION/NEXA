@@ -59,6 +59,7 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, onMounted, onUnmounted, watch } from 'vue'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const props = defineProps({
   searchQuery: {
@@ -72,6 +73,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['table-selected', 'refresh'])
+const apiBaseUrl = getApiBaseUrl()
 
 // 상태
 const isLoading = ref(false)
@@ -94,7 +96,6 @@ async function loadTables() {
   error.value = null
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
     const response = await fetch(`${apiBaseUrl}/db/tables`)
     
     const data = await response.json()

@@ -5,6 +5,9 @@
 
 import { parseErrorAnalysisFrontmatter } from './errorAnalysisParser.js'
 import { quietFetch } from './quietFetch.js'
+import { getDocsBaseUrl } from '../apiBaseUrl.js'
+
+const docsBaseUrl = getDocsBaseUrl()
 
 /**
  * 에러 분석 문서 인덱스 관리 클래스
@@ -30,7 +33,7 @@ export class ErrorAnalysisIndex {
       }
 
       // 메타데이터 API로 인덱스 파일 존재 여부 먼저 확인 (400 에러 방지)
-      const metadataResponse = await quietFetch('http://localhost:3000/api/docs/metadata')
+      const metadataResponse = await quietFetch(`${docsBaseUrl}/metadata`)
       if (metadataResponse && metadataResponse.ok) {
         const metadata = await metadataResponse.json()
         const files = metadata.files || []
@@ -44,7 +47,7 @@ export class ErrorAnalysisIndex {
           this.lastError = {
             type: 'index_not_found',
             message: `인덱스 파일을 찾을 수 없습니다: ${this.indexPath}`,
-            url: `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`,
+            url: `${docsBaseUrl}/${encodeURIComponent(this.indexPath)}`,
             status: null,
             statusText: 'Not Found (checked via metadata)',
           }
@@ -53,7 +56,7 @@ export class ErrorAnalysisIndex {
       }
 
       // 인덱스 파일이 존재하는 경우에만 실제 파일 요청
-      const url = `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`
+      const url = `${docsBaseUrl}/${encodeURIComponent(this.indexPath)}`
       const response = await quietFetch(url)
       
       if (!response) {
@@ -218,7 +221,7 @@ export class ErrorAnalysisIndex {
    */
   async saveIndex(index) {
     const content = JSON.stringify(index, null, 2)
-    const url = `http://localhost:3000/api/docs/${encodeURIComponent(this.indexPath)}`
+    const url = `${docsBaseUrl}/${encodeURIComponent(this.indexPath)}`
     const response = await quietFetch(url, {
       method: 'PUT',
       headers: {
@@ -243,7 +246,7 @@ export class ErrorAnalysisIndex {
 
     try {
       // 에러 분석 폴더의 모든 파일 가져오기 (조용한 fetch 사용)
-      const response = await quietFetch(`http://localhost:3000/api/docs/Error/${this.project}`)
+      const response = await quietFetch(`${docsBaseUrl}/Error/${this.project}`)
       if (!response || !response.ok) {
         return index
       }
@@ -256,7 +259,7 @@ export class ErrorAnalysisIndex {
 
         try {
           const contentResponse = await quietFetch(
-            `http://localhost:3000/api/docs/${encodeURIComponent(file.path)}`
+            `${docsBaseUrl}/${encodeURIComponent(file.path)}`
           )
           if (!contentResponse || !contentResponse.ok) {
             continue

@@ -504,10 +504,13 @@ import SpaceManagementModal from '../../components/SpaceManagementModal.vue'
 import DetailedDescriptionViewer from '../../components/DetailedDescriptionViewer.vue'
 import { getFileIcon as getFileIconFromConfig, isIconUrl, getFileColor } from '@system/config/fileTypes.js'
 import { useQuasar } from 'quasar'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const $q = useQuasar()
 const partsStore = usePartsManagementStore()
 const partsDataStore = usePartsDataStore()
+const apiBaseUrl = getApiBaseUrl()
+const apiBaseOrigin = apiBaseUrl.replace(/\/api\/?$/, '')
 
 // 사이드바 모드 상태 (store에서 가져옴)
 const sidebarMode = computed({
@@ -945,10 +948,6 @@ function getFileUrl(filePath) {
     return ''
   }
 
-  // 서버 기본 URL 가져오기 (API_BASE_URL에서 /api 제거)
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
-  const baseUrl = apiBaseUrl.replace(/\/api\/?$/, '') || 'http://localhost:3000'
-
   // 이미 절대 URL인 경우 그대로 반환
   if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
     return filePath
@@ -969,7 +968,7 @@ function getFileUrl(filePath) {
     encodedPath = 'uploads/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
   }
 
-  const finalUrl = `${baseUrl}/${encodedPath}`
+  const finalUrl = `${apiBaseOrigin}/${encodedPath}`
 
   return finalUrl
 }
@@ -985,7 +984,6 @@ async function downloadFile(file) {
   }
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
     const downloadUrl = `${apiBaseUrl}/part-files/${file.id}/download`
 
     // fetch를 사용하여 파일을 blob으로 받아온 후 다운로드

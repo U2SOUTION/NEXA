@@ -5,6 +5,7 @@
  */
 
 import { ref } from 'vue'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 /**
  * 데이터베이스 뷰어 관리 Composable
@@ -14,6 +15,7 @@ export function useDatabaseViewer() {
   // ============================================
   // 상태 관리
   // ============================================
+  const apiBaseUrl = getApiBaseUrl()
   const dbInfo = ref({
     databaseName: null,
     version: null,
@@ -34,8 +36,6 @@ export function useDatabaseViewer() {
    */
   async function refresh() {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
-
       // 데이터베이스 정보 조회
       const infoResponse = await fetch(`${apiBaseUrl}/db/info`)
       const infoData = await infoResponse.json()

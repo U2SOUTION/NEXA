@@ -21,17 +21,19 @@
           <q-icon name="attach_file" />
         </template>
       </q-file>
-      <q-uploader url="http://localhost:3000/upload" label="드래그 앤 드롭 업로드" style="max-width: 300px" />
+      <q-uploader :url="`${apiBaseOrigin}/upload`" label="드래그 앤 드롭 업로드" style="max-width: 300px" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const file = ref(null)
 const files = ref(null)
 const imageFile = ref(null)
+const apiBaseOrigin = getApiBaseUrl().replace(/\/api\/?$/, '')
 </script>
 
 <style lang="scss" scoped>

@@ -124,9 +124,11 @@ ERD 다이어그램 추가 가능한 기능
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import NexaDiagram from '@engines/diagram/NexaDiagram.vue'
 import { updateNodeSizes } from '@engines/diagram/erd/ERDDiagram.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 // 선택된 테이블 상태 (왼쪽 사이드바에서 선택된 테이블)
 const selectedTable = ref(null)
+const apiBaseUrl = getApiBaseUrl()
 
 // NexaDiagram 컴포넌트 참조
 const nexaDiagramRef = ref(null)
@@ -155,9 +157,7 @@ async function loadSchemaData() {
   error.value = null
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
     console.log('[SchemaDiagram] API Base URL:', apiBaseUrl)
-
     // 테이블 목록과 관계 정보를 동시에 가져오기
     console.log('[SchemaDiagram] API 호출 시작...')
     const [tablesResponse, relationshipsResponse] = await Promise.all([fetch(`${apiBaseUrl}/db/tables`), fetch(`${apiBaseUrl}/db/relationships`)])

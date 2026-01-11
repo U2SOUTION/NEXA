@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 export const usePartsDataStore = defineStore('partsData', () => {
   // 상태
@@ -18,7 +19,8 @@ export const usePartsDataStore = defineStore('partsData', () => {
   const multiSelectListThreshold = ref(6) // 리스트 모드로 표시할 최소 개수 (기본값: 6, 최소값: 1)
 
   // API 기본 URL (환경에 따라 변경)
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '')
 
   // 부품 클래스 관련
   async function fetchPartClasses() {
@@ -870,7 +872,6 @@ export const usePartsDataStore = defineStore('partsData', () => {
       console.log('[uploadTempFile] 업로드 성공:', uploadedFile)
 
       // 파일 URL 생성 (서버 URL + temp_file_path)
-      const apiBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '') || 'http://localhost:3000'
       let filePath = uploadedFile.temp_file_path
 
       // 한글 경로 처리를 위해 URL 인코딩
@@ -880,7 +881,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
         filePath = 'uploads/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
       }
 
-      const fileUrl = `${apiBaseUrl}/${filePath}`
+      const fileUrl = `${API_BASE_ORIGIN}/${filePath}`
 
       return {
         ...uploadedFile,
@@ -900,8 +901,6 @@ export const usePartsDataStore = defineStore('partsData', () => {
         tempFilePath,
         originalFilename,
       })
-
-      const apiBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '') || 'http://localhost:3000'
 
       // 임시 파일 경로에서 실제 경로 추출 (URL에서 경로 부분만)
       let relativeTempPath = tempFilePath
@@ -948,7 +947,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
         const pathParts = pathAfterUploads.split('/')
         filePath = 'uploads/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
       }
-      const newFileUrl = `${apiBaseUrl}/${filePath}`
+      const newFileUrl = `${API_BASE_ORIGIN}/${filePath}`
 
       return {
         oldUrl: tempFilePath,
@@ -1039,7 +1038,6 @@ export const usePartsDataStore = defineStore('partsData', () => {
 
               // 파일 URL 생성 (서버 URL + file_path)
               // 한글 경로 처리를 위해 URL 인코딩
-              const apiBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '') || 'http://localhost:3000'
               let filePath = uploadedFile.file_path
 
               // file_path가 uploads/로 시작하는 경우, 이후 경로만 인코딩
@@ -1053,7 +1051,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
                 filePath = 'uploads/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
               }
 
-              const fileUrl = `${apiBaseUrl}/${filePath}`
+              const fileUrl = `${API_BASE_ORIGIN}/${filePath}`
 
               if (progressCallback) progressCallback(100)
               resolve({

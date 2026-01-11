@@ -430,8 +430,10 @@ SQL 문법 하이라이팅
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const $q = useQuasar()
+const apiBaseUrl = getApiBaseUrl()
 
 // 상태
 const query = ref('')
@@ -485,7 +487,6 @@ async function handleExecute() {
   const startTime = performance.now()
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
     const response = await fetch(`${apiBaseUrl}/db/query`, {
       method: 'POST',
       headers: {
@@ -800,7 +801,6 @@ async function executeBackup() {
   isBackingUp.value = true
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
     const response = await fetch(`${apiBaseUrl}/db/backup`, {
       method: 'POST',
       headers: {

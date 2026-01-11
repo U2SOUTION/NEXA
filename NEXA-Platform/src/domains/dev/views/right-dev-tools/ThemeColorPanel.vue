@@ -88,6 +88,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const props = defineProps({
   selectedColor: {
@@ -107,6 +108,7 @@ const props = defineProps({
 const emit = defineEmits(['fileClicked', 'colorEdit', 'colorUpdated'])
 
 const $q = useQuasar()
+const apiBaseUrl = getApiBaseUrl()
 
 // 색상 편집 상태
 const colorPickerValue = ref('#000000')
@@ -198,7 +200,7 @@ async function handleUpdateColor() {
     const themeFile = isDark ? 'system/css/themes/dark.scss' : 'system/css/themes/light.scss'
 
     // SCSS 파일 읽기
-    const readResponse = await fetch(`http://localhost:3000/api/dev/files/${themeFile}/content`)
+    const readResponse = await fetch(`${apiBaseUrl}/dev/files/${themeFile}/content`)
     if (!readResponse.ok) {
       throw new Error('테마 파일을 읽을 수 없습니다.')
     }
@@ -240,7 +242,7 @@ async function handleUpdateColor() {
     scssContent = scssContent.replace(variableRegex, `$1${newColorValue}$3`)
 
     // SCSS 파일 저장
-    const saveResponse = await fetch(`http://localhost:3000/api/dev/files/${themeFile}/content`, {
+    const saveResponse = await fetch(`${apiBaseUrl}/dev/files/${themeFile}/content`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

@@ -114,10 +114,12 @@ import { loadCheckboxStates, loadTOCSettings, moveToTrash, restoreFromTrash, per
 import { useDocumentStats } from '@domains/dev/modules/document-manager/composables/useDocumentStats.js'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
 import { copyTextToClipboard } from '@system/utils/clipboard.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const $q = useQuasar()
 const documentStore = useDocumentManagerStore()
 const userSettings = useUserSettingsStore()
+const docsBaseUrl = getDocsBaseUrl()
 
 // 편집 모드 상태
 const isEditMode = ref(false)
@@ -705,7 +707,7 @@ async function handleUpdateModifiedDate() {
 
   try {
     const encodedFileName = encodeURIComponent(fullRelativePath)
-    const response = await fetch(`http://localhost:3000/api/docs/${encodedFileName}/touch`, {
+    const response = await fetch(`${docsBaseUrl}/${encodedFileName}/touch`, {
       method: 'POST',
     })
 

@@ -12,20 +12,10 @@ const __dirname = path.dirname(__filename)
 export default defineConfig((/* ctx */) => {
   return {
     // app boot file (/src/system/boot)
-    boot: [
-      '../system/boot/pinia',
-      '../system/boot/errorTracking',
-      '../system/boot/notify'
-    ],
+    boot: ['../system/boot/pinia', '../system/boot/errorTracking', '../system/boot/notify'],
 
     // 전역 스타일 설정
-    css: [
-      '../system/css/themes/light.scss',
-      '../system/css/themes/dark.scss',
-      '../system/css/nexa-system/nexa-system.scss',
-      '../system/css/app.scss',
-      '~vue3-grid-layout-next/dist/style.css'
-    ],
+    css: ['../system/css/themes/light.scss', '../system/css/themes/dark.scss', '../system/css/nexa-system/nexa-system.scss', '../system/css/app.scss', '~vue3-grid-layout-next/dist/style.css'],
 
     extras: ['roboto-font', 'material-icons'],
 
@@ -109,6 +99,7 @@ export default defineConfig((/* ctx */) => {
     },
 
     devServer: {
+      host: '0.0.0.0', // LAN 접속 허용
       open: true,
       port: 9000,
       hmr: {

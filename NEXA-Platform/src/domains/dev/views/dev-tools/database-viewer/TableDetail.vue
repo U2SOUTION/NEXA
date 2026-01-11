@@ -140,6 +140,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const props = defineProps({
   tableName: {
@@ -147,6 +148,8 @@ const props = defineProps({
     default: null,
   },
 })
+
+const apiBaseUrl = getApiBaseUrl()
 
 // 상태
 const isLoading = ref(false)
@@ -262,7 +265,6 @@ async function loadTableStructure() {
   error.value = null
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
     const response = await fetch(`${apiBaseUrl}/db/tables/${encodeURIComponent(props.tableName)}/structure`)
 
     const data = await response.json()

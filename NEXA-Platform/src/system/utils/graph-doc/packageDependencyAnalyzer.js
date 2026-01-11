@@ -1,3 +1,6 @@
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+
+const apiBaseUrl = getApiBaseUrl()
 /**
  * PackageDependencyAnalyzer.js
  * 패키지 의존성 그래프 분석기
@@ -30,7 +33,7 @@ async function readPackageJson(projectRoot = '') {
     // 방법 2: 서버 API를 통해 읽기 (서버가 있다면)
     // 서버 API가 우선적으로 시도됨 (가장 안정적)
     try {
-      const apiResponse = await fetch('http://localhost:3000/api/package-json')
+      const apiResponse = await fetch(`${apiBaseUrl}/package-json`)
       if (apiResponse.ok) {
         const packageJson = await apiResponse.json()
         console.log('[PackageDependencyAnalyzer] 서버 API를 통해 package.json 읽기 성공')

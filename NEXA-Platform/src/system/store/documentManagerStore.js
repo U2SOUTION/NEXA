@@ -5,6 +5,7 @@ import { parseMarkdown, escapeHtml } from '@system/utils/markdown/index.js'
 import { saveCheckboxStates, loadCheckboxStates, loadTOCExpandedState, loadSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage.js'
 import { useTOC } from '@domains/dev/modules/document-manager/composables/useTOC.js'
 import { removeExtension } from '@system/config/documentConfig.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 /**
  * 문서 관리 Store
@@ -12,6 +13,7 @@ import { removeExtension } from '@system/config/documentConfig.js'
  */
 export const useDocumentManagerStore = defineStore('documentManager', () => {
   const $q = useQuasar()
+  const docsBaseUrl = getDocsBaseUrl()
 
   // 상태
   const markdownFiles = ref([])
@@ -71,7 +73,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
   async function syncExtensionsToBackend() {
     try {
       const extensions = loadSupportedExtensions()
-      const response = await fetch('http://localhost:3000/api/docs/config/extensions', {
+      const response = await fetch(`${docsBaseUrl}/config/extensions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +125,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       let metadataMap = new Map()
       let currentFileRelativePaths = []
       try {
-        const metadataResponse = await fetch('http://localhost:3000/api/docs/metadata')
+        const metadataResponse = await fetch(`${docsBaseUrl}/metadata`)
         if (metadataResponse.ok) {
           const metadataData = await metadataResponse.json()
           if (metadataData.success && metadataData.files) {
@@ -183,7 +185,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         for (const filePath of filesToTouch) {
           try {
             const encodedFilePath = encodeURIComponent(filePath)
-            const response = await fetch(`http://localhost:3000/api/docs/${encodedFilePath}/touch`, {
+            const response = await fetch(`${docsBaseUrl}/${encodedFilePath}/touch`, {
               method: 'POST',
             })
             if (response.ok) {
@@ -200,7 +202,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         // mtime 업데이트 후 메타데이터 재로드
         console.log('[Store] mtime 업데이트 후 메타데이터 재로드 중...')
         try {
-          const metadataResponse = await fetch('http://localhost:3000/api/docs/metadata')
+          const metadataResponse = await fetch(`${docsBaseUrl}/metadata`)
           if (metadataResponse.ok) {
             const metadataData = await metadataResponse.json()
             if (metadataData.success && metadataData.files) {
@@ -277,7 +279,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         const loadContent = async () => {
           try {
             const encodedPath = encodeURIComponent(relativePath)
-            const url = `http://localhost:3000/api/docs/${encodedPath}`
+            const url = `${docsBaseUrl}/${encodedPath}`
             console.log(`[Store] 파일 내용 로드 시도: ${relativePath} -> ${url}`)
 
             const response = await fetch(url)

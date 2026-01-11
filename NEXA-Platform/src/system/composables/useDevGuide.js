@@ -12,6 +12,7 @@ import { storeToRefs } from 'pinia'
 import { useDevGuideStore } from '@system/store/devGuideStore'
 import { getComponentCategory } from '@system/utils/path-categorizer/index.js'
 import { getTopLevelOrder } from '@system/config/devGuideConfig'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 /**
  * 개발 가이드 Composable
@@ -20,6 +21,7 @@ import { getTopLevelOrder } from '@system/config/devGuideConfig'
 export function useDevGuide() {
   // Store 인스턴스
   const store = useDevGuideStore()
+  const apiBaseUrl = getApiBaseUrl()
 
   // Store 상태를 반응형으로 가져오기
   const { searchQuery, filterCategory, filterTags, viewMode, activeTab, accordionMode, filterListOnSearch, samples, selectedSample, selectedFolderNode, recentSamples, favoriteSamples, categories, filteredSamples, filteredRecentSamples, filteredFavoriteSamples } = storeToRefs(store)
@@ -182,7 +184,7 @@ export function useDevGuide() {
         let metadata = null
         if (import.meta.env.DEV) {
           try {
-            const response = await fetch(`http://localhost:3000/api/dev/files/${relativePath}/metadata`)
+            const response = await fetch(`${apiBaseUrl}/dev/files/${relativePath}/metadata`)
             if (response.ok) {
               const data = await response.json()
               if (data.success && data.metadata) {

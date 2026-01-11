@@ -327,6 +327,7 @@ import { useDocumentList } from '@domains/dev/modules/document-manager/composabl
 import { useMultiSelection } from '@system/composables/useMultiSelection.js'
 import { useQuasar } from 'quasar'
 import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from '@system/utils/file-sorter/index.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 // Props
 const props = defineProps({
@@ -360,6 +361,7 @@ const $q = useQuasar()
 
 // Store 사용
 const documentStore = useDocumentManagerStore()
+const docsBaseUrl = getDocsBaseUrl()
 
 // Store에서 함수만 가져오기 (상태는 직접 참조하여 반응성 유지)
 // selectedFile은 구조 분해하면 반응성을 잃을 수 있으므로 직접 참조
@@ -843,7 +845,7 @@ async function updateFileModifiedDateOnDrop(sourceFileName) {
     const fullRelativePath = directoryPath ? `${directoryPath}/${actualFileName}` : actualFileName
 
     const encodedFileName = encodeURIComponent(fullRelativePath)
-    const response = await fetch(`http://localhost:3000/api/docs/${encodedFileName}/touch`, {
+    const response = await fetch(`${docsBaseUrl}/${encodedFileName}/touch`, {
       method: 'POST',
     })
 

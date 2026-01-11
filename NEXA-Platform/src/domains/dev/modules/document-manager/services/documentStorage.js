@@ -4,6 +4,9 @@
  */
 import { isRef, nextTick } from 'vue'
 import { loadSupportedExtensions as loadExtensions, saveSupportedExtensions as saveExtensions, removeExtension } from '@system/config/documentConfig.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
+
+const docsBaseUrl = getDocsBaseUrl()
 
 /**
  * 체크박스 상태 불러오기
@@ -325,7 +328,7 @@ export async function renameFile(oldFileName, newFileName, store, sidebarRefs) {
   try {
     // 1. 백엔드 API 호출 (파일명 변경)
     const encodedOldFileName = encodeURIComponent(oldFileName)
-    const response = await fetch(`http://localhost:3000/api/docs/${encodedOldFileName}`, {
+    const response = await fetch(`${docsBaseUrl}/${encodedOldFileName}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -666,7 +669,7 @@ export async function permanentlyDeleteFromTrash(fileName, store) {
     const encodedFileName = encodeURIComponent(filePath)
 
     // API 호출하여 실제 파일 삭제
-    const response = await fetch(`http://localhost:3000/api/docs/${encodedFileName}`, {
+    const response = await fetch(`${docsBaseUrl}/${encodedFileName}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -782,7 +785,7 @@ export async function emptyTrash(store) {
         const encodedFileName = encodeURIComponent(filePath)
 
         // API 호출하여 실제 파일 삭제
-        const response = await fetch(`http://localhost:3000/api/docs/${encodedFileName}`, {
+        const response = await fetch(`${docsBaseUrl}/${encodedFileName}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',

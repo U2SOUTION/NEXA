@@ -43,6 +43,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { indentUnit } from '@codemirror/language'
 import { parseVueFile, combineVueFile } from '@system/utils/vue-file-parser.js'
 import { useUserSettingsStore } from '@system/store/userSettingsStore'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const props = defineProps({
   filePath: {
@@ -59,6 +60,7 @@ const emit = defineEmits(['save', 'reload'])
 
 const $q = useQuasar()
 const userSettings = useUserSettingsStore()
+const apiBaseUrl = getApiBaseUrl()
 
 const activeTab = ref('template')
 const isSaving = ref(false)
@@ -284,7 +286,7 @@ async function handleSave() {
     const combinedContent = combineVueFile(parsedContent.value)
 
     // API로 저장
-    const response = await fetch(`http://localhost:3000/api/dev/files/${props.filePath}/content`, {
+    const response = await fetch(`${apiBaseUrl}/dev/files/${props.filePath}/content`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: combinedContent }),

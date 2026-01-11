@@ -66,7 +66,7 @@
                 <q-select v-model="requestMethod" :options="httpMethods" outlined dense emit-value map-options />
               </div>
               <div class="col-9">
-                <q-input v-model="requestUrl" placeholder="http://localhost:3000/api/..." outlined dense @keyup.enter="sendRequest">
+                <q-input v-model="requestUrl" :placeholder="`${apiBaseUrl}/...`" outlined dense @keyup.enter="sendRequest">
                   <template v-slot:prepend>
                     <q-icon name="link" />
                   </template>
@@ -201,8 +201,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { getApiBaseUrl, getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const $q = useQuasar()
+const apiBaseUrl = getApiBaseUrl()
+const docsBaseUrl = getDocsBaseUrl()
 
 // 상태
 const isLoading = ref(false)
@@ -211,7 +214,7 @@ const showApiList = ref(false)
 
 // 요청 설정
 const requestMethod = ref('GET')
-const requestUrl = ref('http://localhost:3000/api/part-classes')
+const requestUrl = ref(`${apiBaseUrl}/part-classes`)
 const requestHeaders = ref([{ key: 'Content-Type', value: 'application/json' }])
 const bodyType = ref('json')
 const requestBody = ref('')
@@ -269,18 +272,18 @@ const apiListOptions = computed(() => {
 
   // 부품 클래스 API
   apis.push(
-    { label: '부품 클래스 목록 조회', method: 'GET', path: '/api/part-classes', value: { method: 'GET', url: 'http://localhost:3000/api/part-classes' } },
-    { label: '부품 클래스 조회', method: 'GET', path: '/api/part-classes/:id', value: { method: 'GET', url: 'http://localhost:3000/api/part-classes/1' } },
-    { label: '부품 클래스 생성', method: 'POST', path: '/api/part-classes', value: { method: 'POST', url: 'http://localhost:3000/api/part-classes', body: JSON.stringify({ name: '새 부품 클래스', c_code: 'C001', category: '카테고리', sort_order: 1, sub_sort_order: 1 }, null, 2) } },
-    { label: '부품 클래스 수정', method: 'PUT', path: '/api/part-classes/:id', value: { method: 'PUT', url: 'http://localhost:3000/api/part-classes/1', body: JSON.stringify({ name: '수정된 이름' }, null, 2) } },
-    { label: '부품 클래스 삭제', method: 'DELETE', path: '/api/part-classes/:id', value: { method: 'DELETE', url: 'http://localhost:3000/api/part-classes/1' } },
+    { label: '부품 클래스 목록 조회', method: 'GET', path: '/api/part-classes', value: { method: 'GET', url: `${apiBaseUrl}/part-classes` } },
+    { label: '부품 클래스 조회', method: 'GET', path: '/api/part-classes/:id', value: { method: 'GET', url: `${apiBaseUrl}/part-classes/1` } },
+    { label: '부품 클래스 생성', method: 'POST', path: '/api/part-classes', value: { method: 'POST', url: `${apiBaseUrl}/part-classes`, body: JSON.stringify({ name: '새 부품 클래스', c_code: 'C001', category: '카테고리', sort_order: 1, sub_sort_order: 1 }, null, 2) } },
+    { label: '부품 클래스 수정', method: 'PUT', path: '/api/part-classes/:id', value: { method: 'PUT', url: `${apiBaseUrl}/part-classes/1`, body: JSON.stringify({ name: '수정된 이름' }, null, 2) } },
+    { label: '부품 클래스 삭제', method: 'DELETE', path: '/api/part-classes/:id', value: { method: 'DELETE', url: `${apiBaseUrl}/part-classes/1` } },
   )
 
   // 문서 API
   apis.push(
-    { label: '문서 메타데이터 조회', method: 'GET', path: '/api/docs/metadata', value: { method: 'GET', url: 'http://localhost:3000/api/docs/metadata' } },
-    { label: '문서 파일 읽기', method: 'GET', path: '/api/docs/:fileName', value: { method: 'GET', url: 'http://localhost:3000/api/docs/' + encodeURIComponent('Platform/01-기획/문서.md') } },
-    { label: '문서 파일 생성', method: 'POST', path: '/api/docs', value: { method: 'POST', url: 'http://localhost:3000/api/docs', body: JSON.stringify({ fileName: 'Platform/01-기획/새문서.md', content: '# 새 문서\n\n내용...' }, null, 2) } },
+    { label: '문서 메타데이터 조회', method: 'GET', path: '/api/docs/metadata', value: { method: 'GET', url: `${docsBaseUrl}/metadata` } },
+    { label: '문서 파일 읽기', method: 'GET', path: '/api/docs/:fileName', value: { method: 'GET', url: `${docsBaseUrl}/` + encodeURIComponent('Platform/01-기획/문서.md') } },
+    { label: '문서 파일 생성', method: 'POST', path: '/api/docs', value: { method: 'POST', url: `${docsBaseUrl}`, body: JSON.stringify({ fileName: 'Platform/01-기획/새문서.md', content: '# 새 문서\n\n내용...' }, null, 2) } },
   )
 
   return apis

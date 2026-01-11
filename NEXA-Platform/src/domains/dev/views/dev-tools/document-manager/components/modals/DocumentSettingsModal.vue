@@ -201,6 +201,7 @@ import { useQuasar } from 'quasar'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
 import { saveTOCSettings, loadSupportedExtensions, saveSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage.js'
 import BaseModal from '@system/components/ui/BaseModal.vue'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const props = defineProps({
   modelValue: {
@@ -213,6 +214,7 @@ const emit = defineEmits(['update:modelValue', 'save', 'resetUsage', 'resetPrior
 
 const $q = useQuasar()
 const documentStore = useDocumentManagerStore()
+const docsBaseUrl = getDocsBaseUrl()
 
 // 최대 크기 설정 (높이를 더 크게)
 const maxSize = computed(() => ({
@@ -281,7 +283,7 @@ function saveDocumentFolderName() {
 // 백엔드에 폴더명 동기화
 async function syncFolderNameWithBackend() {
   try {
-    const response = await fetch('http://localhost:3000/api/docs/config/folder', {
+    const response = await fetch(`${docsBaseUrl}/config/folder`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -577,7 +579,7 @@ function handleResetPriority() {
 // 백엔드에 확장자 설정 동기화
 async function syncExtensionsWithBackend() {
   try {
-    const response = await fetch('http://localhost:3000/api/docs/config/extensions', {
+    const response = await fetch(`${docsBaseUrl}/config/extensions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

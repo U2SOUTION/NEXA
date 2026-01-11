@@ -57,7 +57,7 @@ NEXA-Platform/src/charts/NexaChart.vue
 </template>
 
 <script setup>
-import NexaChart from "src/charts/NexaChart.vue";
+import NexaChart from "src/engines/charts/NexaChart.vue";
 
 const chartData = [
     { x: "2024-01", y: 100 },

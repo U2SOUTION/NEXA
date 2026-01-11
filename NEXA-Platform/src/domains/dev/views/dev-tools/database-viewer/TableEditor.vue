@@ -221,8 +221,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const $q = useQuasar()
+const apiBaseUrl = getApiBaseUrl()
 
 // 상태
 const isLoadingTableStructure = ref(false)
@@ -420,7 +422,6 @@ async function handleSave() {
 
     isSaving.value = true
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
       const response = await fetch(`${apiBaseUrl}/db/tables`, {
         method: 'POST',
         headers: {
@@ -497,7 +498,6 @@ async function loadTableStructure() {
   error.value = null
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
     const response = await fetch(`${apiBaseUrl}/db/tables/${encodeURIComponent(selectedTable.value)}/structure`)
     const data = await response.json()
 
@@ -580,7 +580,6 @@ async function handleDeleteTable() {
     },
   }).onOk(async () => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
       const response = await fetch(`${apiBaseUrl}/db/query`, {
         method: 'POST',
         headers: {

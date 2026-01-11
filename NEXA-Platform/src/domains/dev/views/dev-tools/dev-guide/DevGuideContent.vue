@@ -252,12 +252,14 @@ import CodeEditor from './CodeEditor.vue'
 // import { generateUsageExample } from '@system/utils/usage-example-generator'
 import { analyzeSampleDependencies } from '@system/utils/dependency-analyzer'
 import { removeTitles, parseComponentForPreview } from '@system/utils/previewParser'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, toggleFavorite } = useDevGuide()
 
 // Store 인스턴스
 const store = useDevGuideStore()
+const apiBaseUrl = getApiBaseUrl()
 
 // CACHE_CONFIG는 일반 객체이므로 직접 접근
 const CACHE_CONFIG = store.CACHE_CONFIG
@@ -1027,7 +1029,7 @@ async function loadFileContent() {
   fileLoadError.value = null
 
   try {
-    const response = await fetch(`http://localhost:3000/api/dev/files/${selectedSample.value.componentPath}/content`)
+    const response = await fetch(`${apiBaseUrl}/dev/files/${selectedSample.value.componentPath}/content`)
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)

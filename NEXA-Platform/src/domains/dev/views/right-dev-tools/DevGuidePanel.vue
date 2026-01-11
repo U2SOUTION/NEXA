@@ -204,9 +204,11 @@ import { useQuasar } from 'quasar'
 import { useDevGuide } from '@system/composables/useDevGuide.js'
 import { copyTextToClipboard } from '@system/utils/clipboard.js'
 import { analyzeSampleDependencies } from '@system/utils/dependency-analyzer.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
 
 const $q = useQuasar()
 const { selectedSample } = useDevGuide()
+const apiBaseUrl = getApiBaseUrl()
 
 const newTag = ref('')
 const isSaving = ref(false)
@@ -315,7 +317,7 @@ async function loadDependencies() {
 
   try {
     const filePath = selectedSample.value.componentPath
-    const response = await fetch(`http://localhost:3000/api/dev/files/${filePath}/content`)
+    const response = await fetch(`${apiBaseUrl}/dev/files/${filePath}/content`)
 
     if (!response.ok) {
       dependencies.value = null
@@ -415,7 +417,7 @@ async function saveMetadataToFile() {
     isSaving.value = true
 
     const filePath = selectedSample.value.componentPath
-    const response = await fetch(`http://localhost:3000/api/dev/files/${filePath}/metadata`, {
+    const response = await fetch(`${apiBaseUrl}/dev/files/${filePath}/metadata`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -482,7 +484,7 @@ async function loadMetadataFromFile() {
 
   try {
     const filePath = selectedSample.value.componentPath
-    const response = await fetch(`http://localhost:3000/api/dev/files/${filePath}/metadata`)
+    const response = await fetch(`${apiBaseUrl}/dev/files/${filePath}/metadata`)
 
     if (!response.ok) {
       // 파일에 메타데이터가 없거나 읽기 실패 시 무시 (기본값 사용)
