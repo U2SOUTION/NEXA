@@ -356,12 +356,12 @@ function getUsageLocations(keyName) {
       })
     } else if (configFileName.includes('viewMode')) {
       locations.push({
-        path: 'src/domains/parts-management/components/PartClassesView.vue',
+        path: 'src/domains/parts/components/PartClassesView.vue',
         type: 'component',
         description: '부품 클래스 뷰에서 사용',
       })
       locations.push({
-        path: 'src/domains/parts-management/components/ViewModeSelector.vue',
+        path: 'src/domains/parts/components/ViewModeSelector.vue',
         type: 'component',
         description: '뷰 모드 선택기에서 사용',
       })

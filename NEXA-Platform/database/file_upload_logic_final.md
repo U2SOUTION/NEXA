@@ -486,17 +486,17 @@ export const CATEGORY_ABBREVIATIONS = {
 
 ### Phase 5: 클라이언트 컴포넌트
 
-9. `src/components/parts-management/PartFilesView.vue` (수정 또는 신규)
+9. `src/domains/parts/components/PartFilesView.vue` (수정 또는 신규)
 
    - 파일 목록 표시
    - 파일 업로드 UI
    - 파일 삭제 기능
 
-10. `src/components/parts-management/FileUploadDialog.vue` (신규)
+10. `src/domains/parts/components/FileUploadDialog.vue` (신규)
 
     - 파일 업로드 모달/다이얼로그
 
-11. `src/components/parts-management/FileList.vue` (신규)
+11. `src/domains/parts/components/FileList.vue` (신규)
     - 파일 목록 컴포넌트 (재사용 가능)
 
 ## 구현 순서 추천

@@ -106,7 +106,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick, watch, toRef, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import TiptapEditor from '@domains/parts-management/components/TiptapEditor.vue'
+import TiptapEditor from '@domains/parts/components/TiptapEditor.vue'
 import { parseMarkdown } from '@system/utils/markdown/index.js'
 import { useMermaid } from '@domains/dev/modules/document-manager/composables/useMermaid.js'
 import { useUserSettingsStore } from '@system/store/userSettingsStore'

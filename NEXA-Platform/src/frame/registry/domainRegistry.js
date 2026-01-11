@@ -80,7 +80,7 @@ const domainConfigs = {
   // ERP - 부품 관리 (ERP 하위 전용 서브도메인)
   'erp-parts-management': {
     left: () => import('@domains/erp/views/left/ErpLeftNav.vue'), // ERP 네비 공유
-    content: () => import('@domains/parts-management/PartsManagementDomain.vue'),
+    content: () => import('@domains/parts/PartsManagementDomain.vue'),
     right: () => import('@domains/erp/views/right/ErpRightPanel.vue'), // ERP 패널 공유
   },
   // 포트폴리오

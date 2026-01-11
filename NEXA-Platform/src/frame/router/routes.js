@@ -41,7 +41,7 @@ const routes = [
       {
         path: 'erp/parts-management',
         name: 'ErpPartsManagement',
-        component: () => import('@domains/parts-management/PartsManagementDomain.vue'),
+        component: () => import('@domains/parts/PartsManagementDomain.vue'),
       },
       {
         path: 'infra',

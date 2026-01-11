@@ -70,7 +70,7 @@ export const componentTaxonomy = {
           description: '설정 및 관리 기능',
           icon: 'settings',
           examples: ['IotSettings.vue', 'ThemeSettings.vue', 'PartClassesView.vue'],
-          typicalLocations: ['components/settings/', 'components/parts-management/'],
+          typicalLocations: ['components/settings/', 'components/parts/'],
         },
         {
           id: 'dev-tools',
@@ -206,7 +206,7 @@ export const componentTaxonomy = {
           description: '특정 페이지/모듈/기능에 종속',
           icon: 'link',
           examples: ['PartClassesView.vue', 'AddDeviceForm.vue', 'IotSettings.vue'],
-          typicalLocations: ['components/parts-management/', 'components/form/', 'components/settings/'],
+          typicalLocations: ['components/parts/', 'components/form/', 'components/settings/'],
         },
         {
           id: 'generic-ui',
@@ -318,7 +318,7 @@ export const componentTaxonomy = {
           description: '특정 모듈 내에서만 사용',
           icon: 'folder',
           examples: ['PartClassesView.vue', 'PartModelsView.vue'],
-          typicalLocations: ['components/parts-management/'],
+          typicalLocations: ['components/parts/'],
         },
         {
           id: 'page',

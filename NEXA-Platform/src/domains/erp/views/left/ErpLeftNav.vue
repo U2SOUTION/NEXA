@@ -115,7 +115,7 @@
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import ErpSettingsModal from '@domains/erp/components/ErpSettingsModal.vue'
 import { useErpStore } from '@domains/erp/store/erpStore'
-import PartsManagementLeftNav from '@domains/parts-management/views/left/PartsManagementLeftNav.vue'
+import PartsManagementLeftNav from '@domains/parts/views/left/PartsManagementLeftNav.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { watch, ref } from 'vue'
 
