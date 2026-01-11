@@ -7,7 +7,18 @@
   <div class="erp-sidebar">
     <q-list>
       <!-- 헤더 -->
-      <StandardLeftHeader title="ERP" subtitle="프로젝트 및 업무 관리" icon="business" />
+      <StandardLeftHeader title="ERP" subtitle="프로젝트 및 업무 관리" icon="business" @title-click="openDashboard">
+        <template #actions>
+          <div class="header-actions row items-center q-gutter-xs">
+            <q-btn flat round dense icon="refresh" class="header-action-btn" @click="handleRefresh">
+              <q-tooltip>데이터 새로고침</q-tooltip>
+            </q-btn>
+            <q-btn flat round dense icon="settings" class="header-action-btn" @click="handleOpenSettings">
+              <q-tooltip>설정</q-tooltip>
+            </q-btn>
+          </div>
+        </template>
+      </StandardLeftHeader>
 
       <!-- 아코디언 네비게이션 -->
       <div class="accordion-wrapper">
@@ -94,23 +105,50 @@
         </q-expansion-item>
       </div>
     </q-list>
+
+    <!-- 설정 모달 -->
+    <ErpSettingsModal v-model="showSettings" :default-landing="erpStore.defaultLanding" :last-sub-menu="erpStore.lastSubMenu" @save="saveLanding" />
   </div>
 </template>
 
 <script setup>
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
+import ErpSettingsModal from '@domains/erp/components/ErpSettingsModal.vue'
 import { useErpStore } from '@domains/erp/store/erpStore'
 import PartsManagementLeftNav from '@domains/parts-management/views/left/PartsManagementLeftNav.vue'
 import { useRoute, useRouter } from 'vue-router'
-import { watch } from 'vue'
+import { watch, ref } from 'vue'
 
 const erpStore = useErpStore()
 const route = useRoute()
 const router = useRouter()
 
+const navigate = (path) => router.push(path)
+const showSettings = ref(false)
+function resolveTarget() {
+  return erpStore.defaultLanding || erpStore.lastSubMenu || 'dashboard'
+}
+
 function syncFromRoute(path) {
+  if (!path.startsWith('/erp')) return
+
+  // 이미 parts-management라면 상태만 맞춰주고 종료
   if (path.startsWith('/erp/parts-management')) {
-    erpStore.setActiveSubMenu('parts')
+    if (erpStore.activeSubMenu !== 'parts') {
+      erpStore.setActiveSubMenu('parts')
+    }
+    return
+  }
+
+  // /erp 진입 시: 우선순위 defaultLanding > lastSubMenu > dashboard
+  const target = resolveTarget()
+  if (target === 'parts') {
+    router.push('/erp/parts-management')
+    return
+  }
+
+  if (erpStore.activeSubMenu !== target) {
+    erpStore.setActiveSubMenu(target)
   }
 }
 
@@ -123,22 +161,6 @@ watch(
   },
 )
 
-// activeSubMenu 변화를 감지해 라우트와 동기화 (새로고침 없이 진입 보장)
-watch(
-  () => erpStore.activeSubMenu,
-  (sub) => {
-    if (sub === 'parts') {
-      if (!route.path.startsWith('/erp/parts-management')) {
-        router.push('/erp/parts-management')
-      }
-    } else {
-      if (route.path.startsWith('/erp/parts-management')) {
-        router.push('/erp')
-      }
-    }
-  },
-)
-
 function onToggle(tab, isOpen) {
   if (!isOpen) return
   erpStore.setActiveSubMenu(tab)
@@ -147,6 +169,31 @@ function onToggle(tab, isOpen) {
   } else {
     router.push('/erp')
   }
+}
+
+function openDashboard() {
+  erpStore.setActiveSubMenu('dashboard')
+  router.push('/erp')
+}
+
+function handleRefresh() {
+  // TODO: 나중에 ERP 데이터 새로고침 로직 연결
+}
+
+function handleOpenSettings() {
+  showSettings.value = true
+}
+
+function saveLanding(val) {
+  const target = val || 'dashboard'
+  erpStore.setDefaultLanding(val || '')
+  erpStore.setActiveSubMenu(target)
+  if (target === 'parts') {
+    router.push('/erp/parts-management')
+  } else {
+    router.push('/erp')
+  }
+  showSettings.value = false
 }
 </script>
 
@@ -177,6 +224,25 @@ function onToggle(tab, isOpen) {
       min-height: 28px;
       color: var(--nexa-text-primary);
     }
+  }
+}
+
+.header-actions {
+  gap: 4px;
+}
+
+.header-action-btn {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  color: var(--nexa-text-primary);
+
+  .q-icon {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: var(--nexa-text-secondary);
   }
 }
 </style>

@@ -1,42 +1,90 @@
 <template>
-  <div class="erp-content q-pa-md">
+  <div class="erp-dashboard q-pa-lg">
     <div class="page-header q-mb-lg">
-      <h1 class="text-h4 text-primary">ERP v2</h1>
-      <p class="text-body1 text-grey-7">전사적 자원 관리 및 비즈니스 프로세스</p>
+      <h1 class="text-h5 text-primary q-mb-xs">ERP Dashboard</h1>
+      <p class="text-body2 text-grey-6">전사적 자원 관리 요약 샘플 페이지</p>
     </div>
 
-    <q-tabs v-model="erpStore.activeSubMenu" align="left" dense class="text-primary">
-      <q-tab name="project" label="프로젝트" icon="folder" />
-      <q-tab name="finance" label="재무" icon="account_balance" />
-      <q-tab name="hr" label="인사" icon="people" />
-    </q-tabs>
+    <div class="row q-col-gutter-md">
+      <div class="col-12 col-md-4">
+        <q-card flat bordered class="card">
+          <q-card-section class="card-header">
+            <div class="row items-center no-wrap">
+              <q-icon name="folder" size="20px" class="q-mr-sm text-primary" />
+              <div class="text-subtitle2">프로젝트</div>
+            </div>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="card-body">
+            <div class="stat-number">12</div>
+            <div class="stat-label">진행 중</div>
+          </q-card-section>
+        </q-card>
+      </div>
 
-    <q-tab-panels v-model="erpStore.activeSubMenu" animated class="bg-transparent">
-      <q-tab-panel name="project">
-        <div class="text-h6">진행 중인 프로젝트</div>
-        <p>프로젝트 관리 및 마일스톤 추적</p>
-      </q-tab-panel>
-      <q-tab-panel name="finance">
-        <div class="text-h6">재무 및 회계</div>
-        <p>매출, 매입 및 예산 관리</p>
-      </q-tab-panel>
-      <q-tab-panel name="hr">
-        <div class="text-h6">인적 자원 관리</div>
-        <p>조직도 및 근태 관리</p>
-      </q-tab-panel>
-    </q-tab-panels>
+      <div class="col-12 col-md-4">
+        <q-card flat bordered class="card">
+          <q-card-section class="card-header">
+            <div class="row items-center no-wrap">
+              <q-icon name="account_balance" size="20px" class="q-mr-sm text-primary" />
+              <div class="text-subtitle2">재무</div>
+            </div>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="card-body">
+            <div class="stat-number">2.4B</div>
+            <div class="stat-label">예산 (KRW)</div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <q-card flat bordered class="card">
+          <q-card-section class="card-header">
+            <div class="row items-center no-wrap">
+              <q-icon name="people" size="20px" class="q-mr-sm text-primary" />
+              <div class="text-subtitle2">인사</div>
+            </div>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="card-body">
+            <div class="stat-number">87</div>
+            <div class="stat-label">전체 인원</div>
+          </q-card-section>
+        </q-card>
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { useErpStore } from '@domains/erp/store/erpStore'
-
-const erpStore = useErpStore()
-</script>
-
 <style lang="scss" scoped>
-.erp-content {
+.erp-dashboard {
   max-width: 1200px;
   margin: 0 auto;
+
+  .card {
+    background: var(--nexa-surface);
+  }
+
+  .card-header {
+    padding: 12px 16px;
+  }
+
+  .card-body {
+    padding: 16px;
+    text-align: center;
+
+    .stat-number {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--nexa-primary);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--nexa-text-secondary);
+    }
+  }
 }
 </style>

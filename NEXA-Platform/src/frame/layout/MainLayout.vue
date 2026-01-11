@@ -195,7 +195,7 @@ const mainMenuTabs = [
   { name: 'nexa-pannel', label: 'NEXA PANNEL', displayLabel: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', exact: false, nexaPrefix: true },
   { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
   { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
-  { name: 'nexa-erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp/parts-management', exact: false, nexaPrefix: true },
+  { name: 'nexa-erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
   { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },
   { name: 'infra', label: 'INFRA', displayLabel: 'INFRA', icon: 'settings', route: '/infra', exact: false, nexaPrefix: false },
   { name: 'network', label: 'NETWORK', displayLabel: 'NETWORK', icon: 'router', route: '/network', exact: false, nexaPrefix: false },
