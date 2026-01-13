@@ -133,7 +133,7 @@ function syncFromRoute(path) {
   if (!path.startsWith('/erp')) return
 
   // 이미 parts-management라면 상태만 맞춰주고 종료
-  if (path.startsWith('/erp/parts-management')) {
+  if (path.startsWith('/erp/parts')) {
     if (erpStore.activeSubMenu !== 'parts') {
       erpStore.setActiveSubMenu('parts')
     }
@@ -143,7 +143,7 @@ function syncFromRoute(path) {
   // /erp 진입 시: 우선순위 defaultLanding > lastSubMenu > dashboard
   const target = resolveTarget()
   if (target === 'parts') {
-    router.push('/erp/parts-management')
+    router.push('/erp/parts')
     return
   }
 
@@ -165,7 +165,7 @@ function onToggle(tab, isOpen) {
   if (!isOpen) return
   erpStore.setActiveSubMenu(tab)
   if (tab === 'parts') {
-    router.push('/erp/parts-management')
+    router.push('/erp/parts')
   } else {
     router.push('/erp')
   }
@@ -189,7 +189,7 @@ function saveLanding(val) {
   erpStore.setDefaultLanding(val || '')
   erpStore.setActiveSubMenu(target)
   if (target === 'parts') {
-    router.push('/erp/parts-management')
+    router.push('/erp/parts')
   } else {
     router.push('/erp')
   }

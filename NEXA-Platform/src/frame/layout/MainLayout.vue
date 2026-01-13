@@ -172,9 +172,10 @@ const currentMenu = computed(() => {
     '/nexa-board': 'nexa-board',
     '/nexa-pannel': 'nexa-pannel',
     '/nexa-node': 'automation',
+    '/nexa-archive': 'nexa-archive',
     '/nexa-trace': 'nexa-trace',
     '/erp': 'nexa-erp',
-    '/erp/parts-management': 'erp-parts-management', // ERP 하위 부품관리 서브도메인으로 분리
+    '/erp/parts': 'erp-parts', // ERP 하위 부품관리 서브도메인
     '/infra': 'infra',
     '/network': 'network',
     '/portfolio': 'portfolio',
@@ -189,12 +190,24 @@ const currentMenu = computed(() => {
   return found ? found[1] : 'home'
 })
 
+// ***************************************************
+// * mainMenuTabs 탭 메뉴 구성 설명
+// ***************************************************
+// name: 도메인 식별자 키 (nexa-archive)로 레지스트리/라우터에서 참조.
+// label: 헤더/탭 등에 풀 라벨로 노출되는 텍스트.
+// displayLabel: 공간 절약용 짧은 표시 텍스트.
+// icon: 탭에 사용할 Quasar/Material 아이콘 이름.
+// route: 탭 클릭 시 이동할 라우트 경로 (/nexa-archive). 중요! 이 경로는 레지스트리/라우터에서 참조되므로 반드시 동일해야 함.
+// exact: 경로 일치 여부 (false이면 /nexa-archive로 시작하기만 해도 활성화됨. 예: /nexa-archive, /nexa-archive/detail/123 모두 매칭됨).
+// nexaPrefix: NEXA 점두어 사용 여부 (true: 사용, false: 사용하지 않음).
+
 const mainMenuTabs = [
   { name: 'home', label: 'HOME', displayLabel: 'HOME', icon: 'home', route: '/', exact: false, nexaPrefix: false },
   { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: false, nexaPrefix: true },
   { name: 'nexa-pannel', label: 'NEXA PANNEL', displayLabel: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', exact: false, nexaPrefix: true },
   { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
   { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
+  { name: 'nexa-archive', label: 'NEXA ARCHIVE', displayLabel: 'ARCHIVE', icon: 'article', route: '/nexa-archive', exact: false, nexaPrefix: true },
   { name: 'nexa-erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
   { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },
   { name: 'infra', label: 'INFRA', displayLabel: 'INFRA', icon: 'settings', route: '/infra', exact: false, nexaPrefix: false },

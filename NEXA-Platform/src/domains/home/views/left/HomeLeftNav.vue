@@ -5,11 +5,7 @@
 
 <template>
   <div class="home-sidebar">
-    <StandardLeftHeader
-      title="HOME"
-      subtitle="NEXA Platform 대시보드"
-      icon="home"
-    />
+    <StandardLeftHeader title="HOME" subtitle="NEXA Platform 대시보드" icon="home" />
 
     <q-list>
       <!-- 빠른 접근 -->
@@ -60,9 +56,7 @@
             </q-item-section>
           </q-item>
           <q-item v-if="recentBoards.length === 0">
-            <q-item-section class="text-grey text-caption text-center q-pa-md">
-              최근 보드가 없습니다.
-            </q-item-section>
+            <q-item-section class="text-grey text-caption text-center q-pa-md"> 최근 보드가 없습니다. </q-item-section>
           </q-item>
         </q-list>
       </div>
@@ -133,7 +127,7 @@ function goToNexaBoard() {
 }
 
 function goToPartsManagement() {
-  router.push('/erp/parts-management')
+  router.push('/erp/parts')
 }
 
 function goToAddDevice() {
@@ -190,4 +184,3 @@ function selectBoard(board) {
   }
 }
 </style>
-

@@ -78,7 +78,8 @@ const domainConfigs = {
     right: () => import('@domains/erp/views/right/ErpRightPanel.vue'),
   },
   // ERP - 부품 관리 (ERP 하위 전용 서브도메인)
-  'erp-parts-management': {
+  //!주의! 이 도메인은 독립된 도메인 이나 ERP 하우에 통합되어 레프트 네비와 우측 패널을 공유합니다.
+  'erp-parts': {
     left: () => import('@domains/erp/views/left/ErpLeftNav.vue'), // ERP 네비 공유
     content: () => import('@domains/parts/PartsManagementDomain.vue'),
     right: () => import('@domains/erp/views/right/ErpRightPanel.vue'), // ERP 패널 공유
@@ -88,6 +89,12 @@ const domainConfigs = {
     left: () => import('@domains/portfolio/views/left/PortfolioLeftNav.vue'),
     content: () => import('@domains/portfolio/PortfolioDomain.vue'),
     right: null,
+  },
+  // 넥사아카이브
+  'nexa-archive': {
+    left: () => import('@domains/archive/views/left/ArchiveLeftNav.vue'),
+    content: () => import('@domains/archive/ArchiveDomain.vue'),
+    right: () => import('@domains/archive/views/right/ArchiveRightPanel.vue'),
   },
   // 넥사트레이스
   'nexa-trace': {
