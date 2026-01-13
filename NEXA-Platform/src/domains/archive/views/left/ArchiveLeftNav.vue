@@ -11,6 +11,8 @@
         </template>
       </StandardLeftHeader>
 
+      <ArchiveSearchBar :on-search="handleSearch" />
+
       <q-item v-for="item in menuItems" :key="item.value" clickable v-ripple :active="activeSection === item.value" @click="navigate(item.value)">
         <q-item-section avatar><q-icon :name="item.icon" /></q-item-section>
         <q-item-section>
@@ -37,6 +39,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import ArchiveSettingsModal from '@domains/archive/components/ArchiveSettingsModal.vue'
+import ArchiveSearchBar from '@domains/archive/components/ArchiveSearchBar.vue'
 import ArchiveIndexNav from './sections/ArchiveIndexNav.vue'
 import ArchiveHubNav from './sections/ArchiveHubNav.vue'
 import ArchiveEditorNav from './sections/ArchiveEditorNav.vue'
@@ -105,6 +108,17 @@ function saveLanding(val) {
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem('archive-default-landing', defaultLanding.value)
   }
+}
+
+function handleSearch() {
+  // TODO: 추후 실제 검색 API 연동
+  return Promise.resolve({
+    index: [],
+    hub: [],
+    editor: [],
+    connector: [],
+    insights: [],
+  })
 }
 </script>
 
