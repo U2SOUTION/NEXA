@@ -1,7 +1,7 @@
 import mysql from 'mysql2/promise'
 
 // 단일 DB 설정을 공유하여 도메인별 서비스에서 재사용
-const dbConfig = {
+export const dbConfig = {
   host: 'localhost',
   user: 'root',
   password: '123412341234',

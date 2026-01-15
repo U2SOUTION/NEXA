@@ -1,3 +1,8 @@
+<!-- NEXA ARCHIVE STUDIO NAV
+ /domains/archive/views/left/sections/ArchiveStudoNav.vue
+ 문서·블록·로직 조립 에디터 네비게이션
+ 각 아이템을 리스트로 표시하고 클릭시 문서·블록·로직 조립 에디터 화면으로 이동
+-->
 <template>
   <div ref="navRef" class="editor-nav">
     <q-item-label class="section-title">EDITOR</q-item-label>
@@ -145,7 +150,7 @@ async function loadDocs() {
 
 function openDoc(id) {
   if (!id) return
-  router.push({ name: 'NexaArchiveEditor', query: { archiveId: id } })
+  router.push({ name: 'NexaArchiveStudio', query: { archiveId: id } })
 }
 
 // 네비게이션 영역 크기 조절 감지

@@ -60,7 +60,7 @@ import ArchiveSettingsModal from '@domains/archive/components/ArchiveSettingsMod
 import ArchiveSearchBar from '@domains/archive/components/ArchiveSearchBar.vue'
 import ArchiveIndexNav from './sections/ArchiveIndexNav.vue'
 import ArchiveHubNav from './sections/ArchiveHubNav.vue'
-import ArchiveEditorNav from './sections/ArchiveEditorNav.vue'
+import ArchiveStudioNav from './sections/ArchiveStudoNav.vue'
 import ArchiveConnectorNav from './sections/ArchiveConnectorNav.vue'
 import ArchiveInsightsNav from './sections/ArchiveInsightsNav.vue'
 
@@ -69,7 +69,7 @@ const route = useRoute()
 
 const menuItems = [
   { label: 'HUB', value: 'hub', icon: 'dashboard', desc: '자산 대시보드' },
-  { label: 'EDITOR', value: 'editor', icon: 'edit_note', desc: '문서·블록 편집' },
+  { label: 'STUDIO', value: 'studio', icon: 'edit_note', desc: '문서·블록 작성' },
   { label: 'CONNECTOR', value: 'connector', icon: 'settings_input_component', desc: '기기·DB 연동' },
   { label: 'INSIGHTS', value: 'insights', icon: 'psychology', desc: '관계·통찰 맵' },
 ]
@@ -130,7 +130,7 @@ const defaultLanding = ref('index')
 
 onMounted(() => {
   const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('archive-default-landing') : null
-  if (stored && ['index', 'hub', 'editor', 'connector', 'insights'].includes(stored)) {
+  if (stored && ['index', 'hub', 'studio', 'connector', 'insights'].includes(stored)) {
     defaultLanding.value = stored
   }
 })
@@ -138,7 +138,7 @@ onMounted(() => {
 const activeSection = computed(() => {
   const name = route.name
   if (name === 'NexaArchiveIndex') return 'index'
-  if (name === 'NexaArchiveEditor') return 'editor'
+  if (name === 'NexaArchiveStudio') return 'studio'
   if (name === 'NexaArchiveConnector') return 'connector'
   if (name === 'NexaArchiveInsights') return 'insights'
   return 'hub' // 기본값
@@ -146,7 +146,7 @@ const activeSection = computed(() => {
 
 const subNavComponent = computed(() => {
   if (activeSection.value === 'hub') return ArchiveHubNav
-  if (activeSection.value === 'editor') return ArchiveEditorNav
+  if (activeSection.value === 'studio') return ArchiveStudioNav
   if (activeSection.value === 'connector') return ArchiveConnectorNav
   if (activeSection.value === 'insights') return ArchiveInsightsNav
   return ArchiveIndexNav
@@ -157,7 +157,7 @@ function navigate(section) {
   const routeMap = {
     index: { name: 'NexaArchiveIndex' },
     hub: { name: 'NexaArchiveHub' },
-    editor: { name: 'NexaArchiveEditor' },
+    studio: { name: 'NexaArchiveStudio' },
     connector: { name: 'NexaArchiveConnector' },
     insights: { name: 'NexaArchiveInsights' },
   }
@@ -184,7 +184,7 @@ function handleSearch() {
   return Promise.resolve({
     index: [],
     hub: [],
-    editor: [],
+    studio: [],
     connector: [],
     insights: [],
   })

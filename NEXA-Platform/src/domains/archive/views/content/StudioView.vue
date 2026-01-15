@@ -1,8 +1,13 @@
+<!-- NEXA ARCHIVE STUDIO VIEW
+ /domains/archive/views/content/StudioView.vue
+Dashboard, Read, Edit, Create 뷰 구현
+-->
+
 <template>
   <div class="archive-view">
     <header class="page-header row items-center justify-between">
       <div>
-        <div class="title">EDITOR</div>
+        <div class="title">STUDIO</div>
         <div class="subtitle">문서·블록·로직 조립 에디터</div>
       </div>
       <div class="row q-gutter-xs">
@@ -11,13 +16,33 @@
       </div>
     </header>
 
-    <section class="content-area" v-if="viewMode === 'dashboard'">
-      <div class="dashboard-top row items-center justify-between">
+    <section class="content-area dashboard-section" v-if="viewMode === 'dashboard'">
+      <div class="row items-center justify-between q-mb-lg">
         <div>
-          <div class="content-title">문서 현황 데시보드 (임시)</div>
-          <div class="content-placeholder">향후 통계/최근 문서/임시 정보를 표시할 영역입니다.</div>
+          <div class="content-title">STUDIO DASHBOARD</div>
+          <div class="content-meta">문서 관리 및 생산성 도구</div>
         </div>
-        <q-btn class="primary-action" unelevated @click="enterCreate">새 글 작성</q-btn>
+        <q-btn class="primary-action" icon="add" label="새 글 작성" @click="enterCreate" />
+      </div>
+
+      <div class="row q-col-gutter-md q-mb-xl">
+        <div v-for="n in 4" :key="n" class="col-12 col-sm-3">
+          <div class="stat-card">
+            <div class="stat-label">상태 {{ n }}</div>
+            <div class="stat-value">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row q-col-gutter-lg">
+        <div class="col-12 col-md-8">
+          <div class="section-label q-mb-md">최근 작업 문서</div>
+          <div class="recent-list-placeholder">데이터를 불러오는 중이거나 최근 작업 내역이 없습니다.</div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="section-label q-mb-md">도구 모음</div>
+          <div class="tool-grid"></div>
+        </div>
       </div>
     </section>
 
@@ -49,12 +74,12 @@
 
     <section class="content-area" v-if="viewMode === 'edit'">
       <div class="content-title">문서 수정</div>
-      <ArchiveEditorForm mode="edit" :initial-data="archiveData" @submitted="handleUpdated" />
+      <ArchiveStudioForm mode="edit" :initial-data="archiveData" @submitted="handleUpdated" />
     </section>
 
     <section class="content-area" v-if="viewMode === 'create'">
       <div class="content-title">새 글 작성</div>
-      <ArchiveEditorForm mode="create" @submitted="handleCreated" />
+      <ArchiveStudioForm mode="create" @submitted="handleCreated" />
     </section>
   </div>
 </template>
@@ -64,7 +89,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { fetchArchiveDetail, updateArchiveWithContent } from '@domains/archive/services/archiveApi.js'
-import ArchiveEditorForm from '@domains/archive/components/ArchiveEditorForm.vue'
+import ArchiveStudioForm from '@domains/archive/components/ArchiveStudioForm.vue'
 
 const route = useRoute()
 const $q = useQuasar()

@@ -32,7 +32,7 @@ export const domainRoutes = [
       const map = {
         index: 'NexaArchiveIndex',
         hub: 'NexaArchiveHub',
-        editor: 'NexaArchiveEditor',
+        studio: 'NexaArchiveStudio',
         connector: 'NexaArchiveConnector',
         insights: 'NexaArchiveInsights',
       }
@@ -60,10 +60,10 @@ export const domainRoutes = [
         meta: { section: 'hub' },
       },
       {
-        path: 'editor',
-        name: 'NexaArchiveEditor',
-        component: () => import('@domains/archive/views/content/EditorView.vue'),
-        meta: { section: 'editor' },
+        path: 'studio',
+        name: 'NexaArchiveStudio',
+        component: () => import('@domains/archive/views/content/StudioView.vue'),
+        meta: { section: 'studio' },
       },
       {
         path: 'connector',

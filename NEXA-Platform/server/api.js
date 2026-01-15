@@ -2,20 +2,20 @@
 // 부품 데이터 관리를 위한 REST API
 
 import express from 'express'
-import mysql from 'mysql2/promise'
 import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs/promises'
-import { getFileMimeType, cleanupOldTempFiles, deleteFile } from './utils/fileUpload.js'
-import documentFilesRouter from './domains/docs/docs.routes.js'
-import createDatabaseSchemaRouter from './domains/db/databaseSchema.routes.js'
-// 개발 전용 파일 편집 API (프로덕션에서는 라우터 내부에서 차단됨)
-import devOnlyFileEditorRouter from './domains/dev/devFileEditor.routes.js'
+import { cleanupOldTempFiles } from './utils/fileUpload.js'
+import { documentFilesRouter, devOnlyFileEditorRouter, createDatabaseSchemaRouter } from './domains/dev/dev.routes.js'
 import archiveRouter from './domains/archive/archive.routes.js'
 import partsRouter from './domains/parts/parts.routes.js'
 import partFilesRouter from './domains/parts/partFiles.routes.js'
+import partModelsRouter from './domains/parts/partModels.routes.js'
+import partSpecsRouter from './domains/parts/partSpecs.routes.js'
 import { UPLOAD_BASE_DIR } from './config/upload.js'
+import { pool, dbConfig } from './config/dbConfig.js'
+import { JSON_BODY_LIMIT, URLENCODED_BODY_LIMIT } from './config/bodyLimits.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -27,9 +27,13 @@ const PORT = process.env.PORT || 3000
 app.use(cors())
 // Base64 인코딩으로 인해 실제 전송 크기가 약 133% 증가하므로 limit을 더 크게 설정
 // 파일 크기 제한: 10MB, Base64 인코딩 후 약 13-14MB 예상
-app.use(express.json({ limit: '15mb' }))
+app.use(express.json({ limit: JSON_BODY_LIMIT }))
 // FormData의 텍스트 필드를 파싱하기 위한 미들웨어 (multer와 함께 사용)
-app.use(express.urlencoded({ extended: true, limit: '15mb' }))
+app.use(express.urlencoded({ extended: true, limit: URLENCODED_BODY_LIMIT }))
+
+// 업로드 파일 정적 서빙 (public/uploads -> /uploads)
+// TODO(security): 프로덕션에서 민감 파일은 public 밖에 두고, 필요 시 인증/서명 URL 프록시로 전환
+app.use('/uploads', express.static(path.join(UPLOAD_BASE_DIR)))
 
 // 한글 인코딩을 위한 응답 헤더 설정
 app.use((req, res, next) => {
@@ -40,83 +44,8 @@ app.use((req, res, next) => {
   next()
 })
 
-// 정적 파일 서빙 (업로드된 파일 접근)
-// 한글 경로 처리를 위한 커스텀 미들웨어
-app.use('/uploads', async (req, res, next) => {
-  try {
-    // 응답이 이미 보내졌는지 확인
-    if (res.headersSent) {
-      return next()
-    }
-
-    // req.url에서 원본 인코딩된 경로 가져오기 (쿼리 스트링 제거)
-    const urlPath = req.url.split('?')[0]
-
-    // URL 디코딩 (한글 경로 처리)
-    let decodedPath
-    try {
-      decodedPath = decodeURIComponent(urlPath)
-    } catch {
-      // 디코딩 실패 시 원본 경로 사용
-      decodedPath = urlPath
-    }
-
-    // uploads/ 접두사 제거
-    const relativePath = decodedPath.replace(/^\/uploads\//, '')
-    const filePath = path.join(UPLOAD_BASE_DIR, relativePath)
-
-    // 파일 존재 확인
-    try {
-      const stats = await fs.stat(filePath)
-      if (stats.isFile()) {
-        // 파일 읽기 및 전송
-        const fileBuffer = await fs.readFile(filePath)
-        const ext = path.extname(filePath).toLowerCase()
-
-        // Content-Type 설정 (MIME 타입 사용)
-        let contentType = 'application/octet-stream'
-        try {
-          // 확장자 기반으로 MIME 타입 결정
-          contentType = getFileMimeType(ext.replace(/^\./, ''))
-        } catch {
-          // 실패 시 기본값 사용
-        }
-
-        // 응답이 이미 보내졌는지 다시 확인
-        if (!res.headersSent) {
-          res.setHeader('Content-Type', contentType)
-          res.setHeader('Content-Length', fileBuffer.length)
-          res.setHeader('Cache-Control', 'public, max-age=31536000')
-          res.send(fileBuffer)
-        }
-        return
-      }
-    } catch (fileError) {
-      if (fileError.code === 'ENOENT') {
-        // 파일을 찾을 수 없으면 Express static으로 폴백
-        // 응답이 이미 보내졌는지 확인
-        if (!res.headersSent) {
-          next()
-        }
-        return
-      }
-      throw fileError
-    }
-
-    // 파일이 아니면 Express static으로 전달
-    if (!res.headersSent) {
-      next()
-    }
-  } catch (error) {
-    console.error('[Static File] 오류:', error)
-    // 응답이 이미 보내졌는지 확인
-    if (!res.headersSent) {
-      next(error) // 에러를 다음 핸들러로 전달
-    }
-  }
-})
-
 // package.json 읽기 API (GraphDoc 패키지 의존성 분석용)
+// TODO(graphdoc): 향후 GraphDoc 패키지 의존성 분석 API 대체 기능 구현
 app.get('/api/package-json', async (req, res) => {
   try {
     // 서버는 server 폴더에 있으므로, 상위 폴더의 package.json 읽기
@@ -133,365 +62,44 @@ app.get('/api/package-json', async (req, res) => {
   }
 })
 
-// Express static 폴백 (한글 경로가 아닌 경우)
-const staticMiddleware = express.static(UPLOAD_BASE_DIR, {
-  dotfiles: 'ignore',
-  etag: true,
-  extensions: false,
-  fallthrough: true,
-  immutable: false,
-  index: false,
-  lastModified: true,
-  maxAge: 0,
-})
-
-app.use('/uploads', (req, res, next) => {
-  // Express static 미들웨어 실행
-  staticMiddleware(req, res, (err) => {
-    // 에러가 발생했거나 파일을 찾지 못한 경우
-    if (err) {
-      console.error('[Static Middleware] 에러:', err)
-      // 응답이 이미 보내졌는지 확인
-      if (!res.headersSent) {
-        return next(err)
-      }
-      return
-    }
-    // 파일을 찾지 못한 경우 (fallthrough: true이므로 next() 호출)
-    if (!res.headersSent) {
-      // 다음 미들웨어로 전달 (404 핸들러가 처리)
-      next()
-    }
-  })
-})
-
-// MySQL 연결 설정
-const dbConfig = {
-  host: 'localhost',
-  user: 'root',
-  password: '123412341234',
-  database: 'nexa_db',
-  charset: 'utf8mb4',
-}
-
-let dbConnection = null
-
-// 데이터베이스 연결
+// 풀 연결 테스트용
 async function connectDB() {
   try {
     console.log('[DB] 데이터베이스 연결 시도 중...')
-    dbConnection = await mysql.createConnection(dbConfig)
-
-    // 연결 후 charset 명시적으로 설정 (한글 지원)
-    await dbConnection.execute('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci')
-
+    const conn = await pool.getConnection()
+    await conn.query('SELECT 1')
+    conn.release()
     console.log('[DB] 데이터베이스 연결 성공:', dbConfig.database)
-
-    // 연결 끊김 감지 및 재연결
-    dbConnection.on('error', (err) => {
-      console.error('[DB] 데이터베이스 연결 에러:', err.message)
-      if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
-        dbConnection = null
-        console.log('[DB] 5초 후 재연결 시도...')
-        setTimeout(() => connectDB(), 5000) // 5초 후 재연결 시도
-      }
-    })
   } catch (error) {
     console.error('[DB] 데이터베이스 연결 실패:', error.message)
     console.log('[DB] 5초 후 재연결 시도...')
-    // process.exit(1) 제거 - 서버가 계속 실행되도록
-    setTimeout(() => connectDB(), 5000) // 5초 후 재시도
+    setTimeout(() => connectDB(), 5000)
   }
 }
 
-// 부품 모델 API
+// =======================================
+// 도메인 별 라우터 등록
+// =======================================
 
-// GET /api/part-models/class/:classId - 특정 클래스의 모델 조회 (더 구체적인 라우트를 먼저)
-app.get('/api/part-models/class/:classId', async (req, res) => {
-  try {
-    const [rows] = await dbConnection.execute(
-      `SELECT pm.*, pc.name as part_class_name, pc.c_code, pc.category
-       FROM part_models pm
-       LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE pm.part_class_id = ?
-       ORDER BY pm.id`,
-      [req.params.classId],
-    )
-    res.json(rows)
-  } catch (error) {
-    console.error('부품 모델 조회 실패:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// GET /api/part-models/:id - 특정 부품 모델 조회
-app.get('/api/part-models/:id', async (req, res) => {
-  try {
-    const [rows] = await dbConnection.execute(
-      `SELECT pm.*, pc.name as part_class_name, pc.c_code, pc.category
-       FROM part_models pm
-       LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE pm.id = ?`,
-      [req.params.id],
-    )
-    if (rows.length === 0) {
-      return res.status(404).json({ error: '부품 모델을 찾을 수 없습니다.' })
-    }
-    res.json(rows[0])
-  } catch (error) {
-    console.error('부품 모델 조회 실패:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// GET /api/part-models - 모든 부품 모델 조회 (클래스 정보 포함) - 가장 마지막에 배치
-app.get('/api/part-models', async (req, res) => {
-  try {
-    const [rows] = await dbConnection.execute(
-      `SELECT pm.*, pc.name as part_class_name, pc.c_code, pc.category
-       FROM part_models pm
-       LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       ORDER BY pm.id`,
-    )
-    res.json(rows)
-  } catch (error) {
-    console.error('부품 모델 조회 실패:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// 부품 스펙 API
-
-// GET /api/part-specs/model/:modelId - 특정 모델의 스펙 조회 (더 구체적인 라우트를 먼저)
-app.get('/api/part-specs/model/:modelId', async (req, res) => {
-  try {
-    const [rows] = await dbConnection.execute(
-      `SELECT ps.*, pm.model_name as part_model_name, pm.part_class_id, pc.name as part_class_name
-       FROM part_specs ps
-       LEFT JOIN part_models pm ON ps.part_model_id = pm.id
-       LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE ps.part_model_id = ?
-       ORDER BY ps.id`,
-      [req.params.modelId],
-    )
-    res.json(rows)
-  } catch (error) {
-    console.error('부품 스펙 조회 실패:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// GET /api/part-specs/:id - 특정 부품 스펙 조회
-app.get('/api/part-specs/:id', async (req, res) => {
-  try {
-    const [rows] = await dbConnection.execute(
-      `SELECT ps.*, pm.model_name as part_model_name, pm.part_class_id, pc.name as part_class_name
-       FROM part_specs ps
-       LEFT JOIN part_models pm ON ps.part_model_id = pm.id
-       LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE ps.id = ?`,
-      [req.params.id],
-    )
-    if (rows.length === 0) {
-      return res.status(404).json({ error: '부품 스펙을 찾을 수 없습니다.' })
-    }
-    res.json(rows[0])
-  } catch (error) {
-    console.error('부품 스펙 조회 실패:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// GET /api/part-specs - 모든 부품 스펙 조회 (모델 정보 포함) - 가장 마지막에 배치
-app.get('/api/part-specs', async (req, res) => {
-  try {
-    const [rows] = await dbConnection.execute(
-      `SELECT ps.*, pm.model_name as part_model_name, pm.part_class_id, pc.name as part_class_name
-       FROM part_specs ps
-       LEFT JOIN part_models pm ON ps.part_model_id = pm.id
-       LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       ORDER BY ps.id`,
-    )
-    res.json(rows)
-  } catch (error) {
-    console.error('부품 스펙 조회 실패:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// POST /api/part-specs - 부품 스펙 생성
-app.post('/api/part-specs', async (req, res) => {
-  try {
-    const { part_model_id, manufacturer_part_number, value_str, tolerance, voltage_rating, package_type, manufacturer, unit, purchase_vendor, purchase_status, main_specs, additional_info2, additional_info3, safety_stock, stock_quantity, stock_value, stock_alert } = req.body
-
-    if (!manufacturer_part_number) {
-      return res.status(400).json({ error: '제조사 품번은 필수입니다.' })
-    }
-
-    if (!part_model_id) {
-      return res.status(400).json({ error: '부품 모델 ID는 필수입니다.' })
-    }
-
-    const [result] = await dbConnection.execute(
-      `INSERT INTO part_specs
-       (part_model_id, manufacturer_part_number, value_str, tolerance, voltage_rating,
-        package_type, manufacturer, unit, purchase_vendor, purchase_status,
-        main_specs, additional_info2, additional_info3,
-        safety_stock, stock_quantity, stock_value, stock_alert)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        part_model_id,
-        manufacturer_part_number,
-        value_str || null,
-        tolerance || null,
-        voltage_rating || null,
-        package_type || null,
-        manufacturer || null,
-        unit || null,
-        purchase_vendor || null,
-        purchase_status || null,
-        main_specs || null,
-        additional_info2 || null,
-        additional_info3 || null,
-        safety_stock || 0,
-        stock_quantity || 0,
-        stock_value || 0,
-        stock_alert || false,
-      ],
-    )
-
-    const [newRow] = await dbConnection.execute(
-      `SELECT ps.*, pm.model_name as part_model_name, pm.part_class_id, pc.name as part_class_name
-       FROM part_specs ps
-       LEFT JOIN part_models pm ON ps.part_model_id = pm.id
-       LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE ps.id = ?`,
-      [result.insertId],
-    )
-
-    res.status(201).json(newRow[0])
-  } catch (error) {
-    console.error('부품 스펙 생성 실패:', error)
-    if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ error: '이미 존재하는 제조사 품번입니다.' })
-    }
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// PUT /api/part-specs/:id - 부품 스펙 수정
-app.put('/api/part-specs/:id', async (req, res) => {
-  try {
-    const { manufacturer_part_number, value_str, tolerance, voltage_rating, package_type, manufacturer, unit, purchase_vendor, purchase_status, main_specs, additional_info2, additional_info3, safety_stock, stock_quantity, stock_value, stock_alert } = req.body
-
-    await dbConnection.execute(
-      `UPDATE part_specs
-       SET manufacturer_part_number = ?, value_str = ?, tolerance = ?, voltage_rating = ?,
-           package_type = ?, manufacturer = ?, unit = ?, purchase_vendor = ?, purchase_status = ?,
-           main_specs = ?, additional_info2 = ?, additional_info3 = ?,
-           safety_stock = ?, stock_quantity = ?, stock_value = ?, stock_alert = ?
-       WHERE id = ?`,
-      [
-        manufacturer_part_number,
-        value_str || null,
-        tolerance || null,
-        voltage_rating || null,
-        package_type || null,
-        manufacturer || null,
-        unit || null,
-        purchase_vendor || null,
-        purchase_status || null,
-        main_specs || null,
-        additional_info2 || null,
-        additional_info3 || null,
-        safety_stock || 0,
-        stock_quantity || 0,
-        stock_value || 0,
-        stock_alert || false,
-        req.params.id,
-      ],
-    )
-
-    const [rows] = await dbConnection.execute(
-      `SELECT ps.*, pm.model_name as part_model_name, pm.part_class_id, pc.name as part_class_name
-       FROM part_specs ps
-       LEFT JOIN part_models pm ON ps.part_model_id = pm.id
-       LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE ps.id = ?`,
-      [req.params.id],
-    )
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: '부품 스펙을 찾을 수 없습니다.' })
-    }
-
-    res.json(rows[0])
-  } catch (error) {
-    console.error('부품 스펙 수정 실패:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// DELETE /api/part-specs/:id - 부품 스펙 삭제
-app.delete('/api/part-specs/:id', async (req, res) => {
-  const isPool = dbConnection && typeof dbConnection.getConnection === 'function'
-  const connection = isPool ? await dbConnection.getConnection() : dbConnection
-  const needsRelease = isPool // pool에서 가져온 connection만 release 필요
-
-  try {
-    await connection.beginTransaction()
-
-    // 삭제 전에 관련 파일 조회
-    const [files] = await connection.execute('SELECT file_path FROM part_files WHERE part_spec_id = ?', [req.params.id])
-
-    // 물리적 파일 삭제
-    for (const file of files) {
-      try {
-        await deleteFile(file.file_path)
-      } catch (error) {
-        console.warn(`[Part Spec Delete] 파일 삭제 실패 (계속 진행): ${file.file_path}`, error.message)
-        // 파일이 이미 없어도 계속 진행
-      }
-    }
-
-    // 데이터베이스 레코드 삭제 (CASCADE로 part_files도 자동 삭제됨)
-    const [result] = await connection.execute('DELETE FROM part_specs WHERE id = ?', [req.params.id])
-
-    if (result.affectedRows === 0) {
-      await connection.rollback()
-      return res.status(404).json({ error: '부품 스펙을 찾을 수 없습니다.' })
-    }
-
-    await connection.commit()
-
-    res.json({
-      message: '삭제되었습니다.',
-      deletedFiles: files.length,
-    })
-  } catch (error) {
-    await connection.rollback()
-    console.error('부품 스펙 삭제 실패:', error)
-    res.status(500).json({ error: error.message })
-  } finally {
-    // pool에서 가져온 connection만 release
-    if (needsRelease && connection && typeof connection.release === 'function') {
-      connection.release()
-    }
-  }
-})
-
-// 문서 파일 관리 API
-app.use('/api/docs', documentFilesRouter)
-
-// 아카이브 API
+// 아카이브 도메인
+// TODO(route-prefix): 향후 /api/archive 로 접두사 통일 검토 (프론트 호출 경로 일괄 수정 필요)
 app.use('/api', archiveRouter)
+// 부품 도메인
+// TODO(route-prefix): 향후 /api/parts 로 접두사 통일 검토 (partFiles/partModels/partSpecs 포함)
 app.use('/api', partFilesRouter)
+// 문서 파일 관리 API
+// TODO(route-prefix): dev 전용으로 /api/dev/docs 등으로 변경 검토
+app.use('/api/docs', documentFilesRouter)
+// 부품 모델 도메인
+// TODO(route-prefix): 향후 /api/parts 로 접두사 통일 검토 (partFiles/partModels/partSpecs 포함)
+app.use('/api', partModelsRouter)
+app.use('/api', partSpecsRouter)
 app.use('/api', partsRouter)
 
 // 데이터베이스 스키마 라우터 등록 (데이터베이스 연결 전에도 등록)
 // 각 엔드포인트에서 연결 상태를 확인하므로 연결 실패해도 404 방지
 // getDbConnection 함수를 전달하여 항상 최신 연결 상태를 참조하도록 함
-const databaseSchemaRouter = createDatabaseSchemaRouter(() => dbConnection)
+const databaseSchemaRouter = createDatabaseSchemaRouter(() => pool)
 app.use('/api/db', databaseSchemaRouter)
 console.log('[DB Schema] 라우터 등록 완료: /api/db')
 
@@ -504,9 +112,9 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // ============================================
-// 관리자 설정 API
+// 관리자 설정 API (이 기능은 사용자 설정으로 대체될 예정)
 // ============================================
-
+// TODO(admin): 사용자 설정 API 대체 기능 구현
 // GET /api/admin/sidebar-settings - 사이드바 관리자 설정 조회
 app.get('/api/admin/sidebar-settings', async (req, res) => {
   try {

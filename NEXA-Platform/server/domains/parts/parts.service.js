@@ -1,4 +1,4 @@
-import { pool } from '../../config/db.js'
+import { pool } from '../../config/dbConfig.js'
 
 export async function listPartClasses({ includeDeleted = false } = {}) {
   const where = includeDeleted ? '1=1' : 'pc.deleted_at IS NULL'
