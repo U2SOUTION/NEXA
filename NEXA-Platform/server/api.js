@@ -14,6 +14,7 @@ import documentFilesRouter from './routes/documentFiles.js'
 import createDatabaseSchemaRouter from './routes/databaseSchema.js'
 // 개발 전용 파일 편집 API (프로덕션에서는 라우터 내부에서 차단됨)
 import devOnlyFileEditorRouter from './routes/devOnlyFileEditor.js'
+import archiveRouter from './routes/archive.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -2116,6 +2117,9 @@ app.delete('/api/part-files/:id', async (req, res) => {
 
 // 문서 파일 관리 API
 app.use('/api/docs', documentFilesRouter)
+
+// 아카이브 API
+app.use('/api', archiveRouter)
 
 // 데이터베이스 스키마 라우터 등록 (데이터베이스 연결 전에도 등록)
 // 각 엔드포인트에서 연결 상태를 확인하므로 연결 실패해도 404 방지
