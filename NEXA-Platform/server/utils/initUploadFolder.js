@@ -5,13 +5,7 @@
 
 import fs from 'fs/promises'
 import path from 'path'
-import { fileURLToPath } from 'url'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-// 업로드 기본 디렉토리 (프로젝트 루트 기준)
-const UPLOAD_BASE_DIR = path.join(__dirname, '../../uploads')
+import { UPLOAD_BASE_DIR } from '../config/upload.js'
 
 /**
  * 업로드 폴더 초기화
@@ -88,4 +82,3 @@ export async function checkUploadFolderStatus() {
     }
   }
 }
-

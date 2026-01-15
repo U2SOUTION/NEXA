@@ -7,21 +7,9 @@
 
 import fs from 'fs/promises'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import { randomUUID } from 'crypto'
-import {
-  getFileType as getFileTypeFromConfig,
-  getMimeType,
-  getMaxFileSize,
-  isPreviewable,
-  getFileCategory,
-} from '../config/fileTypes.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-// 업로드 기본 디렉토리 (프로젝트 루트 기준)
-const UPLOAD_BASE_DIR = path.join(__dirname, '../../uploads')
+import { getFileType as getFileTypeFromConfig, getMimeType, getMaxFileSize, isPreviewable, getFileCategory } from '../config/fileTypes.js'
+import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '../config/upload.js'
 
 /**
  * 파일 타입 분류 (설정 파일 사용)
@@ -166,9 +154,7 @@ export async function ensureFolderExists(folderPath) {
   }
 
   // 상대 경로를 절대 경로로 변환
-  const absolutePath = path.isAbsolute(folderPath)
-    ? folderPath
-    : path.join(UPLOAD_BASE_DIR, folderPath.replace(/^uploads\//, ''))
+  const absolutePath = resolveUploadAbsolutePath(folderPath)
 
   try {
     await fs.mkdir(absolutePath, { recursive: true })
@@ -217,9 +203,7 @@ export async function deleteFile(filePath) {
   }
 
   // 상대 경로를 절대 경로로 변환
-  const absolutePath = path.isAbsolute(filePath)
-    ? filePath
-    : path.join(UPLOAD_BASE_DIR, filePath.replace(/^uploads\//, ''))
+  const absolutePath = resolveUploadAbsolutePath(filePath)
 
   try {
     await fs.unlink(absolutePath)
@@ -299,13 +283,8 @@ export async function moveTempFileToFolder(tempFilePath, targetFolderPath, targe
   }
 
   // 절대 경로 변환
-  const absoluteTempPath = path.isAbsolute(tempFilePath)
-    ? tempFilePath
-    : path.join(UPLOAD_BASE_DIR, tempFilePath.replace(/^uploads\//, ''))
-
-  const absoluteTargetFolder = path.isAbsolute(targetFolderPath)
-    ? targetFolderPath
-    : path.join(UPLOAD_BASE_DIR, targetFolderPath.replace(/^uploads\//, ''))
+  const absoluteTempPath = resolveUploadAbsolutePath(tempFilePath)
+  const absoluteTargetFolder = resolveUploadAbsolutePath(targetFolderPath)
 
   const absoluteTargetPath = path.join(absoluteTargetFolder, targetFilename)
 
@@ -319,10 +298,7 @@ export async function moveTempFileToFolder(tempFilePath, targetFolderPath, targe
     // 상대 경로 반환
     return `${targetFolderPath}${targetFilename}`
   } catch (error) {
-    console.error(
-      `[File Upload] 임시 파일 이동 실패: ${tempFilePath} -> ${absoluteTargetPath}`,
-      error,
-    )
+    console.error(`[File Upload] 임시 파일 이동 실패: ${tempFilePath} -> ${absoluteTargetPath}`, error)
     throw new Error(`임시 파일 이동 실패: ${error.message}`)
   }
 }
@@ -357,9 +333,7 @@ export async function cleanupOldTempFiles(maxAgeHours = 24) {
         if (fileAge > maxAge) {
           await fs.unlink(filePath)
           deletedCount++
-          console.log(
-            `[Temp Cleanup] 오래된 임시 파일 삭제: ${file} (${Math.round(fileAge / 1000 / 60 / 60)}시간 전)`,
-          )
+          console.log(`[Temp Cleanup] 오래된 임시 파일 삭제: ${file} (${Math.round(fileAge / 1000 / 60 / 60)}시간 전)`)
         }
       } catch (error) {
         console.warn(`[Temp Cleanup] 파일 처리 실패: ${file}`, error.message)
