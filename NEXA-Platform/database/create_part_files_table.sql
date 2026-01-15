@@ -5,7 +5,7 @@
 -- 기존 테이블이 있으면 삭제 후 재생성합니다.
 -- 주의: 기존 데이터는 백업 후 실행하세요!
 
-USE nexa_parts_db;
+USE nexa_db;
 
 -- ============================================
 -- 기존 테이블 삭제 (주의: 데이터 손실)
@@ -97,6 +97,6 @@ SELECT
   TABLE_ROWS,
   CREATE_TIME
 FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_SCHEMA = 'nexa_parts_db'
+WHERE TABLE_SCHEMA = 'nexa_db'
   AND TABLE_NAME = 'part_files';
 

@@ -36,7 +36,7 @@ PORT=3000
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=123412341234
-DB_NAME=nexa_parts_db
+DB_NAME=nexa_db
 ```
 
 ## 주의사항

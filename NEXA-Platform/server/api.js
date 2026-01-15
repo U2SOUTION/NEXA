@@ -169,7 +169,7 @@ const dbConfig = {
   host: 'localhost',
   user: 'root',
   password: '123412341234',
-  database: 'nexa_parts_db',
+  database: 'nexa_db',
   charset: 'utf8mb4',
 }
 

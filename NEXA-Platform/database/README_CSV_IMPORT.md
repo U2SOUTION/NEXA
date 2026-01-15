@@ -11,13 +11,13 @@ CSV 파일의 부품 모델 데이터를 데이터베이스에 임포트하는 �
 먼저 데이터베이스 테이블에 CSV 필드를 추가해야 합니다:
 
 ```bash
-mysql -u root -p nexa_parts_db < database/alter_part_models_for_csv.sql
+mysql -u root -p nexa_db < database/alter_part_models_for_csv.sql
 ```
 
 또는 MySQL 클라이언트에서 직접 실행:
 
 ```sql
-USE nexa_parts_db;
+USE nexa_db;
 SOURCE database/alter_part_models_for_csv.sql;
 ```
 

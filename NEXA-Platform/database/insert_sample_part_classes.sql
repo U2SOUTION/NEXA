@@ -2,7 +2,7 @@
 -- 다양한 카테고리와 실제 부품명을 사용하여 테스트 데이터 생성
 -- 기존 데이터와 중복을 피하기 위해 이름에 번호를 추가
 
-USE nexa_parts_db;
+USE nexa_db;
 
 -- 기존 데이터 확인 (선택사항)
 -- SELECT id, name, category FROM part_classes ORDER BY id DESC LIMIT 10;
