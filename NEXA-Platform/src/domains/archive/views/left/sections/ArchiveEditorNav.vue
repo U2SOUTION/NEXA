@@ -1,10 +1,19 @@
 <template>
   <div ref="navRef" class="editor-nav">
-    <q-item-label>EDITOR</q-item-label>
+    <q-item-label class="section-title">EDITOR</q-item-label>
 
     <q-tabs v-model="tab" dense shrink no-caps inline-label :class="['editor-tabs', { 'is-compact': isCompact }]" active-color="primary">
       <q-tab v-for="item in tabs" :key="item.name" :name="item.name" :icon="item.icon" :label="tabLabel(item)" />
     </q-tabs>
+
+    <!-- 최소 필터/정렬 틀 (후속 확장용) -->
+    <div class="toolbar-row">
+      <q-btn flat dense icon="filter_list" size="sm" label="필터" class="toolbar-item" />
+      <q-btn flat dense icon="swap_vert" size="sm" label="정렬" class="toolbar-item" />
+      <q-btn v-for="chip in chips" :key="chip" flat dense size="sm" class="toolbar-item chip-btn">
+        {{ chip }}
+      </q-btn>
+    </div>
 
     <q-tab-panels v-model="tab" animated class="panels">
       <q-tab-panel name="docs">
@@ -51,6 +60,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 const tab = ref('docs')
 const navRef = ref(null)
 const isCompact = ref(false)
+const chips = ['전체', '최근', '즐겨찾기']
 
 const tabs = [
   { name: 'docs', label: 'DOCS', desc: '문서', icon: 'description' },
@@ -115,10 +125,16 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0 5px;
+  padding: 0;
+}
+
+.section-title {
+  font-weight: 700;
+  color: var(--nexa-text-primary);
 }
 
 .editor-tabs {
+  width: 100%;
   :deep(.q-tab__label) {
     font-size: 11px;
     white-space: nowrap;
@@ -141,6 +157,8 @@ onBeforeUnmount(() => {
 }
 
 .panels {
+  padding: 0;
+  margin: 0;
   :deep(.q-tab-panel) {
     padding: 0;
   }
@@ -148,11 +166,27 @@ onBeforeUnmount(() => {
     color: var(--nexa-text-primary);
   }
   :deep(.q-item) {
-    padding-left: 10px !important;
-    padding-right: 0;
+    padding-left: 4px !important;
+    padding-right: 4px;
     margin: 0;
 
     color: var(--nexa-text-secondary);
   }
+}
+
+.toolbar-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  padding: 0 4px;
+}
+
+.toolbar-item {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.chip-btn {
+  justify-content: center;
 }
 </style>

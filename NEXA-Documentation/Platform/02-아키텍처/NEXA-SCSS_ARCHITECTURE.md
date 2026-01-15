@@ -131,7 +131,7 @@ DataTableRenderer.scss
 **디렉토리 구조 예시:**
 
 ```
-src/css/
+src/system/css/
 ├── quasar.variables.scss          (레벨 1: 메인)
 ├── utils/
 │   ├── _mixins.scss               (레벨 2: Partial)

@@ -31,6 +31,24 @@
     <component :is="subNavComponent" />
 
     <ArchiveSettingsModal v-model="showSettings" :default-landing="defaultLanding" @save="saveLanding" />
+
+    <div class="sub-title row items-center q-gutter-xs">
+      <q-icon name="list_alt" size="16px" />
+      <span>구현 예약 메뉴 (Sentinel) </span>
+    </div>
+
+    <q-item v-for="item in sentineItems" :key="item.value" clickable v-ripple :active="activeSection === item.value" @click="navigate(item.value)">
+      <q-item-section avatar>
+        <q-icon :name="item.icon" />
+      </q-item-section>
+
+      <q-item-section>
+        <div class="item-row">
+          <span class="label">{{ item.label }}</span>
+          <span class="desc-ellipsis">{{ item.desc }}</span>
+        </div>
+      </q-item-section>
+    </q-item>
   </div>
 </template>
 
@@ -54,6 +72,57 @@ const menuItems = [
   { label: 'EDITOR', value: 'editor', icon: 'edit_note', desc: '문서·블록 편집' },
   { label: 'CONNECTOR', value: 'connector', icon: 'settings_input_component', desc: '기기·DB 연동' },
   { label: 'INSIGHTS', value: 'insights', icon: 'psychology', desc: '관계·통찰 맵' },
+]
+
+const sentineItems = [
+  {
+    value: 'sentinel-overview',
+    icon: 'shield',
+    label: '지능적 휴지통',
+    desc: '자동 판단 흐름 요약',
+  },
+
+  {
+    value: 'auto-discard',
+    icon: 'psychology',
+    label: '센티넬 판단',
+    desc: '미열람 · 중복 · 구조 실패',
+  },
+
+  {
+    value: 'ai-suggestion',
+    icon: 'smart_toy',
+    label: 'AI 제안',
+    desc: '폐기 권고 · 보류 판단',
+  },
+
+  {
+    value: 'buffered',
+    icon: 'hourglass_empty',
+    label: '유예 상태',
+    desc: '시간 후 재판단',
+  },
+
+  {
+    value: 'manual-delete',
+    icon: 'pan_tool',
+    label: '직접 삭제',
+    desc: '사용자 판단',
+  },
+
+  {
+    value: 'restore',
+    icon: 'restore',
+    label: '복구',
+    desc: '원래 위치로 이동',
+  },
+
+  {
+    value: 'permanent-delete',
+    icon: 'delete_forever',
+    label: '영구 삭제',
+    desc: '되돌릴 수 없음',
+  },
 ]
 
 const showSettings = ref(false)
