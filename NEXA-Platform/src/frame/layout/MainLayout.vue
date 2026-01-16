@@ -437,13 +437,13 @@ const stopResize = () => {
   document.removeEventListener('touchend', stopResize)
 }
 
-// --- Floating Toggle Buttons Logic ---
+// --- 사이드바 버튼 로직 ---
 const buttonY = ref(window.innerHeight / 2)
-const BUTTON_HEIGHT = 120
-const mouseY = ref(0)
-let autoMoveTimer = null
+const BUTTON_HEIGHT = 120 // 사이드바 버튼 높이
+const mouseY = ref(0) // 마우스 Y좌표
+let autoMoveTimer = null // 자동 이동 타이머
 
-// 버튼 위치를 마우스 위치로 업데이트하는 함수
+// 사이드바 버튼 위치를 마우스 위치로 따라 다니는 함수 (handleMouseMove 에서 호출됨)
 const updateButtonPosition = () => {
   const buttonHalfHeight = BUTTON_HEIGHT / 2
   const buttonTop = buttonY.value - buttonHalfHeight // 버튼 상단
@@ -452,26 +452,27 @@ const updateButtonPosition = () => {
 
   // 마우스가 버튼의 상단이나 하단을 벗어났을 때만 버튼 위치 업데이트
   if (currentMouseY < buttonTop || currentMouseY > buttonBottom) {
-    const minY = (headerRef.value?.$el?.offsetHeight || 42) + buttonHalfHeight
-    const maxY = window.innerHeight - buttonHalfHeight
-
     // 마우스 Y좌표를 화면 경계 내로 제한하여 버튼 위치 업데이트
+    // minY/maxY 양쪽에 100px 여백을 추가하여 버튼이 상단/하단 끝까지 가지 못하도록 제한
+    const minY = (headerRef.value?.$el?.offsetHeight || 42) + buttonHalfHeight + 100
+    const maxY = window.innerHeight - buttonHalfHeight - 100
     buttonY.value = Math.max(minY, Math.min(maxY, currentMouseY))
   }
 }
 
+// 마우스 이동 후 autoMoveTimer 밀리 초 뒤에 사이드바 버튼 위치 업데이트 이벤트 처리
 const handleMouseMove = (event) => {
   mouseY.value = event.clientY
   if (autoMoveTimer) clearTimeout(autoMoveTimer)
-  autoMoveTimer = setTimeout(updateButtonPosition, 300)
+  autoMoveTimer = setTimeout(updateButtonPosition, 200)
 }
-
+// 왼쪽 사이드바 버튼 스타일
 const leftButtonStyle = computed(() => ({
   top: `${buttonY.value - BUTTON_HEIGHT / 2}px`,
   left: dashboardLayoutStore.mainNavigationOpen ? `${userSettings.settings.drawer.leftWidth}px` : '0',
   transform: 'translateY(0)',
 }))
-
+// 오른쪽 사이드바 버튼 스타일
 const rightButtonStyle = computed(() => ({
   top: `${buttonY.value - BUTTON_HEIGHT / 2}px`,
   right: userSettings.settings.drawer.rightOpen ? `${userSettings.settings.drawer.rightWidth}px` : '0',
@@ -481,7 +482,7 @@ const rightButtonStyle = computed(() => ({
 const leftIconRotation = computed(() => (dashboardLayoutStore.mainNavigationOpen ? '0deg' : '180deg'))
 const rightIconRotation = computed(() => (userSettings.settings.drawer.rightOpen ? '180deg' : '0deg'))
 
-// Dragging for toggle buttons
+// 왼쪽 사이드바 드래그 시작
 const leftToggleDragState = { isDragging: false, startX: 0, startY: 0, startWidth: 0, hasMoved: false, wasClosed: false }
 function handleLeftToggleMouseDown(event) {
   event.preventDefault()
@@ -503,6 +504,8 @@ function handleLeftToggleMouseDown(event) {
   document.addEventListener('touchmove', handleLeftToggleMouseMove, { passive: true })
   document.addEventListener('touchend', handleLeftToggleMouseUp, { passive: true })
 }
+
+// 왼쪽 사이드바 드래그 이동
 function handleLeftToggleMouseMove(event) {
   const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
   const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY
@@ -556,6 +559,8 @@ function handleLeftToggleMouseMove(event) {
     }
   }
 }
+
+// 왼쪽 사이드바 드래그 종료
 function handleLeftToggleMouseUp() {
   const wasDragging = leftToggleDragState.isDragging
 
@@ -603,6 +608,8 @@ function handleRightToggleMouseDown(event) {
   document.addEventListener('touchmove', handleRightToggleMouseMove, { passive: true })
   document.addEventListener('touchend', handleRightToggleMouseUp, { passive: true })
 }
+
+// 오른쪽 사이드바 드래그 이동
 function handleRightToggleMouseMove(event) {
   const currentX = event.type === 'mousemove' ? event.clientX : event.touches[0].clientX
   const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY
@@ -656,6 +663,8 @@ function handleRightToggleMouseMove(event) {
     }
   }
 }
+
+// 오른쪽 사이드바 드래그 종료
 function handleRightToggleMouseUp() {
   const wasDragging = rightToggleDragState.isDragging
 

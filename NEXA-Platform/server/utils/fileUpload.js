@@ -75,37 +75,37 @@ export function extractExtension(filename) {
 }
 
 /**
- * 폴더 경로 생성
- * 형식: uploads/{대분류약어}-{C코드}/
+ * 폴더 경로 생성 (도메인별 분리 가능)
+ * - 기본: uploads/{대분류약어}-{C코드}/
+ * - 도메인 전달 시: uploads/{domain}/{대분류약어}-{C코드}/
+ *   (예: domain='parts' -> uploads/parts/ACP-R001/)
  * @param {string} categoryAbbr - 대분류 약어 (예: 'ACP', 'PAS')
  * @param {string} cCode - C 코드 (예: 'R001')
- * @returns {string} 상대 경로 (예: 'uploads/ACP-R001/')
+ * @param {string|null} domain - 도메인 식별자(옵션)
+ * @returns {string} 상대 경로
  */
-export function generateFolderPath(categoryAbbr, cCode) {
+export function generateFolderPath(categoryAbbr, cCode, domain = null) {
   if (!categoryAbbr || !cCode) {
     throw new Error('대분류 약어와 C 코드는 필수입니다.')
   }
 
+  const domainPrefix = domain ? `uploads/${domain}/` : 'uploads/'
   const folderName = `${categoryAbbr}-${cCode}`
-  return `uploads/${folderName}/`
+  return `${domainPrefix}${folderName}/`
 }
 
 /**
- * 파일명 생성 (서버에서 자동 생성할 때만 사용)
- * 형식: NEXA-STUDIO-{순차번호}-{타임스탬프}.{확장자}
- *
- * 주의: 이 함수는 original_filename이 없을 때만 사용됩니다.
- * - 에디터 파일 선택/일반 폼 필드: original_filename을 그대로 사용
- * - 클립보드 붙여넣기: original_filename을 그대로 사용 (이미 생성된 파일명: NEXA-STUDIO-{순번}-{타임스탬프}.{확장자})
- *
- * 모든 자동 생성 파일명은 "STUDIO"를 사용하여 일관성 유지
- * 클립보드 이미지와 동일한 형식으로 통일 (타임스탬프 포함)
+ * 자동 파일명 생성 (original_filename이 없을 때만 사용)
+ * - 기본: NEXA-STUDIO-{seq}-{timestamp}.{ext}
+ * - 도메인 전달 시: {DOMAIN}-STUDIO-{seq}-{timestamp}.{ext} (domain은 대문자로 변환)
+ *   예: domain='parts' -> PARTS-STUDIO-1-...jpg
  *
  * @param {number} sequence - 순차 번호
  * @param {string} extension - 확장자
- * @returns {string} 파일명 (예: 'NEXA-STUDIO-1-1763655762762.jpg')
+ * @param {string|null} domain - 도메인 식별자(옵션)
+ * @returns {string} 생성된 파일명
  */
-export function generateFilename(sequence, extension) {
+export function generateFilename(sequence, extension, domain = null) {
   if (sequence === undefined || sequence === null) {
     throw new Error('순차 번호는 필수입니다.')
   }
@@ -115,7 +115,8 @@ export function generateFilename(sequence, extension) {
 
   const ext = extension.toLowerCase().replace(/^\./, '')
   const timestamp = Date.now()
-  return `NEXA-STUDIO-${sequence}-${timestamp}.${ext}`
+  const prefix = domain ? `${String(domain).toUpperCase()}-STUDIO` : 'NEXA-STUDIO'
+  return `${prefix}-${sequence}-${timestamp}.${ext}`
 }
 
 /**

@@ -9,6 +9,8 @@ import { resolveUploadAbsolutePath } from '../../config/upload.js'
 
 const router = express.Router()
 
+const DOMAIN = 'parts'
+
 // multer 설정 (메모리 스토리지 사용)
 const storage = multer.memoryStorage()
 const upload = multer({
@@ -263,14 +265,14 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     while (!insertSuccess && maxRetries > 0) {
       try {
         let filename
-        const folderPath = generateFolderPath(categoryAbbr, cCode)
+        const folderPath = generateFolderPath(categoryAbbr, cCode, DOMAIN)
         const absoluteFolderPath = await ensureFolderExists(folderPath)
 
         let finalOriginalFilename = originalFilename
         if (originalFilename && originalFilename !== 'unknown' && !originalFilename.startsWith('image.')) {
           filename = createSafeFilename(originalFilename, finalSequence)
         } else {
-          filename = generateFilename(finalSequence, extension)
+          filename = generateFilename(finalSequence, extension, DOMAIN)
           finalOriginalFilename = filename
         }
 
@@ -312,7 +314,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         }
 
         if (previousFilename) {
-          const folderPath = generateFolderPath(categoryAbbr, cCode)
+          const folderPath = generateFolderPath(categoryAbbr, cCode, DOMAIN)
           const absoluteFolderPath = await ensureFolderExists(folderPath)
           const previousFilePath = path.join(absoluteFolderPath, previousFilename)
           try {
@@ -444,7 +446,7 @@ router.post('/part-files/move-temp', async (req, res) => {
     const maxSequence = maxSeqRows[0]?.max_seq || 0
     const newSequence = maxSequence + 1
 
-    const folderPath = generateFolderPath(categoryAbbr, cCode)
+    const folderPath = generateFolderPath(categoryAbbr, cCode, DOMAIN)
     const targetFolderPath = folderPath
     const targetName = target_filename || createSafeFilename(original_filename || `file.${extension}`)
     const relativePath = await moveTempFileToFolder(temp_file_path, targetFolderPath, targetName)
