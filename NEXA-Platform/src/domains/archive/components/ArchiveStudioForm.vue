@@ -32,7 +32,7 @@ import { defineAsyncComponent } from 'vue'
 import { useQuasar } from 'quasar'
 import { fetchLayouts, createArchiveWithContent, updateArchiveWithContent } from '@domains/archive/services/archiveApi'
 
-const TiptapEditor = defineAsyncComponent(() => import('@domains/parts/components/TiptapEditor.vue'))
+const TiptapEditor = defineAsyncComponent(() => import('./ArchiveTiptapEditor.vue'))
 const $q = useQuasar()
 
 const props = defineProps({
