@@ -115,7 +115,7 @@ import { getLeftSidebarComponent, getRightSidebarComponent, getHeaderActionsComp
 
 // Composables & Utils
 import WindowPresetEditModal from '@domains/board/components/window/WindowPresetEditModal.vue'
-
+import { useSidebarGesture } from '@system/composables/useSidebarGesture'
 const $q = useQuasar()
 const router = useRouter()
 const route = useRoute()
@@ -712,6 +712,12 @@ function openLeftSidebar() {
   dashboardLayoutStore.toggleMainNavigation()
 }
 
+function closeLeftSidebar() {
+  if (dashboardLayoutStore.mainNavigationOpen) {
+    dashboardLayoutStore.toggleMainNavigation()
+  }
+}
+
 // 헬퍼 함수: 오른쪽 사이드바 열기
 function openRightSidebar() {
   const restoreWidth = calculateRestoreWidth(
@@ -721,6 +727,12 @@ function openRightSidebar() {
   )
   userSettings.settings.drawer.rightWidth = restoreWidth
   togglePropertyPanel()
+}
+
+function closeRightSidebar() {
+  if (userSettings.settings.drawer.rightOpen) {
+    togglePropertyPanel()
+  }
 }
 
 // 헬퍼 함수: 마지막으로 연 사이드바 기록
@@ -814,6 +826,25 @@ function handleMainContentDoubleClick(event) {
     return
   }
 }
+
+// 사이드바 드래그 제어 Edge/Swipe Gesture: Sidebar Control PC & Mobile (문제는 PC에서 잘 작동을 안함 특히 오른쪽 사이드바는 잘 작동하지 않음)---
+// 모바일 오작동 방지 코드
+// body {
+//   overscroll-behavior-x: contain;
+// }
+
+// 사파리 오작동 방지 코드
+// window.addEventListener('touchmove', e => {
+//   if (e.target.closest('.sidebar')) return
+// }, { passive: true })
+
+
+useSidebarGesture({
+  openLeft: openLeftSidebar,
+  closeLeft: closeLeftSidebar,
+  openRight: openRightSidebar,
+  closeRight: closeRightSidebar,
+})
 
 // --- Lifecycle ---
 onMounted(() => {

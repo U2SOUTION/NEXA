@@ -290,10 +290,13 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .development-page {
-  background: var(--nexa-background);
+  //background: var(--nexa-background);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  // sticky 헤더가 제대로 동작하도록 스크롤 컨테이너를 명시
+  // overflow-y: auto;
+  // position: relative;
   // 문서 관리자에서 스크롤은 DocumentManagerContent 내부에서 처리
   // overflow: hidden; // 필요시 활성화
 

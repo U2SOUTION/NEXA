@@ -136,6 +136,115 @@ const isRefreshingFile = ref(false)
 // Mermaid 렌더링 Composable 사용
 const { renderMermaid, reapplyMermaidStyles, cleanup: cleanupMermaid } = useMermaid(markdownContentRef, () => documentStore.selectedFile?.name || null)
 
+// 강제 스티키 헤더 보정용 변수/함수
+let scrollContainerEl = null
+let headerEl = null
+let sectionScrollTimer = null
+let scrollCleanup = null
+
+function isScrollable(el) {
+  if (!el) return false
+  const style = window.getComputedStyle(el)
+  const overflowY = style.overflowY
+  const hasScroll = el.scrollHeight > el.clientHeight + 1
+  return hasScroll && (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay')
+}
+
+function findScrollableParent(startEl) {
+  let node = startEl
+  while (node && node !== document.body && node !== document.documentElement) {
+    if (isScrollable(node)) return node
+    node = node.parentElement
+  }
+  return window
+}
+
+function getCssNumber(el, name, fallback) {
+  if (!el) return fallback
+  const v = window.getComputedStyle(el).getPropertyValue(name)
+  const n = parseFloat(v)
+  return Number.isFinite(n) ? n : fallback
+}
+
+function applyForceSticky() {
+  if (!scrollContainerEl || !headerEl) return
+
+  const headerHeight = headerEl.getBoundingClientRect().height
+  // 전역으로 헤더 높이 변수 설정 (컨텐츠 패딩 보정에 사용)
+  document.documentElement.style.setProperty('--file-header-height', `${headerHeight}px`)
+
+  const offset = getCssNumber(scrollContainerEl, '--dev-sticky-offset', 44)
+  const padding = getCssNumber(scrollContainerEl, '--dev-page-padding', 16)
+
+  // 컨텐츠 컨테이너 폭을 기준으로 중앙 정렬
+  const containerRect =
+    headerEl.closest('.file-content-container')?.getBoundingClientRect() ||
+    (scrollContainerEl === window ? document.documentElement.getBoundingClientRect() : scrollContainerEl.getBoundingClientRect())
+  const scrollLeft = scrollContainerEl === window ? window.scrollX : scrollContainerEl.scrollLeft
+
+  headerEl.classList.add('force-sticky-fixed')
+  headerEl.style.position = 'fixed'
+  headerEl.style.top = `${offset + padding}px`
+  headerEl.style.left = `${containerRect.left + scrollLeft}px`
+  headerEl.style.width = `${containerRect.width}px`
+  headerEl.style.marginLeft = '0'
+  headerEl.style.marginRight = '0'
+}
+
+function handleForceStickyScroll() {
+  if (!scrollContainerEl) return
+  applyForceSticky()
+}
+
+function handleForceStickyResize() {
+  if (!scrollContainerEl || !headerEl) return
+  headerEl.style.position = 'sticky'
+  headerEl.style.left = ''
+  headerEl.style.width = ''
+  applyForceSticky()
+}
+
+function setupStickyHeader() {
+  if (scrollCleanup) {
+    scrollCleanup()
+    scrollCleanup = null
+  }
+
+  nextTick(() => {
+    const headerCandidate = document.querySelector('.file-content-header')
+    if (!headerCandidate) return
+
+    const scrollContainer =
+      findScrollableParent(headerCandidate) ||
+      document.querySelector('.q-page.development-page') ||
+      document.querySelector('.q-page') ||
+      window
+
+    scrollContainerEl = scrollContainer
+    headerEl = headerCandidate
+
+    const rect = headerEl.getBoundingClientRect()
+    document.documentElement.style.setProperty('--file-header-height', `${rect.height}px`)
+    applyForceSticky()
+
+    const handleScroll = () => {
+      handleForceStickyScroll()
+      if (sectionScrollTimer) clearTimeout(sectionScrollTimer)
+      sectionScrollTimer = setTimeout(() => {
+        updateCurrentSection()
+      }, 100)
+    }
+
+    scrollContainer.addEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleForceStickyResize)
+
+    scrollCleanup = () => {
+      scrollContainer.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleForceStickyResize)
+    }
+  })
+}
+
 // 테마 변경 시 Mermaid 스타일 재적용
 watch(
   () => userSettings.settings.theme.isDarkMode,
@@ -161,6 +270,7 @@ watch(
     if (newFile && oldFile !== undefined) {
       nextTick(() => {
         documentStore.generateTOC()
+        setupStickyHeader()
       })
     }
   },
@@ -899,19 +1009,8 @@ onMounted(() => {
   // ESC 키 이벤트 리스너
   window.addEventListener('keydown', handleKeydown)
 
-  // 스크롤 이벤트 리스너
-  nextTick(() => {
-    let scrollTimer = null
-    const scrollContainer = document.querySelector('.q-page.development-page') || document.querySelector('.q-page') || window
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', () => {
-        if (scrollTimer) clearTimeout(scrollTimer)
-        scrollTimer = setTimeout(() => {
-          updateCurrentSection()
-        }, 100)
-      })
-    }
-  })
+  // 스크롤 이벤트/스티키 설정
+  setupStickyHeader()
 })
 
 onUnmounted(() => {
@@ -919,40 +1018,33 @@ onUnmounted(() => {
     cleanupMermaid()
   }
   window.removeEventListener('keydown', handleKeydown)
+  if (scrollContainerEl) {
+    scrollContainerEl.removeEventListener('scroll', handleForceStickyScroll)
+  }
+  window.removeEventListener('resize', handleForceStickyResize)
+  if (scrollCleanup) {
+    scrollCleanup()
+  }
+})
+
+// 편집 모드가 끝나면 헤더가 다시 나타나므로 스티키 재설정
+watch(isEditMode, (val) => {
+  if (!val) {
+    setupStickyHeader()
+  } else if (scrollCleanup) {
+    scrollCleanup()
+  }
 })
 </script>
 
 <style lang="scss" scoped>
-.file-content-container {
-  // 스크롤은 .q-page에서 발생하므로 여기서는 제거
-  // height: 100% 제거 (자동 높이)
-  background: var(--nexa-background);
-  padding: 0 20px 20px 20px;
-  // 일반 모드: flex 제거 (sticky 작동을 위해)
-  // 편집 모드: flex 사용
-  &.edit-mode {
-    padding: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-
-    .edit-mode-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-  }
-}
-
-// .file-content는 일반 블록 요소로 사용 (별도 스타일 불필요)
-
 .file-content-header {
   position: sticky;
-  top: 0;
+  // 필요 시 상위에서 CSS 변수로 오버라이드
   z-index: 10;
   background: var(--nexa-background); //투명도 있으면 스크롤 할때 비춰서 투명도 없도록 할것
   padding: 18px 20px 10px 20px;
-  margin: 0 -20px 16px -20px;
+  //margin: 0 -20px 16px -20px;
   border-bottom: 5px solid var(--nexa-border-color);
   box-shadow: 0 2px 4px var(--nexa-shadow-1, rgba(0, 0, 0, 0.5));
   width: calc(100% + 40px);
@@ -961,13 +1053,13 @@ onUnmounted(() => {
   .file-content-title {
     margin-bottom: 0 !important;
     font-size: 2.5em;
-    line-height: 1.2;
+    line-height: 1;
+    letter-spacing: -0.05em;
     font-weight: 800;
   }
 
   .file-content-filename {
     color: var(--nexa-text-secondary);
-    margin-top: 2px !important;
     line-height: 1.2;
 
     .copy-path-btn {
@@ -1070,6 +1162,18 @@ onUnmounted(() => {
       background-color: color-mix(in srgb, var(--nexa-button-danger-bg) 10%, transparent);
     }
   }
+}
+
+.file-content-header.force-sticky-fixed {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+// 헤더가 sticky일 때 컨텐츠가 가려지지 않도록 상단 여백 확보
+.file-content {
+  // 헤더가 고정될 때 가리지 않도록 충분한 상단 여백 확보
+  margin-top: calc(var(--file-header-height, 96px) + 10px);
+  padding-top: 6px;
 }
 
 .edit-mode-container {

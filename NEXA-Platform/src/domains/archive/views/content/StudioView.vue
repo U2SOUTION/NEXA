@@ -7,12 +7,15 @@ Dashboard, Read, Edit, Create 뷰 구현
   <div class="archive-view">
     <header class="page-header row items-center justify-between">
       <div>
-        <div class="title">STUDIO</div>
+        <div class="title">NEXA STUDIO</div>
         <div class="subtitle">문서·블록·로직 조립 에디터</div>
       </div>
       <div class="row q-gutter-xs">
-        <q-btn v-if="viewMode === 'read'" flat dense icon="edit" class="toolbar-btn" @click="enterEdit" />
-        <q-btn v-if="viewMode === 'edit'" flat dense icon="visibility" class="toolbar-btn" @click="exitEdit" />
+        <q-btn flat dense class="toolbar-btn" icon="note_add" label="새 글 작성" @click="enterCreate" />
+        <q-btn v-if="viewMode === 'read'" flat dense icon="edit" class="toolbar-btn" label="편집" @click="enterEdit" />
+        <q-btn v-if="viewMode === 'edit'" flat dense icon="visibility" class="toolbar-btn" label="보기" @click="exitEdit" />
+        <q-btn flat dense class="toolbar-btn" icon="delete" label="삭제" @click="markDeleted" />
+        <q-btn flat dense class="toolbar-btn" icon="sync_alt" :label="statusToggleLabel" @click="toggleStatus" />
       </div>
     </header>
 
@@ -57,13 +60,6 @@ Dashboard, Read, Edit, Create 뷰 구현
         </div>
       </div>
 
-      <div class="action-row row q-gutter-xs">
-        <q-btn flat dense class="toolbar-btn" icon="note_add" label="새 글 작성" @click="enterCreate" />
-        <q-btn flat dense class="toolbar-btn" icon="edit" label="편집" @click="enterEdit" />
-        <q-btn flat dense class="toolbar-btn" icon="delete" label="삭제" @click="markDeleted" />
-        <q-btn flat dense class="toolbar-btn" icon="sync_alt" :label="statusToggleLabel" @click="toggleStatus" />
-      </div>
-
       <div v-if="loading" class="content-placeholder">불러오는 중...</div>
       <div v-else-if="errorMessage" class="content-error">{{ errorMessage }}</div>
       <div v-else-if="!archiveData" class="content-placeholder">문서를 선택하세요.</div>
@@ -77,8 +73,8 @@ Dashboard, Read, Edit, Create 뷰 구현
       <ArchiveStudioForm mode="edit" :initial-data="archiveData" @submitted="handleUpdated" />
     </section>
 
+    <!-- 새 문서 작성 -->
     <section class="content-area" v-if="viewMode === 'create'">
-      <div class="content-title">새 글 작성</div>
       <ArchiveStudioForm mode="create" @submitted="handleCreated" />
     </section>
   </div>
@@ -244,31 +240,26 @@ const viewMode = computed(() => {
 
 <style lang="scss" scoped>
 .archive-view {
-  padding: 16px;
-  color: var(--nexa-text-primary);
-  background: var(--nexa-background);
-  min-height: 100%;
-  box-sizing: border-box;
+  padding: clamp(10px, 2vw, 5vw);
 }
 
 .page-header {
   margin-bottom: 16px;
   .title {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 48px;
+    font-weight: 900;
   }
   .subtitle {
-    margin-top: 4px;
     font-size: 12px;
     color: var(--nexa-text-secondary);
   }
 }
 
 .content-area {
-  background: var(--nexa-surface);
-  border: 1px solid var(--nexa-border-color);
-  border-radius: 8px;
-  padding: 12px;
+  background: transparent !important;
+  //border: 1px solid var(--nexa-border-color);
+  //border-radius: 8px;
+  //padding: 10px;
   margin-bottom: 16px;
 }
 
@@ -310,10 +301,6 @@ const viewMode = computed(() => {
 .content-body {
   border-top: 1px solid var(--nexa-border-color);
   padding-top: 8px;
-}
-
-.action-row {
-  margin-bottom: 8px;
 }
 
 .toolbar-btn,

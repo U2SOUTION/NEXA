@@ -4,13 +4,13 @@
       <div class="col-12">
         <q-input v-model="form.title" label="제목" outlined dense :rules="[(val) => !!val || '제목을 입력하세요']" />
       </div>
-      <div class="col-6">
+      <div class="col-4">
         <q-select v-model="form.docType" :options="docTypeOptions" label="문서 유형" outlined dense emit-value map-options />
       </div>
-      <div class="col-6">
-        <q-select v-model="form.status" :options="statusOptions" label="상태" outlined dense emit-value map-options />
+      <div class="col-4">
+        <q-select v-model="form.status" :options="statusOptions" label="문서 상태" outlined dense emit-value map-options />
       </div>
-      <div class="col-12">
+      <div class="col-4">
         <q-select v-model="form.layoutId" :options="layoutOptions" label="레이아웃 템플릿" outlined dense emit-value map-options :loading="loadingLayouts" :disable="loadingLayouts" />
       </div>
       <div class="col-12">
@@ -174,12 +174,12 @@ watch(
 )
 </script>
 
-<style scoped lang="scss">
+<!-- <style scoped lang="scss">
 .editor-form {
-  background: var(--nexa-surface);
-  border: 1px solid var(--nexa-border-color);
-  border-radius: 8px;
+  //background: var(--nexa-surface);
+  //border: 1px solid var(--nexa-border-color);
+  //border-radius: 8px;
   padding: 12px;
   color: var(--nexa-text-primary);
 }
-</style>
+</style> -->

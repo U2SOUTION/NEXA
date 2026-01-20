@@ -98,6 +98,7 @@ export default defineConfig((/* ctx */) => {
       ],
     },
 
+    //같은 네트워크 환경에서 접속 허용
     devServer: {
       host: '0.0.0.0', // LAN 접속 허용
       open: true,
