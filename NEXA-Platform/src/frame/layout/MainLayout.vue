@@ -741,16 +741,26 @@ function setLastOpenedSidebar(side) {
   localStorage.setItem('last-opened-sidebar', side)
 }
 
-function getLastOpenedSidebar() {
-  if (typeof localStorage === 'undefined') return 'right'
-  return localStorage.getItem('last-opened-sidebar') || 'right'
-}
+// function getLastOpenedSidebar() {
+//   if (typeof localStorage === 'undefined') return 'right'
+//   return localStorage.getItem('last-opened-sidebar') || 'right'
+// }
 
+// 더블클릭 핸들러 (메인 콘텐츠 영역)
 // 더블클릭 핸들러 (메인 콘텐츠 영역)
 function handleMainContentDoubleClick(event) {
   // 사이드바, 토글 버튼, 입력 필드 등은 제외
   const target = event.target
-  if (target.closest('.q-drawer') || target.closest('.sidebar-toggle-button') || target.closest('input') || target.closest('textarea') || target.closest('[contenteditable="true"]') || target.closest('button') || target.closest('a') || target.closest('.q-btn')) {
+  if (
+    target.closest('.q-drawer') ||
+    target.closest('.sidebar-toggle-button') ||
+    target.closest('input') ||
+    target.closest('textarea') ||
+    target.closest('[contenteditable="true"]') ||
+    target.closest('button') ||
+    target.closest('a') ||
+    target.closest('.q-btn')
+  ) {
     return
   }
 
@@ -765,17 +775,34 @@ function handleMainContentDoubleClick(event) {
     }
   }
 
+  // -----------------------------
+  // 🔥 더블클릭 위치 판별 로직 추가
+  // -----------------------------
+  const container = event.currentTarget
+  if (!(container instanceof HTMLElement)) return
+
+  const rect = container.getBoundingClientRect()
+  const x = event.clientX - rect.left
+  const ratio = x / rect.width
+
+  const isLeftZone = ratio < 0.4
+  const isRightZone = ratio > 0.6
+
+  // 중앙 영역은 무시 (의도 없는 더블클릭 방지)
+  if (!isLeftZone && !isRightZone) return
+
   const isLeftOpen = dashboardLayoutStore.mainNavigationOpen
   const isRightOpen = userSettings.settings.drawer.rightOpen
 
-  // Shift + 더블클릭: 둘 다 열기 (상태와 관계없이)
+  // -----------------------------
+  // Shift + 더블클릭: 둘 다 열기
+  // -----------------------------
   if (event.shiftKey) {
     if (!isLeftOpen) openLeftSidebar()
     if (!isRightOpen) openRightSidebar()
 
-    // 마지막으로 연 사이드바 기록
     if (!isLeftOpen && !isRightOpen) {
-      setLastOpenedSidebar('right') // 둘 다 닫혀있었으면 오른쪽 기록 (다음 번갈아가며 열 때 왼쪽이 열리도록)
+      setLastOpenedSidebar('right')
     } else if (!isLeftOpen) {
       setLastOpenedSidebar('left')
     } else if (!isRightOpen) {
@@ -786,58 +813,50 @@ function handleMainContentDoubleClick(event) {
     return
   }
 
-  // 케이스 1: 둘 다 닫혀 있음 → 마지막에 열었던 쪽과 반대 쪽 열기 (번갈아가며 열기)
-  if (!isLeftOpen && !isRightOpen) {
-    const lastOpenedSidebar = getLastOpenedSidebar() // 기본값 'right'면 첫 번째는 왼쪽이 열림
-
-    if (lastOpenedSidebar === 'right') {
+  // -----------------------------
+  // 좌측 영역 더블클릭
+  // -----------------------------
+  if (isLeftZone) {
+    if (isLeftOpen) {
+      setLastOpenedSidebar('left')
+      dashboardLayoutStore.toggleMainNavigation()
+    } else {
       openLeftSidebar()
       setLastOpenedSidebar('left')
-    } else {
-      openRightSidebar()
-      setLastOpenedSidebar('right')
     }
-
     userSettings.saveSettings()
     return
   }
 
-  // 케이스 2: 둘 다 열려 있음 → 둘 다 닫기
-  if (isLeftOpen && isRightOpen) {
-    dashboardLayoutStore.toggleMainNavigation()
-    // nextTick으로 Vue 반응성 시스템과 동기화하여 상태 변경 충돌 방지
-    nextTick(() => {
+  // -----------------------------
+  // 우측 영역 더블클릭
+  // -----------------------------
+  if (isRightZone) {
+    if (isRightOpen) {
+      setLastOpenedSidebar('right')
       togglePropertyPanel()
-    })
-    return
-  }
-
-  // 케이스 3: 왼쪽만 열려 있음 → 왼쪽 닫기
-  if (isLeftOpen && !isRightOpen) {
-    setLastOpenedSidebar('left')
-    dashboardLayoutStore.toggleMainNavigation()
-    return
-  }
-
-  // 케이스 4: 오른쪽만 열려 있음 → 오른쪽 닫기
-  if (!isLeftOpen && isRightOpen) {
-    setLastOpenedSidebar('right')
-    togglePropertyPanel()
+    } else {
+      openRightSidebar()
+      setLastOpenedSidebar('right')
+    }
+    userSettings.saveSettings()
     return
   }
 }
 
+// ============================================
+// 사이드바 드래그 제어
+// ============================================
 // 사이드바 드래그 제어 Edge/Swipe Gesture: Sidebar Control PC & Mobile (문제는 PC에서 잘 작동을 안함 특히 오른쪽 사이드바는 잘 작동하지 않음)---
-// 모바일 오작동 방지 코드
+// 모바일 오작동 방지 코드 TODO: 모바일 오작동 방지 코드 수정 필요
 // body {
 //   overscroll-behavior-x: contain;
 // }
 
-// 사파리 오작동 방지 코드
+// 사파리 오작동 방지 코드 TODO: 사파리 오작동 방지 코드 수정 필요
 // window.addEventListener('touchmove', e => {
 //   if (e.target.closest('.sidebar')) return
 // }, { passive: true })
-
 
 useSidebarGesture({
   openLeft: openLeftSidebar,
@@ -846,6 +865,9 @@ useSidebarGesture({
   closeRight: closeRightSidebar,
 })
 
+// ============================================
+// 라이프사이클
+// ============================================
 // --- Lifecycle ---
 onMounted(() => {
   userSettings.initializeTheme()
