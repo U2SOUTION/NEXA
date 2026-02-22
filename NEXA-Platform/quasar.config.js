@@ -40,6 +40,8 @@ export default defineConfig((/* ctx */) => {
           '@erp': path.resolve(__dirname, './src/domains/erp'),
           '@board': path.resolve(__dirname, './src/domains/board'),
           '@components': path.resolve(__dirname, './src/system/components'),
+          // layoutRegistry 등에서 사용: layouts/ → frame/layout
+          layouts: path.resolve(__dirname, './src/frame/layout'),
           // Quasar 엔진이 찾는 물리적 라우터 경로를 frame 내부로 리다이렉트
           'src/router': path.resolve(__dirname, './src/frame/router'),
           'app/src/router': path.resolve(__dirname, './src/frame/router'),

@@ -35,7 +35,7 @@ npm run dev
 PORT=3000
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=123412341234
+DB_PASSWORD=1234
 DB_NAME=nexa_db
 ```
 

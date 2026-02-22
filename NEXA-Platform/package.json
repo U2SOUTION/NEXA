@@ -10,7 +10,7 @@
     "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{js,cjs,mjs,vue}\"",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0",
-    "dev": "quasar dev",
+    "dev": "cross-env VITE_API_PORT=3001 quasar dev",
     "dev:server": "cd server && npm run dev",
     "dev:all": "concurrently -n \"FRONTEND,API,BROWSER\" -c \"cyan,magenta,yellow\" \"npm run dev\" \"npm run dev:server\" \"wait-on http://localhost:9000 -t 60000 && node scripts/open-browser.js\"",
     "start:server": "cd server && npm start",

@@ -1,24 +1,7 @@
 import express from 'express'
-import mysql from 'mysql2/promise'
+import { pool } from '../config/dbConfig.js'
 
 const router = express.Router()
-
-// DB 커넥션 설정 (api.js와 동일한 고정값 사용)
-// 다른 환경변수 값으로 다른 DB에 붙지 않도록 동일하게 고정
-const dbConfig = {
-  host: 'localhost',
-  user: 'root',
-  password: '123412341234',
-  database: 'nexa_db',
-  port: 3306,
-  charset: 'utf8mb4',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-}
-
-// 커넥션 풀
-const pool = mysql.createPool(dbConfig)
 
 // 레이아웃 템플릿 목록 (category=LAYOUT)
 router.get('/system-templates', async (req, res) => {

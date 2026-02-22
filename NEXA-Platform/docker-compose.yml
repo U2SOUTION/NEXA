@@ -1,0 +1,28 @@
+# NEXA 플랫폼 배포 매뉴얼 (이 파일은 새로 도커 이미지를 NAS에 배포하는 명령어 파일)
+# ------------------------------------------
+# 0. 폴더이동: cd /mnt/web_data/nexa-platform  (docker-compose.yml 파일이 있는 폴더로 이동)
+# 1. 이미지 로드: docker load -i nexa-platform.tar
+# 2. NAS에서 실행: docker compose up -d (docker-compose.yml 파일이 있는 폴더에서 실행)
+# 3. 중지: docker compose down
+# 4. 로그 확인: docker compose logs -f
+# ==========================================
+
+services:
+  nexa-web:
+    image: nexa-platform:latest # 도커 이미지 이름 (Dockerfile에서 빌드한 이미지)
+    container_name: nexa-web # 컨테이너 이름 (Dockerfile에서 빌드한 이미지)
+    ports:
+      - '8080:3000' # 외부(NAS) 8080포트를 컨테이너 내부 3000포트로 포트 포워딩
+    environment: # 환경 변수
+      - MYSQL_HOST=192.168.0.10 # NAS의 IP 주소 (공유기에서 지정한 내부 IP)
+      - MYSQL_USER=root # MariaDB 사용자 이름 (개발 PC MySQL과 동일)
+      - MYSQL_PASSWORD=1234 # MariaDB 비밀번호 (개발 PC MySQL과 동일)
+      - MYSQL_DATABASE=nexa_db # MariaDB 데이터베이스 이름 (개발 PC MySQL과 동일)
+      - MYSQL_PORT=3306 # MariaDB 포트 (개발 PC MySQL과 동일)
+    restart: always # NAS 재부팅 시 자동 실행
+
+  tunnel:
+    container_name: cloudflared-tunnel
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel --no-autoupdate run --token eyJhIjoiYTZlODYwNDljYTdkMDM3MGY0NjVmYmNlY2VmYzc1MzAiLCJ0IjoiZmVhZGU5ODMtYWM4My00NmM3LTgyOTMtNWFiYWE2MzZkYzJmIiwicyI6Ik16a3dNakUxT0dFdFl6UTJZUzAwWkdGakxXRm1PRGd0WXpWa05EVTVaREJpWVRobCJ9

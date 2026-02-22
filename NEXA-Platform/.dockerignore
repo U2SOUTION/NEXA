@@ -1,0 +1,31 @@
+# 의존성 (이미지에서 npm ci 로 설치)
+node_modules
+**/node_modules
+
+# 빌드 결과물 (이미지에서 새로 빌드)
+dist
+**/dist
+
+# Git / IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.log
+DOCKER_DEPLOY.md
+*.md
+**/*.md
+!server/README.md
+
+# 테스트 / 문서
+NEXA-Documentation
+**/__tests__
+# 빌드 시 JS로 파싱되며 실패하는 문서 파일 (번들 제외)
+src/assets/fonts/README.md
+*.test.js
+*.spec.js
+vitest.config.ts
+.prettierrc*
+
+# 불필요한 스크립트
+scripts

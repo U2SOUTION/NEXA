@@ -186,6 +186,16 @@ process.on('unhandledRejection', (reason) => {
   // 서버를 종료하지 않고 계속 실행
 })
 
+// 프로덕션: 빌드된 SPA 정적 서빙 (Docker 등에서 FRONTEND_DIST 설정 시)
+const frontendDist = process.env.FRONTEND_DIST
+if (frontendDist) {
+  app.use(express.static(frontendDist))
+  app.get('*', (req, res, next) => {
+    if (res.headersSent) return next()
+    res.sendFile(path.join(frontendDist, 'index.html'), (err) => (err ? next() : undefined))
+  })
+}
+
 // 404 핸들러 (모든 라우트 이후, 에러 핸들러 이전)
 app.use((req, res) => {
   // 응답이 이미 보내졌는지 확인
