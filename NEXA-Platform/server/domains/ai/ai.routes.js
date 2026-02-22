@@ -1,0 +1,38 @@
+import express from 'express'
+import { listModels, chat, checkConnection } from './ai.service.js'
+
+const router = express.Router()
+
+router.get('/ai/models', async (req, res) => {
+  try {
+    const data = await listModels()
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.post('/ai/chat', async (req, res) => {
+  try {
+    const { messages, model } = req.body
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'messages 배열이 필요합니다.' })
+    }
+    const data = await chat(messages, model)
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.post('/ai/check', async (req, res) => {
+  try {
+    const { url } = req.body
+    await checkConnection(url)
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+export default router

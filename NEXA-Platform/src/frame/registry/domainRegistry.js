@@ -102,6 +102,12 @@ const domainConfigs = {
     content: () => import('@domains/trace/TraceDomain.vue'),
     right: null,
   },
+  // 넥사 AI (Ollama)
+  'nexa-ai': {
+    left: () => import('@domains/ai/views/left/AiLeftNav.vue'),
+    content: () => import('@domains/ai/AiDomain.vue'),
+    right: () => import('@domains/ai/views/right/AiRightPanel.vue'),
+  },
 
   // 확장 프로그램
   extension: {

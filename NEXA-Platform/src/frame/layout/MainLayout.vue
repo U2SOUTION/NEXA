@@ -174,6 +174,7 @@ const currentMenu = computed(() => {
     '/nexa-node': 'automation',
     '/nexa-archive': 'nexa-archive',
     '/nexa-trace': 'nexa-trace',
+    '/nexa-ai': 'nexa-ai',
     '/erp': 'nexa-erp',
     '/erp/parts': 'erp-parts', // ERP 하위 부품관리 서브도메인
     '/infra': 'infra',
@@ -208,6 +209,7 @@ const mainMenuTabs = [
   { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
   { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
   { name: 'nexa-archive', label: 'NEXA ARCHIVE', displayLabel: 'ARCHIVE', icon: 'article', route: '/nexa-archive', exact: false, nexaPrefix: true },
+  { name: 'nexa-ai', label: 'NEXA AI', displayLabel: 'AI', icon: 'smart_toy', route: '/nexa-ai', exact: false, nexaPrefix: true },
   { name: 'nexa-erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
   { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },
   { name: 'infra', label: 'INFRA', displayLabel: 'INFRA', icon: 'settings', route: '/infra', exact: false, nexaPrefix: false },

@@ -25,6 +25,18 @@ export const domainRoutes = [
     component: () => import('@domains/trace/TraceDomain.vue'),
   },
   {
+    path: 'nexa-ai',
+    name: 'NexaAi',
+    component: () => import('@domains/ai/AiDomain.vue'),
+    children: [
+      {
+        path: '',
+        name: 'NexaAiChat',
+        component: () => import('@domains/ai/views/content/AiContent.vue'),
+      },
+    ],
+  },
+  {
     path: 'nexa-archive',
     name: 'NexaArchive',
     component: () => import('@domains/archive/ArchiveDomain.vue'),

@@ -10,6 +10,7 @@ import { cleanupOldTempFiles } from './utils/fileUpload.js'
 import { documentFilesRouter, devOnlyFileEditorRouter, createDatabaseSchemaRouter } from './domains/dev/dev.routes.js'
 import archiveRouter from './domains/archive/archive.routes.js'
 import partsRouter from './domains/parts/parts.routes.js'
+import aiRouter from './domains/ai/ai.routes.js'
 import partFilesRouter from './domains/parts/partFiles.routes.js'
 import partModelsRouter from './domains/parts/partModels.routes.js'
 import partSpecsRouter from './domains/parts/partSpecs.routes.js'
@@ -95,6 +96,7 @@ app.use('/api/docs', documentFilesRouter)
 app.use('/api', partModelsRouter)
 app.use('/api', partSpecsRouter)
 app.use('/api', partsRouter)
+app.use('/api', aiRouter)
 
 // 데이터베이스 스키마 라우터 등록 (데이터베이스 연결 전에도 등록)
 // 각 엔드포인트에서 연결 상태를 확인하므로 연결 실패해도 404 방지
