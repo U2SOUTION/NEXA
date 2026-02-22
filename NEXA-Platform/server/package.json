@@ -1,12 +1,12 @@
 {
-  "name": "nexa-parts-api",
+  "name": "NEXA-Platform-API-Server",
   "version": "1.0.0",
-  "description": "NEXA Platform 부품 관리 API 서버",
+  "description": "NEXA Platform API Server",
   "type": "module",
-  "main": "api.js",
+  "main": "server.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node api.js",
-    "dev": "cross-env NODE_ENV=development node --watch api.js"
+    "start": "cross-env NODE_ENV=production node server.js",
+    "dev": "cross-env NODE_ENV=development node --watch server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
