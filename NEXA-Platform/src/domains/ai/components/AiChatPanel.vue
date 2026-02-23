@@ -93,10 +93,10 @@ import { aiApi } from '../services/aiApi.js'
 import { useAiSettings } from '../composables/useAiSettings.js'
 import { useAiChannels } from '../composables/useAiChannels.js'
 
-const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize, chatMessageMaxLength, pendingWebcamCapture } = useAiSettings()
+const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture } = useAiSettings()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
-const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat } = useAiChannels()
+const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat, setPendingTitleSuggestion, getPendingTitleSuggestion } = useAiChannels()
 
 const messages = ref([])
 const inputText = ref('')
@@ -119,6 +119,21 @@ function truncateTitle(text) {
   const t = (text || '').trim()
   if (t.length <= TITLE_MAX_LEN) return t
   return t.slice(0, TITLE_MAX_LEN) + '...'
+}
+
+function formatDialogueExcerpt(msgs, maxTurns) {
+  const pairs = []
+  for (let i = 0; i < msgs.length - 1; i++) {
+    if (msgs[i].role === 'user' && msgs[i + 1].role === 'assistant') {
+      pairs.push({
+        user: (msgs[i].content ?? '').trim(),
+        assistant: (msgs[i + 1].content ?? '').trim(),
+      })
+      i++ // skip assistant
+    }
+  }
+  const recent = pairs.slice(-maxTurns)
+  return recent.map((p) => `사용자: ${p.user}\n\nAI: ${p.assistant}`).join('\n\n')
 }
 
 function triggerFileSelect() {
@@ -250,6 +265,23 @@ async function sendMessage() {
     const content = response?.message?.content ?? response?.response ?? ''
     messages.value.push({ role: 'assistant', content })
     updateChatMessages(channelId, chatId, messages.value)
+
+    const turnCount = messages.value.filter((m) => m.role === 'user').length
+    const minTurns = titleSuggestionMinTurns.value ?? 2
+    const maxTurns = titleSuggestionMaxTurnsForContext.value ?? 5
+    const model = selectedModel.value
+    if (turnCount >= minTurns && model && !getPendingTitleSuggestion(channelId, chatId)) {
+      try {
+        const excerpt = formatDialogueExcerpt(messages.value, maxTurns)
+        if (excerpt.trim()) {
+          const result = await aiApi.generateTitle(excerpt, model)
+          const title = (result?.title ?? '').trim()
+          if (title) setPendingTitleSuggestion(channelId, chatId, title)
+        }
+      } catch {
+        // silent fail: 유지 휴리스틱 제목
+      }
+    }
   } catch (err) {
     messages.value.push({
       role: 'assistant',

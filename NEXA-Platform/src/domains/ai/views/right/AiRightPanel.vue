@@ -97,11 +97,18 @@
                     <span class="text-caption text-grey-7" style="min-width: 2.5em">{{ chatFontSize }}px</span>
                   </div>
                 </div>
-                <div class="chat-setting-row">
+                <div class="chat-setting-row q-mb-md">
                   <div class="text-caption text-grey-7 q-mb-xs">메시지 최대 길이 (0=제한없음)</div>
                   <div class="row items-center no-wrap q-gutter-sm">
                     <q-slider v-model="chatMessageMaxLength" :min="0" :max="10000" :step="500" class="col" />
                     <span class="text-caption text-grey-7" style="min-width: 3.5em">{{ chatMessageMaxLength === 0 ? '없음' : chatMessageMaxLength.toLocaleString() }}</span>
+                  </div>
+                </div>
+                <div class="chat-setting-row">
+                  <div class="text-caption text-grey-7 q-mb-xs">제목 제안 교환 횟수 (최소~최대)</div>
+                  <div class="row items-center no-wrap q-gutter-sm">
+                    <q-range v-model="titleSuggestionTurnsRange" :min="1" :max="10" :step="1" class="col" />
+                    <span class="text-caption text-grey-7" style="min-width: 4em">{{ titleSuggestionMinTurns }} ~ {{ titleSuggestionMaxTurnsForContext }}</span>
                   </div>
                 </div>
               </div>
@@ -124,7 +131,7 @@ import { aiApi } from '../../services/aiApi.js'
 import { useAiSettings } from '../../composables/useAiSettings.js'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 
-const { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, modelCapabilities, setModelCapabilities } = useAiSettings()
+const { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities, setModelCapabilities } = useAiSettings()
 const { selectedChannel, selectedChat, selectedChannelId, systemInstruction, updateSystemInstruction, updateChannelInstruction, updateChatInstruction } = useAiChannels()
 const ollamaBaseUrl = ref('http://192.168.0.15:11434')
 const models = ref([])
@@ -153,6 +160,17 @@ const connectionStatusDisplay = computed(() => {
 const connectionStatusClass = computed(() => {
   if (isCheckingConnection.value || !connectionStatus.value) return 'text-grey-6'
   return connectionStatus.value.ok ? 'text-positive' : 'text-negative'
+})
+
+const titleSuggestionTurnsRange = computed({
+  get: () => ({ min: titleSuggestionMinTurns.value, max: titleSuggestionMaxTurnsForContext.value }),
+  set: (v) => {
+    if (!v || typeof v.min !== 'number' || typeof v.max !== 'number') return
+    const lo = Math.max(1, Math.min(10, Math.min(v.min, v.max)))
+    const hi = Math.max(1, Math.min(10, Math.max(v.min, v.max)))
+    titleSuggestionMinTurns.value = lo
+    titleSuggestionMaxTurnsForContext.value = hi
+  },
 })
 
 const CAPABILITY_ICONS = {

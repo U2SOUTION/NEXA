@@ -45,4 +45,17 @@ export const aiApi = {
     }
     return res.json()
   },
+
+  async generateTitle(dialogueExcerpt, model) {
+    const res = await fetch(`${getApiBaseUrl()}/ai/generate-title`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dialogueExcerpt, model: model || undefined }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || err.message || '제목 생성 실패')
+    }
+    return res.json()
+  },
 }

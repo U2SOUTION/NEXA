@@ -73,7 +73,7 @@ function moveChannelDown(channelId) {
   if (idx < 0 || idx >= channels.value.length - 1) return
   const arr = [...channels.value]
   ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
-  channels.value = arr``
+  channels.value = arr
   saveToStorage(channels.value)
 }
 
@@ -153,6 +153,7 @@ function deleteChat(channelId, chatId) {
   const ch = channels.value.find((c) => c.id === channelId)
   if (!ch?.chats) return
   ch.chats = ch.chats.filter((c) => c.id !== chatId)
+  clearPendingTitleSuggestion(channelId, chatId)
   saveToStorage(channels.value)
   if (selectedChatId.value === chatId) {
     selectedChatId.value = null
@@ -161,6 +162,7 @@ function deleteChat(channelId, chatId) {
 
 const selectedChannelId = ref(null)
 const selectedChatId = ref(null)
+const pendingTitleSuggestions = ref(new Map())
 const searchQuery = ref('')
 const searchTarget = ref('both')
 
@@ -186,6 +188,26 @@ function selectChat(id) {
 
 function startNewChat() {
   selectedChatId.value = null
+}
+
+function _pendingKey(channelId, chatId) {
+  return `${channelId}:${chatId}`
+}
+
+function setPendingTitleSuggestion(channelId, chatId, title) {
+  const next = new Map(pendingTitleSuggestions.value)
+  next.set(_pendingKey(channelId, chatId), title ?? '')
+  pendingTitleSuggestions.value = next
+}
+
+function clearPendingTitleSuggestion(channelId, chatId) {
+  const next = new Map(pendingTitleSuggestions.value)
+  next.delete(_pendingKey(channelId, chatId))
+  pendingTitleSuggestions.value = next
+}
+
+function getPendingTitleSuggestion(channelId, chatId) {
+  return pendingTitleSuggestions.value.get(_pendingKey(channelId, chatId)) ?? null
 }
 
 const showSearchResults = computed(() => (searchQuery.value || '').trim().length > 0)
@@ -242,6 +264,10 @@ export function useAiChannels() {
     updateChatTitle,
     updateChatMessages,
     deleteChat,
+    pendingTitleSuggestions,
+    setPendingTitleSuggestion,
+    clearPendingTitleSuggestion,
+    getPendingTitleSuggestion,
     selectChannel,
     selectChat,
     startNewChat,

@@ -33,6 +33,19 @@ const webcamFilterBrightness = ref(Math.max(0, Math.min(200, saved.webcamFilterB
 const webcamFilterContrast = ref(Math.max(0, Math.min(200, saved.webcamFilterContrast ?? 100)))
 const webcamFilterSaturate = ref(Math.max(0, Math.min(200, saved.webcamFilterSaturate ?? 100)))
 const webcamFilterGrayscale = ref(saved.webcamFilterGrayscale ?? false)
+function loadTitleSuggestionRange() {
+  if (saved.titleSuggestionMinTurns != null && saved.titleSuggestionMaxTurnsForContext != null) {
+    const min = Math.max(1, Math.min(10, saved.titleSuggestionMinTurns))
+    const max = Math.max(1, Math.min(10, saved.titleSuggestionMaxTurnsForContext))
+    return { min: Math.min(min, max), max: Math.max(min, max) }
+  }
+  const legacy = saved.titleSuggestionTurns ?? 3
+  const v = Math.max(1, Math.min(10, legacy))
+  return { min: v, max: v }
+}
+const _range = loadTitleSuggestionRange()
+const titleSuggestionMinTurns = ref(_range.min)
+const titleSuggestionMaxTurnsForContext = ref(_range.max)
 
 const selectedModelCapabilities = computed(() => {
   const name = selectedModel.value
@@ -44,7 +57,7 @@ function setModelCapabilities(capabilitiesMap) {
 }
 
 watch(
-  [selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale],
+  [selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext],
   () => {
     saveSettings({
       selectedModel: selectedModel.value,
@@ -57,6 +70,8 @@ watch(
       webcamFilterContrast: webcamFilterContrast.value,
       webcamFilterSaturate: webcamFilterSaturate.value,
       webcamFilterGrayscale: webcamFilterGrayscale.value,
+      titleSuggestionMinTurns: titleSuggestionMinTurns.value,
+      titleSuggestionMaxTurnsForContext: titleSuggestionMaxTurnsForContext.value,
     })
   },
   { deep: true }
@@ -78,5 +93,7 @@ export function useAiSettings() {
     webcamFilterContrast,
     webcamFilterSaturate,
     webcamFilterGrayscale,
+    titleSuggestionMinTurns,
+    titleSuggestionMaxTurnsForContext,
   }
 }

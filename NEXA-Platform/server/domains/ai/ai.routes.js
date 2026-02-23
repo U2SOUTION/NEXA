@@ -1,5 +1,5 @@
 import express from 'express'
-import { listModels, showModel, chat, checkConnection } from './ai.service.js'
+import { listModels, showModel, chat, checkConnection, generateTitle } from './ai.service.js'
 
 const router = express.Router()
 
@@ -43,6 +43,20 @@ router.post('/ai/check', async (req, res) => {
     const { url } = req.body
     await checkConnection(url)
     res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.post('/ai/generate-title', async (req, res) => {
+  try {
+    const { dialogueExcerpt, model, url } = req.body
+    const excerpt = (dialogueExcerpt ?? '').trim()
+    if (!excerpt) {
+      return res.status(400).json({ error: 'dialogueExcerpt가 필요합니다.' })
+    }
+    const data = await generateTitle(excerpt, model || undefined, url)
+    res.json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

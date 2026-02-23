@@ -116,6 +116,7 @@
                   <div v-for="chat in item.chats" :key="chat.id" role="button" tabindex="0" class="chat-item" :class="{ 'chat-item-selected': selectedChatId === chat.id }" @click="selectChat(chat.id)" @keydown.enter.space.prevent="selectChat(chat.id)">
                     <q-icon name="chat_bubble_outline" size="18px" class="chat-item-icon" />
                     <span class="chat-item-label text-caption ellipsis">{{ chat.title }}</span>
+                    <q-icon :name="getPendingTitleSuggestion(item.channel.id, chat.id) ? 'auto_awesome' : 'edit'" size="16px" class="chat-item-edit-icon" title="제목 편집" @click.stop="openEditChatFromItem(item.channel.id, chat)" />
                   </div>
                   <div v-if="item.chats.length === 0" class="chat-empty text-grey-6 text-caption">No chats</div>
                 </div>
@@ -155,6 +156,7 @@
                     <div v-for="chat in ch.chats || []" :key="chat.id" role="button" tabindex="0" class="chat-item" :class="{ 'chat-item-selected': selectedChatId === chat.id }" @click="selectChat(chat.id)" @keydown.enter.space.prevent="selectChat(chat.id)">
                       <q-icon name="chat_bubble_outline" size="18px" class="chat-item-icon" />
                       <span class="chat-item-label text-caption ellipsis">{{ chat.title }}</span>
+                      <q-icon :name="getPendingTitleSuggestion(ch.id, chat.id) ? 'auto_awesome' : 'edit'" size="16px" class="chat-item-edit-icon" title="제목 편집" @click.stop="openEditChatFromItem(ch.id, chat)" />
                     </div>
                   </transition-group>
 
@@ -319,6 +321,8 @@ const {
   selectChannel,
   selectChat,
   startNewChat,
+  getPendingTitleSuggestion,
+  clearPendingTitleSuggestion,
 } = useAiChannels()
 
 const { pendingWebcamCapture, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, selectedModelCapabilities } = useAiSettings()
@@ -423,8 +427,13 @@ function openEditChannel() {
 function openEditChat() {
   const chat = selectedChat.value
   if (!chat || !selectedChannelId.value) return
-  editTarget.value = { type: 'chat', channelId: selectedChannelId.value, chatId: chat.id }
-  editValue.value = chat.title
+  openEditChatFromItem(selectedChannelId.value, chat)
+}
+function openEditChatFromItem(channelId, chat) {
+  if (!chat || !channelId) return
+  const suggestion = getPendingTitleSuggestion(channelId, chat.id)
+  editTarget.value = { type: 'chat', channelId, chatId: chat.id }
+  editValue.value = suggestion ?? chat.title ?? ''
   showEditDialog.value = true
 }
 function doEditSave() {
@@ -435,6 +444,7 @@ function doEditSave() {
     updateChannelName(channelId, v)
   } else if (type === 'chat') {
     updateChatTitle(channelId, chatId, v)
+    clearPendingTitleSuggestion(channelId, chatId)
   }
   showEditDialog.value = false
 }
@@ -579,6 +589,19 @@ function onWebcamCapture(dataUrl) {
     flex-shrink: 0;
     min-width: 20px;
     padding-right: 2px;
+  }
+
+  .chat-item .chat-item-edit-icon {
+    flex-shrink: 0;
+    min-width: 20px;
+    padding-left: 2px;
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
+  }
+
+  .chat-item:hover .chat-item-edit-icon,
+  .chat-item.chat-item-selected .chat-item-edit-icon {
+    opacity: 1;
   }
 
   /* SidebarOverflowPrevention: width: 0 + overflow: hidden = flex 아이템이 부모를 초과하지 않음 */
