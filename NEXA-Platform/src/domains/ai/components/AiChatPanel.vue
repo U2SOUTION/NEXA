@@ -39,7 +39,11 @@
         </template>
         <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
           <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]">
-            <div class="message-bubble">
+            <div
+              class="message-bubble"
+              :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content }"
+              @contextmenu.prevent="msg.role === 'assistant' && msg.content ? onMessageContextMenu($event, msg) : null"
+            >
               <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
                 <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
               </div>
@@ -86,13 +90,24 @@
         </div>
       </div>
     </template>
+
+    <ContextMenu
+      :visible="contextMenuVisible"
+      :position="contextMenuPosition"
+      :items="contextMenuItems"
+      @item-click="handleContextMenuItemClick"
+      @update:visible="handleContextMenuVisibilityChange"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, inject } from 'vue'
 import { Notify } from 'quasar'
 import { parseMarkdown } from '@system/utils/markdown/index.js'
+import { copyTextToClipboard } from '@system/utils/clipboard.js'
+import ContextMenu from '@system/components/ui/ContextMenu.vue'
+import { useContextMenu } from '@system/composables/useContextMenu.js'
 import { aiApi } from '../services/aiApi.js'
 import { useAiSettings } from '../composables/useAiSettings.js'
 import { useAiChannels } from '../composables/useAiChannels.js'
@@ -101,6 +116,12 @@ const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
 const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat, setPendingTitleSuggestion, getPendingTitleSuggestion } = useAiChannels()
+
+const aiInsertContent = inject('aiInsertContent', null)
+const { showContextMenu, hideContextMenu, contextMenuState } = useContextMenu()
+const contextMenuVisible = computed(() => contextMenuState.visible.value)
+const contextMenuPosition = computed(() => contextMenuState.position.value)
+const contextMenuItems = computed(() => contextMenuState.items.value)
 
 const messages = ref([])
 const inputText = ref('')
@@ -202,6 +223,58 @@ function handlePaste(ev) {
 
 function removeAttachedImage(index) {
   attachedImages.value = attachedImages.value.filter((_, i) => i !== index)
+}
+
+function onMessageContextMenu(event, msg) {
+  const content = (msg.content || '').trim()
+  if (!content) return
+  const items = [
+    {
+      id: 'copy',
+      label: '복사',
+      icon: 'content_copy',
+      shortcut: 'Ctrl+C',
+      action: async () => {
+        try {
+          await copyTextToClipboard(content)
+          Notify.create({ message: '클립보드에 복사되었습니다.', icon: 'content_copy' })
+        } catch {
+          Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
+        }
+      },
+    },
+    ...(aiInsertContent
+      ? [
+          {
+            id: 'insert-to-editor',
+            label: '에디터에 삽입',
+            icon: 'edit_note',
+            action: () => {
+              const html = parseMarkdown(content, '', {})
+              aiInsertContent.setCenterTab('editor')
+              nextTick(() => {
+                aiInsertContent.pendingInsertContent.value = html
+              })
+              Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
+            },
+          },
+        ]
+      : []),
+  ]
+  showContextMenu(event, items)
+}
+
+function handleContextMenuItemClick(item) {
+  if (typeof item.action === 'function') {
+    item.action()
+  }
+  hideContextMenu()
+}
+
+function handleContextMenuVisibilityChange(visible) {
+  if (!visible) {
+    hideContextMenu()
+  }
 }
 
 watch(

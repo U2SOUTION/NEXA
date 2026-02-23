@@ -12,7 +12,7 @@
         <AiChatPanel />
       </q-tab-panel>
       <q-tab-panel name="editor" class="q-pa-none ai-tab-panel">
-        <AiEditorPanel />
+        <AiEditorPanel v-model="editorContent" />
       </q-tab-panel>
       <q-tab-panel name="image" class="q-pa-none ai-tab-panel">
         <AiImageEditorPanel />
@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import AiChatPanel from '../../components/AiChatPanel.vue'
 import AiEditorPanel from '../../components/AiEditorPanel.vue'
 import AiImageEditorPanel from '../../components/AiImageEditorPanel.vue'
@@ -36,6 +36,15 @@ import AiAudioEditorPanel from '../../components/AiAudioEditorPanel.vue'
 import AiVideoEditorPanel from '../../components/AiVideoEditorPanel.vue'
 
 const centerTab = ref('chat')
+const editorContent = ref('')
+const pendingInsertContent = ref(null)
+
+provide('aiInsertContent', {
+  pendingInsertContent,
+  setCenterTab: (tab) => {
+    centerTab.value = tab
+  },
+})
 </script>
 
 <style lang="scss" scoped>

@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject, watch } from 'vue'
 import BaseTiptapEditor from '@engines/tiptap/BaseTiptapEditor.vue'
 
 const props = defineProps({
@@ -22,6 +22,31 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const editorContent = ref(props.modelValue || '')
+
+watch(
+  () => props.modelValue,
+  (v) => {
+    const next = v || ''
+    if (editorContent.value !== next) {
+      editorContent.value = next
+    }
+  },
+  { immediate: true },
+)
+
+const aiInsertContent = inject('aiInsertContent', null)
+
+watch(
+  () => aiInsertContent?.pendingInsertContent?.value,
+  (html) => {
+    if (!html || !aiInsertContent) return
+    const current = editorContent.value || ''
+    editorContent.value = current ? `${current}${html}` : html
+    emit('update:modelValue', editorContent.value)
+    aiInsertContent.pendingInsertContent.value = null
+  },
+  { immediate: true },
+)
 
 function onContentUpdate(value) {
   editorContent.value = value
