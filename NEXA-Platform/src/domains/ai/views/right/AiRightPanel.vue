@@ -81,81 +81,6 @@
               </div>
             </q-expansion-item>
 
-            <q-expansion-item @hide="stopWebcam">
-              <template #header>
-                <q-item-section avatar>
-                  <q-icon name="videocam" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>웹캠</q-item-label>
-                </q-item-section>
-                <q-item-section side @click.stop class="webcam-toggle-wrap" :class="{ 'webcam-on': webcamStream }">
-                  <q-toggle dense :model-value="!!webcamStream" :label="webcamStream ? '켜짐' : '꺼짐'" @update:model-value="onWebcamToggle" />
-                </q-item-section>
-              </template>
-              <div class="webcam-section ai-accordion-content">
-                <div class="webcam-video-wrap">
-                  <video v-show="webcamStream" ref="webcamVideoRef" autoplay playsinline muted class="webcam-video" :style="webcamVideoStyle" />
-                  <div v-if="!webcamStream && !webcamError" class="webcam-placeholder">웹캠을 켜면 영상이 표시됩니다</div>
-                  <div v-if="webcamError" class="webcam-error text-caption text-negative">{{ webcamError }}</div>
-                </div>
-                <div class="webcam-buttons row items-center justify-between q-mt-sm">
-                  <q-btn v-if="supportsVision" outline dense color="primary" icon="camera_alt" label="캡처첨부" :disable="!webcamStream" @click="captureAndSend" />
-                  <q-btn round dense flat size="sm" icon="settings" title="웹캠 설정" @click="webcamSettingsModalOpen = true" />
-                </div>
-              </div>
-            </q-expansion-item>
-
-            <q-dialog v-model="webcamSettingsModalOpen" class="webcam-settings-dialog">
-              <q-card class="webcam-settings-card" style="padding: 20px">
-                <q-card-section class="row items-center q-pb-none">
-                  <div>
-                    <div class="webcam-modal-title">Webcam Settings</div>
-                    <div class="webcam-modal-subtitle">웹캠 설정</div>
-                  </div>
-                  <q-space />
-                  <q-btn icon="close" flat round dense @click="webcamSettingsModalOpen = false" />
-                </q-card-section>
-                <q-card-section class="q-pt-none">
-                  <div class="webcam-setting-block q-mb-lg">
-                    <div class="text-caption text-grey-7 text-uppercase q-mb-sm">화면 반전</div>
-                    <q-select v-model="webcamFlipMode" :options="webcamFlipOptions" outlined dense emit-value map-options hide-bottom-space />
-                  </div>
-                  <div class="webcam-setting-block q-mb-lg">
-                    <div class="text-caption text-grey-7 text-uppercase q-mb-sm">해상도</div>
-                    <q-select v-model="webcamResolution" :options="webcamResolutionOptions" outlined dense emit-value map-options hide-bottom-space @update:model-value="onResolutionChange" />
-                  </div>
-                  <div class="webcam-setting-block">
-                    <div class="text-caption text-grey-7 text-uppercase q-mb-sm">필터</div>
-                    <div class="webcam-filter-row q-mb-md">
-                      <div class="text-body2 q-mb-xs">밝기</div>
-                      <div class="row items-center no-wrap q-gutter-sm">
-                        <q-slider v-model="webcamFilterBrightness" :min="0" :max="200" :step="5" class="col" />
-                        <span class="text-caption" style="min-width: 2.5em">{{ webcamFilterBrightness }}%</span>
-                      </div>
-                    </div>
-                    <div class="webcam-filter-row q-mb-md">
-                      <div class="text-body2 q-mb-xs">대비</div>
-                      <div class="row items-center no-wrap q-gutter-sm">
-                        <q-slider v-model="webcamFilterContrast" :min="0" :max="200" :step="5" class="col" />
-                        <span class="text-caption" style="min-width: 2.5em">{{ webcamFilterContrast }}%</span>
-                      </div>
-                    </div>
-                    <div class="webcam-filter-row q-mb-md">
-                      <div class="text-body2 q-mb-xs">채도</div>
-                      <div class="row items-center no-wrap q-gutter-sm">
-                        <q-slider v-model="webcamFilterSaturate" :min="0" :max="200" :step="5" class="col" />
-                        <span class="text-caption" style="min-width: 2.5em">{{ webcamFilterSaturate }}%</span>
-                      </div>
-                    </div>
-                    <div class="webcam-filter-row">
-                      <q-toggle v-model="webcamFilterGrayscale" label="흑백" />
-                    </div>
-                  </div>
-                </q-card-section>
-              </q-card>
-            </q-dialog>
-
             <q-expansion-item icon="chat" label="채팅" default-opened>
               <div class="chat-settings ai-accordion-content">
                 <div class="chat-setting-row q-mb-md">
@@ -189,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 import { AI_AGENT_TABS } from '../../config/aiAgentTabRegistry.js'
 import AiAgentSkillPanel from './agent/AiAgentSkillPanel.vue'
@@ -199,8 +124,7 @@ import { aiApi } from '../../services/aiApi.js'
 import { useAiSettings } from '../../composables/useAiSettings.js'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 
-const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize, chatMessageMaxLength, modelCapabilities, setModelCapabilities, pendingWebcamCapture, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale } =
-  useAiSettings()
+const { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, modelCapabilities, setModelCapabilities } = useAiSettings()
 const { selectedChannel, selectedChat, selectedChannelId, systemInstruction, updateSystemInstruction, updateChannelInstruction, updateChatInstruction } = useAiChannels()
 const ollamaBaseUrl = ref('http://192.168.0.15:11434')
 const models = ref([])
@@ -231,112 +155,6 @@ const connectionStatusClass = computed(() => {
   return connectionStatus.value.ok ? 'text-positive' : 'text-negative'
 })
 
-const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
-
-const webcamVideoRef = ref(null)
-const webcamStream = ref(null)
-const webcamError = ref('')
-const webcamSettingsModalOpen = ref(false)
-
-const webcamFlipOptions = [
-  { label: '없음', value: 'none' },
-  { label: '좌우 반전 (거울)', value: 'horizontal' },
-  { label: '상하 반전', value: 'vertical' },
-  { label: '좌우+상하', value: 'both' },
-]
-
-const webcamResolutionOptions = [
-  { label: '640 × 480', value: '640x480' },
-  { label: '800 × 600', value: '800x600' },
-  { label: '1280 × 720', value: '1280x720' },
-  { label: '1920 × 1080', value: '1920x1080' },
-]
-
-const webcamVideoStyle = computed(() => {
-  const mode = webcamFlipMode.value
-  let transform = ''
-  if (mode === 'horizontal') transform = 'scaleX(-1)'
-  else if (mode === 'vertical') transform = 'scaleY(-1)'
-  else if (mode === 'both') transform = 'scale(-1, -1)'
-  const b = (webcamFilterBrightness.value / 100).toFixed(2)
-  const c = (webcamFilterContrast.value / 100).toFixed(2)
-  const s = (webcamFilterSaturate.value / 100).toFixed(2)
-  const g = webcamFilterGrayscale.value ? 1 : 0
-  const filter = `brightness(${b}) contrast(${c}) saturate(${s}) grayscale(${g})`
-  return { transform: transform || undefined, filter }
-})
-
-function getWebcamCaptureFilter() {
-  const b = (webcamFilterBrightness.value / 100).toFixed(2)
-  const c = (webcamFilterContrast.value / 100).toFixed(2)
-  const s = (webcamFilterSaturate.value / 100).toFixed(2)
-  const g = webcamFilterGrayscale.value ? 1 : 0
-  return `brightness(${b}) contrast(${c}) saturate(${s}) grayscale(${g})`
-}
-
-function onWebcamToggle(on) {
-  if (on) startWebcam()
-  else stopWebcam()
-}
-
-function onResolutionChange() {
-  if (webcamStream.value) {
-    stopWebcam()
-    nextTick(() => startWebcam())
-  }
-}
-
-async function startWebcam() {
-  stopWebcam()
-  webcamError.value = ''
-  const [w, h] = (webcamResolution.value || '640x480').split('x').map(Number)
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: w }, height: { ideal: h } },
-    })
-    webcamStream.value = stream
-    await nextTick()
-    if (webcamVideoRef.value) {
-      webcamVideoRef.value.srcObject = stream
-    }
-  } catch (err) {
-    webcamError.value = err.message || '웹캠을 사용할 수 없습니다.'
-    webcamStream.value = null
-  }
-}
-
-function stopWebcam() {
-  const stream = webcamStream.value
-  if (stream) {
-    stream.getTracks().forEach((t) => t.stop())
-    webcamStream.value = null
-  }
-  if (webcamVideoRef.value) {
-    webcamVideoRef.value.srcObject = null
-  }
-}
-
-function captureAndSend() {
-  const video = webcamVideoRef.value
-  if (!video || !webcamStream.value || video.readyState < 2) return
-  const canvas = document.createElement('canvas')
-  canvas.width = video.videoWidth
-  canvas.height = video.videoHeight
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-  const mode = webcamFlipMode.value
-  const flipH = mode === 'horizontal' || mode === 'both'
-  const flipV = mode === 'vertical' || mode === 'both'
-  if (flipH || flipV) {
-    ctx.translate(flipH ? canvas.width : 0, flipV ? canvas.height : 0)
-    ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1)
-  }
-  ctx.filter = getWebcamCaptureFilter()
-  ctx.drawImage(video, 0, 0)
-  const dataUrl = canvas.toDataURL('image/png')
-  pendingWebcamCapture.value = dataUrl
-}
-
 const CAPABILITY_ICONS = {
   completion: { icon: 'chat_bubble', title: '채팅' },
   vision: { icon: 'image', title: '이미지 지원' },
@@ -358,10 +176,6 @@ function scheduleConnectionCheck() {
 onMounted(() => {
   loadModels()
   checkConnection()
-})
-
-onBeforeUnmount(() => {
-  stopWebcam()
 })
 
 async function loadModels() {
@@ -462,69 +276,6 @@ async function checkConnection() {
   .model-capability-icons {
     flex-shrink: 0;
   }
-
-  // deep 사용 이유: Quasar q-toggle 내부 라벨에 경고색 적용
-  .webcam-toggle-wrap.webcam-on :deep(.q-toggle__label) {
-    color: var(--nexa-warning);
-  }
-
-  .webcam-section {
-    .webcam-buttons {
-      min-height: 36px;
-    }
-
-    .webcam-video-wrap {
-      position: relative;
-      background: #111;
-      border-radius: 8px;
-      overflow: hidden;
-      aspect-ratio: 4/3;
-
-      .webcam-placeholder {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.4);
-        padding: 16px;
-      }
-    }
-
-    .webcam-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .webcam-error {
-      position: absolute;
-      bottom: 8px;
-      left: 8px;
-      right: 8px;
-    }
-  }
 }
 </style>
 
-<!-- 다이얼로그는 body로 teleport되어 scoped 미적용 → 전역 스타일 필요 -->
-<style lang="scss">
-.webcam-settings-dialog .webcam-settings-card {
-  min-width: 320px;
-
-  .webcam-modal-title {
-    font-size: 2rem;
-    font-weight: 900;
-    letter-spacing: -1px;
-    color: var(--nexa-text-primary);
-  }
-
-  .webcam-modal-subtitle {
-    font-size: 0.75rem;
-    color: var(--nexa-text-primary);
-    margin-bottom: 10px;
-  }
-}
-</style>

@@ -219,6 +219,38 @@
                 <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
               </div>
             </q-expansion-item>
+            <q-expansion-item @hide="onWebcamHide">
+              <template #header>
+                <q-item-section avatar>
+                  <q-icon name="videocam" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>웹캠</q-item-label>
+                </q-item-section>
+                <q-item-section side @click.stop class="webcam-toggle-wrap" :class="{ 'webcam-on': webcamOn }">
+                  <q-toggle dense :model-value="webcamOn" :label="webcamOn ? '켜짐' : '꺼짐'" @update:model-value="onWebcamToggle" />
+                </q-item-section>
+              </template>
+              <div class="ai-accordion-content">
+                <WebcamViewer
+                  ref="webcamRef"
+                  :flip-mode="webcamFlipMode"
+                  :resolution="webcamResolution"
+                  :brightness="webcamFilterBrightness"
+                  :contrast="webcamFilterContrast"
+                  :saturate="webcamFilterSaturate"
+                  :grayscale="webcamFilterGrayscale"
+                  :show-capture-button="supportsVision"
+                  @update:flip-mode="webcamFlipMode = $event"
+                  @update:resolution="webcamResolution = $event"
+                  @update:brightness="webcamFilterBrightness = $event"
+                  @update:contrast="webcamFilterContrast = $event"
+                  @update:saturate="webcamFilterSaturate = $event"
+                  @update:grayscale="webcamFilterGrayscale = $event"
+                  @capture="onWebcamCapture"
+                />
+              </div>
+            </q-expansion-item>
           </div>
         </div>
       </q-tab-panel>
@@ -274,7 +306,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
+import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
 import { useAiChannels } from '../../composables/useAiChannels.js'
+import { useAiSettings } from '../../composables/useAiSettings.js'
 
 const {
   channels,
@@ -301,7 +335,22 @@ const {
   startNewChat,
 } = useAiChannels()
 
+const {
+  pendingWebcamCapture,
+  webcamFlipMode,
+  webcamResolution,
+  webcamFilterBrightness,
+  webcamFilterContrast,
+  webcamFilterSaturate,
+  webcamFilterGrayscale,
+  selectedModelCapabilities,
+} = useAiSettings()
+
+const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
+
 const leftMainTab = ref('chat')
+const webcamOn = ref(false)
+const webcamRef = ref(null)
 const showAddChannel = ref(false)
 const showEditDialog = ref(false)
 const editTarget = ref({ type: null, channelId: null, chatId: null })
@@ -403,6 +452,24 @@ function doEditSave() {
   }
   showEditDialog.value = false
 }
+
+function onWebcamToggle(on) {
+  webcamOn.value = on
+  if (on) {
+    webcamRef.value?.start()
+  } else {
+    webcamRef.value?.stop()
+  }
+}
+
+function onWebcamHide() {
+  webcamOn.value = false
+  webcamRef.value?.stop()
+}
+
+function onWebcamCapture(dataUrl) {
+  pendingWebcamCapture.value = dataUrl
+}
 </script>
 
 <style lang="scss" scoped>
@@ -493,6 +560,10 @@ function doEditSave() {
     .toolbar-actions {
       flex-shrink: 0;
     }
+  }
+
+  .webcam-toggle-wrap.webcam-on :deep(.q-toggle__label) {
+    color: var(--nexa-warning);
   }
 }
 </style>
