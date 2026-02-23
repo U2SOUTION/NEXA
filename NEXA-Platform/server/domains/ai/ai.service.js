@@ -14,9 +14,10 @@ export async function listModels(url) {
   return res.json()
 }
 
-export async function chat(messages, model, url) {
+export async function chat(messages, model, url, systemInstruction) {
   const base = getBaseUrl(url)
-  const body = { model: model || undefined, messages, stream: false }
+  const finalMessages = [...(systemInstruction?.trim() ? [{ role: 'system', content: systemInstruction.trim() }] : []), ...messages]
+  const body = { model: model || undefined, messages: finalMessages, stream: false }
   const res = await fetch(`${base}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

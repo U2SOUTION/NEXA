@@ -5,17 +5,19 @@ const STORAGE_KEY = 'nexa-ai-channels'
 function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { channels: [] }
+    if (!raw) return { channels: [], systemInstruction: '' }
     const data = JSON.parse(raw)
-    return Array.isArray(data.channels) ? data : { channels: [] }
+    const channelsData = Array.isArray(data.channels) ? data.channels : []
+    return { channels: channelsData, systemInstruction: data.systemInstruction ?? '' }
   } catch {
-    return { channels: [] }
+    return { channels: [], systemInstruction: '' }
   }
 }
 
 function saveToStorage(data) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ channels: data }))
+    const payload = { channels: data, systemInstruction: systemInstructionRef.value }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
   } catch (e) {
     console.error('[useAiChannels] 저장 실패:', e)
   }
@@ -26,10 +28,12 @@ function genId() {
 }
 
 const channels = ref([])
+const systemInstructionRef = ref('')
 
 function init() {
-  const { channels: saved } = loadFromStorage()
+  const { channels: saved, systemInstruction } = loadFromStorage()
   channels.value = saved.length ? saved : [{ id: genId(), name: '기본체널', chats: [] }]
+  systemInstructionRef.value = systemInstruction || ''
 }
 
 function addChannel(name) {
@@ -69,7 +73,7 @@ function moveChannelDown(channelId) {
   if (idx < 0 || idx >= channels.value.length - 1) return
   const arr = [...channels.value]
   ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
-  channels.value = arr
+  channels.value = arr``
   saveToStorage(channels.value)
 }
 
@@ -114,6 +118,28 @@ function updateChatTitle(channelId, chatId, title) {
   }
 }
 
+function updateSystemInstruction(text) {
+  systemInstructionRef.value = text ?? ''
+  saveToStorage(channels.value)
+}
+
+function updateChannelInstruction(channelId, text) {
+  const ch = channels.value.find((c) => c.id === channelId)
+  if (ch) {
+    ch.instruction = text ?? ''
+    saveToStorage(channels.value)
+  }
+}
+
+function updateChatInstruction(channelId, chatId, text) {
+  const ch = channels.value.find((c) => c.id === channelId)
+  const chat = ch?.chats?.find((c) => c.id === chatId)
+  if (chat) {
+    chat.instruction = text ?? ''
+    saveToStorage(channels.value)
+  }
+}
+
 function updateChatMessages(channelId, chatId, messages) {
   const ch = channels.value.find((c) => c.id === channelId)
   const chat = ch?.chats?.find((c) => c.id === chatId)
@@ -143,6 +169,11 @@ const selectedChat = computed(() => {
   const ch = selectedChannel.value
   return ch?.chats?.find((c) => c.id === selectedChatId.value)
 })
+
+function getEffectiveInstruction() {
+  const parts = [systemInstructionRef.value?.trim(), selectedChannel.value?.instruction?.trim(), selectedChat.value?.instruction?.trim()].filter(Boolean)
+  return parts.join('\n\n')
+}
 
 function selectChannel(id) {
   selectedChannelId.value = id
@@ -175,7 +206,7 @@ const searchResults = computed(() => {
       if (matchingChats.length > 0) includeChannel = true
     }
     if (includeChannel) {
-      const chatsToShow = target === 'channel' ? (ch.chats || []) : matchingChats
+      const chatsToShow = target === 'channel' ? ch.chats || [] : matchingChats
       grouped.push({ channel: ch, chats: chatsToShow })
     }
   }
@@ -190,6 +221,11 @@ export function useAiChannels() {
     selectedChatId,
     selectedChannel,
     selectedChat,
+    systemInstruction: systemInstructionRef,
+    getEffectiveInstruction,
+    updateSystemInstruction,
+    updateChannelInstruction,
+    updateChatInstruction,
     searchQuery,
     searchTarget,
     searchResults,

@@ -7,11 +7,11 @@ export const aiApi = {
     return res.json()
   },
 
-  async chat(messages, model) {
+  async chat(messages, model, systemInstruction) {
     const res = await fetch(`${getApiBaseUrl()}/ai/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages, model }),
+      body: JSON.stringify({ messages, model, systemInstruction: systemInstruction || undefined }),
     })
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))

@@ -61,6 +61,7 @@ const {
   selectedChannelId,
   selectedChatId,
   selectedChat,
+  getEffectiveInstruction,
   addChat,
   updateChatTitle,
   updateChatMessages,
@@ -116,7 +117,8 @@ async function sendMessage() {
   isLoading.value = true
 
   try {
-    const response = await aiApi.chat(messages.value, selectedModel.value)
+    const instruction = getEffectiveInstruction()
+    const response = await aiApi.chat(messages.value, selectedModel.value, instruction || undefined)
     const content = response?.message?.content ?? response?.response ?? ''
     messages.value.push({ role: 'assistant', content })
     updateChatMessages(channelId, chatId, messages.value)

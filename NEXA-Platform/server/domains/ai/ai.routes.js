@@ -14,11 +14,11 @@ router.get('/ai/models', async (req, res) => {
 
 router.post('/ai/chat', async (req, res) => {
   try {
-    const { messages, model } = req.body
+    const { messages, model, systemInstruction } = req.body
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'messages 배열이 필요합니다.' })
     }
-    const data = await chat(messages, model)
+    const data = await chat(messages, model, undefined, systemInstruction)
     res.json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })
