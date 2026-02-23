@@ -135,6 +135,8 @@ function deleteChat(channelId, chatId) {
 
 const selectedChannelId = ref(null)
 const selectedChatId = ref(null)
+const searchQuery = ref('')
+const searchTarget = ref('both')
 
 const selectedChannel = computed(() => channels.value.find((c) => c.id === selectedChannelId.value))
 const selectedChat = computed(() => {
@@ -155,6 +157,31 @@ function startNewChat() {
   selectedChatId.value = null
 }
 
+const showSearchResults = computed(() => (searchQuery.value || '').trim().length > 0)
+
+const searchResults = computed(() => {
+  const q = (searchQuery.value || '').trim().toLowerCase()
+  if (!q) return []
+  const target = searchTarget.value || 'both'
+  const grouped = []
+  for (const ch of channels.value) {
+    let includeChannel = false
+    let matchingChats = []
+    if (target === 'channel' || target === 'both') {
+      if ((ch.name || '').toLowerCase().includes(q)) includeChannel = true
+    }
+    if (target === 'chat' || target === 'both') {
+      matchingChats = (ch.chats || []).filter((chat) => (chat.title || '').toLowerCase().includes(q))
+      if (matchingChats.length > 0) includeChannel = true
+    }
+    if (includeChannel) {
+      const chatsToShow = target === 'channel' ? (ch.chats || []) : matchingChats
+      grouped.push({ channel: ch, chats: chatsToShow })
+    }
+  }
+  return grouped
+})
+
 export function useAiChannels() {
   if (channels.value.length === 0) init()
   return {
@@ -163,6 +190,10 @@ export function useAiChannels() {
     selectedChatId,
     selectedChannel,
     selectedChat,
+    searchQuery,
+    searchTarget,
+    searchResults,
+    showSearchResults,
     init,
     addChannel,
     deleteChannel,
