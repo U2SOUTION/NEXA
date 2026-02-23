@@ -26,6 +26,13 @@ const chatInputMaxRows = ref(Math.max(2, Math.min(20, saved.chatInputMaxRows ?? 
 const chatFontSize = ref(Math.max(12, Math.min(24, saved.chatFontSize ?? 16)))
 const chatMessageMaxLength = ref(Math.max(0, Math.min(10000, saved.chatMessageMaxLength ?? 0)))
 const modelCapabilities = ref({})
+const pendingWebcamCapture = ref(null)
+const webcamFlipMode = ref(saved.webcamFlipMode ?? 'none')
+const webcamResolution = ref(saved.webcamResolution ?? '640x480')
+const webcamFilterBrightness = ref(Math.max(0, Math.min(200, saved.webcamFilterBrightness ?? 100)))
+const webcamFilterContrast = ref(Math.max(0, Math.min(200, saved.webcamFilterContrast ?? 100)))
+const webcamFilterSaturate = ref(Math.max(0, Math.min(200, saved.webcamFilterSaturate ?? 100)))
+const webcamFilterGrayscale = ref(saved.webcamFilterGrayscale ?? false)
 
 const selectedModelCapabilities = computed(() => {
   const name = selectedModel.value
@@ -37,13 +44,19 @@ function setModelCapabilities(capabilitiesMap) {
 }
 
 watch(
-  [selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength],
+  [selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale],
   () => {
     saveSettings({
       selectedModel: selectedModel.value,
       chatInputMaxRows: chatInputMaxRows.value,
       chatFontSize: chatFontSize.value,
       chatMessageMaxLength: chatMessageMaxLength.value,
+      webcamFlipMode: webcamFlipMode.value,
+      webcamResolution: webcamResolution.value,
+      webcamFilterBrightness: webcamFilterBrightness.value,
+      webcamFilterContrast: webcamFilterContrast.value,
+      webcamFilterSaturate: webcamFilterSaturate.value,
+      webcamFilterGrayscale: webcamFilterGrayscale.value,
     })
   },
   { deep: true }
@@ -58,5 +71,12 @@ export function useAiSettings() {
     modelCapabilities,
     selectedModelCapabilities,
     setModelCapabilities,
+    pendingWebcamCapture,
+    webcamFlipMode,
+    webcamResolution,
+    webcamFilterBrightness,
+    webcamFilterContrast,
+    webcamFilterSaturate,
+    webcamFilterGrayscale,
   }
 }

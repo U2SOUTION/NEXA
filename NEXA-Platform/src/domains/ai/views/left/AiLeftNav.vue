@@ -1,7 +1,15 @@
 <template>
-  <div class="ai-left-nav">
+  <div class="ai-left-nav column">
     <StandardLeftHeader title="NEXA AI" subtitle="Channel & Chat Management" />
 
+    <q-tabs v-model="leftMainTab" dense class="left-main-tabs" active-color="primary" indicator-color="primary" align="left">
+      <q-tab name="chat" label="채팅" icon="chat" />
+      <q-tab name="note" label="노트" icon="sticky_note_2" />
+      <q-tab name="media" label="미디어" icon="photo_library" />
+    </q-tabs>
+
+    <q-tab-panels v-model="leftMainTab" animated class="col left-main-panels">
+      <q-tab-panel name="chat" class="q-pa-none left-panel-inner">
     <!-- 검색 폼 -->
     <div class="search-form q-pa-sm q-mx-sm q-mb-xs">
       <q-input
@@ -174,6 +182,47 @@
         </transition-group>
       </q-list>
     </div>
+      </q-tab-panel>
+
+      <q-tab-panel name="note" class="q-pa-none left-panel-inner">
+        <div class="panel-scroll-area">
+          <div class="ai-panel-padding">
+            <q-expansion-item icon="sticky_note_2" label="메모" :default-opened="true">
+              <div class="ai-accordion-content">
+                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+              </div>
+            </q-expansion-item>
+            <q-expansion-item icon="description" label="문서">
+              <div class="ai-accordion-content">
+                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+              </div>
+            </q-expansion-item>
+          </div>
+        </div>
+      </q-tab-panel>
+
+      <q-tab-panel name="media" class="q-pa-none left-panel-inner">
+        <div class="panel-scroll-area">
+          <div class="ai-panel-padding">
+            <q-expansion-item icon="photo_library" label="갤러리" :default-opened="true">
+              <div class="ai-accordion-content">
+                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+              </div>
+            </q-expansion-item>
+            <q-expansion-item icon="music_note" label="사운드">
+              <div class="ai-accordion-content">
+                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+              </div>
+            </q-expansion-item>
+            <q-expansion-item icon="videocam" label="영상">
+              <div class="ai-accordion-content">
+                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+              </div>
+            </q-expansion-item>
+          </div>
+        </div>
+      </q-tab-panel>
+    </q-tab-panels>
 
     <!-- 새 채널 다이얼로그 -->
     <q-dialog v-model="showAddChannel" persistent>
@@ -252,6 +301,7 @@ const {
   startNewChat,
 } = useAiChannels()
 
+const leftMainTab = ref('chat')
 const showAddChannel = ref(false)
 const showEditDialog = ref(false)
 const editTarget = ref({ type: null, channelId: null, chatId: null })
@@ -358,8 +408,41 @@ function doEditSave() {
 <style lang="scss" scoped>
 .ai-left-nav {
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
+  .left-main-tabs {
+    flex-shrink: 0;
+  }
+
+  .left-main-panels {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .left-panel-inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ai-panel-padding {
+    padding: 6px;
+  }
+
+  .ai-accordion-content {
+    padding: 4px;
+  }
+
+  .ai-placeholder {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   .panel-scroll-area {
     flex: 1;
