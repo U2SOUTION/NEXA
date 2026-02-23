@@ -1,10 +1,6 @@
 <template>
   <div class="ai-right-panel">
-    <StandardRightHeader
-      title="설정"
-      subtitle="Ollama, 모델, Instruction 설정"
-      push-icon="menu_open"
-    />
+    <StandardRightHeader title="설정" subtitle="Ollama, 모델, Instruction 설정" push-icon="menu_open" />
     <div class="panel-scroll-area">
       <div class="q-pa-md">
         <q-expansion-item default-opened>
@@ -20,33 +16,13 @@
             </q-item-section>
           </template>
           <div class="q-pa-sm">
-            <q-input
-              v-model="ollamaBaseUrl"
-              outlined
-              dense
-              label="Ollama URL"
-              @update:model-value="scheduleConnectionCheck"
-            />
+            <q-input v-model="ollamaBaseUrl" outlined dense label="Ollama URL" @update:model-value="scheduleConnectionCheck" />
           </div>
         </q-expansion-item>
 
         <q-expansion-item icon="psychology" label="모델" default-opened>
           <div class="q-pa-sm">
-            <q-select
-              v-model="selectedModel"
-              :options="models"
-              label="모델 선택"
-              outlined
-              dense
-              use-input
-              input-debounce="300"
-              option-value="name"
-              option-label="name"
-              emit-value
-              map-options
-              :loading="isLoadingModels"
-              @focus="loadModels"
-            />
+            <q-select v-model="selectedModel" :options="models" label="모델 선택" outlined dense use-input input-debounce="300" option-value="name" option-label="name" emit-value map-options :loading="isLoadingModels" @focus="loadModels" />
           </div>
         </q-expansion-item>
 
@@ -54,39 +30,41 @@
           <div class="instruction-section q-pa-sm">
             <div class="instruction-block q-mb-md">
               <div class="text-caption text-grey-7 text-uppercase q-mb-xs">System</div>
-              <q-input
-                :model-value="systemInstruction"
-                outlined
-                dense
-                type="textarea"
-                placeholder="Platform-wide default instruction"
-                rows="2"
-                @update:model-value="updateSystemInstruction"
-              />
+              <q-input :model-value="systemInstruction" outlined dense type="textarea" placeholder="시스템의 전역 지침서를 입력 하세요" rows="2" @update:model-value="updateSystemInstruction" />
             </div>
             <div v-if="selectedChannel" class="instruction-block q-mb-md">
               <div class="text-caption text-grey-7 text-uppercase q-mb-xs">Channel</div>
-              <q-input
-                :model-value="selectedChannel.instruction ?? ''"
-                outlined
-                dense
-                type="textarea"
-                :placeholder="`Channel instruction: ${selectedChannel.name}`"
-                rows="2"
-                @update:model-value="(v) => updateChannelInstruction(selectedChannel.id, v)"
-              />
+              <q-input :model-value="selectedChannel.instruction ?? ''" outlined dense type="textarea" placeholder="이 채널에 적용되는 지침서를 입력 하세요" rows="2" @update:model-value="(v) => updateChannelInstruction(selectedChannel.id, v)" />
             </div>
             <div v-if="selectedChat" class="instruction-block">
               <div class="text-caption text-grey-7 text-uppercase q-mb-xs">Chat</div>
-              <q-input
-                :model-value="selectedChat.instruction ?? ''"
-                outlined
-                dense
-                type="textarea"
-                :placeholder="`Chat instruction: ${selectedChat.title}`"
-                rows="2"
-                @update:model-value="(v) => updateChatInstruction(selectedChannelId, selectedChat.id, v)"
-              />
+              <q-input :model-value="selectedChat.instruction ?? ''" outlined dense type="textarea" placeholder="이 대화에만 적용되는 지침서를 입력 하세요" rows="2" @update:model-value="(v) => updateChatInstruction(selectedChannelId, selectedChat.id, v)" />
+            </div>
+          </div>
+        </q-expansion-item>
+
+        <q-expansion-item icon="chat" label="채팅" default-opened>
+          <div class="chat-settings q-pa-sm">
+            <div class="chat-setting-row q-mb-md">
+              <div class="text-caption text-grey-7 q-mb-xs">입력창 최대 줄 수</div>
+              <div class="row items-center no-wrap q-gutter-sm">
+                <q-slider v-model="chatInputMaxRows" :min="2" :max="20" :step="1" class="col" />
+                <span class="text-caption text-grey-7" style="min-width: 2em">{{ chatInputMaxRows }}</span>
+              </div>
+            </div>
+            <div class="chat-setting-row q-mb-md">
+              <div class="text-caption text-grey-7 q-mb-xs">메시지 폰트 크기 (px)</div>
+              <div class="row items-center no-wrap q-gutter-sm">
+                <q-slider v-model="chatFontSize" :min="12" :max="24" :step="1" class="col" />
+                <span class="text-caption text-grey-7" style="min-width: 2.5em">{{ chatFontSize }}px</span>
+              </div>
+            </div>
+            <div class="chat-setting-row">
+              <div class="text-caption text-grey-7 q-mb-xs">메시지 최대 길이 (0=제한없음)</div>
+              <div class="row items-center no-wrap q-gutter-sm">
+                <q-slider v-model="chatMessageMaxLength" :min="0" :max="10000" :step="500" class="col" />
+                <span class="text-caption text-grey-7" style="min-width: 3.5em">{{ chatMessageMaxLength === 0 ? '없음' : chatMessageMaxLength.toLocaleString() }}</span>
+              </div>
             </div>
           </div>
         </q-expansion-item>
@@ -102,16 +80,8 @@ import { aiApi } from '../../services/aiApi.js'
 import { useAiSettings } from '../../composables/useAiSettings.js'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 
-const { selectedModel } = useAiSettings()
-const {
-  selectedChannel,
-  selectedChat,
-  selectedChannelId,
-  systemInstruction,
-  updateSystemInstruction,
-  updateChannelInstruction,
-  updateChatInstruction,
-} = useAiChannels()
+const { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength } = useAiSettings()
+const { selectedChannel, selectedChat, selectedChannelId, systemInstruction, updateSystemInstruction, updateChannelInstruction, updateChatInstruction } = useAiChannels()
 const ollamaBaseUrl = ref('http://192.168.0.15:11434')
 const models = ref([])
 const isLoadingModels = ref(false)
@@ -139,7 +109,6 @@ onMounted(() => {
   loadModels()
   checkConnection()
 })
-
 
 async function loadModels() {
   if (models.value.length > 0) return
@@ -180,6 +149,10 @@ async function checkConnection() {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
+  }
+
+  .chat-settings {
+    padding-left: 15px;
   }
 }
 </style>

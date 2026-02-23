@@ -23,7 +23,7 @@
   }
 
   .q-item {
-    font-size: 0.975rem;
+    font-size: 0.86rem;
     font-weight: 500;
     border-bottom: 1px solid var(--nexa-border-color-darker) !important; // 하단 구분선만 유지
     background-color: var(--nexa-accordion-header-bg);
@@ -76,7 +76,7 @@
     // 아코디언 헤더 내부의 캡션(서브 타이틀) 스타일
     .text-caption {
       color: var(--nexa-text-primary-focus);
-      font-size: 0.75rem;
+      font-size: 0.5625rem;
       letter-spacing: 0.2px;
       line-height: 1;
       opacity: 0.8;
@@ -84,8 +84,24 @@
   }
 
   .q-expansion-item__content {
+    font-size: 0.75rem;
     background-color: var(--nexa-accordion-content-bg);
     border-radius: 0;
+
+    // 폼 내부 요소에 폰트 적용 (Quasar q-field 구조)
+    .q-field,
+    .q-field__label,
+    .q-field__native,
+    .q-field__input,
+    input,
+    textarea,
+    .q-slider {
+      font-size: 0.75rem;
+      color: var(--nexa-text-primary);
+    }
+    .text-caption {
+      font-size: 0.6875rem;
+    }
   }
 
   // 접혀있을 때는 전체 라운드

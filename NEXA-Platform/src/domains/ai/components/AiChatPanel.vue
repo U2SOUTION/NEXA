@@ -15,7 +15,7 @@
             <div class="text-body2">메시지를 입력하고 전송하세요. 첫 질문이 대화 제목으로 사용됩니다.</div>
           </div>
         </template>
-        <div v-else class="q-pa-md">
+        <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
           <div
             v-for="(msg, idx) in messages"
             :key="idx"
@@ -28,10 +28,15 @@
       <div class="chat-input q-pa-md">
         <q-input
           v-model="inputText"
+          type="textarea"
           outlined
           dense
-          placeholder="메시지 입력..."
-          @keydown.enter.prevent="sendMessage"
+          autogrow
+          :rows="1"
+          placeholder="메시지 입력... (Enter 전송, Shift+Enter 새 줄)"
+          class="chat-textarea"
+          :style="{ '--chat-max-rows': Math.min(20, Math.max(2, chatInputMaxRows ?? 8)) }"
+          @keydown.enter.exact.prevent="sendMessage"
         >
           <template #append>
             <q-btn
@@ -52,11 +57,12 @@
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
+import { Notify } from 'quasar'
 import { aiApi } from '../services/aiApi.js'
 import { useAiSettings } from '../composables/useAiSettings.js'
 import { useAiChannels } from '../composables/useAiChannels.js'
 
-const { selectedModel } = useAiSettings()
+const { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength } = useAiSettings()
 const {
   selectedChannelId,
   selectedChatId,
@@ -93,6 +99,12 @@ watch(
 async function sendMessage() {
   const text = inputText.value?.trim()
   if (!text || isLoading.value) return
+
+  const maxLen = chatMessageMaxLength.value
+  if (maxLen > 0 && text.length > maxLen) {
+    Notify.create({ type: 'warning', message: `메시지가 최대 길이를 초과했습니다 (최대 ${maxLen.toLocaleString()}자)` })
+    return
+  }
 
   let channelId = selectedChannelId.value
   let chatId = selectedChatId.value
@@ -171,6 +183,10 @@ async function sendMessage() {
     }
   }
 
+  .chat-messages-inner .message-bubble {
+    font-size: var(--chat-font-size, 16px);
+  }
+
   .message-bubble {
     max-width: 80%;
     padding: 10px 14px;
@@ -179,6 +195,15 @@ async function sendMessage() {
 
   .empty-state {
     padding-top: 80px;
+  }
+
+  .chat-textarea {
+    --line-height: 24px;
+
+    // deep 사용 이유: Quasar textarea 내부 요소에 max-height 적용
+    :deep(textarea) {
+      max-height: calc(var(--line-height) * var(--chat-max-rows, 8));
+    }
   }
 }
 </style>
