@@ -172,8 +172,11 @@ const selectedChat = computed(() => {
   return ch?.chats?.find((c) => c.id === selectedChatId.value)
 })
 
+/** 채팅 답변 형식 규칙: HTML 대신 마크다운만 사용 */
+const MARKDOWN_ONLY_RULE = `답변 형식: 마크다운 문법만 사용하세요. HTML 태그(<hr>, <h2>, <div>, <table> 등)는 사용하지 마세요. 제목은 ##, 수평선은 ---, 표는 | 열 | 형식으로 작성하세요.`
+
 function getEffectiveInstruction() {
-  const parts = [systemInstructionRef.value?.trim(), selectedChannel.value?.instruction?.trim(), selectedChat.value?.instruction?.trim()].filter(Boolean)
+  const parts = [MARKDOWN_ONLY_RULE, systemInstructionRef.value?.trim(), selectedChannel.value?.instruction?.trim(), selectedChat.value?.instruction?.trim()].filter(Boolean)
   return parts.join('\n\n')
 }
 

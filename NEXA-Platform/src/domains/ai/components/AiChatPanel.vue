@@ -382,6 +382,29 @@ async function sendMessage() {
       p:last-child {
         margin-bottom: 0;
       }
+
+      /* marked 출력 테이블 기본 스타일 */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.5em 0;
+
+        th,
+        td {
+          padding: 6px 10px;
+          border: 1px solid var(--nexa-border-color);
+          text-align: left;
+        }
+
+        th {
+          background: var(--nexa-surface);
+          font-weight: 600;
+        }
+
+        tr:nth-child(even) td {
+          background: color-mix(in srgb, var(--nexa-surface) 80%, transparent);
+        }
+      }
     }
   }
 

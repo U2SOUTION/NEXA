@@ -102,6 +102,7 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
 
   // Windows 줄바꿈(\r\n) 처리: \r 제거
   const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+
   const lines = normalizedContent.split('\n')
   const processedLines = new Array(lines.length)
 
@@ -545,13 +546,13 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
   }
 
   html = addBlockMarker(/<div class="checkbox-item[^>]*>[\s\S]*?<\/div>/g, html)
-  html = addBlockMarker(/<hr>/g, html)
-  html = addBlockMarker(/<ul>[\s\S]*?<\/ul>/g, html)
-  html = addBlockMarker(/<ol>[\s\S]*?<\/ol>/g, html)
+  html = addBlockMarker(/<hr\s*\/?>/gi, html)
+  html = addBlockMarker(/<ul>[\s\S]*?<\/ul>/gi, html)
+  html = addBlockMarker(/<ol>[\s\S]*?<\/ol>/gi, html)
   html = addBlockMarker(/<pre class="code-block[^>]*>[\s\S]*?<\/pre>/g, html)
   html = addBlockMarker(/<div class="mermaid-block[^>]*>[\s\S]*?<\/div>/g, html)
-  html = addBlockMarker(/<table[^>]*>[\s\S]*?<\/table>/g, html)
-  html = addBlockMarker(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/g, html)
+  html = addBlockMarker(/<table[^>]*>[\s\S]*?<\/table>/gi, html)
+  html = addBlockMarker(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, html)
 
   // 단락 처리
   html = html.replace(/\n\n+/g, '</p><p class="q-mb-md">')
