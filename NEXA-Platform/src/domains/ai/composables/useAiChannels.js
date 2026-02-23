@@ -47,6 +47,54 @@ function deleteChannel(channelId) {
   }
 }
 
+function updateChannelName(channelId, name) {
+  const ch = channels.value.find((c) => c.id === channelId)
+  if (ch && name?.trim()) {
+    ch.name = name.trim()
+    saveToStorage(channels.value)
+  }
+}
+
+function moveChannelUp(channelId) {
+  const idx = channels.value.findIndex((c) => c.id === channelId)
+  if (idx <= 0) return
+  const arr = [...channels.value]
+  ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
+  channels.value = arr
+  saveToStorage(channels.value)
+}
+
+function moveChannelDown(channelId) {
+  const idx = channels.value.findIndex((c) => c.id === channelId)
+  if (idx < 0 || idx >= channels.value.length - 1) return
+  const arr = [...channels.value]
+  ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
+  channels.value = arr
+  saveToStorage(channels.value)
+}
+
+function moveChatUp(channelId, chatId) {
+  const ch = channels.value.find((c) => c.id === channelId)
+  if (!ch?.chats?.length) return
+  const idx = ch.chats.findIndex((c) => c.id === chatId)
+  if (idx <= 0) return
+  const arr = [...ch.chats]
+  ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
+  ch.chats = arr
+  saveToStorage(channels.value)
+}
+
+function moveChatDown(channelId, chatId) {
+  const ch = channels.value.find((c) => c.id === channelId)
+  if (!ch?.chats?.length) return
+  const idx = ch.chats.findIndex((c) => c.id === chatId)
+  if (idx < 0 || idx >= ch.chats.length - 1) return
+  const arr = [...ch.chats]
+  ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
+  ch.chats = arr
+  saveToStorage(channels.value)
+}
+
 function addChat(channelId, title) {
   const ch = channels.value.find((c) => c.id === channelId)
   if (!ch) return null
@@ -118,6 +166,11 @@ export function useAiChannels() {
     init,
     addChannel,
     deleteChannel,
+    updateChannelName,
+    moveChannelUp,
+    moveChannelDown,
+    moveChatUp,
+    moveChatDown,
     addChat,
     updateChatTitle,
     updateChatMessages,
