@@ -7,6 +7,19 @@ export const aiApi = {
     return res.json()
   },
 
+  async getModelShow(modelName) {
+    const res = await fetch(`${getApiBaseUrl()}/ai/model-show`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: modelName }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || err.message || '모델 정보 조회 실패')
+    }
+    return res.json()
+  },
+
   async chat(messages, model, systemInstruction) {
     const res = await fetch(`${getApiBaseUrl()}/ai/chat`, {
       method: 'POST',

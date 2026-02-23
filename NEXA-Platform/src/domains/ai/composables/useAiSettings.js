@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const SETTINGS_KEY = 'nexa-ai-settings'
 
@@ -25,6 +25,16 @@ const selectedModel = ref(saved.selectedModel ?? '')
 const chatInputMaxRows = ref(Math.max(2, Math.min(20, saved.chatInputMaxRows ?? 8)))
 const chatFontSize = ref(Math.max(12, Math.min(24, saved.chatFontSize ?? 16)))
 const chatMessageMaxLength = ref(Math.max(0, Math.min(10000, saved.chatMessageMaxLength ?? 0)))
+const modelCapabilities = ref({})
+
+const selectedModelCapabilities = computed(() => {
+  const name = selectedModel.value
+  return name ? (modelCapabilities.value[name] || []) : []
+})
+
+function setModelCapabilities(capabilitiesMap) {
+  modelCapabilities.value = { ...modelCapabilities.value, ...capabilitiesMap }
+}
 
 watch(
   [selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength],
@@ -40,5 +50,13 @@ watch(
 )
 
 export function useAiSettings() {
-  return { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength }
+  return {
+    selectedModel,
+    chatInputMaxRows,
+    chatFontSize,
+    chatMessageMaxLength,
+    modelCapabilities,
+    selectedModelCapabilities,
+    setModelCapabilities,
+  }
 }

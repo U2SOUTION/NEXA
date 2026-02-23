@@ -14,6 +14,19 @@ export async function listModels(url) {
   return res.json()
 }
 
+export async function showModel(modelName, url) {
+  const base = getBaseUrl(url)
+  const res = await fetch(`${base}/api/show`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: modelName }),
+  })
+  if (!res.ok) {
+    throw new Error(`Ollama 모델 정보 조회 실패: ${res.status}`)
+  }
+  return res.json()
+}
+
 export async function chat(messages, model, url, systemInstruction) {
   const base = getBaseUrl(url)
   const finalMessages = [...(systemInstruction?.trim() ? [{ role: 'system', content: systemInstruction.trim() }] : []), ...messages]

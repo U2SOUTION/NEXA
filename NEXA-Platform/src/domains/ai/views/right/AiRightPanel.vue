@@ -22,7 +22,28 @@
 
         <q-expansion-item icon="psychology" label="모델" default-opened>
           <div class="q-pa-sm">
-            <q-select v-model="selectedModel" :options="models" label="모델 선택" outlined dense use-input input-debounce="300" option-value="name" option-label="name" emit-value map-options :loading="isLoadingModels" @focus="loadModels" />
+            <q-select v-model="selectedModel" :options="models" label="모델 선택" outlined dense option-value="name" option-label="name" emit-value map-options hide-bottom-space :loading="isLoadingModels" @focus="loadModels">
+              <template #selected>
+                <span v-if="selectedModel" class="model-select-selected row items-center no-wrap">
+                  <span class="model-select-name col">{{ models.find((m) => m.name === selectedModel)?.name ?? selectedModel }}</span>
+                  <span class="model-capability-icons q-ml-xs">
+                    <q-icon v-for="item in getCapabilityIcons(selectedModel)" :key="item.icon" :name="item.icon" size="18px" class="q-mr-xs" :title="item.title" />
+                  </span>
+                </span>
+              </template>
+              <template #option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.name }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <span class="model-capability-icons">
+                      <q-icon v-for="item in getCapabilityIcons(scope.opt.name)" :key="item.icon" :name="item.icon" size="18px" class="q-mr-xs" :title="item.title" />
+                    </span>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
         </q-expansion-item>
 
@@ -80,7 +101,7 @@ import { aiApi } from '../../services/aiApi.js'
 import { useAiSettings } from '../../composables/useAiSettings.js'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 
-const { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength } = useAiSettings()
+const { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, modelCapabilities, setModelCapabilities } = useAiSettings()
 const { selectedChannel, selectedChat, selectedChannelId, systemInstruction, updateSystemInstruction, updateChannelInstruction, updateChatInstruction } = useAiChannels()
 const ollamaBaseUrl = ref('http://192.168.0.15:11434')
 const models = ref([])
@@ -100,6 +121,19 @@ const connectionStatusClass = computed(() => {
   return connectionStatus.value.ok ? 'text-positive' : 'text-negative'
 })
 
+const CAPABILITY_ICONS = {
+  completion: { icon: 'chat_bubble', title: '채팅' },
+  vision: { icon: 'image', title: '이미지 지원' },
+  audio: { icon: 'mic', title: '음성 지원' },
+}
+
+function getCapabilityIcons(modelName) {
+  const caps = modelCapabilities.value?.[modelName] ?? []
+  if (caps.length === 0) return [CAPABILITY_ICONS.completion]
+  const order = ['completion', 'vision', 'audio']
+  return order.filter((k) => caps.includes(k)).map((k) => CAPABILITY_ICONS[k])
+}
+
 function scheduleConnectionCheck() {
   if (connectionCheckTimer) clearTimeout(connectionCheckTimer)
   connectionCheckTimer = setTimeout(checkConnection, 500)
@@ -115,10 +149,23 @@ async function loadModels() {
   isLoadingModels.value = true
   try {
     const list = await aiApi.listModels()
-    models.value = list?.models ?? []
-    if (models.value.length > 0 && !selectedModel.value) {
-      selectedModel.value = models.value[0].name
+    const modelList = list?.models ?? []
+    models.value = modelList
+    if (modelList.length > 0 && !selectedModel.value) {
+      selectedModel.value = modelList[0].name
     }
+    const capsMap = {}
+    await Promise.all(
+      modelList.map(async (m) => {
+        try {
+          const info = await aiApi.getModelShow(m.name)
+          capsMap[m.name] = info?.capabilities ?? []
+        } catch {
+          capsMap[m.name] = []
+        }
+      })
+    )
+    setModelCapabilities(capsMap)
   } catch {
     models.value = []
   } finally {
@@ -153,6 +200,21 @@ async function checkConnection() {
 
   .chat-settings {
     padding-left: 15px;
+  }
+
+  .model-select-selected {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .model-select-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .model-capability-icons {
+    flex-shrink: 0;
   }
 }
 </style>

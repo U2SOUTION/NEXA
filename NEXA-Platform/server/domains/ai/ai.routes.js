@@ -1,11 +1,24 @@
 import express from 'express'
-import { listModels, chat, checkConnection } from './ai.service.js'
+import { listModels, showModel, chat, checkConnection } from './ai.service.js'
 
 const router = express.Router()
 
 router.get('/ai/models', async (req, res) => {
   try {
     const data = await listModels()
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.post('/ai/model-show', async (req, res) => {
+  try {
+    const { model } = req.body
+    if (!model || typeof model !== 'string') {
+      return res.status(400).json({ error: 'model 이름이 필요합니다.' })
+    }
+    const data = await showModel(model)
     res.json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })
