@@ -111,13 +111,15 @@ import { useContextMenu } from '@system/composables/useContextMenu.js'
 import { aiApi } from '../services/aiApi.js'
 import { useAiSettings } from '../composables/useAiSettings.js'
 import { useAiChannels } from '../composables/useAiChannels.js'
+import { useAiMemos } from '../composables/useAiMemos.js'
 
+const aiInsertContent = inject('aiInsertContent', null)
+const { addMemo } = useAiMemos()
 const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture } = useAiSettings()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
 const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat, setPendingTitleSuggestion, getPendingTitleSuggestion } = useAiChannels()
 
-const aiInsertContent = inject('aiInsertContent', null)
 const { showContextMenu, hideContextMenu, contextMenuState } = useContextMenu()
 const contextMenuVisible = computed(() => contextMenuState.visible.value)
 const contextMenuPosition = computed(() => contextMenuState.position.value)
@@ -241,6 +243,15 @@ function onMessageContextMenu(event, msg) {
         } catch {
           Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
         }
+      },
+    },
+    {
+      id: 'add-to-memo',
+      label: '메모로 추가',
+      icon: 'sticky_note_2',
+      action: () => {
+        addMemo(content, 'chat')
+        Notify.create({ message: '메모에 추가되었습니다.', icon: 'sticky_note_2' })
       },
     },
     ...(aiInsertContent

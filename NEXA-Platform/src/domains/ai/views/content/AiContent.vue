@@ -28,7 +28,9 @@
 </template>
 
 <script setup>
-import { ref, provide } from 'vue'
+import { ref, provide, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { parseMarkdown } from '@system/utils/markdown/index.js'
+import { useAiInsertRequest } from '../../composables/useAiInsertRequest.js'
 import AiChatPanel from '../../components/AiChatPanel.vue'
 import AiEditorPanel from '../../components/AiEditorPanel.vue'
 import AiImageEditorPanel from '../../components/AiImageEditorPanel.vue'
@@ -38,6 +40,23 @@ import AiVideoEditorPanel from '../../components/AiVideoEditorPanel.vue'
 const centerTab = ref('chat')
 const editorContent = ref('')
 const pendingInsertContent = ref(null)
+
+const { onInsertRequest } = useAiInsertRequest()
+let unregisterInsertRequest = null
+
+onMounted(() => {
+  unregisterInsertRequest = onInsertRequest((raw) => {
+    const html = parseMarkdown(raw, '', {})
+    centerTab.value = 'editor'
+    nextTick(() => {
+      pendingInsertContent.value = html
+    })
+  })
+})
+
+onBeforeUnmount(() => {
+  unregisterInsertRequest?.()
+})
 
 provide('aiInsertContent', {
   pendingInsertContent,

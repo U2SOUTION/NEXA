@@ -176,7 +176,21 @@
           <div class="ai-panel-padding">
             <q-expansion-item icon="sticky_note_2" label="메모" :default-opened="true">
               <div class="ai-accordion-content">
-                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+                <div v-if="memos.length === 0" class="ai-placeholder text-grey-6 text-caption">채팅에서 우클릭 → 메모로 추가</div>
+                <q-list v-else dense class="memo-list">
+                  <q-item v-for="m in memos" :key="m.id" clickable class="memo-item memo-item-clickable" @click="onMemoClick(m)">
+                    <q-item-section avatar>
+                      <q-icon name="sticky_note_2" size="18px" color="grey-6" />
+                    </q-item-section>
+                    <q-item-section class="memo-item-content">
+                      <q-item-label class="text-caption ellipsis" :title="m.content">{{ getMemoPreview(m.content) }}</q-item-label>
+                      <q-item-label caption>{{ formatMemoDate(m.createdAt) }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <q-btn flat dense round size="sm" icon="delete_outline" color="grey-6" @click.stop="removeMemo(m.id)" />
+                    </q-item-section>
+                  </q-item>
+                </q-list>
               </div>
             </q-expansion-item>
             <q-expansion-item icon="description" label="문서">
@@ -297,6 +311,24 @@ import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 import { useAiSettings } from '../../composables/useAiSettings.js'
+import { useAiMemos } from '../../composables/useAiMemos.js'
+import { useAiInsertRequest } from '../../composables/useAiInsertRequest.js'
+
+const { memos, removeMemo, getMemoPreview } = useAiMemos()
+const { requestInsert } = useAiInsertRequest()
+
+function onMemoClick(m) {
+  requestInsert(m.content)
+  Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
+}
+
+function formatMemoDate(ts) {
+  if (!ts) return ''
+  const d = new Date(ts)
+  const now = new Date()
+  const isToday = d.toDateString() === now.toDateString()
+  return isToday ? d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+}
 
 const {
   channels,
@@ -677,6 +709,14 @@ function onWebcamCapture(dataUrl) {
 
   .webcam-toggle-wrap.webcam-on :deep(.q-toggle__label) {
     color: var(--nexa-warning);
+  }
+
+  .memo-item-clickable {
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
+    }
   }
 }
 </style>
