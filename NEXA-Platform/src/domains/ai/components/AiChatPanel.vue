@@ -43,7 +43,10 @@
               <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
                 <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
               </div>
-              <span v-if="msg.content">{{ msg.content }}</span>
+              <template v-if="msg.content">
+                <div v-if="msg.role === 'assistant'" class="markdown-content chat-markdown" v-html="parseMarkdown(msg.content, '', {})"></div>
+                <span v-else>{{ msg.content }}</span>
+              </template>
             </div>
           </div>
           <div v-if="isLoading" class="message-row assistant">
@@ -62,7 +65,7 @@
           </div>
         </div>
         <input v-if="supportsVision" ref="fileInputRef" type="file" accept="image/png,image/jpeg,image/jpg" class="hidden" @change="handleFileSelect" />
-        <div class="chat-input-row row items-end no-wrap" @paste.prevent="handlePaste">
+        <div class="chat-input-row row items-end no-wrap" @paste="handlePaste">
           <q-input
             v-model="inputText"
             type="textarea"
@@ -89,6 +92,7 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { Notify } from 'quasar'
+import { parseMarkdown } from '@system/utils/markdown/index.js'
 import { aiApi } from '../services/aiApi.js'
 import { useAiSettings } from '../composables/useAiSettings.js'
 import { useAiChannels } from '../composables/useAiChannels.js'
@@ -175,13 +179,14 @@ async function handleFileSelect(ev) {
 }
 
 function handlePaste(ev) {
-  if (!supportsVision.value || attachedImages.value.length >= MAX_ATTACHED_IMAGES) return
   const items = ev?.clipboardData?.items
   if (!items?.length) return
   for (const item of items) {
     if (item.kind !== 'file' || !item.type.startsWith('image/')) continue
+    if (!supportsVision.value || attachedImages.value.length >= MAX_ATTACHED_IMAGES) return
     const file = item.getAsFile()
     if (!file || !/^(image\/png|image\/jpe?g)$/i.test(file.type)) continue
+    ev.preventDefault()
     fileToDataUrl(file)
       .then((dataUrl) => {
         if (attachedImages.value.length < MAX_ATTACHED_IMAGES) {
@@ -191,7 +196,7 @@ function handlePaste(ev) {
       .catch(() => {
         Notify.create({ type: 'negative', message: '붙여넣기 이미지 읽기 실패' })
       })
-    break
+    return
   }
 }
 
@@ -249,8 +254,15 @@ async function sendMessage() {
   const msgImages = attachedImages.value.map((img) => img.dataUrl)
   const userMsg = { role: 'user', content: text || (hasImages ? '(이미지)' : ''), images: hasImages ? msgImages : undefined }
   messages.value.push(userMsg)
+  updateChatMessages(channelId, chatId, messages.value)
   inputText.value = ''
   attachedImages.value = []
+
+  nextTick(() => {
+    if (messagesRef.value) {
+      messagesRef.value.scrollTop = messagesRef.value.scrollHeight
+    }
+  })
 
   const apiMessages = messages.value.map((m) => {
     if (m.role !== 'user' || !m.images?.length) return m
@@ -259,10 +271,16 @@ async function sendMessage() {
   })
   isLoading.value = true
 
+  let shouldScrollToBottom = true
   try {
     const instruction = getEffectiveInstruction()
     const response = await aiApi.chat(apiMessages, selectedModel.value, instruction || undefined)
     const content = response?.message?.content ?? response?.response ?? ''
+    const el = messagesRef.value
+    if (el) {
+      const threshold = 80
+      shouldScrollToBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - threshold
+    }
     messages.value.push({ role: 'assistant', content })
     updateChatMessages(channelId, chatId, messages.value)
 
@@ -283,6 +301,7 @@ async function sendMessage() {
       }
     }
   } catch (err) {
+    shouldScrollToBottom = true
     messages.value.push({
       role: 'assistant',
       content: `오류: ${err.message || '응답을 받지 못했습니다.'}`,
@@ -291,7 +310,7 @@ async function sendMessage() {
   } finally {
     isLoading.value = false
     nextTick(() => {
-      if (messagesRef.value) {
+      if (messagesRef.value && shouldScrollToBottom) {
         messagesRef.value.scrollTop = messagesRef.value.scrollHeight
       }
     })
@@ -351,6 +370,19 @@ async function sendMessage() {
     max-width: 80%;
     padding: 10px 14px;
     white-space: pre-wrap;
+
+    .chat-markdown {
+      white-space: normal;
+      overflow-x: auto;
+      min-width: 0;
+
+      p:first-child {
+        margin-top: 0;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
   }
 
   .empty-state {
