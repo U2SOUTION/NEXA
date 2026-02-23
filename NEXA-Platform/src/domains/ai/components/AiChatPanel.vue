@@ -9,18 +9,36 @@
     <template v-else>
       <div class="chat-messages col scroll" ref="messagesRef">
         <template v-if="messages.length === 0">
-          <div class="empty-state text-center q-pa-xl text-grey-7">
-            <q-icon name="smart_toy" size="64px" class="q-mb-md" />
-            <div class="text-h6 q-mb-sm">AI 플랫폼 (Ollama)</div>
-            <div class="text-body2">메시지를 입력하고 전송하세요. 첫 질문이 대화 제목으로 사용됩니다.</div>
+          <div class="empty-state-welcome-wrapper">
+            <div class="empty-state-welcome q-pa-lg text-center">
+              <div class="welcome-main-title q-mb-lg">NEXA AI Platform</div>
+              <div class="welcome-header q-mb-lg">
+                <q-icon name="smart_toy" size="72px" class="q-mb-sm" />
+                <div class="text-h6 q-mb-xs">AI와 대화를 시작해 보세요</div>
+                <div class="text-body2 text-grey-7">메시지를 입력하고 Enter를 누르면 AI가 답변합니다.</div>
+                <div class="text-body2 text-grey-7">Ctrl + Enter를 누르면 새 줄을 추가합니다.</div>
+              </div>
+              <div class="welcome-guide q-mb-lg">
+                <div class="text-subtitle2 q-mb-sm">안내</div>
+                <ul class="welcome-guide-list text-body2 text-grey-7">
+                  <li>첫 메시지가 대화 제목으로 저장됩니다</li>
+                  <li>질문이나 요청을 자연스럽게 입력하세요</li>
+                  <li v-if="supportsVision">이미지를 첨부해 분석을 요청할 수 있습니다</li>
+                </ul>
+              </div>
+              <div class="example-prompts">
+                <div class="text-caption text-grey-6 q-mb-sm">예시:</div>
+                <div class="example-prompts-buttons">
+                  <q-btn outline dense size="sm" label="오늘 날씨에 대해 알려줘" @click="fillExample('오늘 날씨에 대해 알려줘')" />
+                  <q-btn outline dense size="sm" label="코드 리뷰 해줘" @click="fillExample('코드 리뷰 해줘')" />
+                  <q-btn v-if="supportsVision" outline dense size="sm" label="이 이미지를 분석해줘" @click="fillExample('이 이미지를 분석해줘')" />
+                </div>
+              </div>
+            </div>
           </div>
         </template>
         <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
-          <div
-            v-for="(msg, idx) in messages"
-            :key="idx"
-            :class="['message-row', msg.role]"
-          >
+          <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]">
             <div class="message-bubble">
               <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
                 <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
@@ -43,14 +61,7 @@
             <q-btn round dense flat size="sm" icon="close" class="thumb-remove" @click="removeAttachedImage(i)" />
           </div>
         </div>
-        <input
-          v-if="supportsVision"
-          ref="fileInputRef"
-          type="file"
-          accept="image/png,image/jpeg,image/jpg"
-          class="hidden"
-          @change="handleFileSelect"
-        />
+        <input v-if="supportsVision" ref="fileInputRef" type="file" accept="image/png,image/jpeg,image/jpg" class="hidden" @change="handleFileSelect" />
         <div class="chat-input-row row items-end no-wrap" @paste.prevent="handlePaste">
           <q-input
             v-model="inputText"
@@ -65,23 +76,8 @@
             @keydown.enter.exact.prevent="sendMessage"
           >
             <template #append>
-              <q-btn
-                v-if="supportsVision"
-                round
-                dense
-                flat
-                icon="image"
-                title="이미지 첨부"
-                @click="triggerFileSelect"
-              />
-              <q-btn
-                round
-                dense
-                flat
-                icon="send"
-                :disable="!canSend"
-                @click="sendMessage"
-              />
+              <q-btn v-if="supportsVision" round dense flat icon="image" title="이미지 첨부" @click="triggerFileSelect" />
+              <q-btn round dense flat icon="send" :disable="!canSend" @click="sendMessage" />
             </template>
           </q-input>
         </div>
@@ -100,16 +96,7 @@ import { useAiChannels } from '../composables/useAiChannels.js'
 const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize, chatMessageMaxLength, pendingWebcamCapture } = useAiSettings()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
-const {
-  selectedChannelId,
-  selectedChatId,
-  selectedChat,
-  getEffectiveInstruction,
-  addChat,
-  updateChatTitle,
-  updateChatMessages,
-  selectChat,
-} = useAiChannels()
+const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat } = useAiChannels()
 
 const messages = ref([])
 const inputText = ref('')
@@ -180,13 +167,15 @@ function handlePaste(ev) {
     if (item.kind !== 'file' || !item.type.startsWith('image/')) continue
     const file = item.getAsFile()
     if (!file || !/^(image\/png|image\/jpe?g)$/i.test(file.type)) continue
-    fileToDataUrl(file).then((dataUrl) => {
-      if (attachedImages.value.length < MAX_ATTACHED_IMAGES) {
-        attachedImages.value.push({ dataUrl })
-      }
-    }).catch(() => {
-      Notify.create({ type: 'negative', message: '붙여넣기 이미지 읽기 실패' })
-    })
+    fileToDataUrl(file)
+      .then((dataUrl) => {
+        if (attachedImages.value.length < MAX_ATTACHED_IMAGES) {
+          attachedImages.value.push({ dataUrl })
+        }
+      })
+      .catch(() => {
+        Notify.create({ type: 'negative', message: '붙여넣기 이미지 읽기 실패' })
+      })
     break
   }
 }
@@ -201,7 +190,7 @@ watch(
     const chat = selectedChat.value
     messages.value = chat?.messages?.length ? [...chat.messages] : []
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 watch(
@@ -210,7 +199,7 @@ watch(
     if (!dataUrl || !supportsVision.value || attachedImages.value.length >= MAX_ATTACHED_IMAGES) return
     attachedImages.value.push({ dataUrl })
     pendingWebcamCapture.value = null
-  }
+  },
 )
 
 async function sendMessage() {
@@ -287,6 +276,18 @@ async function sendMessage() {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
+
+    &:has(.empty-state-welcome-wrapper) {
+      display: flex;
+    }
+  }
+
+  .empty-state-welcome-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
   }
 
   .message-row {
@@ -322,6 +323,42 @@ async function sendMessage() {
 
   .empty-state {
     padding-top: 80px;
+  }
+
+  .empty-state-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .welcome-main-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--nexa-text-primary, inherit);
+  }
+
+  .welcome-guide-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      margin-bottom: 4px;
+    }
+  }
+
+  .example-prompts {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .example-prompts-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
   }
 
   .chat-textarea {

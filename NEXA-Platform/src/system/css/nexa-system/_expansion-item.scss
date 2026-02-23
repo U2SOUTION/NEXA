@@ -39,7 +39,7 @@
       min-width: 0; // 수축 허용
       overflow: hidden; // ⚠️ 핵심: 넘치는 내용을 숨김
       white-space: nowrap;
-      text-overflow: clip; // 생략 기호 없이 자름
+      text-overflow: ellipsis;
       padding-right: 8px;
 
       // 내부 요소들이 너비를 강제하지 못하도록 설정
@@ -48,7 +48,7 @@
         width: 100%;
         min-width: 0;
         overflow: hidden;
-        text-overflow: clip;
+        text-overflow: ellipsis;
       }
     }
 
@@ -87,6 +87,21 @@
     font-size: 0.75rem;
     background-color: var(--nexa-accordion-content-bg);
     border-radius: 0;
+
+    // chat-list 내 q-item: 아코디언 헤더 스타일 제외 (채널 내 채팅 목록 컴팩트 표시)
+    .chat-list .q-item {
+      border-bottom: none !important;
+      background: transparent !important;
+      padding: 2px 0 !important;
+
+      .q-item__section--main {
+        padding: 0 !important;
+      }
+      .q-item__section--avatar {
+        min-width: 28px !important;
+        padding-right: 6px !important;
+      }
+    }
 
     // 폼 내부 요소에 폰트 적용 (Quasar q-field 구조)
     .q-field,

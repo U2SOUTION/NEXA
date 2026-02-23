@@ -10,178 +10,163 @@
 
     <q-tab-panels v-model="leftMainTab" animated class="col left-main-panels">
       <q-tab-panel name="chat" class="q-pa-none left-panel-inner">
-    <!-- 검색 폼 -->
-    <div class="search-form q-pa-sm q-mx-sm q-mb-xs">
-      <q-input
-        v-model="searchQuery"
-        outlined
-        dense
-        placeholder="Search channels & chats"
-        clearable
-      >
-        <template #prepend>
-          <q-icon name="search" />
-        </template>
-        <template #append>
-          <q-btn flat dense round size="sm" :icon="searchTargetIcon" class="search-target-btn" title="Search target">
-            <q-menu anchor="bottom end" self="top end" :offset="[0, 4]">
-              <q-list dense style="min-width: 120px">
-                <q-item clickable v-close-popup @click="searchTarget = 'both'">
-                  <q-item-section avatar>
-                    <q-icon name="view_list" size="18px" />
-                  </q-item-section>
-                  <q-item-section>Both</q-item-section>
-                  <q-item-section side v-if="searchTarget === 'both'">
-                    <q-icon name="check" size="16px" color="primary" />
-                  </q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="searchTarget = 'channel'">
-                  <q-item-section avatar>
-                    <q-icon name="folder" size="18px" />
-                  </q-item-section>
-                  <q-item-section>Channel</q-item-section>
-                  <q-item-section side v-if="searchTarget === 'channel'">
-                    <q-icon name="check" size="16px" color="primary" />
-                  </q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="searchTarget = 'chat'">
-                  <q-item-section avatar>
-                    <q-icon name="chat_bubble_outline" size="18px" />
-                  </q-item-section>
-                  <q-item-section>Chat</q-item-section>
-                  <q-item-section side v-if="searchTarget === 'chat'">
-                    <q-icon name="check" size="16px" color="primary" />
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-btn>
-        </template>
-      </q-input>
-    </div>
-
-    <!-- 목록 관리 툴바 -->
-    <div class="list-management-toolbar q-pa-sm q-mx-sm q-mb-xs rounded-borders">
-      <div class="row items-center no-wrap full-width justify-between">
-        <div class="toolbar-label col ellipsis">
-          <template v-if="selectedChat">
-            <div class="text-caption text-grey-7">Chat</div>
-            <div class="text-body2 ellipsis">{{ selectedChat.title }}</div>
-          </template>
-          <template v-else-if="selectedChannel">
-            <div class="text-caption text-grey-7">Channel</div>
-            <div class="text-body2 ellipsis">{{ selectedChannel.name }}</div>
-          </template>
-          <template v-else>
-            <div class="text-caption text-grey-6">Select a channel or chat</div>
-          </template>
-        </div>
-        <div class="toolbar-actions row q-gutter-xs flex-shrink-0">
-          <q-btn flat dense round size="sm" icon="add" title="Add channel" @click="showAddChannel = true" />
-          <template v-if="selectedChat">
-            <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChat" />
-            <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChatUp" @click="moveChatUp(selectedChannelId, selectedChatId)" />
-            <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChatDown" @click="moveChatDown(selectedChannelId, selectedChatId)" />
-            <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChat(selectedChannelId, selectedChat)" />
-          </template>
-          <template v-else-if="selectedChannel">
-            <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChannel" />
-            <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChannelUp" @click="moveChannelUp(selectedChannelId)" />
-            <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChannelDown" @click="moveChannelDown(selectedChannelId)" />
-            <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChannel(selectedChannel)" />
-          </template>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel-scroll-area">
-      <!-- 검색 결과 (채널·채팅 동일 구조) -->
-      <q-list v-if="showSearchResults" dense class="q-px-sm channel-list">
-        <template v-for="item in searchResults" :key="item.channel.id">
-          <q-expansion-item
-            :model-value="selectedChannelId === item.channel.id"
-            :header-inset-level="0"
-            expand-icon-class="text-grey-6"
-            class="channel-item"
-            @update:model-value="(v) => (v ? selectChannel(item.channel.id) : selectChannel(null))"
-          >
-            <template #header>
-              <q-item-section avatar>
-                <q-icon name="folder" size="20px" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-body2">{{ item.channel.name }}</q-item-label>
-              </q-item-section>
+        <!-- 검색 폼 -->
+        <div class="search-form q-pa-sm q-mx-sm q-mb-xs">
+          <q-input v-model="searchQuery" outlined dense placeholder="Search channels & chats" clearable>
+            <template #prepend>
+              <q-icon name="search" />
             </template>
-            <q-list dense class="q-pl-md q-pr-xs q-pb-sm chat-list">
-              <q-item
-                v-for="chat in item.chats"
-                :key="chat.id"
-                clickable
-                :active="selectedChatId === chat.id"
-                active-class="bg-primary-1"
-                class="chat-item rounded-borders q-my-xs"
-                @click="selectChat(chat.id)"
+            <template #append>
+              <q-btn flat dense round size="sm" :icon="searchTargetIcon" class="search-target-btn" title="Search target">
+                <q-menu anchor="bottom end" self="top end" :offset="[0, 4]">
+                  <q-list dense style="min-width: 120px">
+                    <q-item clickable v-close-popup @click="searchTarget = 'both'">
+                      <q-item-section avatar>
+                        <q-icon name="view_list" size="18px" />
+                      </q-item-section>
+                      <q-item-section>Both</q-item-section>
+                      <q-item-section side v-if="searchTarget === 'both'">
+                        <q-icon name="check" size="16px" color="primary" />
+                      </q-item-section>
+                    </q-item>
+                    <q-item clickable v-close-popup @click="searchTarget = 'channel'">
+                      <q-item-section avatar>
+                        <q-icon name="folder" size="18px" />
+                      </q-item-section>
+                      <q-item-section>Channel</q-item-section>
+                      <q-item-section side v-if="searchTarget === 'channel'">
+                        <q-icon name="check" size="16px" color="primary" />
+                      </q-item-section>
+                    </q-item>
+                    <q-item clickable v-close-popup @click="searchTarget = 'chat'">
+                      <q-item-section avatar>
+                        <q-icon name="chat_bubble_outline" size="18px" />
+                      </q-item-section>
+                      <q-item-section>Chat</q-item-section>
+                      <q-item-section side v-if="searchTarget === 'chat'">
+                        <q-icon name="check" size="16px" color="primary" />
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+            </template>
+          </q-input>
+        </div>
+
+        <!-- 목록 관리 툴바 -->
+        <div class="list-management-toolbar q-pa-sm q-mx-sm q-mb-xs rounded-borders">
+          <div class="row items-center no-wrap full-width justify-between">
+            <div class="toolbar-label text-caption text-grey-6">TOOLbar</div>
+            <div class="toolbar-actions row q-gutter-xs flex-shrink-0">
+              <q-btn flat dense round size="md" icon="add" title="Add">
+                <q-menu anchor="bottom start" self="top start" :offset="[0, 4]">
+                  <q-list dense style="min-width: 140px">
+                    <q-item clickable v-close-popup @click="showAddChannel = true">
+                      <q-item-section avatar>
+                        <q-icon name="folder" size="18px" />
+                      </q-item-section>
+                      <q-item-section>채널 추가</q-item-section>
+                    </q-item>
+                    <q-item clickable v-close-popup @click="handleAddChatFromToolbar">
+                      <q-item-section avatar>
+                        <q-icon name="chat_bubble_outline" size="18px" />
+                      </q-item-section>
+                      <q-item-section>대화 추가</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+              <template v-if="selectedChat">
+                <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChat" />
+                <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChatUp" @click="moveChatUp(selectedChannelId, selectedChatId)" />
+                <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChatDown" @click="moveChatDown(selectedChannelId, selectedChatId)" />
+                <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChat(selectedChannelId, selectedChat)" />
+              </template>
+              <template v-else-if="selectedChannel">
+                <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChannel" />
+                <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChannelUp" @click="moveChannelUp(selectedChannelId)" />
+                <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChannelDown" @click="moveChannelDown(selectedChannelId)" />
+                <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChannel(selectedChannel)" />
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-scroll-area">
+          <!-- 검색 결과 (채널·채팅 동일 구조) -->
+          <q-list v-if="showSearchResults" dense class="q-px-sm channel-list">
+            <template v-for="item in searchResults" :key="item.channel.id">
+              <q-expansion-item
+                :model-value="selectedChannelId === item.channel.id"
+                :header-inset-level="0"
+                expand-icon-class="text-grey-6"
+                :class="['channel-item', { 'channel-selected': selectedChannelId === item.channel.id }]"
+                @update:model-value="(v) => (v ? selectChannel(item.channel.id) : selectChannel(null))"
               >
-                <q-item-section avatar>
-                  <q-icon name="chat_bubble_outline" size="18px" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-caption ellipsis">{{ chat.title }}</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item v-if="item.chats.length === 0" class="text-grey-6 text-caption q-pl-md">
-                <q-item-section>No chats</q-item-section>
-              </q-item>
-            </q-list>
-          </q-expansion-item>
-        </template>
-        <q-item v-if="searchResults.length === 0" class="text-grey-6">
-          <q-item-section>
-            <q-item-label class="text-caption">No results</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
-
-      <!-- 채널 목록 -->
-      <q-list v-else dense class="q-px-sm channel-list">
-        <transition-group name="channel-move" tag="div" class="channel-transition-group">
-          <q-expansion-item v-for="ch in channels" :key="ch.id" :model-value="selectedChannelId === ch.id" :header-inset-level="0" expand-icon-class="text-grey-6" class="channel-item" @update:model-value="(v) => (v ? selectChannel(ch.id) : selectChannel(null))">
-            <template #header>
-              <q-item-section avatar>
-                <q-icon name="folder" size="20px" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-body2">{{ ch.name }}</q-item-label>
-              </q-item-section>
-            </template>
-
-            <!-- 대화 목록 -->
-            <q-list dense class="q-pl-md q-pr-xs q-pb-sm chat-list">
-              <transition-group name="chat-move" tag="div" class="chat-transition-group">
-                <q-item v-for="chat in ch.chats || []" :key="chat.id" clickable :active="selectedChatId === chat.id" active-class="bg-primary-1" class="chat-item rounded-borders q-my-xs" @click="selectChat(chat.id)">
+                <template #header>
                   <q-item-section avatar>
-                    <q-icon name="chat_bubble_outline" size="18px" />
+                    <q-icon :name="selectedChannelId === item.channel.id ? 'folder_open' : 'folder'" size="20px" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label class="text-caption ellipsis">{{ chat.title }}</q-item-label>
+                    <q-item-label class="text-body2 channel-label">{{ item.channel.name }}</q-item-label>
                   </q-item-section>
-                </q-item>
-              </transition-group>
+                </template>
+                <div class="chat-list">
+                  <div v-for="chat in item.chats" :key="chat.id" role="button" tabindex="0" class="chat-item" :class="{ 'chat-item-selected': selectedChatId === chat.id }" @click="selectChat(chat.id)" @keydown.enter.space.prevent="selectChat(chat.id)">
+                    <q-icon name="chat_bubble_outline" size="18px" class="chat-item-icon" />
+                    <span class="chat-item-label text-caption ellipsis">{{ chat.title }}</span>
+                  </div>
+                  <div v-if="item.chats.length === 0" class="chat-empty text-grey-6 text-caption">No chats</div>
+                </div>
+              </q-expansion-item>
+            </template>
+            <q-item v-if="searchResults.length === 0" class="text-grey-6">
+              <q-item-section>
+                <q-item-label class="text-caption">No results</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
 
-              <q-item clickable class="add-chat-item text-primary rounded-borders q-mt-xs" @click="handleNewChat(ch.id)">
-                <q-item-section avatar>
-                  <q-icon name="add" size="18px" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-caption">새 대화</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-expansion-item>
-        </transition-group>
-      </q-list>
-    </div>
+          <!-- 채널 목록 -->
+          <q-list v-else dense class="q-px-sm channel-list">
+            <transition-group name="channel-move" tag="div" class="channel-transition-group">
+              <q-expansion-item
+                v-for="ch in channels"
+                :key="ch.id"
+                :model-value="selectedChannelId === ch.id"
+                :header-inset-level="0"
+                expand-icon-class="text-grey-6"
+                :class="['channel-item', { 'channel-selected': selectedChannelId === ch.id }]"
+                @update:model-value="(v) => (v ? selectChannel(ch.id) : selectChannel(null))"
+              >
+                <template #header>
+                  <q-item-section avatar>
+                    <q-icon :name="selectedChannelId === ch.id ? 'folder_open' : 'folder'" size="20px" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-body2 channel-label">{{ ch.name }}</q-item-label>
+                  </q-item-section>
+                </template>
+
+                <!-- 대화 목록 -->
+                <div class="chat-list">
+                  <transition-group name="chat-move" tag="div" class="chat-transition-group">
+                    <div v-for="chat in ch.chats || []" :key="chat.id" role="button" tabindex="0" class="chat-item" :class="{ 'chat-item-selected': selectedChatId === chat.id }" @click="selectChat(chat.id)" @keydown.enter.space.prevent="selectChat(chat.id)">
+                      <q-icon name="chat_bubble_outline" size="18px" class="chat-item-icon" />
+                      <span class="chat-item-label text-caption ellipsis">{{ chat.title }}</span>
+                    </div>
+                  </transition-group>
+
+                  <div role="button" tabindex="0" class="add-chat-item text-primary" @click="handleNewChat(ch.id)" @keydown.enter.space.prevent="handleNewChat(ch.id)">
+                    <q-icon name="add" size="18px" class="chat-item-icon" />
+                    <span class="text-caption">새 대화</span>
+                  </div>
+                </div>
+              </q-expansion-item>
+            </transition-group>
+          </q-list>
+        </div>
       </q-tab-panel>
 
       <q-tab-panel name="note" class="q-pa-none left-panel-inner">
@@ -305,6 +290,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { Notify } from 'quasar'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
 import { useAiChannels } from '../../composables/useAiChannels.js'
@@ -335,16 +321,7 @@ const {
   startNewChat,
 } = useAiChannels()
 
-const {
-  pendingWebcamCapture,
-  webcamFlipMode,
-  webcamResolution,
-  webcamFilterBrightness,
-  webcamFilterContrast,
-  webcamFilterSaturate,
-  webcamFilterGrayscale,
-  selectedModelCapabilities,
-} = useAiSettings()
+const { pendingWebcamCapture, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, selectedModelCapabilities } = useAiSettings()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
 
@@ -397,6 +374,15 @@ function doDeleteConfirm() {
 function handleNewChat(channelId) {
   selectChannel(channelId)
   startNewChat()
+}
+
+function handleAddChatFromToolbar() {
+  if (selectedChannelId.value) {
+    selectChannel(selectedChannelId.value)
+    startNewChat()
+  } else {
+    Notify.create({ type: 'warning', message: '채널을 선택한 후 대화를 추가해 주세요' })
+  }
 }
 
 const searchTargetIcon = computed(() => {
@@ -474,8 +460,11 @@ function onWebcamCapture(dataUrl) {
 
 <style lang="scss" scoped>
 .ai-left-nav {
+  --ai-selected-icon-color: var(--nexa-accent);
+
   height: 100%;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 
   .left-main-tabs {
@@ -485,6 +474,7 @@ function onWebcamCapture(dataUrl) {
   .left-main-panels {
     flex: 1;
     min-height: 0;
+    min-width: 0;
     overflow: hidden;
   }
 
@@ -493,6 +483,7 @@ function onWebcamCapture(dataUrl) {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    min-width: 0;
     overflow: hidden;
   }
 
@@ -513,20 +504,122 @@ function onWebcamCapture(dataUrl) {
 
   .panel-scroll-area {
     flex: 1;
+    overflow-x: hidden;
     overflow-y: auto;
     min-height: 0;
+    min-width: 0;
+  }
+
+  .channel-item {
+    min-width: 0;
   }
 
   .channel-item :deep(.q-item) {
     min-height: 40px;
   }
 
+  .channel-item :deep(.q-item__section--avatar) {
+    min-width: 24px;
+    padding-right: 4px;
+  }
+
+  .channel-item :deep(.q-item__section--main) {
+    padding-left: 2px;
+  }
+
+  .channel-item.channel-selected .channel-label {
+    font-weight: 800;
+  }
+
+  .channel-item.channel-selected :deep(.q-icon) {
+    color: var(--ai-selected-icon-color);
+  }
+
+  .channel-list {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .channel-item .chat-list :deep(.q-item) {
+    min-height: 24px;
+    padding: 0;
+    margin: 0;
+    border-bottom: none;
+    background: transparent;
+  }
+
   .chat-item {
-    min-height: 36px;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 1px 0;
+    min-width: 0;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
+      color: var(--nexa-accent);
+      cursor: pointer;
+    }
+  }
+
+  .chat-item .chat-item-icon {
+    flex-shrink: 0;
+    min-width: 20px;
+    padding-right: 2px;
+  }
+
+  /* SidebarOverflowPrevention: width: 0 + overflow: hidden = flex 아이템이 부모를 초과하지 않음 */
+  .chat-item .chat-item-label {
+    flex: 1;
+    min-width: 0;
+    width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-item.chat-item-selected .chat-item-label {
+    color: var(--nexa-accent);
+    font-weight: 700;
+    font-size: 1em;
+  }
+
+  .chat-item.chat-item-selected :deep(.q-icon) {
+    color: var(--nexa-accent);
   }
 
   .add-chat-item {
-    min-height: 32px;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    margin-bottom: 3px;
+    padding: 1px 0 0;
+    min-width: 0;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: var(--nexa-button-save-bg, rgba(0, 0, 0, 0.06));
+    }
+  }
+
+  .add-chat-item .chat-item-icon {
+    flex-shrink: 0;
+    min-width: 20px;
+    padding-right: 2px;
   }
 
   .channel-move-move,
@@ -552,10 +645,7 @@ function onWebcamCapture(dataUrl) {
   .list-management-toolbar {
     background: var(--nexa-surface-header-bg, var(--nexa-background-darker));
     border: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.12));
-
-    .toolbar-label {
-      min-width: 0;
-    }
+    min-width: 0;
 
     .toolbar-actions {
       flex-shrink: 0;
