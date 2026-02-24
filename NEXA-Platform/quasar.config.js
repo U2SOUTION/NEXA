@@ -105,10 +105,7 @@ export default defineConfig((/* ctx */) => {
       host: '0.0.0.0', // LAN 접속 허용
       open: true,
       port: 9000,
-      allowedHosts: [
-        'nexa-solutions.net',
-        'www.nexa-solutions.net'
-      ],
+      allowedHosts: ['nexa-solutions.net', 'www.nexa-solutions.net'],
       hmr: {
         overlay: true,
       },

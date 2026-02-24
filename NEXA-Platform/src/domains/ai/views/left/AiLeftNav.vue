@@ -8,91 +8,104 @@
       <q-tab name="media" label="미디어" icon="photo_library" />
     </q-tabs>
 
+    <!-- 공유 검색 폼 -->
+    <div v-if="leftMainTab !== 'media'" class="search-form q-pa-sm q-mx-sm q-mb-xs">
+      <q-input v-model="searchQuery" outlined dense :placeholder="searchPlaceholder" clearable :disable="leftMainTab === 'media'">
+        <template #prepend>
+          <q-icon name="search" />
+        </template>
+        <template v-if="leftMainTab === 'chat'" #append>
+          <q-btn flat dense round size="sm" :icon="searchTargetIcon" class="search-target-btn" title="Search target">
+            <q-menu anchor="bottom end" self="top end" :offset="[0, 4]">
+              <q-list dense style="min-width: 120px">
+                <q-item clickable v-close-popup @click="searchTarget = 'both'">
+                  <q-item-section avatar>
+                    <q-icon name="view_list" size="18px" />
+                  </q-item-section>
+                  <q-item-section>Both</q-item-section>
+                  <q-item-section side v-if="searchTarget === 'both'">
+                    <q-icon name="check" size="16px" color="primary" />
+                  </q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="searchTarget = 'channel'">
+                  <q-item-section avatar>
+                    <q-icon name="folder" size="18px" />
+                  </q-item-section>
+                  <q-item-section>Channel</q-item-section>
+                  <q-item-section side v-if="searchTarget === 'channel'">
+                    <q-icon name="check" size="16px" color="primary" />
+                  </q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="searchTarget = 'chat'">
+                  <q-item-section avatar>
+                    <q-icon name="chat_bubble_outline" size="18px" />
+                  </q-item-section>
+                  <q-item-section>Chat</q-item-section>
+                  <q-item-section side v-if="searchTarget === 'chat'">
+                    <q-icon name="check" size="16px" color="primary" />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+        </template>
+      </q-input>
+    </div>
+
+    <!-- 공유 툴바 -->
+    <div v-if="showToolbar" class="list-management-toolbar q-pa-sm q-mx-sm q-mb-xs rounded-borders">
+      <div class="row items-center no-wrap full-width justify-between">
+        <div class="toolbar-label text-caption text-grey-6">TOOLbar</div>
+        <div class="toolbar-actions row q-gutter-xs flex-shrink-0">
+          <!-- 채팅 탭 툴바 -->
+          <template v-if="leftMainTab === 'chat'">
+            <q-btn flat dense round size="md" icon="add" title="Add">
+              <q-menu anchor="bottom start" self="top start" :offset="[0, 4]">
+                <q-list dense style="min-width: 140px">
+                  <q-item clickable v-close-popup @click="showAddChannel = true">
+                    <q-item-section avatar>
+                      <q-icon name="folder" size="18px" />
+                    </q-item-section>
+                    <q-item-section>채널 추가</q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="handleAddChatFromToolbar">
+                    <q-item-section avatar>
+                      <q-icon name="chat_bubble_outline" size="18px" />
+                    </q-item-section>
+                    <q-item-section>대화 추가</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+            <template v-if="selectedChat">
+              <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChat" />
+              <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChatUp" @click="moveChatUp(selectedChannelId, selectedChatId)" />
+              <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChatDown" @click="moveChatDown(selectedChannelId, selectedChatId)" />
+              <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChat(selectedChannelId, selectedChat)" />
+            </template>
+            <template v-else-if="selectedChannel">
+              <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChannel" />
+              <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChannelUp" @click="moveChannelUp(selectedChannelId)" />
+              <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChannelDown" @click="moveChannelDown(selectedChannelId)" />
+              <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChannel(selectedChannel)" />
+            </template>
+          </template>
+          <!-- 노트 탭 툴바 -->
+          <template v-else-if="leftMainTab === 'note'">
+            <q-btn flat dense round size="md" icon="add" title="메모 추가 (에디터 열기)" @click="handleNoteAdd" />
+            <template v-if="selectedMemo">
+              <q-btn flat dense round size="sm" icon="edit" title="편집 (에디터 열기)" @click="handleNoteEdit" />
+              <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveMemoUp" @click="handleNoteMoveUp" />
+              <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveMemoDown" @click="handleNoteMoveDown" />
+              <q-btn flat dense round size="sm" icon="delete_outline" title="삭제" color="negative" @click="handleNoteDelete" />
+            </template>
+          </template>
+        </div>
+      </div>
+    </div>
+
     <q-tab-panels v-model="leftMainTab" animated class="col left-main-panels">
       <q-tab-panel name="chat" class="q-pa-none left-panel-inner">
-        <!-- 검색 폼 -->
-        <div class="search-form q-pa-sm q-mx-sm q-mb-xs">
-          <q-input v-model="searchQuery" outlined dense placeholder="Search channels & chats" clearable>
-            <template #prepend>
-              <q-icon name="search" />
-            </template>
-            <template #append>
-              <q-btn flat dense round size="sm" :icon="searchTargetIcon" class="search-target-btn" title="Search target">
-                <q-menu anchor="bottom end" self="top end" :offset="[0, 4]">
-                  <q-list dense style="min-width: 120px">
-                    <q-item clickable v-close-popup @click="searchTarget = 'both'">
-                      <q-item-section avatar>
-                        <q-icon name="view_list" size="18px" />
-                      </q-item-section>
-                      <q-item-section>Both</q-item-section>
-                      <q-item-section side v-if="searchTarget === 'both'">
-                        <q-icon name="check" size="16px" color="primary" />
-                      </q-item-section>
-                    </q-item>
-                    <q-item clickable v-close-popup @click="searchTarget = 'channel'">
-                      <q-item-section avatar>
-                        <q-icon name="folder" size="18px" />
-                      </q-item-section>
-                      <q-item-section>Channel</q-item-section>
-                      <q-item-section side v-if="searchTarget === 'channel'">
-                        <q-icon name="check" size="16px" color="primary" />
-                      </q-item-section>
-                    </q-item>
-                    <q-item clickable v-close-popup @click="searchTarget = 'chat'">
-                      <q-item-section avatar>
-                        <q-icon name="chat_bubble_outline" size="18px" />
-                      </q-item-section>
-                      <q-item-section>Chat</q-item-section>
-                      <q-item-section side v-if="searchTarget === 'chat'">
-                        <q-icon name="check" size="16px" color="primary" />
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-menu>
-              </q-btn>
-            </template>
-          </q-input>
-        </div>
-
-        <!-- 목록 관리 툴바 -->
-        <div class="list-management-toolbar q-pa-sm q-mx-sm q-mb-xs rounded-borders">
-          <div class="row items-center no-wrap full-width justify-between">
-            <div class="toolbar-label text-caption text-grey-6">TOOLbar</div>
-            <div class="toolbar-actions row q-gutter-xs flex-shrink-0">
-              <q-btn flat dense round size="md" icon="add" title="Add">
-                <q-menu anchor="bottom start" self="top start" :offset="[0, 4]">
-                  <q-list dense style="min-width: 140px">
-                    <q-item clickable v-close-popup @click="showAddChannel = true">
-                      <q-item-section avatar>
-                        <q-icon name="folder" size="18px" />
-                      </q-item-section>
-                      <q-item-section>채널 추가</q-item-section>
-                    </q-item>
-                    <q-item clickable v-close-popup @click="handleAddChatFromToolbar">
-                      <q-item-section avatar>
-                        <q-icon name="chat_bubble_outline" size="18px" />
-                      </q-item-section>
-                      <q-item-section>대화 추가</q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-menu>
-              </q-btn>
-              <template v-if="selectedChat">
-                <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChat" />
-                <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChatUp" @click="moveChatUp(selectedChannelId, selectedChatId)" />
-                <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChatDown" @click="moveChatDown(selectedChannelId, selectedChatId)" />
-                <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChat(selectedChannelId, selectedChat)" />
-              </template>
-              <template v-else-if="selectedChannel">
-                <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChannel" />
-                <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChannelUp" @click="moveChannelUp(selectedChannelId)" />
-                <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChannelDown" @click="moveChannelDown(selectedChannelId)" />
-                <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChannel(selectedChannel)" />
-              </template>
-            </div>
-          </div>
-        </div>
-
         <div class="panel-scroll-area">
           <!-- 검색 결과 (채널·채팅 동일 구조) -->
           <q-list v-if="showSearchResults" dense class="q-px-sm channel-list">
@@ -176,20 +189,22 @@
           <div class="ai-panel-padding">
             <q-expansion-item icon="sticky_note_2" label="메모" :default-opened="true">
               <div class="ai-accordion-content">
-                <div v-if="memos.length === 0" class="ai-placeholder text-grey-6 text-caption">채팅에서 우클릭 → 메모로 추가</div>
+                <div v-if="filteredMemos.length === 0" class="ai-placeholder text-grey-6 text-caption">{{ memos.length === 0 ? '채팅에서 우클릭 → 메모로 추가' : '검색 결과 없음' }}</div>
                 <q-list v-else dense class="memo-list">
-                  <q-item v-for="m in memos" :key="m.id" clickable class="memo-item memo-item-clickable" @click="onMemoClick(m)">
-                    <q-item-section avatar>
-                      <q-icon name="sticky_note_2" size="18px" color="grey-6" />
-                    </q-item-section>
-                    <q-item-section class="memo-item-content">
-                      <q-item-label class="text-caption ellipsis" :title="m.content">{{ getMemoPreview(m.content) }}</q-item-label>
-                      <q-item-label caption>{{ formatMemoDate(m.createdAt) }}</q-item-label>
-                    </q-item-section>
-                    <q-item-section side>
-                      <q-btn flat dense round size="sm" icon="delete_outline" color="grey-6" @click.stop="removeMemo(m.id)" />
-                    </q-item-section>
-                  </q-item>
+                  <transition-group name="memo-move" tag="div" class="memo-transition-group">
+                    <q-item v-for="m in filteredMemos" :key="m.id" clickable class="memo-item memo-item-clickable" :class="{ 'memo-item-selected': selectedMemoId === m.id }" @click="onMemoClick(m)">
+                      <q-item-section avatar>
+                        <q-icon name="sticky_note_2" size="18px" color="grey-6" />
+                      </q-item-section>
+                      <q-item-section class="memo-item-content">
+                        <q-item-label class="text-caption ellipsis" :title="m.content">{{ getMemoPreview(m.content) }}</q-item-label>
+                        <q-item-label caption>{{ formatMemoDate(m.createdAt) }}</q-item-label>
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-btn flat dense round size="sm" icon="delete_outline" color="grey-6" @click.stop="removeMemo(m.id)" />
+                      </q-item-section>
+                    </q-item>
+                  </transition-group>
                 </q-list>
               </div>
             </q-expansion-item>
@@ -314,12 +329,70 @@ import { useAiSettings } from '../../composables/useAiSettings.js'
 import { useAiMemos } from '../../composables/useAiMemos.js'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest.js'
 
-const { memos, removeMemo, getMemoPreview } = useAiMemos()
-const { requestInsert } = useAiInsertRequest()
+const { memos, removeMemo, moveMemoUp, moveMemoDown, getMemoPreview } = useAiMemos()
+const { requestInsert, requestOpenEditor } = useAiInsertRequest()
+
+const selectedMemoId = ref(null)
+const selectedMemo = computed(() => (selectedMemoId.value ? memos.value.find((m) => m.id === selectedMemoId.value) : null))
+
+const filteredMemos = computed(() => {
+  const q = (searchQuery.value || '').trim().toLowerCase()
+  if (!q) return memos.value
+  return memos.value.filter((m) => (m.content || '').toLowerCase().includes(q))
+})
+
+const searchPlaceholder = computed(() => {
+  if (leftMainTab.value === 'chat') return 'Search channels & chats'
+  if (leftMainTab.value === 'note') return 'Search memos'
+  return 'Search'
+})
+
+const showToolbar = computed(() => leftMainTab.value !== 'media')
 
 function onMemoClick(m) {
+  selectedMemoId.value = m.id
   requestInsert(m.content)
   Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
+}
+
+function handleNoteAdd() {
+  selectedMemoId.value = null
+  requestOpenEditor()
+}
+
+function handleNoteEdit() {
+  const m = selectedMemo.value
+  if (!m) return
+  requestInsert(m.content)
+}
+
+function handleNoteDelete() {
+  const m = selectedMemo.value
+  if (!m) return
+  removeMemo(m.id)
+  selectedMemoId.value = null
+}
+
+const canMoveMemoUp = computed(() => {
+  if (!selectedMemoId.value) return false
+  const idx = memos.value.findIndex((m) => m.id === selectedMemoId.value)
+  return idx > 0
+})
+
+const canMoveMemoDown = computed(() => {
+  if (!selectedMemoId.value) return false
+  const idx = memos.value.findIndex((m) => m.id === selectedMemoId.value)
+  return idx >= 0 && idx < memos.value.length - 1
+})
+
+function handleNoteMoveUp() {
+  if (!selectedMemoId.value) return
+  moveMemoUp(selectedMemoId.value)
+}
+
+function handleNoteMoveDown() {
+  if (!selectedMemoId.value) return
+  moveMemoDown(selectedMemoId.value)
 }
 
 function formatMemoDate(ts) {
@@ -678,12 +751,14 @@ function onWebcamCapture(dataUrl) {
   }
 
   .channel-move-move,
-  .chat-move-move {
+  .chat-move-move,
+  .memo-move-move {
     transition: transform 0.25s ease;
   }
 
   .channel-transition-group,
-  .chat-transition-group {
+  .chat-transition-group,
+  .memo-transition-group {
     display: contents;
   }
 
@@ -717,6 +792,11 @@ function onWebcamCapture(dataUrl) {
     &:hover {
       background-color: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
     }
+  }
+
+  .memo-item-selected {
+    background-color: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
+    color: var(--nexa-accent);
   }
 }
 </style>

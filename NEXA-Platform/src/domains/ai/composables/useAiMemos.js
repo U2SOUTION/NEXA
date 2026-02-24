@@ -47,6 +47,24 @@ function removeMemo(id) {
   saveToStorage(memos.value)
 }
 
+function moveMemoUp(id) {
+  const idx = memos.value.findIndex((m) => m.id === id)
+  if (idx <= 0) return
+  const arr = [...memos.value]
+  ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
+  memos.value = arr
+  saveToStorage(memos.value)
+}
+
+function moveMemoDown(id) {
+  const idx = memos.value.findIndex((m) => m.id === id)
+  if (idx < 0 || idx >= memos.value.length - 1) return
+  const arr = [...memos.value]
+  ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
+  memos.value = arr
+  saveToStorage(memos.value)
+}
+
 function getMemoPreview(content, maxLen = 60) {
   if (!content || typeof content !== 'string') return ''
   const text = content.replace(/\s+/g, ' ').trim()
@@ -62,6 +80,8 @@ export function useAiMemos() {
     memos,
     addMemo,
     removeMemo,
+    moveMemoUp,
+    moveMemoDown,
     getMemoPreview,
   }
 }

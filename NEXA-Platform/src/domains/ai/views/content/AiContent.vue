@@ -6,6 +6,7 @@
       <q-tab name="image" label="이미지" icon="image" />
       <q-tab name="audio" label="음원" icon="graphic_eq" />
       <q-tab name="video" label="영상" icon="videocam" />
+      <q-tab name="explorer" label="탐색기" icon="folder_open" />
     </q-tabs>
     <q-tab-panels v-model="centerTab" animated class="col ai-content-panels">
       <q-tab-panel name="chat" class="q-pa-none ai-tab-panel">
@@ -23,6 +24,9 @@
       <q-tab-panel name="video" class="q-pa-none ai-tab-panel">
         <AiVideoEditorPanel />
       </q-tab-panel>
+      <q-tab-panel name="explorer" class="q-pa-none ai-tab-panel">
+        <AiExplorerPanel />
+      </q-tab-panel>
     </q-tab-panels>
   </div>
 </template>
@@ -36,13 +40,15 @@ import AiEditorPanel from '../../components/AiEditorPanel.vue'
 import AiImageEditorPanel from '../../components/AiImageEditorPanel.vue'
 import AiAudioEditorPanel from '../../components/AiAudioEditorPanel.vue'
 import AiVideoEditorPanel from '../../components/AiVideoEditorPanel.vue'
+import AiExplorerPanel from '../../components/AiExplorerPanel.vue'
 
 const centerTab = ref('chat')
 const editorContent = ref('')
 const pendingInsertContent = ref(null)
 
-const { onInsertRequest } = useAiInsertRequest()
+const { onInsertRequest, onOpenEditorRequest } = useAiInsertRequest()
 let unregisterInsertRequest = null
+let unregisterOpenEditorRequest = null
 
 onMounted(() => {
   unregisterInsertRequest = onInsertRequest((raw) => {
@@ -52,10 +58,14 @@ onMounted(() => {
       pendingInsertContent.value = html
     })
   })
+  unregisterOpenEditorRequest = onOpenEditorRequest(() => {
+    centerTab.value = 'editor'
+  })
 })
 
 onBeforeUnmount(() => {
   unregisterInsertRequest?.()
+  unregisterOpenEditorRequest?.()
 })
 
 provide('aiInsertContent', {

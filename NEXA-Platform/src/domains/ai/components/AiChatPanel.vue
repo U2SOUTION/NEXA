@@ -433,16 +433,22 @@ async function sendMessage() {
       justify-content: flex-end;
 
       .message-bubble {
+        max-width: 80%;
         background: var(--q-primary);
         color: white;
         border-radius: 16px 16px 4px 16px;
       }
     }
 
-    &.assistant .message-bubble {
-      background: var(--nexa-surface);
-      border: 1px solid var(--nexa-border-color);
-      border-radius: 16px 16px 16px 4px;
+    &.assistant {
+      justify-content: flex-start;
+
+      .message-bubble {
+        max-width: 100%;
+        background: var(--nexa-surface);
+        border: 1px solid var(--nexa-border-color);
+        border-radius: 16px 16px 16px 4px;
+      }
     }
   }
 
@@ -451,7 +457,6 @@ async function sendMessage() {
   }
 
   .message-bubble {
-    max-width: 80%;
     padding: 10px 14px;
     white-space: pre-wrap;
 
