@@ -90,15 +90,19 @@
               <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChannel(selectedChannel)" />
             </template>
           </template>
+          <!-- 미디어 탭 툴바 -->
+          <template v-else-if="leftMainTab === 'media'">
+            <q-btn flat dense round size="sm" icon="arrow_upward" title="위로" :disable="!canMoveMediaUp" @click="handleMediaMoveUp" />
+            <q-btn flat dense round size="sm" icon="arrow_downward" title="아래로" :disable="!canMoveMediaDown" @click="handleMediaMoveDown" />
+            <q-btn flat dense round size="sm" icon="delete_outline" title="삭제" color="negative" :disable="!selectedMediaItem" @click="handleMediaDelete" />
+          </template>
           <!-- 노트 탭 툴바 -->
           <template v-else-if="leftMainTab === 'note'">
             <q-btn flat dense round size="md" icon="add" title="메모 추가 (에디터 열기)" @click="handleNoteAdd" />
-            <template v-if="selectedMemo">
-              <q-btn flat dense round size="sm" icon="edit" title="편집 (에디터 열기)" @click="handleNoteEdit" />
-              <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveMemoUp" @click="handleNoteMoveUp" />
-              <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveMemoDown" @click="handleNoteMoveDown" />
-              <q-btn flat dense round size="sm" icon="delete_outline" title="삭제" color="negative" @click="handleNoteDelete" />
-            </template>
+            <q-btn flat dense round size="sm" icon="edit" title="편집 (에디터 열기)" :disable="!selectedMemo" @click="handleNoteEdit" />
+            <q-btn flat dense round size="sm" icon="arrow_upward" title="위로" :disable="!canMoveMemoUp" @click="handleNoteMoveUp" />
+            <q-btn flat dense round size="sm" icon="arrow_downward" title="아래로" :disable="!canMoveMemoDown" @click="handleNoteMoveDown" />
+            <q-btn flat dense round size="sm" icon="delete_outline" title="삭제" color="negative" :disable="!selectedMemo" @click="handleNoteDelete" />
           </template>
         </div>
       </div>
@@ -239,35 +243,35 @@
                   list-url="/files/list?domain=ai"
                   accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.csv"
                   label="이미지·오디오·영상·문서를 드래그하거나 선택하세요"
-                  @add="(p) => aiAssets.addAsset(p)"
+                  @add="handleMediaAdd"
                 />
               </div>
             </div>
-            <q-expansion-item icon="photo_library" label="갤러리" :default-opened="true" @show="aiAssets.loadCategory('images')">
+            <q-expansion-item v-model="expandedGallery" icon="photo_library" label="갤러리" @show="aiAssets.loadCategory('images')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm" :key="'gallery-' + images.length">
-                  <q-item v-for="f in (images.length ? images : galleryPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url && requestAttachToChat(f)">
+                  <q-item v-for="f in (images.length ? images : galleryPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('images', f) : null">
                     <q-item-section>{{ f.original_name }}</q-item-section>
-                    <q-item-section v-if="f.url" side>
+                    <q-item-section v-if="f.url" side @click.stop="requestAttachToChat(f)">
                       <q-icon name="add_photo_alternate" size="18px" class="text-grey-6" title="채팅에 첨부" />
                     </q-item-section>
                   </q-item>
                 </q-list>
               </div>
             </q-expansion-item>
-            <q-expansion-item icon="music_note" label="사운드" @show="aiAssets.loadCategory('audio')">
+            <q-expansion-item v-model="expandedAudio" icon="music_note" label="사운드" @show="aiAssets.loadCategory('audio')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in (audio.length ? audio : audioPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }">
+                  <q-item v-for="f in (audio.length ? audio : audioPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('audio', f) : null">
                     <q-item-section>{{ f.original_name }}</q-item-section>
                   </q-item>
                 </q-list>
               </div>
             </q-expansion-item>
-            <q-expansion-item icon="videocam" label="영상" @show="aiAssets.loadCategory('video')">
+            <q-expansion-item v-model="expandedVideo" icon="videocam" label="영상" @show="aiAssets.loadCategory('video')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in (videos.length ? videos : videoPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }">
+                  <q-item v-for="f in (videos.length ? videos : videoPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('video', f) : null">
                     <q-item-section>{{ f.original_name }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -376,6 +380,80 @@ const { requestInsert, requestOpenEditor } = useAiInsertRequest()
 const { documents, images, audio, videos } = aiAssets
 
 const showMediaUpload = ref(false)
+const expandedGallery = ref(true)
+const expandedAudio = ref(false)
+const expandedVideo = ref(false)
+
+function openMediaAccordion(category) {
+  if (category === 'images') expandedGallery.value = true
+  else if (category === 'audio') expandedAudio.value = true
+  else if (category === 'video') expandedVideo.value = true
+}
+
+function inferCategoryFromPayload(p) {
+  const t = (p.type || p.file_type || '').toLowerCase()
+  if (t.includes('image')) return 'images'
+  if (t.includes('audio')) return 'audio'
+  if (t.includes('video')) return 'video'
+  return 'documents'
+}
+
+function handleMediaAdd(p) {
+  const cat = p.category || inferCategoryFromPayload(p)
+  aiAssets.addAsset({ ...p, category: cat })
+  openMediaAccordion(cat)
+}
+
+const selectedMediaItem = ref(null)
+
+function selectMediaItem(category, item) {
+  if (!item?.url) return
+  selectedMediaItem.value = selectedMediaItem.value?.item?.id === item.id && selectedMediaItem.value?.category === category ? null : { category, item }
+}
+
+const canMoveMediaUp = computed(() => {
+  const s = selectedMediaItem.value
+  if (!s) return false
+  const arr = (s.category === 'images' ? images : s.category === 'audio' ? audio : videos).value || []
+  const idx = arr.findIndex((x) => x.id === s.item.id)
+  return idx > 0
+})
+
+const canMoveMediaDown = computed(() => {
+  const s = selectedMediaItem.value
+  if (!s) return false
+  const arr = (s.category === 'images' ? images : s.category === 'audio' ? audio : videos).value || []
+  const idx = arr.findIndex((x) => x.id === s.item.id)
+  return idx >= 0 && idx < arr.length - 1
+})
+
+async function handleMediaDelete() {
+  const s = selectedMediaItem.value
+  if (!s) return
+  try {
+    await aiAssets.removeAsset(s.item.id, s.category)
+    selectedMediaItem.value = null
+    Notify.create({ message: '삭제됨', icon: 'check_circle' })
+  } catch (err) {
+    Notify.create({ type: 'negative', message: err.message || '삭제 실패' })
+  }
+}
+
+function handleMediaMoveUp() {
+  const s = selectedMediaItem.value
+  if (!s || !canMoveMediaUp.value) return
+  const arr = (s.category === 'images' ? images : s.category === 'audio' ? audio : videos).value || []
+  const idx = arr.findIndex((x) => x.id === s.item.id)
+  aiAssets.moveAsset(s.category, idx, 'up')
+}
+
+function handleMediaMoveDown() {
+  const s = selectedMediaItem.value
+  if (!s || !canMoveMediaDown.value) return
+  const arr = (s.category === 'images' ? images : s.category === 'audio' ? audio : videos).value || []
+  const idx = arr.findIndex((x) => x.id === s.item.id)
+  aiAssets.moveAsset(s.category, idx, 'down')
+}
 
 /** 빈 리스트일 때 UI 확인용 플레이스홀더 */
 const galleryPlaceholders = [{ id: 'ph-img-1', original_name: '(등록된 이미지 없음)' }, { id: 'ph-img-2', original_name: '(업로드 또는 웹서버에서 선택)' }]
@@ -398,7 +476,7 @@ const searchPlaceholder = computed(() => {
   return 'Search'
 })
 
-const showToolbar = computed(() => leftMainTab.value !== 'media')
+const showToolbar = computed(() => true)
 
 function onMemoClick(m) {
   selectedMemoId.value = m.id
@@ -830,6 +908,11 @@ function onWebcamCapture(dataUrl) {
     }
   }
 
+  .media-item-selected {
+    background-color: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
+    font-weight: 600;
+  }
+
   .list-management-toolbar {
     background: var(--nexa-surface-header-bg, var(--nexa-background-darker));
     border: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.12));
@@ -837,6 +920,9 @@ function onWebcamCapture(dataUrl) {
 
     .toolbar-actions {
       flex-shrink: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
     }
   }
 

@@ -237,4 +237,23 @@ router.get('/files/list', async (req, res) => {
   }
 })
 
+/** DELETE /api/files/:id/reference - 도메인에서 파일 참조 제거 */
+router.delete('/files/:id/reference', async (req, res) => {
+  try {
+    const fileId = parseInt(req.params.id, 10)
+    const domain = req.query.domain || req.body?.domain
+    if (!domain || isNaN(fileId)) {
+      return res.status(400).json({ code: 'INVALID_PARAMS', error: 'file id와 domain이 필요합니다.' })
+    }
+    const [result] = await pool.execute('DELETE FROM file_references WHERE file_id = ? AND domain = ?', [fileId, domain])
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ code: 'NOT_FOUND', error: '참조를 찾을 수 없습니다.' })
+    }
+    res.json({ ok: true })
+  } catch (error) {
+    console.error('[files/delete-reference]', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
 export default router

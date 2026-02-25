@@ -104,6 +104,26 @@ export function useAiAssets(category = null) {
     return documents
   }
 
+  async function removeAsset(id, cat) {
+    const target = getTargetRef(cat)
+    const base = getApiBaseUrl()
+    const res = await fetch(`${base}/files/${id}/reference?domain=${DOMAIN}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || '삭제 실패')
+    }
+    target.value = target.value.filter((x) => x.id !== id)
+  }
+
+  function moveAsset(cat, index, direction) {
+    const target = getTargetRef(cat)
+    const arr = [...target.value]
+    const newIdx = direction === 'up' ? index - 1 : index + 1
+    if (newIdx < 0 || newIdx >= arr.length) return
+    ;[arr[index], arr[newIdx]] = [arr[newIdx], arr[index]]
+    target.value = arr
+  }
+
   return {
     documents,
     images,
@@ -114,5 +134,7 @@ export function useAiAssets(category = null) {
     loadCategory,
     uploadFile,
     addAsset,
+    removeAsset,
+    moveAsset,
   }
 }
