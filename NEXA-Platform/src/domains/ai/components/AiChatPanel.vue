@@ -112,26 +112,40 @@
       </div>
         </div>
         <template v-if="outlineEnabled && outlineDisplayMode === 'push'">
-          <div class="chat-outline chat-outline--push">
-            <div class="chat-outline-header text-caption text-grey-7">목차</div>
+          <div class="chat-outline chat-outline--push" :style="{ '--outline-width': `${outlinePanelWidth}px` }">
+            <div class="chat-outline-header row items-center justify-between no-wrap">
+              <span class="chat-outline-title">목차</span>
+              <div class="chat-outline-filters row no-wrap">
+                <q-btn dense flat size="sm" :label="'AI'" :color="outlineFilter === 'assistant' ? 'primary' : undefined" @click="outlineFilter = 'assistant'" />
+                <q-btn dense flat size="sm" :label="'사용자'" :color="outlineFilter === 'user' ? 'primary' : undefined" @click="outlineFilter = 'user'" />
+                <q-btn dense flat size="sm" :label="'모두'" :color="outlineFilter === 'all' ? 'primary' : undefined" @click="outlineFilter = 'all'" />
+              </div>
+            </div>
             <div class="chat-outline-list scroll">
-              <div v-for="item in outlineItems" :key="item.idx" class="chat-outline-item" :class="{ 'chat-outline-item--user': item.role === 'user' }" @click="scrollToMessage(item.idx)">
+              <div v-for="item in filteredOutlineItems" :key="item.idx" class="chat-outline-item" :class="{ 'chat-outline-item--user': item.role === 'user' }" @click="scrollToMessage(item.idx)">
                 {{ item.label }}
               </div>
             </div>
           </div>
         </template>
-        <div v-else-if="outlineEnabled && outlineDisplayMode === 'overlay'" class="chat-outline-overlay-wrap">
+        <div v-else-if="outlineEnabled && outlineDisplayMode === 'overlay'" class="chat-outline-overlay-wrap" :style="{ '--outline-width': `${outlinePanelWidth}px` }">
           <div class="chat-outline-trigger" @mouseenter="outlineHover = true" @mouseleave="outlineHover = false">
             <q-btn round dense flat icon="list" size="sm" :title="outlinePinned ? '목차 닫기' : '목차 열기'" @click="outlinePinned = !outlinePinned" />
           </div>
           <div v-show="outlineOverlayVisible" class="chat-outline chat-outline--overlay" @mouseenter="outlineHover = true" @mouseleave="outlineHover = false">
-            <div class="chat-outline-header row items-center justify-between">
-              <span class="text-caption text-grey-7">목차</span>
+            <div class="chat-outline-header row items-center justify-between no-wrap">
+              <div class="row items-center no-wrap">
+                <span class="chat-outline-title">목차</span>
+                <div class="chat-outline-filters row no-wrap q-ml-sm">
+                  <q-btn dense flat size="sm" :label="'AI'" :color="outlineFilter === 'assistant' ? 'primary' : undefined" @click="outlineFilter = 'assistant'" />
+                  <q-btn dense flat size="sm" :label="'사용자'" :color="outlineFilter === 'user' ? 'primary' : undefined" @click="outlineFilter = 'user'" />
+                  <q-btn dense flat size="sm" :label="'모두'" :color="outlineFilter === 'all' ? 'primary' : undefined" @click="outlineFilter = 'all'" />
+                </div>
+              </div>
               <q-btn round dense flat icon="close" size="xs" @click="outlinePinned = false" />
             </div>
             <div class="chat-outline-list scroll">
-              <div v-for="item in outlineItems" :key="item.idx" class="chat-outline-item" :class="{ 'chat-outline-item--user': item.role === 'user' }" @click="scrollToMessage(item.idx)">
+              <div v-for="item in filteredOutlineItems" :key="item.idx" class="chat-outline-item" :class="{ 'chat-outline-item--user': item.role === 'user' }" @click="scrollToMessage(item.idx)">
                 {{ item.label }}
               </div>
             </div>
@@ -162,7 +176,7 @@ import { useAiMemos } from '../composables/useAiMemos.js'
 
 const aiInsertContent = inject('aiInsertContent', null)
 const { addMemo } = useAiMemos()
-const { selectedModel, selectedModelCapabilities, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture, pendingAttachmentsFromGallery, modelCapabilities, outlineEnabled, outlineDisplayMode } = useAiSettings()
+const { selectedModel, selectedModelCapabilities, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture, pendingAttachmentsFromGallery, modelCapabilities, outlineEnabled, outlineDisplayMode, outlinePanelWidth } = useAiSettings()
 const { models, isLoadingModels, loadModels } = useAiModels()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
@@ -194,14 +208,40 @@ const fileInputRef = ref(null)
 const outlineHover = ref(false)
 const outlinePinned = ref(false)
 
+const outlineFilter = ref('all')
 const outlineItems = computed(() => extractOutlineFromMessages(messages.value))
+const filteredOutlineItems = computed(() => {
+  const items = outlineItems.value
+  if (outlineFilter.value === 'all') return items
+  return items.filter((item) => item.role === outlineFilter.value)
+})
 const outlineOverlayVisible = computed(() => outlineHover.value || outlinePinned.value)
 
 function scrollToMessage(idx) {
   const container = messagesRef.value
   if (!container) return
   const el = container.querySelector(`[data-msg-idx="${idx}"]`)
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  if (!el) return
+  const containerRect = container.getBoundingClientRect()
+  const elRect = el.getBoundingClientRect()
+  const targetTop = Math.max(0, container.scrollTop + (elRect.top - containerRect.top) - 8)
+  const startTop = container.scrollTop
+  const distance = targetTop - startTop
+  if (Math.abs(distance) < 2) return
+  const duration = 350
+  const startTime = performance.now()
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+  }
+
+  function animate() {
+    const elapsed = performance.now() - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    container.scrollTop = startTop + distance * easeInOutCubic(progress)
+    if (progress < 1) requestAnimationFrame(animate)
+  }
+  requestAnimationFrame(animate)
 }
 
 const TITLE_MAX_LEN = 40
@@ -610,20 +650,30 @@ async function sendMessage() {
       right: 28px;
       top: 0;
       bottom: 0;
-      width: 180px;
+      width: var(--outline-width, 180px);
       box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
     }
 
     &.chat-outline--push {
       flex-shrink: 0;
-      width: 180px;
+      width: var(--outline-width, 180px);
     }
   }
 
   .chat-outline-header {
     flex-shrink: 0;
     padding: 8px 12px;
+  }
+
+  .chat-outline-title {
+    font-size: 1rem;
     font-weight: 600;
+    color: var(--nexa-text-primary, inherit);
+  }
+
+  .chat-outline-filters .q-btn {
+    min-width: auto;
+    padding: 2px 6px;
   }
 
   .chat-outline-list {
@@ -655,6 +705,7 @@ async function sendMessage() {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
+    scroll-behavior: smooth;
 
     &:has(.empty-state-welcome-wrapper) {
       display: flex;

@@ -54,12 +54,14 @@ const titleSuggestionMaxTurnsForContext = ref(_range.max)
 
 /** 목차 기능: true=표시, false=숨김 */
 const outlineEnabled = ref(saved.outlineEnabled ?? false)
-/** 목차 표시 모드: overlay(오버레이, 30% 투명도, 호버 시 표시) | push(밀어내기) */
+/** 목차 표시 모드: overlay(오버레이, 버튼 호버/클릭 시 표시) | push(밀어내기) */
 const outlineDisplayMode = ref(saved.outlineDisplayMode ?? 'overlay')
+/** 목차 패널 폭 (px) */
+const outlinePanelWidth = ref(Math.max(100, Math.min(500, saved.outlinePanelWidth ?? 180)))
 
 const selectedModelCapabilities = computed(() => {
   const name = selectedModel.value
-  return name ? (modelCapabilities.value[name] || []) : []
+  return name ? modelCapabilities.value[name] || [] : []
 })
 
 function setModelCapabilities(capabilitiesMap) {
@@ -67,7 +69,24 @@ function setModelCapabilities(capabilitiesMap) {
 }
 
 watch(
-  [selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, outlineEnabled, outlineDisplayMode],
+  [
+    selectedModel,
+    chatMode,
+    chatInputMaxRows,
+    chatFontSize,
+    chatMessageMaxLength,
+    webcamFlipMode,
+    webcamResolution,
+    webcamFilterBrightness,
+    webcamFilterContrast,
+    webcamFilterSaturate,
+    webcamFilterGrayscale,
+    titleSuggestionMinTurns,
+    titleSuggestionMaxTurnsForContext,
+    outlineEnabled,
+    outlineDisplayMode,
+    outlinePanelWidth,
+  ],
   () => {
     saveSettings({
       selectedModel: selectedModel.value,
@@ -85,9 +104,10 @@ watch(
       titleSuggestionMaxTurnsForContext: titleSuggestionMaxTurnsForContext.value,
       outlineEnabled: outlineEnabled.value,
       outlineDisplayMode: outlineDisplayMode.value,
+      outlinePanelWidth: outlinePanelWidth.value,
     })
   },
-  { deep: true }
+  { deep: true },
 )
 
 export function requestAttachToChat(item) {
@@ -123,5 +143,6 @@ export function useAiSettings() {
     titleSuggestionMaxTurnsForContext,
     outlineEnabled,
     outlineDisplayMode,
+    outlinePanelWidth,
   }
 }

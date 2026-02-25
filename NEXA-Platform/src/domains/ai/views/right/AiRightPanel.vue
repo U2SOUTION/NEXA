@@ -91,6 +91,13 @@
                   <div class="text-caption text-grey-7 q-mb-xs">목차</div>
                   <q-toggle v-model="outlineEnabled" label="목차 표시" dense />
                   <q-option-group v-if="outlineEnabled" v-model="outlineDisplayMode" :options="outlineDisplayModeOptions" inline dense class="q-mt-sm" />
+                  <div v-if="outlineEnabled" class="chat-setting-row q-mt-sm">
+                    <div class="text-caption text-grey-7 q-mb-xs">목차 패널 폭</div>
+                    <div class="row items-center no-wrap q-gutter-sm">
+                      <q-slider v-model="outlinePanelWidth" :min="100" :max="500" :step="10" class="col" />
+                      <span class="text-caption text-grey-7" style="min-width: 2.5em">{{ outlinePanelWidth }}px</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="chat-setting-row q-mb-md">
                   <div class="text-caption text-grey-7 q-mb-xs">입력창 최대 줄 수</div>
@@ -141,7 +148,7 @@ import { useAiSettings } from '../../composables/useAiSettings.js'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 import { useAiModels } from '../../composables/useAiModels.js'
 
-const { selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities, outlineEnabled, outlineDisplayMode } = useAiSettings()
+const { selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities, outlineEnabled, outlineDisplayMode, outlinePanelWidth } = useAiSettings()
 const { models, isLoadingModels, loadModels } = useAiModels()
 
 const chatModeOptions = [
@@ -258,15 +265,15 @@ async function checkConnection() {
   }
 
   .ai-panel-padding {
-    padding: 3px 0px;
+    padding: 3px;
   }
 
   .ai-accordion-content {
-    padding: 3px 0px;
+    padding: 2px 0px;
   }
 
   .chat-settings {
-    padding-left: 6px;
+    padding-left: 16px;
   }
 
   .model-select-selected {
@@ -285,4 +292,3 @@ async function checkConnection() {
   }
 }
 </style>
-
