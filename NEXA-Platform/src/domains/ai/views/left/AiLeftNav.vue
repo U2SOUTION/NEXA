@@ -204,6 +204,12 @@
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
                     <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('images', f) : null">
+                      <q-item-section v-if="f.url" avatar>
+                        <img :src="getUploadDisplayUrl(f.file_path) || f.url" :alt="f.original_name" class="media-thumb media-thumb-img" loading="lazy" />
+                      </q-item-section>
+                      <q-item-section v-else avatar>
+                        <q-icon name="image" size="24px" color="grey-5" />
+                      </q-item-section>
                       <q-item-section>{{ f.original_name }}</q-item-section>
                       <q-item-section v-if="f.url" side @click.stop="requestAttachToChat(f)">
                         <q-icon name="add_photo_alternate" size="18px" class="text-grey-6" title="채팅에 첨부" />
@@ -218,7 +224,15 @@
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
                     <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('audio', f) : null">
-                      <q-item-section>{{ f.original_name }}</q-item-section>
+                      <q-item-section avatar>
+                        <q-icon name="music_note" size="24px" color="grey-6" />
+                      </q-item-section>
+                      <q-item-section>
+                        <div class="media-audio-row">
+                          <span class="ellipsis">{{ f.original_name }}</span>
+                          <audio v-if="f.url" :src="getUploadDisplayUrl(f.file_path) || f.url" controls preload="metadata" class="media-audio-player" @click.stop />
+                        </div>
+                      </q-item-section>
                     </q-item>
                   </transition-group>
                 </q-list>
@@ -229,7 +243,18 @@
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
                     <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('video', f) : null">
-                      <q-item-section>{{ f.original_name }}</q-item-section>
+                      <q-item-section v-if="f.url" avatar>
+                        <video :src="getUploadDisplayUrl(f.file_path) || f.url" preload="metadata" class="media-thumb media-thumb-video" muted playsinline @click.stop />
+                      </q-item-section>
+                      <q-item-section v-else avatar>
+                        <q-icon name="videocam" size="24px" color="grey-5" />
+                      </q-item-section>
+                      <q-item-section>
+                        <div class="media-video-row">
+                          <span class="ellipsis">{{ f.original_name }}</span>
+                          <video v-if="f.url" :src="getUploadDisplayUrl(f.file_path) || f.url" controls preload="metadata" class="media-video-player" @click.stop />
+                        </div>
+                      </q-item-section>
                     </q-item>
                   </transition-group>
                 </q-list>
@@ -325,6 +350,7 @@ import { Notify } from 'quasar'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
 import FileDropZone from '@system/components/ui/FileDropZone.vue'
+import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl.js'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 import { useAiAssets } from '../../composables/useAiAssets.js'
 import { useAiLeftToolbar } from '../../composables/useAiLeftToolbar.js'
@@ -869,6 +895,52 @@ function onWebcamCapture(dataUrl) {
   .media-item-selected {
     background-color: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
     font-weight: 600;
+  }
+
+  .media-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .media-thumb-img {
+    display: block;
+  }
+
+  .media-thumb-video {
+    background: #000;
+  }
+
+  .media-audio-row,
+  .media-video-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .media-audio-row .ellipsis,
+  .media-video-row .ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .media-audio-player,
+  .media-video-player {
+    width: 100%;
+    max-width: 200px;
+    height: 28px;
+    min-height: 28px;
+  }
+
+  .media-video-player {
+    height: 80px;
+    min-height: 80px;
+    max-height: 120px;
+    object-fit: contain;
   }
 
   .list-management-toolbar {
