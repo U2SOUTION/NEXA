@@ -124,6 +124,64 @@ export function useAiAssets(category = null) {
     target.value = arr
   }
 
+  const selectedMediaItem = ref(null)
+
+  function selectMediaItem(category, item) {
+    if (!item?.url) return
+    const cur = selectedMediaItem.value
+    const same = cur?.item?.id === item.id && cur?.category === category
+    selectedMediaItem.value = same ? null : { category, item }
+  }
+
+  function getMediaArray(cat) {
+    const target = getTargetRef(cat)
+    return target?.value ?? []
+  }
+
+  const canMoveMediaUp = computed(() => {
+    const s = selectedMediaItem.value
+    if (!s) return false
+    const arr = getMediaArray(s.category)
+    const idx = arr.findIndex((x) => x.id === s.item.id)
+    return idx > 0
+  })
+
+  const canMoveMediaDown = computed(() => {
+    const s = selectedMediaItem.value
+    if (!s) return false
+    const arr = getMediaArray(s.category)
+    const idx = arr.findIndex((x) => x.id === s.item.id)
+    return idx >= 0 && idx < arr.length - 1
+  })
+
+  async function handleMediaDelete() {
+    const s = selectedMediaItem.value
+    if (!s) return
+    try {
+      await removeAsset(s.item.id, s.category)
+      selectedMediaItem.value = null
+      Notify.create({ message: '삭제됨', icon: 'check_circle' })
+    } catch (err) {
+      Notify.create({ type: 'negative', message: err.message || '삭제 실패' })
+    }
+  }
+
+  function handleMediaMoveUp() {
+    const s = selectedMediaItem.value
+    if (!s || !canMoveMediaUp.value) return
+    const arr = getMediaArray(s.category)
+    const idx = arr.findIndex((x) => x.id === s.item.id)
+    moveAsset(s.category, idx, 'up')
+  }
+
+  function handleMediaMoveDown() {
+    const s = selectedMediaItem.value
+    if (!s || !canMoveMediaDown.value) return
+    const arr = getMediaArray(s.category)
+    const idx = arr.findIndex((x) => x.id === s.item.id)
+    moveAsset(s.category, idx, 'down')
+  }
+
   return {
     documents,
     images,
@@ -136,5 +194,13 @@ export function useAiAssets(category = null) {
     addAsset,
     removeAsset,
     moveAsset,
+    selectedMediaItem,
+    selectMediaItem,
+    getMediaArray,
+    canMoveMediaUp,
+    canMoveMediaDown,
+    handleMediaDelete,
+    handleMediaMoveUp,
+    handleMediaMoveDown,
   }
 }

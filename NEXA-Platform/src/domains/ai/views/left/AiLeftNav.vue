@@ -8,40 +8,22 @@
       <q-tab name="media" label="미디어" icon="photo_library" />
     </q-tabs>
 
-    <!-- 공유 검색 폼 -->
-    <div v-if="leftMainTab !== 'media'" class="search-form q-pa-sm q-mx-sm q-mb-xs">
-      <q-input v-model="searchQuery" outlined dense :placeholder="searchPlaceholder" clearable :disable="leftMainTab === 'media'">
+    <!-- 공유 검색 폼 (모든 탭에서 사용, useAiLeftToolbar 설정) -->
+    <div class="search-form q-pa-sm q-mx-sm q-mb-xs">
+      <q-input v-model="searchQuery" outlined dense :placeholder="searchPlaceholder" clearable>
         <template #prepend>
           <q-icon name="search" />
         </template>
-        <template v-if="leftMainTab === 'chat'" #append>
+        <template v-if="showSearchTargetMenu" #append>
           <q-btn flat dense round size="sm" :icon="searchTargetIcon" class="search-target-btn" title="Search target">
             <q-menu anchor="bottom end" self="top end" :offset="[0, 4]">
               <q-list dense style="min-width: 120px">
-                <q-item clickable v-close-popup @click="searchTarget = 'both'">
+                <q-item v-for="opt in searchTargetOptions" :key="opt.value" clickable v-close-popup @click="opt.select?.()">
                   <q-item-section avatar>
-                    <q-icon name="view_list" size="18px" />
+                    <q-icon :name="opt.icon" size="18px" />
                   </q-item-section>
-                  <q-item-section>Both</q-item-section>
-                  <q-item-section side v-if="searchTarget === 'both'">
-                    <q-icon name="check" size="16px" color="primary" />
-                  </q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="searchTarget = 'channel'">
-                  <q-item-section avatar>
-                    <q-icon name="folder" size="18px" />
-                  </q-item-section>
-                  <q-item-section>Channel</q-item-section>
-                  <q-item-section side v-if="searchTarget === 'channel'">
-                    <q-icon name="check" size="16px" color="primary" />
-                  </q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="searchTarget = 'chat'">
-                  <q-item-section avatar>
-                    <q-icon name="chat_bubble_outline" size="18px" />
-                  </q-item-section>
-                  <q-item-section>Chat</q-item-section>
-                  <q-item-section side v-if="searchTarget === 'chat'">
+                  <q-item-section>{{ opt.label }}</q-item-section>
+                  <q-item-section side v-if="opt.isActive">
                     <q-icon name="check" size="16px" color="primary" />
                   </q-item-section>
                 </q-item>
@@ -52,57 +34,39 @@
       </q-input>
     </div>
 
-    <!-- 공유 툴바 -->
+    <!-- 미디어 탭 업로더 (툴바 위에 배치 → 툴바가 리스트와 가깝게) -->
+    <div v-if="leftMainTab === 'media'" class="media-upload-area q-pa-sm q-mx-sm q-mb-xs rounded-borders">
+      <q-btn flat dense no-caps :icon="showMediaUpload ? 'expand_less' : 'cloud_upload'" :label="showMediaUpload ? '업로드 영역 접기' : '파일 업로드'" class="full-width" @click="showMediaUpload = !showMediaUpload" />
+      <div v-show="showMediaUpload" class="q-mt-sm">
+        <FileDropZone
+          upload-url="/files/upload"
+          list-url="/files/list?domain=ai"
+          accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.csv"
+          label="이미지·오디오·영상·문서를 드래그하거나 선택하세요"
+          @add="handleMediaAdd"
+        />
+      </div>
+    </div>
+
+    <!-- 공유 툴바 (설정 기반) -->
     <div v-if="showToolbar" class="list-management-toolbar q-pa-sm q-mx-sm q-mb-xs rounded-borders">
       <div class="row items-center no-wrap full-width justify-between">
-        <div class="toolbar-label text-caption text-grey-6">TOOLbar</div>
+        <div class="toolbar-label text-caption text-grey-6">{{ toolbarLabel }}</div>
         <div class="toolbar-actions row q-gutter-xs flex-shrink-0">
-          <!-- 채팅 탭 툴바 -->
-          <template v-if="leftMainTab === 'chat'">
-            <q-btn flat dense round size="md" icon="add" title="Add">
+          <template v-for="btn in toolbarItems" :key="btn.id">
+            <q-btn v-if="btn.type === 'menu'" flat dense round :size="btn.size || 'sm'" :icon="btn.icon" :title="btn.title">
               <q-menu anchor="bottom start" self="top start" :offset="[0, 4]">
                 <q-list dense style="min-width: 140px">
-                  <q-item clickable v-close-popup @click="showAddChannel = true">
+                  <q-item v-for="mi in btn.menuItems" :key="mi.label" clickable v-close-popup @click="mi.onClick?.()">
                     <q-item-section avatar>
-                      <q-icon name="folder" size="18px" />
+                      <q-icon :name="mi.icon" size="18px" />
                     </q-item-section>
-                    <q-item-section>채널 추가</q-item-section>
-                  </q-item>
-                  <q-item clickable v-close-popup @click="handleAddChatFromToolbar">
-                    <q-item-section avatar>
-                      <q-icon name="chat_bubble_outline" size="18px" />
-                    </q-item-section>
-                    <q-item-section>대화 추가</q-item-section>
+                    <q-item-section>{{ mi.label }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
             </q-btn>
-            <template v-if="selectedChat">
-              <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChat" />
-              <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChatUp" @click="moveChatUp(selectedChannelId, selectedChatId)" />
-              <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChatDown" @click="moveChatDown(selectedChannelId, selectedChatId)" />
-              <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChat(selectedChannelId, selectedChat)" />
-            </template>
-            <template v-else-if="selectedChannel">
-              <q-btn flat dense round size="sm" icon="edit" title="Edit" @click="openEditChannel" />
-              <q-btn flat dense round size="sm" icon="arrow_upward" title="Move up" :disable="!canMoveChannelUp" @click="moveChannelUp(selectedChannelId)" />
-              <q-btn flat dense round size="sm" icon="arrow_downward" title="Move down" :disable="!canMoveChannelDown" @click="moveChannelDown(selectedChannelId)" />
-              <q-btn flat dense round size="sm" icon="delete_outline" title="Delete" color="negative" @click="confirmDeleteChannel(selectedChannel)" />
-            </template>
-          </template>
-          <!-- 미디어 탭 툴바 -->
-          <template v-else-if="leftMainTab === 'media'">
-            <q-btn flat dense round size="sm" icon="arrow_upward" title="위로" :disable="!canMoveMediaUp" @click="handleMediaMoveUp" />
-            <q-btn flat dense round size="sm" icon="arrow_downward" title="아래로" :disable="!canMoveMediaDown" @click="handleMediaMoveDown" />
-            <q-btn flat dense round size="sm" icon="delete_outline" title="삭제" color="negative" :disable="!selectedMediaItem" @click="handleMediaDelete" />
-          </template>
-          <!-- 노트 탭 툴바 -->
-          <template v-else-if="leftMainTab === 'note'">
-            <q-btn flat dense round size="md" icon="add" title="메모 추가 (에디터 열기)" @click="handleNoteAdd" />
-            <q-btn flat dense round size="sm" icon="edit" title="편집 (에디터 열기)" :disable="!selectedMemo" @click="handleNoteEdit" />
-            <q-btn flat dense round size="sm" icon="arrow_upward" title="위로" :disable="!canMoveMemoUp" @click="handleNoteMoveUp" />
-            <q-btn flat dense round size="sm" icon="arrow_downward" title="아래로" :disable="!canMoveMemoDown" @click="handleNoteMoveDown" />
-            <q-btn flat dense round size="sm" icon="delete_outline" title="삭제" color="negative" :disable="!selectedMemo" @click="handleNoteDelete" />
+            <q-btn v-else flat dense round :size="btn.size || 'sm'" :icon="btn.icon" :title="btn.title" :color="btn.color" :disable="btn.disabled" @click="btn.onClick?.()" />
           </template>
         </div>
       </div>
@@ -235,45 +199,39 @@
       <q-tab-panel name="media" class="q-pa-none left-panel-inner">
         <div class="panel-scroll-area">
           <div class="ai-panel-padding">
-            <div class="q-pa-sm q-mb-sm">
-              <q-btn flat dense no-caps :icon="showMediaUpload ? 'expand_less' : 'cloud_upload'" :label="showMediaUpload ? '업로드 영역 접기' : '파일 업로드'" class="full-width" @click="showMediaUpload = !showMediaUpload" />
-              <div v-show="showMediaUpload" class="q-mt-sm">
-                <FileDropZone
-                  upload-url="/files/upload"
-                  list-url="/files/list?domain=ai"
-                  accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.csv"
-                  label="이미지·오디오·영상·문서를 드래그하거나 선택하세요"
-                  @add="handleMediaAdd"
-                />
-              </div>
-            </div>
             <q-expansion-item v-model="expandedGallery" icon="photo_library" label="갤러리" @show="aiAssets.loadCategory('images')">
               <div class="ai-accordion-content">
-                <q-list dense class="q-mt-sm" :key="'gallery-' + images.length">
-                  <q-item v-for="f in (images.length ? images : galleryPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('images', f) : null">
-                    <q-item-section>{{ f.original_name }}</q-item-section>
-                    <q-item-section v-if="f.url" side @click.stop="requestAttachToChat(f)">
-                      <q-icon name="add_photo_alternate" size="18px" class="text-grey-6" title="채팅에 첨부" />
-                    </q-item-section>
-                  </q-item>
+                <q-list dense class="q-mt-sm">
+                  <transition-group name="media-move" tag="div" class="media-transition-group">
+                    <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('images', f) : null">
+                      <q-item-section>{{ f.original_name }}</q-item-section>
+                      <q-item-section v-if="f.url" side @click.stop="requestAttachToChat(f)">
+                        <q-icon name="add_photo_alternate" size="18px" class="text-grey-6" title="채팅에 첨부" />
+                      </q-item-section>
+                    </q-item>
+                  </transition-group>
                 </q-list>
               </div>
             </q-expansion-item>
             <q-expansion-item v-model="expandedAudio" icon="music_note" label="사운드" @show="aiAssets.loadCategory('audio')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in (audio.length ? audio : audioPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('audio', f) : null">
-                    <q-item-section>{{ f.original_name }}</q-item-section>
-                  </q-item>
+                  <transition-group name="media-move" tag="div" class="media-transition-group">
+                    <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('audio', f) : null">
+                      <q-item-section>{{ f.original_name }}</q-item-section>
+                    </q-item>
+                  </transition-group>
                 </q-list>
               </div>
             </q-expansion-item>
             <q-expansion-item v-model="expandedVideo" icon="videocam" label="영상" @show="aiAssets.loadCategory('video')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in (videos.length ? videos : videoPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('video', f) : null">
-                    <q-item-section>{{ f.original_name }}</q-item-section>
-                  </q-item>
+                  <transition-group name="media-move" tag="div" class="media-transition-group">
+                    <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('video', f) : null">
+                      <q-item-section>{{ f.original_name }}</q-item-section>
+                    </q-item>
+                  </transition-group>
                 </q-list>
               </div>
             </q-expansion-item>
@@ -369,6 +327,7 @@ import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
 import FileDropZone from '@system/components/ui/FileDropZone.vue'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 import { useAiAssets } from '../../composables/useAiAssets.js'
+import { useAiLeftToolbar } from '../../composables/useAiLeftToolbar.js'
 import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings.js'
 import { useAiMemos } from '../../composables/useAiMemos.js'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest.js'
@@ -404,56 +363,7 @@ function handleMediaAdd(p) {
   openMediaAccordion(cat)
 }
 
-const selectedMediaItem = ref(null)
-
-function selectMediaItem(category, item) {
-  if (!item?.url) return
-  selectedMediaItem.value = selectedMediaItem.value?.item?.id === item.id && selectedMediaItem.value?.category === category ? null : { category, item }
-}
-
-const canMoveMediaUp = computed(() => {
-  const s = selectedMediaItem.value
-  if (!s) return false
-  const arr = (s.category === 'images' ? images : s.category === 'audio' ? audio : videos).value || []
-  const idx = arr.findIndex((x) => x.id === s.item.id)
-  return idx > 0
-})
-
-const canMoveMediaDown = computed(() => {
-  const s = selectedMediaItem.value
-  if (!s) return false
-  const arr = (s.category === 'images' ? images : s.category === 'audio' ? audio : videos).value || []
-  const idx = arr.findIndex((x) => x.id === s.item.id)
-  return idx >= 0 && idx < arr.length - 1
-})
-
-async function handleMediaDelete() {
-  const s = selectedMediaItem.value
-  if (!s) return
-  try {
-    await aiAssets.removeAsset(s.item.id, s.category)
-    selectedMediaItem.value = null
-    Notify.create({ message: '삭제됨', icon: 'check_circle' })
-  } catch (err) {
-    Notify.create({ type: 'negative', message: err.message || '삭제 실패' })
-  }
-}
-
-function handleMediaMoveUp() {
-  const s = selectedMediaItem.value
-  if (!s || !canMoveMediaUp.value) return
-  const arr = (s.category === 'images' ? images : s.category === 'audio' ? audio : videos).value || []
-  const idx = arr.findIndex((x) => x.id === s.item.id)
-  aiAssets.moveAsset(s.category, idx, 'up')
-}
-
-function handleMediaMoveDown() {
-  const s = selectedMediaItem.value
-  if (!s || !canMoveMediaDown.value) return
-  const arr = (s.category === 'images' ? images : s.category === 'audio' ? audio : videos).value || []
-  const idx = arr.findIndex((x) => x.id === s.item.id)
-  aiAssets.moveAsset(s.category, idx, 'down')
-}
+const { selectedMediaItem, selectMediaItem } = aiAssets
 
 /** 빈 리스트일 때 UI 확인용 플레이스홀더 */
 const galleryPlaceholders = [{ id: 'ph-img-1', original_name: '(등록된 이미지 없음)' }, { id: 'ph-img-2', original_name: '(업로드 또는 웹서버에서 선택)' }]
@@ -468,12 +378,6 @@ const filteredMemos = computed(() => {
   const q = (searchQuery.value || '').trim().toLowerCase()
   if (!q) return memos.value
   return memos.value.filter((m) => (m.content || '').toLowerCase().includes(q))
-})
-
-const searchPlaceholder = computed(() => {
-  if (leftMainTab.value === 'chat') return 'Search channels & chats'
-  if (leftMainTab.value === 'note') return 'Search memos'
-  return 'Search'
 })
 
 const showToolbar = computed(() => true)
@@ -559,6 +463,18 @@ const {
   clearPendingTitleSuggestion,
 } = useAiChannels()
 
+const filterByQuery = (arr, getText) => {
+  const q = (searchQuery.value || '').trim().toLowerCase()
+  if (!q) return arr
+  return arr.filter((x) => (getText(x) || '').toLowerCase().includes(q))
+}
+const filteredImages = computed(() => filterByQuery(images.value || [], (f) => f.original_name))
+const filteredAudio = computed(() => filterByQuery(audio.value || [], (f) => f.original_name))
+const filteredVideos = computed(() => filterByQuery(videos.value || [], (f) => f.original_name))
+const displayImages = computed(() => ((searchQuery.value || '').trim() ? filteredImages.value : (images.value?.length ? images.value : galleryPlaceholders)))
+const displayAudio = computed(() => ((searchQuery.value || '').trim() ? filteredAudio.value : (audio.value?.length ? audio.value : audioPlaceholders)))
+const displayVideos = computed(() => ((searchQuery.value || '').trim() ? filteredVideos.value : (videos.value?.length ? videos.value : videoPlaceholders)))
+
 const { pendingWebcamCapture, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, selectedModelCapabilities } = useAiSettings()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
@@ -630,11 +546,6 @@ function handleAddChatFromToolbar() {
   }
 }
 
-const searchTargetIcon = computed(() => {
-  const map = { both: 'view_list', channel: 'folder', chat: 'chat_bubble_outline' }
-  return map[searchTarget.value] || 'view_list'
-})
-
 const canMoveChannelUp = computed(() => {
   if (!selectedChannelId.value) return false
   const idx = channels.value.findIndex((c) => c.id === selectedChannelId.value)
@@ -689,6 +600,44 @@ function doEditSave() {
   }
   showEditDialog.value = false
 }
+
+const toolbarCtx = {
+  leftMainTab,
+  searchTarget,
+  showAddChannel,
+  selectedChat,
+  selectedChannel,
+  selectedChannelId,
+  selectedChatId,
+  handleAddChatFromToolbar,
+  openEditChat,
+  openEditChannel,
+  confirmDeleteChat,
+  confirmDeleteChannel,
+  canMoveChatUp,
+  canMoveChatDown,
+  canMoveChannelUp,
+  canMoveChannelDown,
+  moveChatUp,
+  moveChatDown,
+  moveChannelUp,
+  moveChannelDown,
+  selectedMemo,
+  handleNoteAdd,
+  handleNoteEdit,
+  handleNoteMoveUp,
+  handleNoteMoveDown,
+  handleNoteDelete,
+  canMoveMemoUp,
+  canMoveMemoDown,
+  selectedMediaItem: aiAssets.selectedMediaItem,
+  canMoveMediaUp: aiAssets.canMoveMediaUp,
+  canMoveMediaDown: aiAssets.canMoveMediaDown,
+  handleMediaDelete: aiAssets.handleMediaDelete,
+  handleMediaMoveUp: aiAssets.handleMediaMoveUp,
+  handleMediaMoveDown: aiAssets.handleMediaMoveDown,
+}
+const { toolbarItems, toolbarLabel, searchPlaceholder, showSearchTargetMenu, searchTargetOptions, searchTargetIcon } = useAiLeftToolbar(toolbarCtx)
 
 function onWebcamToggle(on) {
   webcamOn.value = on
@@ -888,14 +837,23 @@ function onWebcamCapture(dataUrl) {
 
   .channel-move-move,
   .chat-move-move,
-  .memo-move-move {
+  .memo-move-move,
+  .media-move-move {
     transition: transform 0.25s ease;
   }
 
   .channel-transition-group,
   .chat-transition-group,
-  .memo-transition-group {
+  .memo-transition-group,
+  .media-transition-group {
     display: contents;
+  }
+
+  .media-upload-area {
+    background: var(--nexa-surface-header-bg, var(--nexa-background-darker));
+    border: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.12));
+    border-radius: 4px;
+    min-width: 0;
   }
 
   .search-form {
