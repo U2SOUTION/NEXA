@@ -87,7 +87,7 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
     let contentHash
     try {
       contentHash = computeContentHash(fileBuffer)
-    } catch (err) {
+    } catch {
       return res.status(400).json({ code: 'HASH_COMPUTE_FAILED', error: '파일 해시 계산 실패' })
     }
 
@@ -234,6 +234,172 @@ router.get('/files/list', async (req, res) => {
   } catch (error) {
     console.error('[files/list]', error)
     res.status(500).json({ error: error.message })
+  }
+})
+
+/**
+ * GET /api/files/explorer
+ * 전역 탐색기용: 전 도메인(또는 지정 도메인) + 엣지 파일 목록, 페이지네이션 지원.
+ * @query domain - 선택. 비우면 모든 도메인
+ * @query category - 선택 (images, documents, audio, video 등)
+ * @query source - 선택. files.source 필터
+ * @query edge_sid - 선택. files.edge_sid 필터
+ * @query q - 선택. original_name 검색 (LIKE)
+ * @query limit - 선택. 기본 50
+ * @query offset - 선택. 기본 0
+ * @returns { items: Array, total: number }
+ */
+router.get('/files/explorer/debug', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') return res.status(404).json({ error: 'Not found' })
+  try {
+    const [filesCount] = await pool.execute('SELECT COUNT(*) AS c FROM files')
+    const [refsCount] = await pool.execute('SELECT COUNT(*) AS c FROM file_references')
+    const [joinedCount] = await pool.execute(
+      'SELECT COUNT(*) AS c FROM files f INNER JOIN file_references fr ON f.id = fr.file_id WHERE fr.domain = ?',
+      ['ai'],
+    )
+    const [sample] = await pool.execute(
+      'SELECT f.id, f.file_path, fr.domain FROM files f INNER JOIN file_references fr ON f.id = fr.file_id WHERE fr.domain = ? LIMIT 3',
+      ['ai'],
+    )
+    res.json({
+      files_total: filesCount[0]?.c ?? 0,
+      file_references_total: refsCount[0]?.c ?? 0,
+      joined_ai_count: joinedCount[0]?.c ?? 0,
+      sample_rows: sample,
+    })
+  } catch (err) {
+    console.error('[files/explorer/debug]', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.get('/files/explorer', async (req, res) => {
+  try {
+    const domain = req.query.domain ? String(req.query.domain).trim() : null
+    const pathPrefix = req.query.path != null ? String(req.query.path).trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '') : null
+    const category = req.query.category ? String(req.query.category).trim() : null
+    const source = req.query.source ? String(req.query.source).trim() : null
+    const edgeSid = req.query.edge_sid != null ? parseInt(req.query.edge_sid, 10) : null
+    const q = req.query.q ? String(req.query.q).trim() : null
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 500)
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0)
+    const limitInt = Number(limit) || 50
+    const offsetInt = Number(offset) || 0
+
+    const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`
+
+    const conditions = []
+    const params = []
+
+    if (domain) {
+      conditions.push('fr.domain = ?')
+      params.push(domain)
+    }
+    if (domain && pathPrefix && String(pathPrefix).trim()) {
+      const folderPrefix = `uploads/${domain}/${pathPrefix}/`
+      conditions.push('(f.file_path = ? OR f.file_path LIKE ?)')
+      params.push(folderPrefix.slice(0, -1), `${folderPrefix}%`)
+    }
+    if (category && String(category).trim()) {
+      conditions.push('f.category = ?')
+      params.push(category.trim())
+    }
+    if (source && String(source).trim()) {
+      conditions.push('f.source = ?')
+      params.push(source)
+    }
+    if (!Number.isNaN(edgeSid) && edgeSid != null) {
+      conditions.push('f.edge_sid = ?')
+      params.push(edgeSid)
+    }
+    if (q && String(q).trim()) {
+      conditions.push('(f.original_name LIKE ? OR f.file_path LIKE ?)')
+      const escaped = q.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
+      const likeVal = `%${escaped}%`
+      params.push(likeVal, likeVal)
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM files f
+      INNER JOIN file_references fr ON f.id = fr.file_id
+      ${whereClause}
+    `
+    const [countRows] = await pool.execute(countQuery, params)
+    const total = countRows[0]?.total ?? 0
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[files/explorer]', { domain, pathPrefix, conditions: conditions.length, paramsCount: params.length, total })
+    }
+
+    const listQuery = `
+      SELECT f.id, f.file_path, f.original_name, f.file_type, f.category, f.file_size, f.source, f.edge_sid, f.created_at, fr.domain
+      FROM files f
+      INNER JOIN file_references fr ON f.id = fr.file_id
+      ${whereClause}
+      ORDER BY f.created_at DESC
+      LIMIT ${limitInt} OFFSET ${offsetInt}
+    `
+    const [rows] = await pool.execute(listQuery, params)
+
+    const items = rows.map((r) => ({
+      id: r.id,
+      file_path: r.file_path,
+      original_name: r.original_name,
+      file_type: r.file_type,
+      category: r.category,
+      file_size: r.file_size,
+      domain: r.domain,
+      source: r.source ?? null,
+      edge_sid: r.edge_sid ?? null,
+      created_at: r.created_at,
+      url: `${baseUrl}/uploads/${r.file_path.replace(/^uploads\//, '')}`.replace(/\/+/g, '/'),
+    }))
+
+    res.json({ items, total })
+  } catch (error) {
+    console.error('[files/explorer]', error)
+    res.status(500).json({ code: 'EXPLORER_FAILED', error: error.message })
+  }
+})
+
+/**
+ * GET /api/files/explorer/tree
+ * 탐색기 좌측 트리용: 도메인별 실제 디렉터리 경로 (file_path 기준)
+ * @returns { { domains: Array<{ domain: string, paths: string[] }> } } paths는 도메인 하위 상대 경로(''=루트, '2024/01' 등)
+ */
+router.get('/files/explorer/tree', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT fr.domain, f.file_path
+       FROM files f
+       INNER JOIN file_references fr ON f.id = fr.file_id`,
+    )
+    const byDomain = new Map()
+    for (const r of rows) {
+      const d = r.domain || 'unknown'
+      const fullPath = (r.file_path || '').replace(/\\/g, '/').trim()
+      const prefix = `uploads/${d}/`
+      if (!fullPath.startsWith(prefix)) continue
+      const relative = fullPath.slice(prefix.length)
+      const parts = relative.split('/').filter(Boolean)
+      if (!byDomain.has(d)) byDomain.set(d, new Set())
+      byDomain.get(d).add('')
+      for (let i = 1; i < parts.length; i++) {
+        byDomain.get(d).add(parts.slice(0, i).join('/'))
+      }
+    }
+    const domains = Array.from(byDomain.entries()).map(([domain, pathSet]) => ({
+      domain,
+      paths: Array.from(pathSet).sort((a, b) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b))),
+    }))
+    res.json({ domains })
+  } catch (error) {
+    console.error('[files/explorer/tree]', error)
+    res.status(500).json({ code: 'EXPLORER_TREE_FAILED', error: error.message })
   }
 })
 

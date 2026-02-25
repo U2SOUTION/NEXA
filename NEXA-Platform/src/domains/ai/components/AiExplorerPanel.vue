@@ -1,26 +1,68 @@
 <template>
-  <div class="ai-placeholder-editor">
-    <q-icon name="folder_open" size="64px" class="placeholder-icon" />
-    <div class="text-h6 q-mb-xs">탐색기</div>
-    <div class="text-body2 text-grey-7">(준비 중)</div>
+  <div class="ai-explorer-panel column">
+    <GlobalFileExplorer
+      mode="embed"
+      class="col"
+      @select="onSelect"
+    />
+    <div v-if="selectedFile" class="action-bar row items-center q-pa-sm q-gutter-sm">
+      <span class="text-caption text-grey-7">선택: {{ selectedFile.original_name }}</span>
+      <q-btn dense flat size="sm" label="채팅에 넣기" icon="chat" @click="injectToChat" />
+      <q-btn dense flat size="sm" label="에디터에 넣기" icon="edit_note" @click="injectToEditor" />
+      <q-btn dense flat size="sm" label="이미지 편집" icon="image" @click="openInImageEditor" />
+      <q-btn dense flat size="sm" label="음원 편집" icon="graphic_eq" @click="openInAudioEditor" />
+      <q-btn dense flat size="sm" label="영상 편집" icon="videocam" @click="openInVideoEditor" />
+    </div>
   </div>
 </template>
 
 <script setup>
+import GlobalFileExplorer from '@system/components/ui/explorer/GlobalFileExplorer.vue'
+import { useFileSelection } from '@system/composables/useFileSelection.js'
+import { useAiExplorerSelection } from '../composables/useAiExplorerSelection.js'
+
+const { selectedFile } = useFileSelection()
+const {
+  requestInjectToChat,
+  requestInjectToEditor,
+  requestOpenInImageEditor,
+  requestOpenInAudioEditor,
+  requestOpenInVideoEditor,
+} = useAiExplorerSelection()
+
+function onSelect() {
+  // 선택은 useFileSelection에 이미 반영됨 (GlobalFileExplorer에서 setSelectedFile 호출)
+}
+
+function injectToChat() {
+  if (selectedFile.value) requestInjectToChat(selectedFile.value)
+}
+
+function injectToEditor() {
+  if (selectedFile.value) requestInjectToEditor(selectedFile.value)
+}
+
+function openInImageEditor() {
+  if (selectedFile.value) requestOpenInImageEditor(selectedFile.value)
+}
+
+function openInAudioEditor() {
+  if (selectedFile.value) requestOpenInAudioEditor(selectedFile.value)
+}
+
+function openInVideoEditor() {
+  if (selectedFile.value) requestOpenInVideoEditor(selectedFile.value)
+}
 </script>
 
 <style lang="scss" scoped>
-.ai-placeholder-editor {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.ai-explorer-panel {
   min-height: 0;
-
-  .placeholder-icon {
-    opacity: 0.4;
-    margin-bottom: 16px;
-  }
+  height: 100%;
+}
+.action-bar {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
 }
 </style>

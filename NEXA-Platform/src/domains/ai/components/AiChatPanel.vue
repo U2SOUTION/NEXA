@@ -663,6 +663,7 @@ async function sendMessage() {
   .chat-outline-header {
     flex-shrink: 0;
     padding: 8px 12px;
+    background: color-mix(in srgb, var(--nexa-surface) 92%, black);
   }
 
   .chat-outline-title {
