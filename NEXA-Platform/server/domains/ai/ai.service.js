@@ -43,6 +43,23 @@ export async function chat(messages, model, url, systemInstruction) {
   return res.json()
 }
 
+/** 스트리밍 채팅 - Ollama NDJSON 스트림 반환 (pipe용) */
+export async function chatStream(messages, model, url, systemInstruction) {
+  const base = getBaseUrl(url)
+  const finalMessages = [...(systemInstruction?.trim() ? [{ role: 'system', content: systemInstruction.trim() }] : []), ...messages]
+  const body = { model: model || undefined, messages: finalMessages, stream: true }
+  const res = await fetch(`${base}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error || `Ollama 스트리밍 실패: ${res.status}`)
+  }
+  return res
+}
+
 export async function checkConnection(testUrl) {
   const base = getBaseUrl(testUrl || OLLAMA_URL)
   const res = await fetch(`${base}/api/tags`)

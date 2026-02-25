@@ -140,12 +140,18 @@ function updateChatInstruction(channelId, chatId, text) {
   }
 }
 
-function updateChatMessages(channelId, chatId, messages) {
+/**
+ * @param {string} channelId
+ * @param {string} chatId
+ * @param {Array} messages
+ * @param {{ skipPersist?: boolean }} [opts] - skipPersist: true면 localStorage 저장 생략 (스트리밍 중 UI만 갱신)
+ */
+function updateChatMessages(channelId, chatId, messages, opts) {
   const ch = channels.value.find((c) => c.id === channelId)
   const chat = ch?.chats?.find((c) => c.id === chatId)
   if (chat) {
     chat.messages = messages
-    saveToStorage(channels.value)
+    if (!opts?.skipPersist) saveToStorage(channels.value)
   }
 }
 

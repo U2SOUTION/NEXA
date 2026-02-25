@@ -84,6 +84,10 @@
             <q-expansion-item icon="chat" label="채팅" default-opened>
               <div class="chat-settings ai-accordion-content">
                 <div class="chat-setting-row q-mb-md">
+                  <div class="text-caption text-grey-7 q-mb-xs">채팅 모드</div>
+                  <q-option-group v-model="chatMode" :options="chatModeOptions" inline dense />
+                </div>
+                <div class="chat-setting-row q-mb-md">
                   <div class="text-caption text-grey-7 q-mb-xs">입력창 최대 줄 수</div>
                   <div class="row items-center no-wrap q-gutter-sm">
                     <q-slider v-model="chatInputMaxRows" :min="2" :max="20" :step="1" class="col" />
@@ -130,12 +134,17 @@ import AiAgentWorkcardPanel from './agent/AiAgentWorkcardPanel.vue'
 import { aiApi } from '../../services/aiApi.js'
 import { useAiSettings } from '../../composables/useAiSettings.js'
 import { useAiChannels } from '../../composables/useAiChannels.js'
+import { useAiModels } from '../../composables/useAiModels.js'
 
-const { selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities, setModelCapabilities } = useAiSettings()
+const { selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities } = useAiSettings()
+const { models, isLoadingModels, loadModels } = useAiModels()
+
+const chatModeOptions = [
+  { value: 'streaming', label: '스트리밍 (실시간)' },
+  { value: 'full-delivery', label: '풀 (완료 후)' },
+]
 const { selectedChannel, selectedChat, selectedChannelId, systemInstruction, updateSystemInstruction, updateChannelInstruction, updateChatInstruction } = useAiChannels()
 const ollamaBaseUrl = ref('http://192.168.0.15:11434')
-const models = ref([])
-const isLoadingModels = ref(false)
 const connectionStatus = ref(null)
 const isCheckingConnection = ref(false)
 let connectionCheckTimer = null
@@ -195,35 +204,6 @@ onMounted(() => {
   loadModels()
   checkConnection()
 })
-
-async function loadModels() {
-  if (models.value.length > 0) return
-  isLoadingModels.value = true
-  try {
-    const list = await aiApi.listModels()
-    const modelList = list?.models ?? []
-    models.value = modelList
-    if (modelList.length > 0 && !selectedModel.value) {
-      selectedModel.value = modelList[0].name
-    }
-    const capsMap = {}
-    await Promise.all(
-      modelList.map(async (m) => {
-        try {
-          const info = await aiApi.getModelShow(m.name)
-          capsMap[m.name] = info?.capabilities ?? []
-        } catch {
-          capsMap[m.name] = []
-        }
-      }),
-    )
-    setModelCapabilities(capsMap)
-  } catch {
-    models.value = []
-  } finally {
-    isLoadingModels.value = false
-  }
-}
 
 async function checkConnection() {
   isCheckingConnection.value = true

@@ -33,6 +33,64 @@ export const aiApi = {
     return res.json()
   },
 
+  /**
+   * 스트리밍 채팅 - NDJSON 스트림을 읽으며 onChunk(contentDelta) 호출
+   * @param {Function} onChunk - (contentDelta: string) => void
+   * @returns {Promise<string>} 최종 전체 content
+   */
+  async chatStream(messages, model, systemInstruction, onChunk) {
+    const res = await fetch(`${getApiBaseUrl()}/ai/chat-stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages, model, systemInstruction: systemInstruction || undefined }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || err.error || '스트리밍 요청 실패')
+    }
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let fullContent = ''
+    let buffer = ''
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const obj = JSON.parse(line)
+            const delta = obj?.message?.content ?? ''
+            if (delta) {
+              fullContent += delta
+              onChunk?.(delta)
+            }
+          } catch {
+            // skip invalid JSON lines
+          }
+        }
+      }
+      if (buffer.trim()) {
+        try {
+          const obj = JSON.parse(buffer)
+          const delta = obj?.message?.content ?? ''
+          if (delta) {
+            fullContent += delta
+            onChunk?.(delta)
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+    return fullContent
+  },
+
   async checkConnection(url) {
     const res = await fetch(`${getApiBaseUrl()}/ai/check`, {
       method: 'POST',

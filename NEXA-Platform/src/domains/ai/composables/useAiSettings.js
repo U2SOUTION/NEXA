@@ -23,6 +23,8 @@ function saveSettings(data) {
 
 const saved = loadSettings()
 const selectedModel = ref(saved.selectedModel ?? '')
+/** 채팅모드: streaming(실시간 출력) | full-delivery(완료 후 일괄) */
+const chatMode = ref(saved.chatMode ?? 'streaming')
 const chatInputMaxRows = ref(Math.max(2, Math.min(20, saved.chatInputMaxRows ?? 8)))
 const chatFontSize = ref(Math.max(12, Math.min(24, saved.chatFontSize ?? 16)))
 const chatMessageMaxLength = ref(Math.max(0, Math.min(10000, saved.chatMessageMaxLength ?? 0)))
@@ -60,10 +62,11 @@ function setModelCapabilities(capabilitiesMap) {
 }
 
 watch(
-  [selectedModel, chatInputMaxRows, chatFontSize, chatMessageMaxLength, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext],
+  [selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext],
   () => {
     saveSettings({
       selectedModel: selectedModel.value,
+      chatMode: chatMode.value,
       chatInputMaxRows: chatInputMaxRows.value,
       chatFontSize: chatFontSize.value,
       chatMessageMaxLength: chatMessageMaxLength.value,
@@ -93,6 +96,7 @@ export function requestAttachToChat(item) {
 export function useAiSettings() {
   return {
     selectedModel,
+    chatMode,
     chatInputMaxRows,
     chatFontSize,
     chatMessageMaxLength,

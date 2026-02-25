@@ -1,5 +1,6 @@
+import { Readable } from 'stream'
 import express from 'express'
-import { listModels, showModel, chat, checkConnection, generateTitle } from './ai.service.js'
+import { listModels, showModel, chat, chatStream, checkConnection, generateTitle } from './ai.service.js'
 
 const router = express.Router()
 
@@ -33,6 +34,20 @@ router.post('/ai/chat', async (req, res) => {
     }
     const data = await chat(messages, model, undefined, systemInstruction)
     res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.post('/ai/chat-stream', async (req, res) => {
+  try {
+    const { messages, model, systemInstruction } = req.body
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'messages 배열이 필요합니다.' })
+    }
+    const ollamaRes = await chatStream(messages, model, undefined, systemInstruction)
+    res.setHeader('Content-Type', ollamaRes.headers.get('content-type') || 'application/x-ndjson')
+    Readable.fromWeb(ollamaRes.body).pipe(res)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

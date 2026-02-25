@@ -39,11 +39,7 @@
         </template>
         <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
           <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]">
-            <div
-              class="message-bubble"
-              :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content }"
-              @contextmenu.prevent="msg.role === 'assistant' && msg.content ? onMessageContextMenu($event, msg) : null"
-            >
+            <div class="message-bubble" :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content }" @contextmenu.prevent="msg.role === 'assistant' && msg.content ? onMessageContextMenu($event, msg) : null">
               <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
                 <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
               </div>
@@ -69,7 +65,7 @@
           </div>
         </div>
         <input v-if="supportsVision" ref="fileInputRef" type="file" accept="image/png,image/jpeg,image/jpg" class="hidden" @change="handleFileSelect" />
-        <div class="chat-input-row row items-end no-wrap" @paste="handlePaste">
+        <div class="chat-input-row row items-end no-wrap q-gutter-sm" @paste="handlePaste">
           <q-input
             v-model="inputText"
             type="textarea"
@@ -87,17 +83,34 @@
               <q-btn round dense flat icon="send" :disable="!canSend" @click="sendMessage" />
             </template>
           </q-input>
+          <q-select v-model="selectedModel" :options="models" outlined dense hide-bottom-space option-value="name" option-label="name" emit-value map-options class="chat-model-select" :loading="isLoadingModels" @focus="loadModels">
+            <template #selected>
+              <span v-if="selectedModel" class="model-select-selected row items-center no-wrap">
+                <span class="model-select-name">{{ formatModelDisplayName(selectedModel) }}</span>
+                <span v-if="getCapabilityIcons(selectedModel).length" class="model-capability-icons q-ml-xs">
+                  <q-icon v-for="item in getCapabilityIcons(selectedModel)" :key="item.icon" :name="item.icon" size="16px" class="q-mr-xs" :title="item.title" />
+                </span>
+              </span>
+              <span v-else class="model-select-placeholder">모델</span>
+            </template>
+            <template #option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section>
+                  <q-item-label>{{ formatModelDisplayName(scope.opt.name) }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <span class="model-capability-icons">
+                    <q-icon v-for="item in getCapabilityIcons(scope.opt.name)" :key="item.icon" :name="item.icon" size="16px" class="q-mr-xs" :title="item.title" />
+                  </span>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
         </div>
       </div>
     </template>
 
-    <ContextMenu
-      :visible="contextMenuVisible"
-      :position="contextMenuPosition"
-      :items="contextMenuItems"
-      @item-click="handleContextMenuItemClick"
-      @update:visible="handleContextMenuVisibilityChange"
-    />
+    <ContextMenu :visible="contextMenuVisible" :position="contextMenuPosition" :items="contextMenuItems" @item-click="handleContextMenuItemClick" @update:visible="handleContextMenuVisibilityChange" />
   </div>
 </template>
 
@@ -110,15 +123,30 @@ import ContextMenu from '@system/components/ui/ContextMenu.vue'
 import { useContextMenu } from '@system/composables/useContextMenu.js'
 import { aiApi } from '../services/aiApi.js'
 import { useAiSettings } from '../composables/useAiSettings.js'
+import { useAiModels } from '../composables/useAiModels.js'
+import { formatModelDisplayName } from '../utils/modelDisplayName.js'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl.js'
 import { useAiChannels } from '../composables/useAiChannels.js'
 import { useAiMemos } from '../composables/useAiMemos.js'
 
 const aiInsertContent = inject('aiInsertContent', null)
 const { addMemo } = useAiMemos()
-const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture, pendingAttachmentsFromGallery } = useAiSettings()
+const { selectedModel, selectedModelCapabilities, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture, pendingAttachmentsFromGallery, modelCapabilities } = useAiSettings()
+const { models, isLoadingModels, loadModels } = useAiModels()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
+
+const CAPABILITY_ICONS = {
+  completion: { icon: 'chat_bubble', title: '채팅' },
+  vision: { icon: 'image', title: '이미지 지원' },
+  audio: { icon: 'mic', title: '음성 지원' },
+}
+function getCapabilityIcons(modelName) {
+  const caps = modelCapabilities.value?.[modelName] ?? []
+  if (caps.length === 0) return [CAPABILITY_ICONS.completion]
+  const order = ['completion', 'vision', 'audio']
+  return order.filter((k) => caps.includes(k)).map((k) => CAPABILITY_ICONS[k])
+}
 const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat, setPendingTitleSuggestion, getPendingTitleSuggestion } = useAiChannels()
 
 const { showContextMenu, hideContextMenu, contextMenuState } = useContextMenu()
@@ -258,7 +286,7 @@ watch(
     }
     pendingAttachmentsFromGallery.value = []
   },
-  { deep: true }
+  { deep: true },
 )
 
 function onMessageContextMenu(event, msg) {
@@ -372,13 +400,15 @@ async function sendMessage() {
   let msgImages = []
   if (hasImages) {
     try {
-      msgImages = (await Promise.all(
-        attachedImages.value.map(async (img) => {
-          if (img.dataUrl) return img.dataUrl
-          const fetchUrl = img.file_path ? getUploadDisplayUrl(img.file_path) : img.url
-          return fetchUrl ? await urlToDataUrl(fetchUrl) : null
-        })
-      )).filter(Boolean)
+      msgImages = (
+        await Promise.all(
+          attachedImages.value.map(async (img) => {
+            if (img.dataUrl) return img.dataUrl
+            const fetchUrl = img.file_path ? getUploadDisplayUrl(img.file_path) : img.url
+            return fetchUrl ? await urlToDataUrl(fetchUrl) : null
+          }),
+        )
+      ).filter(Boolean)
     } catch (err) {
       Notify.create({ type: 'negative', message: err.message || '이미지 로드 실패' })
       return
@@ -404,17 +434,46 @@ async function sendMessage() {
   isLoading.value = true
 
   let shouldScrollToBottom = true
+  const scrollToBottomIfNeeded = () => {
+    nextTick(() => {
+      if (messagesRef.value && shouldScrollToBottom) {
+        messagesRef.value.scrollTop = messagesRef.value.scrollHeight
+      }
+    })
+  }
+
   try {
     const instruction = getEffectiveInstruction()
-    const response = await aiApi.chat(apiMessages, selectedModel.value, instruction || undefined)
-    const content = response?.message?.content ?? response?.response ?? ''
     const el = messagesRef.value
     if (el) {
       const threshold = 80
       shouldScrollToBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - threshold
     }
-    messages.value.push({ role: 'assistant', content })
-    updateChatMessages(channelId, chatId, messages.value)
+
+    if (chatMode.value === 'streaming') {
+      messages.value.push({ role: 'assistant', content: '' })
+      updateChatMessages(channelId, chatId, messages.value)
+      scrollToBottomIfNeeded()
+
+      const content = await aiApi.chatStream(apiMessages, selectedModel.value, instruction || undefined, (delta) => {
+        const last = messages.value[messages.value.length - 1]
+        if (last?.role === 'assistant') {
+          last.content += delta
+          updateChatMessages(channelId, chatId, messages.value, { skipPersist: true })
+          scrollToBottomIfNeeded()
+        }
+      })
+      const last = messages.value[messages.value.length - 1]
+      if (last?.role === 'assistant' && last.content !== content) {
+        last.content = content
+      }
+      updateChatMessages(channelId, chatId, messages.value)
+    } else {
+      const response = await aiApi.chat(apiMessages, selectedModel.value, instruction || undefined)
+      const content = response?.message?.content ?? response?.response ?? ''
+      messages.value.push({ role: 'assistant', content })
+      updateChatMessages(channelId, chatId, messages.value)
+    }
 
     const turnCount = messages.value.filter((m) => m.role === 'user').length
     const minTurns = titleSuggestionMinTurns.value ?? 2
@@ -543,6 +602,34 @@ async function sendMessage() {
         }
       }
     }
+  }
+
+  .chat-model-select {
+    flex-shrink: 0;
+    min-width: 140px;
+    max-width: 200px;
+
+    .model-select-selected,
+    .model-select-name,
+    .model-select-placeholder {
+      color: var(--nexa-text-primary);
+      opacity: 0.8;
+    }
+  }
+
+  .model-select-selected {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .model-select-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .model-capability-icons {
+    flex-shrink: 0;
   }
 
   .empty-state {
