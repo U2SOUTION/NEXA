@@ -64,7 +64,7 @@
       <div class="chat-input q-pa-md">
         <div v-if="supportsVision && attachedImages.length > 0" class="attached-images row q-gutter-xs q-mb-sm">
           <div v-for="(img, i) in attachedImages" :key="i" class="attached-image-thumb">
-            <img :src="img.dataUrl" alt="첨부" />
+            <img :src="img.dataUrl || getUploadDisplayUrl(img.file_path) || img.url" alt="첨부" />
             <q-btn round dense flat size="sm" icon="close" class="thumb-remove" @click="removeAttachedImage(i)" />
           </div>
         </div>
@@ -110,6 +110,7 @@ import ContextMenu from '@system/components/ui/ContextMenu.vue'
 import { useContextMenu } from '@system/composables/useContextMenu.js'
 import { aiApi } from '../services/aiApi.js'
 import { useAiSettings } from '../composables/useAiSettings.js'
+import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl.js'
 import { useAiChannels } from '../composables/useAiChannels.js'
 import { useAiMemos } from '../composables/useAiMemos.js'
 
@@ -177,8 +178,12 @@ function fileToDataUrl(file) {
 }
 
 async function urlToDataUrl(url) {
-  const res = await fetch(url)
+  const res = await fetch(url, { mode: 'cors' })
+  if (!res.ok) throw new Error(`이미지 로드 실패 (${res.status})`)
   const blob = await res.blob()
+  if (!blob.type?.startsWith('image/')) {
+    throw new Error('이미지 형식이 아닙니다.')
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result)
@@ -238,23 +243,18 @@ function removeAttachedImage(index) {
   attachedImages.value = attachedImages.value.filter((_, i) => i !== index)
 }
 
-// 갤러리/웹서버에서 선택한 이미지를 채팅에 첨부
+// 갤러리/웹서버에서 선택한 이미지를 채팅에 첨부 (URL 직접 사용 → 썸네일 액박 방지, 전송 시 base64 변환)
 watch(
   pendingAttachmentsFromGallery,
-  async (items) => {
+  (items) => {
     if (!items?.length || !supportsVision.value) return
     for (const item of items) {
       if (attachedImages.value.length >= MAX_ATTACHED_IMAGES) {
         Notify.create({ type: 'info', message: `최대 ${MAX_ATTACHED_IMAGES}장까지 첨부할 수 있습니다.` })
         break
       }
-      try {
-        const dataUrl = await urlToDataUrl(item.url)
-        attachedImages.value.push({ dataUrl })
-        Notify.create({ message: `"${item.original_name || '이미지'}" 첨부됨`, icon: 'add_photo_alternate' })
-      } catch {
-        Notify.create({ type: 'negative', message: '이미지 로드 실패' })
-      }
+      attachedImages.value.push({ url: item.url, original_name: item.original_name, file_path: item.file_path })
+      Notify.create({ message: `"${item.original_name || '이미지'}" 첨부됨`, icon: 'add_photo_alternate' })
     }
     pendingAttachmentsFromGallery.value = []
   },
@@ -369,7 +369,21 @@ async function sendMessage() {
     }
   }
 
-  const msgImages = attachedImages.value.map((img) => img.dataUrl)
+  let msgImages = []
+  if (hasImages) {
+    try {
+      msgImages = (await Promise.all(
+        attachedImages.value.map(async (img) => {
+          if (img.dataUrl) return img.dataUrl
+          const fetchUrl = img.file_path ? getUploadDisplayUrl(img.file_path) : img.url
+          return fetchUrl ? await urlToDataUrl(fetchUrl) : null
+        })
+      )).filter(Boolean)
+    } catch (err) {
+      Notify.create({ type: 'negative', message: err.message || '이미지 로드 실패' })
+      return
+    }
+  }
   const userMsg = { role: 'user', content: text || (hasImages ? '(이미지)' : ''), images: hasImages ? msgImages : undefined }
   messages.value.push(userMsg)
   updateChatMessages(channelId, chatId, messages.value)

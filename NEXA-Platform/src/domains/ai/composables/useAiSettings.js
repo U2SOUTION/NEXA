@@ -1,4 +1,5 @@
 import { ref, computed, watch } from 'vue'
+import { Notify } from 'quasar'
 
 const SETTINGS_KEY = 'nexa-ai-settings'
 
@@ -80,9 +81,13 @@ watch(
 )
 
 export function requestAttachToChat(item) {
-  if (item?.url) {
-    pendingAttachmentsFromGallery.value = [...pendingAttachmentsFromGallery.value, { url: item.url, original_name: item.original_name }]
+  if (!item?.url) return
+  const caps = modelCapabilities.value[selectedModel.value] || []
+  if (!caps.includes('vision')) {
+    Notify.create({ type: 'warning', message: '이미지 첨부는 이미지 지원 모델을 선택한 후에 가능합니다.' })
+    return
   }
+  pendingAttachmentsFromGallery.value = [...pendingAttachmentsFromGallery.value, { url: item.url, original_name: item.original_name, file_path: item.file_path }]
 }
 
 export function useAiSettings() {

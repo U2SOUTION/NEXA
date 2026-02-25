@@ -18,3 +18,16 @@ export function getApiBaseUrl() {
 export function getDocsBaseUrl() {
   return `${getApiBaseUrl()}/docs`
 }
+
+/** 업로드 파일 URL 베이스 (썸네일 등 - 프론트와 동일 origin/포트 사용) */
+export function getUploadsBaseUrl() {
+  const api = getApiBaseUrl()
+  return api.replace(/\/api\/?$/, '') + '/uploads'
+}
+
+/** file_path로 업로드 표시용 URL 생성 (상대 경로 사용 → dev 프록시 통해 동일 origin) */
+export function getUploadDisplayUrl(filePath) {
+  if (!filePath) return ''
+  const path = String(filePath).replace(/^uploads\//, '').replace(/\/+/g, '/')
+  return `/uploads/${path}`.replace(/\/+/g, '/')
+}

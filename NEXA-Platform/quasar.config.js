@@ -109,6 +109,12 @@ export default defineConfig((/* ctx */) => {
       hmr: {
         overlay: true,
       },
+      proxy: {
+        '/uploads': {
+          target: `http://localhost:${process.env.VITE_API_PORT || '3001'}`,
+          changeOrigin: true,
+        },
+      },
     },
 
     framework: {
