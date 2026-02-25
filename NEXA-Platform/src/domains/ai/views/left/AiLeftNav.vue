@@ -210,7 +210,18 @@
             </q-expansion-item>
             <q-expansion-item icon="description" label="문서">
               <div class="ai-accordion-content">
-                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+                <FileDropZone
+                  upload-url="/files/upload"
+                  list-url="/files/list?domain=ai&category=documents"
+                  accept=".pdf,.doc,.docx,.txt,.csv"
+                  label="문서 파일을 드래그하거나 선택하세요"
+                  @add="(p) => aiAssets.addAsset({ ...p, category: 'documents' })"
+                />
+                <q-list dense class="q-mt-sm">
+                  <q-item v-for="f in (documents.length ? documents : docPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }">
+                    <q-item-section>{{ f.original_name }}</q-item-section>
+                  </q-item>
+                </q-list>
               </div>
             </q-expansion-item>
           </div>
@@ -220,19 +231,46 @@
       <q-tab-panel name="media" class="q-pa-none left-panel-inner">
         <div class="panel-scroll-area">
           <div class="ai-panel-padding">
-            <q-expansion-item icon="photo_library" label="갤러리" :default-opened="true">
+            <div class="q-pa-sm q-mb-sm">
+              <q-btn flat dense no-caps :icon="showMediaUpload ? 'expand_less' : 'cloud_upload'" :label="showMediaUpload ? '업로드 영역 접기' : '파일 업로드'" class="full-width" @click="showMediaUpload = !showMediaUpload" />
+              <div v-show="showMediaUpload" class="q-mt-sm">
+                <FileDropZone
+                  upload-url="/files/upload"
+                  list-url="/files/list?domain=ai"
+                  accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.csv"
+                  label="이미지·오디오·영상·문서를 드래그하거나 선택하세요"
+                  @add="(p) => aiAssets.addAsset(p)"
+                />
+              </div>
+            </div>
+            <q-expansion-item icon="photo_library" label="갤러리" :default-opened="true" @show="aiAssets.loadCategory('images')">
               <div class="ai-accordion-content">
-                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+                <q-list dense class="q-mt-sm" :key="'gallery-' + images.length">
+                  <q-item v-for="f in (images.length ? images : galleryPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url && requestAttachToChat(f)">
+                    <q-item-section>{{ f.original_name }}</q-item-section>
+                    <q-item-section v-if="f.url" side>
+                      <q-icon name="add_photo_alternate" size="18px" class="text-grey-6" title="채팅에 첨부" />
+                    </q-item-section>
+                  </q-item>
+                </q-list>
               </div>
             </q-expansion-item>
-            <q-expansion-item icon="music_note" label="사운드">
+            <q-expansion-item icon="music_note" label="사운드" @show="aiAssets.loadCategory('audio')">
               <div class="ai-accordion-content">
-                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+                <q-list dense class="q-mt-sm">
+                  <q-item v-for="f in (audio.length ? audio : audioPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }">
+                    <q-item-section>{{ f.original_name }}</q-item-section>
+                  </q-item>
+                </q-list>
               </div>
             </q-expansion-item>
-            <q-expansion-item icon="videocam" label="영상">
+            <q-expansion-item icon="videocam" label="영상" @show="aiAssets.loadCategory('video')">
               <div class="ai-accordion-content">
-                <div class="ai-placeholder text-grey-6 text-caption">준비 중</div>
+                <q-list dense class="q-mt-sm">
+                  <q-item v-for="f in (videos.length ? videos : videoPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }">
+                    <q-item-section>{{ f.original_name }}</q-item-section>
+                  </q-item>
+                </q-list>
               </div>
             </q-expansion-item>
             <q-expansion-item @hide="onWebcamHide">
@@ -324,13 +362,26 @@ import { ref, computed, onMounted } from 'vue'
 import { Notify } from 'quasar'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
+import FileDropZone from '@system/components/ui/FileDropZone.vue'
 import { useAiChannels } from '../../composables/useAiChannels.js'
-import { useAiSettings } from '../../composables/useAiSettings.js'
+import { useAiAssets } from '../../composables/useAiAssets.js'
+import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings.js'
 import { useAiMemos } from '../../composables/useAiMemos.js'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest.js'
 
 const { memos, removeMemo, moveMemoUp, moveMemoDown, getMemoPreview } = useAiMemos()
+const aiAssets = useAiAssets()
 const { requestInsert, requestOpenEditor } = useAiInsertRequest()
+
+const { documents, images, audio, videos } = aiAssets
+
+const showMediaUpload = ref(false)
+
+/** 빈 리스트일 때 UI 확인용 플레이스홀더 */
+const galleryPlaceholders = [{ id: 'ph-img-1', original_name: '(등록된 이미지 없음)' }, { id: 'ph-img-2', original_name: '(업로드 또는 웹서버에서 선택)' }]
+const docPlaceholders = [{ id: 'ph-doc-1', original_name: '(등록된 문서 없음)' }]
+const audioPlaceholders = [{ id: 'ph-audio-1', original_name: '(등록된 오디오 없음)' }]
+const videoPlaceholders = [{ id: 'ph-video-1', original_name: '(등록된 영상 없음)' }]
 
 const selectedMemoId = ref(null)
 const selectedMemo = computed(() => (selectedMemoId.value ? memos.value.find((m) => m.id === selectedMemoId.value) : null))
@@ -446,11 +497,18 @@ const showDeleteConfirm = ref(false)
 const deleteConfirmMessage = ref('')
 let deleteConfirmAction = null
 
-onMounted(() => {
+onMounted(async () => {
   init()
   if (channels.value.length > 0 && !selectedChannelId.value) {
     selectChannel(channels.value[0].id)
   }
+  // DB에 저장된 파일 목록 로드 (드롭존 리스트 표시용)
+  await Promise.all([
+    aiAssets.loadCategory('documents'),
+    aiAssets.loadCategory('images'),
+    aiAssets.loadCategory('audio'),
+    aiAssets.loadCategory('video'),
+  ])
 })
 
 function doAddChannel() {

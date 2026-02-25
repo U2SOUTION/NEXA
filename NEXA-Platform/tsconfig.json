@@ -3,15 +3,26 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@frame/*": ["src/frame/*"],
+      "@engines/*": ["src/engines/*"],
+      "@system/*": ["src/system/*"],
+      "@domains/*": ["src/domains/*"],
+      "@infra/*": ["src/domains/infra/*"],
+      "@erp/*": ["src/domains/erp/*"],
+      "@board/*": ["src/domains/board/*"],
+      "@components/*": ["src/system/components/*"]
     },
     "esModuleInterop": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "allowJs": true,
+    "strict": false,
+    "noImplicitAny": false
   },
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/tests/.spec.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.vue", "src/tests/**/*.spec.ts"],
   "exclude": ["node_modules", "dist", ".quasar"]
 }

@@ -28,11 +28,12 @@ export class AutoClassifier {
     const reasons: string[] = []
 
     /** STEP 1: 사용자 분류 우선 */
-    if (context.categories.length > 0) {
+    const categoryIds = context.currentCategoryIds ?? []
+    if (categoryIds.length > 0) {
       reasons.push('사용자가 이미 분류를 지정함')
 
       return {
-        primaryCandidate: context.categories[0],
+        primaryCandidate: context.categories?.[0] ?? context.currentCategoryIds?.[0],
         secondaryCandidates: [],
         confidence: 0.9,
         reason: reasons,
@@ -88,7 +89,7 @@ export class AutoClassifier {
   //유사도 계산 - 이후 AI/벡터 교체 예정, 다른 도메인에서 사용할때 수정 후 사용
   private calculateSimilarity(context: SentinelContext, category: string): number {
     // 🔧 지금은 단순 키워드 기반 (향후 AI/벡터 교체)
-    const text = `${context.title ?? ''} ${context.content}`.toLowerCase()
+    const text = `${context.title ?? ''} ${context.summary ?? ''} ${(context.keywords ?? []).join(' ')}`.toLowerCase()
     return text.includes(category.toLowerCase()) ? 0.7 : 0.2
   }
 

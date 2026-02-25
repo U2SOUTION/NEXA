@@ -14,6 +14,7 @@ import aiRouter from './domains/ai/ai.routes.js'
 import partFilesRouter from './domains/parts/partFiles.routes.js'
 import partModelsRouter from './domains/parts/partModels.routes.js'
 import partSpecsRouter from './domains/parts/partSpecs.routes.js'
+import filesRouter from './routes/files.routes.js'
 import { UPLOAD_BASE_DIR } from './config/upload.js'
 import { pool, dbConfig } from './config/dbConfig.js'
 import { JSON_BODY_LIMIT, URLENCODED_BODY_LIMIT } from './config/bodyLimits.js'
@@ -97,6 +98,7 @@ app.use('/api', partModelsRouter)
 app.use('/api', partSpecsRouter)
 app.use('/api', partsRouter)
 app.use('/api', aiRouter)
+app.use('/api', filesRouter)
 
 // 데이터베이스 스키마 라우터 등록 (데이터베이스 연결 전에도 등록)
 // 각 엔드포인트에서 연결 상태를 확인하므로 연결 실패해도 404 방지

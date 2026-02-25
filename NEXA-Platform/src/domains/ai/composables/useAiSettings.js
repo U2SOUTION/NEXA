@@ -27,6 +27,8 @@ const chatFontSize = ref(Math.max(12, Math.min(24, saved.chatFontSize ?? 16)))
 const chatMessageMaxLength = ref(Math.max(0, Math.min(10000, saved.chatMessageMaxLength ?? 0)))
 const modelCapabilities = ref({})
 const pendingWebcamCapture = ref(null)
+/** 갤러리/웹서버에서 선택한 파일을 채팅에 첨부 요청 { url, original_name } */
+const pendingAttachmentsFromGallery = ref([])
 const webcamFlipMode = ref(saved.webcamFlipMode ?? 'none')
 const webcamResolution = ref(saved.webcamResolution ?? '640x480')
 const webcamFilterBrightness = ref(Math.max(0, Math.min(200, saved.webcamFilterBrightness ?? 100)))
@@ -77,6 +79,12 @@ watch(
   { deep: true }
 )
 
+export function requestAttachToChat(item) {
+  if (item?.url) {
+    pendingAttachmentsFromGallery.value = [...pendingAttachmentsFromGallery.value, { url: item.url, original_name: item.original_name }]
+  }
+}
+
 export function useAiSettings() {
   return {
     selectedModel,
@@ -87,6 +95,8 @@ export function useAiSettings() {
     selectedModelCapabilities,
     setModelCapabilities,
     pendingWebcamCapture,
+    pendingAttachmentsFromGallery,
+    requestAttachToChat,
     webcamFlipMode,
     webcamResolution,
     webcamFilterBrightness,

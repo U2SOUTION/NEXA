@@ -43,13 +43,14 @@ server/
     └── files.service.js # uploadFile, listFiles, contentHash 등
 ```
 
-### 1.4 DB 마이그레이션 (선택)
+### 1.4 DB 마이그레이션
 
 ```
 database/
-└── migrations/
-    └── 001_create_files_tables.sql   # files, file_references, edge_device, file_ai_metadata, file_tags, file_embeddings, file_action_log
+└── create_files_tables.sql   # files, file_references
 ```
+
+**실행**: `mysql -u 사용자 -p DB명 < database/create_files_tables.sql`
 
 ---
 
@@ -121,7 +122,7 @@ uploads/
 |------|------|
 | `server/domains/parts/partFiles.routes.js` | multer, FormData 업로드 패턴 참고 |
 | `server/config/fileTypes.js` | category, type, maxSize, mime |
-| `server/utils/fileUpload.js` | partsCreateSafeFilename, partsGenerateFilename (부품 전용) |
+| `server/utils/fileUpload.js` | partsCreateSafeFilename, partsGenerateFilename (부품 전용), generateFolderPath, generateTimestampFilename, computeContentHash (범용) |
 | `src/system/components/ui/UploadProgress.vue` | 진행률 UI |
 | `src/engines/tiptap/BaseTiptapEditor.vue` | uploadHandler, context.source |
 | `database/file_upload_logic_final.md` | parts 한글 인코딩, sequence 로직 |

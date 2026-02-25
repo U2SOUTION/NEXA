@@ -115,7 +115,7 @@ import { useAiMemos } from '../composables/useAiMemos.js'
 
 const aiInsertContent = inject('aiInsertContent', null)
 const { addMemo } = useAiMemos()
-const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture } = useAiSettings()
+const { selectedModel, selectedModelCapabilities, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture, pendingAttachmentsFromGallery } = useAiSettings()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
 const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat, setPendingTitleSuggestion, getPendingTitleSuggestion } = useAiChannels()
@@ -176,6 +176,17 @@ function fileToDataUrl(file) {
   })
 }
 
+async function urlToDataUrl(url) {
+  const res = await fetch(url)
+  const blob = await res.blob()
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
 function dataUrlToBase64(dataUrl) {
   const idx = dataUrl.indexOf(',')
   return idx >= 0 ? dataUrl.slice(idx + 1) : ''
@@ -226,6 +237,29 @@ function handlePaste(ev) {
 function removeAttachedImage(index) {
   attachedImages.value = attachedImages.value.filter((_, i) => i !== index)
 }
+
+// 갤러리/웹서버에서 선택한 이미지를 채팅에 첨부
+watch(
+  pendingAttachmentsFromGallery,
+  async (items) => {
+    if (!items?.length || !supportsVision.value) return
+    for (const item of items) {
+      if (attachedImages.value.length >= MAX_ATTACHED_IMAGES) {
+        Notify.create({ type: 'info', message: `최대 ${MAX_ATTACHED_IMAGES}장까지 첨부할 수 있습니다.` })
+        break
+      }
+      try {
+        const dataUrl = await urlToDataUrl(item.url)
+        attachedImages.value.push({ dataUrl })
+        Notify.create({ message: `"${item.original_name || '이미지'}" 첨부됨`, icon: 'add_photo_alternate' })
+      } catch {
+        Notify.create({ type: 'negative', message: '이미지 로드 실패' })
+      }
+    }
+    pendingAttachmentsFromGallery.value = []
+  },
+  { deep: true }
+)
 
 function onMessageContextMenu(event, msg) {
   const content = (msg.content || '').trim()

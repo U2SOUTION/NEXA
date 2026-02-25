@@ -7,7 +7,7 @@
 
 import fs from 'fs/promises'
 import path from 'path'
-import { randomUUID } from 'crypto'
+import { createHash, randomUUID } from 'crypto'
 import { getFileType as getFileTypeFromConfig, getMimeType, getMaxFileSize, isPreviewable, getFileCategory } from '../config/fileTypes.js'
 import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '../config/upload.js'
 
@@ -72,6 +72,63 @@ export function extractExtension(filename) {
   }
 
   return ext
+}
+
+/**
+ * 범용: 폴더 경로 생성 (uploads/{domain}/{category}/)
+ * files 테이블 기반 업로드용
+ *
+ * @param {string} domain - 도메인 (ai, archive, parts 등)
+ * @param {string} category - 카테고리 (documents, images, audio, video)
+ * @param {{ dateFolder?: string }} [options] - dateFolder: 'YYYY-MM-DD' 형식 시 날짜 서브폴더 추가
+ * @returns {string} 상대 경로
+ */
+export function generateFolderPath(domain, category, options = {}) {
+  if (!domain || !category) {
+    throw new Error('domain과 category는 필수입니다.')
+  }
+  const base = `uploads/${domain}/${category}/`
+  if (options.dateFolder) {
+    return `${base}${options.dateFolder}/`
+  }
+  return base
+}
+
+/**
+ * 범용: 날짜시간+shortUuid 파일명 생성
+ * {YYYYMMDDHHmmss}_{shortUuid}.{ext}
+ *
+ * @param {string} extension - 확장자
+ * @returns {string} 생성된 파일명
+ */
+export function generateTimestampFilename(extension) {
+  if (!extension) {
+    throw new Error('확장자는 필수입니다.')
+  }
+  const ext = extension.toLowerCase().replace(/^\./, '')
+  const now = new Date()
+  const yyyymmddhhmmss = now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0') +
+    String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0') +
+    String(now.getSeconds()).padStart(2, '0')
+  const shortUuid = randomUUID().replace(/-/g, '').slice(0, 8)
+  return `${yyyymmddhhmmss}_${shortUuid}.${ext}`
+}
+
+/**
+ * 범용: content_hash (SHA256) 계산
+ * 교차 도메인 중복 검사용
+ *
+ * @param {Buffer} buffer - 파일 버퍼
+ * @returns {string} 64자 hex 해시
+ */
+export function computeContentHash(buffer) {
+  if (!buffer || !Buffer.isBuffer(buffer)) {
+    throw new Error('Buffer는 필수입니다.')
+  }
+  return createHash('sha256').update(buffer).digest('hex')
 }
 
 /**
@@ -281,6 +338,9 @@ export function generateTempFilePath(filename) {
 export async function moveTempFileToFolder(tempFilePath, targetFolderPath, targetFilename) {
   if (!tempFilePath.startsWith('uploads/_temp/')) {
     throw new Error('임시 파일만 이동할 수 있습니다.')
+  }
+  if (!targetFilename || targetFilename.includes('..') || targetFilename.includes('/') || targetFilename.includes('\\')) {
+    throw new Error('대상 파일명에 경로 구분자를 포함할 수 없습니다.')
   }
 
   // 절대 경로 변환
