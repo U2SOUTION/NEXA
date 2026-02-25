@@ -7,6 +7,8 @@
     </div>
 
     <template v-else>
+      <div class="chat-main row no-wrap" :class="{ 'chat-main--with-outline': outlineEnabled }">
+        <div class="chat-body column col">
       <div class="chat-messages col scroll" ref="messagesRef">
         <template v-if="messages.length === 0">
           <div class="empty-state-welcome-wrapper">
@@ -38,7 +40,7 @@
           </div>
         </template>
         <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
-          <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]">
+          <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]" :data-msg-idx="idx">
             <div class="message-bubble" :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content }" @contextmenu.prevent="msg.role === 'assistant' && msg.content ? onMessageContextMenu($event, msg) : null">
               <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
                 <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
@@ -57,7 +59,7 @@
           </div>
         </div>
       </div>
-      <div class="chat-input q-pa-md">
+      <div class="chat-input q-pa-md flex-shrink">
         <div v-if="supportsVision && attachedImages.length > 0" class="attached-images row q-gutter-xs q-mb-sm">
           <div v-for="(img, i) in attachedImages" :key="i" class="attached-image-thumb">
             <img :src="img.dataUrl || getUploadDisplayUrl(img.file_path) || img.url" alt="첨부" />
@@ -108,6 +110,34 @@
           </q-select>
         </div>
       </div>
+        </div>
+        <template v-if="outlineEnabled && outlineDisplayMode === 'push'">
+          <div class="chat-outline chat-outline--push">
+            <div class="chat-outline-header text-caption text-grey-7">목차</div>
+            <div class="chat-outline-list scroll">
+              <div v-for="item in outlineItems" :key="item.idx" class="chat-outline-item" :class="{ 'chat-outline-item--user': item.role === 'user' }" @click="scrollToMessage(item.idx)">
+                {{ item.label }}
+              </div>
+            </div>
+          </div>
+        </template>
+        <div v-else-if="outlineEnabled && outlineDisplayMode === 'overlay'" class="chat-outline-overlay-wrap">
+          <div class="chat-outline-trigger" @mouseenter="outlineHover = true" @mouseleave="outlineHover = false">
+            <q-btn round dense flat icon="list" size="sm" :title="outlinePinned ? '목차 닫기' : '목차 열기'" @click="outlinePinned = !outlinePinned" />
+          </div>
+          <div v-show="outlineOverlayVisible" class="chat-outline chat-outline--overlay" @mouseenter="outlineHover = true" @mouseleave="outlineHover = false">
+            <div class="chat-outline-header row items-center justify-between">
+              <span class="text-caption text-grey-7">목차</span>
+              <q-btn round dense flat icon="close" size="xs" @click="outlinePinned = false" />
+            </div>
+            <div class="chat-outline-list scroll">
+              <div v-for="item in outlineItems" :key="item.idx" class="chat-outline-item" :class="{ 'chat-outline-item--user': item.role === 'user' }" @click="scrollToMessage(item.idx)">
+                {{ item.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
 
     <ContextMenu :visible="contextMenuVisible" :position="contextMenuPosition" :items="contextMenuItems" @item-click="handleContextMenuItemClick" @update:visible="handleContextMenuVisibilityChange" />
@@ -125,13 +155,14 @@ import { aiApi } from '../services/aiApi.js'
 import { useAiSettings } from '../composables/useAiSettings.js'
 import { useAiModels } from '../composables/useAiModels.js'
 import { formatModelDisplayName } from '../utils/modelDisplayName.js'
+import { extractOutlineFromMessages } from '../utils/chatOutline.js'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl.js'
 import { useAiChannels } from '../composables/useAiChannels.js'
 import { useAiMemos } from '../composables/useAiMemos.js'
 
 const aiInsertContent = inject('aiInsertContent', null)
 const { addMemo } = useAiMemos()
-const { selectedModel, selectedModelCapabilities, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture, pendingAttachmentsFromGallery, modelCapabilities } = useAiSettings()
+const { selectedModel, selectedModelCapabilities, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture, pendingAttachmentsFromGallery, modelCapabilities, outlineEnabled, outlineDisplayMode } = useAiSettings()
 const { models, isLoadingModels, loadModels } = useAiModels()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
@@ -160,6 +191,18 @@ const attachedImages = ref([])
 const isLoading = ref(false)
 const messagesRef = ref(null)
 const fileInputRef = ref(null)
+const outlineHover = ref(false)
+const outlinePinned = ref(false)
+
+const outlineItems = computed(() => extractOutlineFromMessages(messages.value))
+const outlineOverlayVisible = computed(() => outlineHover.value || outlinePinned.value)
+
+function scrollToMessage(idx) {
+  const container = messagesRef.value
+  if (!container) return
+  const el = container.querySelector(`[data-msg-idx="${idx}"]`)
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 const TITLE_MAX_LEN = 40
 const MAX_ATTACHED_IMAGES = 4
@@ -513,6 +556,100 @@ async function sendMessage() {
 .ai-chat-panel {
   height: 100%;
   min-height: 0;
+
+  .chat-main {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+
+    &.chat-main--with-outline {
+      position: relative;
+    }
+  }
+
+  .chat-body {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .chat-outline-overlay-wrap {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 80px;
+    display: flex;
+    align-items: stretch;
+    pointer-events: none;
+
+    > * {
+      pointer-events: auto;
+    }
+  }
+
+  .chat-outline-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    min-height: 40px;
+    border-left: 1px solid var(--nexa-border-color);
+    background: var(--nexa-surface);
+    border-radius: 8px 0 0 8px;
+    margin-top: 8px;
+  }
+
+  .chat-outline {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-left: 1px solid var(--nexa-border-color);
+    background: var(--nexa-surface);
+
+    &.chat-outline--overlay {
+      position: absolute;
+      right: 28px;
+      top: 0;
+      bottom: 0;
+      width: 180px;
+      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &.chat-outline--push {
+      flex-shrink: 0;
+      width: 180px;
+    }
+  }
+
+  .chat-outline-header {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-weight: 600;
+  }
+
+  .chat-outline-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 0 8px 8px;
+  }
+
+  .chat-outline-item {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:hover {
+      background: color-mix(in srgb, var(--q-primary) 15%, transparent);
+    }
+
+    &.chat-outline-item--user {
+      color: var(--q-primary);
+    }
+  }
 
   .chat-messages {
     flex: 1;

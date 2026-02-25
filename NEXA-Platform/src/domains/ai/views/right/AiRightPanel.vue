@@ -88,6 +88,11 @@
                   <q-option-group v-model="chatMode" :options="chatModeOptions" inline dense />
                 </div>
                 <div class="chat-setting-row q-mb-md">
+                  <div class="text-caption text-grey-7 q-mb-xs">목차</div>
+                  <q-toggle v-model="outlineEnabled" label="목차 표시" dense />
+                  <q-option-group v-if="outlineEnabled" v-model="outlineDisplayMode" :options="outlineDisplayModeOptions" inline dense class="q-mt-sm" />
+                </div>
+                <div class="chat-setting-row q-mb-md">
                   <div class="text-caption text-grey-7 q-mb-xs">입력창 최대 줄 수</div>
                   <div class="row items-center no-wrap q-gutter-sm">
                     <q-slider v-model="chatInputMaxRows" :min="2" :max="20" :step="1" class="col" />
@@ -136,12 +141,16 @@ import { useAiSettings } from '../../composables/useAiSettings.js'
 import { useAiChannels } from '../../composables/useAiChannels.js'
 import { useAiModels } from '../../composables/useAiModels.js'
 
-const { selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities } = useAiSettings()
+const { selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities, outlineEnabled, outlineDisplayMode } = useAiSettings()
 const { models, isLoadingModels, loadModels } = useAiModels()
 
 const chatModeOptions = [
   { value: 'streaming', label: '스트리밍 (실시간)' },
   { value: 'full-delivery', label: '풀 (완료 후)' },
+]
+const outlineDisplayModeOptions = [
+  { value: 'overlay', label: '오버레이 (버튼 호버/클릭 시 표시)' },
+  { value: 'push', label: '밀어내기' },
 ]
 const { selectedChannel, selectedChat, selectedChannelId, systemInstruction, updateSystemInstruction, updateChannelInstruction, updateChatInstruction } = useAiChannels()
 const ollamaBaseUrl = ref('http://192.168.0.15:11434')

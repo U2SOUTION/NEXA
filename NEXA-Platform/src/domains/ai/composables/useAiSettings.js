@@ -52,6 +52,11 @@ const _range = loadTitleSuggestionRange()
 const titleSuggestionMinTurns = ref(_range.min)
 const titleSuggestionMaxTurnsForContext = ref(_range.max)
 
+/** 목차 기능: true=표시, false=숨김 */
+const outlineEnabled = ref(saved.outlineEnabled ?? false)
+/** 목차 표시 모드: overlay(오버레이, 30% 투명도, 호버 시 표시) | push(밀어내기) */
+const outlineDisplayMode = ref(saved.outlineDisplayMode ?? 'overlay')
+
 const selectedModelCapabilities = computed(() => {
   const name = selectedModel.value
   return name ? (modelCapabilities.value[name] || []) : []
@@ -62,7 +67,7 @@ function setModelCapabilities(capabilitiesMap) {
 }
 
 watch(
-  [selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext],
+  [selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, outlineEnabled, outlineDisplayMode],
   () => {
     saveSettings({
       selectedModel: selectedModel.value,
@@ -78,6 +83,8 @@ watch(
       webcamFilterGrayscale: webcamFilterGrayscale.value,
       titleSuggestionMinTurns: titleSuggestionMinTurns.value,
       titleSuggestionMaxTurnsForContext: titleSuggestionMaxTurnsForContext.value,
+      outlineEnabled: outlineEnabled.value,
+      outlineDisplayMode: outlineDisplayMode.value,
     })
   },
   { deep: true }
@@ -114,5 +121,7 @@ export function useAiSettings() {
     webcamFilterGrayscale,
     titleSuggestionMinTurns,
     titleSuggestionMaxTurnsForContext,
+    outlineEnabled,
+    outlineDisplayMode,
   }
 }
