@@ -4,7 +4,7 @@ import fs from 'fs/promises'
 import multer from 'multer'
 import { pool } from '../../config/dbConfig.js'
 import { getCategoryAbbreviation } from '../../utils/skuGenerator.js'
-import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, generateFolderPath, generateFilename, createSafeFilename, ensureFolderExists, saveFile, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder } from '../../utils/fileUpload.js'
+import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, partsGenerateFolderPath, partsGenerateFilename, partsCreateSafeFilename, ensureFolderExists, saveFile, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder } from '../../utils/fileUpload.js'
 import { resolveUploadAbsolutePath } from '../../config/upload.js'
 
 const router = express.Router()
@@ -265,14 +265,14 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     while (!insertSuccess && maxRetries > 0) {
       try {
         let filename
-        const folderPath = generateFolderPath(categoryAbbr, cCode, DOMAIN)
+        const folderPath = partsGenerateFolderPath(categoryAbbr, cCode, DOMAIN)
         const absoluteFolderPath = await ensureFolderExists(folderPath)
 
         let finalOriginalFilename = originalFilename
         if (originalFilename && originalFilename !== 'unknown' && !originalFilename.startsWith('image.')) {
-          filename = createSafeFilename(originalFilename, finalSequence)
+          filename = partsCreateSafeFilename(originalFilename, finalSequence)
         } else {
-          filename = generateFilename(finalSequence, extension, DOMAIN)
+          filename = partsGenerateFilename(finalSequence, extension, DOMAIN)
           finalOriginalFilename = filename
         }
 
@@ -314,7 +314,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         }
 
         if (previousFilename) {
-          const folderPath = generateFolderPath(categoryAbbr, cCode, DOMAIN)
+          const folderPath = partsGenerateFolderPath(categoryAbbr, cCode, DOMAIN)
           const absoluteFolderPath = await ensureFolderExists(folderPath)
           const previousFilePath = path.join(absoluteFolderPath, previousFilename)
           try {
@@ -446,9 +446,9 @@ router.post('/part-files/move-temp', async (req, res) => {
     const maxSequence = maxSeqRows[0]?.max_seq || 0
     const newSequence = maxSequence + 1
 
-    const folderPath = generateFolderPath(categoryAbbr, cCode, DOMAIN)
+    const folderPath = partsGenerateFolderPath(categoryAbbr, cCode, DOMAIN)
     const targetFolderPath = folderPath
-    const targetName = target_filename || createSafeFilename(original_filename || `file.${extension}`)
+    const targetName = target_filename || partsCreateSafeFilename(original_filename || `file.${extension}`)
     const relativePath = await moveTempFileToFolder(temp_file_path, targetFolderPath, targetName)
 
     const absoluteFilePath = resolveUploadAbsolutePath(relativePath)

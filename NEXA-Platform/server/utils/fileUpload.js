@@ -75,7 +75,7 @@ export function extractExtension(filename) {
 }
 
 /**
- * 폴더 경로 생성 (도메인별 분리 가능)
+ * 부품 전용: 폴더 경로 생성 (도메인별 분리 가능)
  * - 기본: uploads/{대분류약어}-{C코드}/
  * - 도메인 전달 시: uploads/{domain}/{대분류약어}-{C코드}/
  *   (예: domain='parts' -> uploads/parts/ACP-R001/)
@@ -84,7 +84,7 @@ export function extractExtension(filename) {
  * @param {string|null} domain - 도메인 식별자(옵션)
  * @returns {string} 상대 경로
  */
-export function generateFolderPath(categoryAbbr, cCode, domain = null) {
+export function partsGenerateFolderPath(categoryAbbr, cCode, domain = null) {
   if (!categoryAbbr || !cCode) {
     throw new Error('대분류 약어와 C 코드는 필수입니다.')
   }
@@ -95,7 +95,7 @@ export function generateFolderPath(categoryAbbr, cCode, domain = null) {
 }
 
 /**
- * 자동 파일명 생성 (original_filename이 없을 때만 사용)
+ * 부품 전용: 자동 파일명 생성 (original_filename이 없을 때만 사용)
  * - 기본: NEXA-STUDIO-{seq}-{timestamp}.{ext}
  * - 도메인 전달 시: {DOMAIN}-STUDIO-{seq}-{timestamp}.{ext} (domain은 대문자로 변환)
  *   예: domain='parts' -> PARTS-STUDIO-1-...jpg
@@ -105,7 +105,7 @@ export function generateFolderPath(categoryAbbr, cCode, domain = null) {
  * @param {string|null} domain - 도메인 식별자(옵션)
  * @returns {string} 생성된 파일명
  */
-export function generateFilename(sequence, extension, domain = null) {
+export function partsGenerateFilename(sequence, extension, domain = null) {
   if (sequence === undefined || sequence === null) {
     throw new Error('순차 번호는 필수입니다.')
   }
@@ -120,14 +120,14 @@ export function generateFilename(sequence, extension, domain = null) {
 }
 
 /**
- * 원본 파일명에서 안전한 파일명 생성 (중복 방지)
+ * 부품 전용: 원본 파일명에서 안전한 파일명 생성 (중복 방지)
  * 원본 파일명을 그대로 사용하되, 중복 시 시퀀스 번호 추가
  *
  * @param {string} originalFilename - 원본 파일명
  * @param {number} sequence - 중복 방지를 위한 시퀀스 번호 (기본값: 1)
  * @returns {string} 안전한 파일명
  */
-export function createSafeFilename(originalFilename, sequence = 1) {
+export function partsCreateSafeFilename(originalFilename, sequence = 1) {
   if (!originalFilename) {
     throw new Error('원본 파일명은 필수입니다.')
   }
