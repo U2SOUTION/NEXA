@@ -3,7 +3,7 @@
  */
 /// <reference types="vite/client" />
 
-declare module '#q-app/wrappers' {
+declare module '@quasar/app-vite/wrappers' {
   import type { Router } from 'vue-router'
   export function defineRouter(fn: (context?: { store: unknown; ssrContext?: unknown }) => Router): Router
 }

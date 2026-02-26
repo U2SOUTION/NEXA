@@ -4,10 +4,59 @@
 import { defineConfig } from '#q-app/wrappers'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
 
 // ESM 환경에서 __dirname 정의
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+const SRC_ROOT = path.resolve(__dirname, 'src')
+
+/** src 내부만 .ts 우선 해석. node_modules/deps 해석에는 관여하지 않음. */
+function vitePluginPreferTsInSrc() {
+  const srcRootNorm = path.normalize(SRC_ROOT)
+  const underSrc = (p) => {
+    if (!p || typeof p !== 'string') return false
+    const resolved = path.normalize(path.resolve(p))
+    return resolved === srcRootNorm || resolved.startsWith(srcRootNorm + path.sep)
+  }
+  return {
+    name: 'vite-prefer-ts-in-src',
+    enforce: 'pre',
+    async resolveId(id, importer) {
+      try {
+        if (!id || id.includes('node_modules') || id.startsWith('#') || (importer && importer.includes('node_modules'))) return null
+        const tryTs = async (baseId) => {
+          const tsId = baseId.endsWith('.ts') ? baseId : baseId.replace(/\.js$/, '') + '.ts'
+          const r = await this.resolve(tsId, importer, { skipSelf: true })
+          if (!r?.id) return null
+          const pathOnly = r.id.split('?')[0]
+          if (!underSrc(pathOnly) || !fs.existsSync(pathOnly)) return null
+          return r.id
+        }
+        if (id.endsWith('.js')) {
+          const tsResolved = await tryTs(id)
+          if (tsResolved) return tsResolved
+          // GET 요청 등으로 id가 '/src/.../foo.js' 형태로 올 때: this.resolve가 실패할 수 있으므로 경로로 직접 .ts 확인
+          const pathOnly = id.split('?')[0]
+          if (pathOnly.startsWith('/src/')) {
+            const rel = pathOnly.replace(/\.js$/, '.ts').slice(1)
+            const full = path.resolve(__dirname, rel)
+            if (underSrc(full) && fs.existsSync(full)) return full
+          }
+          return null
+        }
+        if (!path.extname(id) && (id.startsWith('.') || id.startsWith('@'))) {
+          const tsResolved = await tryTs(id)
+          if (tsResolved) return tsResolved
+        }
+      } catch {
+        // 해석 실패 시 파이프라인 중단 방지
+      }
+      return null
+    },
+  }
+}
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -46,6 +95,8 @@ export default defineConfig((/* ctx */) => {
           'src/router': path.resolve(__dirname, './src/frame/router'),
           'app/src/router': path.resolve(__dirname, './src/frame/router'),
           'app/src/router/index': path.resolve(__dirname, './src/frame/router/index.ts'),
+          // 생성된 app.js가 요청하는 경로 (frame 포함) → .ts 직접 지정
+          'app/src/frame/router/index': path.resolve(__dirname, './src/frame/router/index.ts'),
         }
 
         // SCSS 전역 변수 설정
@@ -93,6 +144,7 @@ export default defineConfig((/* ctx */) => {
       },
 
       vitePlugins: [
+        vitePluginPreferTsInSrc(),
         [
           'vite-plugin-checker',
           {

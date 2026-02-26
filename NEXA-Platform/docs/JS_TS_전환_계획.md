@@ -219,10 +219,10 @@ flowchart LR
 
 ### 8.0 권장 흐름 (3단계)
 
-1. **Re-export 없이 작동하는 환경 조성**
-   - **Vite 설정** (`quasar.config.js` → `extendViteConf`): `viteConf.resolve.extensions = ['.ts', '.tsx', '.mjs', '.js', '.mts', '.jsx', '.json']` 등으로 `.ts`를 `.js`보다 앞에 두면, 확장자 없는 import가 `.ts`를 우선 해석함.
-   - **선택 A**: 전체 코드베이스에서 `from '…/foo.js'` 형태를 `from '…/foo'`로 **일괄 치환** (권장). 이후 re-export .js 삭제 시 404 없음. (현재 src 내 `.js` 확장자 명시 import가 다수 있으므로, 치환 후 빌드/실행으로 검증.)
-   - **선택 B**: Vite 플러그인으로 `xxx.js` 요청 시 해당 .js 파일이 없으면 `xxx.ts`를 주는 fallback. (선택 A가 부담되면 검토.)
+1. **Re-export 없이 작동하는 환경 조성 (정석)**
+   - **src 전용 .ts 우선 플러그인** (`quasar.config.js`): `vitePluginPreferTsInSrc` — `resolveId`에서 **importer/id가 node_modules·`#`가 아닐 때만** 동작하며, 확장자 없음 또는 `.js` 요청에 대해 `src/` 아래 `.ts`를 우선 반환. **deps/pre-bundle 해석에는 관여하지 않아** chunk 404 없음.
+   - 전역 `resolve.extensions` 변경·전역 `.js`→`.ts` 플러그인은 **사용하지 않음** (deps 404 유발).
+   - import는 **확장자 없음** (`from '…/foo'`) 권장. 필요 시 `from '…/foo.js'` 요청도 위 플러그인으로 같은 경로의 `.ts`가 반환됨.
 2. **확장자 일괄 정리**
    - 이미 구현이 .ts인 모듈에 대해 re-export용 .js 파일을 **한 번에 삭제**.
    - 새로 전환할 때는 “기존 .js 삭제 + .ts만 두기”, re-export .js는 추가하지 않음.
@@ -238,14 +238,39 @@ flowchart LR
 - **strict 켜기**: 전 구역 전환·정리 후 단계적으로 적용.
 - **AGENTS 규칙**: system/frame/engines는 계약 변경 없이 타입·확장자만 추가. 도메인은 한 번에 하나만 수정.
 
-### 8.2 Re-export .js 현황 (과거 전환분, 환경 조성 후 제거 대상)
+### 8.2 Re-export .js 현황
 
-- **역할**: 과거에 `.ts`로 전환한 뒤 Vite/캐시가 `.js` URL로 요청해 404가 나서 둔 **임시 호환용** re-export .js.
-- **현재 유지 중인 re-export .js** (실제 구현은 .ts, .js는 re-export만):
-  - system: `apiBaseUrl.js`, `clipboard.js`, `useFileSelection.js`, `useThemeManager.js`, `userSettingsStore.js`, `dashboardLayoutStore.js`, `boardMenuStore.js`, `devGuideStore.js`
+- **역할(과거)**: `.ts`로 전환한 뒤 Vite/캐시가 `.js` URL로 요청해 404가 나서 둔 **임시 호환용** re-export .js.
+- **일괄 제거 완료** (vitePluginPreferTsInSrc 적용 후 아래 파일들 삭제됨):
+  - system: `apiBaseUrl.js`, `clipboard.js` (이미 제거됨). system store/composables 중 re-export만 하던 .js는 이전에 제거된 상태.
   - frame: `domainRegistry.js`
-  - 도메인: panel `panelTypes.js`, ai `aiApi.js`, archive `archiveApi.js`, erp `erpStore.js`, settings `settingsStore.js`, parts(config·menuItems·contextMenu·viewModeSettings·partClassesFields·partClassesMenuConfig), dev(mermaidStyles·recentColorsManager·favoriteColorsManager·themeFileAnalyzer·themeVariableManager·mermaidStyleStorage·documentStorage) 등.
-- **제거 절차**: §8.0 1단계(환경 조성) 완료 후, import에서 `.js` 확장자 제거한 뒤 위 re-export .js 파일들을 삭제. `node_modules/.vite` 삭제 + 서버 재시작 + 강력 새로고침으로 404 여부 확인.
+  - 도메인: panel `panelTypes.js`, ai `aiApi.js`, archive `archiveApi.js`, erp `erpStore.js`, settings `settingsStore.js`, parts(menuItems·viewModeSettings·partClassesFields·partClassesMenuConfig·partsManagementContextMenu), dev(mermaidStyles·recentColorsManager·favoriteColorsManager·themeFileAnalyzer·themeVariableManager·mermaidStyleStorage·documentStorage)
+- **앞으로**: 새로 .ts 전환 시 re-export .js는 만들지 말고, `.ts`만 두고 §8.3 플러그인에 의해 확장자 없이 import.
+
+### 8.3 Re-export 제거 방법 (정석: src 전용 플러그인)
+
+**적용된 방식**: `quasar.config.js`에 **vitePluginPreferTsInSrc** 등록. 이 플러그인은 다음일 때만 동작함.
+
+- `id`에 `node_modules` 없음, `id`가 `#`로 시작하지 않음
+- `importer`가 없거나 `node_modules` 밖 (즉 우리 src에서의 import만 대상)
+- `src/` 아래 경로에 한해: 확장자 없는 import·`.js` 요청 시 같은 경로의 `.ts`가 있으면 그쪽을 반환
+
+따라서 **deps/pre-bundle 해석에는 전혀 관여하지 않아** 전역 `resolve.extensions`나 전역 `.js`→`.ts` 플러그인 없이도 chunk 404 없이 동작함.
+
+**절차 (re-export .js 제거)**
+
+- **권장: 한 번에 제거 후 캐시 1회만 비우기**  
+  하나씩 지우고 문제 생길 때마다 서버 종료 → `.quasar` 삭제 → 재시작을 반복하지 말고, 아래 순서로 한 번에 처리하면 캐시 삭제·재시작은 **한 번**이면 됨.
+
+1. **제거할 re-export .js 목록 확인**: §8.2 현황 기준으로, 실제로 `export * from '…/xxx.ts'`만 있는 .js 파일들을 정리.
+2. **한꺼번에 삭제**: 해당 .js 파일들을 모두 삭제. (모듈별 alias 추가 불필요.)
+3. **캐시 1회 삭제**: `node_modules/.q-cache`, `node_modules/.vite`, `.quasar` 삭제.
+4. **서버 1회 재시작**: `quasar dev` 실행.
+5. **동작 확인**: 404 없으면 완료. import는 확장자 없음(`from '…/apiBaseUrl'`)이면 플러그인이 `.ts`를 주고, `.js` URL로 요청되더라도 같은 경로의 `.ts`로 우선 해석됨.
+
+(개별 제거 시에는 위 3→4를 그때마다 반복해야 해서, 캐시가 이전 `.js` URL을 기억한 채로 남으면 404가 날 수 있음.)
+
+**정리**: re-export 제거는 **src 전용 .ts 우선 플러그인**으로 정석 처리하고, **한 번에 제거 → 캐시 1회 삭제 → 재시작 1회**로 반복을 줄임.
 
 ---
 
