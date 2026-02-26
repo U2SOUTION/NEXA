@@ -14,11 +14,12 @@ const defaultMetadata = (id: string) => ({
 
 type FormulatorGroup = z.infer<typeof FormulatorGroupEnum>
 
-const mapGroupToType = (group: FormulatorGroup) => {
+const _mapGroupToType = (group: FormulatorGroup) => {
   if (group === 'TIME') return 'trigger'
   if (group === 'LOGIC' || group === 'MATH' || group === 'FILTER') return 'logic'
   return 'action'
 }
+void _mapGroupToType // 향후 노드 타입 매핑에 사용 예정
 
 const deviceCatalog = [
   { id: 'dev-01', name: 'NEXA V-EDGE 01', type: '온도/냉각', status: 'online' },
@@ -42,7 +43,7 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
     if (selectedElementType.value === 'panel') return panels.find((p) => p.metadata.id === selectedElementId.value)
     if (selectedElementType.value === 'formulator') return formulators.find((f) => f.metadata.id === selectedElementId.value)
     if (selectedElementType.value === 'connection') {
-      return connections.find((c: any) => (c.id || c.metadata?.id) === selectedElementId.value)
+      return connections.find((c: { id?: string; metadata?: { id?: string } }) => (c.id || c.metadata?.id) === selectedElementId.value)
     }
     return null
   })

@@ -21,7 +21,7 @@ export function useDomainIntercom(domainName: string) {
   /**
    * 도메인 상태 변경 보고
    */
-  function reportState(state: any) {
+  function reportState(state: unknown) {
     emit(`domain:${domainName}:state-changed`, state)
   }
 

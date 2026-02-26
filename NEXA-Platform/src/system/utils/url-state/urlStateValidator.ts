@@ -10,8 +10,9 @@
  * @param {any} value - 파라미터 값
  * @returns {boolean} 유효성 여부
  */
-// eslint-disable-next-line no-unused-vars
 export function validateURLParam(_paramName, _value) {
+  void _paramName
+  void _value
   // TODO: 파라미터 유효성 검사 로직 구현
   return true
 }
@@ -21,8 +22,8 @@ export function validateURLParam(_paramName, _value) {
  * @param {Object} state - 상태 객체
  * @returns {boolean} 유효성 여부
  */
-// eslint-disable-next-line no-unused-vars
 export function validateURLState(_state) {
+  void _state
   // TODO: 전체 상태 유효성 검사 로직 구현
   return true
 }

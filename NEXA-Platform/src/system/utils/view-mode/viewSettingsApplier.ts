@@ -125,8 +125,8 @@ export function applyColumnWidths(columns, columnWidths) {
       }
       // style에서도 width 제거
       if (newCol.style && typeof newCol.style === 'object' && !Array.isArray(newCol.style)) {
-        // eslint-disable-next-line no-unused-vars
-        const { width: _, ...styleWithoutWidth } = newCol.style
+        const { width: _dropped, ...styleWithoutWidth } = newCol.style
+        void _dropped
         newCol.style = styleWithoutWidth
       }
       return newCol
@@ -217,8 +217,8 @@ export function applyDefaultSort(pagination, defaultSort) {
  * @param {Object} settings - 카드 뷰 설정 객체 (향후 구현 예정)
  * @returns {Array} 설정이 적용된 필드 배열
  */
-// eslint-disable-next-line no-unused-vars
-export function applyCardViewSettings(baseFields, settings) {
+export function applyCardViewSettings(baseFields, _settings) {
+  void _settings
   // TODO: Phase 6에서 구현 예정
   return baseFields
 }
@@ -233,8 +233,8 @@ export function applyCardViewSettings(baseFields, settings) {
  * @param {Object} settings - 리스트 뷰 설정 객체 (향후 구현 예정)
  * @returns {Array} 설정이 적용된 필드 배열
  */
-// eslint-disable-next-line no-unused-vars
-export function applyListViewSettings(baseFields, settings) {
+export function applyListViewSettings(baseFields, _settings) {
+  void _settings
   // TODO: Phase 6에서 구현 예정
   return baseFields
 }

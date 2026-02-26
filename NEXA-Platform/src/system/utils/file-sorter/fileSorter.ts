@@ -9,8 +9,8 @@
  * @param {string} _order - 정렬 방향 ('asc' | 'desc') - 현재는 사용하지 않음 (항상 A→Z 순서 유지)
  * @returns {Array} 정렬된 파일 배열
  */
-// eslint-disable-next-line no-unused-vars
 export function sortByName(files, _order) {
+  void _order
   if (!files || !Array.isArray(files) || files.length === 0) {
     return []
   }

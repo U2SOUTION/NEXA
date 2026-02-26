@@ -1,5 +1,6 @@
 export class RhythmBalancer {
-  detectBias(recentDocs: number[]): boolean {
+  detectBias(_recentDocs: number[]): boolean {
+    void _recentDocs
     return false
   }
 }

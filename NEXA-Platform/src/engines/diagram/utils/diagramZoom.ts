@@ -66,10 +66,11 @@ export function createZoom(onZoom, options = {}) {
     let animationFrame = null // 애니메이션 프레임
     let svgElement = null // SVG 요소 참조 저장
 
-    // 드래그 시작
+    // 드래그 시작 (d3 콜백에서 this가 DOM 요소이므로 캡처 필요)
     zoom.on('start', function () {
       isDragging = true
       velocity = { x: 0, y: 0 }
+      // eslint-disable-next-line @typescript-eslint/no-this-alias -- d3 zoom callback element
       svgElement = this
       const transform = d3.zoomTransform(this)
       lastPosition = {

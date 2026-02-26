@@ -415,6 +415,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
   }
 
   function getIconForCategory(_category: string): string {
+    void _category
     return 'label'
   }
 

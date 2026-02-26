@@ -11,9 +11,8 @@
  * @param {Object} _options - 렌더링 옵션 (향후 구현)
  * @returns {Promise<Object>} 렌더링 결과
  */
-// eslint-disable-next-line no-unused-vars
 export async function renderNetwork(container, data, _options = {}) {
-  // 향후 구현
+  void _options
   console.log('[NetworkDiagram] renderNetwork - 향후 구현 예정')
   return {
     svg: null,

@@ -4,7 +4,7 @@
  */
 import { onBeforeUnmount } from 'vue'
 
-type EventHandler = (data: any) => void
+type EventHandler = (data: unknown) => void
 
 const bus = new Map<string, Set<EventHandler>>()
 
@@ -29,7 +29,7 @@ export function useEventBus() {
   /**
    * 이벤트 발행
    */
-  function emit(event: string, data?: any) {
+  function emit(event: string, data?: unknown) {
     bus.get(event)?.forEach(handler => handler(data))
   }
 

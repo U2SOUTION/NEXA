@@ -1,4 +1,6 @@
 export class WritingSentinel {
-  onTitleCompleted(title: string) {}
+  onTitleCompleted(_title: string) {
+    void _title
+  }
   onSectionChanged() {}
 }

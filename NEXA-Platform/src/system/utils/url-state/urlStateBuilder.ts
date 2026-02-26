@@ -10,8 +10,9 @@
  * @param {Object} stateMap - 상태 맵핑 객체
  * @returns {Object} 쿼리 객체
  */
-// eslint-disable-next-line no-unused-vars
 export function buildURLState(_state, _stateMap) {
+  void _state
+  void _stateMap
   // TODO: 상태 → 쿼리 변환 로직 구현
   // TODO: 기본값 제거 로직 구현
   // TODO: 짧은 이름 매핑 로직 구현
@@ -23,8 +24,8 @@ export function buildURLState(_state, _stateMap) {
  * @param {Object} query - 쿼리 객체
  * @returns {string} 쿼리 문자열
  */
-// eslint-disable-next-line no-unused-vars
 export function buildQueryString(_query) {
+  void _query
   // TODO: 객체 → 쿼리 문자열 변환 로직 구현
   // TODO: 인코딩 처리 로직 구현
   return ''

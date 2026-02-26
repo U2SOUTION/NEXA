@@ -1,5 +1,6 @@
 export class SimilarDocWatcher {
-  findSimilar(text: string): string[] {
+  findSimilar(_text: string): string[] {
+    void _text
     return []
   }
 }

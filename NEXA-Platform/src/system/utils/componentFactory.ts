@@ -321,7 +321,7 @@ export function migrateBoardToStandardContract(oldBoard: { id: string; name: str
       author: oldBoard.author,
       description: oldBoard.name,
     }),
-    preset: (oldBoard.preset as any) || 'single',
+    preset: (oldBoard.preset as string) || 'single',
     panes: [],
     devices: oldBoard.devices || [],
     toJSON() {

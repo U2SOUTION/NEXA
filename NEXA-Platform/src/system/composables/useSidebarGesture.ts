@@ -85,12 +85,14 @@ let lastTrigger = 0
 
     // Left Edge
     if (touchStartX < EDGE) {
-      dx > 0 ? openLeft() : closeLeft()
+      if (dx > 0) openLeft()
+      else closeLeft()
     }
 
     // Right Edge
     if (touchStartX > window.innerWidth - EDGE) {
-      dx < 0 ? openRight() : closeRight()
+      if (dx < 0) openRight()
+      else closeRight()
     }
   }
 

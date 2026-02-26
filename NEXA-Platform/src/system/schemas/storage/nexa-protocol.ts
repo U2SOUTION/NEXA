@@ -75,9 +75,9 @@ export interface SentinelPacket {
     who: NexaWho;
     when: NexaWhen;
     where: NexaWhere;
-    what: any; // Nature에 따른 핵심 사건/수치
+    what: unknown; // Nature에 따른 핵심 사건/수치
   };
-  extra?: any; // 정밀 수치나 증거 데이터(이미지 등) 분리 저장
+  extra?: unknown; // 정밀 수치나 증거 데이터(이미지 등) 분리 저장
 }
 
 /** [Indicator] 센티널 데이터를 구독하여 6-Coil 기준으로 내린 해석 */
@@ -109,7 +109,7 @@ export interface EffectorPacket {
   ref_indicator_id: string; // 참조하는 인디케이터 ID
   action: {
     target_device: string;
-    command: any;
+    command: unknown;
     status: 'PENDING' | 'EXECUTED' | 'FAILED';
   };
 }

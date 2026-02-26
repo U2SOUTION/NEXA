@@ -1,3 +1,5 @@
 export class SoftWarningProvider {
-  warn(message: string) {}
+  warn(_message: string) {
+    void _message
+  }
 }

@@ -1,3 +1,5 @@
 export class AttentionRouter {
-  route(docId: string) {}
+  route(_docId: string) {
+    void _docId
+  }
 }

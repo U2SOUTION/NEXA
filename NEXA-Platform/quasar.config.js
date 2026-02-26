@@ -12,7 +12,10 @@ const __dirname = path.dirname(__filename)
 
 const SRC_ROOT = path.resolve(__dirname, 'src')
 
-/** src 내부만 .ts 우선 해석. node_modules/deps 해석에는 관여하지 않음. */
+/**
+ * src 전용 .ts 우선 해석. node_modules/deps에는 관여하지 않음.
+ * 문제 시: .quasar 삭제 후 서버 재시작으로 대부분 해결됨.
+ */
 function vitePluginPreferTsInSrc() {
   const srcRootNorm = path.normalize(SRC_ROOT)
   const underSrc = (p) => {
@@ -20,39 +23,30 @@ function vitePluginPreferTsInSrc() {
     const resolved = path.normalize(path.resolve(p))
     return resolved === srcRootNorm || resolved.startsWith(srcRootNorm + path.sep)
   }
+  const tryTs = async function (baseId, importer) {
+    const tsId = baseId.endsWith('.ts') ? baseId : baseId.replace(/\.js$/, '') + '.ts'
+    const r = await this.resolve(tsId, importer, { skipSelf: true })
+    if (!r?.id) return null
+    const pathOnly = r.id.split('?')[0]
+    return (underSrc(pathOnly) && fs.existsSync(pathOnly)) ? r.id : null
+  }
   return {
     name: 'vite-prefer-ts-in-src',
     enforce: 'pre',
     async resolveId(id, importer) {
       try {
         if (!id || id.includes('node_modules') || id.startsWith('#') || (importer && importer.includes('node_modules'))) return null
-        const tryTs = async (baseId) => {
-          const tsId = baseId.endsWith('.ts') ? baseId : baseId.replace(/\.js$/, '') + '.ts'
-          const r = await this.resolve(tsId, importer, { skipSelf: true })
-          if (!r?.id) return null
-          const pathOnly = r.id.split('?')[0]
-          if (!underSrc(pathOnly) || !fs.existsSync(pathOnly)) return null
-          return r.id
-        }
         if (id.endsWith('.js')) {
-          const tsResolved = await tryTs(id)
+          const tsResolved = await tryTs.call(this, id, importer)
           if (tsResolved) return tsResolved
-          // GET 요청 등으로 id가 '/src/.../foo.js' 형태로 올 때: this.resolve가 실패할 수 있으므로 경로로 직접 .ts 확인
-          const pathOnly = id.split('?')[0]
-          if (pathOnly.startsWith('/src/')) {
-            const rel = pathOnly.replace(/\.js$/, '.ts').slice(1)
-            const full = path.resolve(__dirname, rel)
+          if (id.startsWith('/src/')) {
+            const full = path.resolve(__dirname, id.split('?')[0].replace(/\.js$/, '.ts').slice(1))
             if (underSrc(full) && fs.existsSync(full)) return full
           }
           return null
         }
-        if (!path.extname(id) && (id.startsWith('.') || id.startsWith('@'))) {
-          const tsResolved = await tryTs(id)
-          if (tsResolved) return tsResolved
-        }
-      } catch {
-        // 해석 실패 시 파이프라인 중단 방지
-      }
+        if (!path.extname(id) && (id.startsWith('.') || id.startsWith('@'))) return await tryTs.call(this, id, importer)
+      } catch { /* 파이프라인 중단 방지 */ }
       return null
     },
   }
@@ -91,11 +85,10 @@ export default defineConfig((/* ctx */) => {
           '@components': path.resolve(__dirname, './src/system/components'),
           // layoutRegistry 등에서 사용: layouts/ → frame/layout
           layouts: path.resolve(__dirname, './src/frame/layout'),
-          // Quasar 엔진이 찾는 물리적 라우터 경로를 frame 내부로 리다이렉트
+          // 라우터: Quasar 표준 경로 → frame/router (sourceFiles.router와 쌍)
           'src/router': path.resolve(__dirname, './src/frame/router'),
           'app/src/router': path.resolve(__dirname, './src/frame/router'),
           'app/src/router/index': path.resolve(__dirname, './src/frame/router/index.ts'),
-          // 생성된 app.js가 요청하는 경로 (frame 포함) → .ts 직접 지정
           'app/src/frame/router/index': path.resolve(__dirname, './src/frame/router/index.ts'),
         }
 
@@ -149,7 +142,7 @@ export default defineConfig((/* ctx */) => {
           'vite-plugin-checker',
           {
             eslint: {
-              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
+              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,ts,vue}"',
               useFlatConfig: true,
             },
           },

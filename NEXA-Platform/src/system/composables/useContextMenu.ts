@@ -21,21 +21,21 @@ import { ref } from 'vue'
 
 // ===== 설정 상수 =====
 
-// 기본 설정
-// eslint-disable-next-line no-unused-vars
-const DEFAULT_ANIMATION_DURATION = 200
-// eslint-disable-next-line no-unused-vars
-const DEFAULT_Z_INDEX = 9999
+// 기본 설정 (향후 애니메이션/z-index 적용 시 사용)
+const _DEFAULT_ANIMATION_DURATION = 200
+const _DEFAULT_Z_INDEX = 9999
 const MENU_PADDING = 8
 
 // 키보드 단축키 (향후 사용 예정)
-// eslint-disable-next-line no-unused-vars
-const KEYBOARD_SHORTCUTS = {
+const _KEYBOARD_SHORTCUTS = {
   CLOSE: 'Escape',
   ENTER: 'Enter',
   ARROW_UP: 'ArrowUp',
   ARROW_DOWN: 'ArrowDown',
 }
+void _DEFAULT_ANIMATION_DURATION
+void _DEFAULT_Z_INDEX
+void _KEYBOARD_SHORTCUTS
 
 // 스타일 설정
 const STYLES = {

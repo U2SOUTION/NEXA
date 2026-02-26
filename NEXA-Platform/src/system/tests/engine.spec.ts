@@ -9,7 +9,7 @@ import { processFlow } from '@engines/services/flowManager'
 describe('NEXA 엔진 흐름 테스트', () => {
   it('온도 데이터가 포뮬레이터를 거쳐 정상적으로 변환되어야 한다', () => {
     // 가상의 설계도 데이터
-    const mockBlueprint: any = {
+    const mockBlueprint = {
       metadata: { id: 'bp-001' },
       composition: {
         panels: [],
@@ -28,10 +28,10 @@ describe('NEXA 엔진 흐름 테스트', () => {
           },
         ],
       },
-    }
+    } as Blueprint
 
     const input = { 'p-raw': 0.5 }
-    const result = processFlow(mockBlueprint as Blueprint, input)
+    const result = processFlow(mockBlueprint, input)
 
     // 결과 검증: 0.5가 0~100 사이에서 50으로 변환되었는지 확인
     expect(result['f-scaler']).toBe(50)

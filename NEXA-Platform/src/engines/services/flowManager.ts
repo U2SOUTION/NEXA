@@ -4,7 +4,6 @@
  */
 
 import { Blueprint } from '@system/schemas/modules/blueprint' // 설계도 규격
-import { Connection } from '@system/schemas/modules/connection' // 연결선 규격
 import { evaluateFormulator } from './evaluatorService' // 연산 엔진
 
 /**
@@ -23,10 +22,10 @@ export const determineExecutionOrder = (blueprint: Blueprint) => {
  */
 export const processFlow = (
   blueprint: Blueprint,
-  initialInputs: Record<string, any>, // 외부에서 들어온 초기값 (예: 센서 데이터)
+  initialInputs: Record<string, unknown>, // 외부에서 들어온 초기값 (예: 센서 데이터)
 ) => {
   // 1. 모든 노드의 계산 결과가 임시 저장될 바구니입니다.
-  const flowResults: Record<string, any> = { ...initialInputs }
+  const flowResults: Record<string, unknown> = { ...initialInputs }
 
   // 2. 실행 순서에 맞춰 노드 리스트를 가져옵니다.
   const executionQueue = determineExecutionOrder(blueprint)
@@ -37,7 +36,7 @@ export const processFlow = (
     const incomingConnections = blueprint.composition.connections.filter((conn) => conn.target.formulatorId === formulator.metadata.id)
 
     // 연산기에 투입할 입력 성분(Ingredients)들을 모읍니다.
-    const currentInputs: Record<string, any> = {}
+    const currentInputs: Record<string, unknown> = {}
     incomingConnections.forEach((conn) => {
       // 소스 노드에서 계산되었던 결과값을 가져와 현재 노드의 입력값으로 매핑합니다.
       const sourceValue = flowResults[conn.source.formulatorId]

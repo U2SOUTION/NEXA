@@ -1,7 +1,8 @@
 import { SentinelContext } from '../core/SentinelContext'
 
 export class TemporalAnalyzer {
-  analyze(context: SentinelContext): 'now' | 'future' | 'archive' {
+  analyze(_context: SentinelContext): 'now' | 'future' | 'archive' {
+    void _context
     return 'now'
   }
 }

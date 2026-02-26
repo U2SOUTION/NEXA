@@ -11,7 +11,7 @@ import { processFlow } from '@engines/services/flowManager'
 describe('NEXA 엔진 통합 시뮬레이션', () => {
   it('온도 센서 데이터가 합산 및 범위 변환 로직을 거쳐 최종 결과값에 도달해야 한다', () => {
     // 1. 테스트를 위한 가상의 설계도(Mock Blueprint) 정의
-    const mockBlueprint: any = {
+    const mockBlueprint = {
       metadata: { id: 'bp-001', createdAt: new Date(), version: '1.0.0' },
       config: { name: '지구 온난화 감시 아트를 위한 온도 배합' },
       composition: {
@@ -49,7 +49,7 @@ describe('NEXA 엔진 통합 시뮬레이션', () => {
           },
         ],
       },
-    }
+    } as Blueprint
 
     // 2. 외부에서 주입되는 가상의 센서 데이터 (서울 온도 0.5도 보정값 가정)
     const sensorInput = {
@@ -58,7 +58,7 @@ describe('NEXA 엔진 통합 시뮬레이션', () => {
 
     // 3. 엔진 가동 (flowManager 실행)
     // 실제 서비스 로직을 호출하여 연산을 수행합니다.
-    const finalResults = processFlow(mockBlueprint as Blueprint, sensorInput)
+    const finalResults = processFlow(mockBlueprint, sensorInput)
 
     // 4. 검증 (Expectation)
     // [ADDER] 결과는 0.5 (입력이 하나이므로)

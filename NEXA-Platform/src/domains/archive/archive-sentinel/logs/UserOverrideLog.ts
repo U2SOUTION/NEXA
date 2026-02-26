@@ -1,3 +1,5 @@
 export class UserOverrideLog {
-  record(action: string) {}
+  record(_action: string) {
+    void _action
+  }
 }

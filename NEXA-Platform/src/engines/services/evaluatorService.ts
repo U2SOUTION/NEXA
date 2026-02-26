@@ -16,7 +16,7 @@ import { FeedbackStatusEnum } from '@system/schemas/common/display' // 피드백
  */
 export const evaluateFormulator = (
   formulator: Formulator, // 계산할 대상 노드 정보
-  inputs: Record<string, any>, // 연결선을 통해 들어온 데이터 바구니
+  inputs: Record<string, unknown>, // 연결선을 통해 들어온 데이터 바구니
 ) => {
   // 1. 노드의 정체성(그룹, 타입)과 설정값(settings)을 추출합니다.
   const { group, type } = formulator.identity // MATH, LOGIC 등 그룹과 ADDER, SCALER 등 타입
@@ -74,7 +74,8 @@ export const evaluateFormulator = (
  * [ executeBlueprint ]
  * 설계도 전체를 읽어 실시간 엔진을 가동하는 메인 진입 함수입니다.
  */
-export const executeBlueprint = (blueprint: Blueprint, rawData: Record<string, any>) => {
+export const executeBlueprint = (blueprint: Blueprint, _rawData: Record<string, unknown>) => {
+  void _rawData
   // 설계도 이름과 함께 엔진 가동 로그를 남깁니다.
   console.log(`[NEXA 엔진] '${blueprint.config.name}' 설계도를 가동합니다.`)
 

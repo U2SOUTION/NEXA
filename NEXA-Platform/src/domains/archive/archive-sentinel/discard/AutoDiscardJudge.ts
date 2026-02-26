@@ -1,7 +1,8 @@
 import { SentinelContext } from '../core/SentinelContext'
 
 export class AutoDiscardJudge {
-  judge(context: SentinelContext): boolean {
+  judge(_context: SentinelContext): boolean {
+    void _context
     return false
   }
 }

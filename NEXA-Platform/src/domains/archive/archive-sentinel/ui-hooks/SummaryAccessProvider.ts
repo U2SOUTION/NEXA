@@ -1,3 +1,5 @@
 export class SummaryAccessProvider {
-  get(docId: string) {}
+  get(_docId: string) {
+    void _docId
+  }
 }

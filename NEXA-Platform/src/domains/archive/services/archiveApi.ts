@@ -2,7 +2,7 @@ import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 async function request(
   path: string,
-  options: RequestInit & { headers?: Record<string, string> } = {},
+  options: Parameters<typeof fetch>[1] & { headers?: Record<string, string> } = {},
 ): Promise<unknown> {
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },

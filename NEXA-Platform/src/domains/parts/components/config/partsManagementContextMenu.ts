@@ -32,7 +32,7 @@ export interface PartClassesContextMenuParams {
  */
 export function getPartClassesContextMenuItems({
   selectedRowId = null,
-  selectedRows = [],
+  selectedRows: _selectedRows = [],
   selectedCount = 0,
   hasActiveFilter = false,
   activateStatusMenuLabel = '활성화/비활성화',
@@ -40,6 +40,7 @@ export function getPartClassesContextMenuItems({
   printMenuLabel = '데이터 인쇄',
   exportMenuLabel = '내보내기',
 }: PartClassesContextMenuParams = {}): ContextMenuItem[] {
+  void _selectedRows
   const items: ContextMenuItem[] = []
 
   if (selectedCount === 0) {

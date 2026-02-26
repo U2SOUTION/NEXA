@@ -21,8 +21,8 @@
  * @param {Object} params.context - 추가 컨텍스트 정보 (향후 사용 예정)
  * @returns {Array} 메뉴 아이템 배열
  */
-// eslint-disable-next-line no-unused-vars
 export function getSettingsContextMenuItems({ selectedTab = null, context: _context = {} }) {
+  void _context
   const items = []
 
   // 탭별 메뉴

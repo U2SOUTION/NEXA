@@ -31,11 +31,8 @@ import { watch, onMounted, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { URL_STATE_PARAMS } from '@system/config/url-state/index'
 
-export function useURLStateSync(stateMap, options = {}) {
-  // options는 향후 확장용 (URL 단축 기능 등)
-  // eslint-disable-next-line no-unused-vars
-  const _options = options
-
+export function useURLStateSync(stateMap, _options = {}) {
+  void _options
   const route = useRoute()
   const router = useRouter()
 

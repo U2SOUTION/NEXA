@@ -1,5 +1,3 @@
-import { z } from 'zod'
-
 // 1. 공통 규격 (Common)
 export * from './common/metadata'
 export * from './common/taxonomy'

@@ -1,5 +1,6 @@
 export class QualitySignalAnalyzer {
-  analyze(text: string) {
+  analyze(_text: string) {
+    void _text
     return {
       duplication: 0,
       clarity: 0,

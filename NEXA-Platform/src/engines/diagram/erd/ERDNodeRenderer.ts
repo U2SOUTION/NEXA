@@ -26,9 +26,8 @@ export const nodeRenderOptions = {
  * @param {Object} _options - 렌더링 옵션 (향후 구현)
  * @returns {Object} 노드 객체
  */
-// eslint-disable-next-line no-unused-vars
 export function createNode(nodeData, _options = {}) {
-  // 향후 구현
+  void _options
   return nodeData
 }
 

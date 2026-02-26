@@ -109,6 +109,7 @@ export function interceptXHR() {
   }
 
   XMLHttpRequest.prototype.send = function (...args) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- XHR callback에서 this 캡처 필요
     const xhr = this
 
     xhr.addEventListener('loadend', function () {
