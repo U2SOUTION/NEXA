@@ -41,8 +41,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
-import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
+import { useBoardMenuStore } from '@system/store/boardMenuStore'
+import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
 import { useBoardEditorStore } from '@system/store/boardEditorStore.js'
 
 // 컴포넌트 자신의 이름을 명시적으로 선언 (재귀 컴포넌트의 경우 권장)

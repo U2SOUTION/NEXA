@@ -122,7 +122,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
+import { useBoardMenuStore } from '@system/store/boardMenuStore'
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
 import { useQuasar } from 'quasar'
 import DirectorySelection from '@system/components/ui/DirectorySelection.vue'

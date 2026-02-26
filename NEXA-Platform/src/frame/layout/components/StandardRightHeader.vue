@@ -38,7 +38,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useUserSettingsStore } from '@system/store/userSettingsStore.js'
+import { useUserSettingsStore } from '@system/store/userSettingsStore'
 
 defineProps({
   title: {

@@ -215,19 +215,26 @@ flowchart LR
 
 ## 8. 작업 시 주의사항
 
-- **import 경로**: 기존 `./foo.js`는 `./foo` 또는 `./foo.ts`로 통일 (TS에서는 확장자 생략 관례)
+- **전환 시 기존 .js 제거**: `.js` → `.ts` 전환 시 **기존 .js 파일은 삭제**하고, re-export용 .js는 두지 않음. 문제(404·동적 import 실패)가 나면 그때그때 원인(import 경로에 `.js` 남은 곳 수정, Vite 캐시 삭제 등)을 해결해 빠르게 발견·수정함.
+- **import 경로**: 기존 `./foo.js`는 `./foo` 또는 `./foo.ts`로 통일 (TS에서는 확장자 생략 관례). 전환 전에 해당 모듈을 참조하는 모든 곳에서 확장자 제거 여부 확인.
 - **타입/스키마/상수**: 위 **프로젝트 규칙**에 따라 `system/types`, `system/schemas`, `system/constants` 에만 정의하고, 도메인에서는 참조만 함. 기존 TS 모듈의 타입은 필요 시 `system/types`로 이전 후 re-export
 - **strict 켜기**: 전 구역 전환 완료 후, `strict: true` / `noImplicitAny: true`를 단계적으로 적용하고 오류 나는 파일만 수정
 - **AGENTS 규칙**: system/frame/engines는 "계약 변경 없이 타입·확장자만 추가"로 해석하고, 도메인은 "한 번에 하나"만 수정. 타입·스키마·상수는 `system/types`, `system/schemas`, `system/constants`에만 정의하고 도메인 내부 파일 생성 금지.
 
-### 8.1 Re-export .js 호환 레이어 (추후 정검)
+### 8.1 Re-export .js 호환 레이어 (과거 전환분, 추후 정검)
 
-- Phase 1에서 `apiBaseUrl`, `clipboard`, `domainRegistry`를 `.ts`로 전환한 뒤, Vite/의존성 그래프가 여전히 **`.js` URL**로 요청하여 404 발생. AI 도메인·MainLayout·동적 import 연쇄 실패로 이어짐.
+- **정책**: 신규 전환은 위대로 **기존 .js 제거, re-export .js 미사용**. 아래는 과거에 re-export로 둔 항목.
+- Phase 1 초기에 `apiBaseUrl`, `clipboard`, `domainRegistry` 등을 `.ts`로 전환한 뒤, Vite/캐시가 **`.js` URL**로 요청해 404가 나서 re-export .js를 둔 상태.
 - **현재 유지 중인 re-export .js** (실제 구현은 각각 `.ts`, .js는 re-export만):
   - `src/system/utils/apiBaseUrl.js`
   - `src/system/utils/clipboard.js`
   - `src/frame/registry/domainRegistry.js`
   - `src/system/composables/useFileSelection.js`
+  - `src/system/composables/useThemeManager.js`
+  - `src/system/store/userSettingsStore.js` (제거 시 404 재발하여 re-export 유지)
+  - `src/system/store/dashboardLayoutStore.js`
+  - `src/system/store/boardMenuStore.js`
+  - `src/system/store/devGuideStore.js`
 - **추후 정검**: 나중에 위 .js 제거 후, `node_modules/.vite` 삭제 + 개발 서버 재시작 + 브라우저 강력 새로고침으로 404 없이 동작하는지 재시도. 문제 없으면 re-export .js 제거하여 단일 진입점(.ts)만 유지. 제거 시 동일 404/동적 import 실패가 재발하면 re-export .js는 유지.
 
 ---

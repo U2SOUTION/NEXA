@@ -279,7 +279,7 @@ function getUsageLocations(keyName) {
 
     if (configFileName.includes('devGuide')) {
       locations.push({
-        path: '@system/store/devGuideStore.js',
+        path: '@system/store/devGuideStore',
         type: 'store',
         description: '개발 가이드 Store에서 사용',
       })
@@ -406,7 +406,7 @@ function getUsageLocations(keyName) {
     } else {
       // 일반적인 dev-guide-* 패턴
       locations.push({
-        path: '@system/store/devGuideStore.js',
+        path: '@system/store/devGuideStore',
         type: 'store',
         description: '개발 가이드 설정 관리',
       })
@@ -504,7 +504,7 @@ function getUsageLocations(keyName) {
   // 7. 사용자 설정
   if (keyName === 'userSettings' || keyName.startsWith('user-')) {
     locations.push({
-      path: '@system/store/userSettingsStore.js',
+      path: '@system/store/userSettingsStore',
       type: 'store',
       description: '사용자 설정 관리',
     })
@@ -522,7 +522,7 @@ function getUsageLocations(keyName) {
   // 9. 보드 메뉴 관련
   if (keyName.startsWith('Board-')) {
     locations.push({
-      path: '@system/store/boardMenuStore.js',
+      path: '@system/store/boardMenuStore',
       type: 'store',
       description: '보드 메뉴 설정',
     })
@@ -585,7 +585,7 @@ function getUsageLocations(keyName) {
         })
       } else if (moduleName === 'guide' || keyName.includes('guide')) {
         locations.push({
-          path: '@system/store/devGuideStore.js',
+          path: '@system/store/devGuideStore',
           type: 'store',
           description: '개발 가이드 관련 설정 (추정)',
         })

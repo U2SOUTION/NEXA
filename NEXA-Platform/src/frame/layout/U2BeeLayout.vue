@@ -7,7 +7,7 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount } from 'vue'
-import { useUserSettingsStore } from '@system/store/userSettingsStore.js'
+import { useUserSettingsStore } from '@system/store/userSettingsStore'
 
 // U2BEE 전용 레이아웃 - 헤더, 사이드바, 푸터 없이 컨텐츠 영역만 표시
 

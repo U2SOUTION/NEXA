@@ -197,7 +197,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { usePartsManagementStore } from '@system/store/partsManagementStore.js'
-import { useUserSettingsStore } from '@system/store/userSettingsStore.js'
+import { useUserSettingsStore } from '@system/store/userSettingsStore'
 import BinDetailModal from './BinDetailModal.vue'
 
 const partsStore = usePartsManagementStore()

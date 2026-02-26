@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
-import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
-import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
+import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
+import { useBoardMenuStore } from '@system/store/boardMenuStore'
 
 /**
  * 보드창 프리셋 관련 모든 로직을 통합한 composable

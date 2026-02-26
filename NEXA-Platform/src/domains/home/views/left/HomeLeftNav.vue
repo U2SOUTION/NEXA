@@ -89,8 +89,8 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
-import { useBoardMenuStore } from '@system/store/boardMenuStore.js'
-import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
+import { useBoardMenuStore } from '@system/store/boardMenuStore'
+import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
 
 const router = useRouter()
 const boardMenuStore = useBoardMenuStore()

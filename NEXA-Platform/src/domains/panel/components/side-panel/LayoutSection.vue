@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
+import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
 import { getPresetIcon, getPresetLabel, getPresetDescription } from '@system/utils/boardWindowPreset.js'
 
 const dashboardLayoutStore = useDashboardLayoutStore()

@@ -399,7 +399,7 @@ import 'splitpanes/dist/splitpanes.css'
 import { GridLayout, GridItem } from 'vue3-grid-layout-next'
 import 'vue3-grid-layout-next/dist/style.css'
 
-import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore.js'
+import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
 import NexaPanelDialog from '@domains/panel/components/NexaPanelDialog.vue'
 
 const $q = useQuasar()
