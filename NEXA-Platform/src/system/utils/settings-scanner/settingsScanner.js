@@ -19,7 +19,7 @@ export async function scanConfigFiles() {
     const configModules = await Promise.allSettled([
       import('@system/config/devGuideConfig.js').then((m) => ({ name: 'devGuideConfig', path: '@system/config/devGuideConfig.js', module: m })),
       import('@system/config/documentConfig.js').then((m) => ({ name: 'documentConfig', path: '@system/config/documentConfig.js', module: m })),
-      import('@frame/registry/domainRegistry.js').then((m) => ({ name: 'domainRegistry', path: 'src/frame/registry/domainRegistry.js', module: m })),
+      import('@frame/registry/domainRegistry').then((m) => ({ name: 'domainRegistry', path: 'src/frame/registry/domainRegistry', module: m })),
       import('@system/config/componentTaxonomy.js').then((m) => ({ name: 'componentTaxonomy', path: '@system/config/componentTaxonomy.js', module: m })),
       import('@system/config/componentCategories.js').then((m) => ({ name: 'componentCategories', path: '@system/config/componentCategories.js', module: m })),
       import('@system/config/fileTypes.js').then((m) => ({ name: 'fileTypes', path: '@system/config/fileTypes.js', module: m })),

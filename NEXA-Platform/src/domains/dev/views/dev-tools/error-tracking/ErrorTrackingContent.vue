@@ -436,7 +436,7 @@ import { useErrorAnalysis } from '@system/composables/useErrorAnalysis.js'
 import { classifyErrorType, getErrorIcon, getErrorTypeLabel, getErrorTypeChartLabel } from '@system/utils/error-tracking/errorTypeClassifier.js'
 import { normalizeFilePathForAI, normalizeStackForAI } from '@system/utils/error-tracking/pathNormalizer.js'
 import { formatTimeRelative, formatTimeAbsolute, formatTime, formatDuration } from '@system/utils/error-tracking/timeFormatter.js'
-import { copyTextToClipboard } from '@system/utils/clipboard.js'
+import { copyTextToClipboard } from '@system/utils/clipboard'
 import { parseMarkdown } from '@system/utils/markdown/index.js'
 
 const $q = useQuasar()

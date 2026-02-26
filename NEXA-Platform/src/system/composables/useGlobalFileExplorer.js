@@ -4,7 +4,7 @@
  */
 
 import { ref, computed } from 'vue'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 import { buildFileTreeFromApiResponse } from '@system/utils/fileExplorer.js'
 
 export function useGlobalFileExplorer() {

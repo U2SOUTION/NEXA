@@ -252,7 +252,7 @@ import CodeEditor from './CodeEditor.vue'
 // import { generateUsageExample } from '@system/utils/usage-example-generator'
 import { analyzeSampleDependencies } from '@system/utils/dependency-analyzer'
 import { removeTitles, parseComponentForPreview } from '@system/utils/previewParser'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()
 const { selectedSample, filteredSamples, handleSampleSelect, favoriteSamples, toggleFavorite } = useDevGuide()

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 export const usePartsDataStore = defineStore('partsData', () => {
   // 상태

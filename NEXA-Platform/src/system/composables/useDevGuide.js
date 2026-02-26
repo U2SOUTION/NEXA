@@ -12,7 +12,7 @@ import { storeToRefs } from 'pinia'
 import { useDevGuideStore } from '@system/store/devGuideStore'
 import { getComponentCategory } from '@system/utils/path-categorizer/index.js'
 import { getTopLevelOrder } from '@system/config/devGuideConfig'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 /**
  * 개발 가이드 Composable

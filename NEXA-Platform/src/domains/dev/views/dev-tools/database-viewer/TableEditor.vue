@@ -221,7 +221,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()
 const apiBaseUrl = getApiBaseUrl()

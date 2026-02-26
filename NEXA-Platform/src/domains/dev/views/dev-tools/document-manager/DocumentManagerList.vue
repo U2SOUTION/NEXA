@@ -327,7 +327,7 @@ import { useDocumentList } from '@domains/dev/modules/document-manager/composabl
 import { useMultiSelection } from '@system/composables/useMultiSelection.js'
 import { useQuasar } from 'quasar'
 import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from '@system/utils/file-sorter/index.js'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
 
 // Props
 const props = defineProps({

@@ -430,7 +430,7 @@ SQL 문법 하이라이팅
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()
 const apiBaseUrl = getApiBaseUrl()

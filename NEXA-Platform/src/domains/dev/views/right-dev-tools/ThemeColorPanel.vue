@@ -88,7 +88,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const props = defineProps({
   selectedColor: {

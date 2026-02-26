@@ -113,8 +113,8 @@ import { useUserSettingsStore } from '@system/store/userSettingsStore'
 import { loadCheckboxStates, loadTOCSettings, moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash, emptyTrash, renameFile } from '@domains/dev/modules/document-manager/services/documentStorage.js'
 import { useDocumentStats } from '@domains/dev/modules/document-manager/composables/useDocumentStats.js'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
-import { copyTextToClipboard } from '@system/utils/clipboard.js'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { copyTextToClipboard } from '@system/utils/clipboard'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()
 const documentStore = useDocumentManagerStore()

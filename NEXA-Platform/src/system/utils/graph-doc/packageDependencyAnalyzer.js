@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const apiBaseUrl = getApiBaseUrl()
 /**

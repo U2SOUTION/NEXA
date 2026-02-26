@@ -175,7 +175,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { usePartsDataStore } from '@system/store/partsDataStore.js'
 import { useSkeletonLoader } from '@system/composables/useSkeletonLoader.js'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()
 const partsDataStore = usePartsDataStore()

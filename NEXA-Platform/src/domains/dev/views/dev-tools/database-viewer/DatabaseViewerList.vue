@@ -59,7 +59,7 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, onMounted, onUnmounted, watch } from 'vue'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const props = defineProps({
   searchQuery: {

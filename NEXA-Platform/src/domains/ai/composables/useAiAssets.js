@@ -5,7 +5,7 @@
  */
 import { ref, computed } from 'vue'
 import { Notify } from 'quasar'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const DOMAIN = 'ai'
 

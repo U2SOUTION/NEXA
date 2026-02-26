@@ -5,7 +5,7 @@ import { parseMarkdown, escapeHtml } from '@system/utils/markdown/index.js'
 import { saveCheckboxStates, loadCheckboxStates, loadTOCExpandedState, loadSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage.js'
 import { useTOC } from '@domains/dev/modules/document-manager/composables/useTOC.js'
 import { removeExtension } from '@system/config/documentConfig.js'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
 
 /**
  * 문서 관리 Store

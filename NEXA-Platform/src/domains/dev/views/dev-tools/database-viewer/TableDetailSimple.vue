@@ -316,7 +316,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const props = defineProps({
   tableName: {

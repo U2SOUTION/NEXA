@@ -5,7 +5,7 @@
  */
 
 import { ref } from 'vue'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 /**
  * 데이터베이스 뷰어 관리 Composable

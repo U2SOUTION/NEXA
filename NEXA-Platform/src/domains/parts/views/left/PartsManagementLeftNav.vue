@@ -504,7 +504,7 @@ import SpaceManagementModal from '../../components/SpaceManagementModal.vue'
 import DetailedDescriptionViewer from '../../components/DetailedDescriptionViewer.vue'
 import { getFileIcon as getFileIconFromConfig, isIconUrl, getFileColor } from '@system/config/fileTypes.js'
 import { useQuasar } from 'quasar'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()
 const partsStore = usePartsManagementStore()

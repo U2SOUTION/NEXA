@@ -64,7 +64,7 @@
 
 <script setup>
 import { computed, watch, ref } from 'vue'
-import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl.js'
+import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
 const props = defineProps({
   file: { type: Object, default: null },

@@ -4,7 +4,7 @@
  */
 import { isRef, nextTick } from 'vue'
 import { loadSupportedExtensions as loadExtensions, saveSupportedExtensions as saveExtensions, removeExtension } from '@system/config/documentConfig.js'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
 
 const docsBaseUrl = getDocsBaseUrl()
 

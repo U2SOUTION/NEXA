@@ -202,9 +202,9 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import { useDevGuide } from '@system/composables/useDevGuide.js'
-import { copyTextToClipboard } from '@system/utils/clipboard.js'
+import { copyTextToClipboard } from '@system/utils/clipboard'
 import { analyzeSampleDependencies } from '@system/utils/dependency-analyzer.js'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()
 const { selectedSample } = useDevGuide()

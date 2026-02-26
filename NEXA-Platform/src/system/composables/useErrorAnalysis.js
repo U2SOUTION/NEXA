@@ -8,7 +8,7 @@ import { ref, computed } from 'vue'
 import { errorAnalysisIndex } from '@system/utils/error-tracking/errorAnalysisIndex.js'
 import { extractDocumentMetadata, parseErrorAnalysisFrontmatter } from '@system/utils/error-tracking/errorAnalysisParser.js'
 import { quietFetch } from '@system/utils/error-tracking/quietFetch.js'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
 
 const docsBaseUrl = getDocsBaseUrl()
 

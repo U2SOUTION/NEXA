@@ -5,7 +5,7 @@
 
 import { parseErrorAnalysisFrontmatter } from './errorAnalysisParser.js'
 import { quietFetch } from './quietFetch.js'
-import { getDocsBaseUrl } from '../apiBaseUrl.js'
+import { getDocsBaseUrl } from '../apiBaseUrl'
 
 const docsBaseUrl = getDocsBaseUrl()
 

@@ -28,7 +28,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const file = ref(null)
 const files = ref(null)

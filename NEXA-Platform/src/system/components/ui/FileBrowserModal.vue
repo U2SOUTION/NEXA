@@ -38,7 +38,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },

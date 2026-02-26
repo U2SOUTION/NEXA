@@ -91,7 +91,7 @@
 
 <script setup>
 import { getFileIconByType } from '@system/utils/fileExplorer.js'
-import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl.js'
+import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
 defineProps({
   items: { type: Array, default: () => [] },

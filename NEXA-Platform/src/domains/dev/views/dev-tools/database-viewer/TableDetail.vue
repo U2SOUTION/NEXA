@@ -140,7 +140,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const props = defineProps({
   tableName: {

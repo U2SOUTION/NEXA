@@ -201,7 +201,7 @@ import { useQuasar } from 'quasar'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
 import { saveTOCSettings, loadSupportedExtensions, saveSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage.js'
 import BaseModal from '@system/components/ui/BaseModal.vue'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
 
 const props = defineProps({
   modelValue: {

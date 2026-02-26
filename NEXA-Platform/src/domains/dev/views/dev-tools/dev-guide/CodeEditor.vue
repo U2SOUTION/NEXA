@@ -43,7 +43,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { indentUnit } from '@codemirror/language'
 import { parseVueFile, combineVueFile } from '@system/utils/vue-file-parser.js'
 import { useUserSettingsStore } from '@system/store/userSettingsStore'
-import { getApiBaseUrl } from '@system/utils/apiBaseUrl.js'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const props = defineProps({
   filePath: {
