@@ -53,7 +53,10 @@
             <div v-else class="text-grey-6 text-center q-pa-md">재생할 수 있는 주소가 없습니다.</div>
           </div>
         </template>
-        <div v-else class="text-grey-6 text-center q-pa-md">{{ file.category || file.file_type || '미리보기 미지원' }}</div>
+        <!-- 문서 미리보기: 추후 에디터 문서(그대로 표시), 마크다운(기존 파서), 그 외(PDF/Office 등 외부 라이브러리) 지원 예정 -->
+        <div v-else class="document-preview-placeholder text-grey-6 text-center q-pa-lg">
+          준비중
+        </div>
       </div>
     </template>
   </div>
