@@ -12,7 +12,7 @@
 
 <script setup>
 import { ref, inject, watch } from 'vue'
-import BaseTiptapEditor from '@engines/tiptap/BaseTiptapEditor.vue'
+import BaseTiptapEditor from '@engines/tiptap/skins/full/TiptapEditor.vue'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },

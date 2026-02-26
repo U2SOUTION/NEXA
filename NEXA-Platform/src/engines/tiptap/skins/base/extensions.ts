@@ -24,7 +24,7 @@ export interface BaseExtensionsOptions {
 }
 
 /**
- * 기본 Tiptap 확장팩 구성 팩토리
+ * base 스킨 — Tiptap 확장팩 구성
  * - 도메인 비의존
  * - 필요 시 options로 오버라이드 가능
  */

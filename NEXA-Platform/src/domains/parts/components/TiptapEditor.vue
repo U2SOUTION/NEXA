@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import BaseTiptapEditor from '@engines/tiptap/BaseTiptapEditor.vue'
+import BaseTiptapEditor from '@engines/tiptap/skins/base/TiptapEditor.vue'
 import { usePartsDataStore } from '@system/store/partsDataStore'
 
 const props = defineProps({

@@ -1,10 +1,10 @@
 # Tiptap 엔진 — 도메인 사용 시 가능한 옵션
 
-`src/engines/tiptap`의 **BaseTiptapEditor**를 각 도메인에서 사용할 때 넘길 수 있는 옵션 정리.
+각 도메인에서는 **사용할 스킨을 직접 import** 한다 (예: base 스킨 → `@engines/tiptap/skins/base/TiptapEditor.vue`). 아래 옵션은 해당 스킨의 에디터 컴포넌트(TiptapEditor.vue)에서 받는 props 이다.
 
 ---
 
-## 1. BaseTiptapEditor에서 제공하는 옵션 (props)
+## 1. 스킨 에디터에서 제공하는 옵션 (props) — base 스킨 기준
 
 | Prop | 타입 | 기본값 | 설명 |
 |------|------|--------|------|
@@ -46,7 +46,7 @@
 
 ## 3. 엔진 내부 확장 옵션 (현재 미노출)
 
-`extensions/baseExtensions.ts`의 `createBaseExtensions(options)`는 아래 옵션을 받을 수 있지만, **BaseTiptapEditor.vue에서는 아직 이 옵션을 props로 받지 않고** 항상 `createBaseExtensions()` 무인자로 호출한다.
+`skins/base/extensions.ts`의 `createBaseExtensions(options)`는 아래 옵션을 받을 수 있지만, **base 스킨 TiptapEditor.vue에서는 아직 이 옵션을 props로 받지 않고** 항상 `createBaseExtensions()` 무인자로 호출한다.
 
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
@@ -54,7 +54,7 @@
 | `allowBase64Image` | `true` | Base64 이미지 허용 여부 |
 | `youtubeOptions` | `{ controls: true, nocookie: false }` | YouTube 확장 설정 |
 
-도메인별로 이미지 인라인/Base64/유튜브 옵션을 다르게 쓰려면, BaseTiptapEditor에 예: `extensionOptions` prop을 추가해 `createBaseExtensions(extensionOptions)`에 넘기는 식으로 확장할 수 있다.
+도메인별로 이미지 인라인/Base64/유튜브 옵션을 다르게 쓰려면, 해당 스킨의 TiptapEditor.vue에 예: `extensionOptions` prop을 추가해 `createBaseExtensions(extensionOptions)`에 넘기는 식으로 확장할 수 있다.
 
 ---
 
@@ -72,12 +72,12 @@
 
 ## 5. 슬롯
 
-BaseTiptapEditor는 툴바를 커스터마이즈할 때 쓸 수 있는 슬롯을 제공한다.
+스킨 에디터(TiptapEditor.vue)는 툴바를 커스터마이즈할 때 쓸 수 있는 슬롯을 제공한다.
 
 - **toolbar** — 일반 모드 툴바. slot props: `editor`, `items`, `isFullscreen`, `toggleFullscreen`
 - **toolbar-fullscreen** — 풀스크린 모드 툴바. 동일한 props
 
-도메인에서 `<BaseTiptapEditor><template #toolbar="...">...</template></BaseTiptapEditor>` 형태로 툴바를 교체할 수 있다.
+도메인에서 import 한 스킨 에디터에 `<template #toolbar="...">...</template>` 형태로 툴바를 교체할 수 있다.
 
 ---
 
@@ -85,4 +85,4 @@ BaseTiptapEditor는 툴바를 커스터마이즈할 때 쓸 수 있는 슬롯을
 
 - **도메인에서 실제로 조정 가능한 옵션**: `modelValue`, `placeholder`, `uploadHandler`, `toolbarOrder`, `normalModeExcludedIds`, `allowFullscreen`.
 - **툴바 구성**: 위 ID 목록으로 순서 지정 + `normalModeExcludedIds`로 일반 모드에서 숨기기.
-- **확장 동작(이미지/유튜브 옵션)**: 현재는 엔진 내부 고정. 도메인별로 다르게 쓰려면 BaseTiptapEditor에 extension 옵션 prop 추가 필요.
+- **확장 동작(이미지/유튜브 옵션)**: 현재는 스킨 내부 고정. 도메인별로 다르게 쓰려면 해당 스킨의 TiptapEditor.vue에 extension 옵션 prop 추가 필요.

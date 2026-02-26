@@ -1,4 +1,4 @@
-<!-- BaseTiptapEditor.vue - 도메인 비의존 Tiptap 에디터 -->
+<!-- TiptapEditor.vue - full 스킨 (모든 툴 노출, 기능 이해용) -->
 <template>
   <div class="tiptap-editor" :class="editorClass">
     <!-- 툴바 (일반 모드) -->
@@ -286,10 +286,10 @@
 import { ref, watch, onBeforeUnmount, computed } from 'vue'
 import { useQuasar, Loading } from 'quasar'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
-import { createBaseExtensions } from './extensions/baseExtensions'
-import { convertClipboardImageToFile } from './utils/clipboardImage'
-import { formatFileSize } from './utils/fileFormat'
-import { extractYouTubeId } from './utils/youtube'
+import { createFullExtensions } from './extensions'
+import { convertClipboardImageToFile } from '../../utils/clipboardImage'
+import { formatFileSize } from '../../utils/fileFormat'
+import { extractYouTubeId } from '../../utils/youtube'
 
 const $q = useQuasar()
 
@@ -307,6 +307,9 @@ const props = defineProps({
       'heading1',
       'heading2',
       'heading3',
+      'heading4',
+      'heading5',
+      'heading6',
       'alignLeft',
       'alignCenter',
       'alignRight',
@@ -336,7 +339,7 @@ const props = defineProps({
   },
   normalModeExcludedIds: {
     type: Array,
-    default: () => ['heading3', 'italic', 'underline', 'strike', 'code', 'undo', 'redo', 'highlight', 'textColor', 'backgroundColor', 'fontFamily', 'superscript', 'subscript', 'alignJustify'],
+    default: () => [], // full 스킨: 일반 모드에서도 모든 툴 노출
   },
   allowFullscreen: { type: Boolean, default: true },
 })
@@ -365,7 +368,7 @@ const editorClass = computed(() => ($q.dark.isActive ? 'editor-dark' : 'editor-l
 
 const editor = useEditor({
   content: props.modelValue || '',
-  extensions: createBaseExtensions(),
+  extensions: createFullExtensions(),
   editorProps: {
     attributes: {
       class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
@@ -690,6 +693,9 @@ const toolbarItemDefinitions = {
   heading1: { id: 'heading1', icon: 'title', action: () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run(), isActive: () => editor.value?.isActive('heading', { level: 1 }), group: 'heading' },
   heading2: { id: 'heading2', icon: 'format_size', action: () => editor.value?.chain().focus().toggleHeading({ level: 2 }).run(), isActive: () => editor.value?.isActive('heading', { level: 2 }), group: 'heading' },
   heading3: { id: 'heading3', icon: 'text_fields', action: () => editor.value?.chain().focus().toggleHeading({ level: 3 }).run(), isActive: () => editor.value?.isActive('heading', { level: 3 }), group: 'heading' },
+  heading4: { id: 'heading4', icon: 'format_size', action: () => editor.value?.chain().focus().toggleHeading({ level: 4 }).run(), isActive: () => editor.value?.isActive('heading', { level: 4 }), group: 'heading' },
+  heading5: { id: 'heading5', icon: 'format_size', action: () => editor.value?.chain().focus().toggleHeading({ level: 5 }).run(), isActive: () => editor.value?.isActive('heading', { level: 5 }), group: 'heading' },
+  heading6: { id: 'heading6', icon: 'format_size', action: () => editor.value?.chain().focus().toggleHeading({ level: 6 }).run(), isActive: () => editor.value?.isActive('heading', { level: 6 }), group: 'heading' },
   bulletList: { id: 'bulletList', icon: 'format_list_bulleted', action: () => editor.value?.chain().focus().toggleBulletList().run(), isActive: () => editor.value?.isActive('bulletList'), group: 'list' },
   orderedList: { id: 'orderedList', icon: 'format_list_numbered', action: () => editor.value?.chain().focus().toggleOrderedList().run(), isActive: () => editor.value?.isActive('orderedList'), group: 'list' },
   taskList: { id: 'taskList', icon: 'checklist', action: () => editor.value?.chain().focus().toggleTaskList().run(), isActive: () => editor.value?.isActive('taskList'), group: 'list' },

@@ -1,0 +1,158 @@
+# AI 도메인 — Vercel AI SDK 적용 시 마이그레이션 규모
+
+현재 AI 도메인 구조를 기준으로, **Vercel AI SDK**를 도입했을 때 수정·추가 범위를 정리한 문서다.
+
+---
+
+## 0. 도입 이유 — 지금 도입했을 때 얻는 것
+
+“조금 늦은 감이 있다”고 느껴도, **차후 확장성과 유지보수**를 위해 지금 도입하는 편이 유리하다. 아래는 SDK 도입 시 얻는 확장성·편리성 요약이다.
+
+### 0.0 목적: 단순 채팅이 아닌 문서·코드 관리
+
+AI 도메인의 목표는 “채팅만 하는 UI”가 아니라 **Tiptap(문서)과 Monaco(코드)** 를 함께 써서 **문서 작성·코딩 관리**를 지원하는 것이다. 채팅은 그중 하나의 진입점이고, “대화 → 에디터 삽입”, “코드 블록 생성·보완”, “문서 요약·구조화” 등이 붙어야 한다.
+
+**Vercel AI SDK가 이 맥락에서 유리한 이유**
+
+- **도구·함수 호출**로 “에디터에 삽입”, “선택 영역 리팩터” 같은 **액션을 모델이 호출**하게 할 수 있다. 채팅 응답을 수동으로 복사·붙여넣기하지 않고, Tiptap/Monaco와 연동된 도구를 하나의 API 패턴으로 붙이기 좋다.
+- **스트리밍**으로 생성 중인 텍스트를 곧바로 에디터에 흘려 넣거나, 코드 제안을 실시간으로 보여 주는 UX를 **같은 스트림 프로토콜**로 구현할 수 있다.
+- **generateText / streamText**를 “채팅용”, “제목 생성용”, “코드 설명용”, “문서 요약용” 등 **용도별로 나누어 호출**하기가 쉽고, 나중에 도메인(archive, dev, parts 등)에서 “여기서만 AI 한 번 쓴다”는 식의 **간접 사용**도 같은 패턴으로 확장할 수 있다.
+
+즉, **Tiptap + Monaco 기반 문서·코드 환경**에서 AI를 “붙이는” 모든 지점(채팅, 삽입, 보완, 요약)을 **한 가지 SDK 패턴**으로 정리할 수 있어, 도입 이유가 단순 채팅을 넘어선다.
+
+### 0.1 확장성
+
+| 구분 | 내용 |
+|------|------|
+| **프로바이더 전환·멀티 선택** | 지금은 Ollama만 쓰더라도, 나중에 OpenAI·Anthropic·Google·Groq 등으로 **전환하거나 여러 provider를 동시에** 쓸 때 **같은 API**(`streamText` / `generateText`)로 처리 가능. provider만 바꾸거나, 라우트/기능별로 다른 provider를 선택하면 된다. Ollama 직접 `fetch`를 여러 벌 유지할 필요가 없다. **멀티 선택**이 필요해도(예: 채팅은 Ollama, 코드 생성은 상용 API) 설정·라우트 분리만으로 유연하게 대응할 수 있다. |
+| **여러 AI 모델을 적절히 사용** | “채팅용 모델”, “코드용 모델”, “요약/제목용 모델”처럼 **작업별로 다른 모델**을 쓰고 싶을 때, SDK는 provider·모델을 **한 레이어에서 추상화**해 준다. 라우트나 body에 `model`만 바꿔서 “이 요청은 이 모델”, “저 요청은 저 모델”로 나누기 편하고, 비용·품질·속도에 맞춰 **모델을 골라 쓰는 전략**을 적용하기 좋다. |
+| **모델 추상화** | 각 provider가 “모델 이름·옵션·스트림 형식”을 SDK가 정리해 주므로, 새 모델·새 서비스를 붙일 때 **한 곳(provider 설정)**만 손보면 된다. |
+| **스트림·UI 표준** | SDK가 권장하는 스트림 프로토콜·메시지 형식을 쓰면, 나중에 React `useChat`·공식 UI 컴포넌트·서드파티 클라이언트와 **호환되기 쉬워진다**. Vue에서도 같은 스트림을 구독하는 훅을 두면 동일 이점을 가져갈 수 있다. Tiptap/Monaco에 “스트리밍으로 삽입”하는 클라이언트도 같은 프로토콜을 쓰면 재사용이 쉽다. |
+| **도구·함수 호출** | SDK는 **tools / function calling**을 일급으로 지원한다. “채팅 중 검색·DB 조회·**에디터 삽입**” 등을 도구로 붙일 때, Ollama/OpenAI 등 provider별 차이를 SDK가 흡수해 주어 **기능 추가가 단순해진다**. Tiptap/Monaco와 연동된 “삽입”, “수정”, “요약” 액션을 도구로 정의하기 좋다. |
+| **멀티모달** | 텍스트·이미지·파일 입력이 SDK 메시지 형식과 provider 어댑터로 정리되어 있어, **비전·오디오** 등을 추가할 때 형식 불일치를 줄일 수 있다. 문서(이미지) 분석·코드 스크린샷 기반 설명 등도 같은 패턴으로 확장 가능하다. |
+
+### 0.2 편리성
+
+| 구분 | 내용 |
+|------|------|
+| **스트리밍·일괄 통일** | `streamText()`와 `generateText()`로 스트리밍/비스트리밍을 **같은 패턴**으로 다룬다. Ollama NDJSON을 직접 파싱·에러 처리할 필요가 줄어든다. |
+| **에러·재시도** | SDK와 provider가 예외·재시도·타임아웃 등을 정리해 주어, **서버 쪽 로직이 단순**해진다. |
+| **타입·문서** | TypeScript 타입과 공식 문서가 잘 갖춰져 있어, **새 기능 추가·온보딩**이 수월하다. |
+| **커뮤니티·생태계** | Next/React 예제·쿡북·블로그가 많고, “채팅·스트리밍·도구” 패턴이 **재사용**하기 좋다. Vue는 같은 서버 API를 쓰는 클라이언트만 맞추면 된다. |
+
+### 0.3 “늦었다”고 느껴도 지금 도입하는 이유
+
+- **코드가 아직 한 곳에 모여 있음** — AI 호출이 `ai.service.js`·`aiApi.ts`·`AiChatPanel`에 한정되어 있어, **한 번만 바꿔도** 전체가 SDK 기반으로 정리된다. 나중에 기능이 더 늘어나면 마이그레이션 비용이 커진다.
+- **Ollama만 쓰는 기간이 길어질수록** — provider 전환·추가 없이 Ollama만 쓰다가, 나중에 “상용 API 하나 더 써야 한다”가 되면 그때 SDK 없이는 **두 벌 구현**을 유지하게 된다. 미리 SDK로 올려두면 새 provider는 **어댑터만** 추가하면 된다.
+- **도구·멀티모달** — 에이전트·도구 호출·이미지/음성 입력 등을 붙일 계획이 있다면, SDK 도입이 **설계·확장** 측면에서 유리하다.
+
+### 0.4 전 도메인·프론트/백그라운드에 AI 붙이기
+
+궁극적으로 **모든 도메인**에서, **직접**(AI 도메인 채팅·에디터)이든 **간접**(archive·dev·parts 등에서 “여기서 한 번만 AI 호출”)이든, **프론트**(사용자 액션 즉시 호출)와 **백그라운드**(작업 큐·스케줄·후처리에서 호출) 모두에서 AI를 붙이기 쉽게 하려면, **한 가지 패턴·한 가지 클라이언트/서버 계약**이 있으면 유리하다. Vercel AI SDK를 쓰면 `streamText` / `generateText` + 도구 + 스트림 프로토콜이라는 **공통 계약**을 두고, 도메인별로 “이 라우트는 이 모델/도구”, “저 작업은 저 provider”만 정하면 되므로, **전 도메인·프론트/백 모두**에 AI를 붙일 때 도입이 도움이 된다.
+
+---
+
+정리하면, **지금 도입하면** “Ollama 전용 직접 호출”을 “SDK + Ollama provider” 한 벌로 바꾸고, **Tiptap·Monaco 기반 문서/코드 연동**, **프로바이더 전환·멀티 선택·다중 모델 활용**, **전 도메인·프론트/백그라운드 AI**까지 같은 패턴으로 확장할 수 있다.
+
+---
+
+## 1. 현재 구조 요약
+
+### 1.1 프론트(domains/ai)
+
+| 구분 | 파일 | 역할 |
+|------|------|------|
+| **API 클라이언트** | `services/aiApi.ts` | `listModels`, `getModelShow`, `chat`(비스트리밍), `chatStream`(NDJSON 파싱 + onChunk), `checkConnection`, `generateTitle` — 모두 백엔드 `/ai/*` 호출 |
+| **채팅 UI** | `components/AiChatPanel.vue` | 메시지 배열 직접 관리, `sendMessage`에서 `chatMode`에 따라 `aiApi.chat()` 또는 `aiApi.chatStream()` 호출. 스트리밍 시 델타 누적·localStorage 동기화. 이미지(base64) 첨부, 제목 자동 생성(generateTitle) |
+| **채널/대화** | `composables/useAiChannels.ts` | 채널·채팅 CRUD, 메시지 배열 보관, localStorage 저장. `getEffectiveInstruction()`(system + channel + chat 지침) |
+| **설정** | `composables/useAiSettings.ts` | `chatMode`(streaming \| full-delivery), 모델 선택, 채팅 입력 행 수·폰트·메시지 길이 제한 등 |
+| **모델 목록** | `composables/useAiModels.ts` | `aiApi.listModels` / `getModelShow` 호출, capabilities 맵 저장 |
+| **기타** | useAiMemos, useAiInsertRequest, useAiExplorerSelection, useAiAssets, chatOutline, modelDisplayName 등 | 채팅과 직결된 LLM 호출 경로는 위에 한정 |
+
+### 1.2 백엔드(server)
+
+| 구분 | 파일 | 역할 |
+|------|------|------|
+| **라우트** | `server/domains/ai/ai.routes.js` | GET `/ai/models`, POST `/ai/model-show`, POST `/ai/chat`, POST `/ai/chat-stream`, POST `/ai/check`, POST `/ai/generate-title` |
+| **서비스** | `server/domains/ai/ai.service.js` | **Ollama 직접 호출**: `listModels`→`/api/tags`, `showModel`→`/api/show`, `chat`→`/api/chat` (stream:false), `chatStream`→`/api/chat` (stream:true) 응답을 그대로 프론트로 pipe. `generateTitle`는 `chat()` 한 번 호출 |
+
+### 1.3 데이터/프로토콜
+
+- **메시지 형식**: `{ role, content, images? }` (user 시 이미지 base64 배열 가능)
+- **스트리밍**: Ollama NDJSON 라인 (`message.content` 델타). 프론트는 `aiApi.chatStream`에서 라인 파싱 후 `onChunk(delta)` 호출
+- **시스템/채널/채팅 지침**: 프론트에서 `getEffectiveInstruction()`로 합쳐서 `systemInstruction`로 한 번에 전달
+
+---
+
+## 2. Vercel AI SDK 대응 관계
+
+| 현재 | Vercel AI SDK |
+|------|----------------|
+| Ollama `/api/chat` (stream true/false) | 서버: `streamText()` / `generateText()` + Ollama provider (`@ai-sdk/ollama` 등) |
+| NDJSON 스트림 파싱 (프론트) | 서버가 `toDataStreamResponse()` 또는 UI 스트림 형식 반환 → 프론트는 그 형식에 맞게 파싱 또는 `useChat`(React) / Vue용 훅 사용 |
+| `chat()` 비스트리밍 | `generateText()` |
+| `generateTitle()` (chat 한 번 호출) | `generateText()` + 제목용 system prompt |
+| 모델 목록/정보/연결 확인 | Ollama는 그대로 `/api/tags`, `/api/show` 호출 유지 가능. SDK와 무관하게 두거나, 필요 시 SDK 제공 유틸로 통일 |
+
+---
+
+## 3. 마이그레이션 규모 (파일·역할 단위)
+
+### 3.1 백엔드 (소규모)
+
+| 파일 | 작업 | 비고 |
+|------|------|------|
+| `server/domains/ai/ai.service.js` | **전면 수정** | Ollama 직접 `fetch` 제거 → `streamText`, `generateText` 사용. Ollama provider 설정. `chatStream`은 `streamText` 반환 스트림을 그대로 응답에 pipe 또는 SDK 권장 스트림 형식으로 변환 |
+| `server/domains/ai/ai.routes.js` | **일부 수정** | `/ai/chat`, `/ai/chat-stream` 핸들러가 새 서비스 API 호출하도록 변경. (선택) 스트림 형식을 SDK 표준에 맞추면 프론트도 그에 맞춤 |
+| **신규 의존성** | `ai`, `@ai-sdk/ollama` (또는 사용할 provider) | package.json 추가 |
+
+**규모**: 2개 파일 수정 + 의존성 1~2개. 라우트 경로(`/ai/chat` 등) 유지하면 프론트 URL 변경 없음.
+
+### 3.2 프론트 — 최소 변경 시 (백엔드만 SDK 적용)
+
+| 파일 | 작업 | 비고 |
+|------|------|------|
+| `services/aiApi.ts` | **소폭 수정** | 응답/스트림 형식이 바뀌면 `chat`/`chatStream`의 파싱만 조정. (예: SDK 데이터 스트림 프로토콜에 맞게 델타 추출) |
+| `components/AiChatPanel.vue` | **소폭 수정** | `sendMessage` 내부 호출 방식은 그대로 두고, 스트림 파싱만 새 형식에 맞출 수 있음 (또는 백엔드가 기존 NDJSON 유사 형식을 유지하면 변경 없음) |
+
+**규모**: 0~2개 파일, 변경량 적음.
+
+### 3.3 프론트 — useChat 스타일로 통합 시 (선택)
+
+Vercel AI SDK는 React용 `useChat`을 기본 제공한다. **Vue**용 공식 `useChat`은 없을 수 있어, 다음 중 하나가 됨.
+
+- **A)** 서버만 SDK로 바꾸고, 프론트는 기존처럼 “메시지 배열 + fetch/스트림 파싱” 유지 (위 3.2).
+- **B)** Vue용 `useChat` 스타일 훅을 직접 구현: `useChat()`이 서버의 SDK 스트림을 구독하고, `messages`/`append`/`isLoading` 등을 반환. 기존 채널/채팅 저장소(useAiChannels)와 동기화하는 로직 필요.
+
+**B 선택 시 추가 규모:**
+
+| 파일 | 작업 | 비고 |
+|------|------|------|
+| `composables/useAiChat.ts` (신규) | **신규** | useChat 스타일 API (messages, append, isLoading, error). 내부에서 `/ai/chat` 또는 `/ai/chat-stream` 호출 후 스트림 파싱. body에 model, systemInstruction 등 포함 |
+| `components/AiChatPanel.vue` | **중~대규모 수정** | `messages` ref + `sendMessage` 제거 → `useAiChat()` 사용. 채널/채팅 선택 시 기존 메시지로 “초기화”하거나 복원하는 로직 필요. localStorage/useAiChannels와의 동기화(메시지가 바뀔 때마다 updateChatMessages 호출) 유지 |
+| `services/aiApi.ts` | **정리** | `chat`/`chatStream`을 useAiChat 내부로 이전하거나, 공통 fetch/스트림 유틸만 두고 나머지는 useAiChat에서 직접 호출 |
+
+**규모**: 신규 1개 + AiChatPanel 1개 중대 수정 + aiApi 정리.
+
+---
+
+## 4. 기능별 유지·변경 포인트
+
+| 기능 | 현재 | SDK 적용 시 |
+|------|------|-------------|
+| **스트리밍 vs 일괄** | `chatMode`로 chat / chatStream 분기 | 서버: `streamText` vs `generateText` 분기 유지. 프론트는 그대로 두거나 useChat 스타일로 통일 |
+| **시스템/채널/채팅 지침** | `getEffectiveInstruction()` → `systemInstruction` | 그대로 body/옵션으로 전달. 서버에서 `system` 메시지 또는 provider 옵션으로 넘기면 됨 |
+| **모델 선택** | `selectedModel` → body.model | 동일. listModels/getModelShow/checkConnection은 Ollama 직접 호출 유지 가능 |
+| **이미지(비전)** | user 메시지에 images(base64) | SDK/Ollama 멀티모달 형식에 맞게 메시지 배열 변환만 하면 됨. 서버에서도 동일 형식으로 streamText/generateText에 전달 |
+| **제목 자동 생성** | `generateTitle` → 별도 chat 호출 | 서버에서 `generateText()` + 제목용 system prompt로 대체. API 시그니처(`/ai/generate-title`) 유지 가능 |
+| **채널/채팅 목록·저장** | useAiChannels, localStorage | SDK와 무관. 그대로 유지. useChat 도입 시에만 “현재 채팅 메시지”와 useChat 상태 동기화 필요 |
+
+---
+
+## 5. 요약
+
+- **백엔드**: `ai.service.js` 전면 수정 + `ai.routes.js` 일부 수정 + `ai`, `@ai-sdk/ollama` 등 의존성 추가. **2개 파일, 소규모.**
+- **프론트 최소**: 백엔드가 반환 형식만 맞춰 주면 `aiApi`/`AiChatPanel`은 **0~2개 파일, 소폭 수정**으로 마이그레이션 가능.
+- **프론트 useChat 스타일**: Vue용 훅 1개 신규 + `AiChatPanel.vue` 중대 수정 + 채널/채팅과의 상태 동기화. **중규모.**
+
+**전체 규모**: 백엔드 소규모 + 프론트는 “최소(소폭)” 또는 “useChat 스타일(중규모)” 선택에 따라 **소~중규모** 마이그레이션으로 정리할 수 있다.

@@ -37,13 +37,13 @@ tiptap/
 - **TiptapEditor.vue** (스킨 내부): 그 툴들의 **모양·UI** (버튼, 다이얼로그, 붙여넣기 등). 스킨마다 파일명은 동일, 내용만 다름.
 - **utils**: 스킨/확장에서 공통으로 쓰는 로직. 스킨이 필요할 때만 import 해서 사용.
 
-## 현재 구조와의 대응
+## 현재 구조
 
-| 현재 위치 | 의도한 구조에서의 위치 |
-|-----------|-------------------------|
-| `extensions/baseExtensions.ts` | `skins/base/extensions.ts` (스킨별 툴 정의) |
-| `BaseTiptapEditor.vue` | `skins/base/TiptapEditor.vue` (스킨별 UI) |
-| `utils/*` | `utils/*` 유지 (기본·직접 만든 기능, 스킨에서 사용) |
+| 경로 | 설명 |
+|------|------|
+| `skins/base/` | base 스킨 — 기본 풀 툴 세트. 일반 모드에서 일부 툴 숨김. |
+| `skins/full/` | full 스킨 — **모든 툴 노출** (heading4~6 포함, normalModeExcludedIds 없음). 기능 이해·실험용. AI 도메인 사용. |
+| `utils/*` | 공통 유틸 (fileFormat, youtube, clipboardImage). 스킨에서 필요 시 import. |
 
-이 구조로 리네이밍/이동 시 도메인에서는 예: `@engines/tiptap/skins/base/TiptapEditor.vue` 로 참조하면 됨.  
-기존 경로 유지가 필요하면 `tiptap/BaseTiptapEditor.vue` 에서 스킨 컴포넌트를 re-export 하는 방식으로 호환 가능.
+**도메인 사용**: 각 사용처에서 쓰는 스킨을 **직접 import** 한다. base 스킨이면 `@engines/tiptap/skins/base/TiptapEditor.vue`. 다른 스킨을 쓰려면 해당 스킨 폴더의 `TiptapEditor.vue`를 import 하면 된다.  
+`extensions/` 폴더는 비었을 수 있음 — 사용하지 않으면 삭제 가능.
