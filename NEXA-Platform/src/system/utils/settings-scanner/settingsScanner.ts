@@ -17,15 +17,15 @@ export async function scanConfigFiles() {
   try {
     // config/ 폴더의 파일들 (동적 import)
     const configModules = await Promise.allSettled([
-      import('@system/config/devGuideConfig.js').then((m) => ({ name: 'devGuideConfig', path: '@system/config/devGuideConfig.js', module: m })),
-      import('@system/config/documentConfig.js').then((m) => ({ name: 'documentConfig', path: '@system/config/documentConfig.js', module: m })),
+      import('@system/config/devGuideConfig').then((m) => ({ name: 'devGuideConfig', path: '@system/config/devGuideConfig', module: m })),
+      import('@system/config/documentConfig').then((m) => ({ name: 'documentConfig', path: '@system/config/documentConfig', module: m })),
       import('@frame/registry/domainRegistry').then((m) => ({ name: 'domainRegistry', path: 'src/frame/registry/domainRegistry', module: m })),
-      import('@system/config/componentTaxonomy.js').then((m) => ({ name: 'componentTaxonomy', path: '@system/config/componentTaxonomy.js', module: m })),
-      import('@system/config/componentCategories.js').then((m) => ({ name: 'componentCategories', path: '@system/config/componentCategories.js', module: m })),
-      import('@system/config/fileTypes.js').then((m) => ({ name: 'fileTypes', path: '@system/config/fileTypes.js', module: m })),
-      import('@system/config/url-state/urlStateConfig.js').then((m) => ({ name: 'urlStateConfig', path: '@system/config/url-state/urlStateConfig.js', module: m })),
-      import('@engines/diagram/config/diagramSettings.js').then((m) => ({ name: 'diagramSettings', path: '@engines/diagram/config/diagramSettings.js', module: m })),
-      import('@domains/parts/components/config/viewModeSettings.js').then((m) => ({ name: 'viewModeSettings', path: '@domains/parts/components/config/viewModeSettings.js', module: m })),
+      import('@system/config/componentTaxonomy').then((m) => ({ name: 'componentTaxonomy', path: '@system/config/componentTaxonomy', module: m })),
+      import('@system/config/componentCategories').then((m) => ({ name: 'componentCategories', path: '@system/config/componentCategories', module: m })),
+      import('@system/config/fileTypes').then((m) => ({ name: 'fileTypes', path: '@system/config/fileTypes', module: m })),
+      import('@system/config/url-state/urlStateConfig').then((m) => ({ name: 'urlStateConfig', path: '@system/config/url-state/urlStateConfig', module: m })),
+      import('@engines/diagram/config/diagramSettings').then((m) => ({ name: 'diagramSettings', path: '@engines/diagram/config/diagramSettings', module: m })),
+      import('@domains/parts/components/config/viewModeSettings').then((m) => ({ name: 'viewModeSettings', path: '@domains/parts/components/config/viewModeSettings', module: m })),
     ])
 
     configModules.forEach((result) => {
@@ -170,13 +170,13 @@ export async function scanSystemSettings() {
   const systemSettings = []
 
   try {
-    const systemModule = await import('@system/settings/system.js')
+    const systemModule = await import('@system/settings/system')
     const systemData = extractConfigData(systemModule.systemSettings || systemModule.default)
 
     systemSettings.push({
       id: 'system-settings',
       name: 'systemSettings',
-      path: '@system/settings/system.js',
+      path: '@system/settings/system',
       category: '시스템',
       type: 'system-config',
       data: systemData,

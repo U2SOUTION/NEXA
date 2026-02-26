@@ -1,5 +1,31 @@
 # NEXA 플랫폼 JS → TypeScript 전환 계획
 
+---
+
+## 진행 현황 한눈에
+
+| Phase | 내용 | 상태 |
+|-------|------|------|
+| **Phase 0** | 환경 준비 (types/constants, TS 의존성, ESLint, typecheck) | ✅ 완료 |
+| **Phase 1** | frame/system 공통 (router, registry, utils, composables, store → .ts, .js import 정리) | ✅ 완료 |
+| **Phase 2** | 도메인별 로직 파일 (.ts 전환) | ✅ 완료 |
+| **Phase 3** | Vue SFC 389개 `<script lang="ts">` + 선택적 타입·최적화 | ⏳ 다음 작업 |
+| **Phase 4** | Engines (Tiptap 등) TS 전환 | 대기 |
+| **Phase 5** | Server 27개 JS → TS (선택) | 대기 |
+
+**남은 작업**: Phase 3(Vue lang="ts" 적용) 시 파일을 열 때 **선택적으로** props/emit 타입, `system/types`·스키마 타입 재사용까지 함께 적용. 이후 별도로 Zod 경계 검증·strict 강화·타입 오류 정리 등 최적화 진행.
+
+---
+
+## 오늘(최근) 작업 요약
+
+- **Phase 0**: 문서 §2 현재 설정을 실제 상태로 수정, Phase 0 완료 현황 문단 추가.
+- **Phase 1**: `settingsScanner.ts`·`PartClassesView.vue`·`ChartViewSettings - 복사본.vue`에서 `.js` 확장자 하드코딩 제거. 문서에 Phase 1 완료 현황 추가.
+- **Phase 2**: `src/domains/` 내 .js 파일 0개 확인, 문서에 Phase 2 완료 현황 추가.
+- **계획서**: Phase 3 설명 보강(파일 열 때 최적화 함께), 다음 작업 시 체크리스트 정리.
+
+---
+
 ## 1. 전환의 핵심 목적
 
 - **인공지능 친화적 데이터 규격 통일**
@@ -20,11 +46,7 @@
 | **JS 파일 (server)** | 27개     | Express API (routes, services, config, utils)                                                                                |
 | **Vue SFC**          | 389개    | **모두 `<script>` (JS)** — `lang="ts"` 사용 파일 0개                                                                         |
 
-**이미 TS인 영역**
-
-- `src/system/schemas` — Zod 기반 스키마 (표준 데이터 계층). **서버·프론트 공용**으로 설계되며, Phase 5 서버 전환 시 서버도 동일 스키마를 참조함.
-- `src/domains/archive/archive-sentinel` — 도메인 로직 전부 TS
-- `src/engines/services` (evaluatorService, flowManager), `src/domains/infra` store/config, `vitest.config.ts`
+**이미 TS인 영역**: `system/schemas`, `system/types`, `system/constants`, `frame/router`·`registry`, `domains/*` 로직 파일 전부 .ts, `engines` 일부.
 
 **현재 설정**
 
@@ -35,38 +57,15 @@
 
 ---
 
-## 3. 전환으로 얻는 실제 긍정적 효과
+## 3. 전환으로 얻는 효과 (요약)
 
-- **버그 조기 발견**
-
-  - 잘못된 프로퍼티 접근, 잘못된 인자 개수/타입, null/undefined 사용 오류를 **실행 전에** 컴파일 단계에서 잡을 수 있음. 런타임에서만 드러나던 오류가 IDE/빌드 시점으로 앞당겨짐.
-
-- **리팩터링 안전성**
-
-  - 함수 시그니처·스키마·API를 바꿀 때, 그 타입을 사용하는 모든 지점이 타입 체크로 한 번에 드러남. "이름만 바꿨는데 어디선가 아직 쓰고 있지 않을까" 하는 불안을 줄이고, 대규모 수정 시 회귀 버그를 줄이는 데 도움이 됨.
-
-- **자동완성·탐색·문서화**
-
-  - IDE에서 props, composable 반환값, store 상태, API 응답 형태까지 자동완성과 "정의로 이동"이 정확히 동작함. JSDoc 없이도 타입이 곧 문서 역할을 해, 신규 합류자나 오래된 코드를 파악하기 쉬워짐.
-
-- **스키마와 프론트/서버 일치 (서버·프론트 동일 스키마 공유)**
-
-  - `system/schemas`는 **서버와 프론트가 공유하는 유일한 데이터 규격**이다. API 응답·디바이스 상태·센서 데이터 등은 여기서 한 번만 정의하고, 서버는 검증·직렬화, 프론트는 검증 후 타입 보장된 값만 사용한다. "API는 이렇게 오는데 화면은 저렇게 기대하고" 같은 불일치를 제거하고, IoT 경계(엣지·서버·클라이언트) 전체에서 형식을 통일할 수 있음.
-
-- **도메인 경계 명확화**
-
-  - AGENTS 규칙의 "한 도메인만 수정" 원칙과 맞물려, 타입은 모두 `system/types/`에 두고 도메인은 import만 하므로 "이 도메인이 어떤 데이터 형태를 다루는가"가 import만 봐도 분명해짐. 다른 도메인 전용 타입을 잘못 참조하면 컴파일 단계에서 차단 가능.
-
-- **유지보수 비용 감소**
-
-  - 신규 기능 추가 시 "어디에 어떤 형태로 넣어야 하는지" 타입이 가이드해 주어, 실수와 디버깅 시간이 줄어듦. 특히 composables·store·API 레이어가 TS로 통일되면 데이터가 흐르는 경로가 타입으로 추적 가능해짐.
-
-- **CI/품질 게이트 강화**
-
-  - `vue-tsc --noEmit` 또는 빌드 시 타입 체크를 넣으면, PR 단계에서 타입 오류가 난 코드가 머지되는 것을 막을 수 있음. "실행은 되는데 나중에 터지는" 케이스를 줄이는 효과가 있음.
-
-- **Zod 기반 보안·런타임 검증**
-  - TS 타입은 컴파일 시점에만 검사되며, 런타임에 들어오는 악의적·변조된 데이터는 막지 못함. Zod 스키마는 **런타임 검증**을 수행하므로, API 응답·폼 제출·파일 메타데이터 등 외부 입력을 스키마로 검증한 뒤 타입이 보장된 값만 사용함. 이로써 주입 공격, 잘못된 구조의 JSON, 프로퍼티 누락/추가로 인한 오류를 사전에 차단할 수 있음.
+- **버그 조기 발견**: 잘못된 프로퍼티/인자 타입·null 오류를 실행 전 컴파일 단계에서 발견.
+- **리팩터링 안전성**: 시그니처·스키마 변경 시 타입을 쓰는 모든 지점이 한 번에 드러남.
+- **자동완성·문서화**: IDE에서 props·composable·store·API 형태 자동완성·정의로 이동 정확 동작.
+- **스키마 일치**: `system/schemas`를 서버·프론트가 공유해 API·디바이스·센서 데이터 형식 통일.
+- **도메인 경계**: 타입은 `system/types/`에만 두고 도메인은 import만 하여 참조 오류를 컴파일에서 차단.
+- **CI/품질**: `vue-tsc --noEmit`으로 PR 시 타입 오류 머지 방지.
+- **Zod 런타임 검증**: 외부 입력(API·폼·파일 메타)을 스키마로 검증 후 사용해 주입·변조 위험 감소.
 
 ---
 
@@ -117,60 +116,31 @@
 
 ## 6. 전환 단계
 
-### Phase 0: 환경 준비 (선행 작업)
+### Phase 0·1·2 (완료)
 
-- **없는 폴더 생성 (우선)**
-  - `src/system/types/` — 타입 정의 전용 (필요 시 `index.ts` 등으로 export)
-  - `src/system/constants/` — 상수 전용 (`schemas/` 는 이미 존재)
-- **공통 타입 뼈대 먼저 정의**
-  - 전 도메인·서버-프론트 공통으로 쓸 타입을 `system/types/`(및 필요 시 `system/schemas/`)에 우선 정의한다.
-  - 예: `ApiResponse<T>`, `DeviceStatus`, `SensorData`, `PaginationResult`, `FileMeta` 등 — API 응답 래퍼, 디바이스/센서 규격, 목록 페이징, 파일 메타데이터 등. 서버와 프론트가 동일한 타입/스키마를 import하여 사용하는 기반을 Phase 0에서 마련한다.
-- **의존성 추가**
-  - `typescript`, `vue-tsc` (dev)
-  - 필요 시 `@types/node`, `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
-- **tsconfig 정비**
-  - `allowJs: true` 유지 (점진 전환용)
-  - `strict`/`noImplicitAny`는 초기엔 `false` 유지, 전환 안정화 후 단계적 켜기
-  - `include`에 `server/**/*.ts` 추가는 **서버 TS 전환 시점**에
-- **ESLint**
-  - TypeScript 파서/플러그인 추가, `*.ts`, `*.vue` (script lang=ts) 린트
-- **빌드/스크립트**
-  - `quasar build` 동작 확인 (Quasar는 Vite 기반이라 TS 기본 지원)
-  - 필요 시 `vue-tsc --noEmit`을 CI/린트 스크립트에 추가
+- **Phase 0**: `system/types/`, `system/constants/` 생성, 공통 타입 뼈대(ApiResponse, DeviceStatus, SensorData, PaginationResult, FileMeta 등), TS 의존성·ESLint TS·`npm run typecheck` 반영. CI 워크플로는 없음(수동 typecheck 권장).
+- **Phase 1**: frame/router·registry, system/utils·composables·store 이미 .ts. `settingsScanner.ts`, PartClassesView.vue, ChartViewSettings 복사본에서 .js 하드코딩 제거.
+- **Phase 2**: `src/domains/` 내 .js 파일 0개, 도메인 로직 파일 전부 .ts.
 
-**Phase 0 완료 현황**
+---
 
-- `src/system/types/` 생성·공통 타입 뼈대 정의 완료: `ApiResponse<T>`, `ApiErrorResponse`, `ApiResult<T>`, `PaginationParams`, `PaginationResult<T>`, `DeviceStatus`, `SensorData`, `FileMeta` (및 스키마 re-export)
-- `src/system/constants/` 생성·진입점 및 상수 모듈 정의 완료
-- TS 의존성·ESLint TS·`npm run typecheck` 스크립트 반영 완료
-- CI: `.github/workflows` 없음. PR 시 수동으로 `npm run typecheck` 실행 권장. 추후 워크플로 추가 시 `npm run typecheck` 단계 포함 권장
+### Phase 3: Vue SFC 전환 (다음 작업)
 
-### Phase 1: 프레임/시스템 공통 (진입점·의존성 적은 쪽부터)
+**대상**: 389개 Vue — 현재 모두 `<script>` (JS), `lang="ts"` 0개.
 
-- **우선 전환 후보 (의존 관계 하단)**
-  - `src/frame/router`: `routes.js`, `domainRoutes.js` → `.ts`
-  - `src/frame/registry`: `domainRegistry.js` → `.ts`
-  - `src/system/utils`: `apiBaseUrl.js`, `clipboard.js` 등 단순 유틸 → `.ts`
-  - `src/system/composables`: 이미 TS인 `useEventBus`, `useSidebarGesture` 등과 맞닿은 JS composable부터 (예: `useFileSelection.js`, `useThemeManager.js`)
-- **Store**
-  - 이미 TS인 `nexaNodeStore.ts`, `infraStore`를 참조하는 JS store부터 전환 (예: `userSettingsStore.js`, `devGuideStore.js`)
-- 규칙: **한 번에 한 레이어/한 묶음**만 수정하고, 빌드·테스트로 회귀 방지
+**권장 방식 (파일 열 때 함께 적용)**
 
-### Phase 2: 도메인별 전환 (한 도메인씩)
+- **필수**: `<script>` → `<script lang="ts">` 변경.
+- **선택(같은 파일에서 부담 없이)**:  
+  - props / emit에 타입 지정 (`defineProps<{...}>()`, `defineEmits<{...}>()` 등).  
+  - 이미 쓰는 데이터가 `system/types`·스키마 추론 타입과 맞으면 해당 타입 import 후 사용.  
+  - **제외**: 동작 변경, 대규모 리팩터, 그 파일만의 과한 타입 작업.  
+- 나중에 할 **Zod 경계 검증**(API/폼 수신부에서 스키마 검증)은 별도 작업. Phase 3에서는 “타입 출처를 system으로”만 맞추면 됨.
 
-- **순서 제안**: 의존성이 적고 이미 TS가 있는 도메인부터
-  1. **infra** — 이미 store/config TS 있음 → 나머지 JS만 전환
-  2. **archive** — sentinel은 전부 TS, 나머지(services, store, components) JS → TS
-  3. **ai** — composables, services, config 많음 → 한 번에 하나의 하위 영역씩
-  4. **dev** — document-manager, dev-tools 등 모듈 단위로
-  5. **parts**, **board**, **erp**, **settings**, **panel**, **node**, **기타** — 동일하게 도메인 내부만, 한 번에 한 도메인
-- 각 도메인 전환 시 해당 도메인 **Vue의 `<script>` → `<script lang="ts">`** 도 함께 진행해도 됨 (도메인 단위로만)
+**규칙**
 
-### Phase 3: Vue SFC 전환
-
-- **389개 Vue** 모두 현재 `<script>` (JS)
-- 전략: **도메인/폴더 단위**로 `<script lang="ts">` 변경 + 필요한 타입만 추가 (props, emit, ref 등)
-- 컴포넌트 타입은 가능하면 `src/system/schemas`(Zod 추론 타입) 및 `src/system/types/`의 기존 타입을 재사용한다. **도메인 전용 타입이 필요하면 도메인 내부가 아닌 `system/types/`에 추가한 뒤, 해당 도메인에서만 import하여 사용한다.** (AGENTS 규칙: 타입·스키마·상수는 system에만 정의, 도메인 내부 types.ts 생성 금지)
+- 도메인/폴더 단위로 진행. 한 번에 한 도메인만.
+- 타입은 `system/types/`·`system/schemas`(Zod 추론) 재사용. 도메인 전용 타입 필요 시 system에 추가 후 import (도메인 내부 types.ts 금지).
 
 ### Phase 4: Engines (Tiptap 등)
 
@@ -291,4 +261,27 @@ flowchart LR
 
 ---
 
-이 계획대로 Phase 0부터 순서대로 진행하면, 플랫폼을 무리 없이 "앞으로 TypeScript만 사용"하는 상태로 가져갈 수 있습니다.
+## 10. 다음 작업 시 참고 (Phase 3·최적화)
+
+**Phase 3 진행할 때**
+
+1. **도메인/폴더 단위**로 진행. 한 번에 한 도메인만 수정(AGENTS 규칙).
+2. 각 Vue 파일에서: `<script>` → `<script lang="ts">` **필수**.  
+   같은 파일에서 부담 없이: props/emit 타입, 이미 쓰는 `system/types`·스키마 타입 import까지 **선택** 적용. 동작 변경·과한 리팩터는 하지 않음.
+3. 타입은 `system/types/`, `system/schemas`(Zod 추론)만 사용. 새 타입 필요 시 system에 추가 후 import.
+4. 한 묶음 수정 후 `quasar build` 또는 `npm run typecheck`로 회귀 확인. 롤백 기준(§5) 적용.
+
+**Phase 3 이후 / 별도 최적화**
+
+- **Zod 경계 검증**: API 응답·폼 제출·파일 메타 등 경계에서 스키마로 검증 후 타입 보장된 값만 사용.
+- **타입 오류 정리**: `npm run typecheck` 결과를 도메인·파일 단위로 점진 정리.
+- **strict 강화**: 전역 또는 파일 단위로 `strict`/`noImplicitAny` 단계적 활성화.
+
+**문서 위치**
+
+- 규칙·배치: §4 (타입/스키마/상수), §5 (전환 원칙·롤백).
+- Re-export·import: §8 (전환 전략, 플러그인, 확장자 없음 권장).
+
+---
+
+이 계획대로 Phase 3부터 이어가면, Vue까지 TypeScript를 쓰는 상태로 정리한 뒤 최적화(Zod 검증·strict 등)를 단계적으로 진행할 수 있습니다.

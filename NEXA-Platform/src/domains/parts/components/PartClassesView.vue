@@ -2933,7 +2933,7 @@ async function handlePrintConfirm({ options, columns, formatting, type, onWindow
     printOptions.value = { ...options }
 
     // 인쇄 실행
-    const { printData } = await import('src/system/utils/print/index.js')
+    const { printData } = await import('src/system/utils/print/index')
     printData({
       data: dataToProcess,
       columnDefinitions: partClassesFields,

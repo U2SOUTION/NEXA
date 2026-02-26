@@ -17,12 +17,18 @@ import { Subscript } from '@tiptap/extension-subscript'
 import { Superscript } from '@tiptap/extension-superscript'
 import YouTube from '@tiptap/extension-youtube'
 
+export interface BaseExtensionsOptions {
+  inlineImage?: boolean
+  allowBase64Image?: boolean
+  youtubeOptions?: { controls?: boolean; nocookie?: boolean }
+}
+
 /**
  * 기본 Tiptap 확장팩 구성 팩토리
  * - 도메인 비의존
  * - 필요 시 options로 오버라이드 가능
  */
-export function createBaseExtensions(options = {}) {
+export function createBaseExtensions(options: BaseExtensionsOptions = {}) {
   const { inlineImage = true, allowBase64Image = true, youtubeOptions = { controls: true, nocookie: false } } = options
 
   return [
