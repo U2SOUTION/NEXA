@@ -2,7 +2,7 @@
   <div class="ai-explorer-panel column">
     <GlobalFileExplorer
       mode="embed"
-      class="col"
+      class="col ai-explorer-embed"
       @select="onSelect"
     />
     <div v-if="selectedFile" class="action-bar row items-center q-pa-sm q-gutter-sm">
@@ -64,5 +64,10 @@ function openInVideoEditor() {
   flex-shrink: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   background: rgba(0, 0, 0, 0.02);
+}
+
+/* deep 사용 이유: GlobalFileExplorer 헤더 타이틀 숨김, embed 모드에서 중복 표시 방지 */
+.ai-explorer-embed :deep(.explorer-top-bar-title) {
+  display: none;
 }
 </style>

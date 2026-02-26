@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-editor-panel">
+  <div class="ai-editor-panel column">
     <BaseTiptapEditor
       v-model="editorContent"
       :placeholder="placeholder"
@@ -71,21 +71,27 @@ async function handleUpload(file) {
 
 <style lang="scss" scoped>
 .ai-editor-panel {
-  flex: 1;
+  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+/* deep 사용 이유: Tiptap 엔진 내부 .tiptap-editor, .editor-content 구조 접근 필요, 부모 영역 상하 꽉 채우기 */
+.ai-editor-panel :deep(.tiptap-editor) {
+  flex: 1 1 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-  :deep(.tiptap-editor) {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-
-    .editor-content {
-      flex: 1;
-      min-height: 120px;
-    }
-  }
+.ai-editor-panel :deep(.editor-content) {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
 }
 </style>
