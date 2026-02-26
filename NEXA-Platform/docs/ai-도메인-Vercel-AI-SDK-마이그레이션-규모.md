@@ -95,7 +95,7 @@ AI 도메인의 목표는 “채팅만 하는 UI”가 아니라 **Tiptap(문서
 
 | 현재                                   | Vercel AI SDK                                                                                                                 |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Ollama `/api/chat` (stream true/false) | 서버: `streamText()` / `generateText()` + Ollama provider (`@ai-sdk/ollama` 등)                                               |
+| Ollama `/api/chat` (stream true/false) | 서버: `streamText()` / `generateText()` + Ollama provider (`ollama-ai-provider-v2` 등)                                       |
 | NDJSON 스트림 파싱 (프론트)            | 서버가 `toDataStreamResponse()` 또는 UI 스트림 형식 반환 → 프론트는 그 형식에 맞게 파싱 또는 `useChat`(React) / Vue용 훅 사용 |
 | `chat()` 비스트리밍                    | `generateText()`                                                                                                              |
 | `generateTitle()` (chat 한 번 호출)    | `generateText()` + 제목용 system prompt                                                                                       |
@@ -111,7 +111,7 @@ AI 도메인의 목표는 “채팅만 하는 UI”가 아니라 **Tiptap(문서
 | --------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `server/domains/ai/ai.service.js` | **전면 수정**                                 | Ollama 직접 `fetch` 제거 → `streamText`, `generateText` 사용. Ollama provider 설정. `chatStream`은 `streamText` 반환 스트림을 그대로 응답에 pipe 또는 SDK 권장 스트림 형식으로 변환 |
 | `server/domains/ai/ai.routes.js`  | **일부 수정**                                 | `/ai/chat`, `/ai/chat-stream` 핸들러가 새 서비스 API 호출하도록 변경. (선택) 스트림 형식을 SDK 표준에 맞추면 프론트도 그에 맞춤                                                     |
-| **신규 의존성**                   | `ai`, `@ai-sdk/ollama` (또는 사용할 provider) | `server/`에서 `npm install ai @ai-sdk/ollama`. 상세는 **§6.0.1** 참고.                                                                                                               |
+| **신규 의존성**                   | `ai`, `ollama-ai-provider-v2` (Ollama)        | `server/`에서 `npm install ai ollama-ai-provider-v2`. 상세는 **§6.0.1** 참고.                                                                                                          |
 
 **규모**: 2개 파일 수정 + 의존성 1~2개. 라우트 경로(`/ai/chat` 등) 유지하면 프론트 URL 변경 없음.
 
@@ -158,11 +158,22 @@ Vercel AI SDK는 React용 `useChat`을 기본 제공한다. **Vue**용 공식 `u
 
 ## 5. 요약
 
-- **백엔드**: `ai.service.js` 전면 수정 + `ai.routes.js` 일부 수정 + `ai`, `@ai-sdk/ollama` 의존성 추가. **2개 파일, 소규모.**
+- **백엔드**: `ai.service.js` 전면 수정 + `ai.routes.js` 일부 수정 + `ai`, `ollama-ai-provider-v2` 의존성 추가. **2개 파일, 소규모.**
 - **프론트 (필수)**: `aiApi.ts`, `AiChatPanel.vue`를 SDK 기반 백엔드에 맞게 **호출·파싱 전환**. **2개 파일 수정.**
 - **프론트 (선택) useChat 스타일**: Vue용 훅 1개 신규 + `AiChatPanel.vue` 중대 수정 + 채널/채팅 상태 동기화. **중규모.**
 
 **전체 규모**: 백엔드 소규모 + 프론트 필수 2개 파일 전환. Step 4·5는 선택에 따라 추가.
+
+---
+
+## 5.1 나중으로 미룬 항목 / 향후 기획
+
+| 항목 | 내용 | 시점 |
+|------|------|------|
+| **Step 4 useChat 스타일** | Vue용 `useAiChat` 훅으로 채팅 상태·호출 통일. 현재는 “메시지 배열 + aiApi 호출” 유지. | 나중에 개선 시 진행. |
+| **에디터(Tiptap, Monaco) 주입 로직** | 현재 “에디터에 삽입”은 **마크다운 → HTML 변환 후** 문자열로 주입. 형식(마크다운 유지, JSON 유지, HTML 유지 등)과 Tiptap/Monaco 각각의 주입 방식은 **기획이 정해지면 그때 결정**한다. | 주입 형식·규격이 정리된 후 구현. |
+
+위 항목들은 마이그레이션 완료 후, 별도 기획·우선순위에 따라 진행하면 된다.
 
 ---
 
@@ -196,18 +207,19 @@ Vercel AI SDK는 React용 `useChat`을 기본 제공한다. **Vue**용 공식 `u
 
 | 구분 | 패키지 | 설치 위치 | 비고 |
 |------|--------|-----------|------|
-| **코어** | `ai` | `server/` | 공통 API(streamText, generateText, 스트림 형식 등). 1개만 설치. |
-| **프로바이더** | `@ai-sdk/ollama` 등 | `server/` | 사용할 프로바이더마다 해당 패키지 추가. OpenAI → `@ai-sdk/openai`, Anthropic → `@ai-sdk/anthropic` 등. |
+| **코어** | `ai` | `server/` | 공통 API(streamText, generateText 등). 1개만 설치. |
+| **프로바이더 (Ollama)** | `ollama-ai-provider-v2` | `server/` | Vercel 공식이 아닌 커뮤니티 provider. `createOllama({ baseURL })`로 사용. |
 
 **실행 (서버 디렉터리에서):**
 
 ```bash
 cd server
-npm install ai @ai-sdk/ollama
+npm install ai ollama-ai-provider-v2
 ```
 
-- 다른 provider를 쓸 경우: `@ai-sdk/openai`, `@ai-sdk/anthropic`, `@ai-sdk/google` 등 해당 패키지로 교체 또는 추가.
-- `server/package.json`에 `"ai"`, `"@ai-sdk/ollama"` (또는 사용할 provider)가 추가된 것을 확인.
+- `@ai-sdk/ollama`는 npm에 없음. Ollama는 커뮤니티 패키지 사용 (`ollama-ai-provider-v2` 또는 `ai-sdk-ollama`).
+- 다른 provider: OpenAI → `@ai-sdk/openai`, Anthropic → `@ai-sdk/anthropic` 등은 공식 패키지.
+- `server/package.json`에 `"ai"`, `"ollama-ai-provider-v2"`가 추가된 것을 확인.
 
 **프론트엔드 (Vue / Quasar)**: Vue·Quasar용 Vercel AI SDK 공식 패키지는 **없다**. 이번 전환에서도 프론트에 `ai`·`@ai-sdk/*` 설치는 **하지 않는다**. 채팅·스트리밍은 기존처럼 `fetch`로 백엔드 `/ai/chat`, `/ai/chat-stream`을 호출하고, 응답·스트림만 SDK 기반 백엔드에 맞게 파싱하면 된다.
 
@@ -218,8 +230,8 @@ npm install ai @ai-sdk/ollama
 | 순서 | 작업 | 상세 |
 |------|------|------|
 | 1.1 | **브랜치·기준선** | 마이그레이션 전용 브랜치 생성. 현재 AI 도메인 동작(채팅·에디터·설정)을 기준선으로 한 번 확인하고, 필요 시 스크린샷·체크리스트 기록. |
-| 1.2 | **의존성 설치** | Vercel AI SDK는 **위 6.0.1** 참고. `server/`에서 `ai`, `@ai-sdk/ollama` 설치. Monaco는 Step 5에서 추가. |
-| 1.3 | **설치 확인** | `server/package.json`에 `ai`, `@ai-sdk/ollama` 존재 여부 확인. |
+| 1.2 | **의존성 설치** | Vercel AI SDK는 **위 6.0.1** 참고. `server/`에서 `ai`, `ollama-ai-provider-v2` 설치. Monaco는 Step 5에서 추가. |
+| 1.3 | **설치 확인** | `server/package.json`에 `ai`, `ollama-ai-provider-v2` 존재 여부 확인. |
 
 **산출물**: 브랜치, 서버에 SDK 의존성 추가 완료.  
 **검증**: 6.0 체크리스트로 **Step 1 완료 시점**에는 “기준선”만 확인(아직 백엔드 교체 전이므로 기존 동작 그대로).
@@ -315,7 +327,7 @@ npm install ai @ai-sdk/ollama
 
 - **백엔드 경로**: `server/domains/ai/ai.routes.js`, `ai.service.js` 존재. 라우트 경로 `/ai/models`, `/ai/chat`, `/ai/chat-stream`, `/ai/check`, `/ai/generate-title` 등은 문서 §1.2와 동일.
 - **요청 body**: `/ai/chat`, `/ai/chat-stream`는 `messages`, `model`, `systemInstruction`를 사용. 이미지는 `messages[]` 안 user 메시지에 포함되는 형태로 문서 §1.3·§4와 일치.
-- **서버 패키지**: 현재 `server/package.json`에는 `ai`, `@ai-sdk/ollama`가 **아직 없음**. Step 1.2에서 설치하면 된다.
+- **서버 패키지**: Step 1.2 완료 후 `server/package.json`에 `ai`, `ollama-ai-provider-v2`가 있으면 된다.
 
 ### 7.3 정리
 

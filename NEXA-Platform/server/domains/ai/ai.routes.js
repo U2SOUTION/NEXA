@@ -4,6 +4,16 @@ import { listModels, showModel, chat, chatStream, checkConnection, generateTitle
 
 const router = express.Router()
 
+/** SDK textStream(async iterable)을 Ollama 호환 NDJSON 라인 스트림으로 변환 */
+function ndjsonStreamFromTextStream(textStream) {
+  async function* lines() {
+    for await (const part of textStream) {
+      yield JSON.stringify({ message: { content: part } }) + '\n'
+    }
+  }
+  return Readable.from(lines(), { objectMode: false })
+}
+
 router.get('/ai/models', async (req, res) => {
   try {
     const data = await listModels()
@@ -45,9 +55,9 @@ router.post('/ai/chat-stream', async (req, res) => {
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'messages 배열이 필요합니다.' })
     }
-    const ollamaRes = await chatStream(messages, model, undefined, systemInstruction)
-    res.setHeader('Content-Type', ollamaRes.headers.get('content-type') || 'application/x-ndjson')
-    Readable.fromWeb(ollamaRes.body).pipe(res)
+    const textStream = await chatStream(messages, model, undefined, systemInstruction)
+    res.setHeader('Content-Type', 'application/x-ndjson')
+    ndjsonStreamFromTextStream(textStream).pipe(res)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

@@ -3,6 +3,7 @@
     <q-tabs v-model="centerTab" dense class="ai-content-tabs" active-color="primary" indicator-color="primary" align="justify">
       <q-tab name="chat" label="채팅" icon="chat" />
       <q-tab name="editor" label="에디터" icon="edit_note" />
+      <q-tab name="code" label="코드" icon="code" />
       <q-tab name="image" label="이미지" icon="image" />
       <q-tab name="audio" label="음원" icon="graphic_eq" />
       <q-tab name="video" label="영상" icon="videocam" />
@@ -14,6 +15,9 @@
       </q-tab-panel>
       <q-tab-panel name="editor" class="q-pa-none ai-tab-panel">
         <AiEditorPanel v-model="editorContent" />
+      </q-tab-panel>
+      <q-tab-panel name="code" class="q-pa-none ai-tab-panel">
+        <AiCodeEditorPanel v-model="codeContent" />
       </q-tab-panel>
       <q-tab-panel name="image" class="q-pa-none ai-tab-panel">
         <AiImageEditorPanel />
@@ -37,6 +41,7 @@ import { parseMarkdown } from '@system/utils/markdown/index'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
 import AiChatPanel from '../../components/AiChatPanel.vue'
 import AiEditorPanel from '../../components/AiEditorPanel.vue'
+import AiCodeEditorPanel from '../../components/AiCodeEditorPanel.vue'
 import AiImageEditorPanel from '../../components/AiImageEditorPanel.vue'
 import AiAudioEditorPanel from '../../components/AiAudioEditorPanel.vue'
 import AiVideoEditorPanel from '../../components/AiVideoEditorPanel.vue'
@@ -44,6 +49,7 @@ import AiExplorerPanel from '../../components/AiExplorerPanel.vue'
 
 const centerTab = ref('chat')
 const editorContent = ref('')
+const codeContent = ref('// 코드를 입력하세요\n')
 const pendingInsertContent = ref(null)
 
 const { onInsertRequest, onOpenEditorRequest } = useAiInsertRequest()

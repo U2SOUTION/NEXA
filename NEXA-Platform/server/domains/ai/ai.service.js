@@ -1,8 +1,40 @@
+import { generateText, streamText } from 'ai'
+import { createOllama } from 'ollama-ai-provider-v2'
 import { OLLAMA_URL } from '../../config/aiConfig.js'
 
 function getBaseUrl(url) {
   const base = (url || OLLAMA_URL).replace(/\/+$/, '')
   return base
+}
+
+/** Ollama provider 인스턴스 (baseURL에 /api 포함) */
+function getOllama(url) {
+  const base = getBaseUrl(url)
+  const baseURL = base + (base.endsWith('/api') ? '' : '/api')
+  return createOllama({ baseURL })
+}
+
+/** API용 메시지를 SDK 메시지 형식으로 변환 (이미지 포함 user 메시지 처리) */
+function toSdkMessages(messages, systemInstruction) {
+  const system = systemInstruction?.trim()
+    ? [{ role: 'system', content: systemInstruction.trim() }]
+    : []
+  const list = messages.map((m) => {
+    if (m.role === 'system') return m
+    if (m.role === 'user') {
+      const hasImages = Array.isArray(m.images) && m.images.length > 0
+      if (!hasImages) return { role: 'user', content: m.content || '' }
+      const parts = []
+      if (m.content) parts.push({ type: 'text', text: m.content })
+      for (const img of m.images) {
+        const dataUrl = typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`
+        parts.push({ type: 'image', image: dataUrl })
+      }
+      return { role: 'user', content: parts }
+    }
+    return { role: m.role, content: m.content || '' }
+  })
+  return [...system, ...list]
 }
 
 export async function listModels(url) {
@@ -27,37 +59,26 @@ export async function showModel(modelName, url) {
   return res.json()
 }
 
+/** 비스트리밍 채팅 — Vercel AI SDK generateText */
 export async function chat(messages, model, url, systemInstruction) {
-  const base = getBaseUrl(url)
-  const finalMessages = [...(systemInstruction?.trim() ? [{ role: 'system', content: systemInstruction.trim() }] : []), ...messages]
-  const body = { model: model || undefined, messages: finalMessages, stream: false }
-  const res = await fetch(`${base}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+  const ollama = getOllama(url)
+  const sdkMessages = toSdkMessages(messages, systemInstruction)
+  const { text } = await generateText({
+    model: ollama(model || undefined),
+    messages: sdkMessages,
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || `Ollama 채팅 실패: ${res.status}`)
-  }
-  return res.json()
+  return { message: { role: 'assistant', content: text || '' } }
 }
 
-/** 스트리밍 채팅 - Ollama NDJSON 스트림 반환 (pipe용) */
+/** 스트리밍 채팅 — Vercel AI SDK streamText. textStream(async iterable) 반환. 라우트에서 NDJSON으로 변환해 pipe. */
 export async function chatStream(messages, model, url, systemInstruction) {
-  const base = getBaseUrl(url)
-  const finalMessages = [...(systemInstruction?.trim() ? [{ role: 'system', content: systemInstruction.trim() }] : []), ...messages]
-  const body = { model: model || undefined, messages: finalMessages, stream: true }
-  const res = await fetch(`${base}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+  const ollama = getOllama(url)
+  const sdkMessages = toSdkMessages(messages, systemInstruction)
+  const result = streamText({
+    model: ollama(model || undefined),
+    messages: sdkMessages,
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || `Ollama 스트리밍 실패: ${res.status}`)
-  }
-  return res
+  return result.textStream
 }
 
 export async function checkConnection(testUrl) {
@@ -88,9 +109,12 @@ function postProcessTitle(raw) {
 export async function generateTitle(dialogueExcerpt, model, url) {
   const excerpt = (dialogueExcerpt || '').trim()
   if (!excerpt) return { title: '' }
-  const messages = [{ role: 'user', content: excerpt }]
-  const res = await chat(messages, model, url, TITLE_SYSTEM_INSTRUCTION)
-  const content = res?.message?.content ?? ''
-  const title = postProcessTitle(content)
+  const ollama = getOllama(url)
+  const { text } = await generateText({
+    model: ollama(model || undefined),
+    system: TITLE_SYSTEM_INSTRUCTION,
+    prompt: excerpt,
+  })
+  const title = postProcessTitle(text || '')
   return { title }
 }
