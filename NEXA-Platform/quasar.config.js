@@ -67,6 +67,12 @@ export default defineConfig((/* ctx */) => {
         viteConf.server.watch = viteConf.server.watch || {}
         viteConf.server.watch.ignored = [...(viteConf.server.watch.ignored || []), '**/docs/**', '**/NEXA-Documentation/**']
 
+        // .md 파일을 JS로 파싱하지 않고 에셋으로 처리 (빌드 시 PARSE_ERROR 방지)
+        viteConf.assetsInclude = viteConf.assetsInclude || []
+        if (Array.isArray(viteConf.assetsInclude)) {
+          viteConf.assetsInclude.push('**/*.md')
+        }
+
         // Tiptap 및 라이브러리 최적화 (기존 설정 유지)
         viteConf.optimizeDeps = viteConf.optimizeDeps || {}
         viteConf.optimizeDeps.include = [

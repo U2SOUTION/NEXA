@@ -26,10 +26,24 @@
  * @see AGENTS 규칙 (타입·스키마·상수는 system에만 정의)
  */
 
-// --- 스키마에서 추론된 타입 re-export (필요한 것만 선별 추가) ---
-// 예: API·폼·store에서 공통으로 쓰는 타입을 스키마에서 가져와 한 곳에서 제공한다.
-export type { Metadata } from '../schemas/common/metadata'
+// --- 공통 타입 뼈대 (전 도메인·서버-프론트 공유) ---
+export type {
+  ApiResponse,
+  ApiErrorResponse,
+  ApiResult,
+  PaginationParams,
+  PaginationResult,
+} from './common/api'
 
-// --- 추후 추가 예시 ---
-// export type { SomeType } from './common/someContract'
-// export type { AiMessage } from './domains/ai'
+export type { DeviceStatus, SensorData } from './common/device'
+
+// --- 스키마에서 추론된 타입 re-export ---
+export type { Metadata } from '../schemas/common/metadata'
+export type {
+  ListFilesItem,
+  FileCategory,
+  FileType,
+} from '../schemas/modules/files'
+
+/** 파일 메타데이터 (목록/탐색기용) — ListFilesItem과 동일 */
+export type { ListFilesItem as FileMeta } from '../schemas/modules/files'
