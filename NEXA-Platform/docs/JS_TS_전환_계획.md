@@ -29,8 +29,8 @@
 **현재 설정**
 
 - `tsconfig.json`: Quasar 상속, `allowJs: true`, `strict: false`, `noImplicitAny: false`, path alias 있음
-- **package.json**: `typescript`, `vue-tsc`, `@types/*` **미설치**
-- **ESLint**: JS/Vue만 대상, TypeScript parser/plugin 없음
+- **package.json**: `typescript`, `vue-tsc`, `@types/node` 등 **설치 완료**. `npm run typecheck` (= `vue-tsc --noEmit`) 스크립트 있음
+- **ESLint**: TypeScript parser/plugin 적용, `*.ts` 및 Vue TS 대상 린트 사용
 - **Quasar/Vite**: 별도 TS 플러그인 없음 (Vite는 기본 TS 지원)
 
 ---
@@ -83,7 +83,7 @@
 - **domains/** 안에 `types.ts`, `schema.ts` (또는 `schemas.ts`) 생성 **금지**.
 - 새 타입이 필요하면 반드시 **system에 먼저 추가한 뒤** 사용. 도메인에서는 `@system/types` 등으로만 참조.
 
-**폴더 현황**: `system/schemas/` 는 이미 있음. `system/types/`, `system/constants/` 는 없으므로 Phase 0에서 생성.
+**폴더 현황**: `system/schemas/` 는 이미 있음. `system/types/`, `system/constants/` 는 Phase 0에서 생성 완료.
 
 ### 서버·프론트 스키마·타입 공유 전략 (IoT 플랫폼 핵심)
 
@@ -137,6 +137,13 @@
 - **빌드/스크립트**
   - `quasar build` 동작 확인 (Quasar는 Vite 기반이라 TS 기본 지원)
   - 필요 시 `vue-tsc --noEmit`을 CI/린트 스크립트에 추가
+
+**Phase 0 완료 현황**
+
+- `src/system/types/` 생성·공통 타입 뼈대 정의 완료: `ApiResponse<T>`, `ApiErrorResponse`, `ApiResult<T>`, `PaginationParams`, `PaginationResult<T>`, `DeviceStatus`, `SensorData`, `FileMeta` (및 스키마 re-export)
+- `src/system/constants/` 생성·진입점 및 상수 모듈 정의 완료
+- TS 의존성·ESLint TS·`npm run typecheck` 스크립트 반영 완료
+- CI: `.github/workflows` 없음. PR 시 수동으로 `npm run typecheck` 실행 권장. 추후 워크플로 추가 시 `npm run typecheck` 단계 포함 권장
 
 ### Phase 1: 프레임/시스템 공통 (진입점·의존성 적은 쪽부터)
 
