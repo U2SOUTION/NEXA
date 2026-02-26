@@ -139,14 +139,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
-import { AI_AGENT_TABS } from '../../config/aiAgentTabRegistry.js'
+import { AI_AGENT_TABS } from '../../config/aiAgentTabRegistry'
 import AiAgentSkillPanel from './agent/AiAgentSkillPanel.vue'
 import AiAgentTaskPanel from './agent/AiAgentTaskPanel.vue'
 import AiAgentWorkcardPanel from './agent/AiAgentWorkcardPanel.vue'
 import { aiApi } from '../../services/aiApi'
-import { useAiSettings } from '../../composables/useAiSettings.js'
-import { useAiChannels } from '../../composables/useAiChannels.js'
-import { useAiModels } from '../../composables/useAiModels.js'
+import { useAiSettings } from '../../composables/useAiSettings'
+import { useAiChannels } from '../../composables/useAiChannels'
+import { useAiModels } from '../../composables/useAiModels'
 
 const { selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities, outlineEnabled, outlineDisplayMode, outlinePanelWidth } = useAiSettings()
 const { models, isLoadingModels, loadModels } = useAiModels()

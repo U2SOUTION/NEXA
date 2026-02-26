@@ -25,7 +25,7 @@ import { computed, ref, watch } from 'vue'
 import ERDSettingsPanel from './ERDSettingsPanel.vue'
 import DependencyGraphSettingsPanel from './DependencyGraphSettingsPanel.vue'
 import FileTreeSettingsPanel from './FileTreeSettingsPanel.vue'
-import { loadDiagramSettings } from '../config/diagramSettings.js'
+import { loadDiagramSettings } from '../config/diagramSettings'
 
 const props = defineProps({
   diagramType: {

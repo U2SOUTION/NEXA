@@ -198,8 +198,8 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
-import { saveTOCSettings, loadSupportedExtensions, saveSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage.js'
+import { useDocumentManagerStore } from '@system/store/documentManagerStore'
+import { saveTOCSettings, loadSupportedExtensions, saveSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage'
 import BaseModal from '@system/components/ui/BaseModal.vue'
 import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
 

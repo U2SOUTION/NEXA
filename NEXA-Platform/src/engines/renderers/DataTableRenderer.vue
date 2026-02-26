@@ -92,8 +92,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import DataPageNavigation from '@system/components/ui/DataPageNavigation.vue'
-import { applyTableViewSettings } from '@system/utils/view-mode/viewSettingsApplier.js'
-import { getFieldValue, normalizeFieldMapping, getDefaultFieldMapping } from '@system/utils/view-mode/viewFieldMapping.js'
+import { applyTableViewSettings } from '@system/utils/view-mode/viewSettingsApplier'
+import { getFieldValue, normalizeFieldMapping, getDefaultFieldMapping } from '@system/utils/view-mode/viewFieldMapping'
 
 const props = defineProps({
   // 기본 데이터

@@ -48,7 +48,7 @@ import { useRouter } from 'vue-router'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
 import { useBoardMenuStore } from '@system/store/boardMenuStore'
-import { useBoardEditorStore } from '@system/store/boardEditorStore.js'
+import { useBoardEditorStore } from '@system/store/boardEditorStore'
 import TreeNavItem from '@system/components/ui/TreeNavItem.vue'
 
 const router = useRouter()

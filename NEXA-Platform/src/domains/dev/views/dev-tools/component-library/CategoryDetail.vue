@@ -54,7 +54,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import NexaDiagram from '@engines/diagram/NexaDiagram.vue'
-import { analyzeCategoryDependencies, convertToERDFormat } from '@system/utils/componentDependencyAnalyzer.js'
+import { analyzeCategoryDependencies, convertToERDFormat } from '@system/utils/componentDependencyAnalyzer'
 import TabInfo from './TabInfo.vue'
 
 const props = defineProps({

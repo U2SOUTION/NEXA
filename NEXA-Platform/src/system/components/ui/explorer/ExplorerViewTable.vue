@@ -60,7 +60,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { getFileIconByType } from '@system/utils/fileExplorer.js'
+import { getFileIconByType } from '@system/utils/fileExplorer'
 
 const props = defineProps({
   items: { type: Array, default: () => [] },

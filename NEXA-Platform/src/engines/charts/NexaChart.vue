@@ -23,11 +23,11 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as d3 from 'd3'
-import { renderBarChart } from './bar/BarChart.js'
-import { renderLineChart } from './line/LineChart.js'
-import { renderAreaChart } from './area/AreaChart.js'
-import { renderPieChart } from './pie/PieChart.js'
-import { renderScatterChart } from './scatter/ScatterChart.js'
+import { renderBarChart } from './bar/BarChart'
+import { renderLineChart } from './line/LineChart'
+import { renderAreaChart } from './area/AreaChart'
+import { renderPieChart } from './pie/PieChart'
+import { renderScatterChart } from './scatter/ScatterChart'
 
 const props = defineProps({
   // 차트 타입

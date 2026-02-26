@@ -98,7 +98,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as d3 from 'd3'
 import Chart from '@engines/charts/NexaChart.vue'
 import MultiChartContainer from '@engines/charts/MultiChartContainer.vue'
-import { getChartMetadata } from '@engines/charts/config/chartMetadata.js'
+import { getChartMetadata } from '@engines/charts/config/chartMetadata'
 
 const props = defineProps({
   // 기본 데이터

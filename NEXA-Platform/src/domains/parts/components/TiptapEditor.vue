@@ -4,7 +4,7 @@
 
 <script setup>
 import BaseTiptapEditor from '@engines/tiptap/BaseTiptapEditor.vue'
-import { usePartsDataStore } from '@system/store/partsDataStore.js'
+import { usePartsDataStore } from '@system/store/partsDataStore'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },

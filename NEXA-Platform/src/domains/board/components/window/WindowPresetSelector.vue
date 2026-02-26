@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { useBoardPreset } from '@system/composables/useBoardPreset.js'
+import { useBoardPreset } from '@system/composables/useBoardPreset'
 import WindowPresetCard from '@domains/board/components/window/WindowPresetCard.vue'
 
 const props = defineProps({

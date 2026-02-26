@@ -57,7 +57,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useDevGuide } from '@system/composables/useDevGuide.js'
+import { useDevGuide } from '@system/composables/useDevGuide'
 
 defineProps({
   headerHovered: {

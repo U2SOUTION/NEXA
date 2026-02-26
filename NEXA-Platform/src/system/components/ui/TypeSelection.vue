@@ -90,7 +90,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useBoardEditorStore } from '@system/store/boardEditorStore.js'
+import { useBoardEditorStore } from '@system/store/boardEditorStore'
 
 const props = defineProps({
   modelValue: {

@@ -15,8 +15,8 @@
 
 | 구분                 | 수량     | 비고                                                                                                                         |
 | -------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **TS 파일**          | 67개     | `src/system/schemas`, `src/domains/archive/archive-sentinel`, `src/engines/services`, `src/domains/infra` store 등 일부만 TS |
-| **JS 파일 (src)**    | 약 192개 | composables, store, utils, frame/router, engines/tiptap, 각 도메인                                                           |
+| **TS 파일 (src)**    | 약 230개+ | **일괄 .js→.ts 전환 완료** (기존 67 + 전환 164). re-export .js 제거 후 확장자만 .ts로 변경, import는 확장자 없음으로 정리 |
+| **JS 파일 (src)**    | 0개      | —                                                                                                                            |
 | **JS 파일 (server)** | 27개     | Express API (routes, services, config, utils)                                                                                |
 | **Vue SFC**          | 389개    | **모두 `<script>` (JS)** — `lang="ts"` 사용 파일 0개                                                                         |
 
@@ -223,9 +223,9 @@ flowchart LR
    - **src 전용 .ts 우선 플러그인** (`quasar.config.js`): `vitePluginPreferTsInSrc` — `resolveId`에서 **importer/id가 node_modules·`#`가 아닐 때만** 동작하며, 확장자 없음 또는 `.js` 요청에 대해 `src/` 아래 `.ts`를 우선 반환. **deps/pre-bundle 해석에는 관여하지 않아** chunk 404 없음.
    - 전역 `resolve.extensions` 변경·전역 `.js`→`.ts` 플러그인은 **사용하지 않음** (deps 404 유발).
    - import는 **확장자 없음** (`from '…/foo'`) 권장. 필요 시 `from '…/foo.js'` 요청도 위 플러그인으로 같은 경로의 `.ts`가 반환됨.
-2. **확장자 일괄 정리**
-   - 이미 구현이 .ts인 모듈에 대해 re-export용 .js 파일을 **한 번에 삭제**.
-   - 새로 전환할 때는 “기존 .js 삭제 + .ts만 두기”, re-export .js는 추가하지 않음.
+2. **확장자 일괄 정리** ✅ 완료
+   - re-export용 .js 삭제 후, **src 내 모든 .js를 .ts로 일괄 rename** (164개). import 경로에서 `.js` 제거(확장자 없음)로 정리.
+   - 새로 작성 시에는 .ts만 사용, re-export .js는 추가하지 않음.
 3. **이후: TS 최적화에만 에너지**
    - 전환 작업 = “복사해서 .ts로 바꾸고 타입만 붙이기”가 아니라, **한 모듈씩** system 타입 정리·strict 강화·Zod 검증 등 **TS에 맞게 최적화**하는 쪽에 집중.
 

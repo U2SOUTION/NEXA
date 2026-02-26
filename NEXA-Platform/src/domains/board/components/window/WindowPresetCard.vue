@@ -34,7 +34,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { getPresetMetadata } from '@system/utils/boardWindowPreset.js'
+import { getPresetMetadata } from '@system/utils/boardWindowPreset'
 
 const props = defineProps({
   preset: { type: String, required: true },

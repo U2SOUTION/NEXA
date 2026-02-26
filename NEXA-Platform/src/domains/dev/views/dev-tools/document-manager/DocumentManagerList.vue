@@ -320,13 +320,13 @@ import { ref, computed, onMounted, onBeforeUnmount, watch, toRef } from 'vue'
  * - 모드 전환: 항상 manualOrder 초기화하여 깨끗한 상태에서 시작
  */
 
-import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
-import { loadCheckboxStates, loadTOCSettings, saveTOCSettings, loadFileUsageCounts, incrementFileUsage, saveFileUsageCounts, loadFavoriteStates, toggleFavorite, loadPriorityStates, setFilePriority, loadTrashFiles } from '@domains/dev/modules/document-manager/services/documentStorage.js'
-import { useDocumentStats } from '@domains/dev/modules/document-manager/composables/useDocumentStats.js'
-import { useDocumentList } from '@domains/dev/modules/document-manager/composables/useDocumentList.js'
-import { useMultiSelection } from '@system/composables/useMultiSelection.js'
+import { useDocumentManagerStore } from '@system/store/documentManagerStore'
+import { loadCheckboxStates, loadTOCSettings, saveTOCSettings, loadFileUsageCounts, incrementFileUsage, saveFileUsageCounts, loadFavoriteStates, toggleFavorite, loadPriorityStates, setFilePriority, loadTrashFiles } from '@domains/dev/modules/document-manager/services/documentStorage'
+import { useDocumentStats } from '@domains/dev/modules/document-manager/composables/useDocumentStats'
+import { useDocumentList } from '@domains/dev/modules/document-manager/composables/useDocumentList'
+import { useMultiSelection } from '@system/composables/useMultiSelection'
 import { useQuasar } from 'quasar'
-import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from '@system/utils/file-sorter/index.js'
+import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from '@system/utils/file-sorter/index'
 import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
 
 // Props

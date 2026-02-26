@@ -108,7 +108,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { getDeviceCatalog, useNexaNodeStore } from '@system/store/nexaNodeStore.js'
+import { getDeviceCatalog, useNexaNodeStore } from '@system/store/nexaNodeStore'
 
 const resourceTab = ref('nodes')
 const searchQuery = ref('')

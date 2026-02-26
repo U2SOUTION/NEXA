@@ -98,9 +98,9 @@ import ExplorerViewList from './ExplorerViewList.vue'
 import ExplorerViewTable from './ExplorerViewTable.vue'
 import ExplorerViewCard from './ExplorerViewCard.vue'
 import ExplorerPreview from './ExplorerPreview.vue'
-import { useGlobalFileExplorer } from '@system/composables/useGlobalFileExplorer.js'
-import { useFileSelection } from '@system/composables/useFileSelection.js'
-import { getExpandedIdsForSelection } from '@system/utils/fileExplorer.js'
+import { useGlobalFileExplorer } from '@system/composables/useGlobalFileExplorer'
+import { useFileSelection } from '@system/composables/useFileSelection'
+import { getExpandedIdsForSelection } from '@system/utils/fileExplorer'
 
 const props = defineProps({
   mode: { type: String, default: 'embed' },

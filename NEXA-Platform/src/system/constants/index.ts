@@ -11,4 +11,4 @@
 export {
   DEFAULT_CATEGORIES,
   CATEGORY_ABBREVIATIONS,
-} from './categories.js'
+} from './categories'

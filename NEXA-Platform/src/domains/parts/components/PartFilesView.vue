@@ -173,8 +173,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { usePartsDataStore } from '@system/store/partsDataStore.js'
-import { useSkeletonLoader } from '@system/composables/useSkeletonLoader.js'
+import { usePartsDataStore } from '@system/store/partsDataStore'
+import { useSkeletonLoader } from '@system/composables/useSkeletonLoader'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()

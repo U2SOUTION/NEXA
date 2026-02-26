@@ -351,12 +351,12 @@ import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
 import FileDropZone from '@system/components/ui/FileDropZone.vue'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
-import { useAiChannels } from '../../composables/useAiChannels.js'
-import { useAiAssets } from '../../composables/useAiAssets.js'
-import { useAiLeftToolbar } from '../../composables/useAiLeftToolbar.js'
-import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings.js'
-import { useAiMemos } from '../../composables/useAiMemos.js'
-import { useAiInsertRequest } from '../../composables/useAiInsertRequest.js'
+import { useAiChannels } from '../../composables/useAiChannels'
+import { useAiAssets } from '../../composables/useAiAssets'
+import { useAiLeftToolbar } from '../../composables/useAiLeftToolbar'
+import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings'
+import { useAiMemos } from '../../composables/useAiMemos'
+import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
 
 const { memos, removeMemo, moveMemoUp, moveMemoDown, getMemoPreview } = useAiMemos()
 const aiAssets = useAiAssets()

@@ -154,8 +154,8 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
-import { useMermaidStyle } from '@domains/dev/modules/document-manager/composables/useMermaidStyle.js'
-import { getDefaultMermaidCss, getMermaidStylePath } from '@domains/dev/modules/document-manager/services/mermaidStyleStorage.js'
+import { useMermaidStyle } from '@domains/dev/modules/document-manager/composables/useMermaidStyle'
+import { getDefaultMermaidCss, getMermaidStylePath } from '@domains/dev/modules/document-manager/services/mermaidStyleStorage'
 
 // Props 정의
 const props = defineProps({

@@ -161,18 +161,18 @@
 <script setup>
 import { ref, computed, watch, nextTick, inject } from 'vue'
 import { Notify } from 'quasar'
-import { parseMarkdown } from '@system/utils/markdown/index.js'
+import { parseMarkdown } from '@system/utils/markdown/index'
 import { copyTextToClipboard } from '@system/utils/clipboard'
 import ContextMenu from '@system/components/ui/ContextMenu.vue'
-import { useContextMenu } from '@system/composables/useContextMenu.js'
+import { useContextMenu } from '@system/composables/useContextMenu'
 import { aiApi } from '../services/aiApi'
-import { useAiSettings } from '../composables/useAiSettings.js'
-import { useAiModels } from '../composables/useAiModels.js'
-import { formatModelDisplayName } from '../utils/modelDisplayName.js'
-import { extractOutlineFromMessages } from '../utils/chatOutline.js'
+import { useAiSettings } from '../composables/useAiSettings'
+import { useAiModels } from '../composables/useAiModels'
+import { formatModelDisplayName } from '../utils/modelDisplayName'
+import { extractOutlineFromMessages } from '../utils/chatOutline'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
-import { useAiChannels } from '../composables/useAiChannels.js'
-import { useAiMemos } from '../composables/useAiMemos.js'
+import { useAiChannels } from '../composables/useAiChannels'
+import { useAiMemos } from '../composables/useAiMemos'
 
 const aiInsertContent = inject('aiInsertContent', null)
 const { addMemo } = useAiMemos()

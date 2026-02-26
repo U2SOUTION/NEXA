@@ -29,8 +29,8 @@
 <script setup>
 import { useQuasar } from 'quasar'
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
-import { useBoardPreset } from '@system/composables/useBoardPreset.js'
-import { getPresetLabel } from '@system/utils/boardWindowPreset.js'
+import { useBoardPreset } from '@system/composables/useBoardPreset'
+import { getPresetLabel } from '@system/utils/boardWindowPreset'
 import WindowPresetSetupView from '@domains/board/components/window/WindowPresetSetupView.vue'
 import DeviceConnectionView from '@domains/board/components/device/DeviceConnectionView.vue'
 

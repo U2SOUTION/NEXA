@@ -63,7 +63,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { getErrorIcon, getErrorColor } from '@system/utils/error-tracking/errorTypeClassifier.js'
+import { getErrorIcon, getErrorColor } from '@system/utils/error-tracking/errorTypeClassifier'
 
 const props = defineProps({
   errors: {

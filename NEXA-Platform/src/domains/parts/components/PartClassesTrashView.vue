@@ -115,7 +115,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { usePartsDataStore } from '@system/store/partsDataStore.js'
+import { usePartsDataStore } from '@system/store/partsDataStore'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()

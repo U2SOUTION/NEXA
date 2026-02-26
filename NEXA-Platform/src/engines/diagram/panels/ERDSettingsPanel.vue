@@ -143,9 +143,9 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { loadDiagramSettings, updateDiagramSettings, resetDiagramSettings } from '../config/diagramSettings.js'
-import { diagramSettingsSchemas } from '../config/diagramSettingsConfig.js'
-import { diagramTypes } from '../config/diagramMetadata.js'
+import { loadDiagramSettings, updateDiagramSettings, resetDiagramSettings } from '../config/diagramSettings'
+import { diagramSettingsSchemas } from '../config/diagramSettingsConfig'
+import { diagramTypes } from '../config/diagramMetadata'
 
 const props = defineProps({
   settings: {

@@ -18,8 +18,8 @@
 
 <script setup>
 import GlobalFileExplorer from '@system/components/ui/explorer/GlobalFileExplorer.vue'
-import { useFileSelection } from '@system/composables/useFileSelection.js'
-import { useAiExplorerSelection } from '../composables/useAiExplorerSelection.js'
+import { useFileSelection } from '@system/composables/useFileSelection'
+import { useAiExplorerSelection } from '../composables/useAiExplorerSelection'
 
 const { selectedFile } = useFileSelection()
 const {

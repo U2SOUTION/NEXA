@@ -41,7 +41,7 @@ import { javascript } from '@codemirror/lang-javascript'
 import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { indentUnit } from '@codemirror/language'
-import { parseVueFile, combineVueFile } from '@system/utils/vue-file-parser.js'
+import { parseVueFile, combineVueFile } from '@system/utils/vue-file-parser'
 import { useUserSettingsStore } from '@system/store/userSettingsStore'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 

@@ -286,10 +286,10 @@
 import { ref, watch, onBeforeUnmount, computed } from 'vue'
 import { useQuasar, Loading } from 'quasar'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
-import { createBaseExtensions } from './extensions/baseExtensions.js'
-import { convertClipboardImageToFile } from './utils/clipboardImage.js'
-import { formatFileSize } from './utils/fileFormat.js'
-import { extractYouTubeId } from './utils/youtube.js'
+import { createBaseExtensions } from './extensions/baseExtensions'
+import { convertClipboardImageToFile } from './utils/clipboardImage'
+import { formatFileSize } from './utils/fileFormat'
+import { extractYouTubeId } from './utils/youtube'
 
 const $q = useQuasar()
 

@@ -165,8 +165,8 @@
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { usePartsDataStore } from '@system/store/partsDataStore.js'
-import { DEFAULT_CATEGORIES, CATEGORY_ABBREVIATIONS } from '@system/constants/categories.js'
+import { usePartsDataStore } from '@system/store/partsDataStore'
+import { DEFAULT_CATEGORIES, CATEGORY_ABBREVIATIONS } from '@system/constants/categories'
 import TiptapEditor from '../../TiptapEditor.vue'
 import UploadProgress from '@system/components/ui/UploadProgress.vue'
 

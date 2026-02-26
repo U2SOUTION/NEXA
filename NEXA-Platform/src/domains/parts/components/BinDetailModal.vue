@@ -172,7 +172,7 @@
 
 <script setup>
 import { computed, watch, ref } from 'vue'
-import { usePartsManagementStore } from '@system/store/partsManagementStore.js'
+import { usePartsManagementStore } from '@system/store/partsManagementStore'
 
 const props = defineProps({
   modelValue: {

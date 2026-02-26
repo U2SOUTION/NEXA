@@ -41,7 +41,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { useTOC } from '@domains/dev/modules/document-manager/composables/useTOC.js'
+import { useTOC } from '@domains/dev/modules/document-manager/composables/useTOC'
 import TOCItem from './TOCItem.vue'
 
 // Props 정의

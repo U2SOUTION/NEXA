@@ -112,7 +112,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useGlobalShortcuts } from '@system/composables/useGlobalShortcuts.js'
+import { useGlobalShortcuts } from '@system/composables/useGlobalShortcuts'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()

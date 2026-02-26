@@ -33,8 +33,8 @@
 
 <script setup>
 import { ref, provide, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import { parseMarkdown } from '@system/utils/markdown/index.js'
-import { useAiInsertRequest } from '../../composables/useAiInsertRequest.js'
+import { parseMarkdown } from '@system/utils/markdown/index'
+import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
 import AiChatPanel from '../../components/AiChatPanel.vue'
 import AiEditorPanel from '../../components/AiEditorPanel.vue'
 import AiImageEditorPanel from '../../components/AiImageEditorPanel.vue'

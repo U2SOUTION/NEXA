@@ -171,7 +171,7 @@ import DataManagement from '../../components/u2bee/DataManagement.vue'
 import Settings from '../../components/u2bee/Settings.vue'
 import HelpPage from '../../components/u2bee/HelpPage.vue'
 import InjectedFloatingTabs from '../../components/u2bee/InjectedFloatingTabs.vue'
-import { useTabConfig } from '@system/composables/extension/u2bee/useTabConfig.js'
+import { useTabConfig } from '@system/composables/extension/u2bee/useTabConfig'
 
 const route = useRoute()
 const router = useRouter()

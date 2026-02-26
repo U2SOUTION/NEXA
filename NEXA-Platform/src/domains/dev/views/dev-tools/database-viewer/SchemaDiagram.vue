@@ -123,7 +123,7 @@ ERD 다이어그램 추가 가능한 기능
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import NexaDiagram from '@engines/diagram/NexaDiagram.vue'
-import { updateNodeSizes } from '@engines/diagram/erd/ERDDiagram.js'
+import { updateNodeSizes } from '@engines/diagram/erd/ERDDiagram'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 // 선택된 테이블 상태 (왼쪽 사이드바에서 선택된 테이블)

@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { getFileIconByType } from '@system/utils/fileExplorer.js'
+import { getFileIconByType } from '@system/utils/fileExplorer'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
 defineProps({

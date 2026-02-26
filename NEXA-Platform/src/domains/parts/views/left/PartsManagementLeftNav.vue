@@ -491,9 +491,9 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
-import { usePartsManagementStore } from '@system/store/partsManagementStore.js'
-import { usePartsDataStore } from '@system/store/partsDataStore.js'
-import { useClearURLState } from '@system/composables/url-state/index.js'
+import { usePartsManagementStore } from '@system/store/partsManagementStore'
+import { usePartsDataStore } from '@system/store/partsDataStore'
+import { useClearURLState } from '@system/composables/url-state/index'
 import QRCode from 'qrcode'
 import SpaceTreeNavItem from '../../components/SpaceTreeNavItem.vue'
 import AddSpaceForm from '../../components/form/AddSpaceForm.vue'
@@ -502,7 +502,7 @@ import TemporaryBinStorage from '../../components/TemporaryBinStorage.vue'
 import BinModelManagementModal from '../../components/BinModelManagementModal.vue'
 import SpaceManagementModal from '../../components/SpaceManagementModal.vue'
 import DetailedDescriptionViewer from '../../components/DetailedDescriptionViewer.vue'
-import { getFileIcon as getFileIconFromConfig, isIconUrl, getFileColor } from '@system/config/fileTypes.js'
+import { getFileIcon as getFileIconFromConfig, isIconUrl, getFileColor } from '@system/config/fileTypes'
 import { useQuasar } from 'quasar'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 

@@ -19,7 +19,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { usePartsManagementStore } from '@system/store/partsManagementStore.js'
+import { usePartsManagementStore } from '@system/store/partsManagementStore'
 import PartsManagementDashboard from '../../components/PartsManagementDashboard.vue'
 import PartsDataDashboard from '../../components/PartsDataDashboard.vue'
 import StorageBlockGrid from '../../components/StorageBlockGrid.vue'

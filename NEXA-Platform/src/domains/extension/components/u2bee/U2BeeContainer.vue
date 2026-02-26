@@ -6,7 +6,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useContainerQuery } from '@system/composables/extension/u2bee/useContainerQuery.js'
+import { useContainerQuery } from '@system/composables/extension/u2bee/useContainerQuery'
 
 const containerRef = ref(null)
 

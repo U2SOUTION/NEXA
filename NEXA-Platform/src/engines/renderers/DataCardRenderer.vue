@@ -201,7 +201,7 @@ import { ref, computed, watch, reactive, onMounted, onUnmounted, nextTick } from
 import { GridLayout, GridItem } from 'vue3-grid-layout-next'
 import 'vue3-grid-layout-next/dist/style.css'
 import DataPageNavigation from '@system/components/ui/DataPageNavigation.vue'
-import { getRowNumberWithPagination } from '@system/utils/dataViewUtils.js'
+import { getRowNumberWithPagination } from '@system/utils/dataViewUtils'
 
 const props = defineProps({
   rows: {

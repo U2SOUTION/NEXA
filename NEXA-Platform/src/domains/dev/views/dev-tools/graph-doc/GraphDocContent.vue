@@ -286,11 +286,11 @@ import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import NexaDiagram from '@engines/diagram/NexaDiagram.vue'
 import NexaSpinner from '@system/components/ui/NexaSpinner.vue'
-import { diagramTypes } from '@engines/diagram/config/diagramMetadata.js'
-import { analyzeDependencyGraph, isNpmPackage } from '@system/utils/graph-doc/dependencyGraphAnalyzer.js'
-import { analyzePackageDependencies } from '@system/utils/graph-doc/packageDependencyAnalyzer.js'
-import { analyzeFileStructure } from '@system/utils/graph-doc/fileStructureAnalyzer.js'
-import { useGraphDocHistory } from '@system/composables/useGraphDocHistory.js'
+import { diagramTypes } from '@engines/diagram/config/diagramMetadata'
+import { analyzeDependencyGraph, isNpmPackage } from '@system/utils/graph-doc/dependencyGraphAnalyzer'
+import { analyzePackageDependencies } from '@system/utils/graph-doc/packageDependencyAnalyzer'
+import { analyzeFileStructure } from '@system/utils/graph-doc/fileStructureAnalyzer'
+import { useGraphDocHistory } from '@system/composables/useGraphDocHistory'
 
 const $q = useQuasar()
 const route = useRoute()

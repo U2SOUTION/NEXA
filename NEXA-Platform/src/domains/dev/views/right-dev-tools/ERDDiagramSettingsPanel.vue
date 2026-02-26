@@ -93,7 +93,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { loadERDSettings, updateERDSettings, resetERDSettings } from '@engines/diagram/config/diagramSettings.js'
+import { loadERDSettings, updateERDSettings, resetERDSettings } from '@engines/diagram/config/diagramSettings'
 
 // 레이아웃 방향 옵션
 const rankdirOptions = [

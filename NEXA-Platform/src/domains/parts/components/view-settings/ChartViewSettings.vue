@@ -624,7 +624,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { supportsStrokeWidth, supportsDotSize, supportsNodeSize, supportsColor, getChartMetadata } from '@engines/charts/config/chartMetadata.js'
+import { supportsStrokeWidth, supportsDotSize, supportsNodeSize, supportsColor, getChartMetadata } from '@engines/charts/config/chartMetadata'
 
 const props = defineProps({
   settings: {

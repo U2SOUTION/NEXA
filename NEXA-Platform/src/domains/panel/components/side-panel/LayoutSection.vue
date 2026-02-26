@@ -32,7 +32,7 @@
 
 <script setup>
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
-import { getPresetIcon, getPresetLabel, getPresetDescription } from '@system/utils/boardWindowPreset.js'
+import { getPresetIcon, getPresetLabel, getPresetDescription } from '@system/utils/boardWindowPreset'
 
 const dashboardLayoutStore = useDashboardLayoutStore()
 

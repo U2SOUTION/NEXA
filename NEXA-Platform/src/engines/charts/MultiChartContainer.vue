@@ -12,16 +12,16 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as d3 from 'd3'
-import { createSharedXScale, createSharedYScale } from './utils/chartScales.js'
-import { renderSharedAxes, renderGrid, renderLegend } from './utils/chartAxes.js'
-import { createTooltip } from './utils/chartTooltip.js'
-import { renderBackground } from './utils/chartBackground.js'
-import { renderBarChart } from './bar/BarChart.js'
-import { renderLineChart } from './line/LineChart.js'
-import { renderAreaChart } from './area/AreaChart.js'
-import { renderPieChart } from './pie/PieChart.js'
-import { renderScatterChart } from './scatter/ScatterChart.js'
-import { getChartMetadata } from './config/chartMetadata.js'
+import { createSharedXScale, createSharedYScale } from './utils/chartScales'
+import { renderSharedAxes, renderGrid, renderLegend } from './utils/chartAxes'
+import { createTooltip } from './utils/chartTooltip'
+import { renderBackground } from './utils/chartBackground'
+import { renderBarChart } from './bar/BarChart'
+import { renderLineChart } from './line/LineChart'
+import { renderAreaChart } from './area/AreaChart'
+import { renderPieChart } from './pie/PieChart'
+import { renderScatterChart } from './scatter/ScatterChart'
+import { getChartMetadata } from './config/chartMetadata'
 
 const props = defineProps({
   // 차트 레이어 설정 배열

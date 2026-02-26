@@ -201,9 +201,9 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
-import { useDevGuide } from '@system/composables/useDevGuide.js'
+import { useDevGuide } from '@system/composables/useDevGuide'
 import { copyTextToClipboard } from '@system/utils/clipboard'
-import { analyzeSampleDependencies } from '@system/utils/dependency-analyzer.js'
+import { analyzeSampleDependencies } from '@system/utils/dependency-analyzer'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()

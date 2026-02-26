@@ -277,7 +277,7 @@
 <script setup>
 // DevRightPanel.vue - 개발 도구 우측 패널
 import { computed, ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { useDocumentManagerStore } from '@system/store/documentManagerStore.js'
+import { useDocumentManagerStore } from '@system/store/documentManagerStore'
 import { QExpansionItem } from 'quasar'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 import PanelMermaidStyle from '@domains/panel/components/components/PanelMermaidStyle.vue'
@@ -285,7 +285,7 @@ import PanelTOC from '@domains/panel/components/components/PanelTOC.vue'
 import ThemeColorPanel from './right-dev-tools/ThemeColorPanel.vue'
 import ERDDiagramSettingsPanel from './right-dev-tools/ERDDiagramSettingsPanel.vue'
 import DiagramSettingsPanel from '@engines/diagram/panels/DiagramSettingsPanel.vue'
-import { diagramTypes } from '@engines/diagram/config/diagramMetadata.js'
+import { diagramTypes } from '@engines/diagram/config/diagramMetadata'
 import SampleSection from '@domains/dev/modules/document-manager/components/sections/SampleSection.vue'
 import DatabaseTableDetailSimple from './dev-tools/database-viewer/TableDetailSimple.vue'
 import ComponentLibraryWarning from './right-dev-tools/component-library/ComponentLibraryWarning.vue'
@@ -298,7 +298,7 @@ import DevGuidePanel from './right-dev-tools/DevGuidePanel.vue'
 import DevGuideStatistics from './right-dev-tools/DevGuideStatistics.vue'
 import HistoryTab from './right-dev-tools/graph-doc/HistoryTab.vue'
 import FixedNodesTab from './right-dev-tools/graph-doc/FixedNodesTab.vue'
-import { useDevMenuState } from '@system/composables/useDevMenuState.js'
+import { useDevMenuState } from '@system/composables/useDevMenuState'
 
 const documentStore = useDocumentManagerStore()
 const mermaidStyleExpansionRef = ref(null)

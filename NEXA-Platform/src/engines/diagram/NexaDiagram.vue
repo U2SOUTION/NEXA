@@ -25,12 +25,12 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { renderERD, updateERD } from './erd/ERDDiagram.js'
-import { renderFlow } from './flow/FlowDiagram.js'
-import { renderNetwork } from './network/NetworkDiagram.js'
-import { renderForceDirected } from './dependency/ForceDirectedDiagram.js'
-import { renderFileTree } from './filetree/FileTreeDiagram.js'
-import { diagramTypes } from './config/diagramMetadata.js'
+import { renderERD, updateERD } from './erd/ERDDiagram'
+import { renderFlow } from './flow/FlowDiagram'
+import { renderNetwork } from './network/NetworkDiagram'
+import { renderForceDirected } from './dependency/ForceDirectedDiagram'
+import { renderFileTree } from './filetree/FileTreeDiagram'
+import { diagramTypes } from './config/diagramMetadata'
 
 const props = defineProps({
   // 다이어그램 타입

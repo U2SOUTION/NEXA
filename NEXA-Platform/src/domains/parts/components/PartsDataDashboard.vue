@@ -84,8 +84,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { usePartsManagementStore } from '@system/store/partsManagementStore.js'
-import { usePartsDataStore } from '@system/store/partsDataStore.js'
+import { usePartsManagementStore } from '@system/store/partsManagementStore'
+import { usePartsDataStore } from '@system/store/partsDataStore'
 
 const partsManagementStore = usePartsManagementStore()
 const partsDataStore = usePartsDataStore()
