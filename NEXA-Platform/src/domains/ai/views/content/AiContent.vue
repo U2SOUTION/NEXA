@@ -51,6 +51,7 @@ const centerTab = ref('chat')
 const editorContent = ref('')
 const codeContent = ref('// 코드를 입력하세요\n')
 const pendingInsertContent = ref(null)
+const pendingCodeInsertContent = ref(null)
 
 const { onInsertRequest, onOpenEditorRequest } = useAiInsertRequest()
 let unregisterInsertRequest = null
@@ -76,6 +77,7 @@ onBeforeUnmount(() => {
 
 provide('aiInsertContent', {
   pendingInsertContent,
+  pendingCodeInsertContent,
   setCenterTab: (tab) => {
     centerTab.value = tab
   },

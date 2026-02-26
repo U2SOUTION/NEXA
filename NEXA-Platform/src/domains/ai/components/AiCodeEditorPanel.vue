@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import * as monaco from 'monaco-editor'
 
 const props = defineProps({
@@ -17,9 +17,21 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const containerRef = ref(null)
+const aiInsertContent = inject('aiInsertContent', null)
 /** @type {import('monaco-editor').editor.IStandaloneCodeEditor | null} */
 let editor = null
 let ignoreNextChange = false
+
+function appendContent(raw) {
+  if (!editor || !raw || typeof raw !== 'string') return
+  const current = editor.getValue()
+  const toAppend = raw.trim()
+  const next = current ? `${current}\n\n${toAppend}` : toAppend
+  ignoreNextChange = true
+  editor.setValue(next)
+  ignoreNextChange = false
+  emit('update:modelValue', next)
+}
 
 onMounted(() => {
   if (!containerRef.value) return
@@ -70,6 +82,18 @@ watch(
   (t) => {
     if (t) monaco.editor.setTheme(t)
   },
+)
+
+watch(
+  () => aiInsertContent?.pendingCodeInsertContent?.value,
+  (raw) => {
+    if (!raw) return
+    appendContent(raw)
+    if (aiInsertContent?.pendingCodeInsertContent) {
+      aiInsertContent.pendingCodeInsertContent.value = null
+    }
+  },
+  { immediate: true },
 )
 
 onBeforeUnmount(() => {

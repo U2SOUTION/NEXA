@@ -414,6 +414,18 @@ function onMessageContextMenu(event, msg) {
               Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
             },
           },
+          {
+            id: 'insert-to-code',
+            label: '코드 에디터에 삽입',
+            icon: 'code',
+            action: () => {
+              aiInsertContent.setCenterTab('code')
+              nextTick(() => {
+                aiInsertContent.pendingCodeInsertContent.value = content
+              })
+              Notify.create({ message: '코드 에디터에 삽입되었습니다.', icon: 'code' })
+            },
+          },
         ]
       : []),
   ]
