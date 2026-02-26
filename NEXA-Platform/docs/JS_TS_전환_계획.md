@@ -1,0 +1,204 @@
+# NEXA 플랫폼 JS → TypeScript 전환 계획
+
+## 1. 전환의 핵심 목적
+
+- **인공지능 친화적 데이터 규격 통일**
+  - 앞으로 AI 에이전트·코어·보조 도구가 플랫폼과 안정적으로 연동하려면, **일관된 데이터 규격**이 필요함. TypeScript + 스키마 기반 타입 정의는 “이 데이터는 어떤 형태인가”를 기계가 읽기 쉽게 명시함. API 응답, 폼 입력, store 상태 등이 동일한 규격으로 정리되면, AI가 코드·데이터 구조를 해석하고 수정·생성할 때 혼선이 줄어듦.
+
+- **Zod 기반 보안·런타임 검증**
+  - `src/system/schemas`에 이미 적용된 **Zod**를 활용해, 외부 입력(API 응답, 사용자 입력, 파일/업로드 메타데이터 등)에 대한 **런타임 검증**을 수행함. TS 타입만으로는 실행 시점의 악의적·변조된 데이터를 막을 수 없음. Zod 스키마로 검증하면 예상치 못한 형태의 데이터가 시스템 내부로 들어오는 것을 차단하고, 주입·오염 위험을 줄이는 보안 효과를 얻음.
+
+---
+
+## 2. 현재 상황 요약
+
+| 구분 | 수량 | 비고 |
+| --- | --- | --- |
+| **TS 파일** | 67개 | `src/system/schemas`, `src/domains/archive/archive-sentinel`, `src/engines/services`, `src/domains/infra` store 등 일부만 TS |
+| **JS 파일 (src)** | 약 192개 | composables, store, utils, frame/router, engines/tiptap, 각 도메인 |
+| **JS 파일 (server)** | 27개 | Express API (routes, services, config, utils) |
+| **Vue SFC** | 389개 | **모두 `<script>` (JS)** — `lang="ts"` 사용 파일 0개 |
+
+**이미 TS인 영역**
+
+- `src/system/schemas` — Zod 기반 스키마 (표준 데이터 계층)
+- `src/domains/archive/archive-sentinel` — 도메인 로직 전부 TS
+- `src/engines/services` (evaluatorService, flowManager), `src/domains/infra` store/config, `vitest.config.ts`
+
+**현재 설정**
+
+- `tsconfig.json`: Quasar 상속, `allowJs: true`, `strict: false`, `noImplicitAny: false`, path alias 있음
+- **package.json**: `typescript`, `vue-tsc`, `@types/*` **미설치**
+- **ESLint**: JS/Vue만 대상, TypeScript parser/plugin 없음
+- **Quasar/Vite**: 별도 TS 플러그인 없음 (Vite는 기본 TS 지원)
+
+---
+
+## 3. 전환으로 얻는 실제 긍정적 효과
+
+- **버그 조기 발견**
+  - 잘못된 프로퍼티 접근, 잘못된 인자 개수/타입, null/undefined 사용 오류를 **실행 전에** 컴파일 단계에서 잡을 수 있음. 런타임에서만 드러나던 오류가 IDE/빌드 시점으로 앞당겨짐.
+
+- **리팩터링 안전성**
+  - 함수 시그니처·스키마·API를 바꿀 때, 그 타입을 사용하는 모든 지점이 타입 체크로 한 번에 드러남. "이름만 바꿨는데 어디선가 아직 쓰고 있지 않을까" 하는 불안을 줄이고, 대규모 수정 시 회귀 버그를 줄이는 데 도움이 됨.
+
+- **자동완성·탐색·문서화**
+  - IDE에서 props, composable 반환값, store 상태, API 응답 형태까지 자동완성과 "정의로 이동"이 정확히 동작함. JSDoc 없이도 타입이 곧 문서 역할을 해, 신규 합류자나 오래된 코드를 파악하기 쉬워짐.
+
+- **스키마와 프론트/서버 일치**
+  - 이미 `src/system/schemas`에 Zod 기반 스키마가 있으므로, TS 전환 후 이 스키마에서 **추론된 타입**을 API 클라이언트·폼·store에서 그대로 쓰면, "API는 이렇게 오는데 화면은 저렇게 기대하고" 같은 불일치를 타입 수준에서 줄일 수 있음.
+
+- **도메인 경계 명확화**
+  - AGENTS.md의 "한 도메인만 수정" 원칙과 맞물려, 도메인별로 export하는 타입/인터페이스가 명시되면 "이 모듈이 무엇을 밖으로 제공하는가"가 코드만 봐도 분명해짐. 다른 도메인에서 잘못된 타입을 쓰면 컴파일 단계에서 차단 가능.
+
+- **유지보수 비용 감소**
+  - 신규 기능 추가 시 "어디에 어떤 형태로 넣어야 하는지" 타입이 가이드해 주어, 실수와 디버깅 시간이 줄어듦. 특히 composables·store·API 레이어가 TS로 통일되면 데이터가 흐르는 경로가 타입으로 추적 가능해짐.
+
+- **CI/품질 게이트 강화**
+  - `vue-tsc --noEmit` 또는 빌드 시 타입 체크를 넣으면, PR 단계에서 타입 오류가 난 코드가 머지되는 것을 막을 수 있음. "실행은 되는데 나중에 터지는" 케이스를 줄이는 효과가 있음.
+
+- **Zod 기반 보안·런타임 검증**
+  - TS 타입은 컴파일 시점에만 검사되며, 런타임에 들어오는 악의적·변조된 데이터는 막지 못함. Zod 스키마는 **런타임 검증**을 수행하므로, API 응답·폼 제출·파일 메타데이터 등 외부 입력을 스키마로 검증한 뒤 타입이 보장된 값만 사용함. 이로써 주입 공격, 잘못된 구조의 JSON, 프로퍼티 누락/추가로 인한 오류를 사전에 차단할 수 있음.
+
+---
+
+## 4. 프로젝트 규칙 (타입·스키마·상수 배치)
+
+리팩토링 및 TS 전환 시 다음을 준수함. **없는 폴더는 전환 시작 전에 먼저 생성**함.
+
+| 구분 | 위치 | 비고 |
+| --- | --- | --- |
+| **타입** | `src/system/types/` 에만 생성 | 도메인 내부 `types.ts` 생성 금지 |
+| **스키마** | `src/system/schemas/` 에만 생성 | 도메인 내부 `schema.ts` 생성 금지 |
+| **상수** | `src/system/constants/` 에만 생성 | 도메인 전용 상수도 system에 정의 후 import |
+
+- **domains/** 안에 `types.ts`, `schema.ts` (또는 `schemas.ts`) 생성 **금지**.
+- 새 타입이 필요하면 반드시 **system에 먼저 추가한 뒤** 사용. 도메인에서는 `@system/types` 등으로만 참조.
+
+**폴더 현황**: `system/schemas/` 는 이미 있음. `system/types/`, `system/constants/` 는 없으므로 Phase 0에서 생성.
+
+---
+
+## 5. 전환 원칙 (AGENTS.md 준수)
+
+- **한 번에 한 도메인만** 전환 (도메인 간 교차 수정 금지)
+- **No-Touch 영역** (`/src/system/`, `/src/frame/`, `/src/engines/`)은 "구조/계약" 변경 없이 파일 확장자·타입 추가만 진행
+- 기존 **스키마/계약**은 유지; 타입·스키마·상수는 위 **프로젝트 규칙**에 따라 `system/types`, `system/schemas`, `system/constants` 에만 두고, 도메인은 참조만 함
+- 되돌리기 쉬우도록 **점진적 전환** (allowJs 유지 후 단계적으로 strict 강화)
+
+---
+
+## 6. 전환 단계
+
+### Phase 0: 환경 준비 (선행 작업)
+
+- **없는 폴더 생성 (우선)**
+  - `src/system/types/` — 타입 정의 전용 (필요 시 `index.ts` 등으로 export)
+  - `src/system/constants/` — 상수 전용 (`schemas/` 는 이미 존재)
+- **의존성 추가**
+  - `typescript`, `vue-tsc` (dev)
+  - 필요 시 `@types/node`, `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
+- **tsconfig 정비**
+  - `allowJs: true` 유지 (점진 전환용)
+  - `strict`/`noImplicitAny`는 초기엔 `false` 유지, 전환 안정화 후 단계적 켜기
+  - `include`에 `server/**/*.ts` 추가는 **서버 TS 전환 시점**에
+- **ESLint**
+  - TypeScript 파서/플러그인 추가, `*.ts`, `*.vue` (script lang=ts) 린트
+- **빌드/스크립트**
+  - `quasar build` 동작 확인 (Quasar는 Vite 기반이라 TS 기본 지원)
+  - 필요 시 `vue-tsc --noEmit`을 CI/린트 스크립트에 추가
+
+### Phase 1: 프레임/시스템 공통 (진입점·의존성 적은 쪽부터)
+
+- **우선 전환 후보 (의존 관계 하단)**
+  - `src/frame/router`: `routes.js`, `domainRoutes.js` → `.ts`
+  - `src/frame/registry`: `domainRegistry.js` → `.ts`
+  - `src/system/utils`: `apiBaseUrl.js`, `clipboard.js` 등 단순 유틸 → `.ts`
+  - `src/system/composables`: 이미 TS인 `useEventBus`, `useSidebarGesture` 등과 맞닿은 JS composable부터 (예: `useFileSelection.js`, `useThemeManager.js`)
+- **Store**
+  - 이미 TS인 `nexaNodeStore.ts`, `infraStore`를 참조하는 JS store부터 전환 (예: `userSettingsStore.js`, `devGuideStore.js`)
+- 규칙: **한 번에 한 레이어/한 묶음**만 수정하고, 빌드·테스트로 회귀 방지
+
+### Phase 2: 도메인별 전환 (한 도메인씩)
+
+- **순서 제안**: 의존성이 적고 이미 TS가 있는 도메인부터
+  1. **infra** — 이미 store/config TS 있음 → 나머지 JS만 전환
+  2. **archive** — sentinel은 전부 TS, 나머지(services, store, components) JS → TS
+  3. **ai** — composables, services, config 많음 → 한 번에 하나의 하위 영역씩
+  4. **dev** — document-manager, dev-tools 등 모듈 단위로
+  5. **parts**, **board**, **erp**, **settings**, **panel**, **node**, **기타** — 동일하게 도메인 내부만, 한 번에 한 도메인
+- 각 도메인 전환 시 해당 도메인 **Vue의 `<script>` → `<script lang="ts">`** 도 함께 진행해도 됨 (도메인 단위로만)
+
+### Phase 3: Vue SFC 전환
+
+- **389개 Vue** 모두 현재 `<script>` (JS)
+- 전략: **도메인/폴더 단위**로 `<script lang="ts">` 변경 + 필요한 타입만 추가 (props, emit, ref 등)
+- 컴포넌트 타입은 가능하면 `src/system/schemas` 및 기존 TS 타입 재사용; 도메인 전용 타입은 해당 도메인 내부에만 정의
+
+### Phase 4: Engines (Tiptap 등)
+
+- `src/engines/tiptap`: `baseExtensions.js`, `fileFormat.js`, `youtube.js`, `clipboardImage.js` 등 → TS
+- No-Touch 영역이므로 **내부 구현만 TS로 전환**, 외부 노출 API/계약은 유지
+
+### Phase 5: Server (선택·별도 스프린트)
+
+- **27개 JS**: Express 앱, routes, services, config
+- 서버 전용 `tsconfig.json` (또는 root include에 `server`) 및 `ts-node`/`esbuild` 등 실행 설정 필요
+- DB/설정 타입은 공유 가능하면 `src/system/schemas` 또는 공용 타입 패키지 참고
+
+---
+
+## 7. 의존성·전환 순서 개요
+
+```mermaid
+flowchart LR
+  subgraph phase0 [Phase 0]
+    A[TS 의존성]
+    B[tsconfig]
+    C[ESLint TS]
+  end
+  subgraph phase1 [Phase 1]
+    D[frame router/registry]
+    E[system utils]
+    F[system composables/store]
+  end
+  subgraph phase2 [Phase 2]
+    G[도메인 infra/archive/ai...]
+  end
+  subgraph phase3 [Phase 3]
+    H[Vue SFC lang=ts]
+  end
+  subgraph phase4 [Phase 4]
+    I[engines tiptap]
+  end
+  A --> B --> C
+  C --> D --> E --> F
+  F --> G --> H
+  G --> I
+```
+
+- **frame** → **system** 순으로 하면, 도메인 전환 시 import 오류를 줄일 수 있음.
+- **Vue** 전환은 해당 도메인 JS 전환이 끝난 뒤에 하면, composable/store 타입을 그대로 활용 가능.
+
+---
+
+## 8. 작업 시 주의사항
+
+- **import 경로**: 기존 `./foo.js`는 `./foo` 또는 `./foo.ts`로 통일 (TS에서는 확장자 생략 관례)
+- **타입/스키마/상수**: 위 **프로젝트 규칙**에 따라 `system/types`, `system/schemas`, `system/constants` 에만 정의하고, 도메인에서는 참조만 함. 기존 TS 모듈의 타입은 필요 시 `system/types`로 이전 후 re-export
+- **strict 켜기**: 전 구역 전환 완료 후, `strict: true` / `noImplicitAny: true`를 단계적으로 적용하고 오류 나는 파일만 수정
+- **AGENTS.md**: system/frame/engines는 "계약 변경 없이 타입·확장자만 추가"로 해석하고, 도메인은 "한 번에 하나"만 수정
+
+---
+
+## 9. 성공 기준
+
+- 모든 신규 코드는 `.ts` 또는 Vue `<script lang="ts">`만 사용
+- `quasar build` 성공
+- 기존 단위 테스트 통과 (Vitest)
+- ESLint + (선택) `vue-tsc --noEmit` 통과
+- 가능한 범위에서 `strict`/`noImplicitAny` 활성화
+
+---
+
+이 계획대로 Phase 0부터 순서대로 진행하면, 플랫폼을 무리 없이 "앞으로 TypeScript만 사용"하는 상태로 가져갈 수 있습니다.
