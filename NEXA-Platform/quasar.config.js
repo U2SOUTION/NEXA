@@ -45,7 +45,7 @@ export default defineConfig((/* ctx */) => {
           // Quasar 엔진이 찾는 물리적 라우터 경로를 frame 내부로 리다이렉트
           'src/router': path.resolve(__dirname, './src/frame/router'),
           'app/src/router': path.resolve(__dirname, './src/frame/router'),
-          'app/src/router/index': path.resolve(__dirname, './src/frame/router/index.js'),
+          'app/src/router/index': path.resolve(__dirname, './src/frame/router/index.ts'),
         }
 
         // SCSS 전역 변수 설정

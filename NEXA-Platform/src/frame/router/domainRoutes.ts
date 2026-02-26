@@ -1,4 +1,6 @@
-export const domainRoutes = [
+import type { RouteRecordRaw } from 'vue-router'
+
+export const domainRoutes: RouteRecordRaw[] = [
   { path: '', component: () => import('@domains/home/views/content/HomeView.vue'), name: 'Home' },
   {
     path: 'nexa-board',
@@ -41,7 +43,7 @@ export const domainRoutes = [
     name: 'NexaArchive',
     component: () => import('@domains/archive/ArchiveDomain.vue'),
     beforeEnter: (to, from, next) => {
-      const map = {
+      const map: Record<string, string> = {
         index: 'NexaArchiveIndex',
         hub: 'NexaArchiveHub',
         studio: 'NexaArchiveStudio',
@@ -49,7 +51,6 @@ export const domainRoutes = [
         insights: 'NexaArchiveInsights',
       }
       const landing = (typeof localStorage !== 'undefined' && localStorage.getItem('archive-default-landing')) || 'index'
-
       const target = map[landing] || map.index
       if (to.name === 'NexaArchive' || to.name === 'NexaArchiveIndex') {
         if (to.name !== target) {

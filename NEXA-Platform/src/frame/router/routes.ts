@@ -1,6 +1,7 @@
+import type { RouteRecordRaw } from 'vue-router'
 import { domainRoutes } from './domainRoutes'
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('@frame/layout/MainLayout.vue'),
