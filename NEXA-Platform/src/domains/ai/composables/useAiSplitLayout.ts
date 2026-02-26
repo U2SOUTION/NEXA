@@ -6,6 +6,9 @@ import { ref, watch } from 'vue'
 
 const LAYOUT_KEY = 'nexa-ai-split-layout'
 
+/** 영역별 최소·최대 비율(%). 추후 환경설정으로 분리 예정 */
+export const SPLIT_LIMITS: { minPct: number; maxPct: number } = { minPct: 5, maxPct: 90 }
+
 const DEFAULT_LEFT = ['chat']
 const DEFAULT_CENTER = ['editor', 'code', 'image', 'audio', 'video']
 const DEFAULT_RIGHT = ['explorer']

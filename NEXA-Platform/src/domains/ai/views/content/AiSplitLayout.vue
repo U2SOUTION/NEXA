@@ -16,10 +16,11 @@
       </div>
     </header>
 
+    <!-- 구조: left | (center|right). 1번 splitter로 right를 함께 밀 수 있음 -->
     <q-splitter
       v-model="leftSplitModel"
       unit="%"
-      :limits="leftVisible ? [15, 45] : [0, 0]"
+      :limits="leftVisible ? [SPLIT_LIMITS.minPct, SPLIT_LIMITS.maxPct] : [0, 0]"
       :horizontal="false"
       before-class="ai-splitter-pane"
       after-class="ai-splitter-pane"
@@ -93,6 +94,7 @@ import {
   centerActiveIndex,
   rightActiveIndex,
   applyPreset,
+  SPLIT_LIMITS,
 } from '../../composables/useAiSplitLayout'
 import { PANEL_LABELS, PANEL_ICONS, PANEL_COMPONENTS } from '../../config/aiPanelRegistry'
 
@@ -106,7 +108,7 @@ const emit = defineEmits(['update:editorContent', 'update:codeContent'])
 const leftSplitModel = computed({
   get: () => (leftVisible.value ? leftSize.value : 0),
   set: (v) => {
-    if (leftVisible.value) leftSize.value = Math.max(0, Math.min(45, v))
+    if (leftVisible.value) leftSize.value = Math.max(SPLIT_LIMITS.minPct, Math.min(SPLIT_LIMITS.maxPct, v))
   },
 })
 
@@ -140,7 +142,14 @@ const centerSplitModel = computed({
 
 const centerRightLimits = computed(() => {
   if (!centerVisible.value || !rightVisible.value) return [0, 0]
-  return [25, 75]
+  const rem = remaining.value
+  if (rem <= 0) return [50, 50]
+  const minCenterOfRemaining = (SPLIT_LIMITS.minPct * 100) / rem
+  const maxCenterOfRemaining = 100 - (SPLIT_LIMITS.minPct * 100) / rem
+  const minC = Math.ceil(Math.max(SPLIT_LIMITS.minPct, minCenterOfRemaining))
+  const maxC = Math.floor(Math.min(SPLIT_LIMITS.maxPct, maxCenterOfRemaining))
+  if (minC > maxC) return [50, 50]
+  return [minC, maxC]
 })
 
 function getPanelProps(panelId) {
@@ -163,6 +172,17 @@ watch(
   },
   { immediate: true },
 )
+
+watch(remaining, (rem) => {
+  if (!centerVisible.value || !rightVisible.value || rem <= 0) return
+  const [minC, maxC] = centerRightLimits.value
+  const share = centerShare.value
+  if (share < minC || share > maxC) {
+    const clamped = Math.max(minC, Math.min(maxC, share))
+    centerSize.value = (rem * clamped) / 100
+    rightSize.value = (rem * (100 - clamped)) / 100
+  }
+})
 </script>
 
 <style lang="scss" scoped>
