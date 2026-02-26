@@ -21,7 +21,7 @@
 
 **이미 TS인 영역**
 
-- `src/system/schemas` — Zod 기반 스키마 (표준 데이터 계층)
+- `src/system/schemas` — Zod 기반 스키마 (표준 데이터 계층). **서버·프론트 공용**으로 설계되며, Phase 5 서버 전환 시 서버도 동일 스키마를 참조함.
 - `src/domains/archive/archive-sentinel` — 도메인 로직 전부 TS
 - `src/engines/services` (evaluatorService, flowManager), `src/domains/infra` store/config, `vitest.config.ts`
 
@@ -45,11 +45,11 @@
 - **자동완성·탐색·문서화**
   - IDE에서 props, composable 반환값, store 상태, API 응답 형태까지 자동완성과 "정의로 이동"이 정확히 동작함. JSDoc 없이도 타입이 곧 문서 역할을 해, 신규 합류자나 오래된 코드를 파악하기 쉬워짐.
 
-- **스키마와 프론트/서버 일치**
-  - 이미 `src/system/schemas`에 Zod 기반 스키마가 있으므로, TS 전환 후 이 스키마에서 **추론된 타입**을 API 클라이언트·폼·store에서 그대로 쓰면, "API는 이렇게 오는데 화면은 저렇게 기대하고" 같은 불일치를 타입 수준에서 줄일 수 있음.
+- **스키마와 프론트/서버 일치 (서버·프론트 동일 스키마 공유)**
+  - `system/schemas`는 **서버와 프론트가 공유하는 유일한 데이터 규격**이다. API 응답·디바이스 상태·센서 데이터 등은 여기서 한 번만 정의하고, 서버는 검증·직렬화, 프론트는 검증 후 타입 보장된 값만 사용한다. "API는 이렇게 오는데 화면은 저렇게 기대하고" 같은 불일치를 제거하고, IoT 경계(엣지·서버·클라이언트) 전체에서 형식을 통일할 수 있음.
 
 - **도메인 경계 명확화**
-  - AGENTS.md의 "한 도메인만 수정" 원칙과 맞물려, 도메인별로 export하는 타입/인터페이스가 명시되면 "이 모듈이 무엇을 밖으로 제공하는가"가 코드만 봐도 분명해짐. 다른 도메인에서 잘못된 타입을 쓰면 컴파일 단계에서 차단 가능.
+  - AGENTS 규칙의 "한 도메인만 수정" 원칙과 맞물려, 타입은 모두 `system/types/`에 두고 도메인은 import만 하므로 "이 도메인이 어떤 데이터 형태를 다루는가"가 import만 봐도 분명해짐. 다른 도메인 전용 타입을 잘못 참조하면 컴파일 단계에서 차단 가능.
 
 - **유지보수 비용 감소**
   - 신규 기능 추가 시 "어디에 어떤 형태로 넣어야 하는지" 타입이 가이드해 주어, 실수와 디버깅 시간이 줄어듦. 특히 composables·store·API 레이어가 TS로 통일되면 데이터가 흐르는 경로가 타입으로 추적 가능해짐.
@@ -77,14 +77,33 @@
 
 **폴더 현황**: `system/schemas/` 는 이미 있음. `system/types/`, `system/constants/` 는 없으므로 Phase 0에서 생성.
 
+### 서버·프론트 스키마·타입 공유 전략 (IoT 플랫폼 핵심)
+
+- **`system/schemas`·`system/types`는 프론트 전용이 아니다.** 서버(Express API, MQTT/디바이스 경계)와 프론트(API 클라이언트, store, 폼)가 **동일한 스키마·타입을 공유**하는 것이 설계 원칙이다.
+- **단일 출처(Single Source of Truth)**: API 요청/응답, 디바이스 상태, 센서 데이터, 파일 메타데이터 등 **경계를 넘는 모든 데이터**는 `system/schemas`에 Zod 스키마로 한 번만 정의하고, `system/types`에서 타입을 re-export한다. 서버는 응답 직전에 스키마로 검증·직렬화하고, 프론트는 수신 후 스키마로 검증한 뒤 타입이 보장된 값만 사용한다.
+- **이점**: IoT 플랫폼에서는 엣지·서버·프론트 간 데이터 형식이 어긋나면 디바이스 제어·모니터링 오류로 직결된다. 서버와 프론트가 같은 스키마를 참조하면 "서버는 이렇게 보내는데 클라이언트는 저렇게 기대하는" 불일치를 제거하고, 런타임 검증을 한 곳에서만 유지할 수 있다.
+- **서버 전환 시(Phase 5)**: 서버 코드는 **반드시** `src/system/schemas`, `src/system/types`를 참조한다. 서버 전용 스키마/타입 파일을 `server/` 하위에 새로 두지 않는다. (path alias 또는 상대 경로로 `src` 의 system 계층 참조.)
+
 ---
 
-## 5. 전환 원칙 (AGENTS.md 준수)
+## 5. 전환 원칙 (AGENTS 규칙 준수)
 
 - **한 번에 한 도메인만** 전환 (도메인 간 교차 수정 금지)
 - **No-Touch 영역** (`/src/system/`, `/src/frame/`, `/src/engines/`)은 "구조/계약" 변경 없이 파일 확장자·타입 추가만 진행
 - 기존 **스키마/계약**은 유지; 타입·스키마·상수는 위 **프로젝트 규칙**에 따라 `system/types`, `system/schemas`, `system/constants` 에만 두고, 도메인은 참조만 함
 - 되돌리기 쉬우도록 **점진적 전환** (allowJs 유지 후 단계적으로 strict 강화)
+
+### 롤백 기준
+
+전환 중 아래 조건에 해당하면 **즉시 롤백**하고, 원인 분석·논의 후 재시도한다.
+
+| 조건 | 조치 |
+| --- | --- |
+| **빌드 실패** | 해당 변경 파일만 즉시 `.ts` → `.js` (및 Vue는 `lang="ts"` 제거) 로 되돌린다. 다른 파일은 그대로 두고, 실패한 파일만 JS로 복원한 뒤 빌드가 통과하는지 확인한다. |
+| **타입 오류 10개 이상** (해당 도메인/레이어 내) | 해당 **도메인(또는 해당 Phase 단위) 전환을 보류**한다. 이미 변경한 파일은 유지하되, 추가 전환은 중단하고 오류 원인을 분석한 뒤 팀 논의를 거쳐 재시도 일정과 범위를 정한다. 한꺼번에 많은 파일을 바꾸지 말고, 오류가 10개 미만으로 줄어든 뒤에만 전환을 이어간다. |
+| **기존 단위 테스트 실패** | 해당 전환으로 인한 회귀로 판단되면, 원인 파일만 롤백하거나 테스트/타입을 수정한다. 테스트가 통과할 때까지 해당 영역 전환을 확장하지 않는다. |
+
+- 롤백 시 **커밋 단위**를 작게 유지해 두면, "해당 파일만 되돌리기"가 쉽다. 한 번에 여러 파일을 TS로 바꾼 뒤 한꺼번에 커밋하지 말고, 파일 단위 또는 소규모 묶음으로 커밋하는 것을 권장한다.
 
 ---
 
@@ -95,6 +114,9 @@
 - **없는 폴더 생성 (우선)**
   - `src/system/types/` — 타입 정의 전용 (필요 시 `index.ts` 등으로 export)
   - `src/system/constants/` — 상수 전용 (`schemas/` 는 이미 존재)
+- **공통 타입 뼈대 먼저 정의**
+  - 전 도메인·서버-프론트 공통으로 쓸 타입을 `system/types/`(및 필요 시 `system/schemas/`)에 우선 정의한다.
+  - 예: `ApiResponse<T>`, `DeviceStatus`, `SensorData`, `PaginationResult`, `FileMeta` 등 — API 응답 래퍼, 디바이스/센서 규격, 목록 페이징, 파일 메타데이터 등. 서버와 프론트가 동일한 타입/스키마를 import하여 사용하는 기반을 Phase 0에서 마련한다.
 - **의존성 추가**
   - `typescript`, `vue-tsc` (dev)
   - 필요 시 `@types/node`, `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
@@ -133,7 +155,7 @@
 
 - **389개 Vue** 모두 현재 `<script>` (JS)
 - 전략: **도메인/폴더 단위**로 `<script lang="ts">` 변경 + 필요한 타입만 추가 (props, emit, ref 등)
-- 컴포넌트 타입은 가능하면 `src/system/schemas` 및 기존 TS 타입 재사용; 도메인 전용 타입은 해당 도메인 내부에만 정의
+- 컴포넌트 타입은 가능하면 `src/system/schemas`(Zod 추론 타입) 및 `src/system/types/`의 기존 타입을 재사용한다. **도메인 전용 타입이 필요하면 도메인 내부가 아닌 `system/types/`에 추가한 뒤, 해당 도메인에서만 import하여 사용한다.** (AGENTS 규칙: 타입·스키마·상수는 system에만 정의, 도메인 내부 types.ts 생성 금지)
 
 ### Phase 4: Engines (Tiptap 등)
 
@@ -144,7 +166,8 @@
 
 - **27개 JS**: Express 앱, routes, services, config
 - 서버 전용 `tsconfig.json` (또는 root include에 `server`) 및 `ts-node`/`esbuild` 등 실행 설정 필요
-- DB/설정 타입은 공유 가능하면 `src/system/schemas` 또는 공용 타입 패키지 참고
+- **스키마·타입 공유 (필수)**: 서버는 **반드시** `src/system/schemas`, `src/system/types`를 참조한다. DB 조회 결과 직렬화, API 응답 형식, 디바이스/센서 페이로드는 이 스키마로 검증·타입을 맞춘다. 서버 전용 `schemas/` 또는 `types/`를 `server/` 하위에 두지 않는다. (path alias로 `@system/schemas`, `@system/types` 또는 상대 경로로 `src` 의 system 계층 참조.)
+- DB/설정 관련 타입이 없으면 `system/types/` 또는 `system/schemas/`에 추가한 뒤 서버·프론트에서 공통 import
 
 ---
 
@@ -187,7 +210,7 @@ flowchart LR
 - **import 경로**: 기존 `./foo.js`는 `./foo` 또는 `./foo.ts`로 통일 (TS에서는 확장자 생략 관례)
 - **타입/스키마/상수**: 위 **프로젝트 규칙**에 따라 `system/types`, `system/schemas`, `system/constants` 에만 정의하고, 도메인에서는 참조만 함. 기존 TS 모듈의 타입은 필요 시 `system/types`로 이전 후 re-export
 - **strict 켜기**: 전 구역 전환 완료 후, `strict: true` / `noImplicitAny: true`를 단계적으로 적용하고 오류 나는 파일만 수정
-- **AGENTS.md**: system/frame/engines는 "계약 변경 없이 타입·확장자만 추가"로 해석하고, 도메인은 "한 번에 하나"만 수정
+- **AGENTS 규칙**: system/frame/engines는 "계약 변경 없이 타입·확장자만 추가"로 해석하고, 도메인은 "한 번에 하나"만 수정. 타입·스키마·상수는 `system/types`, `system/schemas`, `system/constants`에만 정의하고 도메인 내부 파일 생성 금지.
 
 ---
 
