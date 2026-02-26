@@ -80,7 +80,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { fetchArchives } from '../../../services/archiveApi.js'
+import { fetchArchives } from '../../../services/archiveApi'
 const tab = ref('docs')
 const navRef = ref(null)
 const isCompact = ref(false)

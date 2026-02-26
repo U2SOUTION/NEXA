@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { aiApi } from '../services/aiApi.js'
+import { aiApi } from '../services/aiApi'
 import { useAiSettings } from './useAiSettings.js'
 
 const models = ref([])

@@ -84,7 +84,7 @@ Dashboard, Read, Edit, Create 뷰 구현
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { fetchArchiveDetail, updateArchiveWithContent } from '@domains/archive/services/archiveApi.js'
+import { fetchArchiveDetail, updateArchiveWithContent } from '@domains/archive/services/archiveApi'
 import ArchiveStudioForm from '@domains/archive/components/ArchiveStudioForm.vue'
 
 const route = useRoute()

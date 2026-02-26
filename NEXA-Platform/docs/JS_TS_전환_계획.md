@@ -213,29 +213,39 @@ flowchart LR
 
 ---
 
-## 8. 작업 시 주의사항
+## 8. 전환 전략: Re-export 제거 환경 → 확장자 정리 → TS 최적화
 
-- **전환 시 기존 .js 제거**: `.js` → `.ts` 전환 시 **기존 .js 파일은 삭제**하고, re-export용 .js는 두지 않음. 문제(404·동적 import 실패)가 나면 그때그때 원인(import 경로에 `.js` 남은 곳 수정, Vite 캐시 삭제 등)을 해결해 빠르게 발견·수정함.
-- **import 경로**: 기존 `./foo.js`는 `./foo` 또는 `./foo.ts`로 통일 (TS에서는 확장자 생략 관례). 전환 전에 해당 모듈을 참조하는 모든 곳에서 확장자 제거 여부 확인.
-- **타입/스키마/상수**: 위 **프로젝트 규칙**에 따라 `system/types`, `system/schemas`, `system/constants` 에만 정의하고, 도메인에서는 참조만 함. 기존 TS 모듈의 타입은 필요 시 `system/types`로 이전 후 re-export
-- **strict 켜기**: 전 구역 전환 완료 후, `strict: true` / `noImplicitAny: true`를 단계적으로 적용하고 오류 나는 파일만 수정
-- **AGENTS 규칙**: system/frame/engines는 "계약 변경 없이 타입·확장자만 추가"로 해석하고, 도메인은 "한 번에 하나"만 수정. 타입·스키마·상수는 `system/types`, `system/schemas`, `system/constants`에만 정의하고 도메인 내부 파일 생성 금지.
+**목표**: re-export .js를 영구 정책으로 두지 않고, “re-export 없이 동작하는 환경”을 만든 뒤 **확장자 일괄 정리**만 하고, 이후 에너지는 **TS 최적화**에만 쓰는 흐름.
 
-### 8.1 Re-export .js 호환 레이어 (과거 전환분, 추후 정검)
+### 8.0 권장 흐름 (3단계)
 
-- **정책**: 신규 전환은 위대로 **기존 .js 제거, re-export .js 미사용**. 아래는 과거에 re-export로 둔 항목.
-- Phase 1 초기에 `apiBaseUrl`, `clipboard`, `domainRegistry` 등을 `.ts`로 전환한 뒤, Vite/캐시가 **`.js` URL**로 요청해 404가 나서 re-export .js를 둔 상태.
-- **현재 유지 중인 re-export .js** (실제 구현은 각각 `.ts`, .js는 re-export만):
-  - `src/system/utils/apiBaseUrl.js`
-  - `src/system/utils/clipboard.js`
-  - `src/frame/registry/domainRegistry.js`
-  - `src/system/composables/useFileSelection.js`
-  - `src/system/composables/useThemeManager.js`
-  - `src/system/store/userSettingsStore.js` (제거 시 404 재발하여 re-export 유지)
-  - `src/system/store/dashboardLayoutStore.js`
-  - `src/system/store/boardMenuStore.js`
-  - `src/system/store/devGuideStore.js`
-- **추후 정검**: 나중에 위 .js 제거 후, `node_modules/.vite` 삭제 + 개발 서버 재시작 + 브라우저 강력 새로고침으로 404 없이 동작하는지 재시도. 문제 없으면 re-export .js 제거하여 단일 진입점(.ts)만 유지. 제거 시 동일 404/동적 import 실패가 재발하면 re-export .js는 유지.
+1. **Re-export 없이 작동하는 환경 조성**
+   - **Vite 설정** (`quasar.config.js` → `extendViteConf`): `viteConf.resolve.extensions = ['.ts', '.tsx', '.mjs', '.js', '.mts', '.jsx', '.json']` 등으로 `.ts`를 `.js`보다 앞에 두면, 확장자 없는 import가 `.ts`를 우선 해석함.
+   - **선택 A**: 전체 코드베이스에서 `from '…/foo.js'` 형태를 `from '…/foo'`로 **일괄 치환** (권장). 이후 re-export .js 삭제 시 404 없음. (현재 src 내 `.js` 확장자 명시 import가 다수 있으므로, 치환 후 빌드/실행으로 검증.)
+   - **선택 B**: Vite 플러그인으로 `xxx.js` 요청 시 해당 .js 파일이 없으면 `xxx.ts`를 주는 fallback. (선택 A가 부담되면 검토.)
+2. **확장자 일괄 정리**
+   - 이미 구현이 .ts인 모듈에 대해 re-export용 .js 파일을 **한 번에 삭제**.
+   - 새로 전환할 때는 “기존 .js 삭제 + .ts만 두기”, re-export .js는 추가하지 않음.
+3. **이후: TS 최적화에만 에너지**
+   - 전환 작업 = “복사해서 .ts로 바꾸고 타입만 붙이기”가 아니라, **한 모듈씩** system 타입 정리·strict 강화·Zod 검증 등 **TS에 맞게 최적화**하는 쪽에 집중.
+
+이렇게 하면 re-export .js 유지 비용이 사라지고, 확장자 정리는 1회성으로 끝내고, 이후에는 품질(타입·검증·리팩터링) 개선에만 쓸 수 있음.
+
+### 8.1 작업 시 주의사항
+
+- **import 경로**: 가능한 한 **확장자 없음** (`./foo`). re-export 제거 환경에서는 `.ts`가 자동 해석됨.
+- **타입/스키마/상수**: `system/types`, `system/schemas`, `system/constants` 에만 정의하고, 도메인은 참조만 함.
+- **strict 켜기**: 전 구역 전환·정리 후 단계적으로 적용.
+- **AGENTS 규칙**: system/frame/engines는 계약 변경 없이 타입·확장자만 추가. 도메인은 한 번에 하나만 수정.
+
+### 8.2 Re-export .js 현황 (과거 전환분, 환경 조성 후 제거 대상)
+
+- **역할**: 과거에 `.ts`로 전환한 뒤 Vite/캐시가 `.js` URL로 요청해 404가 나서 둔 **임시 호환용** re-export .js.
+- **현재 유지 중인 re-export .js** (실제 구현은 .ts, .js는 re-export만):
+  - system: `apiBaseUrl.js`, `clipboard.js`, `useFileSelection.js`, `useThemeManager.js`, `userSettingsStore.js`, `dashboardLayoutStore.js`, `boardMenuStore.js`, `devGuideStore.js`
+  - frame: `domainRegistry.js`
+  - 도메인: panel `panelTypes.js`, ai `aiApi.js`, archive `archiveApi.js`, erp `erpStore.js`, settings `settingsStore.js`, parts(config·menuItems·contextMenu·viewModeSettings·partClassesFields·partClassesMenuConfig), dev(mermaidStyles·recentColorsManager·favoriteColorsManager·themeFileAnalyzer·themeVariableManager·mermaidStyleStorage·documentStorage) 등.
+- **제거 절차**: §8.0 1단계(환경 조성) 완료 후, import에서 `.js` 확장자 제거한 뒤 위 re-export .js 파일들을 삭제. `node_modules/.vite` 삭제 + 서버 재시작 + 강력 새로고침으로 404 여부 확인.
 
 ---
 
