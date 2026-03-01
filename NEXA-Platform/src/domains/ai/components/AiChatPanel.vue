@@ -67,7 +67,7 @@
           </div>
         </div>
         <input v-if="supportsVision" ref="fileInputRef" type="file" accept="image/png,image/jpeg,image/jpg" class="hidden" @change="handleFileSelect" />
-        <div class="chat-input-row row items-end no-wrap q-gutter-sm" @paste="handlePaste">
+        <div class="chat-input-row row items-end q-gutter-sm" @paste="handlePaste">
           <q-input
             v-model="inputText"
             type="textarea"
@@ -805,10 +805,30 @@ async function sendMessage() {
     }
   }
 
+  .chat-body {
+    container-type: inline-size;
+    container-name: chat-body;
+  }
+
+  .chat-input-row {
+    flex-wrap: wrap;
+  }
+
+  .chat-textarea {
+    flex: 1 1 180px;
+    min-width: 120px;
+  }
+
   .chat-model-select {
-    flex-shrink: 0;
+    flex: 0 0 150px;
     min-width: 140px;
     max-width: 200px;
+
+    /* 채팅창 폭이 360px 이하일 때 모델 셀렉트를 다음 줄로 */
+    @container chat-body (max-width: 360px) {
+      flex-basis: 100%;
+      max-width: none;
+    }
 
     .model-select-selected,
     .model-select-name,
