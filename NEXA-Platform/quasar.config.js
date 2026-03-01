@@ -143,7 +143,10 @@ export default defineConfig((/* ctx */) => {
 
       vitePlugins: [
         vitePluginPreferTsInSrc(),
-        monacoEditorPlugin({}),
+        monacoEditorPlugin({
+          // vite-plugin-monaco-editor 기본 지원 워커 (markdown/yaml은 별도 worker 미지원, 문법 하이라이트는 Monaco 기본 지원)
+          languageWorkers: ['editorWorkerService', 'typescript', 'json', 'css', 'html'],
+        }),
         [
           'vite-plugin-checker',
           {

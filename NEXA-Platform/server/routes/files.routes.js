@@ -262,14 +262,50 @@ router.get('/files/explorer/debug', async (req, res) => {
       'SELECT f.id, f.file_path, fr.domain FROM files f INNER JOIN file_references fr ON f.id = fr.file_id WHERE fr.domain = ? LIMIT 3',
       ['ai'],
     )
+    // 고아 파일: files에 있으나 file_references에 없는 레코드 (탐색기에 안 보이는 원인)
+    const [orphanedCount] = await pool.execute(
+      'SELECT COUNT(*) AS c FROM files f WHERE NOT EXISTS (SELECT 1 FROM file_references fr WHERE fr.file_id = f.id)',
+    )
+    const [orphanedSample] = await pool.execute(
+      'SELECT f.id, f.file_path, f.original_name, f.created_at FROM files f WHERE NOT EXISTS (SELECT 1 FROM file_references fr WHERE fr.file_id = f.id) ORDER BY f.created_at DESC LIMIT 10',
+    )
     res.json({
       files_total: filesCount[0]?.c ?? 0,
       file_references_total: refsCount[0]?.c ?? 0,
       joined_ai_count: joinedCount[0]?.c ?? 0,
       sample_rows: sample,
+      orphaned_files_count: orphanedCount[0]?.c ?? 0,
+      orphaned_sample: orphanedSample,
     })
   } catch (err) {
     console.error('[files/explorer/debug]', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/** POST /api/files/explorer/backfill-references - 고아 파일에 file_references 추가 (dev만) */
+router.post('/files/explorer/backfill-references', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') return res.status(404).json({ error: 'Not found' })
+  try {
+    const [orphaned] = await pool.execute(
+      `SELECT f.id, f.file_path FROM files f
+       WHERE NOT EXISTS (SELECT 1 FROM file_references fr WHERE fr.file_id = f.id)
+       AND f.file_path REGEXP '^uploads/[a-zA-Z0-9_-]+/'`,
+    )
+    let inserted = 0
+    for (const row of orphaned) {
+      const match = (row.file_path || '').match(/^uploads\/([a-zA-Z0-9_-]+)\//)
+      const domain = match ? match[1] : null
+      if (!domain) continue
+      const [insResult] = await pool.execute(
+        'INSERT IGNORE INTO file_references (file_id, domain) VALUES (?, ?)',
+        [row.id, domain],
+      )
+      if (insResult?.affectedRows > 0) inserted++
+    }
+    res.json({ orphaned_found: orphaned.length, inserted })
+  } catch (err) {
+    console.error('[files/explorer/backfill-references]', err)
     res.status(500).json({ error: err.message })
   }
 })

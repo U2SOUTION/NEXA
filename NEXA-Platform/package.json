@@ -13,12 +13,13 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "cross-env VITE_API_PORT=3001 quasar dev",
     "dev:server": "cd server && npm run dev",
-    "dev:all": "concurrently -n \"FRONTEND,API,BROWSER\" -c \"cyan,magenta,yellow\" \"npm run dev\" \"npm run dev:server\" \"wait-on http://localhost:9000 -t 60000 && node scripts/open-browser.js\"",
+    "dev:all": "npm run dev:kill-ports && concurrently -n \"FRONTEND,API,BROWSER\" -c \"cyan,magenta,yellow\" \"npm run dev\" \"npm run dev:server\" \"wait-on http://localhost:9000 -t 60000 && node scripts/open-browser.js\"",
     "start:server": "cd server && npm start",
     "start:all": "concurrently -n \"FRONTEND,API\" -c \"cyan,magenta\" \"npm run dev\" \"npm run start:server\"",
     "build": "quasar build",
     "postinstall": "quasar prepare",
-    "test:unit": "vitest"
+    "test:unit": "vitest",
+    "dev:kill-ports": "kill-port 3001 9000 9001"
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.20.0",
@@ -86,7 +87,8 @@
     "vite-plugin-monaco-editor": "^1.1.0",
     "vitest": "^4.0.16",
     "vue-tsc": "^2.1.10",
-    "wait-on": "^9.0.3"
+    "wait-on": "^9.0.3",
+    "kill-port": "^2.0.1"
   },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
