@@ -136,30 +136,12 @@
     </header>
 
     <!-- 구조: left | (center|right). 1번 splitter로 right를 함께 밀 수 있음 -->
-    <q-splitter
-      v-model="leftSplitModel"
-      unit="%"
-      :limits="leftVisible ? [SPLIT_LIMITS.minPct, SPLIT_LIMITS.maxPct] : [0, 0]"
-      :horizontal="false"
-      before-class="ai-splitter-pane"
-      after-class="ai-splitter-pane"
-      class="ai-split-main col"
-    >
+    <q-splitter v-model="leftSplitModel" unit="%" :limits="leftVisible ? [SPLIT_LIMITS.minPct, SPLIT_LIMITS.maxPct] : [0, 0]" :horizontal="false" before-class="ai-splitter-pane" after-class="ai-splitter-pane" class="ai-split-main col">
       <template #before>
         <div v-show="leftVisible" class="ai-split-area ai-split-left column">
-          <draggable
-            v-model="leftPanelIdsModel"
-            :item-key="(pid) => pid"
-            tag="div"
-            class="ai-area-tabs ai-tabs-draggable row no-wrap items-center"
-            @end="onLeftSortEnd"
-          >
+          <draggable v-model="leftPanelIdsModel" :item-key="(pid) => pid" tag="div" class="ai-area-tabs ai-tabs-draggable row no-wrap items-center" @end="onLeftSortEnd">
             <template #item="{ element: pid }">
-              <div
-                class="ai-draggable-tab"
-                :class="{ 'q-tab--active': leftPanelIds.indexOf(pid) === leftActiveIndex }"
-                @click="leftActiveIndex = leftPanelIds.indexOf(pid)"
-              >
+              <div class="ai-draggable-tab" :class="{ 'q-tab--active': leftPanelIds.indexOf(pid) === leftActiveIndex }" @click="leftActiveIndex = leftPanelIds.indexOf(pid)">
                 <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
                 <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
               </div>
@@ -173,30 +155,12 @@
         </div>
       </template>
       <template #after>
-        <q-splitter
-          v-model="centerSplitModel"
-          unit="%"
-          :limits="centerRightLimits"
-          :horizontal="false"
-          before-class="ai-splitter-pane"
-          after-class="ai-splitter-pane"
-          class="col"
-        >
+        <q-splitter v-model="centerSplitModel" unit="%" :limits="centerRightLimits" :horizontal="false" before-class="ai-splitter-pane" after-class="ai-splitter-pane" class="col">
           <template #before>
             <div v-show="centerVisible" class="ai-split-area ai-split-center column">
-              <draggable
-                v-model="centerPanelIdsModel"
-                :item-key="(pid) => pid"
-                tag="div"
-                class="ai-area-tabs ai-tabs-draggable row no-wrap items-center"
-                @end="onCenterSortEnd"
-              >
+              <draggable v-model="centerPanelIdsModel" :item-key="(pid) => pid" tag="div" class="ai-area-tabs ai-tabs-draggable row no-wrap items-center" @end="onCenterSortEnd">
                 <template #item="{ element: pid }">
-                  <div
-                    class="ai-draggable-tab"
-                    :class="{ 'q-tab--active': centerPanelIds.indexOf(pid) === centerActiveIndex }"
-                    @click="centerActiveIndex = centerPanelIds.indexOf(pid)"
-                  >
+                  <div class="ai-draggable-tab" :class="{ 'q-tab--active': centerPanelIds.indexOf(pid) === centerActiveIndex }" @click="centerActiveIndex = centerPanelIds.indexOf(pid)">
                     <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
                     <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
                   </div>
@@ -211,19 +175,9 @@
           </template>
           <template #after>
             <div v-show="rightVisible" class="ai-split-area ai-split-right column">
-              <draggable
-                v-model="rightPanelIdsModel"
-                :item-key="(pid) => pid"
-                tag="div"
-                class="ai-area-tabs ai-tabs-draggable row no-wrap items-center"
-                @end="onRightSortEnd"
-              >
+              <draggable v-model="rightPanelIdsModel" :item-key="(pid) => pid" tag="div" class="ai-area-tabs ai-tabs-draggable row no-wrap items-center" @end="onRightSortEnd">
                 <template #item="{ element: pid }">
-                  <div
-                    class="ai-draggable-tab"
-                    :class="{ 'q-tab--active': rightPanelIds.indexOf(pid) === rightActiveIndex }"
-                    @click="rightActiveIndex = rightPanelIds.indexOf(pid)"
-                  >
+                  <div class="ai-draggable-tab" :class="{ 'q-tab--active': rightPanelIds.indexOf(pid) === rightActiveIndex }" @click="rightActiveIndex = rightPanelIds.indexOf(pid)">
                     <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
                     <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
                   </div>
@@ -245,36 +199,26 @@
 <script setup>
 import { computed, watch } from 'vue'
 import draggable from 'vuedraggable'
-import {
-  leftPanelIds,
-  centerPanelIds,
-  rightPanelIds,
-  leftVisible,
-  centerVisible,
-  rightVisible,
-  leftSize,
-  centerSize,
-  rightSize,
-  leftActiveIndex,
-  centerActiveIndex,
-  rightActiveIndex,
-  applyPreset,
-  resetSplitSizes,
-  SPLIT_LIMITS,
-} from '../../composables/useAiSplitLayout'
+import { leftPanelIds, centerPanelIds, rightPanelIds, leftVisible, centerVisible, rightVisible, leftSize, centerSize, rightSize, leftActiveIndex, centerActiveIndex, rightActiveIndex, applyPreset, resetSplitSizes, SPLIT_LIMITS } from '../../composables/useAiSplitLayout'
 import { PANEL_LABELS, PANEL_ICONS, PANEL_COMPONENTS } from '../../config/aiPanelRegistry'
 
 const leftPanelIdsModel = computed({
   get: () => leftPanelIds.value,
-  set: (v) => { leftPanelIds.value = v },
+  set: (v) => {
+    leftPanelIds.value = v
+  },
 })
 const centerPanelIdsModel = computed({
   get: () => centerPanelIds.value,
-  set: (v) => { centerPanelIds.value = v },
+  set: (v) => {
+    centerPanelIds.value = v
+  },
 })
 const rightPanelIdsModel = computed({
   get: () => rightPanelIds.value,
-  set: (v) => { rightPanelIds.value = v },
+  set: (v) => {
+    rightPanelIds.value = v
+  },
 })
 
 function onLeftSortEnd(evt) {
@@ -447,6 +391,16 @@ watch(remaining, (rem) => {
   align-items: stretch;
 }
 
+/* 스플릿 구분선: nexa-secondary 테마 색상 */
+.ai-split-layout :deep(.q-splitter__separator),
+.ai-split-layout :deep(.q-splitter__separator-area) {
+  background-color: var(--nexa-secondary);
+  opacity: 0.2;
+}
+.ai-split-layout :deep(.q-splitter__separator-area) {
+  opacity: 0.08;
+}
+
 .ai-split-area {
   height: 100%;
   width: 100%;
@@ -477,7 +431,12 @@ watch(remaining, (rem) => {
   cursor: pointer;
   user-select: none;
   border-radius: 4px;
-  transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, outline 0.1s ease;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    outline 0.1s ease;
   flex: 1;
   min-width: 0;
   justify-content: center;
