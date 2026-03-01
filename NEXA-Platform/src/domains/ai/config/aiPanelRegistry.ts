@@ -8,6 +8,7 @@ import AiImageEditorPanel from '../components/AiImageEditorPanel.vue'
 import AiAudioEditorPanel from '../components/AiAudioEditorPanel.vue'
 import AiVideoEditorPanel from '../components/AiVideoEditorPanel.vue'
 import AiExplorerPanel from '../components/AiExplorerPanel.vue'
+import AiUniversalViewerPanel from '../components/AiUniversalViewerPanel.vue'
 
 export const PANEL_LABELS: Record<string, string> = {
   chat: '채팅',
@@ -16,6 +17,7 @@ export const PANEL_LABELS: Record<string, string> = {
   image: '이미지',
   audio: '음원',
   video: '영상',
+  viewer: '뷰어',
   explorer: '탐색기',
 }
 
@@ -26,6 +28,7 @@ export const PANEL_ICONS: Record<string, string> = {
   image: 'image',
   audio: 'graphic_eq',
   video: 'videocam',
+  viewer: 'visibility',
   explorer: 'folder_open',
 }
 
@@ -36,5 +39,6 @@ export const PANEL_COMPONENTS: Record<string, object> = {
   image: AiImageEditorPanel,
   audio: AiAudioEditorPanel,
   video: AiVideoEditorPanel,
+  viewer: AiUniversalViewerPanel,
   explorer: AiExplorerPanel,
 }

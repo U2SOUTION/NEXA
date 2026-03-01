@@ -64,28 +64,19 @@
         </div>
       </template>
       <template #after>
-        <q-splitter v-model="listPreviewSplitter" unit="px" :limits="[200, 800]" class="explorer-right row">
-          <template #before>
-            <div class="list-section column">
-              <q-tab-panels v-model="viewMode" animated class="col">
-                <q-tab-panel name="list" class="q-pa-none">
-                  <ExplorerViewList :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
-                </q-tab-panel>
-                <q-tab-panel name="table" class="q-pa-none">
-                  <ExplorerViewTable :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
-                </q-tab-panel>
-                <q-tab-panel name="card" class="q-pa-none">
-                  <ExplorerViewCard :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
-                </q-tab-panel>
-              </q-tab-panels>
-            </div>
-          </template>
-          <template #after>
-            <div class="preview-area column">
-              <ExplorerPreview :file="selectedFile" />
-            </div>
-          </template>
-        </q-splitter>
+        <div class="list-section column explorer-right">
+          <q-tab-panels v-model="viewMode" animated class="col">
+            <q-tab-panel name="list" class="q-pa-none">
+              <ExplorerViewList :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
+            </q-tab-panel>
+            <q-tab-panel name="table" class="q-pa-none">
+              <ExplorerViewTable :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
+            </q-tab-panel>
+            <q-tab-panel name="card" class="q-pa-none">
+              <ExplorerViewCard :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
+            </q-tab-panel>
+          </q-tab-panels>
+        </div>
       </template>
     </q-splitter>
   </div>
@@ -97,7 +88,6 @@ import ExplorerTree from './ExplorerTree.vue'
 import ExplorerViewList from './ExplorerViewList.vue'
 import ExplorerViewTable from './ExplorerViewTable.vue'
 import ExplorerViewCard from './ExplorerViewCard.vue'
-import ExplorerPreview from './ExplorerPreview.vue'
 import { useGlobalFileExplorer } from '@system/composables/useGlobalFileExplorer'
 import { useFileSelection } from '@system/composables/useFileSelection'
 import { getExpandedIdsForSelection } from '@system/utils/fileExplorer'
@@ -111,7 +101,6 @@ const props = defineProps({
 const emit = defineEmits(['select'])
 
 const splitterModel = ref(220)
-const listPreviewSplitter = ref(400)
 const viewMode = ref('list')
 const viewModeOptions = [
   { label: '목록', value: 'list', icon: 'list' },
@@ -293,12 +282,6 @@ onMounted(() => {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-}
-.preview-area {
-  min-width: 0;
-  min-height: 0;
-  width: 100%;
-  border-left: 1px solid var(--nexa-border-color);
 }
 
 // deep 사용 이유: Quasar QSplitter 구분선(separator) DOM 구조 접근 필요, 전용 래퍼 노출 불가

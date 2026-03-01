@@ -20,6 +20,7 @@
 import GlobalFileExplorer from '@system/components/ui/explorer/GlobalFileExplorer.vue'
 import { useFileSelection } from '@system/composables/useFileSelection'
 import { useAiExplorerSelection } from '../composables/useAiExplorerSelection'
+import { showPanel } from '../composables/useAiSplitLayout'
 
 const { selectedFile } = useFileSelection()
 const {
@@ -32,6 +33,8 @@ const {
 
 function onSelect() {
   // 선택은 useFileSelection에 이미 반영됨 (GlobalFileExplorer에서 setSelectedFile 호출)
+  // 파일 선택 시 뷰어 탭 자동 활성화
+  showPanel('viewer')
 }
 
 function injectToChat() {

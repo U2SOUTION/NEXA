@@ -10,10 +10,17 @@ const LAYOUT_KEY = 'nexa-ai-split-layout'
 export const SPLIT_LIMITS: { minPct: number; maxPct: number } = { minPct: 5, maxPct: 90 }
 
 const DEFAULT_LEFT = ['chat']
-const DEFAULT_CENTER = ['editor', 'code', 'image', 'audio', 'video']
+const DEFAULT_CENTER = ['viewer', 'editor', 'code', 'image', 'audio', 'video']
 const DEFAULT_RIGHT = ['explorer']
 
 const DEFAULT_SIZES = { left: 28, center: 44, right: 28 }
+
+/** 저장된 centerPanelIds에 새 기본 패널(viewer 등)이 없으면 맨 앞에 추가 */
+function migrateCenterPanelIds(saved: string[] | undefined): string[] {
+  const list = Array.isArray(saved) ? [...saved] : [...DEFAULT_CENTER]
+  const newDefaults = DEFAULT_CENTER.filter((id) => !list.includes(id))
+  return newDefaults.length ? [...newDefaults, ...list] : list
+}
 
 function loadLayout() {
   try {
@@ -22,7 +29,7 @@ function loadLayout() {
     const data = JSON.parse(raw)
     return {
       leftPanelIds: Array.isArray(data.leftPanelIds) ? data.leftPanelIds : DEFAULT_LEFT,
-      centerPanelIds: Array.isArray(data.centerPanelIds) ? data.centerPanelIds : DEFAULT_CENTER,
+      centerPanelIds: migrateCenterPanelIds(data.centerPanelIds),
       rightPanelIds: Array.isArray(data.rightPanelIds) ? data.rightPanelIds : DEFAULT_RIGHT,
       leftVisible: data.leftVisible !== false,
       centerVisible: data.centerVisible !== false,
@@ -153,7 +160,7 @@ export function applyPreset(preset: 'default' | 'code') {
     rightActiveIndex.value = 0
   } else if (preset === 'code') {
     leftPanelIds.value = ['chat']
-    centerPanelIds.value = ['code', 'editor', 'image', 'audio', 'video']
+    centerPanelIds.value = ['viewer', 'code', 'editor', 'image', 'audio', 'video']
     rightPanelIds.value = ['explorer']
     leftVisible.value = true
     centerVisible.value = true
