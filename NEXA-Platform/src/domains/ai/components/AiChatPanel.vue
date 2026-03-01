@@ -815,8 +815,14 @@ async function sendMessage() {
   }
 
   .chat-textarea {
-    flex: 1 1 180px;
+    flex: 1 1 0;
     min-width: 120px;
+
+    /* 모델 셀렉트가 다음 줄로 넘어갈 때: 전체 폭 사용, q-gutter-sm 우측 간격 제거 */
+    @container chat-body (max-width: 360px) {
+      flex-basis: 100%;
+      margin-right: 0 !important;
+    }
   }
 
   .chat-model-select {
