@@ -71,6 +71,17 @@ export default [
     }
   },
 
+  // Vue + TypeScript: *.vue 의 <script lang="ts"> 블록 파싱
+  {
+    files: [ 'src/**/*.vue' ],
+    languageOptions: {
+      parserOptions: {
+        parser: tsParser,
+        extraFileExtensions: [ '.vue' ]
+      }
+    }
+  },
+
   // TypeScript: *.ts 파싱 (Phase 0 — 권장 규칙은 warn으로, 점진적으로 error 전환)
   {
     files: [ 'src/**/*.ts' ],

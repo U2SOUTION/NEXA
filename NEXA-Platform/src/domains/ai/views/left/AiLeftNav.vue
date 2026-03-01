@@ -8,30 +8,45 @@
       <q-tab name="media" label="미디어" icon="photo_library" />
     </q-tabs>
 
-    <!-- 공유 검색 폼 (모든 탭에서 사용, useAiLeftToolbar 설정) -->
+    <!-- 통합 검색 폼 (채널/노트/미디어/파일) -->
     <div class="search-form q-pa-sm q-mx-sm q-mb-xs">
-      <q-input v-model="searchQuery" outlined dense :placeholder="searchPlaceholder" clearable>
-        <template #prepend>
-          <q-icon name="search" />
-        </template>
-        <template v-if="showSearchTargetMenu" #append>
-          <q-btn flat dense round size="sm" :icon="searchTargetIcon" class="search-target-btn" title="Search target">
-            <q-menu anchor="bottom end" self="top end" :offset="[0, 4]">
-              <q-list dense style="min-width: 120px">
-                <q-item v-for="opt in searchTargetOptions" :key="opt.value" clickable v-close-popup @click="opt.select?.()">
-                  <q-item-section avatar>
-                    <q-icon :name="opt.icon" size="18px" />
-                  </q-item-section>
-                  <q-item-section>{{ opt.label }}</q-item-section>
-                  <q-item-section side v-if="opt.isActive">
-                    <q-icon name="check" size="16px" color="primary" />
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-btn>
-        </template>
-      </q-input>
+      <div class="search-row row q-gutter-xs">
+        <q-input :model-value="unifiedSearch.searchQuery.value" outlined dense :placeholder="unifiedSearchPlaceholder" clearable class="col" debounce="300" @update:model-value="unifiedSearch.setSearchQuery">
+          <template #prepend>
+            <q-icon name="search" />
+          </template>
+          <template #append>
+            <q-btn flat dense round size="sm" :icon="unifiedSearchTargetIcon" class="search-target-btn" title="검색 대상">
+              <q-menu anchor="bottom end" self="top end" :offset="[0, 4]">
+                <q-list dense style="min-width: 120px">
+                  <q-item v-for="opt in SEARCH_TARGET_OPTIONS" :key="opt.value" clickable v-close-popup @click="unifiedSearch.setSearchTarget(opt.value)">
+                    <q-item-section avatar>
+                      <q-icon :name="opt.icon" size="18px" />
+                    </q-item-section>
+                    <q-item-section>{{ opt.label }}</q-item-section>
+                    <q-item-section side v-if="unifiedSearch.searchTarget.value === opt.value">
+                      <q-icon name="check" size="16px" color="primary" />
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </template>
+        </q-input>
+      </div>
+      <!-- 타겟별 필터 (2행) -->
+      <div v-if="unifiedSearch.searchTarget.value === 'chat'" class="filter-row row q-mt-xs q-gutter-xs items-center">
+        <span class="text-caption text-grey-7">범위:</span>
+        <q-btn-toggle :model-value="unifiedSearch.chatSearchTarget.value" toggle-color="primary" dense no-caps size="sm" :options="chatFilterOptions" @update:model-value="unifiedSearch.setChatSearchTarget" />
+      </div>
+      <div v-else-if="unifiedSearch.searchTarget.value === 'files'" class="filter-row row q-mt-xs q-gutter-xs items-center wrap">
+        <q-select :model-value="fileFilters.sortBy" dense outlined emit-value map-options options-dense :options="FILE_SORT_OPTIONS" class="filter-select" style="min-width: 100px" @update:model-value="(v) => unifiedSearch.setFileFilter({ sortBy: v })" />
+        <q-select :model-value="fileFilters.filterCategory" dense outlined emit-value map-options options-dense :options="FILE_CATEGORY_OPTIONS" class="filter-select" style="min-width: 90px" @update:model-value="(v) => unifiedSearch.setFileFilter({ filterCategory: v })" />
+        <q-select :model-value="fileFilters.scopeDomain" dense outlined emit-value map-options options-dense :options="fileDomainOptions" class="filter-select" style="min-width: 90px" @update:model-value="onFileScopeChange" />
+        <q-btn flat dense round size="sm" icon="refresh" @click="fileExplorer.refreshList()">
+          <q-tooltip>새로고침</q-tooltip>
+        </q-btn>
+      </div>
     </div>
 
     <!-- 미디어 탭 업로더 (툴바 위에 배치 → 툴바가 리스트와 가깝게) -->
@@ -344,8 +359,8 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
 import { Notify } from 'quasar'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
@@ -354,6 +369,14 @@ import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 import { useAiChannels } from '../../composables/useAiChannels'
 import { useAiAssets } from '../../composables/useAiAssets'
 import { useAiLeftToolbar } from '../../composables/useAiLeftToolbar'
+import {
+  useAiUnifiedSearch,
+  registerChannelsSync,
+  SEARCH_TARGET_OPTIONS,
+  CHAT_SEARCH_TARGET_OPTIONS,
+  FILE_SORT_OPTIONS,
+  FILE_CATEGORY_OPTIONS,
+} from '../../composables/useAiUnifiedSearch'
 import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings'
 import { useAiMemos } from '../../composables/useAiMemos'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
@@ -462,6 +485,43 @@ function formatMemoDate(ts) {
   return isToday ? d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
 }
 
+const unifiedSearch = useAiUnifiedSearch()
+const fileFilters = unifiedSearch.fileFiltersRefs
+const fileExplorer = unifiedSearch.fileExplorer
+
+const unifiedSearchPlaceholder = computed(() => {
+  const t = unifiedSearch.searchTarget.value
+  const labels = { chat: '채널·대화 검색', note: '메모 검색', media: '미디어 검색', files: '파일 검색' }
+  return labels[t] || '검색'
+})
+
+const unifiedSearchTargetIcon = computed(() => {
+  const v = unifiedSearch.searchTarget.value
+  return SEARCH_TARGET_OPTIONS.find((o) => o.value === v)?.icon ?? 'search'
+})
+
+const chatFilterOptions = CHAT_SEARCH_TARGET_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
+
+const fileDomainOptions = computed(() => {
+  const options = [{ value: '', label: '전체' }]
+  const nodes = fileExplorer.treeNodes.value || []
+  for (const n of nodes) {
+    if (n.domain) options.push({ value: n.domain, label: n.domain })
+  }
+  return options
+})
+
+function onFileScopeChange(val: string) {
+  unifiedSearch.setFileFilter({ scopeDomain: val })
+  if (val) {
+    const node = fileExplorer.treeNodes.value?.find((n: { domain?: string }) => n.domain === val)
+    if (node) fileExplorer.selectNode(node)
+  } else {
+    const first = fileExplorer.treeNodes.value?.[0]
+    if (first) fileExplorer.selectNode(first)
+  }
+}
+
 const {
   channels,
   selectedChannelId,
@@ -517,7 +577,14 @@ const showDeleteConfirm = ref(false)
 const deleteConfirmMessage = ref('')
 let deleteConfirmAction = null
 
+watch(() => unifiedSearch.searchTarget.value, (t) => {
+  if (t === 'files' && (!fileExplorer.treeNodes.value || fileExplorer.treeNodes.value.length === 0)) {
+    fileExplorer.loadTree()
+  }
+}, { immediate: true })
+
 onMounted(async () => {
+  registerChannelsSync(searchQuery, searchTarget)
   init()
   if (channels.value.length > 0 && !selectedChannelId.value) {
     selectChannel(channels.value[0].id)
@@ -663,7 +730,7 @@ const toolbarCtx = {
   handleMediaMoveUp: aiAssets.handleMediaMoveUp,
   handleMediaMoveDown: aiAssets.handleMediaMoveDown,
 }
-const { toolbarItems, toolbarLabel, searchPlaceholder, showSearchTargetMenu, searchTargetOptions, searchTargetIcon } = useAiLeftToolbar(toolbarCtx)
+const { toolbarItems, toolbarLabel } = useAiLeftToolbar(toolbarCtx)
 
 function onWebcamToggle(on) {
   webcamOn.value = on
@@ -887,6 +954,16 @@ function onWebcamCapture(dataUrl) {
     border: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.12));
     border-radius: 4px;
 
+    .search-row {
+      min-width: 0;
+    }
+    .filter-row {
+      min-width: 0;
+    }
+    .filter-select {
+      flex: 0 1 auto;
+      min-width: 0;
+    }
     .search-target-btn {
       margin-right: -4px;
     }
