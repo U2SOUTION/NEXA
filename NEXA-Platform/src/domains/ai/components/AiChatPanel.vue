@@ -9,107 +9,107 @@
     <template v-else>
       <div class="chat-main row no-wrap" :class="{ 'chat-main--with-outline': outlineEnabled }">
         <div class="chat-body column col">
-      <div class="chat-messages col scroll" ref="messagesRef">
-        <template v-if="messages.length === 0">
-          <div class="empty-state-welcome-wrapper">
-            <div class="empty-state-welcome q-pa-lg text-center">
-              <div class="welcome-main-title q-mb-lg">NEXA AI Platform</div>
-              <div class="welcome-header q-mb-lg">
-                <q-icon name="smart_toy" size="72px" class="q-mb-sm" />
-                <div class="text-h6 q-mb-xs">AI와 대화를 시작해 보세요</div>
-                <div class="text-body2 text-grey-7">메시지를 입력하고 Enter를 누르면 AI가 답변합니다.</div>
-                <div class="text-body2 text-grey-7">Ctrl + Enter를 누르면 새 줄을 추가합니다.</div>
+          <div class="chat-messages col scroll" ref="messagesRef">
+            <template v-if="messages.length === 0">
+              <div class="empty-state-welcome-wrapper">
+                <div class="empty-state-welcome q-pa-lg text-center">
+                  <div class="welcome-main-title q-mb-lg">NEXA AI Platform</div>
+                  <div class="welcome-header q-mb-lg">
+                    <q-icon name="smart_toy" size="72px" class="q-mb-sm" />
+                    <div class="text-h6 q-mb-xs">AI와 대화를 시작해 보세요</div>
+                    <div class="text-body2 text-grey-7">메시지를 입력하고 Enter를 누르면 AI가 답변합니다.</div>
+                    <div class="text-body2 text-grey-7">Ctrl + Enter를 누르면 새 줄을 추가합니다.</div>
+                  </div>
+                  <div class="welcome-guide q-mb-lg">
+                    <div class="text-subtitle2 q-mb-sm">안내</div>
+                    <ul class="welcome-guide-list text-body2 text-grey-7">
+                      <li>첫 메시지가 대화 제목으로 저장됩니다</li>
+                      <li>질문이나 요청을 자연스럽게 입력하세요</li>
+                      <li v-if="supportsVision">이미지를 첨부해 분석을 요청할 수 있습니다</li>
+                    </ul>
+                  </div>
+                  <div class="example-prompts">
+                    <div class="text-caption text-grey-6 q-mb-sm">예시:</div>
+                    <div class="example-prompts-buttons">
+                      <q-btn outline dense size="sm" label="오늘 날씨에 대해 알려줘" @click="fillExample('오늘 날씨에 대해 알려줘')" />
+                      <q-btn outline dense size="sm" label="코드 리뷰 해줘" @click="fillExample('코드 리뷰 해줘')" />
+                      <q-btn v-if="supportsVision" outline dense size="sm" label="이 이미지를 분석해줘" @click="fillExample('이 이미지를 분석해줘')" />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="welcome-guide q-mb-lg">
-                <div class="text-subtitle2 q-mb-sm">안내</div>
-                <ul class="welcome-guide-list text-body2 text-grey-7">
-                  <li>첫 메시지가 대화 제목으로 저장됩니다</li>
-                  <li>질문이나 요청을 자연스럽게 입력하세요</li>
-                  <li v-if="supportsVision">이미지를 첨부해 분석을 요청할 수 있습니다</li>
-                </ul>
+            </template>
+            <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
+              <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]" :data-msg-idx="idx">
+                <div class="message-bubble" :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content }" @contextmenu.prevent="msg.role === 'assistant' && msg.content ? onMessageContextMenu($event, msg) : null">
+                  <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
+                    <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
+                  </div>
+                  <template v-if="msg.content">
+                    <div v-if="msg.role === 'assistant'" class="markdown-content chat-markdown" v-html="parseMarkdown(msg.content, '', {})"></div>
+                    <span v-else>{{ msg.content }}</span>
+                  </template>
+                </div>
               </div>
-              <div class="example-prompts">
-                <div class="text-caption text-grey-6 q-mb-sm">예시:</div>
-                <div class="example-prompts-buttons">
-                  <q-btn outline dense size="sm" label="오늘 날씨에 대해 알려줘" @click="fillExample('오늘 날씨에 대해 알려줘')" />
-                  <q-btn outline dense size="sm" label="코드 리뷰 해줘" @click="fillExample('코드 리뷰 해줘')" />
-                  <q-btn v-if="supportsVision" outline dense size="sm" label="이 이미지를 분석해줘" @click="fillExample('이 이미지를 분석해줘')" />
+              <div v-if="isLoading" class="message-row assistant">
+                <div class="message-bubble message-loading">
+                  <q-spinner-dots color="primary" size="28px" />
+                  <span class="loading-text">응답을 기다리는 중...</span>
                 </div>
               </div>
             </div>
           </div>
-        </template>
-        <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
-          <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]" :data-msg-idx="idx">
-            <div class="message-bubble" :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content }" @contextmenu.prevent="msg.role === 'assistant' && msg.content ? onMessageContextMenu($event, msg) : null">
-              <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
-                <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
+          <div class="chat-input q-pa-md flex-shrink">
+            <div v-if="supportsVision && attachedImages.length > 0" class="attached-images row q-gutter-xs q-mb-sm">
+              <div v-for="(img, i) in attachedImages" :key="i" class="attached-image-thumb">
+                <img :src="img.dataUrl || getUploadDisplayUrl(img.file_path) || img.url" alt="첨부" />
+                <q-btn round dense flat size="sm" icon="close" class="thumb-remove" @click="removeAttachedImage(i)" />
               </div>
-              <template v-if="msg.content">
-                <div v-if="msg.role === 'assistant'" class="markdown-content chat-markdown" v-html="parseMarkdown(msg.content, '', {})"></div>
-                <span v-else>{{ msg.content }}</span>
-              </template>
             </div>
-          </div>
-          <div v-if="isLoading" class="message-row assistant">
-            <div class="message-bubble message-loading">
-              <q-spinner-dots color="primary" size="28px" />
-              <span class="loading-text">응답을 기다리는 중...</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="chat-input q-pa-md flex-shrink">
-        <div v-if="supportsVision && attachedImages.length > 0" class="attached-images row q-gutter-xs q-mb-sm">
-          <div v-for="(img, i) in attachedImages" :key="i" class="attached-image-thumb">
-            <img :src="img.dataUrl || getUploadDisplayUrl(img.file_path) || img.url" alt="첨부" />
-            <q-btn round dense flat size="sm" icon="close" class="thumb-remove" @click="removeAttachedImage(i)" />
-          </div>
-        </div>
-        <input v-if="supportsVision" ref="fileInputRef" type="file" accept="image/png,image/jpeg,image/jpg" class="hidden" @change="handleFileSelect" />
-        <div class="chat-input-row row items-end q-gutter-sm" @paste="handlePaste">
-          <q-input
-            v-model="inputText"
-            type="textarea"
-            outlined
-            dense
-            autogrow
-            :rows="1"
-            :placeholder="supportsVision ? '메시지 입력... (이미지 붙여넣기 가능, Enter 전송)' : '메시지 입력... (Enter 전송, Shift+Enter 새 줄)'"
-            class="chat-textarea col"
-            :style="{ '--chat-max-rows': Math.min(20, Math.max(2, chatInputMaxRows ?? 8)) }"
-            @keydown.enter.exact.prevent="sendMessage"
-          >
-            <template #append>
-              <q-btn v-if="supportsVision" round dense flat icon="image" title="이미지 첨부" @click="triggerFileSelect" />
-              <q-btn round dense flat icon="send" :disable="!canSend" @click="sendMessage" />
-            </template>
-          </q-input>
-          <q-select v-model="selectedModel" :options="models" outlined dense hide-bottom-space option-value="name" option-label="name" emit-value map-options class="chat-model-select" :loading="isLoadingModels" @focus="loadModels">
-            <template #selected>
-              <span v-if="selectedModel" class="model-select-selected row items-center no-wrap">
-                <span class="model-select-name">{{ formatModelDisplayName(selectedModel) }}</span>
-                <span v-if="getCapabilityIcons(selectedModel).length" class="model-capability-icons q-ml-xs">
-                  <q-icon v-for="item in getCapabilityIcons(selectedModel)" :key="item.icon" :name="item.icon" size="16px" class="q-mr-xs" :title="item.title" />
-                </span>
-              </span>
-              <span v-else class="model-select-placeholder">모델</span>
-            </template>
-            <template #option="scope">
-              <q-item v-bind="scope.itemProps">
-                <q-item-section>
-                  <q-item-label>{{ formatModelDisplayName(scope.opt.name) }}</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <span class="model-capability-icons">
-                    <q-icon v-for="item in getCapabilityIcons(scope.opt.name)" :key="item.icon" :name="item.icon" size="16px" class="q-mr-xs" :title="item.title" />
+            <input v-if="supportsVision" ref="fileInputRef" type="file" accept="image/png,image/jpeg,image/jpg" class="hidden" @change="handleFileSelect" />
+            <div class="chat-input-row row items-end" @paste="handlePaste">
+              <q-input
+                v-model="inputText"
+                type="textarea"
+                outlined
+                dense
+                autogrow
+                :rows="1"
+                :placeholder="supportsVision ? '메시지 입력... (이미지 붙여넣기 가능, Enter 전송)' : '메시지 입력... (Enter 전송, Shift+Enter 새 줄)'"
+                class="chat-textarea col"
+                :style="{ '--chat-max-rows': Math.min(20, Math.max(2, chatInputMaxRows ?? 8)) }"
+                @keydown.enter.exact.prevent="sendMessage"
+              >
+                <template #append>
+                  <q-btn v-if="supportsVision" round dense flat icon="image" title="이미지 첨부" @click="triggerFileSelect" />
+                  <q-btn round dense flat icon="send" :disable="!canSend" @click="sendMessage" />
+                </template>
+              </q-input>
+              <q-select v-model="selectedModel" :options="models" outlined dense hide-bottom-space option-value="name" option-label="name" emit-value map-options class="chat-model-select" :loading="isLoadingModels" @focus="loadModels">
+                <template #selected>
+                  <span v-if="selectedModel" class="model-select-selected row items-center no-wrap">
+                    <span class="model-select-name">{{ formatModelDisplayName(selectedModel) }}</span>
+                    <span v-if="getCapabilityIcons(selectedModel).length" class="model-capability-icons q-ml-xs">
+                      <q-icon v-for="item in getCapabilityIcons(selectedModel)" :key="item.icon" :name="item.icon" size="16px" class="q-mr-xs" :title="item.title" />
+                    </span>
                   </span>
-                </q-item-section>
-              </q-item>
-            </template>
-          </q-select>
-        </div>
-      </div>
+                  <span v-else class="model-select-placeholder">모델</span>
+                </template>
+                <template #option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section>
+                      <q-item-label>{{ formatModelDisplayName(scope.opt.name) }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <span class="model-capability-icons">
+                        <q-icon v-for="item in getCapabilityIcons(scope.opt.name)" :key="item.icon" :name="item.icon" size="16px" class="q-mr-xs" :title="item.title" />
+                      </span>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+            </div>
+          </div>
         </div>
         <template v-if="outlineEnabled && outlineDisplayMode === 'push'">
           <div class="chat-outline chat-outline--push" :style="{ '--outline-width': `${outlinePanelWidth}px` }">
@@ -176,7 +176,22 @@ import { useAiMemos } from '../composables/useAiMemos'
 
 const aiInsertContent = inject('aiInsertContent', null)
 const { addMemo } = useAiMemos()
-const { selectedModel, selectedModelCapabilities, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, pendingWebcamCapture, pendingAttachmentsFromGallery, modelCapabilities, outlineEnabled, outlineDisplayMode, outlinePanelWidth } = useAiSettings()
+const {
+  selectedModel,
+  selectedModelCapabilities,
+  chatMode,
+  chatInputMaxRows,
+  chatFontSize,
+  chatMessageMaxLength,
+  titleSuggestionMinTurns,
+  titleSuggestionMaxTurnsForContext,
+  pendingWebcamCapture,
+  pendingAttachmentsFromGallery,
+  modelCapabilities,
+  outlineEnabled,
+  outlineDisplayMode,
+  outlinePanelWidth,
+} = useAiSettings()
 const { models, isLoadingModels, loadModels } = useAiModels()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
@@ -394,9 +409,13 @@ function onMessageContextMenu(event, msg) {
       id: 'add-to-memo',
       label: '메모로 추가',
       icon: 'sticky_note_2',
-      action: () => {
-        addMemo(content, 'chat')
-        Notify.create({ message: '메모에 추가되었습니다.', icon: 'sticky_note_2' })
+      action: async () => {
+        try {
+          await addMemo(content, 'chat', selectedChannelId.value, selectedChatId.value)
+          Notify.create({ message: '메모에 추가되었습니다.', icon: 'sticky_note_2' })
+        } catch (e) {
+          Notify.create({ type: 'negative', message: e?.message || '메모 추가 실패' })
+        }
       },
     },
     ...(aiInsertContent
@@ -812,16 +831,16 @@ async function sendMessage() {
 
   .chat-input-row {
     flex-wrap: wrap;
+    gap: 8px;
   }
 
   .chat-textarea {
     flex: 1 1 0;
     min-width: 120px;
 
-    /* 모델 셀렉트가 다음 줄로 넘어갈 때: 전체 폭 사용, q-gutter-sm 우측 간격 제거 */
+    /* 모델 셀렉트가 다음 줄로 넘어갈 때 전체 폭 사용 */
     @container chat-body (max-width: 360px) {
       flex-basis: 100%;
-      margin-right: 0 !important;
     }
   }
 

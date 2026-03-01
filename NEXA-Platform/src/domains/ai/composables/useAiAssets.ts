@@ -104,6 +104,25 @@ export function useAiAssets(category = null) {
     return documents
   }
 
+  /** 탐색기에서 선택한 파일을 AI 미디어 리스트에 추가 (POST /files/:id/reference) */
+  async function addFileToMedia(file) {
+    const fileId = file?.id
+    const cat = file?.category || inferCategory({ file_type: file?.file_type })
+    if (!fileId) throw new Error('파일 ID가 필요합니다.')
+    const base = getApiBaseUrl()
+    const res = await fetch(`${base}/files/${fileId}/reference`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: DOMAIN }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      if (err?.code === 'NOT_FOUND') throw new Error('파일을 찾을 수 없습니다.')
+      throw new Error(err?.error || `미디어 추가 실패 (${res.status})`)
+    }
+    await loadCategory(cat)
+  }
+
   async function removeAsset(id, cat) {
     const target = getTargetRef(cat)
     const base = getApiBaseUrl()
@@ -192,6 +211,7 @@ export function useAiAssets(category = null) {
     loadCategory,
     uploadFile,
     addAsset,
+    addFileToMedia,
     removeAsset,
     moveAsset,
     selectedMediaItem,

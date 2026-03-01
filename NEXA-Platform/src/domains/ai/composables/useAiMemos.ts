@@ -1,83 +1,133 @@
+/**
+ * useAiMemos - AI 도메인 사용자 메모 (ai_user_memos 테이블)
+ * 채팅 "메모로 추가" → DB 저장
+ */
 import { ref } from 'vue'
+import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
-const STORAGE_KEY = 'nexa-ai-memos'
+const memos = ref<Array<{
+  id: number
+  content: string
+  source: string
+  channelId?: string | null
+  chatId?: string | null
+  sortOrder?: number
+  createdAt: number | null
+  updatedAt?: number | null
+}>>([])
 
-function loadFromStorage() {
+async function loadMemos() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const data = JSON.parse(raw)
-    return Array.isArray(data) ? data : []
-  } catch {
-    return []
+    const base = getApiBaseUrl()
+    const res = await fetch(`${base}/ai-user-memos`)
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.error || '목록 조회 실패')
+    const items = data?.items ?? []
+    memos.value = Array.isArray(items) ? items : []
+  } catch (err) {
+    console.error('[useAiMemos] loadMemos 실패:', err)
+    memos.value = []
   }
 }
 
-function saveToStorage(items) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
-  } catch (e) {
-    console.error('[useAiMemos] 저장 실패:', e)
-  }
-}
-
-function genId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2)
-}
-
-const memos = ref([])
-
-function addMemo(content, source = 'chat') {
+async function addMemo(
+  content: string,
+  source = 'chat',
+  channelId?: string | null,
+  chatId?: string | null,
+) {
   if (!content || typeof content !== 'string') return null
   const trimmed = content.trim()
   if (!trimmed) return null
-  const item = {
-    id: genId(),
-    content: trimmed,
-    source,
-    createdAt: Date.now(),
+  try {
+    const base = getApiBaseUrl()
+    const res = await fetch(`${base}/ai-user-memos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: trimmed,
+        source,
+        channel_id: channelId ?? null,
+        chat_id: chatId ?? null,
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.error || '추가 실패')
+    const item = {
+      id: data.id,
+      content: data.content ?? trimmed,
+      source: data.source ?? source,
+      channelId: data.channelId ?? channelId,
+      chatId: data.chatId ?? chatId,
+      sortOrder: data.sortOrder ?? 0,
+      createdAt: data.createdAt ?? Date.now(),
+      updatedAt: data.updatedAt ?? null,
+    }
+    memos.value = [item, ...memos.value]
+    return item
+  } catch (err) {
+    console.error('[useAiMemos] addMemo 실패:', err)
+    throw err
   }
-  memos.value = [item, ...memos.value]
-  saveToStorage(memos.value)
-  return item
 }
 
-function removeMemo(id) {
-  memos.value = memos.value.filter((m) => m.id !== id)
-  saveToStorage(memos.value)
+async function removeMemo(id: number) {
+  try {
+    const base = getApiBaseUrl()
+    const res = await fetch(`${base}/ai-user-memos/${id}`, { method: 'DELETE' })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.error || '삭제 실패')
+    memos.value = memos.value.filter((m) => m.id !== id)
+  } catch (err) {
+    console.error('[useAiMemos] removeMemo 실패:', err)
+    throw err
+  }
 }
 
-function moveMemoUp(id) {
-  const idx = memos.value.findIndex((m) => m.id === id)
-  if (idx <= 0) return
-  const arr = [...memos.value]
-  ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
-  memos.value = arr
-  saveToStorage(memos.value)
+async function moveMemoUp(id: number) {
+  try {
+    const base = getApiBaseUrl()
+    const res = await fetch(`${base}/ai-user-memos/${id}/move`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction: 'up' }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.error || '이동 실패')
+    await loadMemos()
+  } catch (err) {
+    console.error('[useAiMemos] moveMemoUp 실패:', err)
+    throw err
+  }
 }
 
-function moveMemoDown(id) {
-  const idx = memos.value.findIndex((m) => m.id === id)
-  if (idx < 0 || idx >= memos.value.length - 1) return
-  const arr = [...memos.value]
-  ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
-  memos.value = arr
-  saveToStorage(memos.value)
+async function moveMemoDown(id: number) {
+  try {
+    const base = getApiBaseUrl()
+    const res = await fetch(`${base}/ai-user-memos/${id}/move`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction: 'down' }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.error || '이동 실패')
+    await loadMemos()
+  } catch (err) {
+    console.error('[useAiMemos] moveMemoDown 실패:', err)
+    throw err
+  }
 }
 
-function getMemoPreview(content, maxLen = 60) {
+function getMemoPreview(content: string, maxLen = 60) {
   if (!content || typeof content !== 'string') return ''
   const text = content.replace(/\s+/g, ' ').trim()
   return text.length <= maxLen ? text : text.slice(0, maxLen) + '...'
 }
 
 export function useAiMemos() {
-  if (memos.value.length === 0) {
-    const loaded = loadFromStorage()
-    if (loaded.length > 0) memos.value = loaded
-  }
   return {
     memos,
+    loadMemos,
     addMemo,
     removeMemo,
     moveMemoUp,

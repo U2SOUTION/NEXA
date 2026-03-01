@@ -53,7 +53,11 @@
             <div v-else class="text-grey-6 text-center q-pa-md">재생할 수 있는 주소가 없습니다.</div>
           </div>
         </template>
-        <!-- 문서/마크다운/가상 시뮬레이션 등 확장 예정 -->
+        <template v-else-if="isPdf">
+          <iframe v-if="previewUrl" :src="previewUrl" class="universal-viewer-iframe" title="PDF 미리보기" />
+          <div v-else class="text-grey-6 text-center q-pa-md">미리보기를 불러올 수 없습니다.</div>
+        </template>
+        <!-- 문서/마크다운 등 확장 예정 -->
         <div v-else class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">
           준비중
         </div>
@@ -93,6 +97,12 @@ const isAudio = computed(() => {
 const isVideo = computed(() => {
   const t = (props.file?.file_type || props.file?.category || '').toLowerCase()
   return t === 'video'
+})
+
+const isPdf = computed(() => {
+  const t = (props.file?.file_type || props.file?.category || '').toLowerCase()
+  const name = (props.file?.original_name || props.file?.file_path || '').toLowerCase()
+  return t === 'pdf' || name.endsWith('.pdf')
 })
 
 const previewUrl = computed(() => {
@@ -173,5 +183,11 @@ watch(
   max-width: 100%;
   width: 100%;
   flex-shrink: 0;
+}
+.universal-viewer-iframe {
+  width: 100%;
+  min-height: 400px;
+  flex: 1;
+  border: none;
 }
 </style>

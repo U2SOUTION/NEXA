@@ -325,12 +325,12 @@ router.get('/files/explorer', async (req, res) => {
 
     const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`
 
-    const conditions = []
+    const conditions = ['(f.deleted_at IS NULL)']
     const params = []
 
     if (domain) {
-      conditions.push('fr.domain = ?')
-      params.push(domain)
+      conditions.push('f.file_path LIKE ?')
+      params.push(`uploads/${domain}/%`)
     }
     if (domain && pathPrefix && String(pathPrefix).trim()) {
       const folderPrefix = `uploads/${domain}/${pathPrefix}/`
@@ -356,12 +356,11 @@ router.get('/files/explorer', async (req, res) => {
       params.push(likeVal, likeVal)
     }
 
-    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+    const whereClause = `WHERE ${conditions.join(' AND ')}`
 
     const countQuery = `
       SELECT COUNT(*) AS total
       FROM files f
-      INNER JOIN file_references fr ON f.id = fr.file_id
       ${whereClause}
     `
     const [countRows] = await pool.execute(countQuery, params)
@@ -372,28 +371,31 @@ router.get('/files/explorer', async (req, res) => {
     }
 
     const listQuery = `
-      SELECT f.id, f.file_path, f.original_name, f.file_type, f.category, f.file_size, f.source, f.edge_sid, f.created_at, fr.domain
+      SELECT f.id, f.file_path, f.original_name, f.file_type, f.category, f.file_size, f.source, f.edge_sid, f.created_at
       FROM files f
-      INNER JOIN file_references fr ON f.id = fr.file_id
       ${whereClause}
       ORDER BY f.created_at DESC
       LIMIT ${limitInt} OFFSET ${offsetInt}
     `
     const [rows] = await pool.execute(listQuery, params)
 
-    const items = rows.map((r) => ({
-      id: r.id,
-      file_path: r.file_path,
-      original_name: r.original_name,
-      file_type: r.file_type,
-      category: r.category,
-      file_size: r.file_size,
-      domain: r.domain,
-      source: r.source ?? null,
-      edge_sid: r.edge_sid ?? null,
-      created_at: r.created_at,
-      url: `${baseUrl}/uploads/${r.file_path.replace(/^uploads\//, '')}`.replace(/\/+/g, '/'),
-    }))
+    const items = rows.map((r) => {
+      const fp = r.file_path || ''
+      const domainFromPath = fp.startsWith('uploads/') ? fp.split('/')[1] || null : null
+      return {
+        id: r.id,
+        file_path: fp,
+        original_name: r.original_name,
+        file_type: r.file_type,
+        category: r.category,
+        file_size: r.file_size,
+        domain: domainFromPath,
+        source: r.source ?? null,
+        edge_sid: r.edge_sid ?? null,
+        created_at: r.created_at,
+        url: `${baseUrl}/uploads/${fp.replace(/^uploads\//, '')}`.replace(/\/+/g, '/'),
+      }
+    })
 
     res.json({ items, total })
   } catch (error) {
@@ -405,27 +407,28 @@ router.get('/files/explorer', async (req, res) => {
 /**
  * GET /api/files/explorer/tree
  * 탐색기 좌측 트리용: 도메인별 실제 디렉터리 경로 (file_path 기준)
- * @returns { { domains: Array<{ domain: string, paths: string[] }> } } paths는 도메인 하위 상대 경로(''=루트, '2024/01' 등)
+ * files 테이블 기준 — 사용처(file_references) 없어도 표시
  */
 router.get('/files/explorer/tree', async (req, res) => {
   try {
     const [rows] = await pool.execute(
-      `SELECT fr.domain, f.file_path
+      `SELECT f.file_path
        FROM files f
-       INNER JOIN file_references fr ON f.id = fr.file_id`,
+       WHERE f.deleted_at IS NULL AND f.file_path LIKE 'uploads/%'`,
     )
     const byDomain = new Map()
     for (const r of rows) {
-      const d = r.domain || 'unknown'
       const fullPath = (r.file_path || '').replace(/\\/g, '/').trim()
-      const prefix = `uploads/${d}/`
-      if (!fullPath.startsWith(prefix)) continue
-      const relative = fullPath.slice(prefix.length)
-      const parts = relative.split('/').filter(Boolean)
+      const uploadsPrefix = 'uploads/'
+      if (!fullPath.startsWith(uploadsPrefix)) continue
+      const afterUploads = fullPath.slice(uploadsPrefix.length)
+      const pathParts = afterUploads.split('/').filter(Boolean)
+      const d = pathParts[0] || 'unknown'
+      const relativeParts = pathParts.slice(1)
       if (!byDomain.has(d)) byDomain.set(d, new Set())
       byDomain.get(d).add('')
-      for (let i = 1; i < parts.length; i++) {
-        byDomain.get(d).add(parts.slice(0, i).join('/'))
+      for (let i = 1; i < relativeParts.length; i++) {
+        byDomain.get(d).add(relativeParts.slice(0, i).join('/'))
       }
     }
     const domains = Array.from(byDomain.entries()).map(([domain, pathSet]) => ({
@@ -436,6 +439,29 @@ router.get('/files/explorer/tree', async (req, res) => {
   } catch (error) {
     console.error('[files/explorer/tree]', error)
     res.status(500).json({ code: 'EXPLORER_TREE_FAILED', error: error.message })
+  }
+})
+
+/** POST /api/files/:id/reference - 도메인에 파일 참조 추가 (탐색기 → 미디어 리스트 등) */
+router.post('/files/:id/reference', async (req, res) => {
+  try {
+    const fileId = parseInt(req.params.id, 10)
+    const domain = req.body?.domain || req.query.domain
+    if (!domain || isNaN(fileId)) {
+      return res.status(400).json({ code: 'INVALID_PARAMS', error: 'file id와 domain이 필요합니다.' })
+    }
+    const [existing] = await pool.execute('SELECT 1 FROM files WHERE id = ?', [fileId])
+    if (existing.length === 0) {
+      return res.status(404).json({ code: 'NOT_FOUND', error: '파일을 찾을 수 없습니다.' })
+    }
+    await pool.execute(
+      'INSERT IGNORE INTO file_references (file_id, domain) VALUES (?, ?)',
+      [fileId, domain],
+    )
+    res.status(201).json({ ok: true })
+  } catch (error) {
+    console.error('[files/post-reference]', error)
+    res.status(500).json({ error: error.message })
   }
 })
 

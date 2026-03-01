@@ -49,15 +49,15 @@
       </div>
     </div>
 
-    <!-- 미디어 탭 업로더 (툴바 위에 배치 → 툴바가 리스트와 가깝게) -->
-    <div v-if="leftMainTab === 'media'" class="media-upload-area q-pa-sm q-mx-sm q-mb-xs rounded-borders">
+    <!-- 파일 업로드 (모든 탭 통일: 채팅·노트·미디어 검색 아래) -->
+    <div class="media-upload-area q-pa-sm q-mx-sm q-mb-xs rounded-borders">
       <q-btn flat dense no-caps :icon="showMediaUpload ? 'expand_less' : 'cloud_upload'" :label="showMediaUpload ? '업로드 영역 접기' : '파일 업로드'" class="full-width" @click="showMediaUpload = !showMediaUpload" />
       <div v-show="showMediaUpload" class="q-mt-sm">
         <FileDropZone
           upload-url="/files/upload"
           list-url="/files/list?domain=ai"
           accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.csv"
-          label="이미지·오디오·영상·문서를 드래그하거나 선택하세요"
+          label="이미지·오디오·영상·문서를 드래그하거나 선택하세요 (모든 탭 공용)"
           @add="handleMediaAdd"
         />
       </div>
@@ -184,24 +184,17 @@
                         <q-item-label caption>{{ formatMemoDate(m.createdAt) }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
-                        <q-btn flat dense round size="sm" icon="delete_outline" color="grey-6" @click.stop="removeMemo(m.id)" />
+                        <q-btn flat dense round size="sm" icon="delete_outline" color="grey-6" @click.stop="handleRemoveMemo(m)" />
                       </q-item-section>
                     </q-item>
                   </transition-group>
                 </q-list>
               </div>
             </q-expansion-item>
-            <q-expansion-item icon="description" label="문서">
+            <q-expansion-item v-model="expandedDocuments" icon="description" label="문서" @show="aiAssets.loadCategory('documents')">
               <div class="ai-accordion-content">
-                <FileDropZone
-                  upload-url="/files/upload"
-                  list-url="/files/list?domain=ai&category=documents"
-                  accept=".pdf,.doc,.docx,.txt,.csv"
-                  label="문서 파일을 드래그하거나 선택하세요"
-                  @add="(p) => aiAssets.addAsset({ ...p, category: 'documents' })"
-                />
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in (documents.length ? documents : docPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }">
+                  <q-item v-for="f in (documents.length ? documents : docPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null">
                     <q-item-section>{{ f.original_name }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -218,7 +211,7 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('images', f) : null">
+                    <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'images') : null">
                       <q-item-section v-if="f.url" avatar>
                         <img :src="getUploadDisplayUrl(f.file_path) || f.url" :alt="f.original_name" class="media-thumb media-thumb-img" loading="lazy" />
                       </q-item-section>
@@ -238,15 +231,17 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('audio', f) : null">
+                    <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'audio') : null">
                       <q-item-section avatar>
-                        <q-icon name="music_note" size="24px" color="grey-6" />
+                        <div class="media-audio-thumb">
+                          <q-icon name="music_note" size="28px" color="grey-6" />
+                          <div class="media-waveform-placeholder">
+                            <span v-for="i in 5" :key="i" class="wave-bar" :style="{ height: (30 + (i % 3) * 25) + '%' }" />
+                          </div>
+                        </div>
                       </q-item-section>
                       <q-item-section>
-                        <div class="media-audio-row">
-                          <span class="ellipsis">{{ f.original_name }}</span>
-                          <audio v-if="f.url" :src="getUploadDisplayUrl(f.file_path) || f.url" controls preload="metadata" class="media-audio-player" @click.stop />
-                        </div>
+                        <span class="ellipsis">{{ f.original_name }}</span>
                       </q-item-section>
                     </q-item>
                   </transition-group>
@@ -257,18 +252,15 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? selectMediaItem('video', f) : null">
+                    <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'video') : null">
                       <q-item-section v-if="f.url" avatar>
-                        <video :src="getUploadDisplayUrl(f.file_path) || f.url" preload="metadata" class="media-thumb media-thumb-video" muted playsinline @click.stop />
+                        <video :src="getUploadDisplayUrl(f.file_path) || f.url" preload="metadata" class="media-thumb media-thumb-video" muted playsinline />
                       </q-item-section>
                       <q-item-section v-else avatar>
                         <q-icon name="videocam" size="24px" color="grey-5" />
                       </q-item-section>
                       <q-item-section>
-                        <div class="media-video-row">
-                          <span class="ellipsis">{{ f.original_name }}</span>
-                          <video v-if="f.url" :src="getUploadDisplayUrl(f.file_path) || f.url" controls preload="metadata" class="media-video-player" @click.stop />
-                        </div>
+                        <span class="ellipsis">{{ f.original_name }}</span>
                       </q-item-section>
                     </q-item>
                   </transition-group>
@@ -380,8 +372,11 @@ import {
 import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings'
 import { useAiMemos } from '../../composables/useAiMemos'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
+import { useFileSelection } from '@system/composables/useFileSelection'
+import { showPanel } from '../../composables/useAiSplitLayout'
 
-const { memos, removeMemo, moveMemoUp, moveMemoDown, getMemoPreview } = useAiMemos()
+const { memos, loadMemos, removeMemo, moveMemoUp, moveMemoDown, getMemoPreview } = useAiMemos()
+const { setSelectedFile } = useFileSelection()
 const aiAssets = useAiAssets()
 const { requestInsert, requestOpenEditor } = useAiInsertRequest()
 
@@ -391,11 +386,13 @@ const showMediaUpload = ref(false)
 const expandedGallery = ref(true)
 const expandedAudio = ref(false)
 const expandedVideo = ref(false)
+const expandedDocuments = ref(false)
 
 function openMediaAccordion(category) {
   if (category === 'images') expandedGallery.value = true
   else if (category === 'audio') expandedAudio.value = true
   else if (category === 'video') expandedVideo.value = true
+  else if (category === 'documents') expandedDocuments.value = true
 }
 
 function inferCategoryFromPayload(p) {
@@ -406,10 +403,30 @@ function inferCategoryFromPayload(p) {
   return 'documents'
 }
 
-function handleMediaAdd(p) {
+function onDocumentClick(f) {
+  if (!f?.url) return
+  setSelectedFile(f)
+  showPanel('viewer')
+}
+
+function onMediaItemClick(f, category) {
+  if (!f?.url) return
+  setSelectedFile(f)
+  showPanel('viewer')
+  selectMediaItem(category, f)
+}
+
+async function handleMediaAdd(p) {
   const cat = p.category || inferCategoryFromPayload(p)
-  aiAssets.addAsset({ ...p, category: cat })
-  openMediaAccordion(cat)
+  try {
+    await aiAssets.addAsset({ ...p, category: cat })
+    openMediaAccordion(cat)
+    if (cat === 'documents') leftMainTab.value = 'note'
+    else leftMainTab.value = 'media'
+    unifiedSearch.fileExplorer.refreshList()
+  } catch {
+    /* addAsset already shows Notify on error */
+  }
 }
 
 const { selectedMediaItem, selectMediaItem } = aiAssets
@@ -448,10 +465,20 @@ function handleNoteEdit() {
   requestInsert(m.content)
 }
 
-function handleNoteDelete() {
+async function handleRemoveMemo(m) {
+  try {
+    await removeMemo(m.id)
+    if (selectedMemoId.value === m.id) selectedMemoId.value = null
+    Notify.create({ message: '삭제됨', icon: 'check_circle' })
+  } catch (e) {
+    Notify.create({ type: 'negative', message: e?.message || '삭제 실패' })
+  }
+}
+
+async function handleNoteDelete() {
   const m = selectedMemo.value
   if (!m) return
-  removeMemo(m.id)
+  await handleRemoveMemo(m)
   selectedMemoId.value = null
 }
 
@@ -467,14 +494,24 @@ const canMoveMemoDown = computed(() => {
   return idx >= 0 && idx < memos.value.length - 1
 })
 
-function handleNoteMoveUp() {
+async function handleNoteMoveUp() {
   if (!selectedMemoId.value) return
-  moveMemoUp(selectedMemoId.value)
+  try {
+    await moveMemoUp(selectedMemoId.value)
+    Notify.create({ message: '위로 이동', icon: 'check_circle' })
+  } catch (e) {
+    Notify.create({ type: 'negative', message: e?.message || '이동 실패' })
+  }
 }
 
-function handleNoteMoveDown() {
+async function handleNoteMoveDown() {
   if (!selectedMemoId.value) return
-  moveMemoDown(selectedMemoId.value)
+  try {
+    await moveMemoDown(selectedMemoId.value)
+    Notify.create({ message: '아래로 이동', icon: 'check_circle' })
+  } catch (e) {
+    Notify.create({ type: 'negative', message: e?.message || '이동 실패' })
+  }
 }
 
 function formatMemoDate(ts) {
@@ -589,8 +626,9 @@ onMounted(async () => {
   if (channels.value.length > 0 && !selectedChannelId.value) {
     selectChannel(channels.value[0].id)
   }
-  // DB에 저장된 파일 목록 로드 (드롭존 리스트 표시용)
+  // DB에 저장된 파일·메모 목록 로드
   await Promise.all([
+    loadMemos(),
     aiAssets.loadCategory('documents'),
     aiAssets.loadCategory('images'),
     aiAssets.loadCategory('audio'),
@@ -988,6 +1026,37 @@ function onWebcamCapture(dataUrl) {
 
   .media-thumb-video {
     background: #000;
+  }
+
+  .media-audio-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    background: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .media-waveform-placeholder {
+    position: absolute;
+    bottom: 4px;
+    left: 6px;
+    right: 6px;
+    height: 10px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .media-waveform-placeholder .wave-bar {
+    flex: 1;
+    min-width: 2px;
+    background: rgba(128, 128, 128, 0.5);
+    border-radius: 1px;
   }
 
   .media-audio-row,
