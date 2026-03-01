@@ -27,6 +27,7 @@
         :class="{ 'card-selected': selectedFile?.id === item.id }"
         class="file-card"
         @click="$emit('select', item)"
+        @contextmenu.prevent="$emit('contextmenu', $event, item)"
       >
         <div class="file-card-media">
           <template v-if="isImage(item)">
@@ -101,7 +102,7 @@ defineProps({
   hasMore: { type: Boolean, default: false },
 })
 
-defineEmits(['select', 'load-more'])
+defineEmits(['select', 'load-more', 'contextmenu'])
 
 function getDisplayUrl(item) {
   if (!item?.file_path) return item?.url || ''

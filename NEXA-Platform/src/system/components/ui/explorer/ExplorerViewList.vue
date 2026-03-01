@@ -33,6 +33,7 @@
           active-class="bg-primary-2"
           class="explorer-file-item"
           @click="$emit('select', item)"
+          @contextmenu.prevent="$emit('contextmenu', $event, item)"
         >
           <q-item-section avatar>
             <q-icon :name="getFileIcon(item)" size="24px" />
@@ -61,7 +62,7 @@ const props = defineProps({
   hasMore: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['select', 'load-more'])
+const emit = defineEmits(['select', 'load-more', 'contextmenu'])
 
 function onScroll({ to, direction }) {
   if (direction !== 'increase') return

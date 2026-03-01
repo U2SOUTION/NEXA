@@ -1,6 +1,6 @@
 <template>
-  <div class="ai-explorer-panel column">
-    <GlobalFileExplorer mode="embed" class="col ai-explorer-embed" @select="onSelect" />
+  <div class="ai-explorer-panel column" @contextmenu.prevent="onContextMenuTrigger">
+    <GlobalFileExplorer mode="embed" class="col ai-explorer-embed" @select="onSelect" @contextmenu="onContextMenu" />
     <div v-if="selectedFile" class="action-bar row items-center q-pa-sm q-gutter-sm flex-wrap">
       <span class="text-caption text-grey-7">선택: {{ selectedFile.original_name }}</span>
       <q-btn dense flat size="sm" label="미디어에 추가" icon="library_add" @click="addToMedia" :loading="addingToMedia" />
@@ -10,6 +10,36 @@
       <q-btn dense flat size="sm" label="음원 편집" icon="graphic_eq" @click="openInAudioEditor" />
       <q-btn dense flat size="sm" label="영상 편집" icon="videocam" @click="openInVideoEditor" />
     </div>
+    <q-menu v-model="contextMenuVisible" context-menu class="explorer-context-menu">
+      <q-list dense style="min-width: 180px">
+        <q-item clickable v-close-popup @click="addToMedia">
+          <q-item-section avatar><q-icon name="library_add" /></q-item-section>
+          <q-item-section>미디어에 추가</q-item-section>
+          <q-item-section side v-if="addingToMedia"><q-spinner-dots size="16px" /></q-item-section>
+        </q-item>
+        <q-item clickable v-close-popup @click="injectToChat">
+          <q-item-section avatar><q-icon name="chat" /></q-item-section>
+          <q-item-section>채팅에 넣기</q-item-section>
+        </q-item>
+        <q-item clickable v-close-popup @click="injectToEditor">
+          <q-item-section avatar><q-icon name="edit_note" /></q-item-section>
+          <q-item-section>에디터에 넣기</q-item-section>
+        </q-item>
+        <q-separator />
+        <q-item clickable v-close-popup @click="openInImageEditor">
+          <q-item-section avatar><q-icon name="image" /></q-item-section>
+          <q-item-section>이미지 편집</q-item-section>
+        </q-item>
+        <q-item clickable v-close-popup @click="openInAudioEditor">
+          <q-item-section avatar><q-icon name="graphic_eq" /></q-item-section>
+          <q-item-section>음원 편집</q-item-section>
+        </q-item>
+        <q-item clickable v-close-popup @click="openInVideoEditor">
+          <q-item-section avatar><q-icon name="videocam" /></q-item-section>
+          <q-item-section>영상 편집</q-item-section>
+        </q-item>
+      </q-list>
+    </q-menu>
   </div>
 </template>
 
@@ -20,21 +50,49 @@ import GlobalFileExplorer from '@system/components/ui/explorer/GlobalFileExplore
 import { useFileSelection } from '@system/composables/useFileSelection'
 import { useAiExplorerSelection } from '../composables/useAiExplorerSelection'
 import { useAiAssets } from '../composables/useAiAssets'
+import { useAiSettings } from '../composables/useAiSettings'
 import { showPanel } from '../composables/useAiSplitLayout'
+import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
-const { selectedFile } = useFileSelection()
-const { requestInjectToChat, requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor } = useAiExplorerSelection()
+const { selectedFile, setSelectedFile } = useFileSelection()
+const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor } = useAiExplorerSelection()
 const { addFileToMedia } = useAiAssets()
+const { requestAttachToChat } = useAiSettings()
 const addingToMedia = ref(false)
+const contextMenuVisible = ref(false)
 
 function onSelect() {
-  // 선택은 useFileSelection에 이미 반영됨 (GlobalFileExplorer에서 setSelectedFile 호출)
-  // 파일 선택 시 뷰어 탭 자동 활성화
   showPanel('viewer')
 }
 
+function onContextMenu(_evt, file) {
+  if (file) setSelectedFile(file)
+}
+
+function onContextMenuTrigger() {
+  if (selectedFile.value) contextMenuVisible.value = true
+}
+
+function isImage(file) {
+  const t = (file?.file_type || file?.category || '').toLowerCase()
+  return t === 'image' || t === 'images'
+}
+
 function injectToChat() {
-  if (selectedFile.value) requestInjectToChat(selectedFile.value)
+  const file = selectedFile.value
+  if (!file) return
+  if (!isImage(file)) {
+    Notify.create({ type: 'info', message: '이미지만 채팅에 첨부할 수 있습니다.' })
+    return
+  }
+  const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
+  if (!url) {
+    Notify.create({ type: 'warning', message: '파일 URL을 가져올 수 없습니다.' })
+    return
+  }
+  requestAttachToChat({ url, original_name: file.original_name, file_path: file.file_path })
+  showPanel('chat')
+  Notify.create({ message: `"${file.original_name}" 채팅에 첨부됨`, icon: 'check_circle' })
 }
 
 function injectToEditor() {

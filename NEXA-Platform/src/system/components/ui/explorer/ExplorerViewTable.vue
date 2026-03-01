@@ -32,6 +32,7 @@
         :virtual-scroll-item-size="40"
         class="col explorer-table"
         @row-click="onRowClick"
+        @row-contextmenu="onRowContextMenu"
       >
         <template #body-cell-type="scope">
           <q-td>
@@ -70,7 +71,7 @@ const props = defineProps({
   hasMore: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['select', 'load-more'])
+const emit = defineEmits(['select', 'load-more', 'contextmenu'])
 
 const columns = [
   { name: 'type', label: '', field: () => '', align: 'left', style: 'width: 40px' },
@@ -87,6 +88,11 @@ const selectedRow = computed(() => {
 
 function onRowClick(_evt, row) {
   emit('select', row)
+}
+
+function onRowContextMenu(evt, row) {
+  evt?.preventDefault?.()
+  emit('contextmenu', evt, row)
 }
 
 function formatSize(bytes) {

@@ -21,13 +21,13 @@
         <div class="list-section column explorer-right">
           <q-tab-panels v-model="viewMode" animated class="col">
             <q-tab-panel name="list" class="q-pa-none">
-              <ExplorerViewList :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
+              <ExplorerViewList :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
             </q-tab-panel>
             <q-tab-panel name="table" class="q-pa-none">
-              <ExplorerViewTable :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
+              <ExplorerViewTable :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
             </q-tab-panel>
             <q-tab-panel name="card" class="q-pa-none">
-              <ExplorerViewCard :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" />
+              <ExplorerViewCard :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
             </q-tab-panel>
           </q-tab-panels>
         </div>
@@ -52,7 +52,7 @@ const props = defineProps({
   initialDomain: { type: String, default: '' },
 })
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select', 'contextmenu'])
 
 const splitterModel = ref(220)
 const viewMode = ref('list')
@@ -130,6 +130,11 @@ const { selectedFile, setSelectedFile } = useFileSelection()
 function onSelectFile(file) {
   setSelectedFile(file)
   emit('select', file)
+}
+
+function onContextMenu(evt, file) {
+  setSelectedFile(file)
+  emit('contextmenu', evt, file)
 }
 
 onMounted(() => {
