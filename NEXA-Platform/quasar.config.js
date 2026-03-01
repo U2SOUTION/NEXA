@@ -5,7 +5,11 @@ import { defineConfig } from '#q-app/wrappers'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
-import monacoEditorPlugin from 'vite-plugin-monaco-editor'
+// ESM 호환: default export 폴백 (vite-plugin-monaco-editor CJS/ESM 호환성)
+import monacoEditorPluginModule from 'vite-plugin-monaco-editor'
+const monacoEditorPlugin = typeof monacoEditorPluginModule === 'function'
+  ? monacoEditorPluginModule
+  : (monacoEditorPluginModule.default || monacoEditorPluginModule)
 
 // ESM 환경에서 __dirname 정의
 const __filename = fileURLToPath(import.meta.url)
@@ -139,7 +143,7 @@ export default defineConfig((/* ctx */) => {
 
       vitePlugins: [
         vitePluginPreferTsInSrc(),
-        monacoEditorPlugin(),
+        monacoEditorPlugin({}),
         [
           'vite-plugin-checker',
           {

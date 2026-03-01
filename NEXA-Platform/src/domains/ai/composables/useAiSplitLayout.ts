@@ -166,3 +166,10 @@ export function applyPreset(preset: 'default' | 'code') {
     rightActiveIndex.value = 0
   }
 }
+
+/** 비율만 기본값으로 초기화 (패널 구성·표시 상태 유지) */
+export function resetSplitSizes() {
+  leftSize.value = DEFAULT_SIZES.left
+  centerSize.value = DEFAULT_SIZES.center
+  rightSize.value = DEFAULT_SIZES.right
+}

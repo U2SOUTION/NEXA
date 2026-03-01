@@ -3,10 +3,129 @@
     <header class="ai-split-header">
       <span class="ai-split-title">NEXA AI</span>
       <div class="ai-split-menu">
-        <span class="menu-item">파일</span>
-        <span class="menu-item">편집</span>
-        <span class="menu-item">보기</span>
-        <span class="menu-item">실행</span>
+        <q-btn-dropdown flat dense no-caps no-wrap class="menu-dropdown" label="파일" icon="folder_open">
+          <q-list dense style="min-width: 160px">
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="add_comment" size="xs" /></q-item-section>
+              <q-item-section>새 채팅</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="note_add" size="xs" /></q-item-section>
+              <q-item-section>새 문서</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="folder_open" size="xs" /></q-item-section>
+              <q-item-section>열기</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="save" size="xs" /></q-item-section>
+              <q-item-section>저장</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="upload" size="xs" /></q-item-section>
+              <q-item-section>내보내기</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+        <q-btn-dropdown flat dense no-caps no-wrap class="menu-dropdown" label="편집" icon="edit">
+          <q-list dense style="min-width: 160px">
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="undo" size="xs" /></q-item-section>
+              <q-item-section>실행 취소</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="redo" size="xs" /></q-item-section>
+              <q-item-section>다시 실행</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="content_cut" size="xs" /></q-item-section>
+              <q-item-section>잘라내기</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="content_copy" size="xs" /></q-item-section>
+              <q-item-section>복사</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="content_paste" size="xs" /></q-item-section>
+              <q-item-section>붙여넣기</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="search" size="xs" /></q-item-section>
+              <q-item-section>찾기</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="find_replace" size="xs" /></q-item-section>
+              <q-item-section>바꾸기</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+        <q-btn-dropdown flat dense no-caps no-wrap class="menu-dropdown" label="미리보기" icon="visibility">
+          <q-list dense style="min-width: 180px">
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="preview" size="xs" /></q-item-section>
+              <q-item-section>프리뷰 모드</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="code" size="xs" /></q-item-section>
+              <q-item-section>소스/미리보기 전환</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+        <q-btn-dropdown flat dense no-caps no-wrap class="menu-dropdown" label="화면구성" icon="dashboard_customize">
+          <q-list dense style="min-width: 180px">
+            <q-item clickable v-close-popup @click="leftVisible = !leftVisible">
+              <q-item-section avatar>
+                <q-icon :name="leftVisible ? 'visibility' : 'visibility_off'" size="xs" />
+              </q-item-section>
+              <q-item-section>좌측 영역 표시/숨김</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="centerVisible = !centerVisible">
+              <q-item-section avatar>
+                <q-icon :name="centerVisible ? 'visibility' : 'visibility_off'" size="xs" />
+              </q-item-section>
+              <q-item-section>중앙 영역 표시/숨김</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="rightVisible = !rightVisible">
+              <q-item-section avatar>
+                <q-icon :name="rightVisible ? 'visibility' : 'visibility_off'" size="xs" />
+              </q-item-section>
+              <q-item-section>우측 영역 표시/숨김</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup @click="applyPreset('default')">
+              <q-item-section avatar><q-icon name="view_agenda" size="xs" /></q-item-section>
+              <q-item-section>기본 레이아웃</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="applyPreset('code')">
+              <q-item-section avatar><q-icon name="code" size="xs" /></q-item-section>
+              <q-item-section>코드 중심 레이아웃</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup @click="resetSplitSizes()">
+              <q-item-section avatar><q-icon name="restart_alt" size="xs" /></q-item-section>
+              <q-item-section>비율 초기화</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+        <q-btn-dropdown flat dense no-caps no-wrap class="menu-dropdown" label="실행" icon="play_arrow">
+          <q-list dense style="min-width: 140px">
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="play_arrow" size="xs" /></q-item-section>
+              <q-item-section>실행</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="bug_report" size="xs" /></q-item-section>
+              <q-item-section>디버그</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="stop" size="xs" /></q-item-section>
+              <q-item-section>중단</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
       </div>
       <div class="ai-split-actions">
         <q-btn flat dense round size="sm" :icon="leftVisible ? 'chevron_left' : 'chevron_right'" :title="leftVisible ? '좌측 숨기기' : '좌측 보이기'" @click="leftVisible = !leftVisible" />
@@ -94,6 +213,7 @@ import {
   centerActiveIndex,
   rightActiveIndex,
   applyPreset,
+  resetSplitSizes,
   SPLIT_LIMITS,
 } from '../../composables/useAiSplitLayout'
 import { PANEL_LABELS, PANEL_ICONS, PANEL_COMPONENTS } from '../../config/aiPanelRegistry'
@@ -215,6 +335,11 @@ watch(remaining, (rem) => {
   font-size: 0.85rem;
   color: var(--nexa-text-secondary, #666);
   cursor: default;
+}
+
+.menu-dropdown {
+  font-size: 0.85rem;
+  color: var(--nexa-text-secondary, #666);
 }
 
 .ai-split-actions {
