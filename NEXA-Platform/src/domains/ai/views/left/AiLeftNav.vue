@@ -352,7 +352,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { Notify } from 'quasar'
 import StandardLeftHeader from '@frame/layout/components/StandardLeftHeader.vue'
 import WebcamViewer from '@system/components/ui/WebcamViewer.vue'
@@ -372,6 +372,7 @@ import {
 import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings'
 import { useAiMemos } from '../../composables/useAiMemos'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
+import { useAiMediaTab } from '../../composables/useAiMediaTab'
 import { useFileSelection } from '@system/composables/useFileSelection'
 import { showPanel } from '../../composables/useAiSplitLayout'
 
@@ -379,6 +380,7 @@ const { memos, loadMemos, removeMemo, moveMemoUp, moveMemoDown, getMemoPreview }
 const { setSelectedFile } = useFileSelection()
 const aiAssets = useAiAssets()
 const { requestInsert, requestOpenEditor } = useAiInsertRequest()
+const { onOpenMediaTab } = useAiMediaTab()
 
 const { documents, images, audio, videos } = aiAssets
 
@@ -613,6 +615,7 @@ const newChannelName = ref('')
 const showDeleteConfirm = ref(false)
 const deleteConfirmMessage = ref('')
 let deleteConfirmAction = null
+let unregisterOpenMediaTab = null
 
 watch(() => unifiedSearch.searchTarget.value, (t) => {
   if (t === 'files' && (!fileExplorer.treeNodes.value || fileExplorer.treeNodes.value.length === 0)) {
@@ -623,6 +626,11 @@ watch(() => unifiedSearch.searchTarget.value, (t) => {
 onMounted(async () => {
   registerChannelsSync(searchQuery, searchTarget)
   init()
+  unregisterOpenMediaTab = onOpenMediaTab((category) => {
+    openMediaAccordion(category)
+    if (category === 'documents') leftMainTab.value = 'note'
+    else leftMainTab.value = 'media'
+  })
   if (channels.value.length > 0 && !selectedChannelId.value) {
     selectChannel(channels.value[0].id)
   }
@@ -634,6 +642,10 @@ onMounted(async () => {
     aiAssets.loadCategory('audio'),
     aiAssets.loadCategory('video'),
   ])
+})
+
+onBeforeUnmount(() => {
+  unregisterOpenMediaTab?.()
 })
 
 function doAddChannel() {

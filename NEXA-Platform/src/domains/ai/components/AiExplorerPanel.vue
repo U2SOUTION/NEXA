@@ -51,6 +51,7 @@ import { useFileSelection } from '@system/composables/useFileSelection'
 import { useAiExplorerSelection } from '../composables/useAiExplorerSelection'
 import { useAiAssets } from '../composables/useAiAssets'
 import { useAiSettings } from '../composables/useAiSettings'
+import { useAiMediaTab } from '../composables/useAiMediaTab'
 import { showPanel } from '../composables/useAiSplitLayout'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
@@ -58,6 +59,7 @@ const { selectedFile, setSelectedFile } = useFileSelection()
 const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor } = useAiExplorerSelection()
 const { addFileToMedia } = useAiAssets()
 const { requestAttachToChat } = useAiSettings()
+const { requestOpenMediaTab } = useAiMediaTab()
 const addingToMedia = ref(false)
 const contextMenuVisible = ref(false)
 
@@ -111,12 +113,22 @@ function openInVideoEditor() {
   if (selectedFile.value) requestOpenInVideoEditor(selectedFile.value)
 }
 
+function inferMediaCategory(file) {
+  const t = (file?.file_type || file?.category || '').toLowerCase()
+  if (t === 'image' || t === 'images') return 'images'
+  if (t === 'audio') return 'audio'
+  if (t === 'video') return 'video'
+  return 'documents'
+}
+
 async function addToMedia() {
   const file = selectedFile.value
   if (!file) return
   addingToMedia.value = true
   try {
     await addFileToMedia(file)
+    const cat = inferMediaCategory(file)
+    requestOpenMediaTab(cat)
     Notify.create({ message: `"${file.original_name}" 미디어에 추가됨`, icon: 'check_circle' })
   } catch (err) {
     Notify.create({ type: 'negative', message: err.message || '미디어 추가 실패' })
