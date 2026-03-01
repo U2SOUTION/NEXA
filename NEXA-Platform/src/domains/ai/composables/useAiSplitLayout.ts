@@ -10,16 +10,21 @@ const LAYOUT_KEY = 'nexa-ai-split-layout'
 export const SPLIT_LIMITS: { minPct: number; maxPct: number } = { minPct: 5, maxPct: 90 }
 
 const DEFAULT_LEFT = ['chat']
-const DEFAULT_CENTER = ['viewer', 'editor', 'code', 'image', 'audio', 'video']
+const DEFAULT_CENTER = ['editor', 'code', 'image', 'audio', 'video', 'viewer']
 const DEFAULT_RIGHT = ['explorer']
 
 const DEFAULT_SIZES = { left: 28, center: 44, right: 28 }
 
-/** 저장된 centerPanelIds에 새 기본 패널(viewer 등)이 없으면 맨 앞에 추가 */
+/** 저장된 centerPanelIds */
 function migrateCenterPanelIds(saved: string[] | undefined): string[] {
-  const list = Array.isArray(saved) ? [...saved] : [...DEFAULT_CENTER]
+  let list = Array.isArray(saved) ? [...saved] : [...DEFAULT_CENTER]
   const newDefaults = DEFAULT_CENTER.filter((id) => !list.includes(id))
-  return newDefaults.length ? [...newDefaults, ...list] : list
+  if (newDefaults.length) list = [...list, ...newDefaults]
+  const viewerIdx = list.indexOf('viewer')
+  if (viewerIdx >= 0 && viewerIdx < list.length - 1) {
+    list = [...list.filter((id) => id !== 'viewer'), 'viewer']
+  }
+  return list
 }
 
 function loadLayout() {
@@ -160,7 +165,7 @@ export function applyPreset(preset: 'default' | 'code') {
     rightActiveIndex.value = 0
   } else if (preset === 'code') {
     leftPanelIds.value = ['chat']
-    centerPanelIds.value = ['viewer', 'code', 'editor', 'image', 'audio', 'video']
+    centerPanelIds.value = ['code', 'editor', 'image', 'audio', 'video', 'viewer']
     rightPanelIds.value = ['explorer']
     leftVisible.value = true
     centerVisible.value = true
@@ -179,4 +184,19 @@ export function resetSplitSizes() {
   leftSize.value = DEFAULT_SIZES.left
   centerSize.value = DEFAULT_SIZES.center
   rightSize.value = DEFAULT_SIZES.right
+}
+
+/** 패널 순서 변경 (드래그앤드롭용). activeIndex도 함께 보정 */
+export function reorderPanel(area: 'left' | 'center' | 'right', fromIndex: number, toIndex: number) {
+  const ids = area === 'left' ? leftPanelIds : area === 'center' ? centerPanelIds : rightPanelIds
+  const active = area === 'left' ? leftActiveIndex : area === 'center' ? centerActiveIndex : rightActiveIndex
+  const arr = [...ids.value]
+  const [item] = arr.splice(fromIndex, 1)
+  arr.splice(toIndex, 0, item)
+  ids.value = arr
+  let newActive = active.value
+  if (active.value === fromIndex) newActive = toIndex
+  else if (fromIndex < active.value && toIndex >= active.value) newActive = active.value - 1
+  else if (fromIndex > active.value && toIndex <= active.value) newActive = active.value + 1
+  active.value = newActive
 }

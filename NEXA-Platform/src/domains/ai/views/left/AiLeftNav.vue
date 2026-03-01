@@ -40,9 +40,9 @@
         <q-btn-toggle :model-value="unifiedSearch.chatSearchTarget.value" toggle-color="primary" dense no-caps size="sm" :options="chatFilterOptions" @update:model-value="unifiedSearch.setChatSearchTarget" />
       </div>
       <div v-else-if="unifiedSearch.searchTarget.value === 'files'" class="filter-row row q-mt-xs q-gutter-xs items-center wrap">
-        <q-select :model-value="fileFilters.sortBy" dense outlined emit-value map-options options-dense :options="FILE_SORT_OPTIONS" class="filter-select" style="min-width: 100px" @update:model-value="(v) => unifiedSearch.setFileFilter({ sortBy: v })" />
-        <q-select :model-value="fileFilters.filterCategory" dense outlined emit-value map-options options-dense :options="FILE_CATEGORY_OPTIONS" class="filter-select" style="min-width: 90px" @update:model-value="(v) => unifiedSearch.setFileFilter({ filterCategory: v })" />
-        <q-select :model-value="fileFilters.scopeDomain" dense outlined emit-value map-options options-dense :options="fileDomainOptions" class="filter-select" style="min-width: 90px" @update:model-value="onFileScopeChange" />
+        <q-select :model-value="fileFilters.sortBy?.value" dense outlined emit-value map-options options-dense :options="FILE_SORT_OPTIONS" class="filter-select" style="min-width: 100px" @update:model-value="(v) => unifiedSearch.setFileFilter({ sortBy: v })" />
+        <q-select :model-value="fileFilters.filterCategory?.value" dense outlined emit-value map-options options-dense :options="FILE_CATEGORY_OPTIONS" class="filter-select" style="min-width: 90px" @update:model-value="(v) => unifiedSearch.setFileFilter({ filterCategory: v })" />
+        <q-select :model-value="fileFilters.scopeDomain?.value" dense outlined emit-value map-options options-dense :options="fileDomainOptions" class="filter-select" style="min-width: 90px" @update:model-value="onFileScopeChange" />
         <q-btn flat dense round size="sm" icon="refresh" @click="fileExplorer.refreshList()">
           <q-tooltip>새로고침</q-tooltip>
         </q-btn>

@@ -147,9 +147,24 @@
     >
       <template #before>
         <div v-show="leftVisible" class="ai-split-area ai-split-left column">
-          <q-tabs v-model="leftActiveIndex" dense align="justify" class="ai-area-tabs">
-            <q-tab v-for="(pid, i) in leftPanelIds" :key="pid" :name="i" :label="PANEL_LABELS[pid] ?? pid" :icon="PANEL_ICONS[pid] ?? 'extension'" />
-          </q-tabs>
+          <draggable
+            v-model="leftPanelIdsModel"
+            :item-key="(pid) => pid"
+            tag="div"
+            class="ai-area-tabs ai-tabs-draggable row no-wrap items-center"
+            @end="onLeftSortEnd"
+          >
+            <template #item="{ element: pid }">
+              <div
+                class="ai-draggable-tab"
+                :class="{ 'q-tab--active': leftPanelIds.indexOf(pid) === leftActiveIndex }"
+                @click="leftActiveIndex = leftPanelIds.indexOf(pid)"
+              >
+                <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
+                <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
+              </div>
+            </template>
+          </draggable>
           <q-tab-panels v-model="leftActiveIndex" animated class="col ai-area-panels">
             <q-tab-panel v-for="(pid, i) in leftPanelIds" :key="pid" :name="i" class="q-pa-none ai-tab-panel">
               <component :is="PANEL_COMPONENTS[pid]" v-bind="getPanelProps(pid)" />
@@ -169,9 +184,24 @@
         >
           <template #before>
             <div v-show="centerVisible" class="ai-split-area ai-split-center column">
-              <q-tabs v-model="centerActiveIndex" dense align="justify" class="ai-area-tabs">
-                <q-tab v-for="(pid, i) in centerPanelIds" :key="pid" :name="i" :label="PANEL_LABELS[pid] ?? pid" :icon="PANEL_ICONS[pid] ?? 'extension'" />
-              </q-tabs>
+              <draggable
+                v-model="centerPanelIdsModel"
+                :item-key="(pid) => pid"
+                tag="div"
+                class="ai-area-tabs ai-tabs-draggable row no-wrap items-center"
+                @end="onCenterSortEnd"
+              >
+                <template #item="{ element: pid }">
+                  <div
+                    class="ai-draggable-tab"
+                    :class="{ 'q-tab--active': centerPanelIds.indexOf(pid) === centerActiveIndex }"
+                    @click="centerActiveIndex = centerPanelIds.indexOf(pid)"
+                  >
+                    <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
+                    <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
+                  </div>
+                </template>
+              </draggable>
               <q-tab-panels v-model="centerActiveIndex" animated class="col ai-area-panels">
                 <q-tab-panel v-for="(pid, i) in centerPanelIds" :key="pid" :name="i" class="q-pa-none ai-tab-panel">
                   <component :is="PANEL_COMPONENTS[pid]" v-bind="getPanelProps(pid)" />
@@ -181,9 +211,24 @@
           </template>
           <template #after>
             <div v-show="rightVisible" class="ai-split-area ai-split-right column">
-              <q-tabs v-model="rightActiveIndex" dense align="justify" class="ai-area-tabs">
-                <q-tab v-for="(pid, i) in rightPanelIds" :key="pid" :name="i" :label="PANEL_LABELS[pid] ?? pid" :icon="PANEL_ICONS[pid] ?? 'extension'" />
-              </q-tabs>
+              <draggable
+                v-model="rightPanelIdsModel"
+                :item-key="(pid) => pid"
+                tag="div"
+                class="ai-area-tabs ai-tabs-draggable row no-wrap items-center"
+                @end="onRightSortEnd"
+              >
+                <template #item="{ element: pid }">
+                  <div
+                    class="ai-draggable-tab"
+                    :class="{ 'q-tab--active': rightPanelIds.indexOf(pid) === rightActiveIndex }"
+                    @click="rightActiveIndex = rightPanelIds.indexOf(pid)"
+                  >
+                    <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
+                    <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
+                  </div>
+                </template>
+              </draggable>
               <q-tab-panels v-model="rightActiveIndex" animated class="col ai-area-panels">
                 <q-tab-panel v-for="(pid, i) in rightPanelIds" :key="pid" :name="i" class="q-pa-none ai-tab-panel">
                   <component :is="PANEL_COMPONENTS[pid]" v-bind="getPanelProps(pid)" />
@@ -199,6 +244,7 @@
 
 <script setup>
 import { computed, watch } from 'vue'
+import draggable from 'vuedraggable'
 import {
   leftPanelIds,
   centerPanelIds,
@@ -217,6 +263,45 @@ import {
   SPLIT_LIMITS,
 } from '../../composables/useAiSplitLayout'
 import { PANEL_LABELS, PANEL_ICONS, PANEL_COMPONENTS } from '../../config/aiPanelRegistry'
+
+const leftPanelIdsModel = computed({
+  get: () => leftPanelIds.value,
+  set: (v) => { leftPanelIds.value = v },
+})
+const centerPanelIdsModel = computed({
+  get: () => centerPanelIds.value,
+  set: (v) => { centerPanelIds.value = v },
+})
+const rightPanelIdsModel = computed({
+  get: () => rightPanelIds.value,
+  set: (v) => { rightPanelIds.value = v },
+})
+
+function onLeftSortEnd(evt) {
+  if (evt.oldIndex !== evt.newIndex) {
+    fixActiveIndexAfterSort('left', evt.oldIndex, evt.newIndex)
+  }
+}
+function onCenterSortEnd(evt) {
+  if (evt.oldIndex !== evt.newIndex) {
+    fixActiveIndexAfterSort('center', evt.oldIndex, evt.newIndex)
+  }
+}
+function onRightSortEnd(evt) {
+  if (evt.oldIndex !== evt.newIndex) {
+    fixActiveIndexAfterSort('right', evt.oldIndex, evt.newIndex)
+  }
+}
+
+/** vuedraggable가 배열을 이미 재정렬했으므로 activeIndex만 보정 */
+function fixActiveIndexAfterSort(area, fromIndex, toIndex) {
+  const active = area === 'left' ? leftActiveIndex : area === 'center' ? centerActiveIndex : rightActiveIndex
+  let newActive = active.value
+  if (active.value === fromIndex) newActive = toIndex
+  else if (fromIndex < active.value && toIndex >= active.value) newActive = active.value - 1
+  else if (fromIndex > active.value && toIndex <= active.value) newActive = active.value + 1
+  active.value = newActive
+}
 
 const props = defineProps({
   editorContent: { type: String, default: '' },
@@ -378,6 +463,67 @@ watch(remaining, (rem) => {
   flex-shrink: 0;
   width: 100%;
   min-width: 0;
+}
+
+.ai-tabs-draggable {
+  gap: 0.25rem;
+}
+
+.ai-draggable-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 4px;
+  transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, outline 0.1s ease;
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+}
+.ai-draggable-tab:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.ai-draggable-tab.q-tab--active {
+  color: var(--q-primary);
+  font-weight: 500;
+}
+.ai-draggable-tab.q-tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px 2px 0 0;
+}
+.ai-draggable-tab {
+  position: relative;
+}
+.ai-draggable-tab[draggable='true'] {
+  cursor: grab;
+}
+.ai-draggable-tab:active {
+  cursor: grabbing;
+}
+
+/* 드래그 중 피드백: 반투명 + 그림자 */
+.ai-draggable-tab--dragging {
+  opacity: 0.5;
+  transform: scale(0.96);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* 드롭 대상 피드백: 테두리 + 배경 강조 */
+.ai-draggable-tab--drop-target {
+  background: rgba(25, 118, 210, 0.15) !important;
+  outline: 2px solid var(--q-primary, #1976d2);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 /* deep 사용 이유: Quasar q-tabs 내부 content가 영역 전체 너비를 쓰도록, align=justify와 함께 동작 */
