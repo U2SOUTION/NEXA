@@ -27,7 +27,7 @@
 
     <!-- Web Server: 찾아보기 -->
     <div v-else>
-      <q-btn flat label="찾아보기" color="primary" @click="showBrowser = true" />
+      <q-btn flat label="찾아보기" icon="folder_open" color="primary" @click="showBrowser = true" />
     </div>
 
     <FileBrowserModal v-model="showBrowser" :list-url="listUrl" :accept="accept" @select="handleServerSelect" />

@@ -35,11 +35,11 @@
         </q-input>
       </div>
       <!-- 타겟별 필터 (2행) -->
-      <div v-if="unifiedSearch.searchTarget.value === 'chat'" class="filter-row row q-mt-xs q-gutter-xs items-center">
+      <div v-if="unifiedSearch.searchTarget.value === 'chat'" class="filter-row filter-row--chat row q-mt-xs q-gutter-xs items-center">
         <span class="text-caption text-grey-7">범위:</span>
-        <q-btn-toggle :model-value="unifiedSearch.chatSearchTarget.value" toggle-color="primary" dense no-caps size="sm" :options="chatFilterOptions" @update:model-value="unifiedSearch.setChatSearchTarget" />
+        <q-btn-toggle :model-value="unifiedSearch.chatSearchTarget.value" toggle-color="primary" dense no-caps size="sm" :options="chatFilterOptions" class="chat-range-toggle" @update:model-value="unifiedSearch.setChatSearchTarget" />
       </div>
-      <div v-else-if="unifiedSearch.searchTarget.value === 'files'" class="filter-row row q-mt-xs q-gutter-xs items-center wrap">
+      <div v-else-if="unifiedSearch.searchTarget.value === 'files'" class="filter-row filter-row--files row q-mt-xs q-gutter-xs items-center wrap">
         <q-select :model-value="fileFilters.sortBy?.value" dense outlined emit-value map-options options-dense :options="FILE_SORT_OPTIONS" class="filter-select" style="min-width: 100px" @update:model-value="(v) => unifiedSearch.setFileFilter({ sortBy: v })" />
         <q-select :model-value="fileFilters.filterCategory?.value" dense outlined emit-value map-options options-dense :options="FILE_CATEGORY_OPTIONS" class="filter-select" style="min-width: 90px" @update:model-value="(v) => unifiedSearch.setFileFilter({ filterCategory: v })" />
         <q-select :model-value="fileFilters.scopeDomain?.value" dense outlined emit-value map-options options-dense :options="fileDomainOptions" class="filter-select" style="min-width: 90px" @update:model-value="onFileScopeChange" />
@@ -50,16 +50,10 @@
     </div>
 
     <!-- 파일 업로드 (모든 탭 통일: 채팅·노트·미디어 검색 아래) -->
-    <div class="media-upload-area q-pa-sm q-mx-sm q-mb-xs rounded-borders">
-      <q-btn flat dense no-caps :icon="showMediaUpload ? 'expand_less' : 'cloud_upload'" :label="showMediaUpload ? '업로드 영역 접기' : '파일 업로드'" class="full-width" @click="showMediaUpload = !showMediaUpload" />
-      <div v-show="showMediaUpload" class="q-mt-sm">
-        <FileDropZone
-          upload-url="/files/upload"
-          list-url="/files/list?domain=ai"
-          accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.csv"
-          label="이미지·오디오·영상·문서를 드래그하거나 선택하세요 (모든 탭 공용)"
-          @add="handleMediaAdd"
-        />
+    <div class="media-upload-area q-px-sm q-py-xs q-mx-sm q-mb-xs rounded-borders">
+      <q-btn flat dense no-caps size="sm" :icon="showMediaUpload ? 'expand_less' : 'cloud_upload'" :label="showMediaUpload ? '업로드 영역 접기' : '파일 업로드'" class="full-width media-upload-btn" @click="showMediaUpload = !showMediaUpload" />
+      <div v-show="showMediaUpload" class="q-mt-xs">
+        <FileDropZone upload-url="/files/upload" list-url="/files/list?domain=ai" accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.csv" label="이미지·오디오·영상·문서를 드래그하거나 선택하세요 (모든 탭 공용)" @add="handleMediaAdd" />
       </div>
     </div>
 
@@ -194,7 +188,7 @@
             <q-expansion-item v-model="expandedDocuments" icon="description" label="문서" @show="aiAssets.loadCategory('documents')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in (documents.length ? documents : docPlaceholders)" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null">
+                  <q-item v-for="f in documents.length ? documents : docPlaceholders" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null">
                     <q-item-section>{{ f.original_name }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -236,7 +230,7 @@
                         <div class="media-audio-thumb">
                           <q-icon name="music_note" size="28px" color="grey-6" />
                           <div class="media-waveform-placeholder">
-                            <span v-for="i in 5" :key="i" class="wave-bar" :style="{ height: (30 + (i % 3) * 25) + '%' }" />
+                            <span v-for="i in 5" :key="i" class="wave-bar" :style="{ height: 30 + (i % 3) * 25 + '%' }" />
                           </div>
                         </div>
                       </q-item-section>
@@ -361,14 +355,7 @@ import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 import { useAiChannels } from '../../composables/useAiChannels'
 import { useAiAssets } from '../../composables/useAiAssets'
 import { useAiLeftToolbar } from '../../composables/useAiLeftToolbar'
-import {
-  useAiUnifiedSearch,
-  registerChannelsSync,
-  SEARCH_TARGET_OPTIONS,
-  CHAT_SEARCH_TARGET_OPTIONS,
-  FILE_SORT_OPTIONS,
-  FILE_CATEGORY_OPTIONS,
-} from '../../composables/useAiUnifiedSearch'
+import { useAiUnifiedSearch, registerChannelsSync, SEARCH_TARGET_OPTIONS, CHAT_SEARCH_TARGET_OPTIONS, FILE_SORT_OPTIONS, FILE_CATEGORY_OPTIONS } from '../../composables/useAiUnifiedSearch'
 import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings'
 import { useAiMemos } from '../../composables/useAiMemos'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
@@ -434,7 +421,10 @@ async function handleMediaAdd(p) {
 const { selectedMediaItem, selectMediaItem } = aiAssets
 
 /** 빈 리스트일 때 UI 확인용 플레이스홀더 */
-const galleryPlaceholders = [{ id: 'ph-img-1', original_name: '(등록된 이미지 없음)' }, { id: 'ph-img-2', original_name: '(업로드 또는 웹서버에서 선택)' }]
+const galleryPlaceholders = [
+  { id: 'ph-img-1', original_name: '(등록된 이미지 없음)' },
+  { id: 'ph-img-2', original_name: '(업로드 또는 웹서버에서 선택)' },
+]
 const docPlaceholders = [{ id: 'ph-doc-1', original_name: '(등록된 문서 없음)' }]
 const audioPlaceholders = [{ id: 'ph-audio-1', original_name: '(등록된 오디오 없음)' }]
 const videoPlaceholders = [{ id: 'ph-video-1', original_name: '(등록된 영상 없음)' }]
@@ -596,9 +586,9 @@ const filterByQuery = (arr, getText) => {
 const filteredImages = computed(() => filterByQuery(images.value || [], (f) => f.original_name))
 const filteredAudio = computed(() => filterByQuery(audio.value || [], (f) => f.original_name))
 const filteredVideos = computed(() => filterByQuery(videos.value || [], (f) => f.original_name))
-const displayImages = computed(() => ((searchQuery.value || '').trim() ? filteredImages.value : (images.value?.length ? images.value : galleryPlaceholders)))
-const displayAudio = computed(() => ((searchQuery.value || '').trim() ? filteredAudio.value : (audio.value?.length ? audio.value : audioPlaceholders)))
-const displayVideos = computed(() => ((searchQuery.value || '').trim() ? filteredVideos.value : (videos.value?.length ? videos.value : videoPlaceholders)))
+const displayImages = computed(() => ((searchQuery.value || '').trim() ? filteredImages.value : images.value?.length ? images.value : galleryPlaceholders))
+const displayAudio = computed(() => ((searchQuery.value || '').trim() ? filteredAudio.value : audio.value?.length ? audio.value : audioPlaceholders))
+const displayVideos = computed(() => ((searchQuery.value || '').trim() ? filteredVideos.value : videos.value?.length ? videos.value : videoPlaceholders))
 
 const { pendingWebcamCapture, webcamFlipMode, webcamResolution, webcamFilterBrightness, webcamFilterContrast, webcamFilterSaturate, webcamFilterGrayscale, selectedModelCapabilities } = useAiSettings()
 
@@ -617,11 +607,15 @@ const deleteConfirmMessage = ref('')
 let deleteConfirmAction = null
 let unregisterOpenMediaTab = null
 
-watch(() => unifiedSearch.searchTarget.value, (t) => {
-  if (t === 'files' && (!fileExplorer.treeNodes.value || fileExplorer.treeNodes.value.length === 0)) {
-    fileExplorer.loadTree()
-  }
-}, { immediate: true })
+watch(
+  () => unifiedSearch.searchTarget.value,
+  (t) => {
+    if (t === 'files' && (!fileExplorer.treeNodes.value || fileExplorer.treeNodes.value.length === 0)) {
+      fileExplorer.loadTree()
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   registerChannelsSync(searchQuery, searchTarget)
@@ -635,13 +629,7 @@ onMounted(async () => {
     selectChannel(channels.value[0].id)
   }
   // DB에 저장된 파일·메모 목록 로드
-  await Promise.all([
-    loadMemos(),
-    aiAssets.loadCategory('documents'),
-    aiAssets.loadCategory('images'),
-    aiAssets.loadCategory('audio'),
-    aiAssets.loadCategory('video'),
-  ])
+  await Promise.all([loadMemos(), aiAssets.loadCategory('documents'), aiAssets.loadCategory('images'), aiAssets.loadCategory('audio'), aiAssets.loadCategory('video')])
 })
 
 onBeforeUnmount(() => {
@@ -968,7 +956,7 @@ function onWebcamCapture(dataUrl) {
     transition: background-color 0.15s ease;
 
     &:hover {
-      background-color: var(--nexa-button-save-bg, rgba(0, 0, 0, 0.06));
+      background-color: var(--nexa-button-save-bg);
     }
   }
 
@@ -993,15 +981,18 @@ function onWebcamCapture(dataUrl) {
   }
 
   .media-upload-area {
-    background: var(--nexa-surface-header-bg, var(--nexa-background-darker));
-    border: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.12));
+    background: var(--nexa-background-darker);
+    border: 1px solid var(--nexa-border-color);
     border-radius: 4px;
     min-width: 0;
+  }
+  .media-upload-btn :deep(.q-btn__content) {
+    font-size: 0.8rem;
   }
 
   .search-form {
     background: var(--nexa-surface-header-bg, var(--nexa-background-darker));
-    border: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.12));
+    border: 1px solid var(--nexa-border-color);
     border-radius: 4px;
 
     .search-row {
@@ -1009,6 +1000,32 @@ function onWebcamCapture(dataUrl) {
     }
     .filter-row {
       min-width: 0;
+    }
+    .filter-row--chat .chat-range-toggle :deep(.q-btn) {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .filter-row--files {
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-top: 4px;
+    }
+    .filter-row--files .filter-select {
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+    .filter-row--files .filter-select :deep(.q-field__control) {
+      min-height: 28px;
+      height: 28px;
+    }
+    .filter-row--files .filter-select :deep(.q-field__control-container) {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    .filter-row--files .filter-select :deep(.q-field__native) {
+      min-height: 28px;
+      padding-top: 0;
+      padding-bottom: 0;
     }
     .filter-select {
       flex: 0 1 auto;
