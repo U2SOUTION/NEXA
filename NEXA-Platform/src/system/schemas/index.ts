@@ -10,6 +10,7 @@ export * from './modules/blueprint'
 export * from './modules/panel'
 export * from './modules/infra'
 export * from './modules/files'
+export * from './modules/fileSourceMetadata'
 
 // 3. 세부 레시피 (Recipes)
 export * from './recipes/math'
