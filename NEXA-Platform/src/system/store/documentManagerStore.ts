@@ -5,7 +5,7 @@ import { parseMarkdown, escapeHtml } from '@system/utils/markdown/index'
 import { saveCheckboxStates, loadCheckboxStates, loadTOCExpandedState, loadSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage'
 import { useTOC } from '@domains/dev/modules/document-manager/composables/useTOC'
 import { removeExtension } from '@system/config/documentConfig'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
+import { getDocsBaseUrl, getDocFileUrl } from '@system/utils/apiBaseUrl'
 
 /**
  * 문서 관리 Store
@@ -184,8 +184,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         console.log(`[Store] ${filesToTouch.length}개 파일의 mtime 업데이트 시작...`)
         for (const filePath of filesToTouch) {
           try {
-            const encodedFilePath = encodeURIComponent(filePath)
-            const response = await fetch(`${docsBaseUrl}/${encodedFilePath}/touch`, {
+            const response = await fetch(getDocFileUrl(filePath) + '/touch', {
               method: 'POST',
             })
             if (response.ok) {
@@ -274,12 +273,12 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         }
 
         const metadata = metadataMap.get(relativePath) || { modifiedDate: null, createdDate: null }
+        const displayPath = fileMeta.displayPath || relativePath
 
-        // 백엔드 API를 통해 파일 내용을 로드하는 함수
+        // 백엔드 API를 통해 파일 내용을 로드하는 함수 (다중 폴더 지원: /f/ 경로)
         const loadContent = async () => {
           try {
-            const encodedPath = encodeURIComponent(relativePath)
-            const url = `${docsBaseUrl}/${encodedPath}`
+            const url = getDocFileUrl(relativePath)
             console.log(`[Store] 파일 내용 로드 시도: ${relativePath} -> ${url}`)
 
             const response = await fetch(url)
@@ -298,14 +297,12 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
           }
         }
 
-        // path는 relativePath와 동일하게 설정 (표시용, 기존 코드 호환성 유지)
-        // docs/ 폴더가 삭제되었으므로 /docs/ 접두사 불필요
-
         files.push({
           name: fileName,
           displayName: displayName,
-          path: relativePath, // relativePath와 동일 (기존 코드 호환성)
-          relativePath: relativePath, // 실제 경로 (카테고리 분류용)
+          path: relativePath, // API용 (nexa-docs/..., platform-docs/...)
+          relativePath: relativePath,
+          displayPath, // 복사/표시용 실제 경로
           loadContent: loadContent,
           modifiedDate: metadata.modifiedDate,
           createdDate: metadata.createdDate,

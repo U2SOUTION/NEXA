@@ -6,26 +6,32 @@
 
 ## 1. 문서 로드 구조 개요
 
-### 1.1 폴더 구조
+### 1.1 폴더 구조 (다중 폴더 지원)
 
 ```
 NEXA/
 ├── NEXA-Platform/          ← 앱 + API 서버
 │   ├── server/
-│   │   ├── config/documentConfig.js   ← 문서 경로 설정
-│   │   └── routes/documentFiles.js    ← /api/docs 라우트
-│   └── src/
-│       └── system/store/documentManagerStore.ts
-└── NEXA-Documentation/     ← 실제 문서 폴더 (workspace 루트)
+│   │   ├── config/
+│   │   │   ├── documentConfig.js   ← 문서 경로 설정 (다중 폴더)
+│   │   │   └── docsFolders.json    ← 폴더 목록 (추가/제거 시 영속화)
+│   │   └── routes/documentFiles.js
+│   └── docs/               ← 진행 중 기획 문서 (platform-docs)
+└── NEXA-Documentation/     ← 정리·보관 문서 (nexa-docs)
 ```
 
-### 1.2 경로 결정 방식
+**기본 등록 폴더** (server/config/docsFolders.json):
 
-`documentConfig.js`에서 문서 폴더 경로가 결정된다:
+| id | label | pathPrefix | displayPathPrefix (복사·표시용) |
+|----|-------|------------|-------------------------------|
+| nexa-docs | NEXA-Documentation | ../../../NEXA-Documentation | NEXA-Documentation |
+| platform-docs | Platform docs | ../../docs | NEXA-Platform/docs |
 
-- `__dirname` = `server/config/`
-- `path.join(__dirname, '../../../', 'NEXA-Documentation')` = **`NEXA/NEXA-Documentation`**
-- 즉, workspace 루트의 `NEXA-Documentation` 폴더를 참조한다.
+### 1.2 경로 결정 방식 (다중 폴더)
+
+- `documentConfig.js`가 `docsFolders.json`에서 폴더 목록을 로드한다.
+- API 경로 형식: `{folderId}/{relativePath}` (예: `nexa-docs/Platform/01-기획/문서.md`)
+- 파일 조회/저장: `GET/PUT/DELETE /api/docs/f/{prefixedPath}`
 
 ### 1.3 API 흐름
 
@@ -201,12 +207,22 @@ Cloudflare Tunnel 사용 시 포트 포워딩은 필요하지 않다.
 
 ---
 
-## 9. 관련 파일 참조
+## 9. 다중 폴더 관리
+
+- **폴더 추가/제거**: 문서 설정 모달 또는 API
+  - `GET /api/docs/config/folders` - 목록 조회
+  - `POST /api/docs/config/folders` - 추가 (id, label, pathPrefix)
+  - `DELETE /api/docs/config/folders/:id` - 제거
+- **영속화**: `server/config/docsFolders.json`
+- **폴더 사용 원칙**: 진행 중 기획 → `NEXA-Platform/docs`, 정리된 문서 → `NEXA-Documentation`
+
+## 10. 관련 파일 참조
 
 | 파일 | 역할 |
 |------|------|
-| `server/config/documentConfig.js` | 문서 폴더 경로 설정 |
-| `server/routes/documentFiles.js` | 문서 API 라우트 |
-| `src/system/utils/apiBaseUrl.ts` | `getDocsBaseUrl()` |
+| `server/config/documentConfig.js` | 다중 폴더 설정, add/remove |
+| `server/config/docsFolders.json` | 폴더 목록 (영속화) |
+| `server/routes/documentFiles.js` | 문서 API (metadata, /f/ 경로) |
+| `src/system/utils/apiBaseUrl.ts` | `getDocsBaseUrl()`, `getDocFileUrl()` |
 | `src/system/store/documentManagerStore.ts` | 문서 메타데이터·내용 로드 |
 | `NEXA-Platform/.dockerignore` | Docker 빌드 제외 목록 |

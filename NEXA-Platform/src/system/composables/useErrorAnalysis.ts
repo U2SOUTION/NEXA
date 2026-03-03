@@ -8,7 +8,7 @@ import { ref, computed } from 'vue'
 import { errorAnalysisIndex } from '@system/utils/error-tracking/errorAnalysisIndex'
 import { extractDocumentMetadata, parseErrorAnalysisFrontmatter } from '@system/utils/error-tracking/errorAnalysisParser'
 import { quietFetch } from '@system/utils/error-tracking/quietFetch'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
+import { getDocsBaseUrl, getDocFileUrl } from '@system/utils/apiBaseUrl'
 
 const docsBaseUrl = getDocsBaseUrl()
 
@@ -35,7 +35,7 @@ async function searchKnownDocumentPaths(errorId) {
     const files = metadata.files || []
     const errorPlatformFiles = files.filter((fileMeta) => {
       const relativePath = fileMeta.relativePath || fileMeta.fileName || ''
-      return relativePath.startsWith(`Error/${project}/`) && relativePath.endsWith('.md')
+      return relativePath.includes(`Error/${project}/`) && relativePath.endsWith('.md')
     })
 
     // 각 파일의 내용 확인
@@ -44,7 +44,7 @@ async function searchKnownDocumentPaths(errorId) {
       if (!filePath) continue
 
       try {
-        const contentResponse = await quietFetch(`${docsBaseUrl}/${encodeURIComponent(filePath)}`)
+        const contentResponse = await quietFetch(getDocFileUrl(filePath))
         if (!contentResponse || !contentResponse.ok) continue
 
         const content = await contentResponse.text()

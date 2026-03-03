@@ -17,6 +17,7 @@ import partSpecsRouter from './domains/parts/partSpecs.routes.js'
 import filesRouter from './routes/files.routes.js'
 import aiUserMemosRouter from './routes/aiUserMemos.routes.js'
 import { UPLOAD_BASE_DIR } from './config/upload.js'
+import { initDocsFolders } from './config/documentConfig.js'
 import { pool, dbConfig } from './config/dbConfig.js'
 import { JSON_BODY_LIMIT, URLENCODED_BODY_LIMIT } from './config/bodyLimits.js'
 
@@ -234,6 +235,14 @@ async function startServer() {
     })
 
     await initializeUploadFolder()
+
+    // 문서 폴더 설정 로드 (다중 폴더 지원)
+    try {
+      await initDocsFolders()
+      console.log('[DocumentConfig] 문서 폴더 설정 로드 완료')
+    } catch (err) {
+      console.warn('[DocumentConfig] 문서 폴더 설정 로드 실패:', err.message)
+    }
 
     const server = app.listen(PORT, () => {
       console.log(`서버가 http://localhost:${PORT} 에서 실행 중입니다.`)

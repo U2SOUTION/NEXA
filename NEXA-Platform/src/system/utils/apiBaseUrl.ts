@@ -19,6 +19,16 @@ export function getDocsBaseUrl(): string {
   return `${getApiBaseUrl()}/docs`
 }
 
+/** 문서 파일 URL (다중 폴더 지원, 슬래시 포함 경로용) */
+export function getDocFileUrl(prefixedPath: string): string {
+  const base = getDocsBaseUrl()
+  const encoded = prefixedPath
+    .split('/')
+    .map((seg) => encodeURIComponent(seg))
+    .join('/')
+  return `${base}/f/${encoded}`
+}
+
 /** 업로드 파일 URL 베이스 (썸네일 등 - 프론트와 동일 origin/포트 사용) */
 export function getUploadsBaseUrl(): string {
   const api = getApiBaseUrl()

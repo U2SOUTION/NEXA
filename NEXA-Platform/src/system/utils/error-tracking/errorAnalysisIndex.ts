@@ -5,7 +5,7 @@
 
 import { parseErrorAnalysisFrontmatter } from './errorAnalysisParser'
 import { quietFetch } from './quietFetch'
-import { getDocsBaseUrl } from '../apiBaseUrl'
+import { getDocsBaseUrl, getDocFileUrl } from '../apiBaseUrl'
 
 const docsBaseUrl = getDocsBaseUrl()
 
@@ -39,7 +39,7 @@ export class ErrorAnalysisIndex {
         const files = metadata.files || []
         const indexFile = files.find(f => {
           const filePath = f.relativePath || f.fileName || ''
-          return filePath === this.indexPath
+          return filePath === this.indexPath || filePath.endsWith('/' + this.indexPath)
         })
         
         // 인덱스 파일이 없으면 바로 빈 인덱스 반환 (요청하지 않음)
@@ -47,49 +47,48 @@ export class ErrorAnalysisIndex {
           this.lastError = {
             type: 'index_not_found',
             message: `인덱스 파일을 찾을 수 없습니다: ${this.indexPath}`,
-            url: `${docsBaseUrl}/${encodeURIComponent(this.indexPath)}`,
+            url: getDocFileUrl(`nexa-docs/${this.indexPath}`),
             status: null,
             statusText: 'Not Found (checked via metadata)',
           }
           return this.createEmptyIndex()
         }
-      }
 
-      // 인덱스 파일이 존재하는 경우에만 실제 파일 요청
-      const url = `${docsBaseUrl}/${encodeURIComponent(this.indexPath)}`
-      const response = await quietFetch(url)
-      
-      if (!response) {
-        // 네트워크 에러는 조용히 처리
-        this.lastError = {
+        // 인덱스 파일이 존재하는 경우에만 실제 파일 요청 (다중 폴더: prefixed path 사용)
+        const pathToUse = indexFile.relativePath || indexFile.fileName || this.indexPath
+        const url = pathToUse.includes('/') ? getDocFileUrl(pathToUse) : `${docsBaseUrl}/${encodeURIComponent(this.indexPath)}`
+        const response = await quietFetch(url)
+
+        if (!response) {
+          this.lastError = {
           type: 'index_not_found',
           message: `인덱스 파일을 찾을 수 없습니다: ${this.indexPath}`,
           url,
           status: null,
           statusText: 'Network Error',
+          }
+          return this.createEmptyIndex()
         }
-        return this.createEmptyIndex()
-      }
 
-      if (!response.ok) {
-        // 인덱스 파일이 없으면 에러 정보 저장 (400/404는 예상된 에러)
-        this.lastError = {
-          type: 'index_not_found',
-          message: `인덱스 파일을 찾을 수 없습니다: ${this.indexPath}`,
-          url,
-          status: response.status,
-          statusText: response.statusText,
+        if (!response.ok) {
+          // 인덱스 파일이 없으면 에러 정보 저장 (400/404는 예상된 에러)
+          this.lastError = {
+            type: 'index_not_found',
+            message: `인덱스 파일을 찾을 수 없습니다: ${this.indexPath}`,
+            url,
+            status: response.status,
+            statusText: response.statusText,
+          }
+          return this.createEmptyIndex()
         }
-        // 인덱스 파일이 없으면 빈 인덱스 생성
-        return this.createEmptyIndex()
+
+        const content = await response.text()
+        const index = JSON.parse(content)
+
+        this.cache = index
+        this.lastError = null
+        return index
       }
-
-      const content = await response.text()
-      const index = JSON.parse(content)
-
-      this.cache = index
-      this.lastError = null // 성공 시 에러 정보 초기화
-      return index
     } catch {
       this.lastError = {
         type: 'index_load_error',
@@ -221,7 +220,8 @@ export class ErrorAnalysisIndex {
    */
   async saveIndex(index) {
     const content = JSON.stringify(index, null, 2)
-    const url = `${docsBaseUrl}/${encodeURIComponent(this.indexPath)}`
+    const prefixedPath = `nexa-docs/${this.indexPath}`
+    const url = getDocFileUrl(prefixedPath)
     const response = await quietFetch(url, {
       method: 'PUT',
       headers: {
@@ -246,21 +246,22 @@ export class ErrorAnalysisIndex {
 
     try {
       // 에러 분석 폴더의 모든 파일 가져오기 (조용한 fetch 사용)
-      const response = await quietFetch(`${docsBaseUrl}/Error/${this.project}`)
-      if (!response || !response.ok) {
-        return index
-      }
-
-      const files = await response.json()
-
+      const metadataResponse = await quietFetch(`${docsBaseUrl}/metadata`)
+      if (!metadataResponse || !metadataResponse.ok) return index
+      const metadata = await metadataResponse.json()
+      const allFiles = metadata.files || []
+      const files = allFiles
+        .filter((f) => {
+          const p = f.relativePath || f.fileName || ''
+          return p.includes(`Error/${this.project}/`) && p.endsWith('.md')
+        })
+        .map((f) => ({ path: f.relativePath || f.fileName, name: (f.relativePath || f.fileName || '').split('/').pop() }))
       for (const file of files) {
         // 인덱스 파일 자체는 제외
         if (file.name === '.error-analysis-index.json') continue
 
         try {
-          const contentResponse = await quietFetch(
-            `${docsBaseUrl}/${encodeURIComponent(file.path)}`
-          )
+          const contentResponse = await quietFetch(getDocFileUrl(file.path))
           if (!contentResponse || !contentResponse.ok) {
             continue
           }

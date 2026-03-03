@@ -105,35 +105,32 @@
           </div>
         </div>
 
-        <!-- 문서 폴더 경로 설정 -->
+        <!-- 문서 폴더 목록 (다중 폴더 지원) -->
         <div class="settings-section">
           <div class="settings-section-title">
             <q-icon name="folder" class="modal-icon-title q-mr-sm" />
-            <span>문서 폴더 경로</span>
+            <span>문서 폴더 목록</span>
           </div>
           <div class="settings-section-content">
-            <!-- 기본 설명글 (변경되지 않았을 때만 표시) -->
-            <div v-if="!hasFolderNameChanged" class="text-caption q-mb-sm">
-              <q-icon name="warning" class="modal-icon-small q-mr-xs" />
-              폴더명을 정확히 입력하세요.
+            <div class="text-caption q-mb-sm">
+              <q-icon name="info" class="modal-icon-small q-mr-xs" />
+              여러 문서 폴더를 등록할 수 있습니다. 목록 변경 후 새로고침하세요.
             </div>
-
-            <!-- 새로고침 버튼 및 설명글 (변경되었을 때만 표시) -->
-            <div v-if="hasFolderNameChanged" class="refresh-section q-mb-sm">
-              <div class="text-caption refresh-section-content">
-                <q-icon name="info" class="modal-icon-small q-mr-xs" />
-                변경된 폴더명에 맞는 파일들이 목록에 표시됩니다. 새로고침 버튼을 클릭하여 파일 목록을 업데이트하세요.
-              </div>
-              <div class="row items-center refresh-section-button-wrapper">
-                <q-btn flat dense icon="refresh" label="파일 목록 새로고침" color="primary" text-color="white" @click="handleRefreshFolderName" :loading="isRefreshingFolder" size="sm" class="refresh-btn-changed refresh-btn-warning refresh-section-button" />
+            <div v-if="docsFolders.length > 0" class="docs-folders-list q-mb-sm">
+              <div v-for="f in docsFolders" :key="f.id" class="docs-folder-item row items-center q-py-xs">
+                <q-icon name="folder_open" size="sm" class="q-mr-sm" />
+                <span class="col">{{ f.label }}</span>
+                <span class="text-caption text-grey col-auto">{{ f.id }}</span>
+                <q-btn v-if="docsFolders.length > 1" flat dense round icon="delete" size="sm" color="negative" @click="handleRemoveFolder(f.id)" />
               </div>
             </div>
-
-            <q-input v-model="documentFolderName" outlined dense placeholder="예: NEXA-Documentation" class="q-mb-sm">
-              <template v-slot:prepend>
-                <q-icon name="folder_open" />
-              </template>
-            </q-input>
+            <div class="row q-gutter-sm">
+              <q-input v-model="newFolderId" outlined dense placeholder="폴더 ID (예: my-docs)" class="col" hide-bottom-space />
+              <q-input v-model="newFolderLabel" outlined dense placeholder="표시명" class="col" hide-bottom-space />
+              <q-input v-model="newFolderPath" outlined dense placeholder="경로 (예: ../../docs)" class="col" hide-bottom-space />
+              <q-btn flat dense icon="add" label="추가" color="primary" @click="handleAddFolder" :disable="!newFolderId || !newFolderPath" />
+            </div>
+            <q-btn flat dense icon="refresh" label="파일 목록 새로고침" color="primary" @click="handleRefreshFolderName" :loading="isRefreshingFolder" size="sm" class="q-mt-sm" />
           </div>
         </div>
 
@@ -230,15 +227,16 @@ const enableAutoReorder = ref(true)
 const showToastMessages = ref(true)
 const toastTimeoutSeconds = ref(3.5) // 초 단위 (1~60초)
 
-// 문서 폴더명 및 확장자 설정
-const documentFolderName = ref('NEXA-Documentation')
+// 문서 폴더 목록 (다중 폴더)
+const docsFolders = ref([])
+const newFolderId = ref('')
+const newFolderLabel = ref('')
+const newFolderPath = ref('')
 const supportedExtensions = ref(['.md', '.mermaid.css'])
 
 // 초기 확장자 저장 (변경 감지용)
 const initialExtensions = ref([])
 
-// 초기 폴더명 저장 (변경 감지용)
-const initialFolderName = ref('')
 
 // 새로고침 로딩 상태
 const isRefreshing = ref(false)
@@ -259,72 +257,66 @@ function loadExtensionSettings() {
 // 컴포넌트 마운트 시 확장자 설정 불러오기
 loadExtensionSettings()
 
-// localStorage에서 문서 폴더명 불러오기
-function loadDocumentFolderName() {
+// 문서 폴더 목록 로드
+async function loadDocsFolders() {
   try {
-    const saved = localStorage.getItem('dev-document-folder-name')
-    if (saved) {
-      documentFolderName.value = saved
+    const response = await fetch(`${docsBaseUrl}/config/folders`)
+    if (response.ok) {
+      const data = await response.json()
+      docsFolders.value = data.folders || []
     }
   } catch (error) {
-    console.error('폴더명 설정 불러오기 실패:', error)
+    console.error('문서 폴더 목록 로드 실패:', error)
   }
 }
 
-// localStorage에 문서 폴더명 저장
-function saveDocumentFolderName() {
+// 폴더 추가
+async function handleAddFolder() {
+  if (!newFolderId.value.trim() || !newFolderPath.value.trim()) return
   try {
-    localStorage.setItem('dev-document-folder-name', documentFolderName.value)
-  } catch (error) {
-    console.error('폴더명 설정 저장 실패:', error)
-  }
-}
-
-// 백엔드에 폴더명 동기화
-async function syncFolderNameWithBackend() {
-  try {
-    const response = await fetch(`${docsBaseUrl}/config/folder`, {
+    const response = await fetch(`${docsBaseUrl}/config/folders`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ folderName: documentFolderName.value }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: newFolderId.value.trim(),
+        label: newFolderLabel.value.trim() || newFolderId.value.trim(),
+        pathPrefix: newFolderPath.value.trim(),
+      }),
     })
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.error('[Settings] 백엔드 폴더명 설정 동기화 실패:', errorData.error || response.status)
-      $q.notify({
-        type: 'warning',
-        message: '백엔드 폴더명 설정 동기화에 실패했습니다.',
-        position: 'top',
-        timeout: 3000,
-      })
-      return false
-    } else {
-      const result = await response.json()
-      console.log('[Settings] 백엔드 폴더명 설정 동기화 성공:', result.folderName)
-      return true
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.error || '추가 실패')
     }
-  } catch (error) {
-    console.error('[Settings] 백엔드 폴더명 설정 동기화 중 오류:', error)
-    $q.notify({
-      type: 'warning',
-      message: '백엔드 폴더명 설정 동기화 중 오류가 발생했습니다.',
-      position: 'top',
-      timeout: 3000,
-    })
-    return false
+    const data = await response.json()
+    docsFolders.value = data.folders || []
+    newFolderId.value = ''
+    newFolderLabel.value = ''
+    newFolderPath.value = ''
+    $q.notify({ type: 'positive', message: '폴더가 추가되었습니다.', position: 'top' })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e.message || '폴더 추가 실패', position: 'top' })
+  }
+}
+
+// 폴더 제거
+async function handleRemoveFolder(folderId) {
+  try {
+    const response = await fetch(`${docsBaseUrl}/config/folders/${encodeURIComponent(folderId)}`, { method: 'DELETE' })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.error || '제거 실패')
+    }
+    const data = await response.json()
+    docsFolders.value = data.folders || []
+    $q.notify({ type: 'positive', message: '폴더가 제거되었습니다.', position: 'top' })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e.message || '폴더 제거 실패', position: 'top' })
   }
 }
 
 // 초기 확장자 저장 (모달이 열릴 때마다)
 function saveInitialExtensions() {
   initialExtensions.value = [...supportedExtensions.value]
-}
-
-// 초기 폴더명 저장 (모달이 열릴 때마다)
-function saveInitialFolderName() {
-  initialFolderName.value = documentFolderName.value
 }
 
 // 확장자 변경 감지
@@ -334,11 +326,6 @@ const hasExtensionChanged = computed(() => {
   return JSON.stringify([...initialExtensions.value].sort()) !== JSON.stringify([...supportedExtensions.value].sort())
 })
 
-// 폴더명 변경 감지
-const hasFolderNameChanged = computed(() => {
-  if (!initialFolderName.value) return false
-  return initialFolderName.value !== documentFolderName.value
-})
 
 // 모달이 열릴 때 초기값 저장
 watch(
@@ -346,7 +333,7 @@ watch(
   (isOpen) => {
     if (isOpen) {
       saveInitialExtensions()
-      saveInitialFolderName()
+      loadDocsFolders()
     }
   },
   { immediate: true },
@@ -492,7 +479,7 @@ function saveMenuAnimation() {
 loadWheelScrollStep()
 loadToastSettings()
 loadMenuAnimation()
-loadDocumentFolderName() // 문서 폴더명 불러오기
+loadDocsFolders() // 문서 폴더 목록 불러오기
 
 // 기존 설정 값 가져오기
 const hideCompleted = ref(documentStore.hideCompleted)
@@ -661,38 +648,17 @@ async function handleRefreshFileList() {
   }
 }
 
-// 파일 목록 새로고침 핸들러 (폴더명용)
+// 파일 목록 새로고침 핸들러
 async function handleRefreshFolderName() {
   try {
     isRefreshingFolder.value = true
-
-    // 현재 설정을 localStorage에 저장
-    saveDocumentFolderName()
-
-    // 백엔드 폴더명 설정 동기화
-    const syncSuccess = await syncFolderNameWithBackend()
-
-    if (syncSuccess) {
-      // 파일 목록 새로고침
-      await documentStore.loadMarkdownFiles()
-
-      // 초기 폴더명 업데이트 (변경 감지 초기화)
-      saveInitialFolderName()
-
-      $q.notify({
-        type: 'positive',
-        message: '파일 목록이 새로고침되었습니다.',
-        position: 'top',
-        timeout: 2000,
-      })
-    } else {
-      $q.notify({
-        type: 'warning',
-        message: '백엔드 동기화에 실패했습니다. 파일 목록을 새로고침할 수 없습니다.',
-        position: 'top',
-        timeout: 3000,
-      })
-    }
+    await documentStore.loadMarkdownFiles()
+    $q.notify({
+      type: 'positive',
+      message: '파일 목록이 새로고침되었습니다.',
+      position: 'top',
+      timeout: 2000,
+    })
   } catch (error) {
     console.error('[Settings] 파일 목록 새로고침 실패:', error)
     $q.notify({
@@ -714,13 +680,9 @@ async function handleSave() {
   saveMenuAnimation()
   // 확장자 설정 저장 (localStorage)
   saveSupportedExtensions(supportedExtensions.value)
-  // 문서 폴더명 저장 (localStorage)
-  saveDocumentFolderName()
 
   // 백엔드에 확장자 설정 동기화
   await syncExtensionsWithBackend()
-  // 백엔드에 폴더명 설정 동기화
-  await syncFolderNameWithBackend()
 
   // TODO: localStorage에 설정 저장
   // - reorderDelaySeconds

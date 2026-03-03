@@ -17,7 +17,7 @@
           <div>
             <div class="text-h6 file-content-title">{{ documentStore.selectedFile.displayName }}</div>
             <div class="text-caption file-content-filename row items-center q-gutter-xs">
-              <span>{{ documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name }}</span>
+              <span>{{ documentStore.selectedFile.displayPath || documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name }}</span>
               <q-btn flat dense round icon="content_copy" size="sm" class="copy-path-btn" @click="handleCopyFilePath">
                 <q-tooltip>경로 복사</q-tooltip>
               </q-btn>
@@ -114,12 +114,11 @@ import { loadCheckboxStates, loadTOCSettings, moveToTrash, restoreFromTrash, per
 import { useDocumentStats } from '@domains/dev/modules/document-manager/composables/useDocumentStats'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore'
 import { copyTextToClipboard } from '@system/utils/clipboard'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
+import { getDocFileUrl } from '@system/utils/apiBaseUrl'
 
 const $q = useQuasar()
 const documentStore = useDocumentManagerStore()
 const userSettings = useUserSettingsStore()
-const docsBaseUrl = getDocsBaseUrl()
 
 // 편집 모드 상태
 const isEditMode = ref(false)
@@ -808,16 +807,12 @@ async function handleRefreshFile() {
 async function handleUpdateModifiedDate() {
   if (!documentStore.selectedFile) return
 
-  // path는 이미 relativePath와 동일하므로 그대로 사용
   const filePath = documentStore.selectedFile.relativePath || documentStore.selectedFile.path || ''
   const pathParts = filePath.split('/')
   const actualFileName = pathParts[pathParts.length - 1]
-  const directoryPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : ''
-  const fullRelativePath = directoryPath ? `${directoryPath}/${actualFileName}` : actualFileName
 
   try {
-    const encodedFileName = encodeURIComponent(fullRelativePath)
-    const response = await fetch(`${docsBaseUrl}/${encodedFileName}/touch`, {
+    const response = await fetch(getDocFileUrl(filePath) + '/touch', {
       method: 'POST',
     })
 
@@ -860,11 +855,11 @@ async function handleUpdateModifiedDate() {
   }
 }
 
-// 파일 경로 복사
+// 파일 경로 복사 (실제 경로 형식으로 복사 - 복붙·공유에 유리)
 async function handleCopyFilePath() {
   if (!documentStore.selectedFile) return
 
-  const filePath = documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name
+  const filePath = documentStore.selectedFile.displayPath || documentStore.selectedFile.relativePath || documentStore.selectedFile.path || documentStore.selectedFile.name
 
   try {
     await copyTextToClipboard(filePath)

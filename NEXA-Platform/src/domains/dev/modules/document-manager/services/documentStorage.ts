@@ -9,9 +9,7 @@ import {
   saveSupportedExtensions as saveExtensions,
   removeExtension,
 } from '@system/config/documentConfig'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
-
-const docsBaseUrl = getDocsBaseUrl()
+import { getDocFileUrl } from '@system/utils/apiBaseUrl'
 
 /** 체크박스 상태: 파일별 line key -> checked */
 export type CheckboxStates = Record<string, Record<string, boolean>>
@@ -301,8 +299,7 @@ export async function renameFile(
   sidebarRefs?: SidebarRefs | null,
 ): Promise<boolean> {
   try {
-    const encodedOldFileName = encodeURIComponent(oldFileName)
-    const response = await fetch(`${docsBaseUrl}/${encodedOldFileName}`, {
+    const response = await fetch(getDocFileUrl(oldFileName), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newFileName }),
@@ -537,8 +534,7 @@ export async function permanentlyDeleteFromTrash(
   try {
     const filePath = fileName
     const fileNameOnly = filePath.includes('/') ? filePath.split('/').pop()! : filePath
-    const encodedFileName = encodeURIComponent(filePath)
-    const response = await fetch(`${docsBaseUrl}/${encodedFileName}`, {
+    const response = await fetch(getDocFileUrl(filePath), {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -625,8 +621,7 @@ export async function emptyTrash(store: DocumentManagerStoreLike): Promise<numbe
           )
           if (file?.relativePath) filePath = file.relativePath
         }
-        const encodedFileName = encodeURIComponent(filePath)
-        const response = await fetch(`${docsBaseUrl}/${encodedFileName}`, {
+        const response = await fetch(getDocFileUrl(filePath), {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
         })

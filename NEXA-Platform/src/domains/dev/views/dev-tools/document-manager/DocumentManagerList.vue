@@ -327,7 +327,7 @@ import { useDocumentList } from '@domains/dev/modules/document-manager/composabl
 import { useMultiSelection } from '@system/composables/useMultiSelection'
 import { useQuasar } from 'quasar'
 import { sortByName, sortByModified, sortByCreated, sortByUsage, sortByFavorite, sortByPriority } from '@system/utils/file-sorter/index'
-import { getDocsBaseUrl } from '@system/utils/apiBaseUrl'
+import { getDocFileUrl } from '@system/utils/apiBaseUrl'
 
 // Props
 const props = defineProps({
@@ -361,7 +361,6 @@ const $q = useQuasar()
 
 // Store 사용
 const documentStore = useDocumentManagerStore()
-const docsBaseUrl = getDocsBaseUrl()
 
 // Store에서 함수만 가져오기 (상태는 직접 참조하여 반응성 유지)
 // selectedFile은 구조 분해하면 반응성을 잃을 수 있으므로 직접 참조
@@ -833,19 +832,11 @@ function setFileUsage(fileName, usageCount, fileUsageCounts) {
 }
 
 // ⭐ 수정일 갱신 함수 (드롭 시 사용)
-async function updateFileModifiedDateOnDrop(sourceFileName) {
+async function updateFileModifiedDateOnDrop(sourceFile) {
   try {
-    // path에서 직접 실제 파일명 추출
-    const filePath = sourceFileName.includes('/') ? sourceFileName : sourceFileName
-    const pathParts = filePath.split('/')
-    const actualFileName = pathParts[pathParts.length - 1]
+    const filePath = sourceFile.relativePath || sourceFile.path || sourceFile.name
 
-    // 디렉토리가 있는 경우 전체 경로 사용
-    const directoryPath = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : ''
-    const fullRelativePath = directoryPath ? `${directoryPath}/${actualFileName}` : actualFileName
-
-    const encodedFileName = encodeURIComponent(fullRelativePath)
-    const response = await fetch(`${docsBaseUrl}/${encodedFileName}/touch`, {
+    const response = await fetch(getDocFileUrl(filePath) + '/touch', {
       method: 'POST',
     })
 
@@ -918,7 +909,7 @@ function calculateValueOnDrop(sourceFile, targetFile, sourceIndex, finalTargetIn
 
     case 'modified': {
       // 수정일 모드: 수정일 갱신
-      updateFileModifiedDateOnDrop(sourceFileName)
+      updateFileModifiedDateOnDrop(sourceFile)
       return {
         type: 'modified',
         value: 'updated',
@@ -927,7 +918,7 @@ function calculateValueOnDrop(sourceFile, targetFile, sourceIndex, finalTargetIn
 
     case 'created': {
       // 생성일 모드: 수정일 갱신으로 간접 반영
-      updateFileModifiedDateOnDrop(sourceFileName)
+      updateFileModifiedDateOnDrop(sourceFile)
       return {
         type: 'created',
         value: 'updated',

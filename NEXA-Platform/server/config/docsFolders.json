@@ -1,0 +1,14 @@
+[
+  {
+    "id": "nexa-docs",
+    "label": "NEXA-Documentation",
+    "pathPrefix": "../../../NEXA-Documentation",
+    "displayPathPrefix": "NEXA-Documentation"
+  },
+  {
+    "id": "platform-docs",
+    "label": "Platform docs",
+    "pathPrefix": "../../docs",
+    "displayPathPrefix": "NEXA-Platform/docs"
+  }
+]
