@@ -368,8 +368,8 @@ const { loadMarkdownFiles: loadMarkdownFilesFromStore, selectFile: selectFileFro
 
 // 로컬 상태
 const listMode = ref('default') // 문서 목록 모드: 'default', 'group', 'name', 'modified', 'usage'
-const sortOrder = ref('asc') // 정렬 방향: 'asc', 'desc'
-const sortType = ref('name') // 정렬 기준: 'name', 'modified', 'usage'
+const sortOrder = ref('desc') // 정렬 방향: 'asc', 'desc' (기본 desc: 최신 위로, 풀려도 혼동 감소)
+const sortType = ref('modified') // 정렬 기준: 'name', 'modified', 'created', 'usage' (기본 modified: 업데이트순)
 const fileUsageCounts = ref({}) // 파일 사용 빈도 (로컬 스토리지)
 const favoriteStates = ref({}) // 즐겨찾기 상태 (로컬 스토리지)
 const priorityStates = ref({}) // 우선순위 상태 (로컬 스토리지)

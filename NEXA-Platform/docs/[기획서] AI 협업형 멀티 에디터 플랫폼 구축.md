@@ -970,6 +970,7 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 12. **mitt 이벤트 버스 전환**: useAiInsertRequest·useAiExplorerSelection·useAiMediaTab 콜백을 mitt 기반으로 전환
 13. **pinia-plugin-persistedstate 적용**: Pinia store를 localStorage에 자동 영속화하여 기존 수동 저장 로직을 대체·보조
 14. **localStorage → 서버 이전**: ai_channels, ai_chats, ai_chat_messages, ai_workspace_layout, ai_user_settings 테이블 적용 (9. DB 설계)
+15. **문서 관리 필터 (디렉토리별 1depth 서브폴더)**: 현재 디렉토리 필터(nexa-docs / platform-docs) 선택 시, 해당 디렉토리 내 **1차 하위 폴더(Platform, 공통, Desktop 등)** 기준 필터 버튼 추가 표시. 구현 난이도 낮음. 실제 사용성 검토 후 필요 시 추가.
 
 > 세부 내용은 상황에 따라 별도 문서로 분리·심화한다.
 
