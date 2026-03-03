@@ -3,6 +3,7 @@
     <AiSplitLayout
       v-model:editor-content="editorContent"
       v-model:code-content="codeContent"
+      :code-language="codeLanguage"
     />
   </div>
 </template>
@@ -18,14 +19,44 @@ import AiSplitLayout from './AiSplitLayout.vue'
 
 const editorContent = ref('')
 const codeContent = ref('// 코드를 입력하세요\n')
+const codeLanguage = ref('javascript')
 const pendingInsertContent = ref(null)
 const pendingCodeInsertContent = ref(null)
 
 const { onInsertRequest, onOpenEditorRequest } = useAiInsertRequest()
-const { onInjectToEditor } = useAiExplorerSelection()
+const { onInjectToEditor, onOpenInCodePanel } = useAiExplorerSelection()
 let unregisterInsertRequest = null
 let unregisterOpenEditorRequest = null
 let unregisterInjectToEditor = null
+let unregisterOpenInCodePanel = null
+
+function extToMonacoLanguage(ext) {
+  const map = {
+    js: 'javascript',
+    mjs: 'javascript',
+    cjs: 'javascript',
+    ts: 'typescript',
+    mts: 'typescript',
+    cts: 'typescript',
+    jsx: 'javascript',
+    tsx: 'typescript',
+    json: 'json',
+    yaml: 'yaml',
+    yml: 'yaml',
+    xml: 'xml',
+    py: 'python',
+    css: 'css',
+    scss: 'scss',
+    html: 'html',
+    htm: 'html',
+    md: 'markdown',
+    sql: 'sql',
+    sh: 'shell',
+    bash: 'shell',
+    vue: 'html',
+  }
+  return map[ext] || 'plaintext'
+}
 
 function fileToEditorHtml(file) {
   if (!file?.file_path && !file?.url) return ''
@@ -58,12 +89,29 @@ onMounted(() => {
       })
     }
   })
+  unregisterOpenInCodePanel = onOpenInCodePanel(async (file) => {
+    if (!file?.file_path && !file?.url) return
+    const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
+    if (!url) return
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(res.statusText)
+      const text = await res.text()
+      const ext = (file.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''
+      codeContent.value = text
+      codeLanguage.value = extToMonacoLanguage(ext)
+      showPanel('code')
+    } catch (e) {
+      console.error('[AiContent] code file fetch failed:', e)
+    }
+  })
 })
 
 onBeforeUnmount(() => {
   unregisterInsertRequest?.()
   unregisterOpenEditorRequest?.()
   unregisterInjectToEditor?.()
+  unregisterOpenInCodePanel?.()
 })
 
 provide('aiInsertContent', {

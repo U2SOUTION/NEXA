@@ -87,10 +87,15 @@
             </div>
           </div>
         </template>
+        <!-- JSON: 코드 패널에서 열리므로 뷰어 비활성화. 복원 시 아래 주석 블록 해제 후, 위 placeholder·hidden div 제거 -->
         <template v-else-if="isJsonFile">
+          <div class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">JSON 파일은 코드 패널에서 확인하세요.</div>
+          <div v-if="false" v-html="highlightedJson" aria-hidden="true"></div>
+          <!--
           <div v-if="textFileFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">파일을 불러올 수 없습니다.</div>
           <div v-else-if="textFileLoading" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">불러오는 중...</div>
           <pre v-else class="universal-viewer-json q-pa-md" v-html="highlightedJson"></pre>
+          -->
         </template>
         <div v-else class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">준비중</div>
       </div>
@@ -283,7 +288,7 @@ const formattedJson = computed(() => {
   }
 })
 
-/** JSON 구문 강조 (HTML 이스케이프 후 키/문자열/숫자/리터럴 색상 적용) */
+/** JSON 구문 강조 (JSON 뷰어 복원 시 사용) */
 const highlightedJson = computed(() => {
   const s = formattedJson.value
   if (!s || !isJsonFile.value) return ''

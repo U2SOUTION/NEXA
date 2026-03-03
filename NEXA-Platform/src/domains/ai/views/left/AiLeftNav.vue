@@ -398,7 +398,14 @@ const { setSelectedFile } = useFileSelection()
 const aiAssets = useAiAssets()
 const { requestInsert, requestOpenEditor } = useAiInsertRequest()
 const { onOpenMediaTab } = useAiMediaTab()
-const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor } = useAiExplorerSelection()
+const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor, requestOpenInCodePanel } = useAiExplorerSelection()
+
+const CODE_EXTENSIONS = ['js', 'mjs', 'cjs', 'ts', 'mts', 'cts', 'jsx', 'tsx', 'json', 'yaml', 'yml', 'xml', 'py', 'css', 'scss', 'html', 'htm', 'md', 'sql', 'sh', 'bash', 'vue', 'env', 'toml', 'ini', 'cfg', 'conf']
+function isCodeFile(file) {
+  if (!file?.original_name) return false
+  const ext = (file.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''
+  return CODE_EXTENSIONS.includes(ext)
+}
 
 const { documents, images, audio, videos, uploadProgressFiles, showUploadProgress } = aiAssets
 
@@ -488,13 +495,21 @@ function inferCategoryFromPayload(p) {
 function onDocumentClick(f) {
   if (!f?.url) return
   setSelectedFile(f)
-  showPanel('viewer')
+  if (isCodeFile(f)) {
+    requestOpenInCodePanel(f)
+  } else {
+    showPanel('viewer')
+  }
 }
 
 function onMediaItemClick(f, category) {
   if (!f?.url) return
   setSelectedFile(f)
-  showPanel('viewer')
+  if (isCodeFile(f)) {
+    requestOpenInCodePanel(f)
+  } else {
+    showPanel('viewer')
+  }
   selectMediaItem(category, f)
 }
 

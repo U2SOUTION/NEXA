@@ -250,6 +250,7 @@ function fixActiveIndexAfterSort(area, fromIndex, toIndex) {
 const props = defineProps({
   editorContent: { type: String, default: '' },
   codeContent: { type: String, default: '' },
+  codeLanguage: { type: String, default: 'javascript' },
 })
 
 const emit = defineEmits(['update:editorContent', 'update:codeContent'])
@@ -303,7 +304,12 @@ const centerRightLimits = computed(() => {
 
 function getPanelProps(panelId) {
   if (panelId === 'editor') return { modelValue: props.editorContent, 'onUpdate:modelValue': (v) => emit('update:editorContent', v) }
-  if (panelId === 'code') return { modelValue: props.codeContent, 'onUpdate:modelValue': (v) => emit('update:codeContent', v) }
+  if (panelId === 'code')
+    return {
+      modelValue: props.codeContent,
+      'onUpdate:modelValue': (v) => emit('update:codeContent', v),
+      language: props.codeLanguage,
+    }
   return {}
 }
 

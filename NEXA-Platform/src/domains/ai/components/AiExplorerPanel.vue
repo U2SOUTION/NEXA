@@ -56,15 +56,26 @@ import { showPanel } from '../composables/useAiSplitLayout'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
 const { selectedFile, setSelectedFile } = useFileSelection()
-const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor } = useAiExplorerSelection()
+const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor, requestOpenInCodePanel } = useAiExplorerSelection()
+
+const CODE_EXTENSIONS = ['js', 'mjs', 'cjs', 'ts', 'mts', 'cts', 'jsx', 'tsx', 'json', 'yaml', 'yml', 'xml', 'py', 'css', 'scss', 'html', 'htm', 'md', 'sql', 'sh', 'bash', 'vue', 'env', 'toml', 'ini', 'cfg', 'conf']
+function isCodeFile(file) {
+  if (!file?.original_name) return false
+  const ext = (file.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''
+  return CODE_EXTENSIONS.includes(ext)
+}
 const { addFileToMedia } = useAiAssets()
 const { requestAttachToChat } = useAiSettings()
 const { requestOpenMediaTab } = useAiMediaTab()
 const addingToMedia = ref(false)
 const contextMenuVisible = ref(false)
 
-function onSelect() {
-  showPanel('viewer')
+function onSelect(file) {
+  if (file && isCodeFile(file)) {
+    requestOpenInCodePanel(file)
+  } else {
+    showPanel('viewer')
+  }
 }
 
 function onContextMenu(_evt, file) {

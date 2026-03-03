@@ -11,6 +11,7 @@ const injectToEditorListeners = new Set()
 const openInImageEditorListeners = new Set()
 const openInAudioEditorListeners = new Set()
 const openInVideoEditorListeners = new Set()
+const openInCodePanelListeners = new Set()
 
 function emit(listeners, file) {
   if (!file || typeof file !== 'object') return
@@ -50,6 +51,10 @@ export function useAiExplorerSelection() {
     emit(openInVideoEditorListeners, file)
   }
 
+  function requestOpenInCodePanel(file) {
+    emit(openInCodePanelListeners, file)
+  }
+
   function onInjectToChat(callback) {
     return register(injectToChatListeners, callback)
   }
@@ -70,16 +75,22 @@ export function useAiExplorerSelection() {
     return register(openInVideoEditorListeners, callback)
   }
 
+  function onOpenInCodePanel(callback) {
+    return register(openInCodePanelListeners, callback)
+  }
+
   return {
     requestInjectToChat,
     requestInjectToEditor,
     requestOpenInImageEditor,
     requestOpenInAudioEditor,
     requestOpenInVideoEditor,
+    requestOpenInCodePanel,
     onInjectToChat,
     onInjectToEditor,
     onOpenInImageEditor,
     onOpenInAudioEditor,
     onOpenInVideoEditor,
+    onOpenInCodePanel,
   }
 }
