@@ -407,6 +407,14 @@ function isCodeFile(file) {
   return CODE_EXTENSIONS.includes(ext)
 }
 
+function isTiptapMediaFile(file) {
+  const t = (file?.file_type || file?.category || '').toLowerCase()
+  if (['image', 'images', 'audio', 'video'].includes(t)) return true
+  const ext = (file?.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''
+  const mediaExt = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma', 'mp4', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'flv', 'm4v']
+  return mediaExt.includes(ext)
+}
+
 const { documents, images, audio, videos, uploadProgressFiles, showUploadProgress } = aiAssets
 
 const showMediaUpload = ref(false)
@@ -497,6 +505,9 @@ function onDocumentClick(f) {
   setSelectedFile(f)
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
+  } else if (isTiptapMediaFile(f)) {
+    requestInjectToEditor(f)
+    showPanel('editor')
   } else {
     showPanel('viewer')
   }
@@ -507,6 +518,9 @@ function onMediaItemClick(f, category) {
   setSelectedFile(f)
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
+  } else if (isTiptapMediaFile(f)) {
+    requestInjectToEditor(f)
+    showPanel('editor')
   } else {
     showPanel('viewer')
   }

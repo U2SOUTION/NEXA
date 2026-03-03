@@ -58,13 +58,37 @@ function extToMonacoLanguage(ext) {
   return map[ext] || 'plaintext'
 }
 
+const MEDIA_IMAGE = ['image', 'images']
+const MEDIA_AUDIO = ['audio']
+const MEDIA_VIDEO = ['video']
+const AUDIO_EXT = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma']
+const VIDEO_EXT = ['mp4', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'flv', 'm4v']
+
+function getMediaType(file) {
+  const t = (file?.file_type || file?.category || '').toLowerCase()
+  if (MEDIA_IMAGE.includes(t)) return 'image'
+  if (MEDIA_AUDIO.includes(t)) return 'audio'
+  if (MEDIA_VIDEO.includes(t)) return 'video'
+  const ext = (file?.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(ext)) return 'image'
+  if (AUDIO_EXT.includes(ext)) return 'audio'
+  if (VIDEO_EXT.includes(ext)) return 'video'
+  return null
+}
+
 function fileToEditorHtml(file) {
   if (!file?.file_path && !file?.url) return ''
   const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
-  const name = file.original_name || '파일'
-  const t = (file?.file_type || file?.category || '').toLowerCase()
-  if (t === 'image' || t === 'images') {
+  const name = (file.original_name || '파일').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const mediaType = getMediaType(file)
+  if (mediaType === 'image') {
     return `<p><img src="${url}" alt="${name}" /></p>`
+  }
+  if (mediaType === 'audio') {
+    return `<p><audio src="${url}" controls></audio></p>`
+  }
+  if (mediaType === 'video') {
+    return `<p><video src="${url}" controls></video></p>`
   }
   return `<p><a href="${url}">${name}</a></p>`
 }

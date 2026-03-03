@@ -1,6 +1,8 @@
+import { mergeAttributes } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Image from '@tiptap/extension-image'
+import Audio from '@tiptap/extension-audio'
 import Link from '@tiptap/extension-link'
 import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
@@ -16,6 +18,7 @@ import { FontFamily } from '@tiptap/extension-font-family'
 import { Subscript } from '@tiptap/extension-subscript'
 import { Superscript } from '@tiptap/extension-superscript'
 import YouTube from '@tiptap/extension-youtube'
+import { Video } from '@engines/tiptap/extensions/Video'
 
 export interface BaseExtensionsOptions {
   inlineImage?: boolean
@@ -49,11 +52,36 @@ export function createBaseExtensions(options: BaseExtensionsOptions = {}) {
               return { 'data-original-filename': attributes['data-original-filename'] }
             },
           },
+          textAlign: {
+            default: 'center',
+            parseHTML: (element) => element.parentElement?.style?.textAlign || 'center',
+            renderHTML: () => ({}),
+          },
         }
+      },
+      renderHTML({ node, HTMLAttributes }) {
+        const align = node.attrs.textAlign || 'center'
+        const imgAttrs = { ...HTMLAttributes }
+        delete imgAttrs.textAlign
+        return [
+          'span',
+          { style: `display: block; text-align: ${align}` },
+          ['img', mergeAttributes(this.options.HTMLAttributes, imgAttrs)],
+        ]
       },
     }).configure({
       inline: inlineImage,
       allowBase64: allowBase64Image,
+    }),
+    Audio.configure({
+      allowBase64: true,
+      controls: true,
+      inline: false,
+    }),
+    Video.configure({
+      allowBase64: true,
+      controls: true,
+      inline: false,
     }),
     Link.configure({
       openOnClick: false,
@@ -76,7 +104,7 @@ export function createBaseExtensions(options: BaseExtensionsOptions = {}) {
       multicolor: true,
     }),
     TextAlign.configure({
-      types: ['heading', 'paragraph'],
+      types: ['heading', 'paragraph', 'image'],
     }),
     TextStyle,
     Color.configure({

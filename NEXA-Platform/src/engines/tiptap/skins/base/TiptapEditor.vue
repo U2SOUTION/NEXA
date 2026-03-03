@@ -898,6 +898,22 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
         margin: 0.5em 0;
       }
 
+      video {
+        max-width: 90%;
+        width: 90%;
+        height: auto;
+        border-radius: 4px;
+        margin: 0.5em auto;
+        display: block;
+      }
+
+      audio {
+        max-width: 90%;
+        width: 90%;
+        margin: 0.5em auto;
+        display: block;
+      }
+
       table {
         border-collapse: collapse;
         margin: 0.5em 0;
@@ -1185,6 +1201,22 @@ body.dark {
         height: auto;
         border-radius: 4px;
         margin: 0.5em 0;
+      }
+
+      video {
+        max-width: 90%;
+        width: 90%;
+        height: auto;
+        border-radius: 4px;
+        margin: 0.5em auto;
+        display: block;
+      }
+
+      audio {
+        max-width: 90%;
+        width: 90%;
+        margin: 0.5em auto;
+        display: block;
       }
 
       table {

@@ -1,3 +1,4 @@
+<!-- UniversalViewer: 당분간 보존. [NEXA-AI-07] 추후 NexusLens로 대체 예정. -->
 <template>
   <div class="universal-viewer column">
     <template v-if="!file">
