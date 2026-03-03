@@ -407,6 +407,11 @@ function isCodeFile(file) {
   return CODE_EXTENSIONS.includes(ext)
 }
 
+function getFileExt(file) {
+  const name = (file?.original_name || file?.file_path || '').toLowerCase()
+  return name.match(/\.([a-z0-9]+)$/)?.[1] || ''
+}
+
 const { documents, images, audio, videos, uploadProgressFiles, showUploadProgress } = aiAssets
 
 const showMediaUpload = ref(false)
@@ -492,27 +497,35 @@ function inferCategoryFromPayload(p) {
   return 'documents'
 }
 
-/** 클릭: 뷰어에 단일만 표시. 삽입은 우클릭 메뉴 "에디터에 넣기"로만. */
+/** 클릭: 뷰어에 단일 표시. md도 파서로 뷰어. 코드 파일(md 제외)만 Monaco. 삽입은 우클릭 "에디터에 넣기"로만. */
 function onDocumentClick(f) {
   if (!f?.url) return
   setSelectedFile(f)
+  if (getFileExt(f) === 'md') {
+    showPanel('viewer')
+    return
+  }
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
-  } else {
-    showPanel('viewer')
+    return
   }
+  showPanel('viewer')
 }
 
-/** 클릭: 뷰어에 단일만 표시. 삽입은 우클릭 메뉴 "에디터에 넣기"로만. */
+/** 클릭: 뷰어에 단일 표시. md도 파서로 뷰어. 코드 파일(md 제외)만 Monaco. 삽입은 우클릭 "에디터에 넣기"로만. */
 function onMediaItemClick(f, category) {
   if (!f?.url) return
   setSelectedFile(f)
+  selectMediaItem(category, f)
+  if (getFileExt(f) === 'md') {
+    showPanel('viewer')
+    return
+  }
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
-  } else {
-    showPanel('viewer')
+    return
   }
-  selectMediaItem(category, f)
+  showPanel('viewer')
 }
 
 async function handleMediaAdd(p) {

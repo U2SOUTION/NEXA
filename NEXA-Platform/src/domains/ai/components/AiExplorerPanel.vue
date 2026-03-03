@@ -65,20 +65,29 @@ function isCodeFile(file) {
   return CODE_EXTENSIONS.includes(ext)
 }
 
+function getFileExt(file) {
+  const name = (file?.original_name || file?.file_path || '').toLowerCase()
+  return name.match(/\.([a-z0-9]+)$/)?.[1] || ''
+}
+
 const { addFileToMedia } = useAiAssets()
 const { requestAttachToChat } = useAiSettings()
 const { requestOpenMediaTab } = useAiMediaTab()
 const addingToMedia = ref(false)
 const contextMenuVisible = ref(false)
 
-/** 클릭: 뷰어에 단일만 표시. 삽입은 우클릭 메뉴 "에디터에 넣기"로만. */
+/** 클릭: 뷰어에 단일 표시. md도 파서로 뷰어. 코드 파일(md 제외)만 Monaco. 삽입은 우클릭 "에디터에 넣기"로만. */
 function onSelect(file) {
   if (!file) return
+  if (getFileExt(file) === 'md') {
+    showPanel('viewer')
+    return
+  }
   if (isCodeFile(file)) {
     requestOpenInCodePanel(file)
-  } else {
-    showPanel('viewer')
+    return
   }
+  showPanel('viewer')
 }
 
 function onContextMenu(_evt, file) {

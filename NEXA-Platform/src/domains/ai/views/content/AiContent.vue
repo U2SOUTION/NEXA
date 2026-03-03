@@ -103,6 +103,60 @@ function fileToEditorHtml(file) {
 }
 
 /**
+ * MD 파일을 Tiptap 에디터에 삽입. parseMarkdown으로 HTML 변환.
+ * 뷰어 성격: 렌더된 결과 표시. 수정 시 Monaco에서 md 원본 편집.
+ */
+async function injectMdToEditor(file) {
+  const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
+  if (!url) {
+    Notify.create({ type: 'warning', message: 'MD 파일 주소를 가져올 수 없습니다.' })
+    return
+  }
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(res.statusText)
+    const raw = await res.text()
+    const title = file.original_name || ''
+    const html = parseMarkdown(raw, title, {})
+    showPanel('editor')
+    nextTick(() => {
+      pendingInsertContent.value = html || '<p></p>'
+    })
+  } catch (e) {
+    console.error('[AiContent] MD fetch failed:', e)
+    Notify.create({ type: 'negative', message: 'MD 파일을 불러올 수 없습니다.' })
+  }
+}
+
+/**
+ * TXT 파일을 Tiptap 에디터에 삽입. 각 줄을 <p>로 감쌈.
+ */
+async function injectTxtToEditor(file) {
+  const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
+  if (!url) {
+    Notify.create({ type: 'warning', message: 'TXT 파일 주소를 가져올 수 없습니다.' })
+    return
+  }
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(res.statusText)
+    const raw = await res.text()
+    const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n')
+    const escaped = lines.map((line) =>
+      String(line).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+    )
+    const html = escaped.map((line) => `<p>${line || '<br>'}</p>`).join('')
+    showPanel('editor')
+    nextTick(() => {
+      pendingInsertContent.value = html || '<p></p>'
+    })
+  } catch (e) {
+    console.error('[AiContent] TXT fetch failed:', e)
+    Notify.create({ type: 'negative', message: 'TXT 파일을 불러올 수 없습니다.' })
+  }
+}
+
+/**
  * CSV 파일을 Tiptap 에디터에 테이블로 삽입.
  *
  * ## UniversalViewer 전환 (큰 CSV용)
@@ -157,8 +211,16 @@ onMounted(() => {
     showPanel('editor')
   })
   unregisterInjectToEditor = onInjectToEditor((file) => {
-    // CSV: Tiptap 테이블로 삽입. UniversalViewer 전환은 injectCsvToEditor 주석 참고.
-    if (getFileExtension(file) === 'csv') {
+    const ext = getFileExtension(file)
+    if (ext === 'md') {
+      injectMdToEditor(file)
+      return
+    }
+    if (ext === 'txt') {
+      injectTxtToEditor(file)
+      return
+    }
+    if (ext === 'csv') {
       injectCsvToEditor(file)
       return
     }
