@@ -23,18 +23,7 @@
               <q-toggle v-model="videoLoop" dense label="반복 재생" />
               <q-toggle v-model="videoMuted" dense label="음소거" />
             </div>
-            <video
-              v-if="previewUrl"
-              ref="videoEl"
-              controls
-              class="preview-video q-px-sm q-pb-sm"
-              :src="previewUrl"
-              :autoplay="videoAutoplay"
-              :loop="videoLoop"
-              :muted="videoMuted"
-            >
-              이 브라우저는 영상 재생을 지원하지 않습니다.
-            </video>
+            <video v-if="previewUrl" ref="videoEl" controls class="preview-video q-px-sm q-pb-sm" :src="previewUrl" :autoplay="videoAutoplay" :loop="videoLoop" :muted="videoMuted">이 브라우저는 영상 재생을 지원하지 않습니다.</video>
             <div v-else class="text-grey-6 text-center q-pa-md">재생할 수 있는 주소가 없습니다.</div>
           </div>
         </template>
@@ -101,11 +90,9 @@
         <template v-else-if="isJsonFile">
           <div v-if="textFileFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">파일을 불러올 수 없습니다.</div>
           <div v-else-if="textFileLoading" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">불러오는 중...</div>
-          <pre v-else class="universal-viewer-json q-pa-md">{{ formattedJson }}</pre>
+          <pre v-else class="universal-viewer-json q-pa-md" v-html="highlightedJson"></pre>
         </template>
-        <div v-else class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">
-          준비중
-        </div>
+        <div v-else class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">준비중</div>
       </div>
     </template>
   </div>
@@ -215,7 +202,11 @@ const MAX_CSV_DISPLAY_ROWS = 3000
 const parsedCsvRows = computed(() => {
   const raw = textFileContent.value
   if (!raw || !isCsvFile.value) return []
-  const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter((l) => l.trim())
+  const lines = raw
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .filter((l) => l.trim())
   if (lines.length === 0) return []
   const all = lines.map((line) => parseCsvLine(line))
   return all.slice(0, MAX_CSV_DISPLAY_ROWS)
@@ -253,7 +244,11 @@ const csvTableRows = computed(() => {
 const csvTotalRows = computed(() => {
   const raw = textFileContent.value
   if (!raw || !isCsvFile.value) return 0
-  const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter((l) => l.trim())
+  const lines = raw
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .filter((l) => l.trim())
   return lines.length
 })
 
@@ -286,6 +281,23 @@ const formattedJson = computed(() => {
   } catch {
     return raw
   }
+})
+
+/** JSON 구문 강조 (HTML 이스케이프 후 키/문자열/숫자/리터럴 색상 적용) */
+const highlightedJson = computed(() => {
+  const s = formattedJson.value
+  if (!s || !isJsonFile.value) return ''
+  const escaped = s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+  const strPat = '&quot;(?:(?!&quot;)[\\s\\S])*?&quot;'
+  return escaped
+    .replace(new RegExp(`(${strPat})(\\s*:)`, 'g'), '<span class="json-key">$1</span>$2')
+    .replace(new RegExp(`(:)\\s*(${strPat})`, 'g'), '$1 <span class="json-string">$2</span>')
+    .replace(/: (-?\\d+\\.?\\d*([eE][+-]?\\d+)?)/g, ': <span class="json-number">$1</span>')
+    .replace(/\b(true|false|null)\b/g, '<span class="json-literal">$1</span>')
 })
 
 /** 마크다운 파싱된 HTML */
@@ -370,10 +382,14 @@ watch(
   { immediate: true },
 )
 
-watch(csvTableWrapperRef, (el) => {
-  csvResizeObserver?.disconnect()
-  if (el) setupCsvResizeObserver()
-}, { immediate: true })
+watch(
+  csvTableWrapperRef,
+  (el) => {
+    csvResizeObserver?.disconnect()
+    if (el) setupCsvResizeObserver()
+  },
+  { immediate: true },
+)
 
 onBeforeUnmount(() => {
   csvResizeObserver?.disconnect()
@@ -470,6 +486,19 @@ onBeforeUnmount(() => {
   word-break: break-word;
   font-size: 0.9rem;
   margin: 0;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+.universal-viewer-json :deep(.json-key) {
+  color: var(--nexa-json-key, var(--nexa-link-color, #0d6efd));
+}
+.universal-viewer-json :deep(.json-string) {
+  color: var(--nexa-json-string, #7ec8e3);
+}
+.universal-viewer-json :deep(.json-number) {
+  color: var(--nexa-json-number, var(--nexa-accent, #fd7e14));
+}
+.universal-viewer-json :deep(.json-literal) {
+  color: var(--nexa-json-literal, var(--nexa-warning, #ffc107));
 }
 .universal-viewer-csv {
   flex: 1;

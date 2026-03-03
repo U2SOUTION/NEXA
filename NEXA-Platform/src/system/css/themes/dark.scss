@@ -28,6 +28,12 @@ body.dark {
   --nexa-error: #de104d; // 에러 색상
   --nexa-error-text: #ff6b6b; // 에러 텍스트 색상
 
+  // JSON 뷰어 구문 강조 (다크 배경 대비 밝은 색)
+  --nexa-json-key: rgba(0, 118, 253, 1); // 키 (파란)
+  --nexa-json-string: #7ec8e3; // 문자열 값 (밝은 청록, 날짜·텍스트 가독성)
+  --nexa-json-number: #ff8400e9; // 숫자 (주황)
+  --nexa-json-literal: #ffc800; // true/false/null (노랑)
+
   // 링크 색상
   --nexa-link-color: rgba(0, 118, 253, 1); // 링크 기본 색상
   --nexa-link-hover-color: rgba(0, 118, 253, 0.8); // 링크 호버 색상
