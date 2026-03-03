@@ -178,8 +178,8 @@
                         <q-item-label class="text-caption ellipsis" :title="m.content">{{ getMemoPreview(m.content) }}</q-item-label>
                         <q-item-label caption>{{ formatMemoDate(m.createdAt) }}</q-item-label>
                       </q-item-section>
-                      <q-item-section side>
-                        <q-btn flat dense round size="sm" icon="delete_outline" color="grey-6" @click.stop="handleRemoveMemo(m)" />
+                      <q-item-section side class="memo-item-actions">
+                        <q-btn flat dense round size="sm" icon="edit_note" color="grey-6" title="에디터에 넣기" @click.stop="injectMemoToEditor(m)" />
                       </q-item-section>
                     </q-item>
                   </transition-group>
@@ -189,7 +189,7 @@
             <q-expansion-item v-model="expandedDocuments" icon="description" label="문서" @show="aiAssets.loadCategory('documents')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in documents.length ? documents : docPlaceholders" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null">
+                  <q-item v-for="f in documents.length ? documents : docPlaceholders" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
                     <q-item-section>{{ f.original_name }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -206,7 +206,7 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'images') : null">
+                    <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'images') : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
                       <q-item-section v-if="f.url" avatar>
                         <img :src="getUploadDisplayUrl(f.file_path) || f.url" :alt="f.original_name" class="media-thumb media-thumb-img" loading="lazy" />
                       </q-item-section>
@@ -226,7 +226,7 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'audio') : null">
+                    <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'audio') : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
                       <q-item-section avatar>
                         <div class="media-audio-thumb">
                           <q-icon name="music_note" size="28px" color="grey-6" />
@@ -247,7 +247,7 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'video') : null">
+                    <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'video') : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
                       <q-item-section v-if="f.url" avatar>
                         <video :src="getUploadDisplayUrl(f.file_path) || f.url" preload="metadata" class="media-thumb media-thumb-video" muted playsinline />
                       </q-item-section>
@@ -298,6 +298,33 @@
         </div>
       </q-tab-panel>
     </q-tab-panels>
+
+    <!-- 노트/미디어 우클릭 컨텍스트 메뉴 (우측 탐색기와 동일) -->
+    <q-menu v-model="contextMenuVisible" context-menu :position-x="contextMenuX" :position-y="contextMenuY" class="ai-media-context-menu">
+      <q-list dense style="min-width: 180px">
+        <q-item clickable v-close-popup @click="injectToChatFromContext">
+          <q-item-section avatar><q-icon name="chat" /></q-item-section>
+          <q-item-section>채팅에 넣기</q-item-section>
+        </q-item>
+        <q-item clickable v-close-popup @click="injectToEditorFromContext">
+          <q-item-section avatar><q-icon name="edit_note" /></q-item-section>
+          <q-item-section>에디터에 넣기</q-item-section>
+        </q-item>
+        <q-separator />
+        <q-item clickable v-close-popup @click="openInImageEditorFromContext">
+          <q-item-section avatar><q-icon name="image" /></q-item-section>
+          <q-item-section>이미지 편집</q-item-section>
+        </q-item>
+        <q-item clickable v-close-popup @click="openInAudioEditorFromContext">
+          <q-item-section avatar><q-icon name="graphic_eq" /></q-item-section>
+          <q-item-section>음원 편집</q-item-section>
+        </q-item>
+        <q-item clickable v-close-popup @click="openInVideoEditorFromContext">
+          <q-item-section avatar><q-icon name="videocam" /></q-item-section>
+          <q-item-section>영상 편집</q-item-section>
+        </q-item>
+      </q-list>
+    </q-menu>
 
     <!-- 새 채널 다이얼로그 -->
     <q-dialog v-model="showAddChannel" persistent>
@@ -359,6 +386,7 @@ import { useAiAssets } from '../../composables/useAiAssets'
 import { useAiLeftToolbar } from '../../composables/useAiLeftToolbar'
 import { useAiUnifiedSearch, registerChannelsSync, SEARCH_TARGET_OPTIONS, CHAT_SEARCH_TARGET_OPTIONS, FILE_SORT_OPTIONS, FILE_CATEGORY_OPTIONS } from '../../composables/useAiUnifiedSearch'
 import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings'
+import { useAiExplorerSelection } from '../../composables/useAiExplorerSelection'
 import { useAiMemos } from '../../composables/useAiMemos'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
 import { useAiMediaTab } from '../../composables/useAiMediaTab'
@@ -370,6 +398,7 @@ const { setSelectedFile } = useFileSelection()
 const aiAssets = useAiAssets()
 const { requestInsert, requestOpenEditor } = useAiInsertRequest()
 const { onOpenMediaTab } = useAiMediaTab()
+const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor } = useAiExplorerSelection()
 
 const { documents, images, audio, videos, uploadProgressFiles, showUploadProgress } = aiAssets
 
@@ -378,6 +407,68 @@ const expandedGallery = ref(true)
 const expandedAudio = ref(false)
 const expandedVideo = ref(false)
 const expandedDocuments = ref(false)
+const contextMenuVisible = ref(false)
+const contextMenuFile = ref(null)
+const contextMenuX = ref(0)
+const contextMenuY = ref(0)
+function injectMemoToEditor(m) {
+  const text = m?.content ? String(m.content).trim() : ''
+  if (!text) return
+  showPanel('editor')
+  requestInsert(text)
+  Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
+}
+
+function openMediaContextMenu(evt, f) {
+  if (!f?.url) return
+  contextMenuFile.value = f
+  contextMenuX.value = evt?.clientX ?? 0
+  contextMenuY.value = evt?.clientY ?? 0
+  contextMenuVisible.value = true
+}
+
+function injectToChatFromContext() {
+  const file = contextMenuFile.value
+  if (!file) return
+  if (!isImageForChat(file)) {
+    Notify.create({ type: 'info', message: '이미지만 채팅에 첨부할 수 있습니다.' })
+    return
+  }
+  const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
+  if (!url) {
+    Notify.create({ type: 'warning', message: '파일 URL을 가져올 수 없습니다.' })
+    return
+  }
+  requestAttachToChat({ url, original_name: file.original_name, file_path: file.file_path })
+  showPanel('chat')
+  Notify.create({ message: `"${file.original_name}" 채팅에 첨부됨`, icon: 'check_circle' })
+}
+
+function injectToEditorFromContext() {
+  const file = contextMenuFile.value
+  if (file) requestInjectToEditor(file)
+}
+
+function openInImageEditorFromContext() {
+  const file = contextMenuFile.value
+  if (file) requestOpenInImageEditor(file)
+}
+
+function openInAudioEditorFromContext() {
+  const file = contextMenuFile.value
+  if (file) requestOpenInAudioEditor(file)
+}
+
+function openInVideoEditorFromContext() {
+  const file = contextMenuFile.value
+  if (file) requestOpenInVideoEditor(file)
+}
+
+function isImageForChat(file) {
+  if (!file) return false
+  const cat = inferCategoryFromPayload({ file_type: file.file_type, type: file.category })
+  return cat === 'images'
+}
 
 function openMediaAccordion(category) {
   if (category === 'images') expandedGallery.value = true
@@ -444,8 +535,10 @@ const showToolbar = computed(() => true)
 
 function onMemoClick(m) {
   selectedMemoId.value = m.id
-  requestInsert(m.content)
-  Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
+  if (m?.content) {
+    setSelectedFile({ id: m.id, original_name: '메모', file_type: 'memo', content: m.content || '' })
+    showPanel('viewer')
+  }
 }
 
 function handleNoteAdd() {

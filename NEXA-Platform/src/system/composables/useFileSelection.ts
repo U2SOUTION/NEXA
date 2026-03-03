@@ -14,6 +14,8 @@ export type FileSelectionPayload = Omit<FileMeta, 'url'> & {
   source?: string | null
   edge_sid?: number | string | null
   created_at?: string | null
+  /** 메모 등 텍스트 전용 콘텐츠 (file_type: 'memo' 시 사용) */
+  content?: string | null
 }
 
 const selectedFile: Ref<FileSelectionPayload | null> = ref(null)
@@ -66,5 +68,6 @@ function normalizeFilePayload(
     source: (o.source as string | null) ?? null,
     edge_sid: (o.edge_sid as number | string | null) ?? null,
     created_at: (o.created_at as string | null) ?? null,
+    content: (o.content as string | null) ?? null,
   }
 }

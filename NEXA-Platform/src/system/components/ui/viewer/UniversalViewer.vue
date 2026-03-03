@@ -57,6 +57,9 @@
           <iframe v-if="previewUrl" :src="previewUrl" class="universal-viewer-iframe" title="PDF 미리보기" />
           <div v-else class="text-grey-6 text-center q-pa-md">미리보기를 불러올 수 없습니다.</div>
         </template>
+        <template v-else-if="isMemo">
+          <div class="universal-viewer-memo q-pa-md text-body2" style="white-space: pre-wrap; word-break: break-word;">{{ file.content || '' }}</div>
+        </template>
         <!-- 문서/마크다운 등 확장 예정 -->
         <div v-else class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">
           준비중
@@ -103,6 +106,11 @@ const isPdf = computed(() => {
   const t = (props.file?.file_type || props.file?.category || '').toLowerCase()
   const name = (props.file?.original_name || props.file?.file_path || '').toLowerCase()
   return t === 'pdf' || name.endsWith('.pdf')
+})
+
+const isMemo = computed(() => {
+  const t = (props.file?.file_type || props.file?.category || '').toLowerCase()
+  return t === 'memo'
 })
 
 const previewUrl = computed(() => {
@@ -189,5 +197,12 @@ watch(
   min-height: 400px;
   flex: 1;
   border: none;
+}
+.universal-viewer-memo {
+  width: 100%;
+  flex: 1;
+  overflow: auto;
+  text-align: left;
+  min-height: 0;
 }
 </style>

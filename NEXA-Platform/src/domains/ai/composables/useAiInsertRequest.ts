@@ -1,9 +1,16 @@
 /**
  * 도메인 내 공유: 메모/외부에서 에디터 삽입·열기 요청.
  * AiLeftNav(메모)와 AiContent가 형제이므로 inject 불가 → 콜백 등록으로 연결.
+ * 청크 분리 시 동일 인스턴스 공유를 위해 전역 키 사용.
  */
-const insertListeners = new Set()
-const openEditorListeners = new Set()
+const GLOBAL_KEY = '__nexa_ai_insert_request__'
+function getListeners() {
+  const g = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : {}
+  if (!g[GLOBAL_KEY]) g[GLOBAL_KEY] = { insert: new Set(), open: new Set() }
+  return g[GLOBAL_KEY]
+}
+const insertListeners = getListeners().insert
+const openEditorListeners = getListeners().open
 
 export function useAiInsertRequest() {
   function requestInsert(content) {
