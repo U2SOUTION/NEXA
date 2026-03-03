@@ -248,6 +248,12 @@ async function startServer() {
       console.log(`서버가 http://localhost:${PORT} 에서 실행 중입니다.`)
     })
 
+    // 대용량 파일 업로드(최대 300MB) 허용용 요청 타임아웃 10분
+    const REQUEST_TIMEOUT_MS = 10 * 60 * 1000
+    server.setTimeout(REQUEST_TIMEOUT_MS)
+    server.keepAliveTimeout = REQUEST_TIMEOUT_MS
+    server.headersTimeout = REQUEST_TIMEOUT_MS + 1000
+
     // 서버 에러 핸들러
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
