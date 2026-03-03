@@ -65,7 +65,7 @@ export function createBaseExtensions(options: BaseExtensionsOptions = {}) {
         delete imgAttrs.textAlign
         return [
           'span',
-          { style: `display: block; text-align: ${align}` },
+          { style: `display: inline-block; width: 100%; text-align: ${align}` },
           ['img', mergeAttributes(this.options.HTMLAttributes, imgAttrs)],
         ]
       },
