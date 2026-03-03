@@ -400,7 +400,15 @@ const { requestInsert, requestOpenEditor } = useAiInsertRequest()
 const { onOpenMediaTab } = useAiMediaTab()
 const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor, requestOpenInCodePanel } = useAiExplorerSelection()
 
-const CODE_EXTENSIONS = ['js', 'mjs', 'cjs', 'ts', 'mts', 'cts', 'jsx', 'tsx', 'json', 'yaml', 'yml', 'xml', 'py', 'css', 'scss', 'html', 'htm', 'md', 'sql', 'sh', 'bash', 'vue', 'env', 'toml', 'ini', 'cfg', 'conf']
+// Phase 3: extToMonacoLanguage와 동기화 (웹·ESP32·모바일·설정)
+const CODE_EXTENSIONS = [
+  'js', 'mjs', 'cjs', 'ts', 'mts', 'cts', 'jsx', 'tsx',
+  'json', 'yaml', 'yml', 'xml', 'py', 'css', 'scss', 'html', 'htm', 'vue',
+  'md', 'sql', 'sh', 'bash', 'env', 'toml', 'ini', 'cfg', 'conf',
+  'c', 'h', 'cpp', 'cc', 'cxx', 'hpp', 'ino',
+  'kt', 'kts', 'swift', 'dart',
+  'dockerfile', 'makefile', 'mk',
+]
 function isCodeFile(file) {
   if (!file?.original_name) return false
   const ext = (file.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''

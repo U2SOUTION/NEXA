@@ -57,6 +57,23 @@ function extToMonacoLanguage(ext) {
     sh: 'shell',
     bash: 'shell',
     vue: 'html',
+    // Phase 3: 웹·ESP32·모바일·설정
+    c: 'c',
+    h: 'c',
+    cpp: 'cpp',
+    cc: 'cpp',
+    cxx: 'cpp',
+    hpp: 'cpp',
+    ino: 'cpp',
+    kt: 'kotlin',
+    kts: 'kotlin',
+    swift: 'swift',
+    dart: 'dart',
+    env: 'plaintext',
+    toml: 'toml',
+    dockerfile: 'dockerfile',
+    makefile: 'makefile',
+    mk: 'makefile',
   }
   return map[ext] || 'plaintext'
 }
