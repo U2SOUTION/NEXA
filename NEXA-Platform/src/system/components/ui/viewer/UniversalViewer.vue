@@ -139,7 +139,8 @@ const csvPagination = ref({ rowsPerPage: 0 })
 const csvTableWrapperRef = ref(null)
 const csvTableHeightPx = ref(400)
 
-const csvTableStyle = computed(() => ({ maxHeight: `${csvTableHeightPx.value}px` }))
+const Q_TABLE_HEADER_HEIGHT = 48
+const csvTableStyle = computed(() => ({ maxHeight: `${Math.max(100, csvTableHeightPx.value - Q_TABLE_HEADER_HEIGHT)}px` }))
 
 let csvResizeObserver = null
 function setupCsvResizeObserver() {
@@ -401,7 +402,7 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 0;
   min-width: 0;
-  overflow: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -487,7 +488,8 @@ onBeforeUnmount(() => {
   min-height: 200px;
   min-width: 0;
   max-width: 100%;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 .universal-viewer-csv-table {
   font-size: 0.85rem;
