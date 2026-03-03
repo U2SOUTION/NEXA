@@ -486,15 +486,22 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 200px;
   min-width: 0;
-  overflow: hidden;
+  max-width: 100%;
+  overflow: auto;
 }
 .universal-viewer-csv-table {
   font-size: 0.85rem;
 }
 .universal-viewer-csv-table :deep(.q-table__container) {
   min-width: 0;
+  max-width: 100%;
 }
 .universal-viewer-csv-table :deep(.q-table__middle) {
   min-width: 0;
+  max-width: 100%;
+}
+.universal-viewer-csv-table :deep(table) {
+  table-layout: fixed;
+  width: 100%;
 }
 </style>
