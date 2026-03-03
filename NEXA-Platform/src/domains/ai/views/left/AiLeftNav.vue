@@ -189,7 +189,7 @@
             <q-expansion-item v-model="expandedDocuments" icon="description" label="문서" @show="aiAssets.loadCategory('documents')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in documents.length ? documents : docPlaceholders" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
+                  <q-item v-for="f in displayDocuments" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
                     <q-item-section>{{ f.original_name }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -202,6 +202,15 @@
       <q-tab-panel name="media" class="q-pa-none left-panel-inner">
         <div class="panel-scroll-area">
           <div class="ai-panel-padding">
+            <q-expansion-item v-model="expandedCodeFiles" icon="code" label="코드파일" @show="aiAssets.loadCategory('documents')">
+              <div class="ai-accordion-content">
+                <q-list dense class="q-mt-sm">
+                  <q-item v-for="f in displayCodeFiles" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
+                    <q-item-section>{{ f.original_name }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </div>
+            </q-expansion-item>
             <q-expansion-item v-model="expandedGallery" icon="photo_library" label="갤러리" @show="aiAssets.loadCategory('images')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
@@ -427,6 +436,7 @@ const expandedGallery = ref(true)
 const expandedAudio = ref(false)
 const expandedVideo = ref(false)
 const expandedDocuments = ref(false)
+const expandedCodeFiles = ref(false)
 const contextMenuVisible = ref(false)
 const contextMenuFile = ref(null)
 const contextMenuX = ref(0)
@@ -495,6 +505,7 @@ function openMediaAccordion(category) {
   else if (category === 'audio') expandedAudio.value = true
   else if (category === 'video') expandedVideo.value = true
   else if (category === 'documents') expandedDocuments.value = true
+  else if (category === 'code') expandedCodeFiles.value = true
 }
 
 function inferCategoryFromPayload(p) {
@@ -540,9 +551,18 @@ async function handleMediaAdd(p) {
   const cat = p.category || inferCategoryFromPayload(p)
   try {
     await aiAssets.addAsset({ ...p, category: cat })
-    openMediaAccordion(cat)
-    if (cat === 'documents') leftMainTab.value = 'note'
-    else leftMainTab.value = 'media'
+    if (cat === 'documents') {
+      if (isCodeFile(p)) {
+        leftMainTab.value = 'media'
+        expandedCodeFiles.value = true
+      } else {
+        leftMainTab.value = 'note'
+        expandedDocuments.value = true
+      }
+    } else {
+      openMediaAccordion(cat)
+      leftMainTab.value = 'media'
+    }
     unifiedSearch.fileExplorer.refreshList()
   } catch {
     /* addAsset already shows Notify on error */
@@ -557,6 +577,7 @@ const galleryPlaceholders = [
   { id: 'ph-img-2', original_name: '(업로드 또는 웹서버에서 선택)' },
 ]
 const docPlaceholders = [{ id: 'ph-doc-1', original_name: '(등록된 문서 없음)' }]
+const codeFilePlaceholders = [{ id: 'ph-code-1', original_name: '(등록된 코드파일 없음)' }]
 const audioPlaceholders = [{ id: 'ph-audio-1', original_name: '(등록된 오디오 없음)' }]
 const videoPlaceholders = [{ id: 'ph-video-1', original_name: '(등록된 영상 없음)' }]
 
@@ -568,6 +589,12 @@ const filteredMemos = computed(() => {
   if (!q) return memos.value
   return memos.value.filter((m) => (m.content || '').toLowerCase().includes(q))
 })
+
+/** 문서/코드파일 UI 필터: documents를 확장자 기준으로 분리 */
+const docsOnly = computed(() => (documents.value || []).filter((f) => !isCodeFile(f)))
+const codeFilesOnly = computed(() => (documents.value || []).filter(isCodeFile))
+const displayDocuments = computed(() => (docsOnly.value.length ? docsOnly.value : docPlaceholders))
+const displayCodeFiles = computed(() => (codeFilesOnly.value.length ? codeFilesOnly.value : codeFilePlaceholders))
 
 const showToolbar = computed(() => true)
 

@@ -30,21 +30,22 @@ export const CHAT_SEARCH_TARGET_OPTIONS: { value: ChatSearchTarget; icon: string
 
 /** 파일 필터 정렬 옵션 */
 export const FILE_SORT_OPTIONS = [
-  { label: '최신순', value: 'date_desc' },
-  { label: '오래된순', value: 'date_asc' },
-  { label: '이름순', value: 'name_asc' },
-  { label: '이름 역순', value: 'name_desc' },
-  { label: '크기순', value: 'size_asc' },
-  { label: '크기 역순', value: 'size_desc' },
+  { label: 'Newest', value: 'date_desc' },
+  { label: 'Oldest', value: 'date_asc' },
+  { label: 'Name', value: 'name_asc' },
+  { label: 'Name desc', value: 'name_desc' },
+  { label: 'Size', value: 'size_asc' },
+  { label: 'Size desc', value: 'size_desc' },
 ]
 
 /** 파일 필터 카테고리 옵션 */
 export const FILE_CATEGORY_OPTIONS = [
-  { label: '전체', value: '' },
-  { label: '이미지', value: 'image' },
-  { label: '문서', value: 'document' },
-  { label: '오디오', value: 'audio' },
-  { label: '영상', value: 'video' },
+  { label: 'All', value: '' },
+  { label: 'Code', value: 'code' },
+  { label: 'Image', value: 'image' },
+  { label: 'Document', value: 'document' },
+  { label: 'Audio', value: 'audio' },
+  { label: 'Video', value: 'video' },
 ]
 
 let channelsSearchQueryRef: { value: string } | null = null

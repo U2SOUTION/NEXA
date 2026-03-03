@@ -75,9 +75,9 @@ const emit = defineEmits(['select', 'load-more', 'contextmenu'])
 
 const columns = [
   { name: 'type', label: '', field: () => '', align: 'left', style: 'width: 40px' },
-  { name: 'name', label: '이름', field: 'original_name', align: 'left', sortable: true },
-  { name: 'size', label: '크기', field: 'file_size', align: 'right', style: 'width: 90px' },
-  { name: 'domain', label: '도메인', field: 'domain', align: 'left', style: 'width: 80px' },
+  { name: 'name', label: 'Name', field: 'original_name', align: 'left', sortable: true },
+  { name: 'size', label: 'Size', field: 'file_size', align: 'right', style: 'width: 90px' },
+  { name: 'domain', label: 'Domain', field: 'domain', align: 'left', style: 'width: 80px' },
 ]
 
 const selectedRow = computed(() => {

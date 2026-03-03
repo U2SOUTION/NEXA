@@ -57,33 +57,71 @@ const emit = defineEmits(['select', 'contextmenu'])
 const splitterModel = ref(220)
 const viewMode = ref('list')
 const viewModeOptions = [
-  { label: '목록', value: 'list', icon: 'list' },
-  { label: '테이블', value: 'table', icon: 'table_chart' },
-  { label: '카드', value: 'card', icon: 'view_module' },
+  { label: 'List', value: 'list', icon: 'list' },
+  { label: 'Table', value: 'table', icon: 'table_chart' },
+  { label: 'Card', value: 'card', icon: 'view_module' },
 ]
 const expandedNodeIds = ref([])
 
 const { treeNodes, items, listLoading, listError, selectedNodeId, hasMore, loadTree, selectNode, loadMore, sortBy, filterCategory, scopeDomain } = useGlobalFileExplorer()
 
 const domainOptions = computed(() => {
-  const options = [{ value: '', label: '전체' }]
+  const options = [{ value: '', label: 'All' }]
   if (!treeNodes.value?.length) return options
   for (const n of treeNodes.value) {
-    if (n.domain) options.push({ value: n.domain, label: n.domain })
+    if (n.domain) {
+      const cap = n.domain.charAt(0).toUpperCase() + n.domain.slice(1)
+      options.push({ value: n.domain, label: cap })
+    }
   }
   return options
 })
 
+function capLabel(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s
+}
+
+/** ai 도메인 아래에 Code 가상 노드 추가, 라벨 영문 첫자 대문자 */
+function injectCodeNodeUnderAi(nodes) {
+  if (!nodes?.length) return nodes
+  return nodes.map((n) => {
+    const label = capLabel(n.label ?? n.domain ?? '')
+    const children = n.children?.length ? n.children.map((c) => ({ ...c, label: capLabel(c.label ?? c.domain ?? '') })) : []
+    if (n.domain !== 'ai') return { ...n, label }
+    const codeChild = { id: 'virtual-code-ai', label: 'Code', icon: 'folder', domain: 'ai', path: null }
+    return { ...n, label, children: [...children, codeChild] }
+  })
+}
+
 const filteredTreeNodes = computed(() => {
-  if (!scopeDomain.value) return treeNodes.value
-  return treeNodes.value.filter((n) => n.domain === scopeDomain.value)
+  const base = scopeDomain.value
+    ? treeNodes.value.filter((n) => n.domain === scopeDomain.value)
+    : treeNodes.value || []
+  return injectCodeNodeUnderAi(base)
 })
+
+/** 코드 파일 확장자 (extToMonacoLanguage와 동기화) */
+const CODE_EXTENSIONS = [
+  'js', 'mjs', 'cjs', 'ts', 'mts', 'cts', 'jsx', 'tsx',
+  'json', 'yaml', 'yml', 'xml', 'py', 'css', 'scss', 'html', 'htm', 'vue',
+  'md', 'sql', 'sh', 'bash', 'env', 'toml', 'ini', 'cfg', 'conf',
+  'c', 'h', 'cpp', 'cc', 'cxx', 'hpp', 'ino',
+  'kt', 'kts', 'swift', 'dart',
+  'dockerfile', 'makefile', 'mk',
+]
+function isCodeFile(item) {
+  const name = (item?.original_name || item?.file_path || '').toLowerCase()
+  const ext = name.match(/\.([a-z0-9]+)$/)?.[1] || ''
+  return CODE_EXTENSIONS.includes(ext)
+}
 
 const displayedItems = computed(() => {
   let list = items.value
   const cat = (filterCategory.value || '').toLowerCase()
-  if (cat) {
+  const isCodeNode = selectedNodeId.value === 'virtual-code-ai'
+  if (cat || isCodeNode) {
     list = list.filter((item) => {
+      if (cat === 'code' || isCodeNode) return isCodeFile(item)
       const t = (item.file_type || item.category || '').toLowerCase()
       if (cat === 'image') return t === 'image' || t === 'images'
       return t === cat
@@ -116,6 +154,10 @@ watch(
   () => {
     const id = selectedNodeId.value
     if (!treeNodes.value?.length) return
+    if (id === 'virtual-code-ai') {
+      expandedNodeIds.value = ['domain-ai']
+      return
+    }
     if (id && id !== 'all') {
       expandedNodeIds.value = getExpandedIdsForSelection(treeNodes.value, id)
     } else {
