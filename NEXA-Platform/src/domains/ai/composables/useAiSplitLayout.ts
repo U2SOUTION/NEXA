@@ -13,7 +13,7 @@ const DEFAULT_LEFT = ['chat']
 const DEFAULT_CENTER = ['editor', 'code', 'image', 'audio', 'video', 'viewer']
 const DEFAULT_RIGHT = ['explorer']
 
-const DEFAULT_SIZES = { left: 28, center: 44, right: 28 }
+const DEFAULT_SIZES = { left: 22, center: 56, right: 22 }
 
 /** 저장된 centerPanelIds */
 function migrateCenterPanelIds(saved: string[] | undefined): string[] {

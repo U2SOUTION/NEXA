@@ -58,9 +58,51 @@
           <div v-else class="text-grey-6 text-center q-pa-md">미리보기를 불러올 수 없습니다.</div>
         </template>
         <template v-else-if="isMemo">
-          <div class="universal-viewer-memo q-pa-md text-body2" style="white-space: pre-wrap; word-break: break-word;">{{ file.content || '' }}</div>
+          <div class="universal-viewer-memo markdown-content q-pa-md" v-html="parsedMarkdownHtml"></div>
         </template>
-        <!-- 문서/마크다운 등 확장 예정 -->
+        <template v-else-if="isMarkdownFile">
+          <div v-if="markdownFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">파일을 불러올 수 없습니다.</div>
+          <div v-else class="universal-viewer-memo markdown-content q-pa-md" v-html="parsedMarkdownHtml"></div>
+        </template>
+        <template v-else-if="isTxtFile">
+          <div v-if="textFileFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">파일을 불러올 수 없습니다.</div>
+          <div v-else-if="textFileLoading" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">불러오는 중...</div>
+          <pre v-else class="universal-viewer-text q-pa-md">{{ textFileContent }}</pre>
+        </template>
+        <template v-else-if="isCsvFile">
+          <div v-if="textFileFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">파일을 불러올 수 없습니다.</div>
+          <div v-else-if="textFileLoading" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">불러오는 중...</div>
+          <div v-else class="universal-viewer-csv">
+            <div v-if="parsedCsvRows.length" class="universal-viewer-csv-caption text-caption text-grey-6">
+              {{ csvTotalRows > parsedCsvRows.length ? `표시 제한: ${parsedCsvRows.length}행 (전체 ${csvTotalRows}행)` : `${csvTotalRows}행` }}
+            </div>
+            <div ref="csvTableWrapperRef" class="universal-viewer-csv-table-wrapper">
+              <q-table
+                v-if="csvTableColumns.length"
+                :rows="csvTableRows"
+                :columns="csvTableColumns"
+                row-key="__idx"
+                v-model:pagination="csvPagination"
+                :rows-per-page-options="[0]"
+                virtual-scroll
+                :virtual-scroll-item-size="28"
+                :table-style="csvTableStyle"
+                flat
+                dense
+                bordered
+                hide-pagination
+                hide-bottom
+                class="universal-viewer-csv-table"
+              />
+              <div v-else class="text-grey-6 text-center q-pa-md">데이터가 없습니다.</div>
+            </div>
+          </div>
+        </template>
+        <template v-else-if="isJsonFile">
+          <div v-if="textFileFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">파일을 불러올 수 없습니다.</div>
+          <div v-else-if="textFileLoading" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">불러오는 중...</div>
+          <pre v-else class="universal-viewer-json q-pa-md">{{ formattedJson }}</pre>
+        </template>
         <div v-else class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">
           준비중
         </div>
@@ -70,14 +112,20 @@
 </template>
 
 <script setup>
-import { computed, watch, ref } from 'vue'
+import { computed, watch, ref, onBeforeUnmount } from 'vue'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
+import { parseMarkdown } from '@system/utils/markdown'
 
 const props = defineProps({
   file: { type: Object, default: null },
 })
 
 const imageError = ref(false)
+const markdownFetchedContent = ref('')
+const markdownFetchError = ref(false)
+const textFileContent = ref('')
+const textFileFetchError = ref(false)
+const textFileLoading = ref(false)
 const audioEl = ref(null)
 const audioAutoplay = ref(false)
 const audioLoop = ref(false)
@@ -86,6 +134,24 @@ const videoEl = ref(null)
 const videoAutoplay = ref(false)
 const videoLoop = ref(false)
 const videoMuted = ref(false)
+
+const csvPagination = ref({ rowsPerPage: 0 })
+const csvTableWrapperRef = ref(null)
+const csvTableHeightPx = ref(400)
+
+const csvTableStyle = computed(() => ({ maxHeight: `${csvTableHeightPx.value}px` }))
+
+let csvResizeObserver = null
+function setupCsvResizeObserver() {
+  if (!csvTableWrapperRef.value) return
+  csvResizeObserver = new ResizeObserver((entries) => {
+    const entry = entries[0]
+    if (!entry) return
+    const h = entry.contentRect.height
+    if (h > 0) csvTableHeightPx.value = h
+  })
+  csvResizeObserver.observe(csvTableWrapperRef.value)
+}
 
 const isImage = computed(() => {
   const t = (props.file?.file_type || props.file?.category || '').toLowerCase()
@@ -113,6 +179,122 @@ const isMemo = computed(() => {
   return t === 'memo'
 })
 
+/** 마크다운 형식 여부: 메모(file_type=memo) 또는 확장자 .md */
+const isMarkdownContent = computed(() => {
+  if (isMemo.value) return true
+  const name = (props.file?.original_name || props.file?.file_path || '').toLowerCase()
+  return name.endsWith('.md')
+})
+
+/** 탐색기 .md 파일 여부 (file_path로 fetch 필요) */
+const isMarkdownFile = computed(() => {
+  if (isMemo.value) return false
+  const name = (props.file?.original_name || props.file?.file_path || '').toLowerCase()
+  return name.endsWith('.md') && (!!props.file?.file_path || !!props.file?.url)
+})
+
+function getExtension() {
+  const name = (props.file?.original_name || props.file?.file_path || '').toLowerCase()
+  const m = name.match(/\.([a-z0-9]+)$/)
+  return m ? m[1] : ''
+}
+
+/** .txt 파일 (fetch 필요) */
+const isTxtFile = computed(() => getExtension() === 'txt' && (!!props.file?.file_path || !!props.file?.url))
+
+/** .csv 파일 (fetch 필요) */
+const isCsvFile = computed(() => getExtension() === 'csv' && (!!props.file?.file_path || !!props.file?.url))
+
+/** .json 파일 (fetch 필요) */
+const isJsonFile = computed(() => getExtension() === 'json' && (!!props.file?.file_path || !!props.file?.url))
+
+const MAX_CSV_DISPLAY_ROWS = 3000
+
+/** CSV 파싱 결과 (2차원 배열, virtual-scroll로 최대 3000행) */
+const parsedCsvRows = computed(() => {
+  const raw = textFileContent.value
+  if (!raw || !isCsvFile.value) return []
+  const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter((l) => l.trim())
+  if (lines.length === 0) return []
+  const all = lines.map((line) => parseCsvLine(line))
+  return all.slice(0, MAX_CSV_DISPLAY_ROWS)
+})
+
+/** QTable용 columns (첫 행이 헤더) */
+const csvTableColumns = computed(() => {
+  const rows = parsedCsvRows.value
+  if (!rows.length) return []
+  const header = rows[0]
+  const maxCols = Math.max(...rows.map((r) => r.length), header.length)
+  return Array.from({ length: maxCols }, (_, j) => ({
+    name: `col_${j}`,
+    label: (header[j] ?? '') || `열 ${j + 1}`,
+    field: `col_${j}`,
+    align: 'left',
+  }))
+})
+
+/** QTable용 rows (객체 배열, row-key: __idx) */
+const csvTableRows = computed(() => {
+  const rows = parsedCsvRows.value
+  if (rows.length < 2) return []
+  const cols = csvTableColumns.value
+  return rows.slice(1).map((row, i) => {
+    const obj = { __idx: i }
+    cols.forEach((c, j) => {
+      obj[c.field] = row[j] ?? ''
+    })
+    return obj
+  })
+})
+
+/** CSV 전체 행 수 (제한 안 내림) */
+const csvTotalRows = computed(() => {
+  const raw = textFileContent.value
+  if (!raw || !isCsvFile.value) return 0
+  const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter((l) => l.trim())
+  return lines.length
+})
+
+function parseCsvLine(line) {
+  const result = []
+  let current = ''
+  let inQuotes = false
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i]
+    if (c === '"') {
+      inQuotes = !inQuotes
+    } else if (c === ',' && !inQuotes) {
+      result.push(current.replace(/^"|"$/g, '').replace(/""/g, '"').trim())
+      current = ''
+    } else {
+      current += c
+    }
+  }
+  result.push(current.replace(/^"|"$/g, '').replace(/""/g, '"').trim())
+  return result
+}
+
+/** JSON 포맷팅 결과 */
+const formattedJson = computed(() => {
+  const raw = textFileContent.value
+  if (!raw || !isJsonFile.value) return ''
+  try {
+    const parsed = JSON.parse(raw)
+    return JSON.stringify(parsed, null, 2)
+  } catch {
+    return raw
+  }
+})
+
+/** 마크다운 파싱된 HTML */
+const parsedMarkdownHtml = computed(() => {
+  if (!isMarkdownContent.value) return ''
+  if (isMemo.value && props.file?.content) return parseMarkdown(props.file.content, '', {})
+  if (isMarkdownFile.value && markdownFetchedContent.value) return parseMarkdown(markdownFetchedContent.value, props.file?.original_name || '', {})
+  return ''
+})
+
 const previewUrl = computed(() => {
   if (!props.file) return ''
   if (props.file.file_path) return getUploadDisplayUrl(props.file.file_path)
@@ -124,17 +306,86 @@ function onImageError() {
   imageError.value = true
 }
 
+async function fetchMarkdownContent() {
+  markdownFetchedContent.value = ''
+  markdownFetchError.value = false
+  const f = props.file
+  if (!f) return
+  const url = f.file_path ? getUploadDisplayUrl(f.file_path) : f.url || ''
+  if (!url) return
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(res.statusText)
+    markdownFetchedContent.value = await res.text()
+  } catch (e) {
+    markdownFetchError.value = true
+    console.error('[UniversalViewer] markdown fetch failed:', e)
+  }
+}
+
+async function fetchTextFile() {
+  textFileContent.value = ''
+  textFileFetchError.value = false
+  textFileLoading.value = true
+  const f = props.file
+  if (!f) {
+    textFileLoading.value = false
+    return
+  }
+  const url = f.file_path ? getUploadDisplayUrl(f.file_path) : f.url || ''
+  if (!url) {
+    textFileLoading.value = false
+    return
+  }
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(res.statusText)
+    textFileContent.value = await res.text()
+  } catch (e) {
+    textFileFetchError.value = true
+    console.error('[UniversalViewer] text file fetch failed:', e)
+  } finally {
+    textFileLoading.value = false
+  }
+}
+
 watch(
   () => props.file,
-  () => {
+  (file) => {
     imageError.value = false
+    markdownFetchedContent.value = ''
+    markdownFetchError.value = false
+    textFileContent.value = ''
+    textFileFetchError.value = false
+    textFileLoading.value = false
+    if (!file) return
+    const name = (file.original_name || file.file_path || '').toLowerCase()
+    if (name.endsWith('.md') && !file.content && (file.file_path || file.url)) {
+      fetchMarkdownContent()
+    } else if ((name.endsWith('.txt') || name.endsWith('.csv') || name.endsWith('.json')) && (file.file_path || file.url)) {
+      fetchTextFile()
+    }
   },
+  { immediate: true },
 )
+
+watch(csvTableWrapperRef, (el) => {
+  csvResizeObserver?.disconnect()
+  if (el) setupCsvResizeObserver()
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  csvResizeObserver?.disconnect()
+})
 </script>
 
 <style lang="scss" scoped>
 .universal-viewer {
+  flex: 1;
   min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 .universal-viewer-empty {
   flex: 1;
@@ -147,11 +398,13 @@ watch(
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .universal-viewer-body {
+  flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: auto;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
 }
 .universal-viewer-image {
   max-width: 100%;
@@ -204,5 +457,44 @@ watch(
   overflow: auto;
   text-align: left;
   min-height: 0;
+}
+.universal-viewer-text,
+.universal-viewer-json {
+  width: 100%;
+  flex: 1;
+  overflow: auto;
+  text-align: left;
+  min-height: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.9rem;
+  margin: 0;
+}
+.universal-viewer-csv {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 16px;
+}
+.universal-viewer-csv-caption {
+  flex-shrink: 0;
+  padding: 4px 0;
+}
+.universal-viewer-csv-table-wrapper {
+  flex: 1;
+  min-height: 200px;
+  min-width: 0;
+  overflow: hidden;
+}
+.universal-viewer-csv-table {
+  font-size: 0.85rem;
+}
+.universal-viewer-csv-table :deep(.q-table__container) {
+  min-width: 0;
+}
+.universal-viewer-csv-table :deep(.q-table__middle) {
+  min-width: 0;
 }
 </style>
