@@ -14,6 +14,10 @@ const images = ref([])
 const audio = ref([])
 const videos = ref([])
 
+/** 업로드 진행률 표시용 */
+const uploadProgressFiles = ref<{ name: string; progress: number; completed?: boolean; error?: string; speed?: string; eta?: string }[]>([])
+const showUploadProgress = ref(false)
+
 export function useAiAssets(category = null) {
 
   const items = computed(() => {
@@ -46,7 +50,7 @@ export function useAiAssets(category = null) {
     }
   }
 
-  async function uploadFile(file) {
+  async function uploadFile(file: File) {
     const base = getApiBaseUrl()
     const form = new FormData()
     form.append('file', file)
@@ -62,16 +66,117 @@ export function useAiAssets(category = null) {
     return res.json()
   }
 
-  async function addAsset(payload) {
+  /**
+   * 업로드 진행률 콜백 지원 (XMLHttpRequest 사용)
+   * @param onProgress (progress: 0-100) => void
+   */
+  function uploadFileWithProgress(
+    file: File,
+    onProgress?: (progress: number) => void,
+  ): Promise<{ id: number; original_name: string; url: string; file_path: string }> {
+    const base = getApiBaseUrl()
+    const form = new FormData()
+    form.append('file', file)
+    form.append('domain', DOMAIN)
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable && onProgress) {
+          const percent = (e.loaded / e.total) * 100
+          onProgress(percent)
+        }
+      })
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText))
+          } catch {
+            reject(new Error('서버 응답 파싱 실패'))
+          }
+        } else {
+          try {
+            const err = JSON.parse(xhr.responseText)
+            reject(new Error(err?.error || `업로드 실패 (${xhr.status})`))
+          } catch {
+            reject(new Error(`업로드 실패 (${xhr.status})`))
+          }
+        }
+      })
+      xhr.addEventListener('error', () => reject(new Error('네트워크 오류가 발생했습니다.')))
+      xhr.addEventListener('abort', () => reject(new Error('업로드가 중단되었습니다.')))
+      xhr.open('POST', `${base}/files/upload`)
+      xhr.send(form)
+    })
+  }
+
+  function formatSpeed(bytesPerSec: number): string {
+    if (bytesPerSec >= 1024 * 1024) return `${(bytesPerSec / 1024 / 1024).toFixed(1)} MB/s`
+    if (bytesPerSec >= 1024) return `${(bytesPerSec / 1024).toFixed(1)} KB/s`
+    return `${Math.round(bytesPerSec)} B/s`
+  }
+
+  function formatETA(seconds: number): string {
+    if (seconds < 60) return `${Math.round(seconds)}초 남음`
+    const m = Math.floor(seconds / 60)
+    const s = Math.round(seconds % 60)
+    return `${m}분 ${s}초 남음`
+  }
+
+  async function addAsset(payload: {
+    source: string
+    file?: File
+    url?: string
+    name?: string
+    original_name?: string
+    serverPath?: string
+    file_path?: string
+    category?: string
+    type?: string
+    file_type?: string
+    id?: number
+  }) {
     const { source, file, url, name, serverPath } = payload
     const cat = payload.category || inferCategory(payload)
     const target = getTargetRef(cat)
     try {
       if (source === 'pc' && file) {
-        const r = await uploadFile(file)
+        const index = uploadProgressFiles.value.length
+        uploadProgressFiles.value.push({
+          name: file.name,
+          progress: 0,
+          completed: false,
+          speed: undefined,
+          eta: undefined,
+        })
+        showUploadProgress.value = true
+
+        let lastLoaded = 0
+        let lastTime = Date.now()
+        const onProgress = (progress: number) => {
+          const now = Date.now()
+          const timeDiff = (now - lastTime) / 1000
+          const loadedDiff = (progress / 100) * file.size - lastLoaded
+          if (timeDiff > 0 && loadedDiff > 0) {
+            const speed = loadedDiff / timeDiff
+            const remaining = file.size - (progress / 100) * file.size
+            const eta = remaining / speed
+            uploadProgressFiles.value[index].speed = formatSpeed(speed)
+            uploadProgressFiles.value[index].eta = formatETA(eta)
+          }
+          uploadProgressFiles.value[index].progress = progress
+          lastLoaded = (progress / 100) * file.size
+          lastTime = Date.now()
+        }
+
+        const r = await uploadFileWithProgress(file, onProgress)
+        uploadProgressFiles.value[index].completed = true
+        uploadProgressFiles.value[index].progress = 100
+
         target.value = [...target.value, { id: r.id, original_name: r.original_name, url: r.url, file_path: r.file_path }]
         await loadCategory(cat)
         Notify.create({ message: `"${r.original_name}" 추가됨`, icon: 'check_circle' })
+
+        scheduleHideUploadProgress()
       } else if (source === 'server' && (url || payload.url)) {
         const newItem = { id: payload.id, original_name: name || payload.original_name, url: url || payload.url, file_path: serverPath || payload.file_path }
         const exists = target.value.some((x) => x.id === newItem.id || x.url === newItem.url)
@@ -82,9 +187,28 @@ export function useAiAssets(category = null) {
         Notify.create({ message: `"${newItem.original_name}" 추가됨`, icon: 'check_circle' })
       }
     } catch (err) {
-      Notify.create({ type: 'negative', message: err.message || '추가 실패' })
+      const idx = uploadProgressFiles.value.length - 1
+      if (idx >= 0 && source === 'pc' && file) {
+        uploadProgressFiles.value[idx].error = (err as Error).message
+        uploadProgressFiles.value[idx].completed = true
+        scheduleHideUploadProgress()
+      }
+      Notify.create({ type: 'negative', message: (err as Error).message || '추가 실패' })
       throw err
     }
+  }
+
+  let hideProgressTimer: ReturnType<typeof setTimeout> | null = null
+  function scheduleHideUploadProgress() {
+    if (hideProgressTimer) clearTimeout(hideProgressTimer)
+    hideProgressTimer = setTimeout(() => {
+      const allDone = uploadProgressFiles.value.every((f) => f.completed)
+      if (allDone) {
+        showUploadProgress.value = false
+        uploadProgressFiles.value = []
+      }
+      hideProgressTimer = null
+    }, 1000)
   }
 
   function inferCategory(payload) {
@@ -210,7 +334,10 @@ export function useAiAssets(category = null) {
     listFiles,
     loadCategory,
     uploadFile,
+    uploadFileWithProgress,
     addAsset,
+    uploadProgressFiles,
+    showUploadProgress,
     addFileToMedia,
     removeAsset,
     moveAsset,
