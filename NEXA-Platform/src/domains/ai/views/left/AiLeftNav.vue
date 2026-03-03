@@ -407,23 +407,6 @@ function isCodeFile(file) {
   return CODE_EXTENSIONS.includes(ext)
 }
 
-function getFileExt(file) {
-  const name = (file?.original_name || file?.file_path || '').toLowerCase()
-  return name.match(/\.([a-z0-9]+)$/)?.[1] || ''
-}
-
-function isCsvFile(file) {
-  return getFileExt(file) === 'csv'
-}
-
-function isTiptapMediaFile(file) {
-  const t = (file?.file_type || file?.category || '').toLowerCase()
-  if (['image', 'images', 'audio', 'video'].includes(t)) return true
-  const ext = getFileExt(file)
-  const mediaExt = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma', 'mp4', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'flv', 'm4v', 'csv']
-  return mediaExt.includes(ext)
-}
-
 const { documents, images, audio, videos, uploadProgressFiles, showUploadProgress } = aiAssets
 
 const showMediaUpload = ref(false)
@@ -509,33 +492,23 @@ function inferCategoryFromPayload(p) {
   return 'documents'
 }
 
+/** 클릭: 뷰어에 단일만 표시. 삽입은 우클릭 메뉴 "에디터에 넣기"로만. */
 function onDocumentClick(f) {
   if (!f?.url) return
   setSelectedFile(f)
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
-  } else if (isCsvFile(f)) {
-    requestInjectToEditor(f)
-    showPanel('editor')
-  } else if (isTiptapMediaFile(f)) {
-    requestInjectToEditor(f)
-    showPanel('editor')
   } else {
     showPanel('viewer')
   }
 }
 
+/** 클릭: 뷰어에 단일만 표시. 삽입은 우클릭 메뉴 "에디터에 넣기"로만. */
 function onMediaItemClick(f, category) {
   if (!f?.url) return
   setSelectedFile(f)
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
-  } else if (isCsvFile(f)) {
-    requestInjectToEditor(f)
-    showPanel('editor')
-  } else if (isTiptapMediaFile(f)) {
-    requestInjectToEditor(f)
-    showPanel('editor')
   } else {
     showPanel('viewer')
   }

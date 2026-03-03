@@ -1,4 +1,12 @@
-<!-- UniversalViewer: 당분간 보존. [NEXA-AI-07] 추후 NexusLens로 대체 예정. -->
+<!--
+  UniversalViewer: 당분간 보존. [NEXA-AI-07] 추후 NexusLens로 대체 예정.
+
+  CSV: q-table + virtual-scroll로 수만 행도 가볍게 표시.
+  현재 CSV는 Tiptap 에디터에 삽입되도록 라우팅됨. UniversalViewer로 보려면
+  AiExplorerPanel/AiLeftNav에서 CSV 클릭 시 showPanel('viewer') 분기 추가,
+  AiContent injectCsvToEditor에서 큰 파일일 때 뷰어 전환 로직 참고.
+  사용자 설정(preferCsvView: tiptap|viewer|auto)으로 선택 기능 확장 예정.
+-->
 <template>
   <div class="universal-viewer column">
     <template v-if="!file">

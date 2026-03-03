@@ -102,6 +102,22 @@ function fileToEditorHtml(file) {
   return `<p><a href="${url}">${name}</a></p>`
 }
 
+/**
+ * CSV 파일을 Tiptap 에디터에 테이블로 삽입.
+ *
+ * ## UniversalViewer 전환 (큰 CSV용)
+ * 행 수가 많을 때 UniversalViewer(q-table + virtual-scroll)로 보이게 하려면:
+ * 1. useFileSelection, setSelectedFile import 복원
+ * 2. 아래 조건 분기 추가:
+ *    if (totalRows > MAX_CSV_DISPLAY_ROWS) {
+ *      setSelectedFile(file)
+ *      showPanel('viewer')
+ *      return
+ *    }
+ *
+ * ## 향후: 사용자 설정 preferCsvView
+ * 'tiptap' | 'viewer' | 'auto' 에 따라 Tiptap 삽입 vs 뷰어 전환 선택 가능.
+ */
 async function injectCsvToEditor(file) {
   const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
   if (!url) {
@@ -141,6 +157,7 @@ onMounted(() => {
     showPanel('editor')
   })
   unregisterInjectToEditor = onInjectToEditor((file) => {
+    // CSV: Tiptap 테이블로 삽입. UniversalViewer 전환은 injectCsvToEditor 주석 참고.
     if (getFileExtension(file) === 'csv') {
       injectCsvToEditor(file)
       return

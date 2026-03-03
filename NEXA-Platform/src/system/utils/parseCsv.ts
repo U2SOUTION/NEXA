@@ -1,7 +1,10 @@
 /**
  * CSV 파싱 유틸리티
  * UniversalViewer와 Tiptap CSV 삽입에서 공통 사용
- * - 레코드 수 제한: MAX_CSV_DISPLAY_ROWS (큰 파일은 뷰어에서 virtual-scroll 사용)
+ *
+ * - MAX_CSV_DISPLAY_ROWS: Tiptap 삽입 시 최대 행 수 (가상 스크롤 없음)
+ * - UniversalViewer: q-table virtual-scroll → 수만 행도 무리 없음
+ * - 현재 기본: Tiptap 삽입. UniversalViewer 전환은 AiContent·csvToTiptapTable 주석 참고
  */
 
 export const MAX_CSV_DISPLAY_ROWS = 3000

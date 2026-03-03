@@ -1,6 +1,28 @@
 /**
  * CSV → Tiptap Table HTML 변환
  * [NEXA-AI-07] Phase 2: UniversalViewer의 parseCsv 활용, 행 제한 3000
+ *
+ * ## CSV 뷰 전략 (Tiptap vs UniversalViewer)
+ *
+ * - **Tiptap**: HTML <table>로 삽입. 가상 스크롤 없음 → 행 수 많으면 DOM/렌더 부담.
+ * - **UniversalViewer**: Quasar q-table + virtual-scroll → 수만 행도 가볍게 표시.
+ *
+ * 현재는 Tiptap 표시를 기본으로 유지. CSV는 특수 케이스라 대부분 행 수가 적어
+ * Tiptap에서 무리 없이 동작할 것으로 예상.
+ *
+ * ## UniversalViewer로 전환하고 싶을 때
+ *
+ * 1. AiContent.vue injectCsvToEditor() 내부에서:
+ *    - totalRows > MAX_CSV_DISPLAY_ROWS (또는 사용자 설정) 일 때
+ *    - setSelectedFile(file) 후 showPanel('viewer') 호출
+ * 2. useFileSelection import 복원 필요
+ *
+ * ## 향후: 사용자 설정으로 선택
+ *
+ * - preferCsvView: 'tiptap' | 'viewer' | 'auto'
+ *   - tiptap: 항상 에디터에 삽입
+ *   - viewer: 항상 UniversalViewer (virtual-scroll)
+ *   - auto: 행 수 기준으로 자동 선택 (예: 500행 이하 → Tiptap, 초과 → viewer)
  */
 
 import { parseCsv, countCsvRows, MAX_CSV_DISPLAY_ROWS } from '@system/utils/parseCsv'
