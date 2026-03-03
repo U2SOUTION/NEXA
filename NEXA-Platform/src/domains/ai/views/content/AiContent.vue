@@ -81,14 +81,15 @@ function fileToEditorHtml(file) {
   const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
   const name = (file.original_name || '파일').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   const mediaType = getMediaType(file)
+  const caption = `<p class="media-filename" style="text-align:center">${name}</p>`
   if (mediaType === 'image') {
-    return `<p><img src="${url}" alt="${name}" /></p>`
+    return `<p><img src="${url}" alt="${name}" /></p>${caption}`
   }
   if (mediaType === 'audio') {
-    return `<p><audio src="${url}" controls></audio></p>`
+    return `<p><audio src="${url}" controls></audio></p>${caption}`
   }
   if (mediaType === 'video') {
-    return `<p><video src="${url}" controls></video></p>`
+    return `<p><video src="${url}" controls></video></p>${caption}`
   }
   return `<p><a href="${url}">${name}</a></p>`
 }
