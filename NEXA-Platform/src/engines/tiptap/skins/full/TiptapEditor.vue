@@ -893,17 +893,34 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
         border-collapse: collapse;
         margin: 0.5em 0;
         width: 100%;
+        table-layout: fixed;
+        font-size: 0.875rem;
 
         td,
         th {
           padding: 0.5em;
           border: 1px solid var(--nexa-table-cell-border);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         th {
-          font-weight: bold;
+          font-weight: 600;
           background-color: var(--nexa-table-header-bg);
           color: var(--nexa-table-header-text);
+        }
+
+        tbody tr {
+          background-color: var(--nexa-table-bg);
+
+          &:nth-child(even) {
+            background-color: var(--nexa-table-row-striped-bg);
+          }
+
+          &:hover {
+            background-color: var(--nexa-table-row-hover-bg);
+          }
         }
 
         td {
@@ -1140,17 +1157,34 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
         border-collapse: collapse;
         margin: 0.5em 0;
         width: 100%;
+        table-layout: fixed;
+        font-size: 0.875rem;
 
         td,
         th {
           padding: 0.5em;
           border: 1px solid var(--nexa-table-cell-border);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         th {
-          font-weight: bold;
+          font-weight: 600;
           background-color: var(--nexa-table-header-bg);
           color: var(--nexa-table-header-text);
+        }
+
+        tbody tr {
+          background-color: var(--nexa-table-bg);
+
+          &:nth-child(even) {
+            background-color: var(--nexa-table-row-striped-bg);
+          }
+
+          &:hover {
+            background-color: var(--nexa-table-row-hover-bg);
+          }
         }
 
         td {

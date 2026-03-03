@@ -10,11 +10,14 @@
 
 <script setup>
 import { ref, provide, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { Notify } from 'quasar'
 import { parseMarkdown } from '@system/utils/markdown/index'
 import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
 import { useAiExplorerSelection } from '../../composables/useAiExplorerSelection'
 import { showPanel } from '../../composables/useAiSplitLayout'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
+import { csvToTiptapTableHtml } from '../../utils/csvToTiptapTable'
+import { MAX_CSV_DISPLAY_ROWS } from '@system/utils/parseCsv'
 import AiSplitLayout from './AiSplitLayout.vue'
 
 const editorContent = ref('')
@@ -76,6 +79,11 @@ function getMediaType(file) {
   return null
 }
 
+function getFileExtension(file) {
+  const name = (file?.original_name || file?.file_path || '').toLowerCase()
+  return name.match(/\.([a-z0-9]+)$/)?.[1] || ''
+}
+
 function fileToEditorHtml(file) {
   if (!file?.file_path && !file?.url) return ''
   const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
@@ -94,6 +102,33 @@ function fileToEditorHtml(file) {
   return `<p><a href="${url}">${name}</a></p>`
 }
 
+async function injectCsvToEditor(file) {
+  const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
+  if (!url) {
+    Notify.create({ type: 'warning', message: 'CSV 파일 주소를 가져올 수 없습니다.' })
+    return
+  }
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(res.statusText)
+    const raw = await res.text()
+    const { html, totalRows, displayRows } = csvToTiptapTableHtml(raw)
+    if (totalRows > MAX_CSV_DISPLAY_ROWS) {
+      Notify.create({
+        type: 'info',
+        message: `${displayRows}행 삽입됨 (전체 ${totalRows}행, 최대 ${MAX_CSV_DISPLAY_ROWS}행까지 표시)`,
+      })
+    }
+    showPanel('editor')
+    nextTick(() => {
+      pendingInsertContent.value = html
+    })
+  } catch (e) {
+    console.error('[AiContent] CSV fetch failed:', e)
+    Notify.create({ type: 'negative', message: 'CSV 파일을 불러올 수 없습니다.' })
+  }
+}
+
 onMounted(() => {
   unregisterInsertRequest = onInsertRequest((raw) => {
     const html = parseMarkdown(raw, '', {})
@@ -106,6 +141,10 @@ onMounted(() => {
     showPanel('editor')
   })
   unregisterInjectToEditor = onInjectToEditor((file) => {
+    if (getFileExtension(file) === 'csv') {
+      injectCsvToEditor(file)
+      return
+    }
     const html = fileToEditorHtml(file)
     if (html) {
       showPanel('editor')

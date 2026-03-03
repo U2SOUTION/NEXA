@@ -202,21 +202,10 @@ const isCsvFile = computed(() => getExtension() === 'csv' && (!!props.file?.file
 /** .json 파일 (fetch 필요) */
 const isJsonFile = computed(() => getExtension() === 'json' && (!!props.file?.file_path || !!props.file?.url))
 
-const MAX_CSV_DISPLAY_ROWS = 3000
+import { parseCsv, countCsvRows } from '@system/utils/parseCsv'
 
 /** CSV 파싱 결과 (2차원 배열, virtual-scroll로 최대 3000행) */
-const parsedCsvRows = computed(() => {
-  const raw = textFileContent.value
-  if (!raw || !isCsvFile.value) return []
-  const lines = raw
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .split('\n')
-    .filter((l) => l.trim())
-  if (lines.length === 0) return []
-  const all = lines.map((line) => parseCsvLine(line))
-  return all.slice(0, MAX_CSV_DISPLAY_ROWS)
-})
+const parsedCsvRows = computed(() => (isCsvFile.value ? parseCsv(textFileContent.value) : []))
 
 /** QTable용 columns (첫 행이 헤더) */
 const csvTableColumns = computed(() => {
@@ -247,35 +236,7 @@ const csvTableRows = computed(() => {
 })
 
 /** CSV 전체 행 수 (제한 안 내림) */
-const csvTotalRows = computed(() => {
-  const raw = textFileContent.value
-  if (!raw || !isCsvFile.value) return 0
-  const lines = raw
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .split('\n')
-    .filter((l) => l.trim())
-  return lines.length
-})
-
-function parseCsvLine(line) {
-  const result = []
-  let current = ''
-  let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i]
-    if (c === '"') {
-      inQuotes = !inQuotes
-    } else if (c === ',' && !inQuotes) {
-      result.push(current.replace(/^"|"$/g, '').replace(/""/g, '"').trim())
-      current = ''
-    } else {
-      current += c
-    }
-  }
-  result.push(current.replace(/^"|"$/g, '').replace(/""/g, '"').trim())
-  return result
-}
+const csvTotalRows = computed(() => (isCsvFile.value ? countCsvRows(textFileContent.value) : 0))
 
 /** JSON 포맷팅 결과 */
 const formattedJson = computed(() => {

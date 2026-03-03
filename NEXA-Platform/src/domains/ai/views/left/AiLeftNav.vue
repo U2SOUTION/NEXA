@@ -407,11 +407,20 @@ function isCodeFile(file) {
   return CODE_EXTENSIONS.includes(ext)
 }
 
+function getFileExt(file) {
+  const name = (file?.original_name || file?.file_path || '').toLowerCase()
+  return name.match(/\.([a-z0-9]+)$/)?.[1] || ''
+}
+
+function isCsvFile(file) {
+  return getFileExt(file) === 'csv'
+}
+
 function isTiptapMediaFile(file) {
   const t = (file?.file_type || file?.category || '').toLowerCase()
   if (['image', 'images', 'audio', 'video'].includes(t)) return true
-  const ext = (file?.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''
-  const mediaExt = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma', 'mp4', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'flv', 'm4v']
+  const ext = getFileExt(file)
+  const mediaExt = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma', 'mp4', 'webm', 'mkv', 'mov', 'avi', 'wmv', 'flv', 'm4v', 'csv']
   return mediaExt.includes(ext)
 }
 
@@ -505,6 +514,9 @@ function onDocumentClick(f) {
   setSelectedFile(f)
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
+  } else if (isCsvFile(f)) {
+    requestInjectToEditor(f)
+    showPanel('editor')
   } else if (isTiptapMediaFile(f)) {
     requestInjectToEditor(f)
     showPanel('editor')
@@ -518,6 +530,9 @@ function onMediaItemClick(f, category) {
   setSelectedFile(f)
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
+  } else if (isCsvFile(f)) {
+    requestInjectToEditor(f)
+    showPanel('editor')
   } else if (isTiptapMediaFile(f)) {
     requestInjectToEditor(f)
     showPanel('editor')
