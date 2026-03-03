@@ -6,6 +6,7 @@
  */
 
 import fs from 'fs/promises'
+import { createReadStream } from 'fs'
 import path from 'path'
 import { createHash, randomUUID } from 'crypto'
 import { getFileType as getFileTypeFromConfig, getMimeType, getMaxFileSize, isPreviewable, getFileCategory } from '../config/fileTypes.js'
@@ -129,6 +130,23 @@ export function computeContentHash(buffer) {
     throw new Error('Buffer는 필수입니다.')
   }
   return createHash('sha256').update(buffer).digest('hex')
+}
+
+/**
+ * 범용: 파일 경로 기반 content_hash (SHA256) 스트리밍 계산
+ * 대용량 파일의 메모리 절약용
+ *
+ * @param {string} absoluteFilePath - 파일 절대 경로
+ * @returns {Promise<string>} 64자 hex 해시
+ */
+export function computeContentHashFromFile(absoluteFilePath) {
+  return new Promise((resolve, reject) => {
+    const hash = createHash('sha256')
+    const stream = createReadStream(absoluteFilePath)
+    stream.on('data', (chunk) => hash.update(chunk))
+    stream.on('end', () => resolve(hash.digest('hex')))
+    stream.on('error', reject)
+  })
 }
 
 /**

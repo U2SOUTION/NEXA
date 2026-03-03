@@ -4,10 +4,14 @@
  * @see docs/AI_드롭존_첨부_기능_플랜.md
  */
 
+import path from 'path'
+import fs from 'fs'
 import express from 'express'
 import multer from 'multer'
+import { randomUUID } from 'crypto'
 import { pool } from '../config/dbConfig.js'
-import { resolveUploadAbsolutePath } from '../config/upload.js'
+import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '../config/upload.js'
+import { MULTER_MAX_FILE_SIZE } from '../config/fileTypes.js'
 import {
   extractExtension,
   getFileType,
@@ -15,17 +19,29 @@ import {
   getFileMaxSize,
   generateFolderPath,
   generateTimestampFilename,
-  computeContentHash,
+  computeContentHashFromFile,
   ensureFolderExists,
-  saveFile,
   deleteFile,
+  moveTempFileToFolder,
 } from '../utils/fileUpload.js'
 
 const router = express.Router()
-const storage = multer.memoryStorage()
+
+const diskStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    const dest = path.join(UPLOAD_BASE_DIR, '_temp')
+    fs.mkdirSync(dest, { recursive: true })
+    cb(null, dest)
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase() || '.bin'
+    cb(null, `${randomUUID()}${ext}`)
+  },
+})
+
 const upload = multer({
-  storage,
-  limits: { fileSize: 100 * 1024 * 1024 },
+  storage: diskStorage,
+  limits: { fileSize: MULTER_MAX_FILE_SIZE },
 })
 
 /**
@@ -70,14 +86,17 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ code: 'INVALID_FILE_TYPE', error: '파일이 필요합니다.' })
     }
 
-    const fileBuffer = req.file.buffer
+    const tempAbsolutePath = req.file.path
+    const fileSize = req.file.size
+    const tempRelativePath = `uploads/_temp/${path.basename(tempAbsolutePath)}`
     const originalName = fixFilenameEncoding(req.file.originalname || 'unknown')
 
     const extension = extractExtension(originalName)
     const fileType = getFileType(extension)
     const maxSize = getFileMaxSize(fileType)
 
-    if (fileBuffer.length > maxSize) {
+    if (fileSize > maxSize) {
+      await deleteFile(tempRelativePath)
       return res.status(400).json({
         code: 'FILE_TOO_LARGE',
         error: `파일 크기가 너무 큽니다. (최대: ${(maxSize / 1024 / 1024).toFixed(1)}MB)`,
@@ -86,8 +105,9 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
 
     let contentHash
     try {
-      contentHash = computeContentHash(fileBuffer)
+      contentHash = await computeContentHashFromFile(tempAbsolutePath)
     } catch {
+      await deleteFile(tempRelativePath)
       return res.status(400).json({ code: 'HASH_COMPUTE_FAILED', error: '파일 해시 계산 실패' })
     }
 
@@ -106,6 +126,7 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
 
       if (existing.length > 0) {
         const existingFile = existing[0]
+        await deleteFile(tempRelativePath)
         await connection.execute(
           'INSERT IGNORE INTO file_references (file_id, domain) VALUES (?, ?)',
           [existingFile.id, domain],
@@ -126,14 +147,13 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
       }
 
       await ensureFolderExists(folderPath)
-      const absolutePath = resolveUploadAbsolutePath(filePath)
-      await saveFile(fileBuffer, absolutePath)
+      await moveTempFileToFolder(tempRelativePath, folderPath, filename)
 
       const mimeType = getFileMimeType(extension)
       const [insertResult] = await connection.execute(
         `INSERT INTO files (file_path, original_name, file_type, mime_type, file_size, category, content_hash)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [filePath, originalName, fileType, mimeType, fileBuffer.length, category, contentHash],
+        [filePath, originalName, fileType, mimeType, fileSize, category, contentHash],
       )
       insertId = insertResult.insertId
     } catch (err) {

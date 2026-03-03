@@ -1,22 +1,35 @@
 import express from 'express'
 import path from 'path'
 import fs from 'fs/promises'
+import fsSync from 'fs'
 import multer from 'multer'
+import { randomUUID } from 'crypto'
 import { pool } from '../../config/dbConfig.js'
 import { getCategoryAbbreviation } from '../../utils/skuGenerator.js'
-import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, partsGenerateFolderPath, partsGenerateFilename, partsCreateSafeFilename, ensureFolderExists, saveFile, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder } from '../../utils/fileUpload.js'
-import { resolveUploadAbsolutePath } from '../../config/upload.js'
+import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, partsGenerateFolderPath, partsGenerateFilename, partsCreateSafeFilename, ensureFolderExists, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder } from '../../utils/fileUpload.js'
+import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '../../config/upload.js'
+import { MULTER_MAX_FILE_SIZE } from '../../config/fileTypes.js'
 
 const router = express.Router()
 
 const DOMAIN = 'parts'
 
-// multer 설정 (메모리 스토리지 사용)
-const storage = multer.memoryStorage()
+const diskStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    const dest = path.join(UPLOAD_BASE_DIR, '_temp')
+    fsSync.mkdirSync(dest, { recursive: true })
+    cb(null, dest)
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase() || '.bin'
+    cb(null, `${randomUUID()}${ext}`)
+  },
+})
+
 const upload = multer({
-  storage,
+  storage: diskStorage,
   limits: {
-    fileSize: 100 * 1024 * 1024, // 최대 100MB (파일 타입별 제한은 별도 검사)
+    fileSize: MULTER_MAX_FILE_SIZE, // 타입별 상한 중 최대값 (영상 300MB)
   },
 })
 
@@ -119,6 +132,8 @@ router.get('/part-files', async (req, res) => {
 // POST /api/part-files/upload - 파일 업로드 (새 스키마)
 router.post('/part-files/upload', upload.single('file'), async (req, res) => {
   const connection = await pool.getConnection()
+  const tempRelativePath = req.file ? `uploads/_temp/${path.basename(req.file.path)}` : null
+  let currentRelativePath = null
   try {
     await connection.beginTransaction()
 
@@ -126,7 +141,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: '파일이 필요합니다.' })
     }
 
-    const fileBuffer = req.file.buffer
+    const fileSize = req.file.size
     const filenameFromQuery = req.query.filename
     const filenameFromBody = req.body.filename
     const filenameFromFile = req.file.originalname
@@ -171,10 +186,11 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     const fileType = getFileType(extension)
 
     const maxFileSize = getFileMaxSize(fileType)
-    if (fileBuffer.length > maxFileSize) {
+    if (fileSize > maxFileSize) {
       await connection.rollback()
+      await deleteFile(tempRelativePath)
       const maxSizeMB = (maxFileSize / 1024 / 1024).toFixed(2)
-      const currentSizeMB = (fileBuffer.length / 1024 / 1024).toFixed(2)
+      const currentSizeMB = (fileSize / 1024 / 1024).toFixed(2)
       return res.status(400).json({
         error: `파일 크기가 너무 큽니다.`,
         message: `최대 크기: ${maxSizeMB}MB (${fileType}), 현재: ${currentSizeMB}MB`,
@@ -183,6 +199,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
 
     const refCount = [partClassId, partModelId, partSpecId].filter(Boolean).length
     if (refCount !== 1) {
+      await deleteFile(tempRelativePath)
       return res.status(400).json({
         error: 'part_class_id, part_model_id, part_spec_id 중 하나만 제공해야 합니다.',
       })
@@ -197,6 +214,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     if (partClassId) {
       const [rows] = await connection.execute('SELECT * FROM part_classes WHERE id = ? FOR UPDATE', [partClassId])
       if (rows.length === 0) {
+        await deleteFile(tempRelativePath)
         return res.status(404).json({ error: '부품 분류를 찾을 수 없습니다.' })
       }
       record = rows[0]
@@ -213,6 +231,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         [partModelId],
       )
       if (rows.length === 0) {
+        await deleteFile(tempRelativePath)
         return res.status(404).json({ error: '부품 유형을 찾을 수 없습니다.' })
       }
       record = rows[0]
@@ -231,6 +250,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         [partSpecId],
       )
       if (rows.length === 0) {
+        await deleteFile(tempRelativePath)
         return res.status(404).json({ error: '개별 부품을 찾을 수 없습니다.' })
       }
       record = rows[0]
@@ -260,7 +280,6 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     let insertSuccess = false
     let maxRetries = 10
     let finalSequence = sequence
-    let previousFilename = null
 
     while (!insertSuccess && maxRetries > 0) {
       try {
@@ -278,10 +297,14 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
 
         const absoluteFilePath = path.join(absoluteFolderPath, filename)
         const relativeFilePath = `${folderPath}${filename}`
-        previousFilename = filename
 
-        await saveFile(fileBuffer, absoluteFilePath)
-        const fileSize = await getFileSize(absoluteFilePath)
+        if (currentRelativePath === null) {
+          currentRelativePath = await moveTempFileToFolder(tempRelativePath, folderPath, filename)
+        } else {
+          const currentAbsolutePath = resolveUploadAbsolutePath(currentRelativePath)
+          await fs.rename(currentAbsolutePath, absoluteFilePath)
+          currentRelativePath = relativeFilePath
+        }
         const mimeType = getFileMimeType(extension)
 
         const [result] = await connection.execute(
@@ -313,12 +336,9 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
           continue
         }
 
-        if (previousFilename) {
-          const folderPath = partsGenerateFolderPath(categoryAbbr, cCode, DOMAIN)
-          const absoluteFolderPath = await ensureFolderExists(folderPath)
-          const previousFilePath = path.join(absoluteFolderPath, previousFilename)
+        if (currentRelativePath) {
           try {
-            await fs.unlink(previousFilePath)
+            await deleteFile(currentRelativePath)
           } catch {
             // pass
           }
@@ -331,6 +351,20 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
   } catch (error) {
     if (connection.rollback) {
       await connection.rollback()
+    }
+    if (tempRelativePath) {
+      try {
+        await deleteFile(tempRelativePath)
+      } catch {
+        /* ignore */
+      }
+    }
+    if (currentRelativePath) {
+      try {
+        await deleteFile(currentRelativePath)
+      } catch {
+        /* ignore */
+      }
     }
     console.error('[File Upload] 파일 업로드 실패:', error)
 

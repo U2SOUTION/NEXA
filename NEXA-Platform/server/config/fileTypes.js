@@ -104,7 +104,7 @@ export const FILE_TYPE_CONFIG = {
     ],
     category: 'media',
     previewable: true,
-    maxSize: 500 * 1024 * 1024, // 500MB
+    maxSize: 300 * 1024 * 1024, // 300MB
     description: '비디오 파일',
     icon: '/icons/video.png', // public/icons/video.png 파일 사용 (프론트엔드와 동일하게 유지)
   },
@@ -135,6 +135,11 @@ export const FILE_TYPE_CONFIG = {
     icon: '/icons/file.png', // public/icons/file.png 파일 사용 (프론트엔드와 동일하게 유지)
   },
 }
+
+/** Multer용 상한 (타입별 maxSize 중 최대값) - 이 값을 넘으면 multer가 차단 */
+export const MULTER_MAX_FILE_SIZE = Math.max(
+  ...Object.values(FILE_TYPE_CONFIG).map((c) => c.maxSize),
+)
 
 /**
  * 확장자로 파일 타입 찾기
