@@ -19,29 +19,9 @@
     </template>
     <template v-else>
       <div ref="tableWrapRef" class="table-wrap column">
-        <q-table
-          :rows="items"
-          :columns="columns"
-          row-key="id"
-          virtual-scroll
-          :virtual-scroll-item-size="ROW_HEIGHT"
-          :table-style="tableStyle"
-          :rows-per-page-options="[0]"
-          hide-pagination
-          hide-bottom
-          flat
-          dense
-          bordered
-          class="explorer-table"
-          @row-click="(evt, row) => $emit('select', row)"
-        >
+        <q-table :rows="items" :columns="columns" row-key="id" virtual-scroll :virtual-scroll-item-size="ROW_HEIGHT" :table-style="tableStyle" :rows-per-page-options="[0]" hide-pagination hide-bottom flat dense bordered class="explorer-table" @row-click="(evt, row) => $emit('select', row)">
           <template #body="props">
-            <q-tr
-              :props="props"
-              :class="{ 'row-selected': selectedFile?.id === props.row?.id }"
-              class="cursor-pointer"
-              @contextmenu.prevent="$emit('contextmenu', $event, props.row)"
-            >
+            <q-tr :props="props" :class="{ 'row-selected': selectedFile?.id === props.row?.id }" class="cursor-pointer" @contextmenu.prevent="$emit('contextmenu', $event, props.row)">
               <q-td key="name" :props="props" class="cell-ellipsis cell-name">
                 <div class="row items-center no-wrap cell-inner">
                   <q-icon :name="getFileIcon(props.row)" size="20px" class="q-mr-sm flex-shrink-0" />
@@ -90,11 +70,12 @@ const emit = defineEmits(['select', 'load-more', 'contextmenu'])
 const tableWrapRef = ref(null)
 let scrollEl = null
 
+// 비율은 CSS .explorer-table col-ratio-* 로 적용 (Quasar column style이 th/td에 반영되지 않아 nth-child로 직접 지정)
 const columns = [
-  { name: 'name', label: '이름', field: 'original_name', align: 'left', sortable: false, style: 'width: 1%; min-width: 0' },
-  { name: 'size', label: '크기', field: 'file_size', align: 'right', sortable: false, style: 'width: 90px' },
-  { name: 'type', label: '유형', field: (row) => row.file_type || row.category, align: 'left', sortable: false, style: 'width: 80px' },
-  { name: 'date', label: '날짜', field: 'created_at', align: 'left', sortable: false, style: 'width: 120px' },
+  { name: 'name', label: '이름', field: 'original_name', align: 'left', sortable: false },
+  { name: 'size', label: '크기', field: 'file_size', align: 'right', sortable: false },
+  { name: 'type', label: '유형', field: (row) => row.file_type || row.category, align: 'left', sortable: false },
+  { name: 'date', label: '날짜', field: 'created_at', align: 'left', sortable: false },
 ]
 
 const wrapperStyle = computed(() => {
@@ -190,6 +171,15 @@ onBeforeUnmount(() => {
   table-layout: fixed;
   width: 100%;
 }
+/* 열 너비 비율: 이름 72%, 크기 10%, 유형 8%, 날짜 10% — CSS로 직접 지정해야 Quasar에서 적용됨 */
+:deep(.explorer-table th:nth-child(1)),
+:deep(.explorer-table td:nth-child(1)) { width: 72%; min-width: 0; }
+:deep(.explorer-table th:nth-child(2)),
+:deep(.explorer-table td:nth-child(2)) { width: 10%; min-width: 0; }
+:deep(.explorer-table th:nth-child(3)),
+:deep(.explorer-table td:nth-child(3)) { width: 8%; min-width: 0; }
+:deep(.explorer-table th:nth-child(4)),
+:deep(.explorer-table td:nth-child(4)) { width: 10%; min-width: 0; }
 :deep(.explorer-table th) {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -199,7 +189,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 0;
 }
 :deep(.explorer-table td.cell-name .cell-inner) {
   min-width: 0;
@@ -214,6 +203,10 @@ onBeforeUnmount(() => {
   font-weight: 600;
   background: var(--nexa-bg-secondary, rgba(0, 0, 0, 0.03));
   border-bottom: 1px solid var(--nexa-border-color);
+}
+:deep(.explorer-table th:not(:first-child)),
+:deep(.explorer-table td:not(:first-child)) {
+  border-left: 1px solid var(--nexa-border-color);
 }
 :deep(.explorer-table tbody tr.row-selected) {
   background: var(--q-primary);
