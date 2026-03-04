@@ -62,13 +62,3 @@ function findNode(nodes, id) {
   return null
 }
 </script>
-
-<style lang="scss" scoped>
-.explorer-tree {
-  min-height: 0;
-  overflow: auto;
-}
-.q-tree-node-label {
-  padding: 2px 0;
-}
-</style>

@@ -1,12 +1,7 @@
 <template>
   <div class="global-file-explorer column">
     <div class="explorer-top-bar row items-center q-px-md q-py-sm">
-      <div class="explorer-top-bar-left">
-        <span class="explorer-top-bar-title text-h6">NEXA File Explorer</span>
-      </div>
-      <div class="explorer-top-bar-right">
-        <q-btn-toggle v-model="viewMode" toggle-color="primary" dense no-caps size="sm" class="explorer-view-mode-toggle" :options="viewModeOptions" />
-      </div>
+      <span class="explorer-top-bar-title text-h6">NEXA File Explorer</span>
     </div>
     <q-splitter v-model="splitterModel" unit="px" :limits="[120, 600]" class="col">
       <template #before>
@@ -18,18 +13,8 @@
         </div>
       </template>
       <template #after>
-        <div class="list-section column explorer-right">
-          <q-tab-panels v-model="viewMode" animated class="col">
-            <q-tab-panel name="list" class="q-pa-none">
-              <ExplorerViewList :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
-            </q-tab-panel>
-            <q-tab-panel name="table" class="q-pa-none">
-              <ExplorerViewTable :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
-            </q-tab-panel>
-            <q-tab-panel name="card" class="q-pa-none">
-              <ExplorerViewCard :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
-            </q-tab-panel>
-          </q-tab-panels>
+        <div class="list-section column explorer-right" style="min-width: 0; width: 100%; max-width: 100%; overflow: auto;">
+          <ExplorerViewList :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
         </div>
       </template>
     </q-splitter>
@@ -38,10 +23,12 @@
 
 <script setup>
 import { onMounted, computed, ref, watch } from 'vue'
+
+const MIN_TREE_WIDTH = 120
+const MAX_TREE_WIDTH = 600
+const DEFAULT_TREE_WIDTH = 220
 import ExplorerTree from './ExplorerTree.vue'
 import ExplorerViewList from './ExplorerViewList.vue'
-import ExplorerViewTable from './ExplorerViewTable.vue'
-import ExplorerViewCard from './ExplorerViewCard.vue'
 import { useGlobalFileExplorer } from '@system/composables/useGlobalFileExplorer'
 import { useFileSelection } from '@system/composables/useFileSelection'
 import { getExpandedIdsForSelection } from '@system/utils/fileExplorer'
@@ -50,17 +37,25 @@ const props = defineProps({
   mode: { type: String, default: 'embed' },
   scope: { type: String, default: '' },
   initialDomain: { type: String, default: '' },
+  /** 부모에서 저장 시 사용. 지정 시 이 값으로 트리 너비 제어·갱신 시 update:treeWidth emit */
+  treeWidth: { type: Number, default: undefined },
 })
 
-const emit = defineEmits(['select', 'contextmenu'])
+const emit = defineEmits(['select', 'contextmenu', 'update:treeWidth'])
 
-const splitterModel = ref(220)
-const viewMode = ref('list')
-const viewModeOptions = [
-  { label: 'List', value: 'list', icon: 'list' },
-  { label: 'Table', value: 'table', icon: 'table_chart' },
-  { label: 'Card', value: 'card', icon: 'view_module' },
-]
+const internalTreeWidth = ref(DEFAULT_TREE_WIDTH)
+const splitterModel = computed({
+  get: () =>
+    props.treeWidth !== undefined && props.treeWidth !== null ? props.treeWidth : internalTreeWidth.value,
+  set: (v) => {
+    const n = Math.max(MIN_TREE_WIDTH, Math.min(MAX_TREE_WIDTH, Math.round(Number(v))))
+    if (props.treeWidth !== undefined && props.treeWidth !== null) {
+      emit('update:treeWidth', n)
+    } else {
+      internalTreeWidth.value = n
+    }
+  },
+})
 const expandedNodeIds = ref([])
 
 const { treeNodes, items, listLoading, listError, selectedNodeId, hasMore, loadTree, selectNode, loadMore, sortBy, filterCategory, scopeDomain } = useGlobalFileExplorer()
@@ -200,63 +195,16 @@ onMounted(() => {
   height: 100%;
 }
 .explorer-top-bar {
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 1);
-  background: rgba(0, 0, 0, 0.2);
-  gap: 12px;
+  border-bottom: 1px solid var(--nexa-border-color);
 }
-.explorer-top-bar-left {
-  flex-shrink: 0;
-}
-.explorer-top-bar-right {
-  margin-left: auto;
-  flex-shrink: 0;
-}
-.explorer-top-bar-title {
-  font-weight: 600;
-}
-.explorer-view-mode-toggle {
-  font-size: 0.75rem;
-}
-// deep: 뷰모드 토글 버튼 크기 축소용
-.explorer-view-mode-toggle :deep(.q-btn) {
-  min-height: 28px;
-  padding: 0 8px;
-}
-.scope-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.scope-label {
-  flex-shrink: 0;
-}
-.scope-select {
-  flex-shrink: 0;
-  min-width: 0;
-}
-.explorer-left {
-  min-width: 0;
-  min-height: 0;
-  overflow: auto;
-}
-.explorer-right {
-  min-height: 0;
-  min-width: 0;
-}
+.explorer-right,
 .list-section {
   min-width: 0;
-  min-height: 0;
-  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
 }
-
-// deep 사용 이유: Quasar QSplitter 구분선(separator) DOM 구조 접근 필요, 전용 래퍼 노출 불가
-.global-file-explorer :deep(.q-splitter__separator) {
-  background-color: var(--nexa-border-color);
-  opacity: 0.8;
-}
-.global-file-explorer :deep(.q-splitter__separator-area) {
-  background-color: var(--nexa-border-color);
-  opacity: 0.3;
+:deep(.q-splitter__panel) {
+  min-width: 0;
 }
 </style>

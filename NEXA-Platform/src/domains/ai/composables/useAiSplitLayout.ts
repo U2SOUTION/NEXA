@@ -14,6 +14,9 @@ const DEFAULT_CENTER = ['narrative', 'logic', 'vision', 'sense', 'nexus']
 const DEFAULT_RIGHT = ['explorer']
 
 const DEFAULT_SIZES = { left: 22, center: 56, right: 22 }
+const DEFAULT_EXPLORER_TREE_WIDTH = 220
+const EXPLORER_TREE_WIDTH_MIN = 120
+const EXPLORER_TREE_WIDTH_MAX = 600
 
 const LEGACY_ID_MAP: Record<string, string> = {
   chat: 'dialogue',
@@ -60,6 +63,10 @@ function loadLayout() {
       leftActiveIndex: Math.max(0, data.leftActiveIndex ?? 0),
       centerActiveIndex: Math.max(0, data.centerActiveIndex ?? 0),
       rightActiveIndex: Math.max(0, data.rightActiveIndex ?? 0),
+      explorerTreeWidth:
+        typeof data.explorerTreeWidth === 'number'
+          ? Math.max(EXPLORER_TREE_WIDTH_MIN, Math.min(EXPLORER_TREE_WIDTH_MAX, data.explorerTreeWidth))
+          : DEFAULT_EXPLORER_TREE_WIDTH,
     }
   } catch {
     return null
@@ -79,6 +86,7 @@ function saveLayout(data: {
   leftActiveIndex: number
   centerActiveIndex: number
   rightActiveIndex: number
+  explorerTreeWidth: number
 }) {
   try {
     localStorage.setItem(LAYOUT_KEY, JSON.stringify(data))
@@ -101,6 +109,7 @@ export const rightSize = ref(loaded?.rightSize ?? DEFAULT_SIZES.right)
 export const leftActiveIndex = ref(loaded?.leftActiveIndex ?? 0)
 export const centerActiveIndex = ref(loaded?.centerActiveIndex ?? 0)
 export const rightActiveIndex = ref(loaded?.rightActiveIndex ?? 0)
+export const explorerTreeWidth = ref(loaded?.explorerTreeWidth ?? DEFAULT_EXPLORER_TREE_WIDTH)
 
 watch(
   [
@@ -116,6 +125,7 @@ watch(
     leftActiveIndex,
     centerActiveIndex,
     rightActiveIndex,
+    explorerTreeWidth,
   ],
   () => {
     saveLayout({
@@ -131,6 +141,7 @@ watch(
       leftActiveIndex: leftActiveIndex.value,
       centerActiveIndex: centerActiveIndex.value,
       rightActiveIndex: rightActiveIndex.value,
+      explorerTreeWidth: explorerTreeWidth.value,
     })
   },
   { deep: true },
@@ -178,6 +189,7 @@ export function applyPreset(preset: 'default' | 'code') {
     leftActiveIndex.value = 0
     centerActiveIndex.value = 0
     rightActiveIndex.value = 0
+    explorerTreeWidth.value = DEFAULT_EXPLORER_TREE_WIDTH
   } else if (preset === 'code') {
     leftPanelIds.value = ['dialogue']
     centerPanelIds.value = ['logic', 'narrative', 'vision', 'sense', 'nexus']
@@ -191,6 +203,7 @@ export function applyPreset(preset: 'default' | 'code') {
     leftActiveIndex.value = 0
     centerActiveIndex.value = 0
     rightActiveIndex.value = 0
+    explorerTreeWidth.value = DEFAULT_EXPLORER_TREE_WIDTH
   }
 }
 
@@ -199,6 +212,7 @@ export function resetSplitSizes() {
   leftSize.value = DEFAULT_SIZES.left
   centerSize.value = DEFAULT_SIZES.center
   rightSize.value = DEFAULT_SIZES.right
+  explorerTreeWidth.value = DEFAULT_EXPLORER_TREE_WIDTH
 }
 
 /** 패널 순서 변경 (드래그앤드롭용). activeIndex도 함께 보정 */

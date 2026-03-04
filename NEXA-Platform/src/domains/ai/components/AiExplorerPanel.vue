@@ -1,6 +1,13 @@
 <template>
   <div class="ai-explorer-panel column" @contextmenu.prevent="onContextMenuTrigger">
-    <GlobalFileExplorer mode="embed" class="col ai-explorer-embed" @select="onSelect" @contextmenu="onContextMenu" />
+    <GlobalFileExplorer
+      mode="embed"
+      class="col ai-explorer-embed"
+      :tree-width="explorerTreeWidth"
+      @update:tree-width="onExplorerTreeWidthUpdate"
+      @select="onSelect"
+      @contextmenu="onContextMenu"
+    />
     <div v-if="selectedFile" class="action-bar row items-center q-pa-sm q-gutter-sm flex-wrap">
       <span class="text-caption text-grey-7">선택: {{ selectedFile.original_name }}</span>
       <q-btn dense flat size="sm" label="미디어에 추가" icon="library_add" @click="addToMedia" :loading="addingToMedia" />
@@ -52,11 +59,15 @@ import { useAiExplorerSelection } from '../composables/useAiExplorerSelection'
 import { useAiAssets } from '../composables/useAiAssets'
 import { useAiSettings } from '../composables/useAiSettings'
 import { useAiMediaTab } from '../composables/useAiMediaTab'
-import { showPanel } from '../composables/useAiSplitLayout'
+import { showPanel, explorerTreeWidth } from '../composables/useAiSplitLayout'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
 const { selectedFile, setSelectedFile } = useFileSelection()
 const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor, requestOpenInCodePanel } = useAiExplorerSelection()
+
+function onExplorerTreeWidthUpdate(v: number) {
+  explorerTreeWidth.value = v
+}
 
 // Phase 3: extToMonacoLanguage와 동기화 (웹·ESP32·모바일·설정)
 const CODE_EXTENSIONS = [
@@ -203,30 +214,3 @@ async function addToMedia() {
   }
 }
 </script>
-
-<style lang="scss" scoped>
-.ai-explorer-panel {
-  min-height: 0;
-  height: 100%;
-}
-.action-bar {
-  flex-shrink: 0;
-  border-top: 1px solid var(--nexa-border-color);
-  background: var(--nexa-surface);
-}
-
-/* deep 사용 이유: GlobalFileExplorer 헤더 타이틀 숨김, embed 모드에서 중복 표시 방지 */
-.ai-explorer-embed :deep(.explorer-top-bar-title) {
-  display: none;
-}
-
-/* 우측 아이템 구분선: nexa-border-color 테마 칼라 */
-.ai-explorer-panel :deep(.explorer-file-item),
-.ai-explorer-panel :deep(.q-virtual-scroll .q-item) {
-  border-color: var(--nexa-border-color) !important;
-}
-.ai-explorer-panel :deep(.q-splitter__separator),
-.ai-explorer-panel :deep(.q-splitter__separator-area) {
-  background-color: var(--nexa-border-color);
-}
-</style>
