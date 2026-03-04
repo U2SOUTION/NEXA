@@ -337,7 +337,9 @@ async function fetchOfficeFile() {
   }
   const ext = getExtension()
   try {
-    const res = await fetch(url)
+    const res = await fetch(url, {
+      headers: ext === 'docx' ? { Accept: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' } : undefined,
+    })
     if (!res.ok) throw new Error(res.statusText)
     const ab = await res.arrayBuffer()
     if (OFFICE_WORD_EXT.includes(ext)) {
@@ -345,6 +347,14 @@ async function fetchOfficeFile() {
         officeFetchError.value = true
         officeErrorMessage.value = 'Legacy .doc format is not supported. Use .docx.'
       } else {
+        const u8 = new Uint8Array(ab)
+        const isZip = u8.length >= 2 && u8[0] === 0x50 && u8[1] === 0x4b
+        if (!isZip) {
+          officeFetchError.value = true
+          officeErrorMessage.value = 'DOCX 파일이 아닙니다. 서버가 바이너리가 아닌 XML/텍스트를 반환했을 수 있습니다.'
+          officeLoading.value = false
+          return
+        }
         const result = await mammoth.convertToHtml({ arrayBuffer: ab })
         officeDocxHtml.value = result.value || '<p></p>'
       }

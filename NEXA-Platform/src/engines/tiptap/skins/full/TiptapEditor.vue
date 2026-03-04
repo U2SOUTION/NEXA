@@ -73,7 +73,7 @@
       </slot>
     </div>
 
-    <!-- 에디터 영역 (풀스크린 모드가 아닐 때만 표시). editor-scroll에서 가로 스크롤 -->
+    <!-- 에디터 영역. AI 패널에서 사용 시 스크롤은 패널이 담당(AiEditorPanel.vue 주석 참고). -->
     <div v-if="!isFullscreen" class="editor-scroll">
       <div class="editor-content">
         <editor-content :editor="editor" />
