@@ -303,8 +303,8 @@ const centerRightLimits = computed(() => {
 })
 
 function getPanelProps(panelId) {
-  if (panelId === 'editor') return { modelValue: props.editorContent, 'onUpdate:modelValue': (v) => emit('update:editorContent', v) }
-  if (panelId === 'code')
+  if (panelId === 'narrative') return { modelValue: props.editorContent, 'onUpdate:modelValue': (v) => emit('update:editorContent', v) }
+  if (panelId === 'logic')
     return {
       modelValue: props.codeContent,
       'onUpdate:modelValue': (v) => emit('update:codeContent', v),

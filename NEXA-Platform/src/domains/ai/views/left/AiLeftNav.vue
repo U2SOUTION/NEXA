@@ -444,7 +444,7 @@ const contextMenuY = ref(0)
 function injectMemoToEditor(m) {
   const text = m?.content ? String(m.content).trim() : ''
   if (!text) return
-  showPanel('editor')
+  showPanel('narrative')
   requestInsert(text)
   Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
 }
@@ -470,7 +470,7 @@ function injectToChatFromContext() {
     return
   }
   requestAttachToChat({ url, original_name: file.original_name, file_path: file.file_path })
-  showPanel('chat')
+  showPanel('dialogue')
   Notify.create({ message: `"${file.original_name}" 채팅에 첨부됨`, icon: 'check_circle' })
 }
 
@@ -521,14 +521,14 @@ function onDocumentClick(f) {
   if (!f?.url) return
   setSelectedFile(f)
   if (getFileExt(f) === 'md') {
-    showPanel('viewer')
+    showPanel('sense')
     return
   }
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
     return
   }
-  showPanel('viewer')
+  showPanel('sense')
 }
 
 /** 클릭: 뷰어에 단일 표시. md도 파서로 뷰어. 코드 파일(md 제외)만 Monaco. 삽입은 우클릭 "에디터에 넣기"로만. */
@@ -537,14 +537,14 @@ function onMediaItemClick(f, category) {
   setSelectedFile(f)
   selectMediaItem(category, f)
   if (getFileExt(f) === 'md') {
-    showPanel('viewer')
+    showPanel('sense')
     return
   }
   if (isCodeFile(f)) {
     requestOpenInCodePanel(f)
     return
   }
-  showPanel('viewer')
+  showPanel('sense')
 }
 
 async function handleMediaAdd(p) {
@@ -602,7 +602,7 @@ function onMemoClick(m) {
   selectedMemoId.value = m.id
   if (m?.content) {
     setSelectedFile({ id: m.id, original_name: '메모', file_type: 'memo', content: m.content || '' })
-    showPanel('viewer')
+    showPanel('sense')
   }
 }
 

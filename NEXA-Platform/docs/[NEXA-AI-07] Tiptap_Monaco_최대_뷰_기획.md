@@ -24,6 +24,37 @@ UniversalViewer 개념을 폐기하고, **모든 파일**을 **Tiptap(문서)** 
 
 위 유형은 **NexusLens/NexaScope**라는 지능형 뷰어로 통합·추후 기획 예정.
 
+### 1.3 별도 기획 이관: PDF·PPT 뷰어 등
+
+**PPT/PPTX, PDF** 등 에디터에 넣기 어렵고 전용 뷰어가 필요한 형식은 **본 기획서 범위에서 제외**하며, **별도 기획(예: PDF·오피스 전용 뷰어)** 으로 이관한다.
+
+| 형식 | 현재 구현 | 이관 사유 |
+|------|-----------|-----------|
+| **PDF** | NexusLens 예정, 미구현 | 페이지 렌더링·주석·폼·검색 등 전용 라이브러리 필요. Tiptap/Monaco로는 한계 있음. |
+| **PPT / PPTX** | 뷰어 없음, **다운로드만** 제공 | 슬라이드 구조·레이아웃·애니메이션·도형 재현이 복잡. 외부 라이브러리(pptxjs 등) 또는 서버 변환(슬라이드→이미지/PDF) 필요. 난이도 중~상. |
+| **DOCX** | mammoth로 HTML 변환 후 뷰/삽입 | 본 기획 범위 내 구현. (서버가 XML만 반환하는 등 이슈는 백엔드/연동에서 별도 해결) |
+
+**결정 사항**
+
+- PPT/PPTX 클릭 시 **뷰어 미리보기 없이 다운로드 버튼만 노출**하는 것은 **의도된 동작**이다.
+- PDF·PPT(및 필요 시 DOC 고급 뷰) 전용 뷰어는 **별도 기획서**에서 다음을 정리한다.
+  - 요구사항(미리보기 수준, 편집 여부, 인쇄/다운로드)
+  - 기술 선택(클라이언트 라이브러리 vs 서버 변환)
+  - NexusLens/NexaScope와의 통합 여부
+
+### 1.4 탭·도구 매핑 (참조)
+
+본 문서에서 다루는 Tiptap·Monaco·UniversalViewer가 속한 **탭** 구조. 전체 탭 네이밍·설계 의도는 **[NEXA-AI-03] AI_협업형_멀티_에디터_플랫폼_구축** §1.4 참조.
+
+| 탭 Label | 탭 ID | 관련 도구 | 본 문서 관련 |
+|----------|-------|-----------|--------------|
+| Narrative | narrative | Tiptap | §2 Tiptap 뷰 범위 |
+| Logic | logic | Monaco | §3 Monaco 뷰 범위 |
+| Sense | sense | UniversalViewer | §4 파일 타입별 매핑, 뷰 전용 |
+| Vision | vision | 통합미디어편집기 | 이미지·오디오·영상 (미디어) |
+
+> Dialogue(Chat), Nexus(Graph), Explorer는 본 기획서 범위 밖. 상세는 [NEXA-AI-03] §1.4·§1.5.
+
 ---
 
 ## 2. Tiptap 뷰 범위
@@ -191,16 +222,21 @@ UniversalViewer 개념을 폐기하고, **모든 파일**을 **Tiptap(문서)** 
 | CODE_EXTENSIONS 동기화 | extToMonacoLanguage와 일치하도록 확장 | - |
 | (추후) 2차 확대 | cs, java, go, rs, rb, php, r, lua, graphql, ini 등 | 필요 시 순차 추가 |
 
-### Phase 4: Office (P2)
+### Phase 4: Office (P2) — 현재 적용 범위
 
 | 작업 | 설명 | 산출물 |
 |------|------|--------|
-| Office 변환 | docx/xlsx/pptx → html 또는 텍스트 (서버) | docx, xlsx, pptx Tiptap/뷰어 표시 |
+| docx | mammoth로 HTML 변환 → 뷰어 표시, 에디터 삽입 | UniversalViewer + Tiptap 삽입 |
+| xlsx / xls | SheetJS로 파싱 → q-table 뷰, Tiptap 표 삽입 | UniversalViewer + Tiptap 표 |
+| ppt / pptx | **미리보기 없음**, 다운로드만 제공 | 별도 기획( PDF·PPT 뷰어 )으로 이관 |
 
-### Phase 5: NexusLens (추후)
+> **PPT/PPTX**: 슬라이드 뷰어는 외부 라이브러리 또는 서버 변환 필요, 난이도 중~상. §1.3 참고.
 
-- PDF, 3D, 아카이브 등 별도 기획서로 분리
-- AI 인사이트 통합 설계
+### Phase 5: NexusLens / 별도 기획 (추후)
+
+- **PDF, PPT 뷰어**: 별도 기획서에서 요구사항·기술 선택·NexusLens 연동 정리 (§1.3).
+- **3D, 아카이브**: NexusLens 등 지능형 뷰어로 분리·추후 기획.
+- AI 인사이트 통합 설계.
 
 ---
 
@@ -257,8 +293,9 @@ const NEXUS_LENS_EXTENSIONS = ['pdf', 'stl','obj','step','iges','3mf','ply', 'zi
 
 ## 8. 결론
 
-- **Tiptap**: 텍스트 문서(md, txt, html), 이미지, 오디오(Audio 확장), 비디오(Video 확장), CSV(Table 변환), Office(Phase 4) → **뷰·편집·추가** 가능하도록 확장
+- **Tiptap**: 텍스트 문서(md, txt, html), 이미지, 오디오(Audio 확장), 비디오(Video 확장), CSV(Table 변환), Office(docx, xlsx) → **뷰·편집·추가** 가능하도록 확장
 - **Monaco**: 코드·설정·구조화 데이터 → 언어 지원 확대
 - **NexusLens/NexaScope**: PDF, 3D, 압축 → 추후 지능형 뷰어로 별도 기획
+- **별도 기획 이관**: **PDF, PPT/PPTX** 전용 뷰어(미리보기·재생 등)는 본 문서 범위 밖이며, **별도 기획서(PDF·오피스 뷰어 등)** 에서 다룸 (§1.3). 현재 PPT/PPTX는 다운로드만 제공.
 
 이 기획서를 바탕으로 Phase 1(Audio·Video Tiptap 확장)부터 순차 적용하면 된다.

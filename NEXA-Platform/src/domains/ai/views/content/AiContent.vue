@@ -151,7 +151,7 @@ async function injectMdToEditor(file) {
     const raw = await res.text()
     const title = file.original_name || ''
     const html = parseMarkdown(raw, title, {})
-    showPanel('editor')
+    showPanel('narrative')
     nextTick(() => {
       pendingInsertContent.value = html || '<p></p>'
     })
@@ -179,7 +179,7 @@ async function injectTxtToEditor(file) {
       String(line).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
     )
     const html = escaped.map((line) => `<p>${line || '<br>'}</p>`).join('')
-    showPanel('editor')
+    showPanel('narrative')
     nextTick(() => {
       pendingInsertContent.value = html || '<p></p>'
     })
@@ -198,7 +198,7 @@ async function injectTxtToEditor(file) {
  * 2. 아래 조건 분기 추가:
  *    if (totalRows > MAX_CSV_DISPLAY_ROWS) {
  *      setSelectedFile(file)
- *      showPanel('viewer')
+ *      showPanel('sense')
  *      return
  *    }
  *
@@ -222,7 +222,7 @@ async function injectCsvToEditor(file) {
         message: `${displayRows}행 삽입됨 (전체 ${totalRows}행, 최대 ${MAX_CSV_DISPLAY_ROWS}행까지 표시)`,
       })
     }
-    showPanel('editor')
+    showPanel('narrative')
     nextTick(() => {
       pendingInsertContent.value = html
     })
@@ -249,7 +249,7 @@ async function injectDocxToEditor(file) {
     if (!res.ok) throw new Error(res.statusText)
     const ab = await res.arrayBuffer()
     const result = await mammoth.convertToHtml({ arrayBuffer: ab })
-    showPanel('editor')
+    showPanel('narrative')
     nextTick(() => {
       pendingInsertContent.value = result.value || '<p></p>'
     })
@@ -281,7 +281,7 @@ async function injectXlsxToEditor(file) {
     const aoa = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '', raw: false })
     const rows = normalizeSheetRows(Array.isArray(aoa) ? aoa : [])
     const html = rowsToTiptapTableHtml(rows)
-    showPanel('editor')
+    showPanel('narrative')
     nextTick(() => {
       pendingInsertContent.value = html
     })
@@ -294,13 +294,13 @@ async function injectXlsxToEditor(file) {
 onMounted(() => {
   unregisterInsertRequest = onInsertRequest((raw) => {
     const html = parseMarkdown(raw, '', {})
-    showPanel('editor')
+    showPanel('narrative')
     nextTick(() => {
       pendingInsertContent.value = html
     })
   })
   unregisterOpenEditorRequest = onOpenEditorRequest(() => {
-    showPanel('editor')
+    showPanel('narrative')
   })
   unregisterInjectToEditor = onInjectToEditor((file) => {
     const ext = getFileExtension(file)
@@ -326,7 +326,7 @@ onMounted(() => {
     }
     const html = fileToEditorHtml(file)
     if (html) {
-      showPanel('editor')
+      showPanel('narrative')
       nextTick(() => {
         pendingInsertContent.value = html
       })
@@ -343,7 +343,7 @@ onMounted(() => {
       const ext = (file.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''
       codeContent.value = text
       codeLanguage.value = extToMonacoLanguage(ext)
-      showPanel('code')
+      showPanel('logic')
     } catch (e) {
       console.error('[AiContent] code file fetch failed:', e)
     }

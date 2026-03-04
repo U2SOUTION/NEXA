@@ -1,44 +1,42 @@
 /**
  * AI 도메인 패널 ID → 컴포넌트 매핑.
+ * 탭 네이밍: [NEXA-AI-03] §1.4 기준 (Dialogue, Narrative, Logic, Vision, Sense, Nexus, Explorer)
+ * Vision: 이미지·음원·영상 통합, 하위 패널로 파일 타입별 분기.
  */
 import AiChatPanel from '../components/AiChatPanel.vue'
 import AiEditorPanel from '../components/AiEditorPanel.vue'
 import AiCodeEditorPanel from '../components/AiCodeEditorPanel.vue'
-import AiImageEditorPanel from '../components/AiImageEditorPanel.vue'
-import AiAudioEditorPanel from '../components/AiAudioEditorPanel.vue'
-import AiVideoEditorPanel from '../components/AiVideoEditorPanel.vue'
+import AiVisionPanel from '../components/AiVisionPanel.vue'
 import AiExplorerPanel from '../components/AiExplorerPanel.vue'
 import AiUniversalViewerPanel from '../components/AiUniversalViewerPanel.vue'
+import AiNexusPanel from '../components/AiNexusPanel.vue'
 
 export const PANEL_LABELS: Record<string, string> = {
-  chat: '채팅',
-  editor: '에디터',
-  code: '코드',
-  image: '이미지',
-  audio: '음원',
-  video: '영상',
-  viewer: '뷰어',
-  explorer: '탐색기',
+  dialogue: 'Dialogue',
+  narrative: 'Narrative',
+  logic: 'Logic',
+  vision: 'Vision',
+  sense: 'Sense',
+  nexus: 'Nexus',
+  explorer: 'Explorer',
 }
 
 export const PANEL_ICONS: Record<string, string> = {
-  chat: 'chat',
-  editor: 'edit_note',
-  code: 'code',
-  image: 'image',
-  audio: 'graphic_eq',
-  video: 'videocam',
-  viewer: 'visibility',
+  dialogue: 'chat',
+  narrative: 'edit_note',
+  logic: 'code',
+  vision: 'image',
+  sense: 'visibility',
+  nexus: 'account_tree',
   explorer: 'folder_open',
 }
 
 export const PANEL_COMPONENTS: Record<string, object> = {
-  chat: AiChatPanel,
-  editor: AiEditorPanel,
-  code: AiCodeEditorPanel,
-  image: AiImageEditorPanel,
-  audio: AiAudioEditorPanel,
-  video: AiVideoEditorPanel,
-  viewer: AiUniversalViewerPanel,
+  dialogue: AiChatPanel,
+  narrative: AiEditorPanel,
+  logic: AiCodeEditorPanel,
+  vision: AiVisionPanel,
+  sense: AiUniversalViewerPanel,
+  nexus: AiNexusPanel,
   explorer: AiExplorerPanel,
 }

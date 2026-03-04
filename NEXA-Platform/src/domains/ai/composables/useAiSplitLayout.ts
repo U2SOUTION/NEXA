@@ -9,20 +9,35 @@ const LAYOUT_KEY = 'nexa-ai-split-layout'
 /** 영역별 최소·최대 비율(%). 추후 환경설정으로 분리 예정 */
 export const SPLIT_LIMITS: { minPct: number; maxPct: number } = { minPct: 5, maxPct: 90 }
 
-const DEFAULT_LEFT = ['chat']
-const DEFAULT_CENTER = ['editor', 'code', 'image', 'audio', 'video', 'viewer']
+const DEFAULT_LEFT = ['dialogue']
+const DEFAULT_CENTER = ['narrative', 'logic', 'vision', 'sense', 'nexus']
 const DEFAULT_RIGHT = ['explorer']
 
 const DEFAULT_SIZES = { left: 22, center: 56, right: 22 }
 
-/** 저장된 centerPanelIds */
+const LEGACY_ID_MAP: Record<string, string> = {
+  chat: 'dialogue',
+  editor: 'narrative',
+  code: 'logic',
+  viewer: 'sense',
+  image: 'vision',
+  audio: 'vision',
+  video: 'vision',
+}
+
+function toNewPanelId(id: string): string {
+  return LEGACY_ID_MAP[id] ?? id
+}
+
+/** 저장된 centerPanelIds (레거시 ID → 새 ID 마이그레이션, image/audio/video → vision 통합) */
 function migrateCenterPanelIds(saved: string[] | undefined): string[] {
-  let list = Array.isArray(saved) ? [...saved] : [...DEFAULT_CENTER]
+  let list = Array.isArray(saved) ? saved.map(toNewPanelId) : [...DEFAULT_CENTER]
+  list = [...new Set(list)] // vision 중복 제거
   const newDefaults = DEFAULT_CENTER.filter((id) => !list.includes(id))
   if (newDefaults.length) list = [...list, ...newDefaults]
-  const viewerIdx = list.indexOf('viewer')
-  if (viewerIdx >= 0 && viewerIdx < list.length - 1) {
-    list = [...list.filter((id) => id !== 'viewer'), 'viewer']
+  const senseIdx = list.indexOf('sense')
+  if (senseIdx >= 0 && senseIdx < list.length - 1) {
+    list = [...list.filter((id) => id !== 'sense'), 'sense']
   }
   return list
 }
@@ -33,7 +48,7 @@ function loadLayout() {
     if (!raw) return null
     const data = JSON.parse(raw)
     return {
-      leftPanelIds: Array.isArray(data.leftPanelIds) ? data.leftPanelIds : DEFAULT_LEFT,
+      leftPanelIds: Array.isArray(data.leftPanelIds) ? data.leftPanelIds.map(toNewPanelId) : DEFAULT_LEFT,
       centerPanelIds: migrateCenterPanelIds(data.centerPanelIds),
       rightPanelIds: Array.isArray(data.rightPanelIds) ? data.rightPanelIds : DEFAULT_RIGHT,
       leftVisible: data.leftVisible !== false,
@@ -164,8 +179,8 @@ export function applyPreset(preset: 'default' | 'code') {
     centerActiveIndex.value = 0
     rightActiveIndex.value = 0
   } else if (preset === 'code') {
-    leftPanelIds.value = ['chat']
-    centerPanelIds.value = ['code', 'editor', 'image', 'audio', 'video', 'viewer']
+    leftPanelIds.value = ['dialogue']
+    centerPanelIds.value = ['logic', 'narrative', 'vision', 'sense', 'nexus']
     rightPanelIds.value = ['explorer']
     leftVisible.value = true
     centerVisible.value = true

@@ -75,23 +75,33 @@ NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터
 | 파일 인스턴스 | — | **패널** | 탭 내에서 열린 파일 1개 = 패널 1개 |
 | UI 전환 | q-tabs / q-tab-panels | 탭 전환 / 패널 전환 | 탭: 에디터 유형 선택, 패널: 열린 파일 간 전환 |
 
-### 1.4 탭 유형별 명칭
+### 1.4 탭 네이밍 정책 (Label · ID · 도구 · 설계 의도)
 
-| 탭 | 탭 ID | 에디터 | 설명 |
-|----|-------|--------|------|
-| 문서 탭 | editor | Tiptap | 리치 텍스트 편집. 문서 탭 내에서 여러 파일(.md 등) 동시 오픈 시 패널 N개. |
-| 코드 탭 | code | Monaco | 코드 편집. 코드 탭 내에서 여러 파일(.ts, .vue 등) 동시 오픈 시 패널 N개. |
-| 이미지 탭 | image | Custom | 이미지 편집·메타데이터. 패널별로 이미지 파일 1개. |
-| 오디오 탭 | audio | Custom | 음원 편집·메타데이터. 패널별로 오디오 파일 1개. |
-| 영상 탭 | video | Custom | 영상 편집·메타데이터. 패널별로 영상 파일 1개. |
-| 뷰어 탭 | viewer | UniversalViewer | **모든 에디터 유형(문서·코드·이미지·오디오·영상)에 대응하는 멀티 뷰어**. 패널당 파일 1개. 상세 1.5 참조. |
-| 채팅 탭 | chat | — | AI 채팅. 스플릿 영역(좌/중앙/우)을 넘나들 수 있는 탭. 협업 UI. |
-| 탐색기 탭 | explorer | — | 파일 탐색. 스플릿 영역을 넘나들 수 있는 탭. 선택 파일 → 채팅·에디터 주입. |
-| Nexus 탭 | nexus | Graph/Map | **문서상 개념**: Nexus Map(넥서스 맵). 사람·AI·IoT가 만나는 관계 시각화·편집. 배경 컨텍스트·노드/선 관리. **실제 탭 표시명**: "Nexus". **8.6 참조** |
+| 탭 이름 (Label) | 탭 ID | 관련 도구 | 설계 의도 및 역할 |
+|-----------------|-------|-----------|-------------------|
+| **Dialogue** | `dialogue` | Chat | 지능형 대화: AI 페르소나와 소통하며 모든 워크스페이스의 맥락을 연결하는 협업 인터페이스 |
+| **Narrative** | `narrative` | Tiptap | 서사 생성기: 파편화된 데이터를 엮어 철학적 의미와 인과관계를 기록하는 지식의 중심지 |
+| **Logic** | `logic` | Monaco | 논리 설계기: 기계적 엄격성에 기반한 제어 코드와 시스템 로직을 설계하고 시뮬레이션 |
+| **Vision** | `vision` | 통합미디어편집기 | 비전 창작기: 이미지, 영상, 음원에서 예술적 메타포를 발굴하고 멀티모달 AI와 협업하는 공간. 패널로 미디어 타입 대응 |
+| **Sense** | `sense` | UniversalViewer | 편집 대상이 아닌 **팩트(Raw Data)**를 관측하고, 그 위에 AI가 덧입힌 **인사이트**와 **메타포**를 함께 조망하는 통찰의 렌즈 |
+| **Nexus** | `nexus` | Graph | 지능형 신경망: 모든 노드와 엣지의 관계를 시각적으로 설계하고 추론하는 최상위 지휘본부. **8.6 참조** |
+| **Explorer** | `explorer` | Explorer | 자산 탐색기: 내/외부(Internal/External) 자산을 탐색·선택하고 채팅·에디터 등 시스템에 주입하는 입구 |
 
-### 1.5 뷰어 탭 상세 정의 (멀티 뷰어)
+### 1.5 탭 ID 매핑 (구현용 레거시 호환)
 
-뷰어 탭(`viewer`)은 **문서·코드·이미지·오디오·영상** 등 여러 유형의 파일을 **읽기 전용**으로 표시하는 **멀티 뷰어**이다. 단일 탭 내에서 유형별 뷰 컴포넌트를 전환하여 표시한다.
+| 탭 Label | 탭 ID (정식) | 레거시 ID | 에디터/도구 |
+|----------|--------------|-----------|-------------|
+| Dialogue | dialogue | chat | AiChatPanel |
+| Narrative | narrative | editor | AiEditorPanel (Tiptap) |
+| Logic | logic | code | AiCodeEditorPanel (Monaco) |
+| Vision | vision | (구) image, audio, video | **AiVisionPanel**: 단일 탭, 내부 하위 패널(이미지·음원·영상)로 파일 타입별 분기. 하위에 AiImageEditorPanel, AiAudioEditorPanel, AiVideoEditorPanel 사용 |
+| Sense | sense | viewer | AiUniversalViewerPanel |
+| Nexus | nexus | nexus | **AiNexusPanel**: Graph/Map (8.6). 현재 플레이스홀더, 추후 노드·엣지 시각화 구현 |
+| Explorer | explorer | explorer | AiExplorerPanel |
+
+### 1.6 Sense 탭 상세 정의 (멀티 뷰어)
+
+Sense 탭(정식 ID: `sense`, 레거시 ID: `viewer`)은 **문서·코드·이미지·오디오·영상** 등 여러 유형의 파일을 **읽기 전용**으로 표시하는 **멀티 뷰어**이다. 단일 탭 내에서 유형별 뷰 컴포넌트를 전환하여 표시한다.
 
 | 항목 | 정의 |
 |------|------|
@@ -1021,7 +1031,7 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 
 | 항목 | 내용 |
 |------|------|
-| **용어** | 워크스페이스(최상위), **탭**(editor/code/image/audio/video/viewer/chat/explorer/**nexus**, 스플릿 넘나들 수 있음), **패널**(탭 내 파일 1개 = 패널 1개), 배치 관리(QSplitter+Pinia). **뷰어 탭**은 읽기 전용 멀티 뷰어(1.5 참조). **nexus** 탭 표시명 "Nexus", 문서상 Nexus Map(넥서스 맵, 8.6 참조) |
+| **용어** | 워크스페이스(최상위), **탭**(Dialogue/Narrative/Logic/Vision/Sense/Nexus/Explorer, 정식 ID는 §1.4. 레거시: editor/code/chat/viewer/explorer 등 §1.5), **패널**(탭 내 파일 1개 = 패널 1개), 배치 관리(QSplitter+Pinia). **Sense** 탭은 읽기 전용 멀티 뷰어(1.6 참조). **Nexus** 탭 표시명 "Nexus", 문서상 Nexus Map(8.6 참조) |
 | **레이아웃** | 프레임(left/content/right) + 워크스페이스 내 3영역 스플릿 |
 | **이벤트 전달** | **mitt** 이벤트 버스 (`ai:insert-request`, `ai:inject-to-chat` 등). 기존 useAiInsertRequest·useAiExplorerSelection·useAiMediaTab 콜백을 mitt로 전환·보완 |
 | **상태 공유** | useAiChannels, useAiSplitLayout, useAiSettings 모듈 레벨 ref → **1단계에서 Pinia 전환 검토** |

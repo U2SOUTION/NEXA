@@ -426,7 +426,7 @@ function onMessageContextMenu(event, msg) {
             icon: 'edit_note',
             action: () => {
               const html = parseMarkdown(content, '', {})
-              aiInsertContent.setCenterTab('editor')
+              aiInsertContent.setCenterTab('narrative')
               nextTick(() => {
                 aiInsertContent.pendingInsertContent.value = html
               })
@@ -438,7 +438,7 @@ function onMessageContextMenu(event, msg) {
             label: '코드 에디터에 삽입',
             icon: 'code',
             action: () => {
-              aiInsertContent.setCenterTab('code')
+              aiInsertContent.setCenterTab('logic')
               nextTick(() => {
                 aiInsertContent.pendingCodeInsertContent.value = content
               })

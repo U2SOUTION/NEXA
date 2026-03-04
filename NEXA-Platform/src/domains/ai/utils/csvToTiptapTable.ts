@@ -14,7 +14,7 @@
  *
  * 1. AiContent.vue injectCsvToEditor() 내부에서:
  *    - totalRows > MAX_CSV_DISPLAY_ROWS (또는 사용자 설정) 일 때
- *    - setSelectedFile(file) 후 showPanel('viewer') 호출
+ *    - setSelectedFile(file) 후 showPanel('sense') 호출
  * 2. useFileSelection import 복원 필요
  *
  * ## 향후: 사용자 설정으로 선택

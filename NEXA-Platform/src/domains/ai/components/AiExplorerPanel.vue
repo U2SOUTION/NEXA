@@ -88,14 +88,14 @@ const contextMenuVisible = ref(false)
 function onSelect(file) {
   if (!file) return
   if (getFileExt(file) === 'md') {
-    showPanel('viewer')
+    showPanel('sense')
     return
   }
   if (isCodeFile(file)) {
     requestOpenInCodePanel(file)
     return
   }
-  showPanel('viewer')
+  showPanel('sense')
 }
 
 function onContextMenu(_evt, file) {
@@ -124,7 +124,7 @@ function injectToChat() {
     return
   }
   requestAttachToChat({ url, original_name: file.original_name, file_path: file.file_path })
-  showPanel('chat')
+  showPanel('dialogue')
   Notify.create({ message: `"${file.original_name}" 채팅에 첨부됨`, icon: 'check_circle' })
 }
 
