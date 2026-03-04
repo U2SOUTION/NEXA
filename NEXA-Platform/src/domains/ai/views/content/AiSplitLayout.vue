@@ -430,6 +430,7 @@ watch(remaining, (rem) => {
 }
 
 .ai-draggable-tab {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -447,25 +448,29 @@ watch(remaining, (rem) => {
   min-width: 0;
   justify-content: center;
 }
-.ai-draggable-tab:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-.ai-draggable-tab.q-tab--active {
-  color: var(--q-primary);
-  font-weight: 500;
-}
-.ai-draggable-tab.q-tab--active::after {
+/* 비활성 포함 모든 탭: 아래 1px 보더 기본 */
+.ai-draggable-tab::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
+  height: 1px;
+  background: var(--q-primary);
+  border-radius: 1px 1px 0 0;
+}
+.ai-draggable-tab:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.ai-draggable-tab.q-tab--active {
+  color: var(--nexa-accent);
+  font-weight: 900;
+  font-family: 'Nexa-Bold';
+}
+.ai-draggable-tab.q-tab--active::after {
   height: 2px;
   background: currentColor;
   border-radius: 2px 2px 0 0;
-}
-.ai-draggable-tab {
-  position: relative;
 }
 .ai-draggable-tab[draggable='true'] {
   cursor: grab;
