@@ -19,7 +19,23 @@
     </template>
     <template v-else>
       <div ref="tableWrapRef" class="table-wrap column">
-        <q-table :rows="items" :columns="columns" row-key="id" virtual-scroll :virtual-scroll-item-size="ROW_HEIGHT" :table-style="tableStyle" :rows-per-page-options="[0]" hide-pagination hide-bottom flat dense bordered class="explorer-table" @row-click="(evt, row) => $emit('select', row)">
+        <q-table
+          :rows="items"
+          :columns="columns"
+          row-key="id"
+          v-model:pagination="pagination"
+          virtual-scroll
+          :virtual-scroll-item-size="ROW_HEIGHT"
+          :table-style="tableStyle"
+          :rows-per-page-options="[0]"
+          hide-pagination
+          hide-bottom
+          flat
+          dense
+          bordered
+          class="explorer-table"
+          @row-click="(evt, row) => $emit('select', row)"
+        >
           <template #body="props">
             <q-tr :props="props" :class="{ 'row-selected': selectedFile?.id === props.row?.id }" class="cursor-pointer" @contextmenu.prevent="$emit('contextmenu', $event, props.row)">
               <q-td key="name" :props="props" class="cell-ellipsis cell-name">
@@ -70,13 +86,21 @@ const emit = defineEmits(['select', 'load-more', 'contextmenu'])
 const tableWrapRef = ref(null)
 let scrollEl = null
 
-// 비율은 CSS .explorer-table col-ratio-* 로 적용 (Quasar column style이 th/td에 반영되지 않아 nth-child로 직접 지정)
+// 비율은 CSS .explorer-table nth-child 로 적용 (Quasar column style이 th/td에 반영되지 않음)
 const columns = [
-  { name: 'name', label: '이름', field: 'original_name', align: 'left', sortable: false },
-  { name: 'size', label: '크기', field: 'file_size', align: 'right', sortable: false },
-  { name: 'type', label: '유형', field: (row) => row.file_type || row.category, align: 'left', sortable: false },
-  { name: 'date', label: '날짜', field: 'created_at', align: 'left', sortable: false },
+  { name: 'name', label: '이름', field: 'original_name', align: 'left', sortable: true },
+  { name: 'size', label: '크기', field: 'file_size', align: 'right', sortable: true },
+  { name: 'type', label: '유형', field: (row) => row.file_type || row.category, align: 'left', sortable: true },
+  { name: 'date', label: '날짜', field: 'created_at', align: 'left', sortable: true },
 ]
+
+// 헤더 클릭 시 정렬용. 기본값: 날짜 내림차순(최신 먼저)
+const pagination = ref({
+  sortBy: 'date',
+  descending: true,
+  page: 1,
+  rowsPerPage: 0,
+})
 
 const wrapperStyle = computed(() => {
   const base = { minWidth: 0, width: '100%', maxWidth: '100%' }
