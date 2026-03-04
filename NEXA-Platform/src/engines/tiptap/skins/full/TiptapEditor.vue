@@ -4,7 +4,7 @@
     <!-- 툴바 (일반 모드) -->
     <div v-if="editor && !isFullscreen" class="editor-toolbar q-pa-sm" :class="toolbarClass">
       <slot name="toolbar" :editor="editor" :items="normalToolbarItems" :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen">
-        <div class="row q-gutter-xs">
+        <div class="row q-gutter-xs editor-toolbar-row">
           <template v-for="item in normalToolbarItems" :key="item.id">
             <template v-if="item.id === 'insertTable'">
               <q-btn flat dense round color="grey-7" :icon="item.icon" @click="item.action()" />
@@ -115,7 +115,7 @@
         <q-card-section class="fullscreen-content">
           <div v-if="editor" class="editor-toolbar q-pa-sm" :class="toolbarClass">
             <slot name="toolbar-fullscreen" :editor="editor" :items="fullscreenToolbarItems" :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen">
-              <div class="row q-gutter-xs">
+              <div class="row q-gutter-xs editor-toolbar-row">
                 <template v-for="item in fullscreenToolbarItems" :key="item.id">
                   <template v-if="item.id === 'insertTable'">
                     <q-btn flat dense round color="grey-7" :icon="item.icon" @click="item.action()" />
@@ -753,10 +753,17 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
 
   .editor-toolbar {
     border-bottom: 1px solid var(--nexa-border-color);
+    flex-shrink: 0;
+    width: 100%;
+    min-width: 0; /* 툴바가 영역보다 좁아질 수 있게 → 내부 줄바꿈 유도 */
+    box-sizing: border-box;
 
-    .row {
+    .row.editor-toolbar-row,
+    .editor-toolbar-row {
       margin-left: -2px !important;
       margin-right: -2px !important;
+      flex-wrap: wrap; /* 영역 크기에 따라 툴바 버튼 줄바꿈 */
+      width: 100%;
     }
 
     :deep(.q-btn) {
@@ -1003,11 +1010,14 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
 
   .editor-toolbar {
     flex-shrink: 0;
+    min-width: 0;
     border-bottom: 1px solid var(--nexa-border-color);
 
-    .row {
+    .row.editor-toolbar-row,
+    .editor-toolbar-row {
       margin-left: -2px !important;
       margin-right: -2px !important;
+      flex-wrap: wrap;
     }
 
     :deep(.q-btn) {
