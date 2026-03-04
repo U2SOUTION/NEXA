@@ -8,6 +8,7 @@
         :options="[
           { label: '목록', value: 'list', icon: 'view_list' },
           { label: '카드', value: 'card', icon: 'view_module' },
+          { label: '테이블', value: 'table', icon: 'table_chart' },
         ]"
         dense
         no-caps
@@ -24,9 +25,26 @@
         </div>
       </template>
       <template #after>
-        <div class="list-section column explorer-right" style="min-width: 0; width: 100%; max-width: 100%; overflow: auto">
+        <div
+          ref="listSectionRef"
+          class="list-section column explorer-right"
+          :style="listSectionStyle"
+        >
           <ExplorerViewList v-if="viewModeModel === 'list'" :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
-          <ExplorerViewCard v-else :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
+          <ExplorerViewCard v-else-if="viewModeModel === 'card'" :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
+          <ExplorerViewTable
+            v-else
+            :items="displayedItems"
+            :list-loading="listLoading"
+            :list-error="listError"
+            :selected-file="selectedFile"
+            :has-more="hasMore"
+            :panel-width="panelSize.width"
+            :panel-height="panelSize.height"
+            @select="onSelectFile"
+            @load-more="loadMore"
+            @contextmenu="onContextMenu"
+          />
         </div>
       </template>
     </q-splitter>
@@ -34,7 +52,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref, watch } from 'vue'
+import { onMounted, onBeforeUnmount, nextTick, computed, ref, watch } from 'vue'
 
 const MIN_TREE_WIDTH = 120
 const MAX_TREE_WIDTH = 600
@@ -42,6 +60,7 @@ const DEFAULT_TREE_WIDTH = 220
 import ExplorerTree from './ExplorerTree.vue'
 import ExplorerViewList from './ExplorerViewList.vue'
 import ExplorerViewCard from './ExplorerViewCard.vue'
+import ExplorerViewTable from './ExplorerViewTable.vue'
 import { useGlobalFileExplorer } from '@system/composables/useGlobalFileExplorer'
 import { useFileSelection } from '@system/composables/useFileSelection'
 import { getExpandedIdsForSelection } from '@system/utils/fileExplorer'
@@ -52,7 +71,7 @@ const props = defineProps({
   initialDomain: { type: String, default: '' },
   /** 부모에서 저장 시 사용. 지정 시 이 값으로 트리 너비 제어·갱신 시 update:treeWidth emit */
   treeWidth: { type: Number, default: undefined },
-  /** 부모에서 저장 시 사용. 'list' | 'card'. 미지정 시 내부 기본값만 사용 */
+  /** 부모에서 저장 시 사용. 'list' | 'card' | 'table'. 미지정 시 내부 기본값만 사용 */
   viewMode: { type: String, default: undefined },
 })
 
@@ -72,9 +91,9 @@ const splitterModel = computed({
 })
 const internalViewMode = ref('list')
 const viewModeModel = computed({
-  get: () => (props.viewMode === 'list' || props.viewMode === 'card' ? props.viewMode : internalViewMode.value),
+  get: () => (props.viewMode === 'list' || props.viewMode === 'card' || props.viewMode === 'table' ? props.viewMode : internalViewMode.value),
   set: (v) => {
-    if (props.viewMode === 'list' || props.viewMode === 'card') {
+    if (props.viewMode === 'list' || props.viewMode === 'card' || props.viewMode === 'table') {
       emit('update:viewMode', v)
     } else {
       internalViewMode.value = v
@@ -82,6 +101,25 @@ const viewModeModel = computed({
   },
 })
 const expandedNodeIds = ref([])
+const listSectionRef = ref(null)
+/** 스플릿터 오른쪽 패널 크기. 테이블 뷰에서 list-section·테이블이 이 크기를 채우도록 사용 */
+const panelSize = ref({ width: 0, height: 0 })
+let listSectionResizeObserver = null
+/** ResizeObserver로 관찰 중인 요소 (스플릿터 패널). unmount 시 unobserve용 */
+let observedPanelEl = null
+
+/** 테이블 뷰일 때만 list-section 높이=패널 높이로 고정해 검은 영역이 패널 크기만큼만 나오고, 테이블이 그걸 채우도록 함 */
+const listSectionStyle = computed(() => {
+  const base = { minWidth: 0, width: '100%', maxWidth: '100%' }
+  if (viewModeModel.value !== 'table' || !panelSize.value.height) {
+    return { ...base, overflow: 'auto' }
+  }
+  return {
+    ...base,
+    height: `${panelSize.value.height}px`,
+    overflow: 'hidden',
+  }
+})
 
 const { treeNodes, items, listLoading, listError, selectedNodeId, hasMore, loadTree, selectNode, loadMore, sortBy, filterCategory, scopeDomain } = useGlobalFileExplorer()
 
@@ -232,7 +270,34 @@ function onContextMenu(evt, file) {
   emit('contextmenu', evt, file)
 }
 
+function measurePanel(el, label) {
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const width = Math.round(rect.width)
+  const height = Math.round(rect.height)
+  panelSize.value = { width, height }
+  console.log(`[Explorer ${label}]`, { width, height })
+}
+
 onMounted(() => {
+  nextTick(() => {
+    const listEl = listSectionRef.value
+    if (!listEl || typeof ResizeObserver === 'undefined') return
+    // 실제 보이는 높이/너비는 스플릿터가 제한하는 '패널'에 있음. list-section은 내용 높이만 가짐.
+    const panelEl = listEl.parentElement
+    if (!panelEl) {
+      measurePanel(listEl, 'list-section (no parent)')
+      return
+    }
+    measurePanel(panelEl, 'splitter-panel (after)')
+    listSectionResizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        measurePanel(entry.target, 'splitter-panel (after)')
+      }
+    })
+    listSectionResizeObserver.observe(panelEl)
+    observedPanelEl = panelEl
+  })
   loadTree().then(() => {
     if (props.initialDomain) {
       scopeDomain.value = props.initialDomain
@@ -244,6 +309,15 @@ onMounted(() => {
       if (first) selectNode(first)
     }
   })
+})
+
+onBeforeUnmount(() => {
+  if (listSectionResizeObserver && observedPanelEl) {
+    listSectionResizeObserver.unobserve(observedPanelEl)
+    listSectionResizeObserver.disconnect()
+    listSectionResizeObserver = null
+    observedPanelEl = null
+  }
 })
 </script>
 

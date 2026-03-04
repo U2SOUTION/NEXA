@@ -64,7 +64,7 @@ function loadLayout() {
       centerActiveIndex: Math.max(0, data.centerActiveIndex ?? 0),
       rightActiveIndex: Math.max(0, data.rightActiveIndex ?? 0),
       explorerTreeWidth: typeof data.explorerTreeWidth === 'number' ? Math.max(EXPLORER_TREE_WIDTH_MIN, Math.min(EXPLORER_TREE_WIDTH_MAX, data.explorerTreeWidth)) : DEFAULT_EXPLORER_TREE_WIDTH,
-      explorerViewMode: (data.explorerViewMode === 'card' ? 'card' : 'list') as 'list' | 'card',
+      explorerViewMode: (data.explorerViewMode === 'card' ? 'card' : data.explorerViewMode === 'table' ? 'table' : 'list') as 'list' | 'card' | 'table',
     }
   } catch {
     return null
@@ -85,7 +85,7 @@ function saveLayout(data: {
   centerActiveIndex: number
   rightActiveIndex: number
   explorerTreeWidth: number
-  explorerViewMode: 'list' | 'card'
+  explorerViewMode: 'list' | 'card' | 'table'
 }) {
   try {
     localStorage.setItem(LAYOUT_KEY, JSON.stringify(data))
@@ -109,7 +109,7 @@ export const leftActiveIndex = ref(loaded?.leftActiveIndex ?? 0)
 export const centerActiveIndex = ref(loaded?.centerActiveIndex ?? 0)
 export const rightActiveIndex = ref(loaded?.rightActiveIndex ?? 0)
 export const explorerTreeWidth = ref(loaded?.explorerTreeWidth ?? DEFAULT_EXPLORER_TREE_WIDTH)
-export const explorerViewMode = ref<'list' | 'card'>(loaded?.explorerViewMode ?? 'list')
+export const explorerViewMode = ref<'list' | 'card' | 'table'>(loaded?.explorerViewMode ?? 'list')
 
 watch(
   [leftPanelIds, centerPanelIds, rightPanelIds, leftVisible, centerVisible, rightVisible, leftSize, centerSize, rightSize, leftActiveIndex, centerActiveIndex, rightActiveIndex, explorerTreeWidth, explorerViewMode],
