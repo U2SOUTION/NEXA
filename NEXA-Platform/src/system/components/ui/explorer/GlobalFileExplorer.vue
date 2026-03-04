@@ -1,7 +1,18 @@
 <template>
   <div class="global-file-explorer column">
     <div class="explorer-top-bar row items-center q-px-md q-py-sm">
-      <span class="explorer-top-bar-title text-h6">NEXA File Explorer</span>
+      <q-space />
+      <q-btn-toggle
+        v-model="viewModeModel"
+        toggle-color="primary"
+        :options="[
+          { label: '목록', value: 'list', icon: 'view_list' },
+          { label: '카드', value: 'card', icon: 'view_module' },
+        ]"
+        dense
+        no-caps
+        size="sm"
+      />
     </div>
     <q-splitter v-model="splitterModel" unit="px" :limits="[120, 600]" class="col">
       <template #before>
@@ -13,8 +24,9 @@
         </div>
       </template>
       <template #after>
-        <div class="list-section column explorer-right" style="min-width: 0; width: 100%; max-width: 100%; overflow: auto;">
-          <ExplorerViewList :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
+        <div class="list-section column explorer-right" style="min-width: 0; width: 100%; max-width: 100%; overflow: auto">
+          <ExplorerViewList v-if="viewModeModel === 'list'" :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
+          <ExplorerViewCard v-else :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
         </div>
       </template>
     </q-splitter>
@@ -29,6 +41,7 @@ const MAX_TREE_WIDTH = 600
 const DEFAULT_TREE_WIDTH = 220
 import ExplorerTree from './ExplorerTree.vue'
 import ExplorerViewList from './ExplorerViewList.vue'
+import ExplorerViewCard from './ExplorerViewCard.vue'
 import { useGlobalFileExplorer } from '@system/composables/useGlobalFileExplorer'
 import { useFileSelection } from '@system/composables/useFileSelection'
 import { getExpandedIdsForSelection } from '@system/utils/fileExplorer'
@@ -39,20 +52,32 @@ const props = defineProps({
   initialDomain: { type: String, default: '' },
   /** 부모에서 저장 시 사용. 지정 시 이 값으로 트리 너비 제어·갱신 시 update:treeWidth emit */
   treeWidth: { type: Number, default: undefined },
+  /** 부모에서 저장 시 사용. 'list' | 'card'. 미지정 시 내부 기본값만 사용 */
+  viewMode: { type: String, default: undefined },
 })
 
-const emit = defineEmits(['select', 'contextmenu', 'update:treeWidth'])
+const emit = defineEmits(['select', 'contextmenu', 'update:treeWidth', 'update:viewMode'])
 
 const internalTreeWidth = ref(DEFAULT_TREE_WIDTH)
 const splitterModel = computed({
-  get: () =>
-    props.treeWidth !== undefined && props.treeWidth !== null ? props.treeWidth : internalTreeWidth.value,
+  get: () => (props.treeWidth !== undefined && props.treeWidth !== null ? props.treeWidth : internalTreeWidth.value),
   set: (v) => {
     const n = Math.max(MIN_TREE_WIDTH, Math.min(MAX_TREE_WIDTH, Math.round(Number(v))))
     if (props.treeWidth !== undefined && props.treeWidth !== null) {
       emit('update:treeWidth', n)
     } else {
       internalTreeWidth.value = n
+    }
+  },
+})
+const internalViewMode = ref('list')
+const viewModeModel = computed({
+  get: () => (props.viewMode === 'list' || props.viewMode === 'card' ? props.viewMode : internalViewMode.value),
+  set: (v) => {
+    if (props.viewMode === 'list' || props.viewMode === 'card') {
+      emit('update:viewMode', v)
+    } else {
+      internalViewMode.value = v
     }
   },
 })
@@ -89,20 +114,53 @@ function injectCodeNodeUnderAi(nodes) {
 }
 
 const filteredTreeNodes = computed(() => {
-  const base = scopeDomain.value
-    ? treeNodes.value.filter((n) => n.domain === scopeDomain.value)
-    : treeNodes.value || []
+  const base = scopeDomain.value ? treeNodes.value.filter((n) => n.domain === scopeDomain.value) : treeNodes.value || []
   return injectCodeNodeUnderAi(base)
 })
 
 /** 코드 파일 확장자 (extToMonacoLanguage와 동기화) */
 const CODE_EXTENSIONS = [
-  'js', 'mjs', 'cjs', 'ts', 'mts', 'cts', 'jsx', 'tsx',
-  'json', 'yaml', 'yml', 'xml', 'py', 'css', 'scss', 'html', 'htm', 'vue',
-  'md', 'sql', 'sh', 'bash', 'env', 'toml', 'ini', 'cfg', 'conf',
-  'c', 'h', 'cpp', 'cc', 'cxx', 'hpp', 'ino',
-  'kt', 'kts', 'swift', 'dart',
-  'dockerfile', 'makefile', 'mk',
+  'js',
+  'mjs',
+  'cjs',
+  'ts',
+  'mts',
+  'cts',
+  'jsx',
+  'tsx',
+  'json',
+  'yaml',
+  'yml',
+  'xml',
+  'py',
+  'css',
+  'scss',
+  'html',
+  'htm',
+  'vue',
+  'md',
+  'sql',
+  'sh',
+  'bash',
+  'env',
+  'toml',
+  'ini',
+  'cfg',
+  'conf',
+  'c',
+  'h',
+  'cpp',
+  'cc',
+  'cxx',
+  'hpp',
+  'ino',
+  'kt',
+  'kts',
+  'swift',
+  'dart',
+  'dockerfile',
+  'makefile',
+  'mk',
 ]
 function isCodeFile(item) {
   const name = (item?.original_name || item?.file_path || '').toLowerCase()

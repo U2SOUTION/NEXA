@@ -4,7 +4,9 @@
       mode="embed"
       class="col ai-explorer-embed"
       :tree-width="explorerTreeWidth"
+      :view-mode="explorerViewMode"
       @update:tree-width="onExplorerTreeWidthUpdate"
+      @update:view-mode="onExplorerViewModeUpdate"
       @select="onSelect"
       @contextmenu="onContextMenu"
     />
@@ -59,7 +61,7 @@ import { useAiExplorerSelection } from '../composables/useAiExplorerSelection'
 import { useAiAssets } from '../composables/useAiAssets'
 import { useAiSettings } from '../composables/useAiSettings'
 import { useAiMediaTab } from '../composables/useAiMediaTab'
-import { showPanel, explorerTreeWidth } from '../composables/useAiSplitLayout'
+import { showPanel, explorerTreeWidth, explorerViewMode } from '../composables/useAiSplitLayout'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
 const { selectedFile, setSelectedFile } = useFileSelection()
@@ -67,6 +69,9 @@ const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEdito
 
 function onExplorerTreeWidthUpdate(v) {
   explorerTreeWidth.value = v
+}
+function onExplorerViewModeUpdate(v) {
+  explorerViewMode.value = v
 }
 
 // Phase 3: extToMonacoLanguage와 동기화 (웹·ESP32·모바일·설정)

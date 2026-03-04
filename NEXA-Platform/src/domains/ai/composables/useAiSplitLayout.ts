@@ -64,6 +64,7 @@ function loadLayout() {
       centerActiveIndex: Math.max(0, data.centerActiveIndex ?? 0),
       rightActiveIndex: Math.max(0, data.rightActiveIndex ?? 0),
       explorerTreeWidth: typeof data.explorerTreeWidth === 'number' ? Math.max(EXPLORER_TREE_WIDTH_MIN, Math.min(EXPLORER_TREE_WIDTH_MAX, data.explorerTreeWidth)) : DEFAULT_EXPLORER_TREE_WIDTH,
+      explorerViewMode: (data.explorerViewMode === 'card' ? 'card' : 'list') as 'list' | 'card',
     }
   } catch {
     return null
@@ -84,6 +85,7 @@ function saveLayout(data: {
   centerActiveIndex: number
   rightActiveIndex: number
   explorerTreeWidth: number
+  explorerViewMode: 'list' | 'card'
 }) {
   try {
     localStorage.setItem(LAYOUT_KEY, JSON.stringify(data))
@@ -107,9 +109,10 @@ export const leftActiveIndex = ref(loaded?.leftActiveIndex ?? 0)
 export const centerActiveIndex = ref(loaded?.centerActiveIndex ?? 0)
 export const rightActiveIndex = ref(loaded?.rightActiveIndex ?? 0)
 export const explorerTreeWidth = ref(loaded?.explorerTreeWidth ?? DEFAULT_EXPLORER_TREE_WIDTH)
+export const explorerViewMode = ref<'list' | 'card'>(loaded?.explorerViewMode ?? 'list')
 
 watch(
-  [leftPanelIds, centerPanelIds, rightPanelIds, leftVisible, centerVisible, rightVisible, leftSize, centerSize, rightSize, leftActiveIndex, centerActiveIndex, rightActiveIndex, explorerTreeWidth],
+  [leftPanelIds, centerPanelIds, rightPanelIds, leftVisible, centerVisible, rightVisible, leftSize, centerSize, rightSize, leftActiveIndex, centerActiveIndex, rightActiveIndex, explorerTreeWidth, explorerViewMode],
   () => {
     saveLayout({
       leftPanelIds: leftPanelIds.value,
@@ -125,6 +128,7 @@ watch(
       centerActiveIndex: centerActiveIndex.value,
       rightActiveIndex: rightActiveIndex.value,
       explorerTreeWidth: explorerTreeWidth.value,
+      explorerViewMode: explorerViewMode.value,
     })
   },
   { deep: true },
@@ -173,6 +177,7 @@ export function applyPreset(preset: 'default' | 'code') {
     centerActiveIndex.value = 0
     rightActiveIndex.value = 0
     explorerTreeWidth.value = DEFAULT_EXPLORER_TREE_WIDTH
+    explorerViewMode.value = 'list'
   } else if (preset === 'code') {
     leftPanelIds.value = ['dialogue']
     centerPanelIds.value = ['logic', 'narrative', 'vision', 'sense', 'nexus']
@@ -187,6 +192,7 @@ export function applyPreset(preset: 'default' | 'code') {
     centerActiveIndex.value = 0
     rightActiveIndex.value = 0
     explorerTreeWidth.value = DEFAULT_EXPLORER_TREE_WIDTH
+    explorerViewMode.value = 'list'
   }
 }
 
@@ -196,6 +202,7 @@ export function resetSplitSizes() {
   centerSize.value = DEFAULT_SIZES.center
   rightSize.value = DEFAULT_SIZES.right
   explorerTreeWidth.value = DEFAULT_EXPLORER_TREE_WIDTH
+  explorerViewMode.value = 'list'
 }
 
 /** 패널 순서 변경 (드래그앤드롭용). activeIndex도 함께 보정 */
