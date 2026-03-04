@@ -59,10 +59,11 @@ export function csvToTiptapTableHtml(raw: string): {
 
   const maxCols = Math.max(...rows.map((r) => r.length), rows[0].length)
   const header = rows[0]
-  let table = '<table><thead><tr>'
+  let table = '<table class="nexa-data-table"><thead><tr>'
   for (let j = 0; j < maxCols; j++) {
-    const cell = escapeCell(header[j] ?? '')
-    table += `<th><p>${cell}</p></th>`
+    const raw = String(header[j] ?? '')
+    const cell = escapeCell(raw)
+    table += `<th title="${cell}"><p>${cell}</p></th>`
   }
   table += '</tr></thead><tbody>'
 
@@ -70,8 +71,9 @@ export function csvToTiptapTableHtml(raw: string): {
     const row = rows[i]
     table += '<tr>'
     for (let j = 0; j < maxCols; j++) {
-      const cell = escapeCell(row[j] ?? '')
-      table += `<td><p>${cell}</p></td>`
+      const raw = String(row[j] ?? '')
+      const cell = escapeCell(raw)
+      table += `<td title="${cell}"><p>${cell}</p></td>`
     }
     table += '</tr>'
   }
@@ -93,18 +95,20 @@ export function rowsToTiptapTableHtml(rows: string[][]): string {
   if (!rows?.length) return '<p>No data</p>'
   const maxCols = Math.max(...rows.map((r) => r.length), rows[0].length)
   const header = rows[0]
-  let table = '<table><thead><tr>'
+  let table = '<table class="nexa-data-table"><thead><tr>'
   for (let j = 0; j < maxCols; j++) {
-    const cell = escapeCell(header[j] ?? '')
-    table += `<th><p>${cell}</p></th>`
+    const raw = String(header[j] ?? '')
+    const cell = escapeCell(raw)
+    table += `<th title="${cell}"><p>${cell}</p></th>`
   }
   table += '</tr></thead><tbody>'
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i]
     table += '<tr>'
     for (let j = 0; j < maxCols; j++) {
-      const cell = escapeCell(row[j] ?? '')
-      table += `<td><p>${cell}</p></td>`
+      const raw = String(row[j] ?? '')
+      const cell = escapeCell(raw)
+      table += `<td title="${cell}"><p>${cell}</p></td>`
     }
     table += '</tr>'
   }

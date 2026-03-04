@@ -1,0 +1,64 @@
+// ============================================
+// 공통 데이터 테이블 스타일 (CSV/xlsx)
+// UniversalViewer + Tiptap 에디터 삽입 표 통일
+// ============================================
+
+$nexa-data-table-cell-min-width: 80px;
+$nexa-data-table-office-col-width: 80px; // UniversalViewer officeXlsxColumns style 참조
+$nexa-data-table-cell-max-width: 200px;
+$nexa-data-table-cell-padding: 2px 6px;
+$nexa-data-table-cell-line-height: 1.2;
+
+// 에디터: ProseMirror가 표 너비만큼 늘어나야 .editor-content에서 가로 스크롤 발생
+.ai-editor-panel .editor-content .ProseMirror,
+.editor-content .ProseMirror {
+  min-width: min-content;
+}
+
+// Tiptap ProseMirror 내 표 (CSV/xlsx 삽입 + 일반 표)
+.nexa-data-table,
+.ProseMirror table,
+.ProseMirror table.nexa-data-table {
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  width: 100%;
+  min-width: max-content;
+  table-layout: auto;
+  font-size: 0.875rem;
+
+  td,
+  th {
+    min-width: $nexa-data-table-cell-min-width;
+    max-width: $nexa-data-table-cell-max-width;
+    padding: $nexa-data-table-cell-padding;
+    line-height: $nexa-data-table-cell-line-height;
+    border: 1px solid var(--nexa-table-cell-border);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  th {
+    font-weight: 600;
+    background-color: var(--nexa-table-header-bg);
+    color: var(--nexa-table-header-text);
+  }
+
+  tbody tr {
+    background-color: var(--nexa-table-bg);
+
+    &:nth-child(even) {
+      background-color: var(--nexa-table-row-striped-bg);
+    }
+
+    &:hover {
+      background-color: var(--nexa-table-row-hover-bg);
+    }
+  }
+
+  td {
+    color: var(--nexa-table-text);
+  }
+}
+
+// UniversalViewer Office xlsx q-table는 컴포넌트 내 :deep()로 동일 값 적용

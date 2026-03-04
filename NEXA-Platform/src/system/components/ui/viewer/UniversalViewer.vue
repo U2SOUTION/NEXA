@@ -133,7 +133,18 @@
                 hide-pagination
                 hide-bottom
                 class="universal-viewer-csv-table universal-viewer-office-table"
-              />
+              >
+                <template v-for="col in officeXlsxColumns" :key="col.name" #[`body-cell-${col.name}`]="scope">
+                  <q-td :title="String(scope.row[col.field] ?? '')">
+                    {{ scope.row[col.field] }}
+                  </q-td>
+                </template>
+                <template v-for="col in officeXlsxColumns" :key="`h-${col.name}`" #[`header-cell-${col.name}`]="scope">
+                  <q-th :title="String(scope.col.label ?? '')">
+                    {{ scope.col.label }}
+                  </q-th>
+                </template>
+              </q-table>
               <div v-else class="text-grey-6 text-center q-pa-md">No data</div>
             </div>
           </div>
@@ -282,7 +293,7 @@ function normalizeSheetRows(aoa) {
   })
 }
 
-const OFFICE_TABLE_MIN_COL_WIDTH = 100
+const OFFICE_TABLE_MIN_COL_WIDTH = 80
 
 /** xlsx → q-table columns (first row as header, minWidth로 겹침 방지) */
 const officeXlsxColumns = computed(() => {
@@ -681,8 +692,8 @@ onBeforeUnmount(() => {
 }
 .universal-viewer-office-table :deep(th),
 .universal-viewer-office-table :deep(td) {
-  min-width: 100px;
-  max-width: 400px;
+  min-width: 80px;
+  max-width: 100px;
   min-height: 26px;
   padding: 2px 6px;
   line-height: 1.2;

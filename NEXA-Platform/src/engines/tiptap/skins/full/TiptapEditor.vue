@@ -73,9 +73,11 @@
       </slot>
     </div>
 
-    <!-- 에디터 영역 (풀스크린 모드가 아닐 때만 표시) -->
-    <div v-if="!isFullscreen" class="editor-content">
-      <editor-content :editor="editor" />
+    <!-- 에디터 영역 (풀스크린 모드가 아닐 때만 표시). editor-scroll에서 가로 스크롤 -->
+    <div v-if="!isFullscreen" class="editor-scroll">
+      <div class="editor-content">
+        <editor-content :editor="editor" />
+      </div>
     </div>
 
     <!-- 링크 입력 다이얼로그 -->
@@ -783,6 +785,14 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
     }
   }
 
+  .editor-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+    overflow-x: auto;
+  }
+
   .editor-content {
     background-color: var(--nexa-surface);
 
@@ -791,14 +801,23 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
     }
   }
 
+  /* .editor-scroll 안에서는 높이 꽉 채우고 max-height 제거 → 세로 빈 공간 방지 */
+  .editor-scroll .editor-content {
+    min-height: 100%;
+    max-height: none;
+  }
+
   .editor-content {
     min-height: 200px;
     max-height: 800px;
-    overflow-y: auto;
     padding: 16px;
+    display: inline-block;
+    min-width: 100%;
+    box-sizing: border-box;
     :deep(.ProseMirror) {
       outline: none;
       min-height: 200px;
+      min-width: min-content;
 
       p {
         margin: 0.5em 0;
@@ -889,44 +908,7 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
         display: block;
       }
 
-      table {
-        border-collapse: collapse;
-        margin: 0.5em 0;
-        width: 100%;
-        table-layout: fixed;
-        font-size: 0.875rem;
-
-        td,
-        th {
-          padding: 0.5em;
-          border: 1px solid var(--nexa-table-cell-border);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        th {
-          font-weight: 600;
-          background-color: var(--nexa-table-header-bg);
-          color: var(--nexa-table-header-text);
-        }
-
-        tbody tr {
-          background-color: var(--nexa-table-bg);
-
-          &:nth-child(even) {
-            background-color: var(--nexa-table-row-striped-bg);
-          }
-
-          &:hover {
-            background-color: var(--nexa-table-row-hover-bg);
-          }
-        }
-
-        td {
-          color: var(--nexa-table-text);
-        }
-      }
+      /* 테이블 스타일: nexa-system/_data-table.scss */
 
       a {
         color: var(--nexa-link-color);
@@ -1056,13 +1038,15 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
 
   .editor-content-fullscreen {
     flex: 1;
-    overflow-y: auto;
+    overflow: auto;
+    overflow-x: auto;
     padding: 24px;
     min-height: 0;
 
     :deep(.ProseMirror) {
       outline: none;
       min-height: 100%;
+      min-width: min-content;
 
       p {
         margin: 0.5em 0;
@@ -1153,44 +1137,7 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
         display: block;
       }
 
-      table {
-        border-collapse: collapse;
-        margin: 0.5em 0;
-        width: 100%;
-        table-layout: fixed;
-        font-size: 0.875rem;
-
-        td,
-        th {
-          padding: 0.5em;
-          border: 1px solid var(--nexa-table-cell-border);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        th {
-          font-weight: 600;
-          background-color: var(--nexa-table-header-bg);
-          color: var(--nexa-table-header-text);
-        }
-
-        tbody tr {
-          background-color: var(--nexa-table-bg);
-
-          &:nth-child(even) {
-            background-color: var(--nexa-table-row-striped-bg);
-          }
-
-          &:hover {
-            background-color: var(--nexa-table-row-hover-bg);
-          }
-        }
-
-        td {
-          color: var(--nexa-table-text);
-        }
-      }
+      /* 테이블 스타일: nexa-system/_data-table.scss */
 
       a {
         color: var(--nexa-link-color);

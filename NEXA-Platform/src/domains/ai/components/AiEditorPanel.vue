@@ -1,12 +1,6 @@
 <template>
   <div class="ai-editor-panel column">
-    <BaseTiptapEditor
-      v-model="editorContent"
-      :placeholder="placeholder"
-      :upload-handler="handleUpload"
-      :allow-fullscreen="true"
-      @update:model-value="onContentUpdate"
-    />
+    <BaseTiptapEditor v-model="editorContent" :placeholder="placeholder" :upload-handler="handleUpload" :allow-fullscreen="true" @update:model-value="onContentUpdate" />
   </div>
 </template>
 
@@ -70,28 +64,32 @@ async function handleUpload(file) {
 </script>
 
 <style lang="scss" scoped>
+/* 에디터 자체 스크롤: 패널이 스크롤 컨테이너. 내용이 크면 패널에 스크롤바 생성 → 가려짐 없음 */
 .ai-editor-panel {
   height: 100%;
   flex: 1 1 0;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
 }
 
-/* deep 사용 이유: Tiptap 엔진 내부 .tiptap-editor, .editor-content 구조 접근 필요, 부모 영역 상하 꽉 채우기 */
 .ai-editor-panel :deep(.tiptap-editor) {
-  flex: 1 1 0;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-width: 100%;
+  min-height: 100%;
+  width: max-content;
+  height: max-content;
+  flex-shrink: 0;
 }
 
-.ai-editor-panel :deep(.editor-content) {
-  flex: 1 1 0;
-  min-height: 0;
-  max-height: none;
-  overflow-y: auto;
+/* 스크롤은 패널이 담당. 여기서는 overflow 제거하고 내용 크기만큼 늘어나게 */
+.ai-editor-panel :deep(.editor-scroll) {
+  flex: 1 1 auto;
+  min-width: min-content;
+  min-height: min-content;
+  overflow: visible;
 }
 </style>
