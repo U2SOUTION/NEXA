@@ -58,7 +58,18 @@
               </q-btn-dropdown>
             </template>
             <template v-else>
-              <q-btn flat dense round :color="item.isActive && item.isActive() ? 'primary' : 'grey-7'" :icon="typeof item.icon === 'function' ? item.icon() : item.icon" :disable="item.canExecute && !item.canExecute()" @click="item.action()">
+              <q-btn
+                flat
+                dense
+                no-caps
+                :round="!item.label"
+                :color="item.isActive && item.isActive() ? 'primary' : 'grey-7'"
+                :icon="item.label ? undefined : typeof item.icon === 'function' ? item.icon() : item.icon"
+                :label="item.label"
+                :disable="item.canExecute && !item.canExecute()"
+                @click="item.action()"
+                :class="[item.label && 'toolbar-label-btn', item.id?.startsWith('heading') && `toolbar-label-btn--${item.id}`]"
+              >
                 <q-tooltip v-if="item.tooltip">
                   {{ typeof item.tooltip === 'function' ? item.tooltip() : item.tooltip }}
                 </q-tooltip>
@@ -169,7 +180,18 @@
                     </q-btn-dropdown>
                   </template>
                   <template v-else>
-                    <q-btn flat dense round :color="item.isActive && item.isActive() ? 'primary' : 'grey-7'" :icon="typeof item.icon === 'function' ? item.icon() : item.icon" :disable="item.canExecute && !item.canExecute()" @click="item.action()">
+                    <q-btn
+                      flat
+                      dense
+                      no-caps
+                      :round="!item.label"
+                      :color="item.isActive && item.isActive() ? 'primary' : 'grey-7'"
+                      :icon="item.label ? undefined : typeof item.icon === 'function' ? item.icon() : item.icon"
+                      :label="item.label"
+                      :disable="item.canExecute && !item.canExecute()"
+                      @click="item.action()"
+                      :class="[item.label && 'toolbar-label-btn', item.id?.startsWith('heading') && `toolbar-label-btn--${item.id}`]"
+                    >
                       <q-tooltip v-if="item.tooltip">
                         {{ typeof item.tooltip === 'function' ? item.tooltip() : item.tooltip }}
                       </q-tooltip>
@@ -692,12 +714,12 @@ const toolbarItemDefinitions = {
   italic: { id: 'italic', icon: 'format_italic', action: () => editor.value?.chain().focus().toggleItalic().run(), isActive: () => editor.value?.isActive('italic'), group: 'text-style' },
   underline: { id: 'underline', icon: 'format_underlined', action: () => editor.value?.chain().focus().toggleUnderline().run(), isActive: () => editor.value?.isActive('underline'), group: 'text-style' },
   strike: { id: 'strike', icon: 'strikethrough_s', action: () => editor.value?.chain().focus().toggleStrike().run(), isActive: () => editor.value?.isActive('strike'), group: 'text-style' },
-  heading1: { id: 'heading1', icon: 'title', action: () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run(), isActive: () => editor.value?.isActive('heading', { level: 1 }), group: 'heading' },
-  heading2: { id: 'heading2', icon: 'format_size', action: () => editor.value?.chain().focus().toggleHeading({ level: 2 }).run(), isActive: () => editor.value?.isActive('heading', { level: 2 }), group: 'heading' },
-  heading3: { id: 'heading3', icon: 'text_fields', action: () => editor.value?.chain().focus().toggleHeading({ level: 3 }).run(), isActive: () => editor.value?.isActive('heading', { level: 3 }), group: 'heading' },
-  heading4: { id: 'heading4', icon: 'format_size', action: () => editor.value?.chain().focus().toggleHeading({ level: 4 }).run(), isActive: () => editor.value?.isActive('heading', { level: 4 }), group: 'heading' },
-  heading5: { id: 'heading5', icon: 'format_size', action: () => editor.value?.chain().focus().toggleHeading({ level: 5 }).run(), isActive: () => editor.value?.isActive('heading', { level: 5 }), group: 'heading' },
-  heading6: { id: 'heading6', icon: 'format_size', action: () => editor.value?.chain().focus().toggleHeading({ level: 6 }).run(), isActive: () => editor.value?.isActive('heading', { level: 6 }), group: 'heading' },
+  heading1: { id: 'heading1', label: 'H1', action: () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run(), isActive: () => editor.value?.isActive('heading', { level: 1 }), group: 'heading' },
+  heading2: { id: 'heading2', label: 'H2', action: () => editor.value?.chain().focus().toggleHeading({ level: 2 }).run(), isActive: () => editor.value?.isActive('heading', { level: 2 }), group: 'heading' },
+  heading3: { id: 'heading3', label: 'H3', action: () => editor.value?.chain().focus().toggleHeading({ level: 3 }).run(), isActive: () => editor.value?.isActive('heading', { level: 3 }), group: 'heading' },
+  heading4: { id: 'heading4', label: 'H4', action: () => editor.value?.chain().focus().toggleHeading({ level: 4 }).run(), isActive: () => editor.value?.isActive('heading', { level: 4 }), group: 'heading' },
+  heading5: { id: 'heading5', label: 'H5', action: () => editor.value?.chain().focus().toggleHeading({ level: 5 }).run(), isActive: () => editor.value?.isActive('heading', { level: 5 }), group: 'heading' },
+  heading6: { id: 'heading6', label: 'H6', action: () => editor.value?.chain().focus().toggleHeading({ level: 6 }).run(), isActive: () => editor.value?.isActive('heading', { level: 6 }), group: 'heading' },
   bulletList: { id: 'bulletList', icon: 'format_list_bulleted', action: () => editor.value?.chain().focus().toggleBulletList().run(), isActive: () => editor.value?.isActive('bulletList'), group: 'list' },
   orderedList: { id: 'orderedList', icon: 'format_list_numbered', action: () => editor.value?.chain().focus().toggleOrderedList().run(), isActive: () => editor.value?.isActive('orderedList'), group: 'list' },
   taskList: { id: 'taskList', icon: 'checklist', action: () => editor.value?.chain().focus().toggleTaskList().run(), isActive: () => editor.value?.isActive('taskList'), group: 'list' },
@@ -757,18 +779,36 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
     width: 100%;
     min-width: 0; /* 툴바가 영역보다 좁아질 수 있게 → 내부 줄바꿈 유도 */
     box-sizing: border-box;
+    padding-top: 10px;
+    padding-bottom: 0px;
 
     .row.editor-toolbar-row,
     .editor-toolbar-row {
-      margin-left: -2px !important;
-      margin-right: -2px !important;
       flex-wrap: wrap; /* 영역 크기에 따라 툴바 버튼 줄바꿈 */
       width: 100%;
+      row-gap: 0px; /* 줄바꿈 시 행 간격 최소화 */
     }
 
+    :deep(.editor-toolbar-row > *) {
+      margin-top: 0px !important;
+      margin-bottom: 0px !important;
+    }
+
+    //기본 툴바 아이콘
     :deep(.q-btn) {
       margin-left: -1px !important;
       margin-right: -1px !important;
+    }
+
+    //툴바 라벨(H1~H6) 버튼
+    :deep(.toolbar-label-btn) {
+      min-width: 28px;
+      height: 28px;
+      padding-left: 6px;
+      padding-right: 6px;
+      font-weight: 600;
+      line-height: 1;
+      font-size: 1rem; /* H1보다 크게, 툴바 아이콘과 동일 크기로 통일 */
     }
 
     &.toolbar-light,
@@ -831,12 +871,36 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
       }
 
       h1 {
+        font-size: 4.5rem;
+        font-weight: 900;
+        margin: 0.5em 0;
+      }
+
+      h2 {
+        font-size: 3.5em;
+        font-weight: 800;
+        margin: 0.5em 0;
+      }
+
+      h3 {
+        font-size: 3em;
+        font-weight: bold;
+        margin: 0.5em 0;
+      }
+
+      h4 {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin: 0.5em 0;
+      }
+
+      h5 {
         font-size: 2em;
         font-weight: bold;
         margin: 0.5em 0;
       }
 
-      h2 {
+      h6 {
         font-size: 1.5em;
         font-weight: bold;
         margin: 0.5em 0;
@@ -1012,12 +1076,20 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
     flex-shrink: 0;
     min-width: 0;
     border-bottom: 1px solid var(--nexa-border-color);
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
 
     .row.editor-toolbar-row,
     .editor-toolbar-row {
       margin-left: -2px !important;
       margin-right: -2px !important;
       flex-wrap: wrap;
+      row-gap: 2px;
+    }
+
+    :deep(.editor-toolbar-row > *) {
+      margin-top: 2px !important;
+      margin-bottom: 2px !important;
     }
 
     :deep(.q-btn) {
@@ -1070,6 +1142,30 @@ const fontFamilies = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'V
 
       h2 {
         font-size: 1.5em;
+        font-weight: bold;
+        margin: 0.5em 0;
+      }
+
+      h3 {
+        font-size: 1.25em;
+        font-weight: bold;
+        margin: 0.5em 0;
+      }
+
+      h4 {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin: 0.5em 0;
+      }
+
+      h5 {
+        font-size: 1em;
+        font-weight: bold;
+        margin: 0.5em 0;
+      }
+
+      h6 {
+        font-size: 0.9em;
         font-weight: bold;
         margin: 0.5em 0;
       }

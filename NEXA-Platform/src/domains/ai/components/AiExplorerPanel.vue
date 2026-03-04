@@ -19,11 +19,11 @@
         </q-item>
         <q-item clickable v-close-popup @click="injectToChat">
           <q-item-section avatar><q-icon name="chat" /></q-item-section>
-          <q-item-section>채팅에 넣기</q-item-section>
+          <q-item-section>네레이션에 넣기</q-item-section>
         </q-item>
         <q-item clickable v-close-popup @click="injectToEditor">
           <q-item-section avatar><q-icon name="edit_note" /></q-item-section>
-          <q-item-section>에디터에 넣기</q-item-section>
+          <q-item-section>로직에 넣기</q-item-section>
         </q-item>
         <q-separator />
         <q-item clickable v-close-popup @click="openInImageEditor">
@@ -60,12 +60,47 @@ const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEdito
 
 // Phase 3: extToMonacoLanguage와 동기화 (웹·ESP32·모바일·설정)
 const CODE_EXTENSIONS = [
-  'js', 'mjs', 'cjs', 'ts', 'mts', 'cts', 'jsx', 'tsx',
-  'json', 'yaml', 'yml', 'xml', 'py', 'css', 'scss', 'html', 'htm', 'vue',
-  'md', 'sql', 'sh', 'bash', 'env', 'toml', 'ini', 'cfg', 'conf',
-  'c', 'h', 'cpp', 'cc', 'cxx', 'hpp', 'ino',
-  'kt', 'kts', 'swift', 'dart',
-  'dockerfile', 'makefile', 'mk',
+  'js',
+  'mjs',
+  'cjs',
+  'ts',
+  'mts',
+  'cts',
+  'jsx',
+  'tsx',
+  'json',
+  'yaml',
+  'yml',
+  'xml',
+  'py',
+  'css',
+  'scss',
+  'html',
+  'htm',
+  'vue',
+  'md',
+  'sql',
+  'sh',
+  'bash',
+  'env',
+  'toml',
+  'ini',
+  'cfg',
+  'conf',
+  'c',
+  'h',
+  'cpp',
+  'cc',
+  'cxx',
+  'hpp',
+  'ino',
+  'kt',
+  'kts',
+  'swift',
+  'dart',
+  'dockerfile',
+  'makefile',
+  'mk',
 ]
 function isCodeFile(file) {
   if (!file?.original_name) return false

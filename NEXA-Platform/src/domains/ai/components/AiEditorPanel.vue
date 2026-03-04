@@ -92,21 +92,21 @@ async function handleUpload(file) {
   overflow: auto;
 }
 
-/* 패널이 스크롤하므로 에디터 블록은 최소 패널 크기 + 내용 크기만큼 성장 */
-/* width: 100% + min-width: min-content → 툴바는 패널 폭에 맞춰 줄바꿈, 넓은 표일 때만 가로로 성장 */
+/* 스플릿 영역을 넘지 않음: 에디터 블록은 패널 폭을 넘지 않고, 넘치는 부분만 가로 스크롤 */
 .ai-editor-panel :deep(.tiptap-editor) {
   display: flex;
   flex-direction: column;
-  min-width: 100%;
+  min-width: 0;
   min-height: 100%;
   width: 100%;
-  min-width: min-content;
+  max-width: 100%;
   height: max-content;
   flex-shrink: 0;
   box-sizing: border-box;
+  overflow: visible; /* 넓은 본문이 .editor-scroll에서 넘치면 패널 가로 스크롤로 보이게 */
 }
 
-/* 내부는 스크롤 없음. 내용(표 등)이 크면 이 블록이 늘어나고, 패널이 스크롤 */
+/* 본문만 넓어질 수 있음. 패널이 스크롤하여 표시 */
 .ai-editor-panel :deep(.editor-scroll) {
   flex: 1 1 auto;
   min-width: min-content;
