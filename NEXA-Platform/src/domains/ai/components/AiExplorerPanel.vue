@@ -65,7 +65,7 @@ import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 const { selectedFile, setSelectedFile } = useFileSelection()
 const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEditor, requestOpenInVideoEditor, requestOpenInCodePanel } = useAiExplorerSelection()
 
-function onExplorerTreeWidthUpdate(v: number) {
+function onExplorerTreeWidthUpdate(v) {
   explorerTreeWidth.value = v
 }
 

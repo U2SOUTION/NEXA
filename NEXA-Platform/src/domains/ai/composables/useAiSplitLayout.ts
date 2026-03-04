@@ -14,8 +14,8 @@ const DEFAULT_CENTER = ['narrative', 'logic', 'vision', 'sense', 'nexus']
 const DEFAULT_RIGHT = ['explorer']
 
 const DEFAULT_SIZES = { left: 22, center: 56, right: 22 }
-const DEFAULT_EXPLORER_TREE_WIDTH = 220
-const EXPLORER_TREE_WIDTH_MIN = 120
+const DEFAULT_EXPLORER_TREE_WIDTH = 160
+const EXPLORER_TREE_WIDTH_MIN = 140
 const EXPLORER_TREE_WIDTH_MAX = 600
 
 const LEGACY_ID_MAP: Record<string, string> = {
@@ -63,10 +63,7 @@ function loadLayout() {
       leftActiveIndex: Math.max(0, data.leftActiveIndex ?? 0),
       centerActiveIndex: Math.max(0, data.centerActiveIndex ?? 0),
       rightActiveIndex: Math.max(0, data.rightActiveIndex ?? 0),
-      explorerTreeWidth:
-        typeof data.explorerTreeWidth === 'number'
-          ? Math.max(EXPLORER_TREE_WIDTH_MIN, Math.min(EXPLORER_TREE_WIDTH_MAX, data.explorerTreeWidth))
-          : DEFAULT_EXPLORER_TREE_WIDTH,
+      explorerTreeWidth: typeof data.explorerTreeWidth === 'number' ? Math.max(EXPLORER_TREE_WIDTH_MIN, Math.min(EXPLORER_TREE_WIDTH_MAX, data.explorerTreeWidth)) : DEFAULT_EXPLORER_TREE_WIDTH,
     }
   } catch {
     return null
@@ -112,21 +109,7 @@ export const rightActiveIndex = ref(loaded?.rightActiveIndex ?? 0)
 export const explorerTreeWidth = ref(loaded?.explorerTreeWidth ?? DEFAULT_EXPLORER_TREE_WIDTH)
 
 watch(
-  [
-    leftPanelIds,
-    centerPanelIds,
-    rightPanelIds,
-    leftVisible,
-    centerVisible,
-    rightVisible,
-    leftSize,
-    centerSize,
-    rightSize,
-    leftActiveIndex,
-    centerActiveIndex,
-    rightActiveIndex,
-    explorerTreeWidth,
-  ],
+  [leftPanelIds, centerPanelIds, rightPanelIds, leftVisible, centerVisible, rightVisible, leftSize, centerSize, rightSize, leftActiveIndex, centerActiveIndex, rightActiveIndex, explorerTreeWidth],
   () => {
     saveLayout({
       leftPanelIds: leftPanelIds.value,
