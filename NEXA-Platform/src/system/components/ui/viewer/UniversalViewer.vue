@@ -106,6 +106,44 @@
           <pre v-else class="universal-viewer-json q-pa-md" v-html="highlightedJson"></pre>
           -->
         </template>
+        <template v-else-if="isDocxFile">
+          <div v-if="officeFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">{{ officeErrorMessage || '파일을 불러올 수 없습니다.' }}</div>
+          <div v-else-if="officeLoading" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">불러오는 중...</div>
+          <div v-else class="universal-viewer-office markdown-content q-pa-md" v-html="officeDocxHtml"></div>
+        </template>
+        <template v-else-if="isXlsxFile">
+          <div v-if="officeFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">파일을 불러올 수 없습니다.</div>
+          <div v-else-if="officeLoading" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">불러오는 중...</div>
+          <div v-else class="universal-viewer-csv universal-viewer-office-table">
+            <div v-if="officeXlsxRows.length" class="universal-viewer-csv-caption text-caption text-grey-6">{{ officeXlsxRows.length }} rows</div>
+            <div ref="csvTableWrapperRef" class="universal-viewer-csv-table-wrapper universal-viewer-office-scroll">
+              <q-table
+                v-if="officeXlsxColumns.length"
+                :rows="officeXlsxTableRows"
+                :columns="officeXlsxColumns"
+                row-key="__idx"
+                v-model:pagination="officeXlsxPagination"
+                :rows-per-page-options="[0]"
+                :virtual-scroll="officeXlsxRows.length > 30"
+                :virtual-scroll-item-size="24"
+                :table-style="csvTableStyle"
+                flat
+                dense
+                bordered
+                hide-pagination
+                hide-bottom
+                class="universal-viewer-csv-table universal-viewer-office-table"
+              />
+              <div v-else class="text-grey-6 text-center q-pa-md">No data</div>
+            </div>
+          </div>
+        </template>
+        <template v-else-if="isPptxFile">
+          <div class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">
+            <p>PPT/PPTX preview is not available yet.</p>
+            <q-btn v-if="previewUrl" flat color="primary" :href="previewUrl" target="_blank" rel="noopener">Download</q-btn>
+          </div>
+        </template>
         <div v-else class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">준비중</div>
       </div>
     </template>
@@ -116,6 +154,8 @@
 import { computed, watch, ref, onBeforeUnmount } from 'vue'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 import { parseMarkdown } from '@system/utils/markdown'
+import mammoth from 'mammoth'
+import * as XLSX from 'xlsx'
 
 const props = defineProps({
   file: { type: Object, default: null },
@@ -210,6 +250,111 @@ const isCsvFile = computed(() => getExtension() === 'csv' && (!!props.file?.file
 /** .json 파일 (fetch 필요) */
 const isJsonFile = computed(() => getExtension() === 'json' && (!!props.file?.file_path || !!props.file?.url))
 
+/** Office: doc/docx, xls/xlsx, ppt/pptx */
+const OFFICE_WORD_EXT = ['doc', 'docx']
+const OFFICE_EXCEL_EXT = ['xls', 'xlsx']
+const OFFICE_PPT_EXT = ['ppt', 'pptx']
+const isDocxFile = computed(() => OFFICE_WORD_EXT.includes(getExtension()) && (!!props.file?.file_path || !!props.file?.url))
+const isXlsxFile = computed(() => OFFICE_EXCEL_EXT.includes(getExtension()) && (!!props.file?.file_path || !!props.file?.url))
+const isPptxFile = computed(() => OFFICE_PPT_EXT.includes(getExtension()) && (!!props.file?.file_path || !!props.file?.url))
+
+const officeDocxHtml = ref('')
+const officeXlsxRows = ref([])
+const officeLoading = ref(false)
+const officeFetchError = ref(false)
+const officeErrorMessage = ref('')
+const officeXlsxPagination = ref({ rowsPerPage: 0 })
+
+/** sheet_to_json 결과를 일관된 2차원 문자열 배열로 정규화 (xls/xlsx 호환) */
+function normalizeSheetRows(aoa) {
+  if (!Array.isArray(aoa) || !aoa.length) return []
+  const maxCols = Math.max(...aoa.map((r) => (Array.isArray(r) ? r.length : Object.keys(r).length)), 1)
+  return aoa.map((row) => {
+    let arr
+    if (Array.isArray(row)) {
+      arr = Array.from({ length: maxCols }, (_, j) => row[j])
+    } else if (row && typeof row === 'object') {
+      arr = Array.from({ length: maxCols }, (_, j) => row[j] ?? '')
+    } else {
+      arr = [row]
+    }
+    return arr.map((c) => (c == null || c === '' ? '' : String(c)))
+  })
+}
+
+const OFFICE_TABLE_MIN_COL_WIDTH = 100
+
+/** xlsx → q-table columns (first row as header, minWidth로 겹침 방지) */
+const officeXlsxColumns = computed(() => {
+  const rows = officeXlsxRows.value
+  if (!rows.length) return []
+  const header = rows[0]
+  const maxCols = Math.max(...rows.map((r) => r.length), header?.length ?? 0)
+  return Array.from({ length: maxCols }, (_, j) => ({
+    name: `col_${j}`,
+    label: (header[j] ?? '') || `Col ${j + 1}`,
+    field: `col_${j}`,
+    align: 'left',
+    style: `min-width: ${OFFICE_TABLE_MIN_COL_WIDTH}px`,
+  }))
+})
+
+const officeXlsxTableRows = computed(() => {
+  const rows = officeXlsxRows.value
+  if (rows.length < 2) return []
+  const cols = officeXlsxColumns.value
+  return rows.slice(1).map((row, i) => {
+    const obj = { __idx: i }
+    cols.forEach((c, j) => {
+      obj[c.field] = row[j] ?? ''
+    })
+    return obj
+  })
+})
+
+async function fetchOfficeFile() {
+  officeDocxHtml.value = ''
+  officeXlsxRows.value = []
+  officeFetchError.value = false
+  officeErrorMessage.value = ''
+  officeLoading.value = true
+  const f = props.file
+  const url = f?.file_path ? getUploadDisplayUrl(f.file_path) : f?.url || ''
+  if (!url) {
+    officeLoading.value = false
+    return
+  }
+  const ext = getExtension()
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(res.statusText)
+    const ab = await res.arrayBuffer()
+    if (OFFICE_WORD_EXT.includes(ext)) {
+      if (ext === 'doc') {
+        officeFetchError.value = true
+        officeErrorMessage.value = 'Legacy .doc format is not supported. Use .docx.'
+      } else {
+        const result = await mammoth.convertToHtml({ arrayBuffer: ab })
+        officeDocxHtml.value = result.value || '<p></p>'
+      }
+    } else if (OFFICE_EXCEL_EXT.includes(ext)) {
+      const wb = XLSX.read(ab, { type: 'array', cellDates: false, raw: false })
+      const firstSheet = wb.SheetNames[0] ? wb.Sheets[wb.SheetNames[0]] : null
+      if (!firstSheet) {
+        officeXlsxRows.value = []
+      } else {
+        const aoa = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '', raw: false })
+        officeXlsxRows.value = normalizeSheetRows(Array.isArray(aoa) ? aoa : [])
+      }
+    }
+  } catch (e) {
+    officeFetchError.value = true
+    console.error('[UniversalViewer] Office fetch/convert failed:', e)
+  } finally {
+    officeLoading.value = false
+  }
+}
+
 import { parseCsv, countCsvRows } from '@system/utils/parseCsv'
 
 /** CSV 파싱 결과 (2차원 배열, virtual-scroll로 최대 3000행) */
@@ -262,11 +407,7 @@ const formattedJson = computed(() => {
 const highlightedJson = computed(() => {
   const s = formattedJson.value
   if (!s || !isJsonFile.value) return ''
-  const escaped = s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  const escaped = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   const strPat = '&quot;(?:(?!&quot;)[\\s\\S])*?&quot;'
   return escaped
     .replace(new RegExp(`(${strPat})(\\s*:)`, 'g'), '<span class="json-key">$1</span>$2')
@@ -346,12 +487,18 @@ watch(
     textFileContent.value = ''
     textFileFetchError.value = false
     textFileLoading.value = false
+    officeDocxHtml.value = ''
+    officeXlsxRows.value = []
+    officeFetchError.value = false
+    officeErrorMessage.value = ''
     if (!file) return
     const name = (file.original_name || file.file_path || '').toLowerCase()
     if (name.endsWith('.md') && !file.content && (file.file_path || file.url)) {
       fetchMarkdownContent()
     } else if ((name.endsWith('.txt') || name.endsWith('.csv') || name.endsWith('.json')) && (file.file_path || file.url)) {
       fetchTextFile()
+    } else if (['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'].some((e) => name.endsWith(e)) && (file.file_path || file.url)) {
+      fetchOfficeFile()
     }
   },
   { immediate: true },
@@ -376,6 +523,7 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 0;
   min-width: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -491,9 +639,16 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 200px;
   min-width: 0;
+  width: 100%;
+  overflow: auto;
+}
+
+/* Office xlsx: 가로 스크롤 강제 - 래퍼가 부모 너비를 넘지 않도록 */
+.universal-viewer-office-scroll {
+  overflow-x: auto !important;
+  overflow-y: auto;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  contain: inline-size;
 }
 .universal-viewer-csv-table {
   font-size: 0.85rem;
@@ -506,8 +661,33 @@ onBeforeUnmount(() => {
   min-width: 0;
   max-width: 100%;
 }
+
+/* Office xlsx: 가로 스크롤 허용 - 테이블이 래퍼를 넘어가도록 */
+.universal-viewer-office-table :deep(.q-table__container),
+.universal-viewer-office-table :deep(.q-table__middle) {
+  max-width: none;
+  width: max-content;
+  min-width: 100%;
+}
 .universal-viewer-csv-table :deep(table) {
   table-layout: fixed;
   width: 100%;
+}
+
+/* Office xlsx: 겹침 방지 - 컬럼 최소폭 적용, 셀 overflow 처리 */
+.universal-viewer-office-table :deep(table) {
+  table-layout: auto;
+  min-width: max-content;
+}
+.universal-viewer-office-table :deep(th),
+.universal-viewer-office-table :deep(td) {
+  min-width: 100px;
+  max-width: 400px;
+  min-height: 26px;
+  padding: 2px 6px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

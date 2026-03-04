@@ -53,7 +53,7 @@
     <div class="media-upload-area q-px-sm q-py-xs q-mx-sm q-mb-xs rounded-borders">
       <q-btn flat dense no-caps size="sm" :icon="showMediaUpload ? 'expand_less' : 'cloud_upload'" :label="showMediaUpload ? '업로드 영역 접기' : '파일 업로드'" class="full-width media-upload-btn" @click="showMediaUpload = !showMediaUpload" />
       <div v-show="showMediaUpload" class="q-mt-xs">
-        <FileDropZone upload-url="/files/upload" list-url="/files/list?domain=ai" accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.csv" label="이미지·오디오·영상·문서를 드래그하거나 선택하세요 (모든 탭 공용)" @add="handleMediaAdd" />
+        <FileDropZone upload-url="/files/upload" list-url="/files/list?domain=ai" accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" label="이미지·오디오·영상·문서를 드래그하거나 선택하세요 (모든 탭 공용)" @add="handleMediaAdd" />
         <UploadProgress :files="uploadProgressFiles" :show="showUploadProgress" />
       </div>
     </div>

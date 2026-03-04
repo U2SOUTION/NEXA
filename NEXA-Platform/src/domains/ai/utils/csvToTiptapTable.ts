@@ -84,3 +84,30 @@ export function csvToTiptapTableHtml(raw: string): {
 
   return { html: table, totalRows, displayRows }
 }
+
+/**
+ * 2차원 배열(첫 행 헤더) → Tiptap Table HTML
+ * Phase 4: xlsx 등에서 사용
+ */
+export function rowsToTiptapTableHtml(rows: string[][]): string {
+  if (!rows?.length) return '<p>No data</p>'
+  const maxCols = Math.max(...rows.map((r) => r.length), rows[0].length)
+  const header = rows[0]
+  let table = '<table><thead><tr>'
+  for (let j = 0; j < maxCols; j++) {
+    const cell = escapeCell(header[j] ?? '')
+    table += `<th><p>${cell}</p></th>`
+  }
+  table += '</tr></thead><tbody>'
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i]
+    table += '<tr>'
+    for (let j = 0; j < maxCols; j++) {
+      const cell = escapeCell(row[j] ?? '')
+      table += `<td><p>${cell}</p></td>`
+    }
+    table += '</tr>'
+  }
+  table += '</tbody></table>'
+  return table
+}

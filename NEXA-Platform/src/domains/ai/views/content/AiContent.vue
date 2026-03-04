@@ -16,8 +16,10 @@ import { useAiInsertRequest } from '../../composables/useAiInsertRequest'
 import { useAiExplorerSelection } from '../../composables/useAiExplorerSelection'
 import { showPanel } from '../../composables/useAiSplitLayout'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
-import { csvToTiptapTableHtml } from '../../utils/csvToTiptapTable'
+import { csvToTiptapTableHtml, rowsToTiptapTableHtml } from '../../utils/csvToTiptapTable'
 import { MAX_CSV_DISPLAY_ROWS } from '@system/utils/parseCsv'
+import mammoth from 'mammoth'
+import * as XLSX from 'xlsx'
 import AiSplitLayout from './AiSplitLayout.vue'
 
 const editorContent = ref('')
@@ -99,6 +101,20 @@ function getMediaType(file) {
 function getFileExtension(file) {
   const name = (file?.original_name || file?.file_path || '').toLowerCase()
   return name.match(/\.([a-z0-9]+)$/)?.[1] || ''
+}
+
+/** xls/xlsx sheet_to_json 결과 정규화 (겹침 방지) */
+function normalizeSheetRows(aoa) {
+  if (!Array.isArray(aoa) || !aoa.length) return []
+  const maxCols = Math.max(...aoa.map((r) => (Array.isArray(r) ? r.length : Object.keys(r || {}).length)), 1)
+  return aoa.map((row) => {
+    const arr = Array.isArray(row)
+      ? Array.from({ length: maxCols }, (_, j) => row[j])
+      : row && typeof row === 'object'
+        ? Array.from({ length: maxCols }, (_, j) => row[j] ?? '')
+        : [row]
+    return arr.map((c) => (c == null || c === '' ? '' : String(c)))
+  })
 }
 
 function fileToEditorHtml(file) {
@@ -216,6 +232,65 @@ async function injectCsvToEditor(file) {
   }
 }
 
+/** Office Word: docx만 변환 가능, doc(구형)은 불가 */
+async function injectDocxToEditor(file) {
+  const ext = getFileExtension(file)
+  if (ext === 'doc') {
+    Notify.create({ type: 'info', message: 'Legacy .doc is not supported. Use .docx.' })
+    return
+  }
+  const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
+  if (!url) {
+    Notify.create({ type: 'warning', message: 'DOCX 파일 주소를 가져올 수 없습니다.' })
+    return
+  }
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(res.statusText)
+    const ab = await res.arrayBuffer()
+    const result = await mammoth.convertToHtml({ arrayBuffer: ab })
+    showPanel('editor')
+    nextTick(() => {
+      pendingInsertContent.value = result.value || '<p></p>'
+    })
+  } catch (e) {
+    console.error('[AiContent] DOCX convert failed:', e)
+    Notify.create({ type: 'negative', message: 'DOCX 파일을 불러올 수 없습니다.' })
+  }
+}
+
+/**
+ * Phase 4: xls/xlsx → 첫 시트를 테이블 HTML로 Tiptap 삽입
+ */
+async function injectXlsxToEditor(file) {
+  const url = file.file_path ? getUploadDisplayUrl(file.file_path) : file.url
+  if (!url) {
+    Notify.create({ type: 'warning', message: 'XLSX 파일 주소를 가져올 수 없습니다.' })
+    return
+  }
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(res.statusText)
+    const ab = await res.arrayBuffer()
+    const wb = XLSX.read(ab, { type: 'array', raw: false })
+    const firstSheet = wb.SheetNames[0] ? wb.Sheets[wb.SheetNames[0]] : null
+    if (!firstSheet) {
+      Notify.create({ type: 'info', message: '시트가 없습니다.' })
+      return
+    }
+    const aoa = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '', raw: false })
+    const rows = normalizeSheetRows(Array.isArray(aoa) ? aoa : [])
+    const html = rowsToTiptapTableHtml(rows)
+    showPanel('editor')
+    nextTick(() => {
+      pendingInsertContent.value = html
+    })
+  } catch (e) {
+    console.error('[AiContent] XLSX convert failed:', e)
+    Notify.create({ type: 'negative', message: 'XLSX 파일을 불러올 수 없습니다.' })
+  }
+}
+
 onMounted(() => {
   unregisterInsertRequest = onInsertRequest((raw) => {
     const html = parseMarkdown(raw, '', {})
@@ -239,6 +314,14 @@ onMounted(() => {
     }
     if (ext === 'csv') {
       injectCsvToEditor(file)
+      return
+    }
+    if (['doc', 'docx'].includes(ext)) {
+      injectDocxToEditor(file)
+      return
+    }
+    if (['xls', 'xlsx'].includes(ext)) {
+      injectXlsxToEditor(file)
       return
     }
     const html = fileToEditorHtml(file)

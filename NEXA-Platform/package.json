@@ -55,6 +55,7 @@
     "dagre": "^0.8.5",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
+    "mammoth": "^1.11.0",
     "mermaid": "^11.12.2",
     "monaco-editor": "^0.55.1",
     "pinia": "^3.0.2",

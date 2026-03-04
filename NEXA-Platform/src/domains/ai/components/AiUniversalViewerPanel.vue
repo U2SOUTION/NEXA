@@ -14,8 +14,12 @@ const { selectedFile } = useFileSelection()
 <style lang="scss" scoped>
 .ai-universal-viewer-panel {
   min-height: 0;
+  min-width: 0;
   height: 100%;
   flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   min-height: 400px;
 }
 </style>

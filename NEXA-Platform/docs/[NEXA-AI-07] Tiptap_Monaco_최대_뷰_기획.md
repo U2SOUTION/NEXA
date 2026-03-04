@@ -47,8 +47,7 @@ UniversalViewer 개념을 폐기하고, **모든 파일**을 **Tiptap(문서)** 
 | **오디오** | mp3, wav, ogg, flac, aac, m4a, wma | `@tiptap/extension-audio` 추가 | Tiptap 공식 확장 |
 | **비디오** | mp4, webm, mkv, mov 등 | HTML5 `<video>` 커스텀 확장 또는 iframe | 확장 개발 필요 |
 | **CSV** | csv | 파싱 → Tiptap Table 노드로 변환 | 파서 + Table 확장 활용 |
-| **RTF** | rtf | 서버 또는 라이브러리로 HTML 변환 | `rtf-to-html` 등 검토 |
-| **Office** | docx, xlsx, pptx | 서버 변환 파이프라인 | 복잡도 높음, Phase 2 이후 |
+| **Office** | docx, xlsx, pptx | 서버 변환 파이프라인 | 복잡도 높음, Phase 4 |
 
 ### 2.3 Tiptap 확장 추가·개발 계획
 
@@ -57,7 +56,6 @@ UniversalViewer 개념을 폐기하고, **모든 파일**을 **Tiptap(문서)** 
 | `@tiptap/extension-audio` | 공식 | 로컬/URL 오디오 재생 | P0 |
 | Video (로컬 파일) | 커스텀 | HTML5 `<video>` 노드, src 속성 | P0 |
 | CSV → Table | 유틸 | CSV 파싱 후 Table 노드 삽입 | P1 |
-| RTF 변환 | 서버/클라이언트 | rtf → html 후 Tiptap 로드 | P2 |
 
 ---
 
@@ -141,7 +139,6 @@ UniversalViewer 개념을 폐기하고, **모든 파일**을 **Tiptap(문서)** 
        ├─ video → Tiptap (Video 노드, 커스텀 확장)
        ├─ md, txt, html → Tiptap (parseMarkdown/HTML)
        ├─ csv → Tiptap (Table 변환)
-       ├─ rtf → Tiptap (변환 후)
        ├─ pdf, 3d_model, archive → NexusLens (추후)
        └─ 기타 → plaintext (Monaco) 또는 Tiptap
 ```
@@ -153,7 +150,7 @@ UniversalViewer 개념을 폐기하고, **모든 파일**을 **Tiptap(문서)** 
 | image | jpg, png, gif, webp, svg, bmp, ico | Tiptap | O (삽입·교체) | Image 확장 |
 | video | mp4, webm, mkv, mov, avi, wmv, flv, m4v | Tiptap | O (삽입) | Video 확장 추가 |
 | audio | mp3, wav, ogg, flac, aac, m4a, wma | Tiptap | O (삽입) | Audio 확장 추가 |
-| document | txt, csv, rtf, doc, docx, xls, xlsx, ppt, pptx | Tiptap | txt/csv/rtf O, Office P2 | - |
+| document | txt, csv, doc, docx, xls, xlsx, ppt, pptx | Tiptap | txt/csv O, Office P4 | - |
 | pdf | pdf | NexusLens | - | 추후 |
 | 3d_model | stl, obj, step 등 | NexusLens | - | 추후 |
 | archive | zip, rar, 7z 등 | NexusLens 또는 미지원 | - | 추후 |
@@ -194,12 +191,11 @@ UniversalViewer 개념을 폐기하고, **모든 파일**을 **Tiptap(문서)** 
 | CODE_EXTENSIONS 동기화 | extToMonacoLanguage와 일치하도록 확장 | - |
 | (추후) 2차 확대 | cs, java, go, rs, rb, php, r, lua, graphql, ini 등 | 필요 시 순차 추가 |
 
-### Phase 4: RTF·Office (P2)
+### Phase 4: Office (P2)
 
-| 작업 | 설명 | 산고 |
-|------|------|------|
-| RTF 변환 | rtf → html (클라이언트 라이브러리 또는 API) | 복잡도 중 |
-| Office 변환 | docx/xlsx/pptx → html 또는 텍스트 (서버) | 복잡도 높음 |
+| 작업 | 설명 | 산출물 |
+|------|------|--------|
+| Office 변환 | docx/xlsx/pptx → html 또는 텍스트 (서버) | docx, xlsx, pptx Tiptap/뷰어 표시 |
 
 ### Phase 5: NexusLens (추후)
 
@@ -232,7 +228,7 @@ const CODE_EXTENSIONS = [
 ```ts
 // Tiptap으로 열 파일
 const TIPTAP_EXTENSIONS = [
-  'txt', 'csv', 'rtf',           // 문서
+  'txt', 'csv',                  // 문서
   'jpg','jpeg','png','gif','webp','svg','bmp','ico',  // 이미지
   'mp3','wav','ogg','flac','aac','m4a','wma',        // 오디오
   'mp4','webm','mkv','mov','avi','wmv','flv','m4v',  // 비디오
@@ -261,7 +257,7 @@ const NEXUS_LENS_EXTENSIONS = ['pdf', 'stl','obj','step','iges','3mf','ply', 'zi
 
 ## 8. 결론
 
-- **Tiptap**: 텍스트 문서(md, txt, html), 이미지, 오디오(Audio 확장), 비디오(Video 확장), CSV(Table 변환), RTF(변환) → **뷰·편집·추가** 모두 가능하도록 확장
+- **Tiptap**: 텍스트 문서(md, txt, html), 이미지, 오디오(Audio 확장), 비디오(Video 확장), CSV(Table 변환), Office(Phase 4) → **뷰·편집·추가** 가능하도록 확장
 - **Monaco**: 코드·설정·구조화 데이터 → 언어 지원 확대
 - **NexusLens/NexaScope**: PDF, 3D, 압축 → 추후 지능형 뷰어로 별도 기획
 
