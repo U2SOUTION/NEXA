@@ -1,11 +1,11 @@
 <template>
   <div class="ai-placeholder-editor">
-    <q-icon name="videocam" size="64px" class="placeholder-icon" />
-    <div class="text-h6 q-mb-xs">Video Editor</div>
+    <q-icon name="animation" size="64px" class="placeholder-icon" />
+    <div class="text-h6 q-mb-xs">Animation Editor</div>
     <div class="text-body2 text-grey-7">(준비 중)</div>
     <div class="text-caption text-grey-6 q-mt-sm text-center purpose-desc">
-      <div><strong>목적</strong> 비디오 재생·트림·썸네일 추출·메타편집</div>
-      <div class="q-mt-xs"><strong>포맷</strong> MP4, WebM, MOV, AVI, MKV 등</div>
+      <div><strong>목적</strong> 모션 그래픽 뷰·타임라인·재생 제어</div>
+      <div class="q-mt-xs"><strong>포맷</strong> GIF, Lottie(JSON), APNG 등</div>
     </div>
   </div>
 </template>

@@ -1,11 +1,11 @@
 <template>
   <div class="ai-placeholder-editor">
-    <q-icon name="videocam" size="64px" class="placeholder-icon" />
-    <div class="text-h6 q-mb-xs">Video Editor</div>
+    <q-icon name="text_fields" size="64px" class="placeholder-icon" />
+    <div class="text-h6 q-mb-xs">Font Editor</div>
     <div class="text-body2 text-grey-7">(준비 중)</div>
     <div class="text-caption text-grey-6 q-mt-sm text-center purpose-desc">
-      <div><strong>목적</strong> 비디오 재생·트림·썸네일 추출·메타편집</div>
-      <div class="q-mt-xs"><strong>포맷</strong> MP4, WebM, MOV, AVI, MKV 등</div>
+      <div><strong>목적</strong> 폰트 미리보기·글리프 확인·웹폰트 테스트</div>
+      <div class="q-mt-xs"><strong>포맷</strong> TTF, OTF, WOFF, WOFF2 등</div>
     </div>
   </div>
 </template>

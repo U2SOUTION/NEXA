@@ -10,7 +10,7 @@ const LAYOUT_KEY = 'nexa-ai-split-layout'
 export const SPLIT_LIMITS: { minPct: number; maxPct: number } = { minPct: 5, maxPct: 90 }
 
 const DEFAULT_LEFT = ['dialogue']
-const DEFAULT_CENTER = ['narrative', 'logic', 'vision', 'sense', 'nexus']
+const DEFAULT_CENTER = ['narrative', 'logic', 'media', 'sense', 'nexus']
 const DEFAULT_RIGHT = ['explorer']
 
 const DEFAULT_SIZES = { left: 22, center: 56, right: 22 }
@@ -23,19 +23,21 @@ const LEGACY_ID_MAP: Record<string, string> = {
   editor: 'narrative',
   code: 'logic',
   viewer: 'sense',
-  image: 'vision',
-  audio: 'vision',
-  video: 'vision',
+  image: 'media',
+  audio: 'media',
+  video: 'media',
+  vision: 'media',
+  medium: 'media',
 }
 
 function toNewPanelId(id: string): string {
   return LEGACY_ID_MAP[id] ?? id
 }
 
-/** 저장된 centerPanelIds (레거시 ID → 새 ID 마이그레이션, image/audio/video → vision 통합) */
+/** 저장된 centerPanelIds (레거시 ID → 새 ID 마이그레이션, image/audio/video/vision/medium → media) */
 function migrateCenterPanelIds(saved: string[] | undefined): string[] {
   let list = Array.isArray(saved) ? saved.map(toNewPanelId) : [...DEFAULT_CENTER]
-  list = [...new Set(list)] // vision 중복 제거
+  list = [...new Set(list)] // media 중복 제거
   const newDefaults = DEFAULT_CENTER.filter((id) => !list.includes(id))
   if (newDefaults.length) list = [...list, ...newDefaults]
   const senseIdx = list.indexOf('sense')
@@ -180,7 +182,7 @@ export function applyPreset(preset: 'default' | 'code') {
     explorerViewMode.value = 'list'
   } else if (preset === 'code') {
     leftPanelIds.value = ['dialogue']
-    centerPanelIds.value = ['logic', 'narrative', 'vision', 'sense', 'nexus']
+    centerPanelIds.value = ['logic', 'narrative', 'media', 'sense', 'nexus']
     rightPanelIds.value = ['explorer']
     leftVisible.value = true
     centerVisible.value = true
