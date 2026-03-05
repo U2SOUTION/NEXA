@@ -25,15 +25,51 @@
           <div class="universal-viewer-video column">
             <div class="media-preview-header column items-center q-pa-sm">
               <h2 class="media-player-title">NEXA Video Player</h2>
-              <span class="media-player-subtitle">영상 미리보기</span>
             </div>
-            <div class="media-options row q-px-sm q-pb-xs wrap q-gutter-x-sm q-gutter-y-xs">
+            <div class="media-options row q-px-sm q-pb-sm q-gutter-x-sm items-center no-wrap">
               <q-toggle v-model="videoAutoplay" dense label="자동 재생" />
               <q-toggle v-model="videoLoop" dense label="반복 재생" />
               <q-toggle v-model="videoMuted" dense label="음소거" />
+              <div class="video-speed-wrap row items-center no-wrap q-pl-sm">
+                <q-slider v-model="videoPlaybackRate" :min="0.25" :max="10" :step="0.25" color="primary" class="video-speed-slider" />
+                <span class="video-speed-value text-caption text-weight-medium q-pl-xs">{{ videoPlaybackRate }}×</span>
+              </div>
             </div>
-            <video v-if="previewUrl" ref="videoEl" controls class="preview-video q-px-sm q-pb-sm" :src="previewUrl" :autoplay="videoAutoplay" :loop="videoLoop" :muted="videoMuted">이 브라우저는 영상 재생을 지원하지 않습니다.</video>
+            <video
+              v-if="previewUrl"
+              ref="videoEl"
+              controls
+              class="preview-video q-px-sm q-pb-sm"
+              :src="previewUrl"
+              :autoplay="videoAutoplay"
+              :loop="videoLoop"
+              :muted="videoMuted"
+              @loadedmetadata="onVideoLoadedMetadata"
+              @loadeddata="updateVideoMeta"
+              @timeupdate="updateVideoMeta"
+              @durationchange="updateVideoMeta"
+              @play="updateVideoMeta"
+              @pause="updateVideoMeta"
+              @ended="updateVideoMeta"
+            >
+              이 브라우저는 영상 재생을 지원하지 않습니다.
+            </video>
             <div v-else class="text-grey-6 text-center q-pa-md">재생할 수 있는 주소가 없습니다.</div>
+            <template v-if="previewUrl">
+              <div class="video-capture-bar row q-px-sm q-pt-sm q-pb-xs items-center q-gutter-sm">
+                <q-btn dense outline color="primary" icon="photo_camera" label="캡처" @click="captureVideoFrame" />
+              </div>
+              <div v-if="videoCaptures.length" class="video-captures row q-px-sm q-pb-sm wrap q-gutter-xs">
+                <div v-for="(cap, idx) in videoCaptures" :key="idx" class="video-capture-thumb">
+                  <img :src="cap.dataUrl" :alt="`캡처 ${idx + 1}`" class="video-capture-thumb-img" />
+                  <span class="video-capture-thumb-time text-caption">{{ formatCaptureTime(cap.time) }}</span>
+                </div>
+              </div>
+              <div v-if="Object.keys(videoMeta).length" class="video-meta q-px-sm q-pb-sm">
+                <div class="text-caption text-weight-medium q-mb-xs">비디오 메타 정보</div>
+                <pre class="video-meta-pre">{{ videoMetaText }}</pre>
+              </div>
+            </template>
           </div>
         </template>
         <template v-else-if="isAudio">
@@ -186,6 +222,85 @@ const videoEl = ref(null)
 const videoAutoplay = ref(false)
 const videoLoop = ref(false)
 const videoMuted = ref(false)
+/** HTML5 playbackRate (1 = 정상). 배속 컨트롤, 슬라이더 0.25 ~ 10× */
+const videoPlaybackRate = ref(1)
+/** 캡처한 프레임 썸네일 목록. { dataUrl, time } */
+const videoCaptures = ref([])
+/** HTML5 비디오 메타 정보 (화면 출력용) */
+const videoMeta = ref({})
+
+const READY_STATE = ['HAVE_NOTHING', 'HAVE_METADATA', 'HAVE_CURRENT_DATA', 'HAVE_FUTURE_DATA', 'HAVE_ENOUGH_DATA']
+const NETWORK_STATE = ['NETWORK_EMPTY', 'NETWORK_IDLE', 'NETWORK_LOADING', 'NETWORK_NO_SOURCE']
+
+function updateVideoMeta() {
+  const el = videoEl.value
+  if (!el) return
+  const d = el.duration
+  videoMeta.value = {
+    currentSrc: el.currentSrc || '',
+    duration: Number.isFinite(d) ? d : null,
+    durationFormatted: Number.isFinite(d) ? formatCaptureTime(d) : '--:--',
+    currentTime: el.currentTime,
+    currentTimeFormatted: formatCaptureTime(el.currentTime),
+    videoWidth: el.videoWidth,
+    videoHeight: el.videoHeight,
+    readyState: el.readyState,
+    readyStateLabel: READY_STATE[el.readyState] ?? String(el.readyState),
+    networkState: el.networkState,
+    networkStateLabel: NETWORK_STATE[el.networkState] ?? String(el.networkState),
+    paused: el.paused,
+    ended: el.ended,
+    muted: el.muted,
+    volume: el.volume,
+    playbackRate: el.playbackRate,
+    defaultPlaybackRate: el.defaultPlaybackRate,
+    loop: el.loop,
+    autoplay: el.autoplay,
+    preload: el.preload,
+    error: el.error ? `${el.error.code} ${el.error.message}` : null,
+  }
+}
+
+const videoMetaText = computed(() => {
+  const m = videoMeta.value
+  if (!m || !Object.keys(m).length) return ''
+  return Object.entries(m)
+    .map(([k, v]) => `${k}: ${v === true ? 'true' : v === false ? 'false' : v}`)
+    .join('\n')
+})
+
+function onVideoLoadedMetadata() {
+  const el = videoEl.value
+  if (el && typeof videoPlaybackRate.value === 'number') el.playbackRate = videoPlaybackRate.value
+  updateVideoMeta()
+}
+
+function captureVideoFrame() {
+  const el = videoEl.value
+  if (!el || el.readyState < 2) return
+  const w = el.videoWidth
+  const h = el.videoHeight
+  if (!w || !h) return
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.drawImage(el, 0, 0, w, h)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    videoCaptures.value = [...videoCaptures.value, { dataUrl, time: el.currentTime }]
+  } catch (e) {
+    console.warn('[UniversalViewer] video capture failed (e.g. CORS):', e)
+  }
+}
+
+function formatCaptureTime(sec) {
+  if (sec == null || Number.isNaN(sec)) return '--:--'
+  const m = Math.floor(sec / 60)
+  const s = Math.floor(sec % 60)
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
 
 const csvPagination = ref({ rowsPerPage: 0 })
 const csvTableWrapperRef = ref(null)
@@ -512,6 +627,8 @@ watch(
     officeXlsxRows.value = []
     officeFetchError.value = false
     officeErrorMessage.value = ''
+    videoCaptures.value = []
+    videoMeta.value = {}
     if (!file) return
     const name = (file.original_name || file.file_path || '').toLowerCase()
     if (name.endsWith('.md') && !file.content && (file.file_path || file.url)) {
@@ -521,6 +638,15 @@ watch(
     } else if (['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'].some((e) => name.endsWith(e)) && (file.file_path || file.url)) {
       fetchOfficeFile()
     }
+  },
+  { immediate: true },
+)
+
+/** HTML5 비디오 배속: playbackRate 반영 */
+watch(
+  [videoPlaybackRate, videoEl],
+  ([rate, el]) => {
+    if (el && typeof rate === 'number') el.playbackRate = rate
   },
   { immediate: true },
 )
@@ -595,6 +721,18 @@ onBeforeUnmount(() => {
   color: rgba(255, 255, 255, 0.6);
   margin-top: 2px;
 }
+.video-speed-wrap {
+  flex: 1;
+  min-width: 0;
+}
+.video-speed-wrap .video-speed-slider {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+.video-speed-value {
+  flex-shrink: 0;
+}
 .media-options {
   flex-shrink: 0;
 }
@@ -603,6 +741,43 @@ onBeforeUnmount(() => {
   max-height: 100%;
   object-fit: contain;
   flex-shrink: 0;
+}
+.video-capture-bar {
+  flex-shrink: 0;
+}
+.video-captures {
+  flex-shrink: 0;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.video-capture-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.video-capture-thumb-img {
+  width: 100px;
+  height: auto;
+  max-height: 72px;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid var(--nexa-border-color);
+}
+.video-capture-thumb-time {
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+.video-meta {
+  flex-shrink: 0;
+}
+.video-meta-pre {
+  margin: 0;
+  padding: 8px;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 .preview-audio {
   max-width: 100%;
@@ -615,6 +790,23 @@ onBeforeUnmount(() => {
   flex: 1;
   border: none;
 }
+
+.markdown-content {
+  padding: 0 5px 0 10px;
+  // 테이블 셀 오버플로우 방지위해 줄바꿈 등 추가
+  :deep(table) {
+    width: 100%;
+    table-layout: fixed;
+    word-break: break-word;
+  }
+
+  :deep(td),
+  :deep(th) {
+    word-break: break-word;
+    white-space: normal;
+  }
+}
+
 .universal-viewer-memo {
   width: 100%;
   flex: 1;
@@ -647,6 +839,7 @@ onBeforeUnmount(() => {
 .universal-viewer-json :deep(.json-literal) {
   color: var(--nexa-json-literal, var(--nexa-warning, #ffc107));
 }
+
 .universal-viewer-csv {
   flex: 1;
   min-height: 0;

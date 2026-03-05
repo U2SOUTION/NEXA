@@ -1,15 +1,6 @@
 <template>
   <div class="ai-explorer-panel column" @contextmenu.prevent="onContextMenuTrigger">
-    <GlobalFileExplorer
-      mode="embed"
-      class="col ai-explorer-embed"
-      :tree-width="explorerTreeWidth"
-      :view-mode="explorerViewMode"
-      @update:tree-width="onExplorerTreeWidthUpdate"
-      @update:view-mode="onExplorerViewModeUpdate"
-      @select="onSelect"
-      @contextmenu="onContextMenu"
-    />
+    <GlobalFileExplorer mode="embed" class="col ai-explorer-embed" :tree-width="explorerTreeWidth" :view-mode="explorerViewMode" @update:tree-width="onExplorerTreeWidthUpdate" @update:view-mode="onExplorerViewModeUpdate" @select="onSelect" @contextmenu="onContextMenu" />
     <div v-if="selectedFile" class="action-bar row items-center q-pa-sm q-gutter-sm flex-wrap">
       <span class="text-caption text-grey-7">선택: {{ selectedFile.original_name }}</span>
       <q-btn dense flat size="sm" label="미디어에 추가" icon="library_add" @click="addToMedia" :loading="addingToMedia" />
@@ -28,7 +19,7 @@
         </q-item>
         <q-item clickable v-close-popup @click="injectToChat">
           <q-item-section avatar><q-icon name="chat" /></q-item-section>
-          <q-item-section>네레이션에 넣기</q-item-section>
+          <q-item-section>네러티브에 넣기</q-item-section>
         </q-item>
         <q-item clickable v-close-popup @click="injectToEditor">
           <q-item-section avatar><q-icon name="edit_note" /></q-item-section>
