@@ -66,7 +66,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { getFileIconByType, getCategoryLabel } from '@system/utils/fileExplorer'
+import { getFileIconForItem, getCategoryLabel } from '@system/utils/fileExplorer'
 
 const ROW_HEIGHT = 40
 const TABLE_HEADER_HEIGHT = 40
@@ -131,7 +131,7 @@ function formatDate(ts) {
 }
 
 function getFileIcon(item) {
-  return getFileIconByType(item?.file_type || item?.category)
+  return getFileIconForItem(item)
 }
 
 function getTypeLabel(item) {

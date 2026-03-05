@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { getFileIconByType } from '@system/utils/fileExplorer'
+import { getFileIconForItem } from '@system/utils/fileExplorer'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 
 defineProps({
@@ -124,7 +124,7 @@ function isVideo(item) {
 }
 
 function getFileIcon(item) {
-  return getFileIconByType(item?.file_type || item?.category)
+  return getFileIconForItem(item)
 }
 
 function onThumbError(evt) {

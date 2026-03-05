@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { getFileIconByType } from '@system/utils/fileExplorer'
+import { getFileIconForItem } from '@system/utils/fileExplorer'
 
 const props = defineProps({
   items: { type: Array, default: () => [] },
@@ -64,7 +64,7 @@ function formatSize(bytes) {
 }
 
 function getFileIcon(item) {
-  return getFileIconByType(item?.file_type || item?.category)
+  return getFileIconForItem(item)
 }
 </script>
 

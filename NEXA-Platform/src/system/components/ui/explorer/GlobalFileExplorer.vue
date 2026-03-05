@@ -13,6 +13,7 @@
         dense
         no-caps
         size="sm"
+        class="view-mode-toggle"
       />
     </div>
     <q-splitter v-model="splitterModel" unit="px" :limits="[120, 600]" class="col">
@@ -25,11 +26,7 @@
         </div>
       </template>
       <template #after>
-        <div
-          ref="listSectionRef"
-          class="list-section column explorer-right"
-          :style="listSectionStyle"
-        >
+        <div ref="listSectionRef" class="list-section column explorer-right" :style="listSectionStyle">
           <ExplorerViewList v-if="viewModeModel === 'list'" :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
           <ExplorerViewCard v-else-if="viewModeModel === 'card'" :items="displayedItems" :list-loading="listLoading" :list-error="listError" :selected-file="selectedFile" :has-more="hasMore" @select="onSelectFile" @load-more="loadMore" @contextmenu="onContextMenu" />
           <ExplorerViewTable
@@ -328,6 +325,11 @@ onBeforeUnmount(() => {
 }
 .explorer-top-bar {
   border-bottom: 1px solid var(--nexa-border-color);
+}
+/* 토글 버튼(목록/카드/테이블) 각각의 좌우 패딩 */
+.view-mode-toggle :deep(.q-btn) {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 .explorer-right,
 .list-section {
