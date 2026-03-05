@@ -82,7 +82,7 @@ NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터
 | **Dialogue** | `dialogue` | Chat | 지능형 대화: AI 페르소나와 소통하며 모든 워크스페이스의 맥락을 연결하는 협업 인터페이스 |
 | **Narrative** | `narrative` | Tiptap | 서사 생성기: 파편화된 데이터를 엮어 철학적 의미와 인과관계를 기록하는 지식의 중심지 |
 | **Logic** | `logic` | Monaco | 논리 설계기: 기계적 엄격성에 기반한 제어 코드와 시스템 로직을 설계하고 시뮬레이션 |
-| **Vision** | `vision` | 통합미디어편집기 | 비전 창작기: 이미지, 영상, 음원에서 예술적 메타포를 발굴하고 멀티모달 AI와 협업하는 공간. 패널로 미디어 타입 대응 |
+| **Media** | `media` | 통합미디어편집기 | 미디어 창작기: 이미지, 영상, 음원에서 예술적 메타포를 발굴하고 멀티모달 AI와 협업하는 공간. 패널로 미디어 타입 대응 |
 | **Sense** | `sense` | UniversalViewer | 편집 대상이 아닌 **팩트(Raw Data)**를 관측하고, 그 위에 AI가 덧입힌 **인사이트**와 **메타포**를 함께 조망하는 통찰의 렌즈 |
 | **Nexus** | `nexus` | Graph | 지능형 신경망: 모든 노드와 엣지의 관계를 시각적으로 설계하고 추론하는 최상위 지휘본부. **8.6 참조** |
 | **Explorer** | `explorer` | Explorer | 자산 탐색기: 내/외부(Internal/External) 자산을 탐색·선택하고 채팅·에디터 등 시스템에 주입하는 입구 |
@@ -94,7 +94,7 @@ NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터
 | Dialogue | dialogue | chat | AiChatPanel |
 | Narrative | narrative | editor | AiEditorPanel (Tiptap) |
 | Logic | logic | code | AiCodeEditorPanel (Monaco) |
-| Vision | vision | (구) image, audio, video | **AiVisionPanel**: 단일 탭, 내부 하위 패널(이미지·음원·영상)로 파일 타입별 분기. 하위에 AiImageEditorPanel, AiAudioEditorPanel, AiVideoEditorPanel 사용 |
+| Media | media | (구) image, audio, video, vision | **AiMediaPanel**: 단일 탭, 내부 하위 패널(이미지·음원·영상)로 파일 타입별 분기. 하위에 AiImageEditorPanel, AiAudioEditorPanel, AiVideoEditorPanel 사용 |
 | Sense | sense | viewer | AiUniversalViewerPanel |
 | Nexus | nexus | nexus | **AiNexusPanel**: Graph/Map (8.6). 현재 플레이스홀더, 추후 노드·엣지 시각화 구현 |
 | Explorer | explorer | explorer | AiExplorerPanel |
@@ -1031,7 +1031,7 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 
 | 항목 | 내용 |
 |------|------|
-| **용어** | 워크스페이스(최상위), **탭**(Dialogue/Narrative/Logic/Vision/Sense/Nexus/Explorer, 정식 ID는 §1.4. 레거시: editor/code/chat/viewer/explorer 등 §1.5), **패널**(탭 내 파일 1개 = 패널 1개), 배치 관리(QSplitter+Pinia). **Sense** 탭은 읽기 전용 멀티 뷰어(1.6 참조). **Nexus** 탭 표시명 "Nexus", 문서상 Nexus Map(8.6 참조) |
+| **용어** | 워크스페이스(최상위), **탭**(Dialogue/Narrative/Logic/Media/Sense/Nexus/Explorer, 정식 ID는 §1.4. 레거시: editor/code/chat/viewer/explorer 등 §1.5), **패널**(탭 내 파일 1개 = 패널 1개), 배치 관리(QSplitter+Pinia). **Sense** 탭은 읽기 전용 멀티 뷰어(1.6 참조). **Nexus** 탭 표시명 "Nexus", 문서상 Nexus Map(8.6 참조) |
 | **레이아웃** | 프레임(left/content/right) + 워크스페이스 내 3영역 스플릿 |
 | **이벤트 전달** | **mitt** 이벤트 버스 (`ai:insert-request`, `ai:inject-to-chat` 등). 기존 useAiInsertRequest·useAiExplorerSelection·useAiMediaTab 콜백을 mitt로 전환·보완 |
 | **상태 공유** | useAiChannels, useAiSplitLayout, useAiSettings 모듈 레벨 ref → **1단계에서 Pinia 전환 검토** |

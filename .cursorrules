@@ -130,6 +130,7 @@ NEXA-Documentation/
 - ❌ class="text-positive text-negative text-info"
 
 **Bad Practices:**
+- ❌ **CSS 변수 폴백 사용 금지**: `var(--nexa-border-color, #e0e0e0)` 처럼 콤마 뒤 폴백 색상/값을 넣지 말 것. `var(--nexa-border-color)` 만 사용.
 - ❌ Inline color styles: `:style="{ color: '#fff' }"`
 - ❌ **Multiple unnecessary wrapper divs (가장 흔한 실수!)**
 - ❌ **2중, 3중 래퍼 요소 (절대 금지!)**
@@ -152,6 +153,7 @@ NEXA-Documentation/
 - ✅ `var(--nexa-text-primary)`
 - ✅ `var(--nexa-button-primary-bg)`
 - ✅ All variables follow: `--nexa-{category}-{property}` pattern
+- ❌ **폴백(fallback) 사용 금지**: `var(--nexa-xxx, #색상)` 테마에서 정의된 변수만 사용.
 
 **File Locations:**
 - Theme files: `NEXA-Platform/src/css/themes/dark.scss`, `NEXA-Platform/src/css/themes/light.scss`

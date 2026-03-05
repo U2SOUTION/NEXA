@@ -1,6 +1,6 @@
 /**
  * CSV → Tiptap Table HTML 변환
- * [NEXA-AI-07] Phase 2: UniversalViewer의 parseCsv 활용, 행 제한 3000
+ * 구 Tiptap/Monaco 최대 뷰 기획(문서 제거됨). Phase 2: UniversalViewer의 parseCsv 활용, 행 제한 3000
  *
  * ## CSV 뷰 전략 (Tiptap vs UniversalViewer)
  *

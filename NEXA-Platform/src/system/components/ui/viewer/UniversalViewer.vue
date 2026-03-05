@@ -1,5 +1,5 @@
 <!--
-  UniversalViewer: 당분간 보존. [NEXA-AI-07] 추후 NexusLens로 대체 예정.
+  UniversalViewer: 당분간 보존. 구 Tiptap/Monaco 최대 뷰 기획(문서 제거·달성 완료). 추후 NexusLens로 대체 예정.
 
   CSV: q-table + virtual-scroll로 수만 행도 가볍게 표시.
   현재 CSV는 Tiptap 에디터에 삽입되도록 라우팅됨. UniversalViewer로 보려면
@@ -556,7 +556,10 @@ onBeforeUnmount(() => {
 }
 .universal-viewer-header {
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--nexa-border-color);
+  background: var(--nexa-background-darker);
+  color: var(--nexa-text-primary);
+  font-weight: 600;
 }
 .universal-viewer-body {
   flex: 1;

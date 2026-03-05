@@ -1,7 +1,10 @@
 <template>
   <div class="ai-split-layout column">
     <header class="ai-split-header">
-      <span class="ai-split-title">NEXA AI</span>
+      <div class="ai-split-title-block">
+        <span class="ai-split-brand">NEXA AI</span>
+        <span class="ai-split-workspace">Workspace</span>
+      </div>
       <div class="ai-split-menu">
         <q-btn-dropdown flat dense no-caps no-wrap class="menu-dropdown" label="파일" icon="folder_open">
           <q-list dense style="min-width: 160px">
@@ -352,13 +355,37 @@ watch(remaining, (rem) => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-bottom: 1px solid var(--nexa-border-color, #e0e0e0);
+  padding: 1px 0.5rem;
+  margin: 0;
+  border-bottom: 1px solid var(--nexa-border-color);
 }
 
-.ai-split-title {
+.ai-split-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 0.6;
+  padding: 0;
+  margin: 0;
+}
+
+.ai-split-brand {
+  font-size: 0.6rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--nexa-text-secondary);
+  letter-spacing: 0.02em;
+  padding: 0;
+  margin: 0;
+}
+
+.ai-split-workspace {
+  font-size: 0.9rem;
   font-weight: 600;
-  font-size: 0.95rem;
+  line-height: 0.8;
+  color: var(--nexa-text-primary);
+  padding: 0;
+  margin: 0;
 }
 
 .ai-split-menu {
@@ -368,13 +395,13 @@ watch(remaining, (rem) => {
 
 .menu-item {
   font-size: 0.85rem;
-  color: var(--nexa-text-secondary, #666);
+  color: var(--nexa-text-secondary);
   cursor: default;
 }
 
 .menu-dropdown {
   font-size: 0.85rem;
-  color: var(--nexa-text-secondary, #666);
+  color: var(--nexa-text-secondary);
 }
 
 .ai-split-actions {
@@ -491,7 +518,7 @@ watch(remaining, (rem) => {
 /* 드롭 대상 피드백: 테두리 + 배경 강조 */
 .ai-draggable-tab--drop-target {
   background: rgba(25, 118, 210, 0.15) !important;
-  outline: 2px solid var(--q-primary, #1976d2);
+  outline: 2px solid var(--q-primary);
   outline-offset: 2px;
   border-radius: 6px;
 }
