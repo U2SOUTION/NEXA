@@ -248,7 +248,7 @@ AI에는 **JSON Schema**(zod-to-json-schema 등으로 변환) 또는 Zod 스키�
 |------|------|
 | `docs/[NEXA-AI-05] 룰_프롬프트_통합_관리_기획.md` | Rule Manager, 스코프별 룰 할당. 메타포 추출 시 `metadata_extract` Consumer, `image.machine`/`image.philosophy` 등 스코프 연동 (§4.1) |
 | `docs/AI_드롭존_첨부_기능_플랜.md` | files 테이블, source_metadata §4.4.5, **file_embeddings** (벡터 BLOB, model_id, dimension) §4.4.2 |
-| `database/create_files_tables.sql` | files.source_metadata JSON NULL |
+| `database/init_postgres.sql` | files.source_metadata JSONB |
 | `server/domains/ai/ai.service.js` | Vercel AI SDK, generateText, Ollama provider |
 | `server/config/aiConfig.js` | OLLAMA_URL |
 | [Vercel AI SDK - Generating Structured Data](https://sdk.vercel.ai/docs/ai-sdk-core/generating-structured-data) | generateObject, Zod/JSON Schema |

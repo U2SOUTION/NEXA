@@ -581,7 +581,7 @@ CREATE TABLE file_action_log (
 
 #### 4.9.4 참고
 
-- parts 도메인: `SELECT FOR UPDATE` + `file_upload_count`로 순차 번호 충돌 방지 (`database/file_upload_logic_final.md`)
+- parts 도메인: `SELECT FOR UPDATE` + `file_upload_count`로 순차 번호 충돌 방지 (`docs/database/file_upload_logic_final.md`)
 - files 도메인: sequence 대신 content_hash 기반이므로 UNIQUE + 복구 플로우 적용
 
 #### 4.9.5 UNIQUE KEY uk_path (file_path)
@@ -643,7 +643,7 @@ uploads/{domain}/{category}/{YYYY-MM-DD}/{YYYYMMDDHHmmss}_{shortUuid}.ext
 
 ## 5.4 파일명 규칙 (원본 vs 저장 파일명)
 
-**기존 참고**: `server/utils/fileUpload.js` (partsCreateSafeFilename, partsGenerateFilename), `database/file_upload_logic_final.md`, parts 한글 인코딩 복구 로직
+**기존 참고**: `server/utils/fileUpload.js` (partsCreateSafeFilename, partsGenerateFilename), `docs/database/file_upload_logic_final.md`, parts 한글 인코딩 복구 로직
 
 ### 원칙
 

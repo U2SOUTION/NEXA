@@ -1,6 +1,6 @@
 /**
  * SKU 생성 유틸리티
- * 문서: file_upload_logic_final.md 참고
+ * 문서: docs/database/file_upload_logic_final.md 참고
  * 
  * 부품 계층 구조에 따라 SKU를 생성합니다:
  * - 1레벨 (part_classes): {대분류약어}-{C코드}

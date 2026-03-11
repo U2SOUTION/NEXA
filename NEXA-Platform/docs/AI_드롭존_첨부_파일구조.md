@@ -47,10 +47,10 @@ server/
 
 ```
 database/
-└── create_files_tables.sql   # files, file_references
+└── init_postgres.sql   # files, file_references 포함 전체 스키마
 ```
 
-**실행**: `psql -U 사용자 -d DB명 -f database/create_files_tables.sql` (Postgres) 또는 DBeaver에서 스크립트 실행
+**실행**: `psql -U 사용자 -d DB명 -f database/init_postgres.sql` (Postgres) 또는 DBeaver에서 스크립트 실행
 
 ---
 
@@ -125,7 +125,7 @@ uploads/
 | `server/utils/fileUpload.js` | partsCreateSafeFilename, partsGenerateFilename (부품 전용), generateFolderPath, generateTimestampFilename, computeContentHash (범용) |
 | `src/system/components/ui/UploadProgress.vue` | 진행률 UI |
 | `src/engines/tiptap/BaseTiptapEditor.vue` | uploadHandler, context.source |
-| `database/file_upload_logic_final.md` | parts 한글 인코딩, sequence 로직 |
+| `docs/database/file_upload_logic_final.md` | parts 한글 인코딩, sequence 로직 |
 
 ---
 

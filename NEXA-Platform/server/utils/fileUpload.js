@@ -1,6 +1,6 @@
 /**
  * 파일 업로드 유틸리티
- * 문서: file_upload_logic_final.md 참고
+ * 문서: docs/database/file_upload_logic_final.md 참고
  *
  * 파일 저장, 파일명 생성, 폴더 생성 로직을 담당합니다.
  */

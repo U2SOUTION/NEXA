@@ -224,36 +224,26 @@ Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 | part_classes | parts | graphml (SQL 파일 없음) | parts.service.js |
 | part_models | parts | graphml (SQL 파일 없음) | partModels.routes.js |
 | part_specs | parts | graphml (SQL 파일 없음) | partSpecs.routes.js |
-| part_files | parts | `database/create_part_files_table.sql` | partFiles.routes.js |
-| files | AI/공통 | `database/create_files_tables.sql` | files.routes.js |
-| file_references | AI/공통 | `database/create_files_tables.sql` | files.routes.js |
-| ai_user_memos | AI | `database/create_ai_user_memos_table.sql` | aiUserMemos.routes.js |
+| part_files | parts | `database/init_postgres.sql` | partFiles.routes.js |
+| files | AI/공통 | `database/init_postgres.sql` | files.routes.js |
+| file_references | AI/공통 | `database/init_postgres.sql` | files.routes.js |
+| ai_user_memos | AI | `database/init_postgres.sql` | aiUserMemos.routes.js |
 | archives | archive | graphml (SQL 파일 없음) | archive.service.js, archive.routes.js, archive.js |
 | archive_doc | archive | graphml (SQL 파일 없음) | archive.service.js, archive.routes.js, archive.js |
 | system_templates | archive | graphml (SQL 파일 없음) | archive.service.js, archive.js (`category = 'LAYOUT'`) |
 
 - **추가 예정 (인증 단계)**: users, api_usage, device_registry, device_members, invitations, audit_log 등 ([NEXA-AUTH-01] §4)
-- **샘플 데이터**: `database/insert_sample_part_classes.sql` — part_classes 초기 데이터
+- **샘플 데이터**: part_classes 등 초기 데이터는 DBeaver/psql에서 수동 INSERT 또는 시드 스크립트로 추가.
 
 #### 3.1 스키마·SQL 파일 정합성
 
-**실제 `database/` 내 create_*.sql 목록**
+**실제 `database/` 내 스키마 파일 (Postgres 마이그레이션 후)**
 
-| 파일 | 테이블 | 비고 |
-|------|--------|------|
-| `create_part_files_table.sql` | part_files | FK → part_classes, part_models, part_specs 참조 |
-| `create_files_tables.sql` | files, file_references | |
-| `create_ai_user_memos_table.sql` | ai_user_memos | |
-| `create_triggers.sql` | — | updated_at 트리거: part_files, ai_user_memos, archives, archive_doc |
+| 파일 | 내용 | 비고 |
+|------|------|------|
+| `init_postgres.sql` | part_classes, part_models, part_specs, system_templates, archives, archive_doc, files, file_references, ai_user_memos, part_files + updated_at 트리거 | 통합 DDL. 실행 순서·FK 순서 포함 |
 
-**CREATE TABLE이 없는 테이블 (Postgres용 작성 필요)**
-
-| 테이블 | 스키마 참조 | 비고 |
-|--------|-------------|------|
-| part_classes, part_models, part_specs | `docs/nexa_db.graphml`, `database/file_upload_logic_final.md` | file_upload_logic_final.md에 ALTER·스펙 일부 존재. graphml이 전체 컬럼 정의 |
-| archives, archive_doc, system_templates | `docs/nexa_db.graphml` | **SQL 파일 전혀 없음**. graphml만 기준 |
-
-- **Phase 3 시**: graphml 기준으로 part_classes, part_models, part_specs, archives, archive_doc, system_templates용 Postgres `CREATE TABLE`을 신규 작성해야 함. create_part_files_table.sql은 part_classes 등이 선행 생성되어야 FK 오류가 나지 않음.
+**참고**: part_classes, part_models, part_specs, archives, archive_doc, system_templates, files, file_references, ai_user_memos, part_files는 모두 `init_postgres.sql`에 정의됨.
 
 **신규 테이블 작성 시 권장 절차**: DBeaver에서 MySQL 테이블 우클릭 → **Generate SQL** → DDL 추출 → MySQL 문법을 §4.1 기준으로 Postgres용으로 다듬기. graphml만 보고 작성하는 것보다 빠르고 누락을 줄일 수 있음.
 
@@ -310,7 +300,7 @@ CREATE TABLE part_files (
 
 ### 4.3 updated_at 자동 갱신 (Postgres)
 
-MySQL의 `ON UPDATE CURRENT_TIMESTAMP` 대체. **실제 트리거 정의**: `database/create_triggers.sql` 참조.
+MySQL의 `ON UPDATE CURRENT_TIMESTAMP` 대체. **실제 트리거 정의**: `database/init_postgres.sql` 하단 참조.
 
 - 공용 함수 `update_updated_at_column()` 생성
 - graphml 기준 `updated_at` 컬럼이 있는 테이블(part_files, ai_user_memos, archives, archive_doc 등)에 트리거 적용
@@ -470,7 +460,7 @@ router.get('/health/ready', async (req, res) => {
   - **AI/공통**: `aiUserMemos.routes.js`, `files.routes.js`
   - **인프라**: `databaseSchema.js`, `health.routes.js`, `server.js`
 - [x] `mysql2` 의존성 제거
-- [ ] **스모크 테스트**: §2.7.2 기준 DB 연결·CRUD·archive·files 등 핵심 플로우 검증 (로컬에서 Postgres 기동 후 수행)
+- [x] **스모크 테스트**: §2.7.2 기준 DB 연결·CRUD·archive·files 등 핵심 플로우 검증 (로컬 Postgres·데이터 주입·UI 출력 확인 완료)
 
 ### Phase 5: DB 스키마/뷰어 도구
 
@@ -478,14 +468,14 @@ router.get('/health/ready', async (req, res) => {
 - [x] `databaseSchema.js`: **전면 전환** 완료. execute→query, INFORMATION_SCHEMA→pg/information_schema·pg_catalog 쿼리, backup은 pg_dump 안내 응답
 - [ ] **프론트엔드 연동 테스트 집중**: DatabaseViewer.vue, DatabaseViewerHeader.vue 등 `/api/db` 소비 컴포넌트 — 테이블 목록·컬럼·인덱스·쿼리 실행·백업 등 전체 플로우 검증 (수동 확인)
 - [x] `DatabaseViewerHeader.vue`: "MySQL" → "PostgreSQL" 표시 수정
-- [x] UI·문서 내 **MySQL Workbench** 언급 → **DBeaver**로 수정 (PartClassesView, PartFilesView, PartSpecsView, DOCKER_DEPLOY.md, README_CSV_IMPORT.md, [NEXA-AI-05] 등)
+- [x] UI·문서 내 **MySQL Workbench** 언급 → **DBeaver**로 수정 (PartClassesView, PartFilesView, PartSpecsView, DOCKER_DEPLOY.md, docs/database/README_CSV_IMPORT.md, [NEXA-AI-05] 등)
 
 ### Phase 6: 문서·배포
 
-- [ ] **로컬 MySQL 완전 제거**: MySQL/MariaDB 컨테이너·설치본 중지·삭제, `.env`에 `MYSQL_*` 없음 확인. 앱은 Postgres만 사용.
+- [x] **로컬 MySQL 완전 제거**: `.env`에 `MYSQL_*` 없음 확인. Docker 이미지 정리(MySQL 이미지 없음, timescale/timescaledb만 유지). `database/stop_mysql_service.ps1` 추가·실행으로 Windows MySQL94 서비스 중지·자동시작 비활성화. `database/move_mysql_data.ps1` 제거.
 - [ ] 로컬 검증 완료 후 **Docker** 빌드 → **Ubuntu 서버** 배포 → 재검증 (§2.9)
 - [ ] Ubuntu: MySQL Docker·볼륨 **완전 제거**
-- [x] `DOCKER_DEPLOY.md`, `README_CSV_IMPORT.md` 등 MySQL Workbench 언급 → **DBeaver**로 수정 (Phase 5에서 반영)
+- [x] `DOCKER_DEPLOY.md`, `README_CSV_IMPORT.md` 등 MySQL Workbench 언급 → **DBeaver**로 수정 (Phase 5에서 반영. DOCKER_DEPLOY.md는 `docs/deploy/`, README_CSV_IMPORT.md·file_upload_logic_final.md는 `docs/database/`로 이동)
 - [ ] NEXA-Documentation 내 MySQL 참조 업데이트
 
 ### DBeaver 사용법 (간단 메모)

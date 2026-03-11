@@ -432,12 +432,6 @@ export const CATEGORY_ABBREVIATIONS = {
 - **최종 수정일**: 2024-12-19
 - **작성자**: NEXA Platform Development Team
 
-파일 업로드 기능 구현을 위한 파일 목록 정리 중입니다.
-
-[3 tools called]
-
-파일 업로드 기능 구현을 위한 파일 목록입니다.
-
 ## 구현 파일 목록
 
 ### Phase 1: 데이터베이스 스키마
@@ -446,8 +440,7 @@ export const CATEGORY_ABBREVIATIONS = {
 
    - part_classes, part_models, part_specs 테이블에 sku, file_upload_count 컬럼 추가
 
-2. `database/create_part_files_table.sql` (신규)
-   - part_files 테이블 생성
+2. `database/init_postgres.sql` — part_files·files·file_references 등 전체 스키마 포함
 
 ### Phase 2: 서버 API
 
