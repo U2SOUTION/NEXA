@@ -4,9 +4,9 @@
  */
 import { ApiErrorCode } from '@system/schemas/errors.js'
 import { toUserId } from '@system/types/ids.js'
-import type { AuthUser } from '../types/common.js'
-import { verifyAccess } from '../utils/jwtAuth.js'
-import { pool } from '../config/dbConfig.js'
+import type { AuthUser } from '@/types/common.js'
+import { verifyAccess } from '@/utils/jwtAuth.js'
+import { pool } from '@/config/dbConfig.js'
 import { deviceTokenAuth } from './deviceAuth.middleware.js'
 
 const AUTH_SKIP_PATHS = [

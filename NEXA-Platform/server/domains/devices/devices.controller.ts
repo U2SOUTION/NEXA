@@ -1,7 +1,7 @@
 /**
  * 디바이스 API 컨트롤러 [NEXA-AUTH-01] §5.2
  */
-import type { RequestLike, ResponseLike } from '../../types/request-response.js'
+import type { RequestLike, ResponseLike } from '@/types/request-response.js'
 import { createDeviceSchema, updateDeviceSchema } from '@system/schemas/devices.js'
 import { ApiErrorCode } from '@system/schemas/errors.js'
 import type { DeviceResponse } from './device.types.js'

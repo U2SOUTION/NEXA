@@ -1,6 +1,6 @@
 import { generateText, streamText } from 'ai'
 import { createOllama } from 'ollama-ai-provider-v2'
-import { OLLAMA_URL } from '../../config/aiConfig.js'
+import { OLLAMA_URL } from '@/config/aiConfig.js'
 
 function getBaseUrl(url) {
   const base = (url || OLLAMA_URL).replace(/\/+$/, '')

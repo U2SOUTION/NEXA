@@ -1,7 +1,7 @@
 // 개발 전용 파일 편집 API
 // ⚠️ 이 파일은 개발 환경에서만 사용됩니다. 프로덕션에는 포함되지 않습니다.
 
-import express from 'express'
+import { Router } from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs/promises'
@@ -9,7 +9,7 @@ import fs from 'fs/promises'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const router = express.Router()
+const router = Router()
 
 // 개발 환경 체크
 const isDev = process.env.NODE_ENV !== 'production'

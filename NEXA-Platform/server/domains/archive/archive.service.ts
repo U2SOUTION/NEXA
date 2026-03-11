@@ -1,4 +1,4 @@
-import { pool } from '../../config/dbConfig.js'
+import { pool } from '@/config/dbConfig.js'
 
 export async function fetchLayouts() {
   const { rows } = await pool.query("SELECT id, tpl_name, category, created_at FROM system_templates WHERE category = 'LAYOUT' ORDER BY created_at DESC")

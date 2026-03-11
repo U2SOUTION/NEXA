@@ -1,8 +1,8 @@
 import { Readable } from 'stream'
-import express from 'express'
+import { Router } from 'express'
 import { listModels, showModel, chat, chatStream, checkConnection, generateTitle } from './ai.service.js'
 
-const router = express.Router()
+const router = Router()
 
 /** SDK textStream(async iterable)을 Ollama 호환 NDJSON 라인 스트림으로 변환 */
 function ndjsonStreamFromTextStream(textStream) {

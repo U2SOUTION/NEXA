@@ -5,7 +5,7 @@
 
 import fs from 'fs/promises'
 import path from 'path'
-import { UPLOAD_BASE_DIR } from '../config/upload.js'
+import { UPLOAD_BASE_DIR } from '@/config/upload.js'
 
 /**
  * 업로드 폴더 초기화

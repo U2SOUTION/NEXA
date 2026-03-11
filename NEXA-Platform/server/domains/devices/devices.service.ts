@@ -4,10 +4,10 @@
  */
 import type { UserId, DeviceId } from '@system/types/ids.js'
 import type { CreateDevicePayload, UpdateDevicePayload, UpdateDeviceLastSeenPayload } from './device.types.js'
-import { pool } from '../../config/dbConfig.js'
-import { generateUuidV7 } from '../../config/uuidUtils.js'
-import redisClient from '../../config/redis.js'
-import { hashDeviceToken, deviceCacheKey, DEVICE_TOKEN_CACHE_TTL_SEC } from '../../utils/deviceToken.js'
+import { pool } from '@/config/dbConfig.js'
+import { generateUuidV7 } from '@/config/uuidUtils.js'
+import redisClient from '@/config/redis.js'
+import { hashDeviceToken, deviceCacheKey, DEVICE_TOKEN_CACHE_TTL_SEC } from '@/utils/deviceToken.js'
 
 export async function createDevice(userId: UserId, payload: CreateDevicePayload = {}) {
   const { name, device_type, mac_address } = payload

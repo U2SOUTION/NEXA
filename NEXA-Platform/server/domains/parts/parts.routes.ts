@@ -1,7 +1,7 @@
-import express from 'express'
+import { Router } from 'express'
 import { getPartClasses, getPartClassesTrash, getPartClassesTrashCount, getPartClassDetail, postPartClass, putPartClassesReorder, postPartClassesReinitialize, putPartClass, deletePartClass, postBulkDelete, postRestore, postBulkRestore, deletePermanent } from './parts.controller.js'
 
-const router = express.Router()
+const router = Router()
 
 // 주의: 순서 중요 (trash, reorder 등 상위 라우트를 먼저 배치)
 router.get('/part-classes', getPartClasses)

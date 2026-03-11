@@ -1,7 +1,7 @@
 // 데이터베이스 스키마 조회 API 라우트
-import express from 'express'
+import { Router } from 'express'
 
-const router = express.Router()
+const router = Router()
 
 /**
  * 데이터베이스 스키마 라우터 생성

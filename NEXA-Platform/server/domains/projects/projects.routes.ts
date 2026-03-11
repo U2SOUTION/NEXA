@@ -3,7 +3,7 @@
  * GET/POST /api/projects, GET/PATCH/DELETE /api/projects/:id
  * 인증: JWT 또는 X-Device-Token (미들웨어에서 처리)
  */
-import express from 'express'
+import { Router } from 'express'
 import {
   getProjects,
   postProject,
@@ -12,7 +12,7 @@ import {
   deleteProject,
 } from './projects.controller.js'
 
-const router = express.Router()
+const router = Router()
 
 router.get('/projects', getProjects)
 router.post('/projects', postProject)

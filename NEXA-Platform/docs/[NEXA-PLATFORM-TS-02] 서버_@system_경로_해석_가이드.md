@@ -1,13 +1,42 @@
-# [NEXA-PLATFORM-TS-02] 서버에서 @system/* 경로가 안 쓰이는 이유와 해결
+# [NEXA-PLATFORM-TS-02] 서버에서 @system/* 경로 해석 가이드
 
-## 왜 `@system/schemas/devices` 대신 상대 경로를 쓰나?
+## 현재 적용 상태 (방법 A 적용)
+
+- 서버에서는 **`@system/*`** 로 공용 스키마/타입을 import 하며, **상대 경로로 `src/system`을 참조하지 않음**.
+- **NodeNext** 사용 시 path 매핑으로 해석할 때 **확장자 `.js`를 반드시 붙임** (아래 참고).
+- 서버 내부 모듈은 **`@/`** alias로 통일 (예: `@/config/dbConfig.js`, `@/types/common.js`).
+
+---
+
+## NodeNext에서 @system/* import 시 `.js` 확장자 필수
+
+**요약**: 서버 **소스 파일은 모두 `.ts`** 이다. **import 문 안의 경로만** `.../devices.js` 처럼 **`.js`로 쓴다**.  
+(파일을 .ts에서 .js로 바꾼 것이 아니라, ESM 규칙에 맞추기 위한 **경로 표기**이다.)
+
+서버 tsconfig가 `"moduleResolution": "NodeNext"` 일 때, **확장자 없이** `@system/schemas/devices`처럼 쓰면 TypeScript가 해당 경로를 **디렉터리**로만 해석해 `devices.ts` 파일을 찾지 못하고 "모듈을 찾을 수 없습니다"가 난다.
+
+- **해결**: import 경로에 **emit 결과 확장자 `.js`** 를 붙인다.  
+  예: `import { ... } from '@system/schemas/devices.js'`  
+  (실제 디스크에는 `devices.ts`가 있고, TypeScript가 타입 체크 시 그 `.ts`를 찾아 쓴다. 런타임에는 빌드 결과인 `.js`를 참조하는 셈이다.)
+
+서버에서 `@system` 사용 예:
+
+```ts
+import { createDeviceSchema } from '@system/schemas/devices.js'
+import { ApiErrorCode } from '@system/schemas/errors.js'
+import type { UserId, DeviceId } from '@system/types/ids.js'
+```
+
+---
+
+## 왜 `@system/*`가 안 쓰였나? (과거 원인 정리)
 
 ### 1. 프로젝트가 둘로 나뉘어 있음
 
 - **루트 tsconfig** (`NEXA-Platform/tsconfig.json`): `include`에 **`src/**`만** 있음.  
   → 프론트/Quasar용. **`server/`는 포함되지 않음.**
 - **서버 tsconfig** (`server/tsconfig.json`): `include`에 **`server/**` + `../src/system/schemas/**`, `../src/system/types/**`** 가 있음.  
-  → 서버 전용. `paths`에 `"@system/*": ["../src/system/*"]` 있음.
+  → 서버 전용. `paths`에 `"@system/*": ["./../src/system/*"]`, `"@/*": ["./*"]` 있음.
 
 서버 코드는 **서버 tsconfig**로만 보면 `@system/*`가 정상 해석되어야 합니다.
 
@@ -31,7 +60,7 @@
 
 - **`@system/*`를 못 쓰는 직접적인 이유**:  
   **서버 파일을 타입 체크할 때, `paths`에 `@system/*`가 있는 서버 tsconfig가 아니라, `@system/*`가 없거나 다른 루트(프론트) tsconfig가 쓰이기 때문**입니다.
-- **그래서 당장은** 경로 해석이 **항상 같은 방식으로 되도록** `@system/*` 대신 **상대 경로**(`../../../src/system/schemas/...`)를 쓰고 있습니다.
+- 현재는 **방법 A**를 적용해 `@system/*.js` 로 import 하고 있음.
 
 ---
 
@@ -39,24 +68,20 @@
 
 ### 방법 A: IDE가 서버 tsconfig를 쓰게 하기 (권장)
 
-1. **서버 tsconfig 유지**
-   - `server/tsconfig.json`에  
-     `"paths": { "@system/*": ["../src/system/*"] }`,  
-     `"include"`에 `"../src/system/schemas/**/*.ts"`, `"../src/system/types/**/*.ts"` 유지.
-   - `rootDir`을 `".."`로 두어, `../src`가 같은 프로젝트에 묶이게 함 (이미 그렇게 되어 있으면 유지).
+1. **서버 tsconfig**
+   - `"paths": { "@system/*": ["./../src/system/*"], "@/*": ["./*"] }`
+   - `"include"`에 `"../src/system/schemas/**/*.ts"`, `"../src/system/types/**/*.ts"` 유지.
+   - `rootDir: ".."` 등 필요 시 유지.
 
-2. **IDE 설정**
-   - VSCode/Cursor에서:
-     - **TypeScript: Select TypeScript Version** → 워크스페이스/사용 중인 TS 버전 확인.
-     - 서버 파일만 열고 **“이 파일에 적용된 tsconfig”**가 `server/tsconfig.json`인지 확인.
+2. **import 규칙** (아래 3번도 참고). IDE: 서버 파일만 열고 **“이 파일에 적용된 tsconfig”**가 `server/tsconfig.json`인지 확인.
    - 서버 폴더를 **별도 루트로 열어서** 작업하는 방법도 있습니다.  
      (예: `File > Open Folder` → `NEXA-Platform/server` 만 열면, 해당 폴더의 tsconfig만 사용됨.)
 
-3. **코드에서 다시 `@system/*` 사용**
-   - IDE가 서버 tsconfig를 쓰는 것이 확인되면,  
-     `import { ... } from '@system/schemas/devices'` 등으로 되돌리면 됨.
+2. **import 규칙**: `@system` 사용 시 **반드시 확장자 `.js`** 를 붙인다. 서버 내부는 `@/config/...`, `@/utils/...`, `@/types/...` 등 `@/` 로 통일.
 
-이렇게 되면 **서버에서는 계속 `@system/*`만 쓰고**, 상대 경로는 제거할 수 있습니다.
+3. **IDE**: 서버 파일에 적용되는 tsconfig가 `server/tsconfig.json`인지 확인. 필요 시 **TypeScript: Restart TS Server** 또는 서버 폴더만 열어서 작업.
+
+이렇게 하면 **서버에서는 `@system/*.js`와 `@/` 만 사용**합니다.
 
 ### 방법 B: 루트 tsconfig에 server 포함 (한 프로젝트로 통일)
 
@@ -68,15 +93,11 @@
 
 그래서 **방법 A(서버는 서버 tsconfig만 쓰게)** 가 더 안전합니다.
 
-### 방법 C: 상대 경로 유지 (현재 방식)
+### 방법 C: 상대 경로 유지 (과거 임시 방식)
 
-- **원인**을 알고, **임시로** 상대 경로를 쓰는 전략입니다.
-- `devices.controller.ts` 등에서는:
-  - `import { ... } from '../../../src/system/schemas/devices.js'`
-  - `import { ApiErrorCode } from '../../../src/system/schemas/errors.js'`
-- **NodeNext**이므로 확장자 `.js`를 붙임 (실제 소스는 `.ts`, 런타임은 tsx 등이 해석).
+- `import { ... } from '../../../src/system/schemas/devices.js'` 처럼 `src/system`을 상대 경로로 참조.  
+  **현재는 사용하지 않고** `@system/*.js` 로 통일함.
 
 **정리**:  
-- **원인** = 서버 파일에 대해 `@system/*`가 정의된 **서버 tsconfig가 적용되지 않음**.  
-- **해결** = 서버만 열거나, IDE가 서버 tsconfig를 쓰게 해서 **`@system/*` 사용(방법 A)** 하거나,  
-  당분간 **상대 경로(방법 C)** 로 두는 것.
+- **원인** = 서버 파일에 대해 `@system/*`가 정의된 서버 tsconfig가 적용되지 않거나, NodeNext에서 **확장자 없이** path 매핑을 쓰면 디렉터리로만 해석되는 문제.  
+- **해결** = 서버 tsconfig 유지 + **`@system/*` import 시 `.js` 확장자 필수** + 서버 내부는 `@/` 사용.

@@ -4,10 +4,10 @@
  * @see docs/ai_user_memos-기획.md
  */
 
-import express from 'express'
-import { pool } from '../config/dbConfig.js'
+import { Router } from 'express'
+import { pool } from '@/config/dbConfig.js'
 
-const router = express.Router()
+const router = Router()
 
 function toMemo(row) {
   return {

@@ -6,12 +6,12 @@
 
 import path from 'path'
 import fs from 'fs'
-import express from 'express'
+import { Router } from 'express'
 import multer from 'multer'
 import { randomUUID } from 'crypto'
-import { pool } from '../config/dbConfig.js'
-import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '../config/upload.js'
-import { MULTER_MAX_FILE_SIZE } from '../config/fileTypes.js'
+import { pool } from '@/config/dbConfig.js'
+import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '@/config/upload.js'
+import { MULTER_MAX_FILE_SIZE } from '@/config/fileTypes.js'
 import {
   extractExtension,
   getFileType,
@@ -23,9 +23,9 @@ import {
   ensureFolderExists,
   deleteFile,
   moveTempFileToFolder,
-} from '../utils/fileUpload.js'
+} from '@/utils/fileUpload.js'
 
-const router = express.Router()
+const router = Router()
 
 const diskStorage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -81,15 +81,15 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
     if (!domain) {
       return res.status(400).json({ code: 'MISSING_DOMAIN', error: 'domain 파라미터가 필요합니다.' })
     }
-
-    if (!req.file) {
+    const file = (req as { file?: { path?: string; size?: number; originalname?: string } }).file
+    if (!file) {
       return res.status(400).json({ code: 'INVALID_FILE_TYPE', error: '파일이 필요합니다.' })
     }
 
-    const tempAbsolutePath = req.file.path
-    const fileSize = req.file.size
+    const tempAbsolutePath = file.path
+    const fileSize = file.size
     const tempRelativePath = `uploads/_temp/${path.basename(tempAbsolutePath)}`
-    const originalName = fixFilenameEncoding(req.file.originalname || 'unknown')
+    const originalName = fixFilenameEncoding(file.originalname || 'unknown')
 
     const extension = extractExtension(originalName)
     const fileType = getFileType(extension)
@@ -437,7 +437,7 @@ router.get('/files/explorer/tree', async (req, res) => {
        FROM files f
        WHERE f.deleted_at IS NULL AND f.file_path LIKE 'uploads/%'`,
     )
-    const byDomain = new Map()
+    const byDomain = new Map<string, Set<string>>()
     for (const r of rows) {
       const fullPath = (r.file_path || '').replace(/\\/g, '/').trim()
       const uploadsPrefix = 'uploads/'

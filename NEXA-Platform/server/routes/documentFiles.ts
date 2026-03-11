@@ -2,7 +2,7 @@
 // 경로 형식: {folderId}/{relativePath} 예: nexa-docs/Platform/01-기획/문서.md
 // 레거시: 접두사 없으면 첫 번째 폴더로 처리
 
-import express from 'express'
+import { Router } from 'express'
 import path from 'path'
 import fs from 'fs/promises'
 import {
@@ -15,9 +15,9 @@ import {
   addDocsFolder,
   removeDocsFolder,
   updateDocsFolder,
-} from '../config/documentConfig.js'
+} from '@/config/documentConfig.js'
 
-const router = express.Router()
+const router = Router()
 
 /**
  * 접두사 경로로 실제 파일 시스템 경로 반환

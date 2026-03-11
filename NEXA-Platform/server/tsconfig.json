@@ -15,7 +15,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "paths": {
-      "@system/*": ["./../src/system/*"]
+      "@system/*": ["./../src/system/*"],
+      "@/*": ["./*"]
     }
   },
   "include": [

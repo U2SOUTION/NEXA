@@ -2,23 +2,20 @@
  * 인증 API [NEXA-AUTH-01] §5.1
  * POST /api/auth/register, login, refresh, logout | GET /api/auth/me
  */
-import express from 'express'
+import { Router, type Response } from 'express'
 import bcrypt from 'bcryptjs'
-import type { Response } from 'express'
 import type { ZodError } from 'zod'
 import { registerSchema, loginSchema, refreshSchema, logoutSchema } from '@system/schemas/auth.js'
 import { ApiErrorCode } from '@system/schemas/errors.js'
 import { toUserId } from '@system/types/ids.js'
-import type { AuthUser } from '../types/common.js'
-import { pool } from '../config/dbConfig.js'
-import { generateUuidV7 } from '../config/uuidUtils.js'
-import { authConfig } from '../config/authConfig.js'
-import { signAccess, signRefresh, verifyAccess, verifyRefresh } from '../utils/jwtAuth.js'
-import redisClient from '../config/redis.js'
+import type { AuthUser } from '@/types/common.js'
+import { pool } from '@/config/dbConfig.js'
+import { generateUuidV7 } from '@/config/uuidUtils.js'
+import { authConfig } from '@/config/authConfig.js'
+import { signAccess, signRefresh, verifyAccess, verifyRefresh } from '@/utils/jwtAuth.js'
+import redisClient from '@/config/redis.js'
 
-// @types/express default export 타입에 Router 미포함 → 단언 사용 (2단계에서 타입 보강)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const router = (express as any).Router()
+const router = Router()
 const SALT_ROUNDS = 10
 
 function validationErrorResponse(res: Response, err: ZodError): Response {

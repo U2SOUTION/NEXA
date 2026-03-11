@@ -4,7 +4,7 @@
  */
 import jwt from 'jsonwebtoken'
 import { v4 as uuidv4 } from 'uuid'
-import { authConfig } from '../config/authConfig.js'
+import { authConfig } from '@/config/authConfig.js'
 
 const { jwtAccessSecret, jwtRefreshSecret, accessExpirySec, refreshExpirySec } = authConfig
 

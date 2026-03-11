@@ -4,8 +4,8 @@
  */
 import type { UserId, ProjectId } from '@system/types/ids.js'
 import type { CreateProjectPayload, UpdateProjectPayload } from './project.types.js'
-import { pool } from '../../config/dbConfig.js'
-import { generateUuidV7 } from '../../config/uuidUtils.js'
+import { pool } from '@/config/dbConfig.js'
+import { generateUuidV7 } from '@/config/uuidUtils.js'
 
 export async function listByUserId(userId: UserId) {
   const { rows } = await pool.query(

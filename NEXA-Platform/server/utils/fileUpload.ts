@@ -9,8 +9,8 @@ import fs from 'fs/promises'
 import { createReadStream } from 'fs'
 import path from 'path'
 import { createHash, randomUUID } from 'crypto'
-import { getFileType as getFileTypeFromConfig, getMimeType, getMaxFileSize, isPreviewable, getFileCategory } from '../config/fileTypes.js'
-import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '../config/upload.js'
+import { getFileType as getFileTypeFromConfig, getMimeType, getMaxFileSize, isPreviewable, getFileCategory } from '@/config/fileTypes.js'
+import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '@/config/upload.js'
 
 /**
  * 파일 타입 분류 (설정 파일 사용)

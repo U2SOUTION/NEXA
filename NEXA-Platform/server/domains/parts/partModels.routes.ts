@@ -1,7 +1,7 @@
-import express from 'express'
-import { pool } from '../../config/dbConfig.js'
+import { Router } from 'express'
+import { pool } from '@/config/dbConfig.js'
 
-const router = express.Router()
+const router = Router()
 
 // GET /api/part-models/class/:classId - 특정 클래스의 모델 목록
 router.get('/part-models/class/:classId', async (req, res) => {

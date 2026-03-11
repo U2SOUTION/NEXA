@@ -1,4 +1,4 @@
-import express from 'express'
+import { Router } from 'express'
 import {
   handleCreateArchive,
   handleCreateArchiveDoc,
@@ -9,7 +9,7 @@ import {
   handleUpdateArchiveDoc,
 } from './archive.controller.js'
 
-const router = express.Router()
+const router = Router()
 
 router.get('/system-templates', handleFetchLayouts)
 router.post('/archives', handleCreateArchive)

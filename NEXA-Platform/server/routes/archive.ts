@@ -1,7 +1,7 @@
-import express from 'express'
-import { pool } from '../config/dbConfig.js'
+import { Router } from 'express'
+import { pool } from '@/config/dbConfig.js'
 
-const router = express.Router()
+const router = Router()
 
 // 레이아웃 템플릿 목록 (category=LAYOUT)
 router.get('/system-templates', async (req, res) => {

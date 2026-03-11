@@ -1,16 +1,16 @@
-import express from 'express'
+import { Router } from 'express'
 import path from 'path'
 import fs from 'fs/promises'
 import fsSync from 'fs'
 import multer from 'multer'
 import { randomUUID } from 'crypto'
-import { pool } from '../../config/dbConfig.js'
-import { getCategoryAbbreviation } from '../../utils/skuGenerator.js'
-import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, partsGenerateFolderPath, partsGenerateFilename, partsCreateSafeFilename, ensureFolderExists, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder, saveFile } from '../../utils/fileUpload.js'
-import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '../../config/upload.js'
-import { MULTER_MAX_FILE_SIZE } from '../../config/fileTypes.js'
+import { pool } from '@/config/dbConfig.js'
+import { getCategoryAbbreviation } from '@/utils/skuGenerator.js'
+import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, partsGenerateFolderPath, partsGenerateFilename, partsCreateSafeFilename, ensureFolderExists, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder, saveFile } from '@/utils/fileUpload.js'
+import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '@/config/upload.js'
+import { MULTER_MAX_FILE_SIZE } from '@/config/fileTypes.js'
 
-const router = express.Router()
+const router = Router()
 
 const DOMAIN = 'parts'
 
