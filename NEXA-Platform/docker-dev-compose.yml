@@ -1,10 +1,24 @@
 # NEXA 플랫폼 개발 환경 (Postgres 마이그레이션 후)
-# 0. .env에 PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT 설정
-# 1. Postgres만 띄우기: docker compose -f docker-dev-compose.yml up -d postgres
-# 2. 서버 로컬 실행: npm run dev:server (PGHOST=localhost, PGPORT=5432)
+# 0. .env에 PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT, REDIS_URL 설정
+# 1. Postgres·Redis만 띄우기: docker compose -f docker-dev-compose.yml up -d postgres redis
+# 2. 서버 로컬 실행: npm run dev:server (PGHOST=localhost, REDIS_URL=redis://localhost:6379)
 # 3. 전체: docker compose -f docker-dev-compose.yml up -d
 # ==========================================
 services:
+  redis:
+    container_name: nexa-redis-dev
+    image: redis:7-alpine
+    command: redis-server --save 60 1
+    volumes:
+      - redis_data_dev:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   postgres:
     container_name: nexa-postgres-dev
     image: timescale/timescaledb:latest-pg16
@@ -39,9 +53,12 @@ services:
       - PGPASSWORD=${PGPASSWORD}
       - PGDATABASE=${PGDATABASE:-nexa_db}
       - PGPORT=5432
+      - REDIS_URL=redis://redis:6379
       - NODE_ENV=development
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: always
 
@@ -53,3 +70,4 @@ services:
 
 volumes:
   postgres_data_dev:
+  redis_data_dev:

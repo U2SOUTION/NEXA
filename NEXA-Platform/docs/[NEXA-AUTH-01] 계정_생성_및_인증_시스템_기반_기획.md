@@ -6,7 +6,7 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 **적용 범위**: 플랫폼 전역 (AI 도메인, NEXA-Node, 업로드·파일, API 등)
 
-**적용 환경**: Postgres 마이그레이션 완료, 서버 **Node/Express**, **Redis 필수**. (NestJS는 참고용. 본 문서의 라이프사이클·미들웨어 설명은 Express 기준. IoT 플랫폼 특성상 디바이스 토큰 캐시·api_usage 버퍼·비밀번호 리셋 토큰·권한 무효화 등에 Redis를 **필수**로 적용.)
+**적용 환경**: Postgres 마이그레이션 완료, 서버 **Node/Express**, **Redis 필수**. **플랫폼 전체(프론트·서버) TypeScript(.ts) 적용이 원칙**이며, 프론트는 이미 TS 마이그레이션 완료, 서버는 아직 .js가 남아 있어 신규 서버 파일도 .js로 작성되는 상태. **플랫폼 전체 TS 마이그레이션 완성**이 해야 할 일로 남아 있음(§1.4). (NestJS는 참고용. 본 문서의 라이프사이클·미들웨어 설명은 Express 기준. IoT 플랫폼 특성상 디바이스 토큰 캐시·api_usage 버퍼·비밀번호 리셋 토큰·권한 무효화 등에 Redis를 **필수**로 적용.)
 
 **하위 문서**: [NEXA-AI-09] AI 워크스페이스 웹서치 자원 전략, [NEXA-NODE-01] ESPHome YAML 제너레이터 및 웹 펌웨어 배포 기획, [NEXA-NODE-03] ESP32 베이스라인 펌웨어 및 디바이스 등록 설계 (AP 모드 + Captive Portal)
 
@@ -62,6 +62,19 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 | **서버** | Passport.js + JWT, bcryptjs, Zod | Express. 인증 라우트·미들웨어 신규 구현. UUID는 `server/config/uuidUtils.js`(v7) 사용 |
 | **Redis** | api_usage 버퍼, Device Token 캐시, 비밀번호 리셋 토큰, device_members 캐시 무효화 | **필수**. IoT 플랫폼에서 다수 디바이스·실시간 권한 회수·TTL 필요. docker-compose·연결 설정 포함. |
 
+### 1.4 플랫폼 전체 언어(JS vs TS) 정책
+
+- **원칙**: **플랫폼 전체(프론트·서버)** 에 **TypeScript(.ts)** 적용이 기획 원칙이다. 서버만이 아니라 프론트·서버 모두 .ts로 마이그레이션 완성해야 한다.
+- **현재 상태**: **프론트**는 이미 TS 마이그레이션 완료. **서버**는 아직 .js가 남아 있어, 인증·디바이스 등 신규 구현도 .js 기준으로 작성되고 있다. 이는 서버 TS 전환이 미완이기 때문이다.
+
+**결정(기록)**:
+
+| 구분 | 결정 |
+|------|------|
+| **마이그레이션 시점** | **나중에 일괄 마이그레이션**. 당분간 서버는 .js로 진행하고, 전환 계획 수립 후 **플랫폼 전체 TS 마이그레이션**을 별도 태스크로 진행한다. |
+| **당분간 신규 서버 파일** | **.js 유지**. 서버에 tsconfig·실행 환경을 아직 도입하지 않았으므로, 신규 파일도 .js로 작성한다. 일괄 .ts 전환 시 함께 마이그레이션한다. |
+| **완료 목표** | **플랫폼 전체 .ts 마이그레이션 완성** — 프론트는 완료, 서버는 전환 작업으로 .ts 적용을 완료해야 한다는 가정으로 문서에 둔다. |
+
 ---
 
 ## 2. 목표 및 범위
@@ -82,6 +95,19 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - **3단계**: 프로젝트·파일 등에 `user_id` 추가, 조회 시 소유자 필터. users에 role·allowed_domains, 인가(도메인·프로젝트 접근) 검사
 - **4단계**: device_registry 테이블 + device_members 매핑, Device Token (user_id 1:N·추후 N:M 공유 확장), 엣지 디바이스 등록·API. **RLS 적용**: 이 단계에서 device_registry·device_members 도입 시 Postgres RLS 정책 적용 권장.
 - **5단계**: (선택) 소셜 로그인(OAuth 2.0), 비밀번호 찾기, 이메일 인증, **api_usage** 수집·저장. OAuth는 **2.0** 기준으로 구현.
+
+### 2.3 OAuth 2.0(소셜 로그인) — 연기·추후 적용
+
+- 소셜 로그인은 **5단계 선택** 기능이며, 각 IdP(구글·카카오·네이버·페이스북 등)에서 **개발자 센터에 앱 등록 후 Client ID·Client Secret(또는 해당 플랫폼 용어) 발급**이 선행되어야 한다. 앱 등록·동의 화면·리다이렉트 URI 설정 등 초기 구성 부담이 있어 **나중에 추가**하기로 한다. 당분간 이메일·비밀번호 + JWT 인증만 사용.
+
+| 플랫폼 | 개발자 센터 링크 | 비고 |
+|--------|------------------|------|
+| 구글 | [Google Cloud Console](https://console.cloud.google.com/) | Client ID, Client Secret. OAuth 2.0 클라이언트 생성·리다이렉트 URI 등록. |
+| 카카오 | [Kakao Developers](https://developers.kakao.com/) | REST API 키 또는 Client ID/Secret. 카카오 로그인 활성화·Redirect URI 등록. |
+| 네이버 | [Naver Developers](https://developers.naver.com/) | Client ID, Client Secret. 네이버 로그인 API 신청·Callback URL 등록. |
+| 페이스북 | [Meta for Developers](https://developers.facebook.com/) | App ID, App Secret. Facebook Login 제품 추가·Valid OAuth Redirect URI 등록. |
+
+- **추가 시점**: 필요 시 위 플랫폼별로 하나씩 연동. 백엔드(Passport OAuth 전략·콜백 라우트·JWT 발급) + 프론트(로그인/회원가입 페이지에 "Google로 로그인" 등 버튼·콜백 후 토큰 저장) 구현.
 
 ---
 
@@ -375,13 +401,33 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - **미인증 시**: 401 반환.
 - **예외 경로**: `/api/auth/register`, `/api/auth/login`, `/api/health` 등
 
-#### 5.3.1 임시 인증 예외 (제거 예정)
+#### 5.3.1 임시 인증 예외 (관리자 UI 기획 후 전환)
 
-로그인 UI 적용 전까지 **부품관리·아카이브·문서·AI 등 기존 데이터 API**는 인증 없이 접근 가능하도록 임시 예외 처리되어 있다. 그렇지 않으면 토큰이 없는 상태에서 해당 API가 401을 반환해 화면에 "데이터 없음"처럼 보이는 문제가 발생한다.
+로그인 UI 적용 전까지 **부품관리·아카이브·문서·AI 등 기존 데이터 API**는 인증 없이 접근 가능하도록 임시 예외 처리되어 있다.
 
-- **구현 위치**: `server/middleware/auth.middleware.js` — `AUTH_SKIP_PREFIXES` 배열
+- **구현 위치**: `server/middleware/auth.middleware.js` — `AUTH_SKIP_PREFIXES` 배열(현재 하드코딩)
 - **현재 예외 prefix**: `/api/part-classes`, `/api/part-models`, `/api/part-specs`, `/api/part-files`, `/api/archives`, `/api/archive-doc`, `/api/system-templates`, `/api/docs`, `/api/files`, `/api/db`, `/api/dev/`, `/api/package-json`, `/api/ai/`, `/api/ai-user-memos`
-- **나중에 할 작업**: 로그인 UI 적용 후 위 임시 예외를 제거하여, 해당 API들도 JWT 필수로 전환. (필요 시 `/api/auth/me`만 예외로 두거나, 공개 API만 선별해 예외 유지)
+- **전환 방침**: **하드코딩으로 제거하지 않음**. 별도 **기획서 작성 후**, **관리자 UI**에서 공개/보호 API 경로를 쉽게 관리할 수 있도록 한 뒤, 그에 맞춰 AUTH_SKIP_PREFIXES를 설정 기반(DB·설정 파일 등)으로 전환한다. 당분간은 위 하드코딩 목록 유지.
+
+#### 5.3.2 "AUTH_SKIP_PREFIXES 제거"란?
+
+**AUTH_SKIP_PREFIXES**는 JWT 인증 미들웨어에서 **"이 경로들은 토큰 없이 통과"**시키기 위한 **임시 허용 목록**이다.
+
+| 구분 | 설명 |
+|------|------|
+| **지금 동작** | `/api/part-classes`, `/api/archives`, `/api/docs` 등이 이 목록에 있어서, **로그인하지 않아도** 부품관리·아카이브·문서 API가 200을 반환한다. |
+| **제거 시 동작** | 위 목록을 **삭제(또는 비움)** 하면, 해당 API들도 **JWT 필수**가 된다. 토큰 없이 요청하면 **401**이 반환되고, 프론트는 로그인 페이지로 보내거나 refresh 후 재시도해야 한다. |
+| **왜 있었나** | 로그인/회원가입 UI가 없을 때, 부품관리 등 화면이 "데이터 없음"으로 보이지 않도록 하기 위해 넣은 **임시 예외**이다. |
+| **제거 시 해야 할 일** | (1) **서버**: `auth.middleware.js`에서 `AUTH_SKIP_PREFIXES` 배열을 제거하거나 빈 배열로 둠. (2) **클라이언트**: 부품·아카이브·문서 등을 호출하는 곳에서 `fetch` 대신 `useAuthenticatedFetch().authFetch()` 사용(또는 요청 시 `Authorization: Bearer <token>` 첨부), 401이면 refresh 후 재시도 또는 `/login`으로 이동. |
+
+**정리**: "AUTH_SKIP_PREFIXES 제거" = **데이터 API까지 로그인 필수로 만드는 것**. 선택 사항이며, 공개로 쓸 API는 제거 후에도 예외 경로로 남겨 둘 수 있다.
+
+#### 5.3.3 공개 API vs 인증 필수 API — 관리자 도메인에서 통합 관리 예정
+
+- **결정 시점**: 어떤 API를 비회원에게 공개할지(인증 예외로 둘지)는 **나중에 결정**한다. 현재는 임시로 `AUTH_SKIP_PREFIXES` 하드코딩으로 처리 중.
+- **관리 방식**: 하드코딩이 아닌 **관리자 UI에서 쉽게 관리**하는 것을 목표로 한다. **별도 기획서 작성 후** 진행하며, **AUTH_SKIP_PREFIXES** 제거·전환도 해당 기획에 포함한다.
+- **배치**: **관리자 도메인**(수퍼 관리자 전용)을 별도 할당한 뒤, **공개/보호 API 정책·관리**와 **api_usage**(5단계)를 함께 해당 도메인에 배치한다. 즉, 수퍼 관리자만 접근 가능한 설정 화면에서 경로별 공개/인증 필수 설정·API 사용량 조회 등을 수행한다.
+- **문서 위치**: 본 절(§5.3.3). 나중에 결정 사항은 §12.2에도 등재.
 
 ### 5.4 보안 데이터 흐름 (구체화)
 
@@ -525,7 +571,7 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 |------|------|------|
 | **의존성** | server/package.json: `passport`, `passport-local`, `passport-jwt`, `jsonwebtoken`, `bcryptjs`, `zod`(서버 검증 시) | ✅ |
 | **Redis** | **필수**. Device Token 캐시, api_usage 버퍼, 비밀번호 리셋 토큰(TTL), device_members 캐시 무효화. docker-compose·환경 변수 포함. | ✅ 연동 |
-| **DDL** | users, device_registry, device_members (필수). api_usage (5단계). password_reset_tokens (감사용 선택). §4.5 참고. | ✅ users만 |
+| **DDL** | users, device_registry, device_members (필수). api_usage (5단계). password_reset_tokens (감사용 선택). §4.5 참고. | ✅ users, projects. device_registry·device_members 스크립트 준비(init_*.sql) |
 | **인증 라우트** | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`, `GET /api/auth/me` (§5.1) | ✅ |
 | **미들웨어** | JWT 검증 → `req.user` (user_id, role 등). 미인증 시 401. 예외: auth·health + 임시 데이터 API(§5.3.1) | ✅ |
 | **회원가입** | email 중복 검사, bcryptjs 해시 저장, id는 `server/config/uuidUtils.js`의 `generateUuidV7()` | ✅ |
@@ -538,14 +584,14 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 구현하면서 단계별로 체크할 수 있는 항목이다. `[ ]` → 완료 시 `[x]`로 표시하면 된다.
 
 **현재 상태 (2025-03 기준)**  
-- **완료**: 1·2단계 백엔드 + **클라이언트 로그인/회원가입 UI** (로그인·회원가입 페이지, authStore 토큰 저장·복원, 헤더 로그인/로그아웃 노출, `useAuthenticatedFetch`로 Bearer·401 시 refresh/리다이렉트 대응). 부품/아카이브 등 데이터 API는 임시로 인증 예외(§5.3.1).  
-- **다음**: (1) 필요 시 `AUTH_SKIP_PREFIXES` 제거 후 데이터 API 인증 필수 전환·`authFetch` 적용, (2) MY 페이지 등에 tier UI 표기(BASIC→베타 테스터, STANDARD→정회원) 연동, (3) 3단계 이후(projects user_id, device_registry/device_members, api_usage 등).
+- **완료**: 1·2단계 백엔드 + 클라이언트 로그인/회원가입 UI. **3단계**: projects 테이블·API(GET/POST/PATCH/DELETE /api/projects), MY 페이지 "내 프로젝트" 탭, **전역 projectStore**·**ProjectSelector**(도메인 공용). **4단계**: device_registry·device_members DDL 스크립트, Device Token API(POST/GET/PATCH/DELETE /api/devices), Redis 캐시·X-Device-Token 인증, MY "등록한 디바이스" 탭(목록·등록·token 1회 표시). tier UI(BASIC→베타 테스터, STANDARD→정회원). 부품/아카이브 등 데이터 API는 임시 인증 예외(§5.3.1).  
+- **다음**: (1) **Redis 영속화**(RDB 최소 활성화), (2) **서버 JS→TS 마이그레이션**(§1.4). (3) AUTH_SKIP_PREFIXES·api_usage·공개/보호 API 정책은 **관리자 도메인(수퍼 관리자 전용)** 기획서 작성 후 별도 진행. OAuth 2.0은 **한참 나중**으로 미룸.
 
 #### 준비 (환경·의존성)
 
 - [x] Postgres 연결 확인 (`GET /api/health/ready` 등)
 - [x] Redis 컨테이너/서비스 기동, 연결 설정(.env: `REDIS_URL` 등)
-- [ ] Redis 영속화: RDB 최소 활성화 (인프라 설정)
+- [x] Redis 영속화: RDB 최소 활성화 — docker-compose.yml·docker-dev-compose.yml에 Redis 서비스 추가, `redis-server --save 60 1`, volume(redis_data)으로 /data 영속화. (로컬 Redis 단독 사용 시 redis.conf에서 save 설정)
 - [x] server/package.json에 의존성 추가: `passport`, `passport-local`, `passport-jwt`, `jsonwebtoken`, `bcryptjs`, `zod`
 - [x] JWT 비밀/키 환경 변수 설정(예: `JWT_SECRET`, `JWT_REFRESH_SECRET`)
 
@@ -554,9 +600,10 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - [x] users 테이블 생성 (id UUID v7, email, password_hash, display_name, role, allowed_domains, tier, deleted_at 등) — `database/init_auth.sql`
 - [x] email 유일: `UNIQUE (email)` 컬럼 제약 없음, **부분 유니크 인덱스** `CREATE UNIQUE INDEX uk_users_email_active ON users (email) WHERE deleted_at IS NULL;` 만 생성
 - [x] users.updated_at 트리거 또는 앱 레벨 갱신
-- [ ] (4단계) device_registry 테이블 생성
-- [ ] (4단계) device_members 테이블 생성, (user_id, device_id) UNIQUE, (device_id, user_id) 인덱스
-- [ ] (4단계) device_registry·device_members RLS 정책 적용 (필수)
+- [x] (3단계) projects 테이블 생성 (user_id FK) — `database/init_projects.sql`
+- [x] (4단계) device_registry 테이블 생성 — `database/init_device_registry.sql` 적용 완료
+- [x] (4단계) device_members 테이블 생성, (user_id, device_id) UNIQUE, (device_id, user_id) 인덱스 — 동일 스크립트 내
+- [x] (4단계) device_registry·device_members RLS 정책 적용 (필수) — 동일 스크립트 내
 - [ ] (5단계) api_usage 테이블 생성 (선택 시점)
 
 #### 1단계 — 회원가입·로그인·me
@@ -575,13 +622,22 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - [x] 미인증 시 401 반환
 - [x] 예외 경로 등록: `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, `/api/health` 등 (인증 없이 접근 가능)
 - [x] 로그인/me 응답 시 deleted_at IS NULL 사용자만 허용(이미 조회 조건에 포함되면 생략)
-- [ ] **(로그인 UI 적용 후)** `auth.middleware.js`의 `AUTH_SKIP_PREFIXES` 임시 예외 제거 — 부품·아카이브·문서·AI 등 데이터 API를 JWT 필수로 전환 (§5.3.1 참고)
+- [ ] **AUTH_SKIP_PREFIXES** — 하드코딩 제거하지 않음. **별도 기획서 작성 후** 관리자 UI에서 공개/보호 API 경로를 관리하도록 전환 (§5.3.1, §5.3.3. 관리자 도메인에 배치 예정)
 
-#### 3단계 이후 (요약)
+#### 3단계 — projects·user_id
 
-- [ ] (3단계) projects 등에 user_id 추가, 조회 시 소유자 필터, role·allowed_domains 인가
-- [ ] (4단계) Device Token 발급·검증, Redis 캐시(token_hash → user_id, is_active), is_active 비활성화 시 캐시 무효화
-- [ ] (4단계) device_members 조회·역할 매트릭스 적용
+- [x] (3단계) projects 테이블·API: GET/POST /api/projects, GET/PATCH/DELETE /api/projects/:id. 소유자 req.user.id 기준 목록·생성·조회·수정·삭제
+- [x] (3단계) 클라이언트: MY 페이지 "내 프로젝트" 탭(목록·추가 다이얼로그), 전역 projectStore(fetchProjects·createProject·setCurrentProject·currentProject), ProjectSelector 컴포넌트(도메인 공용). 로그아웃 시 projectStore.clear()
+- [ ] (3단계) role·allowed_domains 인가(프로젝트별 확장) — 추후
+
+#### 4단계 — Device Token·device_registry
+
+- [x] (4단계) Device Token 발급·검증, Redis 캐시(token_hash → user_id, is_active), is_active 비활성화 시 캐시 무효화. POST/GET/PATCH/DELETE /api/devices
+- [x] (4단계) device_members 조회(목록에 role 포함). RLS 정책은 init_device_registry.sql에 포함
+- [x] (4단계) device_registry·device_members 테이블 DB 적용 — init_device_registry.sql 적용 완료
+
+#### 5단계 (선택)
+
 - [ ] (5단계) api_usage 집계·Redis 버퍼·종료 시 flush (`process.on('SIGTERM'/'SIGINT')`)
 
 #### 클라이언트·운영
@@ -589,23 +645,36 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - [x] CORS: 개발 `*` (현재 app.use(cors())). 프로덕션 환경 변수 도메인은 미적용
 - [x] (클라이언트) 로그인/회원가입 페이지 (`/login`, `/register`), 토큰 저장(access/refresh)·복원(authStore), API 호출 시 Bearer 첨부·401 시 refresh 후 재시도/리다이렉트 (`useAuthenticatedFetch`, `authenticatedFetch.ts`)
 - [x] (클라이언트) tier UI 표기: `authStore.getTierLabel` (BASIC → "베타 테스터", STANDARD → "정회원"). MY 페이지 등에서 사용 가능
+- [x] (클라이언트) MY 페이지: 내 정보, **내 프로젝트**(projectStore 연동·추가 다이얼로그), **등록한 디바이스**(목록·등록·device_token 1회 표시·복사), 등록한 제작 장비, 내 기기 설정, 로그아웃. 로그아웃 시 projectStore.clear()
+- [x] (클라이언트) 전역 projectStore(`src/system/store/projectStore.ts`), ProjectSelector(`src/system/components/ui/ProjectSelector.vue`). 각 도메인에서 목록·생성·현재 프로젝트 선택 공용
 
-**클라이언트 구현 위치 (참고)**  
-- 인증 스토어: `src/system/store/authStore.ts`  
-- 인증 API 래퍼(Bearer·401 처리): `src/system/utils/authenticatedFetch.ts`, `src/system/composables/useAuthenticatedFetch.ts`  
-- 로그인/회원가입 페이지: `src/frame/views/auth/LoginPage.vue`, `RegisterPage.vue`  
-- 인증 레이아웃: `src/frame/layout/AuthLayout.vue`  
+**클라이언트 구현 위치 (참고)**
+- 인증 스토어: `src/system/store/authStore.ts`
+- **전역 프로젝트 스토어**: `src/system/store/projectStore.ts` — 목록·현재 선택·fetchProjects·createProject·setCurrentProject. MY·아카이브·ERP 등 **어느 도메인에서나** 동일 스토어 사용.
+- **프로젝트 선택 UI(도메인 공용)**: `src/system/components/ui/ProjectSelector.vue` — 드롭다운 + "새 프로젝트" 추가. 각 도메인에서 `<ProjectSelector />` 또는 `useProjectStore()`로 목록 조회·생성·현재 프로젝트 표시.
+- 인증 API 래퍼(Bearer·401 처리): `src/system/utils/authenticatedFetch.ts`, `src/system/composables/useAuthenticatedFetch.ts`
+- 로그인/회원가입 페이지: `src/frame/views/auth/LoginPage.vue`, `RegisterPage.vue`
+- 인증 레이아웃: `src/frame/layout/AuthLayout.vue`
 - 헤더 로그인/로그아웃: `src/frame/layout/components/GlobalNavbarRight.vue`
+
+#### 현재 남은 작업 (인증·인프라·플랫폼)
+
+| 순서 | 작업 | 구분 | 비고 |
+|------|------|------|------|
+| 1 | **Redis 영속화** | 인프라 | ✅ Docker Compose에 Redis 서비스 추가·RDB(save 60 1)·volume 적용. (§12.1) |
+| 2 | **서버 JS→TS 마이그레이션** | 플랫폼 | §1.4. 프론트는 TS 완료, 서버는 당분간 .js 유지 후 **일괄 TS 전환** 예정. |
+
+위 두 가지가 **당장 진행 가능한** 남은 작업이다. 아래는 별도 기획·관리자 도메인 이후 진행.
 
 #### 다음 작업 제안 (우선순위)
 
 | 순서 | 작업 | 구분 | 비고 |
 |------|------|------|------|
-| 1 | **AUTH_SKIP_PREFIXES 제거** | 선택 | 데이터 API(부품·아카이브 등)를 JWT 필수로 전환. 전환 시 해당 API 호출부에 `useAuthenticatedFetch().authFetch()` 적용 필요. (§5.3.1) |
-| 2 | **MY 페이지 tier 표기** | 클라이언트 | `authStore.getTierLabel(user.tier)`로 "베타 테스터"/"정회원" 등 노출. |
-| 3 | **3단계: projects·user_id** | 백엔드 | projects(또는 해당 도메인)에 user_id 컬럼 추가, 조회 시 소유자 필터, role·allowed_domains 인가. |
-| 4 | **4단계: device_registry·device_members** | 백엔드·DDL | 테이블 생성, Device Token 발급·검증, Redis 캐시, RLS 정책 적용. |
-| 5 | **5단계(선택)** | 백엔드 | api_usage 집계·Redis 버퍼·종료 시 flush; 비밀번호 찾기; **OAuth 2.0**(Google, GitHub 등) 소셜 로그인. |
+| — | **관리자 도메인(수퍼 관리자 전용) 기획** | 기획·구현 | 별도 기획서 작성 후 진행. **공개/보호 API 정책·관리**(AUTH_SKIP_PREFIXES 대체)·**api_usage** 조회·설정을 관리자 UI에서 통합. 하드코딩 제거하지 않음. (§5.3.1, §5.3.3) |
+| — | **MY 페이지 전체 정보 표시** | 클라이언트 | ✅ 완료. |
+| — | **3단계: projects·user_id** | 백엔드·클라이언트 | ✅ 완료. |
+| — | **4단계: device_registry·device_members** | 백엔드·클라이언트 | ✅ 완료. |
+| — | **5단계: OAuth 2.0** | 백엔드·클라이언트 | **한참 나중**으로 미룸. (§2.3) api_usage·비밀번호 찾기는 관리자 도메인·별도 기획 시 함께 검토 가능. |
 
 ---
 
@@ -636,8 +705,9 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 | 3 | **audit_log 구현** | §4.3.3 | 권한·접근 이력. 보안·감사 요구 시 도입. |
 | 4 | **invitations 구현** | §4.3.4 | 공유 초대 플로우. project_members·device_members 공유 확장 시. |
 | 5 | **project_members·user_groups** | §4.3.1, §4.3.2 | 프로젝트 공유·팀. 3~4단계 이후. |
-| 6 | **소셜 로그인(OAuth 2.0)** | §2.2, §5단계 | Google, GitHub 등. 5단계 선택. |
-| 7 | **MQTT 연동·토픽 인가** | §4.2, §4.2.0 | device_registry 확장, stat/cmnd 구독. MQTT 도입 시. |
-| 8 | **is_online 미수신 기준** | §4.2 | 2~5분 미수신 시 `false`. 디바이스·heartbeat 설계 후 확정. |
-| 9 | **mac_address_updated_at** | §4.2.1 | MAC 변경 시점만 필요 시 컬럼 추가. |
-| 10 | **tier 하향 시 디바이스 정리** | §4.1.1 | last_seen 최신순 유지 vs 사용자 선택. 유료화 시 정책 정의. |
+| 6 | **소셜 로그인(OAuth 2.0)** | §2.2, §2.3, §5단계 | 구글·카카오·네이버·페이스북 등. **한참 나중**으로 미룸. (§2.3에 플랫폼별 개발자 센터 링크 정리) |
+| 7 | **공개 API vs 인증 필수 API 정책** | §5.3.1, §5.3.3 | **관리자 도메인(수퍼 관리자 전용)** 기획서 작성 후, 관리자 UI에서 경로별 공개/보호 설정. api_usage와 함께 해당 도메인에 배치. AUTH_SKIP_PREFIXES는 하드코딩 제거하지 않고 위 기획 후 전환. |
+| 8 | **MQTT 연동·토픽 인가** | §4.2, §4.2.0 | device_registry 확장, stat/cmnd 구독. MQTT 도입 시. |
+| 9 | **is_online 미수신 기준** | §4.2 | 2~5분 미수신 시 `false`. 디바이스·heartbeat 설계 후 확정. |
+| 10 | **mac_address_updated_at** | §4.2.1 | MAC 변경 시점만 필요 시 컬럼 추가. |
+| 11 | **tier 하향 시 디바이스 정리** | §4.1.1 | last_seen 최신순 유지 vs 사용자 선택. 유료화 시 정책 정의. |

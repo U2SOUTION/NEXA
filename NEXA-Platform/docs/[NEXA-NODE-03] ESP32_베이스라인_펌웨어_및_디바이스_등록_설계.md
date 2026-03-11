@@ -367,7 +367,64 @@
 
 ---
 
-## 7. 참고 문서
+## 7. 디바이스 등록 전체 프로세스 요약 및 현재 구현 상태
+
+본 절은 [NEXA-NODE-03] 기준 **디바이스 등록 전체 플로우**를 한눈에 보기 위해 요약하고, [NEXA-AUTH-01] 기반 **현재 구현**과의 차이·매핑, **현재 단계에서 진행 범위**를 정리한다.
+
+### 7.1 등록 전체 프로세스 (NODE-03 기준)
+
+- **이중 경로**: **경로 A**(USB + Serial/Improv), **경로 B**(무선 AP + Captive Portal). 둘 다 최종적으로 **디바이스가 플랫폼에 등록 요청** → **등록 대기 목록** → **사용자 승인·네이밍·API 키 발급**으로 수렴한다.
+
+| 단계 | 경로 A (USB + Improv) | 경로 B (무선 AP) | 공통 |
+|------|------------------------|------------------|------|
+| ① | 회원가입·로그인 | 회원가입·로그인 | 플랫폼 계정 필요 |
+| ② | 기기등록 페이지 → "USB로 연결" | 기기등록 페이지 → "무선으로 연결" | |
+| ③ | USB 연결 → 시리얼 포트 선택 | Wi‑Fi 목록에서 NEXA-ESP32-xxxx 연결 | |
+| ④ | [선택] 펌웨어 없으면 ESP Web Tools로 베이스라인 플래시 | "디바이스 설정 열기" → 192.168.4.1 (Captive Portal) | |
+| ⑤ | 플랫폼에서 SSID/비밀번호 입력 → **Improv로 시리얼 전송** | Captive Portal에 SSID/비밀번호 입력 후 저장 | **디바이스가 STA로 인터넷 연결** |
+| ⑥ | 디바이스가 **플랫폼 등록 API 호출** → **등록 대기 목록에 표시** | 동일 | `POST /api/devices/register` (디바이스 → 플랫폼) |
+| ⑦ | **등록 대기 목록**에서 디바이스 선택 → **네이밍·승인** → API 키 발급·디바이스 전달 | 동일 | `GET /api/devices/pending`, `POST /api/devices/approve` |
+| 완료 | deviceId·apiKey·otaBaseUrl 등 수신, 디바이스에 저장 | 동일 | 이후 OTA·제어는 동일 |
+
+- **기술적 핵심**
+  - **⑥**: 디바이스(STA 연결 후)가 `POST /api/devices/register` 호출. Body: `mac`, `chipId`, `firmwareVersion`, `capabilities` 등. 플랫폼은 이 요청을 **인증된 사용자와 자동 연결하지 않음** → **등록 대기(pending)** 로만 저장. (승인 시점에 로그인 사용자와 매핑.)
+  - **⑦**: 로그인한 사용자가 `GET /api/devices/pending`으로 대기 목록 조회 → `POST /api/devices/approve` (mac, nickname)로 **승인·소유자 연결** → 응답에 deviceId·apiKey·otaBaseUrl 등 반환. 디바이스는 폴링/WebSocket 등으로 이 값을 수신해 NVS 등에 저장.
+
+### 7.2 현재 구현 (AUTH-01 기준) vs NODE-03 스펙
+
+| 구분 | NODE-03 기획 | 현재 구현 (AUTH-01) | 비고 |
+|------|--------------|----------------------|------|
+| **등록 방식** | 디바이스가 먼저 접속 → 대기 목록 → 사용자 승인 | **웹에서 사용자가 먼저 디바이스 생성** → device_token 1회 발급 → 사용자가 디바이스에 토큰 입력 | **수동(웹 선등록)** 방식만 구현됨 |
+| **API** | `POST /api/devices/register`, `GET /api/devices/pending`, `POST /api/devices/approve` | `POST /api/devices`(생성), `GET /api/devices`(목록), `PATCH/DELETE /api/devices/:id` | register/pending/approve **미구현** |
+| **인증** | 등록 요청은 (디바이스→플랫폼) 비인증 가능, 승인은 로그인 사용자 | POST/GET /api/devices 모두 **JWT 인증** | 디바이스가 “누구 소유로 대기 중인지” 알 수 없으므로 register는 비인증 또는 일회성 코드 등 별도 설계 필요 |
+| **토큰/키** | apiKey·deviceId·otaBaseUrl | **device_token** 1회 발급, 해시만 DB 저장 (X-Device-Token으로 이후 인증) | 개념적으로 **device_token ≒ apiKey** 역할. NODE-03의 deviceId는 현재 `device_registry.id`에 해당 |
+
+### 7.3 두 가지 등록 시나리오 정리
+
+| 시나리오 | 주체 | 플로우 | 현재 구현 |
+|----------|------|--------|-----------|
+| **수동 등록(웹 선등록)** | 사용자 | ① 로그인 → ② MY/기기등록에서 "디바이스 등록" → ③ 이름/유형 입력 → ④ device_token 발급(1회) → ⑤ 사용자가 디바이스(설정/시리얼 등)에 토큰 입력 | ✅ 구현됨 (POST/GET /api/devices, MY 페이지 "등록한 디바이스" 탭) |
+| **자동 등록(디바이스 선접속)** | 디바이스 | ① 디바이스가 WiFi 획득(경로 A/B) → ② 디바이스가 `POST /api/devices/register` 호출 → ③ 대기 목록에 표시 → ④ 사용자가 승인·네이밍 → ⑤ deviceId·apiKey(또는 device_token)·otaBaseUrl 디바이스에 전달 | ❌ 미구현 (register/pending/approve API·UI 없음) |
+
+- **통합 방향**: 장기적으로 두 시나리오 모두 지원. **수동 등록**은 이미 사용 가능. **자동 등록**은 ESP32 베이스라인·경로 A/B UI 준비 시 `register` / `pending` / `approve` 추가하여 NODE-03과 맞춘다.
+
+### 7.4 현재 단계에서 진행할 범위 (판단)
+
+- **유지·활용할 것**
+  - **웹 선등록 플로우**: 로그인 → MY → "등록한 디바이스" → "디바이스 등록" → device_token 발급·복사. (이미 구현됨.)
+  - **기존 API**: `POST /api/devices`, `GET /api/devices`, `PATCH/DELETE /api/devices/:id`, `X-Device-Token` 인증. DB·Redis 캐시·RLS 구조 유지.
+
+- **현재 단계에서 추가하지 않는 것 (추후 체계화 시 진행)**
+  - **등록 대기(pending)·승인(approve)** 플로우: `POST /api/devices/register`, `GET /api/devices/pending`, `POST /api/devices/approve` 및 해당 UI. → ESP32 베이스라인·경로 A/B(USB/무선) 연동 시 함께 구현.
+  - **경로 A**: Web Serial·Improv·ESP Web Tools 연동, 플랫폼에서 SSID/비밀번호 시리얼 전송.
+  - **경로 B**: Captive Portal(192.168.4.1) 링크, "무선으로 연결" 플로우.
+  - **OTA 엔드포인트**: `/api/ota/firmware` 등. NODE-01·펌웨어 빌드 파이프라인과 함께 설계.
+
+- **정리**: **다음 단계로 넘어가기 전** 현재는 **수동 등록 전체 프로세스(웹에서 생성 → 토큰 확인·복사)** 까지만 완결된 상태로 두고, NODE-03의 **자동 등록(디바이스 선접속 → 대기 목록 → 승인)** 및 경로 A/B UX는 **ESP32 베이스라인·등록 UX 구현 단계**에서 API·UI를 추가하는 것이 적절하다.
+
+---
+
+## 8. 참고 문서
 
 | 문서 | 내용 |
 |------|------|

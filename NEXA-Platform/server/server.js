@@ -20,6 +20,8 @@ import filesRouter from './routes/files.routes.js'
 import healthRouter from './routes/health.routes.js'
 import aiUserMemosRouter from './routes/aiUserMemos.routes.js'
 import authRouter from './routes/auth.routes.js'
+import devicesRouter from './domains/devices/devices.routes.js'
+import projectsRouter from './domains/projects/projects.routes.js'
 import { jwtAuthMiddleware } from './middleware/auth.middleware.js'
 import { UPLOAD_BASE_DIR } from './config/upload.js'
 import { initDocsFolders } from './config/documentConfig.js'
@@ -93,6 +95,10 @@ async function connectDB() {
 
 // 인증 [NEXA-AUTH-01] — register, login, refresh, logout(인증 불필요) / me(인증 필요)
 app.use('/api', authRouter)
+// 디바이스 [NEXA-AUTH-01] §5.2 — JWT 또는 X-Device-Token 인증
+app.use('/api', devicesRouter)
+// 프로젝트 [NEXA-AUTH-01] §2.2 3단계 — user_id 소유자 기준
+app.use('/api', projectsRouter)
 
 // 아카이브 도메인
 // TODO(route-prefix): 향후 /api/archive 로 접두사 통일 검토 (프론트 호출 경로 일괄 수정 필요)

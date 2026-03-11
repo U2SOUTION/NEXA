@@ -1,9 +1,10 @@
 /**
  * JWT 인증 미들웨어 [NEXA-AUTH-01] §5.3
- * Bearer access_token 검증 → req.user 설정. 미인증 시 401.
+ * Bearer access_token 검증 → req.user 설정. 없거나 실패 시 X-Device-Token 시도.
  */
 import { verifyAccess } from '../utils/jwtAuth.js'
 import { pool } from '../config/dbConfig.js'
+import { deviceTokenAuth } from './deviceAuth.middleware.js'
 
 const AUTH_SKIP_PATHS = [
   '/api/auth/register',
@@ -59,12 +60,12 @@ export function jwtAuthMiddleware(req, res, next) {
   const authHeader = req.headers.authorization
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
   if (!token) {
-    return res.status(401).json({ code: 'UNAUTHORIZED', message: '인증이 필요합니다.' })
+    return deviceTokenAuth(req, res, next)
   }
 
   const decoded = verifyAccess(token)
   if (!decoded?.user_id) {
-    return res.status(401).json({ code: 'INVALID_TOKEN', message: '유효하지 않거나 만료된 토큰입니다.' })
+    return deviceTokenAuth(req, res, next)
   }
 
   pool

@@ -47,8 +47,10 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useAuthStore } from '@system/store/authStore'
+import { useProjectStore } from '@system/store/projectStore'
 
 const authStore = useAuthStore()
+const projectStore = useProjectStore()
 
 defineProps({
   leftSidebarOpen: { type: Boolean, default: true },
@@ -64,6 +66,7 @@ onMounted(() => {
 })
 
 async function handleLogout() {
+  projectStore.clear()
   await authStore.logout()
   window.location.href = '/' // 토큰 제거 후 새로고침하여 상태 일관
 }
