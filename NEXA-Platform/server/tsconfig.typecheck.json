@@ -10,7 +10,16 @@
       "cors": ["./types/module-stubs.d.ts"],
       "ioredis": ["./types/module-stubs.d.ts"],
       "http-errors": ["./types/module-stubs.d.ts"],
-      "jsonwebtoken": ["./types/module-stubs.d.ts"]
+      "jsonwebtoken": ["./types/module-stubs.d.ts"],
+      "body-parser": ["./types/module-stubs.d.ts"],
+      "json-schema": ["./types/module-stubs.d.ts"],
+      "mime": ["./types/module-stubs.d.ts"],
+      "multer": ["./types/module-stubs.d.ts"],
+      "range-parser": ["./types/module-stubs.d.ts"],
+      "send": ["./types/module-stubs.d.ts"],
+      "serve-static": ["./types/module-stubs.d.ts"],
+      "string_decoder": ["./types/module-stubs.d.ts"],
+      "uuid": ["./types/module-stubs.d.ts"]
     }
   },
   "include": [

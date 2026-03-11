@@ -3,5 +3,6 @@
   "compilerOptions": {
     "strict": true,
     "noImplicitAny": true
-  }
+  },
+  "exclude": ["server.ts", "node_modules", "dist"]
 }

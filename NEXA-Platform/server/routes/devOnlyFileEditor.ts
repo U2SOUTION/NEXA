@@ -1,9 +1,8 @@
 // 개발 전용 파일 편집 API
 // ⚠️ 이 파일은 개발 환경에서만 사용됩니다. 프로덕션에는 포함되지 않습니다.
 
+import bodyParser from 'body-parser'
 import { Router } from 'express'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const bodyParser = require('body-parser') as { json: () => (req: unknown, res: unknown, next: (err?: unknown) => void) => void }
 import { errMessage } from '@/utils/errUtils.js'
 import path from 'path'
 import { fileURLToPath } from 'url'

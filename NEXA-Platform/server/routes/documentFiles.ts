@@ -2,14 +2,8 @@
 // 경로 형식: {folderId}/{relativePath} 예: nexa-docs/Platform/01-기획/문서.md
 // 레거시: 접두사 없으면 첫 번째 폴더로 처리
 
+import bodyParser from 'body-parser'
 import { Router } from 'express'
-// body-parser: ESM 타입 호환용
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const bodyParser = require('body-parser') as {
-  json: () => (req: unknown, res: unknown, next: (err?: unknown) => void) => void
-  raw: (opts?: { type?: string; limit?: string }) => (req: unknown, res: unknown, next: (err?: unknown) => void) => void
-}
 import path from 'path'
 import fs from 'fs/promises'
 import {

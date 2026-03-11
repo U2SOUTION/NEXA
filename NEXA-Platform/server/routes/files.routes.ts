@@ -29,12 +29,12 @@ import {
 const router = Router()
 
 const diskStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
+  destination: (_req: unknown, _file: unknown, cb: (err: Error | null, dest: string) => void) => {
     const dest = path.join(UPLOAD_BASE_DIR, '_temp')
     fs.mkdirSync(dest, { recursive: true })
     cb(null, dest)
   },
-  filename: (_req, file, cb) => {
+  filename: (_req: unknown, file: { originalname?: string }, cb: (err: Error | null, name: string) => void) => {
     const ext = path.extname(file.originalname || '').toLowerCase() || '.bin'
     cb(null, `${randomUUID()}${ext}`)
   },
