@@ -5,6 +5,7 @@
     "moduleResolution": "NodeNext",
     "outDir": "dist",
     "rootDir": ".",
+    "baseUrl": ".",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -12,8 +13,11 @@
     "checkJs": false,
     "noEmit": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "@system/*": ["../src/system/*"]
+    }
   },
-  "include": ["**/*.ts", "**/*.js"],
+  "include": ["**/*.ts", "**/*.js", "types/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

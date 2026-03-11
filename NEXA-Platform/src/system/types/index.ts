@@ -26,6 +26,23 @@
  * @see AGENTS 규칙 (타입·스키마·상수는 system에만 정의)
  */
 
+// --- Branded ID (서버·프론트 공유, 혼용 방지) [NEXA-PLATFORM-TS-01] §2.4 ---
+export type { UserId, ProjectId, DeviceId, ArchiveId } from './ids'
+export {
+  toUserId,
+  toUserIdSafe,
+  userIdSchema,
+  toProjectId,
+  toProjectIdSafe,
+  projectIdSchema,
+  toDeviceId,
+  toDeviceIdSafe,
+  deviceIdSchema,
+  toArchiveId,
+  toArchiveIdSafe,
+  archiveIdSchema,
+} from './ids'
+
 // --- 공통 타입 뼈대 (전 도메인·서버-프론트 공유) ---
 export type {
   ApiResponse,
