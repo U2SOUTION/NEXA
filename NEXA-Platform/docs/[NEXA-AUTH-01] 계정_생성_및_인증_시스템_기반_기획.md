@@ -6,6 +6,8 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 **적용 범위**: 플랫폼 전역 (AI 도메인, NEXA-Node, 업로드·파일, API 등)
 
+**적용 환경**: Postgres 마이그레이션 완료, 서버 **Node/Express**, **Redis 필수**. (NestJS는 참고용. 본 문서의 라이프사이클·미들웨어 설명은 Express 기준. IoT 플랫폼 특성상 디바이스 토큰 캐시·api_usage 버퍼·비밀번호 리셋 토큰·권한 무효화 등에 Redis를 **필수**로 적용.)
+
 **하위 문서**: [NEXA-AI-09] AI 워크스페이스 웹서치 자원 전략, [NEXA-NODE-01] ESPHome YAML 제너레이터 및 웹 펌웨어 배포 기획, [NEXA-NODE-03] ESP32 베이스라인 펌웨어 및 디바이스 등록 설계 (AP 모드 + Captive Portal)
 
 **작성일**: 2025-03
@@ -18,7 +20,7 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 | 용어 | 간단 설명 |
 |------|-----------|
-| **Redis** | 인메모리 키-값 저장소. 캐시·세션·TTL 지원. api_usage 버퍼·Device Token 검증 캐시·비밀번호 리셋 토큰(TTL) 등에 사용. |
+| **Redis** | 인메모리 키-값 저장소. **NEXA는 IoT 플랫폼 특성상 필수.** api_usage 버퍼·Device Token 검증 캐시·비밀번호 리셋 토큰(TTL)·device_members 캐시 무효화 등. |
 | **JWT** | JSON Web Token. 서버가 서명한 토큰으로 사용자 식별(stateless). access/refresh 토큰. Bearer 헤더로 전달. |
 | **Passport.js** | Node.js 인증 미들웨어. 로컬(이메일·비밀번호)·OAuth 등 전략으로 로그인 처리 후 JWT 발급. |
 | **bcryptjs** | 비밀번호 해싱 라이브러리. 일방향 해시, 복원 불가. 로그인 시 `compare`로 검증. |
@@ -30,7 +32,8 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 | **Bearer** | HTTP 인증 방식. `Authorization: Bearer <token>` 형식. JWT를 헤더로 넘길 때 사용. |
 | **CORS** | Cross-Origin Resource Sharing. 브라우저가 다른 오리진 API 호출을 허용할지 서버가 응답 헤더로 명시. |
 | **OAuth** | 외부 IdP(Google, GitHub 등)로 로그인 위임. **OAuth 2.0** 기준(1.0은 레거시, 현재 소셜 로그인은 대부분 2.0). 필요 시 OpenID Connect(OIDC)로 사용자 정보 연동. Passport.js의 OAuth 2.0 전략으로 구현. (본 문서 5단계 선택) |
-| **NestJS** | Node.js 프레임워크. 모듈·의존성 주입·라이프사이클 훅(onModuleDestroy 등) 제공. |
+| **Express** | NEXA API 서버 스택. 인증 미들웨어·라우트·종료 시 flush는 Express 기준으로 구현. (NestJS는 참고용) |
+| **NestJS** | Node.js 프레임워크(참고용). 모듈·의존성 주입·라이프사이클 훅(onModuleDestroy 등). NEXA는 Express 사용. |
 
 ---
 
@@ -51,6 +54,14 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - **엣지 디바이스 연동**: 엣지에서 업로드·설정 요청 시 "어느 사용자 소속으로 저장할지" 식별 필요.
 - **보안·공유**: 계정 단위로 격리, 추후 팀·공유 기능 확장 시 기반.
 
+### 1.3 구현 환경 및 검토 반영 (2025-03)
+
+| 구분 | 문서 기준 | 구현 시 참고 |
+|------|-----------|--------------|
+| **DB** | users, device_registry, device_members, api_usage 등 | `database/init_postgres.sql`에 인증 테이블 없음 → §4.5 DDL 보강 적용 |
+| **서버** | Passport.js + JWT, bcryptjs, Zod | Express. 인증 라우트·미들웨어 신규 구현. UUID는 `server/config/uuidUtils.js`(v7) 사용 |
+| **Redis** | api_usage 버퍼, Device Token 캐시, 비밀번호 리셋 토큰, device_members 캐시 무효화 | **필수**. IoT 플랫폼에서 다수 디바이스·실시간 권한 회수·TTL 필요. docker-compose·연결 설정 포함. |
+
 ---
 
 ## 2. 목표 및 범위
@@ -66,11 +77,11 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 ### 2.2 범위 및 작업 순서
 
-- **1단계**: 계정·인증 기반 — 회원가입(이메일), 로그인, JWT(또는 세션) 발급·검증
-- **2단계**: API 인증 미들웨어 — 요청 시 `user_id` 추출, 미인증 차단
+- **1단계**: 계정·인증 기반 — 회원가입(이메일), 로그인, JWT(access/refresh) 발급·검증, `GET /api/auth/me`. **비밀번호 찾기·소셜 로그인은 5단계에서 처리.**
+- **2단계**: API 인증 미들웨어 — 요청 시 `user_id` 추출, 미인증 시 401. 예외 경로: `/api/auth/register`, `/api/auth/login`, `/api/health` 등.
 - **3단계**: 프로젝트·파일 등에 `user_id` 추가, 조회 시 소유자 필터. users에 role·allowed_domains, 인가(도메인·프로젝트 접근) 검사
-- **4단계**: device_registry 테이블 + device_members 매핑, Device Token (user_id 1:N·추후 N:M 공유 확장), 엣지 디바이스 등록·API
-- **5단계**: (선택) 소셜 로그인(OAuth 2.0), 비밀번호 찾기, 이메일 인증. OAuth는 1.0(레거시)과 2.0이 있으며, 소셜·웹 로그인은 **2.0** 기준으로 구현·검색하면 됨.
+- **4단계**: device_registry 테이블 + device_members 매핑, Device Token (user_id 1:N·추후 N:M 공유 확장), 엣지 디바이스 등록·API. **RLS 적용**: 이 단계에서 device_registry·device_members 도입 시 Postgres RLS 정책 적용 권장.
+- **5단계**: (선택) 소셜 로그인(OAuth 2.0), 비밀번호 찾기, 이메일 인증, **api_usage** 수집·저장. OAuth는 **2.0** 기준으로 구현.
 
 ---
 
@@ -99,7 +110,7 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 | display_name | VARCHAR(100) | 표시 이름 |
 | **role** | VARCHAR(20) | `admin` \| `user` \| `viewer`. 기본 `user` |
 | **allowed_domains** | JSON | 허용 도메인 목록. 예: `["ai","nexa-node"]`. admin이면 무시(전체 허용) |
-| **tier** | VARCHAR(20) | `default` 등. 자원 배분·한도 정책용. 추후 유료화 시 `free` \| `basic` \| `pro` 등 확장 |
+| **tier** | VARCHAR(20) | **시스템·기능 수준**을 나타내는 중립 코드. §4.1.0 참고. 예: `BASIC` \| `STANDARD` (추후 `PRO` 등 확장). free/paid가 아님. |
 | created_at | TIMESTAMP | 생성 시각 |
 | updated_at | TIMESTAMP | 수정 시각 |
 | **deleted_at** | TIMESTAMP NULL | 탈퇴 시각. Soft Delete용. NULL이면 활성 계정 |
@@ -107,13 +118,26 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 - **role**: admin=전 도메인·전 프로젝트, user=일반 접근, viewer=조회만.
 - **allowed_domains**: role이 user/viewer일 때 적용. `null` 또는 `[]`이면 기본 도메인만. 도메인별·프로젝트별 접근 제어로 관리 용이·보안 강화.
-- **tier**: 당장은 **자원 배분·성능 검증**용. 동일 서버·Ollama·외부 API(Tavily 등) 사용량을 user_id별로 집계해 부하 분포·이상 사용 감지·상한(선택) 적용. 유료 서비스 기획 시 tier별 상한·과금으로 확장.
+- **tier**: **자원 배분·회원별 사용량 파악**으로 이후 기획·유료화 전환에 대비. 값은 **free/paid가 아닌 시스템 수준 코드**(BASIC, STANDARD 등) 사용. 상세는 §4.1.0.
 - **추후**: `user_groups`, `project_members`(프로젝트 공유) 테이블 확장 검토.
+
+#### 4.1.0 Tier 명명·표시 전략 (논의)
+
+- **배경**: `free`/`paid`처럼 과금을 전제로 한 이름은 (1) “나중에 무료도 유료화되나?” 같은 불안을 주고 (2) 실제로 쓸 만한 건 유료 아닌가 하는 인상을 줄 수 있음. 한편 클라우드 AI API·무거운 서비스 특성상 무한정 오픈은 어렵고, **회원별 사용량 파악**은 필수이며, 기능이 고도화된 뒤 **약간의 수정으로 유료화 전환**이 가능한 구조가 바람직함.
+- **방향**: tier 값은 **시스템의 상태·기능 수준**을 나타내는 **중립 코드**만 사용. 과금 여부는 tier와 분리해, 나중에 “이 tier는 유료 플랜과 매핑”처럼 정책만 붙이면 됨.
+- **tier 코드(DB·API)**  
+  - 예: `BASIC`, `STANDARD`. (추후) `PRO`, `ENTERPRISE` 등 확장.  
+  - 신규 가입 기본값: `BASIC`.  
+  - 상한(디바이스 수, API 호출 등)은 설정/정책 테이블 또는 상수에서 tier 코드별로 관리.
+- **UI 표기(사람이 보는 이름)**  
+  - tier 코드와 1:1 매핑된 **별도 표기** 사용. 예: `BASIC` → “베타 테스터”, `STANDARD` → “정회원”.  
+  - UI에는 “무료/유료” 대신 위와 같은 중립·역할 느낌의 문구를 쓰면, 나중에 유료 플랜을 도입해도 같은 tier 체계 위에 “STANDARD = 유료 월 구독” 등만 매핑하면 됨.
+- **유료화 전환 시**: tier 값(BASIC, STANDARD 등)은 유지. 새 tier 추가 또는 기존 tier에 “과금 플랜 연결”만 하면 되어, 스키마·클라이언트 노출 용어를 크게 바꿀 필요 없음.
 
 #### 비밀번호 재설정(forgot-password) 토큰
 
 - **경로**: `/my/forgot-password`(이메일 입력 → 리셋 링크 발송) → `/my/reset-password?token=...`(새 비밀번호 설정).
-- **토큰 저장**: 발급된 **비밀번호 리셋 토큰**은 **DB 또는 Redis**에 저장. **TTL 짧게**(예: 1시간) 설정. Redis 사용 시 `SET key token EX 3600` 등.
+- **토큰 저장**: 발급된 **비밀번호 리셋 토큰**은 **Redis**에 저장(**필수**). TTL 짧게(예: 1시간) 설정. `SET key token EX 3600` 등. 키 예: `pwd_reset:{token_hash}` 또는 `pwd_reset:{user_id}:{random}`. 감사·복구 필요 시 DB 테이블(`password_reset_tokens`) 보조 저장은 선택.
 - **사용 후 폐기**: `/my/reset-password`에서 새 비밀번호로 정상 처리되면 해당 토큰을 **즉시 무효화**(DB 삭제 또는 Redis DEL). 일회용으로만 사용.
 - **보안**: 토큰은 추측 불가능한 랜덤 값(예: crypto.randomBytes). 이메일과 1:1 매핑·user_id 연결해 검증 시 대조.
 
@@ -124,9 +148,15 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - **로직**: (1) 로그인·JWT 발급·비밀번호 재설정 등 **모든 인증 시** `deleted_at IS NOT NULL`이면 거부(401 또는 "탈퇴한 계정" 메시지). (2) API 인증 미들웨어에서 `req.user` 조회 시 `deleted_at` 조건 포함해 탈퇴 계정은 미인증 처리. (3) 디바이스·프로젝트 등 FK는 유지되나, 해당 user는 접근 불가.
 - **조회**: 관리·통계용 조회 시 `WHERE deleted_at IS NULL` 기본 적용. 필요 시 admin만 탈퇴 계정 조회.
 
+- **동일 이메일 재가입 시 유니크 충돌 대응**: Soft Delete 사용 시 탈퇴한 행도 `email` 값을 유지하므로, `email`에 일반 `UNIQUE` 제약을 걸면 **동일 이메일로 재가입 시 유니크 위반**이 발생한다. **대응**: `email`에는 컬럼 단위 `UNIQUE`를 걸지 않고, **부분 유니크 인덱스(Partial Unique Index)**만 사용한다.  
+  - **Postgres 예**: `CREATE UNIQUE INDEX uk_users_email_active ON users (email) WHERE deleted_at IS NULL;`  
+  - **의미**: “활성 계정(deleted_at IS NULL)만 보았을 때 email이 유일”하다. 탈퇴한 행(deleted_at IS NOT NULL)은 이 인덱스에 포함되지 않으므로, 같은 이메일로 새 행을 INSERT(deleted_at NULL)하면 기존 탈퇴 행과 충돌하지 않는다.  
+  - **재가입 흐름**: 동일 이메일로 회원가입 시 새 `id`(UUID v7)로 **새 행 INSERT**. 기존 탈퇴 행은 그대로 두어 이력·감사 유지.  
+  - **구현 시**: users 테이블 DDL에서 `email` 컬럼에 `UNIQUE`를 붙이지 않고, 위 부분 유니크 인덱스만 생성한다.
+
 #### 4.1.1 Tier 기본 할당 및 전환 로직
 
-- **기본 할당**: 신규 회원가입 시 `tier = 'free'`(또는 `default`)로 설정. tier별 상한(디바이스 수, API 호출 한도 등)은 설정/정책 테이블 또는 상수로 관리.
+- **기본 할당**: 신규 회원가입 시 `tier = 'BASIC'`으로 설정. (§4.1.0: free/paid가 아닌 시스템 수준 코드. UI 표기는 예: BASIC → “베타 테스터”.) tier별 상한(디바이스 수, API 호출 한도 등)은 설정/정책 테이블 또는 상수로 관리.
 - **티어 상향(Upgrade)**: 사용자 또는 admin이 상위 tier로 변경. 변경 즉시 새 상한 적용. 기존 리소스(디바이스 수, 사용량)가 새 상한 이하면 별도 조치 없음.
 - **티어 하향(Downgrade)**  
   - **원칙**: 새 tier의 상한을 초과하는 리소스가 있으면, 전환 완료 전에 **초과분 정리**가 선행되어야 함.  
@@ -155,7 +185,7 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
   - **실시간 업데이트(원칙)**: **중요·유료 API**(OpenAI, Anthropic 등 클라우드 AI, Tavily 등 비용 발생 외부 API) — 호출 직후 Redis 증가 + **즉시 DB 반영**(또는 짧은 버퍼 후 일괄 flush). 유실 시 과금·한도 오차가 커지므로 DB를 원천으로 유지.
   - **배치 방식**: **상대적으로 가벼운 로컬·로그성 통계**(로컬 Ollama 호출 횟수, 업로드 건수, ai_chat 호출 수 등) — Redis에만 증가 시키고, 주기적(예: 분/5분 단위) 또는 임계치 도달 시 DB 동기화. 부하·디스크 I/O 절감, 소량 유실은 통계·성능 검증 용도에서 허용.
 - **캐시**: Redis에 `user_id:api_name:period` → count. 조회 시 Redis 우선. 실시간 대상은 위 전략에 따라 DB까지 반영 후 Redis 갱신.
-- **종료 시 flush(유실 최소화)**: Redis·메모리 버퍼에서 DB로 일괄 flush 할 때, **서버 재시작·종료 시점**에 남은 데이터를 DB에 쓴 뒤 종료하도록 설계. **NestJS** 기준 `onModuleDestroy`·`beforeApplicationShutdown` 등 라이프사이클 훅에서 잔여 api_usage 버퍼를 DB에 flush 후 프로세스 종료. Express 등 다른 스택은 `process.on('SIGTERM'/'SIGINT')` 등에서 동일 로직 수행. 비정상 종료(kill -9 등)는 방어 불가하나, 정상 재시작·배포 시 유실을 최소화.
+- **종료 시 flush(유실 최소화)**: Redis·메모리 버퍼에서 DB로 일괄 flush 할 때, **서버 재시작·종료 시점**에 남은 데이터를 DB에 쓴 뒤 종료하도록 설계. **NEXA 서버(Express)** 는 `process.on('SIGTERM'/'SIGINT')`에서 잔여 api_usage 버퍼를 DB에 flush 후 프로세스 종료. (NestJS 사용 시에는 `onModuleDestroy`·`beforeApplicationShutdown` 활용.) 비정상 종료(kill -9 등)는 방어 불가하나, 정상 재시작·배포 시 유실을 최소화.
 - **운영**: admin/운영용으로 사용량 조회 API 또는 내부 대시보드 권장. 이상 구간(특정 user 급증 등) 알림·로그 연동은 추후.
 
 ### 4.2 device_registry (엣지 디바이스, **신규**)
@@ -225,11 +255,11 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 - **상황**: 특정 아트 프로젝트 등 수백~수천 대 동시 전원 ON 시 토큰 검증 요청 집중 → DB 부하 급증.
 - **대책**:
-  1. **캐시(Redis 또는 in-memory)**: `token_hash` → `{ user_id, is_active }` 매핑 캐시. 검증 시 캐시 우선 조회, 미스 시 DB 조회 후 캐시 저장. TTL 예: 1시간~24시간.
+  1. **캐시(Redis, 필수)**: `token_hash` → `{ user_id, is_active }` 매핑 캐시. 검증 시 Redis 우선 조회, 미스 시 DB 조회 후 Redis 저장. TTL 예: 1시간~24시간. IoT에서 다수 디바이스 동시 인증 시 DB 부하 완화.
   2. **캐시 무효화**: 디바이스 `is_active` 변경·삭제 시 해당 token_hash 캐시 무효화. 실시간 비활성화 반영.
   3. **인덱스**: `token_hash` UNIQUE 인덱스 유지.
   4. **선택**: DB read replica, Connection pool 튜닝.
-  5. **RLS(Row-Level Security)**: Postgres 등 **실제 DB 수준**에서 device_registry·device_members 등에 RLS 정책을 적용하면, 애플리케이션 버그(인가 로직 누락, 쿼리 실수 등)로 인해 **다른 사용자의 디바이스 정보가 유출되는 사고를 원천 차단**할 수 있다. "해당 user_id가 device_members에 있는 device만 접근 가능"을 DB가 강제하므로, 애플리케이션 방어선 실패 시에도 DB가 마지막 방어선 역할을 수행한다. 구현 단계에서 적용 권장. **캐시 오염 대응**: Redis 등 캐시에는 행 단위 보안이 없음. 캐시 키에 `user_id`(또는 권한 컨텍스트)를 반드시 포함하고, device_members·project_members 등 RLS 관련 테이블 변경 시 해당 user_id·device_id 관련 캐시를 **즉시 무효화**하여 타 사용자 데이터 유출·폐기된 권한 반영 누락을 방지한다.
+  5. **RLS(Row-Level Security)** (**필수 적용**): Postgres 등 **실제 DB 수준**에서 device_registry·device_members 등에 RLS 정책을 적용하면, 애플리케이션 버그(인가 로직 누락, 쿼리 실수 등)로 인해 **다른 사용자의 디바이스 정보가 유출되는 사고를 원천 차단**할 수 있다. "해당 user_id가 device_members에 있는 device만 접근 가능"을 DB가 강제하므로, 애플리케이션 방어선 실패 시에도 DB가 마지막 방어선 역할을 수행한다. **적용 시점**: 인증 2단계(API 인증 미들웨어 적용) 이후, device_registry·device_members 도입 시점에 **RLS 필수 적용**. **캐시 오염 대응**: Redis 등 캐시에는 행 단위 보안이 없음. 캐시 키에 `user_id`(또는 권한 컨텍스트)를 반드시 포함하고, device_members·project_members 등 RLS 관련 테이블 변경 시 해당 user_id·device_id 관련 캐시를 **즉시 무효화**하여 타 사용자 데이터 유출·폐기된 권한 반영 누락을 방지한다.
 
 **RLS 정책(Policy) 예시**: 요청별로 DB 세션에 `app.current_user_id`를 설정한 뒤, 정책에서 해당 값을 사용한다. (1) **device_registry** — 소유자만 자신의 행 조회·수정 허용. `ALTER TABLE device_registry ENABLE ROW LEVEL SECURITY;` 후 예: `CREATE POLICY device_registry_select ON device_registry FOR SELECT USING (user_id = current_setting('app.current_user_id', true));`, `CREATE POLICY device_registry_all ON device_registry FOR ALL USING (user_id = current_setting('app.current_user_id', true));` (2) **device_members** — 본인 행만 접근. `CREATE POLICY device_members_access ON device_members FOR ALL USING (user_id = current_setting('app.current_user_id', true));` (3) **애플리케이션** — 인증 직후 커넥션/트랜잭션에서 `SET LOCAL app.current_user_id = 'uuid';` 실행. admin 등 예외는 `BYPASSRLS` 역할 또는 별도 정책으로 처리.
 
@@ -300,6 +330,20 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 | **세션** | stateful | 세션 저장소(Redis 등). 서버에서 세션 id로 user_id 조회 |
 
 - **추천 1단계**: JWT. 구현 단순, 세션 저장소 불필요.
+
+### 4.5 구현 시 DDL 보강 (인증 테이블)
+
+현재 `database/init_postgres.sql`에는 part_*, files, archives 등만 있고 **인증용 테이블은 없음**. 구현 시 아래를 추가한다.
+
+| 순서 | 테이블 | § | 비고 |
+|------|--------|---|------|
+| 1 | **users** | 4.1 | id(UUID v7), email(UNIQUE 아님), password_hash, display_name, role, allowed_domains(JSONB), tier, created_at, updated_at, deleted_at, metadata(JSONB). 앱에서 id 생성. **email 유일**: 부분 유니크 인덱스 `UNIQUE (email) WHERE deleted_at IS NULL` (§4.1 탈퇴·재가입 대응). |
+| 2 | **password_reset_tokens** | 4.1 | (선택) 비밀번호 리셋 토큰은 **Redis 필수**. 감사·복구용으로 DB에 남길 때만 추가. id, user_id FK, token_hash, expires_at, used_at 등. |
+| 3 | **api_usage** | 4.1.2 | user_id FK, api_name, period, period_type, count, updated_at. (user_id, api_name, period) 유일. TimescaleDB 사용 시 하이퍼테이블 검토. |
+| 4 | **device_registry** | 4.2 | id, user_id FK users(id), token_hash UNIQUE, mac_address, name, device_type, last_seen, is_online, ip_address, is_active, metadata(JSONB) 등. |
+| 5 | **device_members** | 4.2.0 | id, user_id FK, device_id FK device_registry(id), role, created_at. (user_id, device_id) UNIQUE. (device_id, user_id) 복합 인덱스 권장. |
+
+**기존 테이블 정합성**: `files.user_id`, `ai_user_memos.user_id`는 현재 VARCHAR(100) 등. users 도입 후 **VARCHAR(36)** 로 통일하거나 users.id에 FK 추가. `projects` 테이블은 init_postgres.sql에 없으면 AI 도메인에서 별도 정의 시 `user_id` FK 추가(§4.3).
 
 ---
 
@@ -404,7 +448,7 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 |------|------|
 | `/my/login` | 로그인 |
 | `/my/register` | 회원가입 |
-| `/my/forgot-password` | 비밀번호 찾기 (이메일 입력 → 리셋 토큰 발급·링크 발송. 토큰은 DB/Redis, TTL 예: 1시간, 사용 후 즉시 폐기) |
+| `/my/forgot-password` | 비밀번호 찾기 (이메일 입력 → 리셋 토큰 발급·링크 발송. 토큰은 **Redis** 저장, TTL 예: 1시간, 사용 후 즉시 폐기) |
 | `/my/reset-password?token=...` | 비밀번호 재설정 (토큰 검증 후 새 비밀번호 설정. 성공 시 토큰 무효화) |
 | `/my/settings` | 프로필·비밀번호 변경·계정 설정·**탈퇴(Soft Delete)** (로그인 후) |
 
@@ -462,3 +506,108 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - **[NEXA-AI-09]** AI 워크스페이스 웹서치 자원 전략 — 프로젝트·파일·폴더, UUID v7
 - **[NEXA-NODE-01]** ESPHome YAML 제너레이터 및 웹 펌웨어 배포 — 엣지 디바이스 연동
 - **[NEXA-NODE-03]** ESP32 베이스라인 펌웨어 및 디바이스 등록 설계 — **AP 모드 + Captive Portal**(192.168.4.1)에서 SSID·비밀번호·토큰 입력. device_token 붙여넣기 방식
+
+---
+
+## 11. 구현 체크리스트 (Express 기준)
+
+구현 시 아래를 순서대로 점검한다.
+
+| 구분 | 항목 |
+|------|------|
+| **의존성** | server/package.json: `passport`, `passport-local`, `passport-jwt`, `jsonwebtoken`, `bcryptjs`, `zod`(서버 검증 시) |
+| **Redis** | **필수**. Device Token 캐시, api_usage 버퍼, 비밀번호 리셋 토큰(TTL), device_members 캐시 무효화. docker-compose·환경 변수 포함. |
+| **DDL** | users, device_registry, device_members (필수). api_usage (5단계). password_reset_tokens (감사용 선택). §4.5 참고. |
+| **인증 라우트** | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh`, `GET /api/auth/me` (§5.1) |
+| **미들웨어** | JWT 검증 → `req.user` (user_id, role 등). 미인증 시 401. 예외: `/api/auth/register`, `/api/auth/login`, `/api/health` 등 |
+| **회원가입** | email 중복 검사, bcryptjs 해시 저장, id는 `server/config/uuidUtils.js`의 `generateUuidV7()` |
+| **로그인** | `deleted_at IS NULL` 체크, bcrypt.compare, JWT 발급 |
+| **검증** | Zod로 회원가입/로그인 body 스키마 검증. 실패 시 400 + §5.4 형식(errors 배열) |
+| **종료 시** | api_usage 사용 시 `process.on('SIGTERM')`, `process.on('SIGINT')`에서 Redis 버퍼 → DB flush |
+
+### 11.1 실제 구현 시 점검 체크리스트
+
+구현하면서 단계별로 체크할 수 있는 항목이다. `[ ]` → 완료 시 `[x]`로 표시하면 된다.
+
+#### 준비 (환경·의존성)
+
+- [ ] Postgres 연결 확인 (`GET /api/health/ready` 등)
+- [ ] Redis 컨테이너/서비스 기동, 연결 설정(.env: `REDIS_URL` 등)
+- [ ] Redis 영속화: RDB 최소 활성화
+- [ ] server/package.json에 의존성 추가: `passport`, `passport-local`, `passport-jwt`, `jsonwebtoken`, `bcryptjs`, `zod`
+- [ ] JWT 비밀/키 환경 변수 설정(예: `JWT_SECRET`, `JWT_REFRESH_SECRET`)
+
+#### DDL (DB 스키마)
+
+- [ ] users 테이블 생성 (id UUID v7, email, password_hash, display_name, role, allowed_domains, tier, deleted_at 등)
+- [ ] email 유일: `UNIQUE (email)` 컬럼 제약 없음, **부분 유니크 인덱스** `CREATE UNIQUE INDEX uk_users_email_active ON users (email) WHERE deleted_at IS NULL;` 만 생성
+- [ ] users.updated_at 트리거 또는 앱 레벨 갱신
+- [ ] (4단계) device_registry 테이블 생성
+- [ ] (4단계) device_members 테이블 생성, (user_id, device_id) UNIQUE, (device_id, user_id) 인덱스
+- [ ] (4단계) device_registry·device_members RLS 정책 적용 (필수)
+- [ ] (5단계) api_usage 테이블 생성 (선택 시점)
+
+#### 1단계 — 회원가입·로그인·me
+
+- [ ] `POST /api/auth/register`: body 검증(Zod), email 중복 검사(활성만: `deleted_at IS NULL`), password bcrypt 해시, id = generateUuidV7(), tier = 'BASIC'
+- [ ] `POST /api/auth/login`: body 검증, **deleted_at IS NULL** 조건으로 사용자 조회, bcrypt.compare, JWT 발급(access 1h, refresh 7d)
+- [ ] `POST /api/auth/refresh`: refresh_token 검증, Redis 블랙리스트 확인, access_token 재발급
+- [ ] `GET /api/auth/me`: JWT 검증 후 req.user 기반으로 사용자 정보 반환(비밀번호 제외)
+- [ ] (선택) `POST /api/auth/logout`: refresh_token jti를 Redis `refresh_blacklist:{jti}` 에 TTL로 저장
+- [ ] Zod 검증 실패 시 400 + §5.4 형식(errors 배열) 응답
+- [ ] 비밀번호 최소 8자 검증
+
+#### 2단계 — 인증 미들웨어
+
+- [ ] JWT 검증 미들웨어: Bearer 토큰 추출 → 검증 → req.user (user_id, role 등) 설정
+- [ ] 미인증 시 401 반환
+- [ ] 예외 경로 등록: `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, `/api/health` 등 (인증 없이 접근 가능)
+- [ ] 로그인/me 응답 시 deleted_at IS NULL 사용자만 허용(이미 조회 조건에 포함되면 생략)
+
+#### 3단계 이후 (요약)
+
+- [ ] (3단계) projects 등에 user_id 추가, 조회 시 소유자 필터, role·allowed_domains 인가
+- [ ] (4단계) Device Token 발급·검증, Redis 캐시(token_hash → user_id, is_active), is_active 비활성화 시 캐시 무효화
+- [ ] (4단계) device_members 조회·역할 매트릭스 적용
+- [ ] (5단계) api_usage 집계·Redis 버퍼·종료 시 flush (`process.on('SIGTERM'/'SIGINT')`)
+
+#### 클라이언트·운영
+
+- [ ] CORS: 개발 `*`, 프로덕션 환경 변수 도메인
+- [ ] (클라이언트) 로그인/회원가입 페이지, 토큰 저장(access/refresh), API 호출 시 Bearer 첨부, 401 시 refresh 후 로그인 페이지
+- [ ] (클라이언트) tier UI 표기: BASIC → "베타 테스터", STANDARD → "정회원" 등
+
+---
+
+## 12. 미결정·선택 사항 정리
+
+구현 전·중에 결정이 필요한 항목을 **당장 결정할 사항**과 **나중에 결정해도 되는 사항**으로 구분한다.
+
+### 12.1 당장 결정할 사항 (1~2단계 구현 시) — **결정 고정**
+
+아래는 1~2단계 구현에 필요한 항목으로 **결정된 값**이다. 구현 시 이 값을 적용한다.
+
+| 번호 | 항목 | 문서 위치 | 결정값 |
+|------|------|-----------|--------|
+| 1 | **tier 기본값** | §4.1, §4.1.0, §4.1.1 | 신규 가입 시 `tier = 'BASIC'`. UI 표기: BASIC → “베타 테스터”, STANDARD → “정회원”. (free/paid 아님.) |
+| 2 | **JWT 만료 시간** | §8 | **access_token 1시간**, **refresh_token 7일**. |
+| 3 | **비밀번호 정책** | §8 | **최소 8자 이상**. 복잡도(대소문자·숫자·특수문자)는 2단계에서 강화 검토. |
+| 4 | **CORS 허용 오리진** | §8 | **개발**: `*`. **프로덕션**: 환경 변수로 지정한 도메인만 허용. |
+| 5 | **Device Token 캐시 TTL** | §4.2.2 | **1시간**. 비활성화 반영 지연 최소화. |
+| 6 | **POST /api/auth/logout** | §5.1 | refresh_token 무효화 시 **Redis에 블랙리스트 저장**. 키: `refresh_blacklist:{jti}`, TTL은 refresh_token 남은 만료 시간과 동일. |
+| 7 | **Redis 영속화** | 인프라 | **최소 RDB 활성화**. 재기동 시 데이터 복구. (AOF는 선택.) |
+
+### 12.2 나중에 결정해도 되는 사항
+
+| 번호 | 항목 | 문서 위치 | 비고 |
+|------|------|-----------|------|
+| 1 | **유료화·tier 상한** | §4.1, §4.1.0, §4.1.2 | tier는 BASIC/STANDARD 등 유지. 상한·과금만 tier별 정책으로 매핑. 5단계 이후 정책 수립. |
+| 2 | **Rate limit 구체값** | §5.4 | IP·사용자별 요청 제한 수치. 운영 중 조정. |
+| 3 | **audit_log 구현** | §4.3.3 | 권한·접근 이력. 보안·감사 요구 시 도입. |
+| 4 | **invitations 구현** | §4.3.4 | 공유 초대 플로우. project_members·device_members 공유 확장 시. |
+| 5 | **project_members·user_groups** | §4.3.1, §4.3.2 | 프로젝트 공유·팀. 3~4단계 이후. |
+| 6 | **소셜 로그인(OAuth 2.0)** | §2.2, §5단계 | Google, GitHub 등. 5단계 선택. |
+| 7 | **MQTT 연동·토픽 인가** | §4.2, §4.2.0 | device_registry 확장, stat/cmnd 구독. MQTT 도입 시. |
+| 8 | **is_online 미수신 기준** | §4.2 | 2~5분 미수신 시 `false`. 디바이스·heartbeat 설계 후 확정. |
+| 9 | **mac_address_updated_at** | §4.2.1 | MAC 변경 시점만 필요 시 컬럼 추가. |
+| 10 | **tier 하향 시 디바이스 정리** | §4.1.1 | last_seen 최신순 유지 vs 사용자 선택. 유료화 시 정책 정의. |
