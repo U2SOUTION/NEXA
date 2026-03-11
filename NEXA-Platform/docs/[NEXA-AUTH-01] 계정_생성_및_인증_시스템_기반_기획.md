@@ -375,6 +375,14 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 - **미인증 시**: 401 반환.
 - **예외 경로**: `/api/auth/register`, `/api/auth/login`, `/api/health` 등
 
+#### 5.3.1 임시 인증 예외 (제거 예정)
+
+로그인 UI 적용 전까지 **부품관리·아카이브·문서·AI 등 기존 데이터 API**는 인증 없이 접근 가능하도록 임시 예외 처리되어 있다. 그렇지 않으면 토큰이 없는 상태에서 해당 API가 401을 반환해 화면에 "데이터 없음"처럼 보이는 문제가 발생한다.
+
+- **구현 위치**: `server/middleware/auth.middleware.js` — `AUTH_SKIP_PREFIXES` 배열
+- **현재 예외 prefix**: `/api/part-classes`, `/api/part-models`, `/api/part-specs`, `/api/part-files`, `/api/archives`, `/api/archive-doc`, `/api/system-templates`, `/api/docs`, `/api/files`, `/api/db`, `/api/dev/`, `/api/package-json`, `/api/ai/`, `/api/ai-user-memos`
+- **나중에 할 작업**: 로그인 UI 적용 후 위 임시 예외를 제거하여, 해당 API들도 JWT 필수로 전환. (필요 시 `/api/auth/me`만 예외로 두거나, 공개 API만 선별해 예외 유지)
+
 ### 5.4 보안 데이터 흐름 (구체화)
 
 #### 사용자 ↔ 웹 서버
@@ -513,35 +521,39 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 구현 시 아래를 순서대로 점검한다.
 
-| 구분 | 항목 |
-|------|------|
-| **의존성** | server/package.json: `passport`, `passport-local`, `passport-jwt`, `jsonwebtoken`, `bcryptjs`, `zod`(서버 검증 시) |
-| **Redis** | **필수**. Device Token 캐시, api_usage 버퍼, 비밀번호 리셋 토큰(TTL), device_members 캐시 무효화. docker-compose·환경 변수 포함. |
-| **DDL** | users, device_registry, device_members (필수). api_usage (5단계). password_reset_tokens (감사용 선택). §4.5 참고. |
-| **인증 라우트** | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh`, `GET /api/auth/me` (§5.1) |
-| **미들웨어** | JWT 검증 → `req.user` (user_id, role 등). 미인증 시 401. 예외: `/api/auth/register`, `/api/auth/login`, `/api/health` 등 |
-| **회원가입** | email 중복 검사, bcryptjs 해시 저장, id는 `server/config/uuidUtils.js`의 `generateUuidV7()` |
-| **로그인** | `deleted_at IS NULL` 체크, bcrypt.compare, JWT 발급 |
-| **검증** | Zod로 회원가입/로그인 body 스키마 검증. 실패 시 400 + §5.4 형식(errors 배열) |
-| **종료 시** | api_usage 사용 시 `process.on('SIGTERM')`, `process.on('SIGINT')`에서 Redis 버퍼 → DB flush |
+| 구분 | 항목 | 상태 |
+|------|------|------|
+| **의존성** | server/package.json: `passport`, `passport-local`, `passport-jwt`, `jsonwebtoken`, `bcryptjs`, `zod`(서버 검증 시) | ✅ |
+| **Redis** | **필수**. Device Token 캐시, api_usage 버퍼, 비밀번호 리셋 토큰(TTL), device_members 캐시 무효화. docker-compose·환경 변수 포함. | ✅ 연동 |
+| **DDL** | users, device_registry, device_members (필수). api_usage (5단계). password_reset_tokens (감사용 선택). §4.5 참고. | ✅ users만 |
+| **인증 라우트** | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`, `GET /api/auth/me` (§5.1) | ✅ |
+| **미들웨어** | JWT 검증 → `req.user` (user_id, role 등). 미인증 시 401. 예외: auth·health + 임시 데이터 API(§5.3.1) | ✅ |
+| **회원가입** | email 중복 검사, bcryptjs 해시 저장, id는 `server/config/uuidUtils.js`의 `generateUuidV7()` | ✅ |
+| **로그인** | `deleted_at IS NULL` 체크, bcrypt.compare, JWT 발급 | ✅ |
+| **검증** | Zod로 회원가입/로그인 body 스키마 검증. 실패 시 400 + §5.4 형식(errors 배열) | ✅ |
+| **종료 시** | api_usage 사용 시 `process.on('SIGTERM')`, `process.on('SIGINT')`에서 Redis 버퍼 → DB flush | 5단계 |
 
 ### 11.1 실제 구현 시 점검 체크리스트
 
 구현하면서 단계별로 체크할 수 있는 항목이다. `[ ]` → 완료 시 `[x]`로 표시하면 된다.
 
+**현재 상태 (2025-03 기준)**  
+- **완료**: 1·2단계 백엔드(회원가입·로그인·JWT·미들웨어), users DDL, Redis 연동, 로그아웃(블랙리스트). 부품/아카이브 등 데이터 API는 임시로 인증 예외(§5.3.1).  
+- **다음**: (1) 로그인/회원가입 UI → 토큰 저장·Bearer 첨부·401 시 refresh/리다이렉트, (2) 필요 시 AUTH_SKIP_PREFIXES 제거 후 데이터 API 인증 필수 전환, (3) 3단계 이후(projects user_id, device_registry/device_members, api_usage 등).
+
 #### 준비 (환경·의존성)
 
-- [ ] Postgres 연결 확인 (`GET /api/health/ready` 등)
-- [ ] Redis 컨테이너/서비스 기동, 연결 설정(.env: `REDIS_URL` 등)
-- [ ] Redis 영속화: RDB 최소 활성화
-- [ ] server/package.json에 의존성 추가: `passport`, `passport-local`, `passport-jwt`, `jsonwebtoken`, `bcryptjs`, `zod`
-- [ ] JWT 비밀/키 환경 변수 설정(예: `JWT_SECRET`, `JWT_REFRESH_SECRET`)
+- [x] Postgres 연결 확인 (`GET /api/health/ready` 등)
+- [x] Redis 컨테이너/서비스 기동, 연결 설정(.env: `REDIS_URL` 등)
+- [ ] Redis 영속화: RDB 최소 활성화 (인프라 설정)
+- [x] server/package.json에 의존성 추가: `passport`, `passport-local`, `passport-jwt`, `jsonwebtoken`, `bcryptjs`, `zod`
+- [x] JWT 비밀/키 환경 변수 설정(예: `JWT_SECRET`, `JWT_REFRESH_SECRET`)
 
 #### DDL (DB 스키마)
 
-- [ ] users 테이블 생성 (id UUID v7, email, password_hash, display_name, role, allowed_domains, tier, deleted_at 등)
-- [ ] email 유일: `UNIQUE (email)` 컬럼 제약 없음, **부분 유니크 인덱스** `CREATE UNIQUE INDEX uk_users_email_active ON users (email) WHERE deleted_at IS NULL;` 만 생성
-- [ ] users.updated_at 트리거 또는 앱 레벨 갱신
+- [x] users 테이블 생성 (id UUID v7, email, password_hash, display_name, role, allowed_domains, tier, deleted_at 등) — `database/init_auth.sql`
+- [x] email 유일: `UNIQUE (email)` 컬럼 제약 없음, **부분 유니크 인덱스** `CREATE UNIQUE INDEX uk_users_email_active ON users (email) WHERE deleted_at IS NULL;` 만 생성
+- [x] users.updated_at 트리거 또는 앱 레벨 갱신
 - [ ] (4단계) device_registry 테이블 생성
 - [ ] (4단계) device_members 테이블 생성, (user_id, device_id) UNIQUE, (device_id, user_id) 인덱스
 - [ ] (4단계) device_registry·device_members RLS 정책 적용 (필수)
@@ -549,20 +561,21 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 #### 1단계 — 회원가입·로그인·me
 
-- [ ] `POST /api/auth/register`: body 검증(Zod), email 중복 검사(활성만: `deleted_at IS NULL`), password bcrypt 해시, id = generateUuidV7(), tier = 'BASIC'
-- [ ] `POST /api/auth/login`: body 검증, **deleted_at IS NULL** 조건으로 사용자 조회, bcrypt.compare, JWT 발급(access 1h, refresh 7d)
-- [ ] `POST /api/auth/refresh`: refresh_token 검증, Redis 블랙리스트 확인, access_token 재발급
-- [ ] `GET /api/auth/me`: JWT 검증 후 req.user 기반으로 사용자 정보 반환(비밀번호 제외)
-- [ ] (선택) `POST /api/auth/logout`: refresh_token jti를 Redis `refresh_blacklist:{jti}` 에 TTL로 저장
-- [ ] Zod 검증 실패 시 400 + §5.4 형식(errors 배열) 응답
-- [ ] 비밀번호 최소 8자 검증
+- [x] `POST /api/auth/register`: body 검증(Zod), email 중복 검사(활성만: `deleted_at IS NULL`), password bcrypt 해시, id = generateUuidV7(), tier = 'BASIC'
+- [x] `POST /api/auth/login`: body 검증, **deleted_at IS NULL** 조건으로 사용자 조회, bcrypt.compare, JWT 발급(access 1h, refresh 7d)
+- [x] `POST /api/auth/refresh`: refresh_token 검증, Redis 블랙리스트 확인, access_token 재발급
+- [x] `GET /api/auth/me`: JWT 검증 후 req.user 기반으로 사용자 정보 반환(비밀번호 제외)
+- [x] (선택) `POST /api/auth/logout`: refresh_token jti를 Redis `refresh_blacklist:{jti}` 에 TTL로 저장
+- [x] Zod 검증 실패 시 400 + §5.4 형식(errors 배열) 응답
+- [x] 비밀번호 최소 8자 검증
 
 #### 2단계 — 인증 미들웨어
 
-- [ ] JWT 검증 미들웨어: Bearer 토큰 추출 → 검증 → req.user (user_id, role 등) 설정
-- [ ] 미인증 시 401 반환
-- [ ] 예외 경로 등록: `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, `/api/health` 등 (인증 없이 접근 가능)
-- [ ] 로그인/me 응답 시 deleted_at IS NULL 사용자만 허용(이미 조회 조건에 포함되면 생략)
+- [x] JWT 검증 미들웨어: Bearer 토큰 추출 → 검증 → req.user (user_id, role 등) 설정
+- [x] 미인증 시 401 반환
+- [x] 예외 경로 등록: `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, `/api/health` 등 (인증 없이 접근 가능)
+- [x] 로그인/me 응답 시 deleted_at IS NULL 사용자만 허용(이미 조회 조건에 포함되면 생략)
+- [ ] **(로그인 UI 적용 후)** `auth.middleware.js`의 `AUTH_SKIP_PREFIXES` 임시 예외 제거 — 부품·아카이브·문서·AI 등 데이터 API를 JWT 필수로 전환 (§5.3.1 참고)
 
 #### 3단계 이후 (요약)
 
@@ -573,7 +586,7 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 
 #### 클라이언트·운영
 
-- [ ] CORS: 개발 `*`, 프로덕션 환경 변수 도메인
+- [x] CORS: 개발 `*` (현재 app.use(cors())). 프로덕션 환경 변수 도메인은 미적용
 - [ ] (클라이언트) 로그인/회원가입 페이지, 토큰 저장(access/refresh), API 호출 시 Bearer 첨부, 401 시 refresh 후 로그인 페이지
 - [ ] (클라이언트) tier UI 표기: BASIC → "베타 테스터", STANDARD → "정회원" 등
 

@@ -19,6 +19,8 @@ import partSpecsRouter from './domains/parts/partSpecs.routes.js'
 import filesRouter from './routes/files.routes.js'
 import healthRouter from './routes/health.routes.js'
 import aiUserMemosRouter from './routes/aiUserMemos.routes.js'
+import authRouter from './routes/auth.routes.js'
+import { jwtAuthMiddleware } from './middleware/auth.middleware.js'
 import { UPLOAD_BASE_DIR } from './config/upload.js'
 import { initDocsFolders } from './config/documentConfig.js'
 import { pool, dbConfig } from './config/dbConfig.js'
@@ -50,6 +52,9 @@ app.use((req, res, next) => {
   }
   next()
 })
+
+// [NEXA-AUTH-01] JWT 인증 미들웨어 (예외: /api/auth/register, login, refresh, logout, /api/health)
+app.use(jwtAuthMiddleware)
 
 // package.json 읽기 API (GraphDoc 패키지 의존성 분석용)
 // TODO(graphdoc): 향후 GraphDoc 패키지 의존성 분석 API 대체 기능 구현
@@ -85,6 +90,9 @@ async function connectDB() {
 // =======================================
 // 도메인 별 라우터 등록
 // =======================================
+
+// 인증 [NEXA-AUTH-01] — register, login, refresh, logout(인증 불필요) / me(인증 필요)
+app.use('/api', authRouter)
 
 // 아카이브 도메인
 // TODO(route-prefix): 향후 /api/archive 로 접두사 통일 검토 (프론트 호출 경로 일괄 수정 필요)
