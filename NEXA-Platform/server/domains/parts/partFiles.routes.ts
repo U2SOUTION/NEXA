@@ -120,7 +120,8 @@ router.get('/part-files', async (req, res) => {
     }
     if (is_editor_image !== undefined && is_editor_image !== null) {
       query += ` AND pf.is_editor_image = $${paramIdx++}`
-      params.push(is_editor_image === '1' || is_editor_image === 1)
+      const val = String(is_editor_image).trim()
+      params.push(val === '1' || val === 'true')
     }
 
     query += ' ORDER BY pf.upload_date DESC, pf.id DESC'

@@ -88,6 +88,25 @@ declare module 'uuid' {
   export function v7(): string
 }
 
+/** pg: strict 모드 선언 */
+declare module 'pg' {
+  export interface Pool {
+    query<T = unknown>(text: string, values?: unknown[]): Promise<{ rows: T[]; rowCount?: number }>
+    connect(): Promise<unknown>
+  }
+  export const Pool: new (config?: object) => Pool
+  const pg: { Pool: typeof Pool }
+  export default pg
+}
+
+/** bcryptjs: strict 모드 선언 */
+declare module 'bcryptjs' {
+  function hash(s: string, rounds: number): Promise<string>
+  function compare(s: string, hash: string): Promise<boolean>
+  const bcrypt: { hash: typeof hash; compare: typeof compare }
+  export default bcrypt
+}
+
 declare module 'string_decoder' {
   class StringDecoder {
     write(buffer: Buffer | Uint8Array): string

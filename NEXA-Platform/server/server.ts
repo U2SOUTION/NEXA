@@ -27,6 +27,8 @@ import { UPLOAD_BASE_DIR } from './config/upload.js'
 import { initDocsFolders } from './config/documentConfig.js'
 import { pool, dbConfig } from './config/dbConfig.js'
 import { JSON_BODY_LIMIT, URLENCODED_BODY_LIMIT } from './config/bodyLimits.js'
+import { errMessage, errCode } from './utils/errUtils.js'
+import type { Request, Response, NextFunction } from 'express'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -47,7 +49,7 @@ app.use(express.urlencoded({ extended: true, limit: URLENCODED_BODY_LIMIT }))
 app.use('/uploads', express.static(path.join(UPLOAD_BASE_DIR)))
 
 // 한글 인코딩을 위한 응답 헤더 설정
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   // JSON 응답에 charset 명시
   if (res.get('Content-Type')?.includes('application/json')) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -67,11 +69,11 @@ app.get('/api/package-json', async (req, res) => {
     const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8')
     const packageJson = JSON.parse(packageJsonContent)
     res.json(packageJson)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[API] package.json 읽기 실패:', error)
     res.status(500).json({
       error: 'package.json을 읽을 수 없습니다.',
-      message: error.message,
+      message: errMessage(error),
     })
   }
 })
@@ -82,8 +84,8 @@ async function connectDB() {
     console.log('[DB] 데이터베이스 연결 시도 중...')
     await pool.query('SELECT 1')
     console.log('[DB] 데이터베이스 연결 성공:', dbConfig.database)
-  } catch (error) {
-    console.error('[DB] 데이터베이스 연결 실패:', error.message)
+  } catch (error: unknown) {
+    console.error('[DB] 데이터베이스 연결 실패:', errMessage(error))
     console.log('[DB] 5초 후 재연결 시도...')
     setTimeout(() => connectDB(), 5000)
   }
@@ -144,12 +146,12 @@ app.get('/api/admin/sidebar-settings', async (req, res) => {
     // 현재는 빈 객체 반환 (나중에 데이터베이스나 파일에서 로드 가능)
     // 클라이언트는 로컬 스토리지를 사용하므로 빈 객체로 응답
     res.json({})
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[GET /api/admin/sidebar-settings] 설정 조회 실패:', error)
     res.status(500).json({
       success: false,
       error: '설정 조회 실패',
-      message: error.message,
+      message: errMessage(error),
     })
   }
 })
@@ -164,12 +166,12 @@ app.post('/api/admin/sidebar-settings', async (req, res) => {
       success: true,
       message: '설정이 저장되었습니다.',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[POST /api/admin/sidebar-settings] 설정 저장 실패:', error)
     res.status(500).json({
       success: false,
       error: '설정 저장 실패',
-      message: error.message,
+      message: errMessage(error),
     })
   }
 })
@@ -189,10 +191,10 @@ async function initializeUploadFolder() {
       if (deletedCount > 0) {
         console.log(`[Server Init] ${deletedCount}개의 오래된 임시 파일이 정리되었습니다.`)
       }
-    } catch (error) {
-      console.warn('[Server Init] 임시 파일 정리 중 오류:', error.message)
+    } catch (error: unknown) {
+      console.warn('[Server Init] 임시 파일 정리 중 오류:', errMessage(error))
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[File Upload] 업로드 폴더 초기화 실패:', error)
     // 폴더 생성 실패해도 서버는 계속 실행 (나중에 자동 생성됨)
   }
@@ -213,14 +215,14 @@ process.on('unhandledRejection', (reason) => {
 const frontendDist = process.env.FRONTEND_DIST
 if (frontendDist) {
   app.use(express.static(frontendDist))
-  app.get('*', (req, res, next) => {
+  app.get('*', (req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) return next()
-    res.sendFile(path.join(frontendDist, 'index.html'), (err) => (err ? next() : undefined))
+    res.sendFile(path.join(frontendDist, 'index.html'), (err: unknown) => (err ? next() : undefined))
   })
 }
 
 // 404 핸들러 (모든 라우트 이후, 에러 핸들러 이전)
-app.use((req, res) => {
+app.use((req: Request, res: Response) => {
   // 응답이 이미 보내졌는지 확인
   if (res.headersSent) {
     return
@@ -230,7 +232,7 @@ app.use((req, res) => {
 
 // Express 에러 핸들러 (모든 라우트 이후에 추가)
 // 에러 핸들러는 반드시 4개의 매개변수를 가져야 함: (err, req, res, next)
-app.use((err, req, res, next) => {
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // 응답이 이미 보내졌는지 확인
   if (res.headersSent) {
     return next(err)
@@ -238,7 +240,7 @@ app.use((err, req, res, next) => {
   console.error('Express 에러:', err)
   res.status(500).json({
     error: '서버 내부 오류가 발생했습니다.',
-    message: err.message,
+    message: errMessage(err),
   })
 })
 
@@ -246,8 +248,8 @@ app.use((err, req, res, next) => {
 async function startServer() {
   try {
     // 데이터베이스 연결 시도 (비동기, 실패해도 서버는 계속 실행)
-    connectDB().catch((error) => {
-      console.warn('[DB Schema] 데이터베이스 연결 실패 (재시도 중):', error.message)
+    connectDB().catch((error: unknown) => {
+      console.warn('[DB Schema] 데이터베이스 연결 실패 (재시도 중):', errMessage(error))
     })
 
     await initializeUploadFolder()
@@ -256,8 +258,8 @@ async function startServer() {
     try {
       await initDocsFolders()
       console.log('[DocumentConfig] 문서 폴더 설정 로드 완료')
-    } catch (err) {
-      console.warn('[DocumentConfig] 문서 폴더 설정 로드 실패:', err.message)
+    } catch (err: unknown) {
+      console.warn('[DocumentConfig] 문서 폴더 설정 로드 실패:', errMessage(err))
     }
 
     const server = app.listen(PORT, () => {
@@ -271,14 +273,14 @@ async function startServer() {
     server.headersTimeout = REQUEST_TIMEOUT_MS + 1000
 
     // 서버 에러 핸들러
-    server.on('error', (error) => {
-      if (error.code === 'EADDRINUSE') {
+    server.on('error', (error: NodeJS.ErrnoException) => {
+      if (errCode(error) === 'EADDRINUSE') {
         console.error(`포트 ${PORT}가 이미 사용 중입니다.`)
       } else {
         console.error('서버 에러:', error)
       }
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('서버 시작 실패:', error)
     // 서버를 종료하지 않고 재시도할 수 있도록
   }

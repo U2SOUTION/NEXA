@@ -5,6 +5,7 @@
     "paths": {
       "@system/*": ["../src/system/*"],
       "@/*": ["./*"],
+      "express": ["./types/express-export.d.ts"],
       "@opentelemetry/api": ["./types/module-stubs.d.ts"],
       "@opentelemetry/api/*": ["./types/module-stubs.d.ts"],
       "cors": ["./types/module-stubs.d.ts"],

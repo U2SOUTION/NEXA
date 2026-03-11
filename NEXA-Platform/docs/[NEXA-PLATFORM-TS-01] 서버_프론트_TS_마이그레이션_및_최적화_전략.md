@@ -500,26 +500,29 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 
 **npm run typecheck:strict** (`server/tsconfig.strict.json`)로 strict 모드 검증.
 
-### 9.1 server.ts 제외 정책
+### 9.1 server.ts strict 재포함 (완료)
 
-- **현재**: `tsconfig.strict.json` exclude에 `server.ts` 포함. `moduleResolution: NodeNext` + `@types/express` 조합에서 `express` 기본 export의 call signature, `.json`, `.urlencoded`, `.static` 프로퍼티 타입 불일치로 인한 오류가 발생하므로, strict 검증 대상에서 임시 제외.
-- **추후**: NodeNext/express 타입 정리 완료 후 exclude에서 제거하여 strict 대상에 다시 포함할 수 있음.
+- **적용**: `tsconfig.strict.json` exclude에서 `server.ts` 제거. `server/types/express-export.d.ts`로 NodeNext 환경에서 `express` default export callable + `.json`/`.urlencoded`/`.static` 타입 보강. `server/types/module-stubs.d.ts`에 `pg`, `bcryptjs` 선언 추가. `server.ts` 암시적 any·unknown → `errMessage`/`errCode`, `Request`/`Response`/`NextFunction` 타입 적용.
 
 ### 9.2 완료 (2025-03)
 
-- **config/**: documentConfig, redis, fileTypes, upload (타입, err: unknown, 파라미터)
+- **server.ts**: express callable·json/urlencoded/static, errMessage/errCode, Request/Response/NextFunction
+- **types/express-export.d.ts**: NodeNext용 default export + Router, Request, Response 보강
+- **types/module-stubs.d.ts**: pg, bcryptjs 선언 추가
+- **config/**: documentConfig, redis, fileTypes, upload, dbConfig (타입, err: unknown, 파라미터)
 - **domains/**: ai, archive, devices, parts, projects (RequestLike/ResponseLike, RedisClientLike, rowCount, payload 타입 등)
 - **middleware/**: auth.middleware, deviceAuth.middleware
 - **routes/**: archive, auth, aiUserMemos, databaseSchema, documentFiles, devOnlyFileEditor, files (body-parser, errMessage, catch unknown, row 타입 등)
 - **utils/**: errUtils, fileUpload, initUploadFolder, jwtAuth, skuGenerator
 - **types/**: request-response.js import 경로, module-stubs (body-parser, json-schema, mime, multer, range-parser, send, serve-static, string_decoder, uuid)
-- **partFiles.routes**: tempRelativePath null 체크, multer diskStorage 콜백 타입
+- **partFiles.routes**: tempRelativePath null 체크, multer diskStorage 콜백 타입, is_editor_image 쿼리 파라미터 타입
+- **files.routes**: req.query limit/offset/edge_sid String 변환
 
 ### 9.3 남은 작업 (점진적 진행)
 
-- **server.ts**: NodeNext/express 타입 이슈 해결 후 strict 대상 재포함. (express callable, .json/.urlencoded/.static, req/res/next, error unknown 처리)
+- **서버 strict**: 완료 (server.ts 포함 전체 통과). 다음 단계: **프론트엔드 strict** (전략 문서 §5.3 참고).
 
-패턴: `catch (err: unknown)` → `errMessage(err)`, `req`/`res` → `RequestLike`/`ResponseLike`, `row` → `Record<string, unknown>` 또는 인터페이스 단언
+패턴: `catch (err: unknown)` → `errMessage(err)`, `req`/`res` → `Request`/`Response` 또는 `RequestLike`/`ResponseLike`, `row` → `Record<string, unknown>` 또는 인터페이스 단언
 
 ---
 

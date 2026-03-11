@@ -350,10 +350,10 @@ router.get('/files/explorer', async (req, res) => {
     const pathPrefix = req.query.path != null ? String(req.query.path).trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '') : null
     const category = req.query.category ? String(req.query.category).trim() : null
     const source = req.query.source ? String(req.query.source).trim() : null
-    const edgeSid = req.query.edge_sid != null ? parseInt(req.query.edge_sid, 10) : null
+    const edgeSid = req.query.edge_sid != null ? parseInt(String(req.query.edge_sid), 10) : null
     const q = req.query.q ? String(req.query.q).trim() : null
-    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 500)
-    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0)
+    const limit = Math.min(Math.max(parseInt(String(req.query.limit ?? ''), 10) || 50, 1), 500)
+    const offset = Math.max(parseInt(String(req.query.offset ?? ''), 10) || 0, 0)
     const limitInt = Number(limit) || 50
     const offsetInt = Number(offset) || 0
 
