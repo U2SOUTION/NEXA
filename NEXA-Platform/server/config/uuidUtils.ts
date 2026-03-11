@@ -18,6 +18,6 @@ import { v7 } from 'uuid'
  * UUID v7 생성. users, device_registry 등 PK용.
  * @returns {string} 36자 UUID (하이픈 포함, 예: '018e1234-5678-7000-8000-000000000000')
  */
-export function generateUuidV7() {
-  return v7()
+export function generateUuidV7(): string {
+  return (v7 as () => string)()
 }

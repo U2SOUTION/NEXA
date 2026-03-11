@@ -23,7 +23,7 @@ export function parseURLState(_query, _stateMap) {
  * 특정 파라미터 파싱
  * @param {string} value - 파라미터 값
  * @param {string} type - 타입 ('string' | 'number' | 'boolean' | 'array')
- * @returns {any} 파싱된 값
+ * @returns {unknown} 파싱된 값
  */
 export function parseURLParam(value, _type = 'string') {
   void _type

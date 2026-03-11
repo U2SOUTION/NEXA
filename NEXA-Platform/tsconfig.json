@@ -28,9 +28,7 @@
     "src/**/*.tsx",
     "src/**/*.js",
     "src/**/*.vue",
-    "src/tests/**/*.spec.ts",
-    "server/**/*.ts",
-    "server/**/*.js"
+    "src/tests/**/*.spec.ts"
   ],
-  "exclude": ["node_modules", "dist", ".quasar", "src/**/ExplorerPreview.vue", "server/node_modules"]
+  "exclude": ["node_modules", "dist", ".quasar", "src/**/ExplorerPreview.vue"]
 }

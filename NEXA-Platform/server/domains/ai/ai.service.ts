@@ -37,7 +37,7 @@ function toSdkMessages(messages, systemInstruction) {
   return [...system, ...list]
 }
 
-export async function listModels(url) {
+export async function listModels(url?: string) {
   const base = getBaseUrl(url)
   const res = await fetch(`${base}/api/tags`)
   if (!res.ok) {
@@ -46,7 +46,7 @@ export async function listModels(url) {
   return res.json()
 }
 
-export async function showModel(modelName, url) {
+export async function showModel(modelName: string, url?: string) {
   const base = getBaseUrl(url)
   const res = await fetch(`${base}/api/show`, {
     method: 'POST',

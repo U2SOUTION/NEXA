@@ -68,7 +68,7 @@ export function exportToCSV(data, columns, columnDefinitions = [], options = {},
 
 /**
  * CSV 값 이스케이프 처리
- * @param {any} value - 값
+ * @param {unknown} value - 값
  * @returns {string} 이스케이프된 CSV 값
  */
 function escapeCSVValue(value) {

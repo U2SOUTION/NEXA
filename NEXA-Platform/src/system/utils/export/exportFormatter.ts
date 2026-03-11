@@ -64,7 +64,7 @@ export function formatNumber(value, options = {}) {
 
 /**
  * NULL/빈 값 처리
- * @param {any} value - 값
+ * @param {unknown} value - 값
  * @param {string} nullValue - 'empty' | 'na' | 'dash'
  * @returns {string} 처리된 값
  */

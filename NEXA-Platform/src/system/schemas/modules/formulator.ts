@@ -48,7 +48,7 @@ export const FormulatorSchema = z.object({
    * 조리법의 구체적인 수치나 옵션을 저장합니다.
    * z.record를 사용하여 어떤 형태의 설정값도 유연하게 수용합니다.
    */
-  settings: z.record(z.string(), z.any()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
 
   // 5. 시각적 표현 및 설명 (Kitchen UI 렌더링용)
   display: z.object({

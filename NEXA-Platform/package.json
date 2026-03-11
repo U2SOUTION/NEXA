@@ -9,6 +9,8 @@
   "scripts": {
     "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{js,cjs,mjs,ts,vue}\"",
     "typecheck": "vue-tsc --noEmit",
+    "typecheck:server": "cd server && npm run typecheck",
+    "typecheck:all": "npm run typecheck:server && npm run typecheck",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0",
     "dev": "cross-env VITE_API_PORT=3001 quasar dev",

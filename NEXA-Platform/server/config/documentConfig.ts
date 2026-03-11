@@ -214,9 +214,13 @@ export async function addDocsFolder(entry) {
     return false
   }
 
-  const newFolder = { id, label: label || id, pathPrefix: sanitized }
-  if (displayPathPrefix && typeof displayPathPrefix === 'string' && displayPathPrefix.trim()) {
-    newFolder.displayPathPrefix = displayPathPrefix.trim()
+  const newFolder: { id: string; label: string; pathPrefix: string; displayPathPrefix?: string } = {
+    id,
+    label: label || id,
+    pathPrefix: sanitized,
+    ...(displayPathPrefix && typeof displayPathPrefix === 'string' && displayPathPrefix.trim()
+      ? { displayPathPrefix: displayPathPrefix.trim() }
+      : {}),
   }
   if (docsFolders.length === 0) {
     docsFolders = [...DEFAULT_DOCS_FOLDERS]

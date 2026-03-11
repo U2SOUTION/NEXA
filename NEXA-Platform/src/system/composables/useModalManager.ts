@@ -39,7 +39,7 @@ export function useModalManager(modalNames = []) {
   /**
    * 모달 열기
    * @param {string} name - 모달 이름
-   * @param {any} data - 모달에 전달할 데이터 (선택적)
+   * @param {unknown} data - 모달에 전달할 데이터 (선택적)
    */
   function openModal(name, data = null) {
     if (!modalNames.includes(name)) {
@@ -83,7 +83,7 @@ export function useModalManager(modalNames = []) {
   /**
    * 모달 데이터 가져오기
    * @param {string} name - 모달 이름
-   * @returns {any} 모달 데이터
+   * @returns {unknown} 모달 데이터
    */
   function getModalData(name) {
     if (!modalNames.includes(name)) {
@@ -95,7 +95,7 @@ export function useModalManager(modalNames = []) {
   /**
    * 모달 데이터 설정
    * @param {string} name - 모달 이름
-   * @param {any} data - 설정할 데이터
+   * @param {unknown} data - 설정할 데이터
    */
   function setModalData(name, data) {
     if (!modalNames.includes(name)) {

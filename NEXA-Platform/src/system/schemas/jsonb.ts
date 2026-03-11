@@ -10,11 +10,11 @@ export type AllowedDomains = z.infer<typeof allowedDomainsSchema>
 
 /** archive_doc.content_json: 문서 본문 (TipTap/ProseMirror 등 유연한 JSON) */
 export const archiveContentJsonSchema = z.union([
-  z.record(z.string(), z.unknown()).passthrough(),
+  z.record(z.string(), z.unknown()),
   z.array(z.unknown()),
 ])
 export type ArchiveContentJson = z.infer<typeof archiveContentJsonSchema>
 
 /** device_registry.metadata: 디바이스 메타데이터 (선택) */
-export const deviceMetadataSchema = z.record(z.string(), z.unknown()).passthrough().optional().nullable()
+export const deviceMetadataSchema = z.record(z.string(), z.unknown()).optional().nullable()
 export type DeviceMetadata = z.infer<typeof deviceMetadataSchema>

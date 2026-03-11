@@ -7,7 +7,7 @@
 /**
  * 파라미터 유효성 검사
  * @param {string} paramName - 파라미터 이름
- * @param {any} value - 파라미터 값
+ * @param {unknown} value - 파라미터 값
  * @returns {boolean} 유효성 여부
  */
 export function validateURLParam(_paramName, _value) {

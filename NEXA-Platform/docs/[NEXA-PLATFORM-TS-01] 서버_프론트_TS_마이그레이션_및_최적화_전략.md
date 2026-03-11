@@ -501,15 +501,15 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 **최종 업데이트**: 2025-03 — 2단계 완료분 반영 (JSONB, 프론트 타입, 통합 테스트, 디바이스 스키마, Express/Multer 타입, @/ alias)
 
 **공통·인프라**
-- [ ] **unknown vs any**: `any` 지양, `unknown` 우선 사용 (§6.1). 타입 모를 때 `unknown` + 타입 가드/Zod 검증
+- [x] **unknown vs any**: `any` 지양, `unknown` 우선 사용 (§6.1). Zod 스키마 `z.any()`→`z.unknown()`, JSDoc·Express 타입 `any`→`unknown`/구체 타입 적용
 - [x] 서버: `server/types/common.ts` 생성, UUID·Timestamp·공용 인터페이스 정의. **Branded ID** (`UserId`, `ProjectId`, `DeviceId`, `ArchiveId`) — `src/system/types/ids.ts`에 정의. `toUserId` 등 Zod 기반 변환 함수 배치
 - [x] 서버: 도메인별 `*.types.ts` (devices: `device.types.ts`, projects: `project.types.ts`) 추가. auth는 `src/system/schemas/auth.ts`에서 스키마·타입
 - [x] 서버: 라우트·서비스에 인자/반환 타입 적용 (auth, devices, projects 완료)
 - [x] 서버: `Express.Request` 확장(`req.user`, `req.device`, `req.file`, `req.files`) — `server/types/express.d.ts`에 전역 타입 주입. Express `Router`·Multer ESM/NodeNext 타입은 `server/types/express-export.d.ts`, `multer.d.ts`로 보강
 - [x] 프론트: API 응답/요청 타입을 서버와 동일한 이름·구조로 정리 — `AuthUser`, `Project`, `Device`를 `src/system/types/common/`에 정의, authStore·projectStore·MyView에서 사용
 - [x] 프론트: store·composables·뷰 컴포넌트(MyView 등)에서 `AuthUser`, `Project`, `Device` 타입 사용. SFC에 `lang="ts"` 적용
-- [ ] 서버: tsconfig `strict`/`noImplicitAny` 단계적 활성화
-- [ ] 서버·프론트: `npm run typecheck` (또는 동등 명령) CI/로컬 실행
+- [x] 서버: `tsconfig.strict.json` 추가 (strict: true, noImplicitAny: true). `npm run typecheck:strict`로 점진적 검증. 기본 typecheck는 기존 설정 유지
+- [x] 서버·프론트: `npm run typecheck` 스크립트 추가. 서버: `server/tsconfig.typecheck.json` 사용, `typecheck:server`, `typecheck:all`. 프론트: `vue-tsc --noEmit`. **참고**: 서버 typecheck는 node_modules 일부 패키지(.ts 소스 배포)로 인해 오류 잔존. `server/types/module-stubs.d.ts`로 cors·ioredis·http-errors·jsonwebtoken·@opentelemetry/api 스텁 적용. DB row·query 결과 타입 등 점진적 수정 대상
 - [x] **통합 테스트**: `src/system/tests/api.integration.spec.ts` — GET /api/projects, /api/health 응답을 공유 Zod 스키마로 검증 (서버 기동 시)
 
 **플랫폼 특성 (§2 반영)**

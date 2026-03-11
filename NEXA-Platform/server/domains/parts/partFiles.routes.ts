@@ -5,6 +5,9 @@ import fsSync from 'fs'
 import multer from 'multer'
 import { randomUUID } from 'crypto'
 import { pool } from '@/config/dbConfig.js'
+
+/** DB query row 타입 (pg rows는 Record 형태) */
+type DbRow = Record<string, unknown>
 import { getCategoryAbbreviation } from '@/utils/skuGenerator.js'
 import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, partsGenerateFolderPath, partsGenerateFilename, partsCreateSafeFilename, ensureFolderExists, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder, saveFile } from '@/utils/fileUpload.js'
 import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '@/config/upload.js'
@@ -143,7 +146,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: '파일이 필요합니다.' })
     }
 
-    const fileSize = req.file.size
+    const fileSize = (req.file.size as number) || 0
     const filenameFromQuery = req.query.filename
     const filenameFromBody = req.body.filename
     const filenameFromFile = req.file.originalname
@@ -222,11 +225,11 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         client.release()
         return res.status(404).json({ error: '부품 분류를 찾을 수 없습니다.' })
       }
-      record = rows[0]
+      record = rows[0] as DbRow
       tableName = 'part_classes'
       recordId = partClassId
-      cCode = record.c_code
-      categoryAbbr = record.d_code || getCategoryAbbreviation(record.category)
+      cCode = record.c_code as string
+      categoryAbbr = (record.d_code as string) || getCategoryAbbreviation(record.category as string)
     } else if (partModelId) {
       const { rows } = await client.query(
         `SELECT pm.*, pc.category, pc.c_code, pc.d_code
@@ -240,11 +243,11 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         client.release()
         return res.status(404).json({ error: '부품 유형을 찾을 수 없습니다.' })
       }
-      record = rows[0]
+      record = rows[0] as DbRow
       tableName = 'part_models'
       recordId = partModelId
-      cCode = record.c_code
-      categoryAbbr = record.d_code || getCategoryAbbreviation(record.category)
+      cCode = record.c_code as string
+      categoryAbbr = (record.d_code as string) || getCategoryAbbreviation(record.category as string)
     } else if (partSpecId) {
       const { rows } = await client.query(
         `SELECT ps.*, pm.part_class_id, pm.id as part_model_id,
@@ -260,11 +263,11 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         client.release()
         return res.status(404).json({ error: '개별 부품을 찾을 수 없습니다.' })
       }
-      record = rows[0]
+      record = rows[0] as DbRow
       tableName = 'part_specs'
       recordId = partSpecId
-      cCode = record.c_code
-      categoryAbbr = record.d_code || getCategoryAbbreviation(record.category)
+      cCode = record.c_code as string
+      categoryAbbr = (record.d_code as string) || getCategoryAbbreviation(record.category as string)
     }
 
     let maxSequenceQuery = ''
@@ -281,7 +284,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     }
 
     const { rows: maxSeqRows } = await client.query(maxSequenceQuery, maxSequenceParams)
-    const maxSequence = maxSeqRows[0]?.max_seq || 0
+    const maxSequence = Number((maxSeqRows[0] as DbRow)?.max_seq ?? 0)
     let sequence = maxSequence + 1
 
     let insertSuccess = false
@@ -326,7 +329,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         await client.query(`UPDATE ${tableName} SET file_upload_count = $1 WHERE id = $2`, [finalSequence, recordId])
 
         res.status(201).json({
-          id: insertRows[0].id,
+          id: (insertRows[0] as DbRow).id,
           file_path: relativeFilePath,
           original_filename: finalOriginalFilename,
           file_extension: extension,
@@ -475,9 +478,9 @@ router.post('/part-files/move-temp', async (req, res) => {
       return res.status(404).json({ error: '부품 분류를 찾을 수 없습니다.' })
     }
 
-    const partClass = partClassRows[0]
-    const cCode = partClass.c_code
-    const categoryAbbr = partClass.d_code || getCategoryAbbreviation(partClass.category)
+    const partClass = partClassRows[0] as DbRow
+    const cCode = partClass.c_code as string
+    const categoryAbbr = (partClass.d_code as string) || getCategoryAbbreviation(partClass.category as string)
 
     let extension
     if (target_filename) {
@@ -489,7 +492,7 @@ router.post('/part-files/move-temp', async (req, res) => {
 
     const maxSeqQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_class_id = $1 AND d_code = $2 AND c_code = $3 AND file_extension = $4 FOR UPDATE'
     const { rows: maxSeqRows } = await client.query(maxSeqQuery, [part_class_id, categoryAbbr, cCode, extension])
-    const maxSequence = maxSeqRows[0]?.max_seq || 0
+    const maxSequence = Number((maxSeqRows[0] as DbRow)?.max_seq ?? 0)
     const newSequence = maxSequence + 1
 
     const folderPath = partsGenerateFolderPath(categoryAbbr, cCode, DOMAIN)
@@ -515,7 +518,7 @@ router.post('/part-files/move-temp', async (req, res) => {
     await client.query('COMMIT')
 
     res.status(201).json({
-      id: insertRows[0].id,
+      id: (insertRows[0] as DbRow).id,
       file_path: relativePath,
       original_filename: original_filename || targetName,
       file_extension: extension,
@@ -558,10 +561,11 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
 
     // 아카이브 참조 정보 없으면 삭제하지 않음 (오삭제 방지)
     const orphanedImages =
-      currentFilePaths.size === 0 ? [] : allEditorImages.filter((file) => {
-      const filePath = file.file_path
+      currentFilePaths.size === 0 ? [] : (allEditorImages as DbRow[]).filter((file) => {
+      const filePath = file.file_path as string
       if (currentFilePaths.has(filePath)) return false
       for (const currentPath of currentFilePaths) {
+        if (typeof currentPath !== 'string') continue
         try {
           const decoded = decodeURIComponent(currentPath)
           if (decoded === filePath) return false
@@ -573,13 +577,13 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
     })
 
     let deletedCount = 0
-    const deletedFiles = []
+    const deletedFiles: Array<{ id: unknown; file_path: unknown }> = []
     for (const file of orphanedImages) {
       try {
         try {
-          await deleteFile(file.file_path)
+          await deleteFile(file.file_path as string)
         } catch (error) {
-          console.warn(`[Cleanup] 물리적 파일 삭제 실패 (계속 진행): ${file.file_path}`, error.message)
+          console.warn(`[Cleanup] 물리적 파일 삭제 실패 (계속 진행): ${file.file_path}`, (error as Error).message)
         }
         await client.query('DELETE FROM part_files WHERE id = $1', [file.id])
         deletedCount++
@@ -616,8 +620,8 @@ router.get('/part-files/:id/download', async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }
-    const fileRecord = rows[0]
-    const filePath = fileRecord.file_path
+    const fileRecord = rows[0] as DbRow
+    const filePath = fileRecord.file_path as string
     if (!filePath) {
       return res.status(404).json({ error: '파일 경로를 찾을 수 없습니다.' })
     }
@@ -633,12 +637,12 @@ router.get('/part-files/:id/download', async (req, res) => {
 
     let mimeType = 'application/octet-stream'
     if (fileRecord.file_mime_type) {
-      mimeType = fileRecord.file_mime_type
+      mimeType = fileRecord.file_mime_type as string
     } else if (fileRecord.file_extension) {
       try {
-        mimeType = getFileMimeType(fileRecord.file_extension) || mimeType
+        mimeType = getFileMimeType(fileRecord.file_extension as string) || mimeType
       } catch {
-        const ext = fileRecord.file_extension.toLowerCase().replace(/^\./, '')
+        const ext = (fileRecord.file_extension as string).toLowerCase().replace(/^\./, '')
         if (ext === 'mp3') mimeType = 'audio/mpeg'
         else if (ext === 'mp4') mimeType = 'video/mp4'
         else if (ext === 'pdf') mimeType = 'application/pdf'
@@ -647,7 +651,7 @@ router.get('/part-files/:id/download', async (req, res) => {
         }
       }
     } else if (fileRecord.original_filename) {
-      const ext = path.extname(fileRecord.original_filename).toLowerCase().replace(/^\./, '')
+      const ext = path.extname(fileRecord.original_filename as string).toLowerCase().replace(/^\./, '')
       if (ext) {
         try {
           mimeType = getFileMimeType(ext) || mimeType
@@ -657,7 +661,7 @@ router.get('/part-files/:id/download', async (req, res) => {
       }
     }
 
-    const originalFilename = fileRecord.original_filename || 'download'
+    const originalFilename = (fileRecord.original_filename as string) || 'download'
     let safeFilename = originalFilename
       .replace(/"/g, "'")
       .replace(/\r/g, '')
@@ -706,15 +710,15 @@ router.delete('/part-files/:id', async (req, res) => {
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }
 
-    const fileRecord = rows[0]
+    const fileRecord = rows[0] as DbRow
     try {
-      await deleteFile(fileRecord.file_path)
+      await deleteFile(fileRecord.file_path as string)
     } catch (error) {
       console.warn(`[File Delete] 물리적 파일 삭제 실패 (계속 진행): ${error.message}`)
     }
 
     const result = await client.query('DELETE FROM part_files WHERE id = $1', [req.params.id])
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       client.release()
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }

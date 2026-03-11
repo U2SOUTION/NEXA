@@ -1,0 +1,33 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "paths": {
+      "@system/*": ["../src/system/*"],
+      "@/*": ["./*"],
+      "@opentelemetry/api": ["./types/module-stubs.d.ts"],
+      "@opentelemetry/api/*": ["./types/module-stubs.d.ts"],
+      "cors": ["./types/module-stubs.d.ts"],
+      "ioredis": ["./types/module-stubs.d.ts"],
+      "http-errors": ["./types/module-stubs.d.ts"],
+      "jsonwebtoken": ["./types/module-stubs.d.ts"]
+    }
+  },
+  "include": [
+    "config/**/*.ts",
+    "domains/**/*.ts",
+    "middleware/**/*.ts",
+    "routes/**/*.ts",
+    "utils/**/*.ts",
+    "types/**/*.ts",
+    "loadEnv.ts",
+    "server.ts",
+    "../src/system/schemas/auth.ts",
+    "../src/system/schemas/errors.ts",
+    "../src/system/schemas/jsonb.ts",
+    "../src/system/schemas/projects.ts",
+    "../src/system/schemas/devices.ts",
+    "../src/system/types/ids.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

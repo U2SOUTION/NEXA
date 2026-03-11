@@ -3,7 +3,8 @@
  * @see [NEXA-AUTH-01] — Device Token 캐시, 비밀번호 리셋 토큰, refresh 블랙리스트
  * REDIS_URL 미설정 시 client = null, 로그아웃 블랙리스트 등 Redis 의존 기능만 비동작
  */
-import Redis from 'ioredis'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const RedisConstructor = require('ioredis') as new (url: string, opts?: object) => { on: (e: string, fn: (err: Error) => void) => void }
 
 const REDIS_URL =
   process.env.REDIS_URL ||
@@ -11,10 +12,10 @@ const REDIS_URL =
     ? `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}`
     : null)
 
-let client = null
+let client: InstanceType<typeof RedisConstructor> | null = null
 if (REDIS_URL) {
   try {
-    client = new Redis(REDIS_URL, {
+    client = new RedisConstructor(REDIS_URL, {
       maxRetriesPerRequest: 2,
       retryStrategy(times) {
         if (times > 3) return null

@@ -37,7 +37,7 @@ export const DeviceSchema = z.object({
 
   // 태그 및 확장 정보
   tags: z.array(z.string()).default([]),
-  attributes: z.record(z.string(), z.any()).default({}),
+  attributes: z.record(z.string(), z.unknown()).default({}),
 })
 
 /**
