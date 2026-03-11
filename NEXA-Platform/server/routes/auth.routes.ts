@@ -2,7 +2,7 @@
  * 인증 API [NEXA-AUTH-01] §5.1
  * POST /api/auth/register, login, refresh, logout | GET /api/auth/me
  */
-import { Router } from 'express'
+import express from 'express'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { pool } from '../config/dbConfig.js'
@@ -11,7 +11,9 @@ import { authConfig } from '../config/authConfig.js'
 import { signAccess, signRefresh, verifyAccess, verifyRefresh } from '../utils/jwtAuth.js'
 import redisClient from '../config/redis.js'
 
-const router = Router()
+// @types/express default export 타입에 Router 미포함 → 단언 사용 (2단계에서 타입 보강)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const router = (express as any).Router()
 const SALT_ROUNDS = 10
 
 // Zod 스키마
