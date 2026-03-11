@@ -123,11 +123,11 @@ Ollama 연동 시 발생하는 에러(모델 로드 실패, 타임아웃 등)를
 
 ## 7. 체크리스트
 
-- [ ] §1 선행 완료: 비즈니스 에러 코드 공유·API 스키마 통합
-- [ ] `src/system/schemas/ai_responses.ts` 정의. 도메인별 스키마(`summaryResponseSchema` 등)
-- [ ] `server/domains/ai/utils/zodToPromptSchema.ts` — Zod → JSON Schema 변환 유틸
-- [ ] `server/domains/ai/ai.types.ts` — `ProjectContext`, `DeviceContext`, `AiJobStatus` 정의
-- [ ] `ApiErrorCode`에 AI 관련 코드 추가 (errors.ts). 메시지 맵에 대응 문구 추가
+- [x] §1 선행 완료: 비즈니스 에러 코드 공유·API 스키마 통합
+- [x] `src/system/schemas/ai_responses.ts` 정의. `summaryResponseSchema`, `extractionResponseSchema`, `chatMessageResponseSchema`
+- [x] `server/domains/ai/utils/zodToPromptSchema.ts` — Zod → JSON Schema 변환 (`toJsonSchemaForPrompt`, `toPromptSchemaString`). 패키지 의존 없이 단순 구현
+- [x] `server/domains/ai/ai.types.ts` — `ProjectContext`, `DeviceContext`, `AiJobStatus` 정의
+- [x] `ApiErrorCode`에 AI 관련 코드 추가 (errors.ts). 메시지 맵 (errorMessages.ts)에 대응 문구 추가
 
 ---
 

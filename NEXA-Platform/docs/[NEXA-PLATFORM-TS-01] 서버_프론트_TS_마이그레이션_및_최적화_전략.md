@@ -498,28 +498,30 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 
 ## 9. 체크리스트 (참고)
 
-**최종 업데이트**: 2025-03 — 2단계 완료분 반영 (JSONB, 프론트 타입, 통합 테스트, 디바이스 스키마, Express/Multer 타입, @/ alias)
+**최종 업데이트**: 2025-03 — typecheck·unknown vs any·strict·DB row 타입 적용 반영 (dbConfig QueryResult, partFiles DbRow, pg/redis/uuid 호환)
 
 **공통·인프라**
 - [x] **unknown vs any**: `any` 지양, `unknown` 우선 사용 (§6.1). Zod 스키마 `z.any()`→`z.unknown()`, JSDoc·Express 타입 `any`→`unknown`/구체 타입 적용
 - [x] 서버: `server/types/common.ts` 생성, UUID·Timestamp·공용 인터페이스 정의. **Branded ID** (`UserId`, `ProjectId`, `DeviceId`, `ArchiveId`) — `src/system/types/ids.ts`에 정의. `toUserId` 등 Zod 기반 변환 함수 배치
 - [x] 서버: 도메인별 `*.types.ts` (devices: `device.types.ts`, projects: `project.types.ts`) 추가. auth는 `src/system/schemas/auth.ts`에서 스키마·타입
 - [x] 서버: 라우트·서비스에 인자/반환 타입 적용 (auth, devices, projects 완료)
-- [x] 서버: `Express.Request` 확장(`req.user`, `req.device`, `req.file`, `req.files`) — `server/types/express.d.ts`에 전역 타입 주입. Express `Router`·Multer ESM/NodeNext 타입은 `server/types/express-export.d.ts`, `multer.d.ts`로 보강
+- [x] 서버: `Express.Request` 확장(`req.user`, `req.device`, `req.file`, `req.files`) — `server/types/express.d.ts`에 전역 타입 주입. `req.file`·`req.files`는 Multer 타입 적용. Express `Router`·Multer ESM/NodeNext 타입은 `server/types/express-export.d.ts`, `multer.d.ts`로 보강
 - [x] 프론트: API 응답/요청 타입을 서버와 동일한 이름·구조로 정리 — `AuthUser`, `Project`, `Device`를 `src/system/types/common/`에 정의, authStore·projectStore·MyView에서 사용
 - [x] 프론트: store·composables·뷰 컴포넌트(MyView 등)에서 `AuthUser`, `Project`, `Device` 타입 사용. SFC에 `lang="ts"` 적용
 - [x] 서버: `tsconfig.strict.json` 추가 (strict: true, noImplicitAny: true). `npm run typecheck:strict`로 점진적 검증. 기본 typecheck는 기존 설정 유지
-- [x] 서버·프론트: `npm run typecheck` 스크립트 추가. 서버: `server/tsconfig.typecheck.json` 사용, `typecheck:server`, `typecheck:all`. 프론트: `vue-tsc --noEmit`. **참고**: 서버 typecheck는 node_modules 일부 패키지(.ts 소스 배포)로 인해 오류 잔존. `server/types/module-stubs.d.ts`로 cors·ioredis·http-errors·jsonwebtoken·@opentelemetry/api 스텁 적용. DB row·query 결과 타입 등 점진적 수정 대상
+- [x] 서버·프론트: `npm run typecheck` 스크립트 추가. 서버: `server/tsconfig.typecheck.json` 사용, `typecheck:server`, `typecheck:all`. 프론트: `vue-tsc --noEmit`. 루트 tsconfig에서 server 제외하여 프론트 typecheck는 `src/`만 검사
+- [x] **DB query 결과 타입**: `server/config/dbConfig.ts`에 `QueryResult<T>`(rows, rowCount) 정의. pg Pool/Client는 require + PoolLike 인터페이스로 NodeNext 호환. 도메인별 `DbRow`(=`Record<string, unknown>`) 타입 단언 적용 — partFiles.routes 등. `result.rowCount`, `row.id` 등 속성 접근 시 `(row as DbRow).id` 또는 `(result.rowCount ?? 0)` 패턴
 - [x] **통합 테스트**: `src/system/tests/api.integration.spec.ts` — GET /api/projects, /api/health 응답을 공유 Zod 스키마로 검증 (서버 기동 시)
 
 **플랫폼 특성 (§2 반영)**
 - [x] **tsconfig paths 선행**: 서버 `@system/*` → `../src/system/*`, `@/*` → `./*` 설정. 서버 내부 import는 `@/config/...`, `@/utils/...` 등으로 통일. NodeNext 사용 시 import 경로에 `.js` 확장자 필수 ([NEXA-PLATFORM-TS-02])
 - [x] **Zod 스키마 통합**: `src/system/schemas/`에 auth.ts·errors.ts·devices.ts·projects.ts·jsonb.ts 추가. ai_responses.ts는 [NEXA-AI-10] 참고
 - [x] API 경계(인증·디바이스·프로젝트): Zod 스키마 1회 정의, 서버 라우트·컨트롤러에서 검증. `@system/schemas/*.js` import
-- [x] JSONB 컬럼: `src/system/schemas/jsonb.ts`에 `allowedDomainsSchema`, `archiveContentJsonSchema`, `deviceMetadataSchema` 정의. auth.routes·auth.middleware·deviceAuth.middleware(`allowed_domains`), archive.service(`content_json`)에서 parseJsonb 적용
+- [x] JSONB 컬럼: `src/system/schemas/jsonb.ts`에 `allowedDomainsSchema`, `archiveContentJsonSchema`, `deviceMetadataSchema` 정의 (Zod v3 호환: `passthrough()` 미사용). auth.routes·auth.middleware·deviceAuth.middleware(`allowed_domains`), archive.service(`content_json`)에서 parseJsonb 적용
 - [x] DB JSONB 읽기: `server/utils/parseJsonb.ts` 유틸 도입 (Zod v4 nullable 스키마 호환). auth·archive·deviceAuth에서 parseJsonb 적용
+- [x] **pg·redis·uuid 타입 호환**: NodeNext 모듈 해석 이슈 대응. pg·uuid는 require + 타입 단언. redis는 require + module-stubs. `server/types/module-stubs.d.ts`로 cors·ioredis·http-errors·jsonwebtoken·@opentelemetry/api 스텁 적용
 - [x] 디바이스 API 요청/응답: 공유 Zod 스키마(`devices.ts`) + 타입. 버전별 페이로드 `devicePayloadSchema`에 `z.discriminatedUnion('version', [v1, v2])` 적용 (§7.2)
-- [ ] **AI 협업**: [NEXA-AI-10] 체크리스트 참고. ai_responses.ts·컨텍스트 타입·Zod→JSON Schema 유틸
+- [x] **AI 협업**: [NEXA-AI-10] 완료. `ai_responses.ts`, `ai.types.ts`(ProjectContext, DeviceContext, AiJobStatus), `zodToPromptSchema.ts`. ApiErrorCode AI 코드·메시지 맵 기존 적용
 - [x] **비즈니스 에러 코드**: `ApiErrorCode`·`ApiErrorCodeType`·`ValidationErrorResponse`·`ApiErrorResponse`를 `src/system/schemas/errors.ts`에 정의. 서버 라우트·컨트롤러에서 사용
 - [x] **에러 메시지 맵**: 프론트 `src/system/config/errorMessages.ts`에 `Record<ApiErrorCodeType, string>` 정의. i18n·토스트에 활용
 
