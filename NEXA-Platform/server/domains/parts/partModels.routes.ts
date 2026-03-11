@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { errMessage } from '@/utils/errUtils.js'
 import { pool } from '@/config/dbConfig.js'
 
 const router = Router()
@@ -15,9 +16,9 @@ router.get('/part-models/class/:classId', async (req, res) => {
       [req.params.classId],
     )
     res.json(rows)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[PartModels] 목록 조회 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -37,9 +38,9 @@ router.get('/part-models/:id', async (req, res) => {
     }
 
     res.json(rows[0])
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[PartModels] 단건 조회 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -53,9 +54,9 @@ router.get('/part-models', async (req, res) => {
        ORDER BY pm.id`,
     )
     res.json(rows)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[PartModels] 전체 목록 조회 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 

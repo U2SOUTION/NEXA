@@ -6,10 +6,11 @@
 
 import { Router } from 'express'
 import { pool } from '@/config/dbConfig.js'
+import { errMessage } from '@/utils/errUtils.js'
 
 const router = Router()
 
-function toMemo(row) {
+function toMemo(row: Record<string, unknown>) {
   return {
     id: row.id,
     content: row.content,
@@ -17,8 +18,8 @@ function toMemo(row) {
     channelId: row.channel_id,
     chatId: row.chat_id,
     sortOrder: row.sort_order,
-    createdAt: row.created_at ? new Date(row.created_at).getTime() : null,
-    updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : null,
+    createdAt: row.created_at != null ? new Date(row.created_at as string | number | Date).getTime() : null,
+    updatedAt: row.updated_at != null ? new Date(row.updated_at as string | number | Date).getTime() : null,
   }
 }
 
@@ -32,9 +33,9 @@ router.get('/ai-user-memos', async (req, res) => {
     )
     const items = rows.map(toMemo)
     res.json({ items })
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[ai-user-memos] list', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: errMessage(err) })
   }
 })
 
@@ -58,9 +59,9 @@ router.post('/ai-user-memos', async (req, res) => {
     )
     const item = rows[0] ? toMemo(rows[0]) : null
     res.status(201).json(item)
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[ai-user-memos] create', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: errMessage(err) })
   }
 })
 
@@ -94,9 +95,9 @@ router.patch('/ai-user-memos/:id', async (req, res) => {
     )
     const item = rows[0] ? toMemo(rows[0]) : null
     res.json(item)
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[ai-user-memos] update', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: errMessage(err) })
   }
 })
 
@@ -106,11 +107,11 @@ router.delete('/ai-user-memos/:id', async (req, res) => {
     const id = parseInt(req.params.id, 10)
     if (isNaN(id)) return res.status(400).json({ error: '올바른 id가 필요합니다.' })
     const result = await pool.query('DELETE FROM ai_user_memos WHERE id = $1', [id])
-    if (result.rowCount === 0) return res.status(404).json({ error: '메모를 찾을 수 없습니다.' })
+    if ((result.rowCount ?? 0) === 0) return res.status(404).json({ error: '메모를 찾을 수 없습니다.' })
     res.json({ ok: true })
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[ai-user-memos] delete', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: errMessage(err) })
   }
 })
 
@@ -135,9 +136,9 @@ router.patch('/ai-user-memos/:id/move', async (req, res) => {
     await pool.query('UPDATE ai_user_memos SET sort_order = $1 WHERE id = $2', [b.sort_order, a.id])
     await pool.query('UPDATE ai_user_memos SET sort_order = $1 WHERE id = $2', [a.sort_order, b.id])
     res.json({ ok: true })
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[ai-user-memos] move', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: errMessage(err) })
   }
 })
 

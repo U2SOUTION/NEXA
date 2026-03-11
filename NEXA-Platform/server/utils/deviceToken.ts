@@ -10,7 +10,7 @@ const DEVICE_TOKEN_CACHE_TTL_SEC = 3600 // 1시간
  * @param {string} rawToken - 디바이스에 발급한 평문 토큰
  * @returns {string} 64자 hex (SHA256)
  */
-export function hashDeviceToken(rawToken) {
+export function hashDeviceToken(rawToken: string) {
   if (!rawToken || typeof rawToken !== 'string') return ''
   return crypto.createHash('sha256').update(rawToken.trim()).digest('hex')
 }
@@ -19,7 +19,7 @@ export function hashDeviceToken(rawToken) {
  * Redis 캐시 키
  * @param {string} tokenHash - SHA256 hex
  */
-export function deviceCacheKey(tokenHash) {
+export function deviceCacheKey(tokenHash: string) {
   return `nexa:device:${tokenHash}`
 }
 

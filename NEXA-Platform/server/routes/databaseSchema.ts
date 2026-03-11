@@ -1,22 +1,29 @@
 // 데이터베이스 스키마 조회 API 라우트
 import { Router } from 'express'
+import { errMessage } from '@/utils/errUtils.js'
+import type { ResponseLike } from '@/types/request-response.js'
 
 const router = Router()
 
+type DbConnection = { query: (text: string, values?: unknown[]) => Promise<{ rows: unknown[] }> }
+interface DbInfoRow { dbName?: string }
+interface VersionRow { version?: string }
+interface CharsetRow { charset?: string }
+interface TableRow { name: string; [k: string]: unknown }
+interface CountRow { count?: string | number }
+
 /**
  * 데이터베이스 스키마 라우터 생성
- * @param {Function} getDbConnection - 데이터베이스 연결을 반환하는 함수
- * @returns {express.Router} Express 라우터 인스턴스
  */
-export default function createDatabaseSchemaRouter(getDbConnection) {
-  // 데이터베이스 연결 확인 헬퍼 함수
-  function checkConnection(res) {
+export default function createDatabaseSchemaRouter(getDbConnection: () => DbConnection | null) {
+  function checkConnection(res: ResponseLike): DbConnection | null {
     const dbConnection = getDbConnection()
     if (!dbConnection) {
-      return res.status(503).json({
+      res.status(503).json({
         error: '데이터베이스 연결이 없습니다.',
         message: '서버가 데이터베이스에 연결되지 않았습니다.',
       })
+      return null
     }
     return dbConnection
   }
@@ -55,11 +62,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         data,
         message: '쿼리가 성공적으로 실행되었습니다.',
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 쿼리 실행 실패:', error)
       res.status(500).json({
         error: '쿼리 실행 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -71,13 +78,16 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
       if (!dbConnection) return
 
       const { rows: dbRows } = await dbConnection.query('SELECT current_database() as "dbName"')
-      const dbName = dbRows[0]?.dbName ?? null
+      const dbRow = dbRows[0] as DbInfoRow | undefined
+      const dbName = dbRow?.dbName ?? null
 
       const { rows: versionRows } = await dbConnection.query('SELECT version() as version')
-      const version = versionRows[0]?.version ?? null
+      const verRow = versionRows[0] as VersionRow | undefined
+      const version = verRow?.version ?? null
 
       const { rows: encRows } = await dbConnection.query('SELECT current_setting(\'server_encoding\') as charset')
-      const charset = encRows[0]?.charset ?? null
+      const encRow = encRows[0] as CharsetRow | undefined
+      const charset = encRow?.charset ?? null
 
       res.json({
         success: true,
@@ -87,11 +97,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           charset,
         },
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 데이터베이스 정보 조회 실패:', error)
       res.status(500).json({
         error: '데이터베이스 정보 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -118,15 +128,17 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         ORDER BY t.tablename
       `)
 
+      const tablesTyped = tables as TableRow[]
       const tablesWithColumnCount = await Promise.all(
-        tables.map(async (table) => {
+        tablesTyped.map(async (table) => {
           const { rows: colRows } = await dbConnection.query(
             'SELECT COUNT(*) as count FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2',
             ['public', table.name],
           )
+          const cr = colRows[0] as CountRow | undefined
           return {
             ...table,
-            columnCount: parseInt(colRows[0]?.count ?? 0, 10),
+            columnCount: parseInt(String(cr?.count ?? 0), 10),
           }
         }),
       )
@@ -135,11 +147,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         success: true,
         data: tablesWithColumnCount,
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 테이블 목록 조회 실패:', error)
       res.status(500).json({
         error: '테이블 목록 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -210,11 +222,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           tableName: sanitizedTableName,
         },
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 테이블 생성 실패:', error)
       res.status(500).json({
         error: '테이블 생성 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -249,9 +261,9 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           [tableName],
         )
         columns = columnsResult
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('[DB Schema] 컬럼 정보 조회 실패:', err)
-        throw new Error(`컬럼 정보 조회 실패: ${err.message}`)
+        throw new Error(`컬럼 정보 조회 실패: ${errMessage(err)}`)
       }
 
       let indexes = []
@@ -270,9 +282,9 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           [tableName],
         )
         indexes = indexesResult
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('[DB Schema] 인덱스 정보 조회 실패:', err)
-        throw new Error(`인덱스 정보 조회 실패: ${err.message}`)
+        throw new Error(`인덱스 정보 조회 실패: ${errMessage(err)}`)
       }
 
       let constraints = []
@@ -287,9 +299,9 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           [tableName],
         )
         constraints = constraintsResult
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('[DB Schema] 제약조건 정보 조회 실패:', err)
-        throw new Error(`제약조건 정보 조회 실패: ${err.message}`)
+        throw new Error(`제약조건 정보 조회 실패: ${errMessage(err)}`)
       }
 
       let tableMeta = []
@@ -302,9 +314,9 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           [tableName],
         )
         tableMeta = tableMetaResult.length ? tableMetaResult : [{ rowCount: 0, dataLength: 0, indexLength: 0, createTime: null, updateTime: null, comment: null }]
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('[DB Schema] 테이블 메타데이터 조회 실패:', err)
-        throw new Error(`테이블 메타데이터 조회 실패: ${err.message}`)
+        throw new Error(`테이블 메타데이터 조회 실패: ${errMessage(err)}`)
       }
 
       res.json({
@@ -317,12 +329,12 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           constraints: constraints,
         },
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 테이블 구조 조회 실패:', error)
-      console.error('[DB Schema] 에러 스택:', error.stack)
+      console.error('[DB Schema] 에러 스택:', error instanceof Error ? error.stack : String(error))
       res.status(500).json({
         error: '테이블 구조 조회 실패',
-        message: error.message,
+        message: errMessage(error),
         tableName: req.params.tableName,
       })
     }
@@ -347,11 +359,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         success: true,
         data: columns,
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 컬럼 정보 조회 실패:', error)
       res.status(500).json({
         error: '컬럼 정보 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -382,11 +394,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         success: true,
         data: indexes,
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 인덱스 정보 조회 실패:', error)
       res.status(500).json({
         error: '인덱스 정보 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -413,11 +425,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         success: true,
         data: constraints,
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 제약조건 정보 조회 실패:', error)
       res.status(500).json({
         error: '제약조건 정보 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -452,11 +464,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         success: true,
         data: relationships,
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 외래키 관계 조회 실패:', error)
       res.status(500).json({
         error: '외래키 관계 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -487,11 +499,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         success: true,
         data: relationships,
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 테이블 관계 조회 실패:', error)
       res.status(500).json({
         error: '테이블 관계 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -532,11 +544,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           relationships: relationships,
         },
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 전체 스키마 정보 조회 실패:', error)
       res.status(500).json({
         error: '전체 스키마 정보 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -568,11 +580,11 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           foreignKeys: fkStats[0] || {},
         },
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 데이터베이스 통계 조회 실패:', error)
       res.status(500).json({
         error: '데이터베이스 통계 조회 실패',
-        message: error.message,
+        message: errMessage(error),
       })
     }
   })
@@ -583,16 +595,17 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
       const dbConnection = checkConnection(res)
       if (!dbConnection) return
       const { rows: r } = await dbConnection.query('SELECT current_database() as db')
-      const dbName = r[0]?.db ?? 'nexa_db'
+      const dbRow = r[0] as { db?: string } | undefined
+      const dbName = dbRow?.db ?? 'nexa_db'
       const dateStr = new Date().toISOString().split('T')[0]
       const hint = `-- Postgres 백업은 서버에서 pg_dump 또는 DBeaver(Tools → Backup)를 사용하세요.\n`
         + `-- 예: pg_dump -U postgres -d ${dbName} -F c -f ${dbName}_backup_${dateStr}.dump\n`
       res.setHeader('Content-Type', 'application/sql')
       res.setHeader('Content-Disposition', `attachment; filename="${dbName}_backup_${dateStr}.sql"`)
       res.send(hint)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[DB Schema] 백업 안내 실패:', error)
-      res.status(500).json({ error: '백업 안내 실패', message: error.message })
+      res.status(500).json({ error: '백업 안내 실패', message: errMessage(error) })
     }
   })
 

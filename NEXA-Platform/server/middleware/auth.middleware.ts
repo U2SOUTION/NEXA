@@ -36,9 +36,9 @@ const AUTH_SKIP_PREFIXES = [
   '/api/ai-user-memos',
 ]
 
-function shouldSkipAuth(path) {
+function shouldSkipAuth(path: string | undefined): boolean {
   if (!path) return true
-  const p = path.split('?')[0]
+  const p = String(path).split('?')[0]
   if (AUTH_SKIP_PATHS.some((skip) => p === skip || p.startsWith(skip + '/'))) return true
   if (p === '/api/health' || p.startsWith('/api/health/')) return true
   if (AUTH_SKIP_PREFIXES.some((prefix) => p === prefix || p.startsWith(prefix))) return true
@@ -59,16 +59,18 @@ function toUserResponse(row: Record<string, unknown> | null): AuthUser | null {
   }
 }
 
-export function jwtAuthMiddleware(req, res, next) {
+type MiddlewareFn = (req: { path?: string; headers?: { authorization?: string }; user?: unknown }, res: { status: (n: number) => { json: (o: unknown) => void } }, next: () => void) => void | Promise<void>
+
+export const jwtAuthMiddleware: MiddlewareFn = (req, res, next) => {
   if (shouldSkipAuth(req.path)) return next()
 
-  const authHeader = req.headers.authorization
+  const authHeader = req.headers?.authorization
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
   if (!token) {
     return deviceTokenAuth(req, res, next)
   }
 
-  const decoded = verifyAccess(token)
+  const decoded = verifyAccess(token) as { user_id?: string } | null
   if (!decoded?.user_id) {
     return deviceTokenAuth(req, res, next)
   }

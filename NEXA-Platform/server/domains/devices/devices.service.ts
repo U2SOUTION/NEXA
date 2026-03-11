@@ -125,7 +125,7 @@ export async function setDeviceCache(
 }
 
 export async function getDeviceFromCache(tokenHash: string | null | undefined) {
-  if (!redisClient) return null
+  if (!tokenHash || typeof tokenHash !== 'string' || !redisClient) return null
   try {
     const raw = await redisClient.get(deviceCacheKey(tokenHash))
     return raw ? JSON.parse(raw) : null

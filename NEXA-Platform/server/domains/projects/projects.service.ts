@@ -71,5 +71,5 @@ export async function remove(projectId: ProjectId | string, userId: UserId) {
     'DELETE FROM projects WHERE id = $1 AND user_id = $2',
     [projectId, userId]
   )
-  return rowCount > 0
+  return (rowCount ?? 0) > 0
 }

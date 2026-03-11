@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { errMessage, errCode } from '@/utils/errUtils.js'
 import path from 'path'
 import fs from 'fs/promises'
 import fsSync from 'fs'
@@ -49,13 +50,13 @@ router.get('/part-files/spec/:specId', async (req, res) => {
        LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
        WHERE pf.part_spec_id = $1
        ORDER BY pf.id`,
-      [req.params.specId],
+      [req.params?.specId ?? ''],
     )
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.json(rows)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('부품 파일 조회 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -71,16 +72,16 @@ router.get('/part-files/:id', async (req, res) => {
        LEFT JOIN part_models pm ON ps.part_model_id = pm.id
        LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
        WHERE pf.id = $1`,
-      [req.params.id],
+      [req.params?.id ?? ''],
     )
     if (rows.length === 0) {
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.json(rows[0])
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('부품 파일 조회 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -127,16 +128,16 @@ router.get('/part-files', async (req, res) => {
     const { rows } = await pool.query(query, params)
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.json(rows)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('부품 파일 조회 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
 // POST /api/part-files/upload - 파일 업로드 (새 스키마)
 router.post('/part-files/upload', upload.single('file'), async (req, res) => {
   const client = await pool.connect()
-  const tempRelativePath = req.file ? `uploads/_temp/${path.basename(req.file.path)}` : null
+  const tempRelativePath = req.file ? `uploads/_temp/${path.basename(req.file.path ?? '')}` : null
   let currentRelativePath = null
   try {
     await client.query('BEGIN')
@@ -193,7 +194,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     const maxFileSize = getFileMaxSize(fileType)
     if (fileSize > maxFileSize) {
       await client.query('ROLLBACK')
-      await deleteFile(tempRelativePath)
+      if (tempRelativePath) await deleteFile(tempRelativePath)
       client.release()
       const maxSizeMB = (maxFileSize / 1024 / 1024).toFixed(2)
       const currentSizeMB = (fileSize / 1024 / 1024).toFixed(2)
@@ -205,7 +206,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
 
     const refCount = [partClassId, partModelId, partSpecId].filter(Boolean).length
     if (refCount !== 1) {
-      await deleteFile(tempRelativePath)
+      if (tempRelativePath) await deleteFile(tempRelativePath)
       client.release()
       return res.status(400).json({
         error: 'part_class_id, part_model_id, part_spec_id 중 하나만 제공해야 합니다.',
@@ -221,7 +222,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     if (partClassId) {
       const { rows } = await client.query('SELECT * FROM part_classes WHERE id = $1 FOR UPDATE', [partClassId])
       if (rows.length === 0) {
-        await deleteFile(tempRelativePath)
+        if (tempRelativePath) await deleteFile(tempRelativePath)
         client.release()
         return res.status(404).json({ error: '부품 분류를 찾을 수 없습니다.' })
       }
@@ -239,7 +240,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         [partModelId],
       )
       if (rows.length === 0) {
-        await deleteFile(tempRelativePath)
+        if (tempRelativePath) await deleteFile(tempRelativePath)
         client.release()
         return res.status(404).json({ error: '부품 유형을 찾을 수 없습니다.' })
       }
@@ -259,7 +260,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         [partSpecId],
       )
       if (rows.length === 0) {
-        await deleteFile(tempRelativePath)
+        if (tempRelativePath) await deleteFile(tempRelativePath)
         client.release()
         return res.status(404).json({ error: '개별 부품을 찾을 수 없습니다.' })
       }
@@ -294,7 +295,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     while (!insertSuccess && maxRetries > 0) {
       try {
         let filename
-        const folderPath = partsGenerateFolderPath(categoryAbbr, cCode, DOMAIN)
+        const folderPath = partsGenerateFolderPath(String(categoryAbbr ?? ''), String(cCode ?? ''), DOMAIN)
         const absoluteFolderPath = await ensureFolderExists(folderPath)
 
         let finalOriginalFilename = originalFilename
@@ -308,9 +309,10 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         const absoluteFilePath = path.join(absoluteFolderPath, filename)
         const relativeFilePath = `${folderPath}${filename}`
 
-        if (currentRelativePath === null) {
-          currentRelativePath = await moveTempFileToFolder(tempRelativePath, folderPath, filename)
+        if (currentRelativePath === null && tempRelativePath) {
+          currentRelativePath = await moveTempFileToFolder(String(tempRelativePath), folderPath, filename ?? '')
         } else {
+          if (!currentRelativePath) throw new Error('currentRelativePath required')
           const currentAbsolutePath = resolveUploadAbsolutePath(currentRelativePath)
           await fs.rename(currentAbsolutePath, absoluteFilePath)
           currentRelativePath = relativeFilePath
@@ -339,8 +341,8 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
           file_sequence: finalSequence,
           message: '파일이 업로드되었습니다.',
         })
-      } catch (error) {
-        if (error.code === '23505') {
+      } catch (error: unknown) {
+        if (errCode(error) === '23505') {
           maxRetries--
           finalSequence++
           continue
@@ -358,7 +360,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     }
 
     await client.query('COMMIT')
-  } catch (error) {
+  } catch (error: unknown) {
     try {
       await client.query('ROLLBACK')
     } catch {
@@ -380,20 +382,20 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     }
     console.error('[File Upload] 파일 업로드 실패:', error)
 
-    if (error.code === '42P01') {
+    if (errCode(error) === '42P01') {
       return res.status(500).json({
         error: 'part_files 테이블이 존재하지 않습니다. 데이터베이스 스키마를 확인하세요.',
         details: 'database/init_postgres.sql 파일을 실행하여 테이블을 생성하세요.',
       })
     }
-    if (error.code === '42703') {
+    if (errCode(error) === '42703') {
       return res.status(500).json({
-        error: `데이터베이스 스키마 오류: ${error.message}`,
+        error: `데이터베이스 스키마 오류: ${errMessage(error)}`,
         details: 'part_files 테이블의 스키마가 최신 버전인지 확인하세요. database/init_postgres.sql 파일을 실행하세요.',
       })
     }
 
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   } finally {
     client.release()
   }
@@ -441,9 +443,9 @@ router.post('/part-files/upload-temp', async (req, res) => {
       file_size: fileSize,
       message: '임시 파일이 업로드되었습니다.',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[Temp File Upload] 임시 파일 업로드 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -528,14 +530,14 @@ router.post('/part-files/move-temp', async (req, res) => {
       file_sequence: newSequence,
       message: '임시 파일이 이동되었습니다.',
     })
-  } catch (error) {
+  } catch (error: unknown) {
     try {
       await client.query('ROLLBACK')
     } catch {
       // ignore
     }
     console.error('[Move Temp File] 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   } finally {
     client.release()
   }
@@ -582,14 +584,14 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
       try {
         try {
           await deleteFile(file.file_path as string)
-        } catch (error) {
-          console.warn(`[Cleanup] 물리적 파일 삭제 실패 (계속 진행): ${file.file_path}`, (error as Error).message)
+        } catch (err: unknown) {
+          console.warn(`[Cleanup] 물리적 파일 삭제 실패 (계속 진행): ${file.file_path}`, errMessage(err))
         }
         await client.query('DELETE FROM part_files WHERE id = $1', [file.id])
         deletedCount++
         deletedFiles.push({ id: file.id, file_path: file.file_path })
-      } catch (error) {
-        console.error(`[Cleanup] 파일 삭제 실패: ${file.id}`, error)
+      } catch (err: unknown) {
+        console.error(`[Cleanup] 파일 삭제 실패: ${file.id}`, err)
       }
     }
 
@@ -600,14 +602,14 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
       deleted_count: deletedCount,
       deleted_files: deletedFiles,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     try {
       await client.query('ROLLBACK')
     } catch {
       // ignore
     }
     console.error('[Cleanup Orphaned Images] 삭제 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   } finally {
     client.release()
   }
@@ -616,7 +618,7 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
 // GET /api/part-files/:id/download - 파일 다운로드 (원본 파일명으로)
 router.get('/part-files/:id/download', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM part_files WHERE id = $1', [req.params.id])
+    const { rows } = await pool.query('SELECT * FROM part_files WHERE id = $1', [req.params?.id ?? ''])
     if (rows.length === 0) {
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }
@@ -694,9 +696,9 @@ router.get('/part-files/:id/download', async (req, res) => {
     }
     res.setHeader('Cache-Control', 'private, max-age=3600')
     res.send(fileBuffer)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('파일 다운로드 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -704,7 +706,7 @@ router.get('/part-files/:id/download', async (req, res) => {
 router.delete('/part-files/:id', async (req, res) => {
   const client = await pool.connect()
   try {
-    const { rows } = await client.query('SELECT * FROM part_files WHERE id = $1', [req.params.id])
+    const { rows } = await client.query('SELECT * FROM part_files WHERE id = $1', [req.params?.id ?? ''])
     if (rows.length === 0) {
       client.release()
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
@@ -713,20 +715,20 @@ router.delete('/part-files/:id', async (req, res) => {
     const fileRecord = rows[0] as DbRow
     try {
       await deleteFile(fileRecord.file_path as string)
-    } catch (error) {
-      console.warn(`[File Delete] 물리적 파일 삭제 실패 (계속 진행): ${error.message}`)
+    } catch (err: unknown) {
+      console.warn(`[File Delete] 물리적 파일 삭제 실패 (계속 진행): ${errMessage(err)}`)
     }
 
-    const result = await client.query('DELETE FROM part_files WHERE id = $1', [req.params.id])
+    const result = await client.query('DELETE FROM part_files WHERE id = $1', [req.params?.id ?? ''])
     if ((result.rowCount ?? 0) === 0) {
       client.release()
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }
 
     res.json({ message: '삭제되었습니다.' })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('부품 파일 삭제 실패:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   } finally {
     client.release()
   }

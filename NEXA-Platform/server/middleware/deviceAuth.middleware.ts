@@ -5,14 +5,17 @@
  */
 import { allowedDomainsSchema } from '@system/schemas/jsonb.js'
 import { parseJsonb } from '@/utils/parseJsonb.js'
+import type { AuthUser } from '@/types/common.js'
+import { toUserId } from '@system/types/ids.js'
 import { hashDeviceToken } from '@/utils/deviceToken.js'
 import { pool } from '@/config/dbConfig.js'
 import * as devicesService from '@/domains/devices/devices.service.js'
 
-function toUserResponse(row) {
+function toUserResponse(row: Record<string, unknown> | null) {
   if (!row) return null
+  const userId = row.u_id ?? row.user_id
   return {
-    id: row.u_id || row.user_id,
+    id: String(userId ?? ''),
     email: row.email || '',
     display_name: row.display_name || '',
     role: row.role || 'user',
@@ -23,14 +26,13 @@ function toUserResponse(row) {
   }
 }
 
-/**
- * JWT로 req.user가 이미 있으면 스킵.
- * 없으면 X-Device-Token 읽어서 캐시/DB 조회 → req.user 설정, last_seen 갱신
- */
-export async function deviceTokenAuth(req, res, next) {
+type AuthReq = { user?: unknown; headers?: Record<string, unknown>; deviceId?: unknown; ip?: string; connection?: { remoteAddress?: string } }
+type AuthMiddlewareFn = (req: AuthReq, res: { status: (n: number) => { json: (o: unknown) => void } }, next: () => void) => void | Promise<void>
+
+export const deviceTokenAuth: AuthMiddlewareFn = async (req, res, next) => {
   if (req.user) return next()
 
-  const rawToken = req.headers['x-device-token']
+  const rawToken = req.headers?.['x-device-token']
   if (!rawToken || typeof rawToken !== 'string') {
     return res.status(401).json({ code: 'UNAUTHORIZED', message: '인증이 필요합니다.' })
   }
@@ -53,9 +55,9 @@ export async function deviceTokenAuth(req, res, next) {
     if (userRow) {
       req.user = toUserResponse({ ...userRow, u_id: userRow.id })
       req.deviceId = cached.device_id
-      await devicesService.updateDeviceLastSeen(cached.device_id, {
-        mac_address: req.headers['x-device-mac'] || null,
-        ip_address: req.ip || req.connection?.remoteAddress || null,
+      await devicesService.updateDeviceLastSeen(String(cached.device_id), {
+        mac_address: (req.headers?.['x-device-mac'] ?? null) as string | null,
+        ip_address: req.ip ?? req.connection?.remoteAddress ?? null,
       })
       return next()
     }
@@ -69,12 +71,17 @@ export async function deviceTokenAuth(req, res, next) {
     return res.status(401).json({ code: 'DEVICE_INACTIVE', message: '비활성화된 디바이스입니다.' })
   }
 
-  req.user = toUserResponse(row)
-  req.deviceId = row.id
-  await devicesService.setDeviceCache(tokenHash, row.user_id, row.id, row.is_active)
-  await devicesService.updateDeviceLastSeen(row.id, {
-    mac_address: req.headers['x-device-mac'] || row.mac_address,
-    ip_address: req.ip || req.connection?.remoteAddress || null,
+  req.user = toUserResponse(row) as AuthUser
+  req.deviceId = row.id as string
+  await devicesService.setDeviceCache(
+    tokenHash,
+    toUserId(String(row.user_id ?? '')),
+    row.id as string,
+    Boolean(row.is_active),
+  )
+  await devicesService.updateDeviceLastSeen(row.id as string, {
+    mac_address: (req.headers?.['x-device-mac'] ?? row.mac_address ?? null) as string | null,
+    ip_address: (req.ip ?? req.connection?.remoteAddress ?? null) as string | null,
   })
   next()
 }

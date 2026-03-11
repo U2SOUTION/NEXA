@@ -18,7 +18,8 @@ export async function listPartClasses({ includeDeleted = false } = {}) {
 
 export async function listPartClassesTrashCount() {
   const { rows } = await pool.query('SELECT COUNT(*) AS count FROM part_classes WHERE deleted_at IS NOT NULL')
-  return rows[0]?.count || 0
+  const count = rows[0]?.count
+  return typeof count === 'number' ? count : Number(count) || 0
 }
 
 export async function listPartClassesTrash() {
@@ -36,7 +37,8 @@ export async function listPartClassesTrash() {
   return rows
 }
 
-export async function getPartClass(id, { includeDeleted = false } = {}) {
+export async function getPartClass(id: number | string, opts: { includeDeleted?: boolean } = {}) {
+  const { includeDeleted = false } = opts
   const where = includeDeleted ? 'pc.id = $1' : 'pc.id = $1 AND pc.deleted_at IS NULL'
   const { rows } = await pool.query(
     `SELECT pc.*,
@@ -52,13 +54,15 @@ export async function getPartClass(id, { includeDeleted = false } = {}) {
   return rows[0] || null
 }
 
-export async function createPartClass(payload) {
+export async function createPartClass(payload: Record<string, unknown>) {
   const { name, c_code, code_name, description, category, example, sort_order, sub_sort_order, detailed_description } = payload
 
-  let finalSortOrder = sort_order
-  if (finalSortOrder === undefined || finalSortOrder === null || finalSortOrder === 0) {
+  let finalSortOrder: number
+  if (sort_order !== undefined && sort_order !== null && Number(sort_order) > 0) {
+    finalSortOrder = Number(sort_order)
+  } else {
     const { rows: maxRows } = await pool.query('SELECT COALESCE(MAX(sort_order), 0) as max_sort FROM part_classes WHERE deleted_at IS NULL')
-    const maxSortOrder = maxRows[0]?.max_sort || 0
+    const maxSortOrder = Number(maxRows[0]?.max_sort ?? 0)
     finalSortOrder = Math.ceil((maxSortOrder + 1) / 10) * 10
   }
   const finalSubSortOrder = sub_sort_order !== undefined && sub_sort_order !== null ? Number(sub_sort_order) : 0
@@ -75,7 +79,7 @@ export async function createPartClass(payload) {
   return newRow[0]
 }
 
-export async function reorderPartClasses(items) {
+export async function reorderPartClasses(items: Array<{ id?: unknown; sort_order?: unknown; sub_sort_order?: unknown }>) {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
@@ -122,7 +126,7 @@ export async function reinitializePartClassesSortOrder() {
     )
     if (zeroRows.length > 0) {
       const { rows: maxRows } = await client.query('SELECT COALESCE(MAX(sort_order), 0) as max_sort FROM part_classes WHERE deleted_at IS NULL')
-      const maxSortOrder = maxRows[0]?.max_sort || 0
+      const maxSortOrder = Number(maxRows[0]?.max_sort ?? 0)
       let nextSortOrder = Math.ceil((maxSortOrder + 1) / 10) * 10
       for (const zeroItem of zeroRows) {
         await client.query('UPDATE part_classes SET sort_order = $1, sub_sort_order = 0, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [nextSortOrder, zeroItem.id])
@@ -141,7 +145,7 @@ export async function reinitializePartClassesSortOrder() {
   }
 }
 
-export async function updatePartClass(id, payload) {
+export async function updatePartClass(id: number | string, payload: Record<string, unknown>) {
   const { name, c_code, code_name, description, category, example, sort_order, detailed_description, is_active, is_favorite } = payload
 
   const updateFields = []
@@ -184,12 +188,12 @@ export async function updatePartClass(id, payload) {
   return rows[0] || null
 }
 
-export async function softDeletePartClass(id) {
+export async function softDeletePartClass(id: number | string) {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
     const result = await client.query('UPDATE part_classes SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND deleted_at IS NULL', [id])
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       await client.query('ROLLBACK')
       return null
     }
@@ -203,17 +207,17 @@ export async function softDeletePartClass(id) {
   }
 }
 
-export async function bulkSoftDeletePartClasses(ids) {
+export async function bulkSoftDeletePartClasses(ids: number[]) {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
-    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',')
+    const placeholders = ids.map((_: number, i: number) => `$${i + 1}`).join(',')
     const result = await client.query(
       `UPDATE part_classes SET deleted_at = CURRENT_TIMESTAMP WHERE deleted_at IS NULL AND id IN (${placeholders})`,
       ids,
     )
     await client.query('COMMIT')
-    return { affected: result.rowCount }
+    return { affected: result.rowCount ?? 0 }
   } catch (err) {
     await client.query('ROLLBACK')
     throw err
@@ -222,22 +226,22 @@ export async function bulkSoftDeletePartClasses(ids) {
   }
 }
 
-export async function restorePartClass(id) {
+export async function restorePartClass(id: number | string) {
   const result = await pool.query('UPDATE part_classes SET deleted_at = NULL WHERE id = $1 AND deleted_at IS NOT NULL', [id])
-  return result.rowCount > 0
+  return (result.rowCount ?? 0) > 0
 }
 
-export async function bulkRestorePartClasses(ids) {
+export async function bulkRestorePartClasses(ids: number[]) {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
-    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',')
+    const placeholders = ids.map((_: number, i: number) => `$${i + 1}`).join(',')
     const result = await client.query(
       `UPDATE part_classes SET deleted_at = NULL WHERE deleted_at IS NOT NULL AND id IN (${placeholders})`,
       ids,
     )
     await client.query('COMMIT')
-    return { affected: result.rowCount }
+    return { affected: result.rowCount ?? 0 }
   } catch (err) {
     await client.query('ROLLBACK')
     throw err
@@ -246,7 +250,7 @@ export async function bulkRestorePartClasses(ids) {
   }
 }
 
-export async function permanentDeletePartClass(id) {
+export async function permanentDeletePartClass(id: number | string) {
   const result = await pool.query('DELETE FROM part_classes WHERE id = $1', [id])
-  return result.rowCount > 0
+  return (result.rowCount ?? 0) > 0
 }

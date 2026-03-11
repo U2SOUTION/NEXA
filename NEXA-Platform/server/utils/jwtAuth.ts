@@ -8,7 +8,7 @@ import { authConfig } from '@/config/authConfig.js'
 
 const { jwtAccessSecret, jwtRefreshSecret, accessExpirySec, refreshExpirySec } = authConfig
 
-export function signAccess(payload) {
+export function signAccess(payload: { user_id: string; email?: string; role?: string }) {
   return jwt.sign(
     { ...payload, type: 'access' },
     jwtAccessSecret,
@@ -16,7 +16,7 @@ export function signAccess(payload) {
   )
 }
 
-export function signRefresh(payload) {
+export function signRefresh(payload: { user_id: string }) {
   const jti = uuidv4()
   const token = jwt.sign(
     { ...payload, type: 'refresh', jti },
@@ -26,19 +26,19 @@ export function signRefresh(payload) {
   return { token, jti, expiresIn: refreshExpirySec }
 }
 
-export function verifyAccess(token) {
+export function verifyAccess(token: string) {
   try {
-    const decoded = jwt.verify(token, jwtAccessSecret)
-    return decoded.type === 'access' ? decoded : null
+    const decoded = jwt.verify(token, jwtAccessSecret) as { type?: string; user_id?: string }
+    return decoded?.type === 'access' ? decoded : null
   } catch {
     return null
   }
 }
 
-export function verifyRefresh(token) {
+export function verifyRefresh(token: string) {
   try {
-    const decoded = jwt.verify(token, jwtRefreshSecret)
-    return decoded.type === 'refresh' ? decoded : null
+    const decoded = jwt.verify(token, jwtRefreshSecret) as { type?: string; jti?: string; user_id?: string; exp?: number }
+    return decoded?.type === 'refresh' ? decoded : null
   } catch {
     return null
   }

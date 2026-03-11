@@ -57,7 +57,7 @@ export async function getProject(req: RequestLike, res: ResponseLike): Promise<R
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
   try {
-    const project = await projectsService.getById(req.params.id as string, req.user.id)
+    const project = await projectsService.getById(req.params?.id as string, req.user.id)
     if (!project) {
       return res.status(404).json({ code: ApiErrorCode.NOT_FOUND, message: '프로젝트를 찾을 수 없습니다.' })
     }
@@ -76,7 +76,7 @@ export async function patchProject(req: RequestLike, res: ResponseLike): Promise
   if (!parsed.success) return validationErrorResponse(res, parsed.error)
   try {
     const project = await projectsService.update(
-      req.params.id as string,
+      req.params?.id as string,
       req.user.id,
       parsed.data
     )
@@ -95,7 +95,7 @@ export async function deleteProject(req: RequestLike, res: ResponseLike): Promis
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
   try {
-    const ok = await projectsService.remove(req.params.id as string, req.user.id)
+    const ok = await projectsService.remove(req.params?.id as string, req.user.id)
     if (!ok) {
       return res.status(404).json({ code: ApiErrorCode.NOT_FOUND, message: '프로젝트를 찾을 수 없습니다.' })
     }

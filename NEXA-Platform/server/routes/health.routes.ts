@@ -17,8 +17,8 @@ router.get('/health/ready', async (req, res) => {
   try {
     await pool.query('SELECT 1')
     res.status(200).json({ status: 'ready', db: 'connected' })
-  } catch (err) {
-    res.status(503).json({ status: 'not ready', db: 'disconnected', error: err.message })
+  } catch (err: unknown) {
+    res.status(503).json({ status: 'not ready', db: 'disconnected', error: (err as Error).message })
   }
 })
 

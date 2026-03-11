@@ -1,10 +1,8 @@
 /**
  * 파일 업로드 유틸리티
  * 문서: docs/database/file_upload_logic_final.md 참고
- *
- * 파일 저장, 파일명 생성, 폴더 생성 로직을 담당합니다.
  */
-
+import { errMessage } from './errUtils.js'
 import fs from 'fs/promises'
 import { createReadStream } from 'fs'
 import path from 'path'
@@ -17,7 +15,7 @@ import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '@/config/upload.js'
  * @param {string} extension - 파일 확장자 (소문자)
  * @returns {string} 파일 타입 (image, pdf, 3d_model 등)
  */
-export function getFileType(extension) {
+export function getFileType(extension: string) {
   return getFileTypeFromConfig(extension)
 }
 
@@ -26,7 +24,7 @@ export function getFileType(extension) {
  * @param {string} extension - 파일 확장자
  * @returns {string} MIME 타입
  */
-export function getFileMimeType(extension) {
+export function getFileMimeType(extension: string) {
   return getMimeType(extension)
 }
 
@@ -35,7 +33,7 @@ export function getFileMimeType(extension) {
  * @param {string} fileType - 파일 타입
  * @returns {number} 최대 크기 (bytes)
  */
-export function getFileMaxSize(fileType) {
+export function getFileMaxSize(fileType: string) {
   return getMaxFileSize(fileType)
 }
 
@@ -44,7 +42,7 @@ export function getFileMaxSize(fileType) {
  * @param {string} fileType - 파일 타입
  * @returns {boolean} 미리보기 가능 여부
  */
-export function isFilePreviewable(fileType) {
+export function isFilePreviewable(fileType: string) {
   return isPreviewable(fileType)
 }
 
@@ -53,7 +51,7 @@ export function isFilePreviewable(fileType) {
  * @param {string} fileType - 파일 타입
  * @returns {string} 카테고리
  */
-export function getFileTypeCategory(fileType) {
+export function getFileTypeCategory(fileType: string) {
   return getFileCategory(fileType)
 }
 
@@ -62,7 +60,7 @@ export function getFileTypeCategory(fileType) {
  * @param {string} filename - 파일명
  * @returns {string} 확장자 (예: 'jpg', 'pdf')
  */
-export function extractExtension(filename) {
+export function extractExtension(filename: string) {
   if (!filename) {
     throw new Error('파일명은 필수입니다.')
   }
@@ -84,13 +82,17 @@ export function extractExtension(filename) {
  * @param {{ dateFolder?: string }} [options] - dateFolder: 'YYYY-MM-DD' 형식 시 날짜 서브폴더 추가
  * @returns {string} 상대 경로
  */
-export function generateFolderPath(domain, category, options = {}) {
+export function generateFolderPath(
+  domain: string,
+  category: string,
+  options: { dateFolder?: string } = {},
+) {
   if (!domain || !category) {
     throw new Error('domain과 category는 필수입니다.')
   }
   const base = `uploads/${domain}/${category}/`
-  if (options.dateFolder) {
-    return `${base}${options.dateFolder}/`
+  if (options?.dateFolder) {
+    return `${base}${options.dateFolder as string}/`
   }
   return base
 }
@@ -102,7 +104,7 @@ export function generateFolderPath(domain, category, options = {}) {
  * @param {string} extension - 확장자
  * @returns {string} 생성된 파일명
  */
-export function generateTimestampFilename(extension) {
+export function generateTimestampFilename(extension: string) {
   if (!extension) {
     throw new Error('확장자는 필수입니다.')
   }
@@ -125,7 +127,7 @@ export function generateTimestampFilename(extension) {
  * @param {Buffer} buffer - 파일 버퍼
  * @returns {string} 64자 hex 해시
  */
-export function computeContentHash(buffer) {
+export function computeContentHash(buffer: Buffer) {
   if (!buffer || !Buffer.isBuffer(buffer)) {
     throw new Error('Buffer는 필수입니다.')
   }
@@ -139,7 +141,7 @@ export function computeContentHash(buffer) {
  * @param {string} absoluteFilePath - 파일 절대 경로
  * @returns {Promise<string>} 64자 hex 해시
  */
-export function computeContentHashFromFile(absoluteFilePath) {
+export function computeContentHashFromFile(absoluteFilePath: string) {
   return new Promise((resolve, reject) => {
     const hash = createHash('sha256')
     const stream = createReadStream(absoluteFilePath)
@@ -159,7 +161,11 @@ export function computeContentHashFromFile(absoluteFilePath) {
  * @param {string|null} domain - 도메인 식별자(옵션)
  * @returns {string} 상대 경로
  */
-export function partsGenerateFolderPath(categoryAbbr, cCode, domain = null) {
+export function partsGenerateFolderPath(
+  categoryAbbr: string,
+  cCode: string,
+  domain: string | null = null,
+): string {
   if (!categoryAbbr || !cCode) {
     throw new Error('대분류 약어와 C 코드는 필수입니다.')
   }
@@ -180,7 +186,11 @@ export function partsGenerateFolderPath(categoryAbbr, cCode, domain = null) {
  * @param {string|null} domain - 도메인 식별자(옵션)
  * @returns {string} 생성된 파일명
  */
-export function partsGenerateFilename(sequence, extension, domain = null) {
+export function partsGenerateFilename(
+  sequence: number,
+  extension: string,
+  domain: string | null = null,
+): string {
   if (sequence === undefined || sequence === null) {
     throw new Error('순차 번호는 필수입니다.')
   }
@@ -202,7 +212,7 @@ export function partsGenerateFilename(sequence, extension, domain = null) {
  * @param {number} sequence - 중복 방지를 위한 시퀀스 번호 (기본값: 1)
  * @returns {string} 안전한 파일명
  */
-export function partsCreateSafeFilename(originalFilename, sequence = 1) {
+export function partsCreateSafeFilename(originalFilename: string, sequence = 1) {
   if (!originalFilename) {
     throw new Error('원본 파일명은 필수입니다.')
   }
@@ -224,7 +234,7 @@ export function partsCreateSafeFilename(originalFilename, sequence = 1) {
  * @param {string} folderPath - 상대 경로 (예: 'uploads/ACP-R001/')
  * @returns {Promise<string>} 절대 경로
  */
-export async function ensureFolderExists(folderPath) {
+export async function ensureFolderExists(folderPath: string) {
   if (!folderPath) {
     throw new Error('폴더 경로는 필수입니다.')
   }
@@ -235,9 +245,9 @@ export async function ensureFolderExists(folderPath) {
   try {
     await fs.mkdir(absolutePath, { recursive: true })
     return absolutePath
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`[File Upload] 폴더 생성 실패: ${absolutePath}`, error)
-    throw new Error(`폴더 생성 실패: ${error.message}`)
+    throw new Error(`폴더 생성 실패: ${errMessage(error)}`)
   }
 }
 
@@ -247,7 +257,7 @@ export async function ensureFolderExists(folderPath) {
  * @param {string} filePath - 저장할 파일 경로 (절대 경로)
  * @returns {Promise<void>}
  */
-export async function saveFile(fileBuffer, filePath) {
+export async function saveFile(fileBuffer: Buffer, filePath: string) {
   if (!fileBuffer) {
     throw new Error('파일 버퍼는 필수입니다.')
   }
@@ -262,9 +272,9 @@ export async function saveFile(fileBuffer, filePath) {
 
     // 파일 저장
     await fs.writeFile(filePath, fileBuffer)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`[File Upload] 파일 저장 실패: ${filePath}`, error)
-    throw new Error(`파일 저장 실패: ${error.message}`)
+    throw new Error(`파일 저장 실패: ${errMessage(error)}`)
   }
 }
 
@@ -273,7 +283,7 @@ export async function saveFile(fileBuffer, filePath) {
  * @param {string} filePath - 삭제할 파일 경로 (상대 또는 절대)
  * @returns {Promise<void>}
  */
-export async function deleteFile(filePath) {
+export async function deleteFile(filePath: string) {
   if (!filePath) {
     throw new Error('파일 경로는 필수입니다.')
   }
@@ -283,11 +293,11 @@ export async function deleteFile(filePath) {
 
   try {
     await fs.unlink(absolutePath)
-  } catch (error) {
-    // 파일이 없으면 무시 (이미 삭제됨)
-    if (error.code !== 'ENOENT') {
+  } catch (error: unknown) {
+    const e = error as NodeJS.ErrnoException
+    if (e.code !== 'ENOENT') {
       console.error(`[File Upload] 파일 삭제 실패: ${absolutePath}`, error)
-      throw new Error(`파일 삭제 실패: ${error.message}`)
+      throw new Error(`파일 삭제 실패: ${errMessage(error)}`)
     }
   }
 }
@@ -297,7 +307,7 @@ export async function deleteFile(filePath) {
  * @param {string} filePath - 파일 경로
  * @returns {boolean} 유효한 경로인지 여부
  */
-export function validateFilePath(filePath) {
+export function validateFilePath(filePath: string) {
   if (!filePath) {
     return false
   }
@@ -325,13 +335,13 @@ export function validateFilePath(filePath) {
  * @param {string} filePath - 파일 경로 (절대 경로)
  * @returns {Promise<number>} 파일 크기 (bytes)
  */
-export async function getFileSize(filePath) {
+export async function getFileSize(filePath: string) {
   try {
     const stats = await fs.stat(filePath)
     return stats.size
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`[File Upload] 파일 크기 확인 실패: ${filePath}`, error)
-    throw new Error(`파일 크기 확인 실패: ${error.message}`)
+    throw new Error(`파일 크기 확인 실패: ${errMessage(error)}`)
   }
 }
 
@@ -340,7 +350,7 @@ export async function getFileSize(filePath) {
  * @param {string} filename - 원본 파일명
  * @returns {string} 임시 파일 경로 (예: 'uploads/_temp/{UUID}.{확장자}')
  */
-export function generateTempFilePath(filename) {
+export function generateTempFilePath(filename: string) {
   const ext = path.extname(filename).toLowerCase()
   const uuid = randomUUID()
   return `uploads/_temp/${uuid}${ext}`
@@ -353,7 +363,11 @@ export function generateTempFilePath(filename) {
  * @param {string} targetFilename - 대상 파일명
  * @returns {Promise<string>} 이동된 파일의 상대 경로
  */
-export async function moveTempFileToFolder(tempFilePath, targetFolderPath, targetFilename) {
+export async function moveTempFileToFolder(
+  tempFilePath: string,
+  targetFolderPath: string,
+  targetFilename: string,
+) {
   if (!tempFilePath.startsWith('uploads/_temp/')) {
     throw new Error('임시 파일만 이동할 수 있습니다.')
   }
@@ -376,9 +390,9 @@ export async function moveTempFileToFolder(tempFilePath, targetFolderPath, targe
 
     // 상대 경로 반환
     return `${targetFolderPath}${targetFilename}`
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`[File Upload] 임시 파일 이동 실패: ${tempFilePath} -> ${absoluteTargetPath}`, error)
-    throw new Error(`임시 파일 이동 실패: ${error.message}`)
+    throw new Error(`임시 파일 이동 실패: ${errMessage(error)}`)
   }
 }
 
@@ -414,8 +428,8 @@ export async function cleanupOldTempFiles(maxAgeHours = 24) {
           deletedCount++
           console.log(`[Temp Cleanup] 오래된 임시 파일 삭제: ${file} (${Math.round(fileAge / 1000 / 60 / 60)}시간 전)`)
         }
-      } catch (error) {
-        console.warn(`[Temp Cleanup] 파일 처리 실패: ${file}`, error.message)
+      } catch (error: unknown) {
+        console.warn(`[Temp Cleanup] 파일 처리 실패: ${file}`, errMessage(error))
       }
     }
 
@@ -424,7 +438,7 @@ export async function cleanupOldTempFiles(maxAgeHours = 24) {
     }
 
     return deletedCount
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`[Temp Cleanup] 임시 파일 정리 실패:`, error)
     return deletedCount
   }
