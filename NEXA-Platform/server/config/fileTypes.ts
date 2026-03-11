@@ -146,12 +146,12 @@ export const MULTER_MAX_FILE_SIZE = Math.max(
  * @param {string} extension - 파일 확장자 (소문자, 점 제거)
  * @returns {string} 파일 타입 (image, pdf, 3d_model 등)
  */
-export function getFileType(extension) {
+export function getFileType(extension: string): string {
   const ext = extension.toLowerCase().replace(/^\./, '')
 
   // 각 파일 타입의 확장자 목록에서 찾기
   for (const [type, config] of Object.entries(FILE_TYPE_CONFIG)) {
-    if (config.extensions.includes(ext)) {
+    if ((config.extensions as readonly string[]).includes(ext)) {
       return type
     }
   }
@@ -165,10 +165,10 @@ export function getFileType(extension) {
  * @param {string} extension - 파일 확장자
  * @returns {string} MIME 타입 (기본값: 'application/octet-stream')
  */
-export function getMimeType(extension) {
+export function getMimeType(extension: string): string {
   const ext = extension.toLowerCase().replace(/^\./, '')
   const fileType = getFileType(ext)
-  const config = FILE_TYPE_CONFIG[fileType]
+  const config = FILE_TYPE_CONFIG[fileType as FileTypeKey]
 
   if (!config || config.mimeTypes.length === 0) {
     return 'application/octet-stream'
@@ -204,7 +204,8 @@ export function getMimeType(extension) {
     step: 'application/step',
   }
 
-  return mimeMap[ext] || config.mimeTypes[0] || 'application/octet-stream'
+  const mime = mimeMap[ext as keyof typeof mimeMap]
+  return mime || config.mimeTypes[0] || 'application/octet-stream'
 }
 
 /**
@@ -212,8 +213,10 @@ export function getMimeType(extension) {
  * @param {string} fileType - 파일 타입
  * @returns {number} 최대 크기 (bytes)
  */
-export function getMaxFileSize(fileType) {
-  const config = FILE_TYPE_CONFIG[fileType]
+type FileTypeKey = keyof typeof FILE_TYPE_CONFIG
+
+export function getMaxFileSize(fileType: string): number {
+  const config = FILE_TYPE_CONFIG[fileType as FileTypeKey]
   return config ? config.maxSize : FILE_TYPE_CONFIG.other.maxSize
 }
 
@@ -222,8 +225,8 @@ export function getMaxFileSize(fileType) {
  * @param {string} fileType - 파일 타입
  * @returns {boolean} 미리보기 가능 여부
  */
-export function isPreviewable(fileType) {
-  const config = FILE_TYPE_CONFIG[fileType]
+export function isPreviewable(fileType: string): boolean {
+  const config = FILE_TYPE_CONFIG[fileType as FileTypeKey]
   return config ? config.previewable : false
 }
 
@@ -232,8 +235,8 @@ export function isPreviewable(fileType) {
  * @param {string} fileType - 파일 타입
  * @returns {string} 카테고리 (media, document, model, archive, other)
  */
-export function getFileCategory(fileType) {
-  const config = FILE_TYPE_CONFIG[fileType]
+export function getFileCategory(fileType: string): string {
+  const config = FILE_TYPE_CONFIG[fileType as FileTypeKey]
   return config ? config.category : 'other'
 }
 
@@ -250,7 +253,7 @@ export function getAllFileTypes() {
  * @param {string} category - 카테고리
  * @returns {Array<string>} 파일 타입 목록
  */
-export function getFileTypesByCategory(category) {
+export function getFileTypesByCategory(category: string): string[] {
   return Object.entries(FILE_TYPE_CONFIG)
     .filter(([, config]) => config.category === category)
     .map(([type]) => type)

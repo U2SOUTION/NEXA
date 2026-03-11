@@ -7,7 +7,13 @@ export async function fetchLayouts() {
   return rows
 }
 
-export async function createArchiveMeta({ title, doc_type, status, layout_id }) {
+export async function createArchiveMeta(payload: {
+  title?: unknown
+  doc_type?: unknown
+  status?: unknown
+  layout_id?: unknown
+}) {
+  const { title, doc_type, status, layout_id } = payload
   const { rows: insertRows } = await pool.query(
     'INSERT INTO archives (title, doc_type, status, layout_id) VALUES ($1, $2, $3, $4) RETURNING id',
     [title, doc_type || 'NOTE', status || 'ACTIVE', layout_id || null],
@@ -17,7 +23,8 @@ export async function createArchiveMeta({ title, doc_type, status, layout_id }) 
   return rows[0]
 }
 
-export async function createArchiveDoc({ archive_id, content_json, order_idx }) {
+export async function createArchiveDoc(payload: { archive_id?: unknown; content_json?: unknown; order_idx?: unknown }) {
+  const { archive_id, content_json, order_idx } = payload
   const content = typeof content_json === 'string' ? content_json : JSON.stringify(content_json || {})
   const { rows: insertRows } = await pool.query(
     'INSERT INTO archive_doc (archive_id, content_json, order_idx) VALUES ($1, $2::jsonb, $3) RETURNING id',
@@ -43,7 +50,7 @@ export async function listArchives() {
   return rows
 }
 
-export async function getArchiveWithDoc(id) {
+export async function getArchiveWithDoc(id: number | string) {
   const { rows: metaRows } = await pool.query(
     `SELECT id, title, doc_type, status, layout_id, created_at, updated_at
      FROM archives
@@ -67,7 +74,11 @@ export async function getArchiveWithDoc(id) {
   }
 }
 
-export async function updateArchiveMeta(id, { title, doc_type, status, layout_id }) {
+export async function updateArchiveMeta(
+  id: number | string,
+  payload: { title?: unknown; doc_type?: unknown; status?: unknown; layout_id?: unknown },
+) {
+  const { title, doc_type, status, layout_id } = payload
   await pool.query(
     'UPDATE archives SET title = $1, doc_type = $2, status = $3, layout_id = $4, updated_at = NOW() WHERE id = $5',
     [title, doc_type || 'NOTE', status || 'ACTIVE', layout_id || null, id],
@@ -76,7 +87,11 @@ export async function updateArchiveMeta(id, { title, doc_type, status, layout_id
   return rows[0] || null
 }
 
-export async function updateArchiveDoc(id, { content_json, order_idx }) {
+export async function updateArchiveDoc(
+  id: number | string,
+  payload: { content_json?: unknown; order_idx?: unknown },
+) {
+  const { content_json, order_idx } = payload
   const content = typeof content_json === 'string' ? content_json : JSON.stringify(content_json || {})
   await pool.query('UPDATE archive_doc SET content_json = $1::jsonb, order_idx = $2, updated_at = NOW() WHERE id = $3', [content, order_idx ?? 0, id])
   const { rows } = await pool.query('SELECT * FROM archive_doc WHERE id = $1', [id])

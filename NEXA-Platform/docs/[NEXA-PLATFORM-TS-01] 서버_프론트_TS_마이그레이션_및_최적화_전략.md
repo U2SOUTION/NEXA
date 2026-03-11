@@ -496,7 +496,29 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 
 ---
 
-## 9. 체크리스트 (참고)
+## 9. strict 모드 점진적 활성화 (진행 상황)
+
+**npm run typecheck:strict** (`server/tsconfig.strict.json`)로 strict 모드 검증.
+
+### 9.1 완료 (2025-03)
+
+- **config/**: documentConfig (DocsFolderEntry, err: unknown, 파라미터 타입), redis (RedisClientLike, retryStrategy, catch err), fileTypes (FileTypeKey, 인덱스 단언), upload (targetPath: string)
+- **domains/ai/**: ai.routes (textStream 타입, catch err: unknown), ai.service (toSdkMessages 파라미터, model/messages 캐스팅)
+- **domains/archive/**: archive.service (파라미터 타입), archive.controller (RequestLike, ResponseLike, body as Record)
+- **domains/devices/**: devices.service (RedisClientLike 타입, invalidateDeviceCache/setDeviceCache/getDeviceFromCache 파라미터, catch err: unknown), devices.controller (req.params?.id)
+- **utils/errUtils.ts**: `errMessage(e: unknown)` 헬퍼 (strict catch 처리용)
+
+### 9.2 남은 작업 (점진적 진행)
+
+- **domains/parts/**: parts.controller (req, res 타입), parts.service (id, payload, ids 등 파라미터, rowCount), partFiles/partModels/partSpecs.routes (catch error: unknown, domain 파라미터)
+- **domains/projects/**: projects.controller (req.params?.id), projects.service (rowCount)
+- **middleware/**: auth.middleware (path, req, res, next, user_id), deviceAuth.middleware (row)
+
+패턴: `catch (err: unknown)` → `errMessage(err)` 또는 `(err as Error).message`, `req`/`res` → `RequestLike`/`ResponseLike`
+
+---
+
+## 10. 체크리스트 (참고)
 
 **최종 업데이트**: 2025-03 — typecheck·unknown vs any·strict·DB row 타입 적용 반영 (dbConfig QueryResult, partFiles DbRow, pg/redis/uuid 호환)
 
@@ -527,7 +549,7 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 
 ---
 
-## 10. 참고 문서
+## 11. 참고 문서
 
 | 문서 | 내용 |
 |------|------|

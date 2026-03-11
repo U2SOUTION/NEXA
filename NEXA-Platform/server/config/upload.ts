@@ -16,7 +16,7 @@ export const UPLOAD_BASE_DIR = path.join(PROJECT_ROOT, UPLOAD_RELATIVE_DIR)
  * @param {string} targetPath - 상대 또는 절대 경로
  * @returns {string} 절대 경로
  */
-export function resolveUploadAbsolutePath(targetPath) {
+export function resolveUploadAbsolutePath(targetPath: string): string {
   if (!targetPath) {
     throw new Error('경로는 필수입니다.')
   }

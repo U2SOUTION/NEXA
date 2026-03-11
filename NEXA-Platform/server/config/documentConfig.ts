@@ -31,7 +31,13 @@ const DEFAULT_SUPPORTED_EXTENSIONS = ['.md', '.mermaid.css']
 let supportedExtensions = [...DEFAULT_SUPPORTED_EXTENSIONS]
 
 // 문서 폴더 목록 (런타임에 업데이트 가능, 설정 파일로 영속화)
-let docsFolders = []
+export interface DocsFolderEntry {
+  id: string
+  label: string
+  pathPrefix: string
+  displayPathPrefix?: string
+}
+let docsFolders: DocsFolderEntry[] = []
 
 /**
  * 설정 파일에서 폴더 목록 로드
@@ -41,12 +47,13 @@ async function loadFoldersFromFile() {
     const data = await fs.readFile(FOLDERS_CONFIG_PATH, 'utf-8')
     const parsed = JSON.parse(data)
     if (Array.isArray(parsed) && parsed.length > 0) {
-      docsFolders = parsed
+      docsFolders = parsed as DocsFolderEntry[]
       return
     }
-  } catch (err) {
-    if (err.code !== 'ENOENT') {
-      console.warn('[DocumentConfig] docsFolders.json 로드 실패, 기본값 사용:', err.message)
+  } catch (err: unknown) {
+    const e = err as NodeJS.ErrnoException
+    if (e.code !== 'ENOENT') {
+      console.warn('[DocumentConfig] docsFolders.json 로드 실패, 기본값 사용:', e.message)
     }
   }
   docsFolders = [...DEFAULT_DOCS_FOLDERS]
@@ -58,8 +65,9 @@ async function loadFoldersFromFile() {
 async function saveFoldersToFile() {
   try {
     await fs.writeFile(FOLDERS_CONFIG_PATH, JSON.stringify(docsFolders, null, 2), 'utf-8')
-  } catch (err) {
-    console.warn('[DocumentConfig] docsFolders.json 저장 실패:', err.message)
+  } catch (err: unknown) {
+    const e = err as Error
+    console.warn('[DocumentConfig] docsFolders.json 저장 실패:', e.message)
   }
 }
 
@@ -73,7 +81,7 @@ export async function initDocsFolders() {
 /**
  * 폴더 ID가 유효한지 확인 (영문/숫자/하이픈만 허용)
  */
-function isValidFolderId(id) {
+function isValidFolderId(id: unknown): boolean {
   return typeof id === 'string' && /^[a-z0-9_-]+$/.test(id) && id.length > 0 && id.length <= 64
 }
 
@@ -81,7 +89,7 @@ function isValidFolderId(id) {
  * 경로 접두사 검증 (절대 경로·위험 문자 제거)
  * 상대 경로(.. 포함)는 허용
  */
-function sanitizePathPrefix(prefix) {
+function sanitizePathPrefix(prefix: unknown): string {
   if (!prefix || typeof prefix !== 'string') return ''
   const trimmed = prefix.trim()
   // 절대 경로 금지 (/, \, C: 등)
@@ -93,7 +101,7 @@ function sanitizePathPrefix(prefix) {
 // 지원 확장자
 // ============================================
 
-export function setSupportedExtensions(extensions) {
+export function setSupportedExtensions(extensions: unknown): void {
   if (!Array.isArray(extensions) || extensions.length === 0) {
     console.warn('[DocumentConfig] 유효하지 않은 확장자 목록, 기본값 사용')
     supportedExtensions = [...DEFAULT_SUPPORTED_EXTENSIONS]
@@ -109,13 +117,13 @@ export function getSupportedExtensions() {
   return [...supportedExtensions]
 }
 
-export function isSupportedExtension(fileName) {
+export function isSupportedExtension(fileName: unknown): boolean {
   if (!fileName || typeof fileName !== 'string') return false
   const lower = fileName.toLowerCase()
   return supportedExtensions.some((ext) => lower.endsWith(ext))
 }
 
-export function getFileExtension(fileName) {
+export function getFileExtension(fileName: unknown): string | null {
   if (!fileName || typeof fileName !== 'string') return null
   const lower = fileName.toLowerCase()
   for (const ext of supportedExtensions) {
@@ -124,7 +132,7 @@ export function getFileExtension(fileName) {
   return null
 }
 
-export function removeExtension(fileName) {
+export function removeExtension(fileName: unknown): string {
   if (!fileName || typeof fileName !== 'string') return ''
   const lower = fileName.toLowerCase()
   for (const ext of supportedExtensions) {
@@ -153,7 +161,7 @@ export function getDocsFolders() {
  * @param {string} folderId
  * @returns {string|null} 절대 경로 또는 null
  */
-export function getDocsBasePathForFolder(folderId) {
+export function getDocsBasePathForFolder(folderId: string): string | null {
   const list = docsFolders.length > 0 ? docsFolders : DEFAULT_DOCS_FOLDERS
   const folder = list.find((f) => f.id === folderId)
   if (!folder || !folder.pathPrefix) return null
@@ -165,7 +173,7 @@ export function getDocsBasePathForFolder(folderId) {
  * @param {string} prefixedPath - 예: "nexa-docs/Platform/01-기획/문서.md" 또는 "Platform/01-기획/문서.md"(레거시)
  * @returns {{ basePath: string, relativePath: string, folderId: string } | null}
  */
-export function resolvePrefixedPath(prefixedPath) {
+export function resolvePrefixedPath(prefixedPath: unknown): { basePath: string; relativePath: string; folderId: string } | null {
   const list = docsFolders.length > 0 ? docsFolders : DEFAULT_DOCS_FOLDERS
   if (!prefixedPath || typeof prefixedPath !== 'string') return null
 
@@ -196,7 +204,7 @@ export function resolvePrefixedPath(prefixedPath) {
  * @param {object} entry - { id, label, pathPrefix, displayPathPrefix? }
  * @returns {boolean} 성공 여부
  */
-export async function addDocsFolder(entry) {
+export async function addDocsFolder(entry: { id?: unknown; label?: unknown; pathPrefix?: unknown; displayPathPrefix?: unknown }): Promise<boolean> {
   if (!entry || typeof entry !== 'object') return false
   const { id, label, pathPrefix, displayPathPrefix } = entry
   if (!isValidFolderId(id)) {
@@ -215,8 +223,8 @@ export async function addDocsFolder(entry) {
   }
 
   const newFolder: { id: string; label: string; pathPrefix: string; displayPathPrefix?: string } = {
-    id,
-    label: label || id,
+    id: id as string,
+    label: (typeof label === 'string' ? label : id) as string,
     pathPrefix: sanitized,
     ...(displayPathPrefix && typeof displayPathPrefix === 'string' && displayPathPrefix.trim()
       ? { displayPathPrefix: displayPathPrefix.trim() }
@@ -235,7 +243,7 @@ export async function addDocsFolder(entry) {
  * @param {string} folderId
  * @returns {boolean} 성공 여부
  */
-export async function removeDocsFolder(folderId) {
+export async function removeDocsFolder(folderId: string): Promise<boolean> {
   if (!isValidFolderId(folderId)) return false
   const list = docsFolders.length > 0 ? docsFolders : DEFAULT_DOCS_FOLDERS
   if (list.length <= 1) {
@@ -255,7 +263,7 @@ export async function removeDocsFolder(folderId) {
  * @param {object} updates - { label?, pathPrefix? }
  * @returns {boolean} 성공 여부
  */
-export async function updateDocsFolder(folderId, updates) {
+export async function updateDocsFolder(folderId: string, updates: { label?: unknown; pathPrefix?: unknown }): Promise<boolean> {
   if (!isValidFolderId(folderId) || !updates || typeof updates !== 'object') return false
   const list = docsFolders.length > 0 ? docsFolders : DEFAULT_DOCS_FOLDERS
   const folder = list.find((f) => f.id === folderId)
@@ -290,7 +298,7 @@ export function getDocsFolderName() {
 }
 
 /** @deprecated use addDocsFolder / removeDocsFolder */
-export function setDocsFolderName(folderName) {
+export function setDocsFolderName(folderName: unknown): void {
   // 단일 폴더명 변경은 첫 번째 폴더의 pathPrefix 마지막 부분으로 해석
   if (!folderName || typeof folderName !== 'string') return
   const sanitized = folderName.replace(/\.\./g, '').replace(/[\/\\]/g, '').trim()

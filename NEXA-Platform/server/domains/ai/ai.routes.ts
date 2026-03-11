@@ -5,7 +5,7 @@ import { listModels, showModel, chat, chatStream, checkConnection, generateTitle
 const router = Router()
 
 /** SDK textStream(async iterable)을 Ollama 호환 NDJSON 라인 스트림으로 변환 */
-function ndjsonStreamFromTextStream(textStream) {
+function ndjsonStreamFromTextStream(textStream: AsyncIterable<string>) {
   async function* lines() {
     for await (const part of textStream) {
       yield JSON.stringify({ message: { content: part } }) + '\n'
@@ -18,8 +18,8 @@ router.get('/ai/models', async (req, res) => {
   try {
     const data = await listModels()
     res.json(data)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
   }
 })
 
@@ -31,8 +31,8 @@ router.post('/ai/model-show', async (req, res) => {
     }
     const data = await showModel(model)
     res.json(data)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
   }
 })
 
@@ -44,8 +44,8 @@ router.post('/ai/chat', async (req, res) => {
     }
     const data = await chat(messages, model, undefined, systemInstruction)
     res.json(data)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
   }
 })
 
@@ -58,8 +58,8 @@ router.post('/ai/chat-stream', async (req, res) => {
     const textStream = await chatStream(messages, model, undefined, systemInstruction)
     res.setHeader('Content-Type', 'application/x-ndjson')
     ndjsonStreamFromTextStream(textStream).pipe(res)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
   }
 })
 
@@ -68,8 +68,8 @@ router.post('/ai/check', async (req, res) => {
     const { url } = req.body
     await checkConnection(url)
     res.json({ ok: true })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
   }
 })
 
@@ -82,8 +82,8 @@ router.post('/ai/generate-title', async (req, res) => {
     }
     const data = await generateTitle(excerpt, model || undefined, url)
     res.json(data)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) })
   }
 })
 

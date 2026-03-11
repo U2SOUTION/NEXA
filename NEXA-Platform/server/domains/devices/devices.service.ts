@@ -61,7 +61,7 @@ export async function getDeviceById(deviceId: DeviceId | string, userId: UserId)
   return rows[0] || null
 }
 
-export async function getDeviceByTokenHash(tokenHash) {
+export async function getDeviceByTokenHash(tokenHash: string) {
   const { rows } = await pool.query(
     `SELECT d.*, u.id as u_id, u.email, u.display_name, u.role, u.tier, u.allowed_domains
      FROM device_registry d
@@ -88,7 +88,7 @@ export async function updateDevice(deviceId: DeviceId | string, userId: UserId, 
     `UPDATE device_registry SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${i}`,
     values
   )
-  if (payload.is_active === false && device?.token_hash) await invalidateDeviceCache(device.token_hash)
+  if (payload.is_active === false && device?.token_hash) await invalidateDeviceCache(device.token_hash as string)
   return getDeviceById(deviceId, userId)
 }
 
@@ -96,30 +96,35 @@ export async function deleteDevice(deviceId: DeviceId | string, userId: UserId) 
   const device = await getDeviceById(deviceId, userId)
   if (!device) return false
   await pool.query('DELETE FROM device_registry WHERE id = $1', [deviceId])
-  await invalidateDeviceCache(device.token_hash)
+  await invalidateDeviceCache(device.token_hash as string | null | undefined)
   return true
 }
 
-export async function invalidateDeviceCache(tokenHash) {
+export async function invalidateDeviceCache(tokenHash: string | null | undefined) {
   if (!tokenHash || !redisClient) return
   try {
     await redisClient.del(deviceCacheKey(tokenHash))
-  } catch (err) {
-    console.warn('[devices] cache invalidate:', err.message)
+  } catch (err: unknown) {
+    console.warn('[devices] cache invalidate:', (err as Error).message)
   }
 }
 
-export async function setDeviceCache(tokenHash, userId, deviceId, isActive) {
+export async function setDeviceCache(
+  tokenHash: string,
+  userId: UserId,
+  deviceId: DeviceId | string,
+  isActive: boolean,
+) {
   if (!redisClient) return
   try {
     const val = JSON.stringify({ user_id: userId, device_id: deviceId, is_active: !!isActive })
     await redisClient.setex(deviceCacheKey(tokenHash), DEVICE_TOKEN_CACHE_TTL_SEC, val)
-  } catch (err) {
-    console.warn('[devices] cache set:', err.message)
+  } catch (err: unknown) {
+    console.warn('[devices] cache set:', (err as Error).message)
   }
 }
 
-export async function getDeviceFromCache(tokenHash) {
+export async function getDeviceFromCache(tokenHash: string | null | undefined) {
   if (!redisClient) return null
   try {
     const raw = await redisClient.get(deviceCacheKey(tokenHash))

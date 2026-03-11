@@ -5,8 +5,8 @@
 import type { AuthUser } from './common'
 
 export interface RequestLike {
-  body?: unknown
-  params?: Record<string, string>
+  body?: Record<string, unknown>
+  params?: Record<string, string | undefined>
   user?: AuthUser
 }
 

@@ -68,7 +68,7 @@ export async function patchDevice(req: RequestLike, res: ResponseLike): Promise<
   if (!parsed.success) return validationErrorResponse(res, parsed.error)
   try {
     const device = await devicesService.updateDevice(
-      req.params.id as string,
+      req.params?.id as string,
       req.user.id,
       parsed.data
     )
@@ -87,7 +87,7 @@ export async function deleteDevice(req: RequestLike, res: ResponseLike): Promise
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
   try {
-    const ok = await devicesService.deleteDevice(req.params.id as string, req.user.id)
+    const ok = await devicesService.deleteDevice(req.params?.id as string, req.user.id)
     if (!ok) {
       return res.status(404).json({ code: ApiErrorCode.NOT_FOUND, message: '디바이스를 찾을 수 없습니다.' })
     }
