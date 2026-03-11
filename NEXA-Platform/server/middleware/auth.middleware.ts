@@ -2,6 +2,9 @@
  * JWT 인증 미들웨어 [NEXA-AUTH-01] §5.3
  * Bearer access_token 검증 → req.user 설정. 없거나 실패 시 X-Device-Token 시도.
  */
+import { ApiErrorCode } from '@system/schemas/errors'
+import { toUserId } from '@system/types/ids'
+import type { AuthUser } from '../types/common.js'
 import { verifyAccess } from '../utils/jwtAuth.js'
 import { pool } from '../config/dbConfig.js'
 import { deviceTokenAuth } from './deviceAuth.middleware.js'
@@ -40,17 +43,17 @@ function shouldSkipAuth(path) {
   return false
 }
 
-function toUserResponse(row) {
-  if (!row) return null
+function toUserResponse(row: Record<string, unknown> | null): AuthUser | null {
+  if (!row || typeof row.id !== 'string') return null
   return {
-    id: row.id,
-    email: row.email,
-    display_name: row.display_name || '',
-    role: row.role,
-    tier: row.tier,
-    allowed_domains: row.allowed_domains,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+    id: toUserId(row.id),
+    email: String(row.email ?? ''),
+    display_name: String(row.display_name ?? ''),
+    role: String(row.role ?? ''),
+    tier: String(row.tier ?? ''),
+    allowed_domains: Array.isArray(row.allowed_domains) ? (row.allowed_domains as string[]) : null,
+    created_at: String(row.created_at ?? ''),
+    updated_at: String(row.updated_at ?? ''),
   }
 }
 
@@ -76,13 +79,13 @@ export function jwtAuthMiddleware(req, res, next) {
     .then(({ rows }) => {
       const user = toUserResponse(rows[0])
       if (!user) {
-        return res.status(401).json({ code: 'USER_NOT_FOUND', message: '사용자를 찾을 수 없습니다.' })
+        return res.status(401).json({ code: ApiErrorCode.USER_NOT_FOUND, message: '사용자를 찾을 수 없습니다.' })
       }
       req.user = user
       next()
     })
     .catch((err) => {
       console.error('[auth middleware]', err)
-      res.status(500).json({ code: 'SERVER_ERROR', message: err.message })
+      res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
     })
 }

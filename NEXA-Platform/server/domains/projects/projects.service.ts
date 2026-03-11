@@ -2,10 +2,12 @@
  * 프로젝트 서비스 [NEXA-AUTH-01] §2.2 3단계
  * projects 테이블 CRUD, user_id 소유자 기준
  */
+import type { UserId, ProjectId } from '@system/types/ids'
+import type { CreateProjectPayload, UpdateProjectPayload } from './project.types.js'
 import { pool } from '../../config/dbConfig.js'
 import { generateUuidV7 } from '../../config/uuidUtils.js'
 
-export async function listByUserId(userId) {
+export async function listByUserId(userId: UserId) {
   const { rows } = await pool.query(
     `SELECT id, user_id, name, description, created_at, updated_at
      FROM projects
@@ -16,12 +18,13 @@ export async function listByUserId(userId) {
   return rows
 }
 
-export async function create(userId, { name, description } = {}) {
+export async function create(userId: UserId, payload: CreateProjectPayload = {}) {
+  const { name = '', description = null } = payload
   const id = generateUuidV7()
   await pool.query(
     `INSERT INTO projects (id, user_id, name, description)
      VALUES ($1, $2, $3, $4)`,
-    [id, userId, name || '', description || null]
+    [id, userId, name, description]
   )
   const { rows } = await pool.query(
     'SELECT id, user_id, name, description, created_at, updated_at FROM projects WHERE id = $1',
@@ -30,7 +33,7 @@ export async function create(userId, { name, description } = {}) {
   return rows[0] || null
 }
 
-export async function getById(projectId, userId) {
+export async function getById(projectId: ProjectId | string, userId: UserId) {
   const { rows } = await pool.query(
     'SELECT id, user_id, name, description, created_at, updated_at FROM projects WHERE id = $1 AND user_id = $2',
     [projectId, userId]
@@ -38,7 +41,8 @@ export async function getById(projectId, userId) {
   return rows[0] || null
 }
 
-export async function update(projectId, userId, { name, description } = {}) {
+export async function update(projectId: ProjectId | string, userId: UserId, payload: UpdateProjectPayload = {}) {
+  const { name, description } = payload
   const project = await getById(projectId, userId)
   if (!project) return null
   const updates = []
@@ -62,7 +66,7 @@ export async function update(projectId, userId, { name, description } = {}) {
   return getById(projectId, userId)
 }
 
-export async function remove(projectId, userId) {
+export async function remove(projectId: ProjectId | string, userId: UserId) {
   const { rowCount } = await pool.query(
     'DELETE FROM projects WHERE id = $1 AND user_id = $2',
     [projectId, userId]

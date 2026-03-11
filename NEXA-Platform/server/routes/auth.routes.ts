@@ -4,7 +4,12 @@
  */
 import express from 'express'
 import bcrypt from 'bcryptjs'
-import { z } from 'zod'
+import type { Response } from 'express'
+import type { ZodError } from 'zod'
+import { registerSchema, loginSchema, refreshSchema, logoutSchema } from '@system/schemas/auth'
+import { ApiErrorCode } from '@system/schemas/errors'
+import { toUserId } from '@system/types/ids'
+import type { AuthUser } from '../types/common.js'
 import { pool } from '../config/dbConfig.js'
 import { generateUuidV7 } from '../config/uuidUtils.js'
 import { authConfig } from '../config/authConfig.js'
@@ -16,43 +21,26 @@ import redisClient from '../config/redis.js'
 const router = (express as any).Router()
 const SALT_ROUNDS = 10
 
-// Zod 스키마
-const registerSchema = z.object({
-  email: z.string().email('유효한 이메일 형식이 아닙니다').max(255),
-  password: z.string().min(8, '비밀번호는 8자 이상이어야 합니다'),
-  display_name: z.string().max(100).optional().default(''),
-})
-const loginSchema = z.object({
-  email: z.string().email('유효한 이메일 형식이 아닙니다'),
-  password: z.string().min(1, '비밀번호를 입력하세요'),
-})
-const refreshSchema = z.object({
-  refresh_token: z.string().min(1, 'refresh_token이 필요합니다'),
-})
-const logoutSchema = z.object({
-  refresh_token: z.string().min(1, 'refresh_token이 필요합니다'),
-})
-
-function validationErrorResponse(res, err) {
-  const errors = err.issues?.map((i) => ({ path: i.path.join('.'), message: i.message })) || []
+function validationErrorResponse(res: Response, err: ZodError): Response {
+  const errors = err.issues?.map((i) => ({ path: i.path.join('.'), message: i.message })) ?? []
   return res.status(400).json({
-    code: 'VALIDATION_ERROR',
+    code: ApiErrorCode.VALIDATION_ERROR,
     message: '입력값 검증 실패',
     errors,
   })
 }
 
-function toUserResponse(row) {
-  if (!row) return null
+function toUserResponse(row: Record<string, unknown> | null): AuthUser | null {
+  if (!row || typeof row.id !== 'string') return null
   return {
-    id: row.id,
-    email: row.email,
-    display_name: row.display_name || '',
-    role: row.role,
-    tier: row.tier,
-    allowed_domains: row.allowed_domains,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+    id: toUserId(row.id),
+    email: String(row.email ?? ''),
+    display_name: String(row.display_name ?? ''),
+    role: String(row.role ?? ''),
+    tier: String(row.tier ?? ''),
+    allowed_domains: Array.isArray(row.allowed_domains) ? (row.allowed_domains as string[]) : null,
+    created_at: String(row.created_at ?? ''),
+    updated_at: String(row.updated_at ?? ''),
   }
 }
 
@@ -70,7 +58,7 @@ router.post('/auth/register', async (req, res) => {
       [normalizedEmail]
     )
     if (existing.length > 0) {
-      return res.status(409).json({ code: 'EMAIL_IN_USE', message: '이미 사용 중인 이메일입니다.' })
+      return res.status(409).json({ code: ApiErrorCode.EMAIL_IN_USE, message: '이미 사용 중인 이메일입니다.' })
     }
 
     const id = generateUuidV7()
@@ -87,6 +75,7 @@ router.post('/auth/register', async (req, res) => {
       [id]
     )
     const user = toUserResponse(userRows[0])
+    if (!user) throw new Error('User not found after insert')
     const access_token = signAccess({ user_id: id, email: normalizedEmail, role: user.role })
     const { token: refresh_token, expiresIn: refresh_expires_in } = signRefresh({ user_id: id })
 
@@ -99,7 +88,7 @@ router.post('/auth/register', async (req, res) => {
     })
   } catch (err) {
     console.error('[auth/register]', err)
-    return res.status(500).json({ code: 'SERVER_ERROR', message: err.message })
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
   }
 })
 
@@ -118,12 +107,12 @@ router.post('/auth/login', async (req, res) => {
     )
     const row = rows[0]
     if (!row) {
-      return res.status(401).json({ code: 'INVALID_CREDENTIALS', message: '이메일 또는 비밀번호가 올바르지 않습니다.' })
+      return res.status(401).json({ code: ApiErrorCode.INVALID_CREDENTIALS, message: '이메일 또는 비밀번호가 올바르지 않습니다.' })
     }
 
     const match = await bcrypt.compare(password, row.password_hash || '')
     if (!match) {
-      return res.status(401).json({ code: 'INVALID_CREDENTIALS', message: '이메일 또는 비밀번호가 올바르지 않습니다.' })
+      return res.status(401).json({ code: ApiErrorCode.INVALID_CREDENTIALS, message: '이메일 또는 비밀번호가 올바르지 않습니다.' })
     }
 
     const user = toUserResponse(row)
@@ -139,7 +128,7 @@ router.post('/auth/login', async (req, res) => {
     })
   } catch (err) {
     console.error('[auth/login]', err)
-    return res.status(500).json({ code: 'SERVER_ERROR', message: err.message })
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
   }
 })
 
@@ -152,13 +141,13 @@ router.post('/auth/refresh', async (req, res) => {
     const { refresh_token: token } = parsed.data
     const decoded = verifyRefresh(token)
     if (!decoded) {
-      return res.status(401).json({ code: 'INVALID_REFRESH_TOKEN', message: '유효하지 않거나 만료된 토큰입니다.' })
+      return res.status(401).json({ code: ApiErrorCode.INVALID_REFRESH_TOKEN, message: '유효하지 않거나 만료된 토큰입니다.' })
     }
 
     if (redisClient && decoded.jti) {
       const blacklisted = await redisClient.get(`refresh_blacklist:${decoded.jti}`)
       if (blacklisted) {
-        return res.status(401).json({ code: 'REFRESH_TOKEN_REVOKED', message: '이미 로그아웃된 토큰입니다.' })
+        return res.status(401).json({ code: ApiErrorCode.REFRESH_TOKEN_REVOKED, message: '이미 로그아웃된 토큰입니다.' })
       }
     }
 
@@ -167,7 +156,7 @@ router.post('/auth/refresh', async (req, res) => {
       [decoded.user_id]
     )
     if (!rows[0]) {
-      return res.status(401).json({ code: 'USER_NOT_FOUND', message: '사용자를 찾을 수 없습니다.' })
+      return res.status(401).json({ code: ApiErrorCode.USER_NOT_FOUND, message: '사용자를 찾을 수 없습니다.' })
     }
 
     const user = toUserResponse(rows[0])
@@ -180,7 +169,7 @@ router.post('/auth/refresh', async (req, res) => {
     })
   } catch (err) {
     console.error('[auth/refresh]', err)
-    return res.status(500).json({ code: 'SERVER_ERROR', message: err.message })
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
   }
 })
 
@@ -199,14 +188,14 @@ router.post('/auth/logout', async (req, res) => {
     return res.json({ success: true })
   } catch (err) {
     console.error('[auth/logout]', err)
-    return res.status(500).json({ code: 'SERVER_ERROR', message: err.message })
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
   }
 })
 
 /** GET /api/auth/me — JWT 미들웨어 이후 호출, req.user 사용 */
 router.get('/auth/me', (req, res) => {
   if (!req.user) {
-    return res.status(401).json({ code: 'UNAUTHORIZED', message: '인증이 필요합니다.' })
+    return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
   return res.json({ user: req.user })
 })
