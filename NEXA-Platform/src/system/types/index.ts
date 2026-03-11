@@ -52,7 +52,9 @@ export type {
   PaginationResult,
 } from './common/api'
 
-export type { DeviceStatus, SensorData } from './common/device'
+export type { AuthUser } from './common/auth'
+export type { Project } from './common/project'
+export type { Device, DeviceStatus, SensorData } from './common/device'
 
 // --- 스키마에서 추론된 타입 re-export ---
 export type { Metadata } from '../schemas/common/metadata'

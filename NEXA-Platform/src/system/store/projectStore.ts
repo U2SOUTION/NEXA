@@ -5,19 +5,13 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import type { Project } from '@system/types'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 import { useAuthStore } from '@system/store/authStore'
 
 const STORAGE_CURRENT_PROJECT = 'nexa_current_project_id'
 
-export type Project = {
-  id: string
-  user_id: string
-  name: string
-  description: string | null
-  created_at: string
-  updated_at: string
-}
+export type { Project }
 
 export const useProjectStore = defineStore('project', () => {
   const projects = ref<Project[]>([])

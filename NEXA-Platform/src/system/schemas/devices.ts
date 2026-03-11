@@ -35,6 +35,27 @@ export const deviceResponseSchema = z.object({
 /** GET /api/devices 목록 응답 (배열) */
 export const devicesResponseSchema = z.array(deviceResponseSchema)
 
+/**
+ * 디바이스 수신 페이로드 — 버전별 검증 [NEXA-PLATFORM-TS-01] §7.2
+ * 텔레메트리·등록 요청 등 엣지 디바이스 → 서버 전송 시 version으로 구분
+ */
+const devicePayloadV1 = z.object({
+  version: z.literal('1'),
+  sensor_id: z.string(),
+  value: z.union([z.number(), z.string(), z.boolean()]),
+})
+const devicePayloadV2 = z.object({
+  version: z.literal('2'),
+  sensorId: z.string(),
+  value: z.union([z.number(), z.string(), z.boolean()]),
+  unit: z.string().optional(),
+})
+export const devicePayloadSchema = z.discriminatedUnion('version', [
+  devicePayloadV1,
+  devicePayloadV2,
+])
+export type DevicePayload = z.infer<typeof devicePayloadSchema>
+
 export type CreateDeviceInput = z.infer<typeof createDeviceSchema>
 export type UpdateDeviceInput = z.infer<typeof updateDeviceSchema>
 export type DeviceResponse = z.infer<typeof deviceResponseSchema>

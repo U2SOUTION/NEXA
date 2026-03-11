@@ -3,6 +3,8 @@
  * JWT 없을 때 X-Device-Token으로 디바이스 인증 → req.user 설정
  * Redis 캐시 우선, 미스 시 DB 조회. 응답 전 last_seen, mac_address, ip_address 갱신
  */
+import { allowedDomainsSchema } from '@system/schemas/jsonb.js'
+import { parseJsonb } from '@/utils/parseJsonb.js'
 import { hashDeviceToken } from '@/utils/deviceToken.js'
 import { pool } from '@/config/dbConfig.js'
 import * as devicesService from '@/domains/devices/devices.service.js'
@@ -15,7 +17,7 @@ function toUserResponse(row) {
     display_name: row.display_name || '',
     role: row.role || 'user',
     tier: row.tier || 'BASIC',
-    allowed_domains: row.allowed_domains,
+    allowed_domains: parseJsonb(row.allowed_domains, allowedDomainsSchema) ?? null,
     created_at: row.created_at,
     updated_at: row.updated_at,
   }

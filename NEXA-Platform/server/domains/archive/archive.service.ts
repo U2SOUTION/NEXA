@@ -1,4 +1,6 @@
+import { archiveContentJsonSchema } from '@system/schemas/jsonb.js'
 import { pool } from '@/config/dbConfig.js'
+import { parseJsonb } from '@/utils/parseJsonb.js'
 
 export async function fetchLayouts() {
   const { rows } = await pool.query("SELECT id, tpl_name, category, created_at FROM system_templates WHERE category = 'LAYOUT' ORDER BY created_at DESC")
@@ -23,7 +25,13 @@ export async function createArchiveDoc({ archive_id, content_json, order_idx }) 
   )
   const newId = insertRows[0]?.id
   const { rows } = await pool.query('SELECT * FROM archive_doc WHERE id = $1', [newId])
-  return rows[0]
+  return mapArchiveDocRow(rows[0])
+}
+
+function mapArchiveDocRow(row: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+  if (!row) return undefined
+  const content = parseJsonb(row.content_json, archiveContentJsonSchema)
+  return { ...row, content_json: content ?? row.content_json ?? {} }
 }
 
 export async function listArchives() {
@@ -55,7 +63,7 @@ export async function getArchiveWithDoc(id) {
 
   return {
     archive: metaRows[0],
-    doc: docRows[0] || null,
+    doc: mapArchiveDocRow(docRows[0]) ?? null,
   }
 }
 
@@ -72,5 +80,5 @@ export async function updateArchiveDoc(id, { content_json, order_idx }) {
   const content = typeof content_json === 'string' ? content_json : JSON.stringify(content_json || {})
   await pool.query('UPDATE archive_doc SET content_json = $1::jsonb, order_idx = $2, updated_at = NOW() WHERE id = $3', [content, order_idx ?? 0, id])
   const { rows } = await pool.query('SELECT * FROM archive_doc WHERE id = $1', [id])
-  return rows[0] || null
+  return mapArchiveDocRow(rows[0]) ?? null
 }

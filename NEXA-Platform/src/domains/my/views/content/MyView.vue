@@ -194,9 +194,10 @@
   </q-page>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import type { Device } from '@system/types'
 import { useAuthStore } from '@system/store/authStore'
 import { useProjectStore } from '@system/store/projectStore'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
@@ -206,7 +207,7 @@ const authStore = useAuthStore()
 const projectStore = useProjectStore()
 const myTab = ref('profile')
 
-const deviceList = ref([])
+const deviceList = ref<Device[]>([])
 const loadingDevices = ref(false)
 const devicesError = ref('')
 const showRegisterDialog = ref(false)
@@ -263,7 +264,7 @@ async function fetchDevices() {
       return
     }
     const data = await res.json()
-    deviceList.value = Array.isArray(data) ? data : []
+    deviceList.value = Array.isArray(data) ? (data as Device[]) : []
   } catch (e) {
     devicesError.value = (e instanceof Error ? e.message : (e ? String(e) : '목록 조회 중 오류'))
   } finally {

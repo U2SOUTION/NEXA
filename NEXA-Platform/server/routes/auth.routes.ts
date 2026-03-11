@@ -7,7 +7,9 @@ import bcrypt from 'bcryptjs'
 import type { ZodError } from 'zod'
 import { registerSchema, loginSchema, refreshSchema, logoutSchema } from '@system/schemas/auth.js'
 import { ApiErrorCode } from '@system/schemas/errors.js'
+import { allowedDomainsSchema } from '@system/schemas/jsonb.js'
 import { toUserId } from '@system/types/ids.js'
+import { parseJsonb } from '@/utils/parseJsonb.js'
 import type { AuthUser } from '@/types/common.js'
 import { pool } from '@/config/dbConfig.js'
 import { generateUuidV7 } from '@/config/uuidUtils.js'
@@ -35,7 +37,7 @@ function toUserResponse(row: Record<string, unknown> | null): AuthUser | null {
     display_name: String(row.display_name ?? ''),
     role: String(row.role ?? ''),
     tier: String(row.tier ?? ''),
-    allowed_domains: Array.isArray(row.allowed_domains) ? (row.allowed_domains as string[]) : null,
+    allowed_domains: parseJsonb(row.allowed_domains, allowedDomainsSchema) ?? null,
     created_at: String(row.created_at ?? ''),
     updated_at: String(row.updated_at ?? ''),
   }

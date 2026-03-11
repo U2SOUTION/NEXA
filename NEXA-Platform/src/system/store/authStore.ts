@@ -4,22 +4,14 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import type { AuthUser } from '@system/types'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
 const STORAGE_ACCESS = 'nexa_auth_access_token'
 const STORAGE_REFRESH = 'nexa_auth_refresh_token'
 const STORAGE_USER = 'nexa_auth_user'
 
-export type AuthUser = {
-  id: string
-  email: string
-  display_name: string
-  role: string
-  tier: string
-  allowed_domains?: unknown
-  created_at?: string
-  updated_at?: string
-}
+export type { AuthUser }
 
 export function getTierLabel(tier: string): string {
   const map: Record<string, string> = {

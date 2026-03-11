@@ -1,3 +1,6 @@
+// 0. DB JSONB 컬럼 스키마
+export * from './jsonb'
+
 // 1. 공통 규격 (Common)
 export * from './common/metadata'
 export * from './common/taxonomy'
