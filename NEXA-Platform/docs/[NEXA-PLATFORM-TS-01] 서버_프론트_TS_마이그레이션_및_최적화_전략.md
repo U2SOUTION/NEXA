@@ -498,28 +498,30 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 
 ## 9. 체크리스트 (참고)
 
+**최종 업데이트**: 2025-03 — 2단계(타입 정리·스키마 통합) 진행분 반영
+
 **공통·인프라**
 - [ ] **unknown vs any**: `any` 지양, `unknown` 우선 사용 (§6.1). 타입 모를 때 `unknown` + 타입 가드/Zod 검증
-- [ ] 서버: `server/types/common.ts` 생성, UUID·Timestamp·공용 인터페이스 정의. (선택) **Branded ID** (`UserId`, `ProjectId`, `DeviceId`) 도입 — §2.4. `toUserId` 등 Zod 기반 변환 함수(Casting Utility) 스키마 근처에 배치
-- [ ] 서버: 도메인별 `*.types.ts` (devices, projects, auth) 추가
-- [ ] 서버: 라우트·서비스에 인자/반환 타입 적용 (우선 auth, devices, projects)
-- [ ] 서버: `Express.Request` 확장(`req.user`, `req.device`) — `server/types/express.d.ts`에 전역 타입 주입하여 라우터 로직 수정 원활화 (§5.3.1)
-- [ ] 프론트: API 응답/요청 타입을 서버와 동일한 이름·구조로 정리
+- [x] 서버: `server/types/common.ts` 생성, UUID·Timestamp·공용 인터페이스 정의. **Branded ID** (`UserId`, `ProjectId`, `DeviceId`, `ArchiveId`) — `src/system/types/ids.ts`에 정의. `toUserId` 등 Zod 기반 변환 함수 배치
+- [x] 서버: 도메인별 `*.types.ts` (devices: `device.types.ts`, projects: `project.types.ts`) 추가. auth는 `src/system/schemas/auth.ts`에서 스키마·타입
+- [x] 서버: 라우트·서비스에 인자/반환 타입 적용 (auth, devices, projects 완료)
+- [x] 서버: `Express.Request` 확장(`req.user`, `req.device`) — `server/types/express.d.ts`에 전역 타입 주입
+- [ ] 프론트: API 응답/요청 타입을 서버와 동일한 이름·구조로 정리 (공유 타입·스키마 참조)
 - [ ] 프론트: store·composables에서 위 타입 사용
 - [ ] 서버: tsconfig `strict`/`noImplicitAny` 단계적 활성화
 - [ ] 서버·프론트: `npm run typecheck` (또는 동등 명령) CI/로컬 실행
 - [ ] **통합 테스트**: API 응답을 공유 Zod 스키마로 `.safeParse()` 검증하는 로직 추가 (§7.2). 성공·에러 응답 모두 검증
 
 **플랫폼 특성 (§2 반영)**
-- [ ] **tsconfig paths 선행**: 서버·프론트 양쪽 paths 설정을 배포 환경에 맞게 정교하게 구성 (서버가 `src/system/schemas` 참조 시 경로 해석 보장)
-- [ ] **Zod 스키마 통합**: `src/system/schemas/`에 auth.ts·devices.ts·projects.ts·errors.ts·ai_responses.ts 도메인별 추가. 서버·프론트 공통 import
-- [ ] API 경계(인증·디바이스·프로젝트): Zod 스키마 1회 정의, 타입은 `z.infer`로 통일
+- [x] **tsconfig paths 선행**: 서버 `server/tsconfig.json`에 `@system/*` → `../src/system/*` 설정. 서버가 `src/system/schemas`·`src/system/types` 참조 가능
+- [x] **Zod 스키마 통합**: `src/system/schemas/`에 auth.ts·errors.ts 추가. devices.ts·projects.ts·ai_responses.ts는 미추가
+- [x] API 경계(인증): Zod 스키마 1회 정의(`auth.ts`), 타입은 `z.infer`·서버 import. 디바이스·프로젝트는 서버 도메인 타입만 적용, 스키마 파일은 추후 추가
 - [ ] JSONB 컬럼(`users.metadata`, `users.allowed_domains`, `device_registry.metadata`, `archive_doc.content_json` 등): 타입 인터페이스 또는 Zod 스키마 정의
-- [ ] DB JSONB 읽기: `.safeParse()` 유틸 함수(`parseJsonb` 등) 도입, 단순 `as` 단언 대체
-- [ ] 디바이스 API 요청/응답: Zod 스키마 + 타입 적용. 버전별 페이로드는 `z.discriminatedUnion('version', [...])` 사용 (§7.2)
+- [x] DB JSONB 읽기: `server/utils/parseJsonb.ts` 유틸 도입. 단순 `as` 단언 대체는 적용 대상 코드에 단계적 반영
+- [ ] 디바이스 API 요청/응답: 공유 Zod 스키마(`devices.ts`) + 타입. 버전별 페이로드는 `z.discriminatedUnion('version', [...])` 사용 (§7.2)
 - [ ] **AI 협업**: [NEXA-AI-10] 체크리스트 참고. ai_responses.ts·컨텍스트 타입·Zod→JSON Schema 유틸
-- [ ] **비즈니스 에러 코드**: `ApiErrorCode`(Enum/Union) 및 `ValidationErrorResponse`·`ApiErrorResponse`를 `src/system/schemas/errors.ts`에 정의 (§2.5)
-- [ ] **에러 메시지 맵**: 프론트에서 `Record<ApiErrorCode, string>` 형태 메시지 맵 정의. i18n·토스트에 활용 (§2.5)
+- [x] **비즈니스 에러 코드**: `ApiErrorCode`·`ApiErrorCodeType`·`ValidationErrorResponse`·`ApiErrorResponse`를 `src/system/schemas/errors.ts`에 정의. 서버 라우트·컨트롤러에서 사용
+- [x] **에러 메시지 맵**: 프론트 `src/system/config/errorMessages.ts`에 `Record<ApiErrorCodeType, string>` 정의. i18n·토스트에 활용
 
 ---
 

@@ -1,10 +1,16 @@
 /**
  * 디바이스 API 컨트롤러 [NEXA-AUTH-01] §5.2
  */
-import type { Request, Response } from 'express'
-import { ApiErrorCode } from '@system/schemas/errors'
+import type { RequestLike, ResponseLike } from '../../types/request-response.js'
+import { createDeviceSchema, updateDeviceSchema } from '../../../src/system/schemas/devices.js'
+import { ApiErrorCode } from '../../../src/system/schemas/errors.js'
 import type { DeviceResponse } from './device.types.js'
 import * as devicesService from './devices.service.js'
+
+function validationErrorResponse(res: ResponseLike, err: { issues: Array<{ path: unknown[]; message: string }> }): ResponseLike {
+  const errors = err.issues.map((i) => ({ path: Array.isArray(i.path) ? i.path.map(String).join('.') : '', message: i.message }))
+  return res.status(400).json({ code: ApiErrorCode.VALIDATION_ERROR, message: '입력값 검증 실패', errors }) as ResponseLike
+}
 
 function toDeviceResponse(row: Record<string, unknown> | null): DeviceResponse | null {
   if (!row) return null
@@ -22,13 +28,14 @@ function toDeviceResponse(row: Record<string, unknown> | null): DeviceResponse |
   }
 }
 
-export async function postDevice(req: Request, res: Response): Promise<Response> {
+export async function postDevice(req: RequestLike, res: ResponseLike): Promise<ResponseLike> {
   if (!req.user?.id) {
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
+  const parsed = createDeviceSchema.safeParse(req.body ?? {})
+  if (!parsed.success) return validationErrorResponse(res, parsed.error)
   try {
-    const payload = (req.body || {}) as { name?: string; device_type?: string; mac_address?: string }
-    const result = await devicesService.createDevice(req.user.id, payload)
+    const result = await devicesService.createDevice(req.user.id, parsed.data)
     return res.status(201).json({
       device: toDeviceResponse(result.device as Record<string, unknown>),
       device_token: result.device_token,
@@ -40,7 +47,7 @@ export async function postDevice(req: Request, res: Response): Promise<Response>
   }
 }
 
-export async function getDevices(req: Request, res: Response): Promise<Response> {
+export async function getDevices(req: RequestLike, res: ResponseLike): Promise<ResponseLike> {
   if (!req.user?.id) {
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
@@ -53,15 +60,17 @@ export async function getDevices(req: Request, res: Response): Promise<Response>
   }
 }
 
-export async function patchDevice(req: Request, res: Response): Promise<Response> {
+export async function patchDevice(req: RequestLike, res: ResponseLike): Promise<ResponseLike> {
   if (!req.user?.id) {
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
+  const parsed = updateDeviceSchema.safeParse(req.body ?? {})
+  if (!parsed.success) return validationErrorResponse(res, parsed.error)
   try {
     const device = await devicesService.updateDevice(
       req.params.id as string,
       req.user.id,
-      (req.body || {}) as { name?: string; device_type?: string; is_active?: boolean }
+      parsed.data
     )
     if (!device) {
       return res.status(404).json({ code: ApiErrorCode.NOT_FOUND, message: '디바이스를 찾을 수 없습니다.' })
@@ -73,7 +82,7 @@ export async function patchDevice(req: Request, res: Response): Promise<Response
   }
 }
 
-export async function deleteDevice(req: Request, res: Response): Promise<Response> {
+export async function deleteDevice(req: RequestLike, res: ResponseLike): Promise<ResponseLike> {
   if (!req.user?.id) {
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
