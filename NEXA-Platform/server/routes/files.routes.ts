@@ -5,6 +5,7 @@
  */
 
 import path from 'path'
+import { errMessage } from '@/utils/errUtils.js'
 import fs from 'fs'
 import { Router } from 'express'
 import multer from 'multer'
@@ -49,7 +50,7 @@ const upload = multer({
  * UTF-8 파일명이 Latin-1로 잘못 해석될 때 발생하는 깨짐(ì¤í¬ë¦° 등) 수정
  * @see server/domains/parts/partFiles.routes.js, multer UTF-8 filename 이슈
  */
-function fixFilenameEncoding(name) {
+function fixFilenameEncoding(name: string | undefined): string | undefined {
   if (!name || typeof name !== 'string') return name
   const mojibakePattern = /[ìíëêéè¤¬¦°·]/i
   if (!mojibakePattern.test(name)) return name
@@ -77,7 +78,7 @@ const FILE_TYPE_TO_CATEGORY = {
 /** POST /api/files/upload */
 router.post('/files/upload', upload.single('file'), async (req, res) => {
   try {
-    const domain = req.body.domain || req.query.domain
+    const domain = String(req.body?.domain || req.query?.domain || '')
     if (!domain) {
       return res.status(400).json({ code: 'MISSING_DOMAIN', error: 'domain 파라미터가 필요합니다.' })
     }
@@ -87,9 +88,12 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
     }
 
     const tempAbsolutePath = file.path
-    const fileSize = file.size
+    if (!tempAbsolutePath) {
+      return res.status(400).json({ code: 'INVALID_FILE', error: '파일 경로가 없습니다.' })
+    }
+    const fileSize = file.size ?? 0
     const tempRelativePath = `uploads/_temp/${path.basename(tempAbsolutePath)}`
-    const originalName = fixFilenameEncoding(file.originalname || 'unknown')
+    const originalName = fixFilenameEncoding(file.originalname) ?? file.originalname ?? 'unknown'
 
     const extension = extractExtension(originalName)
     const fileType = getFileType(extension)
@@ -111,7 +115,7 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ code: 'HASH_COMPUTE_FAILED', error: '파일 해시 계산 실패' })
     }
 
-    const category = FILE_TYPE_TO_CATEGORY[fileType] || 'documents'
+    const category = (FILE_TYPE_TO_CATEGORY as Record<string, string>)[fileType] ?? 'documents'
     const folderPath = generateFolderPath(domain, category)
     const filename = generateTimestampFilename(extension)
     const filePath = `${folderPath}${filename}`
@@ -125,14 +129,15 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
       )
 
       if (existing.length > 0) {
-        const existingFile = existing[0]
+        const existingFile = existing[0] as { id: string; file_path: string }
         await deleteFile(tempRelativePath)
         await client.query(
           'INSERT INTO file_references (file_id, domain) VALUES ($1, $2) ON CONFLICT (file_id, domain) DO NOTHING',
           [existingFile.id, domain],
         )
         const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`
-        const url = `${baseUrl}/uploads/${existingFile.file_path.replace(/^uploads\//, '')}`.replace(
+        const fp = String(existingFile.file_path ?? '')
+        const url = `${baseUrl}/uploads/${fp.replace(/^uploads\//, '')}`.replace(
           /\/+/g,
           '/',
         )
@@ -156,29 +161,32 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
         [filePath, originalName, fileType, mimeType, fileSize, category, contentHash],
       )
       insertId = insertRows[0].id
-    } catch (err) {
-      if (err.code === '23505') {
+    } catch (err: unknown) {
+      const e = err as NodeJS.ErrnoException & { code?: string }
+      if (e?.code === '23505') {
         const { rows } = await pool.query('SELECT id, file_path FROM files WHERE content_hash = $1', [
           contentHash,
         ])
-        if (rows.length > 0) {
+        const fileRows = rows as { id: string; file_path: string }[]
+        if (fileRows.length > 0) {
           try {
             await deleteFile(filePath)
           } catch {
             /* ignore */
           }
           await pool.query('INSERT INTO file_references (file_id, domain) VALUES ($1, $2) ON CONFLICT (file_id, domain) DO NOTHING', [
-            rows[0].id,
+            fileRows[0].id,
             domain,
           ])
           const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`
-          const url = `${baseUrl}/uploads/${rows[0].file_path.replace(/^uploads\//, '')}`.replace(
+          const r0path = String(fileRows[0].file_path ?? '')
+          const url = `${baseUrl}/uploads/${r0path.replace(/^uploads\//, '')}`.replace(
             /\/+/g,
             '/',
           )
           return res.status(201).json({
-            id: rows[0].id,
-            file_path: rows[0].file_path,
+            id: fileRows[0].id,
+            file_path: fileRows[0].file_path,
             original_name: originalName,
             url,
             content_hash: contentHash,
@@ -206,16 +214,17 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
       url,
       content_hash: contentHash,
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[files/upload]', error)
-    res.status(500).json({ code: 'UPLOAD_FAILED', error: error.message })
+    res.status(500).json({ code: 'UPLOAD_FAILED', error: errMessage(error) })
   }
 })
 
 /** GET /api/files/list */
 router.get('/files/list', async (req, res) => {
   try {
-    const domain = req.query.domain
+    const domainRaw = req.query.domain
+    const domain = Array.isArray(domainRaw) ? domainRaw[0] : (typeof domainRaw === 'string' ? domainRaw : '')
     if (!domain) {
       return res.status(400).json({ code: 'MISSING_DOMAIN', error: 'domain 파라미터가 필요합니다.' })
     }
@@ -233,16 +242,18 @@ router.get('/files/list', async (req, res) => {
     const params = [domain]
     paramIdx++
 
-    if (category) {
+    const categoryRaw = req.query.category
+    const categoryParam = Array.isArray(categoryRaw) ? categoryRaw[0] : (typeof categoryRaw === 'string' ? categoryRaw : '')
+    if (categoryParam) {
       query += ` AND f.category = $${paramIdx++}`
-      params.push(category)
+      params.push(categoryParam)
     }
 
     query += ' ORDER BY f.created_at DESC'
 
     const { rows } = await pool.query(query, params)
 
-    const items = rows.map((r) => ({
+    const items = (rows as { id: string; file_path: string; original_name: string; file_type: string; category: string; file_size: number }[]).map((r) => ({
       id: r.id,
       file_path: r.file_path,
       original_name: r.original_name,
@@ -253,9 +264,9 @@ router.get('/files/list', async (req, res) => {
     }))
 
     res.json({ items })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[files/list]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -298,9 +309,9 @@ router.get('/files/explorer/debug', async (req, res) => {
       orphaned_files_count: orphanedCount[0]?.c ?? 0,
       orphaned_sample: orphanedSample,
     })
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[files/explorer/debug]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: errMessage(err) })
   }
 })
 
@@ -314,20 +325,22 @@ router.post('/files/explorer/backfill-references', async (req, res) => {
        AND f.file_path ~ '^uploads/[a-zA-Z0-9_-]+/'`,
     )
     let inserted = 0
-    for (const row of orphaned) {
-      const match = (row.file_path || '').match(/^uploads\/([a-zA-Z0-9_-]+)\//)
+    const orphanedTyped = orphaned as { id: string; file_path: string }[]
+    for (const row of orphanedTyped) {
+      const fp = String(row.file_path ?? '')
+      const match = fp.match(/^uploads\/([a-zA-Z0-9_-]+)\//)
       const domain = match ? match[1] : null
       if (!domain) continue
       const insResult = await pool.query(
         'INSERT INTO file_references (file_id, domain) VALUES ($1, $2) ON CONFLICT (file_id, domain) DO NOTHING',
         [row.id, domain],
       )
-      if (insResult?.rowCount > 0) inserted++
+      if ((insResult?.rowCount ?? 0) > 0) inserted++
     }
     res.json({ orphaned_found: orphaned.length, inserted })
-  } catch (err) {
+    } catch (err: unknown) {
     console.error('[files/explorer/backfill-references]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: errMessage(err) })
   }
 })
 
@@ -400,7 +413,8 @@ router.get('/files/explorer', async (req, res) => {
     `
     const { rows } = await pool.query(listQuery, params)
 
-    const items = rows.map((r) => {
+    type FileRow = { id: string; file_path: string; original_name: string; file_type: string; category: string; file_size: number; source?: string; edge_sid?: string; created_at?: unknown }
+    const items = (rows as FileRow[]).map((r) => {
       const fp = r.file_path || ''
       const domainFromPath = fp.startsWith('uploads/') ? fp.split('/')[1] || null : null
       return {
@@ -419,9 +433,9 @@ router.get('/files/explorer', async (req, res) => {
     })
 
     res.json({ items, total })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[files/explorer]', error)
-    res.status(500).json({ code: 'EXPLORER_FAILED', error: error.message })
+    res.status(500).json({ code: 'EXPLORER_FAILED', error: errMessage(error) })
   }
 })
 
@@ -438,7 +452,8 @@ router.get('/files/explorer/tree', async (req, res) => {
        WHERE f.deleted_at IS NULL AND f.file_path LIKE 'uploads/%'`,
     )
     const byDomain = new Map<string, Set<string>>()
-    for (const r of rows) {
+    const rowsTyped = rows as { file_path?: string }[]
+    for (const r of rowsTyped) {
       const fullPath = (r.file_path || '').replace(/\\/g, '/').trim()
       const uploadsPrefix = 'uploads/'
       if (!fullPath.startsWith(uploadsPrefix)) continue
@@ -447,9 +462,9 @@ router.get('/files/explorer/tree', async (req, res) => {
       const d = pathParts[0] || 'unknown'
       const relativeParts = pathParts.slice(1)
       if (!byDomain.has(d)) byDomain.set(d, new Set())
-      byDomain.get(d).add('')
+      byDomain.get(d)?.add('')
       for (let i = 1; i < relativeParts.length; i++) {
-        byDomain.get(d).add(relativeParts.slice(0, i).join('/'))
+        byDomain.get(d)?.add(relativeParts.slice(0, i).join('/'))
       }
     }
     const domains = Array.from(byDomain.entries()).map(([domain, pathSet]) => ({
@@ -457,17 +472,18 @@ router.get('/files/explorer/tree', async (req, res) => {
       paths: Array.from(pathSet).sort((a, b) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b))),
     }))
     res.json({ domains })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[files/explorer/tree]', error)
-    res.status(500).json({ code: 'EXPLORER_TREE_FAILED', error: error.message })
+    res.status(500).json({ code: 'EXPLORER_TREE_FAILED', error: errMessage(error) })
   }
 })
 
 /** POST /api/files/:id/reference - 도메인에 파일 참조 추가 (탐색기 → 미디어 리스트 등) */
 router.post('/files/:id/reference', async (req, res) => {
   try {
-    const fileId = parseInt(req.params.id, 10)
-    const domain = req.body?.domain || req.query.domain
+    const fileId = parseInt(req.params?.id ?? '', 10)
+    const domainVal = req.body?.domain ?? req.query?.domain
+    const domain = Array.isArray(domainVal) ? domainVal[0] : (typeof domainVal === 'string' ? domainVal : '')
     if (!domain || isNaN(fileId)) {
       return res.status(400).json({ code: 'INVALID_PARAMS', error: 'file id와 domain이 필요합니다.' })
     }
@@ -480,28 +496,29 @@ router.post('/files/:id/reference', async (req, res) => {
       [fileId, domain],
     )
     res.status(201).json({ ok: true })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[files/post-reference]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
 /** DELETE /api/files/:id/reference - 도메인에서 파일 참조 제거 */
 router.delete('/files/:id/reference', async (req, res) => {
   try {
-    const fileId = parseInt(req.params.id, 10)
-    const domain = req.query.domain || req.body?.domain
+    const fileId = parseInt(req.params?.id ?? '', 10)
+    const domainVal = req.query?.domain ?? req.body?.domain
+    const domain = Array.isArray(domainVal) ? domainVal[0] : (typeof domainVal === 'string' ? domainVal : '')
     if (!domain || isNaN(fileId)) {
       return res.status(400).json({ code: 'INVALID_PARAMS', error: 'file id와 domain이 필요합니다.' })
     }
     const result = await pool.query('DELETE FROM file_references WHERE file_id = $1 AND domain = $2', [fileId, domain])
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ code: 'NOT_FOUND', error: '참조를 찾을 수 없습니다.' })
     }
     res.json({ ok: true })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[files/delete-reference]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 

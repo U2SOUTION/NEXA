@@ -22,8 +22,9 @@ import redisClient from '@/config/redis.js'
 const router = Router()
 const SALT_ROUNDS = 10
 
-function validationErrorResponse(res: ResponseLike, err: ZodError<unknown>): ResponseLike {
-  const errors = err.issues?.map((i) => ({ path: i.path.join('.'), message: i.message })) ?? []
+function validationErrorResponse(res: ResponseLike, err: unknown): ResponseLike {
+  const zodErr = err as { issues?: { path: (string | number)[]; message: string }[] }
+  const errors = zodErr?.issues?.map((i) => ({ path: i.path.join('.'), message: i.message })) ?? []
   return res.status(400).json({
     code: ApiErrorCode.VALIDATION_ERROR,
     message: '입력값 검증 실패',
@@ -106,19 +107,22 @@ router.post('/auth/login', async (req, res) => {
       'SELECT id, email, password_hash, display_name, role, tier, allowed_domains, created_at, updated_at FROM users WHERE email = $1 AND deleted_at IS NULL',
       [normalizedEmail]
     )
-    const row = rows[0]
+    const row = rows[0] as Record<string, unknown> | undefined
     if (!row) {
       return res.status(401).json({ code: ApiErrorCode.INVALID_CREDENTIALS, message: '이메일 또는 비밀번호가 올바르지 않습니다.' })
     }
 
-    const match = await bcrypt.compare(password, String((row as Record<string, unknown>).password_hash ?? ''))
+    const match = await bcrypt.compare(password, String(row.password_hash ?? ''))
     if (!match) {
       return res.status(401).json({ code: ApiErrorCode.INVALID_CREDENTIALS, message: '이메일 또는 비밀번호가 올바르지 않습니다.' })
     }
 
     const user = toUserResponse(row)
-    const access_token = signAccess({ user_id: row.id, email: row.email, role: row.role })
-    const { token: refresh_token, expiresIn: refresh_expires_in } = signRefresh({ user_id: row.id })
+    const userId = String(row.id ?? '')
+    const userEmail = String(row.email ?? '')
+    const userRole = String(row.role ?? '')
+    const access_token = signAccess({ user_id: userId, email: userEmail, role: userRole })
+    const { token: refresh_token, expiresIn: refresh_expires_in } = signRefresh({ user_id: userId })
 
     return res.json({
       user,

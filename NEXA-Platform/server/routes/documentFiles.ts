@@ -3,6 +3,13 @@
 // 레거시: 접두사 없으면 첫 번째 폴더로 처리
 
 import { Router } from 'express'
+// body-parser: ESM 타입 호환용
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const bodyParser = require('body-parser') as {
+  json: () => (req: unknown, res: unknown, next: (err?: unknown) => void) => void
+  raw: (opts?: { type?: string; limit?: string }) => (req: unknown, res: unknown, next: (err?: unknown) => void) => void
+}
 import path from 'path'
 import fs from 'fs/promises'
 import {
@@ -16,6 +23,8 @@ import {
   removeDocsFolder,
   updateDocsFolder,
 } from '@/config/documentConfig.js'
+import type { DocsFolderEntry } from '@/config/documentConfig.js'
+import { errMessage } from '@/utils/errUtils.js'
 
 const router = Router()
 
@@ -24,7 +33,7 @@ const router = Router()
  * @param {string} prefixedPath
  * @returns {{ basePath: string, relativePath: string, fullPath: string } | null}
  */
-function resolvePath(prefixedPath) {
+function resolvePath(prefixedPath: string): { basePath: string; relativePath: string; fullPath: string } | null {
   const resolved = resolvePrefixedPath(prefixedPath)
   if (!resolved) return null
   const fullPath = path.join(resolved.basePath, resolved.relativePath)
@@ -35,7 +44,22 @@ function resolvePath(prefixedPath) {
  * 폴더 내 재귀 파일 검색
  * @param {object} folder - { id, label, pathPrefix, displayPathPrefix? }
  */
-async function findFilesInDir(dir, relativePath = '', depth = 0, folder, isSupportedExtension) {
+interface DocFileEntry {
+  fileName: string
+  relativePath: string
+  displayPath: string
+  folderId: string
+  modifiedDate: string | null
+  createdDate: string | null
+}
+
+async function findFilesInDir(
+  dir: string,
+  relativePath = '',
+  depth = 0,
+  folder: DocsFolderEntry,
+  isSupportedExt: (fn: string) => boolean,
+): Promise<DocFileEntry[]> {
   const MAX_DEPTH = 10
   if (depth > MAX_DEPTH) return []
   const files = []
@@ -47,9 +71,9 @@ async function findFilesInDir(dir, relativePath = '', depth = 0, folder, isSuppo
       const fullPath = path.join(dir, entry.name)
       if (entry.isDirectory()) {
         const subRel = relativePath ? path.join(relativePath, entry.name).replace(/\\/g, '/') : entry.name
-        const subFiles = await findFilesInDir(fullPath, subRel, depth + 1, folder, isSupportedExtension)
+        const subFiles = await findFilesInDir(fullPath, subRel, depth + 1, folder, isSupportedExt)
         files.push(...subFiles)
-      } else if (entry.isFile() && isSupportedExtension(entry.name)) {
+      } else if (entry.isFile() && isSupportedExt(entry.name)) {
         const fileRel = relativePath ? path.join(relativePath, entry.name).replace(/\\/g, '/') : entry.name
         const prefixedPath = `${folderId}/${fileRel}`
         const displayPath = `${displayPrefix}/${fileRel}`
@@ -68,8 +92,8 @@ async function findFilesInDir(dir, relativePath = '', depth = 0, folder, isSuppo
         }
       }
     }
-  } catch (err) {
-    console.error(`[Docs] 디렉토리 읽기 실패: ${dir}`, err.message)
+  } catch (err: unknown) {
+    console.error(`[Docs] 디렉토리 읽기 실패: ${dir}`, errMessage(err))
   }
   return files
 }
@@ -77,8 +101,11 @@ async function findFilesInDir(dir, relativePath = '', depth = 0, folder, isSuppo
 // 슬래시 포함 경로용 라우트 (와일드카드) - /f/ 접두사 사용
 // GET/PUT/DELETE /api/docs/f/nexa-docs/Platform/... 형태
 
-async function handleGetFile(req, res) {
-  const fileName = req.params[0]
+async function handleGetFile(
+  req: { params?: Record<string, string | undefined> },
+  res: { status: (n: number) => { json: (o: unknown) => void }; setHeader: (k: string, v: string) => void; send: (s: string) => void },
+) {
+  const fileName = req.params?.['0']
   if (!fileName || fileName.includes('..') || fileName.startsWith('/')) {
     return res.status(400).json({ error: '잘못된 파일명입니다.' })
   }
@@ -92,16 +119,21 @@ async function handleGetFile(req, res) {
     const lower = fileName.toLowerCase()
     res.setHeader('Content-Type', lower.endsWith('.mermaid.css') ? 'text/css; charset=utf-8' : 'text/plain; charset=utf-8')
     res.send(content)
-  } catch (e) {
-    if (e.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
+  } catch (e: unknown) {
+    const err = e as NodeJS.ErrnoException
+    if (err?.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
     throw e
   }
 }
 
-async function handlePutFile(req, res) {
-  const fileName = req.params[0]
-  const newFileName = req.body?.newFileName
-  const fileContent = typeof req.body === 'string' ? req.body : req.body?.content
+async function handlePutFile(
+  req: { params?: Record<string, string | undefined>; body?: (Record<string, unknown> & { newFileName?: string; content?: string }) | string },
+  res: { status: (n: number) => { json: (o: unknown) => void }; setHeader: (k: string, v: string) => void; send: (s: string) => void; json: (o: unknown) => void },
+) {
+  const fileName = req.params?.['0']
+  const body = req.body
+  const newFileName = typeof body === 'object' && body && 'newFileName' in body ? (body as { newFileName?: string }).newFileName : undefined
+  const fileContent = typeof body === 'string' ? body : (typeof body === 'object' && body && 'content' in body ? (body as { content?: string }).content : undefined)
 
   if (!fileName || fileName.includes('..') || fileName.startsWith('/')) {
     return res.status(400).json({ error: '잘못된 파일명입니다.' })
@@ -127,8 +159,8 @@ async function handlePutFile(req, res) {
     try {
       const stats = await fs.stat(r.fullPath)
       if (!stats.isFile()) return res.status(404).json({ error: '기존 파일을 찾을 수 없습니다.' })
-    } catch (e) {
-      if (e.code === 'ENOENT') return res.status(404).json({ error: '기존 파일을 찾을 수 없습니다.' })
+    } catch (e: unknown) {
+      if ((e as NodeJS.ErrnoException)?.code === 'ENOENT') return res.status(404).json({ error: '기존 파일을 찾을 수 없습니다.' })
       throw e
     }
     await fs.mkdir(path.dirname(rNew.fullPath), { recursive: true })
@@ -150,8 +182,11 @@ async function handlePutFile(req, res) {
   return res.status(400).json({ error: 'newFileName 또는 fileContent가 필요합니다.' })
 }
 
-async function handleDeleteFile(req, res) {
-  const fileName = req.params[0]
+async function handleDeleteFile(
+  req: { params?: Record<string, string | undefined> },
+  res: { status: (n: number) => { json: (o: unknown) => void }; json: (o: unknown) => void },
+) {
+  const fileName = req.params?.['0']
   if (!fileName || fileName.includes('..') || fileName.startsWith('/')) {
     return res.status(400).json({ error: '잘못된 파일명입니다.' })
   }
@@ -161,16 +196,19 @@ async function handleDeleteFile(req, res) {
   try {
     const stats = await fs.stat(r.fullPath)
     if (!stats.isFile()) return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
-  } catch (e) {
-    if (e.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException)?.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
     throw e
   }
   await fs.unlink(r.fullPath)
   res.json({ success: true, message: '파일이 영구적으로 삭제되었습니다.', fileName })
 }
 
-async function handleTouchFile(req, res) {
-  const fileName = req.params[0]
+async function handleTouchFile(
+  req: { params?: Record<string, string | undefined> },
+  res: { status: (n: number) => { json: (o: unknown) => void }; json: (o: unknown) => void },
+) {
+  const fileName = req.params?.['0']
   if (!fileName || fileName.includes('..') || fileName.startsWith('/')) {
     return res.status(400).json({ error: '잘못된 파일명입니다.' })
   }
@@ -180,8 +218,8 @@ async function handleTouchFile(req, res) {
   try {
     const stats = await fs.stat(r.fullPath)
     if (!stats.isFile()) return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
-  } catch (e) {
-    if (e.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException)?.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
     throw e
   }
   const now = new Date()
@@ -211,21 +249,21 @@ router.delete('/:fileName', async (req, res) => {
     try {
       const stats = await fs.stat(r.fullPath)
       if (!stats.isFile()) return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
-    } catch (e) {
-      if (e.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
+    } catch (e: unknown) {
+      if ((e as NodeJS.ErrnoException)?.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
       throw e
     }
 
     await fs.unlink(r.fullPath)
     res.json({ success: true, message: '파일이 영구적으로 삭제되었습니다.', fileName })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[Docs Delete]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
 // PUT /api/docs/:fileName - 파일명 변경 또는 파일 내용 쓰기
-router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.json(), async (req, res) => {
+router.put('/:fileName', bodyParser.raw({ type: '*/*', limit: '10mb' }), bodyParser.json(), async (req, res) => {
   try {
     let fileName = req.params.fileName
     try {
@@ -262,8 +300,8 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
       try {
         const stats = await fs.stat(r.fullPath)
         if (!stats.isFile()) return res.status(404).json({ error: '기존 파일을 찾을 수 없습니다.' })
-      } catch (e) {
-        if (e.code === 'ENOENT') return res.status(404).json({ error: '기존 파일을 찾을 수 없습니다.' })
+      } catch (e: unknown) {
+        if ((e as NodeJS.ErrnoException)?.code === 'ENOENT') return res.status(404).json({ error: '기존 파일을 찾을 수 없습니다.' })
         throw e
       }
 
@@ -291,9 +329,9 @@ router.put('/:fileName', express.raw({ type: '*/*', limit: '10mb' }), express.js
     }
 
     return res.status(400).json({ error: 'newFileName 또는 fileContent가 필요합니다.' })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[Docs PUT]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -316,9 +354,9 @@ router.get('/metadata', async (req, res) => {
     }
 
     res.json({ success: true, files: allFiles })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[Docs Metadata]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -343,8 +381,8 @@ router.post('/:fileName/touch', async (req, res) => {
     try {
       const stats = await fs.stat(r.fullPath)
       if (!stats.isFile()) return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
-    } catch (e) {
-      if (e.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
+    } catch (e: unknown) {
+      if ((e as NodeJS.ErrnoException)?.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
       throw e
     }
 
@@ -358,14 +396,14 @@ router.post('/:fileName/touch', async (req, res) => {
       fileName,
       updatedModifiedDate: updated.mtime.toISOString(),
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[Docs Touch]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
 // POST /api/docs - 새 파일 생성
-router.post('/', express.raw({ type: '*/*', limit: '10mb' }), express.json(), async (req, res) => {
+router.post('/', bodyParser.raw({ type: '*/*', limit: '10mb' }), bodyParser.json(), async (req, res) => {
   try {
     let fileName = typeof req.body === 'string' ? req.query.fileName || req.headers['x-file-name'] : req.body?.fileName
     let fileContent = typeof req.body === 'string' ? req.body : req.body?.content
@@ -398,15 +436,15 @@ router.post('/', express.raw({ type: '*/*', limit: '10mb' }), express.json(), as
     try {
       await fs.stat(r.fullPath)
       return res.status(409).json({ error: '이미 동일한 이름의 파일이 존재합니다.' })
-    } catch (e) {
-      if (e.code !== 'ENOENT') throw e
+    } catch (e: unknown) {
+      if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') throw e
     }
 
     await fs.writeFile(r.fullPath, fileContent || '', 'utf-8')
     res.json({ success: true, message: '파일이 생성되었습니다.', fileName })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[Docs Create]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -432,15 +470,15 @@ router.get('/:fileName', async (req, res) => {
     const lower = fileName.toLowerCase()
     res.setHeader('Content-Type', lower.endsWith('.mermaid.css') ? 'text/css; charset=utf-8' : 'text/plain; charset=utf-8')
     res.send(content)
-  } catch (error) {
-    if (error.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
+  } catch (error: unknown) {
+    if ((error as NodeJS.ErrnoException)?.code === 'ENOENT') return res.status(404).json({ error: '파일을 찾을 수 없습니다.' })
     console.error('[Docs Get]', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
 // ========== config: extensions ==========
-router.post('/config/extensions', express.json(), async (req, res) => {
+router.post('/config/extensions', bodyParser.json(), async (req, res) => {
   try {
     const { extensions } = req.body
     if (!extensions || !Array.isArray(extensions) || extensions.length === 0) {
@@ -448,8 +486,8 @@ router.post('/config/extensions', express.json(), async (req, res) => {
     }
     setSupportedExtensions(extensions)
     res.json({ success: true, message: '지원 확장자 목록이 업데이트되었습니다.', extensions: getSupportedExtensions() })
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (error: unknown) {
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -462,7 +500,7 @@ router.get('/config/folders', (req, res) => {
   res.json({ success: true, folders: getDocsFolders() })
 })
 
-router.post('/config/folders', express.json(), async (req, res) => {
+router.post('/config/folders', bodyParser.json(), async (req, res) => {
   try {
     const { id, label, pathPrefix } = req.body
     if (!id || !pathPrefix) {
@@ -471,8 +509,8 @@ router.post('/config/folders', express.json(), async (req, res) => {
     const ok = await addDocsFolder({ id, label, pathPrefix })
     if (!ok) return res.status(400).json({ error: '폴더 추가에 실패했습니다.' })
     res.json({ success: true, message: '폴더가 추가되었습니다.', folders: getDocsFolders() })
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (error: unknown) {
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -482,20 +520,20 @@ router.delete('/config/folders/:folderId', async (req, res) => {
     const ok = await removeDocsFolder(folderId)
     if (!ok) return res.status(400).json({ error: '폴더 제거에 실패했습니다.' })
     res.json({ success: true, message: '폴더가 제거되었습니다.', folders: getDocsFolders() })
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (error: unknown) {
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
-router.put('/config/folders/:folderId', express.json(), async (req, res) => {
+router.put('/config/folders/:folderId', bodyParser.json(), async (req, res) => {
   try {
     const folderId = req.params.folderId
     const { label, pathPrefix } = req.body || {}
     const ok = await updateDocsFolder(folderId, { label, pathPrefix })
     if (!ok) return res.status(400).json({ error: '폴더 수정에 실패했습니다.' })
     res.json({ success: true, message: '폴더가 수정되었습니다.', folders: getDocsFolders() })
-  } catch (error) {
-    res.status(500).json({ error: error.message })
+  } catch (error: unknown) {
+    res.status(500).json({ error: errMessage(error) })
   }
 })
 
@@ -506,7 +544,7 @@ router.get('/config/folder', (req, res) => {
   res.json({ success: true, folderName: first?.label ?? 'NEXA-Documentation' })
 })
 
-router.post('/config/folder', express.json(), (req, res) => {
+router.post('/config/folder', bodyParser.json(), (req, res) => {
   const folders = getDocsFolders()
   res.json({ success: true, folderName: folders[0]?.label ?? 'NEXA-Documentation' })
 })
@@ -516,7 +554,7 @@ router.get(/^\/f\/(.+)$/, (req, res, next) => {
   req.params = { 0: req.params[0] }
   handleGetFile(req, res).catch(next)
 })
-router.put(/^\/f\/(.+)$/, express.raw({ type: '*/*', limit: '10mb' }), express.json(), (req, res, next) => {
+router.put(/^\/f\/(.+)$/, bodyParser.raw({ type: '*/*', limit: '10mb' }), bodyParser.json(), (req, res, next) => {
   req.params = { 0: req.params[0] }
   handlePutFile(req, res).catch(next)
 })

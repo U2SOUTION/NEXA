@@ -4,6 +4,7 @@
  */
 
 import fs from 'fs/promises'
+import { errMessage } from './errUtils.js'
 import path from 'path'
 import { UPLOAD_BASE_DIR } from '@/config/upload.js'
 
@@ -31,7 +32,7 @@ export async function initializeUploadFolder() {
       await fs.unlink(testFile)
       console.log(`[Upload Folder] 폴더 권한 확인 완료 (읽기/쓰기 가능)`)
     } catch (error) {
-      console.warn(`[Upload Folder] 폴더 권한 확인 실패: ${error.message}`)
+      console.warn(`[Upload Folder] 폴더 권한 확인 실패: ${errMessage(error)}`)
       console.warn(`[Upload Folder] 폴더에 쓰기 권한이 없을 수 있습니다: ${UPLOAD_BASE_DIR}`)
     }
 
@@ -78,7 +79,7 @@ export async function checkUploadFolderStatus() {
     return {
       exists: false,
       path: UPLOAD_BASE_DIR,
-      error: error.message,
+      error: errMessage(error),
     }
   }
 }

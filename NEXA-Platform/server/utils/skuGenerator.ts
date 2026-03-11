@@ -28,20 +28,19 @@ const CATEGORY_ABBREVIATIONS = {
  * @param {string} category - 대분류명 (예: '능동소자', '수동소자')
  * @returns {string} 약어 (예: 'ACP', 'PAS')
  */
-export function getCategoryAbbreviation(category) {
+export function getCategoryAbbreviation(category: string): string {
   if (!category) {
     return 'UNK' // Unknown
   }
 
-  // 정확히 일치하는 경우
-  if (CATEGORY_ABBREVIATIONS[category]) {
-    return CATEGORY_ABBREVIATIONS[category]
+  type CatKey = keyof typeof CATEGORY_ABBREVIATIONS
+  if (category in CATEGORY_ABBREVIATIONS) {
+    return CATEGORY_ABBREVIATIONS[category as CatKey]
   }
 
-  // 공백 제거 후 비교
   const normalizedCategory = category.trim()
-  if (CATEGORY_ABBREVIATIONS[normalizedCategory]) {
-    return CATEGORY_ABBREVIATIONS[normalizedCategory]
+  if (normalizedCategory in CATEGORY_ABBREVIATIONS) {
+    return CATEGORY_ABBREVIATIONS[normalizedCategory as CatKey]
   }
 
   // 매핑되지 않은 경우 UNK 반환
@@ -56,7 +55,7 @@ export function getCategoryAbbreviation(category) {
  * @param {string} cCode - C 코드
  * @returns {string} SKU (예: 'ACP-R001')
  */
-export function generatePartClassSKU(category, cCode) {
+export function generatePartClassSKU(category: string, cCode: string): string {
   if (!cCode) {
     throw new Error('C Code는 필수입니다.')
   }
@@ -73,7 +72,7 @@ export function generatePartClassSKU(category, cCode) {
  * @param {number} tableId - part_models 테이블의 id
  * @returns {string} SKU (예: 'ACP-R001-123')
  */
-export function generatePartModelSKU(category, cCode, tableId) {
+export function generatePartModelSKU(category: string, cCode: string, tableId: number): string {
   if (!cCode) {
     throw new Error('C Code는 필수입니다.')
   }
@@ -82,7 +81,7 @@ export function generatePartModelSKU(category, cCode, tableId) {
   }
 
   const abbreviation = getCategoryAbbreviation(category)
-  return `${abbreviation}-${cCode}-${tableId}`
+  return `${abbreviation}-${cCode}-${Number(tableId)}`
 }
 
 /**
@@ -94,7 +93,7 @@ export function generatePartModelSKU(category, cCode, tableId) {
  * @param {number} partSpecId - part_specs 테이블의 id
  * @returns {string} SKU (예: 'ACP-R001-123-789')
  */
-export function generatePartSpecSKU(category, cCode, partModelId, partSpecId) {
+export function generatePartSpecSKU(category: string, cCode: string, partModelId: number, partSpecId: number): string {
   if (!cCode) {
     throw new Error('C Code는 필수입니다.')
   }
@@ -106,7 +105,7 @@ export function generatePartSpecSKU(category, cCode, partModelId, partSpecId) {
   }
 
   const abbreviation = getCategoryAbbreviation(category)
-  return `${abbreviation}-${cCode}-${partModelId}-${partSpecId}`
+  return `${abbreviation}-${cCode}-${Number(partModelId)}-${Number(partSpecId)}`
 }
 
 /**
@@ -119,20 +118,22 @@ export function generatePartSpecSKU(category, cCode, partModelId, partSpecId) {
  * @param {number} [record.part_spec_id] - part_specs ID (3레벨용)
  * @returns {string} SKU
  */
-export function generateSKUFromRecord(record) {
-  const { category, c_code: cCode, id, part_model_id: partModelId, part_spec_id: partSpecId } = record
+export function generateSKUFromRecord(record: { category?: string; c_code?: string; id?: number; part_model_id?: number | null; part_spec_id?: number | null }): string {
+  const category = record.category ?? ''
+  const cCode = record.c_code ?? ''
+  const { part_model_id: partModelId, part_spec_id: partSpecId } = record
 
   if (!cCode) {
     throw new Error('C Code는 필수입니다.')
   }
 
   // 3레벨: part_specs
-  if (partSpecId && partModelId) {
+  if (partSpecId != null && partModelId != null) {
     return generatePartSpecSKU(category, cCode, partModelId, partSpecId)
   }
 
   // 2레벨: part_models
-  if (partModelId) {
+  if (partModelId != null) {
     return generatePartModelSKU(category, cCode, partModelId)
   }
 
@@ -145,7 +146,7 @@ export function generateSKUFromRecord(record) {
  * @param {string} sku - SKU 문자열
  * @returns {Object} { categoryAbbr, cCode, partModelId?, partSpecId? }
  */
-export function parseSKU(sku) {
+export function parseSKU(sku: string): { categoryAbbr: string; cCode: string; partModelId: number | null; partSpecId: number | null } {
   if (!sku) {
     throw new Error('SKU는 필수입니다.')
   }
@@ -157,14 +158,14 @@ export function parseSKU(sku) {
 
   const categoryAbbr = parts[0]
   const cCode = parts[1]
-  const partModelId = parts.length >= 3 ? parseInt(parts[2], 10) : null
-  const partSpecId = parts.length >= 4 ? parseInt(parts[3], 10) : null
+  const partModelIdRaw = parts.length >= 3 ? parseInt(parts[2], 10) : null
+  const partSpecIdRaw = parts.length >= 4 ? parseInt(parts[3], 10) : null
 
   return {
     categoryAbbr,
     cCode,
-    partModelId: isNaN(partModelId) ? null : partModelId,
-    partSpecId: isNaN(partSpecId) ? null : partSpecId,
+    partModelId: (partModelIdRaw != null && !isNaN(partModelIdRaw)) ? partModelIdRaw : null,
+    partSpecId: (partSpecIdRaw != null && !isNaN(partSpecIdRaw)) ? partSpecIdRaw : null,
   }
 }
 
