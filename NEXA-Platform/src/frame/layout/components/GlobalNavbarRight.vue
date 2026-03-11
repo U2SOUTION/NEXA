@@ -5,6 +5,22 @@
       <slot name="context-actions"></slot>
     </div>
 
+    <!-- [NEXA-AUTH-01] 로그인/로그아웃 -->
+    <div v-if="!authStore.isLoggedIn" class="row items-center no-wrap header-icon-group">
+      <q-btn flat dense icon="login" :label="showLabels ? '로그인' : undefined" class="text-primary" @click="$router.push('/login')">
+        <q-tooltip>로그인</q-tooltip>
+      </q-btn>
+      <q-btn flat dense icon="person_add" :label="showLabels ? '회원가입' : undefined" class="text-primary" @click="$router.push('/register')">
+        <q-tooltip>회원가입</q-tooltip>
+      </q-btn>
+    </div>
+    <div v-else class="row items-center no-wrap header-icon-group auth-user-row">
+      <span class="auth-user-name text-body2 text-grey-8">{{ authStore.user?.display_name || authStore.user?.email || '사용자' }}</span>
+      <q-btn flat dense icon="logout" :label="showLabels ? '로그아웃' : undefined" class="text-primary" @click="handleLogout">
+        <q-tooltip>로그아웃</q-tooltip>
+      </q-btn>
+    </div>
+
     <!-- 공통 기능 버튼 -->
     <div class="row items-center no-wrap header-icon-group">
       <q-btn flat dense :icon="leftSidebarOpen ? 'left_panel_close' : 'left_panel_open'" :label="showLabels ? '왼쪽 사이드바' : undefined" class="text-primary" @click="$emit('toggle-left')">
@@ -29,6 +45,11 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
+import { useAuthStore } from '@system/store/authStore'
+
+const authStore = useAuthStore()
+
 defineProps({
   leftSidebarOpen: { type: Boolean, default: true },
   rightSidebarOpen: { type: Boolean, default: false },
@@ -37,6 +58,15 @@ defineProps({
 })
 
 defineEmits(['toggle-left', 'toggle-right', 'toggle-theme'])
+
+onMounted(() => {
+  authStore.init()
+})
+
+async function handleLogout() {
+  await authStore.logout()
+  window.location.href = '/' // 토큰 제거 후 새로고침하여 상태 일관
+}
 </script>
 
 <style lang="scss" scoped>
@@ -58,5 +88,16 @@ defineEmits(['toggle-left', 'toggle-right', 'toggle-theme'])
   .q-btn__content {
     flex-wrap: nowrap;
   }
+}
+
+.auth-user-row {
+  margin-right: 4px;
+}
+.auth-user-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 4px;
 }
 </style>

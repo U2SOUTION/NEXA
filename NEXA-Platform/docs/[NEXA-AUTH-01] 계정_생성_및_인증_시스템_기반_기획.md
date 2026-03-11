@@ -538,8 +538,8 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 구현하면서 단계별로 체크할 수 있는 항목이다. `[ ]` → 완료 시 `[x]`로 표시하면 된다.
 
 **현재 상태 (2025-03 기준)**  
-- **완료**: 1·2단계 백엔드(회원가입·로그인·JWT·미들웨어), users DDL, Redis 연동, 로그아웃(블랙리스트). 부품/아카이브 등 데이터 API는 임시로 인증 예외(§5.3.1).  
-- **다음**: (1) 로그인/회원가입 UI → 토큰 저장·Bearer 첨부·401 시 refresh/리다이렉트, (2) 필요 시 AUTH_SKIP_PREFIXES 제거 후 데이터 API 인증 필수 전환, (3) 3단계 이후(projects user_id, device_registry/device_members, api_usage 등).
+- **완료**: 1·2단계 백엔드 + **클라이언트 로그인/회원가입 UI** (로그인·회원가입 페이지, authStore 토큰 저장·복원, 헤더 로그인/로그아웃 노출, `useAuthenticatedFetch`로 Bearer·401 시 refresh/리다이렉트 대응). 부품/아카이브 등 데이터 API는 임시로 인증 예외(§5.3.1).  
+- **다음**: (1) 필요 시 `AUTH_SKIP_PREFIXES` 제거 후 데이터 API 인증 필수 전환·`authFetch` 적용, (2) MY 페이지 등에 tier UI 표기(BASIC→베타 테스터, STANDARD→정회원) 연동, (3) 3단계 이후(projects user_id, device_registry/device_members, api_usage 등).
 
 #### 준비 (환경·의존성)
 
@@ -587,8 +587,25 @@ NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해
 #### 클라이언트·운영
 
 - [x] CORS: 개발 `*` (현재 app.use(cors())). 프로덕션 환경 변수 도메인은 미적용
-- [ ] (클라이언트) 로그인/회원가입 페이지, 토큰 저장(access/refresh), API 호출 시 Bearer 첨부, 401 시 refresh 후 로그인 페이지
-- [ ] (클라이언트) tier UI 표기: BASIC → "베타 테스터", STANDARD → "정회원" 등
+- [x] (클라이언트) 로그인/회원가입 페이지 (`/login`, `/register`), 토큰 저장(access/refresh)·복원(authStore), API 호출 시 Bearer 첨부·401 시 refresh 후 재시도/리다이렉트 (`useAuthenticatedFetch`, `authenticatedFetch.ts`)
+- [x] (클라이언트) tier UI 표기: `authStore.getTierLabel` (BASIC → "베타 테스터", STANDARD → "정회원"). MY 페이지 등에서 사용 가능
+
+**클라이언트 구현 위치 (참고)**  
+- 인증 스토어: `src/system/store/authStore.ts`  
+- 인증 API 래퍼(Bearer·401 처리): `src/system/utils/authenticatedFetch.ts`, `src/system/composables/useAuthenticatedFetch.ts`  
+- 로그인/회원가입 페이지: `src/frame/views/auth/LoginPage.vue`, `RegisterPage.vue`  
+- 인증 레이아웃: `src/frame/layout/AuthLayout.vue`  
+- 헤더 로그인/로그아웃: `src/frame/layout/components/GlobalNavbarRight.vue`
+
+#### 다음 작업 제안 (우선순위)
+
+| 순서 | 작업 | 구분 | 비고 |
+|------|------|------|------|
+| 1 | **AUTH_SKIP_PREFIXES 제거** | 선택 | 데이터 API(부품·아카이브 등)를 JWT 필수로 전환. 전환 시 해당 API 호출부에 `useAuthenticatedFetch().authFetch()` 적용 필요. (§5.3.1) |
+| 2 | **MY 페이지 tier 표기** | 클라이언트 | `authStore.getTierLabel(user.tier)`로 "베타 테스터"/"정회원" 등 노출. |
+| 3 | **3단계: projects·user_id** | 백엔드 | projects(또는 해당 도메인)에 user_id 컬럼 추가, 조회 시 소유자 필터, role·allowed_domains 인가. |
+| 4 | **4단계: device_registry·device_members** | 백엔드·DDL | 테이블 생성, Device Token 발급·검증, Redis 캐시, RLS 정책 적용. |
+| 5 | **5단계(선택)** | 백엔드 | api_usage 집계·Redis 버퍼·종료 시 flush; 비밀번호 찾기; **OAuth 2.0**(Google, GitHub 등) 소셜 로그인. |
 
 ---
 

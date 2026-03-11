@@ -8,6 +8,16 @@ const routes: RouteRecordRaw[] = [
     children: domainRoutes,
   },
   {
+    path: '/login',
+    component: () => import('@frame/layout/AuthLayout.vue'),
+    children: [{ path: '', name: 'Login', component: () => import('@frame/views/auth/LoginPage.vue') }],
+  },
+  {
+    path: '/register',
+    component: () => import('@frame/layout/AuthLayout.vue'),
+    children: [{ path: '', name: 'Register', component: () => import('@frame/views/auth/RegisterPage.vue') }],
+  },
+  {
     path: '/extension',
     component: () => import('@frame/layout/U2BeeLayout.vue'),
     children: [
