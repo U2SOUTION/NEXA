@@ -12,7 +12,6 @@ dist
 .cursor
 .vscode
 *.log
-DOCKER_DEPLOY.md
 *.md
 **/*.md
 !server/README.md

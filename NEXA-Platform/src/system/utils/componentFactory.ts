@@ -176,7 +176,7 @@ export function movePanel(panel: PanelComponent, newPosition: { x: number; y: nu
  *   chartType: 'line',
  *   dataSource: {
  *     type: 'db',
- *     connection: 'mysql://...',
+ *     connection: 'postgresql://...',
  *     query: { table: 'sensor_data' }
  *   }
  * })

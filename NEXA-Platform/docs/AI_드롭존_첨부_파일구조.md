@@ -50,7 +50,7 @@ database/
 └── create_files_tables.sql   # files, file_references
 ```
 
-**실행**: `mysql -u 사용자 -p DB명 < database/create_files_tables.sql`
+**실행**: `psql -U 사용자 -d DB명 -f database/create_files_tables.sql` (Postgres) 또는 DBeaver에서 스크립트 실행
 
 ---
 

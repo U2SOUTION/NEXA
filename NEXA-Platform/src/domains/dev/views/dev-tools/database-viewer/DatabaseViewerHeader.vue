@@ -12,7 +12,7 @@
         <div class="col">
           <div class="database-name">{{ props.dbInfo.databaseName || '데이터베이스' }}</div>
           <div class="database-meta text-caption">
-            <span v-if="props.dbInfo.version">MySQL {{ props.dbInfo.version }}</span>
+            <span v-if="props.dbInfo.version">PostgreSQL {{ props.dbInfo.version }}</span>
             <span v-if="props.tableCount > 0" class="q-ml-sm">테이블 {{ props.tableCount }}개</span>
           </div>
         </div>

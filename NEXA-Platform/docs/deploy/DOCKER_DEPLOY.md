@@ -49,8 +49,11 @@ docker run -d \
   --name nexa-web \
   --restart always \
   -p 8080:3000 \
-  -e MYSQL_HOST=192.168.0.10 \
-  -e MYSQL_PASSWORD=1234 \
+  -e PGHOST=192.168.0.10 \   # Postgres 서버 IP
+  -e PGPORT=5432 \           # Postgres 포트
+  -e PGUSER=postgres \       # Postgres 사용자
+  -e PGPASSWORD=비밀번호 \    # Postgres 비밀번호
+  -e PGDATABASE=nexa_db \    # 사용할 데이터베이스명
   nexa-platform:latest
 ```
 
@@ -70,31 +73,23 @@ docker logs -f nexa-web
 
 ---
 
-## ✨ 데이터베이스 관리 (MySQL Workbench)
+## ✨ 데이터베이스 관리 (DBeaver / Postgres)
 
-개발 PC의 실제 데이터를 NAS MariaDB로 옮기거나, 백업/복원할 때 사용합니다.
+개발 PC의 Postgres 데이터를 백업·복원하거나, 배포 대상 서버 DB와 동기화할 때 사용합니다. **DBeaver** 또는 **pg_dump**/**psql**을 사용합니다.
 
-### DB 내보내기 (Export) – 개발 PC → 파일
+### DB 백업 (Export) – 개발 PC → 파일
 
-1. **MySQL Workbench** 실행 후 **개발 PC MySQL** 접속 (localhost, root, 비밀번호 1234).
-2. 상단 메뉴 **Server** → **Data Export**.
-3. 왼쪽에서 **nexa_db** 스키마 선택 (필요 시 테이블만 선택).
-4. **Export to Self-Contained File** 선택.
-5. **파일 경로** 지정 (예: `E:\backup\nexa_db_20260214.sql`).
-6. **Start Export** 실행 → `.sql` 파일 생성.
+1. **DBeaver**에서 **PostgreSQL(nexa_db)** 연결 선택.
+2. DB 또는 스키마 **우클릭** → **Tools** → **Backup database** (또는 터미널에서 `pg_dump` 사용).
+3. **pg_dump** 예: `pg_dump -U postgres -d nexa_db -F c -f nexa_db_backup.dump` (로컬 Docker Postgres 기준).
 
-### DB 가져오기 (Import) – 파일 → NAS MariaDB
+### DB 복원 (Import) – 파일 → 대상 Postgres
 
-1. **MySQL Workbench**에서 **NAS MariaDB** 접속
-   - Host: NAS IP (예: 192.168.0.10), Port: MariaDB 공개 포트(예: 330), User: root, Password: 1234.
-2. **nexa_db** 스키마가 없으면 생성:  
-   쿼리 탭에서 `CREATE DATABASE IF NOT EXISTS nexa_db;` 실행.
-3. 상단 메뉴 **Server** → **Data Import**.
-4. **Import from Self-Contained File** 선택 후, 내보낸 `.sql` 파일 선택.
-5. **Default Target Schema**에서 **nexa_db** 선택.
-6. **Start Import** 실행.
+1. **DBeaver**에서 대상 **PostgreSQL** 연결 (NAS/서버 등).
+2. **nexa_db** 데이터베이스가 없으면 생성 후, **Tools** → **Restore** 로 덤프 파일 지정.
+3. 또는 터미널: `pg_restore -U postgres -d nexa_db -F c nexa_db_backup.dump`
 
-> NAS 포털에서 “데이터가 없습니다”가 나오면, 위 가져오기 후 **데이터 새로고침** 버튼으로 다시 불러오면 됩니다.
+> NAS 포털에서 “데이터가 없습니다”가 나오면, 위 복원 후 **데이터 새로고침** 버튼으로 다시 불러오면 됩니다.
 
 ---
 

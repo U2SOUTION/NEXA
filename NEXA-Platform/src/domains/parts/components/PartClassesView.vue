@@ -75,7 +75,7 @@
       <!-- 데이터 테이블 -->
       <div ref="tableWrapperRef" class="parts-table-wrapper" tabindex="-1" @mouseleave="onTableMouseLeave" :style="{ boxShadow: 'none', outline: 'none' }">
         <!-- 빈 상태: 데이터 없음 (우선순위 1 - 실제 데이터가 없을 때) -->
-        <TableEmptyState :visible="!!(!loading && partClasses.length === 0 && !searchText && !selectedCategory && !statusFilter)" icon="category" title="데이터가 없습니다" message='MySQL Workbench에서 데이터를 입력하거나 "추가" 버튼을 클릭하세요.'>
+        <TableEmptyState :visible="!!(!loading && partClasses.length === 0 && !searchText && !selectedCategory && !statusFilter)" icon="category" title="데이터가 없습니다" message='DBeaver에서 데이터를 입력하거나 "추가" 버튼을 클릭하세요.'>
           <template #actions>
             <q-btn flat dense color="primary" label="데이터 새로고침" icon="refresh" @click="loadData" class="q-mt-sm" />
           </template>

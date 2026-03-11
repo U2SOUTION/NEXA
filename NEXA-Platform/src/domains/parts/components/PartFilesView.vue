@@ -102,7 +102,7 @@
         <q-icon name="folder" size="64px" color="grey-5" class="q-mb-md" />
         <div class="text-h6 text-grey-6 q-mb-sm">데이터가 없습니다</div>
         <div class="text-caption text-grey-6">
-          MySQL Workbench에서 데이터를 입력하거나 "추가" 버튼을 클릭하세요.
+          DBeaver에서 데이터를 입력하거나 "추가" 버튼을 클릭하세요.
         </div>
       </div>
     </div>

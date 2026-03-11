@@ -39,11 +39,11 @@ services:
         condition: service_healthy
     restart: always
 
-volumes:
-  postgres_data:
-
   tunnel:
     container_name: cloudflared-tunnel
     image: cloudflare/cloudflared:latest
     restart: always
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+
+volumes:
+  postgres_data:

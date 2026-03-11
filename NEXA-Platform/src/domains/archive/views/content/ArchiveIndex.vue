@@ -139,7 +139,7 @@
     │   ├── ActionDispatcher.ts          # 사유 결과물을 실제 기기 명령으로 전송 분배
     │   ├── EventWatcher.ts              # 데이터 변화 감지 및 타임라인 생성기
     │   ├── DataBindingService.ts        # 시각화 블록에 실시간 IoT 데이터 주입
-    │   └── database-adapters/           # DB 엔진별 커넥터 (MySQL, MongoDB 등)
+    │   └── database-adapters/           # DB 엔진별 커넥터 (Postgres, MongoDB 등)
     │
     ├── diagram/                         # 📊 시각화 전용 기술 엔진
     │   ├── d3-helpers.ts                # D3.js 공통 유틸 (Scale, Axis, Zoom 등)

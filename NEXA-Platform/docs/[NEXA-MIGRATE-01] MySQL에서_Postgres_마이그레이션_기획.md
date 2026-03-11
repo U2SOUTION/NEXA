@@ -476,15 +476,16 @@ router.get('/health/ready', async (req, res) => {
 
 - [ ] **DBeaver** — Postgres 연결·스키마·쿼리·데이터 조회·편집 (표준 도구로 사용)
 - [x] `databaseSchema.js`: **전면 전환** 완료. execute→query, INFORMATION_SCHEMA→pg/information_schema·pg_catalog 쿼리, backup은 pg_dump 안내 응답
-- [ ] **프론트엔드 연동 테스트 집중**: DatabaseViewer.vue, DatabaseViewerHeader.vue 등 `/api/db` 소비 컴포넌트 — 테이블 목록·컬럼·인덱스·쿼리 실행·백업 등 전체 플로우 검증
-- [ ] `DatabaseViewerHeader.vue`: "MySQL" → "Postgres" 표시 수정
-- [ ] UI·문서 내 **MySQL Workbench** 언급 → **DBeaver**로 수정 (PartClassesView, PartFilesView, PartSpecsView 등)
+- [ ] **프론트엔드 연동 테스트 집중**: DatabaseViewer.vue, DatabaseViewerHeader.vue 등 `/api/db` 소비 컴포넌트 — 테이블 목록·컬럼·인덱스·쿼리 실행·백업 등 전체 플로우 검증 (수동 확인)
+- [x] `DatabaseViewerHeader.vue`: "MySQL" → "PostgreSQL" 표시 수정
+- [x] UI·문서 내 **MySQL Workbench** 언급 → **DBeaver**로 수정 (PartClassesView, PartFilesView, PartSpecsView, DOCKER_DEPLOY.md, README_CSV_IMPORT.md, [NEXA-AI-05] 등)
 
 ### Phase 6: 문서·배포
 
+- [ ] **로컬 MySQL 완전 제거**: MySQL/MariaDB 컨테이너·설치본 중지·삭제, `.env`에 `MYSQL_*` 없음 확인. 앱은 Postgres만 사용.
 - [ ] 로컬 검증 완료 후 **Docker** 빌드 → **Ubuntu 서버** 배포 → 재검증 (§2.9)
 - [ ] Ubuntu: MySQL Docker·볼륨 **완전 제거**
-- [ ] `DOCKER_DEPLOY.md`, `README_CSV_IMPORT.md` 등 MySQL Workbench 언급 → **DBeaver**로 수정
+- [x] `DOCKER_DEPLOY.md`, `README_CSV_IMPORT.md` 등 MySQL Workbench 언급 → **DBeaver**로 수정 (Phase 5에서 반영)
 - [ ] NEXA-Documentation 내 MySQL 참조 업데이트
 
 ### DBeaver 사용법 (간단 메모)

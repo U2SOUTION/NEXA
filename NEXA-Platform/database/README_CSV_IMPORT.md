@@ -11,15 +11,11 @@ CSV 파일의 부품 모델 데이터를 데이터베이스에 임포트하는 �
 먼저 데이터베이스 테이블에 CSV 필드를 추가해야 합니다:
 
 ```bash
-mysql -u root -p nexa_db < database/alter_part_models_for_csv.sql
+psql -U postgres -d nexa_db -f database/alter_part_models_for_csv.sql
 ```
 
-또는 MySQL 클라이언트에서 직접 실행:
-
-```sql
-USE nexa_db;
-SOURCE database/alter_part_models_for_csv.sql;
-```
+또는 **DBeaver**에서 Postgres(nexa_db) 연결 후 SQL 에디터로 해당 스크립트를 열어 실행하세요.  
+(참고: 현재 스키마는 `database/init_postgres.sql`에 정의되어 있으며, CSV 전용 컬럼이 이미 포함되어 있으면 별도 ALTER는 불필요할 수 있습니다.)
 
 **주의**: 컬럼이 이미 존재하는 경우 오류가 발생할 수 있습니다. 이 경우 해당 컬럼 추가 명령을 건너뛰고 다음으로 진행하세요.
 
@@ -79,11 +75,11 @@ CSV 임포트 기능은 API 서버(`server/api.js`)를 통해 제공됩니다. A
 ### 컬럼이 이미 존재하는 오류
 
 ```sql
--- 컬럼 존재 여부 확인
-SHOW COLUMNS FROM part_models LIKE 'model_range';
+-- 컬럼 존재 여부 확인 (Postgres)
+SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'part_models' AND column_name = 'model_range';
 
 -- 존재하지 않는 경우에만 추가
-ALTER TABLE part_models ADD COLUMN model_range TEXT COMMENT '모델 범위';
+ALTER TABLE part_models ADD COLUMN IF NOT EXISTS model_range TEXT;
 ```
 
 ### CSV 인코딩 문제
