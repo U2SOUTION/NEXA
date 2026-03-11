@@ -414,7 +414,7 @@ function mapRouteToFile(routePath) {
     '/help': 'src/pages/HelpPage.vue',
     '/my': 'src/pages/MyPage.vue',
     '/parts-management': 'src/pages/PartsManagementPage.vue',
-    '/nexa-pannel': 'src/pages/NexaPannelPage.vue',
+    '/nexa-panel': 'src/pages/NexaPanelPage.vue',
     '/nexa-node': 'src/pages/NexaNodePage.vue',
     '/nexa-teach': 'src/pages/NexaTeachPage.vue',
     '/nexa-board': 'src/pages/NexaBoardPage.vue',

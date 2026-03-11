@@ -44,7 +44,7 @@ const domainConfigs: Record<string, DomainConfig> = {
     headerActions: () => import('@domains/board/components/BoardHeaderActions.vue'),
   },
   // 넥사패널
-  'nexa-pannel': {
+  'nexa-panel': {
     left: () => import('@domains/panel/views/left/PanelLeftNav.vue'),
     content: () => import('@domains/panel/PanelDomain.vue'),
     right: () => import('@domains/panel/views/right/PanelRightPanel.vue'),

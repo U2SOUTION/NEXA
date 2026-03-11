@@ -77,10 +77,14 @@ Thumbs.db
 thumbs.db
 Desktop.ini
 
-# 환경 변수 파일 (로컬)
+# 환경 변수·Secret (로컬, git/cursor 제외)
+.env
 .env.local
 .env.*.local
-**/.env.local*
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
 
 # 테스트 커버리지
 **/coverage/

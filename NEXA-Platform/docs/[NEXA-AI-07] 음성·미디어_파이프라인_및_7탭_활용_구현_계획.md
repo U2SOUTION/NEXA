@@ -170,7 +170,7 @@
 | `src/domains/ai/components/AiChatPanel.vue`        | **모델 선택**: `models` 대신 `chatModels`(Whisper 제외) 사용. **마이크 버튼**: 모델 무관 항상 표시, 녹음/파일 → transcribe → 입력란 또는 바로 전송 |
 | `src/domains/ai/views/right/AiRightPanel.vue`      | **모델 선택**: 채팅용 목록(Whisper 제외) 사용. (선택) STT 모델 설정 UI                                                                             |
 | `src/domains/ai/composables/useAiSettings.ts`      | (선택) STT 사용 여부, STT 모델명 저장                                                                                                              |
-| `src/domains/ai/components/AiAudioEditorPanel.vue` | (5단계) “텍스트로 변환” + transcribe 연동                                                                                                          |
+| `src/domains/ai/components/AiAudioEditorPanel.vue` | (5단계) “텍스트로 변환” + transcribe 연동. (장기) **Wavesurfer.js**로 파형 시각화·구간 선택·트림 UI                                                                 |
 | `src/domains/ai/components/AiExplorerPanel.vue`    | (장기) FFmpeg·AI 생성 JSON 뷰 패널, 데이터 추가·생성 액션 버튼(메타 추출/STT/요약/썸네일/복합 파이프라인)                                          |
 
 ---
@@ -309,7 +309,9 @@ Whisper로 추출한 **텍스트의 의미를 해석**하기 위한 LLM. 요약�
 | 영상 편집 특화 | MLT Framework        | 비선형 영상 편집(NLE) 엔진. 자막, 전환 효과 등에 최적화.           | AI와 협업하여 복잡한 영상 타임라인을 편집할 때                                     |
 | 오디오 특화    | SoX (Sound eXchange) | 오디오계의 FFmpeg. 소리 변환 및 필터 처리에 매우 강력.             | 순수 오디오 파형 분석 및 정규화(Normalization)                                     |
 | 경량 엔진      | Libav                | FFmpeg에서 파생된 라이브러리. 좀 더 정제된 코드 구조 지향.         | 가벼운 서버 사이드 미디어 변환                                                     |
+| **클라이언트 UI** | **Wavesurfer.js**     | 웹 오디오 파형 시각화, 구간 선택(Regions), 재생·줌·트림 UI. Vue/React 래퍼 제공. | 오디오 패널 파형 표시, 트림 구간 시각적 선택, 무음 구간·STT 결과 타임라인 오버레이   |
 
+- **Wavesurfer.js**: 오디오 처리 UI용 **클라이언트 라이브러리**. AiAudioEditorPanel에서 파형·구간 선택·재생 제어. FFmpeg/SoX(서버)와 보완.
 - **FFmpeg**: 위 표의 “핵심 기반”으로, NEXA에서는 **1차 권장**. STT 전처리·썸네일·메타 추출·포맷 통일을 한 곳에서 담당.
 - **GStreamer**: 실시간 스트리밍·엣지/임베디드가 필요해질 때 검토. FFmpeg와 병행 또는 특정 경로만 대체.
 - **Intel IPP / OneVPL**: 윈도우·인텔 환경에서 HW 가속 인코딩이 중요할 때 선택 도입.
@@ -554,7 +556,7 @@ AI 협력을 극대화하기 위해 **더 세분화된 팩트 중심 필드**를
    **FFmpeg 도입**: transcribe 전 오디오 포맷/샘플레이트 정규화(예: 16kHz mono WAV). 서버 또는 전용 워커에서 `ffmpeg` 실행 래퍼 또는 Node 바인딩 사용. 업로드·녹음 파일에 대해 “FFmpeg 전처리 → Whisper” 파이프라인 고정.
 
 3. **Phase 3**  
-   **오디오 패널 고도화**: FFmpeg + (필요 시) SoX로 트림·노멀라이즈·포맷 변환 API 노출. AiAudioEditorPanel에서 “텍스트로 변환”뿐 아니라 재생·편집·메타 추출까지 연동.
+   **오디오 패널 고도화**: **Wavesurfer.js**로 파형 시각화·구간 선택·트림 UI. FFmpeg + (필요 시) SoX로 트림·노멀라이즈·포맷 변환 API 노출. AiAudioEditorPanel에서 “텍스트로 변환”뿐 아니라 재생·편집·메타 추출까지 연동.
 
 4. **Phase 4**  
    **영상·NLE**: MLT 또는 FFmpeg 기반 타임라인 편집 검토. AI(채팅/자동 자막·요약)와 협업하는 영상 워크플로우 설계.
@@ -575,7 +577,7 @@ AI 도메인 content 영역의 **7개 탭**(`aiPanelRegistry` 기준: Dialogue, 
 | **dialogue**  | Dialogue  | AiChatPanel            | ✅ **핵심**  | (Phase2부터) 전처리 | ✅ **핵심** | **마이크 버튼** 항상 표시. 녹음/파일 → (FFmpeg 정규화) → **Whisper transcribe** → 텍스트를 입력란에 넣거나 바로 전송 → **선택된 채팅 모델**로 응답. 이미지 첨부(vision 모델)는 기존 유지.                                                                                                |
 | **narrative** | Narrative | AiEditorPanel          | 보조         | —                   | 보조        | 채팅/패널에서 **“에디터에 삽입”** 시 AI 생성 텍스트·**STT 결과**를 문서에 삽입. 음성으로 메모한 뒤 transcribe → Narrative에 붙여넣기 워크플로우.                                                                                                                                         |
 | **logic**     | Logic     | AiCodeEditorPanel      | 보조         | —                   | 보조        | 채팅/패널에서 **“코드에 삽입”** 시 AI 생성 코드 삽입. 음성으로 “이 함수 리팩터해줘” → STT → 채팅 → 생성 코드를 Logic 탭에 삽입.                                                                                                                                                          |
-| **media**     | Media     | AiMediaPanel           | ✅ 오디오 탭 | ✅ **핵심**         | 보조        | **Image**: Vision 모델 분석·채팅 연동(기존). **Audio** 하위탭: 재생·트림·노멀라이즈(FFmpeg/SoX), **“텍스트로 변환”** 버튼 → Whisper → 결과를 입력란/에디터/채팅으로 전달. **Video** 하위탭: (장기) FFmpeg 구간 추출·오디오 트랙 추출 → Whisper 자막/요약; MLT NLE 연동 시 타임라인 편집. |
+| **media**     | Media     | AiMediaPanel           | ✅ 오디오 탭 | ✅ **핵심**         | 보조        | **Image**: Vision 모델 분석·채팅 연동(기존). **Audio** 하위탭: **Wavesurfer.js** 파형·구간 선택, 재생·트림·노멀라이즈(FFmpeg/SoX), **“텍스트로 변환”** → Whisper. **Video** 하위탭: (장기) FFmpeg 구간 추출·오디오 트랙 추출 → Whisper 자막/요약; MLT NLE 연동 시 타임라인 편집. |
 | **sense**     | Sense     | AiUniversalViewerPanel | —            | 보조                | —           | 이미지·오디오·영상 **통합 뷰**. 재생·썸네일·메타 표시. (장기) FFmpeg로 썸네일/구간 미리보기 생성. 미디어 선택 시 Dialogue/Media와 연동해 “이걸로 질문”·“이걸 텍스트로 변환” 등 액션 노출 가능.                                                                                           |
 | **nexus**     | Nexus     | AiNexusPanel           | —            | —                   | 보조        | 지식 그래프·관계 맵. 채팅/문서/미디어에서 추출한 **엔티티·요약**을 노드로 활용. (장기) 오디오/영상 → Whisper·요약 LLM → Nexus 노드 자동 생성.                                                                                                                                            |
 | **explorer**  | Explorer  | AiExplorerPanel        | 보조         | ✅ **연동**         | 보조        | 파일 트리·카드/테이블 뷰 + **FFmpeg·AI 생성 JSON 함께 보기**. **데이터 추가·생성 액션 버튼**(메타 추출, STT, 요약 등)으로 탐색기에서 직접 생성 명령 실행. 미디어 선택 시 해당 탭으로 열기.                                                                                               |
@@ -789,3 +791,9 @@ AI 도메인 content 영역의 **7개 탭**(`aiPanelRegistry` 기준: Dialogue, 
 - [ ] (준비) **저장·인덱싱**: source_metadata·벡터·대용량 팩트 분리 저장 및 인덱싱 전략 적용 (7.1.4)
 
 이 문서를 기준으로 1단계(백엔드)부터 순차 구현하면, Ollama에 설치한 Whisper 모델을 채팅에서 음성 입력으로 사용할 수 있다. 장기적으로는 **섹션 8**의 FFmpeg·동반 도구 전략에 따라 미디어 파이프라인을 확장할 수 있다.
+
+---
+
+## 10. 추후 검토
+
+- **AI 멀티모달 입출력 오케스트레이션**: 인증 시스템 구축 완료 후, **ACE-Step** 또는 유사 포지션의 AI 모델(음악 생성·비전-언어 멀티모달 등)을 useAiOrchestrator와 연동해 입출력 라우팅 확장 검토. Whisper·Ollama·LLaVA·클라우드 AI와 역할 분리·라우팅 전략 수립 필요. 추후 상세 보강.

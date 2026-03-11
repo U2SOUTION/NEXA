@@ -1,6 +1,8 @@
 // 간단한 Express API 서버
 // 부품 데이터 관리를 위한 REST API
 
+import './loadEnv.js' // 루트 .env 로드 (dbConfig보다 먼저 실행)
+
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
@@ -15,6 +17,7 @@ import partFilesRouter from './domains/parts/partFiles.routes.js'
 import partModelsRouter from './domains/parts/partModels.routes.js'
 import partSpecsRouter from './domains/parts/partSpecs.routes.js'
 import filesRouter from './routes/files.routes.js'
+import healthRouter from './routes/health.routes.js'
 import aiUserMemosRouter from './routes/aiUserMemos.routes.js'
 import { UPLOAD_BASE_DIR } from './config/upload.js'
 import { initDocsFolders } from './config/documentConfig.js'
@@ -101,6 +104,7 @@ app.use('/api', partSpecsRouter)
 app.use('/api', partsRouter)
 app.use('/api', aiRouter)
 app.use('/api', filesRouter)
+app.use('/api', healthRouter)
 app.use('/api', aiUserMemosRouter)
 
 // 데이터베이스 스키마 라우터 등록 (데이터베이스 연결 전에도 등록)

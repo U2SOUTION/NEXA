@@ -1,0 +1,464 @@
+# [NEXA-AUTH-01] 계정 생성 및 인증 시스템 기반 기획
+
+**목적**: NEXA 플랫폼 전반의 **계정 생성·인증** 기반을 구축한다. 프로젝트·파일·채팅·엣지 디바이스 연동 등 모든 도메인은 인증된 사용자 기준으로 동작해야 하며, **device_registry·device_members** 매핑 테이블을 두어 사용자–디바이스 공유·역할 분리(owner/editor/controller/viewer)를 지원함으로써 **IoT 플랫폼의 진정한 가치 확장**을 위한 설계를 담는다. 본 문서를 사전 구현·준비하여 이후 기능이 매끄럽게 진행되도록 한다.
+
+NEXA의 권한 모델은 **'소유'와 '참여'를 분리**한다. 이를 통해 단일 사용자의 다중 페르소나 운영(프로젝트·시스템 간 가상의 여러 역할 분리)부터 대규모 조직의 계층적 자원 관리(총관리자 → 중간급 관리자 배분)까지 유연하게 대응하며, **특히 viewer 권한의 공유만으로도 데이터 기반 협업 가치를 크게 확대**할 수 있다.
+
+**적용 범위**: 플랫폼 전역 (AI 도메인, NEXA-Node, 업로드·파일, API 등)
+
+**하위 문서**: [NEXA-AI-09] AI 워크스페이스 웹서치 자원 전략, [NEXA-NODE-01] ESPHome YAML 제너레이터 및 웹 펌웨어 배포 기획, [NEXA-NODE-03] ESP32 베이스라인 펌웨어 및 디바이스 등록 설계 (AP 모드 + Captive Portal)
+
+**작성일**: 2025-03
+
+---
+
+## 주요 용어 (참고)
+
+본 문서에서 자주 쓰이는 기술·용어를 간단히 정리한다. 상세 스펙·사용법은 검색 또는 공식 문서를 참고한다.
+
+| 용어 | 간단 설명 |
+|------|-----------|
+| **Redis** | 인메모리 키-값 저장소. 캐시·세션·TTL 지원. api_usage 버퍼·Device Token 검증 캐시·비밀번호 리셋 토큰(TTL) 등에 사용. |
+| **JWT** | JSON Web Token. 서버가 서명한 토큰으로 사용자 식별(stateless). access/refresh 토큰. Bearer 헤더로 전달. |
+| **Passport.js** | Node.js 인증 미들웨어. 로컬(이메일·비밀번호)·OAuth 등 전략으로 로그인 처리 후 JWT 발급. |
+| **bcryptjs** | 비밀번호 해싱 라이브러리. 일방향 해시, 복원 불가. 로그인 시 `compare`로 검증. |
+| **Zod** | 스키마 검증 라이브러리(TS/JS). 요청 body/query/params 타입·형식 검증, 실패 시 400 등 처리. |
+| **Device Token** | 엣지 디바이스용 인증 토큰. 1회 발급, 해시만 DB 저장. `X-Device-Token` 헤더로 전달. |
+| **SHA256** | 해시 함수. Device Token을 DB에 저장할 때 평문 대신 해시 저장용. 빠른 비교·저장에 적합. |
+| **TTL** | Time To Live. Redis 키 등에 설정하는 만료 시간. 초과 시 자동 삭제. 비밀번호 리셋 토큰·캐시 만료에 사용. |
+| **Soft Delete** | 행을 물리 삭제하지 않고 `deleted_at` 등 플래그로 “삭제됨” 표시. FK 유지·복구·감사에 유리. |
+| **Bearer** | HTTP 인증 방식. `Authorization: Bearer <token>` 형식. JWT를 헤더로 넘길 때 사용. |
+| **CORS** | Cross-Origin Resource Sharing. 브라우저가 다른 오리진 API 호출을 허용할지 서버가 응답 헤더로 명시. |
+| **OAuth** | 외부 IdP(Google, GitHub 등)로 로그인 위임. **OAuth 2.0** 기준(1.0은 레거시, 현재 소셜 로그인은 대부분 2.0). 필요 시 OpenID Connect(OIDC)로 사용자 정보 연동. Passport.js의 OAuth 2.0 전략으로 구현. (본 문서 5단계 선택) |
+| **NestJS** | Node.js 프레임워크. 모듈·의존성 주입·라이프사이클 훅(onModuleDestroy 등) 제공. |
+
+---
+
+## 1. 현황 및 배경
+
+### 1.1 현재 상태
+
+| 구분 | 내용 |
+|------|------|
+| **인증** | 별도 계정·로그인 없음. 사용자 식별 부재 |
+| **프로젝트·파일** | [NEXA-AI-09] 설계. `project_id`, `folder_id` 등 소유자(user_id) 미연결 |
+| **엣지 디바이스** | [NEXA-NODE-01] ESPHome 등. 인증된 사용자에게 파일·설정 할당 불가 |
+| **API** | 인증 미들웨어 없음. 인가(권한) 검증 없음 |
+
+### 1.2 필요성
+
+- **선행 요구사항**: 프로젝트·파일·채팅 등은 "누구의 것인가?"가 전제되어야 함. `user_id` 없이는 소유·권한 정책을 정의할 수 없음.
+- **엣지 디바이스 연동**: 엣지에서 업로드·설정 요청 시 "어느 사용자 소속으로 저장할지" 식별 필요.
+- **보안·공유**: 계정 단위로 격리, 추후 팀·공유 기능 확장 시 기반.
+
+---
+
+## 2. 목표 및 범위
+
+### 2.1 목표
+
+| 목표 | 설명 |
+|------|------|
+| **계정 생성** | 이메일 또는 소셜(OAuth 2.0) 기반 회원가입 |
+| **인증** | 로그인·세션/JWT 토큰 기반 사용자 식별 |
+| **권한 기반** | 인증된 사용자만 API·리소스 접근. `user_id` 기준 필터 |
+| **도메인 연동** | 프로젝트·파일·채팅·엣지 등 모든 도메인에 `user_id` 연결 |
+
+### 2.2 범위 및 작업 순서
+
+- **1단계**: 계정·인증 기반 — 회원가입(이메일), 로그인, JWT(또는 세션) 발급·검증
+- **2단계**: API 인증 미들웨어 — 요청 시 `user_id` 추출, 미인증 차단
+- **3단계**: 프로젝트·파일 등에 `user_id` 추가, 조회 시 소유자 필터. users에 role·allowed_domains, 인가(도메인·프로젝트 접근) 검사
+- **4단계**: device_registry 테이블 + device_members 매핑, Device Token (user_id 1:N·추후 N:M 공유 확장), 엣지 디바이스 등록·API
+- **5단계**: (선택) 소셜 로그인(OAuth 2.0), 비밀번호 찾기, 이메일 인증. OAuth는 1.0(레거시)과 2.0이 있으며, 소셜·웹 로그인은 **2.0** 기준으로 구현·검색하면 됨.
+
+---
+
+## 3. 인증 시스템 구성 (JWT + Passport.js + Device Token)
+
+- **일반 사용자(웹)**: **Passport.js** → 로그인 처리 → **JWT**(access·refresh 토큰) 발급. API 요청 시 `Authorization: Bearer <access_token>` 검증.
+- **엣지 디바이스**: **Device Token** 발급. API 요청 시 `X-Device-Token` 검증 → `user_id` 추출. **한 사용자(user_id)에 여러 디바이스 1:N 관계**.
+- **역할 분리**:
+  - Passport.js: 로그인 전략(로컬·OAuth 2.0)·세션 없이 JWT 발급
+  - JWT: 웹 사용자 인증·세션 대체
+  - Device Token: 디바이스 인증. 디바이스별 토큰 → user_id 매핑
+- **API 사용량·자원 배분**: users.tier + api_usage. **현재** 자원 적절 배분·성능·부하 검증용 집계. (유료 서비스 여부는 미정, 추후 tier별 한도·유료화 확장 가능.)
+- **비밀번호 저장: bcryptjs** — 일방향 해시. 원문 복원 불가. DB 유출·관리자도 비밀번호 직접 확인 불가. 분실 시 **재설정(새 비밀번호 발급)**만 가능. 로그인 시 `bcrypt.compare(입력, DB해시)`로 비교.
+
+---
+
+## 4. 데이터 모델
+
+### 4.1 users (플랫폼 전역)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | VARCHAR(36) PK | UUID v7 |
+| email | VARCHAR(255) UNIQUE | 로그인용 이메일 |
+| password_hash | VARCHAR(255) | bcryptjs 해시. 소셜 전용 시 nullable |
+| display_name | VARCHAR(100) | 표시 이름 |
+| **role** | VARCHAR(20) | `admin` \| `user` \| `viewer`. 기본 `user` |
+| **allowed_domains** | JSON | 허용 도메인 목록. 예: `["ai","nexa-node"]`. admin이면 무시(전체 허용) |
+| **tier** | VARCHAR(20) | `default` 등. 자원 배분·한도 정책용. 추후 유료화 시 `free` \| `basic` \| `pro` 등 확장 |
+| created_at | TIMESTAMP | 생성 시각 |
+| updated_at | TIMESTAMP | 수정 시각 |
+| **deleted_at** | TIMESTAMP NULL | 탈퇴 시각. Soft Delete용. NULL이면 활성 계정 |
+| metadata | JSON | 확장 속성 |
+
+- **role**: admin=전 도메인·전 프로젝트, user=일반 접근, viewer=조회만.
+- **allowed_domains**: role이 user/viewer일 때 적용. `null` 또는 `[]`이면 기본 도메인만. 도메인별·프로젝트별 접근 제어로 관리 용이·보안 강화.
+- **tier**: 당장은 **자원 배분·성능 검증**용. 동일 서버·Ollama·외부 API(Tavily 등) 사용량을 user_id별로 집계해 부하 분포·이상 사용 감지·상한(선택) 적용. 유료 서비스 기획 시 tier별 상한·과금으로 확장.
+- **추후**: `user_groups`, `project_members`(프로젝트 공유) 테이블 확장 검토.
+
+#### 비밀번호 재설정(forgot-password) 토큰
+
+- **경로**: `/my/forgot-password`(이메일 입력 → 리셋 링크 발송) → `/my/reset-password?token=...`(새 비밀번호 설정).
+- **토큰 저장**: 발급된 **비밀번호 리셋 토큰**은 **DB 또는 Redis**에 저장. **TTL 짧게**(예: 1시간) 설정. Redis 사용 시 `SET key token EX 3600` 등.
+- **사용 후 폐기**: `/my/reset-password`에서 새 비밀번호로 정상 처리되면 해당 토큰을 **즉시 무효화**(DB 삭제 또는 Redis DEL). 일회용으로만 사용.
+- **보안**: 토큰은 추측 불가능한 랜덤 값(예: crypto.randomBytes). 이메일과 1:1 매핑·user_id 연결해 검증 시 대조.
+
+#### 탈퇴(Soft Delete)
+
+- **목적**: 계정 탈퇴 시 **물리 삭제 대신 Soft Delete**로 데이터를 남겨 FK·참조 무결성·감사·복구 가능성을 유지하고, 전체 시스템 안정화에 도움.
+- **구조**: `users.deleted_at`에 탈퇴 시각 기록. `deleted_at IS NULL`이면 활성 계정.
+- **로직**: (1) 로그인·JWT 발급·비밀번호 재설정 등 **모든 인증 시** `deleted_at IS NOT NULL`이면 거부(401 또는 "탈퇴한 계정" 메시지). (2) API 인증 미들웨어에서 `req.user` 조회 시 `deleted_at` 조건 포함해 탈퇴 계정은 미인증 처리. (3) 디바이스·프로젝트 등 FK는 유지되나, 해당 user는 접근 불가.
+- **조회**: 관리·통계용 조회 시 `WHERE deleted_at IS NULL` 기본 적용. 필요 시 admin만 탈퇴 계정 조회.
+
+#### 4.1.1 Tier 기본 할당 및 전환 로직
+
+- **기본 할당**: 신규 회원가입 시 `tier = 'free'`(또는 `default`)로 설정. tier별 상한(디바이스 수, API 호출 한도 등)은 설정/정책 테이블 또는 상수로 관리.
+- **티어 상향(Upgrade)**: 사용자 또는 admin이 상위 tier로 변경. 변경 즉시 새 상한 적용. 기존 리소스(디바이스 수, 사용량)가 새 상한 이하면 별도 조치 없음.
+- **티어 하향(Downgrade)**  
+  - **원칙**: 새 tier의 상한을 초과하는 리소스가 있으면, 전환 완료 전에 **초과분 정리**가 선행되어야 함.  
+  - **디바이스 수 축소 예**: 상한이 10 → 3으로 줄어들 때, 활성 디바이스가 3개 초과면 **초과 디바이스에 대해 비활성화(is_active = false) 또는 사용자 선택 후 정리** 필요.  
+    - **권장**: 전환 시점에 "유지할 디바이스 N개 선택" UI 제공 → 선택된 N개만 `is_active` 유지, 나머지는 `is_active = false` 처리. 선택하지 않으면 **last_seen 최신순**으로 상한만큼 유지, 나머지 비활성화 등 정책 하나로 고정.  
+  - **API 한도**: 해당 기간(일/월) 사용량이 새 상한을 이미 초과한 경우, 전환 시점부터 새 상한 적용·초과분은 차단. 이전 사용량은 되돌리지 않음(다음 주기부터만 새 한도).
+- **전환 시점 처리**  
+  - **즉시 반영**: tier 컬럼 갱신 즉시 적용. 한도 검사·디바이스 상한 검사는 다음 API 호출/다음 요청부터 새 tier 기준.  
+  - **(선택) 유료 구독 시**: 결제 주기 말에 갱신·하향 시 "다음 결제일부터" 적용 등 정책은 추후 과금 모듈과 연동하여 정의.
+
+#### 4.1.2 api_usage (API 사용량 집계 — 자원 배분·성능 검증)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | VARCHAR(36) FK | users.id |
+| api_name | VARCHAR(50) | `tavily`, `ollama`, `openai`, `anthropic`, `upload`, `ai_chat` 등 서버·외부 리소스 구분 |
+| period | VARCHAR(10) | `YYYY-MM`(월) 또는 `YYYY-MM-DD`(일) |
+| period_type | VARCHAR(10) | `daily` \| `monthly` |
+| count | INT | 호출 횟수. 또는 tokens·credits 등 단위(api_name별 정책) |
+| updated_at | TIMESTAMP | 마지막 갱신 시각 |
+
+- **목적(우선)**: **현재 자원 적절 배분** — 동일 인프라(Ollama·업로드·AI 채널 등)를 여러 사용자가 쓸 때 user_id별 사용량을 집계해 부하 분포·이상 사용 파악. **성능·부하 검증** — 일/월 단위 통계로 확장성·한도 정책 설계 근거 확보. (유료화는 미정, 필요 시 tier·상한과 연동.)
+- **수집 대상 예**: 로컬 Ollama 호출, Tavily(웹 검색), 클라우드 AI(OpenAI 등), 업로드 건수, AI 채팅/채널 호출 등. 도입 단계에서는 핵심 경로만 먼저 계측 후 점진 확대.
+- **흐름**: 인증 후 `req.user`로 user_id 확보 → 호출 전(선택) 한도 검사 → 호출 후 count 증가. 상한 미적용 시에도 **집계만** 수행해 대시보드·모니터링·성능 검증에 활용.
+- **이원화 전략(Redis 유실 대비)**: 서버 비정상 종료 시 Redis에만 있던 사용량이 사라지는 문제를 막기 위해, **저장 방식**을 api 성격에 따라 나눈다.
+  - **실시간 업데이트(원칙)**: **중요·유료 API**(OpenAI, Anthropic 등 클라우드 AI, Tavily 등 비용 발생 외부 API) — 호출 직후 Redis 증가 + **즉시 DB 반영**(또는 짧은 버퍼 후 일괄 flush). 유실 시 과금·한도 오차가 커지므로 DB를 원천으로 유지.
+  - **배치 방식**: **상대적으로 가벼운 로컬·로그성 통계**(로컬 Ollama 호출 횟수, 업로드 건수, ai_chat 호출 수 등) — Redis에만 증가 시키고, 주기적(예: 분/5분 단위) 또는 임계치 도달 시 DB 동기화. 부하·디스크 I/O 절감, 소량 유실은 통계·성능 검증 용도에서 허용.
+- **캐시**: Redis에 `user_id:api_name:period` → count. 조회 시 Redis 우선. 실시간 대상은 위 전략에 따라 DB까지 반영 후 Redis 갱신.
+- **종료 시 flush(유실 최소화)**: Redis·메모리 버퍼에서 DB로 일괄 flush 할 때, **서버 재시작·종료 시점**에 남은 데이터를 DB에 쓴 뒤 종료하도록 설계. **NestJS** 기준 `onModuleDestroy`·`beforeApplicationShutdown` 등 라이프사이클 훅에서 잔여 api_usage 버퍼를 DB에 flush 후 프로세스 종료. Express 등 다른 스택은 `process.on('SIGTERM'/'SIGINT')` 등에서 동일 로직 수행. 비정상 종료(kill -9 등)는 방어 불가하나, 정상 재시작·배포 시 유실을 최소화.
+- **운영**: admin/운영용으로 사용량 조회 API 또는 내부 대시보드 권장. 이상 구간(특정 user 급증 등) 알림·로그 연동은 추후.
+
+### 4.2 device_registry (엣지 디바이스, **신규**)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | VARCHAR(36) PK | UUID v7 |
+| **user_id** | VARCHAR(36) FK | users.id. **소유자(등록자)**. 접근 권한·공유 목록은 **device_members**에서 관리 |
+| **token_hash** | VARCHAR(64) UNIQUE | device_token의 해시(SHA256). 평문 저장 금지. API 요청 시 해시 비교 |
+| **mac_address** | VARCHAR(17) | MAC 주소. 디바이스가 매 API 요청 시 전송. 서버가 수신 시마다 갱신. 사용자 직접 수정 불가 |
+| name | VARCHAR(100) | 디바이스 식별명 (사용자 지정) |
+| device_type | VARCHAR(50) | esp32, esp8266 등 |
+| created_at | TIMESTAMP | 생성 시각 |
+| updated_at | TIMESTAMP | 수정 시각 |
+| **last_seen** | TIMESTAMP | 마지막 접속 시각. 인증 성공 시마다 갱신. 죽은 디바이스 관리용 |
+| **is_online** | BOOLEAN | 현재 연결 여부. `true`=살아있음. API heartbeat 또는 MQTT 연결 상태로 갱신. viewer가 "이 기기가 지금 살아있는지" 즉시 확인 가능 → 협업 가치 증대 |
+| **ip_address** | VARCHAR(45) | 최근 접속 IP. 요청마다 변경 가능. 보안·추적용 |
+| **is_active** | BOOLEAN | 디바이스 활성 여부. `false` 시 토큰 검증 거부. 분실·이상 동작 시 즉시 비활성화 |
+| metadata | JSON | 확장 속성 |
+
+- **관계**: `users` ↔ `device_registry`는 **device_members** 매핑 테이블로 연결. 당장은 1:N(디바이스당 소유자 1명), 추후 한 디바이스를 여러 유저가 공유·데이터 연동할 수 있도록 확장 대비.
+- **device_token 저장 방식**: 토큰을 **해시(SHA256)**하여 저장. 발급 시 토큰은 한 번만 노출, 이후 복원 불가. DB 유출 시에도 권한 탈취 방지. API 요청 시 `sha256(전달된 토큰)` → DB `token_hash`와 비교.
+- **해시 선택**: bcrypt는 의도적 지연으로 요청마다 부담 큼. SHA256은 빠름(마이크로초). 토큰은 고엔트로피라 무차별 대입 비현실적 → **SHA256 권장**.
+- **mac_address**: 디바이스가 **매 API 요청 시** 전송. 서버는 수신 시마다 덮어써서 갱신. **펌웨어가 원천(Single Source of Truth)** — 하드웨어 교체·MAC 변경 시 다음 요청에 반영. 사용자는 직접 수정 불가. **대시보드 "새로고침"** → `GET /api/devices` 재조회로 최신 표시. 중복 등록 방지·재등록 검증·토큰 탈취 시 MAC 변경 감지(보조). MAC 스푸핑 가능 → 참고용. (추후) 운영상 수동 덮어쓰기 필요 시 `mac_address_override` + admin 전용 수정으로 확장 검토.
+- **last_seen**: 인증 성공 시마다 갱신. 죽은 디바이스(N일 미접속) 알림·비활성화·삭제 후보. UI "마지막 접속: N분 전" 표시.
+- **is_online**: API 요청 또는 MQTT 연결(keepalive) 수신 시 `true`, 일정 시간(예: 2~5분) 미수신 시 `false`. viewer 등 공유 사용자가 과거 데이터뿐 아니라 **"현재 이 기기가 살아있는지"**를 즉시 알 수 있어 협업 가치가 높아짐.
+- **ip_address**: 인증 성공 시 `req.ip` 등으로 갱신. 의심 IP·지역 변경 감지, 네트워크 이슈 추적. IP는 개인정보일 수 있음 → 보관·보유 기간 정책 고려.
+- **is_active**: 기본 `true`. 분실·도난·이상 동작 감지 시 웹 대시보드에서 즉시 `false`로 전환 → 해당 토큰 검증 거부. 토큰 노출 리스크 완화.
+- **(추후) MQTT 연동 시**: 브로커 클라이언트 식별·연결 상태 등이 필요하면 **device_registry**에 `mqtt_client_id`, `mqtt_last_connected_at` 등 컬럼 확장 검토. 토픽·브로커 설정 상세는 MQTT 전용 설계 문서에서 정의.
+
+#### 4.2.0 device_members (사용자–디바이스 멤버십·접근 권한)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | VARCHAR(36) PK | UUID v7 |
+| user_id | VARCHAR(36) FK | users.id |
+| device_id | VARCHAR(36) FK | device_registry.id |
+| **role** | VARCHAR(20) | `owner` \| `editor` \| `controller` \| `viewer`. 소유자=owner, 공유 시 editor/controller/viewer 부여 |
+| created_at | TIMESTAMP | 매핑 생성 시각 |
+
+- **제약**: (user_id, device_id) 유일. 동일 유저가 동일 디바이스에 중복 매핑 방지.
+- **인덱스**: (user_id, device_id) 유일 인덱스(제약 동시). **역방향 조회**용으로 (device_id, user_id) 복합 인덱스 추가 권장 — "이 디바이스에 접근 가능한 사용자 목록" 조회 최적화.
+- **역할 우선순위**: owner > editor > controller > viewer. "이상의 역할이 하나라도 있으면 허용" 등 인가 로직에서 참고.
+- **역할 매트릭스** (액션 × 역할):
+
+| 액션 | owner | editor | controller | viewer |
+|------|:-----:|:------:|:----------:|:------:|
+| 멤버 관리·디바이스 삭제·소유권 이전 | O | X | X | X |
+| 설정·로직 편집 (이름, 토픽, 임계값 등) | O | O | X | X |
+| 실시간 제어 (릴레이, OTA 트리거 등) | O | X | O | X |
+| 조회·모니터링 (데이터, 상태) | O | O | O | O |
+
+- **역할 4종**: **owner** = 멤버 관리·디바이스 삭제·소유권 이전 + 설정 편집 + 실시간 제어 + 조회. **editor** = 설정·로직 편집(이름, 토픽, 임계값 등) + 조회. **controller** = 실시간 제어(릴레이, OTA 트리거 등) + 조회. **viewer** = 조회·모니터링만. editor는 설정만, controller는 제어만 허용해 owner 권한과 구분.
+- **목적**: 사용자와 디바이스의 **접근 권한**을 명시. 한 디바이스에 여러 유저가 연결되는 **N:M** 확장 가능. 데이터 공유·공유 디바이스 제어 시 이 테이블·role 기준으로 인가.
+- **초기 동작**: 디바이스 등록 시 `device_registry.user_id` 설정 + **device_members**에 `(user_id, device_id, role='owner')` 1건 삽입. "내 디바이스 목록" 등 조회 시 **device_members**에서 해당 user_id의 device_id 목록 사용. 인가 시 "이 user가 이 device에 어떤 행위가 가능한가?"는 **device_members.role**로 판단.
+- **추후**: 공유 시 `(공유받는_user_id, device_id, role='editor'|'controller'|'viewer')` 추가. 설정만 열어주려면 editor, 제어만 열어주려면 controller, 보기만 하려면 viewer 부여.
+- **소유권 이전 흐름**: **요청** → **대기** → **수락** → **사후조정**. (1) 요청: 현 owner가 양수인에게 이전 요청. (2) 대기: 수락 전까지 **제어권·책임은 현 owner 유지**. (3) 수락: 양수인이 수락 시 **즉시 이양** — device_registry.user_id·device_members의 owner 교체. (4) 사후조정: 변심 등으로 되돌려야 할 경우 **audit_log** 이력을 근거로 시스템 총관리자(admin)가 수동 조정.
+- **MQTT·토픽 구독·발행 인가(추후)**: 플랫폼에서 MQTT를 사용할 경우, 토픽이 **device_id** 단위(예: `nexa/devices/{device_id}/stat`, `.../cmnd`)라면 서버·브로커에서 **device_members.role**로 허용 여부 판단. (1) **stat(상태)** 토픽 — `viewer` 이상이면 구독 허용. viewer는 stat 구독으로 데이터 조회 가능. (2) **cmnd(제어)** 토픽 — `controller` 또는 `owner`만 구독·발행 허용. `viewer`·`editor`는 cmnd 구독·발행 시 **device_members.role** 조회 후 서버 레벨에서 차단. 디바이스(엣지) 발행 인증은 Device Token·브로커 클라이언트 인증으로 별도 처리.
+- **device_members 캐시**: 구독·API 인가마다 role 조회가 잦을 경우 **Redis** 등에 `user_id` → `{ device_id: role }` 매핑 캐시. 조회 시 캐시 우선. **이벤트 기반 무효화** — device_members 테이블 변경(멤버 추가·역할 변경·삭제) 시 해당 user_id의 캐시·해당 device_id 관련 캐시를 즉시 무효화하고, 해당 사용자의 활성 세션(WebSocket·API)·MQTT 구독 세션을 끊는 로직을 트리거. Device Token 검증 캐시와 별도 관리.
+
+#### 4.2.1 mac_address 갱신 시점·변경 이력(검토, 부담 최소)
+
+- **갱신 시점**: 현재 행의 `updated_at`이 `last_seen`·`mac_address`·`ip_address` 갱신 시 함께 갱신되므로 "마지막 수정 시각"은 이미 제공됨. **mac_address만**의 갱신 시점이 필요하면 `mac_address_updated_at` 컬럼 하나 추가(선택, 가벼움).
+- **변경 이력·로그**: MAC 변경 이력을 남기려면 별도 테이블(예: `device_mac_log`) 또는 audit 로그가 필요하나, 요구 가능성은 작고 **매 API 요청마다** 갱신 시 insert하면 부하가 커짐. **성능 부담 없이** 하려면: (1) 당장은 이력 테이블 없이 `updated_at`(또는 선택적 `mac_address_updated_at`)만 사용, (2) 추후 필요 시 **값이 바뀔 때만** 이전 MAC·변경 시각을 1건 insert하는 방식(변경 시에만 기록)으로 검토. 당장은 컬럼 수준만 권장.
+
+#### 4.2.2 Device Token 검증 시 DB 부하 대책
+
+- **상황**: 특정 아트 프로젝트 등 수백~수천 대 동시 전원 ON 시 토큰 검증 요청 집중 → DB 부하 급증.
+- **대책**:
+  1. **캐시(Redis 또는 in-memory)**: `token_hash` → `{ user_id, is_active }` 매핑 캐시. 검증 시 캐시 우선 조회, 미스 시 DB 조회 후 캐시 저장. TTL 예: 1시간~24시간.
+  2. **캐시 무효화**: 디바이스 `is_active` 변경·삭제 시 해당 token_hash 캐시 무효화. 실시간 비활성화 반영.
+  3. **인덱스**: `token_hash` UNIQUE 인덱스 유지.
+  4. **선택**: DB read replica, Connection pool 튜닝.
+  5. **RLS(Row-Level Security)**: Postgres 등 **실제 DB 수준**에서 device_registry·device_members 등에 RLS 정책을 적용하면, 애플리케이션 버그(인가 로직 누락, 쿼리 실수 등)로 인해 **다른 사용자의 디바이스 정보가 유출되는 사고를 원천 차단**할 수 있다. "해당 user_id가 device_members에 있는 device만 접근 가능"을 DB가 강제하므로, 애플리케이션 방어선 실패 시에도 DB가 마지막 방어선 역할을 수행한다. 구현 단계에서 적용 권장. **캐시 오염 대응**: Redis 등 캐시에는 행 단위 보안이 없음. 캐시 키에 `user_id`(또는 권한 컨텍스트)를 반드시 포함하고, device_members·project_members 등 RLS 관련 테이블 변경 시 해당 user_id·device_id 관련 캐시를 **즉시 무효화**하여 타 사용자 데이터 유출·폐기된 권한 반영 누락을 방지한다.
+
+**RLS 정책(Policy) 예시**: 요청별로 DB 세션에 `app.current_user_id`를 설정한 뒤, 정책에서 해당 값을 사용한다. (1) **device_registry** — 소유자만 자신의 행 조회·수정 허용. `ALTER TABLE device_registry ENABLE ROW LEVEL SECURITY;` 후 예: `CREATE POLICY device_registry_select ON device_registry FOR SELECT USING (user_id = current_setting('app.current_user_id', true));`, `CREATE POLICY device_registry_all ON device_registry FOR ALL USING (user_id = current_setting('app.current_user_id', true));` (2) **device_members** — 본인 행만 접근. `CREATE POLICY device_members_access ON device_members FOR ALL USING (user_id = current_setting('app.current_user_id', true));` (3) **애플리케이션** — 인증 직후 커넥션/트랜잭션에서 `SET LOCAL app.current_user_id = 'uuid';` 실행. admin 등 예외는 `BYPASSRLS` 역할 또는 별도 정책으로 처리.
+
+### 4.3 기존 테이블 확장 (user_id 추가)
+
+| 테이블 | 추가 컬럼 | 설명 |
+|--------|-----------|------|
+| projects | user_id VARCHAR(36) FK | 프로젝트 소유자 |
+| project_folders | (project → user_id로 파생) | project 소유자와 동일 |
+| files | (file_references 등으로 user_id 파생 가능) | project_id 경유 또는 직접 |
+| ai_channels | (project 소유자 파생) | project_id 경유 |
+| ai_chats | (channel → project → user_id) | channel 경유 |
+
+- **정책**: 프로젝트가 `user_id` 소유. 하위 폴더·파일·채널·채팅은 `project_id`로 소유자 파생.
+
+#### 4.3.1 project_members (프로젝트 공유, **추후**)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| project_id | VARCHAR(36) FK | projects.id |
+| user_id | VARCHAR(36) FK | users.id |
+| role | VARCHAR(20) | `owner` \| `editor` \| `viewer` |
+
+- **용도**: 프로젝트별 공유. 소유자 외 사용자에게 접근 권한 부여. 추후 구현.
+
+#### 4.3.2 user_groups (그룹·팀, **추후**)
+
+- **groups**(또는 user_groups): `id`, `name`, `parent_group_id`(상위 그룹, 계층 구조). **group_members**: `user_id`, `group_id`, `role`. 총관리자 → 중간급 관리자 배분 시 그룹 단위로 권한 범위 부여. 추후 확장.
+
+#### 4.3.3 audit_log (권한·접근 이력, **선택**)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | VARCHAR(36) PK | UUID v7 |
+| user_id | VARCHAR(36) FK | users.id (행위자) |
+| action | VARCHAR(50) | `device_member_add`, `device_member_remove`, `device_delete`, `login`, `login_fail` 등 |
+| resource_type | VARCHAR(30) | `device`, `device_member`, `project`, `user` 등 |
+| resource_id | VARCHAR(36) | 대상 리소스 id |
+| details | JSON | 추가 정보(변경 전후 값, ip 등) |
+| ip_address | VARCHAR(45) | 요청 IP |
+| created_at | TIMESTAMP | 발생 시각 |
+
+- **용도**: 권한 변경·접근·실패 이력 기록. 계층적 관리·책임 추적·감사용. 선택 구현.
+
+#### 4.3.4 invitations (공유 초대, **선택**)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | VARCHAR(36) PK | UUID v7 |
+| resource_type | VARCHAR(20) | `device` \| `project` |
+| resource_id | VARCHAR(36) FK | device_registry.id 또는 projects.id |
+| invited_email | VARCHAR(255) | 초대 대상 이메일 (미가입 시) |
+| invited_user_id | VARCHAR(36) FK NULL | users.id (가입자일 경우) |
+| role | VARCHAR(20) | 부여할 역할 (viewer, editor, controller 등) |
+| invited_by | VARCHAR(36) FK | users.id (초대자) |
+| status | VARCHAR(20) | `pending` \| `accepted` \| `expired` \| `revoked` |
+| token | VARCHAR(64) | 초대 링크용 토큰 (일회용) |
+| expires_at | TIMESTAMP | 만료 시각 |
+| created_at | TIMESTAMP | 생성 시각 |
+
+- **용도**: "viewer로 공유 초대" → 이메일 발송 → 수락 시 device_members(또는 project_members)에 행 추가. 초대·수락 흐름 지원. 선택 구현. (추후) 플랫폼 접속자가 **직접 메시지로 초대·수락**해 신속히 진행하려면 WebSocket 기반 실시간 채팅 기능 또는 전용 SNS에 초대 흐름을 포함·연동할 수 있다.
+
+### 4.4 세션·토큰 (선택 저장소)
+
+| 구분 | 방식 | 설명 |
+|------|------|------|
+| **JWT** | stateless | access_token + refresh_token. 서버에 저장 안 함. 검증만 |
+| **세션** | stateful | 세션 저장소(Redis 등). 서버에서 세션 id로 user_id 조회 |
+
+- **추천 1단계**: JWT. 구현 단순, 세션 저장소 불필요.
+
+---
+
+## 5. API 설계
+
+### 5.1 인증 API
+
+| API | 역할 |
+|-----|------|
+| `POST /api/auth/register` | 회원가입 (email, password, display_name) |
+| `POST /api/auth/login` | 로그인 (email, password) → access_token, refresh_token 반환 |
+| `POST /api/auth/refresh` | refresh_token으로 access_token 재발급 |
+| `POST /api/auth/logout` | (선택) refresh_token 무효화 |
+| `GET /api/auth/me` | 현재 사용자 정보 조회 |
+
+### 5.2 디바이스 API
+
+| API | 역할 |
+|-----|------|
+| `POST /api/devices` | 디바이스 등록 (인증 필요). device_token 1회 발급(해시만 DB 저장). mac_address·last_seen·ip_address는 최초 API 호출 시 자동 채움 |
+| `GET /api/devices` | 접근 가능 디바이스 목록 (**device_members**에 해당 user_id 행이 있는 device_id 조회. role별 owner/editor/controller/viewer 권한 적용) |
+| `PATCH /api/devices/:id` | 디바이스 수정. `is_active: false`로 즉시 비활성화. 캐시 무효화 |
+| `DELETE /api/devices/:id` | 디바이스 삭제·토큰 폐기 |
+
+### 5.3 인증 미들웨어
+
+- **웹 사용자**: `Authorization: Bearer <access_token>` → JWT 검증 → `user_id` → `req.user`
+- **엣지 디바이스**: `X-Device-Token: <raw_token>`, `X-Device-MAC` 등 기기정보 전송 → 캐시 또는 DB에서 `token_hash` 조회 → `is_active=true` 확인 → `user_id` → `req.user`. `is_active=false`면 401. 응답 전 **mac_address·last_seen·ip_address** 수신값으로 갱신. JWT 없을 때 Device Token 시도.
+- **미인증 시**: 401 반환.
+- **예외 경로**: `/api/auth/register`, `/api/auth/login`, `/api/health` 등
+
+### 5.4 보안 데이터 흐름 (구체화)
+
+#### 사용자 ↔ 웹 서버
+
+| 단계 | 위치 | 역할 | Zod·커스텀 |
+|------|------|------|------------|
+| 1 | **클라이언트** | 회원가입·로그인 폼 입력, `Authorization: Bearer` 첨부 | (선택) Zod로 폼 검증 |
+| 2 | **HTTPS** | 전송 구간 암호화 | — |
+| 3 | **서버 진입** | CORS, body parser | — |
+| 4 | **요청 검증** | body·query·params 스키마 검증 | **Zod**: shape·타입·길이 검증. 여기서 실패 시 400 |
+| 5 | **커스텀 보안** | (차후) Rate limit, IP 제한. **api_usage** 집계(자원 배분·성능 검증), 필요 시 tier 기반 한도 | **커스텀 로직** 삽입 지점 |
+| 6 | **인증** | JWT 검증 → `req.user` | Passport.js + JWT |
+| 7 | **인가** | `user.role`·`allowed_domains`·project 소유/공유 검사 | **커스텀 로직** 삽입 지점 |
+| 8 | **핸들러** | 비즈니스 로직 | — |
+
+#### 엣지 디바이스 ↔ 웹 서버
+
+| 단계 | 위치 | 역할 | Zod·커스텀 |
+|------|------|------|------------|
+| 1 | **엣지 펌웨어** | `X-Device-Token`, body 전송 | UUID v7 등 사전 생성 ID |
+| 2 | **HTTPS** | 전송 구간 암호화 | — |
+| 3 | **서버 진입** | CORS, body parser | — |
+| 4 | **요청 검증** | body·query 스키마 검증 | **Zod**: 페이로드 shape·타입 검증. 실패 시 400 |
+| 5 | **커스텀 보안** | (차후) 디바이스별 Rate limit. **api_usage** 집계(자원·성능 검증), 필요 시 tier 기반 한도 | **커스텀 로직** 삽입 지점 |
+| 6 | **인증** | `X-Device-Token` 검증 → device_registry 조회 → `req.user` | Device Token 미들웨어 |
+| 7 | **인가** | 리소스별 `user_id`·`role`·`allowed_domains` 확인 | **커스텀 로직** 삽입 지점 |
+| 8 | **핸들러** | 비즈니스 로직 | — |
+
+- **Zod 적용 위치**: 인증 미들웨어 **직전** (또는 라우트 핸들러 진입 시). 입력 스키마 검증 → 비정상 요청 조기 차단.
+- **에러 코드 유틸리티**: Zod 검증 실패 시 응답 형식·코드 통일을 위해 **별도 유틸** 구성 권장. `parseResult.error` → 에러 코드·메시지 매핑 → 400 응답 body 표준화. 예: `VALIDATION_ERROR`, `INVALID_EMAIL` 등.
+- **Zod 검증 실패 시 응답 예**:
+  - **HTTP**: `400 Bad Request`
+  - **Body** (JSON):
+    ```json
+    {
+      "code": "VALIDATION_ERROR",
+      "message": "입력값 검증 실패",
+      "errors": [
+        { "path": "email", "message": "유효한 이메일 형식이 아닙니다" },
+        { "path": "password", "message": "8자 이상 필요" }
+      ]
+    }
+    ```
+  - `errors`: Zod `error.issues`에서 `path`·`message`만 추출해 노출. 내부 스키마·상세는 노출하지 않음.
+- **커스텀 보안 로직**: Zod 직후·인증 직전(4→5) 또는 인증 직후·핸들러 직전(7→8)에 삽입. 정책에 따라 단계별로 확장.
+
+---
+
+## 6. 클라이언트 연동
+
+### 6.1 토큰 저장
+
+- **access_token**: 메모리 또는 short-lived cookie. XSS 노출 최소화.
+- **refresh_token**: HttpOnly cookie 또는 secure storage. access 만료 시 refresh로 갱신.
+
+### 6.2 API 호출 시
+
+- **웹**: 모든 인증 필요 API 요청에 `Authorization: Bearer <access_token>` 첨부.
+- 401 응답 시 refresh 시도 → 실패 시 로그인 페이지로 리다이렉트.
+
+### 6.3 라우트 가드
+
+- 인증 필요 라우트: `beforeEach` 등에서 토큰 유무 확인. 없으면 로그인/회원가입 페이지로 이동.
+
+### 6.4 UI·라우트 배치 (my/ 도메인)
+
+- **위치**: 별도 도메인 없이 **my/** 에서 회원가입·로그인·비밀번호 찾기·설정 등 모든 인증·계정 UI 처리.
+- **경로 예시**:
+
+| 경로 | 역할 |
+|------|------|
+| `/my/login` | 로그인 |
+| `/my/register` | 회원가입 |
+| `/my/forgot-password` | 비밀번호 찾기 (이메일 입력 → 리셋 토큰 발급·링크 발송. 토큰은 DB/Redis, TTL 예: 1시간, 사용 후 즉시 폐기) |
+| `/my/reset-password?token=...` | 비밀번호 재설정 (토큰 검증 후 새 비밀번호 설정. 성공 시 토큰 무효화) |
+| `/my/settings` | 프로필·비밀번호 변경·계정 설정·**탈퇴(Soft Delete)** (로그인 후) |
+
+- **트리거**: 비인증 사용자가 보호된 페이지 진입 시 → 라우트 가드에서 `/my/login?redirect=/ai/...` 등으로 리다이렉트.
+- **헤더**: "로그인"·"회원가입" 링크 → `/my/login`, `/my/register` 연결. 로그인 후 "설정" → `/my/settings`.
+
+---
+
+## 7. 엣지 디바이스 연동
+
+- **관계**: `users` ↔ `device_registry`는 **device_members** 매핑 테이블로 연결. 한 사용자에 여러 디바이스, 추후 한 디바이스에 여러 사용자(공유) 확장.
+- **인증**: Device Token. 디바이스별 토큰 → device_registry 조회 후 해당 device에 대한 접근 권한은 device_members로 확인.
+- **흐름**: 사용자가 웹에서 디바이스 등록 → 서버가 device_token 1회 발급(해시만 DB 저장) → 엣지 펌웨어가 `X-Device-Token`, `X-Device-MAC` 등으로 API 호출. 요청마다 token_hash 비교, **mac_address·last_seen·ip_address** 펌웨어 전송값으로 갱신. 사용자 "새로고침" → 대시보드 목록 최신 표시.
+- **토큰 입력 방식**: 엣지 디바이스는 키보드·붙여넣기 불가. **[NEXA-NODE-03]** 경로 B(AP 모드 + Captive Portal) — 디바이스가 WiFi AP 생성 → 사용자가 스마트폰/PC로 접속 → 192.168.4.1 설정 페이지에서 **SSID·비밀번호·device_token** 입력(붙여넣기). 토큰을 디바이스에 직접 입력하지 않고 설정 페이지 폼에 붙여넣기.
+- **목적**: 엣지 → 서버 업로드·설정 요청 시 해당 디바이스의 user_id로 소유자 식별.
+- **토큰 노출 대응**: 웹 대시보드에서 `PATCH /api/devices/:id` → `is_active: false`로 즉시 비활성화. 분실·도난·이상 동작 시 토큰 무효화. 캐시 무효화로 즉시 반영.
+
+---
+
+## 8. 보안 고려사항
+
+| 항목 | 권장 |
+|------|------|
+| 비밀번호 | bcryptjs 해시 저장. 최소 길이·복잡도 정책. 분실 시 재설정만 가능(복원 불가) |
+| HTTPS | 프로덕션 필수 |
+| 토큰 만료 | JWT access: 15분~1시간, refresh: 7일~30일. Device Token: 장기(폐기 시까지). 엣지 부담 감소 |
+| CORS | 허용 오리진 명시 |
+
+### 8.1 권한 충돌 및 최소 권한의 원칙(Least Privilege)
+
+- **상황**: 한 사용자가 특정 프로젝트의 viewer이면서 동시에 특정 디바이스의 owner인 등, **권한이 프로젝트·디바이스 등 리소스별로 중첩**될 수 있다.
+- **우선순위 정책**: (1) **리소스 단위로 판단** — 프로젝트 접근 시 project_members·project 소유자 기준, 디바이스 접근 시 device_members 기준. 서로 독립. (2) **동일 리소스 내에서는 최고 권한 적용** — 예: device_members에 (user_id, device_id, owner)와 (user_id, device_id, viewer)가 동시에 존재하지 않음(유일 제약). 한 리소스에 한 사용자는 하나의 역할만. (3) **최소 권한의 원칙** — 필요한 최소 권한만 부여. 예: "보기만 필요"하면 viewer, 설정 수정이 필요하면 editor, 제어까지 필요하면 controller. owner는 신중히 부여.
+
+### 8.2 실시간 권한 회수(Instant Revocation)
+
+- **상황**: 중간 관리자 해임, 초대받은 viewer가 그룹·디바이스 접근을 나갈 때 등, **권한 회수 즉시 기존 연결을 끊어야** 한다. 캐시에 남은 권한으로 계속 접근되는 것을 방지.
+- **정책**: (1) **Redis 캐시** — device_members·project_members·group_members 변경 시 해당 user_id(또는 device_id·project_id) 관련 캐시를 **즉시 무효화**. (2) **MQTT 세션** — 해당 사용자가 해당 디바이스·프로젝트에 대해 구독 중인 MQTT 연결을 **즉시 끊기**. stat/cmnd 구독 해제, 브로커에서 클라이언트 연결 종료. (3) **이벤트 기반 무효화** — device_members(또는 project_members 등) 테이블 변경을 이벤트로 발행하고, 구독 중인 서비스가 캐시 무효화·세션 종료·MQTT 연결 해제를 수행. 권한 회수 후 다음 요청에서 DB 재조회 시 이미 제거된 권한이 반영되도록 보장.
+
+---
+
+## 9. 로드맵
+
+| 단계 | 내용 |
+|------|------|
+| **1** | users 테이블, Passport.js + JWT, 회원가입·로그인 API, 클라이언트 로그인/회원가입 UI |
+| **2** | API 인증 미들웨어(JWT 검증), 401 처리, 라우트 가드 |
+| **3** | projects 등에 user_id 추가, 조회 시 소유자 필터. users에 role·allowed_domains 추가, 인가 미들웨어 |
+| **4** | **device_registry** + **device_members**, Device Token 발급·검증, is_active 비활성화, 토큰 검증 캐시(Redis). device_members 캐시·역할 매트릭스·인덱스 적용. 엣지 디바이스 등록 시 device_members에 owner 1건 추가 |
+| **5** | **api_usage** 수집·저장(자원 배분·성능 검증). (선택) tier 기반 상한, project_members, 소셜 로그인, user_groups, **audit_log**, **invitations** |
+
+---
+
+## 10. 참고 문서
+
+- **[NEXA-AI-09]** AI 워크스페이스 웹서치 자원 전략 — 프로젝트·파일·폴더, UUID v7
+- **[NEXA-NODE-01]** ESPHome YAML 제너레이터 및 웹 펌웨어 배포 — 엣지 디바이스 연동
+- **[NEXA-NODE-03]** ESP32 베이스라인 펌웨어 및 디바이스 등록 설계 — **AP 모드 + Captive Portal**(192.168.4.1)에서 SSID·비밀번호·토큰 입력. device_token 붙여넣기 방식

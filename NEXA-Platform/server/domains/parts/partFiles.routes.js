@@ -536,24 +536,14 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
       return res.status(400).json({ error: 'part_class_id가 필요합니다.' })
     }
 
-    const [rows] = await connection.execute('SELECT content_json FROM archive_doc WHERE archive_id IN (SELECT id FROM archives WHERE part_class_id = ?)', [part_class_id])
-
+    // TODO: archives.part_class_id 연동 후 archive_doc에서 참조 중인 이미지 URL 수집
+    // 현재 archives 테이블에 part_class_id가 없어 비활성화. 추후 아카이브 도메인 검토 시 복원
     const currentFilePaths = new Set()
-    for (const row of rows) {
-      try {
-        const contentJson = row.content_json
-        if (!contentJson) continue
-        const doc = typeof contentJson === 'string' ? JSON.parse(contentJson) : contentJson
-        const urls = JSON.stringify(doc).match(/https?:\/\/[^"'\s)]+/g) || []
-        urls.forEach((url) => currentFilePaths.add(url))
-      } catch (error) {
-        console.warn('[Cleanup] JSON 파싱 실패:', error.message)
-      }
-    }
-
     const [allEditorImages] = await connection.execute('SELECT * FROM part_files WHERE part_class_id = ? AND is_editor_image = 1', [part_class_id])
 
-    const orphanedImages = allEditorImages.filter((file) => {
+    // 아카이브 참조 정보 없으면 삭제하지 않음 (오삭제 방지)
+    const orphanedImages =
+      currentFilePaths.size === 0 ? [] : allEditorImages.filter((file) => {
       const filePath = file.file_path
       if (currentFilePaths.has(filePath)) return false
       for (const currentPath of currentFilePaths) {

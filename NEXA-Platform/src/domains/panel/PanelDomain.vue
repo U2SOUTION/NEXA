@@ -9,7 +9,7 @@ import { onMounted } from 'vue'
 import { useDomainIntercom } from '@system/composables/useDomainIntercom'
 import PanelContent from './views/content/PanelContent.vue'
 
-const { reportActive } = useDomainIntercom('nexa-pannel')
+const { reportActive } = useDomainIntercom('nexa-panel')
 
 onMounted(() => {
   reportActive()

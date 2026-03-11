@@ -170,7 +170,7 @@ const currentMenu = computed(() => {
 
   const menuMap = {
     '/nexa-board': 'nexa-board',
-    '/nexa-pannel': 'nexa-pannel',
+    '/nexa-panel': 'nexa-panel',
     '/nexa-node': 'automation',
     '/nexa-archive': 'nexa-archive',
     '/nexa-trace': 'nexa-trace',
@@ -205,7 +205,7 @@ const currentMenu = computed(() => {
 const mainMenuTabs = [
   { name: 'home', label: 'HOME', displayLabel: 'HOME', icon: 'home', route: '/', exact: false, nexaPrefix: false },
   { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: false, nexaPrefix: true },
-  { name: 'nexa-pannel', label: 'NEXA PANNEL', displayLabel: 'PANNEL', icon: 'widgets', route: '/nexa-pannel', exact: false, nexaPrefix: true },
+  { name: 'nexa-panel', label: 'NEXA PANEL', displayLabel: 'PANEL', icon: 'widgets', route: '/nexa-panel', exact: false, nexaPrefix: true },
   { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
   { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
   { name: 'nexa-archive', label: 'NEXA ARCHIVE', displayLabel: 'ARCHIVE', icon: 'article', route: '/nexa-archive', exact: false, nexaPrefix: true },

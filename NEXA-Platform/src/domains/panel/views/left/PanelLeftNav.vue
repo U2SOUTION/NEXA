@@ -4,7 +4,7 @@
 -->
 
 <template>
-  <div class="nexa-pannel-sidebar">
+  <div class="nexa-panel-sidebar">
     <q-list>
       <!-- 헤더 -->
       <div class="sidebar-header q-pa-md">
@@ -91,7 +91,7 @@ function selectTab(tab) {
 </script>
 
 <style lang="scss" scoped>
-.nexa-pannel-sidebar {
+.nexa-panel-sidebar {
   height: 100%;
   display: flex;
   flex-direction: column;
