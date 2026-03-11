@@ -117,18 +117,18 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
     const filePath = `${folderPath}${filename}`
 
     let insertId = null
-    const connection = await pool.getConnection()
+    const client = await pool.connect()
     try {
-      const [existing] = await connection.execute(
-        'SELECT id, file_path FROM files WHERE content_hash = ?',
+      const { rows: existing } = await client.query(
+        'SELECT id, file_path FROM files WHERE content_hash = $1',
         [contentHash],
       )
 
       if (existing.length > 0) {
         const existingFile = existing[0]
         await deleteFile(tempRelativePath)
-        await connection.execute(
-          'INSERT IGNORE INTO file_references (file_id, domain) VALUES (?, ?)',
+        await client.query(
+          'INSERT INTO file_references (file_id, domain) VALUES ($1, $2) ON CONFLICT (file_id, domain) DO NOTHING',
           [existingFile.id, domain],
         )
         const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`
@@ -150,15 +150,15 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
       await moveTempFileToFolder(tempRelativePath, folderPath, filename)
 
       const mimeType = getFileMimeType(extension)
-      const [insertResult] = await connection.execute(
+      const { rows: insertRows } = await client.query(
         `INSERT INTO files (file_path, original_name, file_type, mime_type, file_size, category, content_hash)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
         [filePath, originalName, fileType, mimeType, fileSize, category, contentHash],
       )
-      insertId = insertResult.insertId
+      insertId = insertRows[0].id
     } catch (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        const [rows] = await pool.execute('SELECT id, file_path FROM files WHERE content_hash = ?', [
+      if (err.code === '23505') {
+        const { rows } = await pool.query('SELECT id, file_path FROM files WHERE content_hash = $1', [
           contentHash,
         ])
         if (rows.length > 0) {
@@ -167,7 +167,7 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
           } catch {
             /* ignore */
           }
-          await pool.execute('INSERT IGNORE INTO file_references (file_id, domain) VALUES (?, ?)', [
+          await pool.query('INSERT INTO file_references (file_id, domain) VALUES ($1, $2) ON CONFLICT (file_id, domain) DO NOTHING', [
             rows[0].id,
             domain,
           ])
@@ -188,13 +188,13 @@ router.post('/files/upload', upload.single('file'), async (req, res) => {
       }
       throw err
     } finally {
-      connection.release()
+      client.release()
     }
 
     const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`
     const url = `${baseUrl}/uploads/${filePath.replace(/^uploads\//, '')}`.replace(/\/+/g, '/')
 
-    await pool.execute('INSERT INTO file_references (file_id, domain) VALUES (?, ?)', [
+    await pool.query('INSERT INTO file_references (file_id, domain) VALUES ($1, $2)', [
       insertId,
       domain,
     ])
@@ -223,22 +223,24 @@ router.get('/files/list', async (req, res) => {
     const category = req.query.category
     const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`
 
+    let paramIdx = 1
     let query = `
       SELECT f.id, f.file_path, f.original_name, f.file_type, f.category, f.file_size
       FROM files f
       INNER JOIN file_references fr ON f.id = fr.file_id
-      WHERE fr.domain = ?
+      WHERE fr.domain = $1
     `
     const params = [domain]
+    paramIdx++
 
     if (category) {
-      query += ' AND f.category = ?'
+      query += ` AND f.category = $${paramIdx++}`
       params.push(category)
     }
 
     query += ' ORDER BY f.created_at DESC'
 
-    const [rows] = await pool.execute(query, params)
+    const { rows } = await pool.query(query, params)
 
     const items = rows.map((r) => ({
       id: r.id,
@@ -272,21 +274,20 @@ router.get('/files/list', async (req, res) => {
 router.get('/files/explorer/debug', async (req, res) => {
   if (process.env.NODE_ENV === 'production') return res.status(404).json({ error: 'Not found' })
   try {
-    const [filesCount] = await pool.execute('SELECT COUNT(*) AS c FROM files')
-    const [refsCount] = await pool.execute('SELECT COUNT(*) AS c FROM file_references')
-    const [joinedCount] = await pool.execute(
-      'SELECT COUNT(*) AS c FROM files f INNER JOIN file_references fr ON f.id = fr.file_id WHERE fr.domain = ?',
+    const { rows: filesCount } = await pool.query('SELECT COUNT(*) AS c FROM files')
+    const { rows: refsCount } = await pool.query('SELECT COUNT(*) AS c FROM file_references')
+    const { rows: joinedCount } = await pool.query(
+      'SELECT COUNT(*) AS c FROM files f INNER JOIN file_references fr ON f.id = fr.file_id WHERE fr.domain = $1',
       ['ai'],
     )
-    const [sample] = await pool.execute(
-      'SELECT f.id, f.file_path, fr.domain FROM files f INNER JOIN file_references fr ON f.id = fr.file_id WHERE fr.domain = ? LIMIT 3',
+    const { rows: sample } = await pool.query(
+      'SELECT f.id, f.file_path, fr.domain FROM files f INNER JOIN file_references fr ON f.id = fr.file_id WHERE fr.domain = $1 LIMIT 3',
       ['ai'],
     )
-    // 고아 파일: files에 있으나 file_references에 없는 레코드 (탐색기에 안 보이는 원인)
-    const [orphanedCount] = await pool.execute(
+    const { rows: orphanedCount } = await pool.query(
       'SELECT COUNT(*) AS c FROM files f WHERE NOT EXISTS (SELECT 1 FROM file_references fr WHERE fr.file_id = f.id)',
     )
-    const [orphanedSample] = await pool.execute(
+    const { rows: orphanedSample } = await pool.query(
       'SELECT f.id, f.file_path, f.original_name, f.created_at FROM files f WHERE NOT EXISTS (SELECT 1 FROM file_references fr WHERE fr.file_id = f.id) ORDER BY f.created_at DESC LIMIT 10',
     )
     res.json({
@@ -307,21 +308,21 @@ router.get('/files/explorer/debug', async (req, res) => {
 router.post('/files/explorer/backfill-references', async (req, res) => {
   if (process.env.NODE_ENV === 'production') return res.status(404).json({ error: 'Not found' })
   try {
-    const [orphaned] = await pool.execute(
+    const { rows: orphaned } = await pool.query(
       `SELECT f.id, f.file_path FROM files f
        WHERE NOT EXISTS (SELECT 1 FROM file_references fr WHERE fr.file_id = f.id)
-       AND f.file_path REGEXP '^uploads/[a-zA-Z0-9_-]+/'`,
+       AND f.file_path ~ '^uploads/[a-zA-Z0-9_-]+/'`,
     )
     let inserted = 0
     for (const row of orphaned) {
       const match = (row.file_path || '').match(/^uploads\/([a-zA-Z0-9_-]+)\//)
       const domain = match ? match[1] : null
       if (!domain) continue
-      const [insResult] = await pool.execute(
-        'INSERT IGNORE INTO file_references (file_id, domain) VALUES (?, ?)',
+      const insResult = await pool.query(
+        'INSERT INTO file_references (file_id, domain) VALUES ($1, $2) ON CONFLICT (file_id, domain) DO NOTHING',
         [row.id, domain],
       )
-      if (insResult?.affectedRows > 0) inserted++
+      if (insResult?.rowCount > 0) inserted++
     }
     res.json({ orphaned_found: orphaned.length, inserted })
   } catch (err) {
@@ -347,30 +348,30 @@ router.get('/files/explorer', async (req, res) => {
 
     const conditions = ['(f.deleted_at IS NULL)']
     const params = []
-
+    let paramIdx = 1
     if (domain) {
-      conditions.push('f.file_path LIKE ?')
+      conditions.push(`f.file_path LIKE $${paramIdx++}`)
       params.push(`uploads/${domain}/%`)
     }
     if (domain && pathPrefix && String(pathPrefix).trim()) {
       const folderPrefix = `uploads/${domain}/${pathPrefix}/`
-      conditions.push('(f.file_path = ? OR f.file_path LIKE ?)')
+      conditions.push(`(f.file_path = $${paramIdx++} OR f.file_path LIKE $${paramIdx++})`)
       params.push(folderPrefix.slice(0, -1), `${folderPrefix}%`)
     }
     if (category && String(category).trim()) {
-      conditions.push('f.category = ?')
+      conditions.push(`f.category = $${paramIdx++}`)
       params.push(category.trim())
     }
     if (source && String(source).trim()) {
-      conditions.push('f.source = ?')
+      conditions.push(`f.source = $${paramIdx++}`)
       params.push(source)
     }
     if (!Number.isNaN(edgeSid) && edgeSid != null) {
-      conditions.push('f.edge_sid = ?')
+      conditions.push(`f.edge_sid = $${paramIdx++}`)
       params.push(edgeSid)
     }
     if (q && String(q).trim()) {
-      conditions.push('(f.original_name LIKE ? OR f.file_path LIKE ?)')
+      conditions.push(`(f.original_name LIKE $${paramIdx++} OR f.file_path LIKE $${paramIdx++})`)
       const escaped = q.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
       const likeVal = `%${escaped}%`
       params.push(likeVal, likeVal)
@@ -383,7 +384,7 @@ router.get('/files/explorer', async (req, res) => {
       FROM files f
       ${whereClause}
     `
-    const [countRows] = await pool.execute(countQuery, params)
+    const { rows: countRows } = await pool.query(countQuery, params)
     const total = countRows[0]?.total ?? 0
 
     if (process.env.NODE_ENV !== 'production') {
@@ -397,7 +398,7 @@ router.get('/files/explorer', async (req, res) => {
       ORDER BY f.created_at DESC
       LIMIT ${limitInt} OFFSET ${offsetInt}
     `
-    const [rows] = await pool.execute(listQuery, params)
+    const { rows } = await pool.query(listQuery, params)
 
     const items = rows.map((r) => {
       const fp = r.file_path || ''
@@ -431,7 +432,7 @@ router.get('/files/explorer', async (req, res) => {
  */
 router.get('/files/explorer/tree', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
+    const { rows } = await pool.query(
       `SELECT f.file_path
        FROM files f
        WHERE f.deleted_at IS NULL AND f.file_path LIKE 'uploads/%'`,
@@ -470,12 +471,12 @@ router.post('/files/:id/reference', async (req, res) => {
     if (!domain || isNaN(fileId)) {
       return res.status(400).json({ code: 'INVALID_PARAMS', error: 'file id와 domain이 필요합니다.' })
     }
-    const [existing] = await pool.execute('SELECT 1 FROM files WHERE id = ?', [fileId])
+    const { rows: existing } = await pool.query('SELECT 1 FROM files WHERE id = $1', [fileId])
     if (existing.length === 0) {
       return res.status(404).json({ code: 'NOT_FOUND', error: '파일을 찾을 수 없습니다.' })
     }
-    await pool.execute(
-      'INSERT IGNORE INTO file_references (file_id, domain) VALUES (?, ?)',
+    await pool.query(
+      'INSERT INTO file_references (file_id, domain) VALUES ($1, $2) ON CONFLICT (file_id, domain) DO NOTHING',
       [fileId, domain],
     )
     res.status(201).json({ ok: true })
@@ -493,8 +494,8 @@ router.delete('/files/:id/reference', async (req, res) => {
     if (!domain || isNaN(fileId)) {
       return res.status(400).json({ code: 'INVALID_PARAMS', error: 'file id와 domain이 필요합니다.' })
     }
-    const [result] = await pool.execute('DELETE FROM file_references WHERE file_id = ? AND domain = ?', [fileId, domain])
-    if (result.affectedRows === 0) {
+    const result = await pool.query('DELETE FROM file_references WHERE file_id = $1 AND domain = $2', [fileId, domain])
+    if (result.rowCount === 0) {
       return res.status(404).json({ code: 'NOT_FOUND', error: '참조를 찾을 수 없습니다.' })
     }
     res.json({ ok: true })

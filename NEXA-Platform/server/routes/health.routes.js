@@ -15,9 +15,7 @@ router.get('/health', (req, res) => {
 // readiness: DB 연결 확인 후 200
 router.get('/health/ready', async (req, res) => {
   try {
-    const conn = await pool.getConnection()
-    await conn.query('SELECT 1')
-    conn.release()
+    await pool.query('SELECT 1')
     res.status(200).json({ status: 'ready', db: 'connected' })
   } catch (err) {
     res.status(503).json({ status: 'not ready', db: 'disconnected', error: err.message })

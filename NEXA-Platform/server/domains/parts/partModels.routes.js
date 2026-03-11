@@ -6,11 +6,11 @@ const router = express.Router()
 // GET /api/part-models/class/:classId - 특정 클래스의 모델 목록
 router.get('/part-models/class/:classId', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
+    const { rows } = await pool.query(
       `SELECT pm.*, pc.name as part_class_name, pc.c_code, pc.category
        FROM part_models pm
        LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE pm.part_class_id = ?
+       WHERE pm.part_class_id = $1
        ORDER BY pm.id`,
       [req.params.classId],
     )
@@ -24,11 +24,11 @@ router.get('/part-models/class/:classId', async (req, res) => {
 // GET /api/part-models/:id - 특정 모델 단건
 router.get('/part-models/:id', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
+    const { rows } = await pool.query(
       `SELECT pm.*, pc.name as part_class_name, pc.c_code, pc.category
        FROM part_models pm
        LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE pm.id = ?`,
+       WHERE pm.id = $1`,
       [req.params.id],
     )
 
@@ -46,7 +46,7 @@ router.get('/part-models/:id', async (req, res) => {
 // GET /api/part-models - 전체 모델 목록
 router.get('/part-models', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
+    const { rows } = await pool.query(
       `SELECT pm.*, pc.name as part_class_name, pc.c_code, pc.category
        FROM part_models pm
        LEFT JOIN part_classes pc ON pm.part_class_id = pc.id

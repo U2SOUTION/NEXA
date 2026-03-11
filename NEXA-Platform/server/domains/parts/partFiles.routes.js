@@ -6,7 +6,7 @@ import multer from 'multer'
 import { randomUUID } from 'crypto'
 import { pool } from '../../config/dbConfig.js'
 import { getCategoryAbbreviation } from '../../utils/skuGenerator.js'
-import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, partsGenerateFolderPath, partsGenerateFilename, partsCreateSafeFilename, ensureFolderExists, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder } from '../../utils/fileUpload.js'
+import { extractExtension, getFileType, getFileMimeType, getFileMaxSize, partsGenerateFolderPath, partsGenerateFilename, partsCreateSafeFilename, ensureFolderExists, deleteFile, getFileSize, generateTempFilePath, moveTempFileToFolder, saveFile } from '../../utils/fileUpload.js'
 import { resolveUploadAbsolutePath, UPLOAD_BASE_DIR } from '../../config/upload.js'
 import { MULTER_MAX_FILE_SIZE } from '../../config/fileTypes.js'
 
@@ -36,7 +36,7 @@ const upload = multer({
 // GET /api/part-files/spec/:specId - 특정 스펙의 파일 조회
 router.get('/part-files/spec/:specId', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
+    const { rows } = await pool.query(
       `SELECT pf.*, ps.manufacturer_part_number, ps.part_model_id,
               pm.model_name as part_model_name, pm.part_class_id,
               pc.name as part_class_name
@@ -44,7 +44,7 @@ router.get('/part-files/spec/:specId', async (req, res) => {
        LEFT JOIN part_specs ps ON pf.part_spec_id = ps.id
        LEFT JOIN part_models pm ON ps.part_model_id = pm.id
        LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE pf.part_spec_id = ?
+       WHERE pf.part_spec_id = $1
        ORDER BY pf.id`,
       [req.params.specId],
     )
@@ -59,7 +59,7 @@ router.get('/part-files/spec/:specId', async (req, res) => {
 // GET /api/part-files/:id - 특정 부품 파일 조회
 router.get('/part-files/:id', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
+    const { rows } = await pool.query(
       `SELECT pf.*, ps.manufacturer_part_number, ps.part_model_id,
               pm.model_name as part_model_name, pm.part_class_id,
               pc.name as part_class_name
@@ -67,7 +67,7 @@ router.get('/part-files/:id', async (req, res) => {
        LEFT JOIN part_specs ps ON pf.part_spec_id = ps.id
        LEFT JOIN part_models pm ON ps.part_model_id = pm.id
        LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-       WHERE pf.id = ?`,
+       WHERE pf.id = $1`,
       [req.params.id],
     )
     if (rows.length === 0) {
@@ -97,30 +97,31 @@ router.get('/part-files', async (req, res) => {
     `
     const params = []
 
+    let paramIdx = 1
     if (part_class_id) {
-      query += ' AND pf.part_class_id = ?'
+      query += ` AND pf.part_class_id = $${paramIdx++}`
       params.push(part_class_id)
     }
     if (part_model_id) {
-      query += ' AND pf.part_model_id = ?'
+      query += ` AND pf.part_model_id = $${paramIdx++}`
       params.push(part_model_id)
     }
     if (part_spec_id) {
-      query += ' AND pf.part_spec_id = ?'
+      query += ` AND pf.part_spec_id = $${paramIdx++}`
       params.push(part_spec_id)
     }
     if (sku) {
-      query += ' AND pf.sku = ?'
+      query += ` AND pf.sku = $${paramIdx++}`
       params.push(sku)
     }
     if (is_editor_image !== undefined && is_editor_image !== null) {
-      query += ' AND pf.is_editor_image = ?'
-      params.push(is_editor_image === '1' || is_editor_image === 1 ? 1 : 0)
+      query += ` AND pf.is_editor_image = $${paramIdx++}`
+      params.push(is_editor_image === '1' || is_editor_image === 1)
     }
 
     query += ' ORDER BY pf.upload_date DESC, pf.id DESC'
 
-    const [rows] = await pool.execute(query, params)
+    const { rows } = await pool.query(query, params)
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.json(rows)
   } catch (error) {
@@ -131,13 +132,14 @@ router.get('/part-files', async (req, res) => {
 
 // POST /api/part-files/upload - 파일 업로드 (새 스키마)
 router.post('/part-files/upload', upload.single('file'), async (req, res) => {
-  const connection = await pool.getConnection()
+  const client = await pool.connect()
   const tempRelativePath = req.file ? `uploads/_temp/${path.basename(req.file.path)}` : null
   let currentRelativePath = null
   try {
-    await connection.beginTransaction()
+    await client.query('BEGIN')
 
     if (!req.file) {
+      client.release()
       return res.status(400).json({ error: '파일이 필요합니다.' })
     }
 
@@ -180,15 +182,16 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     const partClassId = req.body.part_class_id ? parseInt(req.body.part_class_id) : null
     const partModelId = req.body.part_model_id ? parseInt(req.body.part_model_id) : null
     const partSpecId = req.body.part_spec_id ? parseInt(req.body.part_spec_id) : null
-    const isEditorImage = req.body.is_editor_image === '1' || req.body.is_editor_image === 1 ? 1 : 0
+    const isEditorImage = req.body.is_editor_image === '1' || req.body.is_editor_image === 1
 
     const extension = extractExtension(originalFilename)
     const fileType = getFileType(extension)
 
     const maxFileSize = getFileMaxSize(fileType)
     if (fileSize > maxFileSize) {
-      await connection.rollback()
+      await client.query('ROLLBACK')
       await deleteFile(tempRelativePath)
+      client.release()
       const maxSizeMB = (maxFileSize / 1024 / 1024).toFixed(2)
       const currentSizeMB = (fileSize / 1024 / 1024).toFixed(2)
       return res.status(400).json({
@@ -200,6 +203,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     const refCount = [partClassId, partModelId, partSpecId].filter(Boolean).length
     if (refCount !== 1) {
       await deleteFile(tempRelativePath)
+      client.release()
       return res.status(400).json({
         error: 'part_class_id, part_model_id, part_spec_id 중 하나만 제공해야 합니다.',
       })
@@ -212,9 +216,10 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     let recordId = null
 
     if (partClassId) {
-      const [rows] = await connection.execute('SELECT * FROM part_classes WHERE id = ? FOR UPDATE', [partClassId])
+      const { rows } = await client.query('SELECT * FROM part_classes WHERE id = $1 FOR UPDATE', [partClassId])
       if (rows.length === 0) {
         await deleteFile(tempRelativePath)
+        client.release()
         return res.status(404).json({ error: '부품 분류를 찾을 수 없습니다.' })
       }
       record = rows[0]
@@ -223,15 +228,16 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
       cCode = record.c_code
       categoryAbbr = record.d_code || getCategoryAbbreviation(record.category)
     } else if (partModelId) {
-      const [rows] = await connection.execute(
+      const { rows } = await client.query(
         `SELECT pm.*, pc.category, pc.c_code, pc.d_code
          FROM part_models pm
          LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-         WHERE pm.id = ? FOR UPDATE`,
+         WHERE pm.id = $1 FOR UPDATE`,
         [partModelId],
       )
       if (rows.length === 0) {
         await deleteFile(tempRelativePath)
+        client.release()
         return res.status(404).json({ error: '부품 유형을 찾을 수 없습니다.' })
       }
       record = rows[0]
@@ -240,17 +246,18 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
       cCode = record.c_code
       categoryAbbr = record.d_code || getCategoryAbbreviation(record.category)
     } else if (partSpecId) {
-      const [rows] = await connection.execute(
+      const { rows } = await client.query(
         `SELECT ps.*, pm.part_class_id, pm.id as part_model_id,
                 pc.category, pc.c_code, pc.d_code
          FROM part_specs ps
          LEFT JOIN part_models pm ON ps.part_model_id = pm.id
          LEFT JOIN part_classes pc ON pm.part_class_id = pc.id
-         WHERE ps.id = ? FOR UPDATE`,
+         WHERE ps.id = $1 FOR UPDATE`,
         [partSpecId],
       )
       if (rows.length === 0) {
         await deleteFile(tempRelativePath)
+        client.release()
         return res.status(404).json({ error: '개별 부품을 찾을 수 없습니다.' })
       }
       record = rows[0]
@@ -263,17 +270,17 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     let maxSequenceQuery = ''
     let maxSequenceParams = []
     if (partSpecId) {
-      maxSequenceQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_spec_id = ? AND d_code = ? AND c_code = ? AND file_extension = ? FOR UPDATE'
+      maxSequenceQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_spec_id = $1 AND d_code = $2 AND c_code = $3 AND file_extension = $4 FOR UPDATE'
       maxSequenceParams = [partSpecId, categoryAbbr, cCode, extension]
     } else if (partModelId) {
-      maxSequenceQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_model_id = ? AND d_code = ? AND c_code = ? AND file_extension = ? FOR UPDATE'
+      maxSequenceQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_model_id = $1 AND d_code = $2 AND c_code = $3 AND file_extension = $4 FOR UPDATE'
       maxSequenceParams = [partModelId, categoryAbbr, cCode, extension]
     } else {
-      maxSequenceQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_class_id = ? AND d_code = ? AND c_code = ? AND file_extension = ? FOR UPDATE'
+      maxSequenceQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_class_id = $1 AND d_code = $2 AND c_code = $3 AND file_extension = $4 FOR UPDATE'
       maxSequenceParams = [partClassId, categoryAbbr, cCode, extension]
     }
 
-    const [maxSeqRows] = await connection.execute(maxSequenceQuery, maxSequenceParams)
+    const { rows: maxSeqRows } = await client.query(maxSequenceQuery, maxSequenceParams)
     const maxSequence = maxSeqRows[0]?.max_seq || 0
     let sequence = maxSequence + 1
 
@@ -307,19 +314,19 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
         }
         const mimeType = getFileMimeType(extension)
 
-        const [result] = await connection.execute(
+        const { rows: insertRows } = await client.query(
           `INSERT INTO part_files
            (part_class_id, part_model_id, part_spec_id, c_code, d_code,
             file_extension, file_sequence, file_path, original_filename, file_type, file_mime_type, file_size, is_editor_image)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`,
           [partClassId, partModelId, partSpecId, cCode, categoryAbbr, extension, finalSequence, relativeFilePath, finalOriginalFilename, fileType, mimeType, fileSize, isEditorImage],
         )
 
         insertSuccess = true
-        await connection.execute(`UPDATE ${tableName} SET file_upload_count = ? WHERE id = ?`, [finalSequence, recordId])
+        await client.query(`UPDATE ${tableName} SET file_upload_count = $1 WHERE id = $2`, [finalSequence, recordId])
 
         res.status(201).json({
-          id: result.insertId,
+          id: insertRows[0].id,
           file_path: relativeFilePath,
           original_filename: finalOriginalFilename,
           file_extension: extension,
@@ -330,7 +337,7 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
           message: '파일이 업로드되었습니다.',
         })
       } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
+        if (error.code === '23505') {
           maxRetries--
           finalSequence++
           continue
@@ -347,10 +354,12 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
       }
     }
 
-    await connection.commit()
+    await client.query('COMMIT')
   } catch (error) {
-    if (connection.rollback) {
-      await connection.rollback()
+    try {
+      await client.query('ROLLBACK')
+    } catch {
+      // ignore
     }
     if (tempRelativePath) {
       try {
@@ -368,22 +377,22 @@ router.post('/part-files/upload', upload.single('file'), async (req, res) => {
     }
     console.error('[File Upload] 파일 업로드 실패:', error)
 
-    if (error.code === 'ER_NO_SUCH_TABLE') {
+    if (error.code === '42P01') {
       return res.status(500).json({
         error: 'part_files 테이블이 존재하지 않습니다. 데이터베이스 스키마를 확인하세요.',
-        details: 'database/create_part_files_table.sql 파일을 실행하여 테이블을 생성하세요.',
+        details: 'database/init_postgres.sql 파일을 실행하여 테이블을 생성하세요.',
       })
     }
-    if (error.code === 'ER_BAD_FIELD_ERROR') {
+    if (error.code === '42703') {
       return res.status(500).json({
         error: `데이터베이스 스키마 오류: ${error.message}`,
-        details: 'part_files 테이블의 스키마가 최신 버전인지 확인하세요. database/create_part_files_table.sql 파일을 실행하세요.',
+        details: 'part_files 테이블의 스키마가 최신 버전인지 확인하세요. database/init_postgres.sql 파일을 실행하세요.',
       })
     }
 
     res.status(500).json({ error: error.message })
   } finally {
-    connection.release()
+    client.release()
   }
 })
 
@@ -437,15 +446,16 @@ router.post('/part-files/upload-temp', async (req, res) => {
 
 // POST /api/part-files/move-temp - 임시 파일을 정식 폴더로 이동하고 DB에 저장
 router.post('/part-files/move-temp', async (req, res) => {
-  const connection = await pool.getConnection()
+  const client = await pool.connect()
   try {
-    await connection.beginTransaction()
+    await client.query('BEGIN')
 
     const body = req.body
     const { part_class_id, temp_file_path, target_filename, original_filename, is_editor_image = 1 } = body
 
     if (!part_class_id || !temp_file_path) {
-      await connection.rollback()
+      await client.query('ROLLBACK')
+      client.release()
       return res.status(400).json({ error: 'part_class_id와 temp_file_path가 필요합니다.' })
     }
 
@@ -453,13 +463,15 @@ router.post('/part-files/move-temp', async (req, res) => {
     try {
       await fs.access(absoluteTempPath)
     } catch {
-      await connection.rollback()
+      await client.query('ROLLBACK')
+      client.release()
       return res.status(404).json({ error: '임시 파일을 찾을 수 없습니다.' })
     }
 
-    const [partClassRows] = await connection.execute('SELECT * FROM part_classes WHERE id = ? FOR UPDATE', [part_class_id])
+    const { rows: partClassRows } = await client.query('SELECT * FROM part_classes WHERE id = $1 FOR UPDATE', [part_class_id])
     if (partClassRows.length === 0) {
-      await connection.rollback()
+      await client.query('ROLLBACK')
+      client.release()
       return res.status(404).json({ error: '부품 분류를 찾을 수 없습니다.' })
     }
 
@@ -475,8 +487,8 @@ router.post('/part-files/move-temp', async (req, res) => {
       extension = path.extname(tempFileName).toLowerCase().replace(/^\./, '') || 'jpg'
     }
 
-    const maxSeqQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_class_id = ? AND d_code = ? AND c_code = ? AND file_extension = ? FOR UPDATE'
-    const [maxSeqRows] = await connection.execute(maxSeqQuery, [part_class_id, categoryAbbr, cCode, extension])
+    const maxSeqQuery = 'SELECT COALESCE(MAX(file_sequence), 0) as max_seq FROM part_files WHERE part_class_id = $1 AND d_code = $2 AND c_code = $3 AND file_extension = $4 FOR UPDATE'
+    const { rows: maxSeqRows } = await client.query(maxSeqQuery, [part_class_id, categoryAbbr, cCode, extension])
     const maxSequence = maxSeqRows[0]?.max_seq || 0
     const newSequence = maxSequence + 1
 
@@ -490,20 +502,20 @@ router.post('/part-files/move-temp', async (req, res) => {
     const mimeType = getFileMimeType(extension)
     const fileType = getFileType(extension)
 
-    const [result] = await connection.execute(
+    const { rows: insertRows } = await client.query(
       `INSERT INTO part_files
        (part_class_id, part_model_id, part_spec_id, c_code, d_code,
         file_extension, file_sequence, file_path, original_filename, file_type, file_mime_type, file_size, is_editor_image)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [part_class_id, null, null, cCode, categoryAbbr, extension, newSequence, relativePath, original_filename || targetName, fileType, mimeType, fileSize, is_editor_image],
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`,
+      [part_class_id, null, null, cCode, categoryAbbr, extension, newSequence, relativePath, original_filename || targetName, fileType, mimeType, fileSize, is_editor_image === 1 || is_editor_image === '1'],
     )
 
-    await connection.execute('UPDATE part_classes SET file_upload_count = ? WHERE id = ?', [newSequence, part_class_id])
+    await client.query('UPDATE part_classes SET file_upload_count = $1 WHERE id = $2', [newSequence, part_class_id])
 
-    await connection.commit()
+    await client.query('COMMIT')
 
     res.status(201).json({
-      id: result.insertId,
+      id: insertRows[0].id,
       file_path: relativePath,
       original_filename: original_filename || targetName,
       file_extension: extension,
@@ -514,32 +526,35 @@ router.post('/part-files/move-temp', async (req, res) => {
       message: '임시 파일이 이동되었습니다.',
     })
   } catch (error) {
-    if (connection.rollback) {
-      await connection.rollback()
+    try {
+      await client.query('ROLLBACK')
+    } catch {
+      // ignore
     }
     console.error('[Move Temp File] 실패:', error)
     res.status(500).json({ error: error.message })
   } finally {
-    connection.release()
+    client.release()
   }
 })
 
 // POST /api/part-files/cleanup-orphaned-editor-images - 사용되지 않는 에디터 이미지 삭제
 router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
-  const connection = await pool.getConnection()
+  const client = await pool.connect()
   try {
-    await connection.beginTransaction()
+    await client.query('BEGIN')
 
     const part_class_id = parseInt(req.body.part_class_id)
     if (!part_class_id) {
-      await connection.rollback()
+      await client.query('ROLLBACK')
+      client.release()
       return res.status(400).json({ error: 'part_class_id가 필요합니다.' })
     }
 
     // TODO: archives.part_class_id 연동 후 archive_doc에서 참조 중인 이미지 URL 수집
     // 현재 archives 테이블에 part_class_id가 없어 비활성화. 추후 아카이브 도메인 검토 시 복원
     const currentFilePaths = new Set()
-    const [allEditorImages] = await connection.execute('SELECT * FROM part_files WHERE part_class_id = ? AND is_editor_image = 1', [part_class_id])
+    const { rows: allEditorImages } = await client.query('SELECT * FROM part_files WHERE part_class_id = $1 AND is_editor_image = true', [part_class_id])
 
     // 아카이브 참조 정보 없으면 삭제하지 않음 (오삭제 방지)
     const orphanedImages =
@@ -566,7 +581,7 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
         } catch (error) {
           console.warn(`[Cleanup] 물리적 파일 삭제 실패 (계속 진행): ${file.file_path}`, error.message)
         }
-        await connection.execute('DELETE FROM part_files WHERE id = ?', [file.id])
+        await client.query('DELETE FROM part_files WHERE id = $1', [file.id])
         deletedCount++
         deletedFiles.push({ id: file.id, file_path: file.file_path })
       } catch (error) {
@@ -574,7 +589,7 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
       }
     }
 
-    await connection.commit()
+    await client.query('COMMIT')
 
     res.json({
       message: `${deletedCount}개의 사용되지 않는 이미지가 삭제되었습니다.`,
@@ -582,20 +597,22 @@ router.post('/part-files/cleanup-orphaned-editor-images', async (req, res) => {
       deleted_files: deletedFiles,
     })
   } catch (error) {
-    if (connection.rollback) {
-      await connection.rollback()
+    try {
+      await client.query('ROLLBACK')
+    } catch {
+      // ignore
     }
     console.error('[Cleanup Orphaned Images] 삭제 실패:', error)
     res.status(500).json({ error: error.message })
   } finally {
-    connection.release()
+    client.release()
   }
 })
 
 // GET /api/part-files/:id/download - 파일 다운로드 (원본 파일명으로)
 router.get('/part-files/:id/download', async (req, res) => {
   try {
-    const [rows] = await pool.execute('SELECT * FROM part_files WHERE id = ?', [req.params.id])
+    const { rows } = await pool.query('SELECT * FROM part_files WHERE id = $1', [req.params.id])
     if (rows.length === 0) {
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }
@@ -681,10 +698,11 @@ router.get('/part-files/:id/download', async (req, res) => {
 
 // DELETE /api/part-files/:id - 부품 파일 삭제
 router.delete('/part-files/:id', async (req, res) => {
-  const connection = await pool.getConnection()
+  const client = await pool.connect()
   try {
-    const [rows] = await connection.execute('SELECT * FROM part_files WHERE id = ?', [req.params.id])
+    const { rows } = await client.query('SELECT * FROM part_files WHERE id = $1', [req.params.id])
     if (rows.length === 0) {
+      client.release()
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }
 
@@ -695,8 +713,9 @@ router.delete('/part-files/:id', async (req, res) => {
       console.warn(`[File Delete] 물리적 파일 삭제 실패 (계속 진행): ${error.message}`)
     }
 
-    const [result] = await connection.execute('DELETE FROM part_files WHERE id = ?', [req.params.id])
-    if (result.affectedRows === 0) {
+    const result = await client.query('DELETE FROM part_files WHERE id = $1', [req.params.id])
+    if (result.rowCount === 0) {
+      client.release()
       return res.status(404).json({ error: '부품 파일을 찾을 수 없습니다.' })
     }
 
@@ -705,7 +724,7 @@ router.delete('/part-files/:id', async (req, res) => {
     console.error('부품 파일 삭제 실패:', error)
     res.status(500).json({ error: error.message })
   } finally {
-    connection.release()
+    client.release()
   }
 })
 

@@ -1,11 +1,27 @@
-# NEXA 플랫폼 배포 매뉴얼 (이 파일은 개발 환경에서 도커 컨테이너를 실행하는 명령어 파일)
-# ------------------------------------------
-# 0. 폴더이동: cd nexa-platform  (docker-dev-compose.yml 파일이 있는 폴더로 이동)
-# 1. 실행: docker compose -f docker-dev-compose.yml up -d
-# 2. 중지: docker compose -f docker-dev-compose.yml down
-# 3. 로그 확인: docker compose -f docker-dev-compose.yml logs -f
+# NEXA 플랫폼 개발 환경 (Postgres 마이그레이션 후)
+# 0. .env에 PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT 설정
+# 1. Postgres만 띄우기: docker compose -f docker-dev-compose.yml up -d postgres
+# 2. 서버 로컬 실행: npm run dev:server (PGHOST=localhost, PGPORT=5432)
+# 3. 전체: docker compose -f docker-dev-compose.yml up -d
 # ==========================================
 services:
+  postgres:
+    container_name: nexa-postgres-dev
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_DB: ${PGDATABASE:-nexa_db}
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    ports:
+      - "${PGPORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-nexa_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   nexa-web:
     build:
       context: .
@@ -18,16 +34,22 @@ services:
       - /app/node_modules
     environment:
       - PORT=3000
-      - MYSQL_HOST=192.168.0.15
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=1234
-      - MYSQL_DATABASE=nexa_db
-      - MYSQL_PORT=3306
+      - PGHOST=postgres
+      - PGUSER=${PGUSER}
+      - PGPASSWORD=${PGPASSWORD}
+      - PGDATABASE=${PGDATABASE:-nexa_db}
+      - PGPORT=5432
       - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: always
 
   dev-tunnel:
     image: cloudflare/cloudflared:latest
     container_name: dev-cloudflared-tunnel
     restart: always
-    command: tunnel --no-autoupdate run --token eyJhIjoiYTZlODYwNDljYTdkMDM3MGY0NjVmYmNlY2VmYzc1MzAiLCJ0IjoiZTU4ZDk1ZGYtNzQ3NC00YTlkLTlkYjgtN2NkOThmZDJhMWRlIiwicyI6IlkyWm1OVGt5WWpZdE5ESTFNaTAwWVRreUxUbGlNbU10WW1VNE5UZGtaV1JpTXpVMSJ9
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+
+volumes:
+  postgres_data_dev:

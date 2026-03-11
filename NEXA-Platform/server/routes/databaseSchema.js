@@ -46,13 +46,13 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
 
       console.log('[DB Schema] 쿼리 실행:', query.substring(0, 100) + '...')
 
-      // 쿼리 실행
-      const [results] = await dbConnection.execute(query)
+      // 쿼리 실행 (Postgres: pool.query → result.rows)
+      const result = await dbConnection.query(query)
+      const data = Array.isArray(result.rows) ? result.rows : [result.rows]
 
-      // 결과 반환
       res.json({
         success: true,
-        data: Array.isArray(results) ? results : [results],
+        data,
         message: '쿼리가 성공적으로 실행되었습니다.',
       })
     } catch (error) {
@@ -64,30 +64,27 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
     }
   })
 
-  // GET /api/db/info - 데이터베이스 정보 조회
+  // GET /api/db/info - 데이터베이스 정보 조회 (Postgres)
   router.get('/info', async (req, res) => {
     try {
       const dbConnection = checkConnection(res)
       if (!dbConnection) return
 
-      // 데이터베이스 이름 조회
-      const [dbResult] = await dbConnection.execute('SELECT DATABASE() as dbName')
-      const dbName = dbResult[0]?.dbName || null
+      const { rows: dbRows } = await dbConnection.query('SELECT current_database() as "dbName"')
+      const dbName = dbRows[0]?.dbName ?? null
 
-      // MySQL 버전 조회
-      const [versionResult] = await dbConnection.execute('SELECT VERSION() as version')
-      const version = versionResult[0]?.version || null
+      const { rows: versionRows } = await dbConnection.query('SELECT version() as version')
+      const version = versionRows[0]?.version ?? null
 
-      // 문자셋 정보 조회
-      const [charsetResult] = await dbConnection.execute("SHOW VARIABLES LIKE 'character_set_database'")
-      const charset = charsetResult[0]?.Value || null
+      const { rows: encRows } = await dbConnection.query('SELECT current_setting(\'server_encoding\') as charset')
+      const charset = encRows[0]?.charset ?? null
 
       res.json({
         success: true,
         data: {
           databaseName: dbName,
-          version: version,
-          charset: charset,
+          version,
+          charset,
         },
       })
     } catch (error) {
@@ -99,44 +96,37 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
     }
   })
 
-  // GET /api/db/tables - 테이블 목록 조회
+  // GET /api/db/tables - 테이블 목록 조회 (Postgres)
   router.get('/tables', async (req, res) => {
     try {
       const dbConnection = checkConnection(res)
       if (!dbConnection) return
 
-      // 테이블 목록 조회 (INFORMATION_SCHEMA 사용)
-      const [tables] = await dbConnection.execute(`
+      const { rows: tables } = await dbConnection.query(`
         SELECT
-          TABLE_NAME as name,
-          TABLE_TYPE as type,
-          TABLE_ROWS as rowCount,
-          DATA_LENGTH as dataLength,
-          INDEX_LENGTH as indexLength,
-          CREATE_TIME as createTime,
-          UPDATE_TIME as updateTime,
-          TABLE_COMMENT as comment
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_TYPE = 'BASE TABLE'
-        ORDER BY TABLE_NAME
+          t.tablename as name,
+          'BASE TABLE' as type,
+          COALESCE(s.n_live_tup::bigint, 0) as "rowCount",
+          COALESCE(pg_total_relation_size(quote_ident(t.schemaname)||'.'||quote_ident(t.tablename)), 0) as "dataLength",
+          0 as "indexLength",
+          NULL as "createTime",
+          NULL as "updateTime",
+          obj_description((quote_ident(t.schemaname)||'.'||quote_ident(t.tablename))::regclass, 'pg_class') as comment
+        FROM pg_tables t
+        LEFT JOIN pg_stat_user_tables s ON s.schemaname = t.schemaname AND s.relname = t.tablename
+        WHERE t.schemaname = 'public'
+        ORDER BY t.tablename
       `)
 
-      // 각 테이블의 컬럼 수 조회
       const tablesWithColumnCount = await Promise.all(
         tables.map(async (table) => {
-          const [columns] = await dbConnection.execute(
-            `
-            SELECT COUNT(*) as count
-            FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_SCHEMA = DATABASE()
-              AND TABLE_NAME = ?
-          `,
-            [table.name],
+          const { rows: colRows } = await dbConnection.query(
+            'SELECT COUNT(*) as count FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2',
+            ['public', table.name],
           )
           return {
             ...table,
-            columnCount: columns[0]?.count || 0,
+            columnCount: parseInt(colRows[0]?.count ?? 0, 10),
           }
         }),
       )
@@ -197,9 +187,8 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
           const dataType = col.dataType || 'VARCHAR(255)'
           const nullable = col.isNullable !== false ? 'NULL' : 'NOT NULL'
           const defaultValue = col.defaultValue ? `DEFAULT '${col.defaultValue.replace(/'/g, "''")}'` : ''
-          const commentClause = col.comment ? `COMMENT '${col.comment.replace(/'/g, "''")}'` : ''
-
-          return `${sanitizedColumnName} ${dataType} ${nullable} ${defaultValue} ${commentClause}`.trim()
+          // Postgres: COMMENT is separate (COMMENT ON COLUMN); omit from column def
+          return `${sanitizedColumnName} ${dataType} ${nullable} ${defaultValue}`.trim()
         })
         .filter((def) => def !== null)
 
@@ -209,21 +198,10 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         })
       }
 
-      // CREATE TABLE 쿼리 생성
-      let createTableQuery = `CREATE TABLE \`${sanitizedTableName}\` (\n  ${columnDefinitions.join(',\n  ')}\n)`
-
-      // 테이블 코멘트 추가
-      if (comment && comment.trim()) {
-        createTableQuery += ` COMMENT='${comment.trim().replace(/'/g, "''")}'`
-      }
-
-      // 엔진 및 문자셋 설정 (기본값)
-      createTableQuery += ` ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
-
+      // CREATE TABLE 쿼리 (Postgres: 백틱 없음, ENGINE/CHARSET 없음)
+      const createTableQuery = `CREATE TABLE "${sanitizedTableName.replace(/"/g, '""')}" (\n  ${columnDefinitions.join(',\n  ')}\n)`
       console.log('[DB Schema] 테이블 생성 쿼리:', createTableQuery)
-
-      // 쿼리 실행
-      await dbConnection.execute(createTableQuery)
+      await dbConnection.query(createTableQuery)
 
       res.json({
         success: true,
@@ -249,14 +227,8 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
 
       const tableName = req.params.tableName
 
-      // 테이블 존재 확인
-      const [tableCheck] = await dbConnection.execute(
-        `
-        SELECT TABLE_NAME
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = ?
-      `,
+      const { rows: tableCheck } = await dbConnection.query(
+        `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1`,
         [tableName],
       )
 
@@ -267,26 +239,13 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         })
       }
 
-      // 컬럼 정보 조회
       let columns = []
       try {
-        const [columnsResult] = await dbConnection.execute(
-          `
-          SELECT
-            COLUMN_NAME as name,
-            DATA_TYPE as dataType,
-            COLUMN_TYPE as columnType,
-            IS_NULLABLE as isNullable,
-            COLUMN_DEFAULT as defaultValue,
-            COLUMN_KEY as columnKey,
-            EXTRA as extra,
-            COLUMN_COMMENT as comment,
-            ORDINAL_POSITION as position
-          FROM INFORMATION_SCHEMA.COLUMNS
-          WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = ?
-          ORDER BY ORDINAL_POSITION
-        `,
+        const { rows: columnsResult } = await dbConnection.query(
+          `SELECT column_name as name, data_type as "dataType", udt_name as "columnType",
+           is_nullable as "isNullable", column_default as "defaultValue", NULL as "columnKey",
+           NULL as extra, NULL as comment, ordinal_position as position
+           FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 ORDER BY ordinal_position`,
           [tableName],
         )
         columns = columnsResult
@@ -295,23 +254,19 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         throw new Error(`컬럼 정보 조회 실패: ${err.message}`)
       }
 
-      // 인덱스 정보 조회
       let indexes = []
       try {
-        const [indexesResult] = await dbConnection.execute(
-          `
-          SELECT
-            INDEX_NAME as name,
-            COLUMN_NAME as columnName,
-            NON_UNIQUE as nonUnique,
-            SEQ_IN_INDEX as seqInIndex,
-            INDEX_TYPE as type,
-            INDEX_COMMENT as comment
-          FROM INFORMATION_SCHEMA.STATISTICS
-          WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = ?
-          ORDER BY INDEX_NAME, SEQ_IN_INDEX
-        `,
+        const { rows: indexesResult } = await dbConnection.query(
+          `SELECT i.relname as name, a.attname as "columnName", NOT ix.indisunique as "nonUnique",
+           row_number() OVER (PARTITION BY i.relname ORDER BY array_position(ix.indkey, a.attnum))::int as "seqInIndex",
+           am.amname as type, NULL as comment
+           FROM pg_index ix
+           JOIN pg_class i ON i.oid = ix.indexrelid AND i.relkind = 'i'
+           JOIN pg_class t ON t.oid = ix.indrelid AND t.relname = $1
+           JOIN pg_namespace n ON n.oid = t.relnamespace AND n.nspname = 'public'
+           JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey) AND a.attisdropped = false
+           JOIN pg_am am ON am.oid = i.relam
+           ORDER BY i.relname, "seqInIndex"`,
           [tableName],
         )
         indexes = indexesResult
@@ -320,24 +275,15 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         throw new Error(`인덱스 정보 조회 실패: ${err.message}`)
       }
 
-      // 제약조건 정보 조회 (외래키, 기본키, 유니크 등)
       let constraints = []
       try {
-        const [constraintsResult] = await dbConnection.execute(
-          `
-          SELECT
-            tc.CONSTRAINT_NAME as name,
-            tc.CONSTRAINT_TYPE as type,
-            kcu.COLUMN_NAME as columnName
-          FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-          LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-            ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
-            AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
-            AND tc.TABLE_NAME = kcu.TABLE_NAME
-          WHERE tc.TABLE_SCHEMA = DATABASE()
-            AND tc.TABLE_NAME = ?
-          ORDER BY tc.CONSTRAINT_TYPE, tc.CONSTRAINT_NAME, COALESCE(kcu.ORDINAL_POSITION, 0)
-        `,
+        const { rows: constraintsResult } = await dbConnection.query(
+          `SELECT tc.constraint_name as name, tc.constraint_type as type, kcu.column_name as "columnName"
+           FROM information_schema.table_constraints tc
+           LEFT JOIN information_schema.key_column_usage kcu
+             ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema AND tc.table_name = kcu.table_name
+           WHERE tc.table_schema = 'public' AND tc.table_name = $1
+           ORDER BY tc.constraint_type, tc.constraint_name, kcu.ordinal_position`,
           [tableName],
         )
         constraints = constraintsResult
@@ -346,25 +292,16 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
         throw new Error(`제약조건 정보 조회 실패: ${err.message}`)
       }
 
-      // 테이블 메타데이터
       let tableMeta = []
       try {
-        const [tableMetaResult] = await dbConnection.execute(
-          `
-          SELECT
-            TABLE_ROWS as rowCount,
-            DATA_LENGTH as dataLength,
-            INDEX_LENGTH as indexLength,
-            CREATE_TIME as createTime,
-            UPDATE_TIME as updateTime,
-            TABLE_COMMENT as comment
-          FROM INFORMATION_SCHEMA.TABLES
-          WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = ?
-        `,
+        const { rows: tableMetaResult } = await dbConnection.query(
+          `SELECT COALESCE(s.n_live_tup::bigint, 0) as "rowCount",
+           COALESCE(pg_total_relation_size(('public.'||$1)::regclass), 0) as "dataLength", 0 as "indexLength",
+           NULL as "createTime", NULL as "updateTime", obj_description(('public.'||$1)::regclass, 'pg_class') as comment
+           FROM pg_stat_user_tables s WHERE s.schemaname = 'public' AND s.relname = $1`,
           [tableName],
         )
-        tableMeta = tableMetaResult
+        tableMeta = tableMetaResult.length ? tableMetaResult : [{ rowCount: 0, dataLength: 0, indexLength: 0, createTime: null, updateTime: null, comment: null }]
       } catch (err) {
         console.error('[DB Schema] 테이블 메타데이터 조회 실패:', err)
         throw new Error(`테이블 메타데이터 조회 실패: ${err.message}`)
@@ -399,23 +336,10 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
 
       const tableName = req.params.tableName
 
-      const [columns] = await dbConnection.execute(
-        `
-        SELECT
-          COLUMN_NAME as name,
-          DATA_TYPE as dataType,
-          COLUMN_TYPE as columnType,
-          IS_NULLABLE as isNullable,
-          COLUMN_DEFAULT as defaultValue,
-          COLUMN_KEY as columnKey,
-          EXTRA as extra,
-          COLUMN_COMMENT as comment,
-          ORDINAL_POSITION as position
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = ?
-        ORDER BY ORDINAL_POSITION
-      `,
+      const { rows: columns } = await dbConnection.query(
+        `SELECT column_name as name, data_type as "dataType", udt_name as "columnType",
+         is_nullable as "isNullable", column_default as "defaultValue", NULL as "columnKey", NULL as extra, NULL as comment, ordinal_position as position
+         FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 ORDER BY ordinal_position`,
         [tableName],
       )
 
@@ -440,20 +364,17 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
 
       const tableName = req.params.tableName
 
-      const [indexes] = await dbConnection.execute(
-        `
-        SELECT
-          INDEX_NAME as name,
-          COLUMN_NAME as columnName,
-          NON_UNIQUE as nonUnique,
-          SEQ_IN_INDEX as seqInIndex,
-          INDEX_TYPE as type,
-          INDEX_COMMENT as comment
-        FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = ?
-        ORDER BY INDEX_NAME, SEQ_IN_INDEX
-      `,
+      const { rows: indexes } = await dbConnection.query(
+        `SELECT i.relname as name, a.attname as "columnName", NOT ix.indisunique as "nonUnique",
+         row_number() OVER (PARTITION BY i.relname ORDER BY array_position(ix.indkey, a.attnum))::int as "seqInIndex",
+         am.amname as type, NULL as comment
+         FROM pg_index ix
+         JOIN pg_class i ON i.oid = ix.indexrelid AND i.relkind = 'i'
+         JOIN pg_class t ON t.oid = ix.indrelid AND t.relname = $1
+         JOIN pg_namespace n ON n.oid = t.relnamespace AND n.nspname = 'public'
+         JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey) AND a.attisdropped = false
+         JOIN pg_am am ON am.oid = i.relam
+         ORDER BY i.relname, "seqInIndex"`,
         [tableName],
       )
 
@@ -478,21 +399,13 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
 
       const tableName = req.params.tableName
 
-      const [constraints] = await dbConnection.execute(
-        `
-        SELECT
-          CONSTRAINT_NAME as name,
-          CONSTRAINT_TYPE as type,
-          COLUMN_NAME as columnName
-        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-        LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-          ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
-          AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
-          AND tc.TABLE_NAME = kcu.TABLE_NAME
-        WHERE tc.TABLE_SCHEMA = DATABASE()
-          AND tc.TABLE_NAME = ?
-        ORDER BY tc.CONSTRAINT_TYPE, tc.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
-      `,
+      const { rows: constraints } = await dbConnection.query(
+        `SELECT tc.constraint_name as name, tc.constraint_type as type, kcu.column_name as "columnName"
+         FROM information_schema.table_constraints tc
+         LEFT JOIN information_schema.key_column_usage kcu
+           ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema AND tc.table_name = kcu.table_name
+         WHERE tc.table_schema = 'public' AND tc.table_name = $1
+         ORDER BY tc.constraint_type, tc.constraint_name, kcu.ordinal_position`,
         [tableName],
       )
 
@@ -518,31 +431,22 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
       const tableName = req.query.tableName // 선택적: 특정 테이블의 관계만 조회
 
       let query = `
-        SELECT
-          kcu.TABLE_NAME as fromTable,
-          kcu.COLUMN_NAME as fromColumn,
-          kcu.REFERENCED_TABLE_NAME as toTable,
-          kcu.REFERENCED_COLUMN_NAME as toColumn,
-          kcu.CONSTRAINT_NAME as constraintName,
-          rc.UPDATE_RULE as updateRule,
-          rc.DELETE_RULE as deleteRule
-        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-        INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-          ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
-          AND kcu.TABLE_SCHEMA = rc.CONSTRAINT_SCHEMA
-        WHERE kcu.TABLE_SCHEMA = DATABASE()
-          AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+        SELECT kcu.table_name as "fromTable", kcu.column_name as "fromColumn",
+          ccu.table_name as "toTable", ccu.column_name as "toColumn",
+          tc.constraint_name as "constraintName", rc.update_rule as "updateRule", rc.delete_rule as "deleteRule"
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name AND tc.table_schema = ccu.table_schema
+        JOIN information_schema.referential_constraints rc ON tc.constraint_name = rc.constraint_name AND tc.table_schema = rc.constraint_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
       `
-
       const params = []
       if (tableName) {
-        query += ` AND (kcu.TABLE_NAME = ? OR kcu.REFERENCED_TABLE_NAME = ?)`
+        query += ` AND (kcu.table_name = $1 OR ccu.table_name = $2)`
         params.push(tableName, tableName)
       }
-
-      query += ` ORDER BY kcu.TABLE_NAME, kcu.COLUMN_NAME`
-
-      const [relationships] = await dbConnection.execute(query, params)
+      query += ` ORDER BY kcu.table_name, kcu.column_name`
+      const { rows: relationships } = await dbConnection.query(query, params)
 
       res.json({
         success: true,
@@ -565,25 +469,17 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
 
       const tableName = req.params.tableName
 
-      const [relationships] = await dbConnection.execute(
-        `
-        SELECT
-          kcu.TABLE_NAME as fromTable,
-          kcu.COLUMN_NAME as fromColumn,
-          kcu.REFERENCED_TABLE_NAME as toTable,
-          kcu.REFERENCED_COLUMN_NAME as toColumn,
-          kcu.CONSTRAINT_NAME as constraintName,
-          rc.UPDATE_RULE as updateRule,
-          rc.DELETE_RULE as deleteRule
-        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-        INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-          ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
-          AND kcu.TABLE_SCHEMA = rc.CONSTRAINT_SCHEMA
-        WHERE kcu.TABLE_SCHEMA = DATABASE()
-          AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
-          AND (kcu.TABLE_NAME = ? OR kcu.REFERENCED_TABLE_NAME = ?)
-        ORDER BY kcu.TABLE_NAME, kcu.COLUMN_NAME
-      `,
+      const { rows: relationships } = await dbConnection.query(
+        `SELECT kcu.table_name as "fromTable", kcu.column_name as "fromColumn",
+         ccu.table_name as "toTable", ccu.column_name as "toColumn",
+         tc.constraint_name as "constraintName", rc.update_rule as "updateRule", rc.delete_rule as "deleteRule"
+         FROM information_schema.table_constraints tc
+         JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+         JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name AND tc.table_schema = ccu.table_schema
+         JOIN information_schema.referential_constraints rc ON tc.constraint_name = rc.constraint_name AND tc.table_schema = rc.constraint_schema
+         WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
+         AND (kcu.table_name = $1 OR ccu.table_name = $2)
+         ORDER BY kcu.table_name, kcu.column_name`,
         [tableName, tableName],
       )
 
@@ -606,40 +502,27 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
       const dbConnection = checkConnection(res)
       if (!dbConnection) return
 
-      // 테이블 목록 조회
-      const [tables] = await dbConnection.execute(`
-        SELECT
-          TABLE_NAME as name,
-          TABLE_TYPE as type,
-          TABLE_ROWS as rowCount,
-          DATA_LENGTH as dataLength,
-          INDEX_LENGTH as indexLength,
-          CREATE_TIME as createTime,
-          UPDATE_TIME as updateTime,
-          TABLE_COMMENT as comment
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_TYPE = 'BASE TABLE'
-        ORDER BY TABLE_NAME
+      const { rows: tables } = await dbConnection.query(`
+        SELECT t.tablename as name, 'BASE TABLE' as type,
+          COALESCE(s.n_live_tup::bigint, 0) as "rowCount",
+          COALESCE(pg_total_relation_size(quote_ident(t.schemaname)||'.'||quote_ident(t.tablename)), 0) as "dataLength",
+          0 as "indexLength", NULL as "createTime", NULL as "updateTime",
+          obj_description((quote_ident(t.schemaname)||'.'||quote_ident(t.tablename))::regclass, 'pg_class') as comment
+        FROM pg_tables t
+        LEFT JOIN pg_stat_user_tables s ON s.schemaname = t.schemaname AND s.relname = t.tablename
+        WHERE t.schemaname = 'public' ORDER BY t.tablename
       `)
 
-      // 외래키 관계 조회
-      const [relationships] = await dbConnection.execute(`
-        SELECT
-          kcu.TABLE_NAME as fromTable,
-          kcu.COLUMN_NAME as fromColumn,
-          kcu.REFERENCED_TABLE_NAME as toTable,
-          kcu.REFERENCED_COLUMN_NAME as toColumn,
-          kcu.CONSTRAINT_NAME as constraintName,
-          rc.UPDATE_RULE as updateRule,
-          rc.DELETE_RULE as deleteRule
-        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-        INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-          ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
-          AND kcu.TABLE_SCHEMA = rc.CONSTRAINT_SCHEMA
-        WHERE kcu.TABLE_SCHEMA = DATABASE()
-          AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
-        ORDER BY kcu.TABLE_NAME, kcu.COLUMN_NAME
+      const { rows: relationships } = await dbConnection.query(`
+        SELECT kcu.table_name as "fromTable", kcu.column_name as "fromColumn",
+          ccu.table_name as "toTable", ccu.column_name as "toColumn",
+          tc.constraint_name as "constraintName", rc.update_rule as "updateRule", rc.delete_rule as "deleteRule"
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name AND tc.table_schema = ccu.table_schema
+        JOIN information_schema.referential_constraints rc ON tc.constraint_name = rc.constraint_name AND tc.table_schema = rc.constraint_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
+        ORDER BY kcu.table_name, kcu.column_name
       `)
 
       res.json({
@@ -664,23 +547,18 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
       const dbConnection = checkConnection(res)
       if (!dbConnection) return
 
-      // 테이블 통계
-      const [tableStats] = await dbConnection.execute(`
-        SELECT
-          COUNT(*) as totalTables,
-          SUM(TABLE_ROWS) as totalRows,
-          SUM(DATA_LENGTH + INDEX_LENGTH) as totalSize
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_TYPE = 'BASE TABLE'
+      const { rows: tableStats } = await dbConnection.query(`
+        SELECT COUNT(*)::bigint as "totalTables",
+          COALESCE(SUM(n_live_tup), 0)::bigint as "totalRows",
+          COALESCE(SUM(pg_total_relation_size((schemaname||'.'||relname)::regclass)), 0)::bigint as "totalSize"
+        FROM pg_stat_user_tables WHERE schemaname = 'public'
       `)
 
-      // 외래키 통계
-      const [fkStats] = await dbConnection.execute(`
-        SELECT COUNT(DISTINCT CONSTRAINT_NAME) as totalForeignKeys
-        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND REFERENCED_TABLE_NAME IS NOT NULL
+      const { rows: fkStats } = await dbConnection.query(`
+        SELECT COUNT(DISTINCT tc.constraint_name)::bigint as "totalForeignKeys"
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.referential_constraints rc ON tc.constraint_name = rc.constraint_name
+        WHERE tc.table_schema = 'public' AND tc.constraint_type = 'FOREIGN KEY'
       `)
 
       res.json({
@@ -699,137 +577,22 @@ export default function createDatabaseSchemaRouter(getDbConnection) {
     }
   })
 
-  // POST /api/db/backup - 데이터베이스 백업
+  // POST /api/db/backup - Postgres: pg_dump 또는 DBeaver 사용 안내
   router.post('/backup', async (req, res) => {
     try {
       const dbConnection = checkConnection(res)
       if (!dbConnection) return
-
-      const { type = 'full', options = {}, tableName = null } = req.body
-
-      // 데이터베이스 이름 가져오기
-      const [dbResult] = await dbConnection.execute('SELECT DATABASE() as dbName')
-      const dbName = dbResult[0]?.dbName
-
-      if (!dbName) {
-        return res.status(500).json({
-          error: '데이터베이스 이름을 가져올 수 없습니다.',
-        })
-      }
-
-      let backupSQL = ''
-
-      // 헤더 추가
-      backupSQL += `-- MySQL Database Backup\n`
-      backupSQL += `-- Database: ${dbName}\n`
-      backupSQL += `-- Generated: ${new Date().toISOString()}\n`
-      backupSQL += `-- Backup Type: ${type}\n`
-      if (tableName) {
-        backupSQL += `-- Table: ${tableName}\n`
-      }
-      backupSQL += `\n`
-      backupSQL += `SET FOREIGN_KEY_CHECKS=0;\n\n`
-
-      // 테이블 목록 가져오기
-      let tables
-      if (tableName) {
-        // 특정 테이블만 백업
-        tables = [{ TABLE_NAME: tableName }]
-      } else {
-        // 전체 데이터베이스 백업
-        ;[tables] = await dbConnection.execute(`
-          SELECT TABLE_NAME
-          FROM INFORMATION_SCHEMA.TABLES
-          WHERE TABLE_SCHEMA = ?
-          ORDER BY TABLE_NAME
-        `, [dbName])
-      }
-
-      for (const table of tables) {
-        const tableName = table.TABLE_NAME
-
-        // DROP TABLE 문 추가
-        if (options.addDropTable) {
-          backupSQL += `DROP TABLE IF EXISTS \`${tableName}\`;\n`
-        }
-
-        // CREATE TABLE 문 가져오기
-        if (type === 'full' || type === 'structure') {
-          const [createResult] = await dbConnection.execute(`SHOW CREATE TABLE \`${tableName}\``)
-          let createTableSQL = createResult[0]['Create Table']
-
-          // IF NOT EXISTS 추가
-          if (options.addIfNotExists && !createTableSQL.includes('IF NOT EXISTS')) {
-            createTableSQL = createTableSQL.replace(/^CREATE TABLE/, 'CREATE TABLE IF NOT EXISTS')
-          }
-
-          backupSQL += `${createTableSQL};\n\n`
-        }
-
-        // 데이터 백업
-        if (type === 'full' || type === 'data') {
-          // LOCK TABLES 추가
-          if (options.addLockTables) {
-            backupSQL += `LOCK TABLES \`${tableName}\` WRITE;\n`
-          }
-
-          // 데이터 가져오기
-          const [rows] = await dbConnection.execute(`SELECT * FROM \`${tableName}\``)
-
-          if (rows.length > 0) {
-            // 컬럼 목록 가져오기
-            const [columns] = await dbConnection.execute(`SHOW COLUMNS FROM \`${tableName}\``)
-            const columnNames = columns.map((col) => `\`${col.Field}\``).join(', ')
-
-            // INSERT 문 생성
-            backupSQL += `INSERT INTO \`${tableName}\` (${columnNames}) VALUES\n`
-
-            const values = rows.map((row) => {
-              const rowValues = columns.map((col) => {
-                const value = row[col.Field]
-                if (value === null) return 'NULL'
-                if (typeof value === 'string') {
-                  // SQL 이스케이프
-                  return `'${value.replace(/'/g, "''").replace(/\\/g, '\\\\')}'`
-                }
-                return value
-              })
-              return `(${rowValues.join(', ')})`
-            })
-
-            // 1000개씩 나누어서 INSERT
-            const chunkSize = 1000
-            for (let i = 0; i < values.length; i += chunkSize) {
-              const chunk = values.slice(i, i + chunkSize)
-              backupSQL += `  ${chunk.join(',\n  ')}${i + chunk.length < values.length ? ',' : ';'}\n`
-            }
-          }
-
-          // UNLOCK TABLES
-          if (options.addLockTables) {
-            backupSQL += `UNLOCK TABLES;\n`
-          }
-
-          backupSQL += `\n`
-        }
-      }
-
-      backupSQL += `SET FOREIGN_KEY_CHECKS=1;\n`
-
-      // 파일로 응답
+      const { rows: r } = await dbConnection.query('SELECT current_database() as db')
+      const dbName = r[0]?.db ?? 'nexa_db'
       const dateStr = new Date().toISOString().split('T')[0]
-      const filename = tableName
-        ? `${dbName}_${tableName}_backup_${dateStr}.sql`
-        : `${dbName}_backup_${dateStr}.sql`
+      const hint = `-- Postgres 백업은 서버에서 pg_dump 또는 DBeaver(Tools → Backup)를 사용하세요.\n`
+        + `-- 예: pg_dump -U postgres -d ${dbName} -F c -f ${dbName}_backup_${dateStr}.dump\n`
       res.setHeader('Content-Type', 'application/sql')
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-      res.send(backupSQL)
+      res.setHeader('Content-Disposition', `attachment; filename="${dbName}_backup_${dateStr}.sql"`)
+      res.send(hint)
     } catch (error) {
-      console.error('[DB Schema] 데이터베이스 백업 실패:', error)
-      res.status(500).json({
-        error: '데이터베이스 백업 실패',
-        message: error.message,
-      })
+      console.error('[DB Schema] 백업 안내 실패:', error)
+      res.status(500).json({ error: '백업 안내 실패', message: error.message })
     }
   })
 

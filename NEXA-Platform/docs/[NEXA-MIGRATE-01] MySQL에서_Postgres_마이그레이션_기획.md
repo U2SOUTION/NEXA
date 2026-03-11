@@ -438,46 +438,44 @@ router.get('/health/ready', async (req, res) => {
 
 ### Phase 1: 인프라 준비
 
-- [ ] **DBeaver** 설치 — MySQL·Postgres 통합 클라이언트. 마이그레이션 전부터 사용 권장
-- [ ] **Postgres + TimescaleDB Docker** 설치 — `timescale/timescaledb:latest-pg16` 이미지 사용
-- [ ] **볼륨 매핑 필수** — 데이터 영속성을 위해 `postgres_data:/var/lib/postgresql/data` 볼륨 매핑 필수
-- [ ] `docker-compose`에 Postgres(TimescaleDB 포함) 서비스 추가. **MySQL 완전 제거** (§2.9)
-- [ ] `PGHOST`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `PGPORT` 환경 변수 정의
-- [ ] `pg` (node-postgres) 패키지 설치
+- [x] **DBeaver** 설치 — MySQL·Postgres 통합 클라이언트. 마이그레이션 전부터 사용 권장 (사용자 백업 완료)
+- [x] **Postgres + TimescaleDB Docker** 설치 — `timescale/timescaledb:latest-pg16` 이미지 사용
+- [x] **볼륨 매핑 필수** — 데이터 영속성을 위해 `postgres_data:/var/lib/postgresql/data` 볼륨 매핑 필수
+- [x] `docker-compose`에 Postgres(TimescaleDB 포함) 서비스 추가. **MySQL 완전 제거** (§2.9) — `docker-compose.yml`, `docker-dev-compose.yml` 반영
+- [x] `PGHOST`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `PGPORT` 환경 변수 정의 (`.env.example` 기준)
+- [x] `pg` (node-postgres) 패키지 설치
 
 ### Phase 2: 연결·설정 전환
 
-- [ ] `server/config/dbConfig.js` → Postgres pool 생성으로 전환
-- [ ] **MYSQL_* 완전 제거**, **PG*** 환경 변수로 전환 (§2.10). `.env`, `.env.example` 수정
-- [ ] `docker-compose.yml`, `docker-dev-compose.yml` 업데이트
+- [x] `server/config/dbConfig.js` → Postgres pool 생성으로 전환
+- [x] **MYSQL_* 완전 제거**, **PG*** 환경 변수로 전환 (§2.10). `.env.example` 수정 완료 (`.env`는 로컬에서 PG* 로 설정)
+- [x] `docker-compose.yml`, `docker-dev-compose.yml` 업데이트
 
 ### Phase 3: 스키마 마이그레이션
 
-- [ ] DB 초기화 시 `CREATE EXTENSION IF NOT EXISTS timescaledb` 실행
-- [ ] **pgvector** 마이그레이션 시점에 설치·활성화: `CREATE EXTENSION IF NOT EXISTS vector` — 인프라만 준비. 기본 DB 검증 후 인프라 구성 확정 (RAG 적용·검증은 별도 Phase, §2.3 pgvector/RAG 시점 참고)
-- [ ] 시계열 테이블(api_usage, audit_log 등)은 **하이퍼테이블**로 변환 (`create_hypertable`) — §6.1 참고
-- [ ] `database/` 내 SQL 파일 + `docs/nexa_db.graphml` 기준으로 Postgres 스키마 작성
-  - [ ] 기존 create_*.sql 변환: part_files, files, file_references, ai_user_memos
-  - [ ] **신규 작성** (§3.1): part_classes, part_models, part_specs, archives, archive_doc, system_templates — DBeaver Generate SQL로 MySQL DDL 추출 후 §4.1 기준 Postgres 문법으로 변환
-- [ ] `database/create_triggers.sql` 실행 — part_files, ai_user_memos, **archives**, **archive_doc**에 updated_at 트리거 적용
-- [ ] 인덱스·FK·CHECK 제약조건 Postgres 문법으로 정리
+- [ ] DB 초기화 시 `CREATE EXTENSION IF NOT EXISTS timescaledb` 실행 — **`database/init_postgres.sql` 작성 완료. DBeaver 또는 psql로 실행 필요**
+- [ ] **pgvector** — `init_postgres.sql` 내 `CREATE EXTENSION vector` 포함. 이미지 미지원 시 해당 라인 주석 처리
+- [ ] 시계열 테이블(api_usage, audit_log 등)은 **하이퍼테이블**로 변환 (`create_hypertable`) — §6.1 참고 (필요 시 추후)
+- [x] `database/init_postgres.sql` — Postgres 스키마 통합 스크립트 작성 완료 (part_classes, part_models, part_specs, system_templates, archives, archive_doc, files, file_references, ai_user_memos, part_files + 트리거)
+- [x] updated_at 트리거 — part_files, ai_user_memos, archives, archive_doc 포함
+- [x] 인덱스·FK·CHECK 제약조건 Postgres 문법으로 정리
 - [ ] (선택) **데이터 이관**: DBeaver·pgloader·스크립트 등 활용 시 §2.5 절차·검증 수행
 
 ### Phase 4: 코드 전환
 
-- [ ] `pool.query` / `pool.execute` 호출부에서 `?` → `$1`, `$2` 플레이스홀더 변환
-- [ ] 영향 파일 (dbConfig `pool` 사용):
+- [x] `pool.query` / `pool.execute` 호출부에서 `?` → `$1`, `$2` 플레이스홀더 변환
+- [x] 영향 파일 (dbConfig `pool` 사용) 전환 완료:
   - **parts**: `parts.service.js`, `partFiles.routes.js`, `partModels.routes.js`, `partSpecs.routes.js`
-  - **archive**: `archive.service.js`, `archive.controller.js`, `archive.routes.js`, `archive.js` (레거시 라우트)
+  - **archive**: `archive.service.js` (controller/routes는 service 사용)
   - **AI/공통**: `aiUserMemos.routes.js`, `files.routes.js`
   - **인프라**: `databaseSchema.js`, `health.routes.js`, `server.js`
-- [ ] `mysql2` 의존성 제거
-- [ ] **스모크 테스트**: §2.7.2 기준 DB 연결·CRUD·archive·files 등 핵심 플로우 검증
+- [x] `mysql2` 의존성 제거
+- [ ] **스모크 테스트**: §2.7.2 기준 DB 연결·CRUD·archive·files 등 핵심 플로우 검증 (로컬에서 Postgres 기동 후 수행)
 
 ### Phase 5: DB 스키마/뷰어 도구
 
 - [ ] **DBeaver** — Postgres 연결·스키마·쿼리·데이터 조회·편집 (표준 도구로 사용)
-- [ ] `databaseSchema.js`: **전면 전환** (§4.4.1). execute→query, INFORMATION_SCHEMA→pg용 쿼리, backup/ tables 생성 로직 재작성. **API 응답 구조 변경 가능** — 응답 필드명·중첩 구조 검토
+- [x] `databaseSchema.js`: **전면 전환** 완료. execute→query, INFORMATION_SCHEMA→pg/information_schema·pg_catalog 쿼리, backup은 pg_dump 안내 응답
 - [ ] **프론트엔드 연동 테스트 집중**: DatabaseViewer.vue, DatabaseViewerHeader.vue 등 `/api/db` 소비 컴포넌트 — 테이블 목록·컬럼·인덱스·쿼리 실행·백업 등 전체 플로우 검증
 - [ ] `DatabaseViewerHeader.vue`: "MySQL" → "Postgres" 표시 수정
 - [ ] UI·문서 내 **MySQL Workbench** 언급 → **DBeaver**로 수정 (PartClassesView, PartFilesView, PartSpecsView 등)

@@ -1,26 +1,46 @@
-# NEXA 플랫폼 배포 매뉴얼 (이 파일은 새로 도커 이미지를 NAS에 배포하는 명령어 파일)
-# ------------------------------------------
-# 0. .env 파일 생성: 루트의 .env.example 참고해 MYSQL_*, CLOUDFLARE_TUNNEL_TOKEN 등 설정
-# 1. 폴더이동: cd /mnt/web_data/nexa-platform  (docker-compose.yml 파일이 있는 폴더로 이동)
-# 2. 이미지 로드: docker load -i nexa-platform.tar
-# 3. NAS에서 실행: docker compose up -d (같은 폴더의 .env 자동 로드)
-# 4. 중지: docker compose down
-# 5. 로그 확인: docker compose logs -f
+# NEXA 플랫폼 배포 (Postgres 마이그레이션 후)
+# 0. .env: PGUSER, PGPASSWORD, PGDATABASE, CLOUDFLARE_TUNNEL_TOKEN 등 설정
+# 1. cd /mnt/web_data/nexa-platform
+# 2. docker load -i nexa-platform.tar
+# 3. docker compose up -d
 # ==========================================
 
 services:
-  nexa-web:
-    image: nexa-platform:latest # 도커 이미지 이름 (Dockerfile에서 빌드한 이미지)
-    container_name: nexa-web # 컨테이너 이름 (Dockerfile에서 빌드한 이미지)
+  postgres:
+    container_name: nexa-postgres
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_DB: ${PGDATABASE:-nexa_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - '8080:3000' # 외부(NAS) 8080포트를 컨테이너 내부 3000포트로 포트 포워딩
-    environment: # .env에서 주입 (비밀 등 하드코딩 금지)
-      - MYSQL_HOST=${MYSQL_HOST}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_PORT=${MYSQL_PORT}
-    restart: always # NAS 재부팅 시 자동 실행
+      - "${PGPORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-nexa_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nexa-web:
+    image: nexa-platform:latest
+    container_name: nexa-web
+    ports:
+      - '8080:3000'
+    environment:
+      - PGHOST=postgres
+      - PGUSER=${PGUSER}
+      - PGPASSWORD=${PGPASSWORD}
+      - PGDATABASE=${PGDATABASE:-nexa_db}
+      - PGPORT=5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  postgres_data:
 
   tunnel:
     container_name: cloudflared-tunnel

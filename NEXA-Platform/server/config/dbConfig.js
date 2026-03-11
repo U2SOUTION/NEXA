@@ -1,24 +1,22 @@
-import mysql from 'mysql2/promise'
+/**
+ * Postgres 연결 설정 (마이그레이션 후)
+ * @see [NEXA-MIGRATE-01] §2.10, §7
+ */
+import pg from 'pg'
 
-// 단일 DB 설정을 공유하여 도메인별 서비스에서 재사용
-// - 비밀번호 통일(개발 MySQL / NAS MariaDB 둘 다 통일 하면 관리 편의
-// - NAS에서는 MYSQL_HOST 등만 환경 변수로 넘기면 됨
+const { Pool } = pg
+
 export const dbConfig = {
-  host: process.env.MYSQL_HOST || 'localhost',
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  port: parseInt(process.env.MYSQL_PORT || '3306', 10),
-  charset: 'utf8mb4',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  host: process.env.PGHOST || process.env.POSTGRES_HOST || 'localhost',
+  user: process.env.PGUSER || process.env.POSTGRES_USER || 'postgres',
+  password: process.env.PGPASSWORD || process.env.POSTGRES_PASSWORD,
+  database: process.env.PGDATABASE || process.env.POSTGRES_DATABASE || 'nexa_db',
+  port: parseInt(process.env.PGPORT || process.env.POSTGRES_PORT || '5432', 10),
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 }
 
-// 공용 풀
-export const pool = mysql.createPool(dbConfig)
+export const pool = new Pool(dbConfig)
 
-export default {
-  pool,
-  dbConfig,
-}
+export default { pool, dbConfig }

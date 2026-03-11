@@ -25,7 +25,7 @@ function toMemo(row) {
 /** GET /api/ai-user-memos - 목록 조회 */
 router.get('/ai-user-memos', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
+    const { rows } = await pool.query(
       `SELECT id, content, source, channel_id, chat_id, sort_order, created_at, updated_at
        FROM ai_user_memos
        ORDER BY sort_order ASC, created_at DESC`,
@@ -46,14 +46,15 @@ router.post('/ai-user-memos', async (req, res) => {
     if (!trimmed) {
       return res.status(400).json({ error: 'content가 필요합니다.' })
     }
-    const [result] = await pool.execute(
+    const { rows: insertRows } = await pool.query(
       `INSERT INTO ai_user_memos (content, source, channel_id, chat_id, sort_order)
-       VALUES (?, ?, ?, ?, 0)`,
+       VALUES ($1, $2, $3, $4, 0) RETURNING id`,
       [trimmed, source, channel_id || null, chat_id || null],
     )
-    const [rows] = await pool.execute(
-      'SELECT id, content, source, channel_id, chat_id, sort_order, created_at, updated_at FROM ai_user_memos WHERE id = ?',
-      [result.insertId],
+    const newId = insertRows[0]?.id
+    const { rows } = await pool.query(
+      'SELECT id, content, source, channel_id, chat_id, sort_order, created_at, updated_at FROM ai_user_memos WHERE id = $1',
+      [newId],
     )
     const item = rows[0] ? toMemo(rows[0]) : null
     res.status(201).json(item)
@@ -71,23 +72,24 @@ router.patch('/ai-user-memos/:id', async (req, res) => {
     const { content, sort_order } = req.body
     const updates = []
     const params = []
+    let pos = 1
     if (typeof content === 'string') {
       const trimmed = content.trim()
-      updates.push('content = ?')
+      updates.push(`content = $${pos++}`)
       params.push(trimmed)
     }
     if (typeof sort_order === 'number') {
-      updates.push('sort_order = ?')
+      updates.push(`sort_order = $${pos++}`)
       params.push(sort_order)
     }
     if (updates.length === 0) return res.status(400).json({ error: '수정할 필드가 없습니다.' })
     params.push(id)
-    await pool.execute(
-      `UPDATE ai_user_memos SET ${updates.join(', ')} WHERE id = ?`,
+    await pool.query(
+      `UPDATE ai_user_memos SET ${updates.join(', ')} WHERE id = $${pos}`,
       params,
     )
-    const [rows] = await pool.execute(
-      'SELECT id, content, source, channel_id, chat_id, sort_order, created_at, updated_at FROM ai_user_memos WHERE id = ?',
+    const { rows } = await pool.query(
+      'SELECT id, content, source, channel_id, chat_id, sort_order, created_at, updated_at FROM ai_user_memos WHERE id = $1',
       [id],
     )
     const item = rows[0] ? toMemo(rows[0]) : null
@@ -103,8 +105,8 @@ router.delete('/ai-user-memos/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10)
     if (isNaN(id)) return res.status(400).json({ error: '올바른 id가 필요합니다.' })
-    const [result] = await pool.execute('DELETE FROM ai_user_memos WHERE id = ?', [id])
-    if (result.affectedRows === 0) return res.status(404).json({ error: '메모를 찾을 수 없습니다.' })
+    const result = await pool.query('DELETE FROM ai_user_memos WHERE id = $1', [id])
+    if (result.rowCount === 0) return res.status(404).json({ error: '메모를 찾을 수 없습니다.' })
     res.json({ ok: true })
   } catch (err) {
     console.error('[ai-user-memos] delete', err)
@@ -120,7 +122,7 @@ router.patch('/ai-user-memos/:id/move', async (req, res) => {
     if (isNaN(id) || !['up', 'down'].includes(direction)) {
       return res.status(400).json({ error: 'id와 direction(up|down)이 필요합니다.' })
     }
-    const [rows] = await pool.execute(
+    const { rows } = await pool.query(
       'SELECT id, sort_order FROM ai_user_memos ORDER BY sort_order ASC, created_at DESC',
     )
     const idx = rows.findIndex((r) => r.id === id)
@@ -130,8 +132,8 @@ router.patch('/ai-user-memos/:id/move', async (req, res) => {
       return res.status(400).json({ error: '더 이상 이동할 수 없습니다.' })
     }
     const [a, b] = [rows[idx], rows[swapIdx]]
-    await pool.execute('UPDATE ai_user_memos SET sort_order = ? WHERE id = ?', [b.sort_order, a.id])
-    await pool.execute('UPDATE ai_user_memos SET sort_order = ? WHERE id = ?', [a.sort_order, b.id])
+    await pool.query('UPDATE ai_user_memos SET sort_order = $1 WHERE id = $2', [b.sort_order, a.id])
+    await pool.query('UPDATE ai_user_memos SET sort_order = $1 WHERE id = $2', [a.sort_order, b.id])
     res.json({ ok: true })
   } catch (err) {
     console.error('[ai-user-memos] move', err)

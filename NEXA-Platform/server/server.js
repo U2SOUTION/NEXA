@@ -73,9 +73,7 @@ app.get('/api/package-json', async (req, res) => {
 async function connectDB() {
   try {
     console.log('[DB] 데이터베이스 연결 시도 중...')
-    const conn = await pool.getConnection()
-    await conn.query('SELECT 1')
-    conn.release()
+    await pool.query('SELECT 1')
     console.log('[DB] 데이터베이스 연결 성공:', dbConfig.database)
   } catch (error) {
     console.error('[DB] 데이터베이스 연결 실패:', error.message)
