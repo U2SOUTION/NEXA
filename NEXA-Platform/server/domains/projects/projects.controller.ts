@@ -2,8 +2,8 @@
  * 프로젝트 API 컨트롤러 [NEXA-AUTH-01] §2.2 3단계
  */
 import type { RequestLike, ResponseLike } from '../../types/request-response.js'
-import { createProjectSchema, updateProjectSchema } from '../../../src/system/schemas/projects.js'
-import { ApiErrorCode } from '../../../src/system/schemas/errors.js'
+import { createProjectSchema, updateProjectSchema } from '@system/schemas/projects.js'
+import { ApiErrorCode } from '@system/schemas/errors.js'
 import type { ProjectResponse } from './project.types.js'
 import * as projectsService from './projects.service.js'
 

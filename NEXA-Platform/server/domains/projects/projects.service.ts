@@ -2,7 +2,7 @@
  * 프로젝트 서비스 [NEXA-AUTH-01] §2.2 3단계
  * projects 테이블 CRUD, user_id 소유자 기준
  */
-import type { UserId, ProjectId } from '@system/types/ids'
+import type { UserId, ProjectId } from '@system/types/ids.js'
 import type { CreateProjectPayload, UpdateProjectPayload } from './project.types.js'
 import { pool } from '../../config/dbConfig.js'
 import { generateUuidV7 } from '../../config/uuidUtils.js'

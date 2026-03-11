@@ -23,6 +23,14 @@
     "esm": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.vue", "src/tests/**/*.spec.ts"],
-  "exclude": ["node_modules", "dist", ".quasar", "src/**/ExplorerPreview.vue"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.js",
+    "src/**/*.vue",
+    "src/tests/**/*.spec.ts",
+    "server/**/*.ts",
+    "server/**/*.js"
+  ],
+  "exclude": ["node_modules", "dist", ".quasar", "src/**/ExplorerPreview.vue", "server/node_modules"]
 }

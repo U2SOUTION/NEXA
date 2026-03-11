@@ -3,7 +3,7 @@
  * UUID, Timestamp, AuthUser, Device·Project 응답용 인터페이스.
  * Branded ID는 @system/types/ids 사용.
  */
-import type { UserId, ProjectId, DeviceId } from '@system/types/ids'
+import type { UserId, ProjectId, DeviceId } from '@system/types/ids.js'
 
 /** UUID 문자열 (DB id 컬럼 등) */
 export type UUID = string

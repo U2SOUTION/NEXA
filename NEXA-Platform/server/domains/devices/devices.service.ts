@@ -2,7 +2,7 @@
  * 디바이스 서비스 [NEXA-AUTH-01] §4.2, §5.2
  * device_registry, device_members CRUD, 캐시 무효화
  */
-import type { UserId, DeviceId } from '@system/types/ids'
+import type { UserId, DeviceId } from '@system/types/ids.js'
 import type { CreateDevicePayload, UpdateDevicePayload, UpdateDeviceLastSeenPayload } from './device.types.js'
 import { pool } from '../../config/dbConfig.js'
 import { generateUuidV7 } from '../../config/uuidUtils.js'

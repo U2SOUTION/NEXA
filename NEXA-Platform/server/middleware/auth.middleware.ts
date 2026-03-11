@@ -2,8 +2,8 @@
  * JWT 인증 미들웨어 [NEXA-AUTH-01] §5.3
  * Bearer access_token 검증 → req.user 설정. 없거나 실패 시 X-Device-Token 시도.
  */
-import { ApiErrorCode } from '@system/schemas/errors'
-import { toUserId } from '@system/types/ids'
+import { ApiErrorCode } from '@system/schemas/errors.js'
+import { toUserId } from '@system/types/ids.js'
 import type { AuthUser } from '../types/common.js'
 import { verifyAccess } from '../utils/jwtAuth.js'
 import { pool } from '../config/dbConfig.js'
