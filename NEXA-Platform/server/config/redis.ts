@@ -9,8 +9,8 @@ interface RedisClientLike {
   setex(key: string, sec: number, val: string): Promise<string>
   del(key: string): Promise<number>
 }
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const RedisConstructor = require('ioredis') as new (url: string, opts?: object) => RedisClientLike
+import Redis from 'ioredis'
+const RedisConstructor = Redis as unknown as new (url: string, opts?: object) => RedisClientLike
 
 const REDIS_URL =
   process.env.REDIS_URL ||

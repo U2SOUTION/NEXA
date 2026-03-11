@@ -4,5 +4,5 @@
     "strict": true,
     "noImplicitAny": true
   },
-  "exclude": ["server.ts", "node_modules", "dist"]
+  "exclude": ["node_modules", "dist"]
 }

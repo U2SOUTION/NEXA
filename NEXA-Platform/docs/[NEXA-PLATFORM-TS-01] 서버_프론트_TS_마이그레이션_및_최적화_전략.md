@@ -500,21 +500,26 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 
 **npm run typecheck:strict** (`server/tsconfig.strict.json`)로 strict 모드 검증.
 
-### 9.1 완료 (2025-03)
+### 9.1 server.ts 제외 정책
 
-- **config/**: documentConfig (DocsFolderEntry, err: unknown, 파라미터 타입), redis (RedisClientLike, retryStrategy, catch err), fileTypes (FileTypeKey, 인덱스 단언), upload (targetPath: string)
-- **domains/ai/**: ai.routes (textStream 타입, catch err: unknown), ai.service (toSdkMessages 파라미터, model/messages 캐스팅)
-- **domains/archive/**: archive.service (파라미터 타입), archive.controller (RequestLike, ResponseLike, body as Record)
-- **domains/devices/**: devices.service (RedisClientLike 타입, invalidateDeviceCache/setDeviceCache/getDeviceFromCache 파라미터, catch err: unknown), devices.controller (req.params?.id)
-- **utils/errUtils.ts**: `errMessage(e: unknown)` 헬퍼 (strict catch 처리용)
+- **현재**: `tsconfig.strict.json` exclude에 `server.ts` 포함. `moduleResolution: NodeNext` + `@types/express` 조합에서 `express` 기본 export의 call signature, `.json`, `.urlencoded`, `.static` 프로퍼티 타입 불일치로 인한 오류가 발생하므로, strict 검증 대상에서 임시 제외.
+- **추후**: NodeNext/express 타입 정리 완료 후 exclude에서 제거하여 strict 대상에 다시 포함할 수 있음.
 
-### 9.2 남은 작업 (점진적 진행)
+### 9.2 완료 (2025-03)
 
-- **domains/parts/**: parts.controller (req, res 타입), parts.service (id, payload, ids 등 파라미터, rowCount), partFiles/partModels/partSpecs.routes (catch error: unknown, domain 파라미터)
-- **domains/projects/**: projects.controller (req.params?.id), projects.service (rowCount)
-- **middleware/**: auth.middleware (path, req, res, next, user_id), deviceAuth.middleware (row)
+- **config/**: documentConfig, redis, fileTypes, upload (타입, err: unknown, 파라미터)
+- **domains/**: ai, archive, devices, parts, projects (RequestLike/ResponseLike, RedisClientLike, rowCount, payload 타입 등)
+- **middleware/**: auth.middleware, deviceAuth.middleware
+- **routes/**: archive, auth, aiUserMemos, databaseSchema, documentFiles, devOnlyFileEditor, files (body-parser, errMessage, catch unknown, row 타입 등)
+- **utils/**: errUtils, fileUpload, initUploadFolder, jwtAuth, skuGenerator
+- **types/**: request-response.js import 경로, module-stubs (body-parser, json-schema, mime, multer, range-parser, send, serve-static, string_decoder, uuid)
+- **partFiles.routes**: tempRelativePath null 체크, multer diskStorage 콜백 타입
 
-패턴: `catch (err: unknown)` → `errMessage(err)` 또는 `(err as Error).message`, `req`/`res` → `RequestLike`/`ResponseLike`
+### 9.3 남은 작업 (점진적 진행)
+
+- **server.ts**: NodeNext/express 타입 이슈 해결 후 strict 대상 재포함. (express callable, .json/.urlencoded/.static, req/res/next, error unknown 처리)
+
+패턴: `catch (err: unknown)` → `errMessage(err)`, `req`/`res` → `RequestLike`/`ResponseLike`, `row` → `Record<string, unknown>` 또는 인터페이스 단언
 
 ---
 

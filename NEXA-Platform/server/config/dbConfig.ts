@@ -15,8 +15,8 @@ interface ClientLike {
   query<T = Record<string, unknown>>(text: string, values?: unknown[]): Promise<QueryResult<T>>
   release(): void
 }
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { Pool } = require('pg') as { Pool: new (config?: object) => PoolLike }
+import pg from 'pg'
+const { Pool } = pg as unknown as { Pool: new (config?: object) => PoolLike }
 
 export const dbConfig = {
   host: process.env.PGHOST || process.env.POSTGRES_HOST || 'localhost',

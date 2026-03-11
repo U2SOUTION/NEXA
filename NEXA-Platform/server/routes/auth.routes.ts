@@ -4,8 +4,7 @@
  */
 import { Router } from 'express'
 import type { ResponseLike } from '@/types/request-response.js'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const bcrypt = require('bcryptjs') as { hash: (s: string, n: number) => Promise<string>; compare: (s: string, h: string) => Promise<boolean> }
+import bcrypt from 'bcryptjs'
 import type { ZodError } from 'zod'
 import { registerSchema, loginSchema, refreshSchema, logoutSchema } from '@system/schemas/auth.js'
 import { ApiErrorCode } from '@system/schemas/errors.js'
