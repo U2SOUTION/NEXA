@@ -10,7 +10,7 @@
  * @param {Object} stateMap - 상태 맵핑 객체
  * @returns {Object} 파싱된 상태 객체
  */
-export function parseURLState(_query, _stateMap) {
+export function parseURLState(_query: Record<string, unknown>, _stateMap: Record<string, unknown>): Record<string, unknown> {
   void _query
   void _stateMap
   // TODO: 쿼리 파라미터 파싱 로직 구현
@@ -25,7 +25,7 @@ export function parseURLState(_query, _stateMap) {
  * @param {string} type - 타입 ('string' | 'number' | 'boolean' | 'array')
  * @returns {unknown} 파싱된 값
  */
-export function parseURLParam(value, _type = 'string') {
+export function parseURLParam(value: unknown, _type = 'string'): unknown {
   void _type
   // TODO: 타입별 파싱 로직 구현
   return value

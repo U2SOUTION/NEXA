@@ -3,13 +3,7 @@
  * 내보내기 시 데이터를 형식에 맞게 변환
  */
 
-/**
- * 날짜 형식 변환
- * @param {Date|string} date - 날짜 값
- * @param {string} format - 'iso' | 'local' | 'excel'
- * @returns {string} 포맷팅된 날짜 문자열
- */
-export function formatDate(date, format = 'iso') {
+export function formatDate(date: Date | string | null | undefined, format: 'iso' | 'local' | 'excel' = 'iso'): string {
   if (!date) return ''
 
   const dateObj = date instanceof Date ? date : new Date(date)
@@ -41,13 +35,13 @@ export function formatDate(date, format = 'iso') {
  * @param {Object} options - { useThousandSeparator: boolean, decimalPlaces: number }
  * @returns {string} 포맷팅된 숫자 문자열
  */
-export function formatNumber(value, options = {}) {
+export function formatNumber(value: number | string | null | undefined, options: { useThousandSeparator?: boolean; decimalPlaces?: number } = {}): string {
   if (value === null || value === undefined || value === '') {
     return ''
   }
 
   const num = typeof value === 'string' ? parseFloat(value) : value
-  if (isNaN(num)) return String(value || '')
+  if (isNaN(num)) return String(value ?? '')
 
   const { useThousandSeparator = true, decimalPlaces = 2 } = options
 
@@ -68,7 +62,7 @@ export function formatNumber(value, options = {}) {
  * @param {string} nullValue - 'empty' | 'na' | 'dash'
  * @returns {string} 처리된 값
  */
-export function formatNullValue(value, nullValue = 'empty') {
+export function formatNullValue(value: unknown, nullValue: 'empty' | 'na' | 'dash' = 'empty'): string {
   if (value === null || value === undefined || value === '') {
     switch (nullValue) {
       case 'na':
@@ -88,22 +82,17 @@ export function formatNullValue(value, nullValue = 'empty') {
  * @param {string} html - HTML 문자열
  * @returns {string} 태그가 제거된 텍스트
  */
-export function removeHtmlTags(html) {
+export function removeHtmlTags(html: string | null | undefined): string {
   if (!html || typeof html !== 'string') return ''
   const tmp = document.createElement('div')
   tmp.innerHTML = html
   return tmp.textContent || tmp.innerText || ''
 }
 
-/**
- * 데이터 행 포맷팅
- * @param {Object} row - 원본 데이터 행
- * @param {Array<string>} columns - 선택된 열 이름 배열
- * @param {Object} formattingOptions - 포맷팅 옵션
- * @returns {Object} 포맷팅된 데이터 행
- */
-export function formatDataRow(row, columns, formattingOptions = {}) {
-  const formatted = {}
+import type { FormattingOptions } from './exportTypes'
+
+export function formatDataRow(row: Record<string, unknown>, columns: string[], formattingOptions: FormattingOptions = {}): Record<string, string> {
+  const formatted: Record<string, string> = {}
   const {
     dateFormat = 'iso',
     numberFormat = { useThousandSeparator: true, decimalPlaces: 2 },
@@ -111,8 +100,8 @@ export function formatDataRow(row, columns, formattingOptions = {}) {
     removeHtmlTags: shouldRemoveHtmlTags = false,
   } = formattingOptions
 
-  columns.forEach((colName) => {
-    let value = row[colName]
+  columns.forEach((colName: string) => {
+    let value: unknown = row[colName]
 
     // NULL 처리
     if (value === null || value === undefined || value === '') {
@@ -129,14 +118,13 @@ export function formatDataRow(row, columns, formattingOptions = {}) {
     if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
       const dateValue = new Date(value)
       if (!isNaN(dateValue.getTime())) {
-        formatted[colName] = formatDate(dateValue, dateFormat)
+        formatted[colName] = formatDate(dateValue, (dateFormat as 'local' | 'iso' | 'excel') || 'iso')
         return
       }
     }
 
-    // 숫자 형식 변환 (숫자로 보이는 값만)
-    if (typeof value === 'number' || (!isNaN(parseFloat(value)) && isFinite(value))) {
-      formatted[colName] = formatNumber(parseFloat(value), numberFormat)
+    if (typeof value === 'number' || (typeof value === 'string' && !isNaN(parseFloat(value)) && isFinite(parseFloat(value)))) {
+      formatted[colName] = formatNumber(typeof value === 'number' ? value : parseFloat(value as string), numberFormat)
       return
     }
 
@@ -147,15 +135,8 @@ export function formatDataRow(row, columns, formattingOptions = {}) {
   return formatted
 }
 
-/**
- * 데이터 배열 포맷팅
- * @param {Array<Object>} data - 원본 데이터 배열
- * @param {Array<string>} columns - 선택된 열 이름 배열
- * @param {Object} formattingOptions - 포맷팅 옵션
- * @returns {Array<Object>} 포맷팅된 데이터 배열
- */
-export function formatDataArray(data, columns, formattingOptions = {}) {
+export function formatDataArray(data: Record<string, unknown>[], columns: string[], formattingOptions: FormattingOptions = {}): Record<string, string>[] {
   if (!Array.isArray(data)) return []
-  return data.map((row) => formatDataRow(row, columns, formattingOptions))
+  return data.map((row: Record<string, unknown>) => formatDataRow(row, columns, formattingOptions))
 }
 

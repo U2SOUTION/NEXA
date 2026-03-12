@@ -1,3 +1,22 @@
+/** 노드 타입 (path, id, name 등) */
+interface GraphNode {
+  id?: string
+  path?: string
+  name?: string
+  type?: string
+}
+
+/** 필터 옵션 */
+export interface DependencyFilterOptions {
+  includeNpmPackages?: boolean
+  npmPackagePatterns?: string[]
+  excludedPaths?: string[]
+  includedFileTypes?: string[]
+  excludedFileTypes?: string[]
+  maxDepth?: number
+  customFilter?: ((node: GraphNode) => boolean) | null
+}
+
 /**
  * GraphDoc 의존성 그래프 분석기
  * 파일 경로나 디렉토리 경로를 기반으로 실제 파일 의존성을 분석
@@ -15,7 +34,17 @@
 /**
  * 기본 필터 옵션
  */
-const DEFAULT_FILTER_OPTIONS = {
+interface ResolvedFilterOptions {
+  includeNpmPackages: boolean
+  npmPackagePatterns: string[]
+  excludedPaths: string[]
+  includedFileTypes: string[]
+  excludedFileTypes: string[]
+  maxDepth: number
+  customFilter: ((node: GraphNode) => boolean) | null
+}
+
+const DEFAULT_FILTER_OPTIONS: ResolvedFilterOptions = {
   includeNpmPackages: false,
   npmPackagePatterns: [],
   excludedPaths: [],
@@ -30,7 +59,7 @@ const DEFAULT_FILTER_OPTIONS = {
  * @param {string} importPath - import 경로
  * @returns {boolean} npm 패키지 여부
  */
-function isNpmPackage(importPath) {
+function isNpmPackage(importPath: string): boolean {
   if (!importPath || typeof importPath !== 'string') return false
 
   // @로 시작하는 scoped 패키지 (단, @/는 경로 별칭이므로 제외)
@@ -52,10 +81,10 @@ function isNpmPackage(importPath) {
  * @param {string[]} patterns - 패턴 배열
  * @returns {boolean} 일치 여부
  */
-function matchesPattern(path, patterns) {
+function matchesPattern(path: string, patterns: string[]): boolean {
   if (!patterns || patterns.length === 0) return false
 
-  return patterns.some((pattern) => {
+  return patterns.some((pattern: string) => {
     // 간단한 glob 패턴 지원 (*, **)
     const regex = new RegExp('^' + pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*') + '$')
     return regex.test(path)
@@ -67,7 +96,7 @@ function matchesPattern(path, patterns) {
  * @param {string} path - 파일 경로
  * @returns {string|null} 파일 타입 (예: 'vue', 'js')
  */
-function extractFileType(path) {
+function extractFileType(path: string): string | null {
   if (!path) return null
   const match = path.match(/\.([^.]+)$/)
   return match ? match[1].toLowerCase() : null
@@ -78,15 +107,15 @@ function extractFileType(path) {
  * @param {DependencyFilterOptions} options - 필터 옵션
  * @returns {Object} 필터 함수 객체
  */
-function createDependencyFilter(options = {}) {
-  const opts = { ...DEFAULT_FILTER_OPTIONS, ...options }
+function createDependencyFilter(options: DependencyFilterOptions = {}) {
+  const opts: ResolvedFilterOptions = { ...DEFAULT_FILTER_OPTIONS, ...options }
 
   /**
    * import 경로 필터
    * @param {string} importPath - import 경로
    * @returns {boolean} 포함 여부
    */
-  function shouldIncludeImport(importPath) {
+  function shouldIncludeImport(importPath: string): boolean {
     if (!importPath) return false
 
     // npm 패키지 처리
@@ -116,7 +145,7 @@ function createDependencyFilter(options = {}) {
    * @param {Object} node - 노드 객체
    * @returns {boolean} 포함 여부
    */
-  function shouldIncludeNode(node) {
+  function shouldIncludeNode(node: GraphNode): boolean {
     const path = node.path || node.id || node.name
     if (!path) return false
 
@@ -175,7 +204,7 @@ function createDependencyFilter(options = {}) {
  * @param {Function} importFilter - import 필터 함수 (optional)
  * @returns {Array<string>} import 경로 배열
  */
-function extractImports(content, importFilter = null) {
+function extractImports(content: string, importFilter: ((path: string) => boolean) | null = null): string[] {
   const imports = []
 
   // 정규식 패턴들
@@ -222,7 +251,7 @@ function extractImports(content, importFilter = null) {
  * @param {Function} importFilter - import 필터 함수 (optional)
  * @returns {string|null} 절대 경로 (예: 'src/components/ui/BaseModal.vue') 또는 null (필터링된 경우)
  */
-function resolveImportPath(importPath, basePath, importFilter = null) {
+function resolveImportPath(importPath: string, basePath: string, importFilter: ((path: string) => boolean) | null = null): string | null {
   // 필터 사용 (제공된 경우)
   if (importFilter && typeof importFilter === 'function') {
     if (!importFilter(importPath)) {
@@ -287,7 +316,7 @@ function resolveImportPath(importPath, basePath, importFilter = null) {
  * @param {string} path - 파일 경로 (예: 'src/pages/DevelopmentPage.vue')
  * @returns {Promise<string>} 파일 내용
  */
-async function readFile(path) {
+async function readFile(path: string): Promise<string> {
   try {
     // 경로 정규화: 'src/pages/DevelopmentPage.vue' → '/src/pages/DevelopmentPage.vue?raw'
     const fullPath = path.startsWith('src/') ? `/${path}?raw` : `/src/${path}?raw`
@@ -302,7 +331,7 @@ async function readFile(path) {
 
     console.warn(`[DependencyGraphAnalyzer] 파일 읽기 실패 (개발 모드에서만 지원): ${path}`)
     return ''
-  } catch (error) {
+  } catch (error: unknown) {
     console.warn(`[DependencyGraphAnalyzer] 파일 읽기 실패: ${path}`, error)
     return ''
   }
@@ -314,7 +343,7 @@ async function readFile(path) {
  * @param {string} fileType - 파일 타입 (vue, js, ts)
  * @returns {string|null} 첫 번째 주석 내용 또는 null
  */
-function extractFirstComment(content, fileType) {
+function extractFirstComment(content: string, fileType: string): string | null {
   if (!content) return null
 
   let scriptContent = content
@@ -384,7 +413,7 @@ function extractFirstComment(content, fileType) {
  * @param {string} path - 파일 경로
  * @returns {string} 파일 타입 (vue, js, ts, scss, css, json, md 등)
  */
-function getFileType(path) {
+function getFileType(path: string): string {
   const ext = path.split('.').pop()?.toLowerCase()
   return ext || 'unknown'
 }
@@ -394,7 +423,7 @@ function getFileType(path) {
  * @param {string} path - 파일 경로
  * @returns {string} 파일명
  */
-function getFileName(path) {
+function getFileName(path: string): string {
   return path.split('/').pop() || path
 }
 
@@ -403,8 +432,8 @@ function getFileName(path) {
  * @param {string} routePath - 라우트 경로 (예: '/dev', '/portfolio')
  * @returns {string|null} 파일 경로 또는 null
  */
-function mapRouteToFile(routePath) {
-  const routeMap = {
+function mapRouteToFile(routePath: string): string | null {
+  const routeMap: Record<string, string> = {
     '/dev': 'src/pages/DevelopmentPage.vue',
     '/portfolio': 'src/pages/PortfolioPage.vue',
     '/erp': 'src/pages/NexaErpPage.vue',
@@ -429,7 +458,7 @@ function mapRouteToFile(routePath) {
  * @param {string} path - 경로 문자열
  * @returns {string} 정제된 경로
  */
-function cleanPath(path) {
+function cleanPath(path: string): string {
   // 쿼리 파라미터 제거: /parts-management?mode=physical → /parts-management
   // 해시 제거: /parts-management#section → /parts-management
   return path.split('?')[0].split('#')[0].trim()
@@ -440,7 +469,7 @@ function cleanPath(path) {
  * @param {string} target - 분석 대상 (예: '/dev', '/portfolio', 'src/pages/DevelopmentPage.vue', '/parts-management?mode=physical')
  * @returns {Promise<Array<string>>} 파일 경로 배열
  */
-async function findTargetFiles(target) {
+async function findTargetFiles(target: string): Promise<string[]> {
   const files = []
   // 쿼리 파라미터와 해시 제거
   const cleanedTarget = cleanPath(target)
@@ -515,7 +544,7 @@ async function findTargetFiles(target) {
  * @param {DependencyFilterOptions} filterOptions - 필터 옵션
  * @returns {Promise<Object>} 그래프 데이터 { nodes: [], edges: [] }
  */
-export async function analyzeDependencyGraph(target, filterOptions = {}) {
+export async function analyzeDependencyGraph(target: string, filterOptions: DependencyFilterOptions = {}) {
   // 필터 생성
   const filter = createDependencyFilter(filterOptions)
   const { maxDepth } = filter.options
@@ -533,8 +562,8 @@ export async function analyzeDependencyGraph(target, filterOptions = {}) {
     return { nodes: [], edges: [] }
   }
 
-  const nodes = []
-  const edges = []
+  const nodes: Array<{ id: string; name: string; path: string; type: string }> = []
+  const edges: Array<{ from: string; to: string; label: string }> = []
   const nodeMap = new Map() // path -> node
   const processedFiles = new Set() // 이미 처리한 파일
 
@@ -572,10 +601,10 @@ export async function analyzeDependencyGraph(target, filterOptions = {}) {
         const content = await readFile(filePath)
         if (!content) continue
 
-        const imports = extractImports(content, filter.shouldIncludeImport)
+        const imports = extractImports(content, filter.shouldIncludeImport as (path: string) => boolean)
 
         for (const importPath of imports) {
-          const resolvedPath = resolveImportPath(importPath, filePath, filter.shouldIncludeImport)
+          const resolvedPath = resolveImportPath(importPath, filePath, filter.shouldIncludeImport as (path: string) => boolean)
 
           // 필터에 의해 제외된 경우
           if (!resolvedPath) {
@@ -625,7 +654,7 @@ export async function analyzeDependencyGraph(target, filterOptions = {}) {
             })
           }
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.warn(`[DependencyGraphAnalyzer] 파일 분석 실패: ${filePath}`, error)
       }
     }
@@ -662,7 +691,7 @@ export async function analyzeDependencyGraph(target, filterOptions = {}) {
           console.log('[DependencyGraphAnalyzer] 메인 파일 주석 추출:', mainFileComment.substring(0, 50) + '...')
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.warn('[DependencyGraphAnalyzer] 주석 추출 실패:', error)
     }
   }

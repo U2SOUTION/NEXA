@@ -27,10 +27,21 @@ import { ref, watch, nextTick } from 'vue'
  * @param {import('vue').ComputedRef<Array>} params.filteredClasses - 필터링된 목록
  * @returns {Object} 페이지네이션 제어 함수 및 상태
  */
-export function usePaginationControl({ pagination, filteredClasses }) {
+interface PaginationRef {
+  page: number
+  rowsPerPage: number
+}
+
+export function usePaginationControl({
+  pagination,
+  filteredClasses,
+}: {
+  pagination: { value: PaginationRef }
+  filteredClasses: { value: unknown[] }
+}) {
   // 페이지 이동 제어 플래그 (삭제 시에만 사용, 추가 시에는 즉시 처리)
-  const pendingPageAction = ref(null) // 'keepCurrent' | null
-  const pageActionStartTime = ref(null) // 플래그가 설정된 시간
+  const pendingPageAction = ref<'keepCurrent' | null>(null)
+  const pageActionStartTime = ref<number | null>(null)
 
   /**
    * 계산 완료 핸들러 (리사이즈 시 재계산 완료 후 페이지 조정용)
@@ -38,7 +49,7 @@ export function usePaginationControl({ pagination, filteredClasses }) {
    *
    * @param {number} finalRowsPerPage - 최종 행 수
    */
-  function handleCalculationComplete(finalRowsPerPage) {
+  function handleCalculationComplete(finalRowsPerPage?: number) {
     // 리사이즈로 인한 재계산 완료 시 페이지 범위만 조정
     // (페이지 이동 플래그는 데이터 변경 시에만 사용)
     const totalItems = filteredClasses.value.length

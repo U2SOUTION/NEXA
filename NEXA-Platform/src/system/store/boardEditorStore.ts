@@ -1,23 +1,35 @@
 import { defineStore } from 'pinia'
 
+export interface DrawerNodeInfo {
+  id: string
+  type: string
+  name?: string
+}
+
+export type DrawerSelectionForAdmin =
+  | { id: string; type: string; name: string }
+  | { type: 'root-context' }
+  | null
+
+export interface NodeToExpandInfo {
+  nodeId: string
+  parentId: string | null
+}
+
+export interface BoardEditorState {
+  selectedPotentialParentInDrawer: DrawerNodeInfo | null
+  drawerSelectionForAdmin: DrawerSelectionForAdmin
+  nodeToExpandAndHighlight: NodeToExpandInfo | null
+}
+
 export const useBoardEditorStore = defineStore('boardEditor', {
-  state: () => ({
-    // 드로어에서 선택된 부모가 될 수 있는 노드의 정보
-    // 예: { id: 'some-uuid', type: 'group', name: '선택된 그룹명' } 또는 null
+  state: (): BoardEditorState => ({
     selectedPotentialParentInDrawer: null,
-
-    // BoardAdminPage에서 사용할 드로어 선택 정보 (새로운 상태)
-    // null: 아무것도 선택되지 않음
-    // { id, type, name }: 특정 노드 선택
-    // { type: 'root-context' }: 빈 공간 선택 (최상위 컨텍스트)
     drawerSelectionForAdmin: null,
-
-    // 새로운 상태 추가
-    nodeToExpandAndHighlight: null, // 예: { nodeId: 'uuid', parentId: 'uuid' | null }
+    nodeToExpandAndHighlight: null,
   }),
   actions: {
-    // 드로어에서 노드가 클릭될 때 호출될 액션
-    setPotentialParentInDrawer(nodeInfo) {
+    setPotentialParentInDrawer(nodeInfo: DrawerNodeInfo | null) {
       // nodeInfo는 id, type, name 등의 필요한 정보를 포함해야 합니다.
       // 여기서 간단한 유효성 검사 (예: nodeInfo 객체 존재 여부)를 추가할 수 있습니다.
       if (nodeInfo && typeof nodeInfo === 'object' && nodeInfo.id && nodeInfo.type) {
@@ -36,8 +48,7 @@ export const useBoardEditorStore = defineStore('boardEditor', {
       this.selectedPotentialParentInDrawer = null
     },
 
-    // --- BoardAdminPage를 위한 새로운 액션들 ---
-    setDrawerItemSelectionForAdmin(nodeInfo) {
+    setDrawerItemSelectionForAdmin(nodeInfo: { id: string; type: string; name: string } | null) {
       if (
         nodeInfo &&
         typeof nodeInfo === 'object' &&
@@ -63,8 +74,7 @@ export const useBoardEditorStore = defineStore('boardEditor', {
       this.drawerSelectionForAdmin = null
     },
 
-    // 새로운 액션 추가
-    setNodeToExpandAndHighlight(nodeInfo) {
+    setNodeToExpandAndHighlight(nodeInfo: { nodeId?: string; parentId?: string | null } | null) {
       if (nodeInfo && typeof nodeInfo === 'object' && nodeInfo.nodeId) {
         this.nodeToExpandAndHighlight = {
           nodeId: nodeInfo.nodeId,
@@ -93,37 +103,32 @@ export const useBoardEditorStore = defineStore('boardEditor', {
     },
   },
   getters: {
-    // 현재 선택된 부모 노드의 ID를 쉽게 가져오기 위한 getter (옵션)
-    getSelectedParentId: (state) => {
+    getSelectedParentId: (state: BoardEditorState) => {
       return state.selectedPotentialParentInDrawer ? state.selectedPotentialParentInDrawer.id : null
     },
-    // 현재 선택된 부모 노드의 타입을 쉽게 가져오기 위한 getter (옵션)
-    getSelectedParentType: (state) => {
+    getSelectedParentType: (state: BoardEditorState) => {
       return state.selectedPotentialParentInDrawer
         ? state.selectedPotentialParentInDrawer.type
         : null
     },
 
-    // --- BoardAdminPage를 위한 새로운 Getter들 ---
-    getDrawerSelectionContextForAdmin: (state) => {
+    getDrawerSelectionContextForAdmin: (state: BoardEditorState) => {
       if (state.drawerSelectionForAdmin) {
         return state.drawerSelectionForAdmin.type // 'group', 'board', 또는 'root-context'
       }
       return null
     },
-    selectedNodeNameForAdmin: (state) => {
-      if (state.drawerSelectionForAdmin && state.drawerSelectionForAdmin.id) {
-        return state.drawerSelectionForAdmin.name
-      }
+    selectedNodeNameForAdmin: (state: BoardEditorState) => {
+      const sel = state.drawerSelectionForAdmin
+      if (sel && 'id' in sel) return sel.name
       return null
     },
-    // 드로어에서 실제 아이템(노드)이 선택되었는지 여부 (root-context 제외)
-    isActualNodeSelectedForAdmin: (state) => {
-      return !!(state.drawerSelectionForAdmin && state.drawerSelectionForAdmin.id)
+    isActualNodeSelectedForAdmin: (state: BoardEditorState) => {
+      const sel = state.drawerSelectionForAdmin
+      return !!(sel && 'id' in sel)
     },
 
-    // 새로운 getter (옵션이지만, 컴포넌트에서 사용하기 편리할 수 있음)
-    getNodeToExpandAndHighlight: (state) => {
+    getNodeToExpandAndHighlight: (state: BoardEditorState) => {
       return state.nodeToExpandAndHighlight
     },
   },

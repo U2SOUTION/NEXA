@@ -61,18 +61,18 @@ export const topLevelMap = new Map(devGuideConfig.topLevelCategories.map((cat) =
 
 // 편의 함수: 정렬된 ID 목록 반환
 export function getTopLevelOrder() {
-  return devGuideConfig.topLevelCategories.sort((a, b) => a.order - b.order).map((cat) => cat.id)
+  return devGuideConfig.topLevelCategories.sort((a, b) => a.order - b.order).map((cat: { id: string }) => cat.id)
 }
 
 // 편의 함수: ID로 카테고리 정보 조회
-export function getTopLevelCategory(id) {
+export function getTopLevelCategory(id: string | undefined): { id: string; label: string; order: number } | null {
   if (!id) return null
   const lowerId = id.toLowerCase()
   return topLevelMap.get(lowerId) || null
 }
 
 // 편의 함수: 라벨 조회
-export function getTopLevelLabel(id) {
+export function getTopLevelLabel(id: string): string {
   const category = getTopLevelCategory(id)
   return category?.label || id
 }

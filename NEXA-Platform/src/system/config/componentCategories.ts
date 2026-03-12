@@ -401,22 +401,30 @@ export const PATH_MAPPING_RULES = [
  * 카테고리 구조를 동적으로 생성
  * @returns {Array} 카테고리 배열 (components는 빈 배열로 초기화)
  */
-export function buildCategoryStructure() {
+export interface CategoryItem {
+  name: string
+  displayName: string
+  icon?: string
+  description?: string
+  components: unknown[]
+  subcategories?: CategoryItem[]
+}
+
+export function buildCategoryStructure(): CategoryItem[] {
   return CATEGORY_STRUCTURE.map((categoryDef) => {
-    const category = {
+    const category: CategoryItem = {
       name: categoryDef.type.id,
-      displayName: CATEGORY_DISPLAY_NAMES[categoryDef.type.id] || categoryDef.type.id,
+      displayName: (CATEGORY_DISPLAY_NAMES as Record<string, string>)[categoryDef.type.id] ?? categoryDef.type.id,
       icon: categoryDef.type.icon,
       description: categoryDef.type.description,
       components: [],
       subcategories: [],
     }
 
-    // 하위 카테고리 처리
     if (categoryDef.subcategories && categoryDef.subcategories.length > 0) {
       category.subcategories = categoryDef.subcategories.map((subDef) => ({
         name: subDef.type.id,
-        displayName: CATEGORY_DISPLAY_NAMES[subDef.type.id] || subDef.type.id,
+        displayName: (CATEGORY_DISPLAY_NAMES as Record<string, string>)[subDef.type.id] ?? subDef.type.id,
         icon: subDef.type.icon,
         description: subDef.type.description,
         components: [],
@@ -432,7 +440,7 @@ export function buildCategoryStructure() {
  * @param {string} componentPath - 컴포넌트 경로
  * @returns {string|null} 카테고리 ID (매핑되지 않으면 null)
  */
-export function mapComponentToCategory(componentPath) {
+export function mapComponentToCategory(componentPath: string): string | null {
   const path = componentPath.toLowerCase()
 
   // 규칙을 순서대로 검사 (더 구체적인 규칙이 먼저 매칭되도록)
@@ -450,8 +458,8 @@ export function mapComponentToCategory(componentPath) {
  * @param {Array} categories - 카테고리 배열 (기본값: 빌드된 구조)
  * @returns {Array} 모든 카테고리 (하위 포함)
  */
-export function getAllCategoriesFlat(categories = null) {
-  const cats = categories || buildCategoryStructure()
+export function getAllCategoriesFlat(categories: CategoryItem[] | null = null): CategoryItem[] {
+  const cats = categories ?? buildCategoryStructure()
   const flat = []
   for (const category of cats) {
     flat.push(category)
@@ -470,8 +478,8 @@ export function getAllCategoriesFlat(categories = null) {
  * @param {Array} categories - 카테고리 배열 (기본값: 빌드된 구조)
  * @returns {object|null} 카테고리 객체
  */
-export function findCategoryByName(categoryName, categories = null) {
-  const cats = categories || buildCategoryStructure()
+export function findCategoryByName(categoryName: string, categories: CategoryItem[] | null = null): CategoryItem | null {
+  const cats = categories ?? buildCategoryStructure()
   for (const category of cats) {
     if (category.name === categoryName) {
       return category
@@ -493,7 +501,7 @@ export function findCategoryByName(categoryName, categories = null) {
  * @param {Array} categories - 카테고리 배열 (기본값: 빌드된 구조)
  * @returns {object|null} 카테고리 객체
  */
-export function findCategoryByType(categoryType, categories = null) {
+export function findCategoryByType(categoryType: { id: string }, categories: CategoryItem[] | null = null): CategoryItem | null {
   return findCategoryByName(categoryType.id, categories)
 }
 

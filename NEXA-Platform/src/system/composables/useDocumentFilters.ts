@@ -4,15 +4,31 @@
  * 문서 관리의 필터 토글 기능을 담당합니다.
  */
 
+import type { Ref } from 'vue'
+
+interface DocumentStoreLike {
+  hideCompleted: boolean
+  autoHighlightOnScroll: boolean
+}
+
+interface ContentRefLike {
+  value: { isTrashView?: boolean } | null
+}
+
 /**
  * 문서 필터 관리 Composable
- * @param {Object} documentStore - 문서 관리 스토어
- * @param {Object} contentRef - DocumentManagerList 컴포넌트 참조
- * @param {Function} saveSettings - 설정 저장 함수
- * @param {Object} excludedFiles - 제외된 파일 표시 여부 ref
- * @returns {Object} 필터 토글 함수들
+ * @param documentStore - 문서 관리 스토어
+ * @param contentRef - DocumentManagerList 컴포넌트 참조
+ * @param saveSettings - 설정 저장 함수
+ * @param excludedFiles - 제외된 파일 표시 여부 ref
+ * @returns 필터 토글 함수들
  */
-export function useDocumentFilters(documentStore, contentRef, saveSettings, excludedFiles) {
+export function useDocumentFilters(
+  documentStore: DocumentStoreLike,
+  contentRef: ContentRefLike,
+  saveSettings: () => void,
+  excludedFiles: Ref<boolean>
+) {
   /**
    * 제외된 파일 표시 토글
    */

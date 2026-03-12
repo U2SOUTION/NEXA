@@ -2,16 +2,46 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
 
+/** 부품 클래스 (API 응답) */
+export interface PartClass {
+  id: number
+  name: string
+  category: string
+  c_code?: string
+  code_name?: string
+  description?: string
+  example?: string
+  detailed_description?: string
+  sort_order?: number
+  sub_sort_order?: number
+  is_active?: number
+  is_favorite?: number
+  [key: string]: unknown
+}
+
+/** 부품 모델/스펙/파일 (API 응답) */
+export interface PartModel {
+  id: number
+  [key: string]: unknown
+}
+export interface PartSpec {
+  id: number
+  [key: string]: unknown
+}
+export interface PartFile {
+  id: number
+  [key: string]: unknown
+}
+
 export const usePartsDataStore = defineStore('partsData', () => {
-  // 상태
-  const partClasses = ref([])
-  const trashPartClasses = ref([]) // 휴지통에 있는 부품 클래스 목록
-  const trashCount = ref(0) // 휴지통 개수
-  const partModels = ref([])
-  const partSpecs = ref([])
-  const partFiles = ref([])
-  const selectedPartClass = ref(null)
-  const selectedPartClasses = ref([]) // 복수 선택된 부품 클래스 목록
+  const partClasses = ref<PartClass[]>([])
+  const trashPartClasses = ref<PartClass[]>([])
+  const trashCount = ref(0)
+  const partModels = ref<PartModel[]>([])
+  const partSpecs = ref<PartSpec[]>([])
+  const partFiles = ref<PartFile[]>([])
+  const selectedPartClass = ref<PartClass | null>(null)
+  const selectedPartClasses = ref<PartClass[]>([])
   const isSidebarDetailViewActive = ref(false) // 사이드바 상세 뷰 활성화 상태 (상세 모드 진입 여부)
 
   // 복수 선택 모드 설정 (나중에 DB화 예정)
@@ -75,7 +105,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function createPartClass(data) {
+  async function createPartClass(data: Record<string, unknown>) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-classes`, {
         method: 'POST',
@@ -95,7 +125,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function updatePartClass(id, data) {
+  async function updatePartClass(id: number, data: Record<string, unknown>) {
     try {
       console.log('[updatePartClass] 시작:', { id, data })
       const response = await fetch(`${API_BASE_URL}/part-classes/${id}`, {
@@ -127,7 +157,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function deletePartClass(id) {
+  async function deletePartClass(id: number) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-classes/${id}`, {
         method: 'DELETE',
@@ -146,7 +176,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 복수 삭제 (soft delete) - ids: number[]
-  async function bulkDeletePartClasses(ids) {
+  async function bulkDeletePartClasses(ids: number[]) {
     try {
       if (!Array.isArray(ids) || ids.length === 0) {
         throw new Error('ids 배열이 필요합니다.')
@@ -177,7 +207,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 단일 복구
-  async function restorePartClass(id) {
+  async function restorePartClass(id: number) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-classes/${id}/restore`, {
         method: 'POST',
@@ -210,7 +240,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 복수 복구 - ids: number[]
-  async function bulkRestorePartClasses(ids) {
+  async function bulkRestorePartClasses(ids: number[]) {
     try {
       if (!Array.isArray(ids) || ids.length === 0) {
         throw new Error('ids 배열이 필요합니다.')
@@ -241,7 +271,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 휴지통에서 영구 삭제 (파일 포함)
-  async function permanentDeletePartClass(id) {
+  async function permanentDeletePartClass(id: number) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-classes/${id}/permanent`, {
         method: 'DELETE',
@@ -263,7 +293,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 활성화/비활성화 (단일)
-  async function togglePartClassActiveStatus(id, isActive) {
+  async function togglePartClassActiveStatus(id: number, isActive: boolean) {
     try {
       // 기존 데이터를 가져와서 is_active만 변경
       const existingItem = partClasses.value.find((c) => c.id === id)
@@ -302,7 +332,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 활성화/비활성화 (복수)
-  async function bulkTogglePartClassesActiveStatus(ids, isActive) {
+  async function bulkTogglePartClassesActiveStatus(ids: number[], isActive: boolean) {
     try {
       if (!Array.isArray(ids) || ids.length === 0) {
         throw new Error('ids 배열이 필요합니다.')
@@ -336,7 +366,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 즐겨찾기 토글 (단일)
-  async function togglePartClassFavoriteStatus(id, isFavorite) {
+  async function togglePartClassFavoriteStatus(id: number, isFavorite: boolean) {
     try {
       // 기존 데이터를 가져와서 is_favorite만 변경
       const existingItem = partClasses.value.find((c) => c.id === id)
@@ -369,7 +399,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 즐겨찾기 토글 (복수)
-  async function bulkTogglePartClassesFavoriteStatus(ids, isFavorite) {
+  async function bulkTogglePartClassesFavoriteStatus(ids: number[], isFavorite: boolean) {
     try {
       if (!Array.isArray(ids) || ids.length === 0) {
         throw new Error('ids 배열이 필요합니다.')
@@ -427,7 +457,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function reorderPartClasses(items) {
+  async function reorderPartClasses(items: { id: number; sort_order: number; sub_sort_order?: number }[]) {
     try {
       if (!Array.isArray(items) || items.length === 0) {
         throw new Error('items 배열이 필요합니다.')
@@ -504,7 +534,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 부품 모델 관련
-  async function fetchPartModels(classId = null) {
+  async function fetchPartModels(classId: number | null = null) {
     try {
       const url = classId
         ? `${API_BASE_URL}/part-models/class/${classId}`
@@ -523,7 +553,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 부품 스펙 관련
-  async function fetchPartSpecs(modelId = null) {
+  async function fetchPartSpecs(modelId: number | null = null) {
     try {
       const url = modelId
         ? `${API_BASE_URL}/part-specs/model/${modelId}`
@@ -541,7 +571,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function createPartSpec(data) {
+  async function createPartSpec(data: Record<string, unknown>) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-specs`, {
         method: 'POST',
@@ -561,7 +591,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function updatePartSpec(id, data) {
+  async function updatePartSpec(id: number, data: Record<string, unknown>) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-specs/${id}`, {
         method: 'PUT',
@@ -583,7 +613,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function deletePartSpec(id) {
+  async function deletePartSpec(id: number) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-specs/${id}`, {
         method: 'DELETE',
@@ -600,7 +630,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 부품 파일 관련
-  async function fetchPartFiles(specId = null) {
+  async function fetchPartFiles(specId: number | null = null) {
     try {
       const url = specId
         ? `${API_BASE_URL}/part-files/spec/${specId}`
@@ -618,7 +648,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function createPartFile(data) {
+  async function createPartFile(data: Record<string, unknown>) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-files`, {
         method: 'POST',
@@ -638,7 +668,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function updatePartFile(id, data) {
+  async function updatePartFile(id: number, data: Record<string, unknown>) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-files/${id}`, {
         method: 'PUT',
@@ -660,7 +690,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
     }
   }
 
-  async function deletePartFile(id) {
+  async function deletePartFile(id: number) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-files/${id}`, {
         method: 'DELETE',
@@ -678,7 +708,11 @@ export const usePartsDataStore = defineStore('partsData', () => {
 
   // 파일 업로드 (part_class_id용)
   // progressCallback: (progress) => void - 진행률 콜백 (0-100)
-  async function uploadPartClassFile(partClassId, file, progressCallback = null) {
+  async function uploadPartClassFile(
+    partClassId: number,
+    file: File,
+    progressCallback: ((progress: number) => void) | null = null,
+  ) {
     return new Promise((resolve, reject) => {
       try {
         console.log('[uploadPartClassFile] 시작:', {
@@ -761,7 +795,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 특정 part_class_id의 파일 목록 조회
-  async function fetchPartClassFiles(partClassId) {
+  async function fetchPartClassFiles(partClassId: number) {
     try {
       const response = await fetch(`${API_BASE_URL}/part-files?part_class_id=${partClassId}`)
       if (!response.ok) {
@@ -776,7 +810,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 일반 첨부 파일만 조회 (에디터 이미지 제외)
-  async function fetchPartClassRegularFiles(partClassId) {
+  async function fetchPartClassRegularFiles(partClassId: number) {
     try {
       const response = await fetch(
         `${API_BASE_URL}/part-files?part_class_id=${partClassId}&is_editor_image=0`,
@@ -793,7 +827,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 에디터 이미지만 조회
-  async function fetchPartClassEditorImages(partClassId) {
+  async function fetchPartClassEditorImages(partClassId: number) {
     try {
       const response = await fetch(
         `${API_BASE_URL}/part-files?part_class_id=${partClassId}&is_editor_image=1`,
@@ -810,7 +844,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 임시 파일 업로드 (part_class_id 없이도 가능)
-  async function uploadTempFile(file) {
+  async function uploadTempFile(file: File) {
     try {
       console.log('[uploadTempFile] 시작:', { fileName: file.name, fileSize: file.size })
 
@@ -878,7 +912,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
       if (filePath.startsWith('uploads/')) {
         const pathAfterUploads = filePath.substring(8)
         const pathParts = pathAfterUploads.split('/')
-        filePath = 'uploads/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
+        filePath = 'uploads/' + pathParts.map((part: string) => encodeURIComponent(part)).join('/')
       }
 
       const fileUrl = `${API_BASE_ORIGIN}/${filePath}`
@@ -894,7 +928,11 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 임시 파일을 정식 폴더로 이동하고 DB에 저장
-  async function moveTempFileToPartClass(partClassId, tempFilePath, originalFilename) {
+  async function moveTempFileToPartClass(
+    partClassId: number,
+    tempFilePath: string,
+    originalFilename: string,
+  ) {
     try {
       console.log('[moveTempFileToPartClass] 시작:', {
         partClassId,
@@ -945,7 +983,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
       if (filePath.startsWith('uploads/')) {
         const pathAfterUploads = filePath.substring(8)
         const pathParts = pathAfterUploads.split('/')
-        filePath = 'uploads/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
+        filePath = 'uploads/' + pathParts.map((part: string) => encodeURIComponent(part)).join('/')
       }
       const newFileUrl = `${API_BASE_ORIGIN}/${filePath}`
 
@@ -961,7 +999,7 @@ export const usePartsDataStore = defineStore('partsData', () => {
   }
 
   // 사용되지 않는 에디터 이미지 삭제 (지연 삭제)
-  async function cleanupOrphanedEditorImages(partClassId, currentImageUrls) {
+  async function cleanupOrphanedEditorImages(partClassId: number, currentImageUrls: string[]) {
     try {
       console.log('[cleanupOrphanedEditorImages] 시작:', {
         partClassId,
@@ -994,7 +1032,11 @@ export const usePartsDataStore = defineStore('partsData', () => {
 
   // 에디터 이미지 업로드 (part_class_id용, is_editor_image = 1)
   // progressCallback: (progress) => void - 진행률 콜백 (0-100)
-  async function uploadEditorImage(partClassId, file, progressCallback = null) {
+  async function uploadEditorImage(
+    partClassId: number,
+    file: File,
+    progressCallback: ((progress: number) => void) | null = null,
+  ) {
     return new Promise((resolve, reject) => {
       try {
         console.log('[uploadEditorImage] 시작:', {
@@ -1044,11 +1086,11 @@ export const usePartsDataStore = defineStore('partsData', () => {
               if (filePath.startsWith('uploads/')) {
                 const pathAfterUploads = filePath.substring(8) // 'uploads/'.length = 8
                 const pathParts = pathAfterUploads.split('/')
-                filePath = 'uploads/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
+                filePath = 'uploads/' + pathParts.map((part: string) => encodeURIComponent(part)).join('/')
               } else {
                 // uploads/ 접두사가 없으면 추가 후 인코딩
                 const pathParts = filePath.split('/')
-                filePath = 'uploads/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
+                filePath = 'uploads/' + pathParts.map((part: string) => encodeURIComponent(part)).join('/')
               }
 
               const fileUrl = `${API_BASE_ORIGIN}/${filePath}`

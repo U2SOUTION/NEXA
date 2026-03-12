@@ -5,8 +5,17 @@
  */
 
 import { ref, watch } from 'vue'
-import { scanAndCategorizeComponents } from '@system/utils/componentScanner'
-import { buildCategoryStructure, mapComponentToCategory, getAllCategoriesFlat } from '@system/config/componentCategories'
+import {
+  scanAndCategorizeComponents,
+  type ScannedCategory,
+  type ScannedComponent,
+} from '@system/utils/componentScanner'
+import {
+  buildCategoryStructure,
+  mapComponentToCategory,
+  getAllCategoriesFlat,
+  type CategoryItem,
+} from '@system/config/componentCategories'
 import { calculateComponentLibraryStatistics } from '@system/utils/componentLibraryStatistics'
 
 /**
@@ -17,12 +26,12 @@ export function useComponentLibrary() {
   // ============================================
   // 상태 관리
   // ============================================
-  const categories = ref([]) // 디렉토리 기반 자동 분류
-  const manualCategories = ref([]) // 하드코딩된 수동 분류
+  const categories = ref<ScannedCategory[]>([]) // 디렉토리 기반 자동 분류
+  const manualCategories = ref<CategoryItem[]>([]) // 하드코딩된 수동 분류
   const violations = ref([])
-  const selectedCategory = ref(null)
-  const selectedComponent = ref(null)
-  const selectedViolation = ref(null)
+  const selectedCategory = ref<string | null>(null)
+  const selectedComponent = ref<unknown>(null)
+  const selectedViolation = ref<unknown>(null)
   const searchQuery = ref('')
   const depth = ref(2) // 기본값: 2단계
 
@@ -35,7 +44,7 @@ export function useComponentLibrary() {
    * @param {Array} allComponents - 모든 컴포넌트 배열
    * @returns {Array} 매핑된 카테고리 배열
    */
-  function mapComponentsToManualCategories(allComponents) {
+  function mapComponentsToManualCategories(allComponents: ScannedComponent[]) {
     // 카테고리 구조 동적 생성
     const manualCategories = buildCategoryStructure()
 
@@ -46,7 +55,7 @@ export function useComponentLibrary() {
     for (const component of allComponents) {
       const categoryId = mapComponentToCategory(component.path)
       if (categoryId) {
-        const targetCategory = allManualCategories.find((cat) => cat.name === categoryId)
+        const targetCategory = allManualCategories.find((cat: CategoryItem) => cat.name === categoryId)
         if (targetCategory) {
           targetCategory.components.push(component)
         }
@@ -60,7 +69,10 @@ export function useComponentLibrary() {
    * 통계 계산 및 이벤트 전달
    */
   function updateStatistics() {
-    const statistics = calculateComponentLibraryStatistics(categories.value, manualCategories.value)
+    const statistics = calculateComponentLibraryStatistics(
+      categories.value as import('@system/utils/componentLibraryStatistics').CategoryWithComponents[],
+      manualCategories.value as import('@system/utils/componentLibraryStatistics').CategoryWithComponents[]
+    )
 
     // 통계 업데이트 이벤트 전달
     window.dispatchEvent(
@@ -112,7 +124,7 @@ export function useComponentLibrary() {
    * 깊이 변경 핸들러
    * @param {number} newDepth - 새로운 깊이 값
    */
-  async function handleDepthChange(newDepth) {
+  async function handleDepthChange(newDepth: number) {
     console.log('[useComponentLibrary] 깊이 변경:', newDepth)
     depth.value = newDepth
     // 깊이 변경 시 자동으로 스캔 다시 실행
@@ -123,7 +135,7 @@ export function useComponentLibrary() {
    * 검색 변경 핸들러
    * @param {string} query - 검색어
    */
-  function handleSearchChange(query) {
+  function handleSearchChange(query: string) {
     searchQuery.value = query
   }
 
@@ -131,7 +143,7 @@ export function useComponentLibrary() {
    * 카테고리 선택 핸들러
    * @param {string} categoryName - 카테고리 이름
    */
-  function handleCategorySelected(categoryName) {
+  function handleCategorySelected(categoryName: string) {
     selectedCategory.value = categoryName
     selectedComponent.value = null
     selectedViolation.value = null
@@ -151,7 +163,7 @@ export function useComponentLibrary() {
    * 컴포넌트 선택 핸들러
    * @param {Object} component - 선택된 컴포넌트
    */
-  function handleComponentSelected(component) {
+  function handleComponentSelected(component: unknown) {
     selectedComponent.value = component
     selectedViolation.value = null
 
@@ -169,7 +181,7 @@ export function useComponentLibrary() {
    * 위반 항목 선택 핸들러
    * @param {Object} violation - 선택된 위반 항목
    */
-  function handleViolationSelected(violation) {
+  function handleViolationSelected(violation: unknown) {
     selectedViolation.value = violation
     selectedComponent.value = null
 
@@ -187,7 +199,7 @@ export function useComponentLibrary() {
    * 탭 변경 핸들러
    * @param {string} tabName - 탭 이름
    */
-  function handleTabChange(tabName) {
+  function handleTabChange(tabName: string) {
     console.log('[useComponentLibrary] 탭 변경 요청:', tabName)
     window.dispatchEvent(
       new CustomEvent('component-library-tab-changed', {
@@ -203,7 +215,7 @@ export function useComponentLibrary() {
    * 차원 선택 핸들러 (부류체계)
    * @param {string} dimensionId - 차원 ID
    */
-  function handleDimensionSelected(dimensionId) {
+  function handleDimensionSelected(dimensionId: string) {
     window.dispatchEvent(
       new CustomEvent('component-library-dimension-selected', {
         detail: {
@@ -217,7 +229,7 @@ export function useComponentLibrary() {
    * 부류체계 카테고리 선택 핸들러
    * @param {Object} data - 카테고리 데이터
    */
-  function handleTaxonomyCategorySelected(data) {
+  function handleTaxonomyCategorySelected(data: unknown) {
     window.dispatchEvent(
       new CustomEvent('component-library-taxonomy-category-selected', {
         detail: data,

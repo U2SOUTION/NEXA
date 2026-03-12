@@ -8,7 +8,15 @@
  * @param {string} content - 파일 내용
  * @returns {Array<Object>} import 정보 배열 { type, path, name, fullPath, section }
  */
-export function extractImports(content) {
+export interface ImportInfo {
+  type: string
+  path: string
+  name: string | null
+  section: string
+  fullPath: string | null
+}
+
+export function extractImports(content: string): ImportInfo[] {
   const imports = []
   
   // script 섹션 추출
@@ -123,7 +131,7 @@ export function extractImports(content) {
  * @param {string} basePath - 현재 파일 경로 (예: 'domains/dev/guides/styles/buttons/IconButton.vue')
  * @returns {string} 절대 경로
  */
-export function resolveImportPath(importPath, basePath) {
+export function resolveImportPath(importPath: string, basePath: string): string {
   // 이미 절대 경로인 경우 (src/ 또는 @/로 시작)
   if (importPath.startsWith('src/') || importPath.startsWith('@/')) {
     return importPath.replace('@/', 'src/')
@@ -132,7 +140,7 @@ export function resolveImportPath(importPath, basePath) {
   // 상대 경로인 경우
   if (importPath.startsWith('./') || importPath.startsWith('../')) {
     const baseDir = basePath.substring(0, basePath.lastIndexOf('/'))
-    const pathParts = baseDir.split('/').filter(p => p)
+    const pathParts = baseDir.split('/').filter((p: string) => p)
     const importParts = importPath.split('/')
     
     for (const part of importParts) {
@@ -157,8 +165,8 @@ export function resolveImportPath(importPath, basePath) {
  * @param {string} content - 파일 내용 (style 섹션 또는 전체)
  * @returns {Array<string>} 사용된 SCSS 변수 목록
  */
-export function extractSCSSVariables(content) {
-  const variables = []
+export function extractSCSSVariables(content: string): string[] {
+  const variables: string[] = []
   const varPattern = /var\(--nexa-[\w-]+\)/g
   
   let match
@@ -177,7 +185,11 @@ export function extractSCSSVariables(content) {
  * @param {string} content - 파일 내용
  * @returns {Object} SCSS 의존성 정보
  */
-export function analyzeSCSSDependencies(content) {
+export function analyzeSCSSDependencies(content: string): {
+  usesGlobalVariables: boolean
+  variables: string[]
+  globalFiles: string[]
+} {
   const styleMatch = content.match(/<style[^>]*>([\s\S]*?)<\/style>/)
   if (!styleMatch) {
     return {
@@ -195,8 +207,6 @@ export function analyzeSCSSDependencies(content) {
   const globalSCSSFiles = []
   
   if (variables.length > 0) {
-    // 변수 사용 패턴에 따라 관련 파일 추적
-    // --nexa-* 변수는 themes와 nexa-system에서 정의됨
     globalSCSSFiles.push(
       'src/system/css/themes/dark.scss',
       'src/system/css/themes/light.scss',
@@ -220,7 +230,7 @@ export function analyzeSCSSDependencies(content) {
  * @param {string} filePath - 파일 경로 (예: 'domains/dev/guides/styles/buttons/IconButton.vue')
  * @returns {Object} 의존성 정보
  */
-export function analyzeSampleDependencies(content, filePath) {
+export function analyzeSampleDependencies(content: string, filePath: string) {
   const imports = extractImports(content)
   const scssDeps = analyzeSCSSDependencies(content)
   
@@ -254,15 +264,14 @@ export function analyzeSampleDependencies(content, filePath) {
   
   // 전역 CSS 변수를 사용하는 경우 전역 SCSS 파일도 styles에 추가
   if (scssDeps.usesGlobalVariables && scssDeps.globalFiles.length > 0) {
-    scssDeps.globalFiles.forEach(filePath => {
-      // 중복 체크
-      if (!styles.some(s => s.fullPath === filePath)) {
+    scssDeps.globalFiles.forEach((globalFilePath: string) => {
+      if (!styles.some((s: ImportInfo) => s.fullPath === globalFilePath)) {
         styles.push({
           type: 'global-css',
-          path: filePath,
+          path: globalFilePath,
           name: null,
           section: 'style',
-          fullPath: filePath
+          fullPath: globalFilePath
         })
       }
     })

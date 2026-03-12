@@ -3,12 +3,21 @@
  * 마크다운 문서의 YAML 프론트매터를 파싱하고 에러 ID를 추출
  */
 
-/**
- * 간단한 YAML 프론트매터 파서
- * @param {string} content - 마크다운 문서 내용
- * @returns {Object|null} 파싱된 프론트매터 객체 또는 null
- */
-export function parseErrorAnalysisFrontmatter(content) {
+export type ErrorAnalysisFrontmatter = {
+  errorId?: string | null
+  errorMessage?: string | null
+  errorFile?: string | null
+  errorLine?: number | string | null
+  errorColumn?: number | string | null
+  project?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
+  tags?: string[]
+  title?: string | null
+  [key: string]: string | number | boolean | string[] | null | undefined | unknown
+}
+
+export function parseErrorAnalysisFrontmatter(content: string): ErrorAnalysisFrontmatter | null {
   if (!content || typeof content !== 'string') {
     return null
   }
@@ -22,7 +31,7 @@ export function parseErrorAnalysisFrontmatter(content) {
   }
 
   const yamlContent = match[1]
-  const frontmatter = {}
+  const frontmatter: Record<string, unknown> = {}
 
   // 간단한 YAML 파싱 (key: value 형식)
   const lines = yamlContent.split('\n')
@@ -38,7 +47,7 @@ export function parseErrorAnalysisFrontmatter(content) {
     }
 
     const key = trimmed.substring(0, colonIndex).trim()
-    let value = trimmed.substring(colonIndex + 1).trim()
+    let value: string | number | boolean | string[] = trimmed.substring(colonIndex + 1).trim()
 
     // 따옴표 제거
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
@@ -46,22 +55,21 @@ export function parseErrorAnalysisFrontmatter(content) {
     }
 
     // 배열 파싱 (간단한 형식: ["item1", "item2"])
-    if (value.startsWith('[') && value.endsWith(']')) {
+    if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
       try {
-        // JSON 파싱 시도
-        value = JSON.parse(value)
+        value = JSON.parse(value) as string[]
       } catch {
-        // 실패하면 문자열 배열로 처리
-        value = value
+        const str = value as string
+        value = str
           .slice(1, -1)
           .split(',')
-          .map((item) => item.trim().replace(/^["']|["']$/g, ''))
+          .map((item: string) => item.trim().replace(/^["']|["']$/g, ''))
       }
-    } else if (value === 'true' || value === 'True') {
+    } else if (typeof value === 'string' && (value === 'true' || value === 'True')) {
       value = true
-    } else if (value === 'false' || value === 'False') {
+    } else if (typeof value === 'string' && (value === 'false' || value === 'False')) {
       value = false
-    } else if (!isNaN(value) && value !== '') {
+    } else if (typeof value === 'string' && !isNaN(Number(value)) && value !== '') {
       // 숫자로 변환 시도
       const numValue = Number(value)
       if (!isNaN(numValue)) {
@@ -72,7 +80,7 @@ export function parseErrorAnalysisFrontmatter(content) {
     frontmatter[key] = value
   }
 
-  return frontmatter
+  return frontmatter as ErrorAnalysisFrontmatter
 }
 
 /**
@@ -80,9 +88,10 @@ export function parseErrorAnalysisFrontmatter(content) {
  * @param {string} content - 마크다운 문서 내용
  * @returns {string|null} 에러 ID 또는 null
  */
-export function extractErrorIdFromDocument(content) {
+export function extractErrorIdFromDocument(content: string): string | null {
   const frontmatter = parseErrorAnalysisFrontmatter(content)
-  return frontmatter?.errorId || null
+  if (!frontmatter?.errorId) return null
+  return String(frontmatter.errorId)
 }
 
 /**
@@ -90,9 +99,9 @@ export function extractErrorIdFromDocument(content) {
  * @param {string} content - 마크다운 문서 내용
  * @returns {string} 프론트매터가 제거된 본문
  */
-export function removeFrontmatter(content) {
+export function removeFrontmatter(content: string): string {
   if (!content || typeof content !== 'string') {
-    return content || ''
+    return content ?? ''
   }
 
   const frontmatterRegex = /^---\s*\n[\s\S]*?\n---\s*\n/
@@ -105,20 +114,26 @@ export function removeFrontmatter(content) {
  * @param {string} errorId - 에러 ID
  * @returns {Array<{path: string, content: string, frontmatter: Object}>} 필터링된 문서 배열
  */
-export function filterDocumentsByErrorId(documents, errorId) {
-  if (!documents || !Array.isArray(documents) || !errorId) {
+export interface DocWithContent {
+  path: string
+  content?: string
+}
+
+export function filterDocumentsByErrorId(documents: DocWithContent[], errorId: string): Array<{ path: string; content?: string; frontmatter: ErrorAnalysisFrontmatter }> {
+  if (!documents?.length || !errorId) {
     return []
   }
 
-  const filtered = []
+  const filtered: Array<{ path: string; content?: string; frontmatter: ErrorAnalysisFrontmatter }> = []
 
   for (const doc of documents) {
-    const frontmatter = parseErrorAnalysisFrontmatter(doc.content || '')
-    if (frontmatter?.errorId === errorId) {
+    const frontmatter = parseErrorAnalysisFrontmatter(doc.content ?? '')
+    const fm = frontmatter as ErrorAnalysisFrontmatter
+    if (fm?.errorId === errorId) {
       filtered.push({
         path: doc.path,
         content: doc.content,
-        frontmatter,
+        frontmatter: fm,
       })
     }
   }
@@ -131,8 +146,8 @@ export function filterDocumentsByErrorId(documents, errorId) {
  * @param {string} content - 마크다운 문서 내용
  * @returns {Object} 문서 메타데이터
  */
-export function extractDocumentMetadata(content) {
-  const frontmatter = parseErrorAnalysisFrontmatter(content) || {}
+export function extractDocumentMetadata(content: string) {
+  const frontmatter = (parseErrorAnalysisFrontmatter(content) ?? {}) as ErrorAnalysisFrontmatter
   const body = removeFrontmatter(content)
 
   // 본문에서 제목 추출 시도 (첫 번째 # 제목)
@@ -140,15 +155,15 @@ export function extractDocumentMetadata(content) {
   const title = titleMatch ? titleMatch[1].trim() : null
 
   return {
-    errorId: frontmatter.errorId || null,
-    errorMessage: frontmatter.errorMessage || null,
-    errorFile: frontmatter.errorFile || null,
-    errorLine: frontmatter.errorLine || null,
-    errorColumn: frontmatter.errorColumn || null,
-    project: frontmatter.project || null,
-    createdAt: frontmatter.createdAt || null,
-    tags: frontmatter.tags || [],
-    title: title || frontmatter.title || null,
+    errorId: frontmatter.errorId ?? null,
+    errorMessage: frontmatter.errorMessage ?? null,
+    errorFile: frontmatter.errorFile ?? null,
+    errorLine: frontmatter.errorLine ?? null,
+    errorColumn: frontmatter.errorColumn ?? null,
+    project: frontmatter.project ?? null,
+    createdAt: frontmatter.createdAt ?? null,
+    tags: Array.isArray(frontmatter.tags) ? frontmatter.tags : [],
+    title: title ?? frontmatter.title ?? null,
     body,
   }
 }

@@ -5,27 +5,42 @@
  * 모든 에러를 자동으로 수집합니다.
  */
 
-// import { addError } from './errorStorage' // useErrorTracking에서 이벤트로 처리하므로 제거
+import type { NormalizedError } from './errorTrackingTypes'
 
 let isInitialized = false
 let isCollecting = true
-let errorCollector = null
 
-/**
- * 에러 정보 정규화
- * @param {Object} errorData - 원본 에러 데이터
- * @returns {Object} 정규화된 에러 객체
- */
-function normalizeError(errorData) {
+interface ErrorCollectorInstance {
+  initialize: typeof initializeErrorCollector
+  setCollectingEnabled: typeof setCollectingEnabled
+  cleanup: typeof cleanupErrorCollector
+}
+
+let errorCollector: ErrorCollectorInstance | null = null
+
+interface RawErrorData {
+  message?: string
+  source?: string
+  lineno?: number
+  colno?: number
+  error?: unknown
+  filename?: string
+  stack?: string
+  url?: string
+  userAgent?: string
+  level?: string
+}
+
+function normalizeError(errorData: RawErrorData): NormalizedError {
   const { message, source, lineno, colno, error, filename, stack, url, userAgent, level = 'error' } = errorData
+  const err = error as { stack?: string; error?: { stack?: string }; constructor?: { name?: string }; name?: string; message?: string } | undefined
 
-  // 스택 트레이스 추출
   let errorStack = stack
-  if (!errorStack && error) {
-    errorStack = error.stack
+  if (!errorStack && err) {
+    errorStack = err.stack
   }
-  if (!errorStack && error?.error) {
-    errorStack = error.error?.stack
+  if (!errorStack && err?.error) {
+    errorStack = (err.error as { stack?: string }).stack
   }
 
   // 파일명 및 라인 번호 추출
@@ -55,11 +70,10 @@ function normalizeError(errorData) {
     }
   }
 
-  // 에러 타입 감지하여 level 설정
   let detectedLevel = level
-  if (error) {
-    const errorType = error.constructor?.name || error.name
-    const errorMessage = message || error?.message || ''
+  if (err) {
+    const errorType = err.constructor?.name ?? err.name ?? ''
+    const errorMessage = message || (err?.message ?? '')
     
     // 에러 타입에 따라 level 분류
     if (errorType === 'TypeError' || errorMessage.includes('TypeError')) {
@@ -81,8 +95,8 @@ function normalizeError(errorData) {
     }
   }
 
-  const normalized = {
-    message: message || error?.message || '알 수 없는 에러',
+  const normalized: NormalizedError = {
+    message: message || (err?.message ?? '알 수 없는 에러'),
     level: detectedLevel,
     file: errorFile || null,
     line: errorLine || null,
@@ -92,26 +106,21 @@ function normalizeError(errorData) {
     userAgent: userAgent || navigator.userAgent,
     timestamp: Date.now(),
     // 에러 타입 정보 추가 (차트 분류용)
-    errorType: error?.constructor?.name || error?.name || null,
+    errorType: err?.constructor?.name ?? err?.name ?? null,
   }
 
 
   return normalized
 }
 
-/**
- * 에러 수집 핸들러
- * @param {Object} errorData - 에러 데이터
- */
-function collectError(errorData) {
+function collectError(errorData: RawErrorData & Partial<NormalizedError>): void {
   if (!isCollecting) {
     return
   }
 
   try {
-    const normalizedError = normalizeError(errorData)
+    const normalizedError = normalizeError(errorData) as NormalizedError & { id?: string; status?: string; count?: number }
 
-    // ID가 없으면 생성
     if (!normalizedError.id) {
       normalizedError.id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
     }
@@ -138,15 +147,12 @@ function collectError(errorData) {
   }
 }
 
-/**
- * JavaScript 에러 핸들러
- */
-function handleWindowError(message, source, lineno, colno, error) {
+function handleWindowError(message: string | Event, source?: string | null, lineno?: number | null, colno?: number | null, error?: Error | null): boolean {
   collectError({
-    message,
-    source,
-    lineno,
-    colno,
+    message: typeof message === 'string' ? message : (error?.message ?? 'Unknown error'),
+    source: source ?? undefined,
+    lineno: lineno ?? undefined,
+    colno: colno ?? undefined,
     error,
     level: 'error',
   })
@@ -155,10 +161,7 @@ function handleWindowError(message, source, lineno, colno, error) {
   return false
 }
 
-/**
- * Promise rejection 핸들러
- */
-function handleUnhandledRejection(event) {
+function handleUnhandledRejection(event: PromiseRejectionEvent): void {
   const reason = event.reason
 
   let message = 'Unhandled Promise Rejection'
@@ -170,8 +173,8 @@ function handleUnhandledRejection(event) {
   } else if (typeof reason === 'string') {
     message = reason
   } else if (reason && typeof reason === 'object') {
-    message = reason.message || JSON.stringify(reason)
-    error = reason
+    message = (reason as { message?: string }).message ?? JSON.stringify(reason)
+    error = reason as Error
   }
 
   collectError({
@@ -181,16 +184,14 @@ function handleUnhandledRejection(event) {
   })
 }
 
-/**
- * Vue 에러 핸들러 (이벤트 기반)
- */
-function handleVueError(event) {
-  const { error, info } = event.detail
+function handleVueError(event: CustomEvent<{ error: Error; info?: string }>): void {
+  const detail = event.detail as { error: Error; info?: string }
+  const { error, info } = detail
   collectError({
     message: error.message,
     error,
     level: 'error',
-    vueInfo: info,
+    vueInfo: info ?? undefined,
   })
 }
 
@@ -200,29 +201,28 @@ function handleVueError(event) {
 function interceptFetch() {
   const originalFetch = window.fetch
 
-  window.fetch = async function (...args) {
-    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || 'unknown'
-    const method = args[1]?.method || 'GET'
+  window.fetch = async function (...args: Parameters<typeof fetch>) {
+    const input = args[0]
+    const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input && typeof input === 'object' && 'url' in input ? String((input as { url: string }).url) : 'unknown'))
+    const method = (args[1] as { method?: string } | undefined)?.method ?? 'GET'
 
-    // 에러 수집에서 제외할 URL 패턴 (예상된 실패)
-    const shouldIgnoreError = (url) => {
+    const shouldIgnoreError = (urlToCheck: string): boolean => {
       // URL 디코딩 (인코딩된 URL도 체크하기 위해)
-      let decodedUrl = url
+      let decodedUrl = urlToCheck
       try {
-        decodedUrl = decodeURIComponent(url)
+        decodedUrl = decodeURIComponent(urlToCheck)
       } catch {
         // 디코딩 실패 시 원본 URL 사용
       }
       
       // 인덱스 파일 요청 (400은 예상된 에러 - 파일이 없을 수 있음)
       // 인코딩된 형태와 디코딩된 형태 모두 체크
-      if (url.includes('.error-analysis-index.json') || decodedUrl.includes('.error-analysis-index.json')) {
+      if (urlToCheck.includes('.error-analysis-index.json') || decodedUrl.includes('.error-analysis-index.json')) {
         return true
       }
-      // 폴더 스캔 요청 (404는 예상된 에러 - API가 폴더를 지원하지 않을 수 있음)
-      if ((url.includes('/api/docs/Error/Platform') || decodedUrl.includes('/api/docs/Error/Platform')) && 
-          !url.includes('.md') && !decodedUrl.includes('.md') && 
-          !url.includes('.json') && !decodedUrl.includes('.json')) {
+      if ((urlToCheck.includes('/api/docs/Error/Platform') || decodedUrl.includes('/api/docs/Error/Platform')) && 
+          !urlToCheck.includes('.md') && !decodedUrl.includes('.md') && 
+          !urlToCheck.includes('.json') && !decodedUrl.includes('.json')) {
         return true
       }
       return false
@@ -261,37 +261,28 @@ function interceptFetch() {
       }
 
       return response
-    } catch (error) {
-      // 예상된 실패는 무시
-      const shouldIgnoreError = (url) => {
+    } catch (err: unknown) {
+      const shouldIgnoreErrorInCatch = (urlToCheck: string): boolean => {
         // URL 디코딩 (인코딩된 URL도 체크하기 위해)
-        let decodedUrl = url
+        let decoded = urlToCheck
         try {
-          decodedUrl = decodeURIComponent(url)
+          decoded = decodeURIComponent(urlToCheck)
         } catch {
-          // 디코딩 실패 시 원본 URL 사용
+          // ignore
         }
-        
-        // 인덱스 파일 요청 (400은 예상된 에러 - 파일이 없을 수 있음)
-        if (url.includes('.error-analysis-index.json') || decodedUrl.includes('.error-analysis-index.json')) {
-          return true
-        }
-        // 폴더 스캔 요청 (404는 예상된 에러 - API가 폴더를 지원하지 않을 수 있음)
-        if ((url.includes('/api/docs/Error/Platform') || decodedUrl.includes('/api/docs/Error/Platform')) && 
-            !url.includes('.md') && !decodedUrl.includes('.md') && 
-            !url.includes('.json') && !decodedUrl.includes('.json')) {
-          return true
-        }
+        if (urlToCheck.includes('.error-analysis-index.json') || decoded.includes('.error-analysis-index.json')) return true
+        if ((urlToCheck.includes('/api/docs/Error/Platform') || decoded.includes('/api/docs/Error/Platform')) && 
+            !urlToCheck.includes('.md') && !decoded.includes('.md') && 
+            !urlToCheck.includes('.json') && !decoded.includes('.json')) return true
         return false
       }
 
-      if (shouldIgnoreError(url)) {
-        throw error
+      if (shouldIgnoreErrorInCatch(url)) {
+        throw err
       }
 
-      // 네트워크 연결 실패 등의 에러
-      // 에러 메시지에서 상태 코드 추출 시도 (예: "404 Not Found")
-      const errorMessage = error.message || 'Failed to fetch'
+      const e = err as Error
+      const errorMessage = e?.message ?? 'Failed to fetch'
       let statusCode = null
       let statusText = errorMessage
 
@@ -310,22 +301,22 @@ function interceptFetch() {
 
       collectError({
         message,
-        error,
+        error: e,
         level,
         file: url,
         line: null,
         column: null,
-        stack: error.stack || `Network Error\n  URL: ${url}\n  Method: ${method}\n  Error: ${error.message}`,
+        stack: e?.stack ?? `Network Error\n  URL: ${url}\n  Method: ${method}\n  Error: ${e?.message ?? ''}`,
         url: window.location.href,
         userAgent: navigator.userAgent,
         networkInfo: {
           requestUrl: url,
           method,
-          error: error.message,
-          errorType: error.name,
+          error: e?.message,
+          errorType: (e as Error & { name?: string }).name,
         },
       })
-      throw error
+      throw err
     }
   }
 }
@@ -336,13 +327,13 @@ function interceptFetch() {
  * @param {boolean} options.collecting - 수집 활성화 여부
  * @param {boolean} options.interceptNetwork - 네트워크 에러 인터셉트 여부
  */
-export function initializeErrorCollector(options = {}) {
+export function initializeErrorCollector(options: { collecting?: boolean; interceptNetwork?: boolean } = {}): void {
   if (isInitialized) {
     // 이미 초기화되었으면 조용히 반환 (콘솔 로그 출력 안 함)
     return
   }
 
-  isCollecting = options.collecting !== false
+  isCollecting = (options as { collecting?: boolean }).collecting !== false
   isInitialized = true
 
   // window.onerror 핸들러 등록
@@ -352,10 +343,9 @@ export function initializeErrorCollector(options = {}) {
   window.addEventListener('unhandledrejection', handleUnhandledRejection)
 
   // Vue 에러 핸들러 등록 (이벤트 기반)
-  window.addEventListener('error-tracking-vue-error', handleVueError)
+  window.addEventListener('error-tracking-vue-error', handleVueError as (ev: Event) => void)
 
-  // 네트워크 에러 인터셉트
-  if (options.interceptNetwork !== false) {
+  if ((options as { interceptNetwork?: boolean }).interceptNetwork !== false) {
     interceptFetch()
   }
 
@@ -365,7 +355,7 @@ export function initializeErrorCollector(options = {}) {
  * 에러 수집 활성화/비활성화
  * @param {boolean} enabled - 활성화 여부
  */
-export function setCollectingEnabled(enabled) {
+export function setCollectingEnabled(enabled: boolean): void {
   isCollecting = enabled
   window.dispatchEvent(
     new CustomEvent('error-tracking-collecting-changed', {
@@ -384,7 +374,7 @@ export function cleanupErrorCollector() {
 
   window.onerror = null
   window.removeEventListener('unhandledrejection', handleUnhandledRejection)
-  window.removeEventListener('error-tracking-vue-error', handleVueError)
+  window.removeEventListener('error-tracking-vue-error', handleVueError as (ev: Event) => void)
   isInitialized = false
 
 }
@@ -392,8 +382,8 @@ export function cleanupErrorCollector() {
 /**
  * 에러 수집기 인스턴스 반환 (싱글톤)
  */
-export function getErrorCollector() {
-  if (!errorCollector) {
+export function getErrorCollector(): ErrorCollectorInstance {
+  if (errorCollector == null) {
     errorCollector = {
       initialize: initializeErrorCollector,
       setCollectingEnabled,

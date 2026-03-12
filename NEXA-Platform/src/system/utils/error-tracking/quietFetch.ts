@@ -1,3 +1,4 @@
+/* global RequestInit */
 /**
  * 조용한 fetch 래퍼
  * 예상된 실패(400, 404 등)를 조용히 처리하여 콘솔 로그를 최소화합니다.
@@ -6,11 +7,11 @@
  * @param {RequestInit} options - fetch 옵션
  * @returns {Promise<Response|null>} Response 객체 또는 null (에러 시)
  */
-export async function quietFetch(url, options = {}) {
+export async function quietFetch(url: string | Request, options: RequestInit = {}): Promise<Response | null> {
   const urlString = typeof url === 'string' ? url : url.url || 'unknown'
   
   // 조용히 처리할 URL 패턴 확인
-  const shouldQuietlyHandle = (url) => {
+  const shouldQuietlyHandle = (url: string): boolean => {
     // URL 디코딩 (인코딩된 URL도 체크하기 위해)
     let decodedUrl = url
     try {
@@ -44,7 +45,7 @@ export async function quietFetch(url, options = {}) {
     }
     
     return response
-  } catch (error) {
+  } catch (error: unknown) {
     // 예상된 실패는 조용히 처리
     if (shouldQuietlyHandle(urlString)) {
       // 조용히 null 반환 (에러 수집 안 함)

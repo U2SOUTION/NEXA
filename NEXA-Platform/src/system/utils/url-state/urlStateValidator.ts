@@ -10,7 +10,7 @@
  * @param {unknown} value - 파라미터 값
  * @returns {boolean} 유효성 여부
  */
-export function validateURLParam(_paramName, _value) {
+export function validateURLParam(_paramName: string, _value: unknown): boolean {
   void _paramName
   void _value
   // TODO: 파라미터 유효성 검사 로직 구현
@@ -22,7 +22,7 @@ export function validateURLParam(_paramName, _value) {
  * @param {Object} state - 상태 객체
  * @returns {boolean} 유효성 여부
  */
-export function validateURLState(_state) {
+export function validateURLState(_state: Record<string, unknown>): boolean {
   void _state
   // TODO: 전체 상태 유효성 검사 로직 구현
   return true

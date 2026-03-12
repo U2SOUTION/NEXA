@@ -8,11 +8,11 @@
  * JavaScript/TypeScript 스타일 주석 제거: // 주석, 블록 주석
  * @param {HTMLElement} container - 렌더링된 컴포넌트 컨테이너
  */
-export function removeComments(container) {
+export function removeComments(container: HTMLElement | null) {
   if (!container) return
 
   // 1. HTML 주석 노드 제거
-  const commentWalker = document.createTreeWalker(container, NodeFilter.SHOW_COMMENT, null, false)
+  const commentWalker = document.createTreeWalker(container, NodeFilter.SHOW_COMMENT)
 
   const htmlComments = []
   let commentNode
@@ -21,11 +21,11 @@ export function removeComments(container) {
   }
 
   htmlComments.forEach((comment) => {
-    comment.remove()
+    (comment as Comment).remove()
   })
 
   // 2. 텍스트 노드에서 JavaScript/TypeScript 주석 패턴 제거
-  const textWalker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false)
+  const textWalker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
 
   const textNodes = []
   let textNode
@@ -34,7 +34,7 @@ export function removeComments(container) {
   }
 
   textNodes.forEach((node) => {
-    let text = node.textContent
+    let text = (node as Text).textContent ?? ''
 
     // 한 줄 주석 제거: // 주석 내용
     // 줄 시작부터 주석까지 또는 공백 후 주석
@@ -44,15 +44,14 @@ export function removeComments(container) {
     // 블록 주석 제거: /* 주석 내용 */
     text = text.replace(/\/\*[\s\S]*?\*\//g, '')
 
-    // 업데이트된 텍스트가 원본과 다르면 변경
-    if (text !== node.textContent) {
-      node.textContent = text
+    if (text !== (node as Text).textContent) {
+      (node as Text).textContent = text
     }
   })
 
   // 3. 코드 블록 내의 주석 라인 제거
   const codeBlocks = container.querySelectorAll('pre, code, .code-block, [class*="code"]')
-  codeBlocks.forEach((codeBlock) => {
+  codeBlocks.forEach((codeBlock: Element) => {
     let codeText = codeBlock.textContent
 
     // 한 줄 주석 제거 (줄 단위)
@@ -75,7 +74,7 @@ export function removeComments(container) {
  * 설명글은 유지하고 타이틀만 제거
  * @param {HTMLElement} container - 렌더링된 컴포넌트 컨테이너
  */
-export function removeTitles(container) {
+export function removeTitles(container: HTMLElement | null) {
   if (!container) return
 
   // 제거할 타이틀 클래스/태그 패턴 (타이틀만)
@@ -88,9 +87,9 @@ export function removeTitles(container) {
     'h1, h2, h3, h4, h5, h6', // 모든 제목 태그 (sample-header 내부에 있는 경우만)
   ]
 
-  titleSelectors.forEach((selector) => {
+  titleSelectors.forEach((selector: string) => {
     const elements = container.querySelectorAll(selector)
-    elements.forEach((el) => {
+    elements.forEach((el: Element) => {
       // sample-header 내부에 있는 타이틀만 제거
       const sampleHeader = el.closest('.sample-header')
       if (sampleHeader) {
@@ -111,12 +110,12 @@ export function removeTitles(container) {
  * @param {HTMLElement} container - 렌더링된 컴포넌트 컨테이너
  * @returns {Array} - 섹션 정보 배열
  */
-export function analyzeSections(container) {
+export function analyzeSections(container: HTMLElement | null) {
   if (!container) return []
 
   const sections = container.querySelectorAll('.sample-section')
 
-  return Array.from(sections).map((section) => {
+  return Array.from(sections).map((section: Element) => {
     const header = section.querySelector('.section-header')
     const content = section.querySelector('.section-content')
 
@@ -141,7 +140,7 @@ export function analyzeSections(container) {
  * @param {HTMLElement} container - 렌더링된 컴포넌트 컨테이너
  * @returns {boolean} - 설명글만 있는 경우 true (하지만 거의 사용하지 않음)
  */
-export function isDescriptionOnly(container) {
+export function isDescriptionOnly(container: HTMLElement | null) {
   if (!container) return false
 
   // 설명글도 유용하므로 거의 항상 표시하도록 함
@@ -157,7 +156,7 @@ export function isDescriptionOnly(container) {
  * @param {HTMLElement} container - 렌더링된 컴포넌트 컨테이너
  * @returns {Object} - 파싱 결과
  */
-export function parseComponentForPreview(container) {
+export function parseComponentForPreview(container: HTMLElement | null) {
   if (!container) {
     return {
       hasContent: false,

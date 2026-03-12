@@ -12,28 +12,58 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+export interface ModalPosition {
+  x: number
+  y: number
+}
+
+export interface ModalSize {
+  width: number
+  height: number
+}
+
+export interface ModalFeatures {
+  minimized?: boolean
+  maximized?: boolean
+  pinned?: boolean
+}
+
+export interface ModalState {
+  id: string
+  position: ModalPosition
+  size: ModalSize
+  features: ModalFeatures
+  zIndex: number
+  [key: string]: unknown
+}
+
+export interface ModalConfig {
+  position?: ModalPosition
+  size?: ModalSize
+  features?: Partial<ModalFeatures>
+  [key: string]: unknown
+}
+
 export const useModalSystemStore = defineStore('modalSystem', () => {
   // ===== 전역 상태 =====
 
   // 모달 레지스트리 (모든 등록된 모달 정보)
-  // key: modalId, value: { id, position, size, features, ... }
-  const modalRegistry = ref(new Map())
+  const modalRegistry = ref(new Map<string, ModalState>())
 
   // 최대화 전 원본 상태 저장 (복원용)
-  // key: modalId, value: { position, size }
-  const preMaximizeState = ref(new Map())
+  const preMaximizeState = ref(new Map<string, { position: ModalPosition; size: ModalSize }>())
 
   // 모달 스택 (열린 순서대로 관리)
-  const modalStack = ref([])
+  const modalStack = ref<string[]>([])
 
   // 현재 활성 모달 ID
-  const activeModalId = ref(null)
+  const activeModalId = ref<string | null>(null)
 
   // 전역 단축키 활성화 여부
   const shortcutsEnabled = ref(true)
 
   // localStorage 저장을 위한 debounce 타이머
-  const saveTimers = new Map()
+  const saveTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
   // ===== 설정 =====
 
@@ -55,7 +85,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * @param {string} modalId - 모달 고유 ID
    * @param {Object} config - 모달 설정
    */
-  function registerModal(modalId, config = {}) {
+  function registerModal(modalId: string, config: ModalConfig = {}) {
     // 저장된 상태는 loadModalState에서 가져오지만,
     // config에 명시적으로 전달된 값이 우선순위가 높음
     // savedState는 useDraggableResizableModal에서 이미 처리되므로 여기서는 사용하지 않음
@@ -79,7 +109,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 모달 해제
    * @param {string} modalId - 모달 고유 ID
    */
-  function unregisterModal(modalId) {
+  function unregisterModal(modalId: string) {
     // 모달 해제 시 즉시 저장 (debounce 타이머가 있으면 취소하고 즉시 저장)
     if (saveTimers.has(modalId)) {
       clearTimeout(saveTimers.get(modalId))
@@ -101,7 +131,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 모달을 스택에 추가 (열림)
    * @param {string} modalId - 모달 ID
    */
-  function addToStack(modalId) {
+  function addToStack(modalId: string) {
     if (!modalStack.value.includes(modalId)) {
       modalStack.value.push(modalId)
       activeModalId.value = modalId
@@ -113,7 +143,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 모달을 스택에서 제거 (닫힘)
    * @param {string} modalId - 모달 ID
    */
-  function removeFromStack(modalId) {
+  function removeFromStack(modalId: string) {
     const index = modalStack.value.indexOf(modalId)
     if (index > -1) {
       modalStack.value.splice(index, 1)
@@ -127,7 +157,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 모달을 맨 앞으로 가져오기
    * @param {string} modalId - 모달 ID
    */
-  function bringToFront(modalId) {
+  function bringToFront(modalId: string) {
     const modal = modalRegistry.value.get(modalId)
     if (modal) {
       modal.zIndex = getNextZIndex()
@@ -163,7 +193,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * @param {string} modalId - 모달 ID
    * @param {Object} position - 새 위치 { x, y }
    */
-  function updatePosition(modalId, position) {
+  function updatePosition(modalId: string, position: Partial<ModalPosition>) {
     const modal = modalRegistry.value.get(modalId)
     if (modal) {
       // Map의 반응성을 보장하기 위해 새 Map을 생성하여 할당
@@ -185,7 +215,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * @param {string} modalId - 모달 ID
    * @param {Object} size - 새 크기 { width, height }
    */
-  function updateSize(modalId, size) {
+  function updateSize(modalId: string, size: Partial<ModalSize>) {
     const modal = modalRegistry.value.get(modalId)
     if (modal) {
       // Map의 반응성을 보장하기 위해 새 Map을 생성하여 할당
@@ -206,7 +236,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * @param {string} modalId - 모달 ID
    * @returns {Object|null} 모달 상태
    */
-  function getModalState(modalId) {
+  function getModalState(modalId: string): ModalState | null {
     return modalRegistry.value.get(modalId) || null
   }
 
@@ -216,7 +246,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 모달 최소화
    * @param {string} modalId - 모달 ID
    */
-  function minimizeModal(modalId) {
+  function minimizeModal(modalId: string) {
     const modal = modalRegistry.value.get(modalId)
     if (modal) {
       modal.features.minimized = true
@@ -228,7 +258,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 모달 최대화
    * @param {string} modalId - 모달 ID
    */
-  function maximizeModal(modalId) {
+  function maximizeModal(modalId: string) {
     const modal = modalRegistry.value.get(modalId)
     if (modal && !modal.features.maximized) {
       // 최대화 전 상태 저장 (복원용)
@@ -254,7 +284,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 모달 복원 (최소화/최대화 해제)
    * @param {string} modalId - 모달 ID
    */
-  function restoreModal(modalId) {
+  function restoreModal(modalId: string) {
     const modal = modalRegistry.value.get(modalId)
     if (modal) {
       // 최대화 전 상태로 복원
@@ -294,7 +324,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 모달 최대화 해제 (별칭 함수)
    * @param {string} modalId - 모달 ID
    */
-  function unmaximizeModal(modalId) {
+  function unmaximizeModal(modalId: string) {
     restoreModal(modalId)
   }
 
@@ -323,7 +353,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 크기는 저장하지 않고 위치만 저장
    * @param {string} modalId - 모달 ID
    */
-  function saveModalState(modalId) {
+  function saveModalState(modalId: string) {
     const modal = modalRegistry.value.get(modalId)
     if (modal) {
       try {
@@ -343,7 +373,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * 드래그/리사이즈 중에는 매번 저장하지 않고 일정 시간 후에 저장하여 성능 개선
    * @param {string} modalId - 모달 ID
    */
-  function debouncedSaveModalState(modalId) {
+  function debouncedSaveModalState(modalId: string) {
     // 기존 타이머가 있으면 취소
     if (saveTimers.has(modalId)) {
       clearTimeout(saveTimers.get(modalId))
@@ -363,7 +393,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
    * @param {string} modalId - 모달 ID
    * @returns {Object|null} 저장된 상태
    */
-  function loadModalState(modalId) {
+  function loadModalState(modalId: string): { position: ModalPosition } | null {
     try {
       const saved = localStorage.getItem(`modal-state-${modalId}`)
       return saved ? JSON.parse(saved) : null
@@ -375,7 +405,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
 
   // ===== 전역 단축키 =====
 
-  let keyboardListeners = []
+  const keyboardListeners: Array<{ type: string; handler: (e: Event) => void }> = []
 
   /**
    * 전역 단축키 등록
@@ -385,38 +415,44 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
       return // 이미 등록됨
     }
 
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event: Event) => {
+      const e = event as KeyboardEvent
       if (!shortcutsEnabled.value) return
 
       // 입력 필드에 포커스가 있으면 무시
-      const activeElement = document.activeElement
-      const isInputField = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable || activeElement.closest('input, textarea, [contenteditable]'))
+      const activeElement = document.activeElement as HTMLElement | null
+      const isInputField =
+        activeElement &&
+        (activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.isContentEditable ||
+          activeElement.closest('input, textarea, [contenteditable]'))
 
-      if (isInputField && !event.ctrlKey && !event.metaKey) {
+      if (isInputField && !e.ctrlKey && !e.metaKey) {
         return // Ctrl/Cmd 조합이 아니면 입력 필드에서는 무시
       }
 
       // ESC: 현재 활성 모달 닫기
-      if (event.key === 'Escape' && activeModalId.value) {
-        event.preventDefault()
-        event.stopPropagation()
+      if (e.key === 'Escape' && activeModalId.value) {
+        e.preventDefault()
+        e.stopPropagation()
         // 모달 닫기는 각 모달 컴포넌트에서 처리 (emit으로 전달)
         return
       }
 
       // Ctrl+W: 현재 활성 모달 닫기
-      if ((event.ctrlKey || event.metaKey) && event.key === 'w') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
         if (activeModalId.value) {
-          event.preventDefault()
-          event.stopPropagation()
+          e.preventDefault()
+          e.stopPropagation()
           // 모달 닫기는 각 모달 컴포넌트에서 처리
         }
         return
       }
 
       // Ctrl+M: 모든 모달 최소화/복원 토글
-      if ((event.ctrlKey || event.metaKey) && event.key === 'm' && !event.shiftKey) {
-        event.preventDefault()
+      if ((e.ctrlKey || e.metaKey) && e.key === 'm' && !e.shiftKey) {
+        e.preventDefault()
         const allMinimized = modalStack.value.every((id) => modalRegistry.value.get(id)?.features.minimized)
         if (allMinimized) {
           restoreAllModals()
@@ -427,23 +463,23 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
       }
 
       // Ctrl+Tab: 다음 모달로 전환
-      if ((event.ctrlKey || event.metaKey) && event.key === 'Tab' && !event.shiftKey) {
-        if (modalStack.value.length > 1) {
-          event.preventDefault()
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Tab' && !e.shiftKey) {
+        if (modalStack.value.length > 1 && activeModalId.value) {
+          e.preventDefault()
           const currentIndex = modalStack.value.indexOf(activeModalId.value)
           const nextIndex = (currentIndex + 1) % modalStack.value.length
-          bringToFront(modalStack.value[nextIndex])
+          bringToFront(modalStack.value[nextIndex]!)
         }
         return
       }
 
       // Ctrl+Shift+Tab: 이전 모달로 전환
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'Tab') {
-        if (modalStack.value.length > 1) {
-          event.preventDefault()
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Tab') {
+        if (modalStack.value.length > 1 && activeModalId.value) {
+          e.preventDefault()
           const currentIndex = modalStack.value.indexOf(activeModalId.value)
           const prevIndex = currentIndex === 0 ? modalStack.value.length - 1 : currentIndex - 1
-          bringToFront(modalStack.value[prevIndex])
+          bringToFront(modalStack.value[prevIndex]!)
         }
         return
       }
@@ -463,7 +499,7 @@ export const useModalSystemStore = defineStore('modalSystem', () => {
     keyboardListeners.forEach(({ type, handler }) => {
       window.removeEventListener(type, handler)
     })
-    keyboardListeners = []
+    keyboardListeners.length = 0
   }
 
   // ===== Computed =====

@@ -3,17 +3,22 @@
  */
 
 import { formatDataArray } from './exportFormatter'
+import type { ColumnDef } from './exportTypes'
+import type { FormattingOptions, ExportCsvOptions } from './exportTypes'
 
-/**
- * CSV 내보내기
- * @param {Array<Object>} data - 내보낼 데이터 배열
- * @param {Array<string>} columns - 선택된 열 이름 배열
- * @param {Array<Object>} columnDefinitions - 열 정의 배열 (label 포함)
- * @param {Object} options - CSV 옵션
- * @param {Object} formattingOptions - 포맷팅 옵션
- * @returns {Blob} CSV Blob 객체
- */
-export function exportToCSV(data, columns, columnDefinitions = [], options = {}, formattingOptions = {}) {
+const DELIMITERS: Record<'comma' | 'semicolon' | 'tab', string> = {
+  comma: ',',
+  semicolon: ';',
+  tab: '\t',
+}
+
+export function exportToCSV(
+  data: Record<string, unknown>[],
+  columns: string[],
+  columnDefinitions: ColumnDef[] = [],
+  options: ExportCsvOptions = {},
+  formattingOptions: FormattingOptions = {}
+): Blob {
   if (!Array.isArray(data) || data.length === 0) {
     throw new Error('내보낼 데이터가 없습니다.')
   }
@@ -22,15 +27,10 @@ export function exportToCSV(data, columns, columnDefinitions = [], options = {},
   const formattedData = formatDataArray(data, columns, formattingOptions)
 
   // 구분자 설정
-  const delimiters = {
-    comma: ',',
-    semicolon: ';',
-    tab: '\t',
-  }
-  const delimiter = delimiters[options.delimiter] || ','
+  const delimiter = (options.delimiter && DELIMITERS[options.delimiter]) || ','
 
   // 열 정의에서 라벨 가져오기
-  const getColumnLabel = (colName) => {
+  const getColumnLabel = (colName: string): string => {
     const colDef = columnDefinitions.find((col) => col.name === colName)
     return colDef?.label || colName
   }
@@ -71,7 +71,7 @@ export function exportToCSV(data, columns, columnDefinitions = [], options = {},
  * @param {unknown} value - 값
  * @returns {string} 이스케이프된 CSV 값
  */
-function escapeCSVValue(value) {
+function escapeCSVValue(value: unknown): string {
   if (value === null || value === undefined) return ''
 
   const str = String(value)
@@ -92,7 +92,7 @@ function escapeCSVValue(value) {
  * @param {Blob} blob - CSV Blob 객체
  * @param {string} fileName - 파일명
  */
-export function downloadCSV(blob, fileName) {
+export function downloadCSV(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url

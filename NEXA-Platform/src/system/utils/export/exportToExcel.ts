@@ -4,17 +4,16 @@
 
 import * as XLSX from 'xlsx'
 import { formatDataArray } from './exportFormatter'
+import type { ColumnDef } from './exportTypes'
+import type { FormattingOptions, ExportExcelOptions } from './exportTypes'
 
-/**
- * Excel 내보내기
- * @param {Array<Object>} data - 내보낼 데이터 배열
- * @param {Array<string>} columns - 선택된 열 이름 배열
- * @param {Array<Object>} columnDefinitions - 열 정의 배열 (label 포함)
- * @param {Object} options - Excel 옵션
- * @param {Object} formattingOptions - 포맷팅 옵션
- * @returns {Blob} Excel Blob 객체
- */
-export function exportToExcel(data, columns, columnDefinitions = [], options = {}, formattingOptions = {}) {
+export function exportToExcel(
+  data: Record<string, unknown>[],
+  columns: string[],
+  columnDefinitions: ColumnDef[] = [],
+  options: ExportExcelOptions = {},
+  formattingOptions: FormattingOptions = {}
+): Blob {
   if (!Array.isArray(data) || data.length === 0) {
     throw new Error('내보낼 데이터가 없습니다.')
   }
@@ -25,18 +24,16 @@ export function exportToExcel(data, columns, columnDefinitions = [], options = {
   // 워크북 생성
   const workbook = XLSX.utils.book_new()
 
-  // 시트 분리 옵션 처리
-  const sheetSplit = options.sheetSplit || 'none'
+  const sheetSplit = (options.sheetSplit ?? 'none') as string
 
   if (sheetSplit === 'none') {
-    // 단일 시트
     const worksheet = createWorksheet(formattedData, columns, columnDefinitions, options)
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
   } else {
-    // 시트 분리 (카테고리별 또는 상태별)
-    const groupedData = groupDataByField(data, formattedData, sheetSplit)
-    Object.keys(groupedData).forEach((groupName) => {
-      const groupData = groupedData[groupName]
+    const groupedData = groupDataByField(data, formattedData, sheetSplit, columns)
+    const groupRecord = groupedData as Record<string, Record<string, string>[]>
+    Object.keys(groupRecord).forEach((groupName: string) => {
+      const groupData = groupRecord[groupName]
       const worksheet = createWorksheet(groupData, columns, columnDefinitions, options)
       // 시트 이름은 31자 제한
       const sheetName = groupName.length > 31 ? groupName.substring(0, 31) : groupName
@@ -64,19 +61,21 @@ export function exportToExcel(data, columns, columnDefinitions = [], options = {
  * @param {Object} options - Excel 옵션
  * @returns {Object} XLSX 워크시트 객체
  */
-function createWorksheet(formattedData, columns, columnDefinitions, options) {
-  // 열 정의에서 라벨 가져오기
-  const getColumnLabel = (colName) => {
-    const colDef = columnDefinitions.find((col) => col.name === colName)
-    return colDef?.label || colName
+function createWorksheet(
+  formattedData: Record<string, string>[],
+  columns: string[],
+  columnDefinitions: ColumnDef[],
+  options: ExportExcelOptions
+): XLSX.WorkSheet {
+  const getColumnLabel = (colName: string): string => {
+    const colDef = columnDefinitions.find((col: ColumnDef) => col.name === colName)
+    return colDef?.label ?? colName
   }
 
-  // 헤더 행 생성
-  const headers = columns.map((colName) => getColumnLabel(colName))
+  const headers = columns.map((colName: string) => getColumnLabel(colName))
 
-  // 데이터 행 생성 (열 순서대로)
-  const rows = formattedData.map((row) => {
-    return columns.map((colName) => row[colName] || '')
+  const rows = formattedData.map((row: Record<string, string>) => {
+    return columns.map((colName: string) => row[colName] ?? '')
   })
 
   // 워크시트 데이터 생성
@@ -85,17 +84,17 @@ function createWorksheet(formattedData, columns, columnDefinitions, options) {
   // 워크시트 생성
   const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
 
-  // 열 너비 자동 조정
-  if (options.styling?.autoWidth !== false) {
-    const colWidths = columns.map((colName) => {
+  const styling = options.styling as { autoWidth?: boolean } | undefined
+  if (styling?.autoWidth !== false) {
+    const colWidths = columns.map((colName: string) => {
       const headerLength = getColumnLabel(colName).length
       const maxDataLength = Math.max(
-        ...formattedData.map((row) => String(row[colName] || '').length),
-        10, // 최소 너비
+        ...formattedData.map((row: Record<string, string>) => String(row[colName] ?? '').length),
+        10
       )
       return { wch: Math.max(headerLength, maxDataLength, 10) }
     })
-    worksheet['!cols'] = colWidths
+    ;(worksheet as XLSX.WorkSheet & { '!cols'?: unknown[] })['!cols'] = colWidths
   }
 
   // 스타일링 옵션 (XLSX는 기본 스타일링만 지원, 고급 스타일링은 exceljs 필요)
@@ -112,11 +111,15 @@ function createWorksheet(formattedData, columns, columnDefinitions, options) {
  * @param {Array<string>} columns - 선택된 열 이름 배열
  * @returns {Object} 그룹화된 데이터 { groupName: [data] }
  */
-function groupDataByField(originalData, formattedData, splitType, columns) {
-  const grouped = {}
+function groupDataByField(
+  originalData: Record<string, unknown>[],
+  formattedData: Record<string, string>[],
+  splitType: string,
+  columns: string[]
+): Record<string, Record<string, string>[]> {
+  const grouped: Record<string, Record<string, string>[]> = {}
 
-  // 그룹 필드 결정
-  let groupField = null
+  let groupField: string | null = null
   if (splitType === 'category') {
     groupField = 'category' // 부품 분류의 경우 'category' 필드 사용
   } else if (splitType === 'status') {
@@ -129,22 +132,22 @@ function groupDataByField(originalData, formattedData, splitType, columns) {
   }
 
   // 그룹화
-  formattedData.forEach((row, index) => {
-    const groupValue = originalData[index]?.[groupField]
+  formattedData.forEach((row: Record<string, string>, index: number) => {
+    const groupValue = (originalData[index] as Record<string, unknown>)?.[groupField]
     let groupName = '기타'
 
     if (groupField === 'category') {
-      groupName = groupValue || '기타'
+      groupName = groupValue != null && typeof groupValue === 'string' ? groupValue : '기타'
     } else if (groupField === 'is_active') {
       groupName = groupValue === 1 || groupValue === true ? '활성' : '비활성'
     } else {
-      groupName = groupValue || '기타'
+      groupName = groupValue != null && typeof groupValue === 'string' ? groupValue : '기타'
     }
 
     if (!grouped[groupName]) {
       grouped[groupName] = []
     }
-    grouped[groupName].push(row)
+    grouped[groupName]!.push(row)
   })
 
   return grouped
@@ -155,7 +158,7 @@ function groupDataByField(originalData, formattedData, splitType, columns) {
  * @param {Blob} blob - Excel Blob 객체
  * @param {string} fileName - 파일명
  */
-export function downloadExcel(blob, fileName) {
+export function downloadExcel(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url

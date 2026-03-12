@@ -3,12 +3,15 @@
  * 성능 트렌드 분석, 병목 식별, 최적화 제안
  */
 
-/**
- * 성능 트렌드 분석
- * @param {Array} metrics - 성능 메트릭 배열
- * @returns {Object} 트렌드 분석 결과
- */
-export function analyzeTrend(metrics) {
+export type TrendResult = { trend: string; change: number }
+
+interface MetricRecord {
+  frontend?: { fps?: number; memory?: { usedJSHeapSize?: number }; webVitals?: { lcp?: { value?: number } } }
+  api?: { requests?: Array<{ duration?: number; url?: string }> }
+  timestamp?: number
+}
+
+export function analyzeTrend(metrics: MetricRecord[]): Record<string, TrendResult> {
   if (metrics.length < 2) {
     return {
       fps: { trend: 'stable', change: 0 },
@@ -18,41 +21,41 @@ export function analyzeTrend(metrics) {
     }
   }
 
-  const first = metrics[0]
-  const last = metrics[metrics.length - 1]
+  const first = metrics[0]!
+  const last = metrics[metrics.length - 1]!
 
-  const getValue = (metric, path) => {
+  const getValue = (metric: MetricRecord, path: string): unknown => {
     const parts = path.split('.')
-    let value = metric
+    let value: unknown = metric
     for (const part of parts) {
-      value = value?.[part]
+      value = (value as Record<string, unknown>)?.[part]
     }
     return value
   }
 
-  const calculateTrend = (firstValue, lastValue) => {
-    if (!firstValue || !lastValue) {
+  const calculateTrend = (firstValue: unknown, lastValue: unknown): TrendResult => {
+    const f = Number(firstValue)
+    const l = Number(lastValue)
+    if (Number.isNaN(f) || Number.isNaN(l) || f === 0) {
       return { trend: 'unknown', change: 0 }
     }
 
-    const change = ((lastValue - firstValue) / firstValue) * 100
+    const change = ((l - f) / f) * 100
     let trend = 'stable'
-    
     if (Math.abs(change) < 5) {
       trend = 'stable'
     } else if (change > 0) {
-      trend = 'increasing' // 나쁜 방향 (메모리, LCP, API 응답 시간의 경우)
+      trend = 'increasing'
     } else {
-      trend = 'decreasing' // 좋은 방향 (메모리, LCP, API 응답 시간의 경우)
+      trend = 'decreasing'
     }
 
-    return { trend, change: change.toFixed(2) }
+    return { trend, change: Number(change.toFixed(2)) }
   }
 
   const fpsFirst = getValue(first, 'frontend.fps')
   const fpsLast = getValue(last, 'frontend.fps')
   const fpsTrend = calculateTrend(fpsFirst, fpsLast)
-  // FPS는 증가가 좋은 것
   if (fpsTrend.change > 0) {
     fpsTrend.trend = 'improving'
   } else if (fpsTrend.change < -5) {
@@ -79,15 +82,19 @@ export function analyzeTrend(metrics) {
   }
 }
 
-/**
- * 성능 병목 구간 식별
- * @param {Array} metrics - 성능 메트릭 배열
- * @returns {Array} 병목 구간 목록
- */
-export function identifyBottlenecks(metrics) {
-  const bottlenecks = []
+export interface BottleneckItem {
+  type: string
+  severity: string
+  value: string | number
+  timestamp?: number
+  suggestion: string
+  url?: string
+}
 
-  metrics.forEach((metric) => {
+export function identifyBottlenecks(metrics: MetricRecord[]): BottleneckItem[] {
+  const bottlenecks: BottleneckItem[] = []
+
+  metrics.forEach((metric: MetricRecord) => {
     // FPS 병목
     if (metric.frontend?.fps && metric.frontend.fps < 30) {
       bottlenecks.push({
@@ -127,17 +134,17 @@ export function identifyBottlenecks(metrics) {
       }
     }
 
-    // API 응답 시간 병목
     if (metric.api?.requests) {
-      metric.api.requests.forEach(request => {
-        if (request.duration > 1000) {
+      metric.api.requests.forEach((request: { duration?: number; url?: string }) => {
+        const duration = request.duration ?? 0
+        if (duration > 1000) {
           bottlenecks.push({
             type: 'slow-api',
-            severity: request.duration > 3000 ? 'high' : 'medium',
-            value: request.duration.toFixed(0) + ' ms',
+            severity: duration > 3000 ? 'high' : 'medium',
+            value: duration.toFixed(0) + ' ms',
             url: request.url,
             timestamp: metric.timestamp,
-            suggestion: `API 응답이 느립니다: ${request.url}. 서버 최적화 또는 캐싱을 고려하세요.`,
+            suggestion: `API 응답이 느립니다: ${request.url ?? ''}. 서버 최적화 또는 캐싱을 고려하세요.`,
           })
         }
       })
@@ -147,34 +154,32 @@ export function identifyBottlenecks(metrics) {
   return bottlenecks
 }
 
-/**
- * 최적화 제안 생성
- * @param {Array} metrics - 성능 메트릭 배열
- * @returns {Array} 최적화 제안 목록
- */
-export function generateOptimizationSuggestions(metrics) {
-  const suggestions = []
-  
+export interface OptimizationSuggestion {
+  category: string
+  priority: string
+  title: string
+  description: string
+  actions: string[]
+}
+
+export function generateOptimizationSuggestions(metrics: MetricRecord[]): OptimizationSuggestion[] {
+  const suggestions: OptimizationSuggestion[] = []
+
   if (metrics.length === 0) {
     return suggestions
   }
 
-  // 평균값 계산
-  const avgFPS = metrics
-    .filter(m => m.frontend?.fps)
-    .reduce((sum, m) => sum + m.frontend.fps, 0) / metrics.filter(m => m.frontend?.fps).length
+  const fpsFiltered = metrics.filter((m) => m.frontend?.fps != null)
+  const avgFPS = fpsFiltered.length > 0 ? fpsFiltered.reduce((sum, m) => sum + (m.frontend!.fps ?? 0), 0) / fpsFiltered.length : 0
 
-  const avgMemory = metrics
-    .filter(m => m.frontend?.memory?.usedJSHeapSize)
-    .reduce((sum, m) => sum + m.frontend.memory.usedJSHeapSize, 0) / metrics.filter(m => m.frontend?.memory?.usedJSHeapSize).length / (1024 * 1024)
+  const memFiltered = metrics.filter((m) => m.frontend?.memory?.usedJSHeapSize != null)
+  const avgMemory = memFiltered.length > 0 ? memFiltered.reduce((sum, m) => sum + (m.frontend!.memory!.usedJSHeapSize ?? 0), 0) / memFiltered.length / (1024 * 1024) : 0
 
-  const avgLCP = metrics
-    .filter(m => m.frontend?.webVitals?.lcp?.value)
-    .reduce((sum, m) => sum + m.frontend.webVitals.lcp.value, 0) / metrics.filter(m => m.frontend?.webVitals?.lcp?.value).length
+  const lcpFiltered = metrics.filter((m) => m.frontend?.webVitals?.lcp?.value != null)
+  const avgLCP = lcpFiltered.length > 0 ? lcpFiltered.reduce((sum, m) => sum + (m.frontend!.webVitals!.lcp!.value ?? 0), 0) / lcpFiltered.length : 0
 
-  const avgAPIDuration = metrics
-    .flatMap(m => m.api?.requests?.map(r => r.duration) || [])
-    .reduce((sum, d, i, arr) => sum + d / arr.length, 0)
+  const apiDurations = metrics.flatMap((m) => m.api?.requests?.map((r) => r.duration) ?? []).filter((d): d is number => typeof d === 'number')
+  const avgAPIDuration = apiDurations.length > 0 ? apiDurations.reduce((sum, d) => sum + d, 0) / apiDurations.length : 0
 
   // FPS 제안
   if (avgFPS && avgFPS < 50) {

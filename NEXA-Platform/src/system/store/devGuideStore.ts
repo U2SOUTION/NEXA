@@ -65,7 +65,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
       if (sample.category) {
         categorySet.add(sample.category)
       } else if (sample.componentPath) {
-        const extractedCategory = getComponentCategory(sample.componentPath)
+        const extractedCategory = getComponentCategory(sample.componentPath ?? '')
         if (extractedCategory) categorySet.add(extractedCategory)
       }
     })
@@ -125,7 +125,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
 
     if (filterCategory.value) {
       result = result.filter((sample) => {
-        const sampleCategory = sample.category || getComponentCategory(sample.componentPath)
+        const sampleCategory = sample.category || getComponentCategory(sample.componentPath ?? '')
         return sampleCategory === filterCategory.value
       })
     }
@@ -140,13 +140,13 @@ export const useDevGuideStore = defineStore('devGuide', () => {
     if (selectedFolderNode.value) {
       const folderNode = selectedFolderNode.value
       if (folderNode.type === 'path' && folderNode.path) {
-        result = filterByPath(result, folderNode.path, 'componentPath', 'guides')
+        result = filterByPath(result, folderNode.path, 'componentPath', 'guides') as DevGuideSample[]
       } else if (folderNode.type === 'topLevel') {
-        result = result.filter((sample) => getTopLevel(sample.componentPath) === folderNode.name)
+        result = result.filter((sample) => getTopLevel(sample.componentPath ?? '') === folderNode.name)
       } else if (folderNode.type === 'category') {
         result = result.filter((sample) => {
-          const sampleTopLevel = getTopLevel(sample.componentPath)
-          const sampleCategory = sample.category || getComponentCategory(sample.componentPath)
+          const sampleTopLevel = getTopLevel(sample.componentPath ?? '')
+          const sampleCategory = sample.category || getComponentCategory(sample.componentPath ?? '')
           return sampleTopLevel === folderNode.topLevel && sampleCategory === folderNode.name
         })
       }
@@ -424,7 +424,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
     const totalCategories = categories.value.length
     const categoryCounts: Record<string, number> = {}
     samples.value.forEach((sample) => {
-      const category = sample.category || getComponentCategory(sample.componentPath) || '기타'
+      const category = sample.category || getComponentCategory(sample.componentPath ?? '') || '기타'
       categoryCounts[category] = (categoryCounts[category] || 0) + 1
     })
     const tagCounts: Record<string, number> = {}
@@ -466,7 +466,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
       { name: string; totalSamples: number; favoriteCount: number; recentCount: number; cachedCount: number; errorCount: number; samples: DevGuideSample[] }
     > = {}
     samples.value.forEach((sample) => {
-      const category = sample.category || getComponentCategory(sample.componentPath) || '기타'
+      const category = sample.category || getComponentCategory(sample.componentPath ?? '') || '기타'
       if (!categoryStats[category]) {
         categoryStats[category] = {
           name: category,

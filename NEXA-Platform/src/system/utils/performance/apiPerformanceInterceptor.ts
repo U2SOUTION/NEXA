@@ -1,3 +1,4 @@
+/* global XMLHttpRequestBodyInit */
 /**
  * API Performance Interceptor
  * fetch 및 XMLHttpRequest 인터셉트하여 API 성능 측정
@@ -6,10 +7,21 @@
  * ⚠️ 데이터 수집: 실제 API 호출이 없어서 데이터 0 (실제 사용 시 자동 작동)
  */
 
-let apiMetrics = []
-let originalFetch = null
-let originalXHROpen = null
-let originalXHRSend = null
+export interface APIMetric {
+  url: string
+  method: string
+  duration: number
+  status: number
+  statusText: string
+  timestamp: number
+  success: boolean
+  error?: string
+}
+
+let apiMetrics: APIMetric[] = []
+let originalFetch: typeof window.fetch | null = null
+let originalXHROpen: typeof XMLHttpRequest.prototype.open | null = null
+let originalXHRSend: typeof XMLHttpRequest.prototype.send | null = null
 
 const MAX_METRICS = 1000 // 최대 저장할 메트릭 수
 
@@ -25,33 +37,33 @@ export function interceptFetch() {
   originalFetch = window.fetch
   console.log('[APIMonitor] fetch 인터셉트 시작')
 
-  window.fetch = async function (...args) {
+  window.fetch = async function (this: Window, ...args: Parameters<typeof fetch>) {
     const startTime = performance.now()
 
-    // URL 추출 로직 개선
     let url = ''
-    if (typeof args[0] === 'string') {
-      url = args[0]
-    } else if (args[0] instanceof Request) {
-      url = args[0].url
-    } else if (args[0] && typeof args[0] === 'object' && args[0].url) {
-      url = args[0].url
+    const input = args[0]
+    if (typeof input === 'string') {
+      url = input
+    } else if (input instanceof Request) {
+      url = input.url
+    } else if (input && typeof input === 'object' && 'url' in input && typeof (input as { url: string }).url === 'string') {
+      url = (input as { url: string }).url
     } else {
-      url = String(args[0] || 'unknown')
+      url = String(input ?? 'unknown')
     }
 
-    // Method 추출 로직 개선
     let method = 'GET'
-    if (args[1] && args[1].method) {
-      method = args[1].method
-    } else if (args[0] instanceof Request && args[0].method) {
-      method = args[0].method
-    } else if (args[0] && typeof args[0] === 'object' && args[0].method) {
-      method = args[0].method
+    const init = args[1]
+    if (init && typeof init === 'object' && 'method' in init && init.method) {
+      method = String(init.method)
+    } else if (input instanceof Request && input.method) {
+      method = input.method
+    } else if (input && typeof input === 'object' && 'method' in input && (input as { method?: string }).method) {
+      method = String((input as { method: string }).method)
     }
 
     try {
-      const response = await originalFetch.apply(this, args)
+      const response = await (originalFetch as typeof window.fetch).apply(this, args)
       const endTime = performance.now()
       const duration = endTime - startTime
 
@@ -72,16 +84,16 @@ export function interceptFetch() {
     } catch (error) {
       const endTime = performance.now()
       const duration = endTime - startTime
-
+      const message = error instanceof Error ? error.message : String(error)
       recordAPIMetric({
         url,
         method,
         duration,
         status: 0,
-        statusText: error.message,
+        statusText: message,
         timestamp: Date.now(),
         success: false,
-        error: error.message,
+        error: message,
       })
 
       throw error
@@ -100,25 +112,24 @@ export function interceptXHR() {
   originalXHROpen = XMLHttpRequest.prototype.open
   originalXHRSend = XMLHttpRequest.prototype.send
 
-  XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-    this._apiMethod = method
-    this._apiUrl = url
-    this._apiStartTime = performance.now()
+  XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...rest: unknown[]) {
+    (this as XMLHttpRequest & { _apiMethod?: string; _apiUrl?: string; _apiStartTime?: number })._apiMethod = method
+    ;(this as XMLHttpRequest & { _apiUrl?: string })._apiUrl = typeof url === 'string' ? url : url.toString()
+    ;(this as XMLHttpRequest & { _apiStartTime?: number })._apiStartTime = performance.now()
 
-    return originalXHROpen.apply(this, [method, url, ...rest])
+    return (originalXHROpen as typeof XMLHttpRequest.prototype.open).apply(this, [method, url, ...rest] as [string, string | URL, boolean])
   }
 
-  XMLHttpRequest.prototype.send = function (...args) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias -- XHR callback에서 this 캡처 필요
-    const xhr = this
+  XMLHttpRequest.prototype.send = function (...args: unknown[]) {
+    const xhr = this as XMLHttpRequest & { _apiMethod?: string; _apiUrl?: string; _apiStartTime?: number }
 
     xhr.addEventListener('loadend', function () {
       const endTime = performance.now()
-      const duration = endTime - (xhr._apiStartTime || endTime)
+      const duration = endTime - (xhr._apiStartTime ?? endTime)
 
       recordAPIMetric({
-        url: xhr._apiUrl,
-        method: xhr._apiMethod || 'GET',
+        url: xhr._apiUrl ?? '',
+        method: xhr._apiMethod ?? 'GET',
         duration,
         status: xhr.status,
         statusText: xhr.statusText,
@@ -129,11 +140,11 @@ export function interceptXHR() {
 
     xhr.addEventListener('error', function () {
       const endTime = performance.now()
-      const duration = endTime - (xhr._apiStartTime || endTime)
+      const duration = endTime - (xhr._apiStartTime ?? endTime)
 
       recordAPIMetric({
-        url: xhr._apiUrl,
-        method: xhr._apiMethod || 'GET',
+        url: xhr._apiUrl ?? '',
+        method: xhr._apiMethod ?? 'GET',
         duration,
         status: 0,
         statusText: 'Network Error',
@@ -143,7 +154,7 @@ export function interceptXHR() {
       })
     })
 
-    return originalXHRSend.apply(this, args)
+    return (originalXHRSend as typeof XMLHttpRequest.prototype.send).apply(this, args as [body?: Document | XMLHttpRequestBodyInit | null])
   }
 }
 
@@ -151,7 +162,7 @@ export function interceptXHR() {
  * API 메트릭 기록
  * @param {Object} metric - API 메트릭 데이터
  */
-function recordAPIMetric(metric) {
+function recordAPIMetric(metric: APIMetric): void {
   apiMetrics.push(metric)
 
   // 메트릭 수 제한
@@ -168,11 +179,18 @@ function recordAPIMetric(metric) {
  * @param {number} options.duration - 최근 기간 (ms)
  * @returns {Array} API 메트릭 배열
  */
-export function getAPIMetrics(options = {}) {
+export interface GetAPIMetricsOptions {
+  url?: string
+  method?: string
+  duration?: number
+}
+
+export function getAPIMetrics(options: GetAPIMetricsOptions = {}): APIMetric[] {
   let filtered = [...apiMetrics]
 
-  if (options.url) {
-    filtered = filtered.filter((m) => m.url.includes(options.url))
+  if (options.url !== undefined) {
+    const urlFilter = options.url
+    filtered = filtered.filter((m) => m.url.includes(urlFilter))
   }
 
   if (options.method) {
@@ -192,7 +210,7 @@ export function getAPIMetrics(options = {}) {
  * @param {Object} options - 옵션 (getAPIMetrics와 동일)
  * @returns {Object} API 성능 통계
  */
-export function getAPIStats(options = {}) {
+export function getAPIStats(options: GetAPIMetricsOptions = {}) {
   const metrics = getAPIMetrics(options)
 
   if (metrics.length === 0) {
@@ -220,14 +238,21 @@ export function getAPIStats(options = {}) {
   }
 }
 
-/**
- * 엔드포인트별 API 성능 통계
- * @param {Object} options - 옵션
- * @returns {Object} 엔드포인트별 통계
- */
-export function getAPIStatsByEndpoint(options = {}) {
+export interface EndpointStat {
+  url: string
+  method: string
+  requests: APIMetric[]
+  count?: number
+  avgDuration?: number
+  minDuration?: number
+  maxDuration?: number
+  successRate?: number
+  errorRate?: number
+}
+
+export function getAPIStatsByEndpoint(options: GetAPIMetricsOptions = {}): Record<string, EndpointStat> {
   const metrics = getAPIMetrics(options)
-  const endpointStats = {}
+  const endpointStats: Record<string, EndpointStat> = {}
 
   metrics.forEach((metric) => {
     const key = `${metric.method} ${metric.url}`
@@ -241,18 +266,17 @@ export function getAPIStatsByEndpoint(options = {}) {
     endpointStats[key].requests.push(metric)
   })
 
-  // 통계 계산
   Object.keys(endpointStats).forEach((key) => {
-    const stats = endpointStats[key]
-    const durations = stats.requests.map((r) => r.duration)
-    const successes = stats.requests.filter((r) => r.success).length
+    const stats = endpointStats[key]!
+    const durations = stats.requests.map((r: APIMetric) => r.duration)
+    const successes = stats.requests.filter((r: APIMetric) => r.success).length
 
     stats.count = stats.requests.length
-    stats.avgDuration = durations.reduce((a, b) => a + b, 0) / durations.length
+    stats.avgDuration = durations.reduce((a: number, b: number) => a + b, 0) / durations.length
     stats.minDuration = Math.min(...durations)
     stats.maxDuration = Math.max(...durations)
     stats.successRate = (successes / stats.requests.length) * 100
-    stats.errorRate = 100 - stats.successRate
+    stats.errorRate = 100 - (stats.successRate ?? 0)
   })
 
   return endpointStats

@@ -22,6 +22,16 @@
 
 import { unref } from 'vue'
 
+interface ItemWithNameAndId {
+  id?: unknown
+  name?: string
+}
+
+interface ItemWithCodeAndId {
+  id?: unknown
+  c_code?: string
+}
+
 /**
  * 중복되지 않는 고유한 이름 생성
  * @param {string} originalName - 원본 이름
@@ -29,14 +39,18 @@ import { unref } from 'vue'
  * @param {number|null} excludeId - 제외할 항목 ID
  * @returns {string} 고유한 이름
  */
-function generateUniqueName(originalName, items, excludeId = null) {
+function generateUniqueName(
+  originalName: string,
+  items: ItemWithNameAndId[] | { value: ItemWithNameAndId[] },
+  excludeId: unknown = null
+): string {
   if (!originalName) return originalName
 
   let newName = `${originalName} (복사본)`
   let counter = 1
 
   const itemsValue = unref(items)
-  while (itemsValue.some((item) => item.name === newName && item.id !== excludeId)) {
+  while (itemsValue.some((item: ItemWithNameAndId) => item.name === newName && item.id !== excludeId)) {
     newName = `${originalName} (복사본 ${counter})`
     counter++
     // 무한 루프 방지
@@ -53,7 +67,12 @@ function generateUniqueName(originalName, items, excludeId = null) {
  * @param {number} maxLength - 최대 길이 (기본값: 6)
  * @returns {string} 고유한 코드
  */
-function generateUniqueCCode(originalCode, items, excludeId = null, maxLength = 6) {
+function generateUniqueCCode(
+  originalCode: string,
+  items: ItemWithCodeAndId[] | { value: ItemWithCodeAndId[] },
+  excludeId: unknown = null,
+  maxLength = 6
+): string {
   if (!originalCode) return originalCode
 
   const itemsValue = unref(items)
@@ -64,7 +83,7 @@ function generateUniqueCCode(originalCode, items, excludeId = null, maxLength = 
   let newCode = `${base}${counter}`
 
   // maxLength 제한을 고려하여 생성
-  while (itemsValue.some((item) => item.c_code === newCode && item.id !== excludeId)) {
+  while (itemsValue.some((item: ItemWithCodeAndId) => item.c_code === newCode && item.id !== excludeId)) {
     counter++
     if (counter <= 9) {
       // 1자리 숫자 (0-9)
@@ -81,10 +100,37 @@ function generateUniqueCCode(originalCode, items, excludeId = null, maxLength = 
   return newCode
 }
 
-export function useTableDuplicate(options = {}) {
+interface UniqueFieldConfig {
+  field: string
+  generateFn: (
+    original: string,
+    items: Record<string, unknown>[] | { value: Record<string, unknown>[] },
+    excludeId?: unknown,
+    maxLength?: number
+  ) => string
+  maxLength?: number
+}
+
+interface ItemWithSortOrder extends Record<string, unknown> {
+  id?: unknown
+  sort_order?: number
+}
+
+interface TableDuplicateOptions<T extends ItemWithSortOrder = ItemWithSortOrder> {
+  items?: T[] | { value: T[] }
+  filteredItems?: T[] | { value: T[] }
+  uniqueFields?: Record<string, UniqueFieldConfig>
+  onDuplicate?: (duplicatedData: T, sourceItem: T, targetIndex: number) => void
+  calculatePosition?: (sourceItem: T, targetIndex: number, filteredItems: T[]) => number
+  onError?: (error: unknown) => void
+}
+
+export function useTableDuplicate<T extends ItemWithSortOrder = ItemWithSortOrder>(
+  options: TableDuplicateOptions<T> = {}
+) {
   const {
-    items = [],
-    filteredItems = [],
+    items = [] as T[],
+    filteredItems = [] as T[],
     uniqueFields = {
       name: {
         field: 'name',
@@ -97,22 +143,23 @@ export function useTableDuplicate(options = {}) {
       },
     },
     onDuplicate = () => {},
-    calculatePosition = (sourceItem, targetIndex, filteredItems) => {
-      // 기본 위치 계산: 원본 아래에 배치
-      const sourceIndex = filteredItems.findIndex((item) => item.id === sourceItem.id)
-      const nextItem = filteredItems[sourceIndex + 1]
+    calculatePosition = (sourceItem: T, _targetIndex: number, filteredItemsArr: T[]) => {
+      const srcOrder = (sourceItem.sort_order ?? 0)
+      const sourceIndex = filteredItemsArr.findIndex((item: T) => item.id === sourceItem.id)
+      const nextItem = filteredItemsArr[sourceIndex + 1]
 
       if (nextItem) {
-        // 다음 항목이 있으면 중간값 사용
-        const newOrder = (sourceItem.sort_order + nextItem.sort_order) / 2
+        const srcOrder = (sourceItem.sort_order ?? 0)
+        const nextOrder = (nextItem.sort_order ?? 0)
+        const newOrder = (srcOrder + nextOrder) / 2
         // 중간값이 같거나 범위를 벗어나면 원본 + 1
-        if (newOrder <= sourceItem.sort_order || newOrder >= nextItem.sort_order) {
-          return sourceItem.sort_order + 1
+        if (newOrder <= srcOrder || newOrder >= nextOrder) {
+          return srcOrder + 1
         }
         return newOrder
       } else {
         // 다음 항목이 없으면 원본 + 10
-        return (sourceItem.sort_order || 0) + 10
+        return srcOrder + 10
       }
     },
     onError = () => {},
@@ -126,7 +173,10 @@ export function useTableDuplicate(options = {}) {
    * @param {Object} additionalConfig.overrideFields - 덮어쓸 필드 값
    * @returns {Object|null} 복제된 데이터 (에러 시 null)
    */
-  function duplicateItem(sourceItem, additionalConfig = {}) {
+  function duplicateItem(
+    sourceItem: T,
+    additionalConfig: { excludeFields?: string[]; overrideFields?: Record<string, unknown> } = {}
+  ): T | null {
     if (!sourceItem) {
       onError(new Error('복제할 항목이 없습니다.'))
       return null
@@ -136,11 +186,9 @@ export function useTableDuplicate(options = {}) {
       const { excludeFields = ['id', 'created_at', 'updated_at'], overrideFields = {} } =
         additionalConfig
 
-      // 1. 원본 데이터 복사
-      const duplicatedData = { ...sourceItem }
+      const duplicatedData = { ...sourceItem } as T & Record<string, unknown>
 
-      // 2. 제외할 필드 제거
-      excludeFields.forEach((field) => {
+      excludeFields.forEach((field: string) => {
         delete duplicatedData[field]
       })
 
@@ -149,10 +197,10 @@ export function useTableDuplicate(options = {}) {
 
       // 4. 중복 필드 자동 처리
       const itemsValue = unref(items)
-      Object.keys(uniqueFields).forEach((key) => {
+      Object.keys(uniqueFields).forEach((key: string) => {
         const config = uniqueFields[key]
         const fieldName = config.field
-        const originalValue = sourceItem[fieldName]
+        const originalValue = (sourceItem as Record<string, unknown>)[fieldName]
 
         if (originalValue !== undefined && originalValue !== null) {
           if (config.maxLength) {
@@ -172,7 +220,7 @@ export function useTableDuplicate(options = {}) {
 
       // 5. 위치 계산
       const filteredItemsValue = unref(filteredItems)
-      const targetIndex = filteredItemsValue.findIndex((item) => item.id === sourceItem.id)
+      const targetIndex = filteredItemsValue.findIndex((item: T) => item.id === sourceItem.id)
       const newSortOrder = calculatePosition(sourceItem, targetIndex, filteredItemsValue)
       duplicatedData.sort_order = newSortOrder
 

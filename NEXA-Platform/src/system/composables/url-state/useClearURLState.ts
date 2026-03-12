@@ -3,17 +3,22 @@
  *
  * URL에서 상태 파라미터를 제거합니다.
  *
- * @param {Object} options - 제거 옵션
- * @param {Array<string>} options.exclude - 제외할 파라미터 목록
- * @param {boolean} options.useNextTick - nextTick 사용 여부 (기본값: false)
- * @returns {Object} clearURLState 함수
+ * @param options - 제거 옵션
+ * @param options.exclude - 제외할 파라미터 목록
+ * @param options.useNextTick - nextTick 사용 여부 (기본값: false)
+ * @returns clearURLState 함수
  */
 
 import { nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getURLStateParamName } from '@system/config/url-state/index'
 
-export function useClearURLState(options = {}) {
+export interface ClearURLStateOptions {
+  exclude?: string[]
+  useNextTick?: boolean
+}
+
+export function useClearURLState(options: ClearURLStateOptions = {}) {
   const { exclude = [], useNextTick = false } = options
   const route = useRoute()
   const router = useRouter()

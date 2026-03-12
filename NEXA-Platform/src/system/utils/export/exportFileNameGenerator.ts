@@ -2,32 +2,26 @@
  * 파일명 생성 유틸리티
  */
 
-/**
- * 파일명 생성
- * @param {string} format - 'csv' | 'excel' | 'pdf'
- * @param {string} type - 'selected' | 'filtered' | 'all'
- * @param {number} count - 데이터 개수
- * @param {string} tableName - 테이블 이름 (선택사항)
- * @returns {string} 생성된 파일명
- */
-export function generateFileName(format = 'csv', type = 'all', count = 0, tableName = '') {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5) // YYYY-MM-DDTHH-MM-SS
+export type ExportFormat = 'csv' | 'excel' | 'pdf'
+export type ExportScope = 'selected' | 'filtered' | 'all'
 
-  // 형식 확장자
-  const extensions = {
-    csv: 'csv',
-    excel: 'xlsx',
-    pdf: 'pdf',
-  }
-  const extension = extensions[format] || 'csv'
+const EXTENSIONS: Record<ExportFormat, string> = {
+  csv: 'csv',
+  excel: 'xlsx',
+  pdf: 'pdf',
+}
 
-  // 타입 라벨
-  const typeLabels = {
-    selected: '선택항목',
-    filtered: '필터결과',
-    all: '전체',
-  }
-  const typeLabel = typeLabels[type] || '전체'
+const TYPE_LABELS: Record<ExportScope, string> = {
+  selected: '선택항목',
+  filtered: '필터결과',
+  all: '전체',
+}
+
+export function generateFileName(format: ExportFormat = 'csv', type: ExportScope = 'all', count = 0, tableName = ''): string {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+
+  const extension = EXTENSIONS[format] ?? 'csv'
+  const typeLabel = TYPE_LABELS[type] ?? '전체'
 
   // 테이블 이름 (있는 경우)
   const tableLabel = tableName ? `${tableName}_` : ''
@@ -43,7 +37,7 @@ export function generateFileName(format = 'csv', type = 'all', count = 0, tableN
  * @param {string} fileName - 원본 파일명
  * @returns {string} 안전한 파일명
  */
-export function sanitizeFileName(fileName) {
+export function sanitizeFileName(fileName: string): string {
   // Windows/Unix에서 문제가 되는 문자 제거
   return fileName.replace(/[<>:"/\\|?*]/g, '_')
 }

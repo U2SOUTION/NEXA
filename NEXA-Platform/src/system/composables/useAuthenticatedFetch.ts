@@ -16,7 +16,7 @@ export function useAuthenticatedFetch() {
     return authenticatedFetch(
       url,
       options,
-      () => authStore.getAuthHeaders(),
+      () => authStore.getAuthHeaders() as Record<string, string>,
       () => authStore.refreshAccess(),
       (path) => router.push(path)
     )

@@ -10,7 +10,7 @@ import { getTopLevelOrder } from '@system/config/devGuideConfig'
  * @param {string} relativePath - 상대 경로 (예: Platform/01-기획/문서.md)
  * @returns {Object} 레벨별 디렉토리 정보
  */
-export function getDirectoryLevels(relativePath) {
+export function getDirectoryLevels(relativePath: string): { level1: string | null; level2: string | null; level3: string | null } {
   if (!relativePath) {
     return { level1: null, level2: null, level3: null }
   }
@@ -24,7 +24,7 @@ export function getDirectoryLevels(relativePath) {
 
   // 파일명 제거 (마지막 요소가 지원 확장자로 끝나면 제거)
   const supportedExtensions = loadSupportedExtensions()
-  const filteredParts = pathParts.filter((part, index) => {
+  const filteredParts = pathParts.filter((part: string, index: number) => {
     // 마지막 요소이고 지원 확장자로 끝나면 파일명이므로 제외
     if (index === pathParts.length - 1) {
       const lowerPart = part.toLowerCase()
@@ -48,7 +48,7 @@ export function getDirectoryLevels(relativePath) {
  * @param {string} relativePath - 상대 경로
  * @returns {string|null} 1레벨 디렉토리명
  */
-export function getMainCategory(relativePath) {
+export function getMainCategory(relativePath: string): string | null {
   const levels = getDirectoryLevels(relativePath)
   return levels.level1
 }
@@ -58,7 +58,7 @@ export function getMainCategory(relativePath) {
  * @param {string} folderName - 폴더명 (예: 01-기획)
  * @returns {string} 변환된 폴더명 (예: 기획)
  */
-function cleanFolderName(folderName) {
+function cleanFolderName(folderName: string): string {
   if (!folderName) return ''
   // 숫자 접두사 제거 (01-기획 -> 기획)
   return folderName.replace(/^\d+-/, '').replace(/_/g, ' ').replace(/-/g, ' ')
@@ -70,7 +70,7 @@ function cleanFolderName(folderName) {
  * @param {number} groupLevel - 그룹 레벨 (1, 2, 3)
  * @returns {string} 카테고리명
  */
-export function getFileCategory(file, groupLevel = 1) {
+export function getFileCategory(file: { relativePath?: string; path?: string }, groupLevel = 1): string {
   // relativePath 우선 사용, 없으면 path에서 추출
   const relativePath = file.relativePath || file.path || ''
 
@@ -113,17 +113,17 @@ export function getFileCategory(file, groupLevel = 1) {
  * @param {string} componentPath - 컴포넌트 경로 (예: '@engines/charts/NexaChart.vue' 또는 'src/domains/dev/guides/styles/charts/bar/NexaChartBar.vue')
  * @returns {string|null} 카테고리명
  */
-export function getComponentCategory(componentPath) {
+export function getComponentCategory(componentPath: string): string | null {
   if (!componentPath) return null
 
   // 경로를 슬래시로 분리하고 빈 문자열 제거
-  const parts = componentPath.split('/').filter((part) => part && part.trim() !== '')
+  const parts = componentPath.split('/').filter((part: string) => part && part.trim() !== '')
 
   // 'guides' 다음의 첫 번째 디렉토리를 카테고리로 사용 (개발 가이드 샘플용)
-  const guidesIndex = parts.findIndex((part) => part === 'guides')
+  const guidesIndex = parts.findIndex((part: string) => part === 'guides')
   if (guidesIndex >= 0 && guidesIndex < parts.length - 1) {
     const topLevelFolders = getTopLevelOrder()
-    const topLevelIndex = parts.findIndex((part, idx) => idx > guidesIndex && topLevelFolders.includes(part.toLowerCase()))
+    const topLevelIndex = parts.findIndex((part: string, idx: number) => idx > guidesIndex && topLevelFolders.includes(part.toLowerCase()))
     
     if (topLevelIndex >= 0 && topLevelIndex < parts.length - 1) {
       // 최상위 레벨 다음의 첫 디렉토리를 카테고리로 사용
@@ -137,7 +137,7 @@ export function getComponentCategory(componentPath) {
   }
 
   // 'src' 다음의 첫 번째 디렉토리를 카테고리로 사용 (일반 컴포넌트용)
-  const srcIndex = parts.findIndex((part) => part === 'src')
+  const srcIndex = parts.findIndex((part: string) => part === 'src')
   if (srcIndex >= 0 && srcIndex < parts.length - 1) {
     return parts[srcIndex + 1]
   }

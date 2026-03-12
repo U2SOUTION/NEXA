@@ -14,6 +14,16 @@
 
 import { getTopLevelLabel } from '@system/config/devGuideConfig'
 
+interface BuildPathTreeOptions {
+  rootPrefix?: string
+  pathKey?: string
+  iconGetter?: ((dirName: string, level: number) => string) | null
+  labelGetter?: ((part: string, index: number, item: unknown) => string) | null
+  onNodeCreate?: ((node: unknown, item: unknown, index: number) => void) | null
+}
+
+let sampleIdCounter = 100000
+
 /**
  * 디렉토리 이름에 따른 라벨 반환
  * @param {string} dirName - 디렉토리 이름
@@ -23,7 +33,7 @@ import { getTopLevelLabel } from '@system/config/devGuideConfig'
  * 최상위 레벨만 한글 매핑하고, 서브 카테고리는 폴더명 그대로 사용
  */
 
-export function getLabelForDirectory(dirName, level = 0) {
+export function getLabelForDirectory(dirName: string, level = 0): string {
   // 최상위 레벨인 경우 한글 매핑
   if (level === 0) {
     return getTopLevelLabel(dirName)
@@ -39,12 +49,12 @@ export function getLabelForDirectory(dirName, level = 0) {
  * @param {string} rootPrefix - 제거할 루트 접두사 (예: 'guides')
  * @returns {Array<string>} 디렉토리 경로 배열
  */
-export function extractDirectoryPath(filePath, rootPrefix = '') {
+export function extractDirectoryPath(filePath: string, rootPrefix = ''): string[] {
   if (!filePath) return []
 
   // 경로 정규화 (백슬래시를 슬래시로)
   const normalizedPath = filePath.replace(/\\/g, '/')
-  const parts = normalizedPath.split('/').filter((part) => part && part.trim() !== '')
+  const parts = normalizedPath.split('/').filter((part: string) => part && part.trim() !== '')
 
   // rootPrefix 제거
   if (rootPrefix) {
@@ -70,8 +80,8 @@ export function extractDirectoryPath(filePath, rootPrefix = '') {
  * @param {Function} customIconGetter - 커스텀 아이콘 getter 함수 (optional)
  * @returns {string} 아이콘 이름
  */
-export function getIconForDirectory(dirName, level = 0, customIconGetter = null) {
-  if (customIconGetter && typeof customIconGetter === 'function') {
+export function getIconForDirectory(dirName: string, level = 0, customIconGetter: ((d: string, l: number) => string) | null = null): string {
+  if (customIconGetter) {
     const customIcon = customIconGetter(dirName, level)
     if (customIcon) return customIcon
   }
@@ -91,24 +101,19 @@ export function getIconForDirectory(dirName, level = 0, customIconGetter = null)
  * @param {Function} options.onNodeCreate - 노드 생성 시 콜백 (optional)
  * @returns {Array<Object>} q-tree 형식의 노드 배열
  */
-export function buildPathTree(items, options = {}) {
+export function buildPathTree(items: unknown[], options: BuildPathTreeOptions = {}): unknown[] {
   const { rootPrefix = 'guides', pathKey = 'componentPath', iconGetter = null, labelGetter = null, onNodeCreate = null } = options
 
   if (!items || items.length === 0) {
     return []
   }
 
-  // 트리 구조를 객체로 생성
-  const tree = {}
+  sampleIdCounter = 100000
+  const tree: Record<string, unknown> = {}
   let nodeId = 1
 
-  // 샘플 ID 카운터 초기화
-  if (convertTreeToNodes.sampleIdCounter) {
-    convertTreeToNodes.sampleIdCounter = 100000
-  }
-
-  items.forEach((item) => {
-    const filePath = item[pathKey]
+  items.forEach((item: unknown) => {
+    const filePath = (item as Record<string, unknown>)[pathKey] as string | undefined
     if (!filePath) return
 
     // 디렉토리 경로 추출
@@ -116,8 +121,8 @@ export function buildPathTree(items, options = {}) {
 
     // 트리 구조 생성 (재귀적으로)
     let current = tree
-    directoryParts.forEach((part, index) => {
-      if (!current[part]) {
+    directoryParts.forEach((part: string, index: number) => {
+      if (!(current as Record<string, unknown>)[part]) {
         const node = {
           id: nodeId++,
           label: labelGetter ? labelGetter(part, index, item) : part,
@@ -130,44 +135,42 @@ export function buildPathTree(items, options = {}) {
           fullPath: rootPrefix ? `${rootPrefix}/${directoryParts.slice(0, index + 1).join('/')}` : directoryParts.slice(0, index + 1).join('/'),
         }
 
-        // 콜백 호출
         if (onNodeCreate) {
           onNodeCreate(node, item, index)
         }
 
-        current[part] = node
+        ;(current as Record<string, unknown>)[part] = node
       }
-      current = current[part].children
+      current = ((current as Record<string, unknown>)[part] as { children: Record<string, unknown> }).children
     })
 
     // 아이템을 해당 디렉토리에 추가
-    const targetNode = getNodeByPath(tree, directoryParts)
+    const targetNode = getNodeByPath(tree as Record<string, { children: Record<string, unknown>; items: unknown[] }>, directoryParts)
     if (targetNode) {
       targetNode.items.push(item)
     }
   })
 
-  // 트리 구조를 q-tree 노드 형식으로 변환
-  return convertTreeToNodes(tree)
+  return convertTreeToNodes(tree as Record<string, TreeNode>)
 }
 
-/**
- * 경로로 노드 찾기
- * @param {Object} tree - 트리 객체
- * @param {Array<string>} pathParts - 경로 파트 배열
- * @returns {Object|null} 노드 객체
- */
-function getNodeByPath(tree, pathParts) {
-  return findNodeInTree(tree, pathParts)
+interface TreeNode {
+  id: number
+  label: string
+  name: string
+  icon: string
+  children: Record<string, TreeNode>
+  items: unknown[]
+  level: number
+  path: string
+  fullPath: string
 }
 
-/**
- * 트리에서 경로로 노드 찾기 (재귀)
- * @param {Object} tree - 트리 객체
- * @param {Array<string>} pathParts - 경로 파트 배열
- * @returns {Object|null} 노드 객체
- */
-function findNodeInTree(tree, pathParts) {
+function getNodeByPath(tree: Record<string, { children: Record<string, unknown>; items: unknown[] }>, pathParts: string[]): { items: unknown[] } | null {
+  return findNodeInTree(tree, pathParts) as { items: unknown[] } | null
+}
+
+function findNodeInTree(tree: Record<string, unknown>, pathParts: string[]): unknown {
   if (pathParts.length === 0) return null
 
   const [first, ...rest] = pathParts
@@ -177,55 +180,43 @@ function findNodeInTree(tree, pathParts) {
     return tree[first]
   }
 
-  return findNodeInTree(tree[first].children, rest)
+  return findNodeInTree((tree[first] as { children: Record<string, unknown> }).children, rest)
 }
 
-/**
- * 트리 구조를 q-tree 노드 형식으로 변환
- * @param {Object} tree - 트리 객체
- * @returns {Array<Object>} q-tree 노드 배열
- */
-function convertTreeToNodes(tree) {
-  // 전역 샘플 ID 카운터 (함수 내부에서만 사용)
-  if (!convertTreeToNodes.sampleIdCounter) {
-    convertTreeToNodes.sampleIdCounter = 100000
-  }
-
+function convertTreeToNodes(tree: Record<string, TreeNode>): unknown[] {
   return Object.values(tree)
-    .map((node) => {
-      // 하위 디렉토리만 children에 포함 (파일은 제외)
+    .map((node: TreeNode) => {
       const directoryChildren = convertTreeToNodes(node.children)
 
-      // 파일 아이템들을 children으로 변환 (q-tree가 인식하도록)
-      const fileChildren = (node.items || []).map((item) => {
-        const id = convertTreeToNodes.sampleIdCounter++
+      const fileChildren = (node.items || []).map((item: unknown) => {
+        const id = sampleIdCounter++
         // 파일명에서 확장자 제거하여 라벨 생성
-        const fileName = item.name || (item.componentPath ? item.componentPath.split('/').pop() : 'Unknown')
+        const it = item as { name?: string; componentPath?: string; displayName?: string }
+        const fileName = it.name || (it.componentPath ? it.componentPath.split('/').pop() ?? 'Unknown' : 'Unknown')
         const labelWithoutExt = fileName.replace(/\.\w+$/, '')
 
-        // displayName 처리: 파일명과 동일하거나 유사하면 파일명만 사용, 다르면 displayName 사용
-        let displayLabel
-        if (item.displayName) {
+        let displayLabel: string
+        if (it.displayName) {
           // displayName이 파일명과 유사한지 확인 (대소문자 무시)
-          const displayNameLower = item.displayName.toLowerCase().trim()
+          const displayNameLower = it.displayName.toLowerCase().trim()
           const fileNameLower = labelWithoutExt.toLowerCase().trim()
 
           // displayName이 파일명을 포함하거나, 파일명이 displayName을 포함하는 경우 파일명만 사용
           if (displayNameLower === fileNameLower || displayNameLower.includes(fileNameLower) || fileNameLower.includes(displayNameLower)) {
             displayLabel = labelWithoutExt
           } else {
-            displayLabel = item.displayName
+            displayLabel = it.displayName
           }
         } else {
           displayLabel = labelWithoutExt
         }
 
         return {
-          id: id,
+          id,
           label: displayLabel,
-          icon: 'description', // 파일 아이콘으로 변경 (폴더와 구분)
-          sample: item, // 원본 아이템 데이터 보관
-          item: item, // 호환성을 위한 별칭
+          icon: 'description',
+          sample: item,
+          item,
           // 파일 노드는 children이 없어야 화살표가 생기지 않음
           children: undefined,
         }
@@ -278,11 +269,11 @@ function convertTreeToNodes(tree) {
  * @param {string} rootPrefix - 제거할 루트 접두사 (기본값: 'guides')
  * @returns {Array<Object>} 필터링된 아이템 배열
  */
-export function filterByPath(items, filterPath, pathKey = 'componentPath', rootPrefix = 'guides') {
+export function filterByPath(items: unknown[], filterPath: string, pathKey = 'componentPath', rootPrefix = 'guides'): unknown[] {
   if (!filterPath) return items
 
-  return items.filter((item) => {
-    const filePath = item[pathKey]
+  return items.filter((item: unknown) => {
+    const filePath = (item as Record<string, unknown>)[pathKey] as string | undefined
     if (!filePath) return false
 
     const directoryParts = extractDirectoryPath(filePath, rootPrefix)
@@ -301,14 +292,15 @@ export function filterByPath(items, filterPath, pathKey = 'componentPath', rootP
  * @param {Array<Object>} path - 현재 경로 (재귀용)
  * @returns {Array<Object>|null} 노드 경로 배열
  */
-export function findNodePath(nodes, targetId, path = []) {
+interface QTreeNode { id: number; children?: QTreeNode[] }
+export function findNodePath(nodes: QTreeNode[], targetId: number, path: QTreeNode[] = []): QTreeNode[] | null {
   for (const node of nodes) {
     const currentPath = [...path, node]
     if (node.id === targetId) {
       return currentPath
     }
     if (node.children && node.children.length > 0) {
-      const found = findNodePath(node.children, targetId, currentPath)
+      const found = findNodePath(node.children as QTreeNode[], targetId, currentPath)
       if (found) return found
     }
   }

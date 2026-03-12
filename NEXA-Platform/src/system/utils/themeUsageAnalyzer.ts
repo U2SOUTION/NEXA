@@ -8,8 +8,8 @@
  */
 
 // 통계 데이터 캐시
-let statisticsCache = null
-let cacheTimestamp = null
+let statisticsCache: Array<{ variableName: string }> | null = null
+let cacheTimestamp: number | null = null
 const CACHE_DURATION = 5 * 60 * 1000 // 5분
 
 /**
@@ -63,9 +63,9 @@ export function invalidateCache() {
  * @param {string} variableName - CSS 변수명 (예: --nexa-primary)
  * @returns {Promise<Object|null>}
  */
-export async function getColorUsage(variableName) {
+export async function getColorUsage(variableName: string) {
   const statistics = await getCachedStatistics()
-  return statistics.find(stat => stat.variableName === variableName) || null
+  return statistics.find((stat: { variableName: string }) => stat.variableName === variableName) || null
 }
 
 /**

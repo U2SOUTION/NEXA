@@ -4,12 +4,15 @@
  */
 import { ref, computed } from 'vue'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
-import { buildFileTreeFromApiResponse } from '@system/utils/fileExplorer'
+import {
+  buildFileTreeFromApiResponse,
+  type FileTreeNode,
+} from '@system/utils/fileExplorer'
 
 export function useFileBrowserExplorer() {
-  const treeNodes = ref([])
+  const treeNodes = ref<FileTreeNode[]>([])
   const treeLoading = ref(false)
-  const items = ref([])
+  const items = ref<unknown[]>([])
   const total = ref(0)
   const listLoading = ref(false)
   const selectedNode = ref({ domain: null as string | null, path: null as string | null })
@@ -17,7 +20,7 @@ export function useFileBrowserExplorer() {
   const listOffset = ref(0)
   const listLimit = 50
   const searchQuery = ref('')
-  const listError = ref(null)
+  const listError = ref<string | null>(null)
 
   const hasMore = computed(() => items.value.length < total.value)
 
@@ -61,9 +64,9 @@ export function useFileBrowserExplorer() {
       }
       total.value = data.total ?? 0
       listOffset.value = offset + (data.items?.length ?? 0)
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('[useFileBrowserExplorer] loadItems:', err)
-      listError.value = err.message || '목록을 불러오지 못했습니다.'
+      listError.value = err instanceof Error ? err.message : '목록을 불러오지 못했습니다.'
       if (!append) items.value = []
     } finally {
       listLoading.value = false

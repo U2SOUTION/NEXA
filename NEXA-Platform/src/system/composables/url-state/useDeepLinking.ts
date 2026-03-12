@@ -3,17 +3,23 @@
  *
  * 공유 URL 접근 시 자동으로 해당 상태로 복원합니다.
  *
- * @param {Object} config - 딥 링킹 설정
- * @param {Function} config.onDeepLink - 딥 링킹 처리 콜백 (state) => void
- * @param {Function} config.onDefaultInit - 기본 초기화 콜백 (state) => void
- * @param {string} config.defaultView - 기본 뷰 이름
- * @returns {Object} 딥 링킹 함수들
+ * @param config - 딥 링킹 설정
+ * @param config.onDeepLink - 딥 링킹 처리 콜백 (state) => void
+ * @param config.onDefaultInit - 기본 초기화 콜백 (state) => void
+ * @param config.defaultView - 기본 뷰 이름
+ * @returns 딥 링킹 함수들
  */
 
 import { useRoute } from 'vue-router'
 import { getURLStateParamName } from '@system/config/url-state/index'
 
-export function useDeepLinking(config = {}) {
+export interface DeepLinkingConfig {
+  onDeepLink?: (state: { mode: string; view: string; hasSelected: boolean; hasFilter: boolean }) => void
+  onDefaultInit?: (state: { mode: string; view: string | null }) => void
+  defaultView?: string
+}
+
+export function useDeepLinking(config: DeepLinkingConfig = {}) {
   const { onDeepLink, onDefaultInit, defaultView } = config
   const route = useRoute()
 
@@ -37,7 +43,8 @@ export function useDeepLinking(config = {}) {
       route.query[searchParam] || route.query[categoryParam] || route.query[statusParam]
 
     if ((hasSelected || hasFilter) && currentMode === 'parts-data') {
-      const targetView = route.query[viewParam] || defaultView
+      const rawView = route.query[viewParam]
+      const targetView = (Array.isArray(rawView) ? rawView[0] : rawView) ?? defaultView ?? 'part-classes'
 
       // 딥 링킹 처리 콜백 호출
       if (onDeepLink) {

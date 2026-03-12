@@ -10,7 +10,7 @@
  * @param {Object} stateMap - 상태 맵핑 객체
  * @returns {Object} 쿼리 객체
  */
-export function buildURLState(_state, _stateMap) {
+export function buildURLState(_state: Record<string, unknown>, _stateMap: Record<string, unknown>): Record<string, string> {
   void _state
   void _stateMap
   // TODO: 상태 → 쿼리 변환 로직 구현
@@ -24,7 +24,7 @@ export function buildURLState(_state, _stateMap) {
  * @param {Object} query - 쿼리 객체
  * @returns {string} 쿼리 문자열
  */
-export function buildQueryString(_query) {
+export function buildQueryString(_query: Record<string, unknown>): string {
   void _query
   // TODO: 객체 → 쿼리 문자열 변환 로직 구현
   // TODO: 인코딩 처리 로직 구현

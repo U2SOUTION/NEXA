@@ -21,9 +21,22 @@
  * // → "선택 항목 내보내기 (3개)" 또는 "필터 결과 내보내기 (10개)" 또는 "전체 내보내기"
  */
 import { computed } from 'vue'
+import type { Ref, ComputedRef } from 'vue'
 
-export function useDynamicLabel(options = {}) {
-  const { selectedCount = computed(() => 0), hasActiveFilter = computed(() => false), getFilteredCount = () => 0, getTotalCount = () => 0 } = options
+export interface DynamicLabelOptions {
+  selectedCount?: Ref<number> | ComputedRef<number>
+  hasActiveFilter?: Ref<boolean> | ComputedRef<boolean>
+  getFilteredCount?: () => number
+  getTotalCount?: () => number
+}
+
+export function useDynamicLabel(options: DynamicLabelOptions = {}) {
+  const {
+    selectedCount = computed(() => 0) as ComputedRef<number>,
+    hasActiveFilter = computed(() => false) as ComputedRef<boolean>,
+    getFilteredCount = () => 0,
+    getTotalCount = () => 0,
+  } = options
 
   /**
    * 동적 라벨 생성
@@ -36,7 +49,11 @@ export function useDynamicLabel(options = {}) {
    * @param {string} labelOptions.allPrefix - 전체일 때 접두사 (기본: '전체')
    * @returns {string} 생성된 라벨
    */
-  function getLabel(type, baseLabel, labelOptions = {}) {
+  function getLabel(
+    type: string,
+    baseLabel: string,
+    labelOptions: { showCount?: boolean; selectedPrefix?: string; filteredPrefix?: string; allPrefix?: string } = {}
+  ): string {
     const { showCount = true, selectedPrefix = '선택 항목', filteredPrefix = '필터 결과', allPrefix = '전체' } = labelOptions
 
     // 선택된 항목이 있는 경우

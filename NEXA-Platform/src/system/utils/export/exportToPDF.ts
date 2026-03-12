@@ -3,13 +3,21 @@
  */
 
 import { formatDataArray } from './exportFormatter'
+import type { ColumnDef } from './exportTypes'
+import type { FormattingOptions, ExportPdfOptions } from './exportTypes'
 
-/**
- * 한글 폰트를 jsPDF에 추가
- * @param {Object} doc - jsPDF 인스턴스
- * @returns {Promise<void>}
- */
-async function addKoreanFont(doc) {
+interface JsPDFDoc {
+  addFileToVFS: (fileName: string, fontBase64: string) => void
+  addFont: (fileName: string, fontName: string, fontStyle: string) => void
+  getFontList: () => Record<string, unknown>
+  setFont: (font: string, style?: string) => void
+  setFontSize: (size: number) => void
+  text: (text: string, x: number, y: number, options?: { align?: string }) => void
+  output: (type: 'blob') => Blob
+  internal: { getNumberOfPages: () => number }
+}
+
+async function addKoreanFont(doc: JsPDFDoc): Promise<void> {
   try {
     console.log('한글 폰트 추가 시작...')
 
@@ -57,7 +65,7 @@ async function addKoreanFont(doc) {
  * @param {string} cacheKey - localStorage 캐시 키
  * @returns {Promise<boolean>} 폰트 추가 성공 여부
  */
-async function loadAndAddFont(doc, fileName, fontName, fontStyle, cacheKey) {
+async function loadAndAddFont(doc: JsPDFDoc, fileName: string, fontName: string, fontStyle: string, cacheKey: string): Promise<boolean> {
   try {
     // 폰트 캐시 확인 (로컬 스토리지 사용)
     let fontBase64 = localStorage.getItem(cacheKey)
@@ -81,11 +89,12 @@ async function loadAndAddFont(doc, fileName, fontName, fontStyle, cacheKey) {
         console.log(`폰트 파일 로드 성공: ${fileName}, 크기: ${fontBlob.size} bytes`)
 
         // Blob을 base64로 변환
-        fontBase64 = await new Promise((resolve, reject) => {
+        fontBase64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader()
           reader.onloadend = () => {
-            const base64 = reader.result.split(',')[1]
-            resolve(base64)
+            const result = reader.result
+            const base64 = typeof result === 'string' ? result.split(',')[1] : undefined
+            resolve(base64 ?? '')
           }
           reader.onerror = reject
           reader.readAsDataURL(fontBlob)
@@ -167,12 +176,12 @@ async function loadAndAddFont(doc, fileName, fontName, fontStyle, cacheKey) {
  * @returns {Promise<Blob>} PDF Blob 객체
  */
 export async function exportToPDF(
-  data,
-  columns,
-  columnDefinitions = [],
-  options = {},
-  formattingOptions = {},
-) {
+  data: Record<string, unknown>[],
+  columns: string[],
+  columnDefinitions: ColumnDef[] = [],
+  options: ExportPdfOptions = {},
+  formattingOptions: FormattingOptions = {}
+): Promise<Blob> {
   if (!Array.isArray(data) || data.length === 0) {
     throw new Error('내보낼 데이터가 없습니다.')
   }
@@ -181,32 +190,30 @@ export async function exportToPDF(
   const jsPDFModule = await import('jspdf')
   const autoTableModule = await import('jspdf-autotable')
 
-  // jspdf는 named export 또는 default export를 제공할 수 있음
-  const jsPDF = jsPDFModule.jsPDF || jsPDFModule.default || jsPDFModule
+  // jspdf는 named export 또는 default export를 제공할 수 있음 (생성자로 단언)
+  type JsPDFCtorType = new (opts: { orientation?: string; unit?: string; format?: number[] }) => JsPDFDoc
+  const JsPDFCtor = (jsPDFModule.jsPDF ?? jsPDFModule.default ?? jsPDFModule) as unknown as JsPDFCtorType
   // jspdf-autotable은 default export를 제공
   const autoTable = autoTableModule.default || autoTableModule
 
   // 데이터 포맷팅
   const formattedData = formatDataArray(data, columns, formattingOptions)
 
-  // 페이지 크기 설정
-  const pageSizes = {
-    a4: { width: 210, height: 297 }, // mm
+  const pageSizes: Record<string, { width: number; height: number }> = {
+    a4: { width: 210, height: 297 },
     a3: { width: 297, height: 420 },
     letter: { width: 216, height: 279 },
   }
-  const pageSize = pageSizes[options.pageSize] || pageSizes.a4
+  const pageSize = pageSizes[options.pageSize ?? 'a4'] ?? pageSizes.a4
   const orientation = options.orientation === 'landscape' ? 'landscape' : 'portrait'
 
-  // PDF 생성
-  const doc = new jsPDF({
+  const doc = new JsPDFCtor({
     orientation,
     unit: 'mm',
     format: [pageSize.width, pageSize.height],
   })
 
-  // 한글 폰트 추가
-  await addKoreanFont(doc)
+  await addKoreanFont(doc as unknown as JsPDFDoc)
 
   // 한글 폰트 설정
   try {
@@ -216,23 +223,20 @@ export async function exportToPDF(
     console.warn('한글 폰트 설정 실패:', error)
   }
 
-  // 열 정의에서 라벨 가져오기
-  const getColumnLabel = (colName) => {
-    const colDef = columnDefinitions.find((col) => col.name === colName)
-    return colDef?.label || colName
+  const getColumnLabel = (colName: string): string => {
+    const colDef = columnDefinitions.find((col: ColumnDef) => col.name === colName)
+    return colDef?.label ?? colName
   }
 
-  // 헤더 행 생성
-  const headers = columns.map((colName) => getColumnLabel(colName))
+  const headers = columns.map((colName: string) => getColumnLabel(colName))
 
-  // 데이터 행 생성
-  const rows = formattedData.map((row) => {
-    return columns.map((colName) => String(row[colName] || ''))
+  const rows = formattedData.map((row: Record<string, string>) => {
+    return columns.map((colName: string) => String(row[colName] ?? ''))
   })
 
-  // 헤더 추가
-  if (options.header?.show) {
-    const headerTitle = options.header.title || '데이터 내보내기'
+  const pdfOpts = options as ExportPdfOptions
+  if (pdfOpts.header?.show) {
+    const headerTitle = pdfOpts.header?.title ?? '데이터 내보내기'
     try {
       doc.setFont('NotoSansKR', 'bold') // Bold 스타일 사용
     } catch {
@@ -246,10 +250,10 @@ export async function exportToPDF(
   }
 
   // 테이블 생성
-  autoTable(doc, {
+  ;(autoTable as (doc: unknown, opts: Record<string, unknown>) => void)(doc, {
     head: [headers],
     body: rows,
-    startY: options.header?.show ? 30 : 20,
+    startY: pdfOpts.header?.show ? 30 : 20,
     styles: {
       fontSize: 8,
       cellPadding: 2,
@@ -265,14 +269,12 @@ export async function exportToPDF(
       fillColor: [245, 245, 245],
     },
     margin: { top: 20, right: 14, bottom: 20, left: 14 },
-    didDrawPage: (data) => {
-      // 푸터 추가
-      if (options.footer?.show) {
-        const pageCount = doc.internal.getNumberOfPages()
+    didDrawPage: (data: { pageNumber: number }) => {
+      if (pdfOpts.footer?.show) {
+        const pageCount = (doc as unknown as JsPDFDoc).internal.getNumberOfPages()
         const pageNumber = data.pageNumber
 
-        // 페이지 번호
-        if (options.footer.pageNumber) {
+        if (pdfOpts.footer?.pageNumber) {
           doc.setFont('NotoSansKR', 'normal') // Regular 폰트 사용
           doc.setFontSize(8) // 작은 크기로 설정
           doc.text(
@@ -307,7 +309,7 @@ export async function exportToPDF(
  * @param {Blob} blob - PDF Blob 객체
  * @param {string} fileName - 파일명
  */
-export function downloadPDF(blob, fileName) {
+export function downloadPDF(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url

@@ -6,12 +6,15 @@
 
 import { ref, computed } from 'vue'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
-import { buildFileTreeFromApiResponse } from '@system/utils/fileExplorer'
+import {
+  buildFileTreeFromApiResponse,
+  type FileTreeNode,
+} from '@system/utils/fileExplorer'
 
 /** 싱글톤 상태 (AI 도메인 통합 검색 시 공유) */
-const treeNodes = ref([])
+const treeNodes = ref<FileTreeNode[]>([])
 const treeLoading = ref(false)
-const items = ref([])
+const items = ref<unknown[]>([])
 const total = ref(0)
 const listLoading = ref(false)
 const selectedNode = ref({ domain: null as string | null, path: null as string | null })
@@ -19,7 +22,7 @@ const selectedNodeId = ref('all')
 const listOffset = ref(0)
 const listLimit = 50
 const searchQuery = ref('')
-const listError = ref(null)
+const listError = ref<string | null>(null)
 const sortBy = ref('date_desc')
 const filterCategory = ref('')
 const scopeDomain = ref('')
@@ -66,9 +69,9 @@ async function loadItems(append = false) {
     }
     total.value = data.total ?? 0
     listOffset.value = offset + (data.items?.length ?? 0)
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[useGlobalFileExplorer] loadItems:', err)
-    listError.value = err.message || '목록을 불러오지 못했습니다.'
+    listError.value = err instanceof Error ? err.message : '목록을 불러오지 못했습니다.'
     if (!append) items.value = []
   } finally {
     listLoading.value = false

@@ -518,11 +518,15 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 - **partFiles.routes**: tempRelativePath null 체크, multer diskStorage 콜백 타입, is_editor_image 쿼리 파라미터 타입
 - **files.routes**: req.query limit/offset/edge_sid String 변환
 
-### 9.3 남은 작업 (점진적 진행)
+### 9.3 프론트엔드 strict (진행 중)
 
-- **서버 strict**: 완료 (server.ts 포함 전체 통과). 다음 단계: **프론트엔드 strict** (전략 문서 §5.3 참고).
+- **1단계 완료**: `tsconfig.strict.json`, `npm run typecheck:strict` 추가.
+- **적용 범위 (include)**: `src/system/types/**`, `src/system/schemas/**`, `src/system/config/**`, `src/system/store/**` (일부 제외), `src/system/utils/` (apiBaseUrl, authenticatedFetch, generateId, parseCsv, path-categorizer, path-tree-builder, componentFactory, boardWindowPreset, componentScanner, graph-doc/**, dependency-analyzer, url-state/**, markdown/**, file-sorter/**, clipboard, themeColorParser, dataViewUtils, view-mode/**, previewParser, themeUsageAnalyzer, componentLibraryStatistics, performance/** 전체, usage-example-generator, vue-file-parser, componentDependencyAnalyzer, fileExplorer, **error-tracking/** 전체, **print/** 전체, **export/** 전체). **추가 (2025-03)**: `src/system/settings/**`, `src/system/boot/**`.
+- **exclude** (점진적 포함 대상): `documentManagerStore`, `ExplorerPreview.vue`, `useDocumentMultiSelection`, `useSettingsManager` (domains/settings-scanner 의존).
+- **수정 완료**: documentConfig, devGuideConfig, fileTypes, componentCategories, layoutRegistry, url-state, projectStore (getAuthHeaders). **print/**, **export/** (exportTypes 공통 타입). **modalSystemStore** (ModalState/ModalConfig). **boardEditorStore** (DrawerNodeInfo, BoardEditorState). **partsManagementStore** (SpaceNode, BinData, BinModel). **partsDataStore** (PartClass, PartModel, PartSpec, PartFile 인터페이스). **boot/** (errorTracking: App 타입, error handler 시그니처, Window.testError 등 declare; pinia: App 타입). **settings/** (ContextMenuSetting: getTabLabel `Record<string, string>` 타입).
+- **composables/**: (2025-03) include 추가 완료. **수정 완료**: useContainerQuery, useTabConfig, useModalManager, useFileBrowserExplorer, useGlobalFileExplorer, useDatabaseViewer, useContextMenu, useSidebarGesture, usePaginationControl, useAuthenticatedFetch, useDevMenuState, useDocumentFilters, **url-state/** 전체, useBoardPreset, useComponentLibrary, useTableFilter, useTableDragDrop, useTableDuplicate, useDynamicLabel, useDevGuide, useDraggableResizableModal, useMultiSelection, useTableKeyboard. **exclude 유지**: useDocumentMultiSelection, useSettingsManager, useErrorTracking, useErrorAnalysis, useGlobalShortcuts, useGraphDocHistory, useSidebarNavigation. documentManagerStore(useTOC, documentStorage 의존), settings-scanner(domainRegistry→domains 의존)는 별도 처리.
 
-패턴: `catch (err: unknown)` → `errMessage(err)`, `req`/`res` → `Request`/`Response` 또는 `RequestLike`/`ResponseLike`, `row` → `Record<string, unknown>` 또는 인터페이스 단언
+패턴: `catch (err: unknown)` → `errMessage(err)`, 파라미터 `(x)` → `(x: Type)`, `Record<string, string>` 인덱스 접근, `as readonly string[]` for `.includes()` on const arrays
 
 ---
 

@@ -1,11 +1,18 @@
 import { onMounted, onUnmounted } from 'vue'
 
+interface SidebarGestureCallbacks {
+  openLeft: () => void
+  closeLeft: () => void
+  openRight: () => void
+  closeRight: () => void
+}
+
 export function useSidebarGesture({
   openLeft,
   closeLeft,
   openRight,
   closeRight,
-}) {
+}: SidebarGestureCallbacks) {
 // 화면 가장자리에서 제스처를 시작했다고 판단하는 픽셀 거리
 const EDGE = 60
 // 스와이프를 유효하다고 판단하는 최소 이동 거리

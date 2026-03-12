@@ -4,9 +4,18 @@
  * 앱 시작 시 전역 에러 핸들러를 등록합니다.
  */
 
+import type { App } from 'vue'
 import { initializeErrorCollector } from '@system/utils/error-tracking/errorCollector'
 
-export default ({ app }) => {
+declare global {
+  interface Window {
+    testError?: (message?: string) => void
+    testRejection?: (message?: string) => void
+    testNetworkError?: () => void
+  }
+}
+
+export default ({ app }: { app: App }) => {
   // 에러 수집기 초기화
   initializeErrorCollector({
     collecting: true,
@@ -14,7 +23,7 @@ export default ({ app }) => {
   })
 
   // Vue 에러 핸들러 등록
-  app.config.errorHandler = (error, instance, info) => {
+  app.config.errorHandler = (error: unknown, instance: unknown, info: string) => {
     // 기본 에러 핸들링 (콘솔 출력)
     console.error('[Vue Error Handler]', error, instance, info)
 

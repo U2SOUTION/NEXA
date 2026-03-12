@@ -54,7 +54,11 @@ const STYLES = {
  * @param {number} menuHeight - 메뉴 높이
  * @returns {{x: number, y: number}} 계산된 위치
  */
-function calculateMenuPosition(event, menuWidth = STYLES.MIN_WIDTH, menuHeight = 200) {
+function calculateMenuPosition(
+  event: MouseEvent,
+  menuWidth = STYLES.MIN_WIDTH,
+  menuHeight = 200
+): { x: number; y: number } {
   const x = event.clientX
   const y = event.clientY
   const windowWidth = window.innerWidth
@@ -93,26 +97,27 @@ function calculateMenuPosition(event, menuWidth = STYLES.MIN_WIDTH, menuHeight =
  * @param {Array} items - 메뉴 아이템 배열
  * @returns {boolean} 유효성 여부
  */
-function validateMenuItems(items) {
+function validateMenuItems(items: unknown[]): boolean {
   if (!Array.isArray(items)) {
     console.warn('[useContextMenu] items must be an array')
     return false
   }
 
   for (const item of items) {
-    if (item.separator) continue
+    const it = item as Record<string, unknown>
+    if (it.separator) continue
 
-    if (!item.id) {
+    if (!it.id) {
       console.warn('[useContextMenu] menu item must have an id', item)
       return false
     }
 
-    if (!item.label && !item.separator) {
+    if (!it.label && !it.separator) {
       console.warn('[useContextMenu] menu item must have a label', item)
       return false
     }
 
-    if (!item.action && !item.separator) {
+    if (!it.action && !it.separator) {
       console.warn('[useContextMenu] menu item must have an action', item)
       return false
     }
@@ -127,17 +132,21 @@ function validateMenuItems(items) {
  * @param {Object} context - 컨텍스트 정보
  * @returns {Array} 필터링된 아이템 배열
  */
-function filterMenuItems(items, context = {}) {
+function filterMenuItems(
+  items: unknown[],
+  context: Record<string, unknown> = {}
+): unknown[] {
   if (!Array.isArray(items)) return []
 
-  return items.filter((item) => {
+  return items.filter((item: unknown) => {
+    const it = item as Record<string, unknown>
     // 구분선은 항상 표시
-    if (item.separator) return true
+    if (it.separator) return true
 
     // visible 속성 확인
-    if (item.visible === false) return false
-    if (typeof item.visible === 'function') {
-      return item.visible(item, context)
+    if (it.visible === false) return false
+    if (typeof it.visible === 'function') {
+      return (it.visible as (i: unknown, c: Record<string, unknown>) => boolean)(item, context)
     }
 
     return true
@@ -149,7 +158,7 @@ function filterMenuItems(items, context = {}) {
  * @param {Array} items - 메뉴 아이템 배열
  * @returns {Array} 정렬된 아이템 배열
  */
-function sortMenuItems(items) {
+function sortMenuItems(items: unknown[]): unknown[] {
   // 현재는 정렬하지 않음 (향후 필요 시 구현)
   return items
 }
@@ -164,7 +173,7 @@ export function useContextMenu() {
   // 상태
   const visible = ref(false)
   const position = ref({ x: 0, y: 0 })
-  const items = ref([])
+  const items = ref<unknown[]>([])
 
   // 상태 객체 (computed로 반환)
   const contextMenuState = {
@@ -178,7 +187,7 @@ export function useContextMenu() {
    * @param {MouseEvent} event - 마우스 이벤트
    * @param {Array} menuItems - 메뉴 아이템 배열
    */
-  function showContextMenu(event, menuItems = []) {
+  function showContextMenu(event: MouseEvent, menuItems: unknown[] = []) {
     if (!event) {
       console.warn('[useContextMenu] event is required')
       return

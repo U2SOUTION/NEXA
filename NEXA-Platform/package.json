@@ -9,6 +9,8 @@
   "scripts": {
     "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{js,cjs,mjs,ts,vue}\"",
     "typecheck": "vue-tsc --noEmit",
+    "typecheck:strict": "vue-tsc --noEmit -p tsconfig.strict.json",
+    "typecheck:strict:all": "cd server && npm run typecheck:strict && cd .. && npm run typecheck:strict",
     "typecheck:server": "cd server && npm run typecheck",
     "typecheck:all": "npm run typecheck:server && npm run typecheck",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",

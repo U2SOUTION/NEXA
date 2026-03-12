@@ -8,7 +8,15 @@ import { ref, computed, watch } from 'vue'
 const STORAGE_KEY = 'u2bee_tab_config'
 
 // 기본 탭 구성
-const defaultTabConfig = [
+interface TabItem {
+  name: string
+  label: string
+  icon: string
+  visible: boolean
+  order: number
+}
+
+const defaultTabConfig: TabItem[] = [
   { name: 'rating', label: 'Rate', icon: 'star', visible: true, order: 0 },
   { name: 'list', label: 'List', icon: 'list', visible: true, order: 1 },
   { name: 'playbox', label: 'Play', icon: 'playlist_play', visible: true, order: 2 },
@@ -34,15 +42,15 @@ export function useTabConfig() {
       if (saved) {
         const parsed = JSON.parse(saved)
         // 기본 구성과 병합 (새로운 탭 추가 시 대비)
-        const merged = defaultTabConfig.map((defaultTab) => {
-          const savedTab = parsed.find((t) => t.name === defaultTab.name)
+        const merged = defaultTabConfig.map((defaultTab: TabItem) => {
+          const savedTab = parsed.find((t: TabItem) => t.name === defaultTab.name)
           return savedTab
             ? { ...defaultTab, ...savedTab }
             : defaultTab
         })
         // 저장된 탭이 더 많으면 추가 (향후 확장 기능용)
-        parsed.forEach((savedTab) => {
-          if (!merged.find((t) => t.name === savedTab.name)) {
+        parsed.forEach((savedTab: TabItem) => {
+          if (!merged.find((t: TabItem) => t.name === savedTab.name)) {
             merged.push(savedTab)
           }
         })
@@ -69,8 +77,8 @@ export function useTabConfig() {
   })
 
   // 탭 표시/숨김 토글
-  function toggleTabVisibility(tabName) {
-    const tab = tabConfig.value.find((t) => t.name === tabName)
+  function toggleTabVisibility(tabName: string) {
+    const tab = tabConfig.value.find((t: TabItem) => t.name === tabName)
     if (tab) {
       tab.visible = !tab.visible
       saveTabConfig()
@@ -78,9 +86,9 @@ export function useTabConfig() {
   }
 
   // 탭 순서 변경
-  function updateTabOrder(newOrder) {
-    newOrder.forEach((tabName, index) => {
-      const tab = tabConfig.value.find((t) => t.name === tabName)
+  function updateTabOrder(newOrder: string[]) {
+    newOrder.forEach((tabName: string, index: number) => {
+      const tab = tabConfig.value.find((t: TabItem) => t.name === tabName)
       if (tab) {
         tab.order = index
       }

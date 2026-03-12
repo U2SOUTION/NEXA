@@ -13,7 +13,7 @@
  * @param {Object} fieldMapping - 필드명 매핑 객체
  * @returns {*} 필드 값
  */
-export function getFieldValue(row, fieldKey, fieldMapping) {
+export function getFieldValue(row: Record<string, unknown>, fieldKey: string, fieldMapping: Record<string, string>) {
   if (!row || !fieldMapping || !fieldKey) {
     return undefined
   }
@@ -23,7 +23,7 @@ export function getFieldValue(row, fieldKey, fieldMapping) {
     return undefined
   }
 
-  return row[actualFieldName]
+  return (row as Record<string, unknown>)[actualFieldName]
 }
 
 /**
@@ -32,7 +32,7 @@ export function getFieldValue(row, fieldKey, fieldMapping) {
  * @param {Object} customMapping - 사용자 정의 필드명 매핑
  * @returns {Object} 정규화된 필드명 매핑
  */
-export function normalizeFieldMapping(defaultMapping, customMapping) {
+export function normalizeFieldMapping(defaultMapping: Record<string, string> | null | undefined, customMapping?: Record<string, string> | null) {
   if (!defaultMapping) {
     return customMapping || {}
   }
@@ -53,7 +53,7 @@ export function normalizeFieldMapping(defaultMapping, customMapping) {
  * @param {Object} fieldMapping - 필드명 매핑 객체
  * @returns {string} 실제 필드명
  */
-export function resolveFieldName(fieldKey, fieldMapping) {
+export function resolveFieldName(fieldKey: string, fieldMapping: Record<string, string>) {
   if (!fieldMapping || !fieldKey) {
     return fieldKey
   }

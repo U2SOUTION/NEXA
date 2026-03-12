@@ -4,13 +4,14 @@
 // Extension 환경별 레이아웃 감지를 위한 composable
 
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import type { Ref } from 'vue'
 
 /**
  * Container Queries 기반 환경 감지 composable
- * @param {import('vue').Ref<HTMLElement | null>} containerRef - Container 요소 참조
- * @returns {Object} Container 크기 및 레이아웃 모드 정보
+ * @param containerRef - Container 요소 참조
+ * @returns Container 크기 및 레이아웃 모드 정보
  */
-export function useContainerQuery(containerRef) {
+export function useContainerQuery(containerRef: Ref<HTMLElement | null>) {
   const containerWidth = ref(0)
   const containerHeight = ref(0)
 
@@ -21,7 +22,7 @@ export function useContainerQuery(containerRef) {
     }
   }
 
-  let resizeObserver = null
+  let resizeObserver: ResizeObserver | null = null
 
   onMounted(() => {
     updateSize()

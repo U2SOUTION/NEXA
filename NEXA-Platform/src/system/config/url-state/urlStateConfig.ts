@@ -46,8 +46,8 @@ export const VALID_VIEWS = Object.keys(VIEW_TABLE_MAP)
  *
  * @deprecated 특정 도메인(부품 관리)에 종속된 함수입니다.
  */
-export function isValidView(view) {
-  return VALID_VIEWS.includes(view)
+export function isValidView(view: string): boolean {
+  return (VALID_VIEWS as readonly string[]).includes(view)
 }
 
 /**
@@ -57,8 +57,8 @@ export function isValidView(view) {
  *
  * @deprecated 특정 도메인(부품 관리)에 종속된 함수입니다.
  */
-export function getTableNameByView(view) {
-  return VIEW_TABLE_MAP[view] || null
+export function getTableNameByView(view: string): string | null {
+  return (view in VIEW_TABLE_MAP ? VIEW_TABLE_MAP[view as keyof typeof VIEW_TABLE_MAP] : null) ?? null
 }
 
 /**

@@ -145,20 +145,22 @@ export const FILE_TYPE_CONFIG = {
     icon: '/icons/file.png', // public/icons/file.png 파일 사용
     color: '#9E9E9E', // 회색
   },
-}
+} as const
+
+export type FileTypeKey = keyof typeof FILE_TYPE_CONFIG
 
 /**
  * 확장자로 파일 타입 찾기
  * @param {string} extension - 파일 확장자 (소문자, 점 제거)
  * @returns {string} 파일 타입 (image, pdf, 3d_model 등)
  */
-export function getFileType(extension) {
+export function getFileType(extension: string): FileTypeKey {
   const ext = extension.toLowerCase().replace(/^\./, '')
 
   // 각 파일 타입의 확장자 목록에서 찾기
   for (const [type, config] of Object.entries(FILE_TYPE_CONFIG)) {
-    if (config.extensions.includes(ext)) {
-      return type
+    if ((config.extensions as readonly string[]).includes(ext)) {
+      return type as FileTypeKey
     }
   }
 
@@ -171,7 +173,7 @@ export function getFileType(extension) {
  * @param {string} extension - 파일 확장자
  * @returns {string} MIME 타입 (기본값: 'application/octet-stream')
  */
-export function getMimeType(extension) {
+export function getMimeType(extension: string): string {
   const ext = extension.toLowerCase().replace(/^\./, '')
   const fileType = getFileType(ext)
   const config = FILE_TYPE_CONFIG[fileType]
@@ -181,7 +183,7 @@ export function getMimeType(extension) {
   }
 
   // 확장자에 맞는 MIME 타입 찾기 (간단한 매핑)
-  const mimeMap = {
+  const mimeMap: Record<string, string> = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
     png: 'image/png',
@@ -210,7 +212,7 @@ export function getMimeType(extension) {
     step: 'application/step',
   }
 
-  return mimeMap[ext] || config.mimeTypes[0] || 'application/octet-stream'
+  return (mimeMap[ext] ?? config.mimeTypes[0]) || 'application/octet-stream'
 }
 
 /**
@@ -218,7 +220,7 @@ export function getMimeType(extension) {
  * @param {string} fileType - 파일 타입
  * @returns {number} 최대 크기 (bytes)
  */
-export function getMaxFileSize(fileType) {
+export function getMaxFileSize(fileType: FileTypeKey): number {
   const config = FILE_TYPE_CONFIG[fileType]
   return config ? config.maxSize : FILE_TYPE_CONFIG.other.maxSize
 }
@@ -228,7 +230,7 @@ export function getMaxFileSize(fileType) {
  * @param {string} fileType - 파일 타입
  * @returns {boolean} 미리보기 가능 여부
  */
-export function isPreviewable(fileType) {
+export function isPreviewable(fileType: FileTypeKey): boolean {
   const config = FILE_TYPE_CONFIG[fileType]
   return config ? config.previewable : false
 }
@@ -238,7 +240,7 @@ export function isPreviewable(fileType) {
  * @param {string} fileType - 파일 타입
  * @returns {string} 카테고리 (media, document, model, archive, other)
  */
-export function getFileCategory(fileType) {
+export function getFileCategory(fileType: FileTypeKey): string {
   const config = FILE_TYPE_CONFIG[fileType]
   return config ? config.category : 'other'
 }
@@ -256,7 +258,7 @@ export function getAllFileTypes() {
  * @param {string} category - 카테고리
  * @returns {Array<string>} 파일 타입 목록
  */
-export function getFileTypesByCategory(category) {
+export function getFileTypesByCategory(category: string): string[] {
   return Object.entries(FILE_TYPE_CONFIG)
     .filter(([, config]) => config.category === category)
     .map(([type]) => type)
@@ -267,7 +269,7 @@ export function getFileTypesByCategory(category) {
  * @param {string} fileType - 파일 타입
  * @returns {string} 아이콘 (Material Icons 이름 또는 URL)
  */
-export function getFileIconByType(fileType) {
+export function getFileIconByType(fileType: FileTypeKey): string {
   const config = FILE_TYPE_CONFIG[fileType]
   return config ? config.icon : FILE_TYPE_CONFIG.other.icon
 }
@@ -277,7 +279,7 @@ export function getFileIconByType(fileType) {
  * @param {string} extension - 파일 확장자
  * @returns {string} 아이콘 (Material Icons 이름 또는 URL)
  */
-export function getFileIconByExtension(extension) {
+export function getFileIconByExtension(extension: string): string {
   const fileType = getFileType(extension)
   return getFileIconByType(fileType)
 }
@@ -287,12 +289,12 @@ export function getFileIconByExtension(extension) {
  * @param {string} mimeType - MIME 타입
  * @returns {string} 아이콘 (Material Icons 이름 또는 URL)
  */
-export function getFileIconByMimeType(mimeType) {
+export function getFileIconByMimeType(mimeType: string): string {
   if (!mimeType) return FILE_TYPE_CONFIG.other.icon
 
   // MIME 타입으로 파일 타입 찾기
   for (const [, config] of Object.entries(FILE_TYPE_CONFIG)) {
-    if (config.mimeTypes.includes(mimeType)) {
+    if ((config.mimeTypes as readonly string[]).includes(mimeType)) {
       return config.icon
     }
   }
@@ -317,7 +319,7 @@ export function getFileIconByMimeType(mimeType) {
  * @param {Object} file - 파일 객체
  * @returns {string} 아이콘 (Material Icons 이름 또는 URL)
  */
-export function getFileIcon(file) {
+export function getFileIcon(file: { file_mime_type?: string; file_type?: string; file_extension?: string; original_filename?: string } | null | undefined): string {
   if (!file) return FILE_TYPE_CONFIG.other.icon
 
   // file_mime_type 우선 확인
@@ -326,10 +328,9 @@ export function getFileIcon(file) {
     if (icon) return icon
   }
 
-  // file_type 확인
   if (file.file_type) {
-    const type = String(file.file_type).toLowerCase().trim()
-    const icon = getFileIconByType(type)
+    const type = String(file.file_type).toLowerCase().trim() as FileTypeKey
+    const icon = type in FILE_TYPE_CONFIG ? getFileIconByType(type) : FILE_TYPE_CONFIG.other.icon
     if (icon) return icon
   }
 
@@ -358,7 +359,7 @@ export function getFileIcon(file) {
  * @param {string} icon - 아이콘 문자열
  * @returns {boolean} URL 여부 (상대 경로 /icons/ 또는 http/https로 시작)
  */
-export function isIconUrl(icon) {
+export function isIconUrl(icon: string | null | undefined): boolean {
   if (!icon || typeof icon !== 'string') return false
   // 상대 경로 (/icons/...) 또는 절대 URL (http://, https://)
   return icon.startsWith('/icons/') || icon.startsWith('http://') || icon.startsWith('https://')
@@ -369,14 +370,14 @@ export function isIconUrl(icon) {
  * @param {object} file - 파일 객체 (file_mime_type, file_type, file_extension, original_filename 포함)
  * @returns {string} 색상 코드 (hex)
  */
-export function getFileColor(file) {
+export function getFileColor(file: { file_mime_type?: string; file_type?: string; file_extension?: string; original_filename?: string } | null | undefined): string {
   if (!file) return FILE_TYPE_CONFIG.other.color
 
   // file_mime_type 우선 확인
   if (file.file_mime_type) {
     const mimeType = String(file.file_mime_type).toLowerCase().trim()
     for (const [, config] of Object.entries(FILE_TYPE_CONFIG)) {
-      if (config.mimeTypes.includes(mimeType)) {
+      if ((config.mimeTypes as readonly string[]).includes(mimeType)) {
         return config.color
       }
     }
@@ -384,8 +385,8 @@ export function getFileColor(file) {
 
   // file_type 확인
   if (file.file_type) {
-    const type = String(file.file_type).toLowerCase().trim()
-    const config = FILE_TYPE_CONFIG[type]
+    const type = String(file.file_type).toLowerCase().trim() as FileTypeKey
+    const config = type in FILE_TYPE_CONFIG ? FILE_TYPE_CONFIG[type] : undefined
     if (config) return config.color
   }
 
@@ -399,7 +400,7 @@ export function getFileColor(file) {
 
   if (extension) {
     for (const [, config] of Object.entries(FILE_TYPE_CONFIG)) {
-      if (config.extensions.includes(extension)) {
+      if ((config.extensions as readonly string[]).includes(extension)) {
         return config.color
       }
     }

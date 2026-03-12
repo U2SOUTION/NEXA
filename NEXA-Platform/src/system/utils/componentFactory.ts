@@ -6,7 +6,7 @@
  * @see docs/표준_계약_적용_실전_예제.md
  */
 
-import type { BoardComponent, PanelComponent, ChartComponent, BlockComponent, MetadataContract } from '../schemas/common/component-contract'
+import type { BoardComponent, PanelComponent, ChartComponent, BlockComponent, MetadataContract, DataSourceContract } from '../schemas/common/component-contract'
 import { uid } from 'quasar'
 
 /**
@@ -52,6 +52,7 @@ export function createBoard(data: { name: string; preset?: 'single' | 'split-lr'
     preset: data.preset || 'single',
     panes: [],
     devices: data.devices || [],
+    dataSource: undefined,
 
     // 표준 메서드
     toJSON() {
@@ -64,7 +65,7 @@ export function createBoard(data: { name: string; preset?: 'single' | 'split-lr'
         panes: this.panes,
         devices: this.devices,
         actions: this.actions || [],
-        dataSource: this.dataSource || null,
+        dataSource: this.dataSource ?? undefined,
       }
     },
   }
@@ -113,6 +114,7 @@ export function createPanel(data: { panelType: string; grid: { x: number; y: num
     panelType: data.panelType,
     grid: data.grid,
     content: data.content || null,
+    dataSource: undefined,
 
     // 표준 메서드
     toJSON() {
@@ -125,7 +127,7 @@ export function createPanel(data: { panelType: string; grid: { x: number; y: num
         grid: this.grid,
         content: this.content,
         actions: this.actions || [],
-        dataSource: this.dataSource || null,
+        dataSource: this.dataSource ?? undefined,
       }
     },
   }
@@ -216,8 +218,8 @@ export function createChart(data: {
           connection: data.dataSource.connection,
           query: data.dataSource.query,
           refreshInterval: data.dataSource.refreshInterval,
-        }
-      : null,
+        } as DataSourceContract
+      : undefined,
 
     // 표준 메서드
     toJSON() {
@@ -230,7 +232,7 @@ export function createChart(data: {
         data: this.data,
         options: this.options,
         actions: this.actions || [],
-        dataSource: this.dataSource || null,
+        dataSource: this.dataSource ?? undefined,
       }
     },
   }
@@ -282,8 +284,8 @@ export function createBlock(data: {
           connection: data.dataSource.connection,
           query: data.dataSource.query,
           refreshInterval: data.dataSource.refreshInterval,
-        }
-      : null,
+        } as DataSourceContract
+      : undefined,
 
     // 표준 메서드
     toJSON() {
@@ -295,7 +297,7 @@ export function createBlock(data: {
         blockType: this.blockType,
         config: this.config,
         actions: this.actions || [],
-        dataSource: this.dataSource || null,
+        dataSource: this.dataSource ?? undefined,
       }
     },
   }
@@ -321,9 +323,12 @@ export function migrateBoardToStandardContract(oldBoard: { id: string; name: str
       author: oldBoard.author,
       description: oldBoard.name,
     }),
-    preset: (oldBoard.preset as string) || 'single',
+    preset: (oldBoard.preset === 'split-lr' || oldBoard.preset === 'l-shape' || oldBoard.preset === 'split-tb'
+      ? oldBoard.preset
+      : 'single') as BoardComponent['preset'],
     panes: [],
     devices: oldBoard.devices || [],
+    dataSource: undefined,
     toJSON() {
       return {
         id: this.id,
@@ -334,7 +339,7 @@ export function migrateBoardToStandardContract(oldBoard: { id: string; name: str
         panes: this.panes,
         devices: this.devices,
         actions: this.actions || [],
-        dataSource: this.dataSource || null,
+        dataSource: this.dataSource ?? undefined,
       }
     },
   }

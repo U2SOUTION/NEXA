@@ -1,9 +1,63 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+/** 공간 트리 노드 (base_space, storage_block, storage_row) */
+export interface SpaceNode {
+  id: number
+  name: string
+  type: string
+  sku?: string
+  description?: string
+  expanded?: boolean
+  parentId?: number
+  storage_type?: string | null
+  column_count?: number | null
+  height_mm?: number
+  row_identifier?: string
+  children?: SpaceNode[]
+}
+
+/** 셀(빈) 데이터 */
+export interface BinData {
+  sku?: string
+  name?: string
+  height_mm?: number
+  width_mm?: number | null
+  depth_mm?: number | null
+  [key: string]: unknown
+}
+
+/** 빈 모델 */
+export interface BinModel {
+  id: number
+  name: string
+  sku: string
+  width_mm?: number | null
+  depth_mm?: number | null
+  height_mm?: number | null
+  material?: string | null
+  color?: string | null
+  description?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
+/** 선택된 빈 정보 */
+export interface SelectedBinInfo {
+  binData: BinData
+  position: { blockId: number; rowId: number; cellIndex: string }
+}
+
+/** 임시 보관소 빈 항목 */
+export interface TemporaryBinItem {
+  id: number
+  originalPosition: { blockId: number; rowId: number; cellIndex: string }
+  binData: BinData
+  addedAt: string
+}
+
 export const usePartsManagementStore = defineStore('partsManagement', () => {
-  // 공간 계층 구조 (하드코딩된 임시 데이터로 시작 - 테스트용)
-  const spaces = ref([
+  const spaces = ref<SpaceNode[]>([
     {
       id: 1,
       name: '테스트 공간 1',
@@ -91,35 +145,17 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
     },
   ])
 
-  // 현재 선택된 storage_row
-  const selectedStorageRow = ref(null)
+  const selectedStorageRow = ref<SpaceNode | null>(null)
+  const selectedStorageBlock = ref<SpaceNode | null>(null)
+  const selectedCellIndex = ref<string | null>(null)
+  const selectedBin = ref<SelectedBinInfo | null>(null)
+  const temporaryBins = ref<TemporaryBinItem[]>([])
+  const cellDataMap = ref(new Map<string, BinData>())
+  const binModels = ref<BinModel[]>([])
+  const sidebarMode = ref<'physical' | 'parts-data' | null>(null)
+  const selectedPartsDataView = ref<'part-classes' | 'part-models' | 'part-specs' | 'part-classes-trash' | null>(null)
 
-  // 현재 선택된 storage_block
-  const selectedStorageBlock = ref(null)
-
-  // 현재 선택된 셀 인덱스 (층수-칸수 형식)
-  const selectedCellIndex = ref(null)
-
-  // 현재 선택된 빈 정보 (상세 모달용)
-  const selectedBin = ref(null) // { binData, position: { blockId, rowId, cellIndex } }
-
-  // 임시 보관소 (빈을 임시로 보관하는 배열)
-  const temporaryBins = ref([])
-
-  // 셀 데이터 저장 (키: "blockId-rowId-cellIndex", 값: 빈 데이터)
-  const cellDataMap = ref(new Map())
-
-  // 빈 모델 데이터 (localStorage에서 로드)
-  const binModels = ref([])
-
-  // 사이드바 모드 상태 (null: 초기 상태/대시보드, 'physical': 물리 공간, 'parts-data': 부품 데이터)
-  const sidebarMode = ref(null) // null | 'physical' | 'parts-data'
-
-  // 부품 데이터 관리 뷰 선택 상태
-  const selectedPartsDataView = ref(null) // 'part-classes' | 'part-models' | 'part-specs' | 'part-classes-trash'
-
-  // 사이드바 모드 설정 함수
-  function setSidebarMode(mode) {
+  function setSidebarMode(mode: 'physical' | 'parts-data' | null) {
     sidebarMode.value = mode
     // 물리 공간 모드로 전환 시 부품 데이터 뷰 초기화
     if (mode === 'physical') {
@@ -128,7 +164,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 부품 데이터 관리 뷰 설정 함수
-  function setSelectedPartsDataView(view) {
+  function setSelectedPartsDataView(view: 'part-classes' | 'part-models' | 'part-specs' | 'part-classes-trash' | null) {
     selectedPartsDataView.value = view
   }
 
@@ -261,8 +297,8 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   })
 
   // 특정 노드의 자식 노드들 가져오기
-  function getChildNodes(parentId) {
-    const findNode = (nodes, id) => {
+  function getChildNodes(parentId: number) {
+    const findNode = (nodes: SpaceNode[], id: number): SpaceNode | null => {
       for (const node of nodes) {
         if (node.id === id) return node
         if (node.children) {
@@ -278,8 +314,8 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 노드 업데이트 (확장/축소 등)
-  function updateNode(nodeId, updates) {
-    const findAndUpdate = (nodes) => {
+  function updateNode(nodeId: number, updates: Partial<SpaceNode>) {
+    const findAndUpdate = (nodes: SpaceNode[]): boolean => {
       for (const node of nodes) {
         if (node.id === nodeId) {
           Object.assign(node, updates)
@@ -296,22 +332,22 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // storage_row 선택
-  function setSelectedStorageRow(row) {
+  function setSelectedStorageRow(row: SpaceNode | null) {
     selectedStorageRow.value = row
     // storage_row 선택 시 storage_block 선택 해제 (부모 블록은 그리드에서 자동으로 찾음)
     selectedStorageBlock.value = null
   }
 
   // storage_block 선택
-  function setSelectedStorageBlock(block) {
+  function setSelectedStorageBlock(block: SpaceNode | null) {
     selectedStorageBlock.value = block
     // storage_block 선택 시 storage_row 선택 해제
     selectedStorageRow.value = null
   }
 
   // 노드 ID로 노드 찾기
-  function getNodeById(nodeId) {
-    const findNode = (nodes, id) => {
+  function getNodeById(nodeId: number) {
+    const findNode = (nodes: SpaceNode[], id: number): SpaceNode | null => {
       for (const node of nodes) {
         if (node.id === id) return node
         if (node.children) {
@@ -326,12 +362,11 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 노드 삭제 (자식들도 함께 삭제)
-  function removeNode(nodeId) {
-    // 삭제할 노드와 모든 자식 노드의 ID 수집
-    const collectNodeIds = (node) => {
+  function removeNode(nodeId: number) {
+    const collectNodeIds = (node: SpaceNode): number[] => {
       const ids = [node.id]
-      if (node.children && node.children.length > 0) {
-        node.children.forEach((child) => {
+        if (node.children && node.children.length > 0) {
+        node.children.forEach((child: SpaceNode) => {
           ids.push(...collectNodeIds(child))
         })
       }
@@ -356,8 +391,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
       selectedStorageBlock.value = null
     }
 
-    // 실제 삭제 수행
-    const findAndRemove = (nodes) => {
+    const findAndRemove = (nodes: SpaceNode[]): boolean => {
       for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === nodeId) {
           // 배열에서 제거
@@ -365,7 +399,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
           return true
         }
         if (nodes[i].children) {
-          if (findAndRemove(nodes[i].children)) return true
+          if (findAndRemove(nodes[i].children!)) return true
         }
       }
       return false
@@ -375,7 +409,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 공간 추가
-  function addSpace(spaceData) {
+  function addSpace(spaceData: { id?: number; name: string; sku?: string; description?: string; expanded?: boolean }) {
     const newSpace = {
       id: spaceData.id || Date.now(),
       type: 'base_space',
@@ -390,7 +424,15 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 스토리지 블록 추가
-  function addStorageBlock(blockData) {
+  function addStorageBlock(blockData: {
+    id?: number
+    parentId: number
+    name: string
+    sku?: string
+    storage_type?: string | null
+    column_count?: number | null
+    expanded?: boolean
+  }) {
     const parentNode = getNodeById(blockData.parentId)
     if (!parentNode) {
       console.error('[PartsManagementStore] Parent node not found:', blockData.parentId)
@@ -418,7 +460,13 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 스토리지 행 추가
-  function addStorageRow(rowData) {
+  function addStorageRow(rowData: {
+    id?: number
+    parentId: number
+    name: string
+    sku?: string
+    row_identifier?: string
+  }) {
     const parentNode = getNodeById(rowData.parentId)
     if (!parentNode) {
       console.error('[PartsManagementStore] Parent node not found:', rowData.parentId)
@@ -444,7 +492,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 셀 선택
-  function setSelectedCellIndex(cellIndex) {
+  function setSelectedCellIndex(cellIndex: string | null) {
     selectedCellIndex.value = cellIndex
   }
 
@@ -454,7 +502,10 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 빈 선택 (상세 모달용)
-  function setSelectedBin(binData, position) {
+  function setSelectedBin(
+    binData: BinData,
+    position: { blockId: number; rowId: number; cellIndex: string },
+  ) {
     selectedBin.value = {
       binData,
       position, // { blockId, rowId, cellIndex }
@@ -467,7 +518,11 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 임시 보관소에 빈 추가
-  function addToTemporaryBins(binData) {
+  function addToTemporaryBins(binData: {
+    id?: number
+    binData: BinData
+    originalPosition: { blockId: number; rowId: number; cellIndex: string }
+  }) {
     temporaryBins.value.push({
       id: binData.id || Date.now(),
       originalPosition: binData.originalPosition, // { blockId, rowId, cellIndex }
@@ -478,7 +533,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 임시 보관소에서 빈 제거 (복원용)
-  function removeFromTemporaryBins(binId) {
+  function removeFromTemporaryBins(binId: number) {
     const index = temporaryBins.value.findIndex((bin) => bin.id === binId)
     if (index !== -1) {
       temporaryBins.value.splice(index, 1)
@@ -487,7 +542,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 임시 보관소에서 빈 완전 삭제
-  function deleteBinFromTemporary(binId) {
+  function deleteBinFromTemporary(binId: number) {
     const bin = temporaryBins.value.find((b) => b.id === binId)
     if (!bin) {
       console.warn('[PartsManagementStore] Bin not found in temporary storage:', binId)
@@ -513,18 +568,23 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 셀 키 생성 (blockId-rowId-cellIndex)
-  function getCellKey(blockId, rowId, cellIndex) {
+  function getCellKey(blockId: number, rowId: number, cellIndex: number) {
     return `${blockId}-${rowId}-${cellIndex}`
   }
 
   // 셀 데이터 가져오기
-  function getCellData(blockId, rowId, cellIndex) {
+  function getCellData(blockId: number, rowId: number, cellIndex: number) {
     const key = getCellKey(blockId, rowId, cellIndex)
     return cellDataMap.value.get(key) || null
   }
 
   // 셀 데이터 설정
-  function setCellData(blockId, rowId, cellIndex, binData) {
+  function setCellData(
+    blockId: number,
+    rowId: number,
+    cellIndex: number,
+    binData: BinData | null,
+  ) {
     const key = getCellKey(blockId, rowId, cellIndex)
     const block = getNodeById(blockId)
 
@@ -567,12 +627,12 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
 
   // 셀 간 스와핑
   function swapCells(
-    sourceBlockId,
-    sourceRowId,
-    sourceCellIndex,
-    targetBlockId,
-    targetRowId,
-    targetCellIndex,
+    sourceBlockId: number,
+    sourceRowId: number,
+    sourceCellIndex: number,
+    targetBlockId: number,
+    targetRowId: number,
+    targetCellIndex: number,
   ) {
     const sourceData = getCellData(sourceBlockId, sourceRowId, sourceCellIndex)
     const targetData = getCellData(targetBlockId, targetRowId, targetCellIndex)
@@ -583,7 +643,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 임시 보관소에서 원래 위치로 복원
-  function restoreBinFromTemporary(binId) {
+  function restoreBinFromTemporary(binId: number) {
     const bin = temporaryBins.value.find((b) => b.id === binId)
     if (!bin || !bin.originalPosition) {
       console.warn('[PartsManagementStore] Bin not found or missing originalPosition:', binId)
@@ -636,7 +696,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   const MIN_ROW_HEIGHT = 100 // mm (최소 층 높이)
 
   // 특정 층의 모든 부품함 중 가장 높은 높이 가져오기
-  function getMaxBinHeightInRow(blockId, rowId) {
+  function getMaxBinHeightInRow(blockId: number, rowId: number) {
     const block = getNodeById(blockId)
     if (!block || (block.storage_type !== 'SHELF_UNIT' && block.storage_type !== 'CABINET')) {
       return 0
@@ -654,28 +714,29 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 전체 블록의 현재 높이 합계 계산
-  function getTotalBlockHeight(blockId) {
+  function getTotalBlockHeight(blockId: number) {
     const block = getNodeById(blockId)
     if (!block || !block.children) {
       return 0
     }
 
-    const rows = block.children.filter((child) => child.type === 'storage_row')
-    return rows.reduce((sum, row) => {
+    const rows = block.children.filter((child: SpaceNode) => child.type === 'storage_row')
+    return rows.reduce((sum: number, row: SpaceNode) => {
       return sum + (row.height_mm || MIN_ROW_HEIGHT)
     }, 0)
   }
 
   // 선반 높이 증가 가능 여부 검사
-  function canIncreaseRowHeight(blockId, rowId, requiredHeight) {
+  function canIncreaseRowHeight(blockId: number, rowId: number, requiredHeight: number) {
     const block = getNodeById(blockId)
     if (!block || (block.storage_type !== 'SHELF_UNIT' && block.storage_type !== 'CABINET')) {
       return { canIncrease: false, reason: 'RACK 타입은 지원하지 않습니다' }
     }
 
-    const blockHeight = block.height_mm || 2000 // 기본값 2000mm
-    const rows = block.children.filter((child) => child.type === 'storage_row')
-    const currentRow = rows.find((r) => r.id === rowId)
+    const blockHeight = block.height_mm || 2000
+    const children = block.children ?? []
+    const rows = children.filter((child: SpaceNode) => child.type === 'storage_row')
+    const currentRow = rows.find((r: SpaceNode) => r.id === rowId)
 
     if (!currentRow) {
       return { canIncrease: false, reason: '해당 층을 찾을 수 없습니다' }
@@ -726,7 +787,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 선반 높이 자동 조정
-  function adjustRowHeight(blockId, rowId, binHeight) {
+  function adjustRowHeight(blockId: number, rowId: number, binHeight: number) {
     const result = canIncreaseRowHeight(blockId, rowId, binHeight)
 
     if (!result.canIncrease) {
@@ -738,8 +799,8 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
     }
 
     const block = getNodeById(blockId)
-    const rows = block.children.filter((child) => child.type === 'storage_row')
-    const currentRow = rows.find((r) => r.id === rowId)
+    const rows = block!.children!.filter((child: SpaceNode) => child.type === 'storage_row')
+    const currentRow = rows.find((r: SpaceNode) => r.id === rowId)
 
     if (!currentRow) {
       return { success: false, message: '해당 층을 찾을 수 없습니다' }
@@ -757,7 +818,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
         success: true,
         oldHeight,
         newHeight: result.newRowHeight,
-        message: `선반 높이가 ${oldHeight}mm에서 ${result.newHeight}mm로 조정되었습니다`,
+        message: `선반 높이가 ${oldHeight}mm에서 ${result.newRowHeight}mm로 조정되었습니다`,
       }
     }
 
@@ -765,9 +826,13 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 다른 층들의 높이 비율 조정
-  function adjustOtherRowsHeight(blockId, excludedRowId, heightDiff) {
+  function adjustOtherRowsHeight(
+    blockId: number,
+    excludedRowId: number,
+    heightDiff: number,
+  ) {
     const block = getNodeById(blockId)
-    const rows = block.children.filter((child) => child.type === 'storage_row')
+    const rows = block!.children!.filter((child: SpaceNode) => child.type === 'storage_row')
     const otherRows = rows.filter((r) => r.id !== excludedRowId)
 
     if (otherRows.length === 0) {
@@ -783,8 +848,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
       return
     }
 
-    // 비율에 따라 높이 분배
-    otherRows.forEach((row) => {
+    otherRows.forEach((row: SpaceNode) => {
       const currentHeight = row.height_mm || MIN_ROW_HEIGHT
       const ratio = currentHeight / totalOtherHeight
       const newHeight = Math.max(currentHeight - heightDiff * ratio, MIN_ROW_HEIGHT)
@@ -794,7 +858,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 부품함 추가/변경 시 선반 높이 자동 조정
-  function updateRowHeightForBin(blockId, rowId, binHeight) {
+  function updateRowHeightForBin(blockId: number, rowId: number, binHeight: number) {
     if (!binHeight || binHeight <= 0) {
       return { success: true, message: '부품함 높이가 없습니다' }
     }
@@ -803,7 +867,12 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 새 부품함 생성
-  function createBin(blockId, rowId, cellIndex, binData = {}) {
+  function createBin(
+    blockId: number,
+    rowId: number,
+    cellIndex: number,
+    binData: Partial<BinData> = {},
+  ) {
     const block = getNodeById(blockId)
     const row = getNodeById(rowId)
 
@@ -863,7 +932,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 공간 순서 변경 (최상단 공간만)
-  function reorderSpaces(fromIndex, toIndex) {
+  function reorderSpaces(fromIndex: number, toIndex: number) {
     if (fromIndex === toIndex) {
       return { success: false, message: '같은 위치로 이동할 수 없습니다' }
     }
@@ -884,7 +953,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 빈 모델 추가
-  function addBinModel(modelData) {
+  function addBinModel(modelData: Partial<BinModel> & { name: string; sku: string }) {
     // SKU 중복 확인
     const existingModel = binModels.value.find((m) => m.sku === modelData.sku)
     if (existingModel) {
@@ -911,7 +980,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 빈 모델 수정
-  function updateBinModel(modelId, updates) {
+  function updateBinModel(modelId: number, updates: Partial<BinModel>) {
     const modelIndex = binModels.value.findIndex((m) => m.id === modelId)
     if (modelIndex === -1) {
       return { success: false, message: '모델을 찾을 수 없습니다' }
@@ -937,7 +1006,7 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 빈 모델 삭제
-  function deleteBinModel(modelId) {
+  function deleteBinModel(modelId: number) {
     const modelIndex = binModels.value.findIndex((m) => m.id === modelId)
     if (modelIndex === -1) {
       return { success: false, message: '모델을 찾을 수 없습니다' }
@@ -956,12 +1025,12 @@ export const usePartsManagementStore = defineStore('partsManagement', () => {
   }
 
   // 빈 모델 ID로 조회
-  function getBinModelById(modelId) {
+  function getBinModelById(modelId: number) {
     return binModels.value.find((m) => m.id === modelId) || null
   }
 
   // 빈 모델 순서 변경
-  function reorderBinModels(fromIndex, toIndex) {
+  function reorderBinModels(fromIndex: number, toIndex: number) {
     if (fromIndex === toIndex) {
       return { success: false, message: '같은 위치로 이동할 수 없습니다' }
     }

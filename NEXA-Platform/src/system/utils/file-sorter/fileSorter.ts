@@ -3,13 +3,19 @@
  * 파일 목록을 다양한 기준으로 정렬하는 함수들
  */
 
+export interface FileItem {
+  name: string
+  modifiedDate?: string | number
+  createdDate?: string | number
+}
+
 /**
  * 이름순 정렬
  * @param {Array} files - 파일 배열
  * @param {string} _order - 정렬 방향 ('asc' | 'desc') - 현재는 사용하지 않음 (항상 A→Z 순서 유지)
  * @returns {Array} 정렬된 파일 배열
  */
-export function sortByName(files, _order) {
+export function sortByName(files: FileItem[], _order?: string): FileItem[] {
   void _order
   if (!files || !Array.isArray(files) || files.length === 0) {
     return []
@@ -28,12 +34,11 @@ export function sortByName(files, _order) {
  * @param {string} order - 정렬 방향 ('asc' | 'desc')
  * @returns {Array} 정렬된 파일 배열
  */
-export function sortByModified(files, order) {
+export function sortByModified(files: FileItem[], order: 'asc' | 'desc'): FileItem[] {
   if (!files || !Array.isArray(files) || files.length === 0) {
     return []
   }
-  const sorted = [...files].sort((a, b) => {
-    // 수정일 비교 (날짜가 없으면 맨 뒤로)
+  const sorted = [...files].sort((a: FileItem, b: FileItem) => {
     const dateA = a.modifiedDate ? new Date(a.modifiedDate).getTime() : 0
     const dateB = b.modifiedDate ? new Date(b.modifiedDate).getTime() : 0
     
@@ -59,12 +64,11 @@ export function sortByModified(files, order) {
  * @param {string} order - 정렬 방향 ('asc' | 'desc')
  * @returns {Array} 정렬된 파일 배열
  */
-export function sortByCreated(files, order) {
+export function sortByCreated(files: FileItem[], order: 'asc' | 'desc'): FileItem[] {
   if (!files || !Array.isArray(files) || files.length === 0) {
     return []
   }
-  const sorted = [...files].sort((a, b) => {
-    // 생성일 비교 (날짜가 없으면 맨 뒤로)
+  const sorted = [...files].sort((a: FileItem, b: FileItem) => {
     const dateA = a.createdDate ? new Date(a.createdDate).getTime() : 0
     const dateB = b.createdDate ? new Date(b.createdDate).getTime() : 0
     
@@ -89,11 +93,11 @@ export function sortByCreated(files, order) {
  * @param {Object} fileUsageCounts - 파일 사용 빈도 객체
  * @returns {Array} 정렬된 파일 배열
  */
-export function sortByUsage(files, order, fileUsageCounts) {
+export function sortByUsage(files: FileItem[], order: 'asc' | 'desc', fileUsageCounts: Record<string, number>): FileItem[] {
   if (!files || !Array.isArray(files) || files.length === 0) {
     return []
   }
-  const sorted = [...files].sort((a, b) => {
+  const sorted = [...files].sort((a: FileItem, b: FileItem) => {
     const countA = fileUsageCounts[a.name] || 0
     const countB = fileUsageCounts[b.name] || 0
     const comparison = countA - countB
@@ -109,14 +113,14 @@ export function sortByUsage(files, order, fileUsageCounts) {
  * @param {Object} favoriteStates - 즐겨찾기 상태 객체
  * @returns {Array} 정렬된 파일 배열
  */
-export function sortByFavorite(files, order, favoriteStates) {
+export function sortByFavorite(files: FileItem[], order: 'asc' | 'desc', favoriteStates: Record<string, boolean>): FileItem[] {
   if (!files || !Array.isArray(files) || files.length === 0) {
     return []
   }
-  const sorted = [...files].sort((a, b) => {
+  const sorted = [...files].sort((a: FileItem, b: FileItem) => {
     const favoriteA = favoriteStates[a.name] === true ? 1 : 0
     const favoriteB = favoriteStates[b.name] === true ? 1 : 0
-    const comparison = favoriteB - favoriteA // 즐겨찾기가 먼저 오도록
+    const comparison = favoriteB - favoriteA
     if (comparison !== 0) {
       // 내림차순(desc)일 때 즐겨찾기 한 것이 위로, 오름차순(asc)일 때 즐겨찾기 안 한 것이 위로
       return order === 'desc' ? comparison : -comparison
@@ -134,14 +138,14 @@ export function sortByFavorite(files, order, favoriteStates) {
  * @param {Object} priorityStates - 우선순위 상태 객체
  * @returns {Array} 정렬된 파일 배열
  */
-export function sortByPriority(files, order, priorityStates) {
+export function sortByPriority(files: FileItem[], order: 'asc' | 'desc', priorityStates: Record<string, number>): FileItem[] {
   if (!files || !Array.isArray(files) || files.length === 0) {
     return []
   }
-  const sorted = [...files].sort((a, b) => {
+  const sorted = [...files].sort((a: FileItem, b: FileItem) => {
     const priorityA = priorityStates[a.name] || 0
     const priorityB = priorityStates[b.name] || 0
-    const comparison = priorityB - priorityA // 우선순위 높은 것(점수 큰 것)이 먼저
+    const comparison = priorityB - priorityA
     if (comparison !== 0) {
       // desc: 높은 점수 먼저 (기본값)
       // asc: 낮은 점수 먼저

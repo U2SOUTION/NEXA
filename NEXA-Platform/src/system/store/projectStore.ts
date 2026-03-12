@@ -27,7 +27,7 @@ export const useProjectStore = defineStore('project', () => {
 
   function getAuthHeaders(): Record<string, string> {
     const auth = useAuthStore()
-    return auth.getAuthHeaders()
+    return auth.getAuthHeaders() as Record<string, string>
   }
 
   function loadStoredCurrentProject() {

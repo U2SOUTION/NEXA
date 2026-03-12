@@ -9,7 +9,7 @@
  * @param {Object} error - 에러 객체
  * @returns {string} 에러 타입 키워드 ('lint', 'typeError', 'referenceError', 'networkError', 'promiseRejection', 'warning', 'unhandled', 'error')
  */
-export function classifyErrorType(error) {
+export function classifyErrorType(error: { type?: string; errorType?: string; message?: string; level?: string } | null | undefined): string {
   if (!error) return 'error'
 
   // Lint 타입
@@ -58,7 +58,7 @@ export function classifyErrorType(error) {
  * @param {Object} error - 에러 객체
  * @returns {string} Material Icons 아이콘 이름
  */
-export function getErrorIcon(error) {
+export function getErrorIcon(error: { type?: string; errorType?: string; message?: string; level?: string } | null | undefined): string {
   if (!error) return 'bug_report'
 
   // Lint 타입
@@ -108,7 +108,7 @@ export function getErrorIcon(error) {
  * @param {Object} error - 에러 객체
  * @returns {string} Quasar 색상 이름
  */
-export function getErrorColor(error) {
+export function getErrorColor(error: { type?: string; errorType?: string; message?: string; level?: string } | null | undefined): string {
   if (!error) return 'grey-7'
 
   // Lint 타입
@@ -153,7 +153,7 @@ export function getErrorColor(error) {
  * @param {Object} error - 에러 객체
  * @returns {string} 에러 타입 라벨
  */
-export function getErrorTypeLabel(error) {
+export function getErrorTypeLabel(error: { type?: string; errorType?: string; message?: string; level?: string } | null | undefined): string {
   if (!error) return '알 수 없음'
 
   // Lint 타입
@@ -203,8 +203,8 @@ export function getErrorTypeLabel(error) {
  * @param {string} typeKey - 에러 타입 키워드
  * @returns {string} 차트에 표시할 라벨
  */
-export function getErrorTypeChartLabel(typeKey) {
-  const typeNameMap = {
+export function getErrorTypeChartLabel(typeKey: string): string {
+  const typeNameMap: Record<string, string> = {
     error: 'Error',
     warning: 'Warning',
     unhandled: 'Unhandled',

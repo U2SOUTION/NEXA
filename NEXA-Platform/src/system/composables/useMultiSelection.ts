@@ -131,10 +131,23 @@
  *     - ESC 키 이벤트 리스너는 자동으로 등록/해제됨 (enableEscKey가 true일 때)
  */
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import type { Ref, ComputedRef } from 'vue'
 
-export function useMultiSelection(options = {}) {
+interface RowWithId { id: number | string }
+
+interface MultiSelectionOptions<T extends RowWithId = RowWithId> {
+  items?: Ref<T[]> | ComputedRef<T[]>
+  onSelectionChange?: (rows: T[]) => void
+  onRowClick?: (row: T, event: MouseEvent) => void
+  onRowDoubleClick?: (row: T) => void
+  longPressDelay?: number
+  doubleClickDelay?: number
+  enableEscKey?: boolean
+}
+
+export function useMultiSelection<T extends RowWithId = RowWithId>(options: MultiSelectionOptions<T> = {}) {
   const {
-    items = ref([]),
+    items = ref([]) as Ref<T[]>,
     onSelectionChange = () => {},
     onRowClick = () => {},
     onRowDoubleClick = () => {},
@@ -143,21 +156,20 @@ export function useMultiSelection(options = {}) {
     enableEscKey = true, // ESC 키로 선택 해제 활성화 여부
   } = options
 
-  // 선택 상태
-  const selectedRows = ref([])
+  const selectedRows = ref<T[]>([])
   const selectedRowId = computed(() => selectedRows.value[0]?.id || null)
   const selectedCount = computed(() => selectedRows.value.length)
 
   // 복수 선택 관련 상태
   const multiSelectMode = ref(false)
   const lastSelectedIndex = ref(-1)
-  const longPressTimer = ref(null)
+  const longPressTimer = ref<ReturnType<typeof setTimeout> | null>(null)
   const isLongPressing = ref(false)
-  const longPressingRowId = ref(null)
-  const longPressingClearTimer = ref(null) // longPressingRowId 자동 클리어 타이머
+  const longPressingRowId = ref<number | string | null>(null)
+  const longPressingClearTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
   // 더블 클릭 감지
-  let clickTimer = null
+  let clickTimer: ReturnType<typeof setTimeout> | null = null
   let clickCount = 0
 
   // 선택 변경 시 콜백 호출
@@ -166,7 +178,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // 행 선택 토글
-  function toggleRowSelection(row) {
+  function toggleRowSelection(row: T) {
     const index = selectedRows.value.findIndex((r) => r.id === row.id)
     const itemsValue = typeof items.value === 'function' ? items.value() : items.value
 
@@ -190,7 +202,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // 복수 선택 처리
-  function handleMultiSelect(evt, row, isCtrlKey, isShiftKey) {
+  function handleMultiSelect(evt: MouseEvent, row: T, isCtrlKey: boolean, isShiftKey: boolean) {
     const itemsValue = typeof items.value === 'function' ? items.value() : items.value
     const rowIndex = itemsValue.findIndex((r) => r.id === row.id)
 
@@ -257,7 +269,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // 단일 클릭 처리
-  function handleSingleClick(row) {
+  function handleSingleClick(row: T) {
     const itemsValue = typeof items.value === 'function' ? items.value() : items.value
 
     // 복수 선택 모드이면 선택 토글만 수행
@@ -279,7 +291,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // 더블 클릭 처리
-  function handleDoubleClick(row) {
+  function handleDoubleClick(row: T) {
     const itemsValue = typeof items.value === 'function' ? items.value() : items.value
     const rowIndex = itemsValue.findIndex((r) => r.id === row.id)
     lastSelectedIndex.value = rowIndex
@@ -293,7 +305,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // 행 클릭 핸들러
-  function onRowClickHandler(evt, row) {
+  function onRowClickHandler(evt: MouseEvent, row: T) {
     // evt.target이 null인 경우 처리
     if (!evt || !evt.target) {
       return
@@ -358,7 +370,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // 롱프레스 시작
-  function onRowMouseDown(evt, row) {
+  function onRowMouseDown(evt: MouseEvent, row: T) {
     if (evt.button === 0) {
       // 왼쪽 클릭
       // 텍스트 선택 방지 (Shift + 클릭 시 텍스트 블록 선택 방지)
@@ -439,7 +451,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // 특정 행 선택
-  function selectRow(row) {
+  function selectRow(row: T) {
     selectedRows.value = [row]
     const itemsValue = typeof items.value === 'function' ? items.value() : items.value
     lastSelectedIndex.value = itemsValue.findIndex((r) => r.id === row.id)
@@ -447,7 +459,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // ESC 키 핸들러
-  function handleEscKey(event) {
+  function handleEscKey(event: KeyboardEvent) {
     // ESC 키만 처리
     if (event.key !== 'Escape' && event.keyCode !== 27) {
       return false
@@ -459,7 +471,7 @@ export function useMultiSelection(options = {}) {
       activeElement &&
       (activeElement.tagName === 'INPUT' ||
         activeElement.tagName === 'TEXTAREA' ||
-        activeElement.isContentEditable ||
+        (activeElement as HTMLElement).isContentEditable ||
         activeElement.closest('input, textarea, [contenteditable]'))
 
     // 입력 필드가 아니고 멀티 셀렉션 모드이거나 선택된 항목이 있으면 해제
@@ -474,7 +486,7 @@ export function useMultiSelection(options = {}) {
   }
 
   // 전역 ESC 키 이벤트 리스너
-  function handleGlobalKeydown(event) {
+  function handleGlobalKeydown(event: KeyboardEvent) {
     if (enableEscKey) {
       handleEscKey(event)
     }

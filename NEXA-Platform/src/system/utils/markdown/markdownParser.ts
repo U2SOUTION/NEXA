@@ -6,7 +6,7 @@
 /**
  * HTML 이스케이프 (순수 JavaScript, 브라우저/Node.js 모두 지원)
  */
-export function escapeHtml(text) {
+export function escapeHtml(text: string): string {
   if (typeof text !== 'string') return text
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
 }
@@ -14,18 +14,18 @@ export function escapeHtml(text) {
 /**
  * 정규식 특수 문자 이스케이프
  */
-function escapeRegex(str) {
+function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 /**
  * 마크다운 테이블 셀 파싱 (첫/마지막 빈 문자열 제거)
  */
-function parseTableCells(line) {
+function parseTableCells(line: string): string[] {
   return line
     .split('|')
-    .map((cell) => cell.trim())
-    .filter((cell, index, array) => {
+    .map((cell: string) => cell.trim())
+    .filter((cell: string, index: number, array: string[]) => {
       // 첫 번째와 마지막 빈 문자열은 제거 (|로 시작/끝나기 때문)
       if (cell === '' && (index === 0 || index === array.length - 1)) {
         return false
@@ -37,7 +37,7 @@ function parseTableCells(line) {
 /**
  * 테이블 HTML 생성
  */
-function buildTableHtml(headerCells, dataLines) {
+function buildTableHtml(headerCells: string[], dataLines: string[]): string {
   // 스트라이프 적용 여부 결정 (로우가 10개 이상일 때만)
   const shouldShowStriped = dataLines.length >= 10
   const tableClass = shouldShowStriped ? 'q-table q-table--flat q-table--bordered q-mb-md markdown-table table-striped' : 'q-table q-table--flat q-table--bordered q-mb-md markdown-table'
@@ -46,7 +46,7 @@ function buildTableHtml(headerCells, dataLines) {
 
   // 헤더 행
   tableHtml += '<thead><tr>'
-  headerCells.forEach((cell) => {
+  headerCells.forEach((cell: string) => {
     const processedCell = escapeHtml(cell || '')
     tableHtml += `<th class="markdown-table-header">${processedCell}</th>`
   })
@@ -55,7 +55,7 @@ function buildTableHtml(headerCells, dataLines) {
   // 데이터 행
   if (dataLines.length > 0) {
     tableHtml += '<tbody>'
-    dataLines.forEach((dataLine) => {
+    dataLines.forEach((dataLine: string) => {
       // 데이터 셀 파싱
       const dataCells = parseTableCells(dataLine)
 
@@ -69,7 +69,7 @@ function buildTableHtml(headerCells, dataLines) {
 
       // striped 클래스는 CSS에서 처리 (로우 개수에 따라)
       tableHtml += '<tr>'
-      dataCells.forEach((cell) => {
+      dataCells.forEach((cell: string) => {
         // 별점 등 이모지 보존을 위해 escapeHtml 사용
         const processedCell = escapeHtml(cell || '')
         tableHtml += `<td class="markdown-table-cell">${processedCell}</td>`
@@ -97,7 +97,7 @@ function buildTableHtml(headerCells, dataLines) {
  * @param {Object} fileCheckboxStates - 파일별 체크박스 상태
  * @returns {string} 파싱된 HTML
  */
-export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
+export function parseMarkdown(content: string, fileKey = '', fileCheckboxStates: Record<string, boolean> = {}): string {
   if (!content) return ''
 
   // Windows 줄바꿈(\r\n) 처리: \r 제거
@@ -106,18 +106,16 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
   const lines = normalizedContent.split('\n')
   const processedLines = new Array(lines.length)
 
-  // 블록 레벨 요소 컬렉션
-  const codeBlocks = []
-  const mermaidBlocks = []
-  const checkboxPlaceholders = []
-  const tableMarkers = []
+  const codeBlocks: Array<{ placeholder: string; lang: string; code: string }> = []
+  const mermaidBlocks: Array<{ placeholder: string; code: string }> = []
+  const checkboxPlaceholders: Array<{ placeholder: string; html: string }> = []
+  const tableMarkers: Array<{ marker: string; html: string; startIndex: number; endIndex: number }> = []
 
-  // 상태 변수
   let inCodeBlock = false
-  let currentCodeBlock = null
+  let currentCodeBlock: { lang: string; lines: string[]; startIndex: number } | null = null
   let codeBlockStartIndex = -1
   let inTable = false
-  let tableLines = []
+  let tableLines: string[] = []
   let tableStartIndex = -1
   let headingIndex = 0
   let checkboxIndex = 0
@@ -278,7 +276,7 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
         const checked = checkboxMatch[2]
         const text = checkboxMatch[3].trim()
         const lineKey = `line-${i}`
-        const isChecked = fileCheckboxStates[lineKey] !== undefined ? fileCheckboxStates[lineKey] : /[xX]/.test(checked)
+        const isChecked = (fileCheckboxStates as Record<string, boolean>)[lineKey] !== undefined ? (fileCheckboxStates as Record<string, boolean>)[lineKey] : /[xX]/.test(checked)
         const checkboxId = `checkbox-${fileKey}-${checkboxIndex++}`
         const escapedText = escapeHtml(text)
         const placeholder = `__CHECKBOX_${checkboxPlaceholders.length}__`
@@ -379,31 +377,30 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
 
   // 리스트 파싱 (순서 없는 리스트: -, *, + / 순서 있는 리스트: 1., 2., ...)
   // 체크박스 HTML을 먼저 보호 (여러 줄일 수 있음)
-  const checkboxHtmlMarkers = []
-  html = html.replace(/<div class="checkbox-item[^>]*>[\s\S]*?<\/div>/g, (match) => {
+  const checkboxHtmlMarkers: Array<{ marker: string; html: string }> = []
+  html = html.replace(/<div class="checkbox-item[^>]*>[\s\S]*?<\/div>/g, (match: string) => {
     const marker = `__CHECKBOX_HTML_${checkboxHtmlMarkers.length}__`
     checkboxHtmlMarkers.push({ marker, html: match })
     return marker
   })
 
   const listLines = html.split('\n')
-  const listProcessedLines = []
-  let listStack = []
+  const listProcessedLines: string[] = []
+  let listStack: Array<{ type: string; level: number }> = []
 
   const closeAllLists = () => {
     while (listStack.length > 0) {
-      const { type } = listStack.pop()
-      listProcessedLines.push(`</${type}>`)
+      const item = listStack.pop()
+      if (item) listProcessedLines.push(`</${item.type}>`)
     }
   }
 
-  const processListItem = (text, listType, indentLevel) => {
+  const processListItem = (text: string, listType: string, indentLevel: number) => {
     const safe = escapeHtml(text)
 
-    // 현재 인덴트 레벨보다 깊은 리스트만 닫기 (같은 레벨의 리스트는 유지)
     while (listStack.length > 0 && listStack[listStack.length - 1].level > indentLevel) {
-      const { type } = listStack.pop()
-      listProcessedLines.push(`</${type}>`)
+      const item = listStack.pop()
+      if (item) listProcessedLines.push(`</${item.type}>`)
     }
 
     // 현재 스택의 마지막 항목 확인
@@ -435,7 +432,7 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
     }
   }
 
-  const isPlaceholder = (line) => {
+  const isPlaceholder = (line: string) => {
     return line.includes('__CODE_BLOCK_') || line.includes('__MERMAID_BLOCK_') || line.includes('__CHECKBOX_') || line.includes('__TABLE_MARKER_') || line.includes('__CHECKBOX_HTML_') || line.startsWith('<h') || line.startsWith('<hr>') || line.includes('<div class="checkbox-item')
   }
 
@@ -490,14 +487,14 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
 
   // 인라인 코드 블록 처리 (`코드` -> <code>코드</code>)
   // 체크박스 HTML도 보호 (플레이스홀더는 이미 HTML로 변환됨)
-  const inlineCodeMarkers = []
-  html = html.replace(/(__CODE_BLOCK_\d+__|__CHECKBOX_\d+__|__CHECKBOX_HTML_\d+__|__TABLE_MARKER_\d+__|__MERMAID_BLOCK_\d+__|<div class="checkbox-item[^>]*>[\s\S]*?<\/div>)/g, (match) => {
+  const inlineCodeMarkers: Array<{ markerId: string; original: string }> = []
+  html = html.replace(/(__CODE_BLOCK_\d+__|__CHECKBOX_\d+__|__CHECKBOX_HTML_\d+__|__TABLE_MARKER_\d+__|__MERMAID_BLOCK_\d+__|<div class="checkbox-item[^>]*>[\s\S]*?<\/div>)/g, (match: string) => {
     const markerId = `__INLINE_CODE_PROTECT_${inlineCodeMarkers.length}__`
     inlineCodeMarkers.push({ markerId, original: match })
     return markerId
   })
 
-  html = html.replace(/`([^`]+)`/g, (match, code) => {
+  html = html.replace(/`([^`]+)`/g, (_match: string, code: string) => {
     const escapedCode = escapeHtml(code)
     return `<code class="code-inline">${escapedCode}</code>`
   })
@@ -508,8 +505,8 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
 
   // 강조 표시 처리 (**텍스트** -> <strong>텍스트</strong>)
   // 체크박스 HTML도 보호 (플레이스홀더는 이미 HTML로 변환됨)
-  const protectedMarkers = []
-  html = html.replace(/(__CODE_BLOCK_\d+__|__CHECKBOX_\d+__|__CHECKBOX_HTML_\d+__|__TABLE_MARKER_\d+__|__MERMAID_BLOCK_\d+__|<div class="checkbox-item[^>]*>[\s\S]*?<\/div>)/g, (match) => {
+  const protectedMarkers: Array<{ markerId: string; original: string }> = []
+  html = html.replace(/(__CODE_BLOCK_\d+__|__CHECKBOX_\d+__|__CHECKBOX_HTML_\d+__|__TABLE_MARKER_\d+__|__MERMAID_BLOCK_\d+__|<div class="checkbox-item[^>]*>[\s\S]*?<\/div>)/g, (match: string) => {
     const markerId = `__PROTECTED_${protectedMarkers.length}__`
     protectedMarkers.push({ markerId, original: match })
     return markerId
@@ -533,16 +530,14 @@ export function parseMarkdown(content, fileKey = '', fileCheckboxStates = {}) {
   })
 
   // 단락 처리 (블록 레벨 요소 보호) - 모든 블록 요소를 __BLOCK_MARKER_로 통일
-  const blockMarkers = []
+  const blockMarkers: Array<{ marker: string; html: string }> = []
 
-  // 블록 레벨 요소를 마커로 치환하는 공통 함수
-  const addBlockMarker = (pattern, html) => {
-    html = html.replace(pattern, (match) => {
+  const addBlockMarker = (pattern: RegExp, htmlStr: string): string => {
+    return htmlStr.replace(pattern, (match: string) => {
       const marker = `__BLOCK_MARKER_${blockMarkers.length}__`
       blockMarkers.push({ marker, html: match })
       return marker
     })
-    return html
   }
 
   html = addBlockMarker(/<div class="checkbox-item[^>]*>[\s\S]*?<\/div>/g, html)

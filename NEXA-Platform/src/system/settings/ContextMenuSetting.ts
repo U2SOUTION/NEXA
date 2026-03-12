@@ -72,18 +72,20 @@ export function getSettingsContextMenuItems({ selectedTab = null, context: _cont
   return items
 }
 
+type SettingsTab = 'theme' | 'layout' | 'iot' | 'system'
+
 /**
  * 탭 라벨 가져오기
- * @param {string} tab - 탭 이름
- * @returns {string} 탭 라벨
+ * @param tab - 탭 이름
+ * @returns 탭 라벨
  */
-function getTabLabel(tab) {
-  const labels = {
+function getTabLabel(tab: SettingsTab | string): string {
+  const labels: Record<string, string> = {
     theme: '테마',
     layout: '레이아웃',
     iot: 'IOT',
     system: '시스템',
   }
-  return labels[tab] || tab
+  return labels[tab] ?? tab
 }
 

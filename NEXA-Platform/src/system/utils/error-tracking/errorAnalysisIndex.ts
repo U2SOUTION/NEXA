@@ -9,10 +9,39 @@ import { getDocsBaseUrl, getDocFileUrl } from '../apiBaseUrl'
 
 const docsBaseUrl = getDocsBaseUrl()
 
-/**
- * 에러 분석 문서 인덱스 관리 클래스
- */
+export interface IndexDocEntry {
+  path: string
+  fileName: string
+  title: string
+  createdAt: string
+  updatedAt: string
+  tags: string[]
+  errorMessage: string | null
+}
+
+export interface ErrorIndexData {
+  version: string
+  lastUpdated: string
+  index: Record<string, IndexDocEntry[]>
+  fileMap: Record<string, string>
+}
+
+export interface IndexLoadError {
+  type: string
+  message: string
+  url?: string
+  path?: string
+  status?: number | null
+  statusText?: string
+}
+
 export class ErrorAnalysisIndex {
+  project: string
+  indexPath: string
+  cache: ErrorIndexData | null
+  lastModified: string | null
+  lastError: IndexLoadError | null
+
   constructor(project = 'Platform') {
     this.project = project
     this.indexPath = `Error/${project}/.error-analysis-index.json`
@@ -37,8 +66,8 @@ export class ErrorAnalysisIndex {
       if (metadataResponse && metadataResponse.ok) {
         const metadata = await metadataResponse.json()
         const files = metadata.files || []
-        const indexFile = files.find(f => {
-          const filePath = f.relativePath || f.fileName || ''
+        const indexFile = files.find((f: { relativePath?: string; fileName?: string }) => {
+          const filePath = f.relativePath ?? f.fileName ?? ''
           return filePath === this.indexPath || filePath.endsWith('/' + this.indexPath)
         })
         
@@ -125,13 +154,13 @@ export class ErrorAnalysisIndex {
    * @param {string} errorId - 에러 ID
    * @returns {Promise<Array>} 문서 메타데이터 배열
    */
-  async findDocumentsByErrorId(errorId) {
+  async findDocumentsByErrorId(errorId: string): Promise<IndexDocEntry[]> {
     if (!errorId) {
       return []
     }
 
-    const index = await this.loadIndex()
-    return index.index[errorId] || []
+    const index = (await this.loadIndex()) as ErrorIndexData
+    return index.index[errorId] ?? []
   }
 
   /**
@@ -140,8 +169,8 @@ export class ErrorAnalysisIndex {
    * @param {Object} metadata - 문서 메타데이터
    * @returns {Promise<void>}
    */
-  async updateIndex(documentPath, metadata) {
-    const index = await this.loadIndex()
+  async updateIndex(documentPath: string, metadata: { errorId?: string; fileName?: string; title?: string; createdAt?: string; updatedAt?: string; tags?: string[]; errorMessage?: string | null }): Promise<void> {
+    const index = (await this.loadIndex()) as ErrorIndexData
     const errorId = metadata.errorId
 
     if (!errorId) {
@@ -153,7 +182,7 @@ export class ErrorAnalysisIndex {
     if (index.fileMap[documentPath]) {
       const oldErrorId = index.fileMap[documentPath]
       if (index.index[oldErrorId]) {
-        index.index[oldErrorId] = index.index[oldErrorId].filter((doc) => doc.path !== documentPath)
+        index.index[oldErrorId] = index.index[oldErrorId].filter((doc: IndexDocEntry) => doc.path !== documentPath)
         if (index.index[oldErrorId].length === 0) {
           delete index.index[oldErrorId]
         }
@@ -165,18 +194,18 @@ export class ErrorAnalysisIndex {
       index.index[errorId] = []
     }
 
-    const docEntry = {
+    const docEntry: IndexDocEntry = {
       path: documentPath,
-      fileName: metadata.fileName || documentPath.split('/').pop(),
-      title: metadata.title || metadata.fileName || '제목 없음',
-      createdAt: metadata.createdAt || new Date().toISOString(),
-      updatedAt: metadata.updatedAt || new Date().toISOString(),
-      tags: metadata.tags || [],
-      errorMessage: metadata.errorMessage || null,
+      fileName: metadata.fileName ?? (documentPath.split('/').pop() ?? documentPath),
+      title: metadata.title ?? metadata.fileName ?? '제목 없음',
+      createdAt: metadata.createdAt ?? new Date().toISOString(),
+      updatedAt: metadata.updatedAt ?? new Date().toISOString(),
+      tags: metadata.tags ?? [],
+      errorMessage: metadata.errorMessage ?? null,
     }
 
     // 중복 체크
-    const existingIndex = index.index[errorId].findIndex((doc) => doc.path === documentPath)
+    const existingIndex = index.index[errorId].findIndex((doc: IndexDocEntry) => doc.path === documentPath)
     if (existingIndex >= 0) {
       index.index[errorId][existingIndex] = docEntry
     } else {
@@ -196,12 +225,12 @@ export class ErrorAnalysisIndex {
    * @param {string} documentPath - 문서 경로
    * @returns {Promise<void>}
    */
-  async removeFromIndex(documentPath) {
-    const index = await this.loadIndex()
+  async removeFromIndex(documentPath: string): Promise<void> {
+    const index = (await this.loadIndex()) as ErrorIndexData
     const errorId = index.fileMap[documentPath]
 
     if (errorId && index.index[errorId]) {
-      index.index[errorId] = index.index[errorId].filter((doc) => doc.path !== documentPath)
+      index.index[errorId] = index.index[errorId].filter((doc: IndexDocEntry) => doc.path !== documentPath)
       if (index.index[errorId].length === 0) {
         delete index.index[errorId]
       }
@@ -218,7 +247,7 @@ export class ErrorAnalysisIndex {
    * @param {Object} index - 인덱스 객체
    * @returns {Promise<void>}
    */
-  async saveIndex(index) {
+  async saveIndex(index: ErrorIndexData): Promise<void> {
     const content = JSON.stringify(index, null, 2)
     const prefixedPath = `nexa-docs/${this.indexPath}`
     const url = getDocFileUrl(prefixedPath)
@@ -241,8 +270,8 @@ export class ErrorAnalysisIndex {
    * 인덱스 재구성 (모든 문서 스캔)
    * @returns {Promise<Object>} 재구성된 인덱스
    */
-  async rebuildIndex() {
-    const index = this.createEmptyIndex()
+  async rebuildIndex(): Promise<ErrorIndexData> {
+    const index = this.createEmptyIndex() as ErrorIndexData
 
     try {
       // 에러 분석 폴더의 모든 파일 가져오기 (조용한 fetch 사용)
@@ -251,11 +280,11 @@ export class ErrorAnalysisIndex {
       const metadata = await metadataResponse.json()
       const allFiles = metadata.files || []
       const files = allFiles
-        .filter((f) => {
-          const p = f.relativePath || f.fileName || ''
+        .filter((f: { relativePath?: string; fileName?: string }) => {
+          const p = f.relativePath ?? f.fileName ?? ''
           return p.includes(`Error/${this.project}/`) && p.endsWith('.md')
         })
-        .map((f) => ({ path: f.relativePath || f.fileName, name: (f.relativePath || f.fileName || '').split('/').pop() }))
+        .map((f: { relativePath?: string; fileName?: string }) => ({ path: f.relativePath ?? f.fileName ?? '', name: (f.relativePath ?? f.fileName ?? '').split('/').pop() ?? '' }))
       for (const file of files) {
         // 인덱스 파일 자체는 제외
         if (file.name === '.error-analysis-index.json') continue
@@ -267,23 +296,22 @@ export class ErrorAnalysisIndex {
           }
 
           const content = await contentResponse.text()
-          const frontmatter = parseErrorAnalysisFrontmatter(content)
+          const fm = parseErrorAnalysisFrontmatter(content)
 
-          if (frontmatter?.errorId) {
-            // 인덱스에 직접 추가 (재귀 호출 방지)
-            const errorId = frontmatter.errorId
+          if (fm?.errorId) {
+            const errorId = fm.errorId
             if (!index.index[errorId]) {
               index.index[errorId] = []
             }
 
-            const docEntry = {
+            const docEntry: IndexDocEntry = {
               path: file.path,
               fileName: file.name,
-              title: frontmatter.title || file.name.replace('.md', ''),
-              createdAt: frontmatter.createdAt || new Date().toISOString(),
-              updatedAt: frontmatter.updatedAt || new Date().toISOString(),
-              tags: frontmatter.tags || [],
-              errorMessage: frontmatter.errorMessage || null,
+              title: fm.title ?? file.name.replace('.md', ''),
+              createdAt: fm.createdAt ?? new Date().toISOString(),
+              updatedAt: fm.updatedAt ?? new Date().toISOString(),
+              tags: fm.tags ?? [],
+              errorMessage: fm.errorMessage ?? null,
             }
 
             index.index[errorId].push(docEntry)
@@ -309,7 +337,7 @@ export class ErrorAnalysisIndex {
   /**
    * 캐시 초기화
    */
-  clearCache() {
+  clearCache(): void {
     this.cache = null
     this.lastModified = null
   }
@@ -319,7 +347,7 @@ export class ErrorAnalysisIndex {
 export const errorAnalysisIndex = new ErrorAnalysisIndex('Platform')
 
 // 다른 프로젝트용 인스턴스 생성 함수
-export function createErrorAnalysisIndex(project) {
+export function createErrorAnalysisIndex(project: string) {
   return new ErrorAnalysisIndex(project)
 }
 

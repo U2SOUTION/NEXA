@@ -34,6 +34,20 @@
  * @param {Function} params.clearSelection - 선택 초기화 함수 (optional)
  * @returns {Object} 키보드 이벤트 핸들러 및 설정 함수
  */
+interface RowWithId { id: number | string }
+
+interface TableKeyboardParams {
+  filteredClasses: { value: RowWithId[] }
+  selectedRows: { value: RowWithId[] }
+  multiSelectMode: { value: boolean }
+  lastSelectedIndex: { value: number }
+  pagination: { value: { page: number; rowsPerPage: number } }
+  isSidebarDetailViewActive: { value: boolean }
+  exitSidebarDetailView: () => void
+  partsDataStore: { selectedPartClass: RowWithId | null }
+  clearSelection?: () => void
+}
+
 export function useTableKeyboard({
   filteredClasses,
   selectedRows,
@@ -44,22 +58,22 @@ export function useTableKeyboard({
   exitSidebarDetailView,
   partsDataStore,
   clearSelection,
-}) {
+}: TableKeyboardParams) {
   /**
    * 선택 반전 함수
    */
   function invertSelection() {
     // 현재 선택된 항목 ID 집합
-    const selectedIds = new Set(selectedRows.value.map((r) => r.id))
+    const selectedIds = new Set(selectedRows.value.map((r: RowWithId) => r.id))
 
     // 필터된 결과에서 선택되지 않은 항목만 선택
-    const inverted = filteredClasses.value.filter((row) => !selectedIds.has(row.id))
+    const inverted = filteredClasses.value.filter((row: RowWithId) => !selectedIds.has(row.id))
 
     selectedRows.value = inverted
 
     if (selectedRows.value.length > 0) {
       lastSelectedIndex.value = filteredClasses.value.findIndex(
-        (r) => r.id === selectedRows.value[selectedRows.value.length - 1].id,
+        (r: RowWithId) => r.id === selectedRows.value[selectedRows.value.length - 1].id
       )
       partsDataStore.selectedPartClass = selectedRows.value[0]
     } else {
@@ -75,7 +89,7 @@ export function useTableKeyboard({
    *
    * @param {KeyboardEvent} evt - 키보드 이벤트
    */
-  function handleKeyDown(evt) {
+  function handleKeyDown(evt: KeyboardEvent) {
     // ESC 키: 사이드바 상세 뷰 해제만 처리 (멀티 셀렉션 해제는 useMultiSelection에서 처리)
     if (evt.key === 'Escape' || evt.keyCode === 27) {
       // 입력 필드에 포커스가 있으면 기본 동작 허용
@@ -84,7 +98,7 @@ export function useTableKeyboard({
         activeElement &&
         (activeElement.tagName === 'INPUT' ||
           activeElement.tagName === 'TEXTAREA' ||
-          activeElement.isContentEditable ||
+          (activeElement as HTMLElement).isContentEditable ||
           activeElement.closest('input, textarea, [contenteditable]'))
 
       // 입력 필드가 아니면 처리
@@ -121,7 +135,7 @@ export function useTableKeyboard({
         activeElement &&
         (activeElement.tagName === 'INPUT' ||
           activeElement.tagName === 'TEXTAREA' ||
-          activeElement.isContentEditable ||
+          (activeElement as HTMLElement).isContentEditable ||
           activeElement.closest('input, textarea, [contenteditable]'))
 
       // 입력 필드가 아니고, 필터된 결과가 있을 때만 처리
@@ -188,7 +202,7 @@ export function useTableKeyboard({
         activeElement &&
         (activeElement.tagName === 'INPUT' ||
           activeElement.tagName === 'TEXTAREA' ||
-          activeElement.isContentEditable ||
+          (activeElement as HTMLElement).isContentEditable ||
           activeElement.closest('input, textarea, [contenteditable]'))
 
       // 입력 필드가 아니고, 필터된 결과가 있을 때만 처리

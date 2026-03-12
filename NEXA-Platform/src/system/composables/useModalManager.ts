@@ -23,15 +23,15 @@
  */
 import { computed, reactive } from 'vue'
 
-export function useModalManager(modalNames = []) {
+export function useModalManager(modalNames: string[] = []) {
   // 모달 상태 관리 (각 모달의 열림/닫힘 상태)
-  const modalStates = reactive({})
+  const modalStates = reactive<Record<string, boolean>>({})
 
   // 모달 데이터 관리 (각 모달에 전달할 데이터)
-  const modalData = reactive({})
+  const modalData = reactive<Record<string, unknown>>({})
 
   // 초기화: 모든 모달을 닫힌 상태로 설정
-  modalNames.forEach((name) => {
+  modalNames.forEach((name: string) => {
     modalStates[name] = false
     modalData[name] = null
   })
@@ -41,7 +41,7 @@ export function useModalManager(modalNames = []) {
    * @param {string} name - 모달 이름
    * @param {unknown} data - 모달에 전달할 데이터 (선택적)
    */
-  function openModal(name, data = null) {
+  function openModal(name: string, data: unknown = null) {
     if (!modalNames.includes(name)) {
       console.warn(`[useModalManager] 모달 "${name}"이 등록되지 않았습니다.`)
       return
@@ -57,7 +57,7 @@ export function useModalManager(modalNames = []) {
    * @param {string} name - 모달 이름
    * @param {boolean} clearData - 데이터도 함께 제거할지 여부 (기본: true)
    */
-  function closeModal(name, clearData = true) {
+  function closeModal(name: string, clearData = true) {
     if (!modalNames.includes(name)) {
       console.warn(`[useModalManager] 모달 "${name}"이 등록되지 않았습니다.`)
       return
@@ -73,7 +73,7 @@ export function useModalManager(modalNames = []) {
    * @param {string} name - 모달 이름
    * @returns {boolean} 모달이 열려있는지 여부
    */
-  function isOpen(name) {
+  function isOpen(name: string) {
     if (!modalNames.includes(name)) {
       return false
     }
@@ -85,7 +85,7 @@ export function useModalManager(modalNames = []) {
    * @param {string} name - 모달 이름
    * @returns {unknown} 모달 데이터
    */
-  function getModalData(name) {
+  function getModalData(name: string) {
     if (!modalNames.includes(name)) {
       return null
     }
@@ -97,7 +97,7 @@ export function useModalManager(modalNames = []) {
    * @param {string} name - 모달 이름
    * @param {unknown} data - 설정할 데이터
    */
-  function setModalData(name, data) {
+  function setModalData(name: string, data: unknown) {
     if (!modalNames.includes(name)) {
       console.warn(`[useModalManager] 모달 "${name}"이 등록되지 않았습니다.`)
       return
@@ -110,7 +110,7 @@ export function useModalManager(modalNames = []) {
    * @param {boolean} clearData - 데이터도 함께 제거할지 여부 (기본: true)
    */
   function closeAllModals(clearData = true) {
-    modalNames.forEach((name) => {
+    modalNames.forEach((name: string) => {
       modalStates[name] = false
       if (clearData) {
         modalData[name] = null
@@ -123,7 +123,7 @@ export function useModalManager(modalNames = []) {
    * @param {string} name - 모달 이름
    * @returns {object} { value, set } 형태의 computed
    */
-  function getModalComputed(name) {
+  function getModalComputed(name: string) {
     return computed({
       get: () => {
         if (!modalNames.includes(name)) {

@@ -3,39 +3,56 @@
  * LCP, FID, CLS 측정
  */
 
-let webVitalsData = {
+export interface LCPEntry {
+  value: number
+  element: string
+  timestamp: number
+}
+
+export interface FIDEntry {
+  value: number
+  eventType: string
+  timestamp: number
+}
+
+export interface CLSEntry {
+  value: number
+  entries: Array<{ value: number; sources: unknown[] }>
+  timestamp: number
+}
+
+interface WebVitalsDataShape {
+  lcp: LCPEntry | null
+  fid: FIDEntry | null
+  cls: CLSEntry | null
+}
+
+let webVitalsData: WebVitalsDataShape = {
   lcp: null,
   fid: null,
   cls: null,
 }
 
-let observers = []
+let observers: PerformanceObserver[] = []
 
-/**
- * LCP (Largest Contentful Paint) 측정
- * @param {Function} callback - LCP 측정 콜백
- */
-export function collectLCP(callback) {
-  // 이미 측정된 LCP 값이 있으면 반환 (페이지 로드 후 모니터링 시작하는 경우 대비)
+export function collectLCP(callback?: (entry: LCPEntry) => void): void {
   try {
-    // navigation timing을 통해 LCP 근사값 계산 시도
-    const navTiming = performance.getEntriesByType('navigation')[0]
-    if (navTiming && navTiming.loadEventEnd) {
-      // loadEventEnd를 LCP 근사값으로 사용
+    const navEntries = performance.getEntriesByType('navigation')
+    const navTiming = navEntries[0] as PerformanceNavigationTiming | undefined
+    if (navTiming?.loadEventEnd != null && navTiming?.fetchStart != null) {
       const approximateLCP = navTiming.loadEventEnd - navTiming.fetchStart
       if (approximateLCP > 0) {
-        webVitalsData.lcp = {
+        const entry: LCPEntry = {
           value: approximateLCP,
           element: 'approximate',
           timestamp: Date.now(),
         }
-        if (callback) {
-          callback(webVitalsData.lcp)
-        }
+        webVitalsData.lcp = entry
+        callback?.(entry)
       }
     }
   } catch {
-    // 실패해도 계속 진행
+    // continue
   }
 
   if (typeof PerformanceObserver === 'undefined') {
@@ -47,17 +64,15 @@ export function collectLCP(callback) {
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries()
       if (entries.length > 0) {
-        const lastEntry = entries[entries.length - 1]
-
-        webVitalsData.lcp = {
-          value: lastEntry.renderTime || lastEntry.loadTime,
-          element: lastEntry.element?.tagName || 'unknown',
+        const lastEntry = entries[entries.length - 1] as PerformanceEntry & { renderTime?: number; loadTime?: number; element?: { tagName?: string } }
+        const value = lastEntry.renderTime ?? lastEntry.loadTime ?? 0
+        const entry: LCPEntry = {
+          value,
+          element: lastEntry.element?.tagName ?? 'unknown',
           timestamp: Date.now(),
         }
-
-        if (callback) {
-          callback(webVitalsData.lcp)
-        }
+        webVitalsData.lcp = entry
+        callback?.(entry)
       }
     })
 
@@ -68,11 +83,7 @@ export function collectLCP(callback) {
   }
 }
 
-/**
- * FID (First Input Delay) 측정
- * @param {Function} callback - FID 측정 콜백
- */
-export function collectFID(callback) {
+export function collectFID(callback?: (entry: FIDEntry) => void): void {
   if (typeof PerformanceObserver === 'undefined') {
     console.warn('[WebVitalsCollector] PerformanceObserver is not supported')
     return
@@ -82,19 +93,15 @@ export function collectFID(callback) {
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries()
       entries.forEach((entry) => {
-        // FID는 첫 번째 입력만 측정
-        if (!webVitalsData.fid) {
-          webVitalsData.fid = {
-            value: entry.processingStart - entry.startTime,
-            eventType: entry.name,
+        const e = entry as PerformanceEntry & { processingStart?: number; startTime?: number; name?: string }
+        if (!webVitalsData.fid && e.processingStart != null && e.startTime != null) {
+          const fidEntry: FIDEntry = {
+            value: e.processingStart - e.startTime,
+            eventType: e.name ?? 'first-input',
             timestamp: Date.now(),
           }
-
-          if (callback) {
-            callback(webVitalsData.fid)
-          }
-
-          // 한 번만 측정하므로 관찰 중지
+          webVitalsData.fid = fidEntry
+          callback?.(fidEntry)
           observer.disconnect()
         }
       })
@@ -107,47 +114,46 @@ export function collectFID(callback) {
   }
 }
 
-/**
- * CLS (Cumulative Layout Shift) 측정
- * @param {Function} callback - CLS 측정 콜백
- */
-export function collectCLS(callback) {
+interface LayoutShiftEntryExt extends PerformanceEntry {
+  hadRecentInput?: boolean
+  value?: number
+  sources?: Array<{ node?: { tagName?: string }; previousRect?: unknown; currentRect?: unknown }>
+}
+
+export function collectCLS(callback?: (entry: CLSEntry) => void): void {
   if (typeof PerformanceObserver === 'undefined') {
     console.warn('[WebVitalsCollector] PerformanceObserver is not supported')
     return
   }
 
   let clsValue = 0
-  let clsEntries = []
+  const clsEntries: Array<{ value: number; sources: unknown[] }> = []
 
   try {
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries()
       entries.forEach((entry) => {
-        // 사용자 입력으로 인한 레이아웃 시프트는 제외
-        if (!entry.hadRecentInput) {
-          clsValue += entry.value
+        const e = entry as LayoutShiftEntryExt
+        if (!e.hadRecentInput && e.value != null) {
+          clsValue += e.value
           clsEntries.push({
-            value: entry.value,
-            sources:
-              entry.sources?.map((s) => ({
-                node: s.node?.tagName || 'unknown',
-                previousRect: s.previousRect,
-                currentRect: s.currentRect,
-              })) || [],
+            value: e.value,
+            sources: e.sources?.map((s) => ({
+              node: s.node?.tagName ?? 'unknown',
+              previousRect: s.previousRect,
+              currentRect: s.currentRect,
+            })) ?? [],
           })
         }
       })
 
-      webVitalsData.cls = {
+      const clsEntry: CLSEntry = {
         value: clsValue,
         entries: clsEntries,
         timestamp: Date.now(),
       }
-
-      if (callback) {
-        callback(webVitalsData.cls)
-      }
+      webVitalsData.cls = clsEntry
+      callback?.(clsEntry)
     })
 
     observer.observe({ type: 'layout-shift', buffered: true })
@@ -157,32 +163,24 @@ export function collectCLS(callback) {
   }
 }
 
-/**
- * 모든 Web Vitals 측정 시작
- * @param {Function} callback - Web Vitals 업데이트 콜백
- */
-export function onWebVitals(callback) {
+export function onWebVitals(callback?: (data: WebVitalsDataShape) => void): void {
   collectLCP((lcp) => {
-    if (callback) callback({ ...webVitalsData, lcp })
+    callback?.({ ...webVitalsData, lcp })
   })
   collectFID((fid) => {
-    if (callback) callback({ ...webVitalsData, fid })
+    callback?.({ ...webVitalsData, fid })
   })
   collectCLS((cls) => {
-    if (callback) callback({ ...webVitalsData, cls })
+    callback?.({ ...webVitalsData, cls })
   })
 }
 
-/**
- * Web Vitals 데이터 반환
- * @returns {Object} Web Vitals 데이터
- */
-export function getWebVitals() {
-  // LCP가 없으면 navigation timing을 통해 근사값 계산
+export function getWebVitals(): WebVitalsDataShape {
   if (!webVitalsData.lcp) {
     try {
-      const navTiming = performance.getEntriesByType('navigation')[0]
-      if (navTiming && navTiming.loadEventEnd) {
+      const navEntries = performance.getEntriesByType('navigation')
+      const navTiming = navEntries[0] as PerformanceNavigationTiming | undefined
+      if (navTiming?.loadEventEnd != null && navTiming?.fetchStart != null) {
         const approximateLCP = navTiming.loadEventEnd - navTiming.fetchStart
         if (approximateLCP > 0) {
           webVitalsData.lcp = {
@@ -193,7 +191,7 @@ export function getWebVitals() {
         }
       }
     } catch {
-      // 실패 시 무시
+      // ignore
     }
   }
   return { ...webVitalsData }
@@ -214,21 +212,17 @@ export function clearWebVitals() {
   observers = []
 }
 
-/**
- * Web Vitals 평가 (좋음/개선 필요/나쁨)
- * @param {string} metric - 평가할 지표 (lcp, fid, cls)
- * @param {number} value - 지표 값
- * @returns {string} 평가 결과 ('good', 'needs-improvement', 'poor')
- */
-export function evaluateWebVital(metric, value) {
+type WebVitalMetricKey = 'lcp' | 'fid' | 'cls'
+
+export function evaluateWebVital(metric: WebVitalMetricKey, value: number | null | undefined): string {
   if (value === null || value === undefined) {
     return 'unknown'
   }
 
-  const thresholds = {
-    lcp: { good: 2500, poor: 4000 }, // milliseconds
-    fid: { good: 100, poor: 300 }, // milliseconds
-    cls: { good: 0.1, poor: 0.25 }, // score
+  const thresholds: Record<WebVitalMetricKey, { good: number; poor: number }> = {
+    lcp: { good: 2500, poor: 4000 },
+    fid: { good: 100, poor: 300 },
+    cls: { good: 0.1, poor: 0.25 },
   }
 
   const threshold = thresholds[metric]

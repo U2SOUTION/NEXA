@@ -8,11 +8,11 @@
  * @param {number} timestamp - 타임스탬프 (밀리초)
  * @returns {string} 포맷팅된 상대 시간 문자열
  */
-export function formatTimeRelative(timestamp) {
+export function formatTimeRelative(timestamp: number): string {
   if (!timestamp) return ''
   const date = new Date(timestamp)
   const now = new Date()
-  const diff = now - date
+  const diff = Number(now) - Number(date)
 
   // 1분 이내
   if (diff < 60000) {
@@ -42,7 +42,7 @@ export function formatTimeRelative(timestamp) {
  * @param {number} timestamp - 타임스탬프 (밀리초)
  * @returns {string} 포맷팅된 절대 시간 문자열
  */
-export function formatTimeAbsolute(timestamp) {
+export function formatTimeAbsolute(timestamp: number): string {
   if (!timestamp) return ''
   const date = new Date(timestamp)
   return date.toLocaleString('ko-KR', {
@@ -61,7 +61,7 @@ export function formatTimeAbsolute(timestamp) {
  * @param {number} timestamp - 타임스탬프 (밀리초)
  * @returns {string} 포맷팅된 시간 문자열
  */
-export function formatTime(timestamp) {
+export function formatTime(timestamp: number): string {
   if (!timestamp) return ''
   const relative = formatTimeRelative(timestamp)
   if (relative) {
@@ -75,7 +75,7 @@ export function formatTime(timestamp) {
  * @param {number} timestamp - 타임스탬프 (밀리초)
  * @returns {string} 포맷팅된 기간 문자열
  */
-export function formatDuration(timestamp) {
+export function formatDuration(timestamp: number): string {
   if (!timestamp) return ''
   const now = Date.now()
   const diff = now - timestamp

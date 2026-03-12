@@ -5,23 +5,22 @@
 import { exportToCSV, downloadCSV } from './exportToCSV'
 import { exportToExcel, downloadExcel } from './exportToExcel'
 import { exportToPDF, downloadPDF } from './exportToPDF'
-import { generateFileName, sanitizeFileName } from './exportFileNameGenerator'
+import { generateFileName, sanitizeFileName, type ExportFormat, type ExportScope } from './exportFileNameGenerator'
+import type { FormattingOptions, ExportCsvOptions, ExportExcelOptions, ExportPdfOptions } from './exportTypes'
 
-/**
- * 통합 내보내기 함수
- * @param {Object} params - 내보내기 파라미터
- * @param {Array<Object>} params.data - 내보낼 데이터 배열
- * @param {Array<string>} params.columns - 선택된 열 이름 배열
- * @param {Array<Object>} params.columnDefinitions - 열 정의 배열 (label 포함)
- * @param {string} params.format - 'csv' | 'excel' | 'pdf'
- * @param {string} params.type - 'selected' | 'filtered' | 'all'
- * @param {number} params.count - 데이터 개수
- * @param {string} params.tableName - 테이블 이름 (선택사항)
- * @param {Object} params.options - 형식별 옵션 (csv, excel, pdf)
- * @param {Object} params.formattingOptions - 포맷팅 옵션
- * @param {Function} params.onProgress - 진행률 콜백 (선택사항)
- * @returns {Promise<void>}
- */
+export interface ExportDataParams {
+  data: Record<string, unknown>[]
+  columns: string[]
+  columnDefinitions?: import('./exportTypes').ColumnDef[]
+  format?: ExportFormat
+  type?: ExportScope
+  count?: number
+  tableName?: string
+  options?: { csv?: ExportCsvOptions; excel?: ExportExcelOptions; pdf?: ExportPdfOptions }
+  formattingOptions?: FormattingOptions
+  onProgress?: ((progress: { current: number; total: number; message: string }) => void) | null
+}
+
 export async function exportData({
   data,
   columns,
@@ -33,7 +32,7 @@ export async function exportData({
   options = {},
   formattingOptions = {},
   onProgress = null,
-}) {
+}: ExportDataParams): Promise<{ success: boolean; fileName: string }> {
   try {
     // 진행률 업데이트
     if (onProgress) {
@@ -48,15 +47,12 @@ export async function exportData({
       onProgress({ current: 20, total: 100, message: '데이터 포맷팅 중...' })
     }
 
-    let blob
-
-    // 형식별 내보내기
+    let blob: Blob
+    const opts = options ?? {}
     switch (format) {
       case 'csv':
-        if (onProgress) {
-          onProgress({ current: 40, total: 100, message: 'CSV 파일 생성 중...' })
-        }
-        blob = exportToCSV(data, columns, columnDefinitions, options.csv || {}, formattingOptions)
+        if (onProgress) onProgress({ current: 40, total: 100, message: 'CSV 파일 생성 중...' })
+        blob = exportToCSV(data, columns, columnDefinitions, opts.csv ?? {}, formattingOptions ?? {})
         if (onProgress) {
           onProgress({ current: 80, total: 100, message: 'CSV 파일 다운로드 중...' })
         }
@@ -64,10 +60,8 @@ export async function exportData({
         break
 
       case 'excel':
-        if (onProgress) {
-          onProgress({ current: 40, total: 100, message: 'Excel 파일 생성 중...' })
-        }
-        blob = exportToExcel(data, columns, columnDefinitions, options.excel || {}, formattingOptions)
+        if (onProgress) onProgress({ current: 40, total: 100, message: 'Excel 파일 생성 중...' })
+        blob = exportToExcel(data, columns, columnDefinitions, opts.excel ?? {}, formattingOptions ?? {})
         if (onProgress) {
           onProgress({ current: 80, total: 100, message: 'Excel 파일 다운로드 중...' })
         }
@@ -75,10 +69,8 @@ export async function exportData({
         break
 
       case 'pdf':
-        if (onProgress) {
-          onProgress({ current: 40, total: 100, message: 'PDF 파일 생성 중...' })
-        }
-        blob = await exportToPDF(data, columns, columnDefinitions, options.pdf || {}, formattingOptions)
+        if (onProgress) onProgress({ current: 40, total: 100, message: 'PDF 파일 생성 중...' })
+        blob = await exportToPDF(data, columns, columnDefinitions, opts.pdf ?? {}, formattingOptions ?? {})
         if (onProgress) {
           onProgress({ current: 80, total: 100, message: 'PDF 파일 다운로드 중...' })
         }

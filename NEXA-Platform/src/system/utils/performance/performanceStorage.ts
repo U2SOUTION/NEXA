@@ -4,15 +4,25 @@
  */
 
 const STORAGE_KEY = 'performance-monitor-history'
-const MAX_DAYS_TO_KEEP = 30 // 기본 30일 보관
+const MAX_DAYS_TO_KEEP = 30
 
-/**
- * 성능 데이터 저장
- * @param {Object} data - 성능 데이터
- */
-export function savePerformanceData(data) {
+export interface DailyHistoryEntry {
+  date: string
+  metrics: unknown[]
+  summary: DailySummary | null
+}
+
+export interface DailySummary {
+  avgFPS: number
+  avgMemory: number
+  avgLCP: number
+  avgAPIDuration: number
+  totalRequests: number
+}
+
+export function savePerformanceData(data: unknown): void {
   try {
-    const history = getPerformanceHistory()
+    const history = getPerformanceHistory() as Record<string, DailyHistoryEntry>
     const today = new Date().toISOString().split('T')[0]
     
     if (!history[today]) {
@@ -26,7 +36,7 @@ export function savePerformanceData(data) {
     history[today].metrics.push(data)
 
     // 일일 요약 업데이트
-    history[today].summary = calculateDailySummary(history[today].metrics)
+    history[today].summary = calculateDailySummary(history[today].metrics as MetricRecord[])
 
     // 오래된 데이터 정리
     clearOldData()
@@ -37,27 +47,21 @@ export function savePerformanceData(data) {
   }
 }
 
-/**
- * 성능 히스토리 조회
- * @param {string} startDate - 시작 날짜 (YYYY-MM-DD)
- * @param {string} endDate - 종료 날짜 (YYYY-MM-DD)
- * @returns {Object} 성능 히스토리
- */
-export function getPerformanceHistory(startDate = null, endDate = null) {
+export function getPerformanceHistory(startDate: string | null = null, endDate: string | null = null): Record<string, DailyHistoryEntry> {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (!stored) {
       return {}
     }
 
-    const history = JSON.parse(stored)
+    const history = JSON.parse(stored) as Record<string, DailyHistoryEntry>
 
     if (!startDate && !endDate) {
       return history
     }
 
-    const filtered = {}
-    Object.keys(history).forEach(date => {
+    const filtered: Record<string, DailyHistoryEntry> = {}
+    Object.keys(history).forEach((date) => {
       if ((!startDate || date >= startDate) && (!endDate || date <= endDate)) {
         filtered[date] = history[date]
       }
@@ -70,20 +74,20 @@ export function getPerformanceHistory(startDate = null, endDate = null) {
   }
 }
 
-/**
- * 일일 요약 계산
- * @param {Array} metrics - 일일 메트릭 배열
- * @returns {Object} 일일 요약
- */
-function calculateDailySummary(metrics) {
+interface MetricRecord {
+  frontend?: { fps?: number; memory?: { usedJSHeapSize?: number }; webVitals?: { lcp?: { value?: number } } }
+  api?: { requests?: Array<{ duration?: number }> }
+}
+
+function calculateDailySummary(metrics: MetricRecord[]): DailySummary | null {
   if (metrics.length === 0) {
     return null
   }
 
-  const fpsValues = metrics.filter(m => m.frontend?.fps).map(m => m.frontend.fps)
-  const memoryValues = metrics.filter(m => m.frontend?.memory?.usedJSHeapSize).map(m => m.frontend.memory.usedJSHeapSize)
-  const lcpValues = metrics.filter(m => m.frontend?.webVitals?.lcp?.value).map(m => m.frontend.webVitals.lcp.value)
-  const apiDurations = metrics.flatMap(m => m.api?.requests?.map(r => r.duration) || [])
+  const fpsValues = metrics.filter((m) => m.frontend?.fps != null).map((m) => m.frontend!.fps!)
+  const memoryValues = metrics.filter((m) => m.frontend?.memory?.usedJSHeapSize != null).map((m) => m.frontend!.memory!.usedJSHeapSize!)
+  const lcpValues = metrics.filter((m) => m.frontend?.webVitals?.lcp?.value != null).map((m) => m.frontend!.webVitals!.lcp!.value!)
+  const apiDurations = metrics.flatMap((m) => m.api?.requests?.map((r) => r.duration) ?? []).filter((d): d is number => typeof d === 'number')
 
   return {
     avgFPS: fpsValues.length > 0 ? fpsValues.reduce((a, b) => a + b, 0) / fpsValues.length : 0,
@@ -98,15 +102,15 @@ function calculateDailySummary(metrics) {
  * 오래된 데이터 삭제
  * @param {number} daysToKeep - 보관할 일수
  */
-export function clearOldData(daysToKeep = MAX_DAYS_TO_KEEP) {
+export function clearOldData(daysToKeep = MAX_DAYS_TO_KEEP): void {
   try {
     const history = getPerformanceHistory()
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
     const cutoffDateString = cutoffDate.toISOString().split('T')[0]
 
-    const filtered = {}
-    Object.keys(history).forEach(date => {
+    const filtered: Record<string, DailyHistoryEntry> = {}
+    Object.keys(history).forEach((date) => {
       if (date >= cutoffDateString) {
         filtered[date] = history[date]
       }
@@ -144,9 +148,9 @@ export function getStorageInfo() {
       }
     }
 
-    const history = JSON.parse(stored)
+    const history = JSON.parse(stored) as Record<string, DailyHistoryEntry>
     const days = Object.keys(history).length
-    const totalMetrics = Object.values(history).reduce((sum, day) => sum + (day.metrics?.length || 0), 0)
+    const totalMetrics = Object.values(history).reduce((sum: number, day: DailyHistoryEntry) => sum + (day.metrics?.length ?? 0), 0)
 
     return {
       size: new Blob([stored]).size, // bytes

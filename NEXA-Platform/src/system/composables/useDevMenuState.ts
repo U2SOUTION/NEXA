@@ -13,17 +13,17 @@ import { useRoute, useRouter } from 'vue-router'
 
 // 전역 상태 (모든 컴포넌트에서 공유)
 const globalState = {
-  activeMenu: ref(null),
+  activeMenu: ref<string | null>(null),
   themeSearchQuery: ref(''),
-  themeCategoryFilter: ref(null),
+  themeCategoryFilter: ref<unknown>(null),
   themeSortOption: ref('category'),
-  settingsManagerSelectedSetting: ref(null),
-  settingsManagerStatistics: ref(null),
+  settingsManagerSelectedSetting: ref<unknown>(null),
+  settingsManagerStatistics: ref<unknown>(null),
   devOpsActiveTab: ref('build'),
-  devOpsSelectedBuild: ref(null),
-  devOpsSelectedDeployment: ref(null),
-  devOpsSelectedEnvironmentVariable: ref(null),
-  devOpsSelectedPackage: ref(null),
+  devOpsSelectedBuild: ref<unknown>(null),
+  devOpsSelectedDeployment: ref<unknown>(null),
+  devOpsSelectedEnvironmentVariable: ref<unknown>(null),
+  devOpsSelectedPackage: ref<unknown>(null),
 }
 
 // 초기화 플래그 (watch 중복 등록 방지)
@@ -65,7 +65,7 @@ export function useDevMenuState() {
    * @param {string} menuId - 메뉴 ID
    * @param {object} state - 저장할 상태 객체
    */
-  function saveMenuState(menuId, state) {
+  function saveMenuState(menuId: string, state: unknown) {
     try {
       const stateKey = `dev-menu-state-${menuId}`
       localStorage.setItem(stateKey, JSON.stringify(state))
@@ -81,7 +81,7 @@ export function useDevMenuState() {
    * @param {string} menuId - 메뉴 ID
    * @returns {object|null} 저장된 상태 객체 또는 null
    */
-  function loadMenuState(menuId) {
+  function loadMenuState(menuId: string) {
     try {
       const stateKey = `dev-menu-state-${menuId}`
       const saved = localStorage.getItem(stateKey)
@@ -141,44 +141,45 @@ export function useDevMenuState() {
    * @param {string} menuId - 메뉴 ID
    * @param {object} state - 복원할 상태 객체
    */
-  function restoreMenuState(menuId, state) {
-    if (!state) return
+  function restoreMenuState(menuId: string, state: unknown) {
+    if (!state || typeof state !== 'object') return
+    const s = state as Record<string, unknown>
 
     switch (menuId) {
       case 'theme-manager':
-        if (state.searchQuery !== undefined) {
-          themeSearchQuery.value = state.searchQuery
+        if (s.searchQuery !== undefined) {
+          themeSearchQuery.value = s.searchQuery as string
         }
-        if (state.categoryFilter !== undefined) {
-          themeCategoryFilter.value = state.categoryFilter
+        if (s.categoryFilter !== undefined) {
+          themeCategoryFilter.value = s.categoryFilter
         }
-        if (state.sortOption) {
-          themeSortOption.value = state.sortOption
+        if (s.sortOption) {
+          themeSortOption.value = s.sortOption as string
         }
         break
       case 'settings-manager':
-        if (state.selectedSetting) {
-          settingsManagerSelectedSetting.value = state.selectedSetting
+        if (s.selectedSetting) {
+          settingsManagerSelectedSetting.value = s.selectedSetting
         }
-        if (state.statistics) {
-          settingsManagerStatistics.value = state.statistics
+        if (s.statistics) {
+          settingsManagerStatistics.value = s.statistics
         }
         break
       case 'devops':
-        if (state.activeTab) {
-          devOpsActiveTab.value = state.activeTab
+        if (s.activeTab) {
+          devOpsActiveTab.value = s.activeTab as string
         }
-        if (state.selectedBuild) {
-          devOpsSelectedBuild.value = state.selectedBuild
+        if (s.selectedBuild) {
+          devOpsSelectedBuild.value = s.selectedBuild
         }
-        if (state.selectedDeployment) {
-          devOpsSelectedDeployment.value = state.selectedDeployment
+        if (s.selectedDeployment) {
+          devOpsSelectedDeployment.value = s.selectedDeployment
         }
-        if (state.selectedEnvironmentVariable) {
-          devOpsSelectedEnvironmentVariable.value = state.selectedEnvironmentVariable
+        if (s.selectedEnvironmentVariable) {
+          devOpsSelectedEnvironmentVariable.value = s.selectedEnvironmentVariable
         }
-        if (state.selectedPackage) {
-          devOpsSelectedPackage.value = state.selectedPackage
+        if (s.selectedPackage) {
+          devOpsSelectedPackage.value = s.selectedPackage
         }
         break
       // 다른 메뉴들의 상태 복원은 필요시 추가
@@ -219,7 +220,7 @@ export function useDevMenuState() {
    * @param {string|null} menuId - 메뉴 ID 또는 null
    * @param {boolean} skipUrlUpdate - URL 업데이트를 건너뛸지 여부 (브라우저 뒤로가기 등에서 사용)
    */
-  function setActiveMenu(menuId, skipUrlUpdate = false) {
+  function setActiveMenu(menuId: string | null, skipUrlUpdate = false) {
     // 이전 메뉴 상태 저장
     if (activeMenu.value) {
       saveCurrentMenuState()

@@ -8,7 +8,17 @@
 // Vite 개발 서버의 린트 결과를 활용하거나
 // 별도의 API 엔드포인트를 통해 수집합니다.
 
-let lintErrorsCache = new Map() // 파일별 린트 오류 캐시
+interface LintErrorLike {
+  message?: string
+  ruleId?: string
+  severity?: number
+  line?: number
+  column?: number
+  source?: string | null
+  fixable?: boolean
+}
+
+let lintErrorsCache = new Map<string, LintErrorLike[]>()
 let isWatching = false
 
 /**
@@ -28,7 +38,7 @@ export function collectLintErrorsFromVite() {
 /**
  * 파일 경로를 상대 경로로 변환
  */
-function normalizeFilePath(filePath) {
+function normalizeFilePath(filePath: string): string {
   if (!filePath) return ''
   
   // 절대 경로를 상대 경로로 변환
@@ -48,7 +58,7 @@ function normalizeFilePath(filePath) {
 /**
  * 린트 오류를 에러 트래킹 형식으로 변환
  */
-function convertLintErrorToTrackingError(lintError, filePath) {
+function convertLintErrorToTrackingError(lintError: LintErrorLike, filePath: string): Record<string, unknown> {
   const normalizedPath = normalizeFilePath(filePath)
   
   return {
@@ -76,7 +86,7 @@ function convertLintErrorToTrackingError(lintError, filePath) {
  * @param {string} filePath - 파일 경로
  * @returns {Array} 린트 오류 목록
  */
-export async function collectLintErrorsForFile(filePath) {
+export async function collectLintErrorsForFile(filePath: string): Promise<Array<Record<string, unknown>>> {
   try {
     // 개발 환경에서만 수집
     if (!import.meta.env.DEV) {
@@ -105,7 +115,7 @@ export async function collectLintErrorsForFile(filePath) {
  * 파일 변경 이벤트 핸들러
  * Vite HMR 이벤트를 통해 파일 변경을 감지하고 린트 오류를 수집합니다.
  */
-export function watchFileChanges(callback) {
+export function watchFileChanges(callback: (error: Record<string, unknown>) => void): void {
   if (isWatching) {
     return
   }
@@ -114,21 +124,21 @@ export function watchFileChanges(callback) {
 
   // Vite HMR 이벤트 리스너
   if (import.meta.hot) {
-    import.meta.hot.on('vite:lint', (data) => {
+    import.meta.hot.on('vite:lint', (data: { errors?: Array<{ filePath?: string; file?: string; errors?: LintErrorLike[] }> }) => {
       // vite-plugin-checker가 생성한 린트 오류 데이터
       if (data && data.errors) {
-        data.errors.forEach((fileError) => {
+        (data.errors ?? []).forEach((fileError: { filePath?: string; file?: string; errors?: LintErrorLike[] }) => {
           const filePath = fileError.filePath || fileError.file
           if (filePath) {
             // 캐시 업데이트
             lintErrorsCache.set(filePath, fileError.errors || [])
             
             // 에러 트래킹 시스템에 전달
-            const trackingErrors = (fileError.errors || []).map(error =>
+            const trackingErrors = (fileError.errors ?? []).map((error: LintErrorLike) =>
               convertLintErrorToTrackingError(error, filePath)
             )
             
-            trackingErrors.forEach(error => {
+            trackingErrors.forEach((error: Record<string, unknown>) => {
               callback(error)
             })
           }
@@ -190,7 +200,7 @@ export function clearLintCache() {
 /**
  * 특정 파일의 린트 오류 캐시 제거
  */
-export function clearLintCacheForFile(filePath) {
+export function clearLintCacheForFile(filePath: string): void {
   lintErrorsCache.delete(filePath)
 }
 

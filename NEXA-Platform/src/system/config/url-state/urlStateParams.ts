@@ -29,8 +29,8 @@ export const URL_STATE_PARAMS_REVERSE = Object.fromEntries(
  * @param {string} paramName - 파라미터 이름 (긴 이름 또는 짧은 이름)
  * @returns {string} 짧은 파라미터 이름
  */
-export function getURLStateParamName(paramName) {
-  return URL_STATE_PARAMS[paramName] || paramName
+export function getURLStateParamName(paramName: string): string {
+  return (paramName in URL_STATE_PARAMS ? URL_STATE_PARAMS[paramName as keyof typeof URL_STATE_PARAMS] : paramName) ?? paramName
 }
 
 /**
@@ -38,6 +38,6 @@ export function getURLStateParamName(paramName) {
  * @param {string} shortName - 짧은 파라미터 이름
  * @returns {string} 긴 파라미터 이름
  */
-export function getURLStateParamNameReverse(shortName) {
-  return URL_STATE_PARAMS_REVERSE[shortName] || shortName
+export function getURLStateParamNameReverse(shortName: string): string {
+  return (shortName in URL_STATE_PARAMS_REVERSE ? URL_STATE_PARAMS_REVERSE[shortName as keyof typeof URL_STATE_PARAMS_REVERSE] : shortName) ?? shortName
 }

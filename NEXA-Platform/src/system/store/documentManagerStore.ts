@@ -1,11 +1,23 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch, nextTick } from 'vue'
+import type { Ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { parseMarkdown, escapeHtml } from '@system/utils/markdown/index'
 import { saveCheckboxStates, loadCheckboxStates, loadTOCExpandedState, loadSupportedExtensions } from '@domains/dev/modules/document-manager/services/documentStorage'
 import { useTOC } from '@domains/dev/modules/document-manager/composables/useTOC'
 import { removeExtension } from '@system/config/documentConfig'
 import { getDocsBaseUrl, getDocFileUrl } from '@system/utils/apiBaseUrl'
+
+export interface MarkdownFileMeta {
+  name: string
+  displayName: string
+  path: string
+  relativePath: string
+  displayPath: string
+  loadContent: () => Promise<string>
+  modifiedDate: string | null
+  createdDate: string | null
+}
 
 /**
  * 문서 관리 Store
@@ -15,26 +27,26 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
   const $q = useQuasar()
   const docsBaseUrl = getDocsBaseUrl()
 
-  // 상태
-  const markdownFiles = ref([])
-  const selectedFile = ref(null)
-  const fileContents = ref({}) // 파일 내용 캐시
-  const checkboxStates = ref({}) // 체크박스 상태
-  const tocItems = ref([]) // 목차 항목
-  const tocExpanded = ref({}) // 목차 확장 상태
-  const tocAutoCollapse = ref(true) // 자동 접힘 모드
-  const tocAutoCloseOnContentClick = ref(true) // 본문 클릭 시 자동 닫기
-  const autoHighlightOnScroll = ref(true) // 스크롤 시 자동 하일라이팅
-  const currentSectionId = ref(null) // 현재 보이는 섹션 ID
-  const showTOC = ref(false) // 목차 오버레이 표시 여부
-  const isManualHighlight = ref(false) // 수동 하일라이팅 모드
-  const hideCompleted = ref(false) // 완료 항목 숨기기
-  const loadingFile = ref(null) // 현재 로딩 중인 파일명
-  const trashFiles = ref([]) // 휴지통 파일 목록
-  const allTOCExpandedState = ref(false) // 전체 토글 상태 (개별 항목 토글과 독립적)
+  const markdownFiles = ref<MarkdownFileMeta[]>([])
+  const selectedFile = ref<MarkdownFileMeta | null>(null)
+  const fileContents = ref<Record<string, string>>({})
+  const checkboxStates = ref<Record<string, Record<string, boolean>>>({})
+  const tocItems = ref<Array<{ id: string; text: string; level: number; children?: unknown[] }>>([])
+  const tocExpanded = ref<Record<string, boolean>>({})
+  const tocAutoCollapse = ref(true)
+  const tocAutoCloseOnContentClick = ref(true)
+  const autoHighlightOnScroll = ref(true)
+  const currentSectionId = ref<string | null>(null)
+  const showTOC = ref(false)
+  const isManualHighlight = ref(false)
+  const hideCompleted = ref(false)
+  const loadingFile = ref<string | null>(null)
+  const trashFiles = ref<string[]>([])
+  const allTOCExpandedState = ref(false)
+  const globalSearchKeywords = ref<string[]>([])
+  const globalSearchResults = ref<unknown[]>([])
 
-  // 휴지통 파일 추가
-  function addToTrash(fileName) {
+  function addToTrash(fileName: string) {
     if (!trashFiles.value.includes(fileName)) {
       const currentArray = Array.from(trashFiles.value)
       const newArray = [...currentArray, fileName]
@@ -42,8 +54,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     }
   }
 
-  // 휴지통에서 파일 제거
-  function removeFromTrash(fileName) {
+  function removeFromTrash(fileName: string) {
     const currentArray = Array.from(trashFiles.value)
     const newArray = currentArray.filter((name) => name !== fileName)
     trashFiles.value = newArray
@@ -65,9 +76,6 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       trashFiles.value = []
     }
   }
-  // 검색 상태 (DocumentListSidebar와 DevelopmentPage 간 공유)
-  const globalSearchKeywords = ref([]) // 검색 키워드 배열
-  const globalSearchResults = ref([]) // 검색 결과 배열
 
   // 백엔드 확장자 설정 동기화
   async function syncExtensionsToBackend() {
@@ -90,7 +98,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         console.warn('[Store] 백엔드 확장자 설정 동기화 실패:', response.status)
       }
     } catch (error) {
-      console.warn('[Store] 백엔드 확장자 설정 동기화 중 오류 (무시됨):', error.message)
+      console.warn('[Store] 백엔드 확장자 설정 동기화 중 오류 (무시됨):', (error as Error).message)
       // 초기 로드 시 백엔드가 아직 시작되지 않았을 수 있으므로 오류는 무시
     }
   }
@@ -123,7 +131,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       // 백엔드에서 파일 목록과 메타데이터 가져오기 (실제 파일 시스템과 동기화)
       let backendFilesMap = new Map()
       let metadataMap = new Map()
-      let currentFileRelativePaths = []
+      let currentFileRelativePaths: string[] = []
       try {
         const metadataResponse = await fetch(`${docsBaseUrl}/metadata`)
         if (metadataResponse.ok) {
@@ -259,13 +267,13 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         // 확장자 제거 후 'readme'인지 확인
         const fileNameWithoutExt = removeExtension(fileName).toLowerCase()
         if (fileNameWithoutExt === 'readme') {
-          const pathParts = relativePath.split('/').filter((part) => part && part.trim() !== '')
+          const pathParts = relativePath.split('/').filter((part: string) => part && part.trim() !== '')
           if (pathParts.length > 1) {
             // 파일명 제외한 모든 폴더 경로 추출
             const folderParts = pathParts.slice(0, -1) // 마지막 요소(파일명) 제외
 
             // 각 폴더명에서 숫자 접두사 제거 및 가독성 변환
-            const cleanedFolders = folderParts.map((folder) => folder.replace(/^\d+-/, '').replace(/_/g, ' ').replace(/-/g, ' '))
+            const cleanedFolders = folderParts.map((folder: string) => folder.replace(/^\d+-/, '').replace(/_/g, ' ').replace(/-/g, ' '))
 
             // "README (Platform - 기획)" 형식으로 표시
             displayName = `README (${cleanedFolders.join('/')})`
@@ -314,9 +322,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
 
       markdownFiles.value = files
 
-      // 첫 번째 파일 자동 선택
       if (files.length > 0 && !selectedFile.value) {
-        selectFile(files[0])
+        selectFile(files[0], undefined, undefined)
       }
     } catch (error) {
       console.error('[Store] 마크다운 파일 로드 실패:', error)
@@ -328,8 +335,11 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     }
   }
 
-  // 파일 선택
-  async function selectFile(file, fileUsageCounts, incrementFileUsage) {
+  async function selectFile(
+    file: MarkdownFileMeta,
+    fileUsageCounts?: Record<string, number>,
+    incrementFileUsage?: (fileName: string, counts: Record<string, number>) => void,
+  ) {
     // 이전 하일라이팅 제거
     if (currentSectionId.value) {
       const oldElement = document.getElementById(currentSectionId.value)
@@ -366,7 +376,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         console.error('[Store] 파일 내용 로드 실패:', error)
         // 로드 실패 시 캐시된 내용이 있으면 사용, 없으면 오류 메시지
         if (!fileContents.value[file.name]) {
-          fileContents.value[file.name] = `# 오류\n\n파일을 불러올 수 없습니다.\n\n오류: ${error.message || '알 수 없는 오류'}`
+          fileContents.value[file.name] = `# 오류\n\n파일을 불러올 수 없습니다.\n\n오류: ${(error as Error).message || '알 수 없는 오류'}`
         }
       }
 
@@ -380,7 +390,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
 
       // 체크박스 상태를 다시 로드하여 최신 상태 보장
       // 파일을 다시 선택하거나 새로고침할 때 체크박스 상태가 제대로 반영되도록 함
-      loadCheckboxStates(checkboxStates)
+      loadCheckboxStates(checkboxStates as Ref<Record<string, Record<string, boolean>>>)
 
       // 목차 생성
       nextTick(() => {
@@ -399,8 +409,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     }
   }
 
-  // 인접 파일 프리로딩 (현재 파일 앞뒤 2개씩)
-  async function preloadAdjacentFiles(currentFile) {
+  async function preloadAdjacentFiles(currentFile: MarkdownFileMeta) {
     const currentIndex = markdownFiles.value.findIndex((f) => f.name === currentFile.name)
     if (currentIndex === -1) return
 
@@ -442,7 +451,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       return
     }
 
-    const headings = []
+    const headings: Array<{ id: string; text: string; level: number; parent?: unknown; children?: unknown[] }> = []
     const lines = content.split('\n')
     let headingIndex = 0
     let inCodeBlock = false

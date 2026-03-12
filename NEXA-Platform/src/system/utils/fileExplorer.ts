@@ -2,33 +2,6 @@
  * 전역 탐색기용 순수 유틸: 파일 타입 아이콘, 트리 노드 빌드
  */
 
-const CATEGORY_LABELS = {
-  images: '이미지',
-  documents: '문서',
-  audio: '오디오',
-  video: '영상',
-  media: '미디어',
-  model: '3D 모델',
-  archive: '압축',
-  code: '코드',
-  spreadsheet: '스프레드시트',
-  presentation: '프레젠테이션',
-  text: '텍스트',
-  other: '기타',
-  python: 'Python',
-  javascript: 'JavaScript',
-  vue: 'Vue',
-  config: '설정',
-  markdown: 'Markdown',
-  html: 'HTML/CSS',
-  sql: 'SQL',
-  shell: 'Shell',
-  docker: 'Docker',
-  cpp: 'C/C++',
-  arduino: 'Arduino',
-  firmware: '펌웨어',
-}
-
 /** 파일 타입별 Material Icons (기본 12종 + 코드 세분화) */
 const FILE_TYPE_ICONS: Record<string, string> = {
   // 1. 이미지
@@ -132,67 +105,90 @@ const FILE_TYPE_ICONS: Record<string, string> = {
   hex: 'memory',
 }
 
-/**
- * 파일 타입/카테고리/확장자에 따른 Quasar 아이콘 이름
- * @param {string} fileType - file_type, category, 또는 확장자
- * @returns {string}
- */
-export function getFileIconByType(fileType) {
+export function getFileIconByType(fileType: string | null | undefined): string {
   if (!fileType) return FILE_TYPE_ICONS.other
   const t = String(fileType).toLowerCase().trim()
-  return FILE_TYPE_ICONS[t] || FILE_TYPE_ICONS.other
+  return FILE_TYPE_ICONS[t] ?? FILE_TYPE_ICONS.other
 }
 
-/**
- * 파일 객체에서 아이콘 반환 (file_type, category, 확장자 순으로 확인)
- * @param {{ file_type?: string, category?: string, original_name?: string, file_path?: string }} item
- * @returns {string}
- */
-export function getFileIconForItem(item) {
+export interface FileItemLike {
+  file_type?: string
+  category?: string
+  original_name?: string
+  file_path?: string
+}
+
+export function getFileIconForItem(item: FileItemLike | null | undefined): string {
   if (!item) return FILE_TYPE_ICONS.other
-  const fromType = getFileIconByType(item.file_type || item.category)
+  const fromType = getFileIconByType(item.file_type ?? item.category)
   if (fromType !== FILE_TYPE_ICONS.other) return fromType
-  const name = (item.original_name || item.file_path || '').toLowerCase()
-  const ext = name.match(/\.([a-z0-9]+)$/)?.[1] || ''
+  const name = (item.original_name ?? item.file_path ?? '').toLowerCase()
+  const ext = name.match(/\.([a-z0-9]+)$/)?.[1] ?? ''
   if (ext) return getFileIconByType(ext)
   return FILE_TYPE_ICONS.other
 }
 
-/**
- * 카테고리 키 → 표시 라벨
- * @param {string} category
- * @returns {string}
- */
-export function getCategoryLabel(category) {
-  if (!category) return '문서'
-  return CATEGORY_LABELS[category] || category
+const CATEGORY_LABELS: Record<string, string> = {
+  images: '이미지',
+  documents: '문서',
+  audio: '오디오',
+  video: '영상',
+  media: '미디어',
+  model: '3D 모델',
+  archive: '압축',
+  code: '코드',
+  spreadsheet: '스프레드시트',
+  presentation: '프레젠테이션',
+  text: '텍스트',
+  other: '기타',
+  python: 'Python',
+  javascript: 'JavaScript',
+  vue: 'Vue',
+  config: '설정',
+  markdown: 'Markdown',
+  html: 'HTML/CSS',
+  sql: 'SQL',
+  shell: 'Shell',
+  docker: 'Docker',
+  cpp: 'C/C++',
+  arduino: 'Arduino',
+  firmware: '펌웨어',
 }
 
-/**
- * 경로 배열을 계층 트리로 변환 (path '2024/01' -> { label: '01', path: '2024/01', children } 등)
- * @param {string[]} paths - '' 제외한 상대 경로
- * @param {string} domain
- * @param {string} domainId
- * @returns {Array<{ id: string, label: string, icon: string, domain: string, path: string, children?: array }>}
- */
-function buildPathTree(paths, domain, domainId) {
-  const root = { children: new Map() }
+export function getCategoryLabel(category: string | null | undefined): string {
+  if (!category) return '문서'
+  return CATEGORY_LABELS[category] ?? category
+}
+
+export interface FileTreeNode {
+  id: string
+  label: string
+  icon: string
+  domain?: string
+  path?: string | null
+  children?: FileTreeNode[]
+}
+
+interface PathNode { path: string; children: Map<string, PathNode> }
+
+function buildPathTree(paths: string[], domain: string, domainId: string): FileTreeNode[] {
+  const root: PathNode = { path: '', children: new Map() }
   for (const p of paths) {
     if (!p) continue
     const parts = p.split('/')
     let cur = root
     let acc = ''
     for (let i = 0; i < parts.length; i++) {
-      const name = parts[i]
+      const name = parts[i]!
       acc = acc ? `${acc}/${name}` : name
       if (!cur.children.has(name)) {
         cur.children.set(name, { path: acc, children: new Map() })
       }
-      cur = cur.children.get(name)
+      cur = cur.children.get(name)!
     }
   }
-  function toNodes(parent) {
-    const list = []
+  function toNodes(parent: PathNode): FileTreeNode[] {
+    const list: FileTreeNode[] = []
     for (const [name, data] of parent.children.entries()) {
       const path = data.path
       const id = `${domainId}-${path.replace(/\//g, '::')}`
@@ -203,7 +199,7 @@ function buildPathTree(paths, domain, domainId) {
         icon: 'folder',
         domain,
         path,
-        children: children.length ? children : undefined,
+        children: children.length > 0 ? children : undefined,
       })
     }
     return list.sort((a, b) => a.label.localeCompare(b.label))
@@ -211,17 +207,17 @@ function buildPathTree(paths, domain, domainId) {
   return toNodes(root)
 }
 
-/**
- * GET /api/files/explorer/tree 응답(도메인별 paths)을 QTree 노드 배열로 변환
- * @param {{ domains: Array<{ domain: string, paths: string[] }> }} treeData
- * @returns {Array<{ id: string, label: string, icon: string, domain?: string, path?: string, children?: array }>}
- */
-export function buildFileTreeFromApiResponse(treeData) {
+export interface ExplorerTreeDomain {
+  domain: string
+  paths: string[]
+}
+
+export function buildFileTreeFromApiResponse(treeData: { domains?: ExplorerTreeDomain[] } | null | undefined): FileTreeNode[] {
   if (!treeData?.domains?.length) {
     return []
   }
 
-  const nodes = []
+  const nodes: FileTreeNode[] = []
   for (const { domain, paths } of treeData.domains) {
     const domainId = `domain-${domain}`
     const pathList = Array.isArray(paths) ? paths.filter((p) => p != null && String(p).trim() !== '') : []
@@ -238,15 +234,9 @@ export function buildFileTreeFromApiResponse(treeData) {
   return nodes
 }
 
-/**
- * 트리 노드 배열에서 선택 id와 그 조상 노드 id 목록 반환 (펼침용)
- * @param {Array<{ id: string, children?: array }>} nodes
- * @param {string} selectedId
- * @returns {string[]}
- */
-export function getExpandedIdsForSelection(nodes, selectedId) {
-  const ids = []
-  function collect(ns) {
+export function getExpandedIdsForSelection(nodes: FileTreeNode[] | null | undefined, selectedId: string): string[] {
+  const ids: string[] = []
+  function collect(ns: FileTreeNode[] | undefined): void {
     if (!ns?.length) return
     for (const n of ns) {
       if (!n.id) {
@@ -260,6 +250,6 @@ export function getExpandedIdsForSelection(nodes, selectedId) {
       collect(n.children)
     }
   }
-  collect(nodes)
+  collect(nodes ?? [])
   return ids
 }

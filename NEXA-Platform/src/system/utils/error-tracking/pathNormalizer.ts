@@ -8,7 +8,7 @@
  * @param {string} path - 체크할 경로
  * @returns {boolean} 가상 경로 여부
  */
-export function isVirtualPath(path) {
+export function isVirtualPath(path: string): boolean {
   if (!path) return false
   return (
     path.includes('/.q-cache/') ||
@@ -26,7 +26,7 @@ export function isVirtualPath(path) {
  * @param {boolean} options.removeQuery - 쿼리 파라미터 제거 여부 (기본값: true)
  * @returns {string} 정규화된 경로
  */
-export function normalizeUrlPath(urlPath, options = {}) {
+export function normalizeUrlPath(urlPath: string, options: { preserveVirtual?: boolean; removeQuery?: boolean } = {}): string {
   const { preserveVirtual = true, removeQuery = true } = options
 
   if (!urlPath) return urlPath
@@ -67,7 +67,7 @@ export function normalizeUrlPath(urlPath, options = {}) {
  * @param {string} filePath - 변환할 파일 경로
  * @returns {string} 정규화된 파일 경로
  */
-export function normalizeFilePathForAI(filePath) {
+export function normalizeFilePathForAI(filePath: string): string {
   if (!filePath || filePath === 'unknown') {
     return 'unknown'
   }
@@ -110,32 +110,32 @@ export function normalizeFilePathForAI(filePath) {
  * @param {string} stack - 스택 트레이스 문자열
  * @returns {string} 정규화된 스택 트레이스
  */
-export function normalizeStackForAI(stack) {
+export function normalizeStackForAI(stack: string): string {
   if (!stack || stack === '없음') {
     return stack
   }
 
   const lines = stack.split('\n')
-  const normalizedLines = lines.map((line) => {
+  const normalizedLines = lines.map((line: string) => {
     let processedLine = line
 
     // 쿼리 파라미터 + 라인:컬럼 패턴: http://localhost:9000/path/file.js?t=123:45:67
     const urlWithQueryPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^?\s]+)\?([^:\s]+):(\d+):(\d+)/g
-    processedLine = processedLine.replace(urlWithQueryPattern, (match, urlPath, query, lineNum, colNum) => {
+    processedLine = processedLine.replace(urlWithQueryPattern, (_match: string, urlPath: string, _query: string, lineNum: string, colNum: string) => {
       const normalized = normalizeUrlPath(urlPath, { preserveVirtual: true })
       return normalized + ':' + lineNum + ':' + colNum
     })
 
     // 라인:컬럼 패턴: http://localhost:9000/path/file.js:45:67
     const urlPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^:\s]+):(\d+):(\d+)/g
-    processedLine = processedLine.replace(urlPattern, (match, urlPath, lineNum, colNum) => {
+    processedLine = processedLine.replace(urlPattern, (_match: string, urlPath: string, lineNum: string, colNum: string) => {
       const normalized = normalizeUrlPath(urlPath, { preserveVirtual: true })
       return normalized + ':' + lineNum + ':' + colNum
     })
 
     // URL만 있는 패턴: http://localhost:9000/path/file.js
     const urlOnlyPattern = /(https?:\/\/[^/]+(?::\d+)?\/(?:src|node_modules)\/[^\s:?]+)(?:\?[^\s:]+)?/g
-    processedLine = processedLine.replace(urlOnlyPattern, (match, urlPath) => {
+    processedLine = processedLine.replace(urlOnlyPattern, (_match: string, urlPath: string) => {
       return normalizeUrlPath(urlPath, { preserveVirtual: true })
     })
 
@@ -143,7 +143,7 @@ export function normalizeStackForAI(stack) {
   })
 
   // 이미 변환된 라인에서 node_modules/로 시작하는 경우 처리
-  const finalLines = normalizedLines.map((line) => {
+  const finalLines = normalizedLines.map((line: string) => {
     if (line.includes('NEXA-Platform/') || isVirtualPath(line)) {
       return line
     }

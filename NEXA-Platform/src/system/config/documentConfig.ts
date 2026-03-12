@@ -15,7 +15,7 @@ const DEFAULT_SUPPORTED_EXTENSIONS = ['.md', '.mermaid.css']
  * 지원 확장자 목록 저장
  * @param {string[]} extensions - 확장자 목록 (점 포함, 예: ['.md', '.txt'])
  */
-export function saveSupportedExtensions(extensions) {
+export function saveSupportedExtensions(extensions: string[]): void {
   try {
     if (!Array.isArray(extensions) || extensions.length === 0) {
       console.warn('[DocumentConfig] 유효하지 않은 확장자 목록, 저장하지 않음')
@@ -57,7 +57,7 @@ export function loadSupportedExtensions() {
  * @param {string} fileName - 파일명
  * @returns {boolean} 지원 여부
  */
-export function isSupportedExtension(fileName) {
+export function isSupportedExtension(fileName: string): boolean {
   if (!fileName || typeof fileName !== 'string') {
     return false
   }
@@ -71,7 +71,7 @@ export function isSupportedExtension(fileName) {
  * @param {string} fileName - 파일명
  * @returns {string|null} 확장자 (점 포함) 또는 null
  */
-export function getFileExtension(fileName) {
+export function getFileExtension(fileName: string): string | null {
   if (!fileName || typeof fileName !== 'string') {
     return null
   }
@@ -90,7 +90,7 @@ export function getFileExtension(fileName) {
  * @param {string} fileName - 파일명
  * @returns {string} 확장자 제거된 파일명
  */
-export function removeExtension(fileName) {
+export function removeExtension(fileName: string): string {
   if (!fileName || typeof fileName !== 'string') {
     return ''
   }

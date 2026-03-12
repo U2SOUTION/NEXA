@@ -16,7 +16,7 @@
  * @param {Object} settings - 테이블 뷰 설정 객체
  * @returns {Array} 설정이 적용된 컬럼 배열
  */
-export function applyTableViewSettings(baseColumns, settings) {
+export function applyTableViewSettings(baseColumns: Array<{ name: string }>, settings: { visibleColumns?: string[]; columnOrder?: string[]; columnWidths?: Record<string, number>; stickyColumns?: string[] }) {
   if (!baseColumns || !Array.isArray(baseColumns)) {
     return []
   }
@@ -27,17 +27,11 @@ export function applyTableViewSettings(baseColumns, settings) {
 
   let columns = [...baseColumns]
 
-  // 1. 표시/숨김 필터링
-  columns = filterVisibleColumns(columns, settings.visibleColumns)
-
-  // 2. 순서 재정렬
-  columns = reorderColumns(columns, settings.columnOrder)
-
-  // 3. 너비 적용
-  columns = applyColumnWidths(columns, settings.columnWidths)
-
-  // 4. 고정 컬럼 적용
-  columns = applyStickyColumns(columns, settings.stickyColumns)
+  columns = filterVisibleColumns(columns, settings.visibleColumns ?? [])
+  columns = reorderColumns(columns, settings.columnOrder ?? [])
+  columns = applyColumnWidths(columns, settings.columnWidths ?? {})
+  const sticky = settings.stickyColumns && typeof settings.stickyColumns === 'object' && !Array.isArray(settings.stickyColumns) ? settings.stickyColumns : { left: [], right: [] }
+  columns = applyStickyColumns(columns, sticky)
 
   return columns
 }
@@ -48,7 +42,7 @@ export function applyTableViewSettings(baseColumns, settings) {
  * @param {Array} visibleColumns - 표시할 컬럼 이름 배열 (빈 배열이면 모두 표시)
  * @returns {Array} 필터링된 컬럼 배열
  */
-export function filterVisibleColumns(columns, visibleColumns) {
+export function filterVisibleColumns(columns: Array<{ name: string }>, visibleColumns: string[]) {
   if (!columns || !Array.isArray(columns)) {
     return []
   }
@@ -67,7 +61,7 @@ export function filterVisibleColumns(columns, visibleColumns) {
  * @param {Array} columnOrder - 컬럼 순서 배열 (빈 배열이면 기본 순서 유지)
  * @returns {Array} 재정렬된 컬럼 배열
  */
-export function reorderColumns(columns, columnOrder) {
+export function reorderColumns(columns: Array<{ name: string }>, columnOrder: string[]) {
   if (!columns || !Array.isArray(columns)) {
     return []
   }
@@ -78,11 +72,11 @@ export function reorderColumns(columns, columnOrder) {
   }
 
   // columnOrder에 있는 컬럼만 순서대로 정렬
-  const orderedColumns = []
-  const columnMap = new Map(columns.map((col) => [col.name, col]))
+  const orderedColumns: Array<{ name: string }> = []
+  const columnMap = new Map(columns.map((col: { name: string }) => [col.name, col]))
 
   // columnOrder 순서대로 추가
-  columnOrder.forEach((colName) => {
+  columnOrder.forEach((colName: string) => {
     const col = columnMap.get(colName)
     if (col) {
       orderedColumns.push(col)
@@ -91,7 +85,7 @@ export function reorderColumns(columns, columnOrder) {
   })
 
   // columnOrder에 없는 컬럼은 뒤에 추가
-  columnMap.forEach((col) => {
+  columnMap.forEach((col: { name: string }) => {
     orderedColumns.push(col)
   })
 
@@ -104,7 +98,7 @@ export function reorderColumns(columns, columnOrder) {
  * @param {Object} columnWidths - 컬럼 너비 설정 객체 { columnName: number } (px 단위)
  * @returns {Array} 너비가 적용된 컬럼 배열
  */
-export function applyColumnWidths(columns, columnWidths) {
+export function applyColumnWidths(columns: Array<{ name: string; width?: string; style?: Record<string, unknown> }>, columnWidths: Record<string, number>) {
   if (!columns || !Array.isArray(columns)) {
     return []
   }
@@ -150,7 +144,7 @@ export function applyColumnWidths(columns, columnWidths) {
  * @param {Object} stickyColumns - 고정 컬럼 설정 { left: [], right: [] }
  * @returns {Array} 고정 컬럼이 적용된 컬럼 배열
  */
-export function applyStickyColumns(columns, stickyColumns) {
+export function applyStickyColumns(columns: Array<{ name: string; classes?: string }>, stickyColumns: { left?: string[]; right?: string[] }) {
   if (!columns || !Array.isArray(columns)) {
     return []
   }
@@ -162,9 +156,8 @@ export function applyStickyColumns(columns, stickyColumns) {
   const leftSticky = stickyColumns.left || []
   const rightSticky = stickyColumns.right || []
 
-  return columns.map((col) => {
+  return columns.map((col: { name: string; classes?: string }) => {
     const newCol = { ...col }
-
     // CSS 클래스 추가
     if (leftSticky.includes(col.name)) {
       newCol.classes = `sticky-column-left ${col.classes || ''}`.trim()
@@ -182,7 +175,7 @@ export function applyStickyColumns(columns, stickyColumns) {
  * @param {Object} defaultSort - 기본 정렬 설정 { column: string, direction: 'asc' | 'desc' }
  * @returns {Object} 정렬이 적용된 새로운 페이지네이션 객체
  */
-export function applyDefaultSort(pagination, defaultSort) {
+export function applyDefaultSort(pagination: { sortBy?: string; descending?: boolean }, defaultSort: { column?: string; direction?: 'asc' | 'desc' }) {
   if (!pagination || !defaultSort) {
     return pagination
   }
@@ -217,7 +210,7 @@ export function applyDefaultSort(pagination, defaultSort) {
  * @param {Object} settings - 카드 뷰 설정 객체 (향후 구현 예정)
  * @returns {Array} 설정이 적용된 필드 배열
  */
-export function applyCardViewSettings(baseFields, _settings) {
+export function applyCardViewSettings(baseFields: unknown[], _settings?: unknown) {
   void _settings
   // TODO: Phase 6에서 구현 예정
   return baseFields
@@ -233,7 +226,7 @@ export function applyCardViewSettings(baseFields, _settings) {
  * @param {Object} settings - 리스트 뷰 설정 객체 (향후 구현 예정)
  * @returns {Array} 설정이 적용된 필드 배열
  */
-export function applyListViewSettings(baseFields, _settings) {
+export function applyListViewSettings(baseFields: unknown[], _settings?: unknown) {
   void _settings
   // TODO: Phase 6에서 구현 예정
   return baseFields

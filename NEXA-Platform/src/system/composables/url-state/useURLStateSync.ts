@@ -31,7 +31,14 @@ import { watch, onMounted, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { URL_STATE_PARAMS } from '@system/config/url-state/index'
 
-export function useURLStateSync(stateMap, _options = {}) {
+type StateRefLike = { value: unknown }
+
+const PARAMS = URL_STATE_PARAMS as Record<string, string>
+
+export function useURLStateSync(
+  stateMap: Record<string, StateRefLike>,
+  _options: Record<string, unknown> = {}
+) {
   void _options
   const route = useRoute()
   const router = useRouter()
@@ -43,7 +50,7 @@ export function useURLStateSync(stateMap, _options = {}) {
   /**
    * 값이 기본값인지 확인 (URL에서 제거할지 결정)
    */
-  function isDefaultValue(value) {
+  function isDefaultValue(value: unknown): boolean {
     return value === null || value === undefined || value === '' || value === 0 || value === false
   }
 
@@ -52,7 +59,7 @@ export function useURLStateSync(stateMap, _options = {}) {
    *
    * readonly computed인 경우 에러를 발생시키지 않고 무시합니다.
    */
-  function setValueSafely(stateRef, value) {
+  function setValueSafely(stateRef: StateRefLike | undefined, value: unknown) {
     // Vue 3에서 computed에 set이 있으면 value 할당 시 자동으로 set이 호출됨
     // 하지만 readonly 에러를 방지하기 위해 try-catch 사용
     try {
@@ -64,11 +71,12 @@ export function useURLStateSync(stateMap, _options = {}) {
         // 그 외의 경우는 처리하지 않음 (일반 변수는 stateMap에서 직접 처리)
         console.warn('[useURLStateSync] 값을 설정할 수 없습니다. ref 또는 computed가 필요합니다.')
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // readonly computed인 경우 에러 발생
       // 이 경우 무시 (computed의 get만 사용하는 경우)
       // 경고 메시지도 출력하지 않음 (정상적인 동작)
-      if (error && error.message && error.message.includes('readonly')) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      if (err.message.includes('readonly')) {
         // 읽기 전용 computed는 URL에서 읽기만 하고, 값 설정은 하지 않음
         // 이 경우 watch를 통해서만 URL 업데이트가 가능
         return
@@ -84,28 +92,26 @@ export function useURLStateSync(stateMap, _options = {}) {
    */
   function restoreStateFromURL() {
     Object.keys(stateMap).forEach((key) => {
-      // 짧은 파라미터 이름 사용 (URL_STATE_PARAMS에 정의된 경우)
-      const paramName = URL_STATE_PARAMS[key] || key
-      const queryValue = route.query[paramName]
+      const paramName = PARAMS[key] || key
+      const rawQueryValue = route.query[paramName]
+      const queryValue = Array.isArray(rawQueryValue) ? rawQueryValue[0] : rawQueryValue
       if (queryValue !== undefined && queryValue !== null && queryValue !== '') {
         const stateRef = stateMap[key]
-
-        // computed인 경우 value 접근
         const currentValue = stateRef.value !== undefined ? stateRef.value : stateRef
-
-        // 현재 State 값과 URL 값이 같으면 스킵 (불필요한 업데이트 방지)
         const currentStateValue = stateRef.value !== undefined ? stateRef.value : stateRef
-        let urlValue = queryValue
+        let urlValue: string | number | boolean
 
         // 타입에 맞게 변환
         if (key === 'page' || typeof currentValue === 'number') {
-          urlValue = parseInt(queryValue, 10)
-          if (isNaN(urlValue)) return
+          const parsed = parseInt(String(queryValue), 10)
+          if (isNaN(parsed)) return
+          urlValue = parsed
           if (currentStateValue === urlValue) return
         } else if (typeof currentValue === 'boolean') {
           urlValue = queryValue === 'true'
           if (currentStateValue === urlValue) return
         } else {
+          urlValue = String(queryValue)
           if (currentStateValue === urlValue) return
         }
 
@@ -140,7 +146,7 @@ export function useURLStateSync(stateMap, _options = {}) {
 
       // 실제로 변경된 파라미터가 있는지 확인
       const hasChanged = Object.keys(stateMap).some((key) => {
-        const paramName = URL_STATE_PARAMS[key] || key
+        const paramName = PARAMS[key] || key
         return newQuery[paramName] !== oldQuery?.[paramName]
       })
 
@@ -168,8 +174,7 @@ export function useURLStateSync(stateMap, _options = {}) {
 
         const query = { ...route.query }
 
-        // 짧은 파라미터 이름 사용 (URL_STATE_PARAMS에 정의된 경우)
-        const paramName = URL_STATE_PARAMS[key] || key
+        const paramName = PARAMS[key] || key
 
         // 기본값이면 URL에서 제거 (깔끔한 URL 유지)
         if (isDefaultValue(newValue)) {

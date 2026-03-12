@@ -8,14 +8,25 @@
  * @param {string} content - Vue 파일 전체 내용
  * @returns {Object} 파싱된 객체 { template, script, style, beforeTemplate, afterStyle }
  */
-export function parseVueFile(content) {
-  // template 섹션 찾기 (최상위 template 태그만 매칭)
-  // depth를 계산하여 중첩된 template 태그를 올바르게 처리
-  let templateMatch = null
+export interface ParsedVueFile {
+  template: string
+  script: string
+  style: string
+  templateAttrs: string
+  scriptAttrs: string
+  styleAttrs: string
+  beforeTemplate: string
+  betweenTemplateScript: string
+  betweenScriptStyle: string
+  afterStyle: string
+}
+
+export function parseVueFile(content: string): ParsedVueFile {
+  let templateMatch: [string, string] | null = null
   const templateStartRegex = /<template[^>]*>/
   const templateStartMatch = content.match(templateStartRegex)
 
-  if (templateStartMatch) {
+  if (templateStartMatch && templateStartMatch.index !== undefined) {
     const startIndex = templateStartMatch.index
     const startTag = templateStartMatch[0]
     let depth = 1
@@ -147,16 +158,15 @@ export function parseVueFile(content) {
     result.styleAttrs = styleTagMatch ? styleTagMatch[1].trim() : ''
 
     // script와 style 사이의 내용
-    if (scriptMatch) {
+    if (scriptMatch && scriptMatch.index !== undefined) {
       const scriptEnd = content.indexOf('</script>', scriptMatch.index) + '</script>'.length
       result.betweenScriptStyle = content.substring(scriptEnd, styleStart)
     }
 
-    // style 이후의 내용
-    const styleEnd = content.indexOf('</style>', styleMatch.index) + '</style>'.length
+    const styleIdx = styleMatch.index ?? 0
+    const styleEnd = content.indexOf('</style>', styleIdx) + '</style>'.length
     result.afterStyle = content.substring(styleEnd)
-  } else if (scriptMatch) {
-    // style이 없으면 script 이후의 내용
+  } else if (scriptMatch && scriptMatch.index !== undefined) {
     const scriptEnd = content.indexOf('</script>', scriptMatch.index) + '</script>'.length
     result.afterStyle = content.substring(scriptEnd)
   }
@@ -169,7 +179,7 @@ export function parseVueFile(content) {
  * @param {Object} parsed - parseVueFile의 결과 객체
  * @returns {string} 합쳐진 Vue 파일 내용
  */
-export function combineVueFile(parsed) {
+export function combineVueFile(parsed: ParsedVueFile): string {
   let content = parsed.beforeTemplate || ''
 
   // template 추가

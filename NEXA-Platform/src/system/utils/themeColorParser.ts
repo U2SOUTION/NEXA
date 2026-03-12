@@ -10,7 +10,7 @@
  * @param {string} value - CSS 변수 값
  * @returns {boolean}
  */
-function isColorValue(value) {
+function isColorValue(value: string): boolean {
   if (!value || typeof value !== 'string') return false
 
   const trimmed = value.trim()
@@ -46,7 +46,7 @@ function isColorValue(value) {
  * @param {Set<string>} visited - 순환 참조 방지
  * @returns {string} 실제 색상 값
  */
-function resolveVarReference(value, computedStyle, visited = new Set()) {
+function resolveVarReference(value: string, computedStyle: CSSStyleDeclaration, visited = new Set<string>()): string {
   if (!value || typeof value !== 'string') return value
 
   const trimmed = value.trim()
@@ -82,7 +82,7 @@ function resolveVarReference(value, computedStyle, visited = new Set()) {
  * @param {string} varName - CSS 변수명 (예: --nexa-primary)
  * @returns {string} 카테고리명 (영문)
  */
-function classifyCategory(varName) {
+function classifyCategory(varName: string): string {
   // --nexa- 접두사 제거
   const name = varName.replace(/^--nexa-/, '')
 
@@ -104,7 +104,7 @@ function classifyCategory(varName) {
  * @param {string} category - 카테고리명 (예: "text", "background", "nexa")
  * @returns {string} 포맷팅된 카테고리명 (예: "Text", "Background", "NEXA")
  */
-function formatCategoryName(category) {
+function formatCategoryName(category: string): string {
   if (!category) return 'Other'
 
   // nexa는 특수 처리: NEXA로 표시
@@ -139,13 +139,13 @@ function extractCssVariablesFromStylesheets() {
         // CSS 규칙 순회
         if (cssRules) {
           for (const rule of Array.from(cssRules)) {
-            // CSSStyleRule인 경우
-            if (rule.style) {
-              // CSS 변수 선언 찾기 (--nexa-로 시작)
-              for (let i = 0; i < rule.style.length; i++) {
-                const property = rule.style[i]
+            if (!('style' in rule)) continue
+            const styleRule = rule as CSSStyleRule
+            if (styleRule.style) {
+              for (let i = 0; i < styleRule.style.length; i++) {
+                const property = styleRule.style[i]
                 if (property && property.startsWith('--nexa-')) {
-                  const value = rule.style.getPropertyValue(property)?.trim()
+                  const value = styleRule.style.getPropertyValue(property)?.trim()
                   if (value && !variables.has(property)) {
                     variables.set(property, value)
                   }
@@ -281,19 +281,18 @@ export function extractThemeColors() {
   console.log('[extractThemeColors] 발견된 색상 변수 개수:', Array.from(colorMap.values()).flat().length)
   console.log('[extractThemeColors] 카테고리 개수:', colorMap.size)
 
-  // 카테고리별로 변환 및 정렬
-  const result = []
+  const result: Array<{ category: string; categoryDisplay: string; colors: Array<{ name: string; value: string }> }> = []
 
   for (const [category, colors] of colorMap.entries()) {
     result.push({
       category, // 영문 카테고리명
       categoryDisplay: formatCategoryName(category), // 표시용 (첫 글자 대문자)
-      colors: colors.sort((a, b) => a.name.localeCompare(b.name)), // 변수명 순으로 정렬
+      colors: colors.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name)),
     })
   }
 
   // 정렬: nexa는 맨 위, 나머지는 알파벳 순
-  result.sort((a, b) => {
+  result.sort((a: { category: string }, b: { category: string }) => {
     if (a.category === 'nexa') return -1
     if (b.category === 'nexa') return 1
     return a.category.localeCompare(b.category)

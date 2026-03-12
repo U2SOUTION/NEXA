@@ -33,11 +33,34 @@
 import { ref, computed, nextTick } from 'vue'
 import { useModalSystemStore } from '@system/store/modalSystemStore'
 
-export function useDraggableResizableModal(modalId, options = {}) {
+interface Size { width: number; height: number }
+interface Position { x: number; y: number }
+
+export interface DraggableResizableModalOptions {
+  initialPosition?: Position
+  initialSize?: Size
+  draggable?: boolean
+  resizable?: boolean
+  rememberPosition?: boolean
+  minSize?: Size
+  maxSize?: Size
+}
+
+export function useDraggableResizableModal(
+  modalId: string,
+  options: DraggableResizableModalOptions = {}
+) {
   const modalStore = useModalSystemStore()
 
-  // ===== 옵션 =====
-  const { initialPosition = { x: 0, y: 0 }, initialSize = { width: 500, height: 600 }, draggable = true, resizable = true, rememberPosition = true, minSize = { width: 300, height: 400 }, maxSize = { width: window.innerWidth * 0.9, height: window.innerHeight * 0.9 } } = options
+  const {
+    initialPosition = { x: 0, y: 0 },
+    initialSize = { width: 500, height: 600 },
+    draggable = true,
+    resizable = true,
+    rememberPosition = true,
+    minSize = { width: 300, height: 400 },
+    maxSize = { width: window.innerWidth * 0.9, height: window.innerHeight * 0.9 },
+  } = options
 
   // ===== 상태 =====
   const position = ref({ ...initialPosition })
@@ -49,12 +72,12 @@ export function useDraggableResizableModal(modalId, options = {}) {
   const dragStartPos = ref({ x: 0, y: 0 })
   const resizeStartPos = ref({ x: 0, y: 0 })
   const resizeStartSize = ref({ width: 0, height: 0 })
-  const resizeDirection = ref(null) // 'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'
-  const modalElementRef = ref(null) // 실제 DOM 요소 참조
+  const resizeDirection = ref<'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw' | null>(null)
+  const modalElementRef = ref<HTMLElement | null>(null)
 
   // ===== 모달 스타일 계산 =====
   const modalStyle = computed(() => {
-    const modal = modalStore.getModalState(modalId)
+    const modal = modalStore.getModalState(modalId) as { position: Position; size: Size; zIndex: number; features: { minimized?: boolean; maximized?: boolean } } | null
     if (!modal) {
       // 모달이 등록되지 않았을 때 기본 스타일
       return {
@@ -110,7 +133,7 @@ export function useDraggableResizableModal(modalId, options = {}) {
    * 드래그 시작
    * @param {MouseEvent} event - 마우스 이벤트
    */
-  function handleDragStart(event) {
+  function handleDragStart(event: MouseEvent) {
     if (!draggable) return
 
     const modal = modalStore.getModalState(modalId)
@@ -162,7 +185,7 @@ export function useDraggableResizableModal(modalId, options = {}) {
    * 드래그 중
    * @param {MouseEvent} event - 마우스 이벤트
    */
-  function handleDragMove(event) {
+  function handleDragMove(event: MouseEvent) {
     if (!isDragging.value) return
 
     const modal = modalStore.getModalState(modalId)
@@ -204,7 +227,7 @@ export function useDraggableResizableModal(modalId, options = {}) {
    * @param {MouseEvent} event - 마우스 이벤트
    * @param {string} direction - 리사이즈 방향 ('n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw')
    */
-  function handleResizeStart(event, direction) {
+  function handleResizeStart(event: MouseEvent, direction: 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw') {
     if (!resizable) {
       console.warn('[useDraggableResizableModal] Resize disabled')
       return
@@ -231,7 +254,7 @@ export function useDraggableResizableModal(modalId, options = {}) {
    * 리사이즈 중
    * @param {MouseEvent} event - 마우스 이벤트
    */
-  function handleResizeMove(event) {
+  function handleResizeMove(event: MouseEvent) {
     if (!isResizing.value) return
 
     const modal = modalStore.getModalState(modalId)
@@ -240,6 +263,7 @@ export function useDraggableResizableModal(modalId, options = {}) {
     const deltaX = event.clientX - resizeStartPos.value.x
     const deltaY = event.clientY - resizeStartPos.value.y
     const direction = resizeDirection.value
+    if (!direction) return
 
     let newWidth = resizeStartSize.value.width
     let newHeight = resizeStartSize.value.height
@@ -337,7 +361,7 @@ export function useDraggableResizableModal(modalId, options = {}) {
    * @param {Object} size - 크기 { width, height }
    * @returns {boolean} 유효 여부
    */
-  function isValidPosition(pos, size) {
+  function isValidPosition(pos: Position | null, size: Size | null): boolean {
     if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') {
       return false
     }
@@ -529,26 +553,27 @@ export function useDraggableResizableModal(modalId, options = {}) {
   // ===== 라이프사이클 =====
 
   // Store 상태 변경 감지 (자동 동기화)
-  let unwatch = null
+  let unwatch: (() => void) | null = null
 
   /**
    * 컨텐츠 크기에 맞춰 모달 크기 조정
    * 저장된 크기가 있더라도 컨텐츠가 더 크면 컨텐츠에 맞춰 늘림
    */
   function adjustSizeToContent() {
-    if (!modalElementRef.value) return
+    const el = modalElementRef.value
+    if (!el) return
 
-    const modal = modalStore.getModalState(modalId)
+    const modal = modalStore.getModalState(modalId) as { position: Position; size: Size; features?: { minimized?: boolean; maximized?: boolean } } | null
     if (!modal || modal.features?.minimized || modal.features?.maximized) return
 
     // 헤더와 푸터 높이 계산
-    const header = modalElementRef.value.querySelector('.base-modal-header')
-    const footer = modalElementRef.value.querySelector('.base-modal-footer')
+    const header = el.querySelector('.base-modal-header') as HTMLElement | null
+    const footer = el.querySelector('.base-modal-footer') as HTMLElement | null
     const headerHeight = header ? header.offsetHeight : 0
     const footerHeight = footer ? footer.offsetHeight : 0
 
     // 컨텐츠 영역 찾기 (.base-modal-body 또는 .base-modal-content)
-    const bodyArea = modalElementRef.value.querySelector('.base-modal-body')
+    const bodyArea = el.querySelector('.base-modal-body')
     const contentArea = bodyArea?.querySelector('.base-modal-content') || bodyArea?.querySelector('.base-modal-tab-panels-wrapper')
 
     if (!contentArea) return
@@ -614,7 +639,7 @@ export function useDraggableResizableModal(modalId, options = {}) {
    * @param {Object} newMinSize - 새 최소 크기 { width?, height? }
    * @param {boolean} forceUpdate - true면 현재 모달 크기를 강제로 조정하지 않음 (기본값: false)
    */
-  function updateMinSize(newMinSize, forceUpdate = false) {
+  function updateMinSize(newMinSize: Partial<Size>, forceUpdate = false) {
     if (newMinSize.width !== undefined) {
       dynamicMinSize.value.width = Math.max(minSize.width, newMinSize.width)
     }

@@ -10,8 +10,8 @@
  * @param {string} displayName - 표시 이름
  * @returns {string} 사용 예제 코드
  */
-export function generateUsageExample(componentName, importPath, displayName) {
-  const parts = []
+export function generateUsageExample(componentName: string, importPath: string, displayName: string): string {
+  const parts: string[] = []
   parts.push('<')
   parts.push('template>')
   parts.push('\n')

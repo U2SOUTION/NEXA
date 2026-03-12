@@ -25,7 +25,7 @@ export function useDatabaseViewer() {
   const searchQuery = ref('')
   const refreshTrigger = ref(0)
   const subMenu = ref('erd')
-  const selectedTable = ref(null)
+  const selectedTable = ref<string | null>(null)
 
   // ============================================
   // 핸들러 함수
@@ -73,9 +73,10 @@ export function useDatabaseViewer() {
 
       // 리스트 컴포넌트 새로고침 트리거
       refreshTrigger.value++
-    } catch (error) {
+    } catch (error: unknown) {
       // ERR_CONNECTION_REFUSED 등 네트워크 에러 처리
-      if (error.name === 'TypeError' && error.message?.includes('Failed to fetch')) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      if (err.name === 'TypeError' && err.message?.includes('Failed to fetch')) {
         console.warn('[useDatabaseViewer] 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요.')
         dbInfo.value = {
           databaseName: null,
@@ -84,7 +85,7 @@ export function useDatabaseViewer() {
         }
         tableCount.value = 0
       } else {
-        console.error('[useDatabaseViewer] 데이터베이스 뷰어 새로고침 실패:', error)
+        console.error('[useDatabaseViewer] 데이터베이스 뷰어 새로고침 실패:', err)
       }
     }
   }
@@ -93,7 +94,7 @@ export function useDatabaseViewer() {
    * 검색 변경 핸들러
    * @param {string} query - 검색어
    */
-  function handleSearchChange(query) {
+  function handleSearchChange(query: string) {
     searchQuery.value = query
   }
 
@@ -101,7 +102,7 @@ export function useDatabaseViewer() {
    * 테이블 선택 핸들러
    * @param {string} tableName - 선택된 테이블 이름
    */
-  function handleTableSelected(tableName) {
+  function handleTableSelected(tableName: string) {
     selectedTable.value = tableName
     // 전역 이벤트로 DatabaseViewerContent에 알림
     window.dispatchEvent(
@@ -125,7 +126,7 @@ export function useDatabaseViewer() {
    * 서브 메뉴 변경 핸들러
    * @param {string} newSubMenu - 새로운 서브 메뉴
    */
-  function handleSubMenuChange(newSubMenu) {
+  function handleSubMenuChange(newSubMenu: string) {
     subMenu.value = newSubMenu
     // 전역 이벤트로 DatabaseViewerContent에 알림 (선택된 테이블 정보도 포함)
     window.dispatchEvent(

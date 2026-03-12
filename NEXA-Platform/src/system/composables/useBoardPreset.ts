@@ -1,17 +1,31 @@
 import { ref, computed } from 'vue'
-import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
+import {
+  useDashboardLayoutStore,
+  type PresetKey,
+} from '@system/store/dashboardLayoutStore'
 import { useBoardMenuStore } from '@system/store/boardMenuStore'
+
+interface BoardNodeLike extends Record<string, unknown> {
+  id: string
+  type: string
+  isLayoutConfigured?: boolean
+}
+
+interface SelectPresetOptions {
+  immediate?: boolean
+  save?: boolean
+}
 
 /**
  * 보드창 프리셋 관련 모든 로직을 통합한 composable
- * @param {string} mode - 'setup' | 'edit' | 'options'
+ * @param mode - 'setup' | 'edit' | 'options'
  */
 export function useBoardPreset(mode = 'select') {
   const dashboardLayoutStore = useDashboardLayoutStore()
   const boardMenuStore = useBoardMenuStore()
 
   // 선택 로직
-  const tempSelectedPreset = ref(null)
+  const tempSelectedPreset = ref<PresetKey | null>(null)
   const activePreset = computed(() => dashboardLayoutStore.activePreset)
   const presets = computed(() => dashboardLayoutStore.presets)
 
@@ -20,7 +34,7 @@ export function useBoardPreset(mode = 'select') {
    * @param {string} preset - 프리셋 이름
    * @param {object} options - { immediate: boolean, save: boolean }
    */
-  function selectPreset(preset, options = {}) {
+  function selectPreset(preset: PresetKey, options: SelectPresetOptions = {}) {
     const { immediate = false, save = false } = options
 
     // 현재 선택된 보드 노드 가져오기
@@ -99,7 +113,7 @@ export function useBoardPreset(mode = 'select') {
    * @param {string} preset - 프리셋 이름
    * @param {object} boardNode - 보드 노드
    */
-  async function applyPreset(preset, boardNode) {
+  async function applyPreset(preset: PresetKey, boardNode: BoardNodeLike | null) {
     if (!boardNode || boardNode.type !== 'board') {
       return false
     }
@@ -131,7 +145,7 @@ export function useBoardPreset(mode = 'select') {
    * @param {string} preset - 프리셋 이름
    * @param {object} boardNode - 보드 노드
    */
-  async function initializePreset(preset, boardNode) {
+  async function initializePreset(preset: PresetKey, boardNode: BoardNodeLike | null) {
     if (!boardNode || boardNode.type !== 'board') {
       return false
     }
@@ -140,23 +154,26 @@ export function useBoardPreset(mode = 'select') {
 
     try {
       // 초기 패널 설정 생성 (빈 상태로 시작)
-      const initialPanesConfig = {}
+      const initialPanesConfig: Record<string, { nexaPanels: unknown[]; size: number }> = {}
       const allPaneIds = dashboardLayoutStore.getAllPaneIdsForPreset(preset)
-      allPaneIds.forEach((paneId) => {
-        const presetConfig = dashboardLayoutStore.presetPaneConfigurations[preset]
-        let paneDefaultConfig = presetConfig?.panes.find((p) => p.id === paneId)
+      const presetConfigs = dashboardLayoutStore.presetPaneConfigurations
+      const presetConf = presetConfigs[preset as keyof typeof presetConfigs]
+
+      allPaneIds.forEach((paneId: string) => {
+        let paneDefaultConfig = presetConf?.panes.find((p: { id: string }) => p.id === paneId)
 
         // 중첩 구조 처리
-        if (!paneDefaultConfig && presetConfig?.panes.some((p) => p.isContainer)) {
-          const containerPane = presetConfig.panes.find(
-            (p) => p.isContainer && p.nestedConfig && p.nestedConfig.panes.some((np) => np.id === paneId)
+        if (!paneDefaultConfig && presetConf?.panes.some((p: { isContainer?: boolean }) => p.isContainer)) {
+          const containerPane = presetConf.panes.find(
+            (p: { isContainer?: boolean; nestedConfig?: { panes: { id: string }[] } }) =>
+              p.isContainer && p.nestedConfig?.panes.some((np: { id: string }) => np.id === paneId)
           )
-          if (containerPane) {
-            paneDefaultConfig = containerPane.nestedConfig.panes.find((np) => np.id === paneId)
+          if (containerPane?.nestedConfig) {
+            paneDefaultConfig = containerPane.nestedConfig.panes.find((np: { id: string }) => np.id === paneId)
           }
         }
 
-        const defaultSize = paneDefaultConfig?.defaultSize || 50
+        const defaultSize = paneDefaultConfig?.defaultSize ?? 50
 
         initialPanesConfig[paneId] = {
           nexaPanels: [],
@@ -164,7 +181,11 @@ export function useBoardPreset(mode = 'select') {
         }
       })
 
-      const updatedNode = await boardMenuStore.configureBoardLayout(boardId, preset, initialPanesConfig)
+      const updatedNode = await boardMenuStore.configureBoardLayout(
+        boardId,
+        preset,
+        initialPanesConfig as Parameters<typeof boardMenuStore.configureBoardLayout>[2]
+      )
 
       if (updatedNode) {
         dashboardLayoutStore.setActivePreset(preset, updatedNode)
@@ -180,16 +201,16 @@ export function useBoardPreset(mode = 'select') {
   }
 
   // 옵션 관리 (미래 확장)
-  const presetOptions = ref({})
+  const presetOptions = ref<Record<PresetKey, Record<string, unknown>>>({} as Record<PresetKey, Record<string, unknown>>)
 
-  function setOption(preset, optionKey, value) {
+  function setOption(preset: PresetKey, optionKey: string, value: unknown) {
     if (!presetOptions.value[preset]) {
       presetOptions.value[preset] = {}
     }
     presetOptions.value[preset][optionKey] = value
   }
 
-  function getOptions(preset) {
+  function getOptions(preset: PresetKey) {
     return presetOptions.value[preset] || {}
   }
 

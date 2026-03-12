@@ -47,15 +47,24 @@
  * @param {Object} config.clearOptions - 상태 제거 옵션
  * @param {Array<string>} config.clearOptions.exclude - 제외할 파라미터 목록
  * @param {boolean} config.clearOptions.useNextTick - nextTick 사용 여부
- * @param {Object} config.syncOptions - 동기화 옵션 (향후 확장용)
- * @returns {Object} 관리 함수들
+ * @param config.syncOptions - 동기화 옵션 (향후 확장용)
+ * @returns 관리 함수들
  */
 
 import { useURLStateSync } from './useURLStateSync'
 import { useDeepLinking } from './useDeepLinking'
 import { useClearURLState } from './useClearURLState'
+import type { DeepLinkingConfig } from './useDeepLinking'
+import type { ClearURLStateOptions } from './useClearURLState'
 
-export function useURLStateManagement(config = {}) {
+export interface URLStateManagementConfig {
+  stateMap?: Record<string, { value: unknown }>
+  deepLink?: DeepLinkingConfig
+  clearOptions?: ClearURLStateOptions
+  syncOptions?: Record<string, unknown>
+}
+
+export function useURLStateManagement(config: URLStateManagementConfig = {}) {
   const {
     stateMap = {},
     deepLink = {},

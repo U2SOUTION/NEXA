@@ -1,3 +1,17 @@
+import type { Ref } from 'vue'
+
+interface RowLike {
+  id: number | string
+}
+
+interface TableDragDropOptions<T extends RowLike = RowLike> {
+  items?: Ref<T[]>
+  onDrop?: (sourceItem: T, targetItem: T, newOrder: number, sourceIndex: number, targetIndex: number) => void | Promise<void>
+  calculateNewOrder?: (sourceIndex: number, targetIndex: number, items: T[], movedItem: T, targetRow: T) => number | null
+  rowSelector?: string
+  idAttribute?: string
+}
+
 /**
  * 범용 테이블 드래그 앤 드롭 Composable
  *
@@ -14,27 +28,25 @@
  * @param {String} options.rowSelector - 행 선택자 (기본값: '.draggable-row[data-row-id]')
  * @param {String} options.idAttribute - ID 속성명 (기본값: 'data-row-id')
  *
- * @returns {Object} 드래그 앤 드롭 관련 상태 및 함수
+ * @returns 드래그 앤 드롭 관련 상태 및 함수
  */
 import { ref, onUnmounted } from 'vue'
 
-export function useTableDragDrop(options = {}) {
+export function useTableDragDrop<T extends RowLike = RowLike>(options: TableDragDropOptions<T> = {}) {
   const {
-    items = ref([]),
+    items = ref([]) as Ref<T[]>,
     onDrop = () => {},
-    calculateNewOrder = null,
+    calculateNewOrder,
     rowSelector = '.draggable-row[data-row-id]',
     idAttribute = 'data-row-id',
   } = options
 
-  // 드래그 상태
-  const draggedRowId = ref(null)
-  const dragOverRowId = ref(null)
+  const draggedRowId = ref<number | string | null>(null)
+  const dragOverRowId = ref<number | string | null>(null)
   const isReordering = ref(false)
-  let previousHoveredRowId = null
+  let previousHoveredRowId: number | string | null = null
 
-  // 드래그 시작
-  function handleDragStart(event, row) {
+  function handleDragStart(event: DragEvent, row: T) {
     draggedRowId.value = row.id
     event.dataTransfer.effectAllowed = 'move'
     event.dataTransfer.setData('application/json', JSON.stringify({ id: row.id }))
@@ -49,7 +61,7 @@ export function useTableDragDrop(options = {}) {
   }
 
   // 드래그 종료
-  function handleDragEnd(event) {
+  function handleDragEnd(event: DragEvent) {
     // 스타일 복원
     if (event.currentTarget) {
       event.currentTarget.style.opacity = ''
@@ -64,7 +76,7 @@ export function useTableDragDrop(options = {}) {
   }
 
   // document 레벨 dragover 핸들러 (드래그 중 마우스 위치 추적)
-  function handleDocumentDragOver(event) {
+  function handleDocumentDragOver(event: DragEvent) {
     if (!draggedRowId.value) {
       return
     }
@@ -77,7 +89,7 @@ export function useTableDragDrop(options = {}) {
 
     for (const row of rows) {
       const rect = row.getBoundingClientRect()
-      const rowId = parseInt(row.getAttribute(idAttribute))
+      const rowId = parseInt(row.getAttribute(idAttribute) ?? '', 10)
 
       // 마우스가 행 영역 내에 있는지 확인
       if (mouseY >= rect.top && mouseY <= rect.bottom && rowId !== draggedRowId.value) {
@@ -96,12 +108,11 @@ export function useTableDragDrop(options = {}) {
     const newDragOver = hoveredRowId !== null ? Number(hoveredRowId) : null
 
     if (currentDragOver !== newDragOver) {
-      dragOverRowId.value = hoveredRowId
+      dragOverRowId.value = hoveredRowId as number | string | null
     }
   }
 
-  // dragover 핸들러
-  function handleDragOver(event, row) {
+  function handleDragOver(event: DragEvent, row: T) {
     if (draggedRowId.value === null || draggedRowId.value === row.id) {
       return
     }
@@ -110,7 +121,7 @@ export function useTableDragDrop(options = {}) {
   }
 
   // dragenter 핸들러
-  function handleDragEnter(row) {
+  function handleDragEnter(row: T) {
     if (draggedRowId.value !== null && draggedRowId.value !== row.id) {
       dragOverRowId.value = row.id
     }
@@ -122,7 +133,7 @@ export function useTableDragDrop(options = {}) {
   }
 
   // drop 핸들러
-  async function handleDrop(event, targetRow) {
+  async function handleDrop(event: DragEvent, targetRow: T) {
     event.preventDefault()
     const dragDataStr = event.dataTransfer.getData('application/json')
 
@@ -145,8 +156,8 @@ export function useTableDragDrop(options = {}) {
       const itemsValue = typeof items.value === 'function' ? items.value() : items.value
 
       // 현재 필터링된 목록에서 인덱스 찾기
-      const sourceIndex = itemsValue.findIndex((item) => item.id === sourceId)
-      const targetIndex = itemsValue.findIndex((item) => item.id === targetRow.id)
+      const sourceIndex = itemsValue.findIndex((item: T) => item.id === sourceId)
+      const targetIndex = itemsValue.findIndex((item: T) => item.id === targetRow.id)
 
       if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
         dragOverRowId.value = null
@@ -161,7 +172,7 @@ export function useTableDragDrop(options = {}) {
       }
 
       // 새로운 순서 계산 (콜백 사용)
-      let newOrder = null
+      let newOrder: number | null
       if (calculateNewOrder) {
         newOrder = calculateNewOrder(sourceIndex, targetIndex, itemsValue, movedItem, targetRow)
       } else {
@@ -170,7 +181,7 @@ export function useTableDragDrop(options = {}) {
       }
 
       // 콜백 호출
-      await onDrop(movedItem, targetRow, newOrder, sourceIndex, targetIndex)
+      await onDrop(movedItem, targetRow, newOrder ?? targetIndex, sourceIndex, targetIndex)
     } catch (error) {
       console.error('[useTableDragDrop] 드롭 처리 중 오류:', error)
       throw error

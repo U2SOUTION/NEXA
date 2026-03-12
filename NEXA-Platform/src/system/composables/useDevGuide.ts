@@ -32,10 +32,16 @@ export function useDevGuide() {
 
   // 계층적 구조 (최상위 레벨 > 카테고리 > 샘플)
   const hierarchicalStructure = computed(() => {
-    const topLevelMap = new Map()
+    interface TopLevelData {
+      name: string
+      label: string
+      icon: string
+      categories: Map<string, { name: string; icon: string; samples: unknown[] }>
+    }
+    const topLevelMap = new Map<string, TopLevelData>()
 
-    samples.value.forEach((sample) => {
-      const topLevel = sample.topLevel || store.getTopLevel(sample.componentPath) || '기타'
+    samples.value.forEach((sample: { topLevel?: string; componentPath?: string; category?: string } & Record<string, unknown>) => {
+      const topLevel = sample.topLevel ?? store.getTopLevel(String(sample.componentPath ?? '')) ?? '기타'
       const category = sample.category || '기타'
 
       if (!topLevelMap.has(topLevel)) {
@@ -48,6 +54,7 @@ export function useDevGuide() {
       }
 
       const topLevelData = topLevelMap.get(topLevel)
+      if (!topLevelData) return
       if (!topLevelData.categories.has(category)) {
         topLevelData.categories.set(category, {
           name: category,
@@ -56,17 +63,19 @@ export function useDevGuide() {
         })
       }
 
-      topLevelData.categories.get(category).samples.push(sample)
+      topLevelData.categories.get(category)!.samples.push(sample)
     })
 
     // Map을 배열로 변환하고 정렬
     return Array.from(topLevelMap.values())
-      .map((topLevel) => ({
+      .map((topLevel: TopLevelData) => ({
         ...topLevel,
         categories: Array.from(topLevel.categories.values())
           .map((cat) => ({
             ...cat,
-            samples: cat.samples.sort((a, b) => (a.displayName || a.name).localeCompare(b.displayName || b.name)),
+            samples: (cat.samples as Array<{ displayName?: string; name?: string }>).sort(
+              (a, b) => (a.displayName ?? a.name ?? '').localeCompare(b.displayName ?? b.name ?? '')
+            ),
           }))
           .sort((a, b) => a.name.localeCompare(b.name)),
       }))
@@ -89,7 +98,7 @@ export function useDevGuide() {
    * 검색 변경 핸들러
    * @param {string} query - 검색어
    */
-  function handleSearchChange(query) {
+  function handleSearchChange(query: string) {
     store.setSearchQuery(query)
     // 검색어가 비어있으면 폴더 필터도 해제 (전체 리스트 표시)
     if (!query || !query.trim()) {
@@ -102,7 +111,7 @@ export function useDevGuide() {
    * 카테고리 필터 변경 핸들러
    * @param {string} category - 카테고리
    */
-  function handleCategoryFilterChange(category) {
+  function handleCategoryFilterChange(category: string) {
     store.setFilterCategory(category)
     window.dispatchEvent(new CustomEvent('dev-guide-filter-changed', { detail: { category } }))
   }
@@ -111,7 +120,7 @@ export function useDevGuide() {
    * 뷰 모드 변경 핸들러
    * @param {string} mode - 뷰 모드 ('flat' | 'hierarchy')
    */
-  function handleViewModeChange(mode) {
+  function handleViewModeChange(mode: string) {
     store.setViewMode(mode)
   }
 
@@ -119,7 +128,7 @@ export function useDevGuide() {
    * 아코디언 모드 토글 변경 핸들러
    * @param {boolean} enabled - 아코디언 모드 활성화 여부
    */
-  function handleAccordionModeChange(enabled) {
+  function handleAccordionModeChange(enabled: boolean) {
     store.setAccordionMode(enabled)
     window.dispatchEvent(new CustomEvent('dev-guide-accordion-mode-changed', { detail: { enabled } }))
   }
@@ -128,7 +137,7 @@ export function useDevGuide() {
    * 리스트 필터링 토글 변경 핸들러
    * @param {boolean} enabled - 리스트 필터링 활성화 여부
    */
-  function handleFilterListOnSearchChange(enabled) {
+  function handleFilterListOnSearchChange(enabled: boolean) {
     store.setFilterListOnSearch(enabled)
   }
 
@@ -136,7 +145,7 @@ export function useDevGuide() {
    * 샘플 선택 핸들러
    * @param {Object} sample - 선택된 샘플
    */
-  function handleSampleSelect(sample) {
+  function handleSampleSelect(sample: import('@system/store/devGuideStore').DevGuideSample | null) {
     store.selectSample(sample)
     // 전역 이벤트 발생 (하위 호환성 유지)
     window.dispatchEvent(new CustomEvent('dev-guide-sample-selected', { detail: { sample } }))
@@ -146,7 +155,7 @@ export function useDevGuide() {
    * 폴더 선택 핸들러
    * @param {Object} folderNode - 선택된 폴더 노드 { type: 'topLevel' | 'category', name: string, topLevel?: string }
    */
-  function handleFolderSelect(folderNode) {
+  function handleFolderSelect(folderNode: import('@system/store/devGuideStore').FolderNode | null) {
     console.log('[useDevGuide] 폴더 선택:', folderNode)
     store.selectFolder(folderNode)
     console.log('[useDevGuide] 필터링된 샘플 개수:', filteredSamples.value.length)
@@ -157,7 +166,7 @@ export function useDevGuide() {
    * 즐겨찾기 토글
    * @param {Object} sample - 샘플
    */
-  function toggleFavorite(sample) {
+  function toggleFavorite(sample: import('@system/store/devGuideStore').DevGuideSample) {
     store.toggleFavorite(sample)
   }
 

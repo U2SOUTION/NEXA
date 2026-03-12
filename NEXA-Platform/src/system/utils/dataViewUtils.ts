@@ -11,7 +11,7 @@
  * @param {number} rowIndex - 전체 데이터 배열에서의 인덱스 (0-based)
  * @returns {number} 행 번호 (1-based)
  */
-export function getRowNumber(rowIndex) {
+export function getRowNumber(rowIndex: number): number {
   return rowIndex + 1
 }
 
@@ -30,7 +30,7 @@ export function getRowNumber(rowIndex) {
  * // 페이징 없을 때
  * getRowNumberWithPagination(2, null) // "No. 3"
  */
-export function getRowNumberWithPagination(pageIndex, pagination) {
+export function getRowNumberWithPagination(pageIndex: number, pagination: { page: number; rowsPerPage: number } | null): string {
   let rowNumber
   if (!pagination || typeof pagination.page !== 'number' || typeof pagination.rowsPerPage !== 'number') {
     // 페이징 정보가 없으면 단순 인덱스 + 1
@@ -48,7 +48,7 @@ export function getRowNumberWithPagination(pageIndex, pagination) {
  * @param {string} dateTimeString - ISO 날짜 시간 문자열
  * @returns {string} 포맷된 날짜 시간 문자열 (YYYY-MM-DD HH:mm:ss)
  */
-export function formatDateTime(dateTimeString) {
+export function formatDateTime(dateTimeString: string): string {
   if (!dateTimeString) return ''
   const date = new Date(dateTimeString)
   const year = date.getFullYear()

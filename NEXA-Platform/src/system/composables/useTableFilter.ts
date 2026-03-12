@@ -37,10 +37,35 @@
 
 import { computed } from 'vue'
 
+interface FilterRefLike {
+  value: unknown
+}
+
+interface CustomFilter<T = unknown> {
+  key?: string
+  value: unknown
+  condition: (item: T, value: unknown) => boolean
+}
+
+interface SortConfig {
+  primary?: string
+  secondary?: string
+  fallback?: string[]
+}
+
+interface TableFilterParams<T = Record<string, unknown>> {
+  items: { value: T[] }
+  searchText: { value: string }
+  searchFields?: string[] | { value: string[] }
+  filters?: Record<string, FilterRefLike>
+  customFilters?: CustomFilter<T>[]
+  sortConfig?: SortConfig | null
+}
+
 /**
  * 범용 테이블 필터링 Composable
  *
- * @param {Object} params - 필터링 파라미터
+ * @param params - 필터링 파라미터
  * @param {import('vue').ComputedRef<Array>} params.items - 전체 아이템 목록
  * @param {import('vue').Ref<string>} params.searchText - 검색 텍스트
  * @param {Array<string>} params.searchFields - 검색할 필드명 배열 (예: ['name', 'c_code', 'description'])
@@ -50,16 +75,16 @@ import { computed } from 'vue'
  * @param {string} params.sortConfig.primary - 주 정렬 필드
  * @param {string} params.sortConfig.secondary - 보조 정렬 필드
  * @param {Array<string>} params.sortConfig.fallback - 추가 정렬 필드 배열
- * @returns {Object} 필터링된 결과 및 상태
+ * @returns 필터링된 결과 및 상태
  */
-export function useTableFilter({
+export function useTableFilter<T = Record<string, unknown>>({
   items,
   searchText,
   searchFields = [],
   filters = {},
   customFilters = [],
   sortConfig = null,
-}) {
+}: TableFilterParams<T>) {
   /**
    * 필터링된 목록
    */
@@ -73,18 +98,18 @@ export function useTableFilter({
         ? searchFields.value
         : searchFields
 
-    if (searchText.value && actualSearchFields && actualSearchFields.length > 0) {
+    if (searchText.value && actualSearchFields && (actualSearchFields as string[]).length > 0) {
       const search = searchText.value.toLowerCase()
-      filtered = filtered.filter((item) => {
-        return actualSearchFields.some((field) => {
-          const value = item[field]
+      filtered = filtered.filter((item: T) => {
+        return (actualSearchFields as string[]).some((field: string) => {
+          const value = (item as Record<string, unknown>)[field]
           return value && String(value).toLowerCase().includes(search)
         })
       })
     }
 
     // 간단한 필터 (필드명과 값이 일치하는지 확인)
-    Object.keys(filters).forEach((fieldName) => {
+    Object.keys(filters).forEach((fieldName: string) => {
       const filterValue = filters[fieldName]
       if (
         filterValue &&
@@ -92,8 +117,8 @@ export function useTableFilter({
         filterValue.value !== undefined &&
         filterValue.value !== ''
       ) {
-        filtered = filtered.filter((item) => {
-          const itemValue = item[fieldName]
+        filtered = filtered.filter((item: T) => {
+          const itemValue = (item as Record<string, unknown>)[fieldName]
           return itemValue === filterValue.value
         })
       }
@@ -115,7 +140,7 @@ export function useTableFilter({
         actualValue !== '' &&
         actualValue !== false
       ) {
-        filtered = filtered.filter((item) => {
+        filtered = filtered.filter((item: T) => {
           return customFilter.condition(item, actualValue)
         })
       }
@@ -123,31 +148,33 @@ export function useTableFilter({
 
     // 정렬
     if (sortConfig) {
-      filtered = filtered.sort((a, b) => {
+      filtered = filtered.sort((a: T, b: T) => {
+        const aRec = a as Record<string, unknown>
+        const bRec = b as Record<string, unknown>
         // 주 정렬 필드
-        if (sortConfig.primary) {
-          const aPrimary = a[sortConfig.primary] || 0
-          const bPrimary = b[sortConfig.primary] || 0
+        if (sortConfig!.primary) {
+          const aPrimary = (aRec[sortConfig!.primary!] as number) ?? 0
+          const bPrimary = (bRec[sortConfig!.primary!] as number) ?? 0
           if (aPrimary !== bPrimary) return aPrimary - bPrimary
         }
 
         // 보조 정렬 필드
-        if (sortConfig.secondary) {
-          const aSecondary = a[sortConfig.secondary] || 0
-          const bSecondary = b[sortConfig.secondary] || 0
+        if (sortConfig!.secondary) {
+          const aSecondary = (aRec[sortConfig!.secondary!] as number) ?? 0
+          const bSecondary = (bRec[sortConfig!.secondary!] as number) ?? 0
           if (aSecondary !== bSecondary) return aSecondary - bSecondary
         }
 
         // 추가 정렬 필드 (fallback)
-        if (sortConfig.fallback && sortConfig.fallback.length > 0) {
-          for (const field of sortConfig.fallback) {
+        if (sortConfig!.fallback && sortConfig!.fallback.length > 0) {
+          for (const field of sortConfig!.fallback) {
             if (field === 'updated_at') {
-              const aUpdated = a.updated_at ? new Date(a.updated_at).getTime() : 0
-              const bUpdated = b.updated_at ? new Date(b.updated_at).getTime() : 0
+              const aUpdated = aRec.updated_at ? new Date(String(aRec.updated_at)).getTime() : 0
+              const bUpdated = bRec.updated_at ? new Date(String(bRec.updated_at)).getTime() : 0
               if (aUpdated !== bUpdated) return bUpdated - aUpdated // DESC
             } else {
-              const aValue = a[field] || 0
-              const bValue = b[field] || 0
+              const aValue = (aRec[field] as number) ?? 0
+              const bValue = (bRec[field] as number) ?? 0
               if (aValue !== bValue) return aValue - bValue
             }
           }
@@ -168,7 +195,7 @@ export function useTableFilter({
     if (searchText.value) return true
 
     // 간단한 필터 확인
-    const hasSimpleFilter = Object.keys(filters).some((fieldName) => {
+    const hasSimpleFilter = Object.keys(filters).some((fieldName: string) => {
       const filterValue = filters[fieldName]
       return (
         filterValue &&
@@ -180,7 +207,7 @@ export function useTableFilter({
     if (hasSimpleFilter) return true
 
     // 커스텀 필터 확인
-    const hasCustomFilter = customFilters.some((customFilter) => {
+    const hasCustomFilter = customFilters.some((customFilter: CustomFilter<T>) => {
       const filterValue = customFilter.value
       // filterValue가 ref/computed인 경우 .value로 접근, 그렇지 않으면 직접 사용
       const actualValue =

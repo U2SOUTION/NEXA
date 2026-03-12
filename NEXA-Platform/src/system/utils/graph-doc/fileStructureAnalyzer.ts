@@ -9,7 +9,7 @@
  * @param {string} path - 파일 경로
  * @returns {string} 파일 타입 (예: 'vue', 'js', 'folder')
  */
-function getFileType(path) {
+function getFileType(path: string): string {
   if (!path) return 'folder'
   const match = path.match(/\.([^.]+)$/)
   return match ? match[1].toLowerCase() : 'folder'
@@ -20,7 +20,7 @@ function getFileType(path) {
  * @param {string} path - 파일 경로
  * @returns {string} 파일명
  */
-function getFileName(path) {
+function getFileName(path: string): string {
   if (!path) return ''
   return path.split('/').pop() || path
 }
@@ -30,7 +30,7 @@ function getFileName(path) {
  * @param {string} path - 원본 경로
  * @returns {string} 정규화된 경로
  */
-function cleanPath(path) {
+function cleanPath(path: string): string {
   if (!path) return ''
   // 쿼리 파라미터 제거 (예: '/dev?mode=test' -> '/dev')
   const withoutQuery = path.split('?')[0]
@@ -44,8 +44,8 @@ function cleanPath(path) {
  * @param {string} routePath - 라우트 경로 (예: '/dev')
  * @returns {string|null} 실제 파일 경로 또는 null
  */
-function mapRouteToFilePath(routePath) {
-  const routeMap = {
+function mapRouteToFilePath(routePath: string): string | null {
+  const routeMap: Record<string, string> = {
     '/dev': 'src/pages/DevelopmentPage.vue',
     '/portfolio': 'src/pages/PortfolioPage.vue',
     // 필요에 따라 추가 매핑
@@ -58,7 +58,7 @@ function mapRouteToFilePath(routePath) {
  * @param {string} target - 분석 대상 (예: '/dev', 'src/pages', 'src/components/ui')
  * @returns {Promise<string[]>} 파일 경로 배열
  */
-async function findTargetFiles(target) {
+async function findTargetFiles(target: string): Promise<string[]> {
   const files = []
   const cleanedTarget = cleanPath(target)
   let normalizedTarget = cleanedTarget
@@ -119,7 +119,7 @@ async function findTargetFiles(target) {
  * @param {string} target - 분석 대상 (예: '/dev', 'src/pages', 'src/components/ui')
  * @returns {Promise<Array>} 파일 목록 배열 [{ path, type, name }]
  */
-export async function analyzeFileStructure(target) {
+export async function analyzeFileStructure(target: string): Promise<Array<{ path: string; type: string; name: string }>> {
   console.log('[FileStructureAnalyzer] 파일 구조 분석 시작:', target)
 
   // 1. 분석 대상 파일들 찾기

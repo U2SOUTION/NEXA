@@ -41,8 +41,8 @@ async function readPackageJson(projectRoot = '') {
       } else {
         console.warn('[PackageDependencyAnalyzer] 서버 API 응답 실패:', apiResponse.status, apiResponse.statusText)
       }
-    } catch (apiError) {
-      console.warn('[PackageDependencyAnalyzer] 서버 API 실패 (서버가 실행 중이지 않을 수 있음):', apiError.message)
+    } catch (apiError: unknown) {
+      console.warn('[PackageDependencyAnalyzer] 서버 API 실패 (서버가 실행 중이지 않을 수 있음):', apiError instanceof Error ? apiError.message : apiError)
     }
 
     // 방법 3: Vite의 import.meta.env를 사용하여 빌드 시점에 주입된 데이터 사용
@@ -50,7 +50,7 @@ async function readPackageJson(projectRoot = '') {
     // 현재는 지원하지 않음
 
     throw new Error('package.json을 읽을 수 없습니다.')
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[PackageDependencyAnalyzer] package.json 읽기 실패:', error)
     throw new Error('package.json을 읽을 수 없습니다. 프로젝트 루트에 package.json이 있는지 확인하거나, 서버 API를 통해 제공해야 합니다.')
   }
@@ -61,11 +61,10 @@ async function readPackageJson(projectRoot = '') {
  * @param {string} packageName - 패키지 이름
  * @returns {string} 색상 (hex)
  */
-function getPackageColor(packageName) {
+function getPackageColor(packageName: string): string {
   if (!packageName) return '#6c757d'
 
-  // 주요 패키지에 대한 색상 매핑
-  const colorMap = {
+  const colorMap: Record<string, string> = {
     vue: '#42b883',
     quasar: '#1976d2',
     d3: '#f9a03c',
@@ -82,14 +81,11 @@ function getPackageColor(packageName) {
     splitpanes: '#9b59b6',
   }
 
-  // 정확한 매칭
-  if (colorMap[packageName]) {
-    return colorMap[packageName]
-  }
+  if (colorMap[packageName]) return colorMap[packageName]
 
   // @로 시작하는 scoped 패키지
   if (packageName.startsWith('@')) {
-    const scopedName = packageName.split('/')[1]
+    const scopedName = packageName.split('/')[1] ?? ''
     if (scopedName && colorMap[scopedName]) {
       return colorMap[scopedName]
     }
@@ -117,7 +113,7 @@ function getPackageColor(packageName) {
  * @param {number} dependencyCount - 이 패키지를 의존하는 패키지 수
  * @returns {number} 반지름
  */
-function getPackageRadius(packageName, dependencyCount = 0) {
+function getPackageRadius(packageName: string, dependencyCount = 0): number {
   // 기본 반지름
   let baseRadius = 30
 
@@ -146,7 +142,13 @@ function getPackageRadius(packageName, dependencyCount = 0) {
  * @param {string[]} options.includedPackages - 포함할 패키지 목록 (지정하면 이것만 포함)
  * @returns {Promise<Object>} 그래프 데이터 { packages: [], dependencies: [] }
  */
-export async function analyzePackageDependencies(projectRoot = '', options = {}) {
+export interface PackageDependencyOptions {
+  includeDevDependencies?: boolean
+  excludedPackages?: string[]
+  includedPackages?: string[]
+}
+
+export async function analyzePackageDependencies(projectRoot = '', options: PackageDependencyOptions = {}) {
   const {
     includeDevDependencies = true,
     excludedPackages = [],
@@ -181,9 +183,8 @@ export async function analyzePackageDependencies(projectRoot = '', options = {})
 
     console.log('[PackageDependencyAnalyzer] 분석 대상 패키지 개수:', packagesToInclude.length)
 
-    // 패키지 노드 생성
-    const packages = []
-    const packageMap = new Map() // 패키지 이름 -> 패키지 객체
+    const packages: Array<{ id: string; name: string; version: string; radius: number; color: string; isDevDependency: boolean }> = []
+    const packageMap = new Map<string, (typeof packages)[0]>()
 
     // 각 패키지의 의존성 수 계산 (다른 패키지가 이 패키지를 의존하는 횟수)
     const dependencyCountMap = new Map()
@@ -297,9 +298,8 @@ export async function analyzePackageDependencies(projectRoot = '', options = {})
       })
     }
 
-    // 중복 제거
-    const uniqueDependencies = []
-    const dependencySet = new Set()
+    const uniqueDependencies: Array<{ from: string; to: string; label: string }> = []
+    const dependencySet = new Set<string>()
     dependencies.forEach((dep) => {
       const key = `${dep.from}->${dep.to}`
       if (!dependencySet.has(key)) {
@@ -342,7 +342,7 @@ export async function readPackageJsonDirect() {
       throw new Error(`package.json을 읽을 수 없습니다: ${response.statusText}`)
     }
     return await response.json()
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[PackageDependencyAnalyzer] package.json 직접 읽기 실패:', error)
     throw error
   }

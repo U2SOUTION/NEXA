@@ -6,21 +6,21 @@
  * ⚠️ UI 렌더링: 부모에서 currentFPS.value는 업데이트되지만 자식 컴포넌트에서 반응성 문제로 렌더링 안 됨
  */
 
+interface FPSHistoryEntry { fps: number; timestamp: number }
+
 let lastTime = performance.now()
 let frameCount = 0
 let currentFPS = 0
-let fpsHistory = []
+let fpsHistory: FPSHistoryEntry[] = []
 let isMonitoring = false
-let animationFrameId = null
+let animationFrameId: number | null = null
 
-const MAX_HISTORY = 100 // 최대 저장할 FPS 히스토리 수
+const MAX_HISTORY = 100
 
 /**
  * FPS 모니터링 시작
- * @param {number} sampleInterval - FPS 샘플링 간격 (ms, 기본값: 1000ms)
- * @param {Function} callback - FPS 업데이트 콜백
  */
-export function startFPSMonitoring(sampleInterval = 1000, callback = null) {
+export function startFPSMonitoring(sampleInterval = 1000, callback: ((fps: number) => void) | null = null): void {
   if (isMonitoring) {
     console.log('[FPSMonitor] 이미 모니터링 중입니다.')
     return
@@ -32,7 +32,7 @@ export function startFPSMonitoring(sampleInterval = 1000, callback = null) {
   lastTime = performance.now()
   fpsHistory = []
 
-  function measureFPS(currentTime) {
+  function measureFPS(currentTime: number): void {
     if (!isMonitoring) {
       return
     }
@@ -70,7 +70,7 @@ export function startFPSMonitoring(sampleInterval = 1000, callback = null) {
       frameCount = 0
       lastTime = currentTime
 
-      if (callback) {
+      if (callback != null) {
         callback(currentFPS)
       }
     }
@@ -86,7 +86,7 @@ export function startFPSMonitoring(sampleInterval = 1000, callback = null) {
  */
 export function stopFPSMonitoring() {
   isMonitoring = false
-  if (animationFrameId !== null) {
+  if (animationFrameId != null) {
     cancelAnimationFrame(animationFrameId)
     animationFrameId = null
   }
@@ -105,13 +105,13 @@ export function getCurrentFPS() {
  * @param {number} duration - 계산할 기간 (ms, 기본값: 전체 히스토리)
  * @returns {number} 평균 FPS
  */
-export function getAverageFPS(duration = null) {
+export function getAverageFPS(duration: number | null = null): number {
   if (fpsHistory.length === 0) {
     return 0
   }
 
   let samples = fpsHistory
-  if (duration) {
+  if (duration != null) {
     const cutoffTime = Date.now() - duration
     samples = fpsHistory.filter((item) => item.timestamp >= cutoffTime)
   }
@@ -129,13 +129,13 @@ export function getAverageFPS(duration = null) {
  * @param {number} duration - 계산할 기간 (ms, 기본값: 전체 히스토리)
  * @returns {number} 최소 FPS
  */
-export function getMinFPS(duration = null) {
+export function getMinFPS(duration: number | null = null): number {
   if (fpsHistory.length === 0) {
     return 0
   }
 
   let samples = fpsHistory
-  if (duration) {
+  if (duration != null) {
     const cutoffTime = Date.now() - duration
     samples = fpsHistory.filter((item) => item.timestamp >= cutoffTime)
   }

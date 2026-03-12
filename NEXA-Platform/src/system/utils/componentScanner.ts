@@ -3,6 +3,22 @@
  * 디렉토리 기반으로 Vue 컴포넌트를 자동 스캔하고 카테고리별로 분류
  */
 
+export interface ScannedComponent {
+  name: string
+  path: string
+  icon: string
+  directoryPath: string[]
+  depth: number
+}
+
+export interface ScannedCategory {
+  name: string
+  displayName: string
+  icon: string
+  components: ScannedComponent[]
+  subcategories: ScannedCategory[]
+}
+
 // 카테고리 디스플레이 이름 매핑
 const CATEGORY_DISPLAY_NAMES = {
   ui: 'UI 컴포넌트',
@@ -38,7 +54,7 @@ const CATEGORY_ICONS = {
  * @param {string} path - 컴포넌트 경로 (예: 'src/system/components/ui/BaseModal.vue' 또는 'src/domains/board/components/BoardConfigEditor.vue')
  * @returns {Array<string>} 디렉토리 경로 배열 (예: ['ui'] 또는 ['domains', 'board'])
  */
-function extractDirectoryPath(path) {
+function extractDirectoryPath(path: string): string[] {
   // src/system/components/.../Name.vue 형식
   const componentsMatch = path.match(/src\/system\/components\/(.+)\/[^/]+\.vue$/)
   if (componentsMatch) {
@@ -72,7 +88,7 @@ function extractDirectoryPath(path) {
  * @param {number} maxDepth - 최대 깊이 (1 = 첫 번째 디렉토리만, 0 = 전체)
  * @returns {string} 카테고리 이름
  */
-function extractCategoryFromPath(path, maxDepth = 0) {
+function extractCategoryFromPath(path: string, maxDepth = 0): string {
   const directories = extractDirectoryPath(path)
 
   if (directories.length === 0) {
@@ -96,8 +112,8 @@ function extractCategoryFromPath(path, maxDepth = 0) {
  * @param {string} path - 컴포넌트 경로
  * @returns {string} 컴포넌트 이름
  */
-function extractComponentName(path) {
-  const fileName = path.split('/').pop()
+function extractComponentName(path: string): string {
+  const fileName = path.split('/').pop() ?? ''
   return fileName.replace('.vue', '')
 }
 
@@ -106,7 +122,7 @@ function extractComponentName(path) {
  * @param {string} componentName - 컴포넌트 이름
  * @returns {string} 아이콘 이름
  */
-function inferComponentIcon(componentName) {
+function inferComponentIcon(componentName: string): string {
   const name = componentName.toLowerCase()
 
   // 일반적인 패턴 매칭
@@ -139,12 +155,12 @@ function inferComponentIcon(componentName) {
  * @param {string} categoryName - 카테고리 이름
  * @returns {string} 디스플레이 이름
  */
-function getCategoryDisplayName(categoryName) {
+function getCategoryDisplayName(categoryName: string): string {
   return (
-    CATEGORY_DISPLAY_NAMES[categoryName] ||
+    (CATEGORY_DISPLAY_NAMES as Record<string, string>)[categoryName] ||
     categoryName
       .split('-')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
   )
 }
@@ -154,8 +170,8 @@ function getCategoryDisplayName(categoryName) {
  * @param {string} categoryName - 카테고리 이름
  * @returns {string} 아이콘 이름
  */
-function getCategoryIcon(categoryName) {
-  return CATEGORY_ICONS[categoryName] || 'folder'
+function getCategoryIcon(categoryName: string): string {
+  return (CATEGORY_ICONS as Record<string, string>)[categoryName] || 'folder'
 }
 
 /**
@@ -163,7 +179,7 @@ function getCategoryIcon(categoryName) {
  * @param {string} categoryName - 카테고리 이름 (예: 'sidebars-left-dev-tools')
  * @returns {string} 포맷팅된 디스플레이 이름
  */
-function formatCategoryDisplayName(categoryName) {
+function formatCategoryDisplayName(categoryName: string): string {
   const parts = categoryName.split('-')
 
   // 첫 번째 부분은 기존 매핑 사용
@@ -173,10 +189,10 @@ function formatCategoryDisplayName(categoryName) {
 
   // 여러 부분이면 첫 번째는 매핑, 나머지는 그대로 표시
   const firstPart = getCategoryDisplayName(parts[0])
-  const restParts = parts.slice(1).map((part) =>
+  const restParts = parts.slice(1).map((part: string) =>
     part
       .split('-')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' '),
   )
 
@@ -188,13 +204,13 @@ function formatCategoryDisplayName(categoryName) {
  * @param {number} maxDepth - 최대 깊이 (1 = 첫 번째 디렉토리만, 2 = 두 번째까지, 0 = 전체)
  * @returns {Promise<Array>} 카테고리별로 분류된 컴포넌트 배열
  */
-export async function scanAndCategorizeComponents(maxDepth = 0) {
+export async function scanAndCategorizeComponents(maxDepth = 0): Promise<ScannedCategory[]> {
   try {
     // Vite의 import.meta.glob을 사용하여 모든 .vue 파일 스캔
     // src/system/components/, src/domains/**/components/, src/domains/dev/guides/ 하위의 모든 .vue 파일
     const componentModules = import.meta.glob(['/src/system/components/**/*.vue', '/src/domains/**/components/**/*.vue', '/src/domains/dev/modules/**/*.vue', '/src/domains/dev/guides/**/*.vue'], { eager: false })
 
-    const categoryMap = new Map()
+    const categoryMap = new Map<string, ScannedCategory>()
 
     // 각 컴포넌트 파일 처리
     for (const path in componentModules) {
@@ -229,19 +245,19 @@ export async function scanAndCategorizeComponents(maxDepth = 0) {
         })
       }
 
-      categoryMap.get(categoryName).components.push(component)
+      categoryMap.get(categoryName)!.components.push(component)
     }
 
     // Map을 배열로 변환하고 정렬
     const categories = Array.from(categoryMap.values())
       .map((category) => ({
         ...category,
-        components: category.components.sort((a, b) => a.name.localeCompare(b.name)),
+        components: category.components.sort((a: ScannedComponent, b: ScannedComponent) => a.name.localeCompare(b.name)),
       }))
       .sort((a, b) => a.displayName.localeCompare(b.displayName))
 
     return categories
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[ComponentScanner] 스캔 중 오류 발생:', error)
     return []
   }
@@ -254,9 +270,12 @@ export async function scanAndCategorizeComponents(maxDepth = 0) {
  * @param {Array} existingCategories - 기존 카테고리 배열 (선택적)
  * @returns {Array} 병합된 카테고리 배열
  */
-export function mergeWithExistingCategories(scannedCategories, existingCategories = []) {
-  const merged = []
-  const scannedMap = new Map(scannedCategories.map((cat) => [cat.name, cat]))
+export function mergeWithExistingCategories(
+  scannedCategories: ScannedCategory[],
+  existingCategories: ScannedCategory[] = []
+): ScannedCategory[] {
+  const merged: ScannedCategory[] = []
+  const scannedMap = new Map(scannedCategories.map((cat: ScannedCategory) => [cat.name, cat]))
 
   // 기존 카테고리가 있으면 병합
   if (existingCategories.length > 0) {
@@ -267,9 +286,8 @@ export function mergeWithExistingCategories(scannedCategories, existingCategorie
         // 스캔된 컴포넌트와 기존 하위 카테고리 병합
         merged.push({
           ...existing,
-          components: scanned.components, // 스캔된 컴포넌트로 업데이트
-          // 하위 카테고리는 기존 것 유지 (수동 설정)
-          subcategories: existing.subcategories || [],
+          components: scanned.components,
+          subcategories: existing.subcategories ?? [],
         })
         scannedMap.delete(existing.name)
       } else {

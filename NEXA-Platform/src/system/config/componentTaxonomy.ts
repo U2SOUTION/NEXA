@@ -432,7 +432,7 @@ export const componentTaxonomy = {
      * @param {string} dimensionId - 차원 ID
      * @returns {Object|null} 차원 정보
      */
-    getDimension(dimensionId) {
+    getDimension(dimensionId: string) {
       return componentTaxonomy.dimensions.find((dim) => dim.id === dimensionId) || null
     },
 
@@ -442,7 +442,7 @@ export const componentTaxonomy = {
      * @param {string} categoryId - 카테고리 ID
      * @returns {Object|null} 카테고리 정보
      */
-    getCategory(dimensionId, categoryId) {
+    getCategory(dimensionId: string, categoryId: string) {
       const dimension = this.getDimension(dimensionId)
       if (!dimension) return null
       return dimension.categories.find((cat) => cat.id === categoryId) || null
@@ -467,7 +467,7 @@ export const componentTaxonomy = {
      * @param {string} componentName - 컴포넌트 이름
      * @returns {string|null} 기능별 카테고리 ID
      */
-    inferFunctionalRole(componentName) {
+    inferFunctionalRole(componentName: string) {
       const patterns = componentTaxonomy.classificationRules.namePatterns
       for (const [categoryId, keywords] of Object.entries(patterns)) {
         if (keywords.some((keyword) => componentName.includes(keyword))) {
@@ -482,7 +482,7 @@ export const componentTaxonomy = {
      * @param {string} componentPath - 컴포넌트 경로
      * @returns {string|null} 용도별 카테고리 ID
      */
-    inferPurpose(componentPath) {
+    inferPurpose(componentPath: string) {
       const patterns = componentTaxonomy.classificationRules.pathPatterns
       for (const [categoryId, paths] of Object.entries(patterns)) {
         if (paths.some((path) => componentPath.includes(path))) {
@@ -497,7 +497,7 @@ export const componentTaxonomy = {
      * @param {string} componentName - 컴포넌트 이름
      * @returns {string|null} 계층별 카테고리 ID
      */
-    inferHierarchy(componentName) {
+    inferHierarchy(componentName: string) {
       const patterns = componentTaxonomy.classificationRules.hierarchyPatterns
 
       // 베이스 컴포넌트 (Nexa 접두어)

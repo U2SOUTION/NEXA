@@ -9,7 +9,7 @@
  * @param {string} message - 원본 에러 메시지
  * @returns {string} 정규화된 메시지
  */
-function normalizeErrorMessage(message) {
+function normalizeErrorMessage(message: string): string {
   if (!message) return ''
 
   let normalized = message
@@ -37,7 +37,7 @@ function normalizeErrorMessage(message) {
  * @param {Object} error2 - 두 번째 에러
  * @returns {boolean} 같은 그룹 여부
  */
-export function areErrorsSimilar(error1, error2) {
+export function areErrorsSimilar(error1: { level?: string; type?: string; message?: string; file?: string; line?: number; ruleId?: string }, error2: { level?: string; type?: string; message?: string; file?: string; line?: number; ruleId?: string }): boolean {
   // 레벨이 다르면 다른 그룹
   if (error1.level !== error2.level) {
     return false
@@ -87,14 +87,14 @@ export function areErrorsSimilar(error1, error2) {
  * @param {Array} errors - 에러 목록
  * @returns {Array} 그룹화된 에러 목록 (각 그룹의 대표 에러에 count 속성 추가)
  */
-export function groupSimilarErrors(errors) {
-  const groups = []
-  const processed = new Set()
+export function groupSimilarErrors(errors: Array<Record<string, unknown>>): Array<Record<string, unknown> & { count?: number }> {
+  const groups: Array<Record<string, unknown> & { count?: number }> = []
+  const processed = new Set<number>()
 
   for (let i = 0; i < errors.length; i++) {
     if (processed.has(i)) continue
 
-    const error = errors[i]
+    const error = errors[i]!
     const group = {
       ...error,
       count: 1,
@@ -110,7 +110,9 @@ export function groupSimilarErrors(errors) {
       if (areErrorsSimilar(error, errors[j])) {
         group.count += 1
         group.similarErrors.push(errors[j])
-        group.lastOccurrence = Math.max(group.lastOccurrence, errors[j].timestamp)
+        const ts = (errors[j] as Record<string, unknown> & { timestamp?: number }).timestamp ?? 0
+        const current = (group as { lastOccurrence?: number }).lastOccurrence ?? 0
+        ;(group as { lastOccurrence: number }).lastOccurrence = Math.max(current, ts)
         processed.add(j)
       }
     }
@@ -128,7 +130,7 @@ export function groupSimilarErrors(errors) {
  * @param {Array} errors - 전체 에러 목록
  * @returns {Array} 유사한 에러 목록
  */
-export function findSimilarErrors(targetError, errors) {
+export function findSimilarErrors(targetError: Record<string, unknown>, errors: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
   const similarErrors = errors.filter((error) => {
     // ID가 있고 같으면 스킵 (ID가 없으면 다른 방식으로 비교)
     if (error.id && targetError.id && error.id === targetError.id) {
@@ -147,7 +149,7 @@ export function findSimilarErrors(targetError, errors) {
  * @param {Object} error - 에러 객체
  * @returns {string} 그룹 키
  */
-export function getErrorGroupKey(error) {
+export function getErrorGroupKey(error: { message?: string; file?: string; line?: number | string; level?: string }): string {
   const normalizedMessage = normalizeErrorMessage(error.message || '')
   const file = error.file || ''
   const line = error.line || ''

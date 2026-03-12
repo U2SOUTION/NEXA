@@ -8,8 +8,8 @@
  * @param {string} content - 파일 내용
  * @returns {Array<string>} import 경로 배열
  */
-function extractImports(content) {
-  const imports = []
+function extractImports(content: string): string[] {
+  const imports: string[] = []
 
   // 정규식 패턴들
   const patterns = [
@@ -42,7 +42,7 @@ function extractImports(content) {
  * @param {string} basePath - 현재 파일 경로
  * @returns {string} 절대 경로
  */
-function resolveImportPath(importPath, basePath) {
+function resolveImportPath(importPath: string, basePath: string): string {
   // 이미 절대 경로인 경우 (src/ 또는 @/로 시작)
   if (importPath.startsWith('src/') || importPath.startsWith('@/')) {
     return importPath.replace('@/', 'src/').replace(/\.vue$/, '')
@@ -75,11 +75,9 @@ function resolveImportPath(importPath, basePath) {
  * @param {string} path - 컴포넌트 경로
  * @returns {string} 노드 ID
  */
-function pathToNodeId(path) {
-  // 'components/ui/BaseModal.vue' → 'BaseModal'
-  // 'components/dev-tools/document-manager/DocumentManagerContent.vue' → 'DocumentManagerContent'
-  const fileName = path.split('/').pop()
-  return fileName.replace('.vue', '')
+function pathToNodeId(path: string): string {
+  const fileName = path.split('/').pop() ?? path
+  return fileName.replace(/\.vue$/, '')
 }
 
 /**
@@ -87,7 +85,7 @@ function pathToNodeId(path) {
  * @param {string} path - 컴포넌트 경로 (상대 경로, 예: 'components/ui/BaseModal.vue')
  * @returns {Promise<string>} 파일 내용
  */
-async function readComponentFile(path) {
+async function readComponentFile(path: string): Promise<string> {
   try {
     // Vite의 동적 import with ?raw를 사용하여 파일 내용 읽기
     // 경로 정규화: 'system/components/ui/BaseModal.vue' → '/src/system/components/ui/BaseModal.vue?raw'
@@ -117,12 +115,14 @@ async function readComponentFile(path) {
  * @param {Array} components - 컴포넌트 배열
  * @returns {Promise<Object>} 다이어그램 데이터 { nodes: [], edges: [] }
  */
-export async function analyzeCategoryDependencies(components) {
-  const nodes = []
-  const edges = []
-  const nodeMap = new Map() // path -> node index
+export interface DepNode { id: string; label: string; path: string; type?: string }
+export interface DepEdge { from: string; to: string; type?: string; label?: string }
 
-  // 1. 카테고리의 모든 컴포넌트를 노드로 추가
+export async function analyzeCategoryDependencies(components: Array<{ path: string; name: string }>) {
+  const nodes: DepNode[] = []
+  const edges: DepEdge[] = []
+  const nodeMap = new Map<string, string>()
+
   for (const component of components) {
     const nodeId = pathToNodeId(component.path)
     const node = {
@@ -145,7 +145,7 @@ export async function analyzeCategoryDependencies(components) {
         const resolvedPath = resolveImportPath(importPath, component.path)
 
         // 같은 카테고리 내 컴포넌트인지 확인
-        const targetComponent = components.find((comp) => resolvedPath.includes(comp.path.replace('.vue', '')) || comp.path.includes(resolvedPath))
+        const targetComponent = components.find((comp: { path: string }) => resolvedPath.includes(comp.path.replace(/\.vue$/, '')) || comp.path.includes(resolvedPath))
 
         if (targetComponent) {
           const fromId = pathToNodeId(component.path)
@@ -184,8 +184,8 @@ export async function analyzeCategoryDependencies(components) {
           }
         }
       }
-    } catch (error) {
-      console.warn(`[ComponentDependencyAnalyzer] 분석 실패: ${component.path}`, error)
+    } catch (err) {
+      console.warn(`[ComponentDependencyAnalyzer] 분석 실패: ${component.path}`, err)
     }
   }
 
@@ -200,16 +200,15 @@ export async function analyzeCategoryDependencies(components) {
  * @param {Object} graphData - { nodes: [], edges: [] }
  * @returns {Object} ERD 다이어그램 데이터 형식
  */
-export function convertToERDFormat(graphData) {
-  // ERD 형식: { tables: [], relationships: [] }
-  const tables = graphData.nodes.map((node) => ({
+export function convertToERDFormat(graphData: { nodes: DepNode[]; edges: DepEdge[] }) {
+  const tables = graphData.nodes.map((node: DepNode) => ({
     name: node.id,
     label: node.label,
     path: node.path,
     type: node.type,
   }))
 
-  const relationships = graphData.edges.map((edge) => ({
+  const relationships = graphData.edges.map((edge: DepEdge) => ({
     fromTable: edge.from,
     toTable: edge.to,
     fromColumn: edge.label || 'import',
