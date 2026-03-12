@@ -49,10 +49,6 @@
     ".quasar",
     "src/**/ExplorerPreview.vue",
     "src/system/store/documentManagerStore.ts",
-    "src/system/composables/useDocumentMultiSelection.ts",
-    "src/system/composables/useSettingsManager.ts",
-    "src/system/composables/useGlobalShortcuts.ts",
-    "src/system/composables/useGraphDocHistory.ts",
-    "src/system/composables/useSidebarNavigation.ts"
+    "src/system/composables/useSettingsManager.ts"
   ]
 }

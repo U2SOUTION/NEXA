@@ -1,26 +1,38 @@
 /**
  * 문서 관리 멀티 셀렉션 작업 Composable
- * 
+ *
  * 문서의 일괄 작업(휴지통 이동, 복원, 영구 삭제)을 처리합니다.
  */
 
+import type { Ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { moveToTrash, restoreFromTrash, permanentlyDeleteFromTrash } from '@domains/dev/modules/document-manager/services/documentStorage'
+import {
+  moveToTrash,
+  restoreFromTrash,
+  permanentlyDeleteFromTrash,
+  type DocumentManagerStoreLike,
+} from '@domains/dev/modules/document-manager/services/documentStorage'
+
+export interface DocumentFileLike {
+  name: string
+  path?: string
+  relativePath?: string
+}
+
+export interface ContentRefLike {
+  clearSelection?: () => void
+}
 
 /**
  * 문서 멀티 셀렉션 작업 Composable
- * @param {Object} documentStore - 문서 관리 스토어
- * @param {Object} contentRef - DocumentManagerList 컴포넌트 참조
- * @returns {Object} 멀티 셀렉션 작업 함수들
  */
-export function useDocumentMultiSelection(documentStore, contentRef) {
+export function useDocumentMultiSelection(
+  documentStore: DocumentManagerStoreLike,
+  contentRef: Ref<ContentRefLike | null>
+) {
   const $q = useQuasar()
 
-  /**
-   * 선택된 파일들을 휴지통으로 이동
-   * @param {Array} selectedFiles - 선택된 파일 배열
-   */
-  async function moveSelectedToTrash(selectedFiles) {
+  async function moveSelectedToTrash(selectedFiles: DocumentFileLike[]) {
     if (!selectedFiles || selectedFiles.length === 0) return
 
     const count = selectedFiles.length
@@ -44,13 +56,13 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
         for (const file of selectedFiles) {
           moveToTrash(file.name, documentStore)
         }
-        if (contentRef.value) {
-          contentRef.value.clearSelection()
+        const content = contentRef.value
+        if (content?.clearSelection) {
+          content.clearSelection()
         }
 
-        // 현재 선택된 파일이 이동된 파일 중 하나면 선택 해제
-        if (documentStore.selectedFile && selectedFiles.some((f) => f.name === documentStore.selectedFile.name)) {
-          documentStore.selectedFile = null
+        if (documentStore.selectedFile && selectedFiles.some((f: DocumentFileLike) => f.name === documentStore.selectedFile!.name)) {
+          documentStore.selectedFile = undefined
         }
 
         $q.notify({
@@ -59,11 +71,11 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
           position: 'top',
           timeout: 2000,
         })
-      } catch (error) {
-        console.error('[useDocumentMultiSelection] 휴지통 이동 실패:', error)
+      } catch (err: unknown) {
+        console.error('[useDocumentMultiSelection] 휴지통 이동 실패:', err)
         $q.notify({
           type: 'negative',
-          message: `휴지통 이동 실패: ${error.message || '알 수 없는 오류'}`,
+          message: `휴지통 이동 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`,
           position: 'top',
           timeout: 3000,
         })
@@ -71,11 +83,7 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
     }
   }
 
-  /**
-   * 선택된 파일들을 복원
-   * @param {Array} selectedFiles - 선택된 파일 배열
-   */
-  async function restoreSelected(selectedFiles) {
+  async function restoreSelected(selectedFiles: DocumentFileLike[]) {
     if (!selectedFiles || selectedFiles.length === 0) return
 
     const count = selectedFiles.length
@@ -99,13 +107,13 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
         for (const file of selectedFiles) {
           restoreFromTrash(file.name, documentStore)
         }
-        if (contentRef.value) {
-          contentRef.value.clearSelection()
+        const content = contentRef.value
+        if (content?.clearSelection) {
+          content.clearSelection()
         }
 
-        // 현재 선택된 파일이 복원된 파일 중 하나면 선택 해제
-        if (documentStore.selectedFile && selectedFiles.some((f) => f.name === documentStore.selectedFile.name)) {
-          documentStore.selectedFile = null
+        if (documentStore.selectedFile && selectedFiles.some((f: DocumentFileLike) => f.name === documentStore.selectedFile!.name)) {
+          documentStore.selectedFile = undefined
         }
 
         $q.notify({
@@ -114,11 +122,11 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
           position: 'top',
           timeout: 2000,
         })
-      } catch (error) {
-        console.error('[useDocumentMultiSelection] 복원 실패:', error)
+      } catch (err: unknown) {
+        console.error('[useDocumentMultiSelection] 복원 실패:', err)
         $q.notify({
           type: 'negative',
-          message: `복원 실패: ${error.message || '알 수 없는 오류'}`,
+          message: `복원 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`,
           position: 'top',
           timeout: 3000,
         })
@@ -126,11 +134,7 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
     }
   }
 
-  /**
-   * 선택된 파일들을 영구 삭제
-   * @param {Array} selectedFiles - 선택된 파일 배열
-   */
-  async function permanentlyDeleteSelected(selectedFiles) {
+  async function permanentlyDeleteSelected(selectedFiles: DocumentFileLike[]) {
     if (!selectedFiles || selectedFiles.length === 0) return
 
     const count = selectedFiles.length
@@ -152,7 +156,7 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
     if (confirmed) {
       try {
         let successCount = 0
-        let failedFiles = []
+        const failedFiles: string[] = []
 
         for (const file of selectedFiles) {
           try {
@@ -160,20 +164,20 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
             const filePath = file.relativePath || file.path || file.name
             await permanentlyDeleteFromTrash(filePath, documentStore)
             successCount++
-          } catch (error) {
-            const filePath = file.relativePath || file.path || file.name
-            console.error(`[useDocumentMultiSelection] 파일 영구 삭제 실패: ${filePath}`, error)
+          } catch (err: unknown) {
+            const filePath = file.relativePath ?? file.path ?? file.name
+            console.error(`[useDocumentMultiSelection] 파일 영구 삭제 실패: ${filePath}`, err)
             failedFiles.push(filePath)
           }
         }
 
-        if (contentRef.value) {
-          contentRef.value.clearSelection()
+        const content = contentRef.value
+        if (content?.clearSelection) {
+          content.clearSelection()
         }
 
-        // 현재 선택된 파일이 삭제된 파일 중 하나면 선택 해제
-        if (documentStore.selectedFile && selectedFiles.some((f) => f.name === documentStore.selectedFile.name)) {
-          documentStore.selectedFile = null
+        if (documentStore.selectedFile && selectedFiles.some((f: DocumentFileLike) => f.name === documentStore.selectedFile!.name)) {
+          documentStore.selectedFile = undefined
         }
 
         if (failedFiles.length > 0) {
@@ -191,11 +195,11 @@ export function useDocumentMultiSelection(documentStore, contentRef) {
             timeout: 2000,
           })
         }
-      } catch (error) {
-        console.error('[useDocumentMultiSelection] 영구 삭제 실패:', error)
+      } catch (err: unknown) {
+        console.error('[useDocumentMultiSelection] 영구 삭제 실패:', err)
         $q.notify({
           type: 'negative',
-          message: `영구 삭제 실패: ${error.message || '알 수 없는 오류'}`,
+          message: `영구 삭제 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`,
           position: 'top',
           timeout: 3000,
         })

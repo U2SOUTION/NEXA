@@ -19,6 +19,14 @@ export interface MarkdownFileMeta {
   createdDate: string | null
 }
 
+interface TOCNode {
+  id: string
+  text: string
+  level: number
+  lineIndex?: number
+  children?: TOCNode[]
+}
+
 /**
  * 문서 관리 Store
  * DevelopmentPage와 DocumentListSidebar 간 상태 공유
@@ -31,7 +39,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
   const selectedFile = ref<MarkdownFileMeta | null>(null)
   const fileContents = ref<Record<string, string>>({})
   const checkboxStates = ref<Record<string, Record<string, boolean>>>({})
-  const tocItems = ref<Array<{ id: string; text: string; level: number; children?: unknown[] }>>([])
+  const tocItems = ref<TOCNode[]>([])
   const tocExpanded = ref<Record<string, boolean>>({})
   const tocAutoCollapse = ref(true)
   const tocAutoCloseOnContentClick = ref(true)
@@ -137,8 +145,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         if (metadataResponse.ok) {
           const metadataData = await metadataResponse.json()
           if (metadataData.success && metadataData.files) {
-            // 백엔드 파일 목록을 Map으로 저장 (relativePath를 키로)
-            metadataData.files.forEach((fileMeta) => {
+            type FileMetaItem = { relativePath?: string; fileName?: string; modifiedDate?: string; createdDate?: string; displayPath?: string; contentHash?: string; size?: number }
+            metadataData.files.forEach((fileMeta: FileMetaItem) => {
               const key = fileMeta.relativePath || fileMeta.fileName
               backendFilesMap.set(key, fileMeta)
               metadataMap.set(key, {
@@ -161,7 +169,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       const filesToTouch = []
       if (previousFileList.length > 0 && currentFileRelativePaths.length > 0) {
         // 이전 파일 목록에서 사라진 파일 찾기 (파일명 변경 또는 삭제)
-        const missingFiles = previousFileList.filter((prevPath) => !currentFileRelativePaths.includes(prevPath))
+        const missingFiles = previousFileList.filter((prevPath: string) => !currentFileRelativePaths.includes(prevPath))
         const newFiles = currentFileRelativePaths.filter((currPath) => !previousFileList.includes(currPath))
 
         if (missingFiles.length > 0 && newFiles.length > 0) {
@@ -173,7 +181,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
             if (!newFileMeta || !newFileMeta.contentHash) continue
 
             // 새 파일의 contentHash와 동일한 해시를 가진 이전 파일 찾기
-            const matchingPrevFile = missingFiles.find((prevPath) => {
+            const matchingPrevFile = missingFiles.find((prevPath: string) => {
               const prevHashData = previousFileHashes.get(prevPath)
               return prevHashData && prevHashData.contentHash === newFileMeta.contentHash
             })
@@ -217,7 +225,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
               backendFilesMap.clear()
               metadataMap.clear()
               currentFileRelativePaths = []
-              metadataData.files.forEach((fileMeta) => {
+              metadataData.files.forEach((fileMeta: { relativePath?: string; fileName?: string; modifiedDate?: string; createdDate?: string; displayPath?: string; contentHash?: string; size?: number }) => {
                 const key = fileMeta.relativePath || fileMeta.fileName
                 backendFilesMap.set(key, fileMeta)
                 metadataMap.set(key, {
@@ -239,8 +247,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       // 현재 파일 목록 및 해시 정보 저장 (다음 로드 시 비교용)
       try {
         localStorage.setItem(PREVIOUS_FILES_KEY, JSON.stringify(currentFileRelativePaths))
-        const currentFileHashes = {}
-        metadataMap.forEach((meta, path) => {
+        const currentFileHashes: Record<string, { contentHash?: string; size?: number }> = {}
+        metadataMap.forEach((meta: { contentHash?: string; size?: number }, path: string) => {
           if (meta.contentHash) {
             currentFileHashes[path] = {
               contentHash: meta.contentHash,
@@ -486,9 +494,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       }
     })
 
-    // 트리 구조 생성
-    const tree = []
-    const stack = [] // 부모 노드 스택
+    const tree: TOCNode[] = []
+    const stack: TOCNode[] = []
 
     headings.forEach((heading) => {
       // 스택에서 현재 레벨보다 높은 레벨의 노드 제거
@@ -514,13 +521,11 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
 
     tocItems.value = tree
 
-    // 저장된 확장 상태 로드 (파일별)
-    const savedExpandedState = loadTOCExpandedState(selectedFile.value.name)
+    const savedExpandedState = selectedFile.value ? loadTOCExpandedState(selectedFile.value.name) : {}
 
-    // 기본 확장 상태 설정 (저장된 상태가 없으면 모두 펼침)
-    const expanded = {}
-    function setExpandedState(items) {
-      items.forEach((item) => {
+    const expanded: Record<string, boolean> = {}
+    function setExpandedState(items: TOCNode[]) {
+      items.forEach((item: TOCNode) => {
         // 저장된 상태가 있으면 사용, 없으면 기본값(펼침)
         expanded[item.id] = savedExpandedState?.[item.id] ?? true
         // 자식 항목도 재귀적으로 설정
@@ -533,8 +538,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     tocExpanded.value = expanded
 
     // 전체 토글 상태 초기화 (초기값: 모든 하위 항목이 펼쳐져 있는지 확인)
-    function checkAllExpanded(items, isRootLevel = false) {
-      return items.every((item) => {
+    function checkAllExpanded(items: TOCNode[], isRootLevel = false): boolean {
+      return items.every((item: TOCNode) => {
         if (isRootLevel) {
           if (item.children && item.children.length > 0) {
             return checkAllExpanded(item.children, false)
@@ -632,23 +637,20 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     }
   }
 
-  // 본문 클릭 핸들러 (체크박스 + 자동 닫기)
-  function handleContentClick(event) {
-    // .checkbox-item div 자체를 클릭한 경우 무시 (빈 공간 클릭 방지)
-    if (event.target.classList.contains('checkbox-item')) {
+  function handleContentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement
+    if (target.classList?.contains('checkbox-item')) {
       event.stopPropagation()
       event.preventDefault()
       return
     }
 
-    // .checkbox-item 내부의 빈 공간 클릭 확인
-    const checkboxItem = event.target.closest('.checkbox-item')
+    const checkboxItem = target.closest('.checkbox-item')
     if (checkboxItem) {
       // 클릭한 요소가 체크박스나 라벨이 아닌 경우 무시
-      const isCheckbox = event.target.classList.contains('dev-checkbox-input') && event.target.tagName === 'INPUT'
-      const isLabel = event.target.classList.contains('dev-checkbox-label') && event.target.tagName === 'LABEL'
+      const isCheckbox = target.classList.contains('dev-checkbox-input') && target.tagName === 'INPUT'
+      const isLabel = target.classList.contains('dev-checkbox-label') && target.tagName === 'LABEL'
 
-      // 체크박스나 라벨이 아닌 경우 무시 (빈 공간 클릭)
       if (!isCheckbox && !isLabel) {
         event.stopPropagation()
         event.preventDefault()
@@ -656,9 +658,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       }
     }
 
-    // 체크박스 또는 라벨 클릭 처리
-    const isCheckbox = event.target.classList.contains('dev-checkbox-input') && event.target.tagName === 'INPUT'
-    const isLabel = event.target.classList.contains('dev-checkbox-label') && event.target.tagName === 'LABEL'
+    const isCheckbox = target.classList.contains('dev-checkbox-input') && target.tagName === 'INPUT'
+    const isLabel = target.classList.contains('dev-checkbox-label') && target.tagName === 'LABEL'
 
     if (isCheckbox || isLabel) {
       // 체크박스 직접 클릭 또는 라벨 클릭으로 인한 체크박스 토글
@@ -812,12 +813,13 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
   })
 
   // 검색 키워드 하일라이팅을 적용한 displayContent (외부에서 전달받은 검색 관련 데이터 사용)
-  function getDisplayContentWithHighlight(globalSearchKeywords, globalSearchResults, searchMode) {
+  function getDisplayContentWithHighlight(globalSearchKeywords: string[], globalSearchResults: Array<{ file: { name: string } }>, searchMode: string) {
     let content = displayContent.value
 
     // 검색 키워드 하일라이팅 (전체 문서 검색 키워드가 있고 현재 문서가 검색 결과에 포함된 경우)
-    if (globalSearchKeywords && globalSearchKeywords.length > 0 && selectedFile.value) {
-      const isInSearchResults = globalSearchResults && globalSearchResults.some((result) => result.file.name === selectedFile.value.name)
+    const sf = selectedFile.value
+    if (globalSearchKeywords && globalSearchKeywords.length > 0 && sf) {
+      const isInSearchResults = globalSearchResults && globalSearchResults.some((result: { file: { name: string } }) => result.file.name === sf.name)
 
       if (isInSearchResults) {
         // 체크박스 검색 모드일 때는 체크박스 라벨에만 하일라이팅
@@ -827,8 +829,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
             const regex = new RegExp(`(${escapedKeyword})`, 'gi')
 
             // 체크박스 라벨 내부 텍스트만 하일라이팅
-            content = content.replace(/(<label[^>]*class="dev-checkbox-label"[^>]*>)([^<]+)(<\/label>)/g, (match, before, text, after) => {
-              const highlighted = text.replace(regex, (found) => {
+            content = content.replace(/(<label[^>]*class="dev-checkbox-label"[^>]*>)([^<]+)(<\/label>)/g, (_match: string, before: string, text: string, after: string) => {
+              const highlighted = text.replace(regex, (found: string) => {
                 return `<mark class="global-search-highlight">${found}</mark>`
               })
               return before + highlighted + after
@@ -836,15 +838,13 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
           })
         } else {
           // 다른 검색 모드일 때는 일반 텍스트에 하일라이팅
-          globalSearchKeywords.forEach((keyword) => {
+          globalSearchKeywords.forEach((keyword: string) => {
             const escapedKeyword = escapeHtml(keyword).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
             const regex = new RegExp(`(${escapedKeyword})`, 'gi')
 
-            // HTML 태그 내부가 아닌 텍스트만 검색 (코드 블록, 체크박스 제외)
-            content = content.replace(/(>)([^<]+)(<)/g, (match, before, text, after) => {
-              // 코드 블록, 체크박스, 이미 하일라이팅된 부분은 제외
+            content = content.replace(/(>)([^<]+)(<)/g, (match: string, before: string, text: string, after: string) => {
               if (before === '>' && after === '<' && !text.includes('__CODE_BLOCK_') && !text.includes('__CHECKBOX_') && !text.includes('<mark') && !text.includes('class="code-inline"') && !text.includes('class="code-block"') && !text.includes('class="dev-checkbox-label"')) {
-                const highlighted = text.replace(regex, (found) => {
+                const highlighted = text.replace(regex, (found: string) => {
                   return `<mark class="global-search-highlight">${found}</mark>`
                 })
                 return before + highlighted + after

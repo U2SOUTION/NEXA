@@ -1,7 +1,35 @@
 /**
- * useGraphDocHistory.js
+ * useGraphDocHistory
  * GraphDoc 통합 히스토리 관리 Composable
- *
+ */
+
+import { ref, computed } from 'vue'
+
+export interface HistoryItemMetadata {
+  nodeCount?: number
+  edgeCount?: number
+  fileName?: string
+  comment?: string | null
+}
+
+export interface HistoryItem {
+  id: string
+  diagramType: string
+  target: string
+  title: string
+  displayName: string
+  timestamp: number
+  metadata: HistoryItemMetadata
+}
+
+export interface HistoryItemInput {
+  diagramType: string
+  target: string
+  displayName?: string
+  metadata?: HistoryItemMetadata
+}
+
+/**
  * 기능:
  * - 모든 다이어그램 타입의 히스토리 통합 관리
  * - 뒤로가기/앞으로가기 기능
@@ -9,8 +37,6 @@
  * - localStorage에 히스토리 저장/로드
  * - 확장 가능한 메타데이터 구조
  */
-
-import { ref, computed } from 'vue'
 
 const STORAGE_KEY = 'graph-doc-history'
 const MAX_HISTORY_SIZE = 100 // 기획서 기준 100개로 증가
@@ -42,7 +68,7 @@ const MAX_HISTORY_SIZE = 100 // 기획서 기준 100개로 증가
  * @param {Object} [item.metadata] - 메타데이터
  * @returns {string} 표시명
  */
-export function generateHistoryDisplayName(item) {
+export function generateHistoryDisplayName(item: HistoryItemInput | HistoryItem) {
   const { target, diagramType, metadata = {} } = item
 
   // 1. 파일명 추출
@@ -84,13 +110,13 @@ export function generateHistoryDisplayName(item) {
 
   // 다이어그램 타입 정보 (간단한 형태)
   if (diagramType) {
-    const typeLabels = {
+    const typeLabels: Record<string, string> = {
       dependencyGraph: '파일의존',
       dependencyAnalysis: '패키지의존',
       fileStructure: '파일구조',
       codeSearch: '코드검색',
     }
-    const typeLabel = typeLabels[diagramType] || diagramType
+    const typeLabel = typeLabels[diagramType] ?? diagramType
     if (typeLabel) {
       infoParts.push(typeLabel)
     }
@@ -107,8 +133,7 @@ export function generateHistoryDisplayName(item) {
   return displayName
 }
 
-// 싱글톤 패턴: 모든 컴포넌트가 동일한 히스토리 인스턴스를 공유
-const history = ref([])
+const history = ref<HistoryItem[]>([])
 const currentIndex = ref(-1)
 let isInitialized = false
 
@@ -121,12 +146,10 @@ export function useGraphDocHistory() {
       if (stored) {
         const parsed = JSON.parse(stored)
         
-        // 버전 호환성: 이전 버전 데이터 마이그레이션
         if (parsed.version === undefined) {
-          // 이전 버전 데이터 마이그레이션
-          history.value = migrateLegacyHistory(parsed.history || [])
+          history.value = migrateLegacyHistory((parsed.history ?? []) as Array<Record<string, unknown>>)
         } else {
-          history.value = parsed.history || []
+          history.value = (parsed.history ?? []) as HistoryItem[]
         }
         
         currentIndex.value = parsed.currentIndex ?? -1
@@ -139,23 +162,22 @@ export function useGraphDocHistory() {
           currentIndex.value = -1
         }
 
-        // 표시명 자동 생성 (이전 데이터에 없을 수 있음)
-        history.value.forEach(item => {
+        history.value.forEach((item: HistoryItem) => {
           if (!item.displayName) {
             item.displayName = generateHistoryDisplayName(item)
           }
         })
       }
-    } catch (error) {
-      console.error('[useGraphDocHistory] 히스토리 로드 실패:', error)
+    } catch (err: unknown) {
+      console.error('[useGraphDocHistory] 히스토리 로드 실패:', err)
       history.value = []
       currentIndex.value = -1
     }
   }
 
   // 이전 버전 데이터 마이그레이션
-  function migrateLegacyHistory(legacyHistory) {
-    return legacyHistory.map(item => {
+  function migrateLegacyHistory(legacyHistory: Array<Record<string, unknown>>): HistoryItem[] {
+    return legacyHistory.map((item: Record<string, unknown>): HistoryItem => {
       // 이전 버전에는 diagramType이 없을 수 있음
       if (!item.diagramType) {
         // 기본값: dependencyGraph (가장 많이 사용)
@@ -175,10 +197,10 @@ export function useGraphDocHistory() {
 
       // displayName 생성
       if (!item.displayName) {
-        item.displayName = generateHistoryDisplayName(item)
+        ;(item as unknown as HistoryItem).displayName = generateHistoryDisplayName(item as unknown as HistoryItemInput)
       }
 
-      return item
+      return item as unknown as HistoryItem
     })
   }
 
@@ -190,8 +212,8 @@ export function useGraphDocHistory() {
         history: history.value,
         currentIndex: currentIndex.value,
       }))
-    } catch (error) {
-      console.error('[useGraphDocHistory] 히스토리 저장 실패:', error)
+    } catch (err: unknown) {
+      console.error('[useGraphDocHistory] 히스토리 저장 실패:', err)
     }
   }
 
@@ -206,7 +228,7 @@ export function useGraphDocHistory() {
    * @param {string} [item.metadata.comment] - 주석 (표시용, 클릭 시 재읽음)
    * @param {string} [item.metadata.fileName] - 파일명 (표시용)
    */
-  function addToHistory(item) {
+  function addToHistory(item: HistoryItemInput) {
     if (!item.diagramType || !item.target) {
       console.warn('[useGraphDocHistory] diagramType과 target은 필수입니다.')
       return
@@ -236,7 +258,7 @@ export function useGraphDocHistory() {
       comment: item.metadata?.comment || null, // 표시용 (클릭 시 재읽음)
     }
 
-    const historyItem = {
+    const historyItem: HistoryItem = {
       id: `history-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       diagramType: item.diagramType,
       target: item.target, // 이것만으로 재분석 가능
@@ -301,7 +323,7 @@ export function useGraphDocHistory() {
   }
 
   // 특정 히스토리 항목으로 이동
-  function goToHistoryItem(index) {
+  function goToHistoryItem(index: number) {
     if (index >= 0 && index < history.value.length) {
       currentIndex.value = index
       saveHistory()
@@ -311,8 +333,8 @@ export function useGraphDocHistory() {
   }
 
   // 다이어그램 타입별 히스토리 필터링
-  function getHistoryByDiagramType(diagramType) {
-    return history.value.filter(item => item.diagramType === diagramType)
+  function getHistoryByDiagramType(diagramType: string) {
+    return history.value.filter((item: HistoryItem) => item.diagramType === diagramType)
   }
 
   // 히스토리 초기화
@@ -323,8 +345,8 @@ export function useGraphDocHistory() {
   }
 
   // 특정 다이어그램 타입의 히스토리만 초기화
-  function clearHistoryByDiagramType(diagramType) {
-    history.value = history.value.filter(item => item.diagramType !== diagramType)
+  function clearHistoryByDiagramType(diagramType: string) {
+    history.value = history.value.filter((item: HistoryItem) => item.diagramType !== diagramType)
     
     // currentIndex 조정
     if (currentIndex.value >= history.value.length) {
@@ -335,7 +357,7 @@ export function useGraphDocHistory() {
   }
 
   // 히스토리 항목 삭제
-  function removeHistoryItem(id) {
+  function removeHistoryItem(id: string) {
     const index = history.value.findIndex(item => item.id === id)
     if (index >= 0) {
       history.value.splice(index, 1)
@@ -379,8 +401,8 @@ export function useGraphDocHistory() {
 
   // 다이어그램 타입별 히스토리 개수
   const historyByType = computed(() => {
-    const grouped = {}
-    history.value.forEach(item => {
+    const grouped: Record<string, HistoryItem[]> = {}
+    history.value.forEach((item: HistoryItem) => {
       if (!grouped[item.diagramType]) {
         grouped[item.diagramType] = []
       }

@@ -11,6 +11,48 @@
 
 import { ref } from 'vue'
 
+interface ShortcutSetting {
+  combo?: string
+  key?: string
+  ctrlKey?: boolean
+  metaKey?: boolean
+  shiftKey?: boolean
+  altKey?: boolean
+  enabled?: boolean
+  description?: string
+}
+
+interface ShortcutConfig extends ShortcutSetting {
+  id: string
+  handler?: (event: KeyboardEvent) => void
+}
+
+interface KeyCombo {
+  key: string
+  ctrlKey: boolean
+  metaKey: boolean
+  shiftKey: boolean
+  altKey: boolean
+}
+
+export interface ShortcutHandlers {
+  openRightSidebarPush?: () => void
+  openRightSidebarOverlay?: () => void
+  goToHome?: () => void
+  goToSettings?: () => void
+  goToDev?: () => void
+  goToSettingsTheme?: () => void
+  toggleTheme?: () => void
+  refreshPage?: () => void
+  hardRefresh?: () => void
+  clearConsole?: () => void
+  goBack?: () => void
+  goForward?: () => void
+  toggleLeftSidebarCtrlLeft?: () => void
+  toggleRightSidebarCtrlRight?: () => void
+  toggleRightSidebarMode?: () => void
+}
+
 // ============================================
 // 단축키 카테고리 정의
 // ============================================
@@ -52,15 +94,11 @@ export const SHORTCUT_CATEGORIES = [
   },
 ]
 
-// 단축키 레지스트리 (key → handler 매핑)
-const shortcutRegistry = new Map()
+const shortcutRegistry = new Map<string, ShortcutConfig>()
+const shortcutSettings = ref<Record<string, ShortcutSetting>>({})
 
-// 단축키 설정 (localStorage에서 로드)
-const shortcutSettings = ref({})
-
-// 전역 이벤트 리스너 상태
 let isGlobalShortcutsActive = false
-let globalKeyDownHandler = null
+let globalKeyDownHandler: ((event: KeyboardEvent) => void) | null = null
 
 // localStorage 키
 const STORAGE_KEY = 'nexa-global-shortcuts'
@@ -74,8 +112,8 @@ function loadShortcutSettings() {
     if (saved) {
       shortcutSettings.value = JSON.parse(saved)
     }
-  } catch (error) {
-    console.error('[useGlobalShortcuts] 설정 로드 실패:', error)
+  } catch (err: unknown) {
+    console.error('[useGlobalShortcuts] 설정 로드 실패:', err)
     shortcutSettings.value = {}
   }
 }
@@ -86,22 +124,19 @@ function loadShortcutSettings() {
 function saveShortcutSettings() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(shortcutSettings.value))
-  } catch (error) {
-    console.error('[useGlobalShortcuts] 설정 저장 실패:', error)
+  } catch (err: unknown) {
+    console.error('[useGlobalShortcuts] 설정 저장 실패:', err)
   }
 }
 
 /**
  * 단축키 설정 가져오기
  */
-function getShortcutSetting(shortcutId) {
-  return shortcutSettings.value[shortcutId] || null
+function getShortcutSetting(shortcutId: string): ShortcutSetting | null {
+  return shortcutSettings.value[shortcutId] ?? null
 }
 
-/**
- * 단축키 설정 업데이트
- */
-function updateShortcutSetting(shortcutId, setting) {
+function updateShortcutSetting(shortcutId: string, setting: ShortcutSetting) {
   shortcutSettings.value[shortcutId] = setting
   saveShortcutSettings()
 }
@@ -114,9 +149,9 @@ function updateShortcutSetting(shortcutId, setting) {
  * @param {string} combo - 키 조합 문자열 (예: 'ctrl+b', 'ctrl+shift+s')
  * @returns {Object} 키 조합 객체
  */
-function parseKeyCombo(combo) {
+function parseKeyCombo(combo: string | KeyCombo): KeyCombo {
   if (typeof combo !== 'string') {
-    return combo // 이미 객체인 경우 그대로 반환
+    return combo as KeyCombo
   }
 
   const parts = combo
@@ -127,19 +162,18 @@ function parseKeyCombo(combo) {
   // 마지막 부분이 실제 키
   let key = parts[parts.length - 1]
 
-  // 특수 키 이름 변환 (브라우저 이벤트 키 이름으로 변환)
-  const specialKeys = {
+  const specialKeys: Record<string, string> = {
     left: 'ArrowLeft',
     right: 'ArrowRight',
     up: 'ArrowUp',
     down: 'ArrowDown',
     space: ' ',
   }
-  if (specialKeys[key]) {
+  if (key in specialKeys) {
     key = specialKeys[key]
   }
 
-  const result = {
+  const result: KeyCombo = {
     key: key,
     ctrlKey: false,
     metaKey: false,
@@ -166,14 +200,12 @@ function parseKeyCombo(combo) {
 /**
  * 단축키 매칭 확인
  */
-function matchesShortcut(event, shortcutConfig) {
-  const setting = getShortcutSetting(shortcutConfig.id) || shortcutConfig
+function matchesShortcut(event: KeyboardEvent, shortcutConfig: ShortcutConfig): boolean {
+  const setting = getShortcutSetting(shortcutConfig.id) ?? shortcutConfig
 
-  // 키 조합 문자열이면 파싱
-  const parsedSetting = setting.combo ? parseKeyCombo(setting.combo) : setting
+  const parsedSetting: KeyCombo = setting.combo ? parseKeyCombo(setting.combo) : (setting as KeyCombo)
 
-  // 키 매칭
-  if (event.key.toLowerCase() !== parsedSetting.key.toLowerCase()) {
+  if (event.key.toLowerCase() !== (parsedSetting.key ?? '').toLowerCase()) {
     return false
   }
 
@@ -207,18 +239,19 @@ function matchesShortcut(event, shortcutConfig) {
 /**
  * 입력 필드 포커스 확인
  */
-function isInputFieldFocused() {
+function isInputFieldFocused(): boolean {
   const activeElement = document.activeElement
   if (!activeElement) return false
 
-  return activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable || activeElement.closest('input, textarea, [contenteditable]')
+  const el = activeElement as HTMLElement
+  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable === true || el.closest('input, textarea, [contenteditable]') != null
 }
 
 /**
  * 전역 키보드 이벤트 핸들러
  */
-function createGlobalKeyDownHandler() {
-  return (event) => {
+function createGlobalKeyDownHandler(): (event: KeyboardEvent) => void {
+  return (event: KeyboardEvent) => {
     // 입력 필드에 포커스가 있고 Ctrl/Cmd 조합이 아니면 무시
     if (isInputFieldFocused() && !event.ctrlKey && !event.metaKey) {
       return
@@ -262,7 +295,7 @@ function createGlobalKeyDownHandler() {
  * @param {Object} handlers - 단축키 핸들러 객체
  * @returns {Array} 기본 단축키 배열
  */
-export function getDefaultShortcuts(handlers = {}) {
+export function getDefaultShortcuts(handlers: ShortcutHandlers = {}) {
   return [
     // 사이드바 토글
     {
@@ -376,7 +409,7 @@ export function useGlobalShortcuts() {
    * @param {string} config.description - 단축키 설명 (설정 UI용)
    * @param {boolean} config.enabled - 단축키 활성화 여부 (기본값: true)
    */
-  function registerShortcut(shortcutId, config) {
+  function registerShortcut(shortcutId: string, config: ShortcutConfig | (Omit<ShortcutConfig, 'handler'> & { handler?: (event: KeyboardEvent) => void })) {
     // 키 조합 문자열이 있으면 파싱
     const parsedConfig = config.combo ? { ...config, ...parseKeyCombo(config.combo) } : config
 
@@ -412,11 +445,10 @@ export function useGlobalShortcuts() {
       updateShortcutSetting(shortcutId, defaultSetting)
     }
 
-    // 레지스트리에 등록
     shortcutRegistry.set(shortcutId, {
-      id: shortcutId,
       ...parsedConfig,
-    })
+      id: shortcutId,
+    } as ShortcutConfig)
   }
 
   /**
@@ -424,7 +456,7 @@ export function useGlobalShortcuts() {
    *
    * @param {string} shortcutId - 단축키 고유 ID
    */
-  function unregisterShortcut(shortcutId) {
+  function unregisterShortcut(shortcutId: string) {
     shortcutRegistry.delete(shortcutId)
   }
 
@@ -434,7 +466,7 @@ export function useGlobalShortcuts() {
    * @param {string} shortcutId - 단축키 고유 ID
    * @param {Object} newSetting - 새로운 설정
    */
-  function updateShortcut(shortcutId, newSetting) {
+  function updateShortcut(shortcutId: string, newSetting: Partial<ShortcutSetting>) {
     updateShortcutSetting(shortcutId, {
       ...getShortcutSetting(shortcutId),
       ...newSetting,
@@ -447,7 +479,7 @@ export function useGlobalShortcuts() {
    * @param {string} shortcutId - 단축키 고유 ID
    * @param {boolean} enabled - 활성화 여부
    */
-  function setShortcutEnabled(shortcutId, enabled) {
+  function setShortcutEnabled(shortcutId: string, enabled: boolean) {
     updateShortcut(shortcutId, { enabled })
   }
 
@@ -456,7 +488,7 @@ export function useGlobalShortcuts() {
    *
    * @param {Array} shortcuts - 단축키 배열
    */
-  function registerShortcuts(shortcuts) {
+  function registerShortcuts(shortcuts: ShortcutConfig[]) {
     if (!Array.isArray(shortcuts)) {
       console.warn('[useGlobalShortcuts] registerShortcuts: 배열이 필요합니다')
       return
@@ -485,8 +517,7 @@ export function useGlobalShortcuts() {
     const defaultShortcutsList = getDefaultShortcuts({})
     const defaultShortcutIds = new Set(defaultShortcutsList.map((s) => s.id))
 
-    // localStorage에서 삭제된 기본 단축키 제거 (커스텀 단축키는 유지)
-    const savedSettings = shortcutSettings.value
+    const savedSettings = shortcutSettings.value as Record<string, ShortcutSetting>
     let hasChanges = false
     for (const shortcutId of Object.keys(savedSettings)) {
       // 기본 단축키이지만 더 이상 기본 목록에 없는 경우 제거
@@ -547,13 +578,13 @@ export function useGlobalShortcuts() {
     // localStorage에 저장된 모든 단축키 설정 가져오기 (정리 후)
     const cleanedSettings = shortcutSettings.value
 
-    // localStorage에 저장된 모든 단축키를 레지스트리에 자동 등록
-    for (const [shortcutId, setting] of Object.entries(cleanedSettings)) {
+    for (const [shortcutId, setting] of Object.entries(cleanedSettings) as [string, ShortcutSetting][]) {
       // 레지스트리에 없는 경우 자동 등록
       if (!shortcutRegistry.has(shortcutId)) {
         // 커스텀 단축키인 경우
         if (shortcutId.startsWith('custom_')) {
           registerShortcut(shortcutId, {
+            id: shortcutId,
             combo: setting.combo,
             description: setting.description || shortcutId,
             enabled: setting.enabled !== undefined ? setting.enabled : true,
@@ -562,9 +593,8 @@ export function useGlobalShortcuts() {
             },
           })
         } else {
-          // 기본 단축키인 경우 - handler는 나중에 주입되므로 빈 함수로 등록
-          // 실제 handler는 MainLayout에서 등록될 때 업데이트됨
           registerShortcut(shortcutId, {
+            id: shortcutId,
             combo: setting.combo,
             key: setting.key,
             ctrlKey: setting.ctrlKey,
@@ -581,11 +611,10 @@ export function useGlobalShortcuts() {
       }
     }
 
-    // 메모리에 등록된 단축키
-    const registeredShortcuts = Array.from(shortcutRegistry.entries()).map(([id, config]) => ({
-      id,
+    const registeredShortcuts = Array.from(shortcutRegistry.entries()).map(([sid, config]) => ({
       ...config,
-      setting: getShortcutSetting(id),
+      id: sid,
+      setting: getShortcutSetting(sid),
     }))
 
     return registeredShortcuts
@@ -596,7 +625,7 @@ export function useGlobalShortcuts() {
    * @param {string} shortcutId - 단축키 ID
    * @returns {Function|null} 핸들러 함수 또는 null
    */
-  function getShortcutHandler(shortcutId) {
+  function getShortcutHandler(shortcutId: string): ((event: KeyboardEvent) => void) | null {
     const shortcutConfig = shortcutRegistry.get(shortcutId)
     return shortcutConfig?.handler || null
   }
@@ -615,13 +644,12 @@ export function useGlobalShortcuts() {
     // 기본 단축키 동기화 (코드 변경 반영)
     syncDefaultShortcutsWithStorage()
 
-    // localStorage에 저장된 커스텀 단축키를 레지스트리에 다시 등록
-    const savedSettings = shortcutSettings.value
+    const savedSettings = shortcutSettings.value as Record<string, ShortcutSetting>
     for (const [shortcutId, setting] of Object.entries(savedSettings)) {
       // 레지스트리에 없고, 커스텀 단축키인 경우 (custom_ 접두사)
       if (!shortcutRegistry.has(shortcutId) && shortcutId.startsWith('custom_')) {
-        // 기본 핸들러로 등록 (실제 기능은 나중에 설정 가능)
         registerShortcut(shortcutId, {
+          id: shortcutId,
           combo: setting.combo,
           description: setting.description || shortcutId,
           enabled: setting.enabled !== undefined ? setting.enabled : true,
@@ -660,24 +688,21 @@ export function useGlobalShortcuts() {
    * @param {Array} shortcuts - 정렬할 단축키 배열 (getRegisteredShortcuts() 결과)
    * @returns {Array} 카테고리별로 정리된 단축키 배열
    */
-  function getCategorizedShortcuts(shortcuts = []) {
-    const categorized = []
+  function getCategorizedShortcuts(shortcuts: Array<ShortcutConfig & { setting?: ShortcutSetting | null }> = []) {
+    const categorized: Array<{ name: string; title: string; icon: string; ids: string[]; shortcuts: Array<ShortcutConfig & { setting?: ShortcutSetting | null }> }> = []
 
-    // 각 카테고리에 해당하는 단축키 찾기
     SHORTCUT_CATEGORIES.forEach((category) => {
-      const categoryShortcuts = []
+      const categoryShortcuts: Array<ShortcutConfig & { setting?: ShortcutSetting | null }> = []
 
       if (category.name === 'custom') {
-        // 사용자 정의 단축키는 custom_로 시작하는 것들
-        shortcuts.forEach((shortcut) => {
+        shortcuts.forEach((shortcut: ShortcutConfig & { setting?: ShortcutSetting | null }) => {
           if (shortcut.id.startsWith('custom_')) {
             categoryShortcuts.push(shortcut)
           }
         })
       } else {
-        // 다른 카테고리는 ids로 매칭
-        category.ids.forEach((id) => {
-          const shortcut = shortcuts.find((s) => s.id === id)
+        category.ids.forEach((id: string) => {
+          const shortcut = shortcuts.find((s: ShortcutConfig) => s.id === id)
           if (shortcut) {
             categoryShortcuts.push(shortcut)
           }

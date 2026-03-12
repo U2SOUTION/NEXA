@@ -1,6 +1,28 @@
 /**
  * 사이드바 네비게이션 Composable
- *
+ */
+
+import { ref, computed, type Ref } from 'vue'
+
+export interface SidebarNavigationOptions {
+  sidebarNavigationSettings?: { hoverDebounceTime?: number; mouseLeaveDelay?: number }
+  items?: unknown[] | Ref<unknown[]>
+  itemIdKey?: string
+  sidebarMode?: string
+  selectedView?: string
+  partsManagementStore: { sidebarMode: string; selectedPartsDataView: string; setSidebarMode: (m: string) => void; setSelectedPartsDataView: (v: string) => void }
+  partsDataStore: { isSidebarDetailViewActive: boolean; selectedPartClass: unknown; selectedPartClasses: unknown[] }
+  selectedRowId?: Ref<number | string | null> | { value: number | string | null; set?: (v: unknown) => void }
+  hoverDebounceTime?: number
+  mouseLeaveDelay?: number
+  onHover?: (item: Record<string, unknown>, evt: MouseEvent) => void
+  onClick?: (item: Record<string, unknown>) => void
+  onDoubleClick?: (item: Record<string, unknown>) => void
+  containerRef?: Ref<HTMLElement | null> | { value: HTMLElement | null } | null
+  onMouseLeave?: (evt: MouseEvent) => void
+}
+
+/**
  * 모든 뷰에서 공통으로 사용하는 사이드바 호버/상세 뷰 전환 로직
  *
  * 사이드바 네비게이션 설정은 viewModeSettings.js의
@@ -28,19 +50,16 @@
  *
  * @returns {Object} 사이드바 네비게이션 관련 상태 및 함수
  */
-import { ref, computed } from 'vue'
-
-export function useSidebarNavigation(options = {}) {
-  // sidebarNavigationSettings가 있으면 우선 사용, 없으면 개별 옵션 사용
-  const sidebarNavSettings = options.sidebarNavigationSettings || {}
+export function useSidebarNavigation(options: Partial<SidebarNavigationOptions> = {}) {
+  const sidebarNavSettings = options.sidebarNavigationSettings ?? {}
+  const partsManagementStore = options.partsManagementStore!
+  const partsDataStore = options.partsDataStore!
 
   const {
     items = ref([]),
     itemIdKey = 'id',
     sidebarMode = 'parts-data',
     selectedView = 'part-classes',
-    partsManagementStore,
-    partsDataStore,
     selectedRowId = ref(null),
     hoverDebounceTime = 50,
     mouseLeaveDelay = 200,
@@ -55,15 +74,13 @@ export function useSidebarNavigation(options = {}) {
   const finalHoverDebounceTime = sidebarNavSettings.hoverDebounceTime ?? hoverDebounceTime
   const finalMouseLeaveDelay = sidebarNavSettings.mouseLeaveDelay ?? mouseLeaveDelay
 
-  // 호버된 행 ID
-  const hoveredRowId = ref(null)
+  const hoveredRowId = ref<number | string | null>(null)
 
-  // 디바운스 타이머
-  let hoverDebounceTimer = null
-  let mouseLeaveTimer = null
+  let hoverDebounceTimer: ReturnType<typeof setTimeout> | null = null
+  let mouseLeaveTimer: ReturnType<typeof setTimeout> | null = null
 
   // 상세 뷰 상태 (store와 동기화)
-  const sidebarDetailViewRowId = ref(null)
+  const sidebarDetailViewRowId = ref<number | string | null>(null)
   const isSidebarDetailViewActive = computed({
     get: () => partsDataStore.isSidebarDetailViewActive,
     set: (value) => {
@@ -71,32 +88,27 @@ export function useSidebarNavigation(options = {}) {
     },
   })
 
-  // 클릭으로 선택된 항목 ID를 추적 (handleRowClick에서 설정)
-  const clickedRowId = ref(null)
+  const clickedRowId = ref<number | string | null>(null)
 
-  // items를 computed로 변환 (ref 또는 computed 모두 처리)
   const itemsValue = computed(() => {
-    // items가 ref나 computed인 경우
-    if (items && typeof items === 'object' && 'value' in items) {
-      const value = items.value
-      // value가 배열이면 그대로 반환, computed라면 value() 호출
-      return Array.isArray(value) ? value : typeof value === 'function' ? value() : value
+    const it = items as { value?: unknown } | undefined
+    if (it != null && typeof it === 'object' && 'value' in it) {
+      const value = (it as { value: unknown }).value
+      return Array.isArray(value) ? value : []
     }
-    // items가 함수인 경우 (computed)
     if (typeof items === 'function') {
-      const value = items()
-      return Array.isArray(value) ? value : typeof value === 'function' ? value() : value
+      const value = (items as () => unknown)()
+      return Array.isArray(value) ? value : []
     }
-    // items가 직접 배열인 경우
     return Array.isArray(items) ? items : []
   })
 
-  // selectedRowId를 computed로 변환
   const selectedRowIdValue = computed(() => {
-    if (typeof selectedRowId === 'function') {
-      return selectedRowId.value
+    const sr = selectedRowId as { value?: number | string | null } | undefined
+    if (sr != null && typeof sr === 'object' && 'value' in sr) {
+      return sr.value ?? null
     }
-    return selectedRowId.value || null
+    return null
   })
 
   // 사이드바 모드/뷰 전환 헬퍼
@@ -109,8 +121,7 @@ export function useSidebarNavigation(options = {}) {
     }
   }
 
-  // 호버 뷰 활성화
-  function activateHoverView(item) {
+  function activateHoverView(item: Record<string, unknown>) {
     if (!item) return
 
     ensureSidebarModeAndView()
@@ -133,8 +144,7 @@ export function useSidebarNavigation(options = {}) {
     // 클릭으로 선택된 항목이 있으면 selectedPartClass와 selectedPartClasses는 유지
   }
 
-  // 행 마우스 진입 핸들러
-  function onRowMouseEnter(evt, row = null) {
+  function onRowMouseEnter(evt: MouseEvent | null, row: Record<string, unknown> | null = null) {
     // row가 직접 전달된 경우 (카드 뷰 또는 테이블 뷰에서 row 파라미터로 전달)
     let rowId = null
     if (row && row[itemIdKey]) {
@@ -142,19 +152,17 @@ export function useSidebarNavigation(options = {}) {
     } else if (evt) {
       // evt에서 rowId 추출 (테이블 뷰 또는 카드 뷰에서 row가 전달되지 않은 경우)
       // currentTarget이 있으면 사용, 없으면 target 사용
-      const rowElement = evt.currentTarget || evt.target
+      const rowElement = (evt.currentTarget ?? evt.target) as Element | null
       if (rowElement) {
-        // data-row-id 속성 확인
         const dataRowId = rowElement.getAttribute('data-row-id')
         if (dataRowId) {
-          rowId = parseInt(dataRowId)
+          rowId = parseInt(dataRowId, 10)
         } else {
-          // data-row-id가 없으면 가장 가까운 부모 요소에서 찾기
           const parentWithRowId = rowElement.closest('[data-row-id]')
           if (parentWithRowId) {
-            const dataRowId = parentWithRowId.getAttribute('data-row-id')
-            if (dataRowId) {
-              rowId = parseInt(dataRowId)
+            const parentDataRowId = parentWithRowId.getAttribute('data-row-id')
+            if (parentDataRowId) {
+              rowId = parseInt(parentDataRowId, 10)
             }
           }
         }
@@ -175,7 +183,7 @@ export function useSidebarNavigation(options = {}) {
     }
 
     hoverDebounceTimer = setTimeout(() => {
-      hoveredRowId.value = rowId
+      hoveredRowId.value = rowId as number | string | null
 
       // itemsValue가 배열인지 확인
       const itemsArray = Array.isArray(itemsValue.value) ? itemsValue.value : []
@@ -190,13 +198,11 @@ export function useSidebarNavigation(options = {}) {
         activateHoverView(hoveredItem)
       }
 
-      // 추가 콜백 호출 (오버레이 위치 업데이트 등)
-      onHover(hoveredItem, evt)
+      if (evt) onHover(hoveredItem, evt)
     }, finalHoverDebounceTime)
   }
 
-  // 행 마우스 이동 핸들러
-  function onRowMouseMove(evt, row = null) {
+  function onRowMouseMove(evt: MouseEvent | null, row: Record<string, unknown> | null = null) {
     if (!hoveredRowId.value) return
 
     // row가 직접 전달된 경우 (카드 뷰 또는 테이블 뷰에서 row 파라미터로 전달)
@@ -206,19 +212,18 @@ export function useSidebarNavigation(options = {}) {
     } else if (evt) {
       // evt에서 rowId 추출 (테이블 뷰)
       // currentTarget이 있으면 사용, 없으면 target 사용
-      const rowElement = evt.currentTarget || evt.target
+      const rowElement = (evt.currentTarget ?? evt.target) as Element | null
       if (rowElement) {
-        // data-row-id 속성 확인
         const dataRowId = rowElement.getAttribute('data-row-id')
         if (dataRowId) {
-          rowId = parseInt(dataRowId)
+          rowId = parseInt(dataRowId, 10)
         } else {
           // data-row-id가 없으면 가장 가까운 부모 요소에서 찾기
           const parentWithRowId = rowElement.closest('[data-row-id]')
           if (parentWithRowId) {
             const dataRowId = parentWithRowId.getAttribute('data-row-id')
             if (dataRowId) {
-              rowId = parseInt(dataRowId)
+              rowId = parseInt(dataRowId, 10)
             }
           }
         }
@@ -231,7 +236,7 @@ export function useSidebarNavigation(options = {}) {
       const itemsArray = Array.isArray(itemsValue.value) ? itemsValue.value : []
       // 추가 콜백 호출 (오버레이 위치 업데이트 등)
       const hoveredItem = itemsArray.find((item) => item && item[itemIdKey] === rowId)
-      if (hoveredItem) {
+      if (hoveredItem && evt) {
         onHover(hoveredItem, evt)
       }
     }
@@ -243,31 +248,28 @@ export function useSidebarNavigation(options = {}) {
     // 컨테이너가 있으면 onContainerMouseLeave에서 처리
   }
 
-  // 컨테이너 마우스 떠남 핸들러 (테이블 뷰 전용)
-  function onContainerMouseLeave(evt) {
+  function onContainerMouseLeave(evt: MouseEvent) {
     if (!containerRef) return
 
     // 마우스가 실제로 컨테이너 영역을 벗어났는지 확인
     const relatedTarget = evt?.relatedTarget
     if (relatedTarget) {
       // containerRef가 ref 객체인지 확인하고 DOM 요소 추출
-      let container = null
-      if (typeof containerRef === 'function') {
-        container = containerRef.value
-      } else if (containerRef && typeof containerRef === 'object' && 'value' in containerRef) {
-        container = containerRef.value
-      } else {
-        container = containerRef
+      let container: HTMLElement | null = null
+      const cr = containerRef as { value?: HTMLElement | null } | null | undefined
+      if (cr != null && typeof cr === 'object' && 'value' in cr) {
+        container = cr.value ?? null
+      } else if (cr != null) {
+        container = cr as unknown as HTMLElement | null
       }
 
-      // container가 DOM 요소인지 확인 (contains 메서드가 있는지 확인)
-      if (container && typeof container.contains === 'function' && container.contains(relatedTarget)) {
+      if (container && typeof container.contains === 'function' && container.contains(relatedTarget as Node)) {
         return // 컨테이너 내부로 이동한 것이면 무시
       }
 
       // 사이드바 영역으로 이동한 경우도 무시 (클릭으로 선택된 항목이 있을 때)
       // 사이드바는 보통 특정 클래스나 ID를 가지고 있음
-      const sidebarElement = relatedTarget.closest('.parts-management-sidebar, .q-drawer, [class*="sidebar"], [id*="sidebar"]')
+      const sidebarElement = (relatedTarget as Element).closest('.parts-management-sidebar, .q-drawer, [class*="sidebar"], [id*="sidebar"]')
       if (sidebarElement) {
         // 사이드바로 이동한 경우, 클릭으로 선택된 항목이 있으면 무시
         // 또는 partsDataStore에 선택된 항목이 있으면 무시
@@ -305,15 +307,14 @@ export function useSidebarNavigation(options = {}) {
         deactivateHoverView()
 
         // 추가 콜백 호출
-        if (onMouseLeave) {
+        if (onMouseLeave && evt) {
           onMouseLeave(evt)
         }
       }
     }, finalMouseLeaveDelay)
   }
 
-  // 행 클릭 핸들러
-  function handleRowClick(row) {
+  function handleRowClick(row: Record<string, unknown>) {
     console.log('[useSidebarNavigation] handleRowClick 호출', {
       rowId: row[itemIdKey],
       isSidebarDetailViewActive: isSidebarDetailViewActive.value,
@@ -325,17 +326,15 @@ export function useSidebarNavigation(options = {}) {
     partsDataStore.selectedPartClass = row
     partsDataStore.selectedPartClasses = [row]
 
-    // selectedRowId도 즉시 업데이트 (onContainerMouseLeave에서 체크하기 위해)
-    // selectedRowId는 ref이므로 직접 업데이트
-    const rowId = row[itemIdKey]
-    clickedRowId.value = rowId // 클릭된 항목 ID 추적
+    const rowId = row[itemIdKey] as number | string
+    clickedRowId.value = rowId
 
-    if (selectedRowId && typeof selectedRowId === 'object' && 'value' in selectedRowId) {
-      selectedRowId.value = rowId
-    } else if (typeof selectedRowId === 'function') {
-      // computed인 경우 setter가 있으면 사용
-      if (selectedRowId.set) {
-        selectedRowId.set(rowId)
+    const sr = selectedRowId as { value?: number | string | null; set?: (v: unknown) => void } | undefined
+    if (sr != null && typeof sr === 'object') {
+      if ('value' in sr) {
+        (sr as { value: number | string | null }).value = rowId
+      } else if (typeof sr.set === 'function') {
+        sr.set(rowId)
       }
     }
 
@@ -344,14 +343,13 @@ export function useSidebarNavigation(options = {}) {
       partsDataStore_isSidebarDetailViewActive: partsDataStore.isSidebarDetailViewActive,
     })
     if (isSidebarDetailViewActive.value) {
-      // 사이드바 상세 뷰일 때: 선택만 변경
       console.log('[useSidebarNavigation] handleRowClick: 이미 상세 뷰 활성화됨, 선택만 변경')
       sidebarDetailViewRowId.value = rowId
     } else {
       // 기본 모드일 때: 사이드바 상세 뷰 진입
       console.log('[useSidebarNavigation] handleRowClick: 상세 뷰 활성화')
       partsDataStore.isSidebarDetailViewActive = true
-      sidebarDetailViewRowId.value = rowId
+      sidebarDetailViewRowId.value = rowId as number | string | null
       console.log('[useSidebarNavigation] handleRowClick: 상세 뷰 활성화 후', {
         isSidebarDetailViewActive_value: isSidebarDetailViewActive.value,
         partsDataStore_isSidebarDetailViewActive: partsDataStore.isSidebarDetailViewActive,
@@ -362,15 +360,12 @@ export function useSidebarNavigation(options = {}) {
     onClick(row)
   }
 
-  // 행 더블 클릭 핸들러
-  function handleRowDoubleClick(row) {
+  function handleRowDoubleClick(row: Record<string, unknown>) {
     if (isSidebarDetailViewActive.value) {
-      // 사이드바 상세 뷰일 때: 해제 (사이드바 호버 뷰로 전환)
       exitSidebarDetailView()
     } else {
-      // 기본 모드일 때: 사이드바 상세 뷰 진입
       partsDataStore.isSidebarDetailViewActive = true
-      sidebarDetailViewRowId.value = row[itemIdKey]
+      sidebarDetailViewRowId.value = row[itemIdKey] as number | string | null
     }
 
     // 추가 콜백 호출
