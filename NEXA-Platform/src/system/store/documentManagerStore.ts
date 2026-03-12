@@ -148,6 +148,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
             type FileMetaItem = { relativePath?: string; fileName?: string; modifiedDate?: string; createdDate?: string; displayPath?: string; contentHash?: string; size?: number }
             metadataData.files.forEach((fileMeta: FileMetaItem) => {
               const key = fileMeta.relativePath || fileMeta.fileName
+              if (!key) return
               backendFilesMap.set(key, fileMeta)
               metadataMap.set(key, {
                 modifiedDate: fileMeta.modifiedDate,
@@ -227,6 +228,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
               currentFileRelativePaths = []
               metadataData.files.forEach((fileMeta: { relativePath?: string; fileName?: string; modifiedDate?: string; createdDate?: string; displayPath?: string; contentHash?: string; size?: number }) => {
                 const key = fileMeta.relativePath || fileMeta.fileName
+                if (!key) return
                 backendFilesMap.set(key, fileMeta)
                 metadataMap.set(key, {
                   modifiedDate: fileMeta.modifiedDate,
@@ -459,7 +461,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
       return
     }
 
-    const headings: Array<{ id: string; text: string; level: number; parent?: unknown; children?: unknown[] }> = []
+    const headings: Array<{ id: string; text: string; level: number; lineIndex: number; parent?: unknown; children?: unknown[] }> = []
     const lines = content.split('\n')
     let headingIndex = 0
     let inCodeBlock = false
@@ -512,8 +514,11 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
         // 루트 레벨
         tree.push(node)
       } else {
-        // 부모 노드의 children에 추가
-        stack[stack.length - 1].children.push(node)
+        const parent = stack[stack.length - 1]
+        if (parent) {
+          parent.children = parent.children ?? []
+          parent.children.push(node)
+        }
       }
 
       stack.push(node)
@@ -638,7 +643,8 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
   }
 
   function handleContentClick(event: MouseEvent) {
-    const target = event.target as HTMLElement
+    const target = event.target
+    if (!target || !(target instanceof HTMLElement)) return
     if (target.classList?.contains('checkbox-item')) {
       event.stopPropagation()
       event.preventDefault()
@@ -663,26 +669,28 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
 
     if (isCheckbox || isLabel) {
       // 체크박스 직접 클릭 또는 라벨 클릭으로 인한 체크박스 토글
-      let checkbox = null
+      let checkbox: HTMLInputElement | null = null
       if (isCheckbox) {
-        checkbox = event.target
+        checkbox = target as HTMLInputElement
       } else if (isLabel) {
         // 라벨의 for 속성으로 연결된 체크박스 찾기
-        const labelFor = event.target.getAttribute('for')
+        const labelFor = target.getAttribute('for')
         if (labelFor) {
-          checkbox = document.getElementById(labelFor)
+          checkbox = document.getElementById(labelFor) as HTMLInputElement | null
         }
         // for 속성이 없으면 형제 요소로 찾기
         if (!checkbox) {
-          checkbox = event.target.previousElementSibling
+          checkbox = target.previousElementSibling as HTMLInputElement | null
         }
       }
 
-      const container = checkbox?.closest('.checkbox-item')
+      const container = checkbox?.closest('.checkbox-item') as HTMLElement | null
 
       if (container && checkbox && checkbox.classList.contains('dev-checkbox-input')) {
         const fileKey = container.dataset.fileKey
         const lineKey = container.dataset.lineKey
+        if (fileKey === undefined || lineKey === undefined) return
+
         // 라벨 클릭 시 브라우저가 이미 체크박스를 토글했으므로 현재 상태를 읽음
         const isChecked = checkbox.checked
 

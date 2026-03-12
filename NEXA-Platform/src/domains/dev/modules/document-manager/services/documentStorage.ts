@@ -16,6 +16,7 @@ export type CheckboxStates = Record<string, Record<string, boolean>>
 
 export interface TOCSettingsInput {
   tocAutoCloseOnContentClick?: Ref<boolean> | boolean
+  autoCollapse?: Ref<boolean> | boolean
   autoHighlightOnScroll?: Ref<boolean>
   hideCompleted?: Ref<boolean> | boolean
   showExcludedFiles?: Ref<boolean>

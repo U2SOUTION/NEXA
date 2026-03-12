@@ -48,7 +48,7 @@
     "dist",
     ".quasar",
     "src/**/ExplorerPreview.vue",
-    "src/system/store/documentManagerStore.ts",
-    "src/system/composables/useSettingsManager.ts"
+    "src/system/composables/useSettingsManager.ts",
+    "src/system/utils/settings-scanner/**"
   ]
 }

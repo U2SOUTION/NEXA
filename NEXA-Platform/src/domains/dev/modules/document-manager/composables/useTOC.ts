@@ -1,5 +1,23 @@
+import type { Ref } from 'vue'
 import { nextTick } from 'vue'
 import { saveTOCExpandedState, saveTOCSettings } from '@domains/dev/modules/document-manager/services/documentStorage'
+
+interface TOCItem {
+  id: string
+  level: number
+  children?: TOCItem[]
+}
+
+interface TOCStoreRefs {
+  tocItems: Ref<TOCItem[]>
+  tocExpanded: Ref<Record<string, boolean>>
+  tocAutoCollapse: Ref<boolean>
+  tocAutoCloseOnContentClick: Ref<boolean>
+  currentSectionId: Ref<string | null>
+  allTOCExpandedState: Ref<boolean>
+  isManualHighlight: Ref<boolean>
+  selectedFile: Ref<{ name: string } | null>
+}
 
 /**
  * TOC (목차) 관련 로직 Composable
@@ -16,14 +34,14 @@ import { saveTOCExpandedState, saveTOCSettings } from '@domains/dev/modules/docu
  * @param {Ref} storeRefs.selectedFile - 현재 선택된 파일
  * @returns {Object} TOC 관련 함수들
  */
-export function useTOC(storeRefs) {
+export function useTOC(storeRefs: TOCStoreRefs) {
   const { tocItems, tocExpanded, tocAutoCollapse, tocAutoCloseOnContentClick, currentSectionId, allTOCExpandedState, isManualHighlight, selectedFile } = storeRefs
 
   /**
    * 목차 항목 클릭 시 해당 위치로 스크롤 이동
    * @param {string} headingId - 헤딩 요소의 ID
    */
-  function scrollToHeading(headingId) {
+  function scrollToHeading(headingId: string) {
     // 수동 하일라이팅 모드 활성화
     isManualHighlight.value = true
 
@@ -78,7 +96,7 @@ export function useTOC(storeRefs) {
 
         // 요소 위치 계산
         const elementRect = element.getBoundingClientRect()
-        const containerRect = scrollContainer.getBoundingClientRect()
+        const containerRect = scrollContainer!.getBoundingClientRect()
         const relativeTop = elementRect.top - containerRect.top
         const elementAbsoluteTop = currentScrollTop + relativeTop
         const targetScrollTop = Math.max(0, elementAbsoluteTop - headerHeight - 20)
@@ -92,7 +110,7 @@ export function useTOC(storeRefs) {
           const duration = 500 // 500ms
           const startTime = performance.now()
 
-          function animateScroll(currentTime) {
+          function animateScroll(currentTime: number) {
             const elapsed = currentTime - startTime
             const progress = Math.min(elapsed / duration, 1)
 
@@ -100,7 +118,7 @@ export function useTOC(storeRefs) {
             const easeInOutCubic = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2
 
             const currentScrollPosition = startScrollTop + distance * easeInOutCubic
-            scrollContainer.scrollTop = currentScrollPosition
+            scrollContainer!.scrollTop = currentScrollPosition
 
             if (progress < 1) {
               requestAnimationFrame(animateScroll)
@@ -124,7 +142,7 @@ export function useTOC(storeRefs) {
    * 목차 확장/축소 토글 (개별 항목)
    * @param {string} itemId - 토글할 항목의 ID
    */
-  function toggleTOCItem(itemId) {
+  function toggleTOCItem(itemId: string) {
     /**
      * 트리에서 항목과 부모 정보를 재귀적으로 찾기
      * @param {string} targetId - 찾을 항목 ID
@@ -132,7 +150,7 @@ export function useTOC(storeRefs) {
      * @param {Object|null} parent - 부모 항목
      * @returns {Object|null} { item, parent } 또는 null
      */
-    function findItemWithParent(targetId, items, parent = null) {
+    function findItemWithParent(targetId: string, items: TOCItem[], parent: TOCItem | null = null): { item: TOCItem; parent: TOCItem | null } | null {
       for (const item of items) {
         if (item.id === targetId) {
           return { item, parent }
@@ -146,11 +164,9 @@ export function useTOC(storeRefs) {
     }
 
     if (tocAutoCollapse.value) {
-      // 자동 접힘 모드 (아코디언): 형제 항목들 자동 접기
-      const newExpanded = {}
+      const newExpanded: Record<string, boolean> = {}
 
-      // 최상위 레벨 항목들은 항상 true로 유지
-      tocItems.value.forEach((rootItem) => {
+      tocItems.value.forEach((rootItem: TOCItem) => {
         newExpanded[rootItem.id] = true
       })
 
@@ -167,7 +183,7 @@ export function useTOC(storeRefs) {
          * 부모 경로의 모든 항목을 펼치는 함수 (재귀적)
          * @param {Object|null} parentItem - 부모 항목
          */
-        function setParentPath(parentItem) {
+        function setParentPath(parentItem: TOCItem | null) {
           if (parentItem) {
             newExpanded[parentItem.id] = true
             // 재귀적으로 모든 부모 찾아서 펼치기
@@ -181,7 +197,7 @@ export function useTOC(storeRefs) {
         // 현재 항목이 최상위 레벨인 경우
         if (!parent) {
           // 최상위 레벨의 형제 항목들 찾기
-          tocItems.value.forEach((sibling) => {
+          tocItems.value.forEach((sibling: TOCItem) => {
             if (sibling.id === itemId) {
               newExpanded[sibling.id] = newState
               // 현재 항목이 펼쳐지는 경우, 자식 항목들은 기존 상태 유지
@@ -201,15 +217,15 @@ export function useTOC(storeRefs) {
                  * 모든 자식 항목을 재귀적으로 접는 함수
                  * @param {Array} children - 자식 항목 배열
                  */
-                function collapseChildren(children) {
-                  children.forEach((child) => {
+                function collapseChildren(children: TOCItem[]) {
+                  children.forEach((child: TOCItem) => {
                     newExpanded[child.id] = false
                     if (child.children && child.children.length > 0) {
                       collapseChildren(child.children)
                     }
                   })
                 }
-                collapseChildren(sibling.children)
+                collapseChildren(sibling.children!)
               }
             }
           })
@@ -220,7 +236,7 @@ export function useTOC(storeRefs) {
 
           // 같은 레벨의 형제 항목들 찾기 (부모의 자식들)
           if (parent.children && parent.children.length > 0) {
-            parent.children.forEach((sibling) => {
+            parent.children!.forEach((sibling: TOCItem) => {
               if (sibling.id === itemId) {
                 // 현재 항목은 토글된 상태로
                 newExpanded[sibling.id] = newState
@@ -241,15 +257,15 @@ export function useTOC(storeRefs) {
                    * 모든 자식 항목을 재귀적으로 접는 함수
                    * @param {Array} children - 자식 항목 배열
                    */
-                  function collapseChildren(children) {
-                    children.forEach((child) => {
+                  function collapseChildren(children: TOCItem[]) {
+                    children.forEach((child: TOCItem) => {
                       newExpanded[child.id] = false
                       if (child.children && child.children.length > 0) {
                         collapseChildren(child.children)
                       }
                     })
                   }
-                  collapseChildren(sibling.children)
+                  collapseChildren(sibling.children!)
                 }
               }
             })
@@ -279,15 +295,15 @@ export function useTOC(storeRefs) {
     // 현재 전체 토글 상태를 반전
     const shouldExpand = !allTOCExpandedState.value
 
-    const expanded = {}
+    const expanded: Record<string, boolean> = {}
 
     /**
      * 모든 항목의 상태를 재귀적으로 설정
      * @param {Array} items - 설정할 항목 배열
      * @param {boolean} isRootLevel - 최상위 레벨인지 여부
      */
-    function setState(items, isRootLevel = false) {
-      items.forEach((item) => {
+    function setState(items: TOCItem[], isRootLevel = false) {
+      items.forEach((item: TOCItem) => {
         // 루트 레벨은 항상 펼침 상태로 유지
         if (isRootLevel) {
           expanded[item.id] = true
@@ -324,7 +340,7 @@ export function useTOC(storeRefs) {
    * @param {Array} allItems - 모든 항목 배열 (아코디언 로직용)
    * @returns {boolean} 확장 여부
    */
-  function getItemExpanded(itemId, expandedMap, autoCollapse, currentSectionId, allItems) {
+  function getItemExpanded(itemId: string, expandedMap: Record<string, boolean>, autoCollapse: boolean, currentSectionId: string | null, allItems: TOCItem[]) {
     // 1. expandedMap에 명시적으로 값이 있으면 무조건 사용 (최우선)
     if (itemId in expandedMap) {
       return !!expandedMap[itemId]
@@ -333,7 +349,7 @@ export function useTOC(storeRefs) {
     // 2. 아코디언 모드이고 현재 섹션이 있으면 아코디언 로직 적용
     if (autoCollapse && currentSectionId) {
       // allItems에서 해당 항목 찾기
-      function findItemById(targetId, items) {
+      function findItemById(targetId: string, items: TOCItem[]): TOCItem | null {
         for (const item of items) {
           if (item.id === targetId) {
             return item
@@ -362,10 +378,10 @@ export function useTOC(storeRefs) {
    * @param {string} activeId - 활성 섹션 ID
    * @returns {boolean} 활성 섹션의 자손인지 여부
    */
-  function isChildOfActive(item, activeId) {
+  function isChildOfActive(item: TOCItem, activeId: string): boolean {
     if (item.id === activeId) return true
     if (item.children) {
-      return item.children.some((child) => isChildOfActive(child, activeId))
+      return item.children.some((child: TOCItem) => isChildOfActive(child, activeId))
     }
     return false
   }
@@ -374,12 +390,12 @@ export function useTOC(storeRefs) {
    * 아코디언 모드 변경 핸들러
    * @param {boolean} value - 아코디언 모드 여부
    */
-  function setAutoCollapse(value) {
+  function setAutoCollapse(value: boolean) {
     tocAutoCollapse.value = value
     // 설정 저장
     saveTOCSettings({
       autoCollapse: value,
-      autoCloseOnContentClick: tocAutoCloseOnContentClick.value,
+      tocAutoCloseOnContentClick: tocAutoCloseOnContentClick.value,
     })
   }
 
@@ -387,12 +403,12 @@ export function useTOC(storeRefs) {
    * 자동 닫기 모드 변경 핸들러
    * @param {boolean} value - 자동 닫기 모드 여부
    */
-  function setAutoCloseOnContentClick(value) {
+  function setAutoCloseOnContentClick(value: boolean) {
     tocAutoCloseOnContentClick.value = value
     // 설정 저장
     saveTOCSettings({
       autoCollapse: tocAutoCollapse.value,
-      autoCloseOnContentClick: value,
+      tocAutoCloseOnContentClick: value,
     })
   }
 

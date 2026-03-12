@@ -1,21 +1,42 @@
 /**
  * 설정 관리 Composable
- * 
+ *
  * 설정 스캔, 검색, 필터링 등의 기능 제공
  */
 
 import { ref, computed, onMounted } from 'vue'
 import { scanAllSettings, searchSettings, filterSettings } from '@system/utils/settings-scanner/settingsScanner'
 
+export interface ScannedSetting {
+  id: string
+  name: string
+  path: string
+  category?: string
+  type?: string
+  data?: unknown
+  size?: number
+  lastModified?: string
+  rawValue?: string | null
+  parseError?: string | null
+}
+
+export interface ScanStatistics {
+  totalCount: number
+  totalSize: number
+  categoryStats?: Record<string, { count: number; size: number }>
+  configFilesCount?: number
+  localStorageCount?: number
+  systemSettingsCount?: number
+}
+
 export function useSettingsManager() {
-  // 상태
   const isLoading = ref(false)
-  const allSettings = ref([])
-  const selectedSetting = ref(null)
+  const allSettings = ref<ScannedSetting[]>([])
+  const selectedSetting = ref<ScannedSetting | null>(null)
   const searchQuery = ref('')
-  const filterCategory = ref(null)
-  const filterType = ref(null)
-  const statistics = ref(null)
+  const filterCategory = ref<string | null>(null)
+  const filterType = ref<string | null>(null)
+  const statistics = ref<ScanStatistics | null>(null)
 
   // 검색 및 필터링된 설정
   const filteredSettings = computed(() => {
@@ -37,10 +58,9 @@ export function useSettingsManager() {
     return result
   })
 
-  // 카테고리 목록
   const categories = computed(() => {
-    const categorySet = new Set()
-    allSettings.value.forEach(setting => {
+    const categorySet = new Set<string>()
+    allSettings.value.forEach((setting: ScannedSetting) => {
       if (setting.category) {
         categorySet.add(setting.category)
       }
@@ -48,10 +68,9 @@ export function useSettingsManager() {
     return Array.from(categorySet).sort()
   })
 
-  // 타입 목록
   const types = computed(() => {
-    const typeSet = new Set()
-    allSettings.value.forEach(setting => {
+    const typeSet = new Set<string>()
+    allSettings.value.forEach((setting: ScannedSetting) => {
       if (setting.type) {
         typeSet.add(setting.type)
       }
@@ -73,30 +92,26 @@ export function useSettingsManager() {
       ]
       
       statistics.value = result.statistics
-    } catch (error) {
-      console.error('[useSettingsManager] 설정 스캔 실패:', error)
+    } catch (err: unknown) {
+      console.error('[useSettingsManager] 설정 스캔 실패:', err)
     } finally {
       isLoading.value = false
     }
   }
 
-  // 설정 선택
-  function selectSetting(setting) {
+  function selectSetting(setting: ScannedSetting | null) {
     selectedSetting.value = setting
   }
 
-  // 검색 변경
-  function handleSearchChange(query) {
+  function handleSearchChange(query: string) {
     searchQuery.value = query
   }
 
-  // 카테고리 필터 변경
-  function handleCategoryFilterChange(category) {
+  function handleCategoryFilterChange(category: string | null) {
     filterCategory.value = category
   }
 
-  // 타입 필터 변경
-  function handleTypeFilterChange(type) {
+  function handleTypeFilterChange(type: string | null) {
     filterType.value = type
   }
 
