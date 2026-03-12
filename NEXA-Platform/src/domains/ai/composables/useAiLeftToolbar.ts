@@ -6,7 +6,27 @@ import type { Ref } from 'vue'
 import { computed } from 'vue'
 import type { Channel, Chat } from '../types/aiDomainTypes'
 
-type LeftMainTab = 'chat' | 'note' | 'media'
+export type LeftMainTab = 'chat' | 'note' | 'media'
+
+export type ToolbarMenuButton = {
+  id: string
+  type: 'menu'
+  icon: string
+  size?: string
+  title: string
+  menuItems: { icon: string; label: string; onClick?: () => void }[]
+}
+export type ToolbarActionButton = {
+  id: string
+  type: 'button'
+  icon: string
+  size?: string
+  title: string
+  onClick?: () => void
+  disabled?: boolean
+  color?: string
+}
+export type ToolbarItem = ToolbarMenuButton | ToolbarActionButton
 
 export interface AiLeftToolbarCtx {
   leftMainTab?: Ref<LeftMainTab>
@@ -64,7 +84,7 @@ export function useAiLeftToolbar(ctx: AiLeftToolbarCtx) {
     return labels[tab ?? ''] || 'TOOLbar'
   })
 
-  const toolbarItems = computed(() => {
+  const toolbarItems = computed((): ToolbarItem[] => {
     const tab = ctx.leftMainTab?.value
     if (tab === 'chat') return getChatItems(ctx)
     if (tab === 'note') return getNoteItems(ctx)
@@ -104,8 +124,8 @@ export function useAiLeftToolbar(ctx: AiLeftToolbarCtx) {
   }
 }
 
-function getChatItems(ctx: AiLeftToolbarCtx) {
-  const items = []
+function getChatItems(ctx: AiLeftToolbarCtx): ToolbarItem[] {
+  const items: ToolbarItem[] = []
   items.push({
     id: 'add',
     type: 'menu',
@@ -137,7 +157,7 @@ function getChatItems(ctx: AiLeftToolbarCtx) {
   return items
 }
 
-function getNoteItems(ctx: AiLeftToolbarCtx) {
+function getNoteItems(ctx: AiLeftToolbarCtx): ToolbarItem[] {
   return [
     { id: 'add', type: 'button', icon: 'add', size: 'md', title: '메모 추가 (에디터 열기)', onClick: ctx.handleNoteAdd },
     { id: 'edit', type: 'button', icon: 'edit', title: '편집 (에디터 열기)', size: 'sm', disabled: !ctx.selectedMemo?.value, onClick: ctx.handleNoteEdit },
@@ -147,7 +167,7 @@ function getNoteItems(ctx: AiLeftToolbarCtx) {
   ]
 }
 
-function getMediaItems(ctx: AiLeftToolbarCtx) {
+function getMediaItems(ctx: AiLeftToolbarCtx): ToolbarItem[] {
   return [
     { id: 'up', type: 'button', icon: 'arrow_upward', title: '위로', size: 'sm', disabled: !ctx.canMoveMediaUp?.value, onClick: ctx.handleMediaMoveUp },
     { id: 'down', type: 'button', icon: 'arrow_downward', title: '아래로', size: 'sm', disabled: !ctx.canMoveMediaDown?.value, onClick: ctx.handleMediaMoveDown },

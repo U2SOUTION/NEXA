@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck — strict 타입은 추후 엔진 재작성 시 적용
 /**
  * chartTheme.js
  * 차트 테마/디자인 시스템

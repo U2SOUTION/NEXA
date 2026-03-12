@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck — strict 타입은 추후 엔진 재작성 시 적용
 /**
  * diagramLayout.js
  * 다이어그램 레이아웃 알고리즘

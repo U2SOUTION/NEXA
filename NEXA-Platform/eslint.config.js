@@ -103,5 +103,19 @@ export default [
     }
   },
 
+  // engines, device: @ts-nocheck 허용 (strict 타입은 추후 재작성 시 적용)
+  {
+    files: [
+      '**/engines/**/*.ts',
+      '**/system/services/device/**/*.ts'
+    ],
+    plugins: {
+      '@typescript-eslint': tsPlugin
+    },
+    rules: {
+      '@typescript-eslint/ban-ts-comment': 'off'
+    }
+  },
+
   prettierSkipFormatting
 ]

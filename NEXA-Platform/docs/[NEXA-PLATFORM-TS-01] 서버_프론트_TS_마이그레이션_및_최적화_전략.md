@@ -566,11 +566,14 @@ export async function scanConfigFiles(modulePaths?: string[]) {
 - **include 통과**: `infra`, `erp`, `panel`, `theme-manager`, `parts`, `document-manager` (useMermaid·useMermaidStyle 제외), `ai`, `archive`
 - **수정 완료**: useAiAssets, useAiChannels, useAiExplorerSelection, useAiInsertRequest, useAiLeftToolbar, useAiModels, useAiSettings, archiveSearchStore, EventDispatcher, engines/tiptap (Video, clipboardImage, fileFormat, youtube)
 
-#### 9.3.3 향후 strict 포함 후보
+#### 9.3.3 strict 포함 완료 (2025-03)
+
+- **document-manager** 전체 strict 통과. useMermaid, useMermaidStyle 타입 수정 완료 (Element→HTMLElement/SVGElement, getElementClassString, window.mermaidModule 전역 선언).
+
+#### 9.3.4 향후 strict 포함 후보
 
 | 대상 | 비고 |
 |------|------|
-| **document-manager: useMermaid, useMermaidStyle** | DOM·MutationObserver·unknown 다수. |
 | **frame/** | ~1000 에러 (AiLeftNav.vue 등). |
 | **engines/** | ~760 에러 (charts, diagram, tiptap 일부). |
 

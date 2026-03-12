@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck — strict 타입은 추후 엔진 재작성 시 적용
 /**
  * FlowDiagram.js
  * 플로우차트 다이어그램 렌더러

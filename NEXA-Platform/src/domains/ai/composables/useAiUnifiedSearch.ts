@@ -89,8 +89,8 @@ watch(
 export function useAiUnifiedSearch() {
   const fe = useGlobalFileExplorer()
 
-  function setSearchQuery(q: string) {
-    searchQuery.value = q ?? ''
+  function setSearchQuery(q: string | number | null) {
+    searchQuery.value = q != null ? String(q) : ''
   }
 
   function setSearchTarget(target: UnifiedSearchTarget) {

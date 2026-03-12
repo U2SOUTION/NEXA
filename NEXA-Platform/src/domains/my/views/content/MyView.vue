@@ -253,7 +253,7 @@ async function fetchDevices() {
   devicesError.value = ''
   try {
     const res = await fetch(`${getApiBaseUrl()}/devices`, {
-      headers: authStore.getAuthHeaders(),
+      headers: authStore.getAuthHeaders() as Record<string, string>,
     })
     if (res.status === 401) {
       devicesError.value = '인증이 만료되었습니다. 다시 로그인해 주세요.'
@@ -289,7 +289,7 @@ async function submitRegisterDevice() {
   try {
     const res = await fetch(`${getApiBaseUrl()}/devices`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authStore.getAuthHeaders() },
+      headers: { 'Content-Type': 'application/json', ...(authStore.getAuthHeaders() as Record<string, string>) },
       body: JSON.stringify({
         name: registerForm.value.name || undefined,
         device_type: registerForm.value.device_type || undefined,
@@ -315,17 +315,17 @@ function copyDeviceToken() {
   }).catch(() => {})
 }
 
-function formatDate(value) {
+function formatDate(value: string | number | Date | null | undefined) {
   if (!value) return '—'
   try {
-    const d = new Date(value)
-    return Number.isNaN(d.getTime()) ? value : d.toLocaleString('ko-KR')
+    const d = new Date(value as string | number)
+    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString('ko-KR')
   } catch {
-    return value
+    return String(value)
   }
 }
 
-function formatJson(value) {
+function formatJson(value: unknown) {
   if (value == null) return '—'
   return typeof value === 'string' ? value : JSON.stringify(value)
 }

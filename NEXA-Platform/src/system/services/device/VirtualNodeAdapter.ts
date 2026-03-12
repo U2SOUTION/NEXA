@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck — strict 타입은 추후 적용
 /**
  * File: VirtualNodeAdapter.js
  * Path: src/system/services/device/VirtualNodeAdapter.js

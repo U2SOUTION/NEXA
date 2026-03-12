@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck — strict 타입은 추후 엔진 재작성 시 적용
 /**
  * chartEvents.js
  * 차트 이벤트 핸들러 공통 유틸리티

@@ -189,7 +189,7 @@
             <q-expansion-item v-model="expandedDocuments" icon="description" label="문서" @show="aiAssets.loadCategory('documents')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in displayDocuments" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
+                  <q-item v-for="f in displayDocuments" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="onDocumentClickSafe(f)" @contextmenu.prevent="openMediaContextMenuSafe($event, f)">
                     <q-item-section>{{ f.original_name }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -205,7 +205,7 @@
             <q-expansion-item v-model="expandedCodeFiles" icon="code" label="코드파일" @show="aiAssets.loadCategory('documents')">
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
-                  <q-item v-for="f in displayCodeFiles" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="f.url ? onDocumentClick(f) : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
+                  <q-item v-for="f in displayCodeFiles" :key="f.id" clickable :class="{ 'text-grey-6': !f.url }" @click="onDocumentClickSafe(f)" @contextmenu.prevent="openMediaContextMenuSafe($event, f)">
                     <q-item-section>{{ f.original_name }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -215,7 +215,7 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'images') : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
+                    <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="onMediaItemClickSafe(f, 'images')" @contextmenu.prevent="openMediaContextMenuSafe($event, f)">
                       <q-item-section v-if="f.url" avatar>
                         <img :src="getUploadDisplayUrl(f.file_path) || f.url" :alt="f.original_name" class="media-thumb media-thumb-img" loading="lazy" />
                       </q-item-section>
@@ -223,7 +223,7 @@
                         <q-icon name="image" size="24px" color="grey-5" />
                       </q-item-section>
                       <q-item-section>{{ f.original_name }}</q-item-section>
-                      <q-item-section v-if="f.url" side @click.stop="requestAttachToChat(f)">
+                      <q-item-section v-if="f.url" side @click.stop="requestAttachToChatSafe(f)">
                         <q-icon name="add_photo_alternate" size="18px" class="text-grey-6" title="채팅에 첨부" />
                       </q-item-section>
                     </q-item>
@@ -235,7 +235,7 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'audio') : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
+                    <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="onMediaItemClickSafe(f, 'audio')" @contextmenu.prevent="openMediaContextMenuSafe($event, f)">
                       <q-item-section avatar>
                         <div class="media-audio-thumb">
                           <q-icon name="music_note" size="28px" color="grey-6" />
@@ -256,7 +256,7 @@
               <div class="ai-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="f.url ? onMediaItemClick(f, 'video') : null" @contextmenu.prevent="f.url ? openMediaContextMenu($event, f) : null">
+                    <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="onMediaItemClickSafe(f, 'video')" @contextmenu.prevent="openMediaContextMenuSafe($event, f)">
                       <q-item-section v-if="f.url" avatar>
                         <video :src="getUploadDisplayUrl(f.file_path) || f.url" preload="metadata" class="media-thumb media-thumb-video" muted playsinline />
                       </q-item-section>
@@ -392,7 +392,10 @@ import UploadProgress from '@system/components/ui/UploadProgress.vue'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 import { useAiChannels } from '../../composables/useAiChannels'
 import { useAiAssets } from '../../composables/useAiAssets'
-import { useAiLeftToolbar } from '../../composables/useAiLeftToolbar'
+import { useAiLeftToolbar, type LeftMainTab } from '../../composables/useAiLeftToolbar'
+import type { AiAssetItem, ExplorerFile } from '../../types/aiDomainTypes'
+import type { Channel, Chat } from '../../types/aiDomainTypes'
+import type { AssetCategory } from '../../composables/useAiAssets'
 import { useAiUnifiedSearch, registerChannelsSync, SEARCH_TARGET_OPTIONS, CHAT_SEARCH_TARGET_OPTIONS, FILE_SORT_OPTIONS, FILE_CATEGORY_OPTIONS } from '../../composables/useAiUnifiedSearch'
 import { useAiSettings, requestAttachToChat } from '../../composables/useAiSettings'
 import { useAiExplorerSelection } from '../../composables/useAiExplorerSelection'
@@ -418,14 +421,14 @@ const CODE_EXTENSIONS = [
   'kt', 'kts', 'swift', 'dart',
   'dockerfile', 'makefile', 'mk',
 ]
-function isCodeFile(file) {
+function isCodeFile(file: AiAssetItem | { original_name?: string } | null) {
   if (!file?.original_name) return false
   const ext = (file.original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || ''
   return CODE_EXTENSIONS.includes(ext)
 }
 
-function getFileExt(file) {
-  const name = (file?.original_name || file?.file_path || '').toLowerCase()
+function getFileExt(file: AiAssetItem | { original_name?: string; file_path?: string } | null) {
+  const name = (file?.original_name || (file as AiAssetItem)?.file_path || '').toLowerCase()
   return name.match(/\.([a-z0-9]+)$/)?.[1] || ''
 }
 
@@ -438,10 +441,10 @@ const expandedVideo = ref(false)
 const expandedDocuments = ref(false)
 const expandedCodeFiles = ref(false)
 const contextMenuVisible = ref(false)
-const contextMenuFile = ref(null)
+const contextMenuFile = ref<AiAssetItem | null>(null)
 const contextMenuX = ref(0)
 const contextMenuY = ref(0)
-function injectMemoToEditor(m) {
+function injectMemoToEditor(m: { content?: string } | null) {
   const text = m?.content ? String(m.content).trim() : ''
   if (!text) return
   showPanel('narrative')
@@ -449,12 +452,30 @@ function injectMemoToEditor(m) {
   Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
 }
 
-function openMediaContextMenu(evt, f) {
+function openMediaContextMenu(evt: MouseEvent, f: AiAssetItem) {
   if (!f?.url) return
   contextMenuFile.value = f
   contextMenuX.value = evt?.clientX ?? 0
   contextMenuY.value = evt?.clientY ?? 0
   contextMenuVisible.value = true
+}
+
+/** 템플릿에서 display* union( AiAssetItem | MediaPlaceholder ) 전달 시 타입 좁히기 */
+function onDocumentClickSafe(f: DisplayFileItem) {
+  if (!('url' in f) || !f.url) return
+  onDocumentClick(f)
+}
+function onMediaItemClickSafe(f: DisplayFileItem, category: string) {
+  if (!('url' in f) || !f.url) return
+  onMediaItemClick(f, category as AssetCategory)
+}
+function openMediaContextMenuSafe(evt: MouseEvent, f: DisplayFileItem) {
+  if (!('url' in f) || !f.url) return
+  openMediaContextMenu(evt, f)
+}
+function requestAttachToChatSafe(f: DisplayFileItem) {
+  if (!('url' in f) || !f.url) return
+  requestAttachToChat(f)
 }
 
 function injectToChatFromContext() {
@@ -476,31 +497,31 @@ function injectToChatFromContext() {
 
 function injectToEditorFromContext() {
   const file = contextMenuFile.value
-  if (file) requestInjectToEditor(file)
+  if (file) requestInjectToEditor(file as unknown as ExplorerFile)
 }
 
 function openInImageEditorFromContext() {
   const file = contextMenuFile.value
-  if (file) requestOpenInImageEditor(file)
+  if (file) requestOpenInImageEditor(file as unknown as ExplorerFile)
 }
 
 function openInAudioEditorFromContext() {
   const file = contextMenuFile.value
-  if (file) requestOpenInAudioEditor(file)
+  if (file) requestOpenInAudioEditor(file as unknown as ExplorerFile)
 }
 
 function openInVideoEditorFromContext() {
   const file = contextMenuFile.value
-  if (file) requestOpenInVideoEditor(file)
+  if (file) requestOpenInVideoEditor(file as unknown as ExplorerFile)
 }
 
-function isImageForChat(file) {
+function isImageForChat(file: (AiAssetItem & { file_type?: string; category?: string }) | null) {
   if (!file) return false
   const cat = inferCategoryFromPayload({ file_type: file.file_type, type: file.category })
   return cat === 'images'
 }
 
-function openMediaAccordion(category) {
+function openMediaAccordion(category: string) {
   if (category === 'images') expandedGallery.value = true
   else if (category === 'audio') expandedAudio.value = true
   else if (category === 'video') expandedVideo.value = true
@@ -508,7 +529,7 @@ function openMediaAccordion(category) {
   else if (category === 'code') expandedCodeFiles.value = true
 }
 
-function inferCategoryFromPayload(p) {
+function inferCategoryFromPayload(p: { type?: string; file_type?: string }) {
   const t = (p.type || p.file_type || '').toLowerCase()
   if (t.includes('image')) return 'images'
   if (t.includes('audio')) return 'audio'
@@ -517,42 +538,43 @@ function inferCategoryFromPayload(p) {
 }
 
 /** 클릭: 뷰어에 단일 표시. md도 파서로 뷰어. 코드 파일(md 제외)만 Monaco. 삽입은 우클릭 "에디터에 넣기"로만. */
-function onDocumentClick(f) {
+function onDocumentClick(f: AiAssetItem) {
   if (!f?.url) return
-  setSelectedFile(f)
+  setSelectedFile(f as unknown as Record<string, unknown>)
   if (getFileExt(f) === 'md') {
     showPanel('sense')
     return
   }
   if (isCodeFile(f)) {
-    requestOpenInCodePanel(f)
+    requestOpenInCodePanel(f as unknown as ExplorerFile)
     return
   }
   showPanel('sense')
 }
 
 /** 클릭: 뷰어에 단일 표시. md도 파서로 뷰어. 코드 파일(md 제외)만 Monaco. 삽입은 우클릭 "에디터에 넣기"로만. */
-function onMediaItemClick(f, category) {
+function onMediaItemClick(f: AiAssetItem, category: string) {
   if (!f?.url) return
-  setSelectedFile(f)
-  selectMediaItem(category, f)
+  setSelectedFile(f as unknown as Record<string, unknown>)
+  selectMediaItem(category as AssetCategory, f)
   if (getFileExt(f) === 'md') {
     showPanel('sense')
     return
   }
   if (isCodeFile(f)) {
-    requestOpenInCodePanel(f)
+    requestOpenInCodePanel(f as unknown as ExplorerFile)
     return
   }
   showPanel('sense')
 }
 
-async function handleMediaAdd(p) {
+async function handleMediaAdd(p: { category?: string; type?: string; file_type?: string; file?: File; [key: string]: unknown }) {
   const cat = p.category || inferCategoryFromPayload(p)
+  const source = p.file ? 'pc' : 'server'
   try {
-    await aiAssets.addAsset({ ...p, category: cat })
+    await aiAssets.addAsset({ ...p, category: cat, source })
     if (cat === 'documents') {
-      if (isCodeFile(p)) {
+      if (isCodeFile(p as { original_name?: string })) {
         leftMainTab.value = 'media'
         expandedCodeFiles.value = true
       } else {
@@ -571,18 +593,20 @@ async function handleMediaAdd(p) {
 
 const { selectedMediaItem, selectMediaItem } = aiAssets
 
-/** 빈 리스트일 때 UI 확인용 플레이스홀더 */
-const galleryPlaceholders = [
+/** 빈 리스트일 때 UI 확인용 플레이스홀더 (url 없음, :key용 id는 문자열). 템플릿에서 f.url 접근 시 undefined. */
+type MediaPlaceholder = { id: string; original_name: string; url?: undefined; file_path?: undefined }
+type DisplayFileItem = AiAssetItem | MediaPlaceholder
+const galleryPlaceholders: MediaPlaceholder[] = [
   { id: 'ph-img-1', original_name: '(등록된 이미지 없음)' },
   { id: 'ph-img-2', original_name: '(업로드 또는 웹서버에서 선택)' },
 ]
-const docPlaceholders = [{ id: 'ph-doc-1', original_name: '(등록된 문서 없음)' }]
-const codeFilePlaceholders = [{ id: 'ph-code-1', original_name: '(등록된 코드파일 없음)' }]
-const audioPlaceholders = [{ id: 'ph-audio-1', original_name: '(등록된 오디오 없음)' }]
-const videoPlaceholders = [{ id: 'ph-video-1', original_name: '(등록된 영상 없음)' }]
+const docPlaceholders: MediaPlaceholder[] = [{ id: 'ph-doc-1', original_name: '(등록된 문서 없음)' }]
+const codeFilePlaceholders: MediaPlaceholder[] = [{ id: 'ph-code-1', original_name: '(등록된 코드파일 없음)' }]
+const audioPlaceholders: MediaPlaceholder[] = [{ id: 'ph-audio-1', original_name: '(등록된 오디오 없음)' }]
+const videoPlaceholders: MediaPlaceholder[] = [{ id: 'ph-video-1', original_name: '(등록된 영상 없음)' }]
 
-const selectedMemoId = ref(null)
-const selectedMemo = computed(() => (selectedMemoId.value ? memos.value.find((m) => m.id === selectedMemoId.value) : null))
+const selectedMemoId = ref<number | null>(null)
+const selectedMemo = computed(() => (selectedMemoId.value != null ? memos.value.find((m) => m.id === selectedMemoId.value) : null))
 
 const filteredMemos = computed(() => {
   const q = (searchQuery.value || '').trim().toLowerCase()
@@ -598,10 +622,10 @@ const displayCodeFiles = computed(() => (codeFilesOnly.value.length ? codeFilesO
 
 const showToolbar = computed(() => true)
 
-function onMemoClick(m) {
+function onMemoClick(m: { id: number; content?: string }) {
   selectedMemoId.value = m.id
   if (m?.content) {
-    setSelectedFile({ id: m.id, original_name: '메모', file_type: 'memo', content: m.content || '' })
+    setSelectedFile({ id: m.id, original_name: '메모', file_type: 'memo', content: m.content || '' } as Record<string, unknown>)
     showPanel('sense')
   }
 }
@@ -617,13 +641,13 @@ function handleNoteEdit() {
   requestInsert(m.content)
 }
 
-async function handleRemoveMemo(m) {
+async function handleRemoveMemo(m: { id: number }) {
   try {
     await removeMemo(m.id)
     if (selectedMemoId.value === m.id) selectedMemoId.value = null
     Notify.create({ message: '삭제됨', icon: 'check_circle' })
   } catch (e) {
-    Notify.create({ type: 'negative', message: e?.message || '삭제 실패' })
+    Notify.create({ type: 'negative', message: e instanceof Error ? e.message : '삭제 실패' })
   }
 }
 
@@ -652,7 +676,7 @@ async function handleNoteMoveUp() {
     await moveMemoUp(selectedMemoId.value)
     Notify.create({ message: '위로 이동', icon: 'check_circle' })
   } catch (e) {
-    Notify.create({ type: 'negative', message: e?.message || '이동 실패' })
+    Notify.create({ type: 'negative', message: e instanceof Error ? e.message : '이동 실패' })
   }
 }
 
@@ -662,11 +686,11 @@ async function handleNoteMoveDown() {
     await moveMemoDown(selectedMemoId.value)
     Notify.create({ message: '아래로 이동', icon: 'check_circle' })
   } catch (e) {
-    Notify.create({ type: 'negative', message: e?.message || '이동 실패' })
+    Notify.create({ type: 'negative', message: e instanceof Error ? e.message : '이동 실패' })
   }
 }
 
-function formatMemoDate(ts) {
+function formatMemoDate(ts: number | string | null | undefined) {
   if (!ts) return ''
   const d = new Date(ts)
   const now = new Date()
@@ -738,10 +762,11 @@ const {
   clearPendingTitleSuggestion,
 } = useAiChannels()
 
-const filterByQuery = (arr, getText) => {
+// eslint-disable-next-line no-unused-vars -- 콜백 타입의 파라미터(구현하지 않음)
+function filterByQuery<T>(arr: T[], getText: (_: T) => string) {
   const q = (searchQuery.value || '').trim().toLowerCase()
   if (!q) return arr
-  return arr.filter((x) => (getText(x) || '').toLowerCase().includes(q))
+  return arr.filter((v) => (getText(v) || '').toLowerCase().includes(q))
 }
 const filteredImages = computed(() => filterByQuery(images.value || [], (f) => f.original_name))
 const filteredAudio = computed(() => filterByQuery(audio.value || [], (f) => f.original_name))
@@ -754,18 +779,18 @@ const { pendingWebcamCapture, webcamFlipMode, webcamResolution, webcamFilterBrig
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
 
-const leftMainTab = ref('chat')
+const leftMainTab = ref<LeftMainTab>('chat')
 const webcamOn = ref(false)
-const webcamRef = ref(null)
+const webcamRef = ref<{ start: () => void; stop: () => void } | null>(null)
 const showAddChannel = ref(false)
 const showEditDialog = ref(false)
-const editTarget = ref({ type: null, channelId: null, chatId: null })
+const editTarget = ref<{ type: 'channel' | 'chat' | null; channelId: string | null; chatId: string | null }>({ type: null, channelId: null, chatId: null })
 const editValue = ref('')
 const newChannelName = ref('')
 const showDeleteConfirm = ref(false)
 const deleteConfirmMessage = ref('')
-let deleteConfirmAction = null
-let unregisterOpenMediaTab = null
+let deleteConfirmAction: (() => void) | null = null
+let unregisterOpenMediaTab: (() => void) | null = null
 
 watch(
   () => unifiedSearch.searchTarget.value,
@@ -805,15 +830,15 @@ function doAddChannel() {
   selectChannel(ch.id)
 }
 
-function confirmDeleteChannel(ch) {
+function confirmDeleteChannel(ch: Channel) {
   deleteConfirmMessage.value = `채널 "${ch.name}"과 대화 ${(ch.chats || []).length}개를 삭제할까요?`
   deleteConfirmAction = () => deleteChannel(ch.id)
   showDeleteConfirm.value = true
 }
 
-function confirmDeleteChat(channelId, chat) {
+function confirmDeleteChat(channelId: string | null, chat: Chat) {
   deleteConfirmMessage.value = `"${chat.title}" 대화를 삭제할까요?`
-  deleteConfirmAction = () => deleteChat(channelId, chat.id)
+  deleteConfirmAction = () => channelId && deleteChat(channelId, chat.id)
   showDeleteConfirm.value = true
 }
 
@@ -823,14 +848,15 @@ function doDeleteConfirm() {
   showDeleteConfirm.value = false
 }
 
-function handleNewChat(channelId) {
+function handleNewChat(channelId: string) {
   selectChannel(channelId)
   startNewChat()
 }
 
 function handleAddChatFromToolbar() {
-  if (selectedChannelId.value) {
-    selectChannel(selectedChannelId.value)
+  const id = selectedChannelId.value
+  if (id) {
+    selectChannel(id)
     startNewChat()
   } else {
     Notify.create({ type: 'warning', message: '채널을 선택한 후 대화를 추가해 주세요' })
@@ -839,24 +865,24 @@ function handleAddChatFromToolbar() {
 
 const canMoveChannelUp = computed(() => {
   if (!selectedChannelId.value) return false
-  const idx = channels.value.findIndex((c) => c.id === selectedChannelId.value)
+  const idx = channels.value.findIndex((c: Channel) => c.id === selectedChannelId.value)
   return idx > 0
 })
 const canMoveChannelDown = computed(() => {
   if (!selectedChannelId.value) return false
-  const idx = channels.value.findIndex((c) => c.id === selectedChannelId.value)
+  const idx = channels.value.findIndex((c: Channel) => c.id === selectedChannelId.value)
   return idx >= 0 && idx < channels.value.length - 1
 })
 const canMoveChatUp = computed(() => {
   const ch = selectedChannel.value
   if (!ch?.chats?.length || !selectedChatId.value) return false
-  const idx = ch.chats.findIndex((c) => c.id === selectedChatId.value)
+  const idx = ch.chats.findIndex((c: Chat) => c.id === selectedChatId.value)
   return idx > 0
 })
 const canMoveChatDown = computed(() => {
   const ch = selectedChannel.value
   if (!ch?.chats?.length || !selectedChatId.value) return false
-  const idx = ch.chats.findIndex((c) => c.id === selectedChatId.value)
+  const idx = ch.chats.findIndex((c: Chat) => c.id === selectedChatId.value)
   return idx >= 0 && idx < ch.chats.length - 1
 })
 
@@ -869,10 +895,11 @@ function openEditChannel() {
 }
 function openEditChat() {
   const chat = selectedChat.value
-  if (!chat || !selectedChannelId.value) return
-  openEditChatFromItem(selectedChannelId.value, chat)
+  const cid = selectedChannelId.value
+  if (!chat || !cid) return
+  openEditChatFromItem(cid, chat)
 }
-function openEditChatFromItem(channelId, chat) {
+function openEditChatFromItem(channelId: string, chat: Chat) {
   if (!chat || !channelId) return
   const suggestion = getPendingTitleSuggestion(channelId, chat.id)
   editTarget.value = { type: 'chat', channelId, chatId: chat.id }
@@ -882,10 +909,10 @@ function openEditChatFromItem(channelId, chat) {
 function doEditSave() {
   const { type, channelId, chatId } = editTarget.value
   const v = editValue.value?.trim()
-  if (!v) return
+  if (!v || !channelId) return
   if (type === 'channel') {
     updateChannelName(channelId, v)
-  } else if (type === 'chat') {
+  } else if (type === 'chat' && chatId) {
     updateChatTitle(channelId, chatId, v)
     clearPendingTitleSuggestion(channelId, chatId)
   }
@@ -909,10 +936,10 @@ const toolbarCtx = {
   canMoveChatDown,
   canMoveChannelUp,
   canMoveChannelDown,
-  moveChatUp,
-  moveChatDown,
-  moveChannelUp,
-  moveChannelDown,
+  moveChatUp: (cid: string | null, chatId: string | null) => { if (cid && chatId) moveChatUp(cid, chatId) },
+  moveChatDown: (cid: string | null, chatId: string | null) => { if (cid && chatId) moveChatDown(cid, chatId) },
+  moveChannelUp: (cid: string | null) => { if (cid) moveChannelUp(cid) },
+  moveChannelDown: (cid: string | null) => { if (cid) moveChannelDown(cid) },
   selectedMemo,
   handleNoteAdd,
   handleNoteEdit,
@@ -930,7 +957,7 @@ const toolbarCtx = {
 }
 const { toolbarItems, toolbarLabel } = useAiLeftToolbar(toolbarCtx)
 
-function onWebcamToggle(on) {
+function onWebcamToggle(on: boolean) {
   webcamOn.value = on
   if (on) {
     webcamRef.value?.start()
@@ -944,7 +971,7 @@ function onWebcamHide() {
   webcamRef.value?.stop()
 }
 
-function onWebcamCapture(dataUrl) {
+function onWebcamCapture(dataUrl: string) {
   pendingWebcamCapture.value = dataUrl
 }
 </script>

@@ -1,0 +1,949 @@
+npm warn Unknown project config "shamefully-hoist". This will stop working in the next major version of npm.
+npm warn Unknown project config "strict-peer-dependencies". This will stop working in the next major version of npm.
+npm warn Unknown project config "resolution-mode". This will stop working in the next major version of npm.
+src/domains/ai/views/left/AiLeftNav.vue(14,158): error TS2322: Type '(q: string) => void' is not assignable to type '(value: string | number | null) => void'.
+  Types of parameters 'q' and 'value' are incompatible.
+    Type 'string | number | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/domains/ai/views/left/AiLeftNav.vue(70,44): error TS2339: Property 'menuItems' does not exist on type '{ id: string; type: string; icon: string; size: string; title: string; menuItems: { icon: string; label: string; onClick: (() => void) | undefined; }[]; onClick?: undefined; disabled?: undefined; color?: undefined; } | ... 5 more ... | { ...; }'.
+  Property 'menuItems' does not exist on type '{ id: string; type: string; icon: string; size: string; title: string; onClick: (() => void) | undefined; disabled?: undefined; color?: undefined; }'.
+src/domains/ai/views/left/AiLeftNav.vue(192,107): error TS2339: Property 'url' does not exist on type '{ id: number; original_name: string; url: string; file_path?: string | undefined; } | { id: string; original_name: string; }'.
+  Property 'url' does not exist on type '{ id: string; original_name: string; }'.
+src/domains/ai/views/left/AiLeftNav.vue(192,124): error TS2339: Property 'url' does not exist on type '{ id: number; original_name: string; url: string; file_path?: string | undefined; } | { id: string; original_name: string; }'.
+  Property 'url' does not exist on type '{ id: string; original_name: string; }'.
+src/domains/ai/views/left/AiLeftNav.vue(192,181): error TS2339: Property 'url' does not exist on type '{ id: number; original_name: string; url: string; file_path?: string | undefined; } | { id: string; original_name: string; }'.
+  Property 'url' does not exist on type '{ id: string; original_name: string; }'.
+src/domains/ai/views/left/AiLeftNav.vue(208,107): error TS2339: Property 'url' does not exist on type '{ id: number; original_name: string; url: string; file_path?: string | undefined; } | { id: string; original_name: string; }'.
+  Property 'url' does not exist on type '{ id: string; original_name: string; }'.
+src/domains/ai/views/left/AiLeftNav.vue(208,124): error TS2339: Property 'url' does not exist on type '{ id: number; original_name: string; url: string; file_path?: string | undefined; } | { id: string; original_name: string; }'.
+  Property 'url' does not exist on type '{ id: string; original_name: string; }'.
+src/domains/ai/views/left/AiLeftNav.vue(208,181): error TS2339: Property 'url' does not exist on type '{ id: number; original_name: string; url: string; file_path?: string | undefined; } | { id: string; original_name: string; }'.
+  Property 'url' does not exist on type '{ id: string; original_name: string; }'.
+src/domains/ai/views/left/AiLeftNav.vue(421,21): error TS7006: Parameter 'file' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(427,21): error TS7006: Parameter 'file' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(444,29): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(452,31): error TS7006: Parameter 'evt' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(452,36): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(467,20): error TS2339: Property 'file_path' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(467,57): error TS2339: Property 'file_path' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(467,75): error TS2339: Property 'url' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(472,50): error TS2339: Property 'original_name' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(472,81): error TS2339: Property 'file_path' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(474,37): error TS2339: Property 'original_name' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(497,25): error TS7006: Parameter 'file' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(503,29): error TS7006: Parameter 'category' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(511,35): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(520,26): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(535,27): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(535,30): error TS7006: Parameter 'category' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(550,31): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(601,22): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(620,33): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(626,51): error TS2339: Property 'message' does not exist on type '{}'.
+src/domains/ai/views/left/AiLeftNav.vue(655,51): error TS2339: Property 'message' does not exist on type '{}'.
+src/domains/ai/views/left/AiLeftNav.vue(665,51): error TS2339: Property 'message' does not exist on type '{}'.
+src/domains/ai/views/left/AiLeftNav.vue(669,25): error TS7006: Parameter 'ts' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(741,24): error TS7006: Parameter 'arr' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(741,29): error TS7006: Parameter 'getText' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(744,22): error TS7006: Parameter 'x' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(746,74): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(747,72): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(748,74): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(767,5): error TS7034: Variable 'deleteConfirmAction' implicitly has type 'any' in some locations where its type cannot be determined.
+src/domains/ai/views/left/AiLeftNav.vue(768,5): error TS7034: Variable 'unregisterOpenMediaTab' implicitly has type 'any' in some locations where its type cannot be determined.
+src/domains/ai/views/left/AiLeftNav.vue(796,3): error TS7005: Variable 'unregisterOpenMediaTab' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(808,31): error TS7006: Parameter 'ch' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(814,28): error TS7006: Parameter 'channelId' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(814,39): error TS7006: Parameter 'chat' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(821,7): error TS7005: Variable 'deleteConfirmAction' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(826,24): error TS7006: Parameter 'channelId' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(866,24): error TS2322: Type 'string' is not assignable to type 'null'.
+src/domains/ai/views/left/AiLeftNav.vue(866,41): error TS2322: Type 'string' is not assignable to type 'null'.
+src/domains/ai/views/left/AiLeftNav.vue(875,31): error TS7006: Parameter 'channelId' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(875,42): error TS7006: Parameter 'chat' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(878,24): error TS2322: Type 'string' is not assignable to type 'null'.
+src/domains/ai/views/left/AiLeftNav.vue(887,23): error TS2345: Argument of type 'null' is not assignable to parameter of type 'string'.
+src/domains/ai/views/left/AiLeftNav.vue(889,21): error TS2345: Argument of type 'null' is not assignable to parameter of type 'string'.
+src/domains/ai/views/left/AiLeftNav.vue(890,33): error TS2345: Argument of type 'null' is not assignable to parameter of type 'string'.
+src/domains/ai/views/left/AiLeftNav.vue(931,57): error TS2345: Argument of type '{ leftMainTab: Ref<string, string>; searchTarget: Ref<string, string>; showAddChannel: Ref<boolean, boolean>; selectedChat: ComputedRef<{ id: string; title: string; messages: { ...; }[]; instruction?: string | undefined; } | undefined>; ... 29 more ...; handleMediaMoveDown: () => void; }' is not assignable to parameter of type 'AiLeftToolbarCtx'.
+  Types of property 'leftMainTab' are incompatible.
+    Type 'Ref<string, string>' is not assignable to type 'Ref<LeftMainTab, LeftMainTab>'.
+      Type 'string' is not assignable to type 'LeftMainTab'.
+src/domains/ai/views/left/AiLeftNav.vue(933,25): error TS7006: Parameter 'on' implicitly has an 'any' type.
+src/domains/ai/views/left/AiLeftNav.vue(936,22): error TS2339: Property 'start' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(938,22): error TS2339: Property 'stop' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(944,20): error TS2339: Property 'stop' does not exist on type 'never'.
+src/domains/ai/views/left/AiLeftNav.vue(947,26): error TS7006: Parameter 'dataUrl' implicitly has an 'any' type.
+src/domains/my/views/content/MyView.vue(256,7): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(input: string | URL | Request, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization: string; } | { Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property 'Authorization' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+  Overload 2 of 2, '(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization: string; } | { Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property 'Authorization' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+src/domains/my/views/content/MyView.vue(292,7): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(input: string | URL | Request, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization: string; 'Content-Type': string; } | { Authorization?: undefined; 'Content-Type': string; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; 'Content-Type': string; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; 'Content-Type': string; }' is not assignable to type 'undefined'.
+  Overload 2 of 2, '(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization: string; 'Content-Type': string; } | { Authorization?: undefined; 'Content-Type': string; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; 'Content-Type': string; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; 'Content-Type': string; }' is not assignable to type 'undefined'.
+src/domains/my/views/content/MyView.vue(318,21): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/domains/my/views/content/MyView.vue(328,21): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(13,3): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(14,3): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(15,3): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(16,3): error TS7031: Binding element 'xField' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(17,3): error TS7031: Binding element 'yField' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(18,3): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(20,3): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(21,3): error TS7031: Binding element 'axesGroup' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(22,3): error TS7031: Binding element 'svg' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(23,3): error TS7031: Binding element 'tooltip' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(24,3): error TS7031: Binding element 'aggregation' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(25,3): error TS7031: Binding element 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(26,3): error TS7031: Binding element 'onDataClick' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(27,3): error TS7031: Binding element 'onDataHover' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(29,3): error TS7031: Binding element 'xScale' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(30,3): error TS7031: Binding element 'yScale' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(37,62): error TS2339: Property 'showLabels' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(54,36): error TS2339: Property 'x' does not exist on type '[number, number]'.
+src/engines/charts/area/AreaChart.ts(56,30): error TS2339: Property 'y' does not exist on type '[number, number]'.
+src/engines/charts/area/AreaChart.ts(66,27): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(66,56): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(66,80): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(66,101): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(66,115): error TS2339: Property 'stroke' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(77,36): error TS2339: Property 'x' does not exist on type '[number, number]'.
+src/engines/charts/area/AreaChart.ts(78,29): error TS2339: Property 'y' does not exist on type '[number, number]'.
+src/engines/charts/area/AreaChart.ts(90,13): error TS2339: Property 'strokeWidth' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(92,25): error TS2339: Property 'strokeWidth' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(103,13): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(104,36): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(105,36): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(110,31): error TS2339: Property 'neonIntensity' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(111,28): error TS2339: Property 'blur' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(150,20): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(165,13): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(166,22): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(182,18): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(183,18): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(229,20): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(234,15): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(234,18): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(251,27): error TS2339: Property 'tooltip' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(252,25): error TS2339: Property 'hover' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(253,25): error TS2339: Property 'click' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(285,19): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(286,19): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(289,14): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/area/AreaChart.ts(300,32): error TS2339: Property 'showGrid' does not exist on type '{}'.
+src/engines/charts/area/AreaChart.ts(306,30): error TS2339: Property 'showGrid' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(14,3): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(15,3): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(16,3): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(17,3): error TS7031: Binding element 'xField' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(18,3): error TS7031: Binding element 'yField' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(19,3): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(21,3): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(22,3): error TS7031: Binding element 'axesGroup' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(23,3): error TS7031: Binding element 'tooltip' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(24,3): error TS7031: Binding element 'aggregation' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(25,3): error TS7031: Binding element 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(26,3): error TS7031: Binding element 'onDataClick' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(27,3): error TS7031: Binding element 'onDataHover' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(29,3): error TS7031: Binding element 'xScale' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(30,3): error TS7031: Binding element 'yScale' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(35,3): error TS7031: Binding element 'svg' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(56,17): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(57,17): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(59,22): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(60,20): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(65,13): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(66,32): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(70,31): error TS2339: Property 'neonIntensity' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(71,28): error TS2339: Property 'blur' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(75,33): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/bar/BarChart.ts(105,41): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(105,70): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(107,28): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(114,19): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(115,24): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(120,27): error TS2339: Property 'tooltip' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(121,25): error TS2339: Property 'hover' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(122,25): error TS2339: Property 'click' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(147,62): error TS2339: Property 'showLabels' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(159,19): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(160,19): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(163,14): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/bar/BarChart.ts(174,32): error TS2339: Property 'showGrid' does not exist on type '{}'.
+src/engines/charts/bar/BarChart.ts(180,30): error TS2339: Property 'showGrid' does not exist on type '{}'.
+src/engines/charts/config/chartMetadata.ts(74,34): error TS7006: Parameter 'chartType' implicitly has an 'any' type.
+src/engines/charts/config/chartMetadata.ts(75,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ line: { name: string; supports: { strokeWidth: boolean; dotSize: boolean; nodeSize: boolean; color: boolean; }; defaultStyle: { strokeWidth: number; nodeSize: number; color: string; }; }; scatter: { name: string; supports: { ...; }; defaultStyle: { ...; }; }; area: { ...; }; bar: { ...; }; pie: { ...; }; }'.
+src/engines/charts/config/chartMetadata.ts(83,37): error TS7006: Parameter 'chartType' implicitly has an 'any' type.
+src/engines/charts/config/chartMetadata.ts(84,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ line: { name: string; supports: { strokeWidth: boolean; dotSize: boolean; nodeSize: boolean; color: boolean; }; defaultStyle: { strokeWidth: number; nodeSize: number; color: string; }; }; scatter: { name: string; supports: { ...; }; defaultStyle: { ...; }; }; area: { ...; }; bar: { ...; }; pie: { ...; }; }'.
+src/engines/charts/config/chartMetadata.ts(92,33): error TS7006: Parameter 'chartType' implicitly has an 'any' type.
+src/engines/charts/config/chartMetadata.ts(93,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ line: { name: string; supports: { strokeWidth: boolean; dotSize: boolean; nodeSize: boolean; color: boolean; }; defaultStyle: { strokeWidth: number; nodeSize: number; color: string; }; }; scatter: { name: string; supports: { ...; }; defaultStyle: { ...; }; }; area: { ...; }; bar: { ...; }; pie: { ...; }; }'.
+src/engines/charts/config/chartMetadata.ts(101,34): error TS7006: Parameter 'chartType' implicitly has an 'any' type.
+src/engines/charts/config/chartMetadata.ts(102,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ line: { name: string; supports: { strokeWidth: boolean; dotSize: boolean; nodeSize: boolean; color: boolean; }; defaultStyle: { strokeWidth: number; nodeSize: number; color: string; }; }; scatter: { name: string; supports: { ...; }; defaultStyle: { ...; }; }; area: { ...; }; bar: { ...; }; pie: { ...; }; }'.
+src/engines/charts/config/chartMetadata.ts(110,31): error TS7006: Parameter 'chartType' implicitly has an 'any' type.
+src/engines/charts/config/chartMetadata.ts(111,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ line: { name: string; supports: { strokeWidth: boolean; dotSize: boolean; nodeSize: boolean; color: boolean; }; defaultStyle: { strokeWidth: number; nodeSize: number; color: string; }; }; scatter: { name: string; supports: { ...; }; defaultStyle: { ...; }; }; area: { ...; }; bar: { ...; }; pie: { ...; }; }'.
+src/engines/charts/config/chartMetadata.ts(119,33): error TS7006: Parameter 'chartType' implicitly has an 'any' type.
+src/engines/charts/config/chartMetadata.ts(120,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ line: { name: string; supports: { strokeWidth: boolean; dotSize: boolean; nodeSize: boolean; color: boolean; }; defaultStyle: { strokeWidth: number; nodeSize: number; color: string; }; }; scatter: { name: string; supports: { ...; }; defaultStyle: { ...; }; }; area: { ...; }; bar: { ...; }; pie: { ...; }; }'.
+src/engines/charts/line/LineChart.ts(14,3): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(15,3): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(16,3): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(17,3): error TS7031: Binding element 'xField' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(18,3): error TS7031: Binding element 'yField' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(19,3): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(21,3): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(22,3): error TS7031: Binding element 'axesGroup' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(23,3): error TS7031: Binding element 'tooltip' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(24,3): error TS7031: Binding element 'aggregation' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(25,3): error TS7031: Binding element 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(26,3): error TS7031: Binding element 'onDataClick' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(27,3): error TS7031: Binding element 'onDataHover' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(29,3): error TS7031: Binding element 'xScale' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(30,3): error TS7031: Binding element 'yScale' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(35,3): error TS7031: Binding element 'svg' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(38,62): error TS2339: Property 'showLabels' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(50,36): error TS2339: Property 'x' does not exist on type '[number, number]'.
+src/engines/charts/line/LineChart.ts(51,29): error TS2339: Property 'y' does not exist on type '[number, number]'.
+src/engines/charts/line/LineChart.ts(60,29): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(60,58): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(60,82): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(60,103): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(60,117): error TS2339: Property 'stroke' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(67,31): error TS2339: Property 'neonIntensity' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(70,13): error TS2339: Property 'strokeWidth' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(72,30): error TS2339: Property 'strokeWidth' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(83,13): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(84,36): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(88,28): error TS2339: Property 'blur' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(118,41): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(118,70): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(120,28): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(132,40): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/line/LineChart.ts(134,21): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/line/LineChart.ts(142,13): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(143,22): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(159,18): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(160,18): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(207,28): error TS2339: Property 'animation' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(212,15): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(212,18): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(229,27): error TS2339: Property 'tooltip' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(230,25): error TS2339: Property 'hover' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(231,25): error TS2339: Property 'click' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(263,19): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(264,19): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(267,14): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/line/LineChart.ts(278,32): error TS2339: Property 'showGrid' does not exist on type '{}'.
+src/engines/charts/line/LineChart.ts(284,30): error TS2339: Property 'showGrid' does not exist on type '{}'.
+src/engines/charts/pie/PieChart.ts(9,3): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(10,3): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(11,3): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(12,3): error TS7031: Binding element 'xField' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(13,3): error TS7031: Binding element 'yField' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(14,3): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(15,3): error TS7031: Binding element 'chartOptions' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(16,3): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(17,3): error TS7031: Binding element 'svg' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(18,3): error TS7031: Binding element 'tooltip' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(19,3): error TS7031: Binding element 'aggregation' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(20,3): error TS7031: Binding element 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(21,3): error TS7031: Binding element 'onDataClick' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(22,3): error TS7031: Binding element 'onDataHover' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(41,21): error TS2339: Property 'y' does not exist on type 'number | { valueOf(): number; }'.
+  Property 'y' does not exist on type 'number'.
+src/engines/charts/pie/PieChart.ts(53,23): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(69,20): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(83,13): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/pie/PieChart.ts(84,33): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/pie/PieChart.ts(88,31): error TS2339: Property 'neonIntensity' does not exist on type '{}'.
+src/engines/charts/pie/PieChart.ts(89,28): error TS2339: Property 'blur' does not exist on type '{}'.
+src/engines/charts/pie/PieChart.ts(97,33): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/pie/PieChart.ts(127,26): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(128,36): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/pie/PieChart.ts(136,25): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string, factory: null): Transition<any, unknown, null, undefined>', gave the following error.
+    Argument of type '(this: any) => (this: any, t: number) => string | null' is not assignable to parameter of type 'null'.
+  Overload 2 of 3, '(name: string, factory: ValueFn<any, unknown, (this: any, t: number) => string>): Transition<any, unknown, null, undefined>', gave the following error.
+    Argument of type '(this: any) => (this: any, t: number) => string | null' is not assignable to parameter of type 'ValueFn<any, unknown, (this: any, t: number) => string>'.
+      Call signature return types '(this: any, t: number) => string | null' and '(this: any, t: number) => string' are incompatible.
+        Type 'string | null' is not assignable to type 'string'.
+          Type 'null' is not assignable to type 'string'.
+src/engines/charts/pie/PieChart.ts(147,11): error TS7034: Variable 'smallSegments' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/engines/charts/pie/PieChart.ts(148,11): error TS7034: Variable 'largeSegments' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/engines/charts/pie/PieChart.ts(150,25): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(155,72): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/pie/PieChart.ts(157,72): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/pie/PieChart.ts(162,5): error TS7005: Variable 'largeSegments' implicitly has an 'any[]' type.
+src/engines/charts/pie/PieChart.ts(186,7): error TS7005: Variable 'smallSegments' implicitly has an 'any[]' type.
+src/engines/charts/pie/PieChart.ts(189,7): error TS7005: Variable 'smallSegments' implicitly has an 'any[]' type.
+src/engines/charts/pie/PieChart.ts(211,7): error TS7005: Variable 'smallSegments' implicitly has an 'any[]' type.
+src/engines/charts/pie/PieChart.ts(311,33): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(311,40): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(312,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/pie/PieChart.ts(340,40): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(345,44): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(346,59): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(371,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/pie/PieChart.ts(399,32): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(409,33): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/pie/PieChart.ts(409,40): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(11,3): error TS7031: Binding element 'data' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(12,3): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(13,3): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(14,3): error TS7031: Binding element 'xField' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(15,3): error TS7031: Binding element 'yField' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(16,3): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(17,3): error TS7031: Binding element 'chartOptions' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(18,3): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(19,3): error TS7031: Binding element 'svg' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(20,3): error TS7031: Binding element 'tooltip' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(21,3): error TS7031: Binding element 'aggregation' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(22,3): error TS7031: Binding element 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(23,3): error TS7031: Binding element 'onDataClick' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(24,3): error TS7031: Binding element 'onDataHover' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(26,3): error TS7031: Binding element 'xScale' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(27,3): error TS7031: Binding element 'yScale' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(48,23): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(54,13): error TS2339: Property 'dotSize' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(55,23): error TS2339: Property 'dotSize' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(63,29): error TS2339: Property 'color' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(66,65): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(82,18): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(83,18): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(85,36): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(86,38): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(87,39): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(90,13): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(91,38): error TS2339: Property 'opacity' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(96,33): error TS2339: Property 'neonIntensity' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(97,30): error TS2339: Property 'blur' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(120,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/scatter/ScatterChart.ts(152,34): error TS2339: Property 'neonIntensity' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(152,68): error TS2339: Property 'blur' does not exist on type '{}'.
+src/engines/charts/scatter/ScatterChart.ts(167,15): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(167,18): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(196,35): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(196,42): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(197,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/scatter/ScatterChart.ts(227,44): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(232,48): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(233,63): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(256,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/scatter/ScatterChart.ts(294,34): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(304,38): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(304,45): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,21): error TS7006: Parameter 'xScale' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,29): error TS7006: Parameter 'yScale' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,37): error TS7006: Parameter 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,49): error TS7006: Parameter 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,62): error TS7006: Parameter 'xField' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,70): error TS7006: Parameter 'yField' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,78): error TS7006: Parameter 'columns' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,87): error TS7006: Parameter 'aggregation' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,100): error TS7006: Parameter 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(319,120): error TS7006: Parameter 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(331,36): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(358,40): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/scatter/ScatterChart.ts(359,55): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(15,31): error TS7006: Parameter 'yField' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(15,39): error TS7006: Parameter 'columns' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(15,48): error TS7006: Parameter 'aggregation' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(15,61): error TS7006: Parameter 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(19,38): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(20,53): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(34,31): error TS7031: Binding element 'xScale' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(34,39): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(34,51): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(34,64): error TS7031: Binding element 'xField' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(34,72): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(34,81): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(48,36): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(74,31): error TS7031: Binding element 'yScale' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(74,39): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(74,52): error TS7031: Binding element 'yField' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(74,60): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(74,69): error TS7031: Binding element 'aggregation' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(74,82): error TS7031: Binding element 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(74,102): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(103,30): error TS7031: Binding element 'yScale' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(103,38): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(103,50): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(122,18): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(123,18): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(136,50): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(136,62): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(136,75): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(157,36): error TS2339: Property 'type' does not exist on type 'never'.
+src/engines/charts/utils/chartAxes.ts(157,59): error TS2339: Property 'type' does not exist on type 'never'.
+src/engines/charts/utils/chartAxes.ts(194,30): error TS2339: Property 'color' does not exist on type 'never'.
+src/engines/charts/utils/chartAxes.ts(207,18): error TS2339: Property 'label' does not exist on type 'never'.
+src/engines/charts/utils/chartAxes.ts(207,32): error TS2339: Property 'type' does not exist on type 'never'.
+src/engines/charts/utils/chartAxes.ts(215,36): error TS7031: Binding element 'xScale' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,44): error TS7031: Binding element 'yScale' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,52): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,64): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,77): error TS7031: Binding element 'xField' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,85): error TS7031: Binding element 'yField' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,93): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,102): error TS7031: Binding element 'aggregation' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,115): error TS7031: Binding element 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/utils/chartAxes.ts(215,135): error TS7031: Binding element 'chartGroup' implicitly has an 'any' type.
+src/engines/charts/utils/chartBackground.ts(15,36): error TS7031: Binding element 'svg' implicitly has an 'any' type.
+src/engines/charts/utils/chartBackground.ts(15,41): error TS7031: Binding element 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/utils/chartBackground.ts(15,53): error TS7031: Binding element 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/utils/chartBackground.ts(15,66): error TS7031: Binding element 'background' implicitly has an 'any' type.
+src/engines/charts/utils/chartBackground.ts(94,33): error TS7006: Parameter 'position' implicitly has an 'any' type.
+src/engines/charts/utils/chartBackground.ts(101,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ center: string; cover: string; contain: string; repeat: string; }'.
+src/engines/charts/utils/chartEvents.ts(18,41): error TS7031: Binding element 'elements' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(18,51): error TS7031: Binding element 'interaction' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(18,64): error TS7031: Binding element 'tooltip' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(18,73): error TS7031: Binding element 'onDataClick' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(18,86): error TS7031: Binding element 'onDataHover' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(18,99): error TS7031: Binding element 'dataConfig' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(29,35): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(29,42): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(30,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/utils/chartEvents.ts(109,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/charts/utils/chartEvents.ts(180,34): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(190,36): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/utils/chartEvents.ts(190,43): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(14,34): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(14,39): error TS7006: Parameter 'filterId' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(14,49): error TS7006: Parameter 'blurAmount' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(28,34): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(28,39): error TS7006: Parameter 'filterId' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(59,40): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(59,45): error TS7006: Parameter 'filterId' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(59,55): error TS7006: Parameter 'style' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(106,37): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(106,42): error TS7006: Parameter 'filterId' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(106,52): error TS7006: Parameter 'color' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(116,11): error TS2339: Property 'chartType' does not exist on type '{}'.
+src/engines/charts/utils/chartFilters.ts(182,18): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ bar: { neonBlurMultiplier: number; neonColorIntensity: number; neonColorMax: number; neonStage2Threshold: number; neonStage2Multiplier: number; filterPaddingMultiplier: number; minFilterPadding: number; }; line: { ...; }; scatter: { ...; }; pie: { ...; }; area: { ...; }; }'.
+src/engines/charts/utils/chartFilters.ts(284,38): error TS7006: Parameter 'color' implicitly has an 'any' type.
+src/engines/charts/utils/chartFilters.ts(294,16): error TS2339: Property 'r' does not exist on type 'RGBColor | HSLColor'.
+  Property 'r' does not exist on type 'HSLColor'.
+src/engines/charts/utils/chartFilters.ts(295,16): error TS2339: Property 'g' does not exist on type 'RGBColor | HSLColor'.
+  Property 'g' does not exist on type 'HSLColor'.
+src/engines/charts/utils/chartFilters.ts(296,16): error TS2339: Property 'b' does not exist on type 'RGBColor | HSLColor'.
+  Property 'b' does not exist on type 'HSLColor'.
+src/engines/charts/utils/chartScales.ts(14,30): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(14,36): error TS7006: Parameter 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(15,27): error TS2339: Property 'padding' does not exist on type '{}'.
+src/engines/charts/utils/chartScales.ts(36,30): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(36,36): error TS7006: Parameter 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(37,30): error TS2339: Property 'paddingTop' does not exist on type '{}'.
+src/engines/charts/utils/chartScales.ts(38,36): error TS18046: 'd' is of type 'unknown'.
+src/engines/charts/utils/chartScales.ts(41,17): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/engines/charts/utils/chartScales.ts(52,36): error TS7006: Parameter 'allData' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(52,45): error TS7006: Parameter 'chartWidth' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(64,27): error TS2339: Property 'padding' does not exist on type '{}'.
+src/engines/charts/utils/chartScales.ts(76,36): error TS7006: Parameter 'allData' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(76,45): error TS7006: Parameter 'chartHeight' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(77,30): error TS2339: Property 'paddingTop' does not exist on type '{}'.
+src/engines/charts/utils/chartScales.ts(79,39): error TS18046: 'd' is of type 'unknown'.
+src/engines/charts/utils/chartScales.ts(82,17): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/engines/charts/utils/chartScales.ts(92,34): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/charts/utils/chartScales.ts(95,23): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/charts/utils/chartTheme.ts(63,10): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ default: { colors: { primary: string; secondary: string; success: string; warning: string; error: string; scheme: readonly string[]; }; fonts: { axis: string; label: string; title: string; small: string; }; animation: { ...; }; axis: { ...; }; style: { ...; }; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ default: { colors: { primary: string; secondary: string; success: string; warning: string; error: string; scheme: readonly string[]; }; fonts: { axis: string; label: string; title: string; small: string; }; animation: { ...; }; axis: { ...; }; style: { ...; }; }; }'.
+src/engines/charts/utils/chartTheme.ts(74,20): error TS2551: Property 'schemeCategory20' does not exist on type 'typeof import("E:/NEXA System/NEXA/NEXA-Platform/node_modules/@types/d3/index")'. Did you mean 'schemeCategory10'?
+src/engines/charts/utils/chartTheme.ts(75,21): error TS2551: Property 'schemeCategory20b' does not exist on type 'typeof import("E:/NEXA System/NEXA/NEXA-Platform/node_modules/@types/d3/index")'. Did you mean 'schemeCategory10'?
+src/engines/charts/utils/chartTheme.ts(76,21): error TS2551: Property 'schemeCategory20c' does not exist on type 'typeof import("E:/NEXA System/NEXA/NEXA-Platform/node_modules/@types/d3/index")'. Did you mean 'schemeCategory10'?
+src/engines/charts/utils/chartTheme.ts(79,10): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ category10: readonly string[]; category20: any; category20b: any; category20c: any; }'.
+  No index signature with a parameter of type 'string' was found on type '{ category10: readonly string[]; category20: any; category20b: any; category20c: any; }'.
+src/engines/charts/utils/chartTooltip.ts(43,40): error TS7031: Binding element 'd' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(43,43): error TS7031: Binding element 'xField' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(43,51): error TS7031: Binding element 'yField' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(43,59): error TS7031: Binding element 'columns' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(43,68): error TS7031: Binding element 'aggregation' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(43,81): error TS7031: Binding element 'aggregationOptions' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(44,36): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(49,40): error TS7006: Parameter 'col' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(50,55): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(63,29): error TS7006: Parameter 'tooltip' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(63,38): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(63,45): error TS7006: Parameter 'content' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(78,29): error TS7006: Parameter 'tooltip' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(88,39): error TS7006: Parameter 'tooltip' implicitly has an 'any' type.
+src/engines/charts/utils/chartTooltip.ts(88,48): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/config/diagramMetadata.ts(68,36): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(15,24): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(24,37): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(45,47): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(46,20): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(47,18): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(48,27): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(48,65): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(49,28): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(49,67): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(71,37): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(71,43): error TS7006: Parameter 'settings' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(87,50): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(97,39): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(97,45): error TS7006: Parameter 'updates' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(120,38): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(135,20): error TS7019: Rest parameter 'objects' implicitly has an 'any[]' type.
+src/engines/diagram/config/diagramSettings.ts(142,74): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(142,96): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(142,139): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(144,9): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(144,33): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(147,9): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettings.ts(191,33): error TS7006: Parameter 'settings' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettings.ts(222,35): error TS7006: Parameter 'updates' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettingsConfig.ts(190,43): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettingsConfig.ts(200,61): error TS2339: Property 'orientation' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(206,9): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(208,9): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(216,17): error TS7053: Element implicitly has an 'any' type because expression of type '"layout"' can't be used to index type '{}'.
+  Property 'layout' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(219,30): error TS2339: Property 'default' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(220,19): error TS7053: Element implicitly has an 'any' type because expression of type '"layout"' can't be used to index type '{}'.
+  Property 'layout' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(220,52): error TS2339: Property 'default' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(226,37): error TS7053: Element implicitly has an 'any' type because expression of type '"layout"' can't be used to index type '{}'.
+  Property 'layout' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(231,13): error TS7053: Element implicitly has an 'any' type because expression of type '"layout"' can't be used to index type '{}'.
+  Property 'layout' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(232,13): error TS7053: Element implicitly has an 'any' type because expression of type '"layout"' can't be used to index type '{}'.
+  Property 'layout' does not exist on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(239,28): error TS2339: Property 'default' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(241,17): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(244,21): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(249,17): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/engines/diagram/config/diagramSettingsConfig.ts(249,50): error TS2339: Property 'default' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(267,41): error TS7006: Parameter 'type' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettingsConfig.ts(267,47): error TS7006: Parameter 'settings' implicitly has an 'any' type.
+src/engines/diagram/config/diagramSettingsConfig.ts(298,88): error TS2339: Property 'default' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(301,36): error TS2339: Property 'min' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(301,83): error TS2339: Property 'min' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(302,59): error TS2339: Property 'min' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(303,43): error TS2339: Property 'max' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(303,90): error TS2339: Property 'max' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(304,59): error TS2339: Property 'max' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(307,36): error TS2339: Property 'options' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(307,63): error TS2339: Property 'options' does not exist on type 'object'.
+src/engines/diagram/config/diagramSettingsConfig.ts(308,59): error TS2339: Property 'default' does not exist on type 'object'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(29,43): error TS7006: Parameter 'container' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(29,54): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(32,11): error TS2339: Property 'diagramType' does not exist on type '{}'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(32,59): error TS2339: Property 'selectedNode' does not exist on type '{}'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(32,80): error TS2339: Property 'onNodeClick' does not exist on type '{}'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(32,100): error TS2339: Property 'onNodeHover' does not exist on type '{}'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(32,120): error TS2339: Property 'onNodeDrag' does not exist on type '{}'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(61,21): error TS7006: Parameter 'pkg' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(70,11): error TS7006: Parameter 'dep' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(86,14): error TS7006: Parameter 'link' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(95,11): error TS7006: Parameter 'link' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(108,14): error TS7006: Parameter 'link' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(139,42): error TS2339: Property 'radius' does not exist on type 'SimulationNodeDatum'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(147,21): error TS7006: Parameter 'pkg' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(147,26): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(167,36): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(167,51): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(168,36): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(168,51): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(180,29): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(180,37): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(183,34): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(183,42): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(189,23): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(191,29): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(191,37): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(194,14): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(197,29): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(197,37): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(202,53): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(202,61): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(247,31): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(247,39): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(252,20): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(252,30): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(256,7): error TS7034: Variable 'tooltip' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(279,36): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(279,44): error TS7006: Parameter 'highlight' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(281,24): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(281,39): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(282,24): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(282,39): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(302,36): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(302,44): error TS7006: Parameter 'highlight' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(306,31): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(306,39): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(310,50): error TS7006: Parameter 'link' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(328,22): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(328,30): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(348,21): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(348,29): error TS7006: Parameter 'nodeData' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(348,39): error TS7006: Parameter 'isEntering' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(363,19): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(363,26): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(364,21): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(364,47): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(377,30): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(377,40): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(378,13): error TS7005: Variable 'tooltip' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(385,13): error TS7005: Variable 'tooltip' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(394,13): error TS7005: Variable 'tooltip' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(405,26): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(405,36): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(406,9): error TS7005: Variable 'tooltip' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(413,9): error TS7005: Variable 'tooltip' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(422,9): error TS7005: Variable 'tooltip' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(427,24): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(427,31): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(458,7): error TS7034: Variable 'draggedNodeElement' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(461,7): error TS7034: Variable 'dragRafId' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(462,7): error TS7034: Variable 'pendingDragPosition' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(464,20): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(464,27): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(472,11): error TS7005: Variable 'dragRafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(474,15): error TS7005: Variable 'pendingDragPosition' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(482,18): error TS7005: Variable 'draggedNodeElement' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(504,11): error TS7005: Variable 'dragRafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(505,30): error TS7005: Variable 'dragRafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(509,14): error TS7005: Variable 'draggedNodeElement' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(526,28): error TS18046: 'l' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(526,46): error TS18046: 'l' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(527,32): error TS18046: 'l' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(528,32): error TS18046: 'l' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(529,32): error TS18046: 'l' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(530,32): error TS18046: 'l' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(550,22): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(550,29): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(556,9): error TS7005: Variable 'pendingDragPosition' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(564,9): error TS7005: Variable 'dragRafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(565,28): error TS7005: Variable 'dragRafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(571,26): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(572,26): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(573,26): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(574,26): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(602,13): error TS2345: Argument of type 'DragBehavior<Element, unknown, unknown>' is not assignable to parameter of type '(selection: Selection<SVGGElement, unknown, SVGGElement, unknown>) => void'.
+  Types of parameters 'selection' and 'selection' are incompatible.
+    Type 'Selection<SVGGElement, unknown, SVGGElement, unknown>' is not assignable to type 'Selection<Element, unknown, any, any>'.
+      Types of property 'merge' are incompatible.
+        Type '(other: Selection<SVGGElement, unknown, SVGGElement, unknown> | TransitionLike<SVGGElement, unknown>) => Selection<SVGGElement, unknown, SVGGElement, unknown>' is not assignable to type '(other: Selection<Element, unknown, any, any> | TransitionLike<Element, unknown>) => Selection<Element, unknown, any, any>'.
+          Types of parameters 'other' and 'other' are incompatible.
+            Type 'Selection<Element, unknown, any, any> | TransitionLike<Element, unknown>' is not assignable to type 'Selection<SVGGElement, unknown, SVGGElement, unknown> | TransitionLike<SVGGElement, unknown>'.
+              Type 'Selection<Element, unknown, any, any>' is not assignable to type 'Selection<SVGGElement, unknown, SVGGElement, unknown> | TransitionLike<SVGGElement, unknown>'.
+                Type 'Selection<Element, unknown, any, any>' is not assignable to type 'Selection<SVGGElement, unknown, SVGGElement, unknown>'.
+                  Types of property 'select' are incompatible.
+                    Type '{ <DescElement extends BaseType>(selector: string): Selection<DescElement, unknown, any, any>; <DescElement extends BaseType>(selector: null): Selection<null, undefined, any, any>; <DescElement extends BaseType>(selector: ValueFn<...>): Selection<...>; }' is not assignable to type '{ <DescElement extends BaseType>(selector: string): Selection<DescElement, unknown, SVGGElement, unknown>; <DescElement extends BaseType>(selector: null): Selection<null, undefined, SVGGElement, unknown>; <DescElement extends BaseType>(selector: ValueFn<...>): Selection<...>; }'.
+                      Types of parameters 'selector' and 'selector' are incompatible.
+                        Types of parameters 'groups' and 'groups' are incompatible.
+                          Type 'Element[] | ArrayLike<Element>' is not assignable to type 'SVGGElement[] | ArrayLike<SVGGElement>'.
+                            Type 'Element[]' is not assignable to type 'SVGGElement[] | ArrayLike<SVGGElement>'.
+                              Type 'Element[]' is not assignable to type 'SVGGElement[]'.
+                                Type 'Element' is missing the following properties from type 'SVGGElement': transform, getBBox, getCTM, getScreenCTM, and 107 more.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(614,7): error TS7034: Variable 'cachedNodeTexts' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(617,10): error TS7005: Variable 'cachedNodeTexts' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(624,7): error TS7034: Variable 'rafId' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(666,9): error TS7005: Variable 'rafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(667,28): error TS7005: Variable 'rafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(673,28): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(674,28): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(675,28): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(676,28): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(680,50): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(680,57): error TS18046: 'd' is of type 'unknown'.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(688,6): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(724,12): error TS2345: Argument of type 'ZoomBehavior<Element, unknown>' is not assignable to parameter of type '(selection: Selection<SVGSVGElement, unknown, null, undefined>) => void'.
+  Types of parameters 'selection' and 'selection' are incompatible.
+    Type 'Selection<SVGSVGElement, unknown, null, undefined>' is not assignable to type 'Selection<Element, unknown, any, any>'.
+      Types of property 'merge' are incompatible.
+        Type '(other: Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>) => Selection<SVGSVGElement, unknown, null, undefined>' is not assignable to type '(other: Selection<Element, unknown, any, any> | TransitionLike<Element, unknown>) => Selection<Element, unknown, any, any>'.
+          Types of parameters 'other' and 'other' are incompatible.
+            Type 'Selection<Element, unknown, any, any> | TransitionLike<Element, unknown>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>'.
+              Type 'Selection<Element, unknown, any, any>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>'.
+                Type 'Selection<Element, unknown, any, any>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined>'.
+                  Types of property 'select' are incompatible.
+                    Type '{ <DescElement extends BaseType>(selector: string): Selection<DescElement, unknown, any, any>; <DescElement extends BaseType>(selector: null): Selection<null, undefined, any, any>; <DescElement extends BaseType>(selector: ValueFn<...>): Selection<...>; }' is not assignable to type '{ <DescElement extends BaseType>(selector: string): Selection<DescElement, unknown, null, undefined>; <DescElement extends BaseType>(selector: null): Selection<null, undefined, null, undefined>; <DescElement extends BaseType>(selector: ValueFn<...>): Selection<...>; }'.
+                      Types of parameters 'selector' and 'selector' are incompatible.
+                        Types of parameters 'groups' and 'groups' are incompatible.
+                          Type 'Element[] | ArrayLike<Element>' is not assignable to type 'SVGSVGElement[] | ArrayLike<SVGSVGElement>'.
+                            Type 'Element[]' is not assignable to type 'SVGSVGElement[] | ArrayLike<SVGSVGElement>'.
+                              Type 'Element[]' is not assignable to type 'SVGSVGElement[]'.
+                                Type 'Element' is missing the following properties from type 'SVGSVGElement': currentScale, currentTranslate, height, width, and 158 more.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(733,18): error TS7006: Parameter 'transform' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(751,35): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(778,9): error TS7005: Variable 'rafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(779,28): error TS7005: Variable 'rafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(784,9): error TS7005: Variable 'dragRafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(785,28): error TS7005: Variable 'dragRafId' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(793,9): error TS7005: Variable 'tooltip' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(809,22): error TS7006: Parameter 'scale' implicitly has an 'any' type.
+src/engines/diagram/dependency/ForceDirectedDiagram.ts(828,39): error TS7006: Parameter 'renderResult' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(14,5): error TS7034: Variable 'dagre' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/erd/ERDDiagram.ts(15,5): error TS7034: Variable 'graphlib' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/erd/ERDDiagram.ts(16,5): error TS7034: Variable 'render' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/erd/ERDDiagram.ts(22,7): error TS7005: Variable 'dagre' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(22,16): error TS7005: Variable 'graphlib' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(22,28): error TS7005: Variable 'render' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(33,38): error TS7016: Could not find a declaration file for module 'dagre'. 'E:/NEXA System/NEXA/NEXA-Platform/node_modules/dagre/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/dagre` if it exists or add a new declaration (.d.ts) file containing `declare module 'dagre';`
+src/engines/diagram/erd/ERDDiagram.ts(57,33): error TS7006: Parameter 'container' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(57,44): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(60,11): error TS2339: Property 'selectedNode' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(60,32): error TS2339: Property 'layoutType' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(60,71): error TS2339: Property 'layoutOptions' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(60,91): error TS2339: Property 'onNodeClick' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(60,111): error TS2339: Property 'onNodeHover' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(101,38): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(102,39): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(112,76): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(113,78): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(119,19): error TS7006: Parameter 'table' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(142,26): error TS7006: Parameter 'rel' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(206,18): error TS2531: Object is possibly 'null'.
+src/engines/diagram/erd/ERDDiagram.ts(206,30): error TS2339: Property 'getBBox' does not exist on type 'Window | Document | Element | EnterElement'.
+  Property 'getBBox' does not exist on type 'Window'.
+src/engines/diagram/erd/ERDDiagram.ts(230,24): error TS2531: Object is possibly 'null'.
+src/engines/diagram/erd/ERDDiagram.ts(230,36): error TS2339: Property 'getTotalLength' does not exist on type 'Window | Document | Element | EnterElement'.
+  Property 'getTotalLength' does not exist on type 'Window'.
+src/engines/diagram/erd/ERDDiagram.ts(231,22): error TS2531: Object is possibly 'null'.
+src/engines/diagram/erd/ERDDiagram.ts(231,34): error TS2339: Property 'getPointAtLength' does not exist on type 'Window | Document | Element | EnterElement'.
+  Property 'getPointAtLength' does not exist on type 'Window'.
+src/engines/diagram/erd/ERDDiagram.ts(234,25): error TS2531: Object is possibly 'null'.
+src/engines/diagram/erd/ERDDiagram.ts(234,37): error TS2339: Property 'getPointAtLength' does not exist on type 'Window | Document | Element | EnterElement'.
+  Property 'getPointAtLength' does not exist on type 'Window'.
+src/engines/diagram/erd/ERDDiagram.ts(235,24): error TS2531: Object is possibly 'null'.
+src/engines/diagram/erd/ERDDiagram.ts(235,36): error TS2339: Property 'getPointAtLength' does not exist on type 'Window | Document | Element | EnterElement'.
+  Property 'getPointAtLength' does not exist on type 'Window'.
+src/engines/diagram/erd/ERDDiagram.ts(291,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/engines/diagram/erd/ERDDiagram.ts(298,37): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(307,32): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(324,19): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(324,26): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(324,29): error TS7006: Parameter 'nodeElement' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(343,21): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(343,45): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(352,28): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(356,12): error TS2345: Argument of type 'ZoomBehavior<Element, unknown>' is not assignable to parameter of type '(selection: Selection<SVGSVGElement, unknown, null, undefined>) => void'.
+  Types of parameters 'selection' and 'selection' are incompatible.
+    Type 'Selection<SVGSVGElement, unknown, null, undefined>' is not assignable to type 'Selection<Element, unknown, any, any>'.
+      Types of property 'merge' are incompatible.
+        Type '(other: Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>) => Selection<SVGSVGElement, unknown, null, undefined>' is not assignable to type '(other: Selection<Element, unknown, any, any> | TransitionLike<Element, unknown>) => Selection<Element, unknown, any, any>'.
+          Types of parameters 'other' and 'other' are incompatible.
+            Type 'Selection<Element, unknown, any, any> | TransitionLike<Element, unknown>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>'.
+              Type 'Selection<Element, unknown, any, any>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>'.
+                Type 'Selection<Element, unknown, any, any>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined>'.
+                  Types of property 'select' are incompatible.
+                    Type '{ <DescElement extends BaseType>(selector: string): Selection<DescElement, unknown, any, any>; <DescElement extends BaseType>(selector: null): Selection<null, undefined, any, any>; <DescElement extends BaseType>(selector: ValueFn<...>): Selection<...>; }' is not assignable to type '{ <DescElement extends BaseType>(selector: string): Selection<DescElement, unknown, null, undefined>; <DescElement extends BaseType>(selector: null): Selection<null, undefined, null, undefined>; <DescElement extends BaseType>(selector: ValueFn<...>): Selection<...>; }'.
+                      Types of parameters 'selector' and 'selector' are incompatible.
+                        Types of parameters 'groups' and 'groups' are incompatible.
+                          Type 'Element[] | ArrayLike<Element>' is not assignable to type 'SVGSVGElement[] | ArrayLike<SVGSVGElement>'.
+                            Type 'Element[]' is not assignable to type 'SVGSVGElement[] | ArrayLike<SVGSVGElement>'.
+                              Type 'Element[]' is not assignable to type 'SVGSVGElement[]'.
+                                Type 'Element' is missing the following properties from type 'SVGSVGElement': currentScale, currentTranslate, height, width, and 158 more.
+src/engines/diagram/erd/ERDDiagram.ts(374,22): error TS7006: Parameter 'scale' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(395,33): error TS7006: Parameter 'renderResult' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(395,47): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(397,11): error TS2339: Property 'selectedNode' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(405,46): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(406,28): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/diagram/erd/ERDDiagram.ts(455,39): error TS7006: Parameter 'renderResult' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(467,38): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(468,39): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(475,76): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(476,78): error TS2339: Property 'nodeSize' does not exist on type '{}'.
+src/engines/diagram/erd/ERDDiagram.ts(483,46): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/erd/ERDDiagram.ts(484,28): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/diagram/erd/ERDDiagram.ts(489,27): error TS2531: Object is possibly 'null'.
+src/engines/diagram/erd/ERDDiagram.ts(489,39): error TS2339: Property 'getBBox' does not exist on type 'Window | Document | Element | EnterElement'.
+  Property 'getBBox' does not exist on type 'Window'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(14,5): error TS7034: Variable 'dagre' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/filetree/FileTreeDiagram.ts(15,5): error TS7034: Variable 'graphlib' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/filetree/FileTreeDiagram.ts(16,5): error TS7034: Variable 'render' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/filetree/FileTreeDiagram.ts(22,7): error TS7005: Variable 'dagre' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(22,16): error TS7005: Variable 'graphlib' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(22,28): error TS7005: Variable 'render' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(33,38): error TS7016: Could not find a declaration file for module 'dagre'. 'E:/NEXA System/NEXA/NEXA-Platform/node_modules/dagre/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/dagre` if it exists or add a new declaration (.d.ts) file containing `declare module 'dagre';`
+src/engines/diagram/filetree/FileTreeDiagram.ts(48,29): error TS7006: Parameter 'files' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(51,18): error TS7006: Parameter 'file' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(53,43): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(56,20): error TS7006: Parameter 'part' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(56,26): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(58,50): error TS2339: Property 'name' does not exist on type 'never'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(61,9): error TS2322: Type '{ name: any; children: never[]; path: any; type: any; file: any; }' is not assignable to type 'undefined'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(68,31): error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'never'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(71,7): error TS2322: Type 'undefined' is not assignable to type '{ name: string; children: never[]; path: string; type: string; }'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(83,27): error TS7006: Parameter 'path' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(96,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ vue: string; js: string; ts: string; scss: string; css: string; json: string; md: string; html: string; }'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(111,38): error TS7006: Parameter 'container' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(111,49): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(114,11): error TS2339: Property 'selectedNode' does not exist on type '{}'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(114,32): error TS2339: Property 'onNodeClick' does not exist on type '{}'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(114,52): error TS2339: Property 'onNodeHover' does not exist on type '{}'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(186,27): error TS7006: Parameter 'node' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(221,30): error TS7006: Parameter 'child' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(248,46): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(252,49): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(253,49): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(254,49): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(255,49): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(332,18): error TS2531: Object is possibly 'null'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(332,30): error TS2339: Property 'getBBox' does not exist on type 'Window | Document | Element | EnterElement'.
+  Property 'getBBox' does not exist on type 'Window'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(359,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(363,69): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(377,19): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(377,26): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(377,29): error TS7006: Parameter 'nodeElement' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(385,21): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(386,51): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(396,28): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(400,12): error TS2345: Argument of type 'ZoomBehavior<Element, unknown>' is not assignable to parameter of type '(selection: Selection<SVGSVGElement, unknown, null, undefined>) => void'.
+  Types of parameters 'selection' and 'selection' are incompatible.
+    Type 'Selection<SVGSVGElement, unknown, null, undefined>' is not assignable to type 'Selection<Element, unknown, any, any>'.
+      Types of property 'merge' are incompatible.
+        Type '(other: Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>) => Selection<SVGSVGElement, unknown, null, undefined>' is not assignable to type '(other: Selection<Element, unknown, any, any> | TransitionLike<Element, unknown>) => Selection<Element, unknown, any, any>'.
+          Types of parameters 'other' and 'other' are incompatible.
+            Type 'Selection<Element, unknown, any, any> | TransitionLike<Element, unknown>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>'.
+              Type 'Selection<Element, unknown, any, any>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined> | TransitionLike<SVGSVGElement, unknown>'.
+                Type 'Selection<Element, unknown, any, any>' is not assignable to type 'Selection<SVGSVGElement, unknown, null, undefined>'.
+                  Types of property 'select' are incompatible.
+                    Type '{ <DescElement extends BaseType>(selector: string): Selection<DescElement, unknown, any, any>; <DescElement extends BaseType>(selector: null): Selection<null, undefined, any, any>; <DescElement extends BaseType>(selector: ValueFn<...>): Selection<...>; }' is not assignable to type '{ <DescElement extends BaseType>(selector: string): Selection<DescElement, unknown, null, undefined>; <DescElement extends BaseType>(selector: null): Selection<null, undefined, null, undefined>; <DescElement extends BaseType>(selector: ValueFn<...>): Selection<...>; }'.
+                      Types of parameters 'selector' and 'selector' are incompatible.
+                        Types of parameters 'groups' and 'groups' are incompatible.
+                          Type 'Element[] | ArrayLike<Element>' is not assignable to type 'SVGSVGElement[] | ArrayLike<SVGSVGElement>'.
+                            Type 'Element[]' is not assignable to type 'SVGSVGElement[] | ArrayLike<SVGSVGElement>'.
+                              Type 'Element[]' is not assignable to type 'SVGSVGElement[]'.
+                                Type 'Element' is missing the following properties from type 'SVGSVGElement': currentScale, currentTranslate, height, width, and 158 more.
+src/engines/diagram/filetree/FileTreeDiagram.ts(409,18): error TS7006: Parameter 'transform' implicitly has an 'any' type.
+src/engines/diagram/filetree/FileTreeDiagram.ts(412,24): error TS2531: Object is possibly 'null'.
+src/engines/diagram/filetree/FileTreeDiagram.ts(452,22): error TS7006: Parameter 'scale' implicitly has an 'any' type.
+src/engines/diagram/flow/FlowDiagram.ts(14,34): error TS7006: Parameter 'container' implicitly has an 'any' type.
+src/engines/diagram/flow/FlowDiagram.ts(14,45): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/diagram/network/NetworkDiagram.ts(14,37): error TS7006: Parameter 'container' implicitly has an 'any' type.
+src/engines/diagram/network/NetworkDiagram.ts(14,48): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(28,38): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(28,46): error TS7006: Parameter 'nodeData' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(44,38): error TS7006: Parameter 'nodeId' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(44,46): error TS7006: Parameter 'nodeData' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(44,56): error TS7006: Parameter 'isEntering' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(60,38): error TS7006: Parameter 'edgeId' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(60,46): error TS7006: Parameter 'edgeData' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(75,38): error TS7006: Parameter 'nodeElement' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(75,51): error TS7006: Parameter 'isEntering' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(94,43): error TS7031: Binding element 'onNodeHover' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(94,56): error TS7031: Binding element 'getNodeId' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(94,67): error TS7031: Binding element 'getNodeData' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(99,34): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(99,41): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(100,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/diagram/utils/diagramEvents.ts(111,34): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(111,41): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramEvents.ts(112,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/engines/diagram/utils/diagramLayout.ts(55,34): error TS7006: Parameter 'layoutType' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(24,28): error TS7006: Parameter 'onZoom' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(26,5): error TS2339: Property 'scaleExtent' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(27,5): error TS2339: Property 'wheelDelta' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(28,5): error TS2339: Property 'inertia' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(29,5): error TS2339: Property 'inertiaDecay' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(30,5): error TS2339: Property 'inertiaDuration' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(31,5): error TS2339: Property 'onInertiaStart' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(32,5): error TS2339: Property 'onInertiaEnd' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(33,5): error TS2339: Property 'skipFontUpdateDuringInertia' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(42,22): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(66,9): error TS7034: Variable 'animationFrame' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/utils/diagramZoom.ts(67,9): error TS7034: Variable 'svgElement' implicitly has type 'any' in some locations where its type cannot be determined.
+src/engines/diagram/utils/diagramZoom.ts(83,11): error TS7005: Variable 'animationFrame' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(98,7): error TS2721: Cannot invoke an object which is possibly 'null'.
+src/engines/diagram/utils/diagramZoom.ts(132,31): error TS7005: Variable 'svgElement' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(160,23): error TS7005: Variable 'svgElement' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(201,29): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(201,34): error TS7006: Parameter 'svgGroup' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(201,44): error TS7006: Parameter 'containerWidth' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(201,60): error TS7006: Parameter 'containerHeight' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(201,77): error TS7006: Parameter 'zoom' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(202,11): error TS2339: Property 'margin' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(202,26): error TS2339: Property 'delay' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(202,39): error TS2339: Property 'onComplete' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(202,58): error TS2339: Property 'animate' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(202,74): error TS2339: Property 'duration' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(202,90): error TS2339: Property 'easing' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(202,114): error TS2339: Property 'manualZoom' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(212,55): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ 'cubic-in-out': (normalizedTime: number) => number; 'elastic-out': ElasticEasingFactory; 'bounce-out': (normalizedTime: number) => number; 'back-out': BackEasingFactory; 'exp-out': (normalizedTime: number) => number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ 'cubic-in-out': (normalizedTime: number) => number; 'elastic-out': ElasticEasingFactory; 'bounce-out': (normalizedTime: number) => number; 'back-out': BackEasingFactory; 'exp-out': (normalizedTime: number) => number; }'.
+src/engines/diagram/utils/diagramZoom.ts(280,24): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(280,29): error TS7006: Parameter 'zoom' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(280,35): error TS7006: Parameter 'scale' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(289,27): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(289,32): error TS7006: Parameter 'zoom' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(308,32): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(308,37): error TS7006: Parameter 'zoom' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(308,43): error TS7006: Parameter 'scale' implicitly has an 'any' type.
+src/engines/diagram/utils/diagramZoom.ts(309,11): error TS2339: Property 'animate' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(309,27): error TS2339: Property 'duration' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(309,43): error TS2339: Property 'svgGroup' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(309,60): error TS2339: Property 'containerWidth' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(309,83): error TS2339: Property 'containerHeight' does not exist on type '{}'.
+src/engines/diagram/utils/diagramZoom.ts(328,9): error TS2322: Type 'number' is not assignable to type 'null'.
+src/engines/diagram/utils/diagramZoom.ts(329,9): error TS2322: Type 'number' is not assignable to type 'null'.
+src/engines/diagram/utils/diagramZoom.ts(335,7): error TS2322: Type 'number' is not assignable to type 'null'.
+src/engines/diagram/utils/diagramZoom.ts(336,7): error TS2322: Type 'number' is not assignable to type 'null'.
+src/engines/diagram/utils/diagramZoom.ts(341,5): error TS2322: Type 'number' is not assignable to type 'null'.
+src/engines/diagram/utils/diagramZoom.ts(342,5): error TS2322: Type 'number' is not assignable to type 'null'.
+src/engines/diagram/utils/diagramZoom.ts(345,53): error TS2345: Argument of type 'null' is not assignable to parameter of type 'number'.
+src/engines/diagram/utils/diagramZoom.ts(361,32): error TS7006: Parameter 'svg' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(10,10): error TS2339: Property 'activeDevices' does not exist on type 'VirtualDeviceManager'.
+src/system/services/device/VirtualDeviceManager.ts(12,10): error TS2551: Property 'subscribers' does not exist on type 'VirtualDeviceManager'. Did you mean 'subscribe'?
+src/system/services/device/VirtualDeviceManager.ts(20,18): error TS7006: Parameter 'deviceId' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(20,28): error TS7006: Parameter 'ports' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(21,10): error TS2339: Property 'activeDevices' does not exist on type 'VirtualDeviceManager'.
+src/system/services/device/VirtualDeviceManager.ts(33,19): error TS7006: Parameter 'deviceId' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(33,29): error TS7006: Parameter 'staticKey' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(33,40): error TS7006: Parameter 'dynamicId' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(33,51): error TS7006: Parameter 'newValue' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(34,25): error TS2339: Property 'activeDevices' does not exist on type 'VirtualDeviceManager'.
+src/system/services/device/VirtualDeviceManager.ts(36,39): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(53,20): error TS7006: Parameter 'deviceId' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(53,30): error TS7006: Parameter 'rotationMap' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(61,13): error TS7006: Parameter 'callback' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(62,10): error TS2551: Property 'subscribers' does not exist on type 'VirtualDeviceManager'. Did you mean 'subscribe'?
+src/system/services/device/VirtualDeviceManager.ts(65,21): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(65,28): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/system/services/device/VirtualDeviceManager.ts(66,10): error TS2551: Property 'subscribers' does not exist on type 'VirtualDeviceManager'. Did you mean 'subscribe'?
+src/system/services/device/VirtualDeviceManager.ts(66,31): error TS7006: Parameter 'callback' implicitly has an 'any' type.
+src/system/services/device/VirtualNodeAdapter.ts(11,10): error TS2339: Property 'isInitialized' does not exist on type 'VirtualNodeAdapter'.
+src/system/services/device/VirtualNodeAdapter.ts(12,10): error TS2339: Property 'currentDiagramData' does not exist on type 'VirtualNodeAdapter'.
+src/system/services/device/VirtualNodeAdapter.ts(16,14): error TS2339: Property 'isInitialized' does not exist on type 'VirtualNodeAdapter'.
+src/system/services/device/VirtualNodeAdapter.ts(18,20): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/system/services/device/VirtualNodeAdapter.ts(18,27): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/system/services/device/VirtualNodeAdapter.ts(29,10): error TS2339: Property 'isInitialized' does not exist on type 'VirtualNodeAdapter'.
+src/system/services/device/VirtualNodeAdapter.ts(35,19): error TS7006: Parameter 'deviceId' implicitly has an 'any' type.
+src/system/services/device/VirtualNodeAdapter.ts(35,29): error TS7006: Parameter 'ports' implicitly has an 'any' type.
+src/system/services/device/VirtualNodeAdapter.ts(46,25): error TS2339: Property 'currentDiagramData' does not exist on type 'VirtualNodeAdapter'.
+src/system/services/device/VirtualNodeAdapter.ts(46,59): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/system/services/device/VirtualNodeAdapter.ts(48,12): error TS2339: Property 'currentDiagramData' does not exist on type 'VirtualNodeAdapter'.
+src/system/services/device/VirtualNodeAdapter.ts(56,58): error TS2339: Property 'currentDiagramData' does not exist on type 'VirtualNodeAdapter'.
+src/system/services/device/VirtualNodeAdapter.ts(61,24): error TS7006: Parameter 'deviceId' implicitly has an 'any' type.
+src/system/services/device/VirtualNodeAdapter.ts(61,34): error TS7006: Parameter 'rotationMap' implicitly has an 'any' type.
+src/system/services/device/VirtualNodeAdapter.ts(63,23): error TS2339: Property 'currentDiagramData' does not exist on type 'VirtualNodeAdapter'.
+src/system/services/device/VirtualNodeAdapter.ts(63,57): error TS7006: Parameter 'p' implicitly has an 'any' type.

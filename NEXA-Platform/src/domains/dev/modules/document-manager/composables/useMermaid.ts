@@ -4,6 +4,21 @@
  */
 /* global NodeListOf */
 
+/** Element 또는 SVGElement의 className에서 문자열 추출 (SVG: baseVal, HTML: string) */
+function getElementClassString(el: Element | null): string {
+  if (!el) return ''
+  const c = (el as { className?: unknown }).className
+  if (typeof c === 'object' && c !== null && 'baseVal' in c) {
+    return String((c as { baseVal: string }).baseVal)
+  }
+  return String(c ?? '')
+}
+
+/** style 속성이 있는 요소로 캐스팅 (HTMLElement | SVGElement) */
+function asStyledElement(el: Element): HTMLElement | SVGElement {
+  return el as HTMLElement | SVGElement
+}
+
 import { getDefaultMermaidCss, loadMermaidStyle, loadMermaidBlockStyle } from '@domains/dev/modules/document-manager/services/mermaidStyleStorage'
 import { getCurrentMermaidStyles } from '@domains/dev/modules/document-manager/config/mermaidStyles'
 
@@ -31,9 +46,10 @@ function waitForDOMReady(mermaidBlocks: NodeListOf<Element>) {
             readyCount++
           } else {
             // 최소 크기 설정
-            block.style.minHeight = '300px'
-            block.style.minWidth = '100%'
-            block.style.display = 'block'
+            const blockEl = block as HTMLElement
+            blockEl.style.minHeight = '300px'
+            blockEl.style.minWidth = '100%'
+            blockEl.style.display = 'block'
           }
         }
 
@@ -339,13 +355,14 @@ export function useMermaid(
 
       // 각 Mermaid 블록 렌더링 (병렬 처리 대신 순차 처리)
       for (const block of mermaidBlocks) {
+        const blockEl = block as HTMLElement
         // 이미 렌더링되었는지 다시 확인 (race condition 방지)
         if (block.hasAttribute('data-mermaid-rendered')) continue
 
         const mermaidCode = block.getAttribute('data-mermaid-code')
         if (!mermaidCode || mermaidCode.trim().length < 3) {
           // 빈 코드나 너무 짧은 코드는 조용히 건너뛰기
-          block.style.display = 'none'
+          blockEl.style.display = 'none'
           block.setAttribute('data-mermaid-rendered', 'true')
           continue
         }
@@ -354,9 +371,9 @@ export function useMermaid(
           // 컨테이너가 표시되는지 최종 확인
           const rect = block.getBoundingClientRect()
           if (rect.width === 0 || rect.height === 0) {
-            block.style.minHeight = '300px'
-            block.style.minWidth = '100%'
-            block.style.display = 'block'
+            blockEl.style.minHeight = '300px'
+            blockEl.style.minWidth = '100%'
+            blockEl.style.display = 'block'
             // 추가 대기
             await new Promise((resolve) => {
               requestAnimationFrame(() => {
@@ -374,7 +391,7 @@ export function useMermaid(
           const trimmedCode = decodedCode.trim()
           if (!trimmedCode || trimmedCode.length < 3) {
             // 조용히 건너뛰기 (에러 메시지 표시하지 않음)
-            block.style.display = 'none'
+            blockEl.style.display = 'none'
             block.setAttribute('data-mermaid-rendered', 'true')
             continue
           }
@@ -384,45 +401,47 @@ export function useMermaid(
           if (!chartType || chartType.includes('pie')) {
             if (chartType?.includes('pie')) {
               // Pie 차트는 현재 지원하지 않음
-              block.innerHTML = `<div class="mermaid-error text-negative q-pa-md">Pie 차트는 현재 지원하지 않습니다. 다른 차트 타입을 사용해주세요.</div>`
+              blockEl.innerHTML = `<div class="mermaid-error text-negative q-pa-md">Pie 차트는 현재 지원하지 않습니다. 다른 차트 타입을 사용해주세요.</div>`
             } else {
               // 차트 타입을 감지할 수 없음 - 조용히 건너뛰기
-              block.style.display = 'none'
+              blockEl.style.display = 'none'
             }
             block.setAttribute('data-mermaid-rendered', 'true')
             continue
           }
 
           // Mermaid 렌더링
-          const { svg } = await mermaid.render(block.getAttribute('data-mermaid-id'), trimmedCode)
-          block.innerHTML = svg
+          const mermaidId = block.getAttribute('data-mermaid-id')
+          if (!mermaidId) continue
+          const { svg } = await mermaid.render(mermaidId, trimmedCode)
+          blockEl.innerHTML = svg
           block.setAttribute('data-mermaid-rendered', 'true')
           block.classList.add('mermaid-rendered')
 
           // CSS 스타일 주입 (렌더링 후, 약간의 지연으로 SVG DOM이 완전히 준비되도록)
           await new Promise((resolve) => setTimeout(resolve, 100))
-          await injectMermaidStyles(block.getAttribute('data-mermaid-id'))
+          await injectMermaidStyles(mermaidId)
 
           // SVG 내부 인라인 스타일도 강제로 제거하고 CSS로 대체
-          forceApplyThemeStyles(block)
+          forceApplyThemeStyles(blockEl)
 
           // 추가 지연 후 다시 적용 (Mermaid의 비동기 스타일 적용 대비)
           setTimeout(() => {
-            forceApplyThemeStyles(block)
+            forceApplyThemeStyles(blockEl)
           }, 200)
 
           // 더 긴 지연 후 한 번 더 적용 (엣지 라벨이 늦게 렌더링되는 경우 대비)
           setTimeout(() => {
-            forceApplyThemeStyles(block)
+            forceApplyThemeStyles(blockEl)
           }, 500)
         } catch (err: unknown) {
           const errorMsg = err instanceof Error ? err.message : '알 수 없는 오류'
           if (errorMsg.includes('No diagram type detected') || errorMsg.includes('Parse error') || errorMsg.includes('UnknownDiagramError')) {
             // 유효하지 않은 코드는 표시하지 않음
-            block.style.display = 'none'
+            blockEl.style.display = 'none'
           } else {
             // 다른 에러는 메시지 표시
-            block.innerHTML = `<div class="mermaid-error text-negative q-pa-md">Mermaid 차트 렌더링 오류: ${errorMsg}</div>`
+            blockEl.innerHTML = `<div class="mermaid-error text-negative q-pa-md">Mermaid 차트 렌더링 오류: ${errorMsg}</div>`
           }
           block.setAttribute('data-mermaid-rendered', 'true')
           // 에러가 있어도 다음 차트 계속 렌더링
@@ -653,15 +672,15 @@ export function useMermaid(
       allTexts.forEach((textEl: Element, idx: number) => {
         if (!textEl.textContent || textEl.textContent.trim() === '') return
         const parent = textEl.parentElement
-        const classes = String(textEl.className?.baseVal || textEl.className || '')
-        const parentClasses = String(parent?.className?.baseVal || parent?.className || '')
+        const classes = getElementClassString(textEl)
+        const parentClasses = getElementClassString(parent)
         console.log(`텍스트 ${idx + 1}: "${textEl.textContent.trim()}"`, {
           tagName: textEl.tagName,
           classes,
           parentTag: parent?.tagName,
           parentClasses,
           fill: textEl.getAttribute('fill'),
-          styleFill: textEl.style.fill,
+          styleFill: asStyledElement(textEl).style.fill,
           closestEdgeLabel: textEl.closest('.edgeLabel') !== null,
           closestNodeLabel: textEl.closest('.nodeLabel') !== null,
           hasEdgeInClass: classes.includes('edge') || parentClasses.includes('edge'),
@@ -682,7 +701,7 @@ export function useMermaid(
 
     edgeLabelGroups.forEach((group: Element, idx: number) => {
       if (debugMode) {
-        const groupClasses = String(group.className?.baseVal || group.className || '')
+        const groupClasses = getElementClassString(group)
         console.log(`  그룹 ${idx + 1}: tagName=${group.tagName}, classes=${groupClasses}`)
       }
 
@@ -694,8 +713,8 @@ export function useMermaid(
       if (group.tagName === 'SPAN' || group.tagName === 'span') {
         // SPAN 자체에 텍스트가 있으면 처리
         if (group.textContent && group.textContent.trim() !== '') {
-          group.style.setProperty('color', edgeLabelColor, 'important')
-          group.style.color = edgeLabelColor
+          asStyledElement(group).style.setProperty('color', edgeLabelColor, 'important')
+          asStyledElement(group).style.color = edgeLabelColor
           foundTexts++
           if (debugMode) console.log(`  엣지 라벨 (SPAN 자체) 적용: "${group.textContent.trim()}" -> ${edgeLabelColor}`)
         }
@@ -706,16 +725,16 @@ export function useMermaid(
             // SVG 요소인 경우
             if (el.tagName === 'text' || el.tagName === 'tspan') {
               el.removeAttribute('fill')
-              el.style.setProperty('fill', edgeLabelColor, 'important')
-              el.style.fill = edgeLabelColor
+              asStyledElement(el).style.setProperty('fill', edgeLabelColor, 'important')
+              asStyledElement(el).style.fill = edgeLabelColor
               el.setAttribute('fill', edgeLabelColor)
               foundTexts++
               if (debugMode) console.log(`  엣지 라벨 (SPAN 내부 SVG) 적용: "${el.textContent.trim()}" -> ${edgeLabelColor}`)
             }
             // HTML 요소인 경우 (P, DIV, SPAN 등)
             else if (el.tagName === 'P' || el.tagName === 'p' || el.tagName === 'DIV' || el.tagName === 'div' || el.tagName === 'SPAN' || el.tagName === 'span') {
-              el.style.setProperty('color', edgeLabelColor, 'important')
-              el.style.color = edgeLabelColor
+              asStyledElement(el).style.setProperty('color', edgeLabelColor, 'important')
+              asStyledElement(el).style.color = edgeLabelColor
               foundTexts++
               if (debugMode) console.log(`  엣지 라벨 (SPAN 내부 ${el.tagName}) 적용: "${el.textContent.trim()}" -> ${edgeLabelColor}`)
             }
@@ -727,9 +746,10 @@ export function useMermaid(
       texts.forEach((textEl: Element) => {
         if (textEl.textContent && textEl.textContent.trim() !== '') {
           textEl.removeAttribute('fill')
-          textEl.style.setProperty('fill', edgeLabelColor, 'important')
-          textEl.style.setProperty('color', edgeLabelColor, 'important')
-          textEl.style.fill = edgeLabelColor
+          const textStyle = asStyledElement(textEl).style
+          textStyle.setProperty('fill', edgeLabelColor, 'important')
+          textStyle.setProperty('color', edgeLabelColor, 'important')
+          textStyle.fill = edgeLabelColor
           textEl.setAttribute('fill', edgeLabelColor)
           foundTexts++
           if (debugMode) console.log(`  엣지 라벨 적용: "${textEl.textContent.trim()}" -> ${edgeLabelColor}`)
@@ -739,8 +759,9 @@ export function useMermaid(
       // group 자체가 text/tspan인 경우
       if ((group.tagName === 'text' || group.tagName === 'tspan') && group.textContent && group.textContent.trim() !== '') {
         group.removeAttribute('fill')
-        group.style.setProperty('fill', edgeLabelColor, 'important')
-        group.style.fill = edgeLabelColor
+        const gStyle = asStyledElement(group).style
+        gStyle.setProperty('fill', edgeLabelColor, 'important')
+        gStyle.fill = edgeLabelColor
         group.setAttribute('fill', edgeLabelColor)
         foundTexts++
         if (debugMode) console.log(`  엣지 라벨 (그룹 자체) 적용: "${group.textContent.trim()}" -> ${edgeLabelColor}`)
@@ -755,16 +776,17 @@ export function useMermaid(
           // SVG text/tspan 요소
           if (child.tagName === 'text' || child.tagName === 'tspan') {
             child.removeAttribute('fill')
-            child.style.setProperty('fill', edgeLabelColor, 'important')
-            child.style.fill = edgeLabelColor
+            const cStyle = asStyledElement(child).style
+            cStyle.setProperty('fill', edgeLabelColor, 'important')
+            cStyle.fill = edgeLabelColor
             child.setAttribute('fill', edgeLabelColor)
             foundTexts++
             if (debugMode) console.log(`  엣지 라벨 (재귀 SVG) 적용: "${child.textContent.trim()}" -> ${edgeLabelColor}`)
           }
           // HTML 요소 (SPAN, P, DIV 등) - foreignObject 내부에 있을 수 있음
           else if (child.tagName === 'SPAN' || child.tagName === 'span' || child.tagName === 'P' || child.tagName === 'p' || child.tagName === 'DIV' || child.tagName === 'div') {
-            child.style.setProperty('color', edgeLabelColor, 'important')
-            child.style.color = edgeLabelColor
+            asStyledElement(child).style.setProperty('color', edgeLabelColor, 'important')
+            asStyledElement(child).style.color = edgeLabelColor
             foundTexts++
             if (debugMode) console.log(`  엣지 라벨 (재귀 HTML ${child.tagName}) 적용: "${child.textContent.trim()}" -> ${edgeLabelColor}`)
           }
@@ -783,16 +805,17 @@ export function useMermaid(
             // SVG 요소
             if (textEl.tagName === 'text' || textEl.tagName === 'tspan') {
               textEl.removeAttribute('fill')
-              textEl.style.setProperty('fill', edgeLabelColor, 'important')
-              textEl.style.fill = edgeLabelColor
+              const tStyle = asStyledElement(textEl).style
+              tStyle.setProperty('fill', edgeLabelColor, 'important')
+              tStyle.fill = edgeLabelColor
               textEl.setAttribute('fill', edgeLabelColor)
               foundTexts++
               if (debugMode) console.log(`  엣지 라벨 (포함 SVG) 적용: "${textEl.textContent.trim()}" -> ${edgeLabelColor}`)
             }
             // HTML 요소
             else {
-              textEl.style.setProperty('color', edgeLabelColor, 'important')
-              textEl.style.color = edgeLabelColor
+              asStyledElement(textEl).style.setProperty('color', edgeLabelColor, 'important')
+              asStyledElement(textEl).style.color = edgeLabelColor
               foundTexts++
               if (debugMode) console.log(`  엣지 라벨 (포함 HTML ${textEl.tagName}) 적용: "${textEl.textContent.trim()}" -> ${edgeLabelColor}`)
             }
@@ -803,17 +826,17 @@ export function useMermaid(
       if (debugMode && foundTexts === 0) {
         console.log(`  ⚠️ 그룹 ${idx + 1}에서 텍스트를 찾지 못했습니다`, {
           groupTag: group.tagName,
-          groupClasses: String(group.className?.baseVal || group.className || ''),
+          groupClasses: getElementClassString(group),
           children: Array.from(group.children).map((c: Element) => ({
             tag: c.tagName,
-            classes: String((c as SVGElement).className?.baseVal ?? (c as SVGElement).className ?? ''),
+            classes: getElementClassString(c),
             textContent: c.textContent?.trim().substring(0, 20),
             hasChildren: c.children.length > 0,
             children: Array.from(c.children)
               .slice(0, 5)
               .map((gc: Element) => ({
                 tag: gc.tagName,
-                classes: String((gc as SVGElement).className?.baseVal ?? (gc as SVGElement).className ?? ''),
+                classes: getElementClassString(gc),
                 textContent: gc.textContent?.trim().substring(0, 20),
               })),
           })),
@@ -829,12 +852,12 @@ export function useMermaid(
             if (directTextNodes.length > 0 || el.tagName === 'text' || el.tagName === 'tspan' || el.tagName === 'SPAN' || el.tagName === 'span') {
               textNodes.push({
                 tag: el.tagName,
-                classes: String(el.className?.baseVal || el.className || ''),
+                classes: getElementClassString(el),
                 text: el.textContent.trim(),
                 parent: el.parentElement
                   ? {
                       tag: el.parentElement.tagName,
-                      classes: String(el.parentElement.className?.baseVal || el.parentElement.className || ''),
+                      classes: getElementClassString(el.parentElement),
                     }
                   : null,
               })
@@ -853,9 +876,9 @@ export function useMermaid(
     allTextElements.forEach((textEl) => {
       if (textEl.closest('.edgeLabel') || textEl.closest('.edgeLabels')) return // 이미 처리됨
 
-      const classes = String(textEl.className?.baseVal || textEl.className || '')
+      const classes = getElementClassString(textEl)
       const parent = textEl.parentElement
-      const parentClasses = String(parent?.className?.baseVal || parent?.className || '')
+      const parentClasses = getElementClassString(parent)
 
       // 엣지 관련 키워드가 있는지 확인
       const hasEdgeKeyword = (classes.includes('edge') && !classes.includes('edgeLabel') === false) || (parentClasses.includes('edge') && !parentClasses.includes('edgeLabel') === false) || classes.toLowerCase().includes('edge-label') || parentClasses.toLowerCase().includes('edge-label')
@@ -880,7 +903,8 @@ export function useMermaid(
       const edgePaths = svg.querySelectorAll('path[stroke]:not([stroke="none"]), .edgePath path, path.edge, .edge path')
       if (debugMode) console.log(`연결선 찾음: ${edgePaths.length}개`)
 
-      edgePaths.forEach((path: SVGPathElement) => {
+      Array.from(edgePaths).forEach((pathEl) => {
+        const path = pathEl as SVGPathElement
         try {
           const pathBBox = path.getBBox()
           const pathCenterX = pathBBox.x + pathBBox.width / 2
@@ -891,12 +915,12 @@ export function useMermaid(
             if (textEl.closest('.edgeLabel') || textEl.closest('.edgeLabels')) return
 
             // 특수 클래스 제외 (간트 차트 등)
-            const classes = String(textEl.className?.baseVal || textEl.className || '')
-            const parentClasses = String(textEl.parentElement?.className?.baseVal || textEl.parentElement?.className || '')
+            const classes = getElementClassString(textEl)
+            const parentClasses = getElementClassString(textEl.parentElement)
             if (classes.includes('tick') || classes.includes('taskText') || classes.includes('sectionTitle') || classes.includes('titleText') || parentClasses.includes('tick')) return
 
             try {
-              const textBBox = textEl.getBBox()
+              const textBBox = (textEl as SVGGraphicsElement).getBBox()
               const textCenterX = textBBox.x + textBBox.width / 2
               const textCenterY = textBBox.y + textBBox.height / 2
 
@@ -908,8 +932,8 @@ export function useMermaid(
               // path의 경로상에 매우 가까운 텍스트만 엣지 라벨로 간주
               if (distance < threshold) {
                 textEl.removeAttribute('fill')
-                textEl.style.setProperty('fill', edgeLabelColor, 'important')
-                textEl.style.fill = edgeLabelColor
+                asStyledElement(textEl).style.setProperty('fill', edgeLabelColor, 'important')
+                asStyledElement(textEl).style.fill = edgeLabelColor
                 textEl.setAttribute('fill', edgeLabelColor)
                 if (debugMode) console.log(`엣지 라벨 (거리) 적용: "${textEl.textContent.trim()}" -> ${edgeLabelColor} (거리: ${distance.toFixed(2)})`)
               }
@@ -927,12 +951,12 @@ export function useMermaid(
     allTextElements.forEach((textEl: SVGElement) => {
       // 이미 처리된 요소는 건너뛰기
       // 참고: messageText는 CSS에서 처리됨 (mermaidStyleStorage.js)
-      const currentFill = textEl.style.fill || textEl.getAttribute('fill')
+      const currentFill = asStyledElement(textEl).style.fill || textEl.getAttribute('fill')
       if (currentFill === edgeLabelColor || currentFill === lineColor) return
       if (textEl.closest('.edgeLabel') || textEl.closest('.edgeLabels')) return
 
-      const parentClasses = String(textEl.parentElement?.className?.baseVal || textEl.parentElement?.className || '')
-      const classes = String(textEl.className?.baseVal || textEl.className || '')
+      const parentClasses = getElementClassString(textEl.parentElement)
+      const classes = getElementClassString(textEl)
 
       // 노드 내부인지 확인
       const isNodeText =
@@ -956,8 +980,9 @@ export function useMermaid(
       // 엣지와 관련 없는 텍스트는 모두 노드 텍스트로 간주
       if (isNodeText || (!classes.includes('edge') && !parentClasses.includes('edge'))) {
         textEl.removeAttribute('fill')
-        textEl.style.setProperty('fill', textColor, 'important')
-        textEl.style.fill = textColor
+        const tStyle = asStyledElement(textEl).style
+        tStyle.setProperty('fill', textColor, 'important')
+        tStyle.fill = textColor
         textEl.setAttribute('fill', textColor)
         nodeTextCount++
         if (debugMode) console.log(`노드 텍스트 적용: "${textEl.textContent.trim()}" -> ${textColor}`)
@@ -982,20 +1007,22 @@ export function useMermaid(
 
       // 노드 텍스트인 경우 색상 적용
       if (isNodeText || !htmlEl.closest('.edgeLabel')) {
-        htmlEl.style.setProperty('color', textColor, 'important')
-        htmlEl.style.color = textColor
+        const htmlStyle = asStyledElement(htmlEl).style
+        htmlStyle.setProperty('color', textColor, 'important')
+        htmlStyle.color = textColor
         // 내부의 모든 텍스트 요소도 처리
         const innerTexts = htmlEl.querySelectorAll('span, p, div, text, tspan')
         innerTexts.forEach((inner: Element) => {
           if (inner.textContent && inner.textContent.trim() !== '') {
+            const innerStyle = asStyledElement(inner).style
             if (inner.tagName === 'text' || inner.tagName === 'tspan') {
               inner.removeAttribute('fill')
-              inner.style.setProperty('fill', textColor, 'important')
-              inner.style.fill = textColor
+              innerStyle.setProperty('fill', textColor, 'important')
+              innerStyle.fill = textColor
               inner.setAttribute('fill', textColor)
             } else {
-              inner.style.setProperty('color', textColor, 'important')
-              inner.style.color = textColor
+              innerStyle.setProperty('color', textColor, 'important')
+              innerStyle.color = textColor
             }
           }
         })
@@ -1016,14 +1043,15 @@ export function useMermaid(
     edgeLabelHtmlElements.forEach((htmlEl: Element) => {
       if (!htmlEl.textContent || htmlEl.textContent.trim() === '') return
 
-      htmlEl.style.setProperty('color', edgeLabelColor, 'important')
-      htmlEl.style.color = edgeLabelColor
+      const htmlStyle = asStyledElement(htmlEl).style
+      htmlStyle.setProperty('color', edgeLabelColor, 'important')
+      htmlStyle.color = edgeLabelColor
       // HTML 요소 내부의 모든 텍스트 요소도 처리
       const innerElements = htmlEl.querySelectorAll('span, p, div')
       innerElements.forEach((inner: Element) => {
         if (inner.textContent && inner.textContent.trim() !== '') {
-          inner.style.setProperty('color', edgeLabelColor, 'important')
-          inner.style.color = edgeLabelColor
+          asStyledElement(inner).style.setProperty('color', edgeLabelColor, 'important')
+          asStyledElement(inner).style.color = edgeLabelColor
           if (debugMode) console.log(`  엣지 라벨 (HTML 내부 ${inner.tagName}) 적용: "${inner.textContent.trim()}" -> ${edgeLabelColor}`)
         }
       })
@@ -1055,7 +1083,7 @@ export function useMermaid(
           styleCache.delete(mermaidId)
           injectMermaidStyles(mermaidId)
           // SVG 내부 스타일도 강제 적용
-          forceApplyThemeStyles(block)
+          forceApplyThemeStyles(block as HTMLElement)
         }
       })
     }
@@ -1074,7 +1102,8 @@ export function useMermaid(
       }
 
       renderTimeout = setTimeout(() => {
-        const hasNewBlocks = containerRef.value?.querySelectorAll('.mermaid-block:not([data-mermaid-rendered])').length > 0
+        const newBlocks = containerRef.value?.querySelectorAll('.mermaid-block:not([data-mermaid-rendered])')
+        const hasNewBlocks = (newBlocks?.length ?? 0) > 0
         if (hasNewBlocks) {
           renderMermaid(0, 3, true) // 강제 실행 (force=true)
         }

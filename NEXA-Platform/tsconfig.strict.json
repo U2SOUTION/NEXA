@@ -50,13 +50,13 @@
     "src/domains/parts/**/*.ts",
     "src/domains/dev/modules/document-manager/**/*.ts",
     "src/domains/ai/**/*.ts",
-    "src/domains/archive/**/*.ts"
+    "src/domains/archive/**/*.ts",
+    "src/frame/**/*.ts",
+    "src/frame/**/*.vue"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    ".quasar",
-    "src/domains/dev/modules/document-manager/composables/useMermaid.ts",
-    "src/domains/dev/modules/document-manager/composables/useMermaidStyle.ts"
+    ".quasar"
   ]
 }
