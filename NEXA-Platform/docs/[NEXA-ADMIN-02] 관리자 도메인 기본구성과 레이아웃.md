@@ -4,7 +4,7 @@
 
 **적용 범위**: 프론트 `src/domains/admin/**`, 프레임 레이어 등록(domainRegistry, routes, mainMenuTabs), 서버 관리 API·DB는 별도 문서.
 
-**참조**: [NEXA-AUTH-01] 계정·인증·권한, [NEXA-PLATFORM-TS-01] TS 전략, 기획 초안 `[NEXA-ADMIN-01] 관리자_도메인_기획_초안.md`
+**참조**: [NEXA-AUTH-01] 계정·인증·권한, [NEXA-CAPABILITY-01] Capability ID 체계 및 Tier 접근 권한, [NEXA-PLATFORM-TS-01] TS 전략, 기획 초안 `[NEXA-ADMIN-01] 관리자_도메인_기획_초안.md`
 
 **작성일**: 2025-03
 
@@ -37,10 +37,13 @@
 
 ### 3.1 슈퍼관리자 부여 및 강제 비밀번호 변경 (구현됨)
 
-- **최초 가입자 = 슈퍼관리자**: 회원가입 시 `users` 테이블에 활성 사용자가 0명이면 해당 가입자에게 `role = 'admin'` 부여. 그 외는 `role = 'user'`.
-- **강한 비밀번호**: 최초 가입자(admin)는 가입 시 **강한 비밀번호** 필수. 정책: 최소 10자, 영문·숫자·특수문자 각 1자 이상. 서버 `server/utils/passwordPolicy.ts`의 `validateStrongPassword()`로 검사.
-- **강제 비밀번호 변경**: admin으로 가입 시 `users.password_must_change = true` 저장. 로그인·토큰 갱신 시 응답에 `user.password_must_change` 포함. 관리자 도메인(`/nexa-admin`) 진입 시 `password_must_change === true`이면 **비밀번호 변경 화면**만 표시하고, 변경 완료 후에만 회원 목록 등 본 메뉴 이용 가능.
-- **비밀번호 변경 API**: `POST /api/auth/change-password` (JWT 필수). 요청: `current_password`, `new_password`. 새 비밀번호는 동일 강도 정책 적용. 성공 시 `password_must_change = false`로 갱신 후 갱신된 `user` 반환.
+- **최초 가입자 role=first**: 회원가입 시 활성 사용자가 0명이면 `role = 'first'`, `password_must_change = true` 부여. 그 외는 `role = 'user'`.
+- **가입 시 비밀번호 정책**: 모든 가입자는 **일반 비밀번호**(8자 이상)만 적용. 첫 가입자도 가입 시점에는 강한 비밀번호 불필요.
+- **강한 비밀번호**: `role = 'first'`인 사용자는 비밀번호 변경 시에만 **강한 비밀번호** 적용. 정책: 최소 10자, 영문·숫자·특수문자 각 1자 이상. `server/utils/passwordPolicy.ts`의 `validateStrongPassword()`로 검사.
+- **비밀번호 변경 → admin 부여**: `/change-password` 페이지(nexa-admin 외부)에서 강한 비밀번호로 변경 성공 시 `role = 'admin'`, `password_must_change = false`로 업데이트. 이후 nexa-admin 진입 가능.
+- **로그인 후 리다이렉트**: `role = 'first'` 또는 `password_must_change === true`인 사용자는 로그인·가입 성공 시 `/change-password`로 자동 리다이렉트.
+- **nexa-admin 가드**: `role = 'first'`는 nexa-admin 진입 불가, `/change-password`로 리다이렉트. `role = 'admin'`만 nexa-admin 진입 허용.
+- **비밀번호 변경 API**: `POST /api/auth/change-password` (JWT 필수). `role = 'first'`인 경우 강한 비밀번호 적용 후 admin 부여. 기타(예: 기존 admin의 password_must_change)는 강한 비밀번호로 갱신 후 `user` 반환.
 
 **관련 파일·구조**는 §5·§5.1 참고.
 
@@ -57,7 +60,7 @@
 | **계정·권한** | 전체 회원 목록 조회 및 검색 | 가입일, 마지막 접속, Tier 등 필터·검색 |
 | | 회원 강제 탈퇴(Soft Delete) 및 복구 | 복구 기능 포함 |
 | | 비밀번호 수동 초기화 및 임시 비밀번호 발급 | |
-| | Tier별 접근 권한 매핑 | 도메인 단위, 메뉴 단위 |
+| | Tier별 접근 권한 매핑 | Capability ID 기반. 도메인·메뉴·액션 단위. [NEXA-CAPABILITY-01] 참고. |
 | | 관리자 역할 위임 | 운영자, 고객지원 등 부관리자 설정 |
 | | 회원별 메모 | 특이사항 기록용 |
 | | 사용자 페르소나 미리보기 (Impersonation) | 로그인 대행으로 해당 회원 화면 대리 확인 |
@@ -102,7 +105,7 @@ OTA 배포 방식은 **Push(강제) / Pull(자율) / User-consented(승인)** �
 **경로**: `NEXA-Platform/src/domains/admin/`
 
 - **AdminDomain.vue**  
-  도메인 루트. `user.role === 'admin' && user.password_must_change`이면 **AdminChangePassword**만 표시, 아니면 **AdminContent** 표시. `useDomainIntercom('nexa-admin')`로 활성 도메인 보고.
+  도메인 루트. `user.role === 'admin' && user.password_must_change`이면 **AdminChangePassword**만 표시, 아니면 **AdminContent** 표시. `role = 'first'`는 라우트 가드에서 `/change-password`로 리다이렉트되어 이 컴포넌트에 진입 불가.
 - **views/AdminChangePassword.vue**  
   [NEXA-ADMIN-01] 슈퍼관리자 **강제 비밀번호 변경** 화면. 현재 비밀번호·새 비밀번호(강도 정책 안내)·확인 입력. `authStore.changePassword()` 호출 후 성공 시 store의 `user` 갱신되어 본 메뉴(AdminContent)로 전환.
 - **views/left/AdminLeftNav.vue**  
@@ -120,14 +123,15 @@ OTA 배포 방식은 **Push(강제) / Pull(자율) / User-consented(승인)** �
 
 | 구분 | 경로 | 역할 |
 |------|------|------|
-| **DB** | `database/init_auth.sql` | `users.password_must_change` 컬럼 (BOOLEAN DEFAULT true). |
-| **DB 마이그레이션** | `database/migrations/001_add_password_must_change.sql` | 기존 DB에 `password_must_change` 컬럼 추가 시 실행. |
+| **DB** | `database/init_auth.sql` | `users.password_must_change`, role CHECK에 `first` 포함. |
+| **DB 마이그레이션** | `database/migrations/001_add_password_must_change.sql`, `002_add_role_first.sql` | 기존 DB에 컬럼·role 추가 시 실행. |
 | **비밀번호 정책** | `server/utils/passwordPolicy.ts` | `validateStrongPassword()` — 10자 이상, 영문·숫자·특수문자 각 1자 이상. |
 | **인증 스키마** | `src/system/schemas/auth.ts` | `changePasswordSchema` (current_password, new_password). |
-| **인증 API** | `server/routes/auth.routes.ts` | 가입 시 최초 사용자 role=admin·강한 비밀번호 검사; 로그인/me/refresh에 `password_must_change` 포함; `POST /auth/change-password`. |
+| **인증 API** | `server/routes/auth.routes.ts` | 가입 시 최초 사용자 role=first·일반 비밀번호; `POST /auth/change-password`에서 role=first이면 강한 비밀번호 검사 후 role=admin 부여. |
 | **인증 미들웨어** | `server/middleware/auth.middleware.ts` | `/api/admin` 인증 예외 없음. SELECT에 `password_must_change` 포함, `toUserResponse`에 반영. |
 | **관리자 API** | `server/routes/admin.routes.ts` | JWT 필수, `role === 'admin'`만 허용(403 그 외). **마운트**: `app.use('/api/admin', adminRouter)` (§5.2). `GET /api/admin/members` 등. |
-| **라우트 가드** | `src/frame/router/domainRoutes.ts` | `nexa-admin`의 `beforeEnter`: 미로그인 → `/login`, role !== 'admin' → `/`. |
+| **라우트** | `src/frame/router/routes.ts` | `/change-password`: AuthLayout, 인증 필수. role=first·password_must_change 사용자 전용. |
+| **라우트 가드** | `src/frame/router/domainRoutes.ts` | `nexa-admin`의 `beforeEnter`: 미로그인 → `/login`, role=first → `/change-password`, role!==admin → `/`. |
 | **인증 스토어** | `src/system/store/authStore.ts` | `user.password_must_change` 저장·노출, `changePassword(current, new)` 호출 및 성공 시 user 갱신. |
 | **타입** | `server/types/common.ts`, `src/system/types/common/auth.ts` | `AuthUser.password_must_change?: boolean`. |
 
@@ -156,8 +160,8 @@ OTA 배포 방식은 **Push(강제) / Pull(자율) / User-consented(승인)** �
 | **서버 측 강제** | 프론트 라우트 가드(beforeEnter)만으로는 부족. **모든 관리자 API는 서버에서 role 검사**로 차단해야 함. |
 | **신규 엔드포인트** | 관리자 전용 API는 모두 **`/api/admin/*`** 하위에 두고, 동일 admin 라우터(동일 `router.use` 검사)를 타도록 구성. |
 | **디바이스 토큰** | X-Device-Token으로 인증된 요청이 `/api/admin`에 오면 `req.user`는 디바이스 소유자. role이 'user'면 403 정상 동작. |
-| **비밀번호 변경** | `POST /api/auth/change-password`는 JWT 필수·인증 예외 없음. admin만이 아니라 **로그인 사용자 전원**이 강한 비밀번호로 변경 가능(정책에 따라 admin만 허용하도록 제한 가능). |
-| **최초 가입자** | `users`를 비운 뒤 최초 가입자만 role=admin 부여. 기존 DB에 다른 admin이 있으면 수동 UPDATE 필요. |
+| **비밀번호 변경** | `POST /api/auth/change-password`는 JWT 필수. role=first인 경우에만 강한 비밀번호 후 admin 부여; 기타는 password_must_change 해제용. |
+| **최초 가입자** | 활성 사용자 0명일 때 가입 시 role=first 부여. `/change-password`에서 강한 비밀번호 변경 후 role=admin으로 전환. |
 
 추가로, 프로덕션에서는 JWT 시크릿·비밀번호 정책·감사 로그(관리자 API 호출 이력) 등을 정책에 맞게 점검할 것.
 
@@ -178,13 +182,15 @@ OTA 배포 방식은 **Push(강제) / Pull(자율) / User-consented(승인)** �
 
 ---
 
-## 7. 도메인·하위 메뉴 식별 (구현 참고)
+## 7. 도메인·하위 메뉴 식별 및 Capability 연동
 
 **도메인 ID**: 프론트 `domainRegistry`에 정의된 키와 1:1. 관리자 도메인은 `nexa-admin`.
 
 **하위 메뉴**: 도메인 내 왼쪽 사이드바·라우트 단위. 예: "회원 목록", "Tier 접근", "API 리미트", "감사 로그" 등. 각 항목에 메뉴 ID 또는 라우트 경로(예: `nexa-admin/members`, `nexa-admin/tier-access`)를 부여하면 Tier별 하위 메뉴 접근 정책과 매핑 가능.
 
-**정책 적용**: 라우트 가드·사이드바 렌더링 시 "현재 사용자 Tier + 도메인/하위 메뉴 접근 설정"을 조회해 노출·진입 허용. 서버는 API 단에서 동일 정책으로 403 처리. 접근 제어 시 DB 부하 절감을 위해 로그인 시 권한 매핑을 한 번에 내려받아 클라이언트에 캐싱하고, 백엔드는 Redis 등에 `tier_access_map`을 두어 O(1) 권한 체크 권장.
+**Capability ID 체계**: Tier별 접근 제어는 **[NEXA-CAPABILITY-01] Capability ID 체계**를 따른다. `nexa.archive`, `nexa.archive.hub` 등 계층적 ID, 와일드카드(`nexa.archive.*`), OR/AND 조건, `tiers`·`capabilities`·`tier_allowed_capabilities` 테이블, 동기화·캐싱·우회 방어 전략이 해당 문서에 정리되어 있음. 관리자 화면의 "Tier별 접근 권한 매핑" 메뉴 구현 시 반드시 참고.
+
+**정책 적용**: 라우트 가드·사이드바 렌더링 시 `hasCapability(userCapabilities, required)`로 검사. 서버는 API 단에서 동일 Capability 검사로 403 처리. Tier별 capability 목록은 JWT에 담지 않고 서버 메모리(Redis) 캐싱 후 대조. 상세는 [NEXA-CAPABILITY-01] §5.8, §5.9 참고.
 
 ---
 
@@ -193,7 +199,7 @@ OTA 배포 방식은 **Push(강제) / Pull(자율) / User-consented(승인)** �
 - **회원/비회원 접근 정책**: 어떤 도메인을 비회원·Tier별로 열지 확정 후, 관리자 화면에서 설정하는 값과 연계.
 - **Tier·역할 정의**: [NEXA-AUTH-01] 또는 별도 문서에서 Tier(role) Enum·의미 확정. (free / pro / enterprise 등)
 - **인증·인가**: JWT·미들웨어에서 `user.role` 또는 `user.is_super_admin`으로 슈퍼 관리자 여부 판단. 관리자 전용 API도 동일 조건으로 가드.
-- **DB**: users 역할/Tier 컬럼, tier_domain_access·tier_domain_menu_access·api_limit_policy·audit_log 등 테이블 설계는 상세 기획 시.
+- **DB**: users 역할/Tier 컬럼. **Capability 관련** `tiers`, `capabilities`, `tier_allowed_capabilities` 등은 [NEXA-CAPABILITY-01] §3 참고. 그 외 tier_domain_access·api_limit_policy·audit_log 등은 상세 기획 시.
 
 ---
 
@@ -201,7 +207,7 @@ OTA 배포 방식은 **Push(강제) / Pull(자율) / User-consented(승인)** �
 
 1. 접근 정책·Tier 정의 확정.
 2. **관리자 도메인 기본 구성**: `src/domains/admin/` 디렉터리·AdminDomain·AdminLeftNav·AdminContent·AdminRightPanel 생성, domainRegistry·domainRoutes·mainMenuTabs에 `nexa-admin` 등록, 슈퍼 관리자 라우트 가드 적용.
-3. Tier별 도메인 접근 설정 화면·API·DB 구현 후, 프론트 공통에서 Tier+도메인 접근으로 메뉴 노출·라우트 가드 적용.
+3. **Capability 체계**([NEXA-CAPABILITY-01]) 기반으로 Tier별 역량 매핑 테이블·동기화·캐싱 구현 후, 관리자 UI "Tier별 접근 권한 매핑" 화면 및 프론트 `hasCapability`·라우트 가드 적용.
 4. 도메인 내 하위 메뉴 접근 확장(도메인·메뉴 키 정의 후 동일 패턴).
 5. API 리미트 정책·설정 화면·미들웨어 연동, 쿼터 시각화·위험군·알림.
 6. 회원 목록·관리 화면·API(강제 탈퇴·복구, 비밀번호 초기화, 메모, Impersonation).
@@ -216,6 +222,7 @@ OTA 배포 방식은 **Push(강제) / Pull(자율) / User-consented(승인)** �
 ## 10. 관련 문서
 
 - **[NEXA-AUTH-01]**: 계정·인증·권한, api_usage, device_members, JWT·Redis. Tier/역할 확장 시 정합 유지.
+- **[NEXA-CAPABILITY-01] ⭐**: Capability ID 체계, Tier 접근 권한, DB·동기화·캐싱·우회 방어. **전역 참고 문서**. 관리자 도메인 Tier별 접근 매핑 구현 시 필수 참고.
 - **[NEXA-STACK-01]**: 기술 스택·용어. 관리자 도메인도 동일 스택(Vue, Quasar 등) 기준.
 - **[NEXA-PLATFORM-TS-01]**: TS 전략. admin 도메인 신규 시 타입·strict 적용 원칙.
 - **[NEXA-NODE-01]**: ESPHome·펌웨어 배포. 엣지·OTA 관리 메뉴와 연계.

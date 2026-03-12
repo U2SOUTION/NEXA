@@ -48,7 +48,7 @@ function toUserResponse(row: Record<string, unknown> | null): AuthUser | null {
   }
 }
 
-/** POST /api/auth/register — [NEXA-ADMIN-01] 최초 가입자 role=admin, 강한 비밀번호·강제 변경 */
+/** POST /api/auth/register — [NEXA-ADMIN-01] 최초 가입자 role=first, 이후 비번 변경 시 admin 부여. 모든 가입 동일 비번 정책(8자+) */
 router.post('/auth/register', async (req, res) => {
   try {
     const parsed = registerSchema.safeParse(req.body)
@@ -69,15 +69,8 @@ router.post('/auth/register', async (req, res) => {
       'SELECT COUNT(*) AS count FROM users WHERE deleted_at IS NULL'
     )
     const isFirstUser = Number(countRows[0]?.count ?? 0) === 0
-    const role = isFirstUser ? 'admin' : 'user'
+    const role = isFirstUser ? 'first' : 'user'
     const password_must_change = isFirstUser
-
-    if (isFirstUser) {
-      const strong = validateStrongPassword(password)
-      if (!strong.valid) {
-        return res.status(400).json({ code: ApiErrorCode.VALIDATION_ERROR, message: strong.message ?? '비밀번호가 정책에 맞지 않습니다.' })
-      }
-    }
 
     const id = generateUuidV7()
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS)
@@ -105,7 +98,8 @@ router.post('/auth/register', async (req, res) => {
       refresh_expires_in,
     })
   } catch (err) {
-    console.error('[auth/register]', err)
+    const e = err as Error
+    console.error('[auth/register]', e?.message ?? 'Unknown error')
     const pgErr = err as { code?: string }
     if (pgErr?.code === '42703') {
       return res.status(503).json({
@@ -113,7 +107,7 @@ router.post('/auth/register', async (req, res) => {
         message: 'DB 스키마가 최신이 아닙니다. database/migrations/001_add_password_must_change.sql 을 실행한 뒤 서버를 재시작해 주세요.',
       })
     }
-    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: e?.message ?? '서버 오류' })
   }
 })
 
@@ -155,7 +149,8 @@ router.post('/auth/login', async (req, res) => {
       refresh_expires_in,
     })
   } catch (err) {
-    console.error('[auth/login]', err)
+    const e = err as Error
+    console.error('[auth/login]', e?.message ?? 'Unknown error')
     const pgErr = err as { code?: string }
     if (pgErr?.code === '42703') {
       return res.status(503).json({
@@ -163,7 +158,7 @@ router.post('/auth/login', async (req, res) => {
         message: 'DB 스키마가 최신이 아닙니다. database/migrations/001_add_password_must_change.sql 을 실행한 뒤 서버를 재시작해 주세요.',
       })
     }
-    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: e?.message ?? '서버 오류' })
   }
 })
 
@@ -206,8 +201,9 @@ router.post('/auth/refresh', async (req, res) => {
       expires_in: authConfig.accessExpirySec,
     })
   } catch (err) {
-    console.error('[auth/refresh]', err)
-    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
+    const e = err as Error
+    console.error('[auth/refresh]', e?.message ?? 'Unknown error')
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: e?.message ?? '서버 오류' })
   }
 })
 
@@ -225,8 +221,9 @@ router.post('/auth/logout', async (req, res) => {
     }
     return res.json({ success: true })
   } catch (err) {
-    console.error('[auth/logout]', err)
-    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
+    const e = err as Error
+    console.error('[auth/logout]', e?.message ?? 'Unknown error')
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: e?.message ?? '서버 오류' })
   }
 })
 
@@ -238,7 +235,7 @@ router.get('/auth/me', (req, res) => {
   return res.json({ user: req.user })
 })
 
-/** POST /api/auth/change-password — [NEXA-ADMIN-01] 강한 비밀번호로 변경, password_must_change 해제 */
+/** POST /api/auth/change-password — [NEXA-ADMIN-01] role=first: 강한 비번 후 admin 부여. 기타: 강한 비번 후 password_must_change 해제 */
 router.post('/auth/change-password', async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
@@ -254,8 +251,8 @@ router.post('/auth/change-password', async (req, res) => {
     }
 
     const userId = (req.user as AuthUser).id
-    const { rows } = await pool.query<{ password_hash: string }>(
-      'SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL',
+    const { rows } = await pool.query<{ password_hash: string; role: string }>(
+      'SELECT password_hash, role FROM users WHERE id = $1 AND deleted_at IS NULL',
       [userId]
     )
     if (!rows[0]) {
@@ -267,9 +264,12 @@ router.post('/auth/change-password', async (req, res) => {
     }
 
     const newHash = await bcrypt.hash(new_password, SALT_ROUNDS)
+    const isFirstUser = rows[0].role === 'first'
     await pool.query(
-      'UPDATE users SET password_hash = $1, password_must_change = false WHERE id = $2',
-      [newHash, userId]
+      isFirstUser
+        ? 'UPDATE users SET password_hash = $1, password_must_change = false, role = $2 WHERE id = $3'
+        : 'UPDATE users SET password_hash = $1, password_must_change = false WHERE id = $2',
+      isFirstUser ? [newHash, 'admin', userId] : [newHash, userId]
     )
 
     const { rows: userRows } = await pool.query(
@@ -280,8 +280,9 @@ router.post('/auth/change-password', async (req, res) => {
     if (!user) return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: '갱신 실패' })
     return res.json({ user, message: '비밀번호가 변경되었습니다.' })
   } catch (err) {
-    console.error('[auth/change-password]', err)
-    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
+    const e = err as Error
+    console.error('[auth/change-password]', e?.message ?? 'Unknown error')
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: e?.message ?? '서버 오류' })
   }
 })
 

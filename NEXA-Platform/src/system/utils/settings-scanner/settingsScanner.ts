@@ -23,20 +23,23 @@ export interface ScannedConfigItem {
 export interface ConfigModuleEntry {
   path: string
   name: string
+  loader?: () => Promise<{ default?: unknown; [k: string]: unknown }>
 }
 
-/** 기본 스캔 대상 모듈 경로 (변수 사용으로 TS가 동적 import를 해석하지 않음 → domains/frame/engines 의존성 분리) */
-const DEFAULT_CONFIG_ENTRIES: ConfigModuleEntry[] = [
-  { path: '@system/config/devGuideConfig', name: 'devGuideConfig' },
-  { path: '@system/config/documentConfig', name: 'documentConfig' },
-  { path: '@frame/registry/domainRegistry', name: 'domainRegistry' },
-  { path: '@system/config/componentTaxonomy', name: 'componentTaxonomy' },
-  { path: '@system/config/componentCategories', name: 'componentCategories' },
-  { path: '@system/config/fileTypes', name: 'fileTypes' },
-  { path: '@system/config/url-state/urlStateConfig', name: 'urlStateConfig' },
-  { path: '@engines/diagram/config/diagramSettings', name: 'diagramSettings' },
-  { path: '@domains/parts/components/config/viewModeSettings', name: 'viewModeSettings' },
+/** 정적 import 매핑 — Vite가 alias 해석 가능. 동적 import(specifier)는 브라우저에서 @engines 등을 해석 못함 */
+const CONFIG_LOADERS: Array<{ path: string; name: string; loader: () => Promise<{ default?: unknown; [k: string]: unknown }> }> = [
+  { path: '@system/config/devGuideConfig', name: 'devGuideConfig', loader: () => import('@system/config/devGuideConfig') },
+  { path: '@system/config/documentConfig', name: 'documentConfig', loader: () => import('@system/config/documentConfig') },
+  { path: '@frame/registry/domainRegistry', name: 'domainRegistry', loader: () => import('@frame/registry/domainRegistry') },
+  { path: '@system/config/componentTaxonomy', name: 'componentTaxonomy', loader: () => import('@system/config/componentTaxonomy') },
+  { path: '@system/config/componentCategories', name: 'componentCategories', loader: () => import('@system/config/componentCategories') },
+  { path: '@system/config/fileTypes', name: 'fileTypes', loader: () => import('@system/config/fileTypes') },
+  { path: '@system/config/url-state/urlStateConfig', name: 'urlStateConfig', loader: () => import('@system/config/url-state/urlStateConfig') },
+  { path: '@engines/diagram/config/diagramSettings', name: 'diagramSettings', loader: () => import('@engines/diagram/config/diagramSettings') },
+  { path: '@domains/parts/components/config/viewModeSettings', name: 'viewModeSettings', loader: () => import('@domains/parts/components/config/viewModeSettings') },
 ]
+
+const DEFAULT_CONFIG_ENTRIES: ConfigModuleEntry[] = CONFIG_LOADERS
 
 /**
  * Config 폴더의 모든 설정 파일 스캔
@@ -49,14 +52,14 @@ export async function scanConfigFiles(entries?: ConfigModuleEntry[]): Promise<Sc
 
   try {
     const configModules = await Promise.allSettled(
-      list.map(({ path: specifier, name }) =>
-        // specifier를 변수로 사용 → TypeScript가 모듈을 해석하지 않아 domains/frame/engines 의존성 분리
-        import(/* @vite-ignore */ specifier).then((m: { default?: unknown }) => ({
-          name,
-          path: specifier,
+      list.map((entry) => {
+        const load = entry.loader ?? (() => import(/* @vite-ignore */ entry.path))
+        return load().then((m: { default?: unknown }) => ({
+          name: entry.name,
+          path: entry.path,
           module: m,
-        })),
-      ),
+        }))
+      }),
     )
 
     configModules.forEach((result) => {

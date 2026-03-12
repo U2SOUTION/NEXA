@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) NOT NULL,
   password_hash VARCHAR(255),
   display_name VARCHAR(100),
-  role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user', 'viewer')),
+  role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user', 'viewer', 'first')),
   allowed_domains JSONB,
   tier VARCHAR(20) NOT NULL DEFAULT 'BASIC',
   password_must_change BOOLEAN NOT NULL DEFAULT true,

@@ -85,8 +85,14 @@ async function onSubmit() {
   try {
     const result = await authStore.login(email.value, password.value)
     if (result.ok) {
+      const u = authStore.user
+      const needChangePw = u?.role === 'first' || u?.password_must_change === true
       const redirect = (route.query.redirect && String(route.query.redirect)) || '/'
-      await router.replace(redirect)
+      if (needChangePw) {
+        await router.replace({ path: '/change-password', query: redirect && redirect !== '/' ? { redirect } : {} })
+      } else {
+        await router.replace(redirect)
+      }
     } else {
       error.value = result.error || '로그인에 실패했습니다.'
     }

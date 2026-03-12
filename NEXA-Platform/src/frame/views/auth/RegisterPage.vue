@@ -35,7 +35,7 @@
           <q-input
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
-            label="비밀번호 (8자 이상, 첫 가입 시 10자+영문·숫자·특수문자)"
+            label="비밀번호 (8자 이상, 최초 가입자는 로그인 후 강한 비밀번호로 변경)"
             outlined
             dense
             autocomplete="new-password"
@@ -100,8 +100,14 @@ async function onSubmit() {
       display_name: displayName.value.trim() || undefined,
     })
     if (result.ok) {
+      const u = authStore.user
+      const needChangePw = u?.role === 'first' || u?.password_must_change === true
       const redirect = (route.query.redirect && String(route.query.redirect)) || '/'
-      await router.replace(redirect)
+      if (needChangePw) {
+        await router.replace({ path: '/change-password', query: redirect && redirect !== '/' ? { redirect } : {} })
+      } else {
+        await router.replace(redirect)
+      }
     } else {
       error.value = result.error || '가입에 실패했습니다.'
     }

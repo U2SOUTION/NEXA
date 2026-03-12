@@ -169,6 +169,10 @@ export const domainRoutes: RouteRecordRaw[] = [
         next({ path: '/login', query: { redirect: to.fullPath } })
         return
       }
+      if (authStore.user?.role === 'first') {
+        next({ path: '/change-password', query: { redirect: to.fullPath } })
+        return
+      }
       if (authStore.user?.role !== 'admin') {
         next({ path: '/' })
         return

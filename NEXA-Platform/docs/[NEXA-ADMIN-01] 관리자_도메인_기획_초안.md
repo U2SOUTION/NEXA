@@ -4,7 +4,7 @@
 
 **적용 범위**: 프론트 `src/domains/admin/**`, 서버 관리 전용 API·미들웨어, DB(권한·리미트·감사 등)
 
-**참조 문서**: [NEXA-AUTH-01] 계정·인증·권한, [NEXA-STACK-01] 기술 스택·용어, [NEXA-PLATFORM-TS-01] TS 전략
+**참조 문서**: [NEXA-AUTH-01] 계정·인증·권한, [NEXA-CAPABILITY-01] ⭐ Capability ID 체계 및 Tier 접근 권한, [NEXA-STACK-01] 기술 스택·용어, [NEXA-PLATFORM-TS-01] TS 전략
 
 **문서 성격**: **초안**. 메뉴 항목·개념 정리 위주. 세부 API·DB 스키마·UI 와이어프레임은 추후 정리.
 
@@ -60,7 +60,7 @@
 | 전체 회원 목록 조회 및 검색 | 가입일, 마지막 접속, Tier 등 필터·검색 |
 | 회원 강제 탈퇴(Soft Delete) 및 복구 | 복구 기능 포함 |
 | 비밀번호 수동 초기화 및 임시 비밀번호 발급 | |
-| Tier별 접근 권한 매핑 테이블 | 도메인 단위, 메뉴 단위 (§4.1 참고) |
+| Tier별 접근 권한 매핑 테이블 | Capability ID 기반. 도메인·메뉴·액션 단위. [NEXA-CAPABILITY-01] 참고 (§4.1). |
 | 관리자 역할 위임 | 운영자, 고객지원 등 부관리자 설정 |
 | 회원별 메모 | 특이사항 기록용 |
 | 사용자 페르소나 미리보기 (Impersonation) | 로그인 대행으로 해당 회원 화면 대리 확인 |
@@ -152,11 +152,12 @@ AI 도메인(nexa-ai)의 핵심 로직인 **페르소나, 스킬, 에이전트**
 
 | 항목 | 설명 |
 |------|------|
-| **목적** | 회원 Tier(예: free, pro, enterprise)별로 **접근 가능한 도메인** 목록 및 **도메인 내 하위 메뉴** 단위 접근 설정. |
-| **도메인 예시** | home, nexa-board, nexa-panel, automation, infra, dev, nexa-erp, nexa-archive, nexa-ai, my, settings 등 (domainRegistry 기준). |
-| **관리 내용** | Tier별 "도메인 허용/비허용" 체크리스트 + 도메인 ID + 하위 메뉴 ID별 Tier 허용 목록. |
-| **저장** | `tier_domain_access`, `tier_domain_menu_access` 또는 동일 계열 테이블. |
-| **구현 참고** | 프론트 domainRegistry·사이드바를 "도메인 + 하위 메뉴"로 식별 가능하게 하고, 권한 레이어에서 현재 사용자 Tier로 노출 여부 판단. |
+| **목적** | 회원 Tier(예: free, pro, enterprise)별로 **접근 가능한 도메인** 목록 및 **도메인 내 하위 메뉴·액션** 단위 접근 설정. |
+| **Capability ID 체계** | **[NEXA-CAPABILITY-01] ⭐** 참고. `nexa.archive`, `nexa.archive.hub`, `nexa.archive.hub.export` 등 계층 ID, 와일드카드(`nexa.archive.*`), `tiers`·`capabilities`·`tier_allowed_capabilities` 테이블, 동기화·캐싱·우회 방어. |
+| **도메인 예시** | home, nexa-board, nexa-panel, automation, infra, dev, nexa-erp, nexa-archive, nexa-ai, my, settings 등 (domainRegistry 기준). Capability ID는 `nexa.` 네임스페이스로 통일. |
+| **관리 내용** | Tier별 역량(Capability) 허용 목록. UI에서 "이 메뉴만 허용" / "이 메뉴 및 모든 하위 기능 허용" 라디오로 구분, `.*` 자동 처리. |
+| **저장** | `tiers`, `capabilities`, `tier_allowed_capabilities`. [NEXA-CAPABILITY-01] §3. |
+| **구현 참고** | `capabilityRegistry`·`domainRegistry`에서 도메인/메뉴 선언. `hasCapability(userCapabilities, required)`로 라우트·API·UI 검사. 적용 전략은 점진적(신규 적용, 기존은 수정 시 보강). [NEXA-CAPABILITY-01] §7.1. |
 
 #### 회원 목록·강제 탈퇴·비밀번호·메모
 
@@ -348,7 +349,7 @@ AI 도메인(nexa-ai)의 **페르소나, 스킬, 에이전트, 오케스트레�
 | **회원/비회원 접근 정책** | "어떤 도메인을 비회원에게 열지, 회원 Tier별로 무엇을 열지"가 정해져야 관리자 화면에서 설정하는 값과 의미가 맞음. 정책 확정 후 본 도메인 상세 기획 권장. |
 | **Tier·역할 정의** | [NEXA-AUTH-01] 또는 별도 문서에서 Tier(또는 role) Enum·의미 확정. free / pro / enterprise 등. |
 | **인증·인가** | JWT·미들웨어에서 `user.role` 또는 `user.is_super_admin` 등으로 슈퍼 관리자 여부 판단. 관리자 전용 API는 동일 조건으로 가드. |
-| **DB** | users에 역할/Tier 컬럼, tier_domain_access·tier_domain_menu_access·api_limit_policy·audit_log 등 테이블 설계는 상세 기획 시. |
+| **DB** | users에 역할/Tier 컬럼. [NEXA-CAPABILITY-01] 체계 기반으로 `tiers`·`capabilities`·`tier_allowed_capabilities`. 기타 api_limit_policy·audit_log 등은 상세 기획 시. |
 
 ---
 
@@ -356,7 +357,7 @@ AI 도메인(nexa-ai)의 **페르소나, 스킬, 에이전트, 오케스트레�
 
 1. **접근 정책·Tier 정의** 확정.
 2. **관리자 도메인** 프론트 껍데기: 라우트, 레이아웃, 사이드바에 "관리자" 메뉴 추가. 슈퍼 관리자만 진입 가능하도록 가드.
-3. **Tier별 도메인 접근** 설정 화면·API·DB 부터 구현. 이후 프론트 공통에서 "Tier + 도메인 접근" 조회 후 메뉴 노출·라우트 가드 적용.
+3. **Tier별 도메인 접근**: [NEXA-CAPABILITY-01] Capability 체계 기반 구축. 설정 화면·API·DB. 이후 프론트에서 `hasCapability`로 메뉴 노출·라우트 가드.
 4. **도메인 내 하위 메뉴 접근** 확장 (도메인·메뉴 키 정의 후 동일 패턴).
 5. **API 리미트** 정책 테이블·설정 화면·미들웨어 연동. 쿼터 시각화·위험군·알림 설정.
 6. **회원 목록·관리** 화면·API (강제 탈퇴·복구, 비밀번호 초기화, 메모, Impersonation).
@@ -372,6 +373,7 @@ AI 도메인(nexa-ai)의 **페르소나, 스킬, 에이전트, 오케스트레�
 
 | 문서 | 내용 |
 |------|------|
+| **[NEXA-CAPABILITY-01]** ⭐ | Capability ID 체계·Tier 접근 권한. 관리자 권한 매핑·라우트 가드·캐싱 설계 시 우선 참조. |
 | **[NEXA-AUTH-01]** | 계정·인증·권한, api_usage, device_members, JWT·Redis. Tier/역할 확장 시 여기와 정합 맞출 것. |
 | **[NEXA-STACK-01]** | 기술 스택·용어. 관리자 도메인도 동일 스택(Vue, Quasar, Express 등) 기준. |
 | **[NEXA-PLATFORM-TS-01]** | TS 전략. 관리자 도메인 신규 시 타입·스키마·strict 적용 원칙. |
