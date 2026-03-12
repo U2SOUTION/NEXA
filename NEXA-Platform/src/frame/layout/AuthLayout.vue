@@ -16,6 +16,10 @@
 <style lang="scss" scoped>
 .auth-layout {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  background: linear-gradient(
+    135deg,
+    var(--nexa-primary) 0%,
+    var(--nexa-button-primary-bg) 100%
+  );
 }
 </style>

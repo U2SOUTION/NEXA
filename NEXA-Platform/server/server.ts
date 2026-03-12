@@ -22,6 +22,7 @@ import aiUserMemosRouter from './routes/aiUserMemos.routes.js'
 import authRouter from './routes/auth.routes.js'
 import devicesRouter from './domains/devices/devices.routes.js'
 import projectsRouter from './domains/projects/projects.routes.js'
+import adminRouter from './routes/admin.routes.js'
 import { jwtAuthMiddleware } from './middleware/auth.middleware.js'
 import { UPLOAD_BASE_DIR } from './config/upload.js'
 import { initDocsFolders } from './config/documentConfig.js'
@@ -35,6 +36,12 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 const PORT = process.env.PORT || 3000
+
+// 기동 시 DB 설정 로그 (원인 분석용: .env 로드·PG* 확인)
+if (process.env.NODE_ENV !== 'production') {
+  const pwSet = Boolean(process.env.PGPASSWORD ?? process.env.POSTGRES_PASSWORD)
+  console.log('[DB] 기동 시 설정:', { host: dbConfig.host, database: dbConfig.database, port: dbConfig.port, user: dbConfig.user, passwordSet: pwSet })
+}
 
 // 미들웨어
 app.use(cors())
@@ -78,14 +85,22 @@ app.get('/api/package-json', async (req, res) => {
   }
 })
 
-// 풀 연결 테스트용
+// 풀 연결 테스트용. Postgres가 localhost:5432에서 실행 중이어야 함.
+// 로컬 개발: docker compose -f docker-dev-compose.yml up -d postgres (또는 npm run dev:postgres)
 async function connectDB() {
   try {
     console.log('[DB] 데이터베이스 연결 시도 중...')
     await pool.query('SELECT 1')
     console.log('[DB] 데이터베이스 연결 성공:', dbConfig.database)
   } catch (error: unknown) {
-    console.error('[DB] 데이터베이스 연결 실패:', errMessage(error))
+    const msg = errMessage(error)
+    console.error('[DB] 데이터베이스 연결 실패:', msg)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[DB] 현재 설정:', { host: dbConfig.host, database: dbConfig.database, port: dbConfig.port, user: dbConfig.user, passwordSet: Boolean(dbConfig.password) })
+      if (msg.includes('ECONNREFUSED') || msg.includes('connect')) {
+        console.warn('[DB] 참고: Postgres가 localhost:5432에서 실행 중인지 확인하세요. 개발용: docker compose -f docker-dev-compose.yml up -d postgres')
+      }
+    }
     console.log('[DB] 5초 후 재연결 시도...')
     setTimeout(() => connectDB(), 5000)
   }
@@ -101,6 +116,8 @@ app.use('/api', authRouter)
 app.use('/api', devicesRouter)
 // 프로젝트 [NEXA-AUTH-01] §2.2 3단계 — user_id 소유자 기준
 app.use('/api', projectsRouter)
+// [NEXA-ADMIN-01] 관리자 — 회원 목록 등 (인증 필요)
+app.use('/api', adminRouter)
 
 // 아카이브 도메인
 // TODO(route-prefix): 향후 /api/archive 로 접두사 통일 검토 (프론트 호출 경로 일괄 수정 필요)

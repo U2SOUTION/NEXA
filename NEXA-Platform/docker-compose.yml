@@ -40,6 +40,8 @@ services:
   nexa-web:
     image: nexa-platform:latest
     container_name: nexa-web
+    env_file:
+      - .env
     ports:
       - '8080:3000'
     environment:

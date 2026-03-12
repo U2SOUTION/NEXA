@@ -143,6 +143,12 @@ const domainConfigs: Record<string, DomainConfig> = {
     content: () => import('@domains/my/views/content/MyView.vue'),
     right: null,
   },
+  // [NEXA-ADMIN-01] 관리자 도메인 (슈퍼 관리자 전용)
+  'nexa-admin': {
+    left: () => import('@domains/admin/views/left/AdminLeftNav.vue'),
+    content: () => import('@domains/admin/AdminDomain.vue'),
+    right: () => import('@domains/admin/views/right/AdminRightPanel.vue'),
+  },
 }
 
 const DEFAULT_BEHAVIOR: DomainBehavior = {

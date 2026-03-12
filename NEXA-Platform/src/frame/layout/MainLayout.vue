@@ -185,6 +185,7 @@ const currentMenu = computed(() => {
     '/dev': 'dev',
     '/help': 'help',
     '/my': 'my',
+    '/nexa-admin': 'nexa-admin',
   }
 
   const found = Object.entries(menuMap).find(([key]) => path.startsWith(key))
@@ -218,6 +219,7 @@ const mainMenuTabs = [
   { name: 'extension', label: 'EXTENSION', displayLabel: 'EXTENSION', icon: 'extension', route: '/extension', exact: false, nexaPrefix: false },
   { name: 'dev', label: 'DEV', displayLabel: 'DEV', icon: 'code', route: '/dev', exact: false, nexaPrefix: false },
   { name: 'help', label: 'HELP', displayLabel: 'HELP', icon: 'help_outline', route: '/help', exact: false, nexaPrefix: false },
+  { name: 'nexa-admin', label: 'NEXA ADMIN', displayLabel: 'ADMIN', icon: 'admin_panel_settings', route: '/nexa-admin', exact: false, nexaPrefix: true },
 ]
 
 const hiddenTabNames = computed(() => new Set(hiddenTabs.value.map((t) => t.name)))

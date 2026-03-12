@@ -570,16 +570,42 @@ export async function scanConfigFiles(modulePaths?: string[]) {
 
 - **document-manager** 전체 strict 통과. useMermaid, useMermaidStyle 타입 수정 완료 (Element→HTMLElement/SVGElement, getElementClassString, window.mermaidModule 전역 선언).
 
-#### 9.3.4 향후 strict 포함 후보
+#### 9.3.4 frame strict 포함 완료 (2025-03)
 
-| 대상 | 비고 |
+- **frame/** strict 통과. AiLeftNav.vue, MyView.vue 등 타입 수정 완료. `tsconfig.strict.json` include에 `src/frame/**/*.ts`, `src/frame/**/*.vue` 포함.
+
+#### 9.3.5 engines: strict 대상에서 제외 (2025-03)
+
+- **engines/** (charts, diagram) 및 **system/services/device/** (VirtualDeviceManager, VirtualNodeAdapter)는 **의도적으로 strict 제외**.
+- 해당 `.ts` 파일 상단에 `// @ts-nocheck` + `/* eslint-disable @typescript-eslint/ban-ts-comment */` 적용. 요구사항 발생 시 엔진 단위로 strict 적용·타입 정리 또는 재작성 검토.
+
+**“완전히 끝”이 아닐 수 있는 부분**
+
+| 구분 | 내용 |
 |------|------|
-| **frame/** | ~1000 에러 (AiLeftNav.vue 등). |
-| **engines/** | ~760 에러 (charts, diagram, tiptap 일부). |
+| **engines** | 나중에 요구사항이 생기면 해당 엔진만 strict 포함·타입 정리 또는 새로 작성 검토. |
+| **점진적 강화** | `no-explicit-any` 축소, 스키마/타입 정의 보강 등은 선택 사항. |
+| **CI** | `vue-tsc -p tsconfig.strict.json`을 빌드/PR에 넣어 두면 이후 회귀 방지에 유리. |
+
+→ **상세 내용(경로·대상 파일·검토 시점·tsconfig.strict.json 유지/제거)** 은 **⭐⭐⭐ [NEXA-PLATFORM-TS-01-B] TS 최적화 후속·미완료 항목** 문서 참고. (파일명에 ⭐⭐⭐ 포함)
 
 ---
 
-## 10. 체크리스트 (참고)
+## ⭐ 10. 추가·후속 검토
+
+**TS 1차 최적화는 완료.** 아래는 필요 시 단계적으로 검토할 항목이다.
+
+| 항목 | 설명 |
+|------|------|
+| **engines strict 포함** | charts/diagram/device에서 `@ts-nocheck` 제거 후 타입 보강 또는 엔진 재작성 시 strict 적용. |
+| **any 축소** | ESLint `@typescript-eslint/no-explicit-any`를 warn→error로 전환 전, 남은 `any` 사용처 정리. |
+| **strict CI** | `npm run typecheck:strict`(또는 `vue-tsc -p tsconfig.strict.json`)를 CI/PR 체크에 포함. |
+| **Branded ID 확대** | 도메인별 ID 타입을 더 넓게 적용해 혼용 실수 방지. |
+| **스키마·타입 공유** | 서버·프론트·엣지에서 쓰는 API 스키마를 한 곳에서 관리하고 `z.infer`로 타입 일원화. |
+
+---
+
+## 11. 체크리스트 (참고)
 
 **최종 업데이트**: 2025-03 — typecheck·unknown vs any·strict·DB row 타입 적용 반영 (dbConfig QueryResult, partFiles DbRow, pg/redis/uuid 호환)
 
@@ -610,10 +636,11 @@ export async function scanConfigFiles(modulePaths?: string[]) {
 
 ---
 
-## 11. 참고 문서
+## 12. 참고 문서
 
 | 문서 | 내용 |
 |------|------|
+| **[NEXA-PLATFORM-TS-01-B]** ⭐⭐⭐ | **TS 최적화 후속·미완료 항목** — “완전히 끝”이 아닐 수 있는 부분 상세(engines, 점진적 강화, CI, tsconfig.strict.json 유지/제거, 대상 파일 목록). 파일명에 ⭐⭐⭐ 포함. |
 | **[NEXA-AUTH-01]** | §1.4 플랫폼 전체 언어(JS vs TS) 정책, 서버 TS 마이그레이션 2단계 전략 |
 | **[NEXA-PLATFORM-TS-02]** | 서버 `@system/*` 경로 해석 가이드, `.js` 확장자 사용 규칙 |
 | **[NEXA-AI-10]** | AI 협업 TS·타입·스키마 전략 — ai_responses, 컨텍스트 타입, Zod→JSON Schema 유틸 등 |

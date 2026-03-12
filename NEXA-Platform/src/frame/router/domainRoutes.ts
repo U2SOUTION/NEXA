@@ -158,4 +158,10 @@ export const domainRoutes: RouteRecordRaw[] = [
     name: 'Settings',
     component: () => import('@domains/settings/views/content/SettingsContent.vue'),
   },
+  {
+    path: 'nexa-admin',
+    name: 'NexaAdmin',
+    component: () => import('@domains/admin/AdminDomain.vue'),
+    // TODO: beforeEnter에서 슈퍼 관리자 여부 검사 후 미권한 시 403/리다이렉트
+  },
 ]
