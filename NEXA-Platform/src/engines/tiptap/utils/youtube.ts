@@ -1,4 +1,4 @@
-export function extractYouTubeId(url) {
+export function extractYouTubeId(url: string | null | undefined) {
   if (!url) return null
   const trimmed = url.trim()
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed

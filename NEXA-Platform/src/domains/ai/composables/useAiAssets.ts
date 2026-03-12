@@ -3,25 +3,28 @@
  * domain='ai' 기준 files API 호출
  * 모듈 레벨 싱글톤 ref 사용 - 업로드/선택 후 리스트 반영 보장
  */
+import type { Ref } from 'vue'
 import { ref, computed } from 'vue'
 import { Notify } from 'quasar'
 import { getApiBaseUrl } from '@system/utils/apiBaseUrl'
+import type { AiAssetItem, UploadProgressItem } from '../types/aiDomainTypes'
 
 const DOMAIN = 'ai'
 
-const documents = ref([])
-const images = ref([])
-const audio = ref([])
-const videos = ref([])
+export type AssetCategory = 'documents' | 'images' | 'audio' | 'video'
+
+const documents = ref<AiAssetItem[]>([])
+const images = ref<AiAssetItem[]>([])
+const audio = ref<AiAssetItem[]>([])
+const videos = ref<AiAssetItem[]>([])
 
 /** 업로드 진행률 표시용 */
-const uploadProgressFiles = ref<{ name: string; progress: number; completed?: boolean; error?: string; speed?: string; eta?: string }[]>([])
+const uploadProgressFiles = ref<UploadProgressItem[]>([])
 const showUploadProgress = ref(false)
 
-export function useAiAssets(category = null) {
-
+export function useAiAssets(category: Ref<AssetCategory | null> | AssetCategory | null = null) {
   const items = computed(() => {
-    const c = category?.value ?? category
+    const c = (category as Ref<AssetCategory | null> | null)?.value ?? (category as AssetCategory | null)
     if (c === 'documents') return documents.value
     if (c === 'images') return images.value
     if (c === 'audio') return audio.value
@@ -29,16 +32,16 @@ export function useAiAssets(category = null) {
     return [...documents.value, ...images.value, ...audio.value, ...videos.value]
   })
 
-  async function listFiles(cat = null) {
+  async function listFiles(cat: AssetCategory | null = null): Promise<AiAssetItem[]> {
     const base = getApiBaseUrl()
     const q = cat ? `?domain=${DOMAIN}&category=${cat}` : `?domain=${DOMAIN}`
     const res = await fetch(`${base}/files/list${q}`)
-    const data = await res.json()
-    const items = data?.items ?? data ?? []
+    const data = (await res.json()) as { items?: AiAssetItem[] } | AiAssetItem[]
+    const items = Array.isArray(data) ? data : (data?.items ?? [])
     return Array.isArray(items) ? items : []
   }
 
-  async function loadCategory(cat) {
+  async function loadCategory(cat: AssetCategory | null): Promise<void> {
     try {
       const items = await listFiles(cat)
       if (cat === 'documents') documents.value = items
@@ -46,7 +49,7 @@ export function useAiAssets(category = null) {
       else if (cat === 'audio') audio.value = items
       else if (cat === 'video') videos.value = items
     } catch (err) {
-      console.error('[useAiAssets] loadCategory 실패:', cat, err)
+      console.error('[useAiAssets] loadCategory 실패:', cat, err instanceof Error ? err.message : String(err))
     }
   }
 
@@ -136,7 +139,7 @@ export function useAiAssets(category = null) {
     id?: number
   }) {
     const { source, file, url, name, serverPath } = payload
-    const cat = payload.category || inferCategory(payload)
+    const cat = (payload.category || inferCategory(payload)) as AssetCategory
     const target = getTargetRef(cat)
     try {
       if (source === 'pc' && file) {
@@ -173,27 +176,32 @@ export function useAiAssets(category = null) {
         uploadProgressFiles.value[index].progress = 100
 
         target.value = [...target.value, { id: r.id, original_name: r.original_name, url: r.url, file_path: r.file_path }]
-        await loadCategory(cat)
+        await loadCategory(cat as AssetCategory)
         Notify.create({ message: `"${r.original_name}" 추가됨`, icon: 'check_circle' })
 
         scheduleHideUploadProgress()
       } else if (source === 'server' && (url || payload.url)) {
-        const newItem = { id: payload.id, original_name: name || payload.original_name, url: url || payload.url, file_path: serverPath || payload.file_path }
+        const newItem: AiAssetItem = {
+          id: payload.id ?? 0,
+          original_name: (name || payload.original_name) ?? '',
+          url: (url || payload.url) ?? '',
+          file_path: serverPath ?? payload.file_path,
+        }
         const exists = target.value.some((x) => x.id === newItem.id || x.url === newItem.url)
         if (!exists) {
           target.value = [...target.value, newItem]
         }
-        await loadCategory(cat)
+        await loadCategory(cat as AssetCategory)
         Notify.create({ message: `"${newItem.original_name}" 추가됨`, icon: 'check_circle' })
       }
     } catch (err) {
       const idx = uploadProgressFiles.value.length - 1
       if (idx >= 0 && source === 'pc' && file) {
-        uploadProgressFiles.value[idx].error = (err as Error).message
+        uploadProgressFiles.value[idx].error = err instanceof Error ? err.message : String(err)
         uploadProgressFiles.value[idx].completed = true
         scheduleHideUploadProgress()
       }
-      Notify.create({ type: 'negative', message: (err as Error).message || '추가 실패' })
+      Notify.create({ type: 'negative', message: err instanceof Error ? err.message : '추가 실패' })
       throw err
     }
   }
@@ -211,8 +219,8 @@ export function useAiAssets(category = null) {
     }, 1000)
   }
 
-  function inferCategory(payload) {
-    if (payload.category) return payload.category
+  function inferCategory(payload: { category?: string; type?: string; file_type?: string }): AssetCategory {
+    if (payload.category) return payload.category as AssetCategory
     const t = (payload.type || payload.file_type || '').toLowerCase()
     if (t.includes('image')) return 'images'
     if (t.includes('audio')) return 'audio'
@@ -220,7 +228,7 @@ export function useAiAssets(category = null) {
     return 'documents'
   }
 
-  function getTargetRef(cat) {
+  function getTargetRef(cat: AssetCategory | null): Ref<AiAssetItem[]> {
     if (cat === 'documents') return documents
     if (cat === 'images') return images
     if (cat === 'audio') return audio
@@ -229,9 +237,9 @@ export function useAiAssets(category = null) {
   }
 
   /** 탐색기에서 선택한 파일을 AI 미디어 리스트에 추가 (POST /files/:id/reference) */
-  async function addFileToMedia(file) {
+  async function addFileToMedia(file: { id?: number; category?: string; file_type?: string }): Promise<void> {
     const fileId = file?.id
-    const cat = file?.category || inferCategory({ file_type: file?.file_type })
+    const cat = (file?.category || inferCategory({ file_type: file?.file_type })) as AssetCategory
     if (!fileId) throw new Error('파일 ID가 필요합니다.')
     const base = getApiBaseUrl()
     const res = await fetch(`${base}/files/${fileId}/reference`, {
@@ -244,10 +252,10 @@ export function useAiAssets(category = null) {
       if (err?.code === 'NOT_FOUND') throw new Error('파일을 찾을 수 없습니다.')
       throw new Error(err?.error || `미디어 추가 실패 (${res.status})`)
     }
-    await loadCategory(cat)
+    await loadCategory(cat as AssetCategory)
   }
 
-  async function removeAsset(id, cat) {
+  async function removeAsset(id: number, cat: AssetCategory | null): Promise<void> {
     const target = getTargetRef(cat)
     const base = getApiBaseUrl()
     const res = await fetch(`${base}/files/${id}/reference?domain=${DOMAIN}`, { method: 'DELETE' })
@@ -258,7 +266,7 @@ export function useAiAssets(category = null) {
     target.value = target.value.filter((x) => x.id !== id)
   }
 
-  function moveAsset(cat, index, direction) {
+  function moveAsset(cat: AssetCategory | null, index: number, direction: 'up' | 'down'): void {
     const target = getTargetRef(cat)
     const arr = [...target.value]
     const newIdx = direction === 'up' ? index - 1 : index + 1
@@ -267,16 +275,16 @@ export function useAiAssets(category = null) {
     target.value = arr
   }
 
-  const selectedMediaItem = ref(null)
+  const selectedMediaItem = ref<{ category: AssetCategory; item: AiAssetItem } | null>(null)
 
-  function selectMediaItem(category, item) {
+  function selectMediaItem(category: AssetCategory, item: AiAssetItem): void {
     if (!item?.url) return
     const cur = selectedMediaItem.value
     const same = cur?.item?.id === item.id && cur?.category === category
     selectedMediaItem.value = same ? null : { category, item }
   }
 
-  function getMediaArray(cat) {
+  function getMediaArray(cat: AssetCategory | null): AiAssetItem[] {
     const target = getTargetRef(cat)
     return target?.value ?? []
   }
@@ -305,7 +313,7 @@ export function useAiAssets(category = null) {
       selectedMediaItem.value = null
       Notify.create({ message: '삭제됨', icon: 'check_circle' })
     } catch (err) {
-      Notify.create({ type: 'negative', message: err.message || '삭제 실패' })
+      Notify.create({ type: 'negative', message: err instanceof Error ? err.message : '삭제 실패' })
     }
   }
 

@@ -30,5 +30,5 @@
     "src/**/*.vue",
     "src/tests/**/*.spec.ts"
   ],
-  "exclude": ["node_modules", "dist", ".quasar", "src/**/ExplorerPreview.vue"]
+  "exclude": ["node_modules", "dist", ".quasar"]
 }

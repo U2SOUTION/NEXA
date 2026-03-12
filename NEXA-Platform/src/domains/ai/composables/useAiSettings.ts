@@ -3,22 +3,49 @@ import { Notify } from 'quasar'
 
 const SETTINGS_KEY = 'nexa-ai-settings'
 
-function loadSettings() {
+interface AiSettingsData {
+  selectedModel?: string
+  chatMode?: string
+  chatInputMaxRows?: number
+  chatFontSize?: number
+  chatMessageMaxLength?: number
+  webcamFlipMode?: string
+  webcamResolution?: string
+  webcamFilterBrightness?: number
+  webcamFilterContrast?: number
+  webcamFilterSaturate?: number
+  webcamFilterGrayscale?: boolean
+  titleSuggestionMinTurns?: number
+  titleSuggestionMaxTurnsForContext?: number
+  titleSuggestionTurns?: number
+  outlineEnabled?: boolean
+  outlineDisplayMode?: string
+  outlinePanelWidth?: number
+  [key: string]: unknown
+}
+
+function loadSettings(): AiSettingsData {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
     if (!raw) return {}
-    return JSON.parse(raw)
+    return JSON.parse(raw) as AiSettingsData
   } catch {
     return {}
   }
 }
 
-function saveSettings(data) {
+function saveSettings(data: AiSettingsData): void {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(data))
   } catch (e) {
-    console.error('[useAiSettings] 저장 실패:', e)
+    console.error('[useAiSettings] 저장 실패:', e instanceof Error ? e.message : String(e))
   }
+}
+
+export interface PendingAttachment {
+  url: string
+  original_name?: string
+  file_path?: string
 }
 
 const saved = loadSettings()
@@ -28,17 +55,18 @@ const chatMode = ref(saved.chatMode ?? 'streaming')
 const chatInputMaxRows = ref(Math.max(2, Math.min(20, saved.chatInputMaxRows ?? 8)))
 const chatFontSize = ref(Math.max(12, Math.min(24, saved.chatFontSize ?? 16)))
 const chatMessageMaxLength = ref(Math.max(0, Math.min(10000, saved.chatMessageMaxLength ?? 0)))
-const modelCapabilities = ref({})
-const pendingWebcamCapture = ref(null)
-/** 갤러리/웹서버에서 선택한 파일을 채팅에 첨부 요청 { url, original_name } */
-const pendingAttachmentsFromGallery = ref([])
+const modelCapabilities = ref<Record<string, string[]>>({})
+const pendingWebcamCapture = ref<string | null>(null)
+/** 갤러리/웹서버에서 선택한 파일을 채팅에 첨부 요청 */
+const pendingAttachmentsFromGallery = ref<PendingAttachment[]>([])
 const webcamFlipMode = ref(saved.webcamFlipMode ?? 'none')
 const webcamResolution = ref(saved.webcamResolution ?? '640x480')
 const webcamFilterBrightness = ref(Math.max(0, Math.min(200, saved.webcamFilterBrightness ?? 100)))
 const webcamFilterContrast = ref(Math.max(0, Math.min(200, saved.webcamFilterContrast ?? 100)))
 const webcamFilterSaturate = ref(Math.max(0, Math.min(200, saved.webcamFilterSaturate ?? 100)))
 const webcamFilterGrayscale = ref(saved.webcamFilterGrayscale ?? false)
-function loadTitleSuggestionRange() {
+
+function loadTitleSuggestionRange(): { min: number; max: number } {
   if (saved.titleSuggestionMinTurns != null && saved.titleSuggestionMaxTurnsForContext != null) {
     const min = Math.max(1, Math.min(10, saved.titleSuggestionMinTurns))
     const max = Math.max(1, Math.min(10, saved.titleSuggestionMaxTurnsForContext))
@@ -64,7 +92,7 @@ const selectedModelCapabilities = computed(() => {
   return name ? modelCapabilities.value[name] || [] : []
 })
 
-function setModelCapabilities(capabilitiesMap) {
+function setModelCapabilities(capabilitiesMap: Record<string, string[]>): void {
   modelCapabilities.value = { ...modelCapabilities.value, ...capabilitiesMap }
 }
 
@@ -110,14 +138,17 @@ watch(
   { deep: true },
 )
 
-export function requestAttachToChat(item) {
+export function requestAttachToChat(item: { url?: string; original_name?: string; file_path?: string }): void {
   if (!item?.url) return
   const caps = modelCapabilities.value[selectedModel.value] || []
   if (!caps.includes('vision')) {
     Notify.create({ type: 'warning', message: '이미지 첨부는 이미지 지원 모델을 선택한 후에 가능합니다.' })
     return
   }
-  pendingAttachmentsFromGallery.value = [...pendingAttachmentsFromGallery.value, { url: item.url, original_name: item.original_name, file_path: item.file_path }]
+  pendingAttachmentsFromGallery.value = [
+    ...pendingAttachmentsFromGallery.value,
+    { url: item.url, original_name: item.original_name, file_path: item.file_path },
+  ]
 }
 
 export function useAiSettings() {

@@ -2,6 +2,7 @@
  * Mermaid 차트 렌더링 Composable
  * Mermaid 코드를 SVG로 렌더링하는 로직 담당
  */
+/* global NodeListOf */
 
 import { getDefaultMermaidCss, loadMermaidStyle, loadMermaidBlockStyle } from '@domains/dev/modules/document-manager/services/mermaidStyleStorage'
 import { getCurrentMermaidStyles } from '@domains/dev/modules/document-manager/config/mermaidStyles'
@@ -11,7 +12,7 @@ import { getCurrentMermaidStyles } from '@domains/dev/modules/document-manager/c
  * @param {NodeList} mermaidBlocks - Mermaid 블록 요소들
  * @returns {Promise<void>}
  */
-function waitForDOMReady(mermaidBlocks) {
+function waitForDOMReady(mermaidBlocks: NodeListOf<Element>) {
   return new Promise((resolve) => {
     const hasBlocks = mermaidBlocks.length > 0
 
@@ -74,7 +75,7 @@ function waitForDOMReady(mermaidBlocks) {
  * @param {string} encodedCode - 인코딩된 코드
  * @returns {string} 디코딩된 코드
  */
-function decodeHtmlEntities(encodedCode) {
+function decodeHtmlEntities(encodedCode: string): string {
   const tempDiv = document.createElement('div')
   tempDiv.innerHTML = encodedCode
   return tempDiv.textContent || tempDiv.innerText || encodedCode
@@ -86,14 +87,21 @@ function decodeHtmlEntities(encodedCode) {
  * @param {import('vue').Ref<string>|() => string|null} filePathGetter - 현재 파일 경로를 반환하는 함수 또는 ref
  * @returns {{ renderMermaid: () => Promise<void> }}
  */
-export function useMermaid(containerRef, filePathGetter = null) {
-  let mutationObserver = null
-  let renderTimeout = null
-  let debounceTimer = null
+import type { Ref } from 'vue'
+
+type FilePathGetter = (() => string | null) | Ref<string | null> | null
+
+export function useMermaid(
+  containerRef: Ref<HTMLElement | null>,
+  filePathGetter: FilePathGetter = null,
+) {
+  let mutationObserver: MutationObserver | null = null
+  let renderTimeout: ReturnType<typeof setTimeout> | null = null
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null
   let isRendering = false
   let lastRenderTime = 0
-  const styleCache = new Map() // 스타일 캐시 (블록 ID -> CSS)
-  let currentFilePath = null // 현재 파일 경로 추적
+  const styleCache = new Map<string, unknown>()
+  let currentFilePath: string | null = null
 
   /**
    * 현재 파일 경로 가져오기
@@ -108,7 +116,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
 
     // ref인 경우
     if (filePathGetter && typeof filePathGetter === 'object' && 'value' in filePathGetter) {
-      return filePathGetter.value
+      return (filePathGetter as Ref<string | null>).value
     }
 
     return null
@@ -119,7 +127,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
    * @param {string} mermaidId - Mermaid 블록 ID
    * @param {string} css - CSS 문자열
    */
-  function injectMermaidCss(mermaidId, css) {
+  function injectMermaidCss(mermaidId: string, css: string) {
     if (!css || !mermaidId) return
 
     // 기존 스타일 태그 제거 (같은 ID의)
@@ -142,7 +150,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
    * Mermaid 블록에 스타일 주입
    * @param {string} mermaidId - Mermaid 블록 ID
    */
-  async function injectMermaidStyles(mermaidId) {
+  async function injectMermaidStyles(mermaidId: string) {
     if (!mermaidId) return
 
     // 현재 파일 경로 가져오기
@@ -156,7 +164,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
 
     // 이미 스타일이 주입되었는지 확인 (중복 주입 방지)
     // 같은 파일의 같은 블록인지 확인
-    const cached = styleCache.get(mermaidId)
+    const cached = styleCache.get(mermaidId) as { filePath?: string } | undefined
     if (cached && cached.filePath === filePath) {
       return
     }
@@ -407,9 +415,8 @@ export function useMermaid(containerRef, filePathGetter = null) {
           setTimeout(() => {
             forceApplyThemeStyles(block)
           }, 500)
-        } catch (error) {
-          // 유효하지 않은 코드나 타입 감지 실패 시 조용히 건너뛰기
-          const errorMsg = error.message || '알 수 없는 오류'
+        } catch (err: unknown) {
+          const errorMsg = err instanceof Error ? err.message : '알 수 없는 오류'
           if (errorMsg.includes('No diagram type detected') || errorMsg.includes('Parse error') || errorMsg.includes('UnknownDiagramError')) {
             // 유효하지 않은 코드는 표시하지 않음
             block.style.display = 'none'
@@ -436,7 +443,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
    * 특정 다이어그램에서 인라인 스타일이 우선 적용되는 문제 해결
    * @param {HTMLElement} blockElement - Mermaid 블록 요소
    */
-  function forceApplyThemeStyles(blockElement) {
+  function forceApplyThemeStyles(blockElement: HTMLElement) {
     if (!blockElement) return
 
     const svg = blockElement.querySelector('svg')
@@ -445,7 +452,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
     // SVG 내부의 모든 도형 요소에서 인라인 fill/stroke 속성 제거
     // 인라인 속성이 CSS보다 우선순위가 높기 때문에 JavaScript로 직접 처리
     const allShapes = svg.querySelectorAll('rect, circle, ellipse, polygon, path[fill]')
-    allShapes.forEach((shape) => {
+    allShapes.forEach((shape: Element) => {
       const tagName = shape.tagName.toLowerCase()
 
       // 모든 도형 요소 확인
@@ -643,7 +650,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
       console.group('🔍 Mermaid DOM 구조 분석')
       const allTexts = svg.querySelectorAll('text, tspan')
       console.log(`총 텍스트 요소: ${allTexts.length}개`)
-      allTexts.forEach((textEl, idx) => {
+      allTexts.forEach((textEl: Element, idx: number) => {
         if (!textEl.textContent || textEl.textContent.trim() === '') return
         const parent = textEl.parentElement
         const classes = String(textEl.className?.baseVal || textEl.className || '')
@@ -666,14 +673,14 @@ export function useMermaid(containerRef, filePathGetter = null) {
     // 전략: 모든 텍스트 요소를 수집 후 체계적으로 분류 및 적용
     // 실행 순서: 1. 엣지 라벨 → 2. 노드 텍스트
     // 참고: messageText는 CSS에서 처리됨 (mermaidStyleStorage.js)
-    const allTextElements = Array.from(svg.querySelectorAll('text, tspan')).filter((el) => el.textContent && el.textContent.trim() !== '')
+    const allTextElements = Array.from(svg.querySelectorAll<SVGElement>('text, tspan')).filter((el) => el.textContent && el.textContent.trim() !== '')
 
     // 1. 엣지 라벨 처리 - 더 포괄적인 검색
     // 2-1. edgeLabel 클래스 기반 검색
     const edgeLabelGroups = svg.querySelectorAll('.edgeLabel, .edgeLabels, [class*="edgeLabel"], g[class*="edgeLabel"]')
     if (debugMode) console.log(`엣지 라벨 그룹 찾음: ${edgeLabelGroups.length}개`)
 
-    edgeLabelGroups.forEach((group, idx) => {
+    edgeLabelGroups.forEach((group: Element, idx: number) => {
       if (debugMode) {
         const groupClasses = String(group.className?.baseVal || group.className || '')
         console.log(`  그룹 ${idx + 1}: tagName=${group.tagName}, classes=${groupClasses}`)
@@ -694,7 +701,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
         }
         // SPAN 내부의 모든 HTML 요소 (P, DIV, SPAN 등) 처리
         const spanAllElements = group.querySelectorAll('*')
-        spanAllElements.forEach((el) => {
+        spanAllElements.forEach((el: Element) => {
           if (el.textContent && el.textContent.trim() !== '') {
             // SVG 요소인 경우
             if (el.tagName === 'text' || el.tagName === 'tspan') {
@@ -717,7 +724,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
       }
 
       // SVG text/tspan 요소 처리
-      texts.forEach((textEl) => {
+      texts.forEach((textEl: Element) => {
         if (textEl.textContent && textEl.textContent.trim() !== '') {
           textEl.removeAttribute('fill')
           textEl.style.setProperty('fill', edgeLabelColor, 'important')
@@ -742,7 +749,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
       // 그룹 내부 자식 요소를 재귀적으로 탐색 (foreignObject, g 등)
       if (foundTexts === 0) {
         const allDescendants = group.querySelectorAll('*')
-        allDescendants.forEach((child) => {
+        allDescendants.forEach((child: Element) => {
           if (!child.textContent || child.textContent.trim() === '') return
 
           // SVG text/tspan 요소
@@ -768,7 +775,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
       if (foundTexts === 0) {
         // SVG 전체에서 그룹과 관련된 텍스트 찾기 (SVG + HTML 요소 모두)
         const allSvgTexts = svg.querySelectorAll('text, tspan, span, p, div')
-        allSvgTexts.forEach((textEl) => {
+        allSvgTexts.forEach((textEl: Element) => {
           if (!textEl.textContent || textEl.textContent.trim() === '') return
 
           // 그룹이 텍스트를 포함하는지 확인
@@ -797,16 +804,16 @@ export function useMermaid(containerRef, filePathGetter = null) {
         console.log(`  ⚠️ 그룹 ${idx + 1}에서 텍스트를 찾지 못했습니다`, {
           groupTag: group.tagName,
           groupClasses: String(group.className?.baseVal || group.className || ''),
-          children: Array.from(group.children).map((c) => ({
+          children: Array.from(group.children).map((c: Element) => ({
             tag: c.tagName,
-            classes: String(c.className?.baseVal || c.className || ''),
+            classes: String((c as SVGElement).className?.baseVal ?? (c as SVGElement).className ?? ''),
             textContent: c.textContent?.trim().substring(0, 20),
             hasChildren: c.children.length > 0,
             children: Array.from(c.children)
               .slice(0, 5)
-              .map((gc) => ({
+              .map((gc: Element) => ({
                 tag: gc.tagName,
-                classes: String(gc.className?.baseVal || gc.className || ''),
+                classes: String((gc as SVGElement).className?.baseVal ?? (gc as SVGElement).className ?? ''),
                 textContent: gc.textContent?.trim().substring(0, 20),
               })),
           })),
@@ -815,11 +822,10 @@ export function useMermaid(containerRef, filePathGetter = null) {
         // 실제 텍스트 노드 탐색 (더 깊이)
         console.log(`  🔍 그룹 ${idx + 1} 깊이 탐색:`)
         const allDescendants = group.querySelectorAll('*')
-        const textNodes = []
-        allDescendants.forEach((el) => {
+        const textNodes: Array<{ tag: string; classes: string; text: string; parent: { tag: string; classes: string } | null }> = []
+        allDescendants.forEach((el: Element) => {
           if (el.textContent && el.textContent.trim() !== '') {
-            // 직접 텍스트 노드가 있는지 확인
-            const directTextNodes = Array.from(el.childNodes).filter((n) => n.nodeType === 3 && n.textContent.trim() !== '')
+            const directTextNodes = Array.from(el.childNodes).filter((n: Node) => n.nodeType === 3 && n.textContent?.trim() !== '')
             if (directTextNodes.length > 0 || el.tagName === 'text' || el.tagName === 'tspan' || el.tagName === 'SPAN' || el.tagName === 'span') {
               textNodes.push({
                 tag: el.tagName,
@@ -866,7 +872,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
       }
     })
 
-    // 2-3. 연결선(path) 근처 텍스트를 엣지 라벨로 간주 (플로우차트, ER 등)
+    // 2-3. path 근처 텍스트를 엣지 라벨로 간주
     // 단, 특수 차트는 제외
     const isSequenceChart = svg.querySelector('.messageText') !== null
 
@@ -874,14 +880,13 @@ export function useMermaid(containerRef, filePathGetter = null) {
       const edgePaths = svg.querySelectorAll('path[stroke]:not([stroke="none"]), .edgePath path, path.edge, .edge path')
       if (debugMode) console.log(`연결선 찾음: ${edgePaths.length}개`)
 
-      edgePaths.forEach((path) => {
+      edgePaths.forEach((path: SVGPathElement) => {
         try {
           const pathBBox = path.getBBox()
           const pathCenterX = pathBBox.x + pathBBox.width / 2
           const pathCenterY = pathBBox.y + pathBBox.height / 2
 
-          allTextElements.forEach((textEl) => {
-            // 이미 처리된 요소는 건너뛰기
+          allTextElements.forEach((textEl: SVGElement) => {
             if (textEl.closest('.nodeLabel') || textEl.closest('.node')) return
             if (textEl.closest('.edgeLabel') || textEl.closest('.edgeLabels')) return
 
@@ -918,9 +923,8 @@ export function useMermaid(containerRef, filePathGetter = null) {
       })
     }
 
-    // 3. 노드 텍스트 처리 - SVG text/tspan 요소
     let nodeTextCount = 0
-    allTextElements.forEach((textEl) => {
+    allTextElements.forEach((textEl: SVGElement) => {
       // 이미 처리된 요소는 건너뛰기
       // 참고: messageText는 CSS에서 처리됨 (mermaidStyleStorage.js)
       const currentFill = textEl.style.fill || textEl.getAttribute('fill')
@@ -963,7 +967,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
     // 3-1. 노드 텍스트 처리 - HTML 요소 (foreignObject 내부)
     const allHtmlElements = svg.querySelectorAll('span, p, div')
     let nodeHtmlCount = 0
-    allHtmlElements.forEach((htmlEl) => {
+    allHtmlElements.forEach((htmlEl: Element) => {
       if (!htmlEl.textContent || htmlEl.textContent.trim() === '') return
 
       // 엣지 라벨은 제외
@@ -982,7 +986,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
         htmlEl.style.color = textColor
         // 내부의 모든 텍스트 요소도 처리
         const innerTexts = htmlEl.querySelectorAll('span, p, div, text, tspan')
-        innerTexts.forEach((inner) => {
+        innerTexts.forEach((inner: Element) => {
           if (inner.textContent && inner.textContent.trim() !== '') {
             if (inner.tagName === 'text' || inner.tagName === 'tspan') {
               inner.removeAttribute('fill')
@@ -1009,14 +1013,14 @@ export function useMermaid(containerRef, filePathGetter = null) {
     // 위에서 처리되지 않은 엣지 라벨 HTML 요소 찾기
     // 참고: messageText는 CSS에서 처리됨 (mermaidStyleStorage.js)
     const edgeLabelHtmlElements = svg.querySelectorAll('.edgeLabel span, .edgeLabel p, .edgeLabel div, .edgeLabels span, .edgeLabels p, .edgeLabels div')
-    edgeLabelHtmlElements.forEach((htmlEl) => {
+    edgeLabelHtmlElements.forEach((htmlEl: Element) => {
       if (!htmlEl.textContent || htmlEl.textContent.trim() === '') return
 
       htmlEl.style.setProperty('color', edgeLabelColor, 'important')
       htmlEl.style.color = edgeLabelColor
       // HTML 요소 내부의 모든 텍스트 요소도 처리
       const innerElements = htmlEl.querySelectorAll('span, p, div')
-      innerElements.forEach((inner) => {
+      innerElements.forEach((inner: Element) => {
         if (inner.textContent && inner.textContent.trim() !== '') {
           inner.style.setProperty('color', edgeLabelColor, 'important')
           inner.style.color = edgeLabelColor
@@ -1044,7 +1048,7 @@ export function useMermaid(containerRef, filePathGetter = null) {
   function reapplyMermaidStyles() {
     if (containerRef.value) {
       const mermaidBlocks = containerRef.value.querySelectorAll('.mermaid-block[data-mermaid-rendered="true"]')
-      mermaidBlocks.forEach((block) => {
+      mermaidBlocks.forEach((block: Element) => {
         const mermaidId = block.getAttribute('data-mermaid-id')
         if (mermaidId) {
           // 스타일 캐시 초기화 후 재적용

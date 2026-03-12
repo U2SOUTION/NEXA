@@ -62,7 +62,9 @@ function getDefaultStyles() {
  * @param {import('vue').Ref<string>|string} filePath - 현재 파일 경로
  * @returns {Object} 스타일 관리 함수 및 상태
  */
-export function useMermaidStyle(filePath) {
+import type { Ref } from 'vue'
+
+export function useMermaidStyle(filePath: Ref<string> | string) {
   // 중앙 색상 관리 모듈에서 기본 스타일 가져오기
   const defaultStyles = getDefaultStyles()
 
@@ -344,7 +346,7 @@ export function useMermaidStyle(filePath) {
    * @param {string} mermaidId - Mermaid 블록 ID
    * @returns {string} 블록별 CSS 문자열
    */
-  function generateBlockLevelCss(mermaidId) {
+  function generateBlockLevelCss(mermaidId: string) {
     // 그림자 효과 CSS 생성
     const shadowFilter = nodeShadow.value ? `filter: drop-shadow(${nodeShadowOffsetX.value}px ${nodeShadowOffsetY.value}px ${nodeShadowBlur.value}px ${nodeShadowColor.value}) !important;` : ''
 

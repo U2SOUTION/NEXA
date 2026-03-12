@@ -5,15 +5,18 @@
  *
  * 파일 페이로드: useFileSelection 계약과 동일 (API 파일 객체 필드)
  */
+import type { ExplorerFile } from '../types/aiDomainTypes'
 
-const injectToChatListeners = new Set()
-const injectToEditorListeners = new Set()
-const openInImageEditorListeners = new Set()
-const openInAudioEditorListeners = new Set()
-const openInVideoEditorListeners = new Set()
-const openInCodePanelListeners = new Set()
+type ListenerFn = (file: ExplorerFile) => void
 
-function emit(listeners, file) {
+const injectToChatListeners = new Set<ListenerFn>()
+const injectToEditorListeners = new Set<ListenerFn>()
+const openInImageEditorListeners = new Set<ListenerFn>()
+const openInAudioEditorListeners = new Set<ListenerFn>()
+const openInVideoEditorListeners = new Set<ListenerFn>()
+const openInCodePanelListeners = new Set<ListenerFn>()
+
+function emit(listeners: Set<ListenerFn>, file: ExplorerFile | null | undefined): void {
   if (!file || typeof file !== 'object') return
   listeners.forEach((fn) => {
     try {
@@ -24,58 +27,58 @@ function emit(listeners, file) {
   })
 }
 
-function register(listeners, callback) {
+function register(listeners: Set<ListenerFn>, callback: ListenerFn): () => void {
   if (typeof callback !== 'function') return () => {}
   listeners.add(callback)
   return () => listeners.delete(callback)
 }
 
 export function useAiExplorerSelection() {
-  function requestInjectToChat(file) {
+  function requestInjectToChat(file: ExplorerFile): void {
     emit(injectToChatListeners, file)
   }
 
-  function requestInjectToEditor(file) {
+  function requestInjectToEditor(file: ExplorerFile): void {
     emit(injectToEditorListeners, file)
   }
 
-  function requestOpenInImageEditor(file) {
+  function requestOpenInImageEditor(file: ExplorerFile): void {
     emit(openInImageEditorListeners, file)
   }
 
-  function requestOpenInAudioEditor(file) {
+  function requestOpenInAudioEditor(file: ExplorerFile): void {
     emit(openInAudioEditorListeners, file)
   }
 
-  function requestOpenInVideoEditor(file) {
+  function requestOpenInVideoEditor(file: ExplorerFile): void {
     emit(openInVideoEditorListeners, file)
   }
 
-  function requestOpenInCodePanel(file) {
+  function requestOpenInCodePanel(file: ExplorerFile): void {
     emit(openInCodePanelListeners, file)
   }
 
-  function onInjectToChat(callback) {
+  function onInjectToChat(callback: ListenerFn): () => void {
     return register(injectToChatListeners, callback)
   }
 
-  function onInjectToEditor(callback) {
+  function onInjectToEditor(callback: ListenerFn): () => void {
     return register(injectToEditorListeners, callback)
   }
 
-  function onOpenInImageEditor(callback) {
+  function onOpenInImageEditor(callback: ListenerFn): () => void {
     return register(openInImageEditorListeners, callback)
   }
 
-  function onOpenInAudioEditor(callback) {
+  function onOpenInAudioEditor(callback: ListenerFn): () => void {
     return register(openInAudioEditorListeners, callback)
   }
 
-  function onOpenInVideoEditor(callback) {
+  function onOpenInVideoEditor(callback: ListenerFn): () => void {
     return register(openInVideoEditorListeners, callback)
   }
 
-  function onOpenInCodePanel(callback) {
+  function onOpenInCodePanel(callback: ListenerFn): () => void {
     return register(openInCodePanelListeners, callback)
   }
 

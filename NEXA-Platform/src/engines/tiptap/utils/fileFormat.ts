@@ -1,4 +1,4 @@
-export function formatFileSize(bytes) {
+export function formatFileSize(bytes: number) {
   if (!bytes || bytes === 0) return '0 Bytes'
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB']

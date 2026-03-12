@@ -6,13 +6,13 @@ export const useInfraStore = defineStore('infra', () => {
   const activeSubMenu = ref('my-devices')
   
   // 선택된 장치 ID
-  const selectedDeviceId = ref(null)
+  const selectedDeviceId = ref<string | null>(null)
 
-  function setActiveSubMenu(menuId) {
+  function setActiveSubMenu(menuId: string) {
     activeSubMenu.value = menuId
   }
 
-  function setSelectedDevice(deviceId) {
+  function setSelectedDevice(deviceId: string | null) {
     selectedDeviceId.value = deviceId
   }
 

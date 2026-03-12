@@ -82,9 +82,9 @@ export const Video = Node.create<VideoOptions>({
     ]
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes = {} }) {
     const merged = mergeAttributes(
-      this.options.HTMLAttributes,
+      (this.options.HTMLAttributes ?? {}) as Record<string, unknown>,
       {
         controls: this.options.controls,
         autoplay: this.options.autoplay,
@@ -92,7 +92,7 @@ export const Video = Node.create<VideoOptions>({
         muted: this.options.muted,
         preload: this.options.preload,
       },
-      HTMLAttributes
+      HTMLAttributes as Record<string, unknown>
     )
     const attrs = Object.fromEntries(
       Object.entries(merged).filter(([, v]) => v !== null && v !== undefined && v !== false)

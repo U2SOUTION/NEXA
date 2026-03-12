@@ -23,23 +23,23 @@ export const useArchiveSearchStore = defineStore('archiveSearch', () => {
 
   const hasQuery = computed(() => query.value.trim().length > 0)
 
-  function setQuery(value) {
+  function setQuery(value: string) {
     query.value = value
   }
 
-  function setScope(value) {
+  function setScope(value: string) {
     scope.value = value
   }
 
-  function setFilters(partial) {
+  function setFilters(partial: Partial<typeof filters.value>) {
     filters.value = { ...filters.value, ...partial }
   }
 
-  function setResults(partial) {
+  function setResults(partial: Partial<typeof results.value>) {
     results.value = { ...results.value, ...partial }
   }
 
-  async function search(callback) {
+  async function search(callback: (payload: { query: string; scope: string; filters: typeof filters.value }) => Promise<Partial<typeof results.value> | undefined>) {
     if (!callback || typeof callback !== 'function') return
     isSearching.value = true
     try {

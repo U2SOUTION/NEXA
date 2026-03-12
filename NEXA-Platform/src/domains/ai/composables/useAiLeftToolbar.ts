@@ -1,11 +1,49 @@
 /**
  * useAiLeftToolbar - AI 왼쪽 패널 툴바·검색 폼 설정
  * 탭별 버튼 정의와 검색 폼을 중앙 관리. 모든 탭에서 공유 사용.
- *
- * @param {Object} ctx - { leftMainTab, searchQuery, searchTarget, showAddChannel, ... }
- * @returns {Object} { toolbarItems, toolbarLabel, searchPlaceholder, showSearchTargetMenu, searchTargetOptions }
  */
+import type { Ref } from 'vue'
 import { computed } from 'vue'
+import type { Channel, Chat } from '../types/aiDomainTypes'
+
+type LeftMainTab = 'chat' | 'note' | 'media'
+
+export interface AiLeftToolbarCtx {
+  leftMainTab?: Ref<LeftMainTab>
+  searchTarget?: Ref<string>
+  showAddChannel?: Ref<boolean>
+  selectedChat?: Ref<Chat | undefined>
+  selectedChannel?: Ref<Channel | undefined>
+  selectedChannelId?: Ref<string | null>
+  selectedChatId?: Ref<string | null>
+  handleAddChatFromToolbar?: () => void
+  openEditChat?: () => void
+  openEditChannel?: () => void
+  confirmDeleteChat?: (channelId: string | null, chat: Chat) => void
+  confirmDeleteChannel?: (ch: Channel) => void
+  canMoveChatUp?: Ref<boolean>
+  canMoveChatDown?: Ref<boolean>
+  canMoveChannelUp?: Ref<boolean>
+  canMoveChannelDown?: Ref<boolean>
+  moveChatUp?: (channelId: string | null, chatId: string | null) => void
+  moveChatDown?: (channelId: string | null, chatId: string | null) => void
+  moveChannelUp?: (channelId: string | null) => void
+  moveChannelDown?: (channelId: string | null) => void
+  selectedMemo?: Ref<unknown>
+  handleNoteAdd?: () => void
+  handleNoteEdit?: () => void
+  handleNoteMoveUp?: () => void
+  handleNoteMoveDown?: () => void
+  handleNoteDelete?: () => void
+  canMoveMemoUp?: Ref<boolean>
+  canMoveMemoDown?: Ref<boolean>
+  canMoveMediaUp?: Ref<boolean>
+  canMoveMediaDown?: Ref<boolean>
+  selectedMediaItem?: Ref<unknown>
+  handleMediaMoveUp?: () => void
+  handleMediaMoveDown?: () => void
+  handleMediaDelete?: () => void
+}
 
 const SEARCH_TARGET_OPTIONS = [
   { value: 'both', icon: 'view_list', label: 'Both' },
@@ -13,17 +51,17 @@ const SEARCH_TARGET_OPTIONS = [
   { value: 'chat', icon: 'chat_bubble_outline', label: 'Chat' },
 ]
 
-const TAB_SEARCH_PLACEHOLDERS = {
+const TAB_SEARCH_PLACEHOLDERS: Record<LeftMainTab | string, string> = {
   chat: 'Search channels & chats',
   note: 'Search memos',
   media: '미디어 검색',
 }
 
-export function useAiLeftToolbar(ctx) {
+export function useAiLeftToolbar(ctx: AiLeftToolbarCtx) {
   const toolbarLabel = computed(() => {
     const tab = ctx.leftMainTab?.value
-    const labels = { chat: '채팅', note: '노트', media: '미디어' }
-    return labels[tab] || 'TOOLbar'
+    const labels: Record<string, string> = { chat: '채팅', note: '노트', media: '미디어' }
+    return labels[tab ?? ''] || 'TOOLbar'
   })
 
   const toolbarItems = computed(() => {
@@ -35,8 +73,8 @@ export function useAiLeftToolbar(ctx) {
   })
 
   const searchPlaceholder = computed(() => {
-    const tab = ctx.leftMainTab?.value
-    return TAB_SEARCH_PLACEHOLDERS[tab] || 'Search'
+    const tab = ctx.leftMainTab?.value ?? ''
+    return TAB_SEARCH_PLACEHOLDERS[tab] ?? 'Search'
   })
 
   const showSearchTargetMenu = computed(() => ctx.leftMainTab?.value === 'chat')
@@ -66,7 +104,7 @@ export function useAiLeftToolbar(ctx) {
   }
 }
 
-function getChatItems(ctx) {
+function getChatItems(ctx: AiLeftToolbarCtx) {
   const items = []
   items.push({
     id: 'add',
@@ -75,7 +113,7 @@ function getChatItems(ctx) {
     size: 'md',
     title: 'Add',
     menuItems: [
-      { icon: 'folder', label: '채널 추가', onClick: () => { ctx.showAddChannel.value = true } },
+      { icon: 'folder', label: '채널 추가', onClick: () => { if (ctx.showAddChannel) ctx.showAddChannel.value = true } },
       { icon: 'chat_bubble_outline', label: '대화 추가', onClick: ctx.handleAddChatFromToolbar },
     ],
   })
@@ -84,22 +122,22 @@ function getChatItems(ctx) {
   if (selChat) {
     items.push(
       { id: 'edit', type: 'button', icon: 'edit', title: 'Edit', size: 'sm', onClick: ctx.openEditChat },
-      { id: 'up', type: 'button', icon: 'arrow_upward', title: 'Move up', size: 'sm', disabled: !ctx.canMoveChatUp?.value, onClick: () => ctx.moveChatUp(ctx.selectedChannelId.value, ctx.selectedChatId.value) },
-      { id: 'down', type: 'button', icon: 'arrow_downward', title: 'Move down', size: 'sm', disabled: !ctx.canMoveChatDown?.value, onClick: () => ctx.moveChatDown(ctx.selectedChannelId.value, ctx.selectedChatId.value) },
-      { id: 'delete', type: 'button', icon: 'delete_outline', title: 'Delete', size: 'sm', color: 'negative', onClick: () => ctx.confirmDeleteChat(ctx.selectedChannelId.value, selChat) },
+      { id: 'up', type: 'button', icon: 'arrow_upward', title: 'Move up', size: 'sm', disabled: !ctx.canMoveChatUp?.value, onClick: () => ctx.moveChatUp?.(ctx.selectedChannelId?.value ?? null, ctx.selectedChatId?.value ?? null) },
+      { id: 'down', type: 'button', icon: 'arrow_downward', title: 'Move down', size: 'sm', disabled: !ctx.canMoveChatDown?.value, onClick: () => ctx.moveChatDown?.(ctx.selectedChannelId?.value ?? null, ctx.selectedChatId?.value ?? null) },
+      { id: 'delete', type: 'button', icon: 'delete_outline', title: 'Delete', size: 'sm', color: 'negative', onClick: () => ctx.confirmDeleteChat?.(ctx.selectedChannelId?.value ?? null, selChat) },
     )
   } else if (selCh) {
     items.push(
       { id: 'edit', type: 'button', icon: 'edit', title: 'Edit', size: 'sm', onClick: ctx.openEditChannel },
-      { id: 'up', type: 'button', icon: 'arrow_upward', title: 'Move up', size: 'sm', disabled: !ctx.canMoveChannelUp?.value, onClick: () => ctx.moveChannelUp(ctx.selectedChannelId.value) },
-      { id: 'down', type: 'button', icon: 'arrow_downward', title: 'Move down', size: 'sm', disabled: !ctx.canMoveChannelDown?.value, onClick: () => ctx.moveChannelDown(ctx.selectedChannelId.value) },
-      { id: 'delete', type: 'button', icon: 'delete_outline', title: 'Delete', size: 'sm', color: 'negative', onClick: () => ctx.confirmDeleteChannel(selCh) },
+      { id: 'up', type: 'button', icon: 'arrow_upward', title: 'Move up', size: 'sm', disabled: !ctx.canMoveChannelUp?.value, onClick: () => ctx.moveChannelUp?.(ctx.selectedChannelId?.value ?? null) },
+      { id: 'down', type: 'button', icon: 'arrow_downward', title: 'Move down', size: 'sm', disabled: !ctx.canMoveChannelDown?.value, onClick: () => ctx.moveChannelDown?.(ctx.selectedChannelId?.value ?? null) },
+      { id: 'delete', type: 'button', icon: 'delete_outline', title: 'Delete', size: 'sm', color: 'negative', onClick: () => ctx.confirmDeleteChannel?.(selCh) },
     )
   }
   return items
 }
 
-function getNoteItems(ctx) {
+function getNoteItems(ctx: AiLeftToolbarCtx) {
   return [
     { id: 'add', type: 'button', icon: 'add', size: 'md', title: '메모 추가 (에디터 열기)', onClick: ctx.handleNoteAdd },
     { id: 'edit', type: 'button', icon: 'edit', title: '편집 (에디터 열기)', size: 'sm', disabled: !ctx.selectedMemo?.value, onClick: ctx.handleNoteEdit },
@@ -109,7 +147,7 @@ function getNoteItems(ctx) {
   ]
 }
 
-function getMediaItems(ctx) {
+function getMediaItems(ctx: AiLeftToolbarCtx) {
   return [
     { id: 'up', type: 'button', icon: 'arrow_upward', title: '위로', size: 'sm', disabled: !ctx.canMoveMediaUp?.value, onClick: ctx.handleMediaMoveUp },
     { id: 'down', type: 'button', icon: 'arrow_downward', title: '아래로', size: 'sm', disabled: !ctx.canMoveMediaDown?.value, onClick: ctx.handleMediaMoveDown },

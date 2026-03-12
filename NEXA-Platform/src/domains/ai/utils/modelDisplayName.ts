@@ -16,7 +16,7 @@ const DEFAULT_OVERRIDES = {
   'deepseek-v3.1:671b': 'Deepseek V3.1 671B',
 }
 
-function findOverride(merged, rawName) {
+function findOverride(merged: Record<string, string>, rawName: string): string | null {
   if (merged[rawName]) return merged[rawName]
   const lower = rawName.toLowerCase()
   const key = Object.keys(merged).find((k) => k.toLowerCase() === lower)
@@ -28,7 +28,10 @@ function findOverride(merged, rawName) {
  * @param {Record<string,string>} [overrides] - 추가 오버라이드 맵
  * @returns {string} 사용자 친화적 표시명
  */
-export function formatModelDisplayName(rawName, overrides = {}) {
+export function formatModelDisplayName(
+  rawName: string,
+  overrides: Record<string, string> = {},
+): string {
   if (!rawName || typeof rawName !== 'string') return rawName || ''
   const merged = { ...DEFAULT_OVERRIDES, ...overrides }
   const override = findOverride(merged, rawName)
