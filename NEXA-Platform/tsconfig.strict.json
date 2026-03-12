@@ -42,12 +42,15 @@
     "src/system/utils/settings-scanner/**/*.ts",
     "src/system/settings/**/*.ts",
     "src/system/boot/**/*.ts",
-    "src/system/composables/**/*.ts"
+    "src/system/composables/**/*.ts",
+    "src/domains/dev/modules/document-manager/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     ".quasar",
-    "src/**/ExplorerPreview.vue"
+    "src/**/ExplorerPreview.vue",
+    "src/domains/dev/modules/document-manager/composables/useMermaid.ts",
+    "src/domains/dev/modules/document-manager/composables/useMermaidStyle.ts"
   ]
 }

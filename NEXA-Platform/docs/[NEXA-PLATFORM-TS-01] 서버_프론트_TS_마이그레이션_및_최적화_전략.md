@@ -521,7 +521,7 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 ### 9.3 프론트엔드 strict (진행 중)
 
 - **1단계 완료**: `tsconfig.strict.json`, `npm run typecheck:strict` 추가.
-- **적용 범위 (include)**: `src/system/types/**`, `src/system/schemas/**`, `src/system/config/**`, `src/system/store/**` (일부 제외), `src/system/utils/` (apiBaseUrl, authenticatedFetch, generateId, parseCsv, path-categorizer, path-tree-builder, componentFactory, boardWindowPreset, componentScanner, graph-doc/**, dependency-analyzer, url-state/**, markdown/**, file-sorter/**, clipboard, themeColorParser, dataViewUtils, view-mode/**, previewParser, themeUsageAnalyzer, componentLibraryStatistics, performance/** 전체, usage-example-generator, vue-file-parser, componentDependencyAnalyzer, fileExplorer, **error-tracking/** 전체, **print/** 전체, **export/** 전체). **추가 (2025-03)**: `src/system/settings/**`, `src/system/boot/**`.
+- **적용 범위 (include)**: `src/system/types/**`, `src/system/schemas/**`, `src/system/config/**`, `src/system/store/**`, `src/system/utils/` (위와 동일). **추가 (2025-03)**: `src/system/settings/**`, `src/system/boot/**`, `src/domains/dev/modules/document-manager/**` (useMermaid, useMermaidStyle 제외).
 - **exclude** (점진적 포함 대상): `ExplorerPreview.vue`만 유지. **strict 통과 완료 (2025-03)**: `useSettingsManager`, `settings-scanner/**` — §9.3.1 경로 주입 리팩터링 적용.
 - **수정 완료**: documentConfig, devGuideConfig, fileTypes, componentCategories, layoutRegistry, url-state, projectStore (getAuthHeaders). **print/**, **export/** (exportTypes 공통 타입). **modalSystemStore** (ModalState/ModalConfig). **boardEditorStore** (DrawerNodeInfo, BoardEditorState). **partsManagementStore** (SpaceNode, BinData, BinModel). **partsDataStore** (PartClass, PartModel, PartSpec, PartFile 인터페이스). **boot/** (errorTracking: App 타입, error handler 시그니처, Window.testError 등 declare; pinia: App 타입). **settings/** (ContextMenuSetting: getTabLabel `Record<string, string>` 타입).
 - **composables/**: (2025-03) include 추가 완료. **수정 완료**: useContainerQuery, useTabConfig, useModalManager, useFileBrowserExplorer, useGlobalFileExplorer, useDatabaseViewer, useContextMenu, useSidebarGesture, usePaginationControl, useAuthenticatedFetch, useDevMenuState, useDocumentFilters, **url-state/** 전체, useBoardPreset, useComponentLibrary, useTableFilter, useTableDragDrop, useTableDuplicate, useDynamicLabel, useDevGuide, useDraggableResizableModal, useMultiSelection, useTableKeyboard, **useSettingsManager** (settings-scanner 경로 주입 리팩터링 후 strict 통과), **useDocumentMultiSelection** (DocumentManagerStoreLike, documentStorage 연동으로 strict 통과). **strict 통과 완료**: useErrorTracking, useErrorAnalysis, useGlobalShortcuts, useGraphDocHistory, useSidebarNavigation, **documentManagerStore** (useTOC, documentStorage 수정 완료), **settings-scanner/** (경로 주입 패턴 적용).
@@ -561,11 +561,17 @@ export async function scanConfigFiles(modulePaths?: string[]) {
 
 **효과**: settingsScanner 타입 검사 시 domains/frame/engines를 끌어오지 않음 → useSettingsManager·settings-scanner strict 포함 가능.
 
-#### 9.3.2 향후 strict 포함 후보
+#### 9.3.2 document-manager strict 포함 (2025-03)
+
+- **include**: `src/domains/dev/modules/document-manager/**/*.ts`
+- **exclude**: `useMermaid.ts`, `useMermaidStyle.ts` (implicit any·unknown 다수, 별도 작업 필요)
+- **strict 통과**: useDocumentList, useDocumentSearch, useDocumentStats, useTOC, documentStorage, services, config 등
+
+#### 9.3.3 향후 strict 포함 후보
 
 | 대상 | 비고 |
 |------|------|
-| **domains/dev/modules/document-manager/** | useDocumentList, useDocumentSearch, useDocumentStats, useMermaid, useMermaidStyle 등 implicit any·unknown 타입 수정 필요. useTOC·documentStorage·useDocumentMultiSelection은 이미 strict 통과 (documentManagerStore를 통해 간접 포함). |
+| **useMermaid.ts, useMermaidStyle.ts** | DOM 조작·MutationObserver·타이머·unknown 처리 등 타입 수정 필요. |
 | **ExplorerPreview.vue** | exclude에 등록되어 있으나 현재 코드베이스에 해당 파일 없음 (레거시 exclude). |
 
 ---

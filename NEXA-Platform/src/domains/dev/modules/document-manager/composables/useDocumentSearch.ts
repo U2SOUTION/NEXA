@@ -1,24 +1,34 @@
+import type { Ref } from 'vue'
 import { ref, watch } from 'vue'
+
+export interface MarkdownFileWithContent {
+  name: string
+  displayName?: string
+  loadContent?: () => Promise<string>
+}
 
 /**
  * 문서 검색 Composable
- * 전체 문서 검색 기능을 담당합니다.
  */
-export function useDocumentSearch(markdownFiles, fileContents, searchMode, saveSettingsCallback, trashFiles) {
-  // 상태
+export function useDocumentSearch(
+  markdownFiles: Ref<MarkdownFileWithContent[]>,
+  fileContents: Ref<Record<string, string>>,
+  searchMode: Ref<string>,
+  saveSettingsCallback: (() => void) | undefined,
+  trashFiles: Ref<string[]> | string[],
+) {
   const globalSearchQuery = ref('')
-  const globalSearchKeywords = ref([])
-  const globalSearchResults = ref([])
-  const globalSearchExcluded = ref([])
+  const globalSearchKeywords = ref<string[]>([])
+  const globalSearchResults = ref<Array<{ file: MarkdownFileWithContent; matchCount: number }>>([])
+  const globalSearchExcluded = ref<MarkdownFileWithContent[]>([])
   const showExcludedFiles = ref(false)
 
-  // 체크박스 텍스트 추출 함수
-  function extractCheckboxTexts(content) {
-    const checkboxTexts = []
+  function extractCheckboxTexts(content: string): string {
+    const checkboxTexts: string[] = []
     const lines = content.split('\n')
     let inCodeBlock = false
 
-    lines.forEach((line) => {
+    lines.forEach((line: string) => {
       // Windows 줄바꿈 문자(\r) 제거
       const cleanLine = line.replace(/\r$/, '')
       const trimmedLine = cleanLine.trim()
@@ -69,12 +79,10 @@ export function useDocumentSearch(markdownFiles, fileContents, searchMode, saveS
       return
     }
 
-    // 검색 대상 파일 결정
     let filesToSearch = markdownFiles.value
     if (searchMode.value === 'trash') {
-      // 휴지통 검색: 휴지통 파일만 검색
-      const trashList = trashFiles?.value || trashFiles || []
-      filesToSearch = markdownFiles.value.filter((file) => trashList.includes(file.name))
+      const trashList = Array.isArray(trashFiles) ? trashFiles : (trashFiles as Ref<string[]>).value
+      filesToSearch = markdownFiles.value.filter((file: MarkdownFileWithContent) => trashList.includes(file.name))
     }
     // 그 외 모드(title, content, both, checkbox): 모든 파일 검색 (일반 + 휴지통)
 
@@ -83,10 +91,9 @@ export function useDocumentSearch(markdownFiles, fileContents, searchMode, saveS
     const excluded = []
 
     for (const file of filesToSearch) {
-      let content = fileContents.value[file.name]
+      let content: string | undefined = fileContents.value[file.name]
 
-      // 파일 내용이 캐시에 없으면 로드
-      if (!content) {
+      if (!content && file.loadContent) {
         try {
           content = await file.loadContent()
           fileContents.value[file.name] = content
@@ -100,20 +107,16 @@ export function useDocumentSearch(markdownFiles, fileContents, searchMode, saveS
       // 검색 모드에 따라 검색 범위 결정
       let searchText = ''
       if (searchMode.value === 'title') {
-        // 제목만 검색 (파일명)
-        searchText = file.displayName.toLowerCase()
+        searchText = (file.displayName ?? file.name).toLowerCase()
       } else if (searchMode.value === 'trash') {
-        // 휴지통 검색: 제목만 검색 (파일명)
-        searchText = file.displayName.toLowerCase()
+        searchText = (file.displayName ?? file.name).toLowerCase()
       } else if (searchMode.value === 'content') {
-        // 내용만 검색
-        searchText = content.toLowerCase()
+        searchText = (content ?? '').toLowerCase()
       } else if (searchMode.value === 'checkbox') {
-        // 체크박스 텍스트만 검색
-        searchText = extractCheckboxTexts(content).toLowerCase()
+        searchText = extractCheckboxTexts(content ?? '').toLowerCase()
       } else {
-        // 제목+내용 검색
-        searchText = `${file.displayName.toLowerCase()} ${content.toLowerCase()}`
+        const disp = file.displayName ?? file.name
+        searchText = `${disp.toLowerCase()} ${(content ?? '').toLowerCase()}`
       }
 
       // 검색 키워드가 모두 포함되어 있는지 확인
@@ -221,8 +224,7 @@ export function useDocumentSearch(markdownFiles, fileContents, searchMode, saveS
     }
   }
 
-  // 전체 문서 검색어 변경 시 검색 수행 (디바운싱)
-  let searchTimer = null
+  let searchTimer: ReturnType<typeof setTimeout> | null = null
   watch(globalSearchQuery, () => {
     if (searchTimer) clearTimeout(searchTimer)
     searchTimer = setTimeout(() => {

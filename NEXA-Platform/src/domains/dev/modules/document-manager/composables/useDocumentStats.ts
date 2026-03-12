@@ -1,12 +1,19 @@
+import type { Ref } from 'vue'
 import { computed } from 'vue'
+
+export interface FileWithName {
+  name: string
+}
 
 /**
  * 문서 통계 계산 Composable
- * 파일별 및 전체 체크박스 통계를 계산합니다.
  */
-export function useDocumentStats(markdownFiles, fileContents, checkboxStates) {
-  // 파일의 체크박스 통계 계산
-  function getFileCheckboxStats(file) {
+export function useDocumentStats(
+  markdownFiles: Ref<FileWithName[]>,
+  fileContents: Ref<Record<string, string>>,
+  checkboxStates: Ref<Record<string, Record<string, boolean>>>,
+) {
+  function getFileCheckboxStats(file: FileWithName) {
     if (!fileContents.value || !fileContents.value[file.name]) {
       return { total: 0, completed: 0, pending: 0 }
     }
@@ -24,7 +31,7 @@ export function useDocumentStats(markdownFiles, fileContents, checkboxStates) {
     let completed = 0
     let inCodeBlock = false
 
-    lines.forEach((line, lineIndex) => {
+    lines.forEach((line: string, lineIndex: number) => {
       const cleanLine = line.replace(/\r$/, '')
       const trimmedLine = cleanLine.trim()
 
@@ -58,23 +65,22 @@ export function useDocumentStats(markdownFiles, fileContents, checkboxStates) {
     }
   }
 
-  // 파일의 전체 체크박스 개수
-  function getFileTotalCount(file) {
+  function getFileTotalCount(file: FileWithName) {
     return getFileCheckboxStats(file).total
   }
 
   // 파일의 완료된 체크박스 개수
-  function getFileCompletedCount(file) {
+  function getFileCompletedCount(file: FileWithName) {
     return getFileCheckboxStats(file).completed
   }
 
   // 파일의 미완료 체크박스 개수
-  function getFilePendingCount(file) {
+  function getFilePendingCount(file: FileWithName) {
     return getFileCheckboxStats(file).pending
   }
 
   // 파일의 진행률 (0-100)
-  function getFileProgress(file) {
+  function getFileProgress(file: FileWithName) {
     const stats = getFileCheckboxStats(file)
     if (stats.total === 0) return 0
     return Math.round((stats.completed / stats.total) * 100)
@@ -89,7 +95,7 @@ export function useDocumentStats(markdownFiles, fileContents, checkboxStates) {
       return { total: 0, completed: 0, pending: 0 }
     }
 
-    markdownFiles.value.forEach((file) => {
+    markdownFiles.value.forEach((file: FileWithName) => {
       const stats = getFileCheckboxStats(file)
       total += stats.total
       completed += stats.completed
