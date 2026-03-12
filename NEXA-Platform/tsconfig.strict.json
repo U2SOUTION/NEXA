@@ -39,6 +39,7 @@
     "src/system/utils/error-tracking/**/*.ts",
     "src/system/utils/print/**/*.ts",
     "src/system/utils/export/**/*.ts",
+    "src/system/utils/settings-scanner/**/*.ts",
     "src/system/settings/**/*.ts",
     "src/system/boot/**/*.ts",
     "src/system/composables/**/*.ts"
@@ -47,8 +48,6 @@
     "node_modules",
     "dist",
     ".quasar",
-    "src/**/ExplorerPreview.vue",
-    "src/system/composables/useSettingsManager.ts",
-    "src/system/utils/settings-scanner/**"
+    "src/**/ExplorerPreview.vue"
   ]
 }

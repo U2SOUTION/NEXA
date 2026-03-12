@@ -522,11 +522,51 @@ export type DevicePayload = z.infer<typeof devicePayloadSchema>
 
 - **1단계 완료**: `tsconfig.strict.json`, `npm run typecheck:strict` 추가.
 - **적용 범위 (include)**: `src/system/types/**`, `src/system/schemas/**`, `src/system/config/**`, `src/system/store/**` (일부 제외), `src/system/utils/` (apiBaseUrl, authenticatedFetch, generateId, parseCsv, path-categorizer, path-tree-builder, componentFactory, boardWindowPreset, componentScanner, graph-doc/**, dependency-analyzer, url-state/**, markdown/**, file-sorter/**, clipboard, themeColorParser, dataViewUtils, view-mode/**, previewParser, themeUsageAnalyzer, componentLibraryStatistics, performance/** 전체, usage-example-generator, vue-file-parser, componentDependencyAnalyzer, fileExplorer, **error-tracking/** 전체, **print/** 전체, **export/** 전체). **추가 (2025-03)**: `src/system/settings/**`, `src/system/boot/**`.
-- **exclude** (점진적 포함 대상): `documentManagerStore`, `ExplorerPreview.vue`, `useDocumentMultiSelection`, `useSettingsManager` (domains/settings-scanner 의존).
+- **exclude** (점진적 포함 대상): `ExplorerPreview.vue`만 유지. **strict 통과 완료 (2025-03)**: `useSettingsManager`, `settings-scanner/**` — §9.3.1 경로 주입 리팩터링 적용.
 - **수정 완료**: documentConfig, devGuideConfig, fileTypes, componentCategories, layoutRegistry, url-state, projectStore (getAuthHeaders). **print/**, **export/** (exportTypes 공통 타입). **modalSystemStore** (ModalState/ModalConfig). **boardEditorStore** (DrawerNodeInfo, BoardEditorState). **partsManagementStore** (SpaceNode, BinData, BinModel). **partsDataStore** (PartClass, PartModel, PartSpec, PartFile 인터페이스). **boot/** (errorTracking: App 타입, error handler 시그니처, Window.testError 등 declare; pinia: App 타입). **settings/** (ContextMenuSetting: getTabLabel `Record<string, string>` 타입).
-- **composables/**: (2025-03) include 추가 완료. **수정 완료**: useContainerQuery, useTabConfig, useModalManager, useFileBrowserExplorer, useGlobalFileExplorer, useDatabaseViewer, useContextMenu, useSidebarGesture, usePaginationControl, useAuthenticatedFetch, useDevMenuState, useDocumentFilters, **url-state/** 전체, useBoardPreset, useComponentLibrary, useTableFilter, useTableDragDrop, useTableDuplicate, useDynamicLabel, useDevGuide, useDraggableResizableModal, useMultiSelection, useTableKeyboard. **exclude 유지**: useDocumentMultiSelection, useSettingsManager, useErrorTracking, useErrorAnalysis, useGlobalShortcuts, useGraphDocHistory, useSidebarNavigation. documentManagerStore(useTOC, documentStorage 의존), settings-scanner(domainRegistry→domains 의존)는 별도 처리.
+- **composables/**: (2025-03) include 추가 완료. **수정 완료**: useContainerQuery, useTabConfig, useModalManager, useFileBrowserExplorer, useGlobalFileExplorer, useDatabaseViewer, useContextMenu, useSidebarGesture, usePaginationControl, useAuthenticatedFetch, useDevMenuState, useDocumentFilters, **url-state/** 전체, useBoardPreset, useComponentLibrary, useTableFilter, useTableDragDrop, useTableDuplicate, useDynamicLabel, useDevGuide, useDraggableResizableModal, useMultiSelection, useTableKeyboard, **useSettingsManager** (settings-scanner 경로 주입 리팩터링 후 strict 통과), **useDocumentMultiSelection** (DocumentManagerStoreLike, documentStorage 연동으로 strict 통과). **strict 통과 완료**: useErrorTracking, useErrorAnalysis, useGlobalShortcuts, useGraphDocHistory, useSidebarNavigation, **documentManagerStore** (useTOC, documentStorage 수정 완료), **settings-scanner/** (경로 주입 패턴 적용).
 
 패턴: `catch (err: unknown)` → `errMessage(err)`, 파라미터 `(x)` → `(x: Type)`, `Record<string, string>` 인덱스 접근, `as readonly string[]` for `.includes()` on const arrays
+
+#### 9.3.1 useSettingsManager / settings-scanner strict 포함 전략
+
+**문제**: `useSettingsManager` → `settingsScanner` → 동적 `import('@frame/registry/domainRegistry')`, `import('@domains/parts/...')`, `import('@engines/diagram/...')` 순으로 참조되어, 타입 검사 시 domain/frame/engines 전체(1,300+ 파일)가 로드되어 strict 검사 실패.
+
+**해결 방안 1 — settingsScanner 리팩터링 (권장)**
+
+`settingsScanner`가 domains/frame/engines를 **직접 import 하지 않도록** 경로 주입 또는 플러그인 패턴으로 변경.
+
+| 방식 | 설명 |
+|------|------|
+| **경로 주입** | `scanConfigFiles(modulePaths?: string[])`로 모듈 경로 배열을 파라미터로 받음. 변수 `path`로 `import(path)` 시 TypeScript가 해당 모듈을 로드하지 않아 의존성 분리. |
+| **플러그인/레지스트리** | `registerConfigLoader(() => import('...'))` 형태로 앱 초기화 시 domains 쪽 로더를 등록. settingsScanner는 등록된 로더만 호출. |
+
+**경로 주입 예시**:
+```ts
+// Before: 하드코딩된 import → domains/frame/engines 타입 로드
+const configModules = await Promise.allSettled([
+  import('@frame/registry/domainRegistry').then(...),
+  import('@domains/parts/...').then(...),
+])
+
+// After: 경로 배열 주입 → TypeScript가 modules를 로드하지 않음
+export async function scanConfigFiles(modulePaths?: string[]) {
+  const defaultPaths = ['@system/config/devGuideConfig', '@system/config/documentConfig', ...]
+  const paths = modulePaths ?? defaultPaths
+  const configModules = await Promise.allSettled(
+    paths.map((path) => import(/* @vite-ignore */ path).then((m) => ({ path, module: m })))
+  )
+}
+```
+
+**효과**: settingsScanner 타입 검사 시 domains/frame/engines를 끌어오지 않음 → useSettingsManager·settings-scanner strict 포함 가능.
+
+#### 9.3.2 향후 strict 포함 후보
+
+| 대상 | 비고 |
+|------|------|
+| **domains/dev/modules/document-manager/** | useDocumentList, useDocumentSearch, useDocumentStats, useMermaid, useMermaidStyle 등 implicit any·unknown 타입 수정 필요. useTOC·documentStorage·useDocumentMultiSelection은 이미 strict 통과 (documentManagerStore를 통해 간접 포함). |
+| **ExplorerPreview.vue** | exclude에 등록되어 있으나 현재 코드베이스에 해당 파일 없음 (레거시 exclude). |
 
 ---
 

@@ -5,29 +5,15 @@
  */
 
 import { ref, computed, onMounted } from 'vue'
-import { scanAllSettings, searchSettings, filterSettings } from '@system/utils/settings-scanner/settingsScanner'
+import {
+  scanAllSettings,
+  searchSettings,
+  filterSettings,
+  type ScannedSetting,
+  type ScanStatistics,
+} from '@system/utils/settings-scanner/settingsScanner'
 
-export interface ScannedSetting {
-  id: string
-  name: string
-  path: string
-  category?: string
-  type?: string
-  data?: unknown
-  size?: number
-  lastModified?: string
-  rawValue?: string | null
-  parseError?: string | null
-}
-
-export interface ScanStatistics {
-  totalCount: number
-  totalSize: number
-  categoryStats?: Record<string, { count: number; size: number }>
-  configFilesCount?: number
-  localStorageCount?: number
-  systemSettingsCount?: number
-}
+export type { ScannedSetting, ScanStatistics }
 
 export function useSettingsManager() {
   const isLoading = ref(false)
@@ -40,18 +26,15 @@ export function useSettingsManager() {
 
   // 검색 및 필터링된 설정
   const filteredSettings = computed(() => {
-    let result = [...allSettings.value]
+    let result: ScannedSetting[] = [...allSettings.value]
 
-    // 검색
     if (searchQuery.value) {
       result = searchSettings(result, searchQuery.value)
     }
-
-    // 필터링
     if (filterCategory.value || filterType.value) {
       result = filterSettings(result, {
-        category: filterCategory.value,
-        type: filterType.value,
+        category: filterCategory.value ?? undefined,
+        type: filterType.value ?? undefined,
       })
     }
 
@@ -60,7 +43,7 @@ export function useSettingsManager() {
 
   const categories = computed(() => {
     const categorySet = new Set<string>()
-    allSettings.value.forEach((setting: ScannedSetting) => {
+    allSettings.value.forEach((setting) => {
       if (setting.category) {
         categorySet.add(setting.category)
       }
@@ -70,7 +53,7 @@ export function useSettingsManager() {
 
   const types = computed(() => {
     const typeSet = new Set<string>()
-    allSettings.value.forEach((setting: ScannedSetting) => {
+    allSettings.value.forEach((setting) => {
       if (setting.type) {
         typeSet.add(setting.type)
       }

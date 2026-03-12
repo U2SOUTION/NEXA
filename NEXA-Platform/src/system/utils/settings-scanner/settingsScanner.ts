@@ -5,46 +5,77 @@
  * - config/ 폴더의 설정 파일들
  * - localStorage에 저장된 설정들
  * - 기타 설정 파일들
+ *
+ * @see [NEXA-PLATFORM-TS-01] §9.3.1 - 경로 주입으로 domains/frame/engines 타입 의존성 분리
  */
+
+export interface ScannedConfigItem {
+  id: string
+  name: string
+  path: string
+  category: string
+  type: string
+  data: unknown
+  size: number
+  lastModified: string
+}
+
+export interface ConfigModuleEntry {
+  path: string
+  name: string
+}
+
+/** 기본 스캔 대상 모듈 경로 (변수 사용으로 TS가 동적 import를 해석하지 않음 → domains/frame/engines 의존성 분리) */
+const DEFAULT_CONFIG_ENTRIES: ConfigModuleEntry[] = [
+  { path: '@system/config/devGuideConfig', name: 'devGuideConfig' },
+  { path: '@system/config/documentConfig', name: 'documentConfig' },
+  { path: '@frame/registry/domainRegistry', name: 'domainRegistry' },
+  { path: '@system/config/componentTaxonomy', name: 'componentTaxonomy' },
+  { path: '@system/config/componentCategories', name: 'componentCategories' },
+  { path: '@system/config/fileTypes', name: 'fileTypes' },
+  { path: '@system/config/url-state/urlStateConfig', name: 'urlStateConfig' },
+  { path: '@engines/diagram/config/diagramSettings', name: 'diagramSettings' },
+  { path: '@domains/parts/components/config/viewModeSettings', name: 'viewModeSettings' },
+]
 
 /**
  * Config 폴더의 모든 설정 파일 스캔
- * @returns {Promise<Array>} 설정 파일 정보 배열
+ * @param entries - 스캔할 모듈 목록 (미지정 시 기본 목록 사용)
+ * @returns 설정 파일 정보 배열
  */
-export async function scanConfigFiles() {
-  const configFiles = []
+export async function scanConfigFiles(entries?: ConfigModuleEntry[]): Promise<ScannedConfigItem[]> {
+  const configFiles: ScannedConfigItem[] = []
+  const list = entries ?? DEFAULT_CONFIG_ENTRIES
 
   try {
-    // config/ 폴더의 파일들 (동적 import)
-    const configModules = await Promise.allSettled([
-      import('@system/config/devGuideConfig').then((m) => ({ name: 'devGuideConfig', path: '@system/config/devGuideConfig', module: m })),
-      import('@system/config/documentConfig').then((m) => ({ name: 'documentConfig', path: '@system/config/documentConfig', module: m })),
-      import('@frame/registry/domainRegistry').then((m) => ({ name: 'domainRegistry', path: 'src/frame/registry/domainRegistry', module: m })),
-      import('@system/config/componentTaxonomy').then((m) => ({ name: 'componentTaxonomy', path: '@system/config/componentTaxonomy', module: m })),
-      import('@system/config/componentCategories').then((m) => ({ name: 'componentCategories', path: '@system/config/componentCategories', module: m })),
-      import('@system/config/fileTypes').then((m) => ({ name: 'fileTypes', path: '@system/config/fileTypes', module: m })),
-      import('@system/config/url-state/urlStateConfig').then((m) => ({ name: 'urlStateConfig', path: '@system/config/url-state/urlStateConfig', module: m })),
-      import('@engines/diagram/config/diagramSettings').then((m) => ({ name: 'diagramSettings', path: '@engines/diagram/config/diagramSettings', module: m })),
-      import('@domains/parts/components/config/viewModeSettings').then((m) => ({ name: 'viewModeSettings', path: '@domains/parts/components/config/viewModeSettings', module: m })),
-    ])
+    const configModules = await Promise.allSettled(
+      list.map(({ path: specifier, name }) =>
+        // specifier를 변수로 사용 → TypeScript가 모듈을 해석하지 않아 domains/frame/engines 의존성 분리
+        import(/* @vite-ignore */ specifier).then((m: { default?: unknown }) => ({
+          name,
+          path: specifier,
+          module: m,
+        })),
+      ),
+    )
 
     configModules.forEach((result) => {
       if (result.status === 'fulfilled') {
         const { name, path, module } = result.value
-        const configData = extractConfigData(module.default || module)
+        const configData = extractConfigData(module.default ?? module)
 
         configFiles.push({
           id: name,
-          name: name,
-          path: path,
+          name,
+          path,
           category: 'config',
           type: 'config-file',
           data: configData,
           size: JSON.stringify(configData).length,
-          lastModified: new Date().toISOString(), // 실제로는 파일 시스템에서 가져와야 함
+          lastModified: new Date().toISOString(),
         })
       } else {
-        console.warn(`[SettingsScanner] Config 파일 로드 실패:`, result.reason)
+        console.warn('[SettingsScanner] Config 파일 로드 실패:', result.reason)
       }
     })
   } catch (error) {
@@ -54,27 +85,30 @@ export async function scanConfigFiles() {
   return configFiles
 }
 
-/**
- * Config 데이터 추출 (순환 참조 방지)
- */
-function extractConfigData(obj, visited = new WeakSet(), depth = 0) {
+type ExtractResult = unknown
+
+function extractConfigData(
+  obj: unknown,
+  visited = new WeakSet<object>(),
+  depth = 0,
+): ExtractResult {
   if (depth > 5) return '[너무 깊은 중첩]'
   if (obj === null || obj === undefined) return obj
   if (typeof obj !== 'object') return obj
-  if (visited.has(obj)) return '[순환 참조]'
+  if (visited.has(obj as object)) return '[순환 참조]'
 
-  visited.add(obj)
+  visited.add(obj as object)
 
   if (Array.isArray(obj)) {
-    return obj.slice(0, 10).map((item) => extractConfigData(item, visited, depth + 1)) // 최대 10개만
+    return obj.slice(0, 10).map((item) => extractConfigData(item, visited, depth + 1))
   }
 
-  const result = {}
-  const keys = Object.keys(obj).slice(0, 20) // 최대 20개 키만
+  const result: Record<string, ExtractResult> = {}
+  const keys = Object.keys(obj as object).slice(0, 20)
 
   for (const key of keys) {
     try {
-      result[key] = extractConfigData(obj[key], visited, depth + 1)
+      result[key] = extractConfigData((obj as Record<string, unknown>)[key], visited, depth + 1)
     } catch {
       result[key] = '[추출 실패]'
     }
@@ -83,33 +117,39 @@ function extractConfigData(obj, visited = new WeakSet(), depth = 0) {
   return result
 }
 
-/**
- * localStorage의 모든 설정 스캔
- * @returns {Array} localStorage 설정 정보 배열
- */
-export function scanLocalStorageSettings() {
-  const settings = []
+export interface ScannedLocalStorageItem {
+  id: string
+  name: string
+  path: string
+  category: string
+  type: string
+  data: unknown
+  rawValue: string | null
+  size: number
+  parseError: string | null
+  lastModified: string
+}
+
+export function scanLocalStorageSettings(): ScannedLocalStorageItem[] {
+  const settings: ScannedLocalStorageItem[] = []
 
   try {
-    // localStorage의 모든 키 가져오기
     const keys = Object.keys(localStorage)
 
     keys.forEach((key) => {
       try {
         const value = localStorage.getItem(key)
-        let parsedValue = null
-        let parseError = null
+        const strValue = value ?? ''
+        let parsedValue: unknown = null
+        let parseError: string | null = null
 
-        // JSON 파싱 시도
         try {
-          parsedValue = JSON.parse(value)
+          parsedValue = JSON.parse(strValue)
         } catch {
-          // JSON이 아니면 문자열로 저장
           parsedValue = value
           parseError = 'JSON이 아님'
         }
 
-        // 설정 관련 키만 필터링 (dev-, user-, Part-, Board- 등)
         if (isSettingKey(key)) {
           settings.push({
             id: key,
@@ -119,13 +159,13 @@ export function scanLocalStorageSettings() {
             type: 'localStorage',
             data: parsedValue,
             rawValue: value,
-            size: new Blob([value]).size,
-            parseError: parseError,
-            lastModified: new Date().toISOString(), // localStorage는 수정 시간을 저장하지 않음
+            size: new Blob([strValue]).size,
+            parseError,
+            lastModified: new Date().toISOString(),
           })
         }
-      } catch (error) {
-        console.warn(`[SettingsScanner] localStorage 키 "${key}" 처리 실패:`, error)
+      } catch (err) {
+        console.warn(`[SettingsScanner] localStorage 키 "${key}" 처리 실패:`, err)
       }
     })
   } catch (error) {
@@ -135,19 +175,13 @@ export function scanLocalStorageSettings() {
   return settings
 }
 
-/**
- * 키가 설정 관련인지 확인
- */
-function isSettingKey(key) {
+function isSettingKey(key: string): boolean {
   const settingPrefixes = ['dev-', 'user', 'Part-', 'Board-', 'Mermaid-', 'Theme-', 'Error-', 'Performance-', 'Document-']
 
   return settingPrefixes.some((prefix) => key.startsWith(prefix) || key.toLowerCase().includes('setting') || key.toLowerCase().includes('config'))
 }
 
-/**
- * 키에서 카테고리 추출
- */
-function getCategoryFromKey(key) {
+function getCategoryFromKey(key: string): string {
   if (key.startsWith('dev-guide-')) return '개발 가이드'
   if (key.startsWith('dev-')) return '개발 도구'
   if (key.startsWith('user')) return '사용자 설정'
@@ -162,16 +196,26 @@ function getCategoryFromKey(key) {
   return '기타'
 }
 
-/**
- * 시스템 설정 파일 스캔
- * @returns {Array} 시스템 설정 정보 배열
- */
-export async function scanSystemSettings() {
-  const systemSettings = []
+export interface ScannedSystemItem {
+  id: string
+  name: string
+  path: string
+  category: string
+  type: string
+  data: unknown
+  size: number
+  lastModified: string
+}
+
+export async function scanSystemSettings(): Promise<ScannedSystemItem[]> {
+  const systemSettings: ScannedSystemItem[] = []
 
   try {
     const systemModule = await import('@system/settings/system')
-    const systemData = extractConfigData(systemModule.systemSettings || systemModule.default)
+    const systemData = extractConfigData(
+      (systemModule as { systemSettings?: unknown; default?: unknown }).systemSettings ??
+        (systemModule as { default?: unknown }).default,
+    )
 
     systemSettings.push({
       id: 'system-settings',
@@ -183,33 +227,50 @@ export async function scanSystemSettings() {
       size: JSON.stringify(systemData).length,
       lastModified: new Date().toISOString(),
     })
-  } catch (error) {
-    console.warn('[SettingsScanner] 시스템 설정 로드 실패:', error)
+  } catch (err) {
+    console.warn('[SettingsScanner] 시스템 설정 로드 실패:', err)
   }
 
   return systemSettings
 }
 
-/**
- * 전체 설정 스캔
- * @returns {Promise<Object>} 모든 설정 정보
- */
-export async function scanAllSettings() {
-  const [configFiles, localStorageSettings, systemSettings] = await Promise.all([scanConfigFiles(), Promise.resolve(scanLocalStorageSettings()), scanSystemSettings()])
+export type ScannedSetting = ScannedConfigItem | ScannedLocalStorageItem | ScannedSystemItem
 
-  // 통계 계산
-  const totalCount = configFiles.length + localStorageSettings.length + systemSettings.length
-  const totalSize = [...configFiles, ...localStorageSettings, ...systemSettings].reduce((sum, item) => sum + (item.size || 0), 0)
+export interface ScanStatistics {
+  totalCount: number
+  totalSize: number
+  categoryStats: Record<string, { count: number; size: number }>
+  configFilesCount: number
+  localStorageCount: number
+  systemSettingsCount: number
+}
 
-  // 카테고리별 통계
-  const categoryStats = {}
-  ;[...configFiles, ...localStorageSettings, ...systemSettings].forEach((item) => {
-    const category = item.category || '기타'
+export interface ScanAllSettingsResult {
+  configFiles: ScannedConfigItem[]
+  localStorageSettings: ScannedLocalStorageItem[]
+  systemSettings: ScannedSystemItem[]
+  statistics: ScanStatistics
+}
+
+export async function scanAllSettings(): Promise<ScanAllSettingsResult> {
+  const [configFiles, localStorageSettings, systemSettings] = await Promise.all([
+    scanConfigFiles(),
+    Promise.resolve(scanLocalStorageSettings()),
+    scanSystemSettings(),
+  ])
+
+  const allItems = [...configFiles, ...localStorageSettings, ...systemSettings]
+  const totalCount = allItems.length
+  const totalSize = allItems.reduce((sum, item) => sum + (item.size ?? 0), 0)
+
+  const categoryStats: Record<string, { count: number; size: number }> = {}
+  allItems.forEach((item) => {
+    const category = item.category ?? '기타'
     if (!categoryStats[category]) {
       categoryStats[category] = { count: 0, size: 0 }
     }
     categoryStats[category].count++
-    categoryStats[category].size += item.size || 0
+    categoryStats[category].size += item.size ?? 0
   })
 
   return {
@@ -227,35 +288,38 @@ export async function scanAllSettings() {
   }
 }
 
-/**
- * 설정 검색
- * @param {Array} allSettings - 모든 설정 배열
- * @param {string} query - 검색어
- * @returns {Array} 검색 결과
- */
-export function searchSettings(allSettings, query) {
+export function searchSettings(allSettings: ScannedSetting[], query: string): ScannedSetting[] {
   if (!query || query.trim() === '') return allSettings
 
   const lowerQuery = query.toLowerCase()
-
   return allSettings.filter((setting) => {
-    return setting.name.toLowerCase().includes(lowerQuery) || setting.path.toLowerCase().includes(lowerQuery) || setting.category.toLowerCase().includes(lowerQuery) || JSON.stringify(setting.data).toLowerCase().includes(lowerQuery)
+    const name = (setting.name ?? '').toLowerCase()
+    const path = (setting.path ?? '').toLowerCase()
+    const category = (setting.category ?? '').toLowerCase()
+    const dataStr = JSON.stringify(setting.data ?? '').toLowerCase()
+    return (
+      name.includes(lowerQuery) ||
+      path.includes(lowerQuery) ||
+      category.includes(lowerQuery) ||
+      dataStr.includes(lowerQuery)
+    )
   })
 }
 
-/**
- * 설정 필터링
- * @param {Array} allSettings - 모든 설정 배열
- * @param {Object} filters - 필터 옵션
- * @returns {Array} 필터링된 설정
- */
-export function filterSettings(allSettings, filters) {
+export interface FilterOptions {
+  category?: string
+  type?: string
+}
+
+export function filterSettings(
+  allSettings: ScannedSetting[],
+  filters: FilterOptions,
+): ScannedSetting[] {
   let filtered = [...allSettings]
 
   if (filters.category) {
     filtered = filtered.filter((s) => s.category === filters.category)
   }
-
   if (filters.type) {
     filtered = filtered.filter((s) => s.type === filters.type)
   }
