@@ -19,7 +19,7 @@ const AUTH_SKIP_PATHS = [
 ]
 
 // 로그인 UI 적용 전까지 인증 없이 허용 (부품관리·아카이브·문서·AI 등). 로그인 UI 붙인 뒤 제거하고 /api/auth/me만 보호할지 결정.
-// /api/admin: [NEXA-ADMIN-01] 회원 목록 등. 개발 중 JWT 미전달·크로스오리진 시 401 방지용 인증 예외. 추후 슈퍼관리자만 허용 시 제거.
+// [NEXA-ADMIN-01] /api/admin은 인증 예외 없음 — role=admin 체크로 슈퍼관리자만 허용.
 const AUTH_SKIP_PREFIXES = [
   '/api/part-classes',
   '/api/part-models',
@@ -35,7 +35,6 @@ const AUTH_SKIP_PREFIXES = [
   '/api/package-json',
   '/api/ai/',
   '/api/ai-user-memos',
-  '/api/admin',
 ]
 
 function shouldSkipAuth(path: string | undefined): boolean {
@@ -58,6 +57,7 @@ function toUserResponse(row: Record<string, unknown> | null): AuthUser | null {
     allowed_domains: parseJsonb(row.allowed_domains, allowedDomainsSchema) ?? null,
     created_at: String(row.created_at ?? ''),
     updated_at: String(row.updated_at ?? ''),
+    password_must_change: row.password_must_change === true,
   }
 }
 
@@ -79,7 +79,7 @@ export const jwtAuthMiddleware: MiddlewareFn = (req, res, next) => {
 
   pool
     .query(
-      'SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at FROM users WHERE id = $1 AND deleted_at IS NULL',
+      'SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at, password_must_change FROM users WHERE id = $1 AND deleted_at IS NULL',
       [decoded.user_id]
     )
     .then(({ rows }) => {

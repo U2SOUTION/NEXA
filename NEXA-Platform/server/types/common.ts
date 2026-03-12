@@ -11,7 +11,7 @@ export type UUID = string
 /** ISO 날짜 문자열 또는 타임스탬프 (created_at, updated_at) */
 export type Timestamp = string
 
-/** 인증된 사용자 (GET /api/auth/me, JWT payload·req.user) */
+/** 인증된 사용자 (GET /api/auth/me, JWT payload·req.user). [NEXA-ADMIN-01] password_must_change: admin 강제 변경 */
 export interface AuthUser {
   id: UserId
   email: string
@@ -21,6 +21,7 @@ export interface AuthUser {
   allowed_domains: string[] | null
   created_at: Timestamp
   updated_at: Timestamp
+  password_must_change?: boolean
 }
 
 /** device_registry 행 + device_members.role (목록/상세 응답) */

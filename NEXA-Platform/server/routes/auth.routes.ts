@@ -6,7 +6,7 @@ import { Router } from 'express'
 import type { ResponseLike } from '@/types/request-response.js'
 import bcrypt from 'bcryptjs'
 import type { ZodError } from 'zod'
-import { registerSchema, loginSchema, refreshSchema, logoutSchema } from '@system/schemas/auth.js'
+import { registerSchema, loginSchema, refreshSchema, logoutSchema, changePasswordSchema } from '@system/schemas/auth.js'
 import { ApiErrorCode } from '@system/schemas/errors.js'
 import { allowedDomainsSchema } from '@system/schemas/jsonb.js'
 import { toUserId } from '@system/types/ids.js'
@@ -17,6 +17,7 @@ import { generateUuidV7 } from '@/config/uuidUtils.js'
 import { authConfig } from '@/config/authConfig.js'
 import { signAccess, signRefresh, verifyAccess, verifyRefresh } from '@/utils/jwtAuth.js'
 import redisClient from '@/config/redis.js'
+import { validateStrongPassword } from '@/utils/passwordPolicy.js'
 
 const router = Router()
 const SALT_ROUNDS = 10
@@ -24,9 +25,10 @@ const SALT_ROUNDS = 10
 function validationErrorResponse(res: ResponseLike, err: unknown): ResponseLike {
   const zodErr = err as { issues?: { path: (string | number)[]; message: string }[] }
   const errors = zodErr?.issues?.map((i) => ({ path: i.path.join('.'), message: i.message })) ?? []
+  const firstMsg = errors[0]?.message
   return res.status(400).json({
     code: ApiErrorCode.VALIDATION_ERROR,
-    message: '입력값 검증 실패',
+    message: firstMsg || '입력값 검증 실패',
     errors,
   })
 }
@@ -42,10 +44,11 @@ function toUserResponse(row: Record<string, unknown> | null): AuthUser | null {
     allowed_domains: parseJsonb(row.allowed_domains, allowedDomainsSchema) ?? null,
     created_at: String(row.created_at ?? ''),
     updated_at: String(row.updated_at ?? ''),
+    password_must_change: row.password_must_change === true,
   }
 }
 
-/** POST /api/auth/register */
+/** POST /api/auth/register — [NEXA-ADMIN-01] 최초 가입자 role=admin, 강한 비밀번호·강제 변경 */
 router.post('/auth/register', async (req, res) => {
   try {
     const parsed = registerSchema.safeParse(req.body)
@@ -62,17 +65,31 @@ router.post('/auth/register', async (req, res) => {
       return res.status(409).json({ code: ApiErrorCode.EMAIL_IN_USE, message: '이미 사용 중인 이메일입니다.' })
     }
 
+    const { rows: countRows } = await pool.query<{ count: string }>(
+      'SELECT COUNT(*) AS count FROM users WHERE deleted_at IS NULL'
+    )
+    const isFirstUser = Number(countRows[0]?.count ?? 0) === 0
+    const role = isFirstUser ? 'admin' : 'user'
+    const password_must_change = isFirstUser
+
+    if (isFirstUser) {
+      const strong = validateStrongPassword(password)
+      if (!strong.valid) {
+        return res.status(400).json({ code: ApiErrorCode.VALIDATION_ERROR, message: strong.message ?? '비밀번호가 정책에 맞지 않습니다.' })
+      }
+    }
+
     const id = generateUuidV7()
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS)
 
     await pool.query(
-      `INSERT INTO users (id, email, password_hash, display_name, role, tier)
-       VALUES ($1, $2, $3, $4, 'user', $5)`,
-      [id, normalizedEmail, password_hash, (display_name || '').trim() || null, authConfig.defaultTier]
+      `INSERT INTO users (id, email, password_hash, display_name, role, tier, password_must_change)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [id, normalizedEmail, password_hash, (display_name || '').trim() || null, role, authConfig.defaultTier, password_must_change]
     )
 
     const { rows: userRows } = await pool.query(
-      'SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at FROM users WHERE id = $1',
+      'SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at, password_must_change FROM users WHERE id = $1',
       [id]
     )
     const user = toUserResponse(userRows[0] as Record<string, unknown>)
@@ -89,6 +106,13 @@ router.post('/auth/register', async (req, res) => {
     })
   } catch (err) {
     console.error('[auth/register]', err)
+    const pgErr = err as { code?: string }
+    if (pgErr?.code === '42703') {
+      return res.status(503).json({
+        code: ApiErrorCode.SERVER_ERROR,
+        message: 'DB 스키마가 최신이 아닙니다. database/migrations/001_add_password_must_change.sql 을 실행한 뒤 서버를 재시작해 주세요.',
+      })
+    }
     return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
   }
 })
@@ -103,7 +127,7 @@ router.post('/auth/login', async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase()
 
     const { rows } = await pool.query(
-      'SELECT id, email, password_hash, display_name, role, tier, allowed_domains, created_at, updated_at FROM users WHERE email = $1 AND deleted_at IS NULL',
+      'SELECT id, email, password_hash, display_name, role, tier, allowed_domains, created_at, updated_at, password_must_change FROM users WHERE email = $1 AND deleted_at IS NULL',
       [normalizedEmail]
     )
     const row = rows[0] as Record<string, unknown> | undefined
@@ -132,6 +156,13 @@ router.post('/auth/login', async (req, res) => {
     })
   } catch (err) {
     console.error('[auth/login]', err)
+    const pgErr = err as { code?: string }
+    if (pgErr?.code === '42703') {
+      return res.status(503).json({
+        code: ApiErrorCode.SERVER_ERROR,
+        message: 'DB 스키마가 최신이 아닙니다. database/migrations/001_add_password_must_change.sql 을 실행한 뒤 서버를 재시작해 주세요.',
+      })
+    }
     return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
   }
 })
@@ -158,7 +189,7 @@ router.post('/auth/refresh', async (req, res) => {
     const userId = decoded.user_id
     if (!userId) return res.status(401).json({ code: ApiErrorCode.INVALID_REFRESH_TOKEN, message: '유효하지 않은 토큰입니다.' })
     const { rows } = await pool.query(
-      'SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at FROM users WHERE id = $1 AND deleted_at IS NULL',
+      'SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at, password_must_change FROM users WHERE id = $1 AND deleted_at IS NULL',
       [userId]
     )
     if (!rows[0]) {
@@ -199,12 +230,59 @@ router.post('/auth/logout', async (req, res) => {
   }
 })
 
-/** GET /api/auth/me — JWT 미들웨어 이후 호출, req.user 사용 */
+/** GET /api/auth/me — JWT 미들웨어 이후 호출, req.user 사용 (password_must_change 포함) */
 router.get('/auth/me', (req, res) => {
   if (!req.user) {
     return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
   return res.json({ user: req.user })
+})
+
+/** POST /api/auth/change-password — [NEXA-ADMIN-01] 강한 비밀번호로 변경, password_must_change 해제 */
+router.post('/auth/change-password', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
+  }
+  try {
+    const parsed = changePasswordSchema.safeParse(req.body)
+    if (!parsed.success) return validationErrorResponse(res, parsed.error)
+
+    const { current_password, new_password } = parsed.data
+    const strong = validateStrongPassword(new_password)
+    if (!strong.valid) {
+      return res.status(400).json({ code: ApiErrorCode.VALIDATION_ERROR, message: strong.message ?? '새 비밀번호가 정책에 맞지 않습니다.' })
+    }
+
+    const userId = (req.user as AuthUser).id
+    const { rows } = await pool.query<{ password_hash: string }>(
+      'SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL',
+      [userId]
+    )
+    if (!rows[0]) {
+      return res.status(401).json({ code: ApiErrorCode.USER_NOT_FOUND, message: '사용자를 찾을 수 없습니다.' })
+    }
+    const match = await bcrypt.compare(current_password, rows[0].password_hash ?? '')
+    if (!match) {
+      return res.status(400).json({ code: ApiErrorCode.VALIDATION_ERROR, message: '현재 비밀번호가 일치하지 않습니다.' })
+    }
+
+    const newHash = await bcrypt.hash(new_password, SALT_ROUNDS)
+    await pool.query(
+      'UPDATE users SET password_hash = $1, password_must_change = false WHERE id = $2',
+      [newHash, userId]
+    )
+
+    const { rows: userRows } = await pool.query(
+      'SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at, password_must_change FROM users WHERE id = $1',
+      [userId]
+    )
+    const user = toUserResponse(userRows[0] as Record<string, unknown>)
+    if (!user) return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: '갱신 실패' })
+    return res.json({ user, message: '비밀번호가 변경되었습니다.' })
+  } catch (err) {
+    console.error('[auth/change-password]', err)
+    return res.status(500).json({ code: ApiErrorCode.SERVER_ERROR, message: (err as Error).message })
+  }
 })
 
 export default router

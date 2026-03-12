@@ -1,4 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@system/store/authStore'
 
 export const domainRoutes: RouteRecordRaw[] = [
   { path: '', component: () => import('@domains/home/views/content/HomeView.vue'), name: 'Home' },
@@ -162,6 +163,17 @@ export const domainRoutes: RouteRecordRaw[] = [
     path: 'nexa-admin',
     name: 'NexaAdmin',
     component: () => import('@domains/admin/AdminDomain.vue'),
-    // TODO: beforeEnter에서 슈퍼 관리자 여부 검사 후 미권한 시 403/리다이렉트
+    beforeEnter: (to, _from, next) => {
+      const authStore = useAuthStore()
+      if (!authStore.isLoggedIn) {
+        next({ path: '/login', query: { redirect: to.fullPath } })
+        return
+      }
+      if (authStore.user?.role !== 'admin') {
+        next({ path: '/' })
+        return
+      }
+      next()
+    },
   },
 ]

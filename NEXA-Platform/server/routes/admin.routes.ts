@@ -1,19 +1,25 @@
 /**
- * [NEXA-ADMIN-01] 관리자 API
+ * [NEXA-ADMIN-01] 관리자 API — 슈퍼관리자(role=admin) 전용.
  * DB·정책: [NEXA-MIGRATE-01] Postgres(pg), pool.query, 플레이스홀더 $1,$2.
- * users 테이블: database/init_auth.sql ([NEXA-AUTH-01] §4.1). id(UUID v7), email, display_name, role, tier, created_at, deleted_at 등.
- *
- * GET /api/admin/members — 회원 목록. (인증 예외는 auth.middleware AUTH_SKIP_PREFIXES에서 관리. 추후 슈퍼관리자만 제한)
+ * users 테이블: database/init_auth.sql. JWT 필수, role=admin만 200 허용.
  */
 import { Router } from 'express'
+import type { AuthUser } from '@/types/common.js'
 import { pool } from '@/config/dbConfig.js'
 
 const router = Router()
 
-/** GET /api/admin/members — 회원 목록 (users from init_auth.sql, Postgres §4.5 Node 드라이버) */
-router.get('/admin/members', async (req, res) => {
+router.use((req, res, next) => {
+  const user = req.user as AuthUser | undefined
+  if (!user || user.role !== 'admin') {
+    return res.status(403).json({ code: 'FORBIDDEN', message: '슈퍼관리자만 접근할 수 있습니다.' })
+  }
+  next()
+})
+
+/** GET /api/admin/members — 회원 목록 (users from init_auth.sql). 마운트: /api/admin */
+router.get('/members', async (req, res) => {
   try {
-    // 추후: JWT 검증 후 req.user?.role === 'admin' 체크로 슈퍼관리자만 허용
     const { rows } = await pool.query<{
       id: string
       email: string

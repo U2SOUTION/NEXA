@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user', 'viewer')),
   allowed_domains JSONB,
   tier VARCHAR(20) NOT NULL DEFAULT 'BASIC',
+  password_must_change BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMPTZ,
@@ -50,4 +51,4 @@ CREATE TRIGGER trigger_users_updated_at
   BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-COMMENT ON TABLE users IS 'NEXA 플랫폼 사용자. Soft Delete 시 deleted_at 설정. tier: BASIC/STANDARD 등 (§4.1.0).';
+COMMENT ON TABLE users IS 'NEXA 플랫폼 사용자. Soft Delete 시 deleted_at 설정. tier: BASIC/STANDARD 등 (§4.1.0). password_must_change: [NEXA-ADMIN-01] 최초 가입·admin 강제 비밀번호 변경용.';

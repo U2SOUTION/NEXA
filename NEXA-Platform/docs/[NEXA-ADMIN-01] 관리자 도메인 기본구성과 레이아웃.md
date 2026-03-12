@@ -35,6 +35,15 @@
 
 **일반 회원·비회원**: 관리자 도메인 메뉴 미노출 또는 노출되더라도 진입 시 권한 검사로 차단. 회원/비회원 접근 정책은 별도 문서에서 정리 후 본 도메인과 연계.
 
+### 3.1 슈퍼관리자 부여 및 강제 비밀번호 변경 (구현됨)
+
+- **최초 가입자 = 슈퍼관리자**: 회원가입 시 `users` 테이블에 활성 사용자가 0명이면 해당 가입자에게 `role = 'admin'` 부여. 그 외는 `role = 'user'`.
+- **강한 비밀번호**: 최초 가입자(admin)는 가입 시 **강한 비밀번호** 필수. 정책: 최소 10자, 영문·숫자·특수문자 각 1자 이상. 서버 `server/utils/passwordPolicy.ts`의 `validateStrongPassword()`로 검사.
+- **강제 비밀번호 변경**: admin으로 가입 시 `users.password_must_change = true` 저장. 로그인·토큰 갱신 시 응답에 `user.password_must_change` 포함. 관리자 도메인(`/nexa-admin`) 진입 시 `password_must_change === true`이면 **비밀번호 변경 화면**만 표시하고, 변경 완료 후에만 회원 목록 등 본 메뉴 이용 가능.
+- **비밀번호 변경 API**: `POST /api/auth/change-password` (JWT 필수). 요청: `current_password`, `new_password`. 새 비밀번호는 동일 강도 정책 적용. 성공 시 `password_must_change = false`로 갱신 후 갱신된 `user` 반환.
+
+**관련 파일·구조**는 §5·§5.1 참고.
+
 ---
 
 ## 4. 관리자 도메인 메뉴 구성
@@ -93,15 +102,64 @@ OTA 배포 방식은 **Push(강제) / Pull(자율) / User-consented(승인)** �
 **경로**: `NEXA-Platform/src/domains/admin/`
 
 - **AdminDomain.vue**  
-  도메인 루트. `q-page` 안에 중앙 컨텐츠(AdminContent)를 렌더링. `useDomainIntercom('nexa-admin')`로 활성 도메인 보고.
+  도메인 루트. `user.role === 'admin' && user.password_must_change`이면 **AdminChangePassword**만 표시, 아니면 **AdminContent** 표시. `useDomainIntercom('nexa-admin')`로 활성 도메인 보고.
+- **views/AdminChangePassword.vue**  
+  [NEXA-ADMIN-01] 슈퍼관리자 **강제 비밀번호 변경** 화면. 현재 비밀번호·새 비밀번호(강도 정책 안내)·확인 입력. `authStore.changePassword()` 호출 후 성공 시 store의 `user` 갱신되어 본 메뉴(AdminContent)로 전환.
 - **views/left/AdminLeftNav.vue**  
   관리자 도메인 **왼쪽 사이드바**. §4 메뉴 구분에 따른 네비게이션(목록/링크). StandardLeftHeader 사용 권장.
 - **views/content/AdminContent.vue**  
   관리자 도메인 **중앙 컨텐츠**. 하위 라우트별로 회원 목록, Tier 접근, API 리미트 등 화면을 배치하는 컨테이너 또는 기본 대시 뷰.
 - **views/right/AdminRightPanel.vue**  
   관리자 도메인 **오른쪽 패널**. 도메인별 보조 정보·필터·상세 폼 등. 없으면 프레임 기본값(DefaultRightPanel) 사용 가능.
+- **store/adminStore.ts**  
+  관리자 도메인 UI 상태(activeSection, searchQuery, searchScope 등).
 
 **domainRegistry 등록**: `nexa-admin` 키에 `left` → AdminLeftNav, `content` → AdminDomain(또는 content용 뷰), `right` → AdminRightPanel(또는 null), 필요 시 `headerActions` 지정.
+
+### 5.1 슈퍼관리자·비밀번호 정책 관련 파일 (서버·공통)
+
+| 구분 | 경로 | 역할 |
+|------|------|------|
+| **DB** | `database/init_auth.sql` | `users.password_must_change` 컬럼 (BOOLEAN DEFAULT true). |
+| **DB 마이그레이션** | `database/migrations/001_add_password_must_change.sql` | 기존 DB에 `password_must_change` 컬럼 추가 시 실행. |
+| **비밀번호 정책** | `server/utils/passwordPolicy.ts` | `validateStrongPassword()` — 10자 이상, 영문·숫자·특수문자 각 1자 이상. |
+| **인증 스키마** | `src/system/schemas/auth.ts` | `changePasswordSchema` (current_password, new_password). |
+| **인증 API** | `server/routes/auth.routes.ts` | 가입 시 최초 사용자 role=admin·강한 비밀번호 검사; 로그인/me/refresh에 `password_must_change` 포함; `POST /auth/change-password`. |
+| **인증 미들웨어** | `server/middleware/auth.middleware.ts` | `/api/admin` 인증 예외 없음. SELECT에 `password_must_change` 포함, `toUserResponse`에 반영. |
+| **관리자 API** | `server/routes/admin.routes.ts` | JWT 필수, `role === 'admin'`만 허용(403 그 외). **마운트**: `app.use('/api/admin', adminRouter)` (§5.2). `GET /api/admin/members` 등. |
+| **라우트 가드** | `src/frame/router/domainRoutes.ts` | `nexa-admin`의 `beforeEnter`: 미로그인 → `/login`, role !== 'admin' → `/`. |
+| **인증 스토어** | `src/system/store/authStore.ts` | `user.password_must_change` 저장·노출, `changePassword(current, new)` 호출 및 성공 시 user 갱신. |
+| **타입** | `server/types/common.ts`, `src/system/types/common/auth.ts` | `AuthUser.password_must_change?: boolean`. |
+
+### 5.2 서버 라우터 마운트 경로 — 403 원인 사례 (참고)
+
+**발생**: 부품 관리(parts-management) 등 다른 도메인에서 `GET /api/part-classes`, `/api/part-models`, `/api/part-specs` 호출 시 **403 Forbidden** 발생.
+
+**원인**: 관리자 API 라우터(adminRouter)를 `app.use('/api', adminRouter)`로 마운트했기 때문. Express에서는 마운트 경로에 붙은 라우터가 **해당 경로 접두사로 들어오는 모든 요청**을 받는다. 따라서 `/api/*` 요청이 **순서상 admin 라우터에 먼저 도달**했고, admin 라우터 상단의 `router.use(...)`(role=admin 검사)가 **모든 요청**에 대해 실행됨. part-classes 등은 인증 예외(AUTH_SKIP_PREFIXES)로 `req.user`가 설정되지 않은 상태였고, 미설정·비관리자로 간주되어 403 반환.
+
+**수정**:
+- `server/server.ts`: `app.use('/api', adminRouter)` → **`app.use('/api/admin', adminRouter)`**. 관리자 API만 `/api/admin/*`으로 한정.
+- **등록 순서**: `app.use('/api/admin', adminRouter)`를 **`app.use('/api', authRouter)`보다 먼저** 등록. 이렇게 해야 `/api/auth/register`, `/api/auth/login` 등이 admin 라우터로 넘어가지 않음.
+- `server/routes/admin.routes.ts`: 경로를 `router.get('/admin/members', ...)` → **`router.get('/members', ...)`** 로 변경. 마운트가 `/api/admin`이므로 실제 경로는 동일하게 **`/api/admin/members`** 유지.
+
+**교훈**: 권한 검사 미들웨어를 둔 라우터는 **해당 API 접두사로만** 마운트해야 한다. `/api`에 마운트하면 같은 접두사를 쓰는 다른 API까지 모두 해당 라우터로 들어가 오동작·403을 유발할 수 있음.
+
+### 5.3 보안·검토 체크리스트
+
+구현·배포 전에 아래를 점검할 것. 신규 관리자 API 추가 시에도 동일 기준 적용.
+
+| 항목 | 확인 내용 |
+|------|-----------|
+| **라우터 마운트** | admin 라우터는 **반드시** `app.use('/api/admin', adminRouter)` 로만 마운트. `/api`에 마운트 금지 (§5.2). |
+| **인증 예외** | `auth.middleware`의 AUTH_SKIP_PREFIXES에 **`/api/admin`을 포함하지 않음**. 관리자 API는 JWT 필수. |
+| **역할 검사 순서** | JWT 미들웨어로 `req.user` 설정 후, admin 라우터 내부에서 `role === 'admin'` 검사. 비관리자·미인증 시 403. |
+| **서버 측 강제** | 프론트 라우트 가드(beforeEnter)만으로는 부족. **모든 관리자 API는 서버에서 role 검사**로 차단해야 함. |
+| **신규 엔드포인트** | 관리자 전용 API는 모두 **`/api/admin/*`** 하위에 두고, 동일 admin 라우터(동일 `router.use` 검사)를 타도록 구성. |
+| **디바이스 토큰** | X-Device-Token으로 인증된 요청이 `/api/admin`에 오면 `req.user`는 디바이스 소유자. role이 'user'면 403 정상 동작. |
+| **비밀번호 변경** | `POST /api/auth/change-password`는 JWT 필수·인증 예외 없음. admin만이 아니라 **로그인 사용자 전원**이 강한 비밀번호로 변경 가능(정책에 따라 admin만 허용하도록 제한 가능). |
+| **최초 가입자** | `users`를 비운 뒤 최초 가입자만 role=admin 부여. 기존 DB에 다른 admin이 있으면 수동 UPDATE 필요. |
+
+추가로, 프로덕션에서는 JWT 시크릿·비밀번호 정책·감사 로그(관리자 API 호출 이력) 등을 정책에 맞게 점검할 것.
 
 ---
 

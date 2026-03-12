@@ -109,9 +109,11 @@ export const useAuthStore = defineStore('auth', () => {
           display_name: (payload.display_name || '').trim() || undefined,
         }),
       })
-      const data = await res.json().catch(() => ({}))
+      const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string; errors?: { message: string }[] }
       if (!res.ok) {
-        return { ok: false, error: data.message || data.error || `HTTP ${res.status}` }
+        const msg = data.message ?? data.error
+        const firstErr = Array.isArray(data.errors)?.[0]?.message
+        return { ok: false, error: msg || firstErr || `HTTP ${res.status}` }
       }
       if (data.access_token && data.user) {
         persistTokens(data.access_token, data.refresh_token || '', data.user)
@@ -169,6 +171,33 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /** [NEXA-ADMIN-01] 비밀번호 변경(강한 비밀번호 정책). 성공 시 user 갱신( password_must_change 해제) */
+  async function changePassword(currentPassword: string, newPassword: string): Promise<{ ok: boolean; error?: string }> {
+    if (!accessToken.value) return { ok: false, error: '로그인이 필요합니다.' }
+    try {
+      const res = await fetch(`${API()}/auth/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken.value}` },
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        return { ok: false, error: (data as { message?: string }).message ?? `HTTP ${res.status}` }
+      }
+      if ((data as { user?: AuthUser }).user) {
+        user.value = (data as { user: AuthUser }).user
+        try {
+          localStorage.setItem(STORAGE_USER, JSON.stringify(user.value))
+        } catch {
+          // ignore
+        }
+      }
+      return { ok: true }
+    } catch (e) {
+      return { ok: false, error: (e as Error).message || '네트워크 오류' }
+    }
+  }
+
   async function fetchMe(): Promise<boolean> {
     const token = accessToken.value
     if (!token) return false
@@ -212,6 +241,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
+    changePassword,
     refreshAccess,
     fetchMe,
     persistTokens,

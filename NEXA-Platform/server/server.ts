@@ -108,16 +108,18 @@ async function connectDB() {
 
 // =======================================
 // 도메인 별 라우터 등록
+// [NEXA-ADMIN-01] §5.2: 더 구체적 경로(/api/admin)를 /api보다 먼저 등록.
+// /api/auth/* → authRouter, /api/admin/* → adminRouter, 그 외 → 해당 라우터
 // =======================================
 
+// [NEXA-ADMIN-01] 관리자 — /api/admin/* 만 처리. /api보다 먼저 등록해 /api/xxx가 admin으로 흡수되지 않게 함
+app.use('/api/admin', adminRouter)
 // 인증 [NEXA-AUTH-01] — register, login, refresh, logout(인증 불필요) / me(인증 필요)
 app.use('/api', authRouter)
 // 디바이스 [NEXA-AUTH-01] §5.2 — JWT 또는 X-Device-Token 인증
 app.use('/api', devicesRouter)
 // 프로젝트 [NEXA-AUTH-01] §2.2 3단계 — user_id 소유자 기준
 app.use('/api', projectsRouter)
-// [NEXA-ADMIN-01] 관리자 — 회원 목록 등 (인증 필요)
-app.use('/api', adminRouter)
 
 // 아카이브 도메인
 // TODO(route-prefix): 향후 /api/archive 로 접두사 통일 검토 (프론트 호출 경로 일괄 수정 필요)

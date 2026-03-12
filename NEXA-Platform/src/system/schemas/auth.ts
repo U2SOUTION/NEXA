@@ -23,7 +23,14 @@ export const logoutSchema = z.object({
   refresh_token: z.string().min(1, 'refresh_token이 필요합니다'),
 })
 
+/** [NEXA-ADMIN-01] 비밀번호 변경 — 서버에서 강도 검사 추가 적용 */
+export const changePasswordSchema = z.object({
+  current_password: z.string().min(1, '현재 비밀번호를 입력하세요'),
+  new_password: z.string().min(10, '새 비밀번호는 10자 이상이어야 합니다'),
+})
+
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type RefreshInput = z.infer<typeof refreshSchema>
 export type LogoutInput = z.infer<typeof logoutSchema>
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>

@@ -35,7 +35,7 @@
           <q-input
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
-            label="비밀번호 (8자 이상)"
+            label="비밀번호 (8자 이상, 첫 가입 시 10자+영문·숫자·특수문자)"
             outlined
             dense
             autocomplete="new-password"
