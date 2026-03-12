@@ -51,13 +51,8 @@
     "src/system/store/documentManagerStore.ts",
     "src/system/composables/useDocumentMultiSelection.ts",
     "src/system/composables/useSettingsManager.ts",
-    "src/system/composables/useErrorTracking.ts",
-    "src/system/composables/useErrorAnalysis.ts",
     "src/system/composables/useGlobalShortcuts.ts",
     "src/system/composables/useGraphDocHistory.ts",
-    "src/system/composables/useSidebarNavigation.ts",
-    "src/system/composables/useMultiSelection.ts",
-    "src/system/composables/useTableDragDrop.ts",
-    "src/system/composables/useTableDuplicate.ts"
+    "src/system/composables/useSidebarNavigation.ts"
   ]
 }

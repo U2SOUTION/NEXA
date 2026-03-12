@@ -174,13 +174,13 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
 
   // 선택 변경 시 콜백 호출
   function notifySelectionChange() {
-    onSelectionChange(selectedRows.value)
+    onSelectionChange(selectedRows.value as T[])
   }
 
   // 행 선택 토글
   function toggleRowSelection(row: T) {
     const index = selectedRows.value.findIndex((r) => r.id === row.id)
-    const itemsValue = typeof items.value === 'function' ? items.value() : items.value
+    const itemsValue = items.value
 
     if (index >= 0) {
       // 이미 선택됨: 해제
@@ -194,7 +194,7 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
       }
     } else {
       // 선택되지 않음: 추가
-      selectedRows.value.push(row)
+      ;(selectedRows.value as T[]).push(row)
       lastSelectedIndex.value = itemsValue.findIndex((r) => r.id === row.id)
     }
 
@@ -203,7 +203,7 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
 
   // 복수 선택 처리
   function handleMultiSelect(evt: MouseEvent, row: T, isCtrlKey: boolean, isShiftKey: boolean) {
-    const itemsValue = typeof items.value === 'function' ? items.value() : items.value
+    const itemsValue = items.value
     const rowIndex = itemsValue.findIndex((r) => r.id === row.id)
 
     if (isShiftKey) {
@@ -216,14 +216,14 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
         // 범위 내 모든 행 선택 (기존 선택 유지)
         rangeRows.forEach((r) => {
           if (!selectedRows.value.find((sr) => sr.id === r.id)) {
-            selectedRows.value.push(r)
+            ;(selectedRows.value as T[]).push(r)
           }
         })
         lastSelectedIndex.value = rowIndex
       } else {
         // 첫 번째 Shift 클릭: 현재 행만 선택하고 기준점 설정
         if (!selectedRows.value.find((sr) => sr.id === row.id)) {
-          selectedRows.value.push(row)
+          ;(selectedRows.value as T[]).push(row)
         }
         lastSelectedIndex.value = rowIndex
         if (!multiSelectMode.value) {
@@ -270,7 +270,7 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
 
   // 단일 클릭 처리
   function handleSingleClick(row: T) {
-    const itemsValue = typeof items.value === 'function' ? items.value() : items.value
+    const itemsValue = items.value
 
     // 복수 선택 모드이면 선택 토글만 수행
     if (multiSelectMode.value) {
@@ -286,13 +286,13 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
     selectedRows.value = [row]
     notifySelectionChange()
 
-    // 콜백 호출
-    onRowClick(row, { type: 'single' })
+    // 콜백 호출 (synthetic event - 실제 MouseEvent 대체)
+    onRowClick(row, { type: 'single' } as unknown as MouseEvent)
   }
 
   // 더블 클릭 처리
   function handleDoubleClick(row: T) {
-    const itemsValue = typeof items.value === 'function' ? items.value() : items.value
+    const itemsValue = items.value
     const rowIndex = itemsValue.findIndex((r) => r.id === row.id)
     lastSelectedIndex.value = rowIndex
 
@@ -306,25 +306,26 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
 
   // 행 클릭 핸들러
   function onRowClickHandler(evt: MouseEvent, row: T) {
-    // evt.target이 null인 경우 처리
-    if (!evt || !evt.target) {
+    const target = evt?.target as Element | null
+    if (!evt || !target) {
       return
     }
 
     // 작업 아이콘 클릭은 무시
     if (
-      evt.target.closest('.row-actions-overlay-fixed') ||
-      evt.target.closest('.action-btn') ||
-      evt.target.closest('.table-actions-overlay') ||
-      evt.target.closest('.card-footer-fixed') || // 카드 뷰 하단 고정 영역
-      evt.target.closest('.q-checkbox') || // 체크박스 클릭 무시
-      evt.target.closest('.q-btn') // 버튼 클릭 무시
+      target.closest('.row-actions-overlay-fixed') ||
+      target.closest('.action-btn') ||
+      target.closest('.table-actions-overlay') ||
+      target.closest('.card-footer-fixed') || // 카드 뷰 하단 고정 영역
+      target.closest('.q-checkbox') || // 체크박스 클릭 무시
+      target.closest('.q-btn') // 버튼 클릭 무시
     ) {
       return
     }
 
     // 텍스트 선택 중이면 무시
-    if (window.getSelection().toString().length > 0) {
+    const sel = window.getSelection()
+    if (sel && sel.toString().length > 0) {
       return
     }
 
@@ -363,7 +364,7 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
       }, doubleClickDelay)
     } else if (clickCount === 2) {
       // 더블 클릭: 타이머 취소하고 더블 클릭 처리 (선택은 이미 적용됨)
-      clearTimeout(clickTimer)
+      if (clickTimer) clearTimeout(clickTimer)
       handleDoubleClick(row)
       clickCount = 0
     }
@@ -392,8 +393,8 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
         multiSelectMode.value = true
 
         // 현재 행 강제 선택
-        const itemsValue = typeof items.value === 'function' ? items.value() : items.value
-        selectedRows.value.push(row)
+        const itemsValue = items.value
+        ;(selectedRows.value as T[]).push(row)
         lastSelectedIndex.value = itemsValue.findIndex((r) => r.id === row.id)
 
         // 롱프레스 완료 시 시각적 피드백 적용 (즉시 CSS 클래스 적용)
@@ -453,8 +454,8 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
   // 특정 행 선택
   function selectRow(row: T) {
     selectedRows.value = [row]
-    const itemsValue = typeof items.value === 'function' ? items.value() : items.value
-    lastSelectedIndex.value = itemsValue.findIndex((r) => r.id === row.id)
+    const itemsValue = items.value
+        lastSelectedIndex.value = itemsValue.findIndex((r) => r.id === row.id)
     notifySelectionChange()
   }
 
@@ -494,15 +495,11 @@ export function useMultiSelection<T extends RowWithId = RowWithId>(options: Mult
 
   // 정리 함수
   function cleanup() {
-    if (longPressTimer.value) {
-      clearTimeout(longPressTimer.value)
-    }
-    if (longPressingClearTimer.value) {
-      clearTimeout(longPressingClearTimer.value)
-    }
-    if (clickTimer) {
-      clearTimeout(clickTimer)
-    }
+    const lt = longPressTimer.value
+    if (lt != null) clearTimeout(lt)
+    const lct = longPressingClearTimer.value
+    if (lct != null) clearTimeout(lct)
+    if (clickTimer != null) clearTimeout(clickTimer)
     // ESC 키 이벤트 리스너 제거
     if (enableEscKey) {
       window.removeEventListener('keydown', handleGlobalKeydown)

@@ -20,7 +20,10 @@
  * @returns {Object} 복제 관련 함수
  */
 
-import { unref } from 'vue'
+/** T[] 또는 Ref-like { value: T[] }에서 배열 추출 */
+function toArray<T>(v: T[] | { value: T[] }): T[] {
+  return Array.isArray(v) ? v : v.value
+}
 
 interface ItemWithNameAndId {
   id?: unknown
@@ -49,8 +52,8 @@ function generateUniqueName(
   let newName = `${originalName} (복사본)`
   let counter = 1
 
-  const itemsValue = unref(items)
-  while (itemsValue.some((item: ItemWithNameAndId) => item.name === newName && item.id !== excludeId)) {
+  const itemsValue = toArray(items) as ItemWithNameAndId[]
+  while (itemsValue.some((item) => item.name === newName && item.id !== excludeId)) {
     newName = `${originalName} (복사본 ${counter})`
     counter++
     // 무한 루프 방지
@@ -75,7 +78,7 @@ function generateUniqueCCode(
 ): string {
   if (!originalCode) return originalCode
 
-  const itemsValue = unref(items)
+  const itemsValue = toArray(items) as ItemWithCodeAndId[]
   // c_code는 최대 6자 제한
   // 마지막 문자를 숫자로 변경하거나 접미사 추가
   let base = originalCode.slice(0, maxLength - 1) // 마지막 1자 공간 확보
@@ -83,7 +86,7 @@ function generateUniqueCCode(
   let newCode = `${base}${counter}`
 
   // maxLength 제한을 고려하여 생성
-  while (itemsValue.some((item: ItemWithCodeAndId) => item.c_code === newCode && item.id !== excludeId)) {
+  while (itemsValue.some((item) => item.c_code === newCode && item.id !== excludeId)) {
     counter++
     if (counter <= 9) {
       // 1자리 숫자 (0-9)
@@ -186,7 +189,7 @@ export function useTableDuplicate<T extends ItemWithSortOrder = ItemWithSortOrde
       const { excludeFields = ['id', 'created_at', 'updated_at'], overrideFields = {} } =
         additionalConfig
 
-      const duplicatedData = { ...sourceItem } as T & Record<string, unknown>
+      const duplicatedData = { ...sourceItem } as Record<string, unknown>
 
       excludeFields.forEach((field: string) => {
         delete duplicatedData[field]
@@ -196,43 +199,42 @@ export function useTableDuplicate<T extends ItemWithSortOrder = ItemWithSortOrde
       Object.assign(duplicatedData, overrideFields)
 
       // 4. 중복 필드 자동 처리
-      const itemsValue = unref(items)
-      Object.keys(uniqueFields).forEach((key: string) => {
-        const config = uniqueFields[key]
+      const itemsValue = toArray(items)
+      const uniqueFieldsMap = uniqueFields as Record<string, UniqueFieldConfig>
+      Object.keys(uniqueFieldsMap).forEach((key: string) => {
+        const config = uniqueFieldsMap[key]
         const fieldName = config.field
         const originalValue = (sourceItem as Record<string, unknown>)[fieldName]
 
         if (originalValue !== undefined && originalValue !== null) {
           if (config.maxLength) {
-            // maxLength가 있으면 (c_code 등)
             duplicatedData[fieldName] = config.generateFn(
-              originalValue,
+              originalValue as string,
               itemsValue,
               sourceItem.id,
               config.maxLength,
             )
           } else {
-            // maxLength가 없으면 (name 등)
-            duplicatedData[fieldName] = config.generateFn(originalValue, itemsValue, sourceItem.id)
+            duplicatedData[fieldName] = config.generateFn(originalValue as string, itemsValue, sourceItem.id)
           }
         }
       })
 
       // 5. 위치 계산
-      const filteredItemsValue = unref(filteredItems)
+      const filteredItemsValue = toArray(filteredItems)
       const targetIndex = filteredItemsValue.findIndex((item: T) => item.id === sourceItem.id)
       const newSortOrder = calculatePosition(sourceItem, targetIndex, filteredItemsValue)
       duplicatedData.sort_order = newSortOrder
 
       // 6. sub_sort_order 초기화 (있는 경우)
-      if (duplicatedData.sub_sort_order !== undefined) {
+      if ('sub_sort_order' in duplicatedData && duplicatedData.sub_sort_order !== undefined) {
         duplicatedData.sub_sort_order = 0
       }
 
       // 7. 콜백 호출
-      onDuplicate(duplicatedData, sourceItem, targetIndex)
+      onDuplicate(duplicatedData as T, sourceItem, targetIndex)
 
-      return duplicatedData
+      return duplicatedData as T
     } catch (error) {
       onError(error)
       return null

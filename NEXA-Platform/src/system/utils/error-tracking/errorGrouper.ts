@@ -37,7 +37,9 @@ function normalizeErrorMessage(message: string): string {
  * @param {Object} error2 - 두 번째 에러
  * @returns {boolean} 같은 그룹 여부
  */
-export function areErrorsSimilar(error1: { level?: string; type?: string; message?: string; file?: string; line?: number; ruleId?: string }, error2: { level?: string; type?: string; message?: string; file?: string; line?: number; ruleId?: string }): boolean {
+type SimilarErrorInput = { level?: string; type?: string; message?: string; file?: string | null; line?: number | null; ruleId?: string | null }
+
+export function areErrorsSimilar(error1: SimilarErrorInput, error2: SimilarErrorInput): boolean {
   // 레벨이 다르면 다른 그룹
   if (error1.level !== error2.level) {
     return false

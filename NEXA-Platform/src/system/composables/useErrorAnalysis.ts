@@ -7,40 +7,62 @@
 import { ref, computed } from 'vue'
 import { errorAnalysisIndex } from '@system/utils/error-tracking/errorAnalysisIndex'
 import { extractDocumentMetadata, parseErrorAnalysisFrontmatter } from '@system/utils/error-tracking/errorAnalysisParser'
+import type { ErrorAnalysisFrontmatter } from '@system/utils/error-tracking/errorAnalysisParser'
 import { quietFetch } from '@system/utils/error-tracking/quietFetch'
 import { getDocsBaseUrl, getDocFileUrl } from '@system/utils/apiBaseUrl'
 
 const docsBaseUrl = getDocsBaseUrl()
 
+interface FileMeta {
+  relativePath?: string
+  fileName?: string
+}
+
+export interface ErrorAnalysisDocument {
+  path: string
+  fileName: string | undefined
+  title: string
+  createdAt: string
+  updatedAt: string
+  tags: string[]
+  errorMessage: string | null
+  body?: string
+  frontmatter?: Record<string, unknown>
+  rawContent?: string
+}
+
+interface IndexError {
+  type?: string
+  message?: string
+  url?: string
+  path?: string
+  status?: number | null
+  statusText?: string
+}
 
 /**
  * 메타데이터 API를 활용하여 Error/Platform 폴더의 문서 검색
- * @param {string} errorId - 에러 ID
- * @returns {Promise<Array>} 문서 메타데이터 배열
  */
-async function searchKnownDocumentPaths(errorId) {
+async function searchKnownDocumentPaths(errorId: string): Promise<Array<{ path: string; fileName: string; title: string; createdAt: string; updatedAt: string; tags: string[]; errorMessage: string | null }>> {
   const project = 'Platform'
-  const matchingDocs = []
+  const matchingDocs: Array<{ path: string; fileName: string; title: string; createdAt: string; updatedAt: string; tags: string[]; errorMessage: string | null }> = []
 
   try {
-    // 문서 뷰어의 메타데이터 API를 통해 파일 목록 가져오기 (조용한 fetch 사용)
     const metadataResponse = await quietFetch(`${docsBaseUrl}/metadata`)
     if (!metadataResponse || !metadataResponse.ok) {
       return []
     }
 
-    const metadata = await metadataResponse.json()
-    
-    // metadata.files 배열에서 Error/Platform 폴더의 파일만 필터링
-    const files = metadata.files || []
-    const errorPlatformFiles = files.filter((fileMeta) => {
-      const relativePath = fileMeta.relativePath || fileMeta.fileName || ''
+    const metadata = (await metadataResponse.json()) as { files?: FileMeta[] }
+    const files = metadata.files ?? []
+
+    const errorPlatformFiles = files.filter((fileMeta: FileMeta) => {
+      const relativePath = fileMeta.relativePath ?? fileMeta.fileName ?? ''
       return relativePath.includes(`Error/${project}/`) && relativePath.endsWith('.md')
     })
 
-    // 각 파일의 내용 확인
     for (const fileMeta of errorPlatformFiles) {
-      const filePath = fileMeta.relativePath || fileMeta.fileName
+      const filePath = fileMeta.relativePath ?? fileMeta.fileName
       if (!filePath) continue
 
       try {
@@ -51,23 +73,23 @@ async function searchKnownDocumentPaths(errorId) {
         const frontmatter = parseErrorAnalysisFrontmatter(content)
 
         if (frontmatter?.errorId === errorId) {
-          const fileName = filePath.split('/').pop()
+          const fileName = filePath.split('/').pop() ?? ''
           matchingDocs.push({
             path: filePath,
-            fileName: fileName,
-            title: frontmatter.title || fileName.replace('.md', ''),
-            createdAt: frontmatter.createdAt || new Date().toISOString(),
-            updatedAt: frontmatter.updatedAt || new Date().toISOString(),
-            tags: frontmatter.tags || [],
-            errorMessage: frontmatter.errorMessage || null,
+            fileName,
+            title: (frontmatter as ErrorAnalysisFrontmatter).title ?? fileName.replace('.md', ''),
+            createdAt: (frontmatter as ErrorAnalysisFrontmatter).createdAt ?? new Date().toISOString(),
+            updatedAt: (frontmatter as ErrorAnalysisFrontmatter).updatedAt ?? new Date().toISOString(),
+            tags: Array.isArray((frontmatter as ErrorAnalysisFrontmatter).tags) ? (frontmatter as ErrorAnalysisFrontmatter).tags! : [],
+            errorMessage: (frontmatter as ErrorAnalysisFrontmatter).errorMessage ?? null,
           })
         }
       } catch {
-        // 조용히 처리 (에러 수집기에서 수집되지 않도록)
+        // 조용히 처리
       }
     }
   } catch {
-    // 조용히 처리 (에러 수집기에서 수집되지 않도록)
+    // 조용히 처리
   }
 
   return matchingDocs
@@ -78,13 +100,10 @@ async function searchKnownDocumentPaths(errorId) {
  * @returns {Object} 에러 분석 문서 관련 상태 및 함수
  */
 export function useErrorAnalysis() {
-  // ============================================
-  // 상태 관리
-  // ============================================
-  const documents = ref([]) // 검색된 문서 목록
-  const isLoading = ref(false) // 로딩 상태
-  const error = ref(null) // 에러 상태
-  const selectedDocument = ref(null) // 선택된 문서
+  const documents = ref<ErrorAnalysisDocument[]>([])
+  const isLoading = ref(false)
+  const error = ref<unknown>(null)
+  const selectedDocument = ref<ErrorAnalysisDocument | null>(null)
 
   // ============================================
   // Computed
@@ -116,10 +135,8 @@ export function useErrorAnalysis() {
 
   /**
    * 에러 ID로 분석 문서 검색
-   * @param {string} errorId - 에러 ID
-   * @returns {Promise<Array>} 문서 배열
    */
-  async function findAnalysisDocuments(errorId) {
+  async function findAnalysisDocuments(errorId: string): Promise<ErrorAnalysisDocument[]> {
     if (!errorId) {
       documents.value = []
       error.value = null
@@ -142,8 +159,7 @@ export function useErrorAnalysis() {
 
       if (indexEntries.length === 0) {
         documents.value = []
-        // 인덱스 로드 실패 및 직접 검색 실패 시 에러 정보 저장
-        const finalError = errorAnalysisIndex.getLastError()
+        const finalError = errorAnalysisIndex.getLastError() as IndexError | null
         if (finalError) {
           error.value = {
             type: 'index_error',
@@ -158,8 +174,7 @@ export function useErrorAnalysis() {
         return []
       }
 
-      // 각 문서의 전체 내용 로드
-      const loadedDocuments = []
+      const loadedDocuments: ErrorAnalysisDocument[] = []
 
       for (const entry of indexEntries) {
         try {
@@ -170,19 +185,19 @@ export function useErrorAnalysis() {
           }
 
           const content = await response.text()
-          const metadata = extractDocumentMetadata(content)
+          const metadata = extractDocumentMetadata(content) as { updatedAt?: string | null; title?: string | null; createdAt?: string | null; tags?: string[]; errorMessage?: string | null; body: string }
 
           loadedDocuments.push({
             path: entry.path,
             fileName: entry.fileName,
-            title: metadata.title || entry.title,
-            createdAt: metadata.createdAt || entry.createdAt,
-            updatedAt: metadata.updatedAt || entry.updatedAt,
-            tags: metadata.tags || entry.tags || [],
-            errorMessage: metadata.errorMessage || entry.errorMessage,
-            body: metadata.body, // 프론트매터 제거된 본문
-            frontmatter: metadata, // 전체 메타데이터
-            rawContent: content, // 원본 내용 (문서 뷰어에서 사용)
+            title: metadata.title ?? entry.title ?? '',
+            createdAt: metadata.createdAt ?? entry.createdAt ?? new Date().toISOString(),
+            updatedAt: metadata.updatedAt ?? (entry as { updatedAt?: string }).updatedAt ?? new Date().toISOString(),
+            tags: metadata.tags ?? (entry as { tags?: string[] }).tags ?? [],
+            errorMessage: metadata.errorMessage ?? (entry as { errorMessage?: string | null }).errorMessage ?? null,
+            body: metadata.body,
+            frontmatter: metadata,
+            rawContent: content,
           })
         } catch {
           // 문서 처리 실패는 조용히 처리 (콘솔 로그 출력 안 함)
@@ -199,8 +214,7 @@ export function useErrorAnalysis() {
       }
 
       return loadedDocuments
-    } catch (err) {
-      // 에러는 조용히 처리하되, UI에 표시하기 위해 error 상태에 저장
+    } catch (err: unknown) {
       error.value = err
       documents.value = []
       return []
@@ -211,17 +225,15 @@ export function useErrorAnalysis() {
 
   /**
    * 문서 선택
-   * @param {Object} document - 선택할 문서
    */
-  function selectDocument(document) {
+  function selectDocument(document: ErrorAnalysisDocument | null): void {
     selectedDocument.value = document
   }
 
   /**
    * 문서 내용 새로고침
-   * @param {string} errorId - 에러 ID
    */
-  async function refresh(errorId) {
+  async function refresh(errorId?: string): Promise<void> {
     if (errorId) {
       await findAnalysisDocuments(errorId)
     }

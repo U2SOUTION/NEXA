@@ -162,6 +162,7 @@ export function extractDocumentMetadata(content: string) {
     errorColumn: frontmatter.errorColumn ?? null,
     project: frontmatter.project ?? null,
     createdAt: frontmatter.createdAt ?? null,
+    updatedAt: frontmatter.updatedAt ?? null,
     tags: Array.isArray(frontmatter.tags) ? frontmatter.tags : [],
     title: title ?? frontmatter.title ?? null,
     body,

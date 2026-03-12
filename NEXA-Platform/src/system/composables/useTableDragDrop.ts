@@ -48,12 +48,16 @@ export function useTableDragDrop<T extends RowLike = RowLike>(options: TableDrag
 
   function handleDragStart(event: DragEvent, row: T) {
     draggedRowId.value = row.id
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('application/json', JSON.stringify({ id: row.id }))
+    const dt = event.dataTransfer
+    if (dt) {
+      dt.effectAllowed = 'move'
+      dt.setData('application/json', JSON.stringify({ id: row.id }))
+    }
 
     // 드래그 중인 행 시각적 피드백
-    if (event.currentTarget) {
-      event.currentTarget.style.opacity = '0.5'
+    const target = event.currentTarget as HTMLElement | null
+    if (target) {
+      target.style.opacity = '0.5'
     }
 
     // 마우스 이동 이벤트 리스너 추가
@@ -63,8 +67,9 @@ export function useTableDragDrop<T extends RowLike = RowLike>(options: TableDrag
   // 드래그 종료
   function handleDragEnd(event: DragEvent) {
     // 스타일 복원
-    if (event.currentTarget) {
-      event.currentTarget.style.opacity = ''
+    const target = event.currentTarget as HTMLElement | null
+    if (target) {
+      target.style.opacity = ''
     }
 
     draggedRowId.value = null
@@ -117,7 +122,8 @@ export function useTableDragDrop<T extends RowLike = RowLike>(options: TableDrag
       return
     }
     event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
+    const dt = event.dataTransfer
+    if (dt) dt.dropEffect = 'move'
   }
 
   // dragenter 핸들러
@@ -135,7 +141,7 @@ export function useTableDragDrop<T extends RowLike = RowLike>(options: TableDrag
   // drop 핸들러
   async function handleDrop(event: DragEvent, targetRow: T) {
     event.preventDefault()
-    const dragDataStr = event.dataTransfer.getData('application/json')
+    const dragDataStr = event.dataTransfer?.getData('application/json') ?? ''
 
     if (!dragDataStr || !draggedRowId.value) {
       dragOverRowId.value = null
@@ -153,7 +159,7 @@ export function useTableDragDrop<T extends RowLike = RowLike>(options: TableDrag
     try {
       isReordering.value = true
 
-      const itemsValue = typeof items.value === 'function' ? items.value() : items.value
+      const itemsValue = items.value
 
       // 현재 필터링된 목록에서 인덱스 찾기
       const sourceIndex = itemsValue.findIndex((item: T) => item.id === sourceId)
