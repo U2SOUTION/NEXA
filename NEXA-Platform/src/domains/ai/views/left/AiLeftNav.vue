@@ -3,12 +3,13 @@
     <StandardLeftHeader title="NEXA AI" subtitle="Channel & Chat Management" />
 
     <q-tabs v-model="leftMainTab" dense class="left-main-tabs" active-color="primary" indicator-color="primary" align="left">
+      <q-tab name="project" label="프로젝트" icon="folder_special" />
       <q-tab name="chat" label="채팅" icon="chat" />
       <q-tab name="note" label="노트" icon="sticky_note_2" />
       <q-tab name="media" label="미디어" icon="photo_library" />
     </q-tabs>
 
-    <!-- 통합 검색 폼 (채널/노트/미디어/파일) -->
+    <!-- 통합 검색 폼 (4탭 공유) -->
     <div class="search-form q-pa-sm q-mx-sm q-mb-xs">
       <div class="search-row row q-gutter-xs">
         <q-input :model-value="unifiedSearch.searchQuery.value" outlined dense :placeholder="unifiedSearchPlaceholder" clearable class="col" debounce="300" @update:model-value="unifiedSearch.setSearchQuery">
@@ -34,7 +35,7 @@
           </template>
         </q-input>
       </div>
-      <!-- 타겟별 필터 (2행) -->
+      <!-- 타겟별 필터 (2행): chat=범위, files=정렬·카테고리, project/note/media=필터 없음 -->
       <div v-if="unifiedSearch.searchTarget.value === 'chat'" class="filter-row filter-row--chat row q-mt-xs q-gutter-xs items-center">
         <span class="text-caption text-grey-7">범위:</span>
         <q-btn-toggle :model-value="unifiedSearch.chatSearchTarget.value" toggle-color="primary" dense no-caps size="sm" :options="chatFilterOptions" class="chat-range-toggle" @update:model-value="unifiedSearch.setChatSearchTarget" />
@@ -49,7 +50,7 @@
       </div>
     </div>
 
-    <!-- 파일 업로드 (모든 탭 통일: 채팅·노트·미디어 검색 아래) -->
+    <!-- 파일 업로드 (4탭 공유) -->
     <div class="media-upload-area q-px-sm q-py-xs q-mx-sm q-mb-xs rounded-borders">
       <q-btn flat dense no-caps size="sm" :icon="showMediaUpload ? 'expand_less' : 'cloud_upload'" :label="showMediaUpload ? '업로드 영역 접기' : '파일 업로드'" class="full-width media-upload-btn" @click="showMediaUpload = !showMediaUpload" />
       <div v-show="showMediaUpload" class="q-mt-xs">
@@ -83,6 +84,31 @@
     </div>
 
     <q-tab-panels v-model="leftMainTab" animated class="col left-main-panels">
+      <q-tab-panel name="project" class="q-pa-none left-panel-inner">
+        <div class="panel-scroll-area">
+          <div class="ai-panel-padding">
+            <q-btn flat dense no-caps class="full-width q-mb-sm" icon="add" label="새 프로젝트 만들기" @click="showAddProject = true" />
+            <q-list dense class="project-list">
+              <q-item
+                v-for="p in filteredProjects"
+                :key="p.id"
+                clickable
+                :class="{ 'project-item-selected': selectedProjectId === p.id }"
+                @click="selectedProjectId = p.id"
+              >
+                <q-item-section avatar>
+                  <q-icon name="folder" size="20px" :color="selectedProjectId === p.id ? 'primary' : 'grey-6'" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-body2">{{ p.name }}</q-item-label>
+                  <q-item-label v-if="p.description" caption class="ellipsis">{{ p.description }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
+        </div>
+      </q-tab-panel>
+
       <q-tab-panel name="chat" class="q-pa-none left-panel-inner">
         <div class="panel-scroll-area">
           <!-- 검색 결과 (채널·채팅 동일 구조) -->
@@ -351,18 +377,36 @@
       </q-card>
     </q-dialog>
 
-    <!-- 편집 다이얼로그 -->
+    <!-- 편집 다이얼로그 (채널/채팅/프로젝트 공용) -->
     <q-dialog v-model="showEditDialog" persistent>
       <q-card style="min-width: 280px">
         <q-card-section>
-          <div class="text-h6">{{ editTarget.type === 'channel' ? 'Edit channel' : 'Edit chat' }}</div>
+          <div class="text-h6">{{ editTarget.type === 'project' ? '프로젝트 편집' : editTarget.type === 'channel' ? 'Edit channel' : 'Edit chat' }}</div>
         </q-card-section>
         <q-card-section>
-          <q-input v-model="editValue" :label="editTarget.type === 'channel' ? 'Channel name' : 'Chat title'" outlined dense autofocus @keyup.enter="doEditSave" />
+          <q-input v-model="editValue" :label="editTarget.type === 'project' ? '프로젝트 이름' : editTarget.type === 'channel' ? 'Channel name' : 'Chat title'" outlined dense autofocus @keyup.enter="doEditSave" />
+          <q-input v-if="editTarget.type === 'project'" v-model="editValue2" label="설명 (선택)" outlined dense class="q-mt-sm" @keyup.enter="doEditSave" />
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn unelevated color="primary" label="Save" :disable="!editValue.trim()" @click="doEditSave" />
+          <q-btn flat label="취소" v-close-popup />
+          <q-btn unelevated color="primary" label="저장" :disable="!editValue.trim()" @click="doEditSave" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- 새 프로젝트 다이얼로그 -->
+    <q-dialog v-model="showAddProject" persistent>
+      <q-card style="min-width: 280px">
+        <q-card-section>
+          <div class="text-h6">새 프로젝트</div>
+        </q-card-section>
+        <q-card-section>
+          <q-input v-model="newProjectName" label="프로젝트 이름" outlined dense autofocus @keyup.enter="doAddProject" />
+          <q-input v-model="newProjectDesc" label="설명 (선택)" outlined dense class="q-mt-sm" @keyup.enter="doAddProject" />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="취소" v-close-popup />
+          <q-btn unelevated color="primary" label="추가" :disable="!newProjectName.trim()" @click="doAddProject" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -435,6 +479,26 @@ function getFileExt(file: AiAssetItem | { original_name?: string; file_path?: st
 const { documents, images, audio, videos, uploadProgressFiles, showUploadProgress } = aiAssets
 
 const showMediaUpload = ref(false)
+
+// 프로젝트 탭: 더미 데이터 (추후 useProjects·API 연동)
+interface ProjectItem {
+  id: string
+  name: string
+  description?: string
+  updatedAt?: string
+}
+const projects = ref<ProjectItem[]>([
+  { id: 'p1', name: 'AI 웹앱 개인작업', description: 'NEXA AI 도메인 관련 실험', updatedAt: '2025-03-10' },
+  { id: 'p2', name: '문서 정리 프로젝트', description: '기획 문서·메타데이터 정리', updatedAt: '2025-03-09' },
+  { id: 'p3', name: '미디어 파이프라인 테스트', description: '음성·영상 추출 테스트', updatedAt: '2025-03-08' },
+])
+const selectedProjectId = ref<string | null>('p1')
+const selectedProject = computed(() => {
+  const id = selectedProjectId.value
+  if (!id) return null
+  return projects.value.find((p) => p.id === id) ?? null
+})
+const showAddProject = ref(false)
 const expandedGallery = ref(true)
 const expandedAudio = ref(false)
 const expandedVideo = ref(false)
@@ -699,12 +763,21 @@ function formatMemoDate(ts: number | string | null | undefined) {
 }
 
 const unifiedSearch = useAiUnifiedSearch()
+const filteredProjects = computed(() => {
+  if (unifiedSearch.searchTarget.value !== 'project') return projects.value
+  const q = (unifiedSearch.searchQuery.value || '').trim().toLowerCase()
+  if (!q) return projects.value
+  return projects.value.filter(
+    (p) =>
+      (p.name || '').toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q),
+  )
+})
 const fileFilters = unifiedSearch.fileFiltersRefs
 const fileExplorer = unifiedSearch.fileExplorer
 
 const unifiedSearchPlaceholder = computed(() => {
   const t = unifiedSearch.searchTarget.value
-  const labels = { chat: '채널·대화 검색', note: '메모 검색', media: '미디어 검색', files: '파일 검색' }
+  const labels = { project: '프로젝트 검색', chat: '채널·대화 검색', note: '메모 검색', media: '미디어 검색', files: '파일 검색' }
   return labels[t] || '검색'
 })
 
@@ -779,14 +852,76 @@ const { pendingWebcamCapture, webcamFlipMode, webcamResolution, webcamFilterBrig
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
 
-const leftMainTab = ref<LeftMainTab>('chat')
+const leftMainTab = ref<LeftMainTab>('project')
 const webcamOn = ref(false)
 const webcamRef = ref<{ start: () => void; stop: () => void } | null>(null)
 const showAddChannel = ref(false)
 const showEditDialog = ref(false)
-const editTarget = ref<{ type: 'channel' | 'chat' | null; channelId: string | null; chatId: string | null }>({ type: null, channelId: null, chatId: null })
+const editTarget = ref<{ type: 'channel' | 'chat' | 'project' | null; channelId: string | null; chatId: string | null; projectId?: string }>({ type: null, channelId: null, chatId: null })
 const editValue = ref('')
+const editValue2 = ref('')
 const newChannelName = ref('')
+const newProjectName = ref('')
+const newProjectDesc = ref('')
+function doAddProject() {
+  const name = newProjectName.value?.trim()
+  if (!name) return
+  const id = 'p' + Date.now()
+  projects.value = [{ id, name, description: newProjectDesc.value?.trim() || undefined, updatedAt: new Date().toISOString().slice(0, 10) }, ...projects.value]
+  selectedProjectId.value = id
+  newProjectName.value = ''
+  newProjectDesc.value = ''
+  showAddProject.value = false
+  Notify.create({ message: `"${name}" 프로젝트가 추가되었습니다.`, icon: 'check_circle' })
+}
+
+function openEditProject() {
+  const p = selectedProject.value
+  if (!p) return
+  editTarget.value = { type: 'project', channelId: null, chatId: null, projectId: p.id }
+  editValue.value = p.name
+  editValue2.value = p.description ?? ''
+  showEditDialog.value = true
+}
+function confirmDeleteProject(p: ProjectItem) {
+  deleteConfirmMessage.value = `"${p.name}" 프로젝트를 삭제할까요?`
+  deleteConfirmAction = () => doDeleteProject(p.id)
+  showDeleteConfirm.value = true
+}
+function doDeleteProject(id: string) {
+  projects.value = projects.value.filter((pr) => pr.id !== id)
+  if (selectedProjectId.value === id) selectedProjectId.value = projects.value[0]?.id ?? null
+  Notify.create({ message: '프로젝트가 삭제되었습니다.', icon: 'check_circle' })
+}
+const canMoveProjectUp = computed(() => {
+  if (!selectedProjectId.value) return false
+  const idx = projects.value.findIndex((p) => p.id === selectedProjectId.value)
+  return idx > 0
+})
+const canMoveProjectDown = computed(() => {
+  if (!selectedProjectId.value) return false
+  const idx = projects.value.findIndex((p) => p.id === selectedProjectId.value)
+  return idx >= 0 && idx < projects.value.length - 1
+})
+function moveProjectUp() {
+  const id = selectedProjectId.value
+  if (!id || !canMoveProjectUp.value) return
+  const idx = projects.value.findIndex((p) => p.id === id)
+  if (idx <= 0) return
+  const arr = [...projects.value]
+  ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
+  projects.value = arr
+}
+function moveProjectDown() {
+  const id = selectedProjectId.value
+  if (!id || !canMoveProjectDown.value) return
+  const idx = projects.value.findIndex((p) => p.id === id)
+  if (idx < 0 || idx >= projects.value.length - 1) return
+  const arr = [...projects.value]
+  ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
+  projects.value = arr
+}
+
 const showDeleteConfirm = ref(false)
 const deleteConfirmMessage = ref('')
 let deleteConfirmAction: (() => void) | null = null
@@ -907,12 +1042,18 @@ function openEditChatFromItem(channelId: string, chat: Chat) {
   showEditDialog.value = true
 }
 function doEditSave() {
-  const { type, channelId, chatId } = editTarget.value
+  const { type, channelId, chatId, projectId } = editTarget.value
   const v = editValue.value?.trim()
-  if (!v || !channelId) return
-  if (type === 'channel') {
+  if (!v) return
+  if (type === 'project' && projectId) {
+    const p = projects.value.find((pr) => pr.id === projectId)
+    if (p) {
+      p.name = v
+      p.description = editValue2.value?.trim() || undefined
+    }
+  } else if (type === 'channel' && channelId) {
     updateChannelName(channelId, v)
-  } else if (type === 'chat' && chatId) {
+  } else if (type === 'chat' && channelId && chatId) {
     updateChatTitle(channelId, chatId, v)
     clearPendingTitleSuggestion(channelId, chatId)
   }
@@ -921,6 +1062,14 @@ function doEditSave() {
 
 const toolbarCtx = {
   leftMainTab,
+  handleProjectAdd: () => { showAddProject.value = true },
+  selectedProject,
+  openEditProject,
+  confirmDeleteProject,
+  canMoveProjectUp,
+  canMoveProjectDown,
+  moveProjectUp,
+  moveProjectDown,
   searchTarget,
   showAddChannel,
   selectedChat,
@@ -1332,6 +1481,19 @@ function onWebcamCapture(dataUrl: string) {
 
   .memo-item-selected {
     background-color: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
+    color: var(--nexa-accent);
+  }
+
+  .project-list {
+    min-width: 0;
+  }
+
+  .project-item-selected {
+    background-color: var(--nexa-background-darker, rgba(0, 0, 0, 0.06));
+    font-weight: 600;
+  }
+
+  .project-item-selected .q-item__label {
     color: var(--nexa-accent);
   }
 }

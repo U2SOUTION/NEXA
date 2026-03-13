@@ -6,7 +6,7 @@
 import { ref, watch } from 'vue'
 import { useGlobalFileExplorer } from '@system/composables/useGlobalFileExplorer'
 
-export type UnifiedSearchTarget = 'chat' | 'note' | 'media' | 'files'
+export type UnifiedSearchTarget = 'project' | 'chat' | 'note' | 'media' | 'files'
 export type ChatSearchTarget = 'both' | 'channel' | 'chat'
 
 const searchQuery = ref('')
@@ -15,6 +15,7 @@ const chatSearchTarget = ref<ChatSearchTarget>('both')
 
 /** 통합 검색 타겟 옵션 (확장 시 여기에 추가) */
 export const SEARCH_TARGET_OPTIONS: { value: UnifiedSearchTarget; icon: string; label: string }[] = [
+  { value: 'project', icon: 'folder_special', label: '프로젝트' },
   { value: 'chat', icon: 'chat', label: '채팅' },
   { value: 'note', icon: 'sticky_note_2', label: '노트' },
   { value: 'media', icon: 'photo_library', label: '미디어' },

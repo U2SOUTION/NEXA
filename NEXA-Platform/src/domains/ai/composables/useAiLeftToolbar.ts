@@ -6,7 +6,7 @@ import type { Ref } from 'vue'
 import { computed } from 'vue'
 import type { Channel, Chat } from '../types/aiDomainTypes'
 
-export type LeftMainTab = 'chat' | 'note' | 'media'
+export type LeftMainTab = 'project' | 'chat' | 'note' | 'media'
 
 export type ToolbarMenuButton = {
   id: string
@@ -28,8 +28,22 @@ export type ToolbarActionButton = {
 }
 export type ToolbarItem = ToolbarMenuButton | ToolbarActionButton
 
+export interface ProjectItem {
+  id: string
+  name: string
+  description?: string
+}
+
 export interface AiLeftToolbarCtx {
   leftMainTab?: Ref<LeftMainTab>
+  handleProjectAdd?: () => void
+  selectedProject?: Ref<ProjectItem | null>
+  openEditProject?: () => void
+  confirmDeleteProject?: (p: ProjectItem) => void
+  canMoveProjectUp?: Ref<boolean>
+  canMoveProjectDown?: Ref<boolean>
+  moveProjectUp?: () => void
+  moveProjectDown?: () => void
   searchTarget?: Ref<string>
   showAddChannel?: Ref<boolean>
   selectedChat?: Ref<Chat | undefined>
@@ -72,6 +86,7 @@ const SEARCH_TARGET_OPTIONS = [
 ]
 
 const TAB_SEARCH_PLACEHOLDERS: Record<LeftMainTab | string, string> = {
+  project: '프로젝트 검색',
   chat: 'Search channels & chats',
   note: 'Search memos',
   media: '미디어 검색',
@@ -80,12 +95,13 @@ const TAB_SEARCH_PLACEHOLDERS: Record<LeftMainTab | string, string> = {
 export function useAiLeftToolbar(ctx: AiLeftToolbarCtx) {
   const toolbarLabel = computed(() => {
     const tab = ctx.leftMainTab?.value
-    const labels: Record<string, string> = { chat: '채팅', note: '노트', media: '미디어' }
+    const labels: Record<string, string> = { project: '프로젝트', chat: '채팅', note: '노트', media: '미디어' }
     return labels[tab ?? ''] || 'TOOLbar'
   })
 
   const toolbarItems = computed((): ToolbarItem[] => {
     const tab = ctx.leftMainTab?.value
+    if (tab === 'project') return getProjectItems(ctx)
     if (tab === 'chat') return getChatItems(ctx)
     if (tab === 'note') return getNoteItems(ctx)
     if (tab === 'media') return getMediaItems(ctx)
@@ -122,6 +138,22 @@ export function useAiLeftToolbar(ctx: AiLeftToolbarCtx) {
     searchTargetOptions,
     searchTargetIcon,
   }
+}
+
+function getProjectItems(ctx: AiLeftToolbarCtx): ToolbarItem[] {
+  const items: ToolbarItem[] = [
+    { id: 'add', type: 'button', icon: 'add', size: 'md', title: '새 프로젝트', onClick: ctx.handleProjectAdd },
+  ]
+  if (ctx.selectedProject?.value) {
+    const sel = ctx.selectedProject.value
+    items.push(
+      { id: 'edit', type: 'button', icon: 'edit', title: '편집', size: 'sm', onClick: ctx.openEditProject },
+      { id: 'up', type: 'button', icon: 'arrow_upward', title: '위로', size: 'sm', disabled: !ctx.canMoveProjectUp?.value, onClick: ctx.moveProjectUp },
+      { id: 'down', type: 'button', icon: 'arrow_downward', title: '아래로', size: 'sm', disabled: !ctx.canMoveProjectDown?.value, onClick: ctx.moveProjectDown },
+      { id: 'delete', type: 'button', icon: 'delete_outline', title: '삭제', size: 'sm', color: 'negative', onClick: () => ctx.confirmDeleteProject?.(sel) },
+    )
+  }
+  return items
 }
 
 function getChatItems(ctx: AiLeftToolbarCtx): ToolbarItem[] {
