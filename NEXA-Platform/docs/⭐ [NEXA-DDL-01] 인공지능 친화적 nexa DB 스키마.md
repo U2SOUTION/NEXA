@@ -108,16 +108,29 @@ CREATE TABLE project_tags (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. 시스템 감사 및 AI 제안 로그 (TimescaleDB 하이퍼테이블: PK에 created_at 포함. UUID v7/시간 정렬 신뢰를 위한 NTP 검증 필드)
+-- 7. 시스템 감사 및 AI 제안 로그 (현재/이력 레이어. TimescaleDB 하이퍼테이블)
+-- 목표: DB 레벨에서 5W1H SMALLINT 필터로 90% 데이터 즉시 제거 후 추론. [문서 2] HEXAGON 프로토콜.
+-- ⚠ 토큰(SMALLINT) 매핑 및 벡터(embedding) 생성 모델은 반드시 고정. 모델을 변경하면 기존 데이터는 동일한 의미 공간으로 해석·비교할 수 없음(해독 불가). 기본 채택: 5W1H 토큰→정수 매핑은 앱/명세 유지, 임베딩은 [NEXA-SYSTEM] AI 오케스트레이터 기준 Ollama nomic-embed-text. VECTOR 차원은 채택 모델 출력과 일치해야 함.
 CREATE TABLE project_logs (
     log_id UUID DEFAULT uuid_generate_v7(),
     project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
-    log_level TEXT,
-    message TEXT,
-    context JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    is_time_synced BOOLEAN,       -- 로그 발생 시점에 발신측(엣지/클라이언트) 시계가 NTP 동기화되었는지
-    last_sync_at TIMESTAMPTZ,     -- 발신측이 마지막으로 NTP 동기화한 시각 (있을 경우)
+    -- 5W1H 토큰 (SMALLINT. nullable. 점진적 채움)
+    where_scope SMALLINT,         -- Where: CORE, FIELD, DOMAIN 등 영향 범위
+    when_tempo SMALLINT,          -- When: MOMENT, DURATION, ERA 등 시간적 맥락
+    who_pulse SMALLINT,           -- Who: WILL, ECHO, TICK, ASK 등 동력원
+    what_intent SMALLINT,         -- What: FACT, LINK, RULE 등 데이터 성격
+    how_state SMALLINT,           -- How: FLOW, STUCK, VOID 등 동태적 상태
+    why_causality SMALLINT,       -- Why: 6코일 필터 거친 판단 카테고리
+    -- 지능형 서사
+    summary TEXT,                 -- Indicator Insight: TTS용 부드러운 조언 문장
+    why_chain JSONB,              -- 6코일 가중치 및 판단 인과관계 사슬
+    -- 물리/보안
+    is_time_synced BOOLEAN,       -- 로그 시점 NTP 동기화 여부 (신뢰도 검증)
+    last_sync_at TIMESTAMPTZ,     -- 발신측 마지막 NTP 동기화 시각
+    -- 저장/검색
+    embedding VECTOR(1536),       -- nullable. 유사 이력 검색용 (채워진 행만 인덱스 권장)
+    extra_data JSONB,             -- 정밀 센서 수치, 원문 로그, log_level 등 비정형 상세
     PRIMARY KEY (log_id, created_at)
 );
 SELECT create_hypertable('project_logs', 'created_at');
@@ -211,15 +224,31 @@ CREATE UNLOGGED TABLE project_user_presence (
 );
 -- TTL: last_active 기준 일정 시간(예: 5~10분) 미갱신 행은 주기 삭제 권장. 하트비트 갱신은 앱에서 수행.
 
--- 14. RAG용 지식 본문 및 벡터 (embedding nullable: 중요 데이터에만 벡터 생성 전략)
+-- 14. RAG용 지식 본문 및 벡터 (과거/지식 레이어)
+-- 목표: DB 레벨에서 5W1H SMALLINT 필터로 90% 데이터 즉시 제거 후 벡터 검색. [문서 2] HEXAGON, [문서 5] Nature 수명 주기.
+-- ⚠ 토큰(SMALLINT) 매핑 및 embedding 생성 모델은 고정. 모델 변경 시 기존 벡터는 해독·유사도 비교 불가. 기본 채택 임베딩 모델: Ollama nomic-embed-text (AI 오케스트레이터). VECTOR(n) 차원은 해당 모델 출력과 일치해야 함.
 CREATE TABLE project_knowledge (
     knowledge_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    project_id UUID REFERENCES projects(project_id) ON DELETE CASCADE,
-    content TEXT,
-    embedding VECTOR(1536),            -- nullable. 중요 데이터에만 임베딩 생성
-    vector_search_status SMALLINT DEFAULT 1,    -- 벡터 검색 대상. 1=검색가능, 0=제외. 그 외 값은 추후 규칙 정의
-    metadata JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    -- 성격·수명 주기 [문서 5]
+    nature_tag VARCHAR(32),       -- ROUTINE, INCIDENT, INTENT 등 수명 주기 분류
+    -- 5W1H 토큰 (SMALLINT. nullable. 완전 분리로 고속 정수 인덱싱)
+    where_scope SMALLINT,         -- Where: CORE, FIELD, DOMAIN
+    when_tempo SMALLINT,          -- When: MOMENT, DURATION, ERA
+    who_pulse SMALLINT,           -- Who: WILL, ECHO, TICK, ASK 등
+    what_intent SMALLINT,         -- What: FACT, LINK, RULE
+    how_state SMALLINT,           -- How: FLOW, STUCK, VOID
+    why_causality SMALLINT,       -- Why: 인과·판단 카테고리
+    -- RAG 핵심
+    content_fact TEXT,            -- Sentinel Fact: AI가 즉시 소화할 담백한 요약 문장
+    raw_content TEXT,             -- 원문 전체 (보존·재가공용)
+    embedding VECTOR(1536),       -- nullable. 코사인 유사도 기반 의미론적 검색
+    vector_search_status SMALLINT DEFAULT 1,  -- 1=검색가능, 0=제외. 확장 가능
+    -- 인과·메타
+    ref_ids JSONB,                -- Traceability: SNT-IND-EFF 참조 ID 사슬
+    metadata JSONB,               -- 출처 URL, 생성 모델, 6코일 가중치 등
+    extra_data JSONB              -- 그 외 비정형 상세 (유연성)
 );
 
 ```
@@ -425,6 +454,8 @@ CREATE INDEX idx_project_assets_project_id ON project_assets(project_id);
 CREATE INDEX idx_project_media_project_id ON project_media(project_id);
 CREATE INDEX idx_project_tags_project_id ON project_tags(project_id);
 CREATE INDEX idx_project_logs_project_id ON project_logs(project_id);
+-- HEXAGON(5W1H) SMALLINT 필터: DB 레벨 90% 필터링 후 추론 (감사·유사 이력 검색)
+CREATE INDEX idx_project_logs_hexagon ON project_logs(project_id, where_scope, when_tempo) WHERE where_scope IS NOT NULL;
 CREATE INDEX idx_project_resource_versions_project_id ON project_resource_versions(project_id);
 CREATE INDEX idx_project_folders_project_id ON project_folders(project_id);
 CREATE INDEX idx_project_links_project_id ON project_links(project_id);
@@ -434,6 +465,8 @@ CREATE INDEX idx_project_agent_sessions_project_id ON project_agent_sessions(pro
 CREATE INDEX idx_project_user_presence_project_id ON project_user_presence(project_id);
 CREATE INDEX idx_project_user_presence_resource ON project_user_presence(project_id, resource_type, resource_id);
 CREATE INDEX idx_project_knowledge_project_id ON project_knowledge(project_id);
+-- HEXAGON(5W1H) SMALLINT 필터: DB 레벨 90% 필터링 후 벡터 검색
+CREATE INDEX idx_project_knowledge_hexagon ON project_knowledge(project_id, where_scope, when_tempo, why_causality) WHERE where_scope IS NOT NULL;
 CREATE INDEX idx_project_nodes_project_id ON project_nodes(project_id);
 CREATE INDEX idx_project_yjs_updates_project_id ON project_yjs_updates(project_id);
 CREATE INDEX idx_project_scripts_project_id ON project_scripts(project_id);
@@ -989,6 +1022,12 @@ AI 장기 기억(RAG)·시맨틱 검색에서 대규모 벡터 검색 성능을 
 
 아래 스크립트는 **HNSW를 디폴트**로 생성하고, **IVFFlat은 주석으로 대안**을 제시한다. 환경에 따라 IVFFlat만 쓰거나, HNSW와 병행(다른 이름으로 생성)할 수 있다.
 
+**토큰·벡터 생성 모델 고정 (필수)**
+
+- **5W1H 토큰(SMALLINT)** 매핑과 **벡터(embedding) 생성에 사용하는 모델은 반드시 고정**해야 한다. 데이터 주입 시와 검색 시 **동일한 토큰 규칙·동일한 임베딩 모델**을 사용해야만 DB에 저장된 값이 올바르게 해석·비교된다.
+- **모델을 변경하면** 기존에 저장된 벡터는 새 모델의 의미 공간과 맞지 않아 **유사도 검색 결과가 왜곡되며, 실질적으로 해독·재사용이 불가**하다. 토큰 매핑을 바꾸면 SMALLINT 값의 의미가 달라져 필터·집계가 깨진다. 모델/매핑 변경 시에는 **재생성(리임베딩·토큰 재부여)** 및 마이그레이션 계획이 필요하다.
+- **기본 채택 모델**: 임베딩은 [NEXA-SYSTEM] AI 오케스트레이터 기준 **Ollama `nomic-embed-text`**. 데이터 주입과 사용자 질문 시 동일한 모델을 사용해야 좌표가 일치한다. `VECTOR(n)` 차원은 채택 모델 출력 차원과 반드시 일치해야 한다(예: nomic-embed-text는 768 차원; 스키마에서 1536을 쓸 경우 해당 차원의 다른 모델 사용 시에만 유효).
+
 **Nullable Vector 및 Flag 전략**
 
 - **Nullable Vector**: 벡터 컬럼은 nullable이다. 모든 행에 벡터를 넣지 않고, **중요한 데이터에만** 임베딩을 생성·저장하는 전략을 쓸 수 있다. 스토리지·배치 비용 절감.
@@ -1080,4 +1119,5 @@ CREATE INDEX IF NOT EXISTS idx_support_faq_faq_vector_hnsw
 | **RLS**                      | §8단계 추가: 31개 테이블 `ENABLE ROW LEVEL SECURITY` 및 `CREATE POLICY` (멤버십 기반). `project_members`는 자기 행만 노출하도록 정책 분리.                                                                                                                                        |
 | **외부 참조 FK**             | 비귀속 테이블 생성 후 §「참조 무결성 보강」에서 `projects.storage_id → storage_configs`, `project_devices.device_reg_id → device_registry` 추가. `files`·`part_models`는 주석으로 안내만 유지.                                                                                    |
 | **pgvector 인덱스**          | §「pgvector 인덱스 및 성능 최적화 가이드」: RAG·시맨틱 검색용 **vector_cosine_ops**(코사인 유사도) 기준. **HNSW 디폴트**(project_knowledge, project_tags, global_knowledge_base, global_tags, support_faq), **IVFFlat 선택** 스크립트 주석 제공. 쿼리 시 `<=>` 및 ef_search 안내. |
+| **HEXAGON(5W1H) 완전 분리**  | **project_logs**(현재/이력): 5W1H SMALLINT 6컬럼, summary, why_chain JSONB, embedding, extra_data JSONB. **project_knowledge**(과거/지식): nature_tag, 5W1H SMALLINT 6컬럼, content_fact, raw_content, ref_ids, metadata, extra_data JSONB. DB 레벨 90% 필터 목표·복합 인덱스 포함. |
 | **v5.0 전용 반영**           | 비귀속 18개→27개(tiers·capabilities·tier_allowed_capabilities·capability_grant_history·sandbox_profiles·sandbox_profile_capabilities·capability_tag_whitelist·capability_proposals·capability_map). project_parts_bom AI 시맨틱 브릿지·spec_id 동적 할당 주석. §2.8 오케스트레이션 운영 정책(동적 매핑 자동화·거절된 자격 클리닝) 명세 반영. |

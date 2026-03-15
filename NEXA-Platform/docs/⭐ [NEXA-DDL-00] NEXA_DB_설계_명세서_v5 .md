@@ -55,14 +55,14 @@ Capability ID(기능 자격 ID)는 단순히 DB의 한 컬럼이 아니라 플�
 |  4  | project_assets            | 프로젝트 전역자원    | 일반 문서, 코드, YAML 설정 파일 관리                                                                                                                                            | JSONB                |
 |  5  | project_media             | /nexa-media          | 이미지, 사운드, 영상 등 멀티모달 자원                                                                                                                                           | FFmpeg               |
 |  6  | project_tags              | 프로젝트 전역검색    | 탐색 필터링을 위한 시맨틱 태그 정보                                                                                                                                             | pgvector             |
-|  7  | project_logs              | 프로젝트 전역로그    | AI 제안 이력 및 시스템 감사 로그. 시간 기반 정렬 신뢰를 위해 is_time_synced·last_sync_at(NTP 검증) 메타데이터 포함                                                              | TimescaleDB          |
+|  7  | project_logs              | 프로젝트 전역로그    | 현재/이력 레이어. **5W1H SMALLINT** 6컬럼 완전 분리(DB 레벨 90% 필터). summary, why_chain JSONB, embedding(유사 이력), extra_data JSONB. is_time_synced·last_sync_at(NTP). [문서 2] HEXAGON. | TimescaleDB          |
 |  8  | project_resource_versions | 프로젝트 전역자원    | 스크립트·주요 설정 파일의 버전 이력(Commit 형태). project_releases와 연동해 안정 배포 버전 지정                                                                                 | JSONB                |
 |  9  | project_folders           | 프로젝트 탐색기 (AI) | 계층적 트리 구조. yjs_state=압축 스냅샷만, 증분은 project_yjs_updates                                                                                                           | Yjs                  |
 | 10  | project_links             | 탐색기 (AI)          | 웹 서치 결과 및 외부 참조 URL 관리                                                                                                                                              | AI Crawler           |
 | 11  | project_orchestra         | /nexa-ai             | 페르소나, 스킬(Tool Calling), 태스크 정의                                                                                                                                       | JSONB                |
 | 12  | project_chats             | /nexa-ai             | AI 에이전트 대화 히스토리 및 맥락 유지                                                                                                                                          | Vercel AI SDK        |
 | 13  | project_agent_sessions    | /nexa-ai             | AI 현재 상태(Thinking, Tool Calling, Action 등)·단기 작업 임시 데이터. 끊김 없는 협업 세션 복원                                                                                 | JSONB                |
-| 14  | project_knowledge         | /nexa-archive        | RAG용 지식 본문 및 벡터 데이터 저장                                                                                                                                             | pgvector             |
+| 14  | project_knowledge         | /nexa-archive        | 과거/지식 레이어. nature_tag(ROUTINE/INCIDENT/INTENT), **5W1H SMALLINT** 6컬럼 완전 분리(DB 레벨 90% 필터). content_fact(Sentinel Fact), raw_content, ref_ids(SNT-IND-EFF), metadata, extra_data JSONB. [문서 2·5]. | pgvector             |
 | 15  | project_nodes             | /nexa-node           | 노드 기반 IoT 로직. yjs_state=압축 스냅샷만, 증분은 project_yjs_updates                                                                                                         | Vue Flow, Yjs        |
 | 16  | project_scripts           | /nexa-node           | 프로젝트별 가변 비즈니스 로직 및 실행 스크립트. 기기 전체를 굽지 않고 동적 주입                                                                                                 | JSONB / Bytecode     |
 | 17  | project_simulations       | /nexa-node           | 노드 구성에 따른 가상 시뮬레이션 결과값                                                                                                                                         | JSONB                |
@@ -173,7 +173,7 @@ DB에 이미 생성되어 있는 테이블 목록이다. 설계안(§1, §1.1)�
 
 - **관련 테이블**: `project_knowledge` (No. 14)
 - **역할**: 프로젝트의 **'과거'** 유산이자 배경 지식. 시방서, 기술 문서 등 RAG(검색 증강 생성)를 위한 원천 데이터를 보관.
-- **핵심 기술**: **pgvector**를 활용하여 사용자 의도와 가장 유사한 지식을 벡터 검색으로 추출하며, AI의 '장기 기억' 구조를 형성.
+- **핵심 기술**: **pgvector**로 사용자 의도와 유사한 지식을 벡터 검색. **5W1H SMALLINT** 6컬럼 완전 분리로 DB 레벨에서 90% 데이터를 걸러낸 뒤 벡터 검색하여 RAG 품질·속도 확보. content_fact(요약)·raw_content(원문)·ref_ids·extra_data JSONB로 유연성 확보.
 
 #### 2. 채팅 (Chats / 현재)
 
@@ -249,6 +249,7 @@ JSONB·pgvector 기반 테이블은 스키마 유연성과 확장성을 보장�
 | **사용자 존재(Presence)**       | 실시간 협업 시 "지금 누가 이 폴더/노드를 보고 있는가" DB 저장이 없음.                                                                                | **project_user_presence**(No.30): UNLOGGED. project_id·user_id·resource_type('folder'/'node')·resource_id·activity('viewing'/'editing')·last_active. 하트비트 갱신 후 주기 삭제로 UI 협업 가시성 제공.                                                                                                                                                                                                 |
 | **BOM·실물 재고 연동**          | 설계(BOM)에 필요한 부품과 재고(물리 위치)의 연결 고리 부재 시 동일 부품 판별 불가.                                                                   | **project_parts_bom**: **AI 시맨틱 브릿지**—웹 서치·기획 문서와 규격 템플릿 간 시맨틱 매핑 저장소. **spec_id**: AI가 샌드박스에서 재고와 설계를 대조해 할당하는 동적 필드(실물 참조). part_model_id=무엇이 필요한가, spec_id=어느 실물을 쓸 것인가. 설계-재고-출고 자동화.                                                                                                                         |
 | **RAG·시맨틱 검색 벡터 인덱스** | 대규모 지식/태그 검색 시 풀 스캔 방지 및 RAG 응답 속도 확보.                                                                                         | **거리**: 시맨틱/RAG 특성상 **코사인 유사도**(`vector_cosine_ops`) 사용. **HNSW 디폴트**: project_knowledge.embedding, project_tags.tag_vector, global_knowledge_base.embedding, global_tags.tag_vector, support_faq.faq_vector. **IVFFlat**: 사용자·오케스트레이션 선택 시 대안(대량 삽입 후 검색 위주·메모리 제약). DDL-01 §「pgvector 인덱스 및 성능 최적화 가이드」에 스크립트·ef_search 안내. |
+| **HEXAGON(5W1H) 완전 분리·extra_data** | DB 레벨에서 90% 데이터 즉시 필터 목표. 5W1H를 **SMALLINT 6컬럼**으로 완전 분리. 나머지 상세는 **extra_data JSONB**. | **project_logs**: 5W1H SMALLINT, summary, why_chain JSONB, embedding, extra_data. **project_knowledge**: nature_tag, 5W1H SMALLINT, content_fact, raw_content, ref_ids, metadata, extra_data. 토큰→정수 매핑은 앱/명세 유지. DDL-01 복합 인덱스 포함. **토큰·벡터 모델 고정**: 5W1H 매핑과 임베딩 생성 모델은 반드시 고정. 모델 변경 시 기존 데이터 해독·유사도 비교 불가. 기본 채택 임베딩: Ollama **nomic-embed-text**(AI 오케스트레이터). VECTOR 차원은 채택 모델과 일치해야 함. |
 
 ### 2.8 오케스트레이션 운영 정책
 
