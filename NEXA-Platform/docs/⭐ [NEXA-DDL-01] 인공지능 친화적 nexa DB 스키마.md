@@ -74,7 +74,7 @@ CREATE TABLE project_settings (
 **project_settings 설계 — 컬럼 + JSONB 혼합**
 
 - **컬럼화된 항목** (인덱스·제약·타입 보장): `precision_level`, `batch_policy`, `retention_period_days`. 사용자가 직접 지정하고, `precision_level` 등은 인덱스·필터에 활용 가능.
-- **settings_data (JSONB)**: `dna` 세부, `quantization_rules`, 그 외 확장 설정. 유연하지만 "인덱스·제약 불가" — DB가 내부 키를 모르므로, 특정 키 검색은 풀 스캔·앱 검증 의존. JSON 스키마로 앱 레벨 검증 권장.
+- **settings_data (JSONB)**: `dna` 세부, `quantization_rules`, 그 외 확장 설정. **밸런스 적용:** `current_coil_template_id` (UUID) — 적용 중인 템플릿을 가리키며 `balance_coil_templates.template_id` 참조. 시스템 또는 본 프로젝트가 만든 템플릿 중 하나만 선택. 유연하지만 "인덱스·제약 불가" — DB가 내부 키를 모르므로, 특정 키 검색은 풀 스캔·앱 검증 의존. JSON 스키마로 앱 레벨 검증 권장.
 
 ### 2단계: 자원 및 탐색 구조 (No. 4 ~ 10)
 
@@ -568,6 +568,21 @@ CREATE POLICY project_member_parts_bom ON project_parts_bom FOR ALL USING (proje
 CREATE POLICY project_member_extensions ON project_extensions FOR ALL USING (project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)));
 CREATE POLICY project_member_secrets ON project_secrets FOR ALL USING (project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)));
 CREATE POLICY project_member_releases ON project_releases FOR ALL USING (project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)));
+
+-- 밸런스(가중치) 테이블: 시스템 행 읽기 전용, 사용자 행은 해당 프로젝트 멤버만 접근 (DDL-00 §1.1.x)
+ALTER TABLE balance_coil_definitions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE balance_coil_templates ENABLE ROW LEVEL SECURITY;
+-- SELECT: 시스템 행(project_id IS NULL) 전체 + 본인 프로젝트 사용자 행
+CREATE POLICY balance_coil_def_select ON balance_coil_definitions FOR SELECT
+  USING (project_id IS NULL OR project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)));
+CREATE POLICY balance_coil_def_modify ON balance_coil_definitions FOR ALL
+  USING (project_id IS NOT NULL AND project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)))
+  WITH CHECK (project_id IS NOT NULL AND project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)));
+CREATE POLICY balance_coil_tpl_select ON balance_coil_templates FOR SELECT
+  USING (project_id IS NULL OR project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)));
+CREATE POLICY balance_coil_tpl_modify ON balance_coil_templates FOR ALL
+  USING (project_id IS NOT NULL AND project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)))
+  WITH CHECK (project_id IS NOT NULL AND project_id IN (SELECT project_id FROM project_members WHERE user_id = (current_setting('app.current_user_id', true)::uuid)));
 ```
 
 ---
@@ -961,6 +976,44 @@ CREATE TABLE capability_map (
 );
 COMMENT ON COLUMN capability_map.source IS 'registry: 코드 레지스트리 선언 시 동기화로 자동 갱신. override: 관리자 수동 추가·수정, 동기화 시 덮어쓰지 않음.';
 CREATE INDEX idx_capability_map_path ON capability_map(resource_type, resource_path);
+
+-- 밸런스(가중치) — [문서 3] §5.4·§5.5, DDL-00 §1.1.x. 시스템·사용자 동일 테이블, project_settings는 적용만 저장.
+CREATE TABLE balance_coil_definitions (
+    coil_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    origin VARCHAR(20) NOT NULL CHECK (origin IN ('system', 'user')),
+    project_id UUID REFERENCES projects(project_id) ON DELETE CASCADE,
+    tier SMALLINT NOT NULL CHECK (tier IN (6, 12, 24)),
+    code VARCHAR(64) NOT NULL,
+    label TEXT,
+    description TEXT,
+    sort_order SMALLINT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'active',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT chk_balance_coil_def_origin_project
+        CHECK ((origin = 'system' AND project_id IS NULL) OR (origin = 'user' AND project_id IS NOT NULL))
+);
+CREATE UNIQUE INDEX idx_balance_coil_definitions_system_code ON balance_coil_definitions(code) WHERE project_id IS NULL;
+CREATE UNIQUE INDEX idx_balance_coil_definitions_user_code ON balance_coil_definitions(project_id, code) WHERE project_id IS NOT NULL;
+CREATE INDEX idx_balance_coil_definitions_origin_project ON balance_coil_definitions(origin, project_id);
+
+CREATE TABLE balance_coil_templates (
+    template_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    origin VARCHAR(20) NOT NULL CHECK (origin IN ('system', 'user')),
+    project_id UUID REFERENCES projects(project_id) ON DELETE CASCADE,
+    capability_id VARCHAR(200) NOT NULL REFERENCES capabilities(capability_id) ON DELETE RESTRICT,
+    character_key VARCHAR(64),
+    name TEXT NOT NULL,
+    description TEXT,
+    weight_spec JSONB NOT NULL,
+    min_safety_stability_pct SMALLINT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT chk_balance_coil_tpl_origin_project
+        CHECK ((origin = 'system' AND project_id IS NULL) OR (origin = 'user' AND project_id IS NOT NULL))
+);
+COMMENT ON COLUMN balance_coil_templates.weight_spec IS '가중치 정의. 코일 code → 비율(0~100) 객체. 예: {"safety": 45, "stability": 45, "efficiency": 5, "autonomy": 2, "harmony": 2, "creative": 1}. 합=100 검증은 앱/트리거.';
+COMMENT ON COLUMN balance_coil_templates.capability_id IS '[NEXA-CAPABILITY-01] 와일드카드(예: nexa.platform.archive.*) 저장 가능. 접두사 매칭으로 넓은 영역에 템플릿 적용.';
+CREATE INDEX idx_balance_coil_templates_origin_project ON balance_coil_templates(origin, project_id);
+CREATE INDEX idx_balance_coil_templates_capability ON balance_coil_templates(capability_id);
 ```
 
 **사용자 기능 자격 접두사 `usr.` 강제 정책**
