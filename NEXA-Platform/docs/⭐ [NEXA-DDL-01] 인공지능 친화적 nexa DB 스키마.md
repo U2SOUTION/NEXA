@@ -80,13 +80,17 @@ CREATE TABLE project_settings (
 
 ```sql
 -- 4. 프로젝트 일반 자원 (문서, 코드 등)
+-- 4. 프로젝트 일반 자원 (문서, 시방서, 코드 등). §2.9 시방서→컨트롤러 강결합
 CREATE TABLE project_assets (
     asset_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     project_id UUID REFERENCES projects(project_id) ON DELETE CASCADE,
     file_id UUID, -- files 테이블 참조
-    metadata JSONB,
+    nature_tag VARCHAR(32),  -- 'RULE': 실행 가이드라인(시방서). 단순 기록이 아닌 규칙 성격 명시
+    metadata JSONB,          -- embedded_panels: 문서 내 컨트롤러 배치 좌표·panel_id 배열
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+COMMENT ON COLUMN project_assets.nature_tag IS 'RULE=시방서/실행 가이드라인. DDL-00 §2.9.1';
+COMMENT ON COLUMN project_assets.metadata IS 'embedded_panels: [{ position, panel_id }] 문서 내 컨트롤러 배치 동기화. DDL-00 §2.9.4';
 
 -- 5. 멀티미디어 자원
 CREATE TABLE project_media (
@@ -125,6 +129,8 @@ CREATE TABLE project_logs (
     -- 지능형 서사
     summary TEXT,                 -- Indicator Insight: TTS용 부드러운 조언 문장
     why_chain JSONB,              -- 6코일 가중치 및 판단 인과관계 사슬
+    -- 신뢰도 (Confidence Score)
+    confidence_score SMALLINT,    -- 0~100. TICK/ECHO/WILL/ASK 주체별 확신도. [데이터 신뢰도 초안 §1]
     -- 물리/보안
     is_time_synced BOOLEAN,       -- 로그 시점 NTP 동기화 여부 (신뢰도 검증)
     last_sync_at TIMESTAMPTZ,     -- 발신측 마지막 NTP 동기화 시각
@@ -186,6 +192,7 @@ CREATE TABLE project_orchestra (
     project_id UUID REFERENCES projects(project_id) ON DELETE CASCADE,
     persona_config JSONB,
     skill_set JSONB,
+    skill_threshold JSONB,  -- 스킬 자율 실행을 위한 최소 신뢰도 임계값 설정 (예: {\"tool_x\": 80}). [데이터 신뢰도 초안 §1]
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -224,15 +231,15 @@ CREATE UNLOGGED TABLE project_user_presence (
 );
 -- TTL: last_active 기준 일정 시간(예: 5~10분) 미갱신 행은 주기 삭제 권장. 하트비트 갱신은 앱에서 수행.
 
--- 14. RAG용 지식 본문 및 벡터 (과거/지식 레이어)
+-- 14. RAG용 지식 본문 및 벡터 (과거/지식 레이어). §2.9 시방서→지식: nature_tag=RULE로 실행 가이드라인 활용
 -- 목표: DB 레벨에서 5W1H SMALLINT 필터로 90% 데이터 즉시 제거 후 벡터 검색. [문서 2] HEXAGON, [문서 5] Nature 수명 주기.
 -- ⚠ 토큰(SMALLINT) 매핑 및 embedding 생성 모델은 고정. 모델 변경 시 기존 벡터는 해독·유사도 비교 불가. 기본 채택 임베딩 모델: Ollama nomic-embed-text (AI 오케스트레이터). VECTOR(n) 차원은 해당 모델 출력과 일치해야 함.
 CREATE TABLE project_knowledge (
     knowledge_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    -- 성격·수명 주기 [문서 5]
-    nature_tag VARCHAR(32),       -- ROUTINE, INCIDENT, INTENT 등 수명 주기 분류
+    -- 성격·수명 주기 [문서 5]. RULE=시방서 핵심 제원(실행 가이드라인) 장기 기억·RAG 활용. DDL-00 §2.9.4
+    nature_tag VARCHAR(32),       -- ROUTINE, INCIDENT, INTENT, RULE(시방서 기반 실행 규칙 지식)
     -- 5W1H 토큰 (SMALLINT. nullable. 완전 분리로 고속 정수 인덱싱)
     where_scope SMALLINT,         -- Where: CORE, FIELD, DOMAIN
     when_tempo SMALLINT,          -- When: MOMENT, DURATION, ERA
@@ -248,6 +255,7 @@ CREATE TABLE project_knowledge (
     -- 인과·메타
     ref_ids JSONB,                -- Traceability: SNT-IND-EFF 참조 ID 사슬
     metadata JSONB,               -- 출처 URL, 생성 모델, 6코일 가중치 등
+    confidence_score SMALLINT,    -- 0~100. 아톰화된 지식의 검증 수준. RAG 시 가중치·필터에 활용. [데이터 신뢰도 초안 §1]
     extra_data JSONB              -- 그 외 비정형 상세 (유연성)
 );
 
@@ -296,12 +304,17 @@ CREATE TABLE project_simulations (
 );
 
 -- 18. 활성화된 위젯(Panel) 목록
+-- 18. 컨트롤러(넥사패널). §2.9 시방서→컨트롤러 강결합·오케스트레이터 연동
 CREATE TABLE project_panels (
     panel_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     project_id UUID REFERENCES projects(project_id) ON DELETE CASCADE,
+    ref_asset_id UUID REFERENCES project_assets(asset_id) ON DELETE SET NULL,
     widget_configs JSONB,
+    sequence_data JSONB,     -- 시방서에서 추출된 실행 순서·파라미터·안전 임계치(Interlock)
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+COMMENT ON COLUMN project_panels.ref_asset_id IS '이 컨트롤러의 모태 시방서(Asset) 역추적. DDL-00 §2.9.4';
+COMMENT ON COLUMN project_panels.sequence_data IS '실행 순서(Sequence), 제원, Interlock 등 시방서 기반 매핑. DDL-00 §2.9.4';
 
 -- 19. 대시보드 레이아웃 프리셋
 CREATE TABLE project_boards (
@@ -472,6 +485,7 @@ CREATE INDEX idx_project_yjs_updates_project_id ON project_yjs_updates(project_i
 CREATE INDEX idx_project_scripts_project_id ON project_scripts(project_id);
 CREATE INDEX idx_project_simulations_project_id ON project_simulations(project_id);
 CREATE INDEX idx_project_panels_project_id ON project_panels(project_id);
+CREATE INDEX idx_project_panels_ref_asset_id ON project_panels(ref_asset_id);
 CREATE INDEX idx_project_boards_project_id ON project_boards(project_id);
 CREATE INDEX idx_project_devices_project_id ON project_devices(project_id);
 CREATE INDEX idx_project_devices_core_fw_id ON project_devices(core_fw_id);
