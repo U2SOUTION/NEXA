@@ -49,9 +49,9 @@ Capability ID(기능 자격 ID)는 단순히 DB의 한 컬럼이 아니라 플�
 
 | No. | 테이블명                  | 라우터/도메인 매핑   | 주요 역할 및 특징                                                                                                                                                                                                   | 핵심 기술            |
 | --- | ------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| 1   | projects                  | 플랫폼 프로젝트 전역 | 최상위 프로젝트 식별 정보·도메인 분류. storage_id→storage_configs, storage_quota_bytes로 Quota 지정. current_storage_usage(BIGINT)로 사용량을 증분(Delta)만 갱신·MV로 주기 보정                                     | UUID v7, RLS         |
+| 1   | projects                  | 플랫폼 프로젝트 전역 | 최상위 프로젝트 식별 정보·도메인 분류. storage_id→storage_configs, storage_quota_bytes로 Quota 지정. current_storage_usage(BIGINT)로 사용량을 증분(Delta)만 갱신·MV로 주기 보정. **글로벌 그림자 프로젝트(Shadow Project)** 정책: 넥슈가 프로젝트 외부(가이드·비회원 체험·일상 도우미)에서 활동할 때 사용하는 effective_project_id는 물리적으로 기존 `project_id` 컬럼에 저장하며, GLOBAL_GUIDE·TRIAL_USER·DAILY_HELPER 등 특정 예약 UUID를 그림자 프로젝트로 두어 모든 넥슈 활동이 동일 Traceability 체계 내에 쌓이도록 한다. §2.5.1 참조.                                     | UUID v7, RLS         |
 | 2   | project_members           | /my (AUTH)           | 사용자별 접근 권한 및 공유 상태 관리                                                                                                                                                                                | RLS                  |
-| 3   | project_settings          | /settings            | 프로젝트별 전역 및 도메인별 설정 허브. settings_data에 **적용 중인** 밸런스 템플릿 참조(current_coil_template_id)만 저장. §1.1.x 참조.                                                                              | JSONB                |
+| 3   | project_settings          | /settings            | 프로젝트별 전역 및 도메인별 설정 허브. settings_data에 **적용 중인** **코일 밸런서(Coil Balancer)** 템플릿 참조(current_coil_template_id)만 저장. 원천(Source)·도메인(Domain)·프로젝트(Project) 레이어에 따라 유기적으로 확장되는 밸런서 체계. §1.1.x 참조.                                                                              | JSONB                |
 | 4   | project_assets            | 프로젝트 전역자원    | 일반 문서, 코드, YAML 설정 파일 관리                                                                                                                                                                                | JSONB                |
 | 5   | project_media             | /nexa-media          | 이미지, 사운드, 영상 등 멀티모달 자원                                                                                                                                                                               | FFmpeg               |
 | 6   | project_tags              | 프로젝트 전역검색    | 탐색 필터링을 위한 시맨틱 태그 정보                                                                                                                                                                                 | pgvector             |
@@ -140,9 +140,9 @@ Capability ID(기능 자격 ID)는 단순히 DB의 한 컬럼이 아니라 플�
 
 | 테이블/위치                  | 귀속                          | 역할·주요 컬럼                                                                                                                                                                                                                       |
 | ---------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **balance_coil_definitions** | 비귀속(시스템+사용자 행 공존) | 가중치 항목 메타(6/12/24 + 프로젝트별 확장). `coil_id`, **origin** `'system'` \| `'user'`, **project_id** NULL(시스템) / FK(사용자), `tier`, `code`, `label`, `sort_order`, `status`. 시스템 행은 [문서 3] §1·§5 기준.               |
-| **balance_coil_templates**   | 비귀속(시스템+사용자 행 공존) | 도메인별·성격별 템플릿. `template_id`, **origin** `'system'` \| `'user'`, **project_id** NULL / FK, **capability_id** FK→capabilities(영역), `character_key`, `name`, `weight_spec` JSONB, `min_safety_stability_pct`, `created_at`. |
-| **project_settings**         | 프로젝트                      | **적용만:** `settings_data.current_coil_template_id` UUID → balance_coil_templates.template_id. 시스템 또는 본 프로젝트가 만든 템플릿 중 하나를 선택해 적용.                                                                         |
+| **balance_coil_definitions** | 비귀속(시스템+사용자 행 공존) | **코일 밸런서(Coil Balancer)** 가중치 항목 메타. 원천(Source)·도메인(Domain)·프로젝트(Project) 레이어에 따라 유기적으로 확장(6/12/24 + 프로젝트별 확장). `coil_id`, **origin** `'system'` \| `'user'`, **project_id** NULL(시스템) / FK(사용자), `tier`, `code`, `label`, `sort_order`, `status`. 시스템 행은 [문서 3] §1·§5 기준.               |
+| **balance_coil_templates**   | 비귀속(시스템+사용자 행 공존) | **코일 밸런서(Coil Balancer)** 도메인별·성격별 템플릿. 원천/도메인/프로젝트 레이어 확장 체계. `template_id`, **origin** `'system'` \| `'user'`, **project_id** NULL / FK, **capability_id** FK→capabilities(영역), `character_key`, `name`, `weight_spec` JSONB, `min_safety_stability_pct`, `created_at`. |
+| **project_settings**         | 프로젝트                      | **적용만:** `settings_data.current_coil_template_id` UUID → balance_coil_templates.template_id. **코일 밸런서** 템플릿 중 시스템 또는 본 프로젝트가 만든 것을 선택해 적용.                                                                         |
 
 **구분 규칙:** 출처 = **origin** + **project_id**(NULL = 시스템, NOT NULL = 해당 프로젝트 소유). 영역 = **capability_id**. [NEXA-CAPABILITY-01] 규칙에 따라 capability_id에 **와일드카드(`.*`)를 명시**하면 접두사 매칭이 적용되며(예: `nexa.platform.archive.*`), 해당 영역과 그 하위 전체에 템플릿을 한 번에 적용할 수 있다. 오케스트레이터는 현재 프로젝트의 project_settings.current_coil_template_id로 템플릿을 조회해 GOVERN·RAG에 반영.
 
@@ -242,7 +242,21 @@ JSONB·pgvector 기반 테이블은 스키마 유연성과 확장성을 보장�
 
 ### 2.5 데이터 격리 및 보안
 
-프로젝트 귀속 테이블은 `project_id`를 외래키로 가지며, Postgres RLS 정책으로 프로젝트 멤버가 아닌 사용자의 접근을 차단한다. `project_secrets`(No.27)는 RLS에 더해 **자격 증명을 암호문만 저장**한다. 저장 컬럼(`encrypted_value`)은 **BYTEA**로 두며 평문 TEXT 저장을 금지하고, **애플리케이션 레벨**에서는 AES-256-GCM 등으로 암호화한 뒤 DB에 전달하고, **DB 레벨**에서는 pgcrypto 확장(예: `pgp_sym_encrypt`/`pgp_sym_decrypt`)으로 특정 컬럼을 한 번 더 보호할 수 있다. 복호화는 서버 애플리케이션(및 필요 시 pgcrypto 키를 세션으로 주입한 뒤)만 수행하여, 관리자 DB 직접 조회 시에도 평문이 노출되지 않도록 한다.
+프로젝트 귀속 테이블은 `project_id`를 외래키로 가지며, Postgres RLS 정책으로 프로젝트 멤버가 아닌 사용자의 접근을 차단한다.
+
+#### 2.5.1 project_id 개념적 확장: 글로벌 그림자 프로젝트(Shadow Project) ID 계약
+
+넥슈(NEXU)가 **프로젝트 외부**에서 활동할 때(가이드 모드, 비회원 임시 체험, 회원의 프로젝트 아닌 일상·도우미 활동)에도 `project_logs`·`project_knowledge` 등은 `project_id NOT NULL` 제약을 유지해야 하므로, **effective_project_id** 개념에 따라 물리적으로는 기존 **`project_id`** 컬럼에만 저장한다. 이때 사용하는 값은 **글로벌 그림자 프로젝트(Shadow Project)**로 미리 예약한 고정 UUID다. 플랫폼은 아래와 같은 예약 UUID를 그림자 프로젝트로 등록하여, 넥슈의 모든 활동이 동일한 Traceability(추적성) 체계 안에 쌓이도록 한다.
+
+| 예약 용도 | 설명 | 비고 |
+|-----------|------|------|
+| **GLOBAL_GUIDE** | 플랫폼 가이드·도우미(프로젝트 아닌 도우미) 활동 | `projects`에 해당 project_id 행을 미리 생성해 두거나, 시드 데이터로 등록 |
+| **TRIAL_USER** | 비회원(임시 체험) 넥슈 활동 | 동일 |
+| **DAILY_HELPER** | 회원의 프로젝트 아닌 일상 활동(홈·탐색·설정 등) | 동일 |
+
+구현 시 `extra_data` 또는 `metadata`(JSONB)에 `scope_type`('IN_PROJECT' | 'GLOBAL') 및 필요 시 `scope_subtype`('TRIAL' | 'DAILY' | 'HELPER')을 저장하여, 실제 프로젝트 컨텍스트와 그림자 프로젝트 구간을 구분한다. [NEXU-SCHEMA] 넥슈 데이터 스키마 참조.
+
+`project_secrets`(No.27)는 RLS에 더해 **자격 증명을 암호문만 저장**한다. 저장 컬럼(`encrypted_value`)은 **BYTEA**로 두며 평문 TEXT 저장을 금지하고, **애플리케이션 레벨**에서는 AES-256-GCM 등으로 암호화한 뒤 DB에 전달하고, **DB 레벨**에서는 pgcrypto 확장(예: `pgp_sym_encrypt`/`pgp_sym_decrypt`)으로 특정 컬럼을 한 번 더 보호할 수 있다. 복호화는 서버 애플리케이션(및 필요 시 pgcrypto 키를 세션으로 주입한 뒤)만 수행하여, 관리자 DB 직접 조회 시에도 평문이 노출되지 않도록 한다.
 
 ### 2.6 플랫폼 전역 감사·마켓플레이스·지원
 
@@ -265,28 +279,28 @@ JSONB·pgvector 기반 테이블은 스키마 유연성과 확장성을 보장�
 | **사용자 존재(Presence)**              | 실시간 협업 시 "지금 누가 이 폴더/노드를 보고 있는가" DB 저장이 없음.                                                                                | **project_user_presence**(No.30): UNLOGGED. project_id·user_id·resource_type('folder'/'node')·resource_id·activity('viewing'/'editing')·last_active. 하트비트 갱신 후 주기 삭제로 UI 협업 가시성 제공.                                                                                                                                                                                                                                                                              |
 | **BOM·실물 재고 연동**                 | 설계(BOM)에 필요한 부품과 재고(물리 위치)의 연결 고리 부재 시 동일 부품 판별 불가.                                                                   | **project_parts_bom**: **AI 시맨틱 브릿지**—웹 서치·기획 문서와 규격 템플릿 간 시맨틱 매핑 저장소. **spec_id**: AI가 샌드박스에서 재고와 설계를 대조해 할당하는 동적 필드(실물 참조). part_model_id=무엇이 필요한가, spec_id=어느 실물을 쓸 것인가. 설계-재고-출고 자동화.                                                                                                                                                                                                          |
 | **RAG·시맨틱 검색 벡터 인덱스**        | 대규모 지식/태그 검색 시 풀 스캔 방지 및 RAG 응답 속도 확보.                                                                                         | **거리**: 시맨틱/RAG 특성상 **코사인 유사도**(`vector_cosine_ops`) 사용. **HNSW 디폴트**: project_knowledge.embedding, project_tags.tag_vector, global_knowledge_base.embedding, global_tags.tag_vector, support_faq.faq_vector. **IVFFlat**: 사용자·오케스트레이션 선택 시 대안(대량 삽입 후 검색 위주·메모리 제약). DDL-01 §「pgvector 인덱스 및 성능 최적화 가이드」에 스크립트·ef_search 안내.                                                                                  |
-| **HEXAGON(5W1H) 완전 분리·extra_data** | DB 레벨에서 90% 데이터 즉시 필터 목표. 5W1H를 **SMALLINT 6컬럼**으로 완전 분리. 나머지 상세는 **extra_data JSONB**.                                  | **project_logs**: 5W1H SMALLINT, summary, why_chain JSONB, embedding, extra_data. **project_knowledge**: nature_tag, 5W1H SMALLINT, content_fact, raw_content, ref_ids, metadata, extra_data. 토큰→정수 매핑은 앱/명세 유지. DDL-01 복합 인덱스 포함. **토큰·벡터 모델 고정**: 5W1H 매핑과 임베딩 생성 모델은 반드시 고정. 모델 변경 시 기존 데이터 해독·유사도 비교 불가. 기본 채택 임베딩: Ollama **nomic-embed-text**(AI 오케스트레이터). VECTOR 차원은 채택 모델과 일치해야 함. |
+| **HEXAGON(5W1H) 완전 분리·extra_data** | DB 레벨에서 90% 데이터 즉시 필터 목표. 5W1H를 **SMALLINT 6컬럼**으로 완전 분리. 나머지 상세는 **extra_data JSONB**. **how_state**: VOID 값은 단순 '없음'이 아니라 **영감 모드(자아 파노라마)** 진입 트리거로 해석.                                  | **project_logs**: 5W1H SMALLINT, summary, **why_chain** JSONB(인과 사슬: `inputs` 신호 ref_id, `reasoning` 로직/판단 근거, `effects` 액션·표정·UCL 후보), embedding, extra_data. **project_knowledge**: nature_tag, 5W1H SMALLINT, content_fact, raw_content, **ref_ids** JSONB(`source_log_ids[]`, `source_multimodal_ref_ids[]` 등 참조 키 배열), metadata, extra_data. 토큰→정수 매핑은 앱/명세 유지. DDL-01 복합 인덱스·COMMENT 참조. **토큰·벡터 모델 고정**: 5W1H 매핑과 임베딩 생성 모델은 반드시 고정. 기본 채택 임베딩: Ollama **nomic-embed-text**(AI 오케스트레이터). VECTOR 차원은 채택 모델과 일치해야 함. |
 
 ### 2.8 데이터 신뢰도 점수(Confidence Score) 및 활용
 
-**신뢰도 점수(Confidence Score / Fit Score)**는 NEXA가 단순히 \"비슷한 데이터\"를 찾는 것을 넘어, **\"얼마나 믿을 수 있는가\"**까지 판단하기 위한 상위 레이어 지표이다. 헥사곤 프로토콜의 **Who(Pulse)** 레이어(TICK/ECHO/WILL/ASK) 및 코일과 함께 해석된다.
+**신뢰도 점수(Confidence Score / Fit Score)**는 NEXA가 단순히 \"비슷한 데이터\"를 찾는 것을 넘어, **\"얼마나 믿을 수 있는가\"**까지 판단하기 위한 상위 레이어 지표이다. 헥사곤 프로토콜의 **Who(Pulse)** 레이어(TICK/ECHO/WILL/ASK) 및 **코일 밸런서(Coil Balancer)**와 함께 해석된다.
 
 - **저장 위치 요약**
 
-  - **project_logs (현재/이력 레이어)**: `confidence_score`(SMALLINT). 디바이스(TICK), AI(ECHO), 사용자(WILL), 시스템(ASK)이 남긴 로그의 **확신도**. TimescaleDB 하이퍼테이블에서 Stability·Creative 코일 임계치와 함께 필터링에 사용.
-  - **project_knowledge (과거/지식 레이어)**: `confidence_score`(SMALLINT). 아톰(Atom)화된 지식의 **검증 수준**으로, RAG 검색 시 유사도와 함께 정렬·필터 가중치로 사용.
+  - **project_logs (현재/이력 레이어)**: `confidence_score`(SMALLINT). 디바이스(TICK), AI(ECHO), 사용자(WILL), 시스템(ASK)이 남긴 로그의 **확신도**. 넥슈(NEXU) SLM 감정 엔진과 연동되어, **95% 미만일 때** 넥슈의 Jitter(미세 떨림) 연출 또는 ASK(승인 대기) 토큰 발생의 근거로 사용. TimescaleDB 하이퍼테이블에서 코일 밸런서(Stability·Creative 등) 임계치와 함께 필터링에 사용.
+  - **project_knowledge (과거/지식 레이어)**: `confidence_score`(SMALLINT). 아톰(Atom)화된 지식의 **검증 수준**으로, RAG 검색 시 유사도와 함께 정렬·필터 가중치로 사용. 넥슈 연동 시 동일하게 95% 미만 구간에서 불확실성 표현·ASK 유도에 활용 가능.
   - **capability_proposals (비귀속)**: `fit_score`(0~100). AI가 추천한 기능 자격과 사용자 의도 간 **부합도**로, 이미 스키마에 정의된 핵심 신뢰 지표.
   - **project_orchestra**: `skill_threshold`(JSONB). 에이전트가 각 스킬을 **자율 실행하기 위한 최소 신뢰도 임계값**(예: `{ \"tool_x\": 80 }`)을 정의한다.
 
 - **부여 주체(Pulse)별 로직 (개념)**
 
   - **TICK (센티널/디바이스)**: 센서 SNR, 임계치 근접도, TinyML 패턴 매칭 확률값으로 산출.
-  - **ECHO (인디케이터/순수 AI)**: LLM 추론 Logprobs, 코일 밸런스와의 논리적 부합도 등으로 결정.
+  - **ECHO (인디케이터/순수 AI)**: LLM 추론 Logprobs, 코일 밸런서(Coil Balancer)와의 논리적 부합도 등으로 결정.
   - **WILL (사용자)**: Tier·Capability ID에 따른 권위와 명시적 승인 여부. 직접 승인 시 100점.
   - **ASK (협력)**: AI 제안(ECHO)에 대한 과거 수락/거절 이력 통계.
 
 - **활용 방향**
-  - **지능형 가드레일**: `project_logs.confidence_score`가 Stability 코일 임계치보다 낮으면 즉시 실행 대신 ASK(승인 대기)로 전환.
+  - **지능형 가드레일**: `project_logs.confidence_score`가 코일 밸런서(Coil Balancer)의 Stability 임계치보다 낮으면 즉시 실행 대신 ASK(승인 대기)로 전환. 넥슈 SLM 확신도 95% 미만 시에도 동일 정책 적용.
   - **RAG 최적화**: `project_knowledge` 벡터 검색 결과 중 `confidence_score`가 낮은 것은 순위에서 뒤로 밀어, AI가 가장 검증된 정보 위주로 추론.
   - **UI 연동**: Nixie/캔버스 UI에서는 이 점수를 밝기·노이즈 등으로 표현해, 시스템의 확신 정도를 직관적으로 전달.
 
@@ -322,12 +336,12 @@ JSONB·pgvector 기반 테이블은 스키마 유연성과 확장성을 보장�
   - **UCL(Unified Composition Language)**: 사람이 쓴 시방서를 AI가 해석하여 `project_orchestra`에 **UCL 포맷의 실행 스크립트**로 박제한다.
   - 컨트롤러(Panel)는 이 **orchestra_id**(또는 task_sequence 참조)를 호출하여 **정해진 순서대로** 기기를 구동한다.
 
-#### 2.9.3 5W1H 및 코일 기반의 판단 근거 보존
+#### 2.9.3 5W1H 및 코일 밸런서 기반의 판단 근거 보존
 
 - 사용자가 패널의 **실행 버튼**을 누르는 행위는 **Who-WILL(인간의 의지)** 로 기록되며, 시스템은 시방서에 정의된 **What-RULE(질서)** 와 대조한다.
 - **project_logs (실행 이력)**
-  - 컨트롤러 조작 시 발생한 로그는 **why_causality**에 **GOVERN(운영 규범)** 태그를 달고, **why_chain** JSONB에 "시방서 ID(Asset-ID)의 규칙에 따라 실행됨"을 명시한다.
-  - 이때 **코일**(Safety, Stability 등) 가중치가 시방서의 안전 기준을 넘지 않는지 **실시간 필터링**한다. [문서 3] 코일·GOVERN 및 balance_coil_templates와 연동.
+  - 컨트롤러 조작 시 발생한 로그는 **why_causality**에 **GOVERN(운영 규범)** 태그를 달고, **why_chain** JSONB에 "시방서 ID(Asset-ID)의 규칙에 따라 실행됨"을 명시한다. **why_chain** 구조: 인과 사슬로서 `inputs`(신호 ref_id), `reasoning`(로직/판단 근거), `effects`(액션·표정·UCL 후보) 노드로 구성. [NEXU-SCHEMA] 넥슈 데이터 스키마 참조.
+  - 이때 **코일 밸런서(Coil Balancer)**(Safety, Stability 등) 가중치가 시방서의 안전 기준을 넘지 않는지 **실시간 필터링**한다. [문서 3] GOVERN 및 balance_coil_templates와 연동.
 
 #### 2.9.4 스키마 보강 제안 (DDL 반영 포인트)
 

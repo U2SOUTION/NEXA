@@ -36,6 +36,9 @@ END $$;
 
 ```sql
 -- 1. 프로젝트 최상위 정보
+-- 글로벌 그림자 프로젝트(Shadow Project): 넥슈가 프로젝트 외부(가이드·비회원 체험·일상 도우미) 활동 시
+-- effective_project_id는 물리적으로 project_id 컬럼에 저장. GLOBAL_GUIDE, TRIAL_USER, DAILY_HELPER 등
+-- 예약 UUID를 projects에 미리 등록하여 동일 Traceability 체계 유지. [NEXA-DDL-00] §2.5.1, [NEXU-SCHEMA].
 CREATE TABLE projects (
     project_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     owner_id UUID NOT NULL,
@@ -124,13 +127,13 @@ CREATE TABLE project_logs (
     when_tempo SMALLINT,          -- When: MOMENT, DURATION, ERA 등 시간적 맥락
     who_pulse SMALLINT,           -- Who: WILL, ECHO, TICK, ASK 등 동력원
     what_intent SMALLINT,         -- What: FACT, LINK, RULE 등 데이터 성격
-    how_state SMALLINT,           -- How: FLOW, STUCK, VOID 등 동태적 상태
-    why_causality SMALLINT,       -- Why: 6코일 필터 거친 판단 카테고리
+    how_state SMALLINT,           -- How: FLOW, STUCK, VOID 등. VOID=잠재/비가시적 여백→영감 모드(자아 파노라마) 진입 트리거로 해석
+    why_causality SMALLINT,       -- Why: 코일 밸런서(Coil Balancer) 필터 거친 판단 카테고리
     -- 지능형 서사
     summary TEXT,                 -- Indicator Insight: TTS용 부드러운 조언 문장
-    why_chain JSONB,              -- 6코일 가중치 및 판단 인과관계 사슬
+    why_chain JSONB,              -- 지능적 족보: 인과 사슬. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·UCL 후보) 노드 구성. [NEXU-SCHEMA]
     -- 신뢰도 (Confidence Score)
-    confidence_score SMALLINT,    -- 0~100. TICK/ECHO/WILL/ASK 주체별 확신도. [데이터 신뢰도 초안 §1]
+    confidence_score SMALLINT,    -- 0~100. TICK/ECHO/WILL/ASK 주체별 확신도. 넥슈 SLM 감정 엔진 연동: 95% 미만 시 Jitter 연출·ASK(승인 대기) 토큰 근거. [데이터 신뢰도 초안 §1]
     -- 물리/보안
     is_time_synced BOOLEAN,       -- 로그 시점 NTP 동기화 여부 (신뢰도 검증)
     last_sync_at TIMESTAMPTZ,     -- 발신측 마지막 NTP 동기화 시각
@@ -140,6 +143,8 @@ CREATE TABLE project_logs (
     PRIMARY KEY (log_id, created_at)
 );
 SELECT create_hypertable('project_logs', 'created_at');
+COMMENT ON COLUMN project_logs.why_chain IS '지능적 족보(Why Chain): 인과 사슬 JSONB. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·UCL 후보) 노드 구성. 인디케이터가 일관된 추론 근거를 남기도록 [NEXU-SCHEMA] 규격 준수.';
+COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비가시적 여백. 단순 없음이 아니라 영감 모드(자아 파노라마) 진입 트리거로 시스템이 인식.';
 
 -- 8. 자원 버전 이력 (Commit)
 CREATE TABLE project_resource_versions (
@@ -245,7 +250,7 @@ CREATE TABLE project_knowledge (
     when_tempo SMALLINT,          -- When: MOMENT, DURATION, ERA
     who_pulse SMALLINT,           -- Who: WILL, ECHO, TICK, ASK 등
     what_intent SMALLINT,         -- What: FACT, LINK, RULE
-    how_state SMALLINT,           -- How: FLOW, STUCK, VOID
+    how_state SMALLINT,           -- How: FLOW, STUCK, VOID. VOID=영감 모드(자아 파노라마) 트리거
     why_causality SMALLINT,       -- Why: 인과·판단 카테고리
     -- RAG 핵심
     content_fact TEXT,            -- Sentinel Fact: AI가 즉시 소화할 담백한 요약 문장
@@ -253,11 +258,12 @@ CREATE TABLE project_knowledge (
     embedding VECTOR(1536),       -- nullable. 코사인 유사도 기반 의미론적 검색
     vector_search_status SMALLINT DEFAULT 1,  -- 1=검색가능, 0=제외. 확장 가능
     -- 인과·메타
-    ref_ids JSONB,                -- Traceability: SNT-IND-EFF 참조 ID 사슬
-    metadata JSONB,               -- 출처 URL, 생성 모델, 6코일 가중치 등
-    confidence_score SMALLINT,    -- 0~100. 아톰화된 지식의 검증 수준. RAG 시 가중치·필터에 활용. [데이터 신뢰도 초안 §1]
+    ref_ids JSONB,                -- Traceability: source_log_ids[], source_multimodal_ref_ids[] 등 참조 키 배열. SNT-IND-EFF. [NEXU-SCHEMA]
+    metadata JSONB,               -- 출처 URL, 생성 모델, 코일 밸런서(Coil Balancer) 가중치 등
+    confidence_score SMALLINT,    -- 0~100. 아톰화된 지식의 검증 수준. 넥슈 연동 시 95% 미만 구간에서 불확실성·ASK 유도. RAG 시 가중치·필터. [데이터 신뢰도 초안 §1]
     extra_data JSONB              -- 그 외 비정형 상세 (유연성)
 );
+COMMENT ON COLUMN project_knowledge.ref_ids IS 'Traceability 참조 키 집합. source_log_ids[], source_multimodal_ref_ids[] 등 배열 형태. 인과 역추적·RAG 근거 가중치용. [NEXU-SCHEMA].';
 
 ```
 
@@ -1024,7 +1030,7 @@ CREATE TABLE balance_coil_templates (
     CONSTRAINT chk_balance_coil_tpl_origin_project
         CHECK ((origin = 'system' AND project_id IS NULL) OR (origin = 'user' AND project_id IS NOT NULL))
 );
-COMMENT ON COLUMN balance_coil_templates.weight_spec IS '가중치 정의. 코일 code → 비율(0~100) 객체. 예: {"safety": 45, "stability": 45, "efficiency": 5, "autonomy": 2, "harmony": 2, "creative": 1}. 합=100 검증은 앱/트리거.';
+COMMENT ON COLUMN balance_coil_templates.weight_spec IS '코일 밸런서(Coil Balancer) 가중치 정의. 원천/도메인/프로젝트 레이어 확장 체계. code → 비율(0~100) 객체. 예: {"safety": 45, "stability": 45, "efficiency": 5, "autonomy": 2, "harmony": 2, "creative": 1}. 합=100 검증은 앱/트리거.';
 COMMENT ON COLUMN balance_coil_templates.capability_id IS '[NEXA-CAPABILITY-01] 와일드카드(예: nexa.platform.archive.*) 저장 가능. 접두사 매칭으로 넓은 영역에 템플릿 적용.';
 CREATE INDEX idx_balance_coil_templates_origin_project ON balance_coil_templates(origin, project_id);
 CREATE INDEX idx_balance_coil_templates_capability ON balance_coil_templates(capability_id);
