@@ -271,11 +271,21 @@ export function getDefaultMermaidCss(): string {
 .mermaid-block svg .node circle,
 .mermaid-block svg .node ellipse,
 .mermaid-block svg .node polygon,
-.mermaid-block svg .cluster rect,
 .mermaid-block svg .flowchart-label .nodeLabel rect,
 .mermaid-block svg .classGroup rect,
 .mermaid-block svg .classBox rect {
   fill: ${styles.node.bg} !important;
+  stroke: ${styles.node.border} !important;
+  stroke-width: ${styles.node.borderWidth}px !important;
+}
+
+/* ============================================
+   Flowchart subgraph(cluster) 스타일
+   subgraph 배경은 투명 유지
+   ============================================ */
+.mermaid-block svg .cluster rect {
+  fill: transparent !important;
+  fill-opacity: 0 !important;
   stroke: ${styles.node.border} !important;
   stroke-width: ${styles.node.borderWidth}px !important;
 }

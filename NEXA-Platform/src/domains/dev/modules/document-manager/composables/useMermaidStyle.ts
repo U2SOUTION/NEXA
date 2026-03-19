@@ -175,7 +175,6 @@ export function useMermaidStyle(filePath: Ref<string> | string) {
 .mermaid-block svg .node circle,
 .mermaid-block svg .node ellipse,
 .mermaid-block svg .node polygon,
-.mermaid-block svg .cluster rect,
 .mermaid-block svg .flowchart-label .nodeLabel rect,
 .mermaid-block svg .classGroup rect,
 .mermaid-block svg .classBox rect {
@@ -183,6 +182,17 @@ export function useMermaidStyle(filePath: Ref<string> | string) {
   stroke: ${nodeBorder.value} !important;
   stroke-width: ${nodeBorderWidth.value}px !important;
   ${shadowFilter}
+}
+
+/* ============================================
+   Flowchart subgraph(cluster) 스타일
+   subgraph 배경은 투명 유지
+   ============================================ */
+.mermaid-block svg .cluster rect {
+  fill: transparent !important;
+  fill-opacity: 0 !important;
+  stroke: ${nodeBorder.value} !important;
+  stroke-width: ${nodeBorderWidth.value}px !important;
 }
 
 /* ============================================
