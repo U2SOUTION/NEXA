@@ -145,12 +145,63 @@ CREATE TABLE project_logs (
 );
 SELECT create_hypertable('project_logs', 'created_at');
 COMMENT ON COLUMN project_logs.why_chain IS '지능적 족보(Why Chain): 인과 사슬 JSONB. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·UCL 후보) 노드 구성. 인디케이터가 일관된 추론 근거를 남기도록 [NEXU-SCHEMA] 규격 준수.';
-COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비가시적 여백. how_state=3(VOID)은 유지하고, extra_data->>''void_stage''로 POTENTIAL/ARCHIVE/PURGE 세분화한다. (전이/보존 정책: [NEXA-UCL-04])';
+COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비가시적 여백. how_state=3(VOID)은 유지하고, extra_data->>''void_stage''로 POTENTIAL/ARCHIVE/PURGE 세분화한다. 또한 stage 기준 시각은 extra_data->>''void_stage_started_at''(timestamptz ISO 문자열)을 사용한다(없으면 created_at). (전이/보존 정책: [NEXA-UCL-04])';
 
 -- [NEXA-UCL-04] VOID 전이 임계치(프로젝트 로그 기반 상태 전환/보존/삭제)
 -- - Sentinel(TICK): FLOW→STUCK(30초 무갱신) → STUCK→VOID.POTENTIAL(5분 지속) → VOID.POTENTIAL→VOID.ARCHIVE(24시간 경과) → VOID.ARCHIVE→VOID.PURGE(30일, why_chain.inputs/Ref ID가 없을 때)
 -- - Indicator(ECHO/WILL): FLOW→STUCK(1시간 무응답) → STUCK→VOID.POTENTIAL(세션 명시 종료 즉시 또는 24시간) → VOID.POTENTIAL→VOID.ARCHIVE(90일) → VOID.ARCHIVE→VOID.PURGE(365일)
 -- - Shadow Project(TRIAL): VOID.ARCHIVE 생략, STUCK/VOID.POTENTIAL 이후 7일 경과 시 VOID.PURGE 이행 가능(휘발성 강화)
+
+-- VOID 스케줄러(권장 구현 예시)
+-- 공통 규칙:
+-- - project_logs에 how_state=3(VOID)로 생성/전이될 때 extra_data->>'void_stage'와 extra_data->>'void_stage_started_at'을 반드시 세팅한다.
+-- - 저장(보존): void_stage가 POTENTIAL/ARCHIVE인 동안 해당 행은 유지한다.
+-- - 배치 전환(UPDATE): POTENTIAL->ARCHIVE는 기존 행을 UPDATE하여 stage_started_at만 갱신한다(새 row insert 금지).
+-- - 삭제(PURGE/DELETE): ARCHIVE 이후 purge 조건이 만족되면 해당 row는 project_logs에서 DELETE(soft 아님)한다.
+-- - TICK/ECHO/WILL/ASK는 who_pulse SMALLINT로 구분하며, 문서 표준은 WILL=1, ECHO=2, TICK=3, ASK=4이다.
+-- - stage started_at은 POTENTIAL/ARCHIVE 전환 시점마다 갱신된다.
+-- - 아래 SQL은 “문서 규격”을 코드로 옮기기 위한 예시이며, 운영에서는 pg_cron 또는 애플리케이션 스케줄러로 주기 실행한다.
+--
+-- 1) POTENTIAL -> ARCHIVE 승격
+--   - Sentinel(TICK): POTENTIAL 시작 후 24시간 경과 => ARCHIVE
+--   - Indicator(ECHO/WILL): POTENTIAL 시작 후 90일 경과 => ARCHIVE
+--   (전환 시 how_state는 그대로 3(VOID) 유지하고 extra_data만 갱신)
+-- 2) ARCHIVE -> PURGE 삭제
+--   - Sentinel(TICK): ARCHIVE 시작 후 30일 경과 AND why_chain.inputs가 비어있을 때 => 삭제
+--   - Indicator(ECHO/WILL): ARCHIVE 시작 후 365일 경과 => 삭제
+-- 3) Shadow Project(TRIAL) 조기 PURGE
+--   - extra_data->>'scope_subtype'='TRIAL' 인 경우: POTENTIAL/ARCHIVE 시작 후 7일 경과 => 삭제
+
+-- (예시 SQL; 배치 권한 보안을 위해 직접 실행은 시스템 계정에서만 수행)
+-- UPDATE project_logs
+-- SET extra_data = jsonb_set(extra_data, '{void_stage}', '"ARCHIVE"', true),
+--                 extra_data = jsonb_set(extra_data, '{void_stage_started_at}', to_jsonb(now()), true)
+-- WHERE how_state = 3
+--   AND extra_data->>'void_stage' IN ('POTENTIAL')
+--   AND (
+--     (who_pulse = 3 AND now() - COALESCE((extra_data->>'void_stage_started_at')::timestamptz, created_at) >= interval '24 hours')
+--     OR
+--     (who_pulse IN (1,2) AND now() - COALESCE((extra_data->>'void_stage_started_at')::timestamptz, created_at) >= interval '90 days')
+--   );
+--
+-- DELETE FROM project_logs
+-- WHERE how_state = 3
+--   AND extra_data->>'void_stage' = 'ARCHIVE'
+--   AND (
+--     -- Sentinel: 30일 + ref(inputs) 없음
+--     (who_pulse = 3
+--      AND now() - COALESCE((extra_data->>'void_stage_started_at')::timestamptz, created_at) >= interval '30 days'
+--      AND COALESCE(jsonb_array_length(why_chain->'inputs'), 0) = 0)
+--     OR
+--     -- Indicator: 365일
+--     (who_pulse IN (1,2)
+--      AND now() - COALESCE((extra_data->>'void_stage_started_at')::timestamptz, created_at) >= interval '365 days')
+--   );
+--
+-- DELETE FROM project_logs
+-- WHERE how_state = 3
+--   AND extra_data->>'scope_subtype' = 'TRIAL'
+--   AND now() - COALESCE((extra_data->>'void_stage_started_at')::timestamptz, created_at) >= interval '7 days';
 
 -- 8. 자원 버전 이력 (Commit)
 CREATE TABLE project_resource_versions (
@@ -481,6 +532,11 @@ CREATE INDEX idx_project_tags_project_id ON project_tags(project_id);
 CREATE INDEX idx_project_logs_project_id ON project_logs(project_id);
 -- HEXAGON(5W1H) SMALLINT 필터: DB 레벨 90% 필터링 후 추론 (감사·유사 이력 검색)
 CREATE INDEX idx_project_logs_hexagon ON project_logs(project_id, where_scope, when_tempo) WHERE where_scope IS NOT NULL;
+-- VOID 전이(보존/삭제) 스케줄러 최적화: how_state=VOID(3)에서 stage 문자열로 부분 필터링
+CREATE INDEX idx_project_logs_void_stage ON project_logs((extra_data->>'void_stage')) WHERE how_state = 3;
+-- VOID stage 시작 시각(권장) 기반의 기간 쿼리 최적화(값이 있는 행만)
+CREATE INDEX idx_project_logs_void_stage_started_at ON project_logs(((extra_data->>'void_stage_started_at')::timestamptz))
+  WHERE how_state = 3 AND extra_data ? 'void_stage_started_at';
 CREATE INDEX idx_project_resource_versions_project_id ON project_resource_versions(project_id);
 CREATE INDEX idx_project_folders_project_id ON project_folders(project_id);
 CREATE INDEX idx_project_links_project_id ON project_links(project_id);

@@ -283,7 +283,10 @@ JSONB·pgvector 기반 테이블은 스키마 유연성과 확장성을 보장�
 
 #### VOID 전이 임계치 및 보존 정책 (UCL-04 확정 수치)
 
-아래 임계치는 `project_logs`에 기록되는 상태 전환 이벤트의 기준 시각(`created_at`)을 사용해 스케줄러가 계산하며, `how_state=VOID(3)`일 때 `extra_data.void_stage`로 POTENTIAL/ARCHIVE/PURGE를 세분화한다.
+아래 임계치는 `project_logs`에 기록되는 상태 전환 이벤트의 기준 시각을 사용해 스케줄러가 계산하며, `how_state=VOID(3)`일 때 `extra_data.void_stage`로 POTENTIAL/ARCHIVE/PURGE를 세분화한다.
+
+- 기준 시각: `extra_data.void_stage_started_at`(권장, `timestamptz` ISO 문자열). 값이 없으면 레거시 호환을 위해 `created_at`을 대신 사용한다.
+- 전제: `how_state=VOID(3)`로 로그가 생성/전이될 때 `extra_data.void_stage`와 `extra_data.void_stage_started_at`을 함께 세팅한다.
 
 Sentinel Fact Chains(TICK)
 - FLOW → STUCK: 30초 무갱신
@@ -299,6 +302,28 @@ Indicator Narrative Chains(ECHO/WILL)
 
 Shadow Project 특례 (TRIAL_USER)
 - `VOID.ARCHIVE` 단계를 생략하고, STUCK/VOID.POTENTIAL 이후 `7일` 경과 시 `VOID.PURGE` 가능(휘발성 강화)
+
+#### VOID 전이 스케줄러(배치) 규격
+VOID 단계는 `project_logs`에 남는 이벤트를 기반으로, 아래 3개 배치 작업으로 구현한다.
+
+확정 규격(저장/전환/삭제):
+- 저장(보존): `how_state=VOID(3)`에서 `extra_data.void_stage`가 `POTENTIAL` 또는 `ARCHIVE`인 동안에는 **해당 행(row)을 유지**한다.
+- 배치 전환(UPDATE): 승격은 **새 행을 INSERT하지 않고**, 기존 행에서 `extra_data.void_stage`와 `extra_data.void_stage_started_at`만 갱신한다(UPDATE).
+- 삭제(PURGE/DELETE): PURGE는 **물리 삭제(Hard Delete)**로 구현한다. 즉, 삭제 조건이 만족되면 `project_logs`에서 해당 행을 **DELETE** 한다(soft delete 아님).
+
+1. `POTENTIAL -> ARCHIVE` 승격(UPDATE)
+   - Sentinel(TICK, `who_pulse=3`): `POTENTIAL 시작 후 24시간` 경과 시 `extra_data.void_stage='ARCHIVE'`로 갱신
+   - Indicator(ECHO/WILL, `who_pulse in (1,2)`): `POTENTIAL 시작 후 90일` 경과 시 `extra_data.void_stage='ARCHIVE'`로 갱신
+   - 전환 시 `extra_data.void_stage_started_at=now()`로 재세팅
+
+2. `ARCHIVE -> PURGE` 정리(DELETE)
+   - Sentinel(TICK, `who_pulse=3`): `ARCHIVE 시작 후 30일` 경과 + `why_chain.inputs`가 비어있을 때 삭제
+   - Indicator(ECHO/WILL, `who_pulse in (1,2)`): `ARCHIVE 시작 후 365일` 경과 시 삭제
+
+3. Shadow Project(TRIAL) 조기 PURGE(DELETE)
+   - `extra_data.scope_subtype='TRIAL'`인 로그에 대해, `POTENTIAL/ARCHIVE 시작 후 7일` 경과 시 삭제
+
+운영 주기(권장): 가장 짧은 승격/삭제 경계가 `30일/365일/90일`처럼 크므로, 배치 주기는 `5~15분` 단위로도 충분하다. (단, stage started_at 세팅은 로그 생성/전이 이벤트 시점에 동기화되어야 한다.)
 
 ### 2.8 데이터 신뢰도 점수(Confidence Score) 및 활용
 
