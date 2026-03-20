@@ -68,6 +68,7 @@ CREATE TABLE project_settings (
     precision_level SMALLINT DEFAULT 1,    -- 0=엄밀(기계), 1=균형(스마트팜), 2=느슨(아트)
     batch_policy JSONB,                   -- 배칭 규칙: max_batch_size, flush_ms, 우선순위 등
     retention_period_days INTEGER,        -- 로그·캐시 보관 일수
+    user_defined_threshold SMALLINT DEFAULT 95, -- [NEXA-UCL-01] Autonomy Threshold(확신도 실행 게이트). 기본 95, UI에서 ±15% 범위 조정
     settings_data JSONB,                  -- 그 외 확장 설정 (dna 세부, quantization_rules 등)
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -127,13 +128,13 @@ CREATE TABLE project_logs (
     when_tempo SMALLINT,          -- When: MOMENT, DURATION, ERA 등 시간적 맥락
     who_pulse SMALLINT,           -- Who: WILL, ECHO, TICK, ASK 등 동력원
     what_intent SMALLINT,         -- What: FACT, LINK, RULE 등 데이터 성격
-    how_state SMALLINT,           -- How: FLOW, STUCK, VOID 등. VOID=잠재/비가시적 여백→영감 모드(자아 파노라마) 진입 트리거로 해석
+    how_state SMALLINT,           -- How: FLOW(1), STUCK(2), VOID(3). VOID(3) 세분화는 extra_data->>'void_stage'로 POTENTIAL/ARCHIVE/PURGE 구분
     why_causality SMALLINT,       -- Why: 코일 밸런서(Coil Balancer) 필터 거친 판단 카테고리
     -- 지능형 서사
     summary TEXT,                 -- Indicator Insight: TTS용 부드러운 조언 문장
     why_chain JSONB,              -- 지능적 족보: 인과 사슬. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·UCL 후보) 노드 구성. [NEXU-SCHEMA]
     -- 신뢰도 (Confidence Score)
-    confidence_score SMALLINT,    -- 0~100. TICK/ECHO/WILL/ASK 주체별 확신도. 넥슈 SLM 감정 엔진 연동: 95% 미만 시 Jitter 연출·ASK(승인 대기) 토큰 근거. [데이터 신뢰도 초안 §1]
+    confidence_score SMALLINT,    -- 0~100. TICK/ECHO/WILL/ASK 주체별 확신도. project_settings.user_defined_threshold 미만이면 Jitter 연출·ASK(승인 대기) 토큰 근거로 사용. [데이터 신뢰도 초안 §1]
     -- 물리/보안
     is_time_synced BOOLEAN,       -- 로그 시점 NTP 동기화 여부 (신뢰도 검증)
     last_sync_at TIMESTAMPTZ,     -- 발신측 마지막 NTP 동기화 시각
@@ -144,7 +145,12 @@ CREATE TABLE project_logs (
 );
 SELECT create_hypertable('project_logs', 'created_at');
 COMMENT ON COLUMN project_logs.why_chain IS '지능적 족보(Why Chain): 인과 사슬 JSONB. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·UCL 후보) 노드 구성. 인디케이터가 일관된 추론 근거를 남기도록 [NEXU-SCHEMA] 규격 준수.';
-COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비가시적 여백. 단순 없음이 아니라 영감 모드(자아 파노라마) 진입 트리거로 시스템이 인식.';
+COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비가시적 여백. how_state=3(VOID)은 유지하고, extra_data->>''void_stage''로 POTENTIAL/ARCHIVE/PURGE 세분화한다. (전이/보존 정책: [NEXA-UCL-04])';
+
+-- [NEXA-UCL-04] VOID 전이 임계치(프로젝트 로그 기반 상태 전환/보존/삭제)
+-- - Sentinel(TICK): FLOW→STUCK(30초 무갱신) → STUCK→VOID.POTENTIAL(5분 지속) → VOID.POTENTIAL→VOID.ARCHIVE(24시간 경과) → VOID.ARCHIVE→VOID.PURGE(30일, why_chain.inputs/Ref ID가 없을 때)
+-- - Indicator(ECHO/WILL): FLOW→STUCK(1시간 무응답) → STUCK→VOID.POTENTIAL(세션 명시 종료 즉시 또는 24시간) → VOID.POTENTIAL→VOID.ARCHIVE(90일) → VOID.ARCHIVE→VOID.PURGE(365일)
+-- - Shadow Project(TRIAL): VOID.ARCHIVE 생략, STUCK/VOID.POTENTIAL 이후 7일 경과 시 VOID.PURGE 이행 가능(휘발성 강화)
 
 -- 8. 자원 버전 이력 (Commit)
 CREATE TABLE project_resource_versions (
@@ -260,7 +266,7 @@ CREATE TABLE project_knowledge (
     -- 인과·메타
     ref_ids JSONB,                -- Traceability: source_log_ids[], source_multimodal_ref_ids[] 등 참조 키 배열. SNT-IND-EFF. [NEXU-SCHEMA]
     metadata JSONB,               -- 출처 URL, 생성 모델, 코일 밸런서(Coil Balancer) 가중치 등
-    confidence_score SMALLINT,    -- 0~100. 아톰화된 지식의 검증 수준. 넥슈 연동 시 95% 미만 구간에서 불확실성·ASK 유도. RAG 시 가중치·필터. [데이터 신뢰도 초안 §1]
+    confidence_score SMALLINT,    -- 0~100. 아톰화된 지식의 검증 수준. project_settings.user_defined_threshold 미만 구간에서 불확실성 표현/ASK 유도. RAG 시 가중치·필터. [데이터 신뢰도 초안 §1]
     extra_data JSONB              -- 그 외 비정형 상세 (유연성)
 );
 COMMENT ON COLUMN project_knowledge.ref_ids IS 'Traceability 참조 키 집합. source_log_ids[], source_multimodal_ref_ids[] 등 배열 형태. 인과 역추적·RAG 근거 가중치용. [NEXU-SCHEMA].';

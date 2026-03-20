@@ -51,7 +51,7 @@ Capability ID(기능 자격 ID)는 단순히 DB의 한 컬럼이 아니라 플�
 | --- | ------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
 | 1   | projects                  | 플랫폼 프로젝트 전역 | 최상위 프로젝트 식별 정보·도메인 분류. storage_id→storage_configs, storage_quota_bytes로 Quota 지정. current_storage_usage(BIGINT)로 사용량을 증분(Delta)만 갱신·MV로 주기 보정. **글로벌 그림자 프로젝트(Shadow Project)** 정책: 넥슈가 프로젝트 외부(가이드·비회원 체험·일상 도우미)에서 활동할 때 사용하는 effective_project_id는 물리적으로 기존 `project_id` 컬럼에 저장하며, GLOBAL_GUIDE·TRIAL_USER·DAILY_HELPER 등 특정 예약 UUID를 그림자 프로젝트로 두어 모든 넥슈 활동이 동일 Traceability 체계 내에 쌓이도록 한다. §2.5.1 참조.                                     | UUID v7, RLS         |
 | 2   | project_members           | /my (AUTH)           | 사용자별 접근 권한 및 공유 상태 관리                                                                                                                                                                                | RLS                  |
-| 3   | project_settings          | /settings            | 프로젝트별 전역 및 도메인별 설정 허브. settings_data에 **적용 중인** **코일 밸런서(Coil Balancer)** 템플릿 참조(current_coil_template_id)만 저장. 원천(Source)·도메인(Domain)·프로젝트(Project) 레이어에 따라 유기적으로 확장되는 밸런서 체계. §1.1.x 참조.                                                                              | JSONB                |
+| 3   | project_settings          | /settings            | 프로젝트별 전역 및 도메인별 설정 허브. settings_data에 **적용 중인** **코일 밸런서(Coil Balancer)** 템플릿 참조(current_coil_template_id)와 함께, Autonomy Threshold 실행 게이트 값 `user_defined_threshold`(기본 95, UI ±15% 조정)를 저장한다. 원천(Source)·도메인(Domain)·프로젝트(Project) 레이어에 따라 유기적으로 확장되는 밸런서 체계. §1.1.x 참조.                                                                              | JSONB                |
 | 4   | project_assets            | 프로젝트 전역자원    | 일반 문서, 코드, YAML 설정 파일 관리                                                                                                                                                                                | JSONB                |
 | 5   | project_media             | /nexa-media          | 이미지, 사운드, 영상 등 멀티모달 자원                                                                                                                                                                               | FFmpeg               |
 | 6   | project_tags              | 프로젝트 전역검색    | 탐색 필터링을 위한 시맨틱 태그 정보                                                                                                                                                                                 | pgvector             |
@@ -279,7 +279,26 @@ JSONB·pgvector 기반 테이블은 스키마 유연성과 확장성을 보장�
 | **사용자 존재(Presence)**              | 실시간 협업 시 "지금 누가 이 폴더/노드를 보고 있는가" DB 저장이 없음.                                                                                | **project_user_presence**(No.30): UNLOGGED. project_id·user_id·resource_type('folder'/'node')·resource_id·activity('viewing'/'editing')·last_active. 하트비트 갱신 후 주기 삭제로 UI 협업 가시성 제공.                                                                                                                                                                                                                                                                              |
 | **BOM·실물 재고 연동**                 | 설계(BOM)에 필요한 부품과 재고(물리 위치)의 연결 고리 부재 시 동일 부품 판별 불가.                                                                   | **project_parts_bom**: **AI 시맨틱 브릿지**—웹 서치·기획 문서와 규격 템플릿 간 시맨틱 매핑 저장소. **spec_id**: AI가 샌드박스에서 재고와 설계를 대조해 할당하는 동적 필드(실물 참조). part_model_id=무엇이 필요한가, spec_id=어느 실물을 쓸 것인가. 설계-재고-출고 자동화.                                                                                                                                                                                                          |
 | **RAG·시맨틱 검색 벡터 인덱스**        | 대규모 지식/태그 검색 시 풀 스캔 방지 및 RAG 응답 속도 확보.                                                                                         | **거리**: 시맨틱/RAG 특성상 **코사인 유사도**(`vector_cosine_ops`) 사용. **HNSW 디폴트**: project_knowledge.embedding, project_tags.tag_vector, global_knowledge_base.embedding, global_tags.tag_vector, support_faq.faq_vector. **IVFFlat**: 사용자·오케스트레이션 선택 시 대안(대량 삽입 후 검색 위주·메모리 제약). DDL-01 §「pgvector 인덱스 및 성능 최적화 가이드」에 스크립트·ef_search 안내.                                                                                  |
-| **HEXAGON(5W1H) 완전 분리·extra_data** | DB 레벨에서 90% 데이터 즉시 필터 목표. 5W1H를 **SMALLINT 6컬럼**으로 완전 분리. 나머지 상세는 **extra_data JSONB**. **how_state**: VOID 값은 단순 '없음'이 아니라 **영감 모드(자아 파노라마)** 진입 트리거로 해석.                                  | **project_logs**: 5W1H SMALLINT, summary, **why_chain** JSONB(인과 사슬: `inputs` 신호 ref_id, `reasoning` 로직/판단 근거, `effects` 액션·표정·UCL 후보), embedding, extra_data. **project_knowledge**: nature_tag, 5W1H SMALLINT, content_fact, raw_content, **ref_ids** JSONB(`source_log_ids[]`, `source_multimodal_ref_ids[]` 등 참조 키 배열), metadata, extra_data. 토큰→정수 매핑은 앱/명세 유지. DDL-01 복합 인덱스·COMMENT 참조. **토큰·벡터 모델 고정**: 5W1H 매핑과 임베딩 생성 모델은 반드시 고정. 기본 채택 임베딩: Ollama **nomic-embed-text**(AI 오케스트레이터). VECTOR 차원은 채택 모델과 일치해야 함. |
+| **HEXAGON(5W1H) 완전 분리·extra_data** | DB 레벨에서 90% 데이터 즉시 필터 목표. 5W1H를 **SMALLINT 6컬럼**으로 완전 분리. 나머지 상세는 **extra_data JSONB**. **how_state**: VOID 값은 단순 '없음'이 아니라 **영감 모드(자아 파노라마)** 진입 트리거로 해석되며, VOID 세분화는 `extra_data.void_stage`(POTENTIAL/ARCHIVE/PURGE)로 구분한다.                                  | **project_logs**: 5W1H SMALLINT, summary, **why_chain** JSONB(인과 사슬: `inputs` 신호 ref_id, `reasoning` 로직/판단 근거, `effects` 액션·표정·UCL 후보), embedding, extra_data. **project_knowledge**: nature_tag, 5W1H SMALLINT, content_fact, raw_content, **ref_ids** JSONB(`source_log_ids[]`, `source_multimodal_ref_ids[]` 등 참조 키 배열), metadata, extra_data. 토큰→정수 매핑은 앱/명세 유지. DDL-01 복합 인덱스·COMMENT 참조. **토큰·벡터 모델 고정**: 5W1H 매핑과 임베딩 생성 모델은 반드시 고정. 기본 채택 임베딩: Ollama **nomic-embed-text**(AI 오케스트레이터). VECTOR 차원은 채택 모델과 일치해야 함. |
+
+#### VOID 전이 임계치 및 보존 정책 (UCL-04 확정 수치)
+
+아래 임계치는 `project_logs`에 기록되는 상태 전환 이벤트의 기준 시각(`created_at`)을 사용해 스케줄러가 계산하며, `how_state=VOID(3)`일 때 `extra_data.void_stage`로 POTENTIAL/ARCHIVE/PURGE를 세분화한다.
+
+Sentinel Fact Chains(TICK)
+- FLOW → STUCK: 30초 무갱신
+- STUCK → VOID.POTENTIAL: 5분 지속
+- VOID.POTENTIAL → VOID.ARCHIVE: 24시간 경과
+- VOID.ARCHIVE → VOID.PURGE: 30일 경과 (참조 사슬/Ref ID가 `why_chain.inputs[]`에 없을 때)
+
+Indicator Narrative Chains(ECHO/WILL)
+- FLOW → STUCK: 1시간 무응답
+- STUCK → VOID.POTENTIAL: 세션 명시 종료 `즉시` 또는 `24시간`
+- VOID.POTENTIAL → VOID.ARCHIVE: 90일 경과
+- VOID.ARCHIVE → VOID.PURGE: 365일 경과
+
+Shadow Project 특례 (TRIAL_USER)
+- `VOID.ARCHIVE` 단계를 생략하고, STUCK/VOID.POTENTIAL 이후 `7일` 경과 시 `VOID.PURGE` 가능(휘발성 강화)
 
 ### 2.8 데이터 신뢰도 점수(Confidence Score) 및 활용
 
@@ -287,8 +306,8 @@ JSONB·pgvector 기반 테이블은 스키마 유연성과 확장성을 보장�
 
 - **저장 위치 요약**
 
-  - **project_logs (현재/이력 레이어)**: `confidence_score`(SMALLINT). 디바이스(TICK), AI(ECHO), 사용자(WILL), 시스템(ASK)이 남긴 로그의 **확신도**. 넥슈(NEXU) SLM 감정 엔진과 연동되어, **95% 미만일 때** 넥슈의 Jitter(미세 떨림) 연출 또는 ASK(승인 대기) 토큰 발생의 근거로 사용. TimescaleDB 하이퍼테이블에서 코일 밸런서(Stability·Creative 등) 임계치와 함께 필터링에 사용.
-  - **project_knowledge (과거/지식 레이어)**: `confidence_score`(SMALLINT). 아톰(Atom)화된 지식의 **검증 수준**으로, RAG 검색 시 유사도와 함께 정렬·필터 가중치로 사용. 넥슈 연동 시 동일하게 95% 미만 구간에서 불확실성 표현·ASK 유도에 활용 가능.
+  - **project_logs (현재/이력 레이어)**: `confidence_score`(SMALLINT). 디바이스(TICK), AI(ECHO), 사용자(WILL), 시스템(ASK)이 남긴 로그의 **확신도**. 넥슈(NEXU) SLM 감정 엔진과 연동되어, `confidence_score < project_settings.user_defined_threshold`일 때 넥슈의 Jitter(미세 떨림) 연출 또는 ASK(승인 대기) 토큰 발생의 근거로 사용. TimescaleDB 하이퍼테이블에서 코일 밸런서(Stability·Creative 등) 임계치와 함께 필터링에 사용.
+  - **project_knowledge (과거/지식 레이어)**: `confidence_score`(SMALLINT). 아톰(Atom)화된 지식의 **검증 수준**으로, RAG 검색 시 유사도와 함께 정렬·필터 가중치로 사용. 넥슈 연동 시 동일하게 `user_defined_threshold` 미만 구간에서 불확실성 표현·ASK 유도에 활용 가능.
   - **capability_proposals (비귀속)**: `fit_score`(0~100). AI가 추천한 기능 자격과 사용자 의도 간 **부합도**로, 이미 스키마에 정의된 핵심 신뢰 지표.
   - **project_orchestra**: `skill_threshold`(JSONB). 에이전트가 각 스킬을 **자율 실행하기 위한 최소 신뢰도 임계값**(예: `{ \"tool_x\": 80 }`)을 정의한다.
 
@@ -300,7 +319,7 @@ JSONB·pgvector 기반 테이블은 스키마 유연성과 확장성을 보장�
   - **ASK (협력)**: AI 제안(ECHO)에 대한 과거 수락/거절 이력 통계.
 
 - **활용 방향**
-  - **지능형 가드레일**: `project_logs.confidence_score`가 코일 밸런서(Coil Balancer)의 Stability 임계치보다 낮으면 즉시 실행 대신 ASK(승인 대기)로 전환. 넥슈 SLM 확신도 95% 미만 시에도 동일 정책 적용.
+  - **지능형 가드레일**: `project_logs.confidence_score`가 코일 밸런서(Coil Balancer)의 Stability 임계치보다 낮으면 즉시 실행 대신 ASK(승인 대기)로 전환. 또한 `confidence_score < project_settings.user_defined_threshold`인 경우에도 동일 정책 적용(Autonomy Threshold 실행 게이트).
   - **RAG 최적화**: `project_knowledge` 벡터 검색 결과 중 `confidence_score`가 낮은 것은 순위에서 뒤로 밀어, AI가 가장 검증된 정보 위주로 추론.
   - **UI 연동**: Nixie/캔버스 UI에서는 이 점수를 밝기·노이즈 등으로 표현해, 시스템의 확신 정도를 직관적으로 전달.
 

@@ -2,33 +2,33 @@
 
 ## 1. 기초편: 정의와 실행 원리
 
-### UCL 정체성 먼저 고정하기 (혼동 방지 기준)
+### UCL 정체성 먼저 고정하기 (Unified Communication Layer (통합 통신 계층))
 
 이 문서에서는 UCL을 아래 2개로 분리해 정의합니다.  
-이 기준을 고정하면 "UCL이 인프라인가, 프로토콜인가?"라는 혼동이 사라집니다.
+이 기준을 고정하면 "UCL이 인프라인가, 프로토콜인가?"라는 혼동이 사라집.
 
 #### 1) UCL Layer (개념 계층)
 
-- 오케스트레이터가 사용자 의도(WILL)와 상황(Context)을 해석하고 실행 사슬로 관리하는 **공유 실행 계층**입니다.
+- 오케스트레이터가 사용자 의도(WILL)와 상황(Context)을 해석하고 실행 사슬로 관리하는 **공유 실행 계층**이다.
 - 책임: 목표 해석, 태스크 분해, 상태 추적, 충돌 조정, 컨텍스트 축적.
 - 질문으로 표현하면: **"무엇을, 왜, 어떤 순서로 실행할 것인가?"**
 
 #### 2) UCL Protocol (전송 규격)
 
-- UCL Layer에서 결정된 내용을 에이전트/외부 실행기로 전달하는 **패킷 규격 + 전송 방식**입니다.
+- UCL Layer에서 결정된 내용을 에이전트/외부 실행기로 전달하는 **패킷 규격 + 전송 방식**이다.
 - 책임: 스키마(JSON/Protobuf), 필수 필드, 상태 코드, 왕복 인터페이스, 전송 채널(gRPC/HTTP/MQTT).
 - 질문으로 표현하면: **"그 결정을 어떤 봉투 형식으로 어떻게 보낼 것인가?"**
 
 #### 3) 핵심 원칙: 데이터와 규격을 분리한다
 
-- 페르소나/스킬/태스크/컨텍스트는 **UCL에 담기는 데이터**입니다.
-- UCL Protocol은 그 데이터를 담는 **봉투 형식(스키마/인터페이스)** 입니다.
+- 페르소나/스킬/태스크/컨텍스트는 **UCL에 담기는 데이터**이다.
+- UCL Protocol은 그 데이터를 담는 **봉투 형식(스키마/인터페이스)** 이다.
 - 즉, **내용물(정책/맥락)** 과 **봉투(전송 규격)** 를 분리해서 설계해야 합니다.
 
 #### 4) UCL의 본질적 역할: 재가공과 전달
 
-UCL Layer는 멀티모달 입력을 HEXAGON(5W1H) 토큰으로 정규화하고, Why Chain/Decision Matrix를 통해 실행 모드를 결정합니다.  
-UCL Protocol은 이 결정을 실행 가능한 패킷으로 포장해 에이전트로 전달하고, 결과를 다시 오케스트레이터로 회수합니다.
+UCL Layer는 멀티모달 입력을 HEXAGON(5W1H) 토큰으로 정규화하고, Why Chain/Decision Matrix를 통해 실행 모드를 결정한다.  
+UCL Protocol은 이 결정을 실행 가능한 패킷으로 포장해 에이전트로 전달하고, 결과를 다시 오케스트레이터로 회수한다.
 
 - **정규화:** 입력을 공통 의미 단위로 표준화
 - **의사결정:** 충돌 해소 후 실행 전략 확정
@@ -36,14 +36,36 @@ UCL Protocol은 이 결정을 실행 가능한 패킷으로 포장해 에이전�
 
 #### 5) VOID와 영감 모드의 위치
 
-VOID/ASK/WILL 같은 상태 전이는 **UCL Layer의 상태 모델**에 속합니다.  
-이 상태를 wire format으로 표현하는 방법(코드값, 필드명, 에러 규격)은 **UCL Protocol**에 속합니다.
+VOID/ASK/WILL 같은 상태 전이는 **UCL Layer의 상태 모델**에 속한다.  
+이 상태를 wire format으로 표현하는 방법(코드값, 필드명, 에러 규격)은 **UCL Protocol**에 속한다.
 
 ---
 
-**정리:**  
-UCL은 하나가 아니라 "UCL Layer(의미/정책)" + "UCL Protocol(형식/전송)"의 결합 구조입니다.  
-앞으로 본문에서 UCL을 언급할 때는 가능한 한 두 용어를 명시합니다.
+**정리:**
+
+- UCL은 하나가 아니라 "UCL Layer(의미/정책)" + "UCL Protocol(형식/전송)"의 결합 구조이다.  
+  앞으로 본문에서 UCL을 언급할 때는 가능한 한 두 용어를 명시합니다.
+
+- RAG와의 협업 지도: UCL이 단순한 데이터 뭉치가 아니라, RAG라는 거대 창고를 뒤지는 **'지능적 인덱스'**
+
+- 에이전트와의 경계: UCL이 에이전트 내부에 있는 것이 아니라, 에이전트들이 공통으로 올라타는 **'공용 인프라 층'**
+
+---
+
+### 영어 커널 - 다국어 쉘 전략 (English Kernel / Multilingual Shell)
+
+UCL의 효율성을 극대화하기 위해, **내부 엔진이 소통하는 '악보'는 영어로 유지**하는 원칙을 채택한다.
+
+| 관점            | 이유                                                                                                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **토큰 효율**   | 한글은 영문에 비해 토큰 소모량이 2~3배 많다.                                                                            |
+| **논리 일관성** | AI 모델의 논리적 일관성은 영문 데이터에서 더 높게 나타난다.                                                             |
+| **이원화 운영** | 사용자는 UI에서 한국어로 페르소나를 작성해도, 오케스트레이터는 이를 **내부적으로 영문 UCL로 번역하여 AI에게 주입**한다. |
+
+**주의:** 번역 자체도 자원 소모이므로 속도 저하가 발생할 수 있다.  
+따라서 도메인·프로젝트·기능을 세분화하여 **전략적으로 번역 범위를 제한**하는 설계가 필요하다. 예를 들어, 고빈도 경로는 영문 UCL을 그대로 사용하고, 사용자 대면 UI에서만 다국어를 적용하는 방식으로 부하를 분산한다.
+
+---
 
 ### **사용자 요청(WILL)** 단계를 3개의 핵심 채널 그룹으로 분화하고, **NEXA 플랫폼의 전체적인 입력 방향성**
 
@@ -126,6 +148,21 @@ flowchart TD
 
 - **데이터 표준화:** 위 모든 채널에서 들어오는 요청은 오케스트레이터 진입 전 **IoT Stream Splitter**와 **Contextual Chunking** 노드를 거쳐 헥사곤 토큰으로 변환됩니다.
 - **독립적 넥슈:** 특히 넥슈 피지컬은 오프라인 단독 기능을 구현하더라도, 다시 연결되는 순간 **'그림자 프로젝트 ID'**를 통해 그동안의 활동 데이터를 플랫폼으로 흡수시켜 지능 성장에 기여하게 됩니다.
+
+---
+
+### 지능 위계(Nano, Micro, Vista)에 따른 UCL 처리 분담
+
+모든 UCL 연산이 중앙 서버에서만 일어나지 않는다. 엣지와 플랫폼이 역할을 나누어 처리한다.
+
+| 위계                    | 위치                             | UCL 역할                                                                                                       |
+| ----------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Nano / Micro (엣지)** | 넥슈 피지컬, 센서, 로컬 에이전트 | 로우 데이터를 5W1H **사실(Fact)**로 요약하여 UCL 패킷의 기초 형성. 인디케이터 부하 약 90% 절감.                |
+| **Vista (플랫폼)**      | 오케스트레이터, 넥사 코일        | **넥사 코일 밸런스**(시스템·도메인·프로젝트 레이어별)를 적용하여 'Why(판단)'를 부여하고 전체 실행 사슬을 조율. |
+
+**효과:** 이 분업 구조는 응답 속도를 높이고, **인터넷이 끊긴 상태에서도 엣지가 오프라인 자율성**을 갖게 하는 핵심 근거가 된다.
+
+---
 
 ### 에이전트의 정확한 구성
 
@@ -335,6 +372,22 @@ Vercel AI SDK 환경은 기본적으로 서버(Node.js)가 클라이언트 연�
 
 ---
 
+### 실시간 실행 계층: 실행 사슬(Execution Chain)
+
+UCL은 단순히 '전달되는 패킷'을 넘어, **현실에서 어떻게 연주되고 있는지** 관리하는 실시간 상태 개념을 갖는다. 이 계층은 [NEXA-UCL-04] 실행 사슬 생명주기 및 VOID 규격과 연동된다.
+
+UCL 프로토콜에 의해 생성된 패킷은 DB의 `execution_chains` 및 `execution_steps` 테이블과 연동되어 다음 세 가지 상태를 가진다.
+
+| 상태             | 의미                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| **FLOW (유동)**  | 실행 및 인지 흐름이 활성화된 상태. 에이전트가 임무 수행 중이거나 대화 맥락이 살아 있는 '현재'.          |
+| **STUCK (고착)** | 마찰·충돌·응답 지연으로 흐름이 막힌 상태. 넥슈의 Jitter(떨림) 연출이나 ASK(승인 대기) 토큰 발생.        |
+| **VOID (여백)**  | 물리적 삭제가 아닌 '잠재 상태'로의 전환. 기존 맥락을 비우고 영감 모드 진입 또는 데이터 아카이브로 압축. |
+
+**타임머신 기능의 토대:** 이 구조를 통해 가상 시뮬레이션에서 실행 결과를 앞뒤로 돌려보는 '타임머신(뒤로가기/앞으로가기)' 기능의 데이터 기반을 아키텍처 단계에서 확보할 수 있다. `execution_steps`의 `post_state_snapshot`, `timeline_branch_id`, `is_virtual` 등이 이 용도로 활용된다.
+
+---
+
 ### Ollama + Node.js 환경에서 재료를 어떻게 다룰 것인가?
 
 ```mermaid
@@ -446,6 +499,75 @@ flowchart LR
 
 ---
 
+### 컴팩트하고 효과적인 UCL 구성을 위한 UI 처리
+
+사용자의 언어적 취향을 자연어 대화가 아닌 **UI 시스템 설정으로 분리**하면, UCL을 '명령과 데이터'에만 집중하게 만들 수 있다. NIXIE UI 연동을 고려한 4개 레이어로 구성한다.
+
+#### 1. 응답 제어 레이어 (Output Control)
+
+사용자가 매번 채팅으로 지시하지 않아도, UI 설정값만으로 모델의 답변 스타일을 강제한다.
+
+| 항목                         | 옵션                               | 비고                                                    |
+| ---------------------------- | ---------------------------------- | ------------------------------------------------------- |
+| **언어 설정 (Language)**     | KO, EN, JP 등                      | AI에게 "이 언어로 답변해"를 시스템 프롬프트에 자동 주입 |
+| **답변 톤 (Persona Tone)**   | Professional, Friendly, Concise 등 | 전문적·친절한·요약형                                    |
+| **이모지 사용 (Use Emojis)** | ON / OFF                           | 텍스트 전달 시 가독성 결정                              |
+| **상세도 (Verbosity)**       | Summary, Detailed, Step-by-step    | 요점만 / 상세히 / 단계별 설명                           |
+| **확신도 임계값 (Autonomy Threshold)** | 기본 95, 사용자 조정 `±15%` | `project_settings.user_defined_threshold`에 저장, 실행 게이트로 사용 |
+
+**설계 원칙 (Must):**
+- Autonomy Threshold의 시스템 기본값은 **95점**이다.
+- 사용자는 UI 슬라이더로 **`95 ± 15%` 범위**에서 임계값을 직접 조정할 수 있다.
+- 임계값은 도메인 성격(Hard vs Soft)에 맞춰 AI 자율성 폭을 사용자가 제어하기 위한 장치다.
+- 목적은 불필요한 `ASK` 펄스를 줄여 실행 대기 토큰을 절감하고, 추론·검증에 소모되는 컨텍스트를 최적화하는 것이다.
+
+#### 2. 실행 모드 레이어 (Execution Mode)
+
+UCL의 `is_virtual` 필드나 `how_state` 결정에 직접 영향을 준다.
+
+| 항목                                     | 옵션                  | 비고                                            |
+| ---------------------------------------- | --------------------- | ----------------------------------------------- |
+| **실행 전 승인 (Confirm before Action)** | ON / OFF              | AI가 장치 제어 전 "실행할까요?" 승인 대기       |
+| **시뮬레이션 모드 (Dry-run)**            | ON / OFF              | 실제 장비 미작동, `is_virtual: true`로 UCL 생성 |
+| **우선순위 (Priority)**                  | Low, Normal, Critical | 큐 처리 순서 결정                               |
+
+#### 3. 데이터 참조 레이어 (Context Scope)
+
+AI가 UCL의 `data_references`를 구성할 때 참고할 범위를 제한한다.
+
+| 항목                                | 옵션                                | 비고                                |
+| ----------------------------------- | ----------------------------------- | ----------------------------------- |
+| **기억 범위 (Memory Depth)**        | Session Only, Historical, None      | 이번 대화만 / 과거 전체 기록 / 없음 |
+| **장치 범위 (Device Scope)**        | My Room, Whole House, Specific Zone | 내 방만 / 집 전체 / 특정 구역       |
+| **외부 지식 활용 (Web/RAG Search)** | ON / OFF                            | 실시간 뉴스나 매뉴얼 DB 검색 여부   |
+
+#### 4. 시각화 및 피드백 레이어 (UI/UX Feedback)
+
+NIXIE UI 연출이나 결과물 형태를 결정한다.
+
+| 항목                                    | 옵션                  | 비고                                    |
+| --------------------------------------- | --------------------- | --------------------------------------- |
+| **지능 수준 시각화 (Confidence Level)** | Show Jitter ON/OFF    | 신뢰도 낮을 때 UI 떨림 효과 활성화 여부 |
+| **출력 형식 (Format)**                  | Text, Chart, JSON_Raw | 엔지니어 모드용 JSON 등                 |
+
+---
+
+---
+
+### 정적 UCL과 동적 UCL의 토큰 예산 분리
+
+500토큰 이내 제약은 **고정(Fixed) UCL**에 한정된다.
+
+| 구분         | 정의                                                                                 | 토큰 예산                      | 비고                             |
+| ------------ | ------------------------------------------------------------------------------------ | ------------------------------ | -------------------------------- |
+| **고정 UCL** | 페르소나, 핵심 보안 규칙(Level 0) 등 모델의 창(Window)에 **항상 상주**해야 하는 정보 | **500토큰 이내 권장**          | Pruning·검색·역할 정의의 골격    |
+| **동적 UCL** | RAG를 통해 필요한 순간에만 주입되는 지식, 스킬 명세, 과거 이력                       | 제한 없음 (호출마다 선택 주입) | 컨텍스트 윈도우 내에서 가변 배정 |
+
+**"왜 UCL을 무한정 늘릴 수 없는가?"**  
+→ 모든 UCL 구성 요소가 **같은 컨텍스트 윈도우를 두고 자원을 경쟁**하기 때문이다. 고정 UCL이 커지면 대화 이력·RAG·응답 공간이 동시에 줄어들며, 에이전트의 응답 품질과 속도가 저하된다.
+
+---
+
 ### UCL의 맥락 밀도 제어: 컨텍스트 윈도우 임계치와 토큰 예산 관리
 
 - 모든 UCL 구성 요소가 같은 토큰 공간을 공유하므로, 에이전트가 복잡한 추론 없이 즉시 연주할 수 있도록 가장 정제된 5W1H 토큰만을 주입해야 한다.
@@ -554,12 +676,14 @@ flowchart LR
 
 UCL과 RAG를 결합하여 처리 속도와 효율을 높이는 핵심 기법 및 관계는 다음과 같습니다.
 
-### 1. UCL 기반의 '초고속 필터링' 기법 (Pruning)
+### 1. UCL 기반의 '초고속 필터링' 기법 (Pruning) — 5W1H의 핵심 역할
 
-UCL은 모든 데이터 패킷의 헤더에 위치하여 사건의 본질을 5W1H(HEXAGON) 토큰으로 규정합니다. 이 토큰들은 RAG 검색 시 **'초고속 필터'** 역할을 수행합니다.
+UCL이 RAG와 결합할 때 가지는 실질적인 성능 이점은 **5W1H(HEXAGON) 토큰의 인덱스 역할**이다. 모든 UCL 패킷 헤더에 포함된 5W1H 정수 토큰은, AI가 전체 지식 베이스를 뒤지기 전 **현재 상황과 맞지 않는 데이터의 대부분을 1ms 내에 미리 걸러내는(Pruning) 인덱스**로 동작한다.
 
-- **90% 데이터 즉시 제거:** AI가 전체 데이터베이스를 벡터 검색하기 전에, UCL 헤더의 'Where(공간)', 'When(시간)', 'Who(주체)' 토큰을 대조하여 현재 상황과 맞지 않는 데이터의 90%를 1ms 내에 미리 걸러냅니다.
-- **검색 범위 단축:** 예를 들어, "작업 중"인 상황이라면 UCL의 Why 레이어가 'RESOLVE(해결)'로 분류된 과거 데이터만 우선적으로 스캔하여 RAG의 응답 속도를 획기적으로 높입니다.
+> **정의:** UCL은 단순한 '주소록'이 아니라, RAG라는 거대 창고에서 필요한 물건을 즉시 찾게 해주는 **'지능형 지도(Intelligent Index)'**이다.
+
+- **90% 데이터 즉시 제거:** AI가 전체 데이터베이스를 벡터 검색하기 전에, UCL 헤더의 Where(공간), When(시간), Who(주체) 토큰을 대조하여 현재 상황과 맞지 않는 데이터의 약 90%를 1ms 내에 미리 걸러낸다.
+- **검색 범위 단축:** 예를 들어 "작업 중"인 상황이라면 UCL의 Why 레이어가 'RESOLVE(해결)'로 분류된 과거 데이터만 우선 스캔하여 RAG 응답 속도를 높인다.
 
 ### 2. 컨텍스트 윈도우(Context Window) 예산 관리
 
@@ -1076,10 +1200,21 @@ CREATE TABLE orchestrator_agents (
 
 ### 전체 테이블 관계도
 
+[NEXA-UCL-04]를 반영하되, 전체 아키텍처는 **이중 트랙**으로 본다.
+
+- **대화 트랙(Conversation Track):** 사용자-에이전트 상호작용 기록 (`conversations`)
+- **실행 트랙(Execution Track):** UCL 패킷의 실행 상태·단계·로그 (`execution_chains`, `execution_steps`, `execution_logs`)
+
 ```mermaid
 erDiagram
     users {
         uuid id PK
+        varchar name
+        timestamptz created_at
+    }
+    projects {
+        uuid id PK
+        uuid user_id FK
         varchar name
         timestamptz created_at
     }
@@ -1123,21 +1258,58 @@ erDiagram
     }
     conversations {
         timestamptz time
+        uuid user_id FK
         uuid orchestrator_id FK
         uuid agent_id FK
         text question
         text answer
     }
+    execution_chains {
+        uuid packet_id PK
+        uuid project_id FK
+        uuid actor_id
+        varchar actor_type
+        smallint how_state
+        jsonb execution_bundle
+        jsonb context_bundle
+        jsonb why_chain
+        timestamptz created_at
+    }
+    execution_steps {
+        uuid step_id PK
+        uuid packet_id FK
+        smallint step_sequence
+        varchar capability_id
+        smallint step_status
+        boolean is_virtual
+        jsonb post_state_snapshot
+        timestamptz created_at
+    }
+    execution_logs {
+        uuid log_id PK
+        uuid packet_id FK
+        uuid step_id FK
+        varchar adapter_id
+        jsonb raw_response
+        int execution_ms
+        timestamptz created_at
+    }
 
+    users ||--o{ projects : "소유"
     users ||--o{ orchestrators : "소유"
     users ||--o{ agents : "소유"
+    projects ||--o{ execution_chains : "실행사슬"
+    execution_chains ||--o{ execution_steps : "단계"
+    execution_chains ||--o{ execution_logs : "로그"
+    execution_steps ||--o{ execution_logs : "스텝별로그"
     orchestrators ||--o{ orchestrator_agents : "구성"
     agents ||--o{ orchestrator_agents : "참여"
     agents ||--o{ agent_skills : "보유"
     skills ||--o{ agent_skills : "제공"
     orchestrators ||--o{ tasks : "관리"
-    orchestrators ||--o{ conversations : "기록"
-    agents ||--o{ conversations : "응답"
+    users ||--o{ conversations : "대화기록"
+    orchestrators ||--o{ conversations : "대화흐름"
+    agents ||--o{ conversations : "응답기록"
 ```
 
 ---
