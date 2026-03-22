@@ -69,7 +69,14 @@ CREATE TABLE project_settings (
     batch_policy JSONB,                   -- 배칭 규칙: max_batch_size, flush_ms, 우선순위 등
     retention_period_days INTEGER,        -- 로그·캐시 보관 일수
     user_defined_threshold SMALLINT DEFAULT 95, -- [NEXA-UCL-01] Autonomy Threshold(확신도 실행 게이트). 기본 95, UI에서 ±15% 범위 조정
-    settings_data JSONB,                  -- 그 외 확장 설정 (dna 세부, quantization_rules 등)
+    -- settings_data: JSONB 내부 키로 확장 가능한 프로젝트 정책/파라미터를 저장
+    -- 확장 키 예시: confidence_threshold(0~100) — 외부 자원 신뢰도 임계값 등
+    settings_data JSONB DEFAULT jsonb_build_object('confidence_threshold', 70),
+    CONSTRAINT chk_project_settings_confidence_threshold
+        CHECK (
+            (settings_data->>'confidence_threshold') IS NULL
+            OR ((settings_data->>'confidence_threshold')::SMALLINT BETWEEN 0 AND 100)
+        ),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -979,10 +986,12 @@ CREATE TABLE capability_grant_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     tier_id UUID REFERENCES tiers(tier_id),
     capability_id VARCHAR(200) REFERENCES capabilities(capability_id),
-    action VARCHAR(20) NOT NULL,  -- grant / revoke
+    action VARCHAR(20) NOT NULL,  -- grant / revoke / resolve-conflict
     actor_id UUID NOT NULL,
     reason TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT chk_capability_grant_history_action
+        CHECK (action IN ('grant', 'revoke', 'RESOLVE_CONFLICT'))
 );
 CREATE INDEX idx_capability_grant_history_actor ON capability_grant_history(actor_id);
 CREATE INDEX idx_capability_grant_history_created ON capability_grant_history(created_at);

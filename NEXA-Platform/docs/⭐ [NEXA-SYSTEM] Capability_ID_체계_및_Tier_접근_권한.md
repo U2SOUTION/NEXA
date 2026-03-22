@@ -257,6 +257,12 @@ Capability ID가 API·이벤트·클라이언트 저장소 등으로 **유통**�
 - 사용자 Capability(무엇을 할 수 있는지)와 **AI 사용 정책**(어떻게 사용할지)을 분리하면, 오케스트레이션 시 역량 검사와 정책 기반 라우팅·과금을 독립적으로 운영할 수 있다.
 - 별도 문서에서 `user_ai_policy` 또는 사용자 설정 스키마로 구체화.
 
+#### 2.6 충돌 해소 권한 (Conflict Resolution Capability)
+
+- 전용 기능 자격 정의: MUST vs MUST 교착 상태를 해제할 수 있는 nexa.admin.conflict.resolve 기능 자격 ID를 신설.
+- Tier별 권한 차등: 일반 사용자(Basic)는 상위 관리자에게 에스컬레이션만 가능하며, 슈퍼 관리자(Standard 이상)만 직접 Override(강제 승인) 할 수 있다.
+- 감사 족보(Traceability): 충돌 해소 시 why_chain에 누가 어떤 근거로 동급 충돌을 해제했는지 기록하여 책임 소재를 명확히 한다.
+
 ---
 
 ## 3. DB 스키마 설계

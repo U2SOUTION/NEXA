@@ -80,7 +80,7 @@ export interface SentinelPacket {
   extra?: unknown // 정밀 수치나 증거 데이터(이미지 등) 분리 저장
 }
 
-/** [Indicator] 센티널 데이터를 구독하여 6-Coil 기준으로 내린 해석 */
+/** [Indicator] 센티널 데이터를 구독하여 코일 벨렌서 기준으로 내린 해석 */
 export interface IndicatorPacket {
   id: string // IND-YYYY-XXX 형식
   ref_sentinel_id: string // 참조하는 센티널 ID

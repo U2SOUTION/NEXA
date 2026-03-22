@@ -42,7 +42,12 @@ NEXA의 모든 지능적 박동(Pulse)은 다음 세 가지 상태 중 하나에
 | **FLOW → STUCK**                  | 응답/상호작용 중단 | 1시간 무응답     | 세션 타임아웃 및 넥슈의 '맥락적 침묵' 진입        |
 | **STUCK → VOID.POTENTIAL**        | 세션 명시적 종료   | 즉시 혹은 24시간 | **'영감 모드(자아 파노라마)'**의 재료로 대기      |
 | **VOID.POTENTIAL → VOID.ARCHIVE** | 장기 미재개        | 90일 경과        | **TimescaleDB 압축 정책** 적용 (데이터 손실 없음) |
-| **VOID.ARCHIVE → VOID.PURGE**     | 법적/보안 소멸     | 365일 경과       | 개인정보 보호 및 족보(Why Chain) 최종 정리        |
+| **MOMENT → DURATION**            | 컨텍스트 맥락 유지 | 1시간 이상        | when_tempo 기준 전이 임계치 |
+| **DURATION → ARCHIVE**          | 장기 미재개 및 압축 시점 | 90일 경과        | TimescaleDB 압축 시점에 지식화(knowledge化) |
+| **ARCHIVE → ERA** (신설)        | 데이터 발생 후 365일(1년) 이상 경과 + `nature_tag`가 RULE 또는 INTENT 상태 + 삭제되지 않고 살아남은 핵심 자산 | 365일 이상 | ERA 단계로 격상(VOID.PURGE 제외) |
+| **VOID.ARCHIVE → VOID.PURGE**     | 법적/보안 소멸 및 보존 조건 미충족 | 365일 경과 | 개인정보 보호 및 족보(Why Chain) 최종 정리. 단, ERA 승격 조건을 만족하는 핵심 자산은 purge 제외 |
+
+**데이터 보존 정책(ERA = Soul 분리):** ERA 단계의 데이터는 `VOID.PURGE`(물리 삭제) 대상에서 영구 제외되며, 시스템의 **'영혼(Soul)' 데이터**로 분리 관리된다.
 
 ---
 
