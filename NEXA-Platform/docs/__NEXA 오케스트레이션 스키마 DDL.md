@@ -116,6 +116,123 @@ CREATE INDEX IF NOT EXISTS idx_self_capability_links_profile_priority
 
 ---
 
+## 0C) NIXIE Shell·디바이스·동기화 DDL (보강)
+
+**근거:** `NIXIE VISION` §5.7, `NIXIE SCHEMA` §7 — 하나의 지능(Soul)·다수의 쉘(Shell), 탭별 `shell_id`, `device_registry` 통합 등록, PostgreSQL + Redis 이원화.
+
+```sql
+-- 0C-1. nixie_shells: 닉시 쉘 마스터 (브라우저 탭·실물 각각 독립 shell_id)
+-- 수명: 가상 쉘은 탭 생명주기와 정렬. 파티션·스코프는 project_id + 조회 키 (shell_id PK는 전역 유일).
+CREATE TABLE IF NOT EXISTS nixie_shells (
+  shell_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+  user_id UUID,
+  shell_kind VARCHAR(20) NOT NULL CHECK (shell_kind IN ('VIRTUAL', 'PHYSICAL')),
+  browser_tab_fingerprint TEXT,
+  metadata JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  closed_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_nixie_shells_project_created
+  ON nixie_shells(project_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_nixie_shells_user
+  ON nixie_shells(project_id, user_id)
+  WHERE user_id IS NOT NULL;
+
+COMMENT ON TABLE nixie_shells IS 'NEXA NIXIE Shell 마스터. 가상(VIRTUAL)=브라우저 탭 단위 shell_id, 물리(PHYSICAL)=엣지 디바이스. device_registry.shell_id와 연결. [NIXIE SCHEMA §7]';
+COMMENT ON COLUMN nixie_shells.browser_tab_fingerprint IS '클라이언트가 부여하는 탭 식별(선택). DB 유니크는 shell_id PK로 충분.';
+
+-- 0C-2. device_registry: 닉시 쉘 구분·출력 능력 (가상/물리 통합 등록 시 사용)
+ALTER TABLE device_registry ADD COLUMN IF NOT EXISTS shell_id UUID;
+ALTER TABLE device_registry ADD COLUMN IF NOT EXISTS nixie_shell_type VARCHAR(20);
+ALTER TABLE device_registry ADD COLUMN IF NOT EXISTS nixie_capability_set JSONB;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_device_registry_nixie_shell'
+  ) THEN
+    ALTER TABLE device_registry
+      ADD CONSTRAINT fk_device_registry_nixie_shell
+      FOREIGN KEY (shell_id) REFERENCES nixie_shells(shell_id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
+COMMENT ON COLUMN device_registry.nixie_shell_type IS 'PHYSICAL | VIRTUAL. 일반 IoT와 구분. 가상 쉘 행은 탭·세션 단말로 등록 시 설정.';
+COMMENT ON COLUMN device_registry.nixie_capability_set IS '예: {"Rive_Expression":true,"Nixie_Tube_Lumina":true,"Haptic_Jitter":false}. 인디케이터·렌더러가 최적 명령 선택.';
+
+CREATE INDEX IF NOT EXISTS idx_device_registry_shell_id
+  ON device_registry(shell_id) WHERE shell_id IS NOT NULL;
+
+-- 0C-3. project_agent_sessions: 활성 쉘·포커스 강도 (LOD·자원 절약 근거)
+ALTER TABLE project_agent_sessions ADD COLUMN IF NOT EXISTS active_shell_id UUID;
+ALTER TABLE project_agent_sessions ADD COLUMN IF NOT EXISTS focus_intensity SMALLINT;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_agent_sessions_active_shell'
+  ) THEN
+    ALTER TABLE project_agent_sessions
+      ADD CONSTRAINT fk_agent_sessions_active_shell
+      FOREIGN KEY (active_shell_id) REFERENCES nixie_shells(shell_id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
+COMMENT ON COLUMN project_agent_sessions.active_shell_id IS '시선/상호작용이 집중된 쉘(Focus Handoff).';
+COMMENT ON COLUMN project_agent_sessions.focus_intensity IS '0~100. 비활성 쉘 LOD(COLD 등) 결정 근거.';
+
+-- 0C-4. project_logs: 교차 쉘 서사·족보 (Timescale hypertable에 ADD COLUMN)
+ALTER TABLE project_logs ADD COLUMN IF NOT EXISTS source_shell_id UUID;
+ALTER TABLE project_logs ADD COLUMN IF NOT EXISTS target_shell_id UUID;
+
+COMMENT ON COLUMN project_logs.source_shell_id IS '신호 유입 쉘(예: 물리 음성 입력).';
+COMMENT ON COLUMN project_logs.target_shell_id IS '연주·피드백 수신 쉘(예: 가상 화면 응답). why_chain과 함께 Traceability.';
+
+CREATE INDEX IF NOT EXISTS idx_project_logs_source_shell
+  ON project_logs(project_id, source_shell_id, created_at DESC)
+  WHERE source_shell_id IS NOT NULL;
+
+-- 0C-5. nixie_state_sync: 저지연 정서·시각 파라미터 공유 (고빈도 쓰기 → UNLOGGED)
+CREATE UNLOGGED TABLE IF NOT EXISTS nixie_state_sync (
+  project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  emotional_vector JSONB NOT NULL DEFAULT '{}',
+  visual_params JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (project_id, user_id)
+);
+
+COMMENT ON TABLE nixie_state_sync IS '실시간 정서 동기용 핫 스토어. 감사·불변 족보는 project_logs/why_chain으로 흡수. 장기 보관·복제는 Redis+앱 계층과 병행. [NIXIE SCHEMA §7.3]';
+
+CREATE INDEX IF NOT EXISTS idx_nixie_state_sync_updated
+  ON nixie_state_sync(updated_at DESC);
+
+-- 0C-6. nixie_shell_configs: 쉘별 LOD·사용자 override
+CREATE TABLE IF NOT EXISTS nixie_shell_configs (
+  config_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  shell_id UUID NOT NULL REFERENCES nixie_shells(shell_id) ON DELETE CASCADE,
+  rendering_profile VARCHAR(20) NOT NULL DEFAULT 'WARM'
+    CHECK (rendering_profile IN ('COLD', 'WARM', 'HOT', 'AUTO')),
+  override_settings JSONB,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (shell_id)
+);
+
+COMMENT ON COLUMN nixie_shell_configs.override_settings IS '예: 기능 우선 모드, 쉘 전용 user_defined_threshold. project_settings 대비 우선순위는 앱 정책으로 정의.';
+
+CREATE INDEX IF NOT EXISTS idx_nixie_shell_configs_shell ON nixie_shell_configs(shell_id);
+```
+
+운영 메모:
+
+- **Redis:** `nixie_state_sync`는 PG 측 **스냅샷/폴백**에 가깝게 두고, **100ms급** 구독·푸시는 **Redis Pub/Sub 또는 캐시 키** `(project_id, user_id, shell_id)` 로 처리한다. 재시작 시 UNLOGGED·Redis 휘발성은 허용, **감사 가능한 사실**은 `project_logs`에 TICK/ECHO로 남긴다.
+- **가상 쉘 `device_registry` 행:** 기존 DDL에 `serial_number NOT NULL`이 있으면 가상 등록 시 **합성 시리얼** 또는 **해당 컬럼 완화 마이그레이션**이 선행될 수 있다(배포 환경별 확인).
+- **RLS:** `nixie_shells`, `nixie_shell_configs`, `nixie_state_sync`에 `project_members` 기준 정책 추가는 배포 시 동일 패턴으로 적용한다.
+
+---
+
 ## 1) 프로젝트 귀속 테이블 DDL (요약)
 
 아래는 31개 귀속 테이블의 핵심 생성 블록이다.  
@@ -203,6 +320,8 @@ CREATE TABLE project_logs (
   last_sync_at TIMESTAMPTZ,
   embedding VECTOR(1536),
   extra_data JSONB,
+  source_shell_id UUID,
+  target_shell_id UUID,
   PRIMARY KEY (log_id, created_at)
 );
 
@@ -264,7 +383,9 @@ CREATE UNLOGGED TABLE project_agent_sessions (
   status TEXT,
   context_data JSONB,
   last_active TIMESTAMPTZ DEFAULT NOW(),
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  active_shell_id UUID,
+  focus_intensity SMALLINT
 );
 
 CREATE UNLOGGED TABLE project_user_presence (
@@ -519,6 +640,18 @@ CREATE TABLE firmwares_model (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- NIXIE Shell 마스터 (§0C와 동일). greenfield 생성 시 FK 순서: nixie_shells → device_registry
+CREATE TABLE nixie_shells (
+  shell_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+  user_id UUID,
+  shell_kind VARCHAR(20) NOT NULL CHECK (shell_kind IN ('VIRTUAL', 'PHYSICAL')),
+  browser_tab_fingerprint TEXT,
+  metadata JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  closed_at TIMESTAMPTZ
+);
+
 CREATE TABLE device_registry (
   device_reg_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
   device_token TEXT UNIQUE,
@@ -526,7 +659,29 @@ CREATE TABLE device_registry (
   metadata JSONB,
   is_time_synced BOOLEAN,
   last_ntp_sync_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  shell_id UUID REFERENCES nixie_shells(shell_id) ON DELETE SET NULL,
+  nixie_shell_type VARCHAR(20),
+  nixie_capability_set JSONB
+);
+
+CREATE UNLOGGED TABLE nixie_state_sync (
+  project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  emotional_vector JSONB NOT NULL DEFAULT '{}',
+  visual_params JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (project_id, user_id)
+);
+
+CREATE TABLE nixie_shell_configs (
+  config_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  shell_id UUID NOT NULL REFERENCES nixie_shells(shell_id) ON DELETE CASCADE,
+  rendering_profile VARCHAR(20) NOT NULL DEFAULT 'WARM'
+    CHECK (rendering_profile IN ('COLD', 'WARM', 'HOT', 'AUTO')),
+  override_settings JSONB,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (shell_id)
 );
 
 CREATE TABLE platform_audit_logs (
@@ -1035,10 +1190,14 @@ last_sync_at TIMESTAMPTZ, -- 발신측 마지막 NTP 동기화 시각
 -- 저장/검색
 embedding VECTOR(1536), -- nullable. 유사 이력 검색용 (채워진 행만 인덱스 권장)
 extra_data JSONB, -- 정밀 센서 수치, 원문 로그, log_level 등 비정형 상세
+source_shell_id UUID, -- 신호 유입 쉘 [NIXIE SCHEMA §7]
+target_shell_id UUID, -- 연주·피드백 수신 쉘
 PRIMARY KEY (log_id, created_at)
 );
 SELECT create_hypertable('project_logs', 'created_at');
 COMMENT ON COLUMN project_logs.why_chain IS '지능적 족보(Why Chain): 인과 사슬 JSONB. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·UCL 후보) 노드 구성. 인디케이터가 일관된 추론 근거를 남기도록 [NEXU-SCHEMA] 규격 준수.';
+COMMENT ON COLUMN project_logs.source_shell_id IS '신호 유입 쉘. FK는 nixie_shells 배포 후 §0C 또는 ALTER로 추가 가능.';
+COMMENT ON COLUMN project_logs.target_shell_id IS '연주·피드백 수신 쉘.';
 COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비가시적 여백. how_state=3(VOID)은 유지하고, extra_data->>''void_stage''로 POTENTIAL/ARCHIVE/PURGE 세분화한다. 또한 stage 기준 시각은 extra_data->>''void_stage_started_at''(timestamptz ISO 문자열)을 사용한다(없으면 created_at). (전이/보존 정책: [NEXA-UCL-04])';
 
 -- [NEXA-UCL-04] VOID 전이 임계치(프로젝트 로그 기반 상태 전환/보존/삭제)
@@ -1164,7 +1323,9 @@ project_id UUID REFERENCES projects(project_id) ON DELETE CASCADE,
 current_action TEXT,
 temp_data JSONB,
 created_at TIMESTAMPTZ DEFAULT NOW(),
-last_active TIMESTAMPTZ DEFAULT NOW()
+last_active TIMESTAMPTZ DEFAULT NOW(),
+active_shell_id UUID,
+focus_intensity SMALLINT
 );
 -- TTL 정책: last_active 기준 24시간 경과 행은 주기적 삭제 권장 (아래는 관리 로직 예시).
 -- 스케줄러(pg_cron 등) 또는 애플리케이션에서 주기 실행:
@@ -1647,7 +1808,20 @@ safety_guardrails JSONB,
 created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 8b. NIXIE Shell 마스터 (§0C와 동일). device_registry보다 먼저 생성
+CREATE TABLE nixie_shells (
+shell_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+user_id UUID,
+shell_kind VARCHAR(20) NOT NULL CHECK (shell_kind IN ('VIRTUAL', 'PHYSICAL')),
+browser_tab_fingerprint TEXT,
+metadata JSONB,
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+closed_at TIMESTAMPTZ
+);
+
 -- 9. 기기 최초 등록 및 관리 시작점 (UUID v7/시간 정렬 신뢰를 위한 NTP 검증 필드)
+-- 가상 쉘 행 등록 시 serial_number NOT NULL 제약은 별도 마이그레이션(합성 시리얼 또는 NULL 허용) 필요할 수 있음. §0C 운영 메모.
 CREATE TABLE device_registry (
 device_reg_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
 serial_number TEXT UNIQUE NOT NULL,
@@ -1656,7 +1830,29 @@ mac_address TEXT,
 initial_owner_id UUID,
 created_at TIMESTAMPTZ DEFAULT NOW(),
 is_time_synced BOOLEAN, -- 등록·갱신 시점에 기기 RTC가 NTP 동기화되었는지
-last_ntp_sync_at TIMESTAMPTZ -- 기기가 마지막으로 NTP 동기화한 시각
+last_ntp_sync_at TIMESTAMPTZ, -- 기기가 마지막으로 NTP 동기화한 시각
+shell_id UUID REFERENCES nixie_shells(shell_id) ON DELETE SET NULL,
+nixie_shell_type VARCHAR(20),
+nixie_capability_set JSONB
+);
+
+CREATE UNLOGGED TABLE nixie_state_sync (
+project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+user_id UUID NOT NULL,
+emotional_vector JSONB NOT NULL DEFAULT '{}',
+visual_params JSONB NOT NULL DEFAULT '{}',
+updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+PRIMARY KEY (project_id, user_id)
+);
+
+CREATE TABLE nixie_shell_configs (
+config_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+shell_id UUID NOT NULL REFERENCES nixie_shells(shell_id) ON DELETE CASCADE,
+rendering_profile VARCHAR(20) NOT NULL DEFAULT 'WARM'
+  CHECK (rendering_profile IN ('COLD', 'WARM', 'HOT', 'AUTO')),
+override_settings JSONB,
+updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+UNIQUE (shell_id)
 );
 
 3단계: 감사, 지표 및 마켓플레이스 (No. 10 ~ 13)

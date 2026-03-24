@@ -244,7 +244,34 @@ NEXU 캔버스에 그려지는 **도트·노드**는 장식용 점이 아니다.
 - `user_defined_threshold=95`
 - 결과: `87 < 95` 이므로 NEXA NIXIE 노드에 `Jitter` 적용
 
-## 7. 다음 단계(문서 승격 v1.0 기준)
+## 7. Shell 마스터·디바이스·실시간 이원화 (설계 결정)
+
+> 아래는 **Soul(하나의 지능) / Shell(다수의 몸)** 모델을 DB·런타임에 옮기기 위한 **아키텍처 결정**이다. DDL은 `__NEXA 오케스트레이션 스키마 DDL`에 반영한다.
+
+### 7.1 가상 쉘·탭·`shell_id`
+
+- **브라우저 탭마다 개별 `shell_id`** 를 부여한다. 탭마다 컨텍스트가 다르므로 가상 쉘 수명은 **탭 생명주기**와 일치한다.
+- 저장소에서는 **`project_id`** 를 파티션·스코프 키로 두고, **`(project_id, shell_id)`** 조합으로 유니크·조회를 설계한다.
+
+### 7.2 `nixie_shells` (가칭)와 `device_registry`
+
+- **`nixie_shells` (가칭):** 범용 **`device_registry`** 와 별도로 두는 **닉시 전용 Shell 마스터** — 서사·연출 속성, 쉘 종류, **지능 위계** 메타를 담아 **서사적 독립성**을 유지한다.
+- **통합 등록:** 가상 쉘·물리 쉘 **모두 `device_registry`에도 등록**한다. **통합 권한 모델**, **기기 독립적 서사**, **수명·감사** 일원화를 위함이다(가상 행은 탭·세션 단말 등의 `device_type`으로 구분).
+
+### 7.3 PostgreSQL + Redis 병행
+
+- **정서 동기화·포커스·저지연 연주**는 **Redis**(캐시, Pub/Sub, 짧은 TTL)로 부하를 분산한다.
+- **족보·감사·일관성**은 **PostgreSQL**(`project_logs`, `why_chain`, `ref_ids` 등)이 단일 책임이다. Redis에만 있는 이벤트는 **주기적 스냅샷 또는 append**로 PG에 흡수하는 규칙을 둔다.
+
+### 7.4 Traceability·신뢰도와의 정합
+
+- 물리 쉘 TICK → 가상 쉘 ECHO 등 **교차 쉘** 인과는 `why_chain`에 명시한다(기존 §4 규격).
+- Lumina/Jitter 등 시각화는 **NEXA NIXIE 시각 피드백 매핑**(§1.3)과 동일한 **`confidence_score` / `user_defined_threshold`** 규칙을 유지한다.
+
+---
+
+## 8. 다음 단계(문서 승격 v1.0 기준)
 
 - `[NEXA NIXIE-SCHEMA]` v1.0에서는 `why_chain`/`ref_ids`의 **최소 필드 목록(스키마 확정)**을 표준화한다.
 - NEXU가 “프로젝트 외(Global)” 모드일 때 **effective_project_id**(즉, `project_id` 컬럼에 넣을 값) 지정 방식(글로벌 그림자 프로젝트 ID 계약)을 문서에 명시한다.
+- §7 Shell 마스터·`device_registry` 이중 등록·Redis 이원화에 대한 **DDL 초안**을 오케스트레이션 스키마 문서와 동기화한다.
