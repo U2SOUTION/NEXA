@@ -1,12 +1,15 @@
-# \_ 지능형 용어 관리 Glossary DB용 CRUD 테이블 스키마 설계안
+# \_ 용어 및 시스템 설계 파일 관리 CRUD 테이블 스키마 설계안
 
-본 문서는 NEXA Glossary DB의 단일 스키마 기준(SSOT)이다.
+본 문서는 NEXA Knowledge OS의 단일 스키마 기준(SSOT)이다.
+
+> 네임스페이스 원칙: 공통 지식 계층은 `nexa_knowledge_*`, 프로젝트 생성 지식은 `project_knowledge`로 분리한다.
+> 본 문서의 물리 테이블명은 `nexa_knowledge_*`를 기준으로 한다.
 
 ---
 
 ## 1) 핵심 테이블
 
-### 1.1 `nexa_glossary_definitions`
+### 1.1 `nexa_knowledge_definitions`
 
 | 컬럼명        | 타입         | 제약                     | 설명                   |
 | :------------ | :----------- | :----------------------- | :--------------------- |
@@ -38,21 +41,28 @@
 - `UNIQUE(term_id, layer_type)`
 - `UNIQUE(layer_type, token_value)`
 
-### 1.3 `nexa_glossary_references`
+### 1.3 `nexa_knowledge_references`
 
-| 컬럼명          | 타입         | 제약                           | 설명                   |
-| :-------------- | :----------- | :----------------------------- | :--------------------- |
-| `id`            | UUID         | PK, DEFAULT uuid_v7()          | 연결 ID                |
-| `term_id`       | UUID         | FK -> definitions.id, NOT NULL | 용어 참조              |
-| `capability_id` | VARCHAR(120) | NOT NULL                       | 기능 ID (`nexa.*`)     |
-| `doc_ref_path`  | VARCHAR(255) | NULL                           | 문서 경로              |
-| `doc_anchor`    | VARCHAR(100) | NULL                           | 문서 앵커              |
-| `source_hash`   | VARCHAR(64)  | NULL                           | 문서 해시              |
-| `status`        | SMALLINT     | NOT NULL, DEFAULT 1            | 1: Active, 0: Inactive |
-| `created_at`    | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 생성 시각              |
-| `updated_at`    | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 갱신 시각              |
+| 컬럼명             | 타입         | 제약                           | 설명                          |
+| :----------------- | :----------- | :----------------------------- | :---------------------------- |
+| `id`               | UUID         | PK, DEFAULT uuid_v7()          | 연결 ID                       |
+| `term_id`          | UUID         | FK -> definitions.id, NOT NULL | 용어 참조                     |
+| `capability_id`    | VARCHAR(120) | NOT NULL                       | 기능 ID (`nexa.*`)            |
+| `source_filename`  | VARCHAR(255) | NULL                           | 원본 파일명                   |
+| `doc_ref_path`     | VARCHAR(255) | NULL                           | 문서 경로                     |
+| `doc_anchor`       | VARCHAR(100) | NULL                           | 문서 앵커                     |
+| `source_hash`      | VARCHAR(64)  | NULL                           | 문서 해시                     |
+| `context_code`     | VARCHAR(20)  | NULL                           | Context 코드 (`SYS`, `AIS`)   |
+| `doctype_code`     | VARCHAR(20)  | NULL                           | DocType 코드 (`RFC`, `ARCH`)  |
+| `version_label`    | VARCHAR(30)  | NULL                           | 버전 표기 (`v1`, `v0.8`)      |
+| `prefix_flag`      | VARCHAR(10)  | NOT NULL, DEFAULT 'NONE'       | `_`, `@`, `NONE`              |
+| `parser_version`   | VARCHAR(40)  | NULL                           | 파일명 규칙 파서 버전         |
+| `parse_confidence` | NUMERIC(5,4) | NULL                           | 파싱 신뢰도 (0~1)             |
+| `status`           | SMALLINT     | NOT NULL, DEFAULT 1            | 1: Active, 0: Inactive        |
+| `created_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 생성 시각                     |
+| `updated_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 갱신 시각                     |
 
-### 1.4 `nexa_glossary_vectors`
+### 1.4 `nexa_knowledge_vectors`
 
 | 컬럼명                 | 타입        | 제약                                   | 설명              |
 | :--------------------- | :---------- | :------------------------------------- | :---------------- |
@@ -64,7 +74,7 @@
 | `vector_search_status` | SMALLINT    | NOT NULL, DEFAULT 1                    | 1: Active, 0: Off |
 | `updated_at`           | TIMESTAMPTZ | NOT NULL, DEFAULT now()                | 갱신 시각         |
 
-### 1.5 `nexa_glossary_audit_logs`
+### 1.5 `nexa_knowledge_audit_logs`
 
 | 컬럼명          | 타입         | 제약                    | 설명                                      |
 | :-------------- | :----------- | :---------------------- | :---------------------------------------- |
@@ -82,7 +92,7 @@
 
 ## 2) 보강 테이블
 
-### 2.1 `nexa_glossary_distribution_profiles` (차등 배포)
+### 2.1 `nexa_knowledge_distribution_profiles` (차등 배포)
 
 | 컬럼명               | 타입        | 제약                    | 설명             |
 | :------------------- | :---------- | :---------------------- | :--------------- |
@@ -97,7 +107,7 @@
 | `status`             | SMALLINT    | NOT NULL, DEFAULT 1     | 활성 상태        |
 | `updated_at`         | TIMESTAMPTZ | NOT NULL, DEFAULT now() | 갱신 시각        |
 
-### 2.2 `nexa_glossary_doc_sync_state` (문서 동기화 상태)
+### 2.2 `nexa_knowledge_doc_sync_state` (문서 동기화 상태)
 
 | 컬럼명             | 타입         | 제약                    | 설명                 |
 | :----------------- | :----------- | :---------------------- | :------------------- |
@@ -108,7 +118,7 @@
 | `last_sync_status` | VARCHAR(20)  | NOT NULL                | success/fail/skipped |
 | `last_error`       | TEXT         | NULL                    | 실패 사유            |
 
-### 2.3 `nexa_glossary_change_requests` (불변 토큰 승인 큐)
+### 2.3 `nexa_knowledge_change_requests` (불변 토큰 승인 큐)
 
 | 컬럼명                  | 타입         | 제약                        | 설명                       |
 | :---------------------- | :----------- | :-------------------------- | :------------------------- |
@@ -124,6 +134,44 @@
 | `review_note`           | VARCHAR(255) | NULL                        | 승인/반려 메모             |
 | `reviewed_at`           | TIMESTAMPTZ  | NULL                        | 처리 시각                  |
 | `created_at`            | TIMESTAMPTZ  | NOT NULL, DEFAULT now()     | 생성 시각                  |
+
+### 2.4 `nexa_knowledge_ref_rules` (참조 문서 규칙 관리)
+
+| 컬럼명               | 타입         | 제약                           | 설명                               |
+| :------------------- | :----------- | :----------------------------- | :--------------------------------- |
+| `rule_id`            | UUID         | PK, DEFAULT uuid_v7()          | 규칙 ID                            |
+| `rule_version`       | VARCHAR(40)  | UNIQUE, NOT NULL               | 규칙 버전                          |
+| `filename_pattern`   | TEXT         | NOT NULL                       | 파일명 파싱 패턴(정규식/템플릿)    |
+| `context_whitelist`  | JSONB        | NOT NULL                       | 허용 Context 코드 목록              |
+| `doctype_whitelist`  | JSONB        | NOT NULL                       | 허용 DocType 코드 목록              |
+| `prefix_policy`      | JSONB        | NOT NULL                       | `_`, `@` 처리 규칙                 |
+| `is_active`          | BOOLEAN      | NOT NULL, DEFAULT FALSE        | 활성 규칙 여부                     |
+| `effective_from`     | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 적용 시작 시각                     |
+| `effective_to`       | TIMESTAMPTZ  | NULL                           | 적용 종료 시각                     |
+| `created_by`         | VARCHAR(120) | NOT NULL                       | 생성 주체                          |
+| `created_at`         | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 생성 시각                          |
+| `updated_at`         | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 갱신 시각                          |
+
+### 2.5 `nexa_knowledge_reference_assets` (문서 참조 자산 연결)
+
+| 컬럼명         | 타입         | 제약                             | 설명                                   |
+| :------------- | :----------- | :------------------------------- | :------------------------------------- |
+| `id`           | UUID         | PK, DEFAULT uuid_v7()            | 연결 ID                                |
+| `reference_id` | UUID         | FK -> references.id, NOT NULL    | 문서 참조 레코드                       |
+| `asset_id`     | UUID         | FK -> project_assets.asset_id    | 자산 원장 ID                           |
+| `usage_type`   | VARCHAR(20)  | NOT NULL                         | embedded/attachment/citation/thumbnail |
+| `doc_anchor`   | VARCHAR(100) | NULL                             | 문서 내 첨부 앵커                      |
+| `caption`      | VARCHAR(255) | NULL                             | 캡션                                   |
+| `sort_order`   | INTEGER      | NOT NULL, DEFAULT 0              | 정렬 순서                              |
+| `is_primary`   | BOOLEAN      | NOT NULL, DEFAULT FALSE          | 대표 자산 여부                         |
+| `status`       | SMALLINT     | NOT NULL, DEFAULT 1              | 1: Active, 0: Inactive                 |
+| `created_at`   | TIMESTAMPTZ  | NOT NULL, DEFAULT now()          | 생성 시각                              |
+| `updated_at`   | TIMESTAMPTZ  | NOT NULL, DEFAULT now()          | 갱신 시각                              |
+
+운영 원칙:
+
+- 파일 실체 저장/쿼터 계산은 `project_assets`가 담당한다.
+- 본 테이블은 문서 참조 문맥(앵커/용도/정렬)만 담당한다.
 
 ---
 
@@ -155,35 +203,37 @@
 
 1. 수정 요청 수신
 2. 대상이 `is_immutable=true`이면 본 테이블 즉시 업데이트 금지
-3. `nexa_glossary_change_requests`에 pending 생성
+3. `nexa_knowledge_change_requests`에 pending 생성
 4. 관리자 승인 시에만 실제 반영
-5. 승인/반려 모두 `nexa_glossary_audit_logs` 기록
+5. 승인/반려 모두 `nexa_knowledge_audit_logs` 기록
 
 ---
 
 ## 5) DDL 정합성 매트릭스 (CRUD ↔ 통합 DDL)
 
 기준 파일:
-- 명세: `_ 지능형 용어 관리 CRUD 테이블 명세서.md` (본 문서)
-- DDL: `_ 지능형 용어 관리 자산 통합 스키마 DDL.md`
+- 명세: `_ 용어 및 시스템 설계 파일 관리 CRUD 테이블 명세서.md` (본 문서)
+- DDL: `_ 용어 및 시스템 설계 파일 관리 통합 스키마 DDL.md`
 
 ### 5.1 핵심 테이블 정합성
 
 | 테이블 | 정합 상태 | 비고 |
 | :-- | :-- | :-- |
-| `nexa_glossary_definitions` | 일치 | 필수 컬럼/기본값/상태 제약 반영 |
+| `nexa_knowledge_definitions` | 일치 | 필수 컬럼/기본값/상태 제약 반영 |
 | `nexa_term_tokens` | 일치 | `status`, `created_at`, `layer_type` CHECK 반영 |
-| `nexa_glossary_references` | 일치 | `capability_id NOT NULL`, 참조 제한(`RESTRICT`) 반영 |
-| `nexa_glossary_vectors` | 일치 | `embedding_dim`, `vector_search_status` 제약 반영 |
-| `nexa_glossary_audit_logs` | 일치 | 감사 로그 시계열 테이블(hypertable) 반영 |
+| `nexa_knowledge_references` | 일치 | 코드 기반 분류 컬럼(`context_code`, `doctype_code`) 반영 |
+| `nexa_knowledge_vectors` | 일치 | `embedding_dim`, `vector_search_status` 제약 반영 |
+| `nexa_knowledge_audit_logs` | 일치 | 감사 로그 시계열 테이블(hypertable) 반영 |
 
 ### 5.2 보강 테이블 정합성
 
 | 테이블 | 정합 상태 | 비고 |
 | :-- | :-- | :-- |
-| `nexa_glossary_distribution_profiles` | 일치 | 프로파일명 CHECK(`nano/micro/vista`) 반영 |
-| `nexa_glossary_doc_sync_state` | 일치 | `last_sync_status` 운영 인덱스 반영 |
-| `nexa_glossary_change_requests` | 일치 | `is_pending`, `review_note`, 상태 CHECK 반영 |
+| `nexa_knowledge_distribution_profiles` | 일치 | 프로파일명 CHECK(`nano/micro/vista`) 반영 |
+| `nexa_knowledge_doc_sync_state` | 일치 | `last_sync_status` 운영 인덱스 반영 |
+| `nexa_knowledge_change_requests` | 일치 | `is_pending`, `review_note`, 상태 CHECK 반영 |
+| `nexa_knowledge_ref_rules` | 일치 | 활성 규칙 단일화 인덱스 반영 |
+| `nexa_knowledge_reference_assets` | 일치 | `project_assets` FK + usage_type CHECK 반영 |
 
 ### 5.3 제약/인덱스 정합성
 
@@ -199,6 +249,8 @@
 
 - 사용자 Capability 접두사 강제는 `type='user'` 조건으로 통일
 - `capability_id` 없는 참조 데이터 생성 방지
+- 참조 문서 파싱은 활성 규칙(`nexa_knowledge_ref_rules.is_active=true`) 기준 단일 적용
+- 첨부 파일은 `project_assets` quota 검증 통과 건만 `nexa_knowledge_reference_assets`에 연결
 - 승인 큐 기반 변경 통제 + 감사 로그 적재 일관성 확보
 
 ---
@@ -218,15 +270,17 @@
 3. **공용 참조 테이블**
    - `tiers`, `capabilities`
 4. **Glossary Core 테이블**
-   - `nexa_glossary_definitions`
+  - `nexa_knowledge_definitions`
    - `nexa_term_tokens`
-   - `nexa_glossary_references`
-   - `nexa_glossary_vectors`
+  - `nexa_knowledge_references`
+  - `nexa_knowledge_vectors`
 5. **운영 보강 테이블**
-   - `nexa_glossary_distribution_profiles`
-   - `nexa_glossary_doc_sync_state`
-   - `nexa_glossary_change_requests`
-   - `nexa_glossary_audit_logs` + hypertable 변환
+  - `nexa_knowledge_distribution_profiles`
+  - `nexa_knowledge_doc_sync_state`
+  - `nexa_knowledge_change_requests`
+  - `nexa_knowledge_ref_rules`
+  - `nexa_knowledge_reference_assets`
+  - `nexa_knowledge_audit_logs` + hypertable 변환
 6. **인덱스 생성**
    - 일반 인덱스 -> 벡터(HNSW) 인덱스 순
 7. **초기 데이터 시드**
@@ -242,31 +296,33 @@
 SELECT table_name
 FROM information_schema.tables
 WHERE table_name IN (
-  'nexa_glossary_definitions',
+  'nexa_knowledge_definitions',
   'nexa_term_tokens',
-  'nexa_glossary_references',
-  'nexa_glossary_vectors',
-  'nexa_glossary_distribution_profiles',
-  'nexa_glossary_doc_sync_state',
-  'nexa_glossary_change_requests',
-  'nexa_glossary_audit_logs'
+  'nexa_knowledge_references',
+  'nexa_knowledge_vectors',
+  'nexa_knowledge_distribution_profiles',
+  'nexa_knowledge_doc_sync_state',
+  'nexa_knowledge_change_requests',
+  'nexa_knowledge_ref_rules',
+  'nexa_knowledge_reference_assets',
+  'nexa_knowledge_audit_logs'
 );
 
 -- 2) status/check 제약 확인
 SELECT conname, conrelid::regclass AS table_name
 FROM pg_constraint
 WHERE conname LIKE 'chk_%'
-  AND conrelid::regclass::text LIKE 'nexa_glossary%';
+  AND conrelid::regclass::text LIKE 'nexa_knowledge%';
 
 -- 3) HNSW 인덱스 확인
 SELECT indexname, tablename
 FROM pg_indexes
-WHERE tablename = 'nexa_glossary_vectors';
+WHERE tablename = 'nexa_knowledge_vectors';
 
 -- 4) hypertable 전환 확인(timescaledb)
 SELECT hypertable_name
 FROM timescaledb_information.hypertables
-WHERE hypertable_name = 'nexa_glossary_audit_logs';
+WHERE hypertable_name = 'nexa_knowledge_audit_logs';
 ```
 
 ### 6.3 운영 점검 체크리스트
@@ -289,6 +345,6 @@ WHERE hypertable_name = 'nexa_glossary_audit_logs';
 ## 7) Ollama 연동과 CRUD 경계 (요약)
 
 - **CRUD의 근거는 항상 DB/API**이다. Ollama는 **임베딩 생성**·**(선택) 초안 제안**에만 쓰이며, 단독으로 행을 “확정”하지 않는다.
-- **`nexa_glossary_vectors`**: 용어 본문(또는 합의된 입력 문자열)을 Ollama 임베딩 API로 벡터화한 뒤 **UPSERT**. 모델명·차원은 `embedding_model` / `embedding_dim` / DDL의 `VECTOR(n)`과 일치해야 한다.
-- **불변 토큰·승인 큐**: Ollama 출력 → 검증 → 필요 시 `nexa_glossary_change_requests` → 승인 후 본 테이블 반영.
-- 상세 흐름·API 예시는 `_ 지능형 용어 관리 시스템 NEXA Glossary DB.md` §2.6을 본다.
+- **`nexa_knowledge_vectors`**: 용어 본문(또는 합의된 입력 문자열)을 Ollama 임베딩 API로 벡터화한 뒤 **UPSERT**. 모델명·차원은 `embedding_model` / `embedding_dim` / DDL의 `VECTOR(n)`과 일치해야 한다.
+- **불변 토큰·승인 큐**: Ollama 출력 → 검증 → 필요 시 `nexa_knowledge_change_requests` → 승인 후 본 테이블 반영.
+- 상세 흐름·API 예시는 `_ 용어 및 시스템 설계 파일 관리 운영 아키텍처.md`의 연동 절을 본다.

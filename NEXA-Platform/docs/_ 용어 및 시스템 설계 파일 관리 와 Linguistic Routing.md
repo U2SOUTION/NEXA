@@ -1,6 +1,8 @@
-# _ 지능형 용어 관리 와 Linguistic Routing(언어적 라우팅)
+# _ 용어 및 시스템 설계 파일 관리 와 Linguistic Routing
 
-본 문서는 Glossary DB와 Linguistic Routing의 연동 계약을 정의한다.
+본 문서는 NEXA Knowledge OS와 Linguistic Routing의 연동 계약을 정의한다.
+
+> 네임스페이스 원칙: 공통 지식은 `nexa_knowledge_*`, 프로젝트 생성 지식은 `project_knowledge`로 분리한다.
 
 ---
 
