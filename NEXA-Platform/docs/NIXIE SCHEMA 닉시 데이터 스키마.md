@@ -7,7 +7,7 @@
 이 문서는 넥사 닉시(NEXA NIXIE)가 다음 입력을 모두 수용(및 처리)하기 위한 **데이터 스키마(저장 규격 + 족보/추적 규격)**를 정의한다.
 
 - 닉시 자체 판단(자율 추론/인디케이터 출력)
-- UI 선택(“지금의 나” 카드, 코일 밸런서 등 사용자 조작)
+- UI 선택(“지금의 나” Self facet (자아의 단면), 코일 밸런서 등 사용자 조작)
 - 멀티모달 직접 입력(텍스트/음성/영상)
 
 핵심 전제는 두 축이다.
@@ -30,7 +30,7 @@
 - `pulse` (SMALLINT): 출처/동력원 구분 (WILL / ECHO / TICK, 필요 시 ASK/VOID 등은 HEXAGON 토큰 체계에 포함)
 - `input_channel` (VARCHAR): 유입 경로 (UI_CARD, UI_SLIDER, VOICE, VIDEO, TEXT, AI_SLM 등)
 - `hexagon_header` (SMALLINT): HEXAGON(5W1H) 토큰을 1ms 내 식별하기 위한 “인덱스(=6컬럼 토큰 세트의 약식 표현)”
-- `payload` (JSONB): 선택 카드 ID, 슬라이더 값, 텍스트 원문, 파일 ref_id 등 실제 데이터(닉시별 세부는 JSON에 둔다)
+- `payload` (JSONB): 선택 Self facet (자아의 단면) ID, 슬라이더 값, 텍스트 원문, 파일 ref_id 등 실제 데이터(닉시별 세부는 JSON에 둔다)
 - `confidence_score` (SMALLINT): 판단의 무게(0~100). WILL은 기본적으로 100, ECHO는 추론 확신, TICK은 신호 품질 기반으로 반영
 - `embedding` (VECTOR): 시맨틱 좌표(유사 이력/지식 검색의 기반)
 
@@ -40,38 +40,34 @@
 
 #### A) `project_logs`에 대한 매핑
 
-
-| 닉시 개념 필드           | `project_logs` 저장 위치                                                          | 비고                                          |
-| ------------------ | ----------------------------------------------------------------------------- | ------------------------------------------- |
-| `pulse`            | `who_pulse`                                                                   | WILL/ECHO/TICK/ASK 등은 HEXAGON 토큰 매핑 기준을 따른다 |
-| `hexagon_header`   | (`where_scope, when_tempo, who_pulse, what_intent, how_state, why_causality`) | 문서 상 약식 인덱스. 실제 DB는 6컬럼 완전 분리               |
-| `payload`          | `extra_data`(+필요 시 `summary/why_chain`)                                       | 입력 원문/카드ID/슬라이더값/파일 ref_id는 JSONB에 둔다       |
-| `confidence_score` | `confidence_score`                                                            | 플랫폼 DDL의 신뢰도 필드                             |
-| `embedding`        | `embedding`                                                                   | 임베딩 차원은 채택 모델과 일치해야 함                       |
-| `Traceability`     | `why_chain` JSONB                                                             | Why Chain은 인과 사슬을 구조화(아래 §4 참고)             |
-
+| 닉시 개념 필드     | `project_logs` 저장 위치                                                      | 비고                                                                       |
+| ------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `pulse`            | `who_pulse`                                                                   | WILL/ECHO/TICK/ASK 등은 HEXAGON 토큰 매핑 기준을 따른다                    |
+| `hexagon_header`   | (`where_scope, when_tempo, who_pulse, what_intent, how_state, why_causality`) | 문서 상 약식 인덱스. 실제 DB는 6컬럼 완전 분리                             |
+| `payload`          | `extra_data`(+필요 시 `summary/why_chain`)                                    | 입력 원문/Self facet (자아의 단면)ID/슬라이더값/파일 ref_id는 JSONB에 둔다 |
+| `confidence_score` | `confidence_score`                                                            | 플랫폼 DDL의 신뢰도 필드                                                   |
+| `embedding`        | `embedding`                                                                   | 임베딩 차원은 채택 모델과 일치해야 함                                      |
+| `Traceability`     | `why_chain` JSONB                                                             | Why Chain은 인과 사슬을 구조화(아래 §4 참고)                               |
 
 #### B) `project_knowledge`에 대한 매핑
 
-
-| 닉시 개념 필드           | `project_knowledge` 저장 위치                                                     | 비고                                      |
-| ------------------ | ----------------------------------------------------------------------------- | --------------------------------------- |
-| `pulse`            | `who_pulse`                                                                   | 과거/지식에서도 “누가/어떤 동력원으로” 생성되었는지 보존        |
-| `hexagon_header`   | (`where_scope, when_tempo, who_pulse, what_intent, how_state, why_causality`) | 동일 규칙                                   |
-| `payload`          | `raw_content, content_fact, metadata, extra_data`                             | 지식화 단계에서 원문/요약/메타를 분리 저장                |
-| `confidence_score` | `confidence_score`                                                            | RAG 가중치/필터 기준으로 사용                      |
-| `embedding`        | `embedding`                                                                   | RAG 검색용                                 |
-| `Traceability`     | `ref_ids` JSONB                                                               | SNT-IND-EFF 등 참조 사슬의 역추적 키 저장(아래 §4 참고) |
-
+| 닉시 개념 필드     | `project_knowledge` 저장 위치                                                 | 비고                                                     |
+| ------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `pulse`            | `who_pulse`                                                                   | 과거/지식에서도 “누가/어떤 동력원으로” 생성되었는지 보존 |
+| `hexagon_header`   | (`where_scope, when_tempo, who_pulse, what_intent, how_state, why_causality`) | 동일 규칙                                                |
+| `payload`          | `raw_content, content_fact, metadata, extra_data`                             | 지식화 단계에서 원문/요약/메타를 분리 저장               |
+| `confidence_score` | `confidence_score`                                                            | RAG 가중치/필터 기준으로 사용                            |
+| `embedding`        | `embedding`                                                                   | RAG 검색용                                               |
+| `Traceability`     | `ref_ids` JSONB                                                               | SNT-IND-EFF 등 참조 사슬의 역추적 키 저장(아래 §4 참고)  |
 
 ### 1.3 NEXA NIXIE 시각 피드백 매핑 (NEXU Canvas 렌더링)
 
 NEXU 캔버스에서 문서 참조 노드의 안정도를 표현할 때는 `project_logs/project_knowledge`의 일반 `confidence_score`와 별도로, 파일명 파싱 기반 점수를 사용한다.
 
-| UI 대상 | 소스 테이블/컬럼 | 비교 기준 | 렌더링 규칙 |
-| ------------------ | ----------------------------------------------------------------------------- | --------------------------------------- | --------------------------------------- |
-| 문서 참조 노드 | `nexa_knowledge_references.parse_confidence` | 내부 환산(`confidence_score=round(parse_confidence*100)`) | 0~100 점수 생성 |
-| 문서 참조 노드 | `nexa_knowledge_references.confidence_score` | `project_settings.user_defined_threshold` (기본 95) | `< threshold` 이면 `Jitter`, `>= threshold` 이면 `Lumina` |
+| UI 대상        | 소스 테이블/컬럼                             | 비교 기준                                                 | 렌더링 규칙                                               |
+| -------------- | -------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------- |
+| 문서 참조 노드 | `nexa_knowledge_references.parse_confidence` | 내부 환산(`confidence_score=round(parse_confidence*100)`) | 0~100 점수 생성                                           |
+| 문서 참조 노드 | `nexa_knowledge_references.confidence_score` | `project_settings.user_defined_threshold` (기본 95)       | `< threshold` 이면 `Jitter`, `>= threshold` 이면 `Lumina` |
 
 운영 규칙:
 
@@ -86,6 +82,19 @@ API 연동 계약:
 - 요청: `project_id`, `reference_id`, `threshold_override(optional)`
 - 응답: `confidence_score`, `threshold_used`, `visual_state(JITTER|LUMINA)`, `reason_code`, `meta(source_filename, parser_version)`
 - 클라이언트는 응답의 `visual_state`를 그대로 렌더링 상태로 사용한다(클라이언트 재판정 금지).
+
+#### 캔버스 도트·노드와 `why_chain`의 1:1 매핑(규격)
+
+NEXU 캔버스에 그려지는 **도트·노드**는 장식용 점이 아니다. 각 객체는 **저장소의 인과 레코드**와 식별 가능하게 연결되며, 최소한 다음 중 하나를 만족해야 한다.
+
+- 문서·참조 계열: `nexa_knowledge_references`의 `reference_id`(또는 동일 참조를 가리키는 키)와 **렌더 노드 id**가 1:1 또는 명시적 FK로 대응한다.
+- 실행·로그 계열: `project_logs` 행의 `why_chain` JSONB(또는 `ref_ids`로 이어지는 동일 사슬)의 **노드 식별자**와 캔버스 노드가 대응한다.
+
+**규칙:** 렌더러는 “화면에 올릴 도트”를 만들 때 **연결할 `why_chain` / `ref_ids` / `reference_id` 없이 임의의 점을 찍지 않는다**고 가정한다. 빈 꾸밈 도트는 스키마상 금지에 가깝고, 예외가 있으면 `extra_data.render_decoration=true` 같은 **명시적 플래그**로만 허용한다.
+
+#### Jitter(떨림) 연출의 의미(기술 규칙)
+
+`confidence_score < user_defined_threshold`일 때의 **Jitter**는 단순한 시각 효과가 아니라, **데이터 정합성·파싱 신뢰도·근거 체인에 대한 시스템의 비언어적 경고**다. 사용자는 “이 노드에 매핑된 근거가 흔들리고 있다”는 것을 **말 없이** 읽을 수 있어야 하며, 동일 의미는 `visual_state=JITTER` API 계약과 일치한다.
 
 ## 2. 프로젝트 내부/외부 동작 보강(스코프 문제)
 
@@ -133,14 +142,14 @@ API 연동 계약:
 
 ### ② 사용자 UI 선택 데이터 (WILL / UI_INTERACTION)
 
-- 입력: “지금의 나” 카드 선택, 코일 밸런서 슬라이더 조절, UI 버튼/노드 선택 등 명시적 조작
+- 입력: “지금의 나” Self facet (자아의 단면) 선택, 코일 밸런서 슬라이더 조절, UI 버튼/노드 선택 등 명시적 조작
 - 저장 규격
   - `pulse = WILL`
   - `input_channel = 'UI_CARD' | 'UI_SLIDER' | 'UI_BUTTON' | 'UI_NODE'` 등
   - `confidence_score = 100` (사용자가 명확히 선택했으므로 영구 보존/우선권 부여)
   - `hexagon(5W1H)`: UI 이벤트가 의미하는 where/what/how/why를 토큰화
   - `payload`:
-    - 선택된 카드 ID / 슬라이더 값 / 선택 결과의 요약
+    - 선택된 Self facet (자아의 단면) ID / 슬라이더 값 / 선택 결과의 요약
     - `intent_tags` (예: INTENT 성격 태그)
   - `Traceability`:
     - `why_chain`에 “사용자가 무엇을 선택했고 그 선택이 어떤 UCL/PERSONA/코일 매핑으로 이어질지”를 기록
@@ -165,6 +174,8 @@ API 연동 계약:
 ## 4. 지능적 족보(Traceability) 구조 규격
 
 닉시는 “의도(WILL) → 판단(ECHO) → 연주/실행(NEXA NIXIE/Rive)” 데이터 사슬에서, 중간 단계의 근거를 반드시 저장해야 한다.
+
+**캔버스와의 규격 연결:** §1.3의 **도트·노드 ↔ `why_chain` / `ref_ids` / `reference_id` 1:1 매핑**은 본 절의 JSON 구조를 **화면 위의 증명**으로 이어주는 계약이다. 사용자가 노드를 클릭했을 때 **[판단(IND) → 사실(SNT) → 기획 문서(Doc)]** 하이라이트는, 이 JSON에 저장된 참조 키를 따라가며 **Why Chain을 시각적으로 증명**하는 동작이다.
 
 ### 4.1 `project_logs.why_chain` (JSONB) 권장 형태
 
@@ -198,34 +209,34 @@ API 연동 계약:
 - `pulse=ECHO`, `input_channel=AI_INFERENCE`
 - `confidence_score=62`
 - `extra_data` 예:
-{
-"candidate_ucl_headers": ["UCL.ACTION.SAVE", "UCL.ACTION.DELETE"],
-"ask_question": "저장/삭제 중 어떤 의도로 보셨나요?",
-"persona_pack_id": "persona.calm",
-"void_related": false
-}
+  {
+  "candidate_ucl_headers": ["UCL.ACTION.SAVE", "UCL.ACTION.DELETE"],
+  "ask_question": "저장/삭제 중 어떤 의도로 보셨나요?",
+  "persona_pack_id": "persona.calm",
+  "void_related": false
+  }
 
-### 예시 2) WILL(UI 카드 선택 → INTENT 지식화)
+### 예시 2) WILL(UI Self facet (자아의 단면) 선택 → INTENT 지식화)
 
 - `pulse=WILL`, `input_channel=UI_CARD`, `confidence_score=100`
 - `extra_data` 예:
-{
-"selected_card_id": "card.now-self.intent_focus",
-"intent_tags": ["INTENT"],
-"applied_coil_weights": {"safety": 0.6, "creative": 0.4}
-}
+  {
+  "selected_card_id": "card.now-self.intent_focus",
+  "intent_tags": ["INTENT"],
+  "applied_coil_weights": {"safety": 0.6, "creative": 0.4}
+  }
 
 ### 예시 3) WILL(MULTIMODAL → VOID 전환)
 
 - `pulse=WILL`, `input_channel=VOICE|TEXT|VIDEO`
 - `hexagon.how_state=VOID`
 - `payload/ref_id` 예:
-{
-"normalized_5w1h_text": "지금은 방향을 못 잡겠지만, 작은 시작을 원해요.",
-"multimodal_ref_id": "SNT-VOICE-20260319-0001",
-"stt_ref_id": "SNT-STT-20260319-0001",
-"void_signals": {"rollback_count": 2, "dwell_ms": 9000}
-}
+  {
+  "normalized_5w1h_text": "지금은 방향을 못 잡겠지만, 작은 시작을 원해요.",
+  "multimodal_ref_id": "SNT-VOICE-20260319-0001",
+  "stt_ref_id": "SNT-STT-20260319-0001",
+  "void_signals": {"rollback_count": 2, "dwell_ms": 9000}
+  }
 
 ### 예시 4) NEXA NIXIE 문서 참조 노드 시각 경고
 
@@ -237,4 +248,3 @@ API 연동 계약:
 
 - `[NEXA NIXIE-SCHEMA]` v1.0에서는 `why_chain`/`ref_ids`의 **최소 필드 목록(스키마 확정)**을 표준화한다.
 - NEXU가 “프로젝트 외(Global)” 모드일 때 **effective_project_id**(즉, `project_id` 컬럼에 넣을 값) 지정 방식(글로벌 그림자 프로젝트 ID 계약)을 문서에 명시한다.
-

@@ -552,13 +552,20 @@ ERA 격상        → PURGE 대상 영구 제외, 시스템 헌법으로 고정
 > HEXAGON × 6-COILS 기반 지능형 서사 시각화 캔버스.
 > 데이터와 상태를 숫자가 아닌 빛·떨림·공간으로 표현한다.
 
+**넥슈(NEXU Canvas)의 정체성:** 캔버스는 **데이터의 유래(Why Chain)**를 보여 주는 **지능형 지도**다. 화려한 배경·대시보드 장식이 목적이 아니라, **250만 광년의 물리적 거리**조차 **사용자와의 관계(인과·근거)**로 치환해 같은 공간에 놓는다. “멀리 있는 숫자”가 아니라 **나와 이어지는 유래**로 읽히게 하는 것이 철학적 원칙이다.  
+노드 선택 시 **[판단(IND) → 사실(SNT) → 기획 문서(Doc)]** 참조 사슬을 하이라이트하는 것은 부가 기능이 아니라 **Why Chain을 시각적으로 증명**하는 핵심 책임이다.
+
 ### 9.1 핵심 시각 언어
 
-| 요소 | 정의 | 코일·상태 연결 |
-|------|------|-------------|
-| **Lumina** | 신뢰도·상태에 따라 변하는 빛의 생명력 | confidence_score → 발광 강도 |
-| **Jitter** | 불확실·긴장·오류 상황의 미세 떨림 | confidence < threshold → 떨림 |
+아래 요소는 **UI 디자인 패키지**가 아니라, **6코일 상태·데이터 신뢰도·실행 사슬의 투영**으로 정의한다.
+
+| 요소 | 정의 | 코일·데이터 연결 |
+|------|------|------------------|
+| **Lumina** | 신뢰·안정·근거가 충분할 때의 **발광** — 코일·상태의 “에너지”와 `confidence_score`가 **빛의 강도·색온도**로 투영된다 | confidence ≥ threshold · 코일 가중치·안정 경로 → 발광 |
+| **Jitter** | 불확실·정합성 경고·ASK 대기의 **미세 떨림** — 단순 연출이 아니라 **데이터 신뢰도·근거 체인에 대한 비언어적 경고** | confidence < threshold · 오류·부분성공 → 떨림·점선 |
 | **Fractal Sync** | Capability ID 계층에서 폭발·함몰 전이 | Zoom In/Out → 폭발·응축 |
+
+**원칙:** Lumina/Jitter는 **스킨**이 아니라 **상태와 신뢰도의 읽기 가능한 출력**이다.
 
 ### 9.2 LOD (Level of Detail) — 하드웨어 프로필
 
@@ -580,8 +587,10 @@ ERA 격상        → PURGE 대상 영구 제외, 시스템 헌법으로 고정
 
 ### 9.4 Ambient Interface 원칙
 
+**용어:** 식별자는 **Self facet** (코드·API·UI 스키마의 베이스 토큰). 사용자·설명 문구는 **자아의 단면**. Multi-faceted Self(`nexa_self_*`)를 한 번에 드러내는 UI 단위. 문서 병기: **Self facet (자아의 단면)**. `NIXIE VISION`·스키마 문서와 동일.
+
 ```
-카드는 작업 화면 가장자리에 작고 반투명하게 존재
+Self facet (자아의 단면)은 작업 화면 가장자리에 작고 반투명하게 존재
 막힘 감지 시 (타이핑 멈춤 30초 등) 살짝 선명해짐
 클릭하면 코일 재조정 + 역방향 분해 시작
 클릭 강요 없음 — 무시해도 아무 일 없음
@@ -836,7 +845,7 @@ CREATE POLICY user_isolation ON empathy_signals
 | 3단계 | Smart RAG | document_index · pgvector 검색 · 원본 JOIN |
 | 4단계 | 코일 시스템 | 6코일 가중치 엔진 · 도메인 코일 발동 · Compliance 검사 |
 | 5단계 | Empathy 엔진 | 센서 입력 · 신호 계산 · Low-Entropy 모드 · 패턴 학습 |
-| 6단계 | NEXU 캔버스 | Lumina · Jitter · Ambient Interface · 카드 UI |
+| 6단계 | NEXU 캔버스 | Lumina · Jitter · Ambient Interface · Self facet (자아의 단면) UI |
 | 7단계 | 사용자 편집 개방 | Vue 페르소나·스킬·태스크·코일 편집 UI |
 | 8단계 | 고도화 | 도메인 동시 진입 처리 · Capability ID · ERA 승격 |
 
