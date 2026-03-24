@@ -58,9 +58,17 @@
 | `prefix_flag`      | VARCHAR(10)  | NOT NULL, DEFAULT 'NONE'       | `_`, `@`, `NONE`              |
 | `parser_version`   | VARCHAR(40)  | NULL                           | 파일명 규칙 파서 버전         |
 | `parse_confidence` | NUMERIC(5,4) | NULL                           | 파싱 신뢰도 (0~1)             |
+| `confidence_score` | SMALLINT     | GENERATED (parse_confidence*100) | UI 연동 점수 (0~100)        |
 | `status`           | SMALLINT     | NOT NULL, DEFAULT 1            | 1: Active, 0: Inactive        |
 | `created_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 생성 시각                     |
 | `updated_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 갱신 시각                     |
+
+연동 규칙:
+
+- `confidence_score`는 `parse_confidence`를 100점 환산한 읽기 전용 점수다.
+- UI(NIXIE)는 `project_settings.user_defined_threshold`(기본 95)와 비교한다.
+- `confidence_score < user_defined_threshold`이면 노드에 `Jitter` 경고를 즉시 적용한다.
+- `confidence_score >= user_defined_threshold`이면 `Lumina` 정상 강조 상태로 렌더링한다.
 
 ### 1.4 `nexa_knowledge_vectors`
 
@@ -86,7 +94,15 @@
 | `after_data`    | JSONB        | NULL                    | 변경 후                                   |
 | `changed_by`    | VARCHAR(120) | NOT NULL                | 변경 주체                                 |
 | `change_reason` | VARCHAR(255) | NULL                    | 사유                                      |
+| `error_token`   | VARCHAR(80)  | NULL                    | 반복 오류 분류 토큰                       |
+| `error_context` | JSONB        | NULL                    | 오류 문맥(용어/기능/입력 스냅샷)          |
+| `error_signature` | VARCHAR(120) | NULL                  | 오류 패턴 군집화 키(해시/정규화 문자열)   |
 | `created_at`    | TIMESTAMPTZ  | NOT NULL, DEFAULT now() | 시각                                      |
+
+접근 제어 원칙:
+
+- `nexa_knowledge_audit_logs`는 관리자/보안 운영자만 조회 가능해야 한다.
+- 일반 사용자 및 일반 도메인 API에는 원본 audit row를 직접 노출하지 않는다.
 
 ---
 
@@ -104,8 +120,50 @@
 | `package_format`     | VARCHAR(20) | NOT NULL                | json/bin         |
 | `ota_channel`        | VARCHAR(40) | NOT NULL                | 배포 채널        |
 | `version_tag`        | VARCHAR(40) | NOT NULL                | 패키지 버전      |
+| `intelligence_tier`  | VARCHAR(20) | NOT NULL                | nano/micro/vista |
+| `include_vectors`    | BOOLEAN     | NOT NULL, DEFAULT FALSE | 벡터 포함 여부   |
+| `required_tokens_only` | BOOLEAN   | NOT NULL, DEFAULT TRUE  | 필수 토큰만 포함 |
 | `status`             | SMALLINT    | NOT NULL, DEFAULT 1     | 활성 상태        |
 | `updated_at`         | TIMESTAMPTZ | NOT NULL, DEFAULT now() | 갱신 시각        |
+
+프로파일 정책(필수):
+
+- `nano`는 `include_vectors=false`, `required_tokens_only=true`, `max_payload_kb < 10`
+- `nano` 패키지는 `definitions.nano`만 포함하고 벡터 데이터는 금지
+- `micro`는 `max_payload_kb <= 256`(WARM 기본 상한)
+- `vista`는 `max_payload_kb <= 4096`(HOT 기본 상한)
+
+### 2.1-A `nexa_hardware_profiles` (하드웨어 프로파일)
+
+| 컬럼명             | 타입         | 제약                        | 설명                  |
+| :----------------- | :----------- | :-------------------------- | :-------------------- |
+| `hardware_profile` | VARCHAR(20)  | PK                          | COLD/WARM/HOT         |
+| `cpu_class`        | VARCHAR(40)  | NOT NULL                    | 장치 CPU 등급         |
+| `memory_mb`        | INTEGER      | NOT NULL                    | 메모리(MB)            |
+| `storage_mb`       | INTEGER      | NOT NULL                    | 저장소(MB)            |
+| `allow_vectors`    | BOOLEAN      | NOT NULL                    | 벡터 허용 여부        |
+| `max_payload_kb`   | INTEGER      | NOT NULL                    | 패키지 상한           |
+| `status`           | SMALLINT     | NOT NULL, DEFAULT 1         | 활성 상태             |
+| `updated_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()     | 갱신 시각             |
+
+### 2.1-B `nexa_knowledge_distribution_bindings` (지능-하드웨어 매핑)
+
+| 컬럼명              | 타입         | 제약                                | 설명                            |
+| :------------------ | :----------- | :---------------------------------- | :------------------------------ |
+| `binding_id`        | UUID         | PK, DEFAULT uuid_v7()               | 매핑 ID                         |
+| `profile_id`        | UUID         | FK -> distribution_profiles.id       | 배포 프로파일                   |
+| `hardware_profile`  | VARCHAR(20)  | FK -> hardware_profiles.hardware_profile | COLD/WARM/HOT                |
+| `is_default`        | BOOLEAN      | NOT NULL, DEFAULT FALSE              | 기본 매핑 여부                  |
+| `status`            | SMALLINT     | NOT NULL, DEFAULT 1                  | 활성 상태                       |
+| `created_at`        | TIMESTAMPTZ  | NOT NULL, DEFAULT now()              | 생성 시각                       |
+| `updated_at`        | TIMESTAMPTZ  | NOT NULL, DEFAULT now()              | 갱신 시각                       |
+
+운영 규칙:
+
+- `COLD`는 `nano` 프로파일만 허용한다.
+- `COLD`는 `allow_vectors=false`, `max_payload_kb < 10` 강제.
+- `WARM`은 `nano/micro`, `HOT`은 `nano/micro/vista`를 허용한다.
+- `WARM`의 패키지 상한은 `<= 256KB`, `HOT`의 패키지 상한은 `<= 4096KB`로 고정한다.
 
 ### 2.2 `nexa_knowledge_doc_sync_state` (문서 동기화 상태)
 
@@ -115,8 +173,17 @@
 | `doc_ref_path`     | VARCHAR(255) | UNIQUE, NOT NULL        | 문서 경로            |
 | `last_hash`        | VARCHAR(64)  | NOT NULL                | 최근 해시            |
 | `last_scanned_at`  | TIMESTAMPTZ  | NOT NULL, DEFAULT now() | 최근 스캔            |
-| `last_sync_status` | VARCHAR(20)  | NOT NULL                | success/fail/skipped |
+| `last_sync_status` | VARCHAR(20)  | NOT NULL                | success/fail/skipped/deleted |
 | `last_error`       | TEXT         | NULL                    | 실패 사유            |
+| `missing_since`    | TIMESTAMPTZ  | NULL                    | 파일 미발견 최초 시각 |
+| `deleted_at`       | TIMESTAMPTZ  | NULL                    | 삭제 확정 시각       |
+
+삭제 이벤트 처리 규약:
+
+- Crawler가 파일 미발견 감지 시 `last_sync_status='deleted'`로 전환
+- 최초 미발견 시각은 `missing_since`에 기록하고, 삭제 확정 시 `deleted_at` 기록
+- 해당 `doc_ref_path`를 참조하는 `nexa_knowledge_references`는 `status=0`으로 비활성화
+- 위 전환 이벤트는 `nexa_knowledge_audit_logs`에 반드시 기록
 
 ### 2.3 `nexa_knowledge_change_requests` (불변 토큰 승인 큐)
 
@@ -173,6 +240,79 @@
 - 파일 실체 저장/쿼터 계산은 `project_assets`가 담당한다.
 - 본 테이블은 문서 참조 문맥(앵커/용도/정렬)만 담당한다.
 
+### 2.6 `nexa_knowledge_error_patterns` (자가 회복 패턴 집계)
+
+| 컬럼명                 | 타입         | 제약                           | 설명                                  |
+| :--------------------- | :----------- | :----------------------------- | :------------------------------------ |
+| `pattern_id`           | UUID         | PK, DEFAULT uuid_v7()          | 패턴 ID                               |
+| `error_token`          | VARCHAR(80)  | NOT NULL                       | 오류 분류 토큰                        |
+| `error_signature`      | VARCHAR(120) | NOT NULL                       | 패턴 군집 키                          |
+| `occurrence_count`     | INTEGER      | NOT NULL, DEFAULT 1            | 누적 발생 횟수                        |
+| `first_seen_at`        | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 최초 관측 시각                        |
+| `last_seen_at`         | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 최근 관측 시각                        |
+| `impact_score`         | NUMERIC(6,2) | NOT NULL, DEFAULT 0            | 영향도 점수                           |
+| `sample_context`       | JSONB        | NULL                           | 마스킹된 대표 문맥                    |
+| `suggested_rule_patch` | JSONB        | NULL                           | AI 제안 규칙 패치                     |
+| `review_status`        | VARCHAR(20)  | NOT NULL, DEFAULT 'pending'    | pending/approved/rejected             |
+| `reviewed_by`          | VARCHAR(120) | NULL                           | 검토자                                |
+| `reviewed_at`          | TIMESTAMPTZ  | NULL                           | 검토 시각                             |
+| `created_at`           | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 생성 시각                             |
+| `updated_at`           | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 갱신 시각                             |
+
+운영 원칙:
+
+- AI는 `nexa_knowledge_error_patterns`를 기반으로 `nexa_knowledge_ref_rules` 수정안을 생성한다.
+- AI는 규칙을 직접 반영하지 않고 `nexa_knowledge_change_requests` 승인 큐로만 제안한다.
+- 일반 사용자에게는 집계 지표만 노출하고, 원본 오류 문맥은 관리자만 조회한다.
+
+### 2.7 `nexa_knowledge_response_policies` (ES/VI 기반 응답 정책)
+
+| 컬럼명             | 타입         | 제약                        | 설명                         |
+| :----------------- | :----------- | :-------------------------- | :--------------------------- |
+| `policy_id`        | UUID         | PK, DEFAULT uuid_v7()       | 정책 ID                      |
+| `policy_name`      | VARCHAR(80)  | UNIQUE, NOT NULL            | 정책명                       |
+| `scope_type`       | VARCHAR(20)  | NOT NULL                    | global/project/user          |
+| `scope_id`         | UUID         | NULL                        | 프로젝트/사용자 식별자       |
+| `es_threshold`     | NUMERIC(4,3) | NOT NULL                    | 공감 지수 임계값             |
+| `vi_threshold`     | NUMERIC(4,3) | NOT NULL                    | 활력 지수 임계값             |
+| `output_mode`      | VARCHAR(20)  | NOT NULL                    | easy/normal/expert           |
+| `summary_priority` | SMALLINT     | NOT NULL, DEFAULT 100       | 낮을수록 우선순위 높음       |
+| `is_active`        | BOOLEAN      | NOT NULL, DEFAULT TRUE      | 활성 여부                    |
+| `created_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()     | 생성 시각                    |
+| `updated_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()     | 갱신 시각                    |
+
+운영 원칙:
+
+- ES/VI 임계값은 `definitions` JSONB가 아닌 본 정책 테이블에서 관리한다.
+- `Low-Entropy`(예: `vi < vi_threshold`) 구간은 `output_mode='easy'`를 우선 적용한다.
+- AI는 정책을 직접 반영하지 않고 승인 큐 경로로만 제안한다.
+
+### 2.8 `nexa_self_*` (Multi-faceted Self 공통 자산 계층)
+
+> NEXU 전용 UI 상태가 아닌 플랫폼 공통 자산으로 관리한다.
+> 명명 기준: `nexa_self_*`
+
+핵심 테이블:
+
+- `nexa_self_profiles`  
+  사용자별 Self 프로필(기본 성향/활성 상태/기본 facet 정책)
+- `nexa_self_facets`  
+  `Now/Energy/Direction/Discovery` 축 정의 및 facet 메타
+- `nexa_self_states`  
+  `Empty` 포함 상태 집합, 전환 조건, 우선순위
+- `nexa_self_explosions`  
+  상태/Facet 트리거 -> Coil 가중치 + Capability 후보 전개 규칙
+- `nexa_self_knowledge_map`  
+  Self 상태/Facet와 `nexa_knowledge_*` 사이 브리지(공통 지식 연결)
+- `nexa_self_capability_links`  
+  Self 규칙과 Capability 매핑(실행 우선순위/허용 여부)
+
+운영 원칙:
+
+- `nexa_self_knowledge_map`은 원본 지식을 저장하지 않고 참조만 관리한다.
+- NEXU 채널과 오케스트레이션 직접 채널 모두 같은 `nexa_self_*`를 재사용한다.
+- Self 규칙 변경은 감사 로그와 승인 큐 정책을 준수한다.
+
 ---
 
 ## 3) `definitions` JSONB 계약
@@ -182,6 +322,7 @@
   "nano": { "summary": "..." },
   "micro": { "summary": "..." },
   "vista": { "summary": "..." },
+  "easy_summary": "...",
   "examples": [
     {
       "input_ko": "데이터 비워줘",
@@ -196,6 +337,7 @@
 
 - `nano`, `micro`, `vista` 키 존재
 - 각 레벨 `summary` 문자열 필수
+- ES/VI 임계값은 JSONB가 아닌 `nexa_knowledge_response_policies`에서 관리
 
 ---
 
@@ -230,10 +372,20 @@
 | 테이블 | 정합 상태 | 비고 |
 | :-- | :-- | :-- |
 | `nexa_knowledge_distribution_profiles` | 일치 | 프로파일명 CHECK(`nano/micro/vista`) 반영 |
+| `nexa_hardware_profiles` | 일치 | COLD/WARM/HOT 하드웨어 제약 반영 |
+| `nexa_knowledge_distribution_bindings` | 일치 | 지능 위계-하드웨어 매핑 제약 반영 |
 | `nexa_knowledge_doc_sync_state` | 일치 | `last_sync_status` 운영 인덱스 반영 |
 | `nexa_knowledge_change_requests` | 일치 | `is_pending`, `review_note`, 상태 CHECK 반영 |
 | `nexa_knowledge_ref_rules` | 일치 | 활성 규칙 단일화 인덱스 반영 |
 | `nexa_knowledge_reference_assets` | 일치 | `project_assets` FK + usage_type CHECK 반영 |
+| `nexa_knowledge_error_patterns` | 일치 | 오류 패턴 집계 + 검토 상태 워크플로 반영 |
+| `nexa_knowledge_response_policies` | 일치 | ES/VI 임계값 기반 출력 정책 반영 |
+| `nexa_self_profiles` | 일치 | 사용자별 Self 프로필 분리 반영 |
+| `nexa_self_facets` | 일치 | Multi-faceted Self 축 반영 |
+| `nexa_self_states` | 일치 | `Empty` 포함 상태 모델 반영 |
+| `nexa_self_explosions` | 일치 | 역방향 분해 맵(Explosion) 반영 |
+| `nexa_self_knowledge_map` | 일치 | Self-knowledge 브리지 반영 |
+| `nexa_self_capability_links` | 일치 | Self-Capability 연결 반영 |
 
 ### 5.3 제약/인덱스 정합성
 
@@ -276,10 +428,20 @@
   - `nexa_knowledge_vectors`
 5. **운영 보강 테이블**
   - `nexa_knowledge_distribution_profiles`
+  - `nexa_hardware_profiles`
+  - `nexa_knowledge_distribution_bindings`
   - `nexa_knowledge_doc_sync_state`
   - `nexa_knowledge_change_requests`
   - `nexa_knowledge_ref_rules`
   - `nexa_knowledge_reference_assets`
+  - `nexa_knowledge_response_policies`
+  - `nexa_knowledge_error_patterns`
+  - `nexa_self_profiles`
+  - `nexa_self_facets`
+  - `nexa_self_states`
+  - `nexa_self_explosions`
+  - `nexa_self_knowledge_map`
+  - `nexa_self_capability_links`
   - `nexa_knowledge_audit_logs` + hypertable 변환
 6. **인덱스 생성**
    - 일반 인덱스 -> 벡터(HNSW) 인덱스 순
@@ -301,10 +463,20 @@ WHERE table_name IN (
   'nexa_knowledge_references',
   'nexa_knowledge_vectors',
   'nexa_knowledge_distribution_profiles',
+  'nexa_hardware_profiles',
+  'nexa_knowledge_distribution_bindings',
   'nexa_knowledge_doc_sync_state',
   'nexa_knowledge_change_requests',
   'nexa_knowledge_ref_rules',
   'nexa_knowledge_reference_assets',
+  'nexa_knowledge_response_policies',
+  'nexa_knowledge_error_patterns',
+  'nexa_self_profiles',
+  'nexa_self_facets',
+  'nexa_self_states',
+  'nexa_self_explosions',
+  'nexa_self_knowledge_map',
+  'nexa_self_capability_links',
   'nexa_knowledge_audit_logs'
 );
 

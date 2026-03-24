@@ -34,6 +34,88 @@ END $$;
 
 ---
 
+## 0A) Knowledge OS 연동 DDL(보강)
+
+오케스트레이션 본체 테이블은 유지하고, 공통 지식 계층과의 연결 지점을 보강한다.
+
+```sql
+-- 0A-1. project_knowledge -> nexa_knowledge_definitions 연결(선택 FK)
+ALTER TABLE IF EXISTS project_knowledge
+  ADD COLUMN IF NOT EXISTS knowledge_definition_id UUID NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'fk_project_knowledge_definition'
+  ) THEN
+    ALTER TABLE project_knowledge
+      ADD CONSTRAINT fk_project_knowledge_definition
+      FOREIGN KEY (knowledge_definition_id)
+      REFERENCES nexa_knowledge_definitions(id)
+      ON DELETE SET NULL;
+  END IF;
+END $$;
+
+-- 0A-2. project_assets -> Knowledge 참조 링크 조회 성능 인덱스
+CREATE INDEX IF NOT EXISTS idx_project_assets_project_created
+  ON project_assets(project_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_reference_assets_asset
+  ON nexa_knowledge_reference_assets(asset_id);
+
+-- 0A-3. Routing 연계 조회 인덱스
+CREATE INDEX IF NOT EXISTS idx_knowledge_references_capability_id
+  ON nexa_knowledge_references(capability_id);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_vectors_term_id
+  ON nexa_knowledge_vectors(term_id);
+```
+
+운영 메모:
+
+- 위 보강은 `nexa_knowledge_*` 스키마가 먼저 배포되어 있어야 한다.
+- 오케스트레이션은 공통 지식을 복제하지 않고 참조한다.
+
+---
+
+## 0B) Self 공통 자산 연동 DDL(보강)
+
+```sql
+-- 0B-1. project_knowledge -> nexa_self_profiles 연결(선택 FK)
+ALTER TABLE IF EXISTS project_knowledge
+  ADD COLUMN IF NOT EXISTS self_profile_id UUID NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'fk_project_knowledge_self_profile'
+  ) THEN
+    ALTER TABLE project_knowledge
+      ADD CONSTRAINT fk_project_knowledge_self_profile
+      FOREIGN KEY (self_profile_id)
+      REFERENCES nexa_self_profiles(self_profile_id)
+      ON DELETE SET NULL;
+  END IF;
+END $$;
+
+-- 0B-2. Self 브리지 조회 인덱스
+CREATE INDEX IF NOT EXISTS idx_self_knowledge_map_profile_priority
+  ON nexa_self_knowledge_map(self_profile_id, status, priority);
+
+CREATE INDEX IF NOT EXISTS idx_self_capability_links_profile_priority
+  ON nexa_self_capability_links(self_profile_id, status, priority);
+```
+
+운영 메모:
+
+- Self 연동은 NEXU 채널 전용이 아닌 오케스트레이션 공통 규칙으로 사용한다.
+
+---
+
 ## 1) 프로젝트 귀속 테이블 DDL (요약)
 
 아래는 31개 귀속 테이블의 핵심 생성 블록이다.  

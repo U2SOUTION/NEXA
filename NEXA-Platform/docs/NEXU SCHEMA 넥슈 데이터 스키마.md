@@ -64,6 +64,29 @@
 | `Traceability`     | `ref_ids` JSONB                                                               | SNT-IND-EFF 등 참조 사슬의 역추적 키 저장(아래 §4 참고) |
 
 
+### 1.3 NIXIE 시각 피드백 매핑(Lumina/Jitter)
+
+NIXIE 캔버스에서 문서 참조 노드의 안정도를 표현할 때는 `project_logs/project_knowledge`의 일반 `confidence_score`와 별도로, 파일명 파싱 기반 점수를 사용한다.
+
+| UI 대상 | 소스 테이블/컬럼 | 비교 기준 | 렌더링 규칙 |
+| ------------------ | ----------------------------------------------------------------------------- | --------------------------------------- | --------------------------------------- |
+| 문서 참조 노드 | `nexa_knowledge_references.parse_confidence` | 내부 환산(`confidence_score=round(parse_confidence*100)`) | 0~100 점수 생성 |
+| 문서 참조 노드 | `nexa_knowledge_references.confidence_score` | `project_settings.user_defined_threshold` (기본 95) | `< threshold` 이면 `Jitter`, `>= threshold` 이면 `Lumina` |
+
+운영 규칙:
+
+- `parse_confidence`는 파서 원점수(0~1)이며, UI는 `confidence_score`(0~100)를 직접 사용한다.
+- 임계값은 하드코딩하지 않고 항상 `project_settings.user_defined_threshold`를 우선 적용한다.
+- 임계값 미만인 경우, 노드 흔들림(`Jitter`)과 함께 원인 메타(`source_filename`, `parser_version`)를 노출한다.
+- 임계값 이상인 경우, 안정 강조(`Lumina`) 상태만 적용한다.
+
+API 연동 계약:
+
+- NEXU는 렌더링 직전 `POST /knowledge/references/visual-feedback/resolve`를 호출한다.
+- 요청: `project_id`, `reference_id`, `threshold_override(optional)`
+- 응답: `confidence_score`, `threshold_used`, `visual_state(JITTER|LUMINA)`, `reason_code`, `meta(source_filename, parser_version)`
+- 클라이언트는 응답의 `visual_state`를 그대로 렌더링 상태로 사용한다(클라이언트 재판정 금지).
+
 ## 2. 프로젝트 내부/외부 동작 보강(스코프 문제)
 
 **원칙:** 넥슈가 활동하는 **모든 영역은 저장 구조상 기본적으로 “프로젝트”로 바라본다.** 실제 사용자가 “지금 어떤 프로젝트 안에 있다”고 인식하는지와 무관하게, DB에는 항상 `project_id`가 있으며, “실제 프로젝트가 없는” 활동은 **그림자 프로젝트(shadow project)**에 귀속시켜 동일한 테이블·Traceability 체계를 유지한다.
@@ -203,6 +226,12 @@
 "stt_ref_id": "SNT-STT-20260319-0001",
 "void_signals": {"rollback_count": 2, "dwell_ms": 9000}
 }
+
+### 예시 4) NIXIE 문서 참조 노드 시각 경고
+
+- `parse_confidence=0.87` -> `confidence_score=87`
+- `user_defined_threshold=95`
+- 결과: `87 < 95` 이므로 NIXIE 노드에 `Jitter` 적용
 
 ## 7. 다음 단계(문서 승격 v1.0 기준)
 

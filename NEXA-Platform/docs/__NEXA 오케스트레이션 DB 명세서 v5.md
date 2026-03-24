@@ -7,6 +7,43 @@
 
 ---
 
+## 0A. Knowledge OS 연동 원칙
+
+본 오케스트레이션 DB는 프로젝트 실행 계층을 담당하고, 공통 지식 계층은 `nexa_knowledge_*`를 참조한다.
+
+- 공통 지식 계층(전역 규범/사전/참조): `nexa_knowledge_*`
+- 프로젝트 생성 지식 계층(도메인 활동/AI 협업 산출물): `project_knowledge`
+- 파일 원장(스토리지/쿼터): `project_assets`
+
+경계 원칙:
+
+- `project_knowledge`는 프로젝트 맥락에서 생성되는 지식을 저장한다.
+- 공통 규칙/용어/참조 규약은 `nexa_knowledge_*`를 기준으로 검증한다.
+- 실행 라우팅 시 우선순위는 `project_knowledge`(프로젝트 특화) -> `nexa_knowledge_*`(공통 fallback)로 한다.
+
+연동 포인트:
+
+- 용어 사전: `nexa_knowledge_definitions`
+- 용어-기능 연결: `nexa_knowledge_references`
+- 임베딩 검색: `nexa_knowledge_vectors`
+- 파일명/참조 규칙: `nexa_knowledge_ref_rules`
+- 문서-자산 연결: `nexa_knowledge_reference_assets` + `project_assets`
+
+Self 공통 자산 연동:
+
+- `nexa_self_profiles`: 사용자별 Self 프로필
+- `nexa_self_facets`: `Now/Energy/Direction/Discovery` 축
+- `nexa_self_states`: `Empty` 포함 상태 전환 모델
+- `nexa_self_explosions`: Self 트리거 -> Coil/Capability 전개
+- `nexa_self_knowledge_map`: Self-knowledge 브리지(원본 저장 아님)
+- `nexa_self_capability_links`: Self-Capability 연결 제어
+
+채널 원칙:
+
+- NEXU 경유(`사용자 -> NEXU -> 오케스트레이션`)와 직접 경로(`사용자 -> 오케스트레이션`)는 동일한 `nexa_self_*` 규칙을 사용한다.
+
+---
+
 ## 0. Capability ID(기능 자격 ID) 전제
 
 ### 0.1 용어 기준
