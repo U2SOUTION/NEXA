@@ -340,7 +340,7 @@ HEXAGON Domain Fluidity 원칙 — 표면은 다르지만 구조는 같다.
 0.7 ~ 1.0  → 정상 · 안정
 0.4 ~ 0.7  → 주의 · 모니터링 강화
 0.1 ~ 0.4  → 경고 · 넥슈 알림 발생
-0.0 ~ 0.1  → 위기 · 즉각 조치 · NIXIE Jitter 발생
+0.0 ~ 0.1  → 위기 · 즉각 조치 · NEXA NIXIE Jitter 발생
 ```
 
 ---
@@ -481,7 +481,7 @@ Creative·Autonomy 자동 하향. 응답 단순화.
 
 ---
 
-### NEXA-NIXIE 캔버스
+### NEXA-NEXU 캔버스
 **NEXA 정의:**
 HEXAGON × 6-COILS 기반 지능형 서사 시각화 캔버스.
 데이터와 상태를 숫자가 아닌 빛·떨림·공간으로 표현한다.
@@ -494,14 +494,14 @@ HEXAGON × 6-COILS 기반 지능형 서사 시각화 캔버스.
 
 ### Lumina
 **NEXA 정의:**
-NIXIE 캔버스의 시각 요소. 신뢰도·상태에 따라 발광 강도와 색온도가 변하는 빛의 생명력.
+NEXU 캔버스의 시각 요소. 신뢰도·상태에 따라 발광 강도와 색온도가 변하는 빛의 생명력.
 confidence_score → 발광 강도 연동.
 
 ---
 
 ### Jitter
 **NEXA 정의:**
-NIXIE 캔버스의 시각 요소. 불확실·긴장·오류 상황에서 도트가 미세하게 떨리는 연출.
+NEXU 캔버스의 시각 요소. 불확실·긴장·오류 상황에서 도트가 미세하게 떨리는 연출.
 confidence_score < user_defined_threshold 시 자동 발동.
 
 ---
@@ -546,7 +546,7 @@ confidence_score >= threshold → FLOW (자율 실행)
 confidence_score <  threshold → STUCK + ASK (승인 대기)
 ```
 
-시각 피드백: 임계값 미만 시 NIXIE 캔버스 Jitter 발동.
+시각 피드백: 임계값 미만 시 NEXU 캔버스 Jitter 발동.
 
 ---
 

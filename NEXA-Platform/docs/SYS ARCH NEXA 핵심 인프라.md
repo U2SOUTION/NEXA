@@ -29,7 +29,7 @@ flowchart TD
         e["Empathy Engine\n사람을 감지하는 감각"]
         v["VOID Lifecycle\n데이터의 생애 언어"]
         cap["Capability ID\n권한의 자격 언어"]
-        n["NIXIE Canvas\n상태를 표현하는 언어"]
+        n["NEXU Canvas\n상태를 표현하는 언어"]
         k["Knowledge Graph\n연결의 지식 언어"]
         t["Timeline Branch\n시간의 분기 언어"]
         p["Persona Matrix\n존재의 인격 언어"]
@@ -48,7 +48,7 @@ flowchart TD
 재사용처:
   UCL → Empathy 가드레일
   코일 → ES·VI·PP 신호로 코일값 자동 조정
-  NIXIE → 사용자 상태에 따른 렌더링 변화
+  NEXA NIXIE → 사용자 상태에 따른 렌더링 변화
   어댑터 → 응답 속도·밀도 조정
   학습 → 개인화 패턴 수집 기준
 
@@ -85,7 +85,7 @@ flowchart TD
 없으면: 권한 체계가 산발적으로 존재
 ```
 
-**4. NIXIE Canvas**
+**4. NEXU Canvas**
 
 ```
 포지션: 시스템 상태를 감각적으로 표현하는 시각 언어
@@ -156,7 +156,7 @@ flowchart TD
 | **Empathy Engine**   | 사람을 감지하는 감각   | 사람과 데이터를 구분 못함       |
 | **VOID Lifecycle**   | 데이터의 생애 언어     | 데이터가 살았는지 죽었는지 모름 |
 | **Capability ID**    | 권한의 자격 언어       | 누가 무엇을 할 수 있는지 모름   |
-| **NIXIE Canvas**     | 상태를 표현하는 언어   | 모든 것이 텍스트로만 전달       |
+| **NEXU Canvas**     | 상태를 표현하는 언어   | 모든 것이 텍스트로만 전달       |
 | **Knowledge Graph**  | 연결의 지식 언어       | 데이터가 고립됨                 |
 | **Timeline Branch**  | 시간의 분기 언어       | 되돌리기·시뮬레이션 불가        |
 | **Persona Matrix**   | 존재의 인격 언어       | 모든 에이전트가 무색무취        |
@@ -171,7 +171,7 @@ Coil        → 모든 판단에 가치 기준 부여
 Empathy     → 모든 상호작용에 인간성 부여
 VOID        → 모든 데이터에 생애 부여
 Capability  → 모든 행위에 자격 부여
-NIXIE       → 모든 상태에 감각 부여
+NEXA NIXIE       → 모든 상태에 감각 부여
 Knowledge   → 모든 데이터에 관계 부여
 Timeline    → 모든 실행에 분기 가능성 부여
 Persona     → 모든 에이전트에 존재감 부여
@@ -253,7 +253,7 @@ Coil      → 넥슈의 말투·빈도·태도 결정
 Empathy   → 넥슈가 사용자 상태 감지의 최전선
 VOID      → 넥슈의 대화 맥락 생애 관리
 Capability→ 넥슈가 할 수 있는 것의 경계
-NIXIE     → 넥슈의 시각적 표현 엔진
+NEXA NIXIE     → 넥슈의 시각적 표현 엔진
 Knowledge → 넥슈가 참조하는 연결 지식
 Timeline  → 넥슈의 시뮬레이션·되감기
 Persona   → 넥슈의 인격 그 자체
@@ -269,7 +269,7 @@ Persona   → 넥슈의 인격 그 자체
 
 ```
 현재 상태:
-  NIXIE 캔버스 섹션에 "넥슈 표정" 언급
+  NEXU 캔버스 섹션에 "넥슈 표정" 언급
   Empathy 섹션에 "넥슈 말걸기" 언급
   → 부품으로만 등장, 전체 정의 없음
 

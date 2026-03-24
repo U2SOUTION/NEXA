@@ -591,7 +591,7 @@ broker.on('message', (topic, message) => {
   // TimescaleDB 저장
   saveToTimescale(topic, hexPacket)
 
-  // NIXIE 캔버스 업데이트
+  // NEXU 캔버스 업데이트
   updateCanvas(capInfo.mac, hexPacket)
 })
 
@@ -802,7 +802,7 @@ Capability ID는 아직 확정되지 않음
 
 → MQTT 토픽 자동 결정
 → 동적 토픽 구성 즉시 활성
-→ NIXIE 캔버스 도트 자동 생성
+→ NEXU 캔버스 도트 자동 생성
 ```
 
 **provision — MQTT로 전달 (폴링 대신)**
@@ -1432,7 +1432,7 @@ networks:
 | **메시지 브로커** | EMQX | MQTT 브로커 | Docker · 관리 UI |
 | **터널** | Cloudflare Tunnel | 외부 접근 | 무료 · 공인IP 불필요 |
 | **백엔드** | Node.js + Express | API + 동적 라우터 | MQTT 클라이언트 내장 |
-| **프론트** | Vue 3 | 웹 앱 | MQTT.js + NIXIE 연동 |
+| **프론트** | Vue 3 | 웹 앱 | MQTT.js + NEXA NIXIE 연동 |
 | **DB** | PostgreSQL + TimescaleDB | 시계열 저장 | IoT 데이터 최적화 |
 | **컨테이너** | Docker + Compose | 서비스 관리 | NAS 호환 |
 | **MQTT 클라이언트** | MQTT.js | JS용 클라이언트 | 브라우저·Node 모두 |
@@ -1502,10 +1502,10 @@ Step 5. VI·ES·PP 자동 계산 및 발행
 Step 6. Capability Registry 자동 등록
 ```
 
-### Phase 5 — NIXIE 캔버스 연동
+### Phase 5 — NEXU 캔버스 연동
 
 ```
-Step 1. MQTT → NIXIE 도트 실시간 업데이트
+Step 1. MQTT → NEXA NIXIE 도트 실시간 업데이트
 Step 2. VI 기반 Lumina 자동 조정
 Step 3. VOID 상태 도트 페이드 연동
 Step 4. Safety 알림 Jitter 연동
@@ -1598,4 +1598,4 @@ STUCK 감지 시 (서버):
 
 *NEXA Platform · MQTT Infrastructure v0.2 · 내부 설계 문서*
 *최종 업데이트: 2026년 3월*
-*관련 문서: NEXA_Master_Design_v0.4.md · NEXA_NEXU_v0.2.md · NEXA_Coil_Registry_v0.1.md*
+*관련 문서: NEXA Master Design_v0.4.md · NEXU VISION 넥슈는 무엇이가 v0.2.md · UCL 09 REF Coil Registry v0.1.md*

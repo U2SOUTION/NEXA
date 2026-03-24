@@ -1,4 +1,4 @@
-# INF RFC 넥슈 JAB5 멀티앰프 스피커 지능 선택 설계
+# INF RFC 닉시 JAB5 멀티앰프 스피커 지능 선택 설계
 
 > 앰프 출력단 셀렉터 없이 JAB5 데이지체인 구성으로 스피커를 지능적으로 선택·제어하는 설계안
 
@@ -69,7 +69,7 @@ ESP32
   ├── GPIO → 슬레이브 JAB5-A J11            스탠바이 제어
   └── GPIO → 슬레이브 JAB5-B J11            스탠바이 제어
   ↑
-NEXU / NEXA
+NEXA NIXIE / NEXA
   기분, 목적, 시간대, 음원 장르에 따라 지능적 선택
 ```
 
@@ -164,7 +164,7 @@ JAB5 입장에서 저항값 변화로 동일하게 인식
      마스터 JAB5 스탠바이 전환 (절전)
 ```
 
-### NEXU 지능 선택 시나리오 예시
+### NEXA NIXIE 지능 선택 시나리오 예시
 
 ```
 "집중 작업 모드"   슬레이브-A(서재) 볼륨 40%, 슬레이브-B 볼륨 0
@@ -189,7 +189,7 @@ JAB5 입장에서 저항값 변화로 동일하게 인식
 
 - `INF` 인프라 — 디바이스 등록 및 구성
 - `AIS` AI 워크스페이스 — 지능적 선택 판단 로직
-- 넥슈(NEXU) 설계도
+- 넥사 닉시(NEXA NIXIE) 설계도
 
 ---
 
@@ -201,22 +201,22 @@ JAB5 입장에서 저항값 변화로 동일하게 인식
 
 ## v0.4 추가 논의 사항
 
-### UI 제어 — 넥슈 오버레이 볼륨 패널
+### UI 제어 — 닉시 오버레이 볼륨 패널
 
 ```
-NEXU 소프트웨어 UI
+NEXA NIXIE 소프트웨어 UI
   오버레이 방식으로 볼륨 컨트롤 표시
   JAB5 수량만큼 슬라이더 독립 표시
-  음성 명령 또는 NEXU 자동 판단과 병행
+  음성 명령 또는 NEXA NIXIE 자동 판단과 병행
 
-실물 NEXU 하드웨어
+실물 NEXA NIXIE 하드웨어
   물리적 한계로 모든 컨트롤 배치 불가
   로터리 셀렉터로 채널 선택
   선택된 채널의 볼륨을 단일 노브로 제어
   → 소프트웨어 UI와 하드웨어 컨트롤 혼합 운용
 ```
 
-### NEXU ↔ ESP32 통신 — ESP-NOW 확정
+### NEXA NIXIE ↔ ESP32 통신 — ESP-NOW 확정
 
 ```
 ESP-NOW 선택 이유
@@ -226,7 +226,7 @@ ESP-NOW 선택 이유
   구현 단순
 
 통신 흐름
-  NEXU → ESP-NOW → ESP32 → SPI → MCP4131 → JAB5 볼륨
+  NEXA NIXIE → ESP-NOW → ESP32 → SPI → MCP4131 → JAB5 볼륨
                           → GPIO → J11 → 스탠바이
 ```
 
@@ -288,9 +288,9 @@ JAB5 슬레이브 × N
   각 스피커 전용 앰프 (멀티룸 확장)
   MCP4131로 독립 볼륨 제어
 
-넥슈 하드웨어 (별도 유닛)
+닉시 하드웨어 (별도 유닛)
   Louder ESP32 내장 (TAS5805M + ESP32 일체형)
-  넥슈 전면 내장 스피커 또는 근거리 스피커 구동
+  닉시 전면 내장 스피커 또는 근거리 스피커 구동
   ESP-NOW로 전체 시스템 제어 명령 송수신
 ```
 
@@ -301,7 +301,7 @@ JAB5 슬레이브 × N
 | 라즈베리 파이 5 | NEXA 서버, Ollama AI, 음원 스트리밍, 자동화 |
 | Louder Raspberry Hat | 메인 고음질 앰프, DSP 보정, I2S 마스터 |
 | JAB5 슬레이브 | 멀티룸 확장, 스피커별 독립 볼륨 |
-| Louder ESP32 (넥슈 내장) | 넥슈 로컬 제어, ESP-NOW 허브 |
+| Louder ESP32 (닉시 내장) | 닉시 로컬 제어, ESP-NOW 허브 |
 
 ### Louder Raspberry Hat 선택 이유
 
@@ -339,8 +339,8 @@ Louder Raspberry Hat (업그레이드)
   JAB5는 슬레이브로 유지
   Louder Raspberry Hat이 마스터 역할
 
-3단계 (넥슈 통합)
-  넥슈 하드웨어에 Louder ESP32 내장
+3단계 (닉시 통합)
+  닉시 하드웨어에 Louder ESP32 내장
   전체 시스템 ESP-NOW로 통합 제어
 ```
 
@@ -361,7 +361,7 @@ Louder Raspberry Hat (업그레이드)
 "증폭보드"는 오디오 증폭이 아닌 AI 추론 가속 보드를 의미
 ```
 
-### 확정된 넥슈 AI 오디오 구성
+### 확정된 닉시 AI 오디오 구성
 
 ```
 라즈베리 파이 5 (8GB)
@@ -374,7 +374,7 @@ Raspberry Pi AI HAT+ 2 (Hailo-10H)
   비전 AI, 음성 인식(Whisper) 가속
   소비전력 3.5W 이하
   ↓ I2S
-Louder ESP32 (넥슈 내장)
+Louder ESP32 (닉시 내장)
   TAS5805M + ESP32 일체형
   2×25W 스테레오 출력
   I2C 직접 볼륨 제어
@@ -413,7 +413,7 @@ AI HAT+ 2가 진가를 발휘하는 영역
 
 최종 확정 (단순화)
   라즈베리 파이 5 + AI HAT+ 2   AI/서버 전담
-  Louder ESP32 (넥슈 내장)      오디오 전담
+  Louder ESP32 (닉시 내장)      오디오 전담
   JAB5 × N                      멀티룸 확장
 
 Louder Raspberry Hat 불필요
@@ -435,7 +435,7 @@ Louder Raspberry Hat 불필요
 | `HiFi ESP32` | 라인 출력 | DAC만, 외부 앰프 연결용 |
 | `Amped ESP32` | 라인 출력 | PCM5100 HiFi DAC + 외부 앰프 연결 |
 | `Loud ESP32` | 2×5W | 소형 패시브 스피커 직결 |
-| `Louder ESP32` | 2×23W | TAS5805M, 패시브 스피커 직결, **넥슈 내장 기본 추천** |
+| `Louder ESP32` | 2×23W | TAS5805M, 패시브 스피커 직결, **닉시 내장 기본 추천** |
 | `Louder ESP32 Plus` | 2×32W | TAS5825M 상위 칩, 더 큰 스피커 구동 |
 
 ### 사용자 환경별 구성 옵션
@@ -443,21 +443,21 @@ Louder Raspberry Hat 불필요
 ```
 패시브 스피커 직결 사용자 (기본)
   Louder ESP32 또는 Louder ESP32 Plus 내장
-  넥슈 → 스피커 직접 연결
+  닉시 → 스피커 직접 연결
   I2C 볼륨 제어
 
 헤드폰 사용자
   HiFi ESP32 또는 Amped ESP32 내장
-  넥슈 → 헤드폰 잭 출력
+  닉시 → 헤드폰 잭 출력
   고임피던스 헤드폰도 구동 가능
 
 외부 앰프 연결 사용자
   HiFi ESP32 또는 Amped ESP32 내장
-  넥슈 → 라인 출력 → 외부 앰프 (기존 보유 앰프 활용)
+  닉시 → 라인 출력 → 외부 앰프 (기존 보유 앰프 활용)
   JAB5 멀티룸 시스템과도 연결 가능
 
 멀티룸 확장 사용자
-  Louder ESP32 (넥슈 내장) + JAB5 × N
+  Louder ESP32 (닉시 내장) + JAB5 × N
   ESP-NOW로 전체 통합 제어
 ```
 
@@ -535,7 +535,7 @@ NEXA 자동화 시나리오 예시
 ### NEXA 플랫폼 오디오 확장 구조 전체
 
 ```
-넥슈 하드웨어
+닉시 하드웨어
   Louder ESP32 내장
   패시브 스피커 직결 또는 헤드폰 또는 라인 출력
 

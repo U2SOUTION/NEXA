@@ -77,10 +77,10 @@
 
 ---
 
-## NIXIE
+## NEXA NIXIE
 
-- [ ] `NIXIE DESIGN NIXIE Canvas UI 설계` 작성
-- [ ] `NIXIE SPEC NIXIE 동작 명세` 작성
+- [ ] `NEXA NIXIE DESIGN NEXU Canvas UI 설계` 작성
+- [ ] `NEXA NIXIE SPEC NEXA NIXIE 동작 명세` 작성
 
 ---
 

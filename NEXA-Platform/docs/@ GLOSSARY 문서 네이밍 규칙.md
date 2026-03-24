@@ -48,7 +48,7 @@ NEXA  플랫폼 정체성 (최상위)
         ├── 인프라 영역        INF NET ERP
         ├── 관리·운영 영역     ADM MYP HLP DEV
         ├── 횡단 관심사        PRJ AUTH DDL UCL
-        └── 하드웨어·특수      NEXU NIXIE
+        └── 하드웨어·특수      NEXA NIXIE
 ```
 
 ---
@@ -126,7 +126,7 @@ NO   →  SYS    다른 플랫폼에서도 쓸 수 있는 기술 원칙, 아키�
 | # | 코드 | 명칭 | 선택 가이드 |
 |---|------|------|------------|
 | 20 | `NEXU` | 넥슈 하드웨어 | 넥슈 물리 장치, 오디오, ESP32 관련 |
-| 21 | `NIXIE` | 닉시 | NIXIE Canvas, 닉시 관련 전용 문서 |
+| 21 | `NEXA NIXIE` | 닉시 | NEXU Canvas, 닉시 관련 전용 문서 |
 
 ---
 

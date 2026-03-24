@@ -49,7 +49,7 @@
 
 `/nexa-ai` `/portfolio` `/nexa-panel` `/nexa-board`
 
-- Aesthetics ● : NIXIE 캔버스 발광 · 시각적 완성도
+- Aesthetics ● : NEXU 캔버스 발광 · 시각적 완성도
 - Empathy ● : 넥슈 창작 협력자 인격 · 감성적 톤
 
 ### 지식·운영 도메인 (Sustainability + Empathy 핵심)

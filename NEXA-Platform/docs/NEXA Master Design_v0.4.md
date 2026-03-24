@@ -10,7 +10,7 @@
 | 버전 | 주요 변경 내용 |
 |------|-------------|
 | v0.3 | 5코일 · Layer 0~2 구조 · Empathy 철학 레이어 확정 |
-| **v0.4** | **6코일 확정 (Compliance 추가) · Why 토큰 매핑 · 가중치 수식 · NIXIE 캔버스 · ERA 승격 · Capability ID · Low-Entropy 모드** |
+| **v0.4** | **6코일 확정 (Compliance 추가) · Why 토큰 매핑 · 가중치 수식 · NEXU 캔버스 · ERA 승격 · Capability ID · Low-Entropy 모드** |
 
 ---
 
@@ -24,7 +24,7 @@
 6. [충돌 해소 매트릭스](#6-충돌-해소-매트릭스)
 7. [Empathy 설계](#7-empathy-설계)
 8. [VOID 전환 수치화](#8-void-전환-수치화)
-9. [NEXA-NIXIE 캔버스](#9-nexa-nixie-캔버스)
+9. [NEXA-NEXU 캔버스](#9-nexa-nixie-캔버스)
 10. [Capability ID 체계](#10-capability-id-체계)
 11. [PostgreSQL 스키마](#11-postgresql-스키마)
 12. [구현 로드맵](#12-구현-로드맵)
@@ -345,7 +345,7 @@ confidence_score >= user_defined_threshold → 자율 실행 (FLOW)
 confidence_score <  user_defined_threshold → 승인 대기 (STUCK + ASK)
 
 시각 피드백:
-  임계값 미만 → NIXIE 캔버스 Jitter (빛이 미세하게 떨림)
+  임계값 미만 → NEXU 캔버스 Jitter (빛이 미세하게 떨림)
 ```
 
 ### 5.9 코일 확장 원칙
@@ -547,7 +547,7 @@ ERA 격상        → PURGE 대상 영구 제외, 시스템 헌법으로 고정
 
 ---
 
-## 9. NEXA-NIXIE 캔버스 (v0.4 신규)
+## 9. NEXA-NEXU 캔버스 (v0.4 신규)
 
 > HEXAGON × 6-COILS 기반 지능형 서사 시각화 캔버스.
 > 데이터와 상태를 숫자가 아닌 빛·떨림·공간으로 표현한다.
@@ -836,7 +836,7 @@ CREATE POLICY user_isolation ON empathy_signals
 | 3단계 | Smart RAG | document_index · pgvector 검색 · 원본 JOIN |
 | 4단계 | 코일 시스템 | 6코일 가중치 엔진 · 도메인 코일 발동 · Compliance 검사 |
 | 5단계 | Empathy 엔진 | 센서 입력 · 신호 계산 · Low-Entropy 모드 · 패턴 학습 |
-| 6단계 | NIXIE 캔버스 | Lumina · Jitter · Ambient Interface · 카드 UI |
+| 6단계 | NEXU 캔버스 | Lumina · Jitter · Ambient Interface · 카드 UI |
 | 7단계 | 사용자 편집 개방 | Vue 페르소나·스킬·태스크·코일 편집 UI |
 | 8단계 | 고도화 | 도메인 동시 진입 처리 · Capability ID · ERA 승격 |
 
@@ -851,7 +851,7 @@ CREATE POLICY user_isolation ON empathy_signals
 | Capability ID 전체 네임스페이스 | 🟡 중간 | nexa.* 전체 트리 설계 |
 | Layer 1 도메인 코일 추가 여부 | 🟡 중간 | IoT 별도 코일 필요 여부 |
 | 코일 간 가중치 수치 확정 | 🟡 중간 | W_domain이 W_source를 얼마나 제한하는가 |
-| NIXIE 캔버스 Vue 컴포넌트 | 🟡 중간 | Lumina·Jitter 실제 구현 |
+| NEXU 캔버스 Vue 컴포넌트 | 🟡 중간 | Lumina·Jitter 실제 구현 |
 | ERA 전환 구체적 조건 | 🟢 낮음 | 어떤 데이터가 ERA가 되는가 |
 | 기존 문서 v0.4 반영 업데이트 | 🟢 낮음 | 문서 3 등 기존 문서 동기화 |
 

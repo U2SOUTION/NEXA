@@ -52,7 +52,7 @@
           ↓
 [넥슈 UI]
   Lumina 오디오 싱크
-  NIXIE 캔버스 리듬 반응
+  NEXU 캔버스 리듬 반응
   음성 명령 처리
 ```
 
@@ -941,4 +941,4 @@ python nexa_audio.py --user-id usr001 --sample-rate 44100
 
 *NEXA Platform · Audio System Design v0.1 · 내부 설계 문서*
 *최종 업데이트: 2026년 3월*
-*관련 문서: NEXA_NEXU_v0.2.md · NEXA_NEXU_Hardware_v0.1.md · NEXA_MQTT_Infrastructure_v0.4.md*
+*관련 문서: NEXU VISION 넥슈는 무엇이가 v0.2.md · NEXA_NEXU_Hardware_v0.1.md · NEXA_MQTT_Infrastructure_v0.4.md*

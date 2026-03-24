@@ -112,7 +112,7 @@ CREATE INDEX IF NOT EXISTS idx_self_capability_links_profile_priority
 
 운영 메모:
 
-- Self 연동은 NEXU 채널 전용이 아닌 오케스트레이션 공통 규칙으로 사용한다.
+- Self 연동은 닉시(`NEXA NIXIE`) 채널 전용이 아닌 플랫폼 공동 자산 규칙으로 사용한다.
 
 ---
 
@@ -936,7 +936,7 @@ END $$;
 
 1단계: 핵심 기반 및 설정 (No. 1 ~ 3)
 -- 1. 프로젝트 최상위 정보
--- 글로벌 그림자 프로젝트(Shadow Project): 넥슈가 프로젝트 외부(가이드·비회원 체험·일상 도우미) 활동 시
+-- 글로벌 그림자 프로젝트(Shadow Project): 닉시(`NEXA NIXIE`)가 프로젝트 외부(가이드·비회원 체험·일상 도우미) 활동 시
 -- effective_project_id는 물리적으로 project_id 컬럼에 저장. GLOBAL_GUIDE, TRIAL_USER, DAILY_HELPER 등
 -- 예약 UUID를 projects에 미리 등록하여 동일 Traceability 체계 유지. [NEXA-DDL-00] §2.5.1, [NEXU-SCHEMA].
 CREATE TABLE projects (

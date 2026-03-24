@@ -1,7 +1,7 @@
 # _ NOTE 인천 폐철도 나무 아트 프로젝트
 
 > 개인 프로젝트 — 숙성 중인 아이디어 메모
-> NEXA 플랫폼 + NIXIE Canvas + NEXU를 활용한 몰입형 설치 예술
+> NEXA 플랫폼 + NEXU Canvas + NEXU를 활용한 몰입형 설치 예술
 
 ---
 
@@ -56,7 +56,7 @@
   꽃 하나 = 나이테 한 해
 
 꽃 → 도트 전환
-  꽃잎이 NIXIE Canvas 도트로 픽셀화
+  꽃잎이 NEXU Canvas 도트로 픽셀화
   처음엔 꽃 형태 유지 → 점점 도트로 분해
 
 도트 확산
@@ -64,7 +64,7 @@
   관람객 모션으로 줌아웃
   우주로 여행
 
-NIXIE Canvas + NEXU 협연
+NEXU Canvas + NEXU 협연
   나무의 GPS 좌표 → 우주 지도 위에 펼쳐짐
   관람객 위치도 도트 하나로 천장에 표시
   나무와 관람객이 함께 우주로 여행
@@ -103,7 +103,7 @@ DIY 어안렌즈 어댑터 검토
   각도 확인 후 테스트 예정
 
 왜곡 처리
-  NIXIE Canvas Pre-warping으로 역방향 왜곡 적용
+  NEXU Canvas Pre-warping으로 역방향 왜곡 적용
   원하는 부분 보정 / 의도적 왜곡 살림
   → 우주로 빨려가는 효과 활용 가능
 ```
@@ -132,7 +132,7 @@ NEXU
   오디오 연동 (우주 전파 소리)
   트리거 제어
 
-NIXIE Canvas
+NEXU Canvas
   구면 좌표 기반 도트 배치
   어안렌즈 Pre-warping 적용
   관람객 모션 반응 도트
@@ -172,7 +172,7 @@ ESP32 + 센서류              10~20만원
   → 아트북 한 챕터
 
 NEXA 플랫폼 Seed Content
-  이 전시 자체가 NEXU + NIXIE Canvas 실사용 사례
+  이 전시 자체가 NEXU + NEXU Canvas 실사용 사례
   Trace Template 실제 적용 사례
 ```
 
@@ -313,7 +313,7 @@ NEXU
   오디오 출력 (폐철도 소리 → 수액 소리 → 우주 전파)
   80~150ms 타이밍 제어
     ↓
-NIXIE Canvas
+NEXU Canvas
   도트 반응 및 확산
   어안렌즈 Pre-warping 적용
   6면 투사
@@ -322,7 +322,7 @@ NIXIE Canvas
   나무        물리적 기억, 최초 신호 발생지
   스마트폰    입력 수집 + 피드백 수신
   NEXU       판단 + 오디오 + 타이밍
-  NIXIE      시각 출력
+  NEXA NIXIE      시각 출력
 ```
 
 나무는 단순한 소재가 아니라 시스템의 첫 번째 노드다.

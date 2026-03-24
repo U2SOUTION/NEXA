@@ -86,7 +86,7 @@ _  파일명 앞   진행 중, 미완료. 탐색기 최상단에 위치
 | `ADM` | RFC, DESIGN | SPEC, SCHEMA |
 | `AUTH` | RFC | ARCH, DESIGN, SPEC |
 | `NEXU` | VISION, ARCH, REQ | DESIGN, SPEC |
-| `NIXIE` | ARCH, CONCEPT | DESIGN, SPEC |
+| `NEXA NIXIE` | ARCH, CONCEPT | DESIGN, SPEC |
 | `ARC` | RFC | ARCH, DESIGN |
 | `DDL` | SCHEMA | REF 확정 |
 | `UCL` | ARCH, SPEC, DESIGN | ADR, GUIDE |

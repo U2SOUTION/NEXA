@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS nexa_knowledge_references (
   prefix_flag VARCHAR(10) NOT NULL DEFAULT 'NONE',
   parser_version VARCHAR(40),
   parse_confidence NUMERIC(5,4),
-  -- UI/NIXIE 연동용 점수(0~100): parse_confidence 기반 자동 산출
+  -- UI/NEXU Canvas 렌더링 연동 점수(0~100): parse_confidence 기반 자동 산출
   confidence_score SMALLINT GENERATED ALWAYS AS (
     CASE
       WHEN parse_confidence IS NULL THEN NULL
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS nexa_knowledge_references (
 COMMENT ON COLUMN nexa_knowledge_references.parse_confidence
   IS 'Filename parser confidence (0~1).';
 
--- confidence_score: NIXIE 캔버스 시각 피드백 연동 점수(0~100)
+-- confidence_score: NEXU 캔버스 시각 피드백 연동 점수(0~100)
 -- rule: confidence_score < project_settings.user_defined_threshold(기본 95) => UI Jitter 경고
 COMMENT ON COLUMN nexa_knowledge_references.confidence_score
   IS 'UI confidence score (0~100) for Lumina/Jitter rendering.';

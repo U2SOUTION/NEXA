@@ -231,7 +231,7 @@ CREATE TABLE execution_steps (
 
     -- 3. 상태 관리 및 신뢰도
     step_status SMALLINT DEFAULT 1, -- FLOW(1), STUCK(2), COMPLETED(3), FAILED(4), VOID(5)
-    confidence_score SMALLINT DEFAULT 100, -- NIXIE UI의 Jitter(떨림) 연출 근거 데이터
+    confidence_score SMALLINT DEFAULT 100, -- NEXA NIXIE UI의 Jitter(떨림) 연출 근거 데이터
     retry_count SMALLINT DEFAULT 0,
 
     -- 4. 타임머신 및 시뮬레이션 (뒤로가기/앞으로가기 핵심) [Conversation History, 15]
@@ -259,7 +259,7 @@ CREATE INDEX idx_exec_steps_timeline_branch ON execution_steps(timeline_branch_i
 
 1.  **`post_state_snapshot` (스냅샷)**: 타임머신의 '뒤로가기' 시, 이전 명령을 취소하는 복잡한 로직 대신 **저장된 스냅샷으로 시스템 상태를 즉시 복원**하기 위한 필드입니다 [Conversation History].
 2.  **`timeline_branch_id` (분기 관리)**: 사용자가 특정 시점으로 돌아가 다른 선택을 했을 때 발생하는 **'평행 타임라인'**을 관리하여 시뮬레이션의 다중성을 지원합니다 [Conversation History].
-3.  **`confidence_score` (NIXIE 연동)**: 닉시관 UI에서 각 실행 단계의 확신도에 따라 **빛의 떨림(Jitter)이나 밝기(Lumina)**를 실시간으로 연출하는 근거 데이터가 됩니다.
+3.  **`confidence_score` (NEXA NIXIE 연동)**: 닉시관 UI에서 각 실행 단계의 확신도에 따라 **빛의 떨림(Jitter)이나 밝기(Lumina)**를 실시간으로 연출하는 근거 데이터가 됩니다.
 4.  **`is_virtual` (가상 플래그)**: 시뮬레이션 중 실수로 실물 장비(EFF)가 작동하지 않도록 하는 **의미론적 잠금(Meaning Lock)** 장치입니다.
 5.  **`error_token` (재규격화)**: 어댑터 실패 시 날것의 에러 대신 UCL 표준 에러 토큰을 저장하여, 타임라인 복구 시 AI가 실패 원인을 즉시 파악하고 대안을 제시하게 합니다.
 

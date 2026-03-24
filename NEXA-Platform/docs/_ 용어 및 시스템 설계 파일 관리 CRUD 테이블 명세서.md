@@ -66,7 +66,7 @@
 연동 규칙:
 
 - `confidence_score`는 `parse_confidence`를 100점 환산한 읽기 전용 점수다.
-- UI(NIXIE)는 `project_settings.user_defined_threshold`(기본 95)와 비교한다.
+- UI(`NEXU Canvas`, 브랜드: `NEXA NIXIE`)는 `project_settings.user_defined_threshold`(기본 95)와 비교한다.
 - `confidence_score < user_defined_threshold`이면 노드에 `Jitter` 경고를 즉시 적용한다.
 - `confidence_score >= user_defined_threshold`이면 `Lumina` 정상 강조 상태로 렌더링한다.
 
@@ -289,7 +289,7 @@
 
 ### 2.8 `nexa_self_*` (Multi-faceted Self 공통 자산 계층)
 
-> NEXU 전용 UI 상태가 아닌 플랫폼 공통 자산으로 관리한다.
+> 닉시(`NEXA NIXIE`)와의 채널 전용 자산이 아니라 플랫폼 공동 자산으로 관리한다.
 > 명명 기준: `nexa_self_*`
 
 핵심 테이블:
@@ -310,7 +310,7 @@
 운영 원칙:
 
 - `nexa_self_knowledge_map`은 원본 지식을 저장하지 않고 참조만 관리한다.
-- NEXU 채널과 오케스트레이션 직접 채널 모두 같은 `nexa_self_*`를 재사용한다.
+- 닉시(`NEXA NIXIE`) 채널과 오케스트레이션 직접 채널 모두 같은 `nexa_self_*`를 재사용한다.
 - Self 규칙 변경은 감사 로그와 승인 큐 정책을 준수한다.
 
 ---
