@@ -23,6 +23,7 @@
 
 | 약어 | 풀네임 (Full Name)                 | 의미 및 역할                                              |
 | ---- | ---------------------------------- | --------------------------------------------------------- |
+| UCL  | Unified Composition Language       | 사람의 의도를 기계의 동작으로 연결하는 표준 설계도        |
 | UCL  | User-Centric Logic                 | 사용자의 의도를 시스템 로직으로 변환하는 최상위 설계 언어 |
 | BASE | Basic Asset & Standard Environment | 시스템이 구동되는 기초 환경 및 표준 데이터 자산           |
 | CORE | Central Operating Resource Entity  | 결정된 원칙(ERA)이 실제로 실행되는 중추 엔진              |

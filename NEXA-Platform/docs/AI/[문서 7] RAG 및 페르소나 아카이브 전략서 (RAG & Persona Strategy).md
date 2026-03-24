@@ -56,4 +56,4 @@ NEXA는 현장 중심 지능형 협업과 '언어 너머의 뜻'을 읽는 한�
 위계 기반: 비스타(Vista), 센티(Senti), 나노 아톰. 철학 기반: 나리티(Narrati), 에코(Echo), 리얼머(Realmer). 에이전트: 옵스(Ops), 싱커(Thinker), 아토(Ato). 레이어: 펄스(Pulse), 플로우(Flow). 추천 조합: 메인 허브—비스타 또는 나리티; 엣지—센티 또는 마이크로-아토; UI(음성/채팅)—에코.
 
 **5.6 NEXA-SYNC (브랜드·목적·방향)**  
-의도와 실행의 지능적 동기화·한몸(One Body) 유대감을 나타내는 브랜드로, 편안함·쉬움을 전달한다. **목적:** 공감형 지능—RAG로 INTENT 호출·숨은 의도 파악, 일상의 지능적 서사화(ART & Life), 6코일·선호 학습으로 성장형 동반자. **방향:** 5W1H·4대 레이어로 반응 극대화·오작동 감소, 하드 도메인은 Reflex 우선·소프트 도메인은 인디케이터 창의 개입, English Core–Multilingual Shell, QUERY·WILL→GOVERN 생성·Sentinel 전파의 Feedback Loop. 개인화된 편안함과 예술적 통찰을 제공하는 살아있는 지능 유기체로 완성한다.
+의도와 실행의 지능적 동기화·한몸(One Body) 유대감을 나타내는 브랜드로, 편안함·쉬움을 전달한다. **목적:** 공감형 지능—RAG로 INTENT 호출·숨은 의도 파악, 일상의 지능적 서사화(ART & Life), 6코일·선호 학습으로 성장형 동반자. **방향:** 5W1H·4대 레이어로 반응 극대화·오작동 감소, 하드 도메인은 Reflex 우선·소프트 도메인은 인디케이터 창의 개입, English Kernel–Multilingual Shell, QUERY·WILL→GOVERN 생성·Sentinel 전파의 Feedback Loop. 개인화된 편안함과 예술적 통찰을 제공하는 살아있는 지능 유기체로 완성한다.
