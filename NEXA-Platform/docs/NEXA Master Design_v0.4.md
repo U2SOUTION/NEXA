@@ -24,7 +24,7 @@
 6. [충돌 해소 매트릭스](#6-충돌-해소-매트릭스)
 7. [Empathy 설계](#7-empathy-설계)
 8. [VOID 전환 수치화](#8-void-전환-수치화)
-9. [NEXA-NEXU 캔버스](#9-nexa-nixie-캔버스)
+9. [NEXA-NEXU 캔버스](#9-nexa-nexu-캔버스-v04-신규)
 10. [Capability ID 체계](#10-capability-id-체계)
 11. [PostgreSQL 스키마](#11-postgresql-스키마)
 12. [구현 로드맵](#12-구현-로드맵)

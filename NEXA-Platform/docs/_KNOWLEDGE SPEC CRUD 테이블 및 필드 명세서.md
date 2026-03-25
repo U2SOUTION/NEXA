@@ -1,9 +1,21 @@
-# \_ 용어 및 시스템 설계 파일 관리 CRUD 테이블 스키마 설계안
+# KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서
 
 본 문서는 NEXA Knowledge OS의 단일 스키마 기준(SSOT)이다.
 
 > 네임스페이스 원칙: 공통 지식 계층은 `nexa_knowledge_*`, 프로젝트 생성 지식은 `project_knowledge`로 분리한다.
 > 본 문서의 물리 테이블명은 `nexa_knowledge_*`를 기준으로 한다.
+
+**범위:** 엣지·실행·대화 등 **다른 축의 지식**은 오케스트레이션·인프라 DDL이 담당한다. 스펙트럼 개괄은 `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` **§0** 참고.
+
+**OS적 보강(§1-C)과의 관계:** `_KNOWLEDGE RULE 지식 자산 관리 표준 계약 및 규약.md` **§5**(안전 축), `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` **§1-B·§1-C**에서 정의한 인터럽트·페이징·드라이버·NFS·쓰로틀은 **검증 가능한 상태는 본 명세의 테이블**에, 실행 스케줄·뷰는 앱/런타임에 둔다. 아래 **§2.9~**는 해당 아이디어를 스키마에 매핑한 것이며, **DDL SSOT**(`_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`)에는 단계적으로 반영한다.
+
+### 입문: LLM(Ollama 등) 자원과 이 명세의 역할
+
+AI 모델은 **프롬프트 길이·추론 시간·검색/호출 횟수**처럼 **한정된 자원** 안에서만 동작한다. Knowledge OS 스키마는 그 모델을 “더 똑똑하게” 바꾸기보다, **지식을 어디에 두고 무엇을 먼저 붙일지**를 정해 **낭비를 줄이는** 쪽에 기여한다.
+
+- **“토큰만 줄인다”**로만 보면: **`context_paging_sets`**·**`response_policies` 보강**이 프롬프트·출력 길이와 **가장 직접** 연결된다.
+- **그 외**(`residency`, `drivers`, `traceability_paths`, `kernel_events`, `health_signals`)은 **속도·정확도·연동·감사·모니터링** 등 **다른 목적**이 섞여 있으므로, 표와 상세 설명은 **§2.9~** 각 절의 “역할”을 읽으면 된다.
+- 한 장 요약 표는 `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` **§1-D**에 있다.
 
 ---
 
@@ -315,6 +327,313 @@
 
 ---
 
+### 2.9 `nexa_knowledge_residency` (VOID 계층·스왑 힌트)
+
+> **§1-C.2 VOID Swap Policy.** `how_state`/비활성에 가까운 엔티티의 **상주 계층(L1 Redis ~ L3 Archive)** 과 이동 힌트. 실제 티어 이동은 스케줄러·스토리지 정책이 수행하고, 본 테이블은 **메타·통계**를 남긴다.
+
+#### 역할
+
+지식 엔티티(용어 정의·문서 참조·벡터 메타 등)가 **물리적으로 어디에 “상주”하는지**와, VOID 계열 상태로 분류될 때 **다음 승격/강등 후보**를 판단하기 위한 **운영 힌트 테이블**이다. OS의 “메모리 상주 vs 스왑 아웃” 은유에 대응하되, **실제 바이트 이동·Redis 키 삭제**는 애플리케이션·인프라 레이어가 수행하고, PG 본 테이블은 **의사결정에 필요한 최소 상태**만 유지한다.
+
+#### 하지 않는 일
+
+- 원문 텍스트·임베딩 벡터의 **실제 저장 위치**(S3 버킷 경로 등)를 단일 진실원으로 삼지 않는다(필요 시 `tier_metadata`에 캐시).
+- 티어 이동 **원자성**을 DB 트랜잭션 하나로 보장하지 않는다. “스케줄러가 읽고 행동한다”는 **이벤트 소싱에 가까운 모델**을 전제로 한다.
+
+#### 티어 해석 (권장)
+
+| 값 | 의미(권장) | 지연·비용 |
+| :-- | :-- | :-- |
+| `L1` | 핫 캐시(예: Redis). 검색·라우팅 핫패스 | ms 미만 목표, 비용↑ |
+| `L2` | `nexa_knowledge_*` 가 주 저장(Postgres). 일관 조회 | ms~수십 ms |
+| `L3` | 아카이브·저빈도(객체 스토리지·압축 파티션 등) | 초 단위 허용, 비용↓ |
+
+`void_hint`는 오케스트레이션·프로젝트 로그의 **VOID 단계**와 맞출 수 있는 **느슨한 라벨**이며, 스키마 강제 ENUM으로 묶지 않고 운영 코드명을 문자열로 둔다(진화 여지).
+
+#### `tier_metadata` 예시 (비규범)
+
+```json
+{
+  "next_promote_at": "2026-03-26T00:00:00Z",
+  "cooldown_sec": 3600,
+  "cost_hint_usd_month": 0.02,
+  "replica_lag_ms": 12
+}
+```
+
+#### 연계
+
+- **읽기 경로:** 라우터·RAG가 `entity_type`+`entity_id`로 조회 후, L1 미스 시 L2 폴백 등.
+- **쓰기 경로:** 토큰/참조 갱신 시 `last_access_at`·`access_count_rolling` 갱신(배치 가능).
+- **VOID 정책:** `nexa_knowledge_doc_sync_state`의 삭제·잠재 상태와 **동일 사용자 스토리**로 연결할 수 있다.
+
+| 컬럼명               | 타입         | 제약                           | 설명 |
+| :------------------- | :----------- | :----------------------------- | :--- |
+| `residency_id`       | UUID         | PK, DEFAULT uuid_v7()          | 행 ID |
+| `entity_type`        | VARCHAR(30)  | NOT NULL                       | `definition` / `reference` / `vector` 등 감시 대상 유형 |
+| `entity_id`          | UUID         | NOT NULL                       | 대상 PK (`nexa_knowledge_*` 내 ID) |
+| `storage_tier`       | VARCHAR(10)  | NOT NULL                       | `L1` / `L2` / `L3` (즉시·PG·아카이브) |
+| `void_hint`          | VARCHAR(20)  | NULL                           | `POTENTIAL` / `ARCHIVE` / 기타 VOID 단계 힌트 |
+| `access_count_rolling` | INTEGER    | NOT NULL, DEFAULT 0            | 롤링 윈도우 접근 횟수(앱 정의 기간) |
+| `last_access_at`     | TIMESTAMPTZ  | NULL                           | 최근 접근 시각 |
+| `tier_changed_at`    | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 티어 마지막 변경 시각 |
+| `tier_metadata`      | JSONB        | NOT NULL, DEFAULT '{}'         | 비용·복제 지연·쿨다운 등 운영 메타 |
+| `status`             | SMALLINT     | NOT NULL, DEFAULT 1            | 1: Active, 0: Inactive |
+
+유니크·인덱스(권장):
+
+- `UNIQUE(entity_type, entity_id)` — 대상당 1행(또는 티어별 분리 시 `UNIQUE(entity_type, entity_id, storage_tier)` 로 완화)
+- `(storage_tier, last_access_at DESC)` — 강등 스윕용
+
+---
+
+### 2.10 `nexa_knowledge_context_paging_sets` (Context Paging)
+
+> **§1-C.2 Context Paging.** 프로젝트·사용자 진입 시 LLM/라우터에 **상주할 RULE·INTENT**만 고정하는 **컨텍스트 페이지** 정의. HEXAGON 본문(`nexa_term_tokens`)을 대체하지 않는다.
+
+#### 역할
+
+LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용과 지연의 핵심이다. 본 테이블은 “이 세션·이 프로젝트에서는 **항상 이 용어와 이 문서 참조를 먼저 깔아 둔다**”는 **페이지(상주 집합)** 를 선언한다. **전체 지식 그래프를 매번 넣지 않고**, RULE·INTENT에 해당하는 **소수의 앵커 ID**만 고정한다.
+
+#### HEXAGON과의 관계
+
+- `nexa_term_tokens`의 **6축 정수 토큰**은 시스템의 **정규화된 문법**이다. Context Paging은 그 위에 얹는 **“이번 대화의 초점”** 이며, 토큰 테이블을 **수정·대체하지 않는다**.
+- `intent_hexagon_snapshot`은 선택 필드로, “이 페이지가 활성일 때 라우팅에 쓸 **가중치·초기 5W1H**”를 JSON으로 담을 수 있다(정수 스키마는 앱·문서로 고정 권장).
+
+#### 수명·우선순위
+
+- `scope_type`이 좁을수록 우선: 예) `user`+`project` > `project` > `global`.
+- 동일 스코프에 다중 `is_active=true`가 있으면 **충돌**이므로, 운영에서는 `label`+`updated_at` 최신 또는 `summary_priority` 유사 개념을 앱에서 두거나, 추후 컬럼 추가로 해소한다.
+
+#### 연계
+
+- `pinned_definition_ids` → `nexa_knowledge_definitions.id`
+- `pinned_reference_ids` → `nexa_knowledge_references.id` (파일명 파서·`confidence_score`와 함께 쓰면 Jitter 노드도 페이지에 포함 가능)
+
+| 컬럼명                    | 타입         | 제약                     | 설명 |
+| :------------------------ | :----------- | :----------------------- | :--- |
+| `set_id`                  | UUID         | PK, DEFAULT uuid_v7()    | 세트 ID |
+| `scope_type`              | VARCHAR(20)  | NOT NULL                 | `global` / `project` / `user` |
+| `scope_id`                | UUID         | NULL                     | 프로젝트/사용자 식별자 |
+| `pinned_definition_ids`   | UUID[]       | NOT NULL, DEFAULT '{}'   | 상주 용어(`nexa_knowledge_definitions.id`) |
+| `pinned_reference_ids`    | UUID[]       | NOT NULL, DEFAULT '{}'   | 상주 참조(`nexa_knowledge_references.id`) |
+| `intent_hexagon_snapshot` | JSONB        | NOT NULL, DEFAULT '{}'   | 선택: 5W1H 스냅샷(정수 토큰)·캡슐화 |
+| `max_window_tokens`       | INTEGER      | NULL                     | 상한 토큰(앱 정의) |
+| `label`                   | VARCHAR(120) | NULL                     | 사람이 읽는 이름 |
+| `is_active`               | BOOLEAN      | NOT NULL, DEFAULT TRUE   | 활성 여부 |
+| `updated_at`              | TIMESTAMPTZ  | NOT NULL, DEFAULT now()  | 갱신 시각 |
+
+---
+
+### 2.11 `nexa_knowledge_capability_drivers` (Capability-as-Driver / Hot-Plug)
+
+> **§1-C.3.** 외부 API·연동을 **Capability ID**에 매핑하는 **드라이버 매니페스트**. `project_extensions` 실체는 오케스트레이션 DB에 있을 수 있어, 본 테이블은 **지식 OS 측 등록·검증·감사**에 집중한다.
+
+#### 역할
+
+하드웨어 OS에서 **디바이스 드라이버**가 커널과 장치 사이를 표준 인터페이스로 연결하듯, NEXA에서는 **외부 SaaS·HTTP API·에지 프로토콜**을 `nexa.*` **Capability ID**에 바인딩하고, UCL·오케스트레이션 호출 시 **동일한 자격·감사·샌드박스**를 타게 한다. 본 테이블은 그 **선언적 매니페스트**를 저장한다.
+
+#### `manifest`에 넣을 내용 (권장 스키마는 앱 합의)
+
+- **인증:** OAuth scope, API key vault 참조 키(평문 금지)
+- **매핑:** 외부 이벤트 필드 → 내부 HEXAGON/토큰/Intent
+- **한계:** 레이트 리밋, 페이로드 상한, 허용 HTTP 메서드
+- **UCL:** 어댑터 템플릿 ID, 기본 `is_virtual` 여부(실물 이펙트 방지)
+
+#### Hot-Plug의 의미
+
+- “코드 없이”는 **운영자가 SQL을 직접 짜지 않는다**는 수준의 목표이며, **ASK·승인·감사**는 생략하지 않는다. `registration_status='draft'` → 검증 → `active` 전환 흐름을 권장한다.
+- `project_extension_id`는 오케스트레이션 DB와 **동일 클러스터**일 때만 FK 후보. 분리 배포 시 UUID만 저장하고 앱에서 조인한다.
+
+#### 연계
+
+- `capabilities` / `capability_map`(플랫폼)과 **capability_id** 정합
+- `sandbox_profiles`로 격리 실행(선택)
+
+| 컬럼명                 | 타입         | 제약                     | 설명 |
+| :------------------- | :----------- | :----------------------- | :--- |
+| `driver_id`          | UUID         | PK, DEFAULT uuid_v7()    | 드라이버 ID |
+| `capability_id`      | VARCHAR(120) | NOT NULL                 | 표준 `nexa.*` 자격 ID |
+| `external_provider`  | VARCHAR(80)  | NOT NULL                 | `slack` / `openai` / `custom` 등 |
+| `manifest`           | JSONB        | NOT NULL                 | 엔드포인트·스코프·필드 매핑·UCL 래퍼 파라미터 |
+| `project_extension_id` | UUID       | NULL                     | (선택) 오케스트레이션 `project_extensions` 행 ID — 동일 DB일 때 FK 검토 |
+| `sandbox_profile_id` | UUID         | NULL                     | (선택) `sandbox_profiles` 등 격리 프로파일 |
+| `registration_status`| VARCHAR(20)  | NOT NULL, DEFAULT 'draft' | `draft` / `active` / `suspended` |
+| `registered_by`      | VARCHAR(120) | NOT NULL                 | 등록 주체 |
+| `registered_at`      | TIMESTAMPTZ  | NOT NULL, DEFAULT now()  | 등록 시각 |
+| `last_health_at`     | TIMESTAMPTZ  | NULL                     | 마지막 헬스 체크 |
+
+운영 원칙:
+
+- 신규 연결도 **ASK → GOVERN → ERA** 및 `nexa_knowledge_change_requests` 정책을 생략하지 않는다.
+- `manifest`에 **필수 Capability·권한 범위**를 명시해 Hot-Plug 시 자동 검증한다.
+
+---
+
+### 2.12 `nexa_knowledge_traceability_paths` (Narrative FS / Inode 인덱스)
+
+> **§1-C.4 Inode-to-Traceability.** 논리 경로(`/projects/.../why_chain` 등)와 **앵커 UUID**를 연결하는 **이름 공간 인덱스**. 실행 패킷(`packet_id`)은 오케스트레이션 DB에 있을 수 있으므로 `anchor_domain`으로 경계를 구분한다.
+
+#### 역할
+
+사용자·캔버스·API가 **파일 시스템 경로처럼** 익숙한 문자열로 족보를 탐색할 수 있게 하되, 물리 스키마는 여전히 **UUID·시계열**이다. 본 테이블은 **Inode 역할**: `logical_path` ↔ `anchor_id` 매핑과, 트리 탐색을 위한 `parent_path_id`·`depth`를 제공한다.
+
+#### 경로 규칙 (권장)
+
+- 선행 `/` 통일, 대소문자 민감도 정책을 팀에서 한 가지로 고정.
+- **버전**은 경로에 넣거나 `metadata.version`으로 분리(중복 경로 방지).
+- `anchor_domain='orchestration'`일 때 `anchor_id`는 **다른 DB의 `packet_id` 등**을 가리킬 수 있으며, FK는 걸지 않거나 **느슨한 참조**로만 문서화한다.
+
+#### 캔버스·NIXIE
+
+- 노드 클릭 시 `logical_path`로 조회해 **동일 앵커**를 하이라이트하거나, 반대로 앵커로부터 **브레드크럼 경로**를 재구성한다.
+- `metadata`에 `canvas_layout_hint`, `nixie_lumina_profile` 등 UI 힌트를 넣을 수 있다(비규범).
+
+#### Time-Travel Mount
+
+과거 시점 **가상 마운트·분기 실험**의 상태 박제는 오케스트레이션 DB의 `execution_steps.post_state_snapshot`·`is_virtual`과 결합하고, 본 테이블은 **탐색용 논리 경로**와 knowledge 앵커만 담당한다. “과거 폴더” UX가 필요하면 `logical_path`에 `/snapshot/{snapshot_id}/...` 같은 **네임스페이스**를 추가하는 방식을 권장한다.
+
+| 컬럼명           | 타입         | 제약                     | 설명 |
+| :--------------- | :----------- | :----------------------- | :--- |
+| `path_id`        | UUID         | PK, DEFAULT uuid_v7()    | 경로 행 ID |
+| `logical_path`   | TEXT         | NOT NULL                 | 유일 논리 경로(슬래시 구분) |
+| `anchor_domain`  | VARCHAR(30)  | NOT NULL                 | `knowledge` / `orchestration` 등 |
+| `anchor_type`    | VARCHAR(40)  | NOT NULL                 | `term` / `reference` / `execution_packet` 등 |
+| `anchor_id`      | UUID         | NOT NULL                 | 대상 PK(도메인별 해석) |
+| `parent_path_id` | UUID         | NULL, FK -> path_id      | 트리 상위(선택) |
+| `depth`          | SMALLINT     | NOT NULL, DEFAULT 0      | 깊이 |
+| `metadata`       | JSONB        | NOT NULL, DEFAULT '{}'   | MIME·아이콘·캔버스 힌트 |
+| `created_at`     | TIMESTAMPTZ  | NOT NULL, DEFAULT now()  | 생성 시각 |
+
+유니크·인덱스(권장):
+
+- `UNIQUE(logical_path)` — 경로 단일 앵커
+- `(anchor_domain, anchor_type, anchor_id)` — 역조회(앵커→경로)
+
+---
+
+### 2.13 `nexa_knowledge_kernel_events` (인터럽트·공감 선점 감사)
+
+> **§1-C.1 Safety Reflex / Empathy Preemption.** 인디케이터 바이패스·태스크 Suspend 등 **커널급 이벤트**의 **불변 감사**. 정책 본문은 GOVERN/ERA·승인 큐와 정합을 유지한다.
+
+#### 역할
+
+일반 감사 로그(`nexa_knowledge_audit_logs`)가 **CRUD·승인** 중심이라면, 본 테이블은 **실시간 안전·공감 결정**으로 실행 우선순위가 바뀌는 사건을 **고의적으로 분리**해 기록한다. 사후 분쟁·규제 대응·“왜 바이패스했는가”를 설명할 때 **최초 근거**가 된다.
+
+#### `event_kind` 예시
+
+| 값 | 설명 |
+| :-- | :-- |
+| `safety_reflex` | 긴급도 5 등에서 인디케이터 우회·엣지 직접 제어 |
+| `empathy_preemption` | VI 급락 등으로 실행 큐 **일시 중단** |
+| `resume` | 선점 해제·정상 스케줄 복귀 |
+| `dry_run_branch` | 가상 분기만 탐색(실물 미적용) |
+
+#### `policy_snapshot`에 넣을 것 (권장)
+
+- 당시 `vi_threshold` / `es_threshold` / `user_defined_threshold`
+- 활성 facet·`coil_weights` 요약
+- 트리거로 삼은 **원시 관측**(마스킹 정책 준수)
+
+#### 안전
+
+- **일반 사용자 API에 노출 금지** 권장. RLS·서비스 계정만 INSERT.
+- 바이패스가 잦으면 **GOVERN 규칙**으로 승격해 자동 트리거 조건을 조이는 절차를 둔다.
+
+| 컬럼명               | 타입         | 제약                     | 설명 |
+| :------------------- | :----------- | :----------------------- | :--- |
+| `event_id`           | UUID         | PK, DEFAULT uuid_v7()    | 이벤트 ID |
+| `created_at`         | TIMESTAMPTZ  | NOT NULL, DEFAULT now()  | 발생 시각 |
+| `event_kind`         | VARCHAR(40)  | NOT NULL                 | `safety_reflex` / `empathy_preemption` / `resume` / `dry_run_branch` 등 |
+| `urgency_level`      | SMALLINT     | NOT NULL, DEFAULT 1      | 1~5 (5=Emergency) |
+| `user_id`            | UUID         | NULL                     | 대상 사용자 |
+| `project_id`         | UUID         | NULL                     | 대상 프로젝트 |
+| `bypass_indicator`   | BOOLEAN      | NOT NULL, DEFAULT FALSE  | 인디케이터 추론 바이패스 여부 |
+| `target_tier`        | VARCHAR(20)  | NULL                     | `nano` / `micro` / `edge` 등 제어 주체 |
+| `superseded_handles` | JSONB        | NULL                     | 일시 중단된 태스크·세션 핸들(앱 스키마) |
+| `policy_snapshot`    | JSONB        | NOT NULL                 | 당시 VI/ES·임계·코일 스냅샷 |
+| `related_audit_id`   | UUID         | NULL                     | `nexa_knowledge_audit_logs.id` 연결(선택) |
+| `followup_change_request_id` | UUID | NULL               | 사후 ASK·승인 큐 연결(선택) |
+
+접근 제어: `nexa_knowledge_audit_logs`와 동일하게 **관리자·보안** 위주 조회를 권장한다.
+
+인덱스(권장): `(event_kind, created_at DESC)`, `(user_id, created_at DESC)`, `(urgency_level, created_at DESC)`.
+
+---
+
+### 2.14 `nexa_knowledge_health_signals` (Jitter·시스템 헬스 스냅샷)
+
+> **§1-C.5 Jitter-based Health Check.** 노드·스코프별 **신뢰도·부하**를 집계해 **NEXU 캔버스(넥슈)**·모니터에 공급. **신뢰도 Jitter**와 **큐 적체·VI** 등은 `signal_kind`로 분리한다.
+
+#### 역할
+
+`nexa_knowledge_references.confidence_score`는 **문서·파싱 단위**의 신뢰도다. 반면 운영자는 “지금 플랫폼 전체가 숨이 찬 상태인가”를 **한 눈**에 보고 싶다. 본 테이블은 **집계 스냅샷**: 일정 주기(예: 30초)마다 스코프별로 **단일 지표**를 기록해, NIXIE **Jitter 강도**·대시보드 게이지·알람에 공급한다.
+
+#### `signal_kind` 분리 원칙
+
+| 종류 | 예시 | 비고 |
+| :-- | :-- | :-- |
+| `confidence_jitter` | 파싱·근거 불확실 평균/최악값 | `references`·프로젝트 로그와 연계 |
+| `queue_pressure` | 승인 큐·실행 큐 길이 정규화 | OS의 loadavg 유사 |
+| `vi_empathy` | VI/ES 요약 | Empathy 엔진과 중복 시 **집계만** |
+
+동일 시각에 **여러 행**으로 종류를 나누어 저장한다(한 행에 다 때려 넣지 않음).
+
+#### 보존
+
+- raw는 빠르게 쌓이므로 **Timescale hypertable** + 보존 기간(예: 90일) 권장.
+- 장기 추세는 배치로 **일 단위 롤업 테이블**을 별도 두는 전략 가능(본 명세 범위 밖).
+
+| 컬럼명           | 타입         | 제약                     | 설명 |
+| :--------------- | :----------- | :----------------------- | :--- |
+| `signal_id`      | UUID         | PK, DEFAULT uuid_v7()    | 스냅샷 ID |
+| `recorded_at`    | TIMESTAMPTZ  | NOT NULL, DEFAULT now()  | 기록 시각 |
+| `scope_type`     | VARCHAR(20)  | NOT NULL                 | `global` / `project` / `reference` 등 |
+| `scope_id`       | UUID         | NULL                     | 스코프 식별자 |
+| `signal_kind`    | VARCHAR(40)  | NOT NULL                 | `confidence_jitter` / `queue_pressure` / `vi_empathy` 등 |
+| `value_numeric`  | NUMERIC(8,4) | NULL                     | 0~1 또는 정규화 지표 |
+| `value_smallint` | SMALLINT     | NULL                     | 0~100 등 정수 스케일 |
+| `payload`        | JSONB        | NOT NULL, DEFAULT '{}'   | 세부 분해(노드별·파이프라인별) |
+
+시계열 저장이 많으면 **Timescale hypertable** 전환을 검토한다.
+
+---
+
+### 2.15 `nexa_knowledge_response_policies` 보강 컬럼 (Low-Entropy Throttling)
+
+> **§1-C.5** — 기존 **§2.7** 테이블에 아래 컬럼을 **추가**한다(이미 배포된 환경은 `ALTER`).
+
+#### 역할 (보강)
+
+기존 컬럼(`es_threshold`, `vi_threshold`, `output_mode` 등)이 **언제 쉬운 출력으로 갈지**를 정한다면, 보강 컬럼은 **“얼마나 단순한 UI·얼마나 보수적 코일인지”** 를 같은 정책 행에 실어 **Low-Entropy Throttling**을 일관되게 적용하기 위한 것이다. ARCH §1-C.5의 **인지 에너지 절약 모드**와 대응한다.
+
+#### `coil_weight_override`
+
+- JSON 예: `{"safety":1.2,"creativity":0.6,"harmony":1.0}` (키 이름은 `nexa_self_*`·코일 정의와 합치).
+- **NULL**이면 플랫폼 기본 코일만 사용.
+
+#### `ui_entropy_mode`
+
+| 값 | 의미(권장) |
+| :-- | :-- |
+| `normal` | 기존 레이아웃·밀도 유지 |
+| `minimal` | 카드·설명 축소, 1차 액션 위주 |
+| `static` | 애니메이션·실시간 위젯 억제(인지 부하 최소) |
+
+#### `throttle_rationale_code`
+
+- 운영자가 나중에 대시보드에서 필터링할 수 있게 **짧은 코드**(`VI_DROP`, `USER_PREF`, `GOVERN_ERA` 등)를 둔다.
+
+기존 `output_mode`·ES/VI 임계와 함께 사용하며, **강제 규칙은 GOVERN/ERA·승인 큐**와 충돌하지 않게 정의한다.
+
+| 컬럼명                    | 타입         | 제약                | 설명 |
+| :------------------------ | :----------- | :------------------ | :--- |
+| `coil_weight_override`    | JSONB        | NULL                | VI 저하 시 창의성↓·안정성↑ 등 **코일 가중 스냅샷**(앱 해석) |
+| `ui_entropy_mode`         | VARCHAR(20)  | NULL                | `minimal` / `static` / `normal` — 단순·정적 UI 전환 힌트 |
+| `throttle_rationale_code` | VARCHAR(40)  | NULL                | 적용 사유 코드(정책 추적) |
+
+---
+
 ## 3) `definitions` JSONB 계약
 
 ```json
@@ -354,8 +673,8 @@
 ## 5) DDL 정합성 매트릭스 (CRUD ↔ 통합 DDL)
 
 기준 파일:
-- 명세: `_ 용어 및 시스템 설계 파일 관리 CRUD 테이블 명세서.md` (본 문서)
-- DDL: `_ 용어 및 시스템 설계 파일 관리 통합 스키마 DDL.md`
+- 명세: `_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md` (본 문서)
+- DDL: `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`
 
 ### 5.1 핵심 테이블 정합성
 
@@ -386,6 +705,13 @@
 | `nexa_self_explosions` | 일치 | 역방향 분해 맵(Explosion) 반영 |
 | `nexa_self_knowledge_map` | 일치 | Self-knowledge 브리지 반영 |
 | `nexa_self_capability_links` | 일치 | Self-Capability 연결 반영 |
+| `nexa_knowledge_residency` | SSOT DDL 반영 (통합 DDL `4-B` 블록) | VOID L1/L2/L3·스왑 힌트 (`§2.9`) |
+| `nexa_knowledge_context_paging_sets` | SSOT DDL 반영 (통합 DDL `4-B` 블록) | Context Paging (`§2.10`) |
+| `nexa_knowledge_capability_drivers` | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 드라이버 매니페스트 (`§2.11`) |
+| `nexa_knowledge_traceability_paths` | SSOT DDL 반영 (통합 DDL `4-B` 블록) | NFS 경로 인덱스 (`§2.12`) |
+| `nexa_knowledge_kernel_events` | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 인터럽트·선점 감사 (`§2.13`) |
+| `nexa_knowledge_health_signals` | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 헬스·Jitter 집계 (`§2.14`) |
+| `nexa_knowledge_response_policies` (보강 컬럼) | SSOT DDL 반영 (`ALTER` + CHECK) | `coil_weight_override` 등 (`§2.15`) |
 
 ### 5.3 제약/인덱스 정합성
 
@@ -404,6 +730,8 @@
 - 참조 문서 파싱은 활성 규칙(`nexa_knowledge_ref_rules.is_active=true`) 기준 단일 적용
 - 첨부 파일은 `project_assets` quota 검증 통과 건만 `nexa_knowledge_reference_assets`에 연결
 - 승인 큐 기반 변경 통제 + 감사 로그 적재 일관성 확보
+- OS 보강 테이블(`§2.9`~`§2.14`)은 **감사·티어·경로** 중심으로 RLS·관리자 전용 조회를 검토한다.
+- `nexa_knowledge_kernel_events`는 **바이패스·선점** 추적용이므로 일반 API 노출 금지 원칙을 `nexa_knowledge_audit_logs`와 동일하게 적용한다.
 
 ---
 
@@ -434,8 +762,14 @@
   - `nexa_knowledge_change_requests`
   - `nexa_knowledge_ref_rules`
   - `nexa_knowledge_reference_assets`
-  - `nexa_knowledge_response_policies`
+  - `nexa_knowledge_response_policies` (+ `§2.15` 보강 컬럼 마이그레이션)
   - `nexa_knowledge_error_patterns`
+  - `nexa_knowledge_residency` (`§2.9`)
+  - `nexa_knowledge_context_paging_sets` (`§2.10`)
+  - `nexa_knowledge_capability_drivers` (`§2.11`)
+  - `nexa_knowledge_traceability_paths` (`§2.12`)
+  - `nexa_knowledge_kernel_events` (`§2.13`)
+  - `nexa_knowledge_health_signals` (`§2.14`, 선택 시 hypertable)
   - `nexa_self_profiles`
   - `nexa_self_facets`
   - `nexa_self_states`
@@ -471,6 +805,12 @@ WHERE table_name IN (
   'nexa_knowledge_reference_assets',
   'nexa_knowledge_response_policies',
   'nexa_knowledge_error_patterns',
+  'nexa_knowledge_residency',
+  'nexa_knowledge_context_paging_sets',
+  'nexa_knowledge_capability_drivers',
+  'nexa_knowledge_traceability_paths',
+  'nexa_knowledge_kernel_events',
+  'nexa_knowledge_health_signals',
   'nexa_self_profiles',
   'nexa_self_facets',
   'nexa_self_states',
@@ -519,4 +859,4 @@ WHERE hypertable_name = 'nexa_knowledge_audit_logs';
 - **CRUD의 근거는 항상 DB/API**이다. Ollama는 **임베딩 생성**·**(선택) 초안 제안**에만 쓰이며, 단독으로 행을 “확정”하지 않는다.
 - **`nexa_knowledge_vectors`**: 용어 본문(또는 합의된 입력 문자열)을 Ollama 임베딩 API로 벡터화한 뒤 **UPSERT**. 모델명·차원은 `embedding_model` / `embedding_dim` / DDL의 `VECTOR(n)`과 일치해야 한다.
 - **불변 토큰·승인 큐**: Ollama 출력 → 검증 → 필요 시 `nexa_knowledge_change_requests` → 승인 후 본 테이블 반영.
-- 상세 흐름·API 예시는 `_ 용어 및 시스템 설계 파일 관리 운영 아키텍처.md`의 연동 절을 본다.
+- 상세 흐름·API 예시는 `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md`의 연동 절을 본다.

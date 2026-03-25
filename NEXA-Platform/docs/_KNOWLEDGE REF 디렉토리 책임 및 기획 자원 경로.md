@@ -1,9 +1,11 @@
-# \_ 용어 및 시스템 설계 파일 관리 디렉토리 및 기획 자원 구조
+# KNOWLEDGE REF 디렉토리 책임 및 기획 자원 경로
 
 본 문서는 NEXA Knowledge OS 자산을 위한 디렉토리 책임과 `views/` 하위 Vue 파일 **예상 구조(기획안)** 를 정의한다.
 
 > 네임스페이스 원칙: `nexa_knowledge_*`는 플랫폼 공통 Knowledge OS 계층이며,
 > `project_knowledge`는 해당 계층 위에서 생성되는 프로젝트 단위 지식 분기다.
+
+**참고:** 엣지 데이터·실행·닉시 대화 등도 넓게는 “지식”에 가깝지만, **저장소·수명**이 다르므로 본 문서의 `views/`·경로는 **Knowledge OS 관리 화면** 중심이다. 전체 스펙트럼 개괄은 `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` **§0**을 본다.
 
 ## 넥사 시스템 기획문서를 넘어 철학적 토대 자산화
 
@@ -62,11 +64,13 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 
 **닉시(NEXA NIXIE)** 를 **지능의 얼굴**, **NEXU 캔버스(넥슈)** 를 **서사 시각화·Why Chain 지도**(디지털 쉘 전용 표면)로 분리해 두면, 실물 하드웨어를 더해도 논리가 흔들리지 않는다. 아래 **삼각 편대**로 정리한다.
 
-| 구성 요소              | 역할                         | 지식 OS와의 연동 내용                                                                               |
-| :--------------------- | :--------------------------- | :-------------------------------------------------------------------------------------------------- |
-| **바탕 지식 OS**       | **데이터/로직 원천**         | 5W1H 토큰, 6-Coils 가중치, 설계 문서(RULE), 지능적 족보 저장                                        |
-| **닉시 (NEXA NIXIE)**  | **지능의 얼굴·쉘(Shell)**    | **하나의 지능** — 디지털 쉘(Rive·화면)과 피지컬 쉘(실물 LED 등) 전환; 동일 HEXAGON·`effective_project_id`·족보·정서 동기화(`NIXIE VISION` §5) |
-| **NEXU 캔버스 (넥슈)** | **서사 시각화·Why Chain**    | **디지털 쉘**에서만: IND→SNT→Doc, `why_chain`, Capability·좌표; 신뢰도→Lumina/Jitter — **닉시 전체 ≠ 캔버스**(실물은 Ambient·Sentinel 등 다른 면) |
+
+| 구성 요소               | 역할                   | 지식 OS와의 연동 내용                                                                                                           |
+| ------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **바탕 지식 OS**        | **데이터/로직 원천**        | 5W1H 토큰, 6-Coils 가중치, 설계 문서(RULE), 지능적 족보 저장                                                                            |
+| **닉시 (NEXA NIXIE)** | **지능의 얼굴·쉘(Shell)**  | **하나의 지능** — 디지털 쉘(Rive·화면)과 피지컬 쉘(실물 LED 등) 전환; 동일 HEXAGON·`effective_project_id`·족보·정서 동기화(`NIXIE VISION` §5)         |
+| **NEXU 캔버스 (넥슈)**   | **서사 시각화·Why Chain** | **디지털 쉘**에서만: IND→SNT→Doc, `why_chain`, Capability·좌표; 신뢰도→Lumina/Jitter — **닉시 전체 ≠ 캔버스**(실물은 Ambient·Sentinel 등 다른 면) |
+
 
 **결론적으로**, 사용자가 DB나 코딩 같은 기술적 수단보다 **"이 시스템은 왜 존재하는가(Why)", "어떤 원칙으로 움직여야 하는가(Logic)"**와 같은 철학적 바탕을 잘 정리할수록, Linguistic Routing 엔진이 이를 더 정교한 영문 IR로 정규화하여 실행(Effect)으로 연결할 수 있게 됩니다.
 
@@ -74,10 +78,12 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 
 ## 1) 기준 문서
 
-- `_ 용어 및 시스템 설계 파일 관리 표준 계약서.md`
-- `_ 용어 및 시스템 설계 파일 관리 CRUD 테이블 명세서.md`
-- `_ 용어 및 시스템 설계 파일 관리 자산 통합 스키마 DDL.md`
-- `_ 용어 및 시스템 설계 파일 관리 와 Linguistic Routing.md`
+- `_KNOWLEDGE RULE 지식 자산 관리 표준 계약 및 규약.md` (**§5** Knowledge OS 안전 축)
+- `_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md`
+- `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`
+- `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` (**§0** 지식 스펙트럼 · **§1-B** · **§1-C** · **§1-D**)
+- `_KNOWLEDGE ARCH 언어적 라우팅 및 지능형 정규화.md`
+- `_NEXA GUIDE 플랫폼 구현 단계 및 로드맵.md` (플랫폼 전체 구현 순서; Knowledge·오케스트레이션·UI)
 
 ---
 
@@ -96,6 +102,23 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 
 ---
 
+## 2-A) `admin/views` 배치 검토 (Knowledge + OS 보강 §2.9~)
+
+**결론:** Knowledge OS 관리 화면(용어·참조·승인 큐·**OS 보강 테이블**)은 `**domains/admin/views/`** 아래 두는 것이 맞다.
+
+
+| 근거                   | 설명                                                                                                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `_KNOWLEDGE RULE` §3 | 승인 대기 큐 등은 `domains/admin` 책임으로 이미 규정됨.                                                                                                                    |
+| 민감도                  | `nexa_knowledge_kernel_events`, `nexa_knowledge_audit_logs` 연계는 **관리자·보안** 조회 전제(SPEC·ARCH). 일반 `help` 노출과 분리.                                             |
+| 도메인 일관성              | `KnowledgeChangeQueueView`·`AdminAudit.vue`와 **동일 라우팅·탭 패턴**으로 묶으면 운영이 단순해짐.                                                                               |
+| `help/views`         | **탐색·설명·족보 읽기**(예: `KnowledgeExplorerView`, `TraceabilityView`, `DependencyMapView`)는 사용자/가이드 성격이므로 `help`에 유지. **경로 편집·티어 스윕·드라이버 등록**은 쓰기·정책이므로 `admin`. |
+
+
+**ARCH §1-C / SPEC §2.9~** 와의 대응: 아래 §4 트리·§5 매핑에 **전용 섹션 Vue**를 추가했다. 구현 순서는 `_NEXA GUIDE 플랫폼 구현 단계 및 로드맵.md`와 `_KNOWLEDGE GUIDE`를 따른다.
+
+---
+
 ## 3) 기획 문서 자원 경로
 
 - 원본 기획 문서 저장소: `NEXA-Documentation/`
@@ -107,7 +130,7 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 
 ## 4) Knowledge OS 자산용 views 구조(예상안)
 
-아래는 **현재 패턴을 따르면서** Knowledge OS 자산에 필요한 화면을 확장한 제안 구조다.
+아래는 **현재 플렛폼 파일구조 패턴을 따르면서** Knowledge OS 자산에 필요한 화면을 확장한 제안 구조다.
 
 ```text
 src/domains/
@@ -130,25 +153,32 @@ src/domains/
 │               ├── AdminUiTheme.vue             # UI 테마/표현 설정
 │               ├── AdminApiLimits.vue           # API 제한/쿼터 관리
 │               ├── AdminAiResources.vue         # AI 리소스/모델 관리
-│               ├── KnowledgeDefinitionsView.vue  # 용어 정의 CRUD (term_key, ko_label, definitions)
-│               ├── KnowledgeTokensView.vue       # 5W1H 토큰 매핑 관리
-│               ├── KnowledgeReferencesView.vue   # 문서/Capability 연결 관리
-│               ├── KnowledgeVectorsView.vue      # 임베딩 상태/재생성 관리
-│               ├── KnowledgeChangeQueueView.vue  # 불변 토큰 변경 승인 큐
-│               ├── KnowledgeDocSyncView.vue      # 문서 동기화 상태/재실행
-│               └── KnowledgeDistributionView.vue # nano/micro/vista 배포 프로파일 관리
+│               ├── KnowledgeDefinitionsView.vue      # 용어 정의 CRUD (term_key, ko_label, definitions)
+│               ├── KnowledgeTokensView.vue           # 5W1H 토큰 매핑 관리
+│               ├── KnowledgeReferencesView.vue       # 문서/Capability 연결 관리
+│               ├── KnowledgeVectorsView.vue          # 임베딩 상태/재생성 관리
+│               ├── KnowledgeChangeQueueView.vue      # 불변 토큰 변경 승인 큐
+│               ├── KnowledgeDocSyncView.vue          # 문서 동기화 상태/재실행
+│               ├── KnowledgeDistributionView.vue     # nano/micro/vista 배포 프로파일 관리
+│               ├── KnowledgeResidencyView.vue        # VOID 티어·스왑 힌트 (`nexa_knowledge_residency`, SPEC §2.9)
+│               ├── KnowledgeContextPagingView.vue        # Context Paging (`nexa_knowledge_context_paging_sets`, §2.10)
+│               ├── KnowledgeCapabilityDriversView.vue    # 드라이버 매니페스트 (`nexa_knowledge_capability_drivers`, §2.11)
+│               ├── KnowledgeTraceabilityPathsView.vue    # 논리 경로·앵커 (`nexa_knowledge_traceability_paths`, §2.12)
+│               ├── KnowledgeKernelEventsView.vue         # 커널 감사 (`nexa_knowledge_kernel_events`, §2.13) — 관리자 전용
+│               ├── KnowledgeHealthSignalsView.vue        # 헬스·Jitter 집계 (`nexa_knowledge_health_signals`, §2.14)
+│               └── KnowledgeResponsePoliciesView.vue     # ES/VI·출력·엔트로피 보강 (`nexa_knowledge_response_policies`, §2.7+§2.15)
 │
 └── help/
     └── views/
         ├── left/
         │   └── HelpLeftNav.vue                  # 도움말 네비게이션
-│       ├── right/
-│       │   └── helpRightPanel.vue               # 도움 페이지를 강화 시키는 패널들 배치
+        ├── right/
+        │   └── HelpRightPanel.vue               # 도움 페이지 보조 패널
         └── content/
             ├── HelpView.vue                     # 기본 도움말 홈
-            ├── KnowledgeExplorerView.vue         # 사용자용 용어 탐색/검색
+            ├── KnowledgeExplorerView.vue        # 사용자용 용어 탐색/검색
             ├── DependencyMapView.vue            # Doc-Term-Capability 관계 시각화
-            ├── TraceabilityView.vue             # 실행 결과 역추적 뷰(SNT->IND->EFF)
+            ├── TraceabilityView.vue             # 족보·실행 역추적 읽기 전용(SNT→IND→EFF)
             └── RoutingExplainView.vue           # 라우팅 결과 설명(왜 이 capability인지)
 ```
 
@@ -165,7 +195,16 @@ src/domains/
 - `KnowledgeChangeQueueView.vue` -> `nexa_knowledge_change_requests`
 - `KnowledgeDocSyncView.vue` -> `nexa_knowledge_doc_sync_state`
 - `KnowledgeDistributionView.vue` -> `nexa_knowledge_distribution_profiles`
+- `KnowledgeResidencyView.vue` -> `nexa_knowledge_residency`
+- `KnowledgeContextPagingView.vue` -> `nexa_knowledge_context_paging_sets`
+- `KnowledgeCapabilityDriversView.vue` -> `nexa_knowledge_capability_drivers`
+- `KnowledgeTraceabilityPathsView.vue` -> `nexa_knowledge_traceability_paths`
+- `KnowledgeKernelEventsView.vue` -> `nexa_knowledge_kernel_events`
+- `KnowledgeHealthSignalsView.vue` -> `nexa_knowledge_health_signals`
+- `KnowledgeResponsePoliciesView.vue` -> `nexa_knowledge_response_policies` (ES/VI·`output_mode`·보강 컬럼 §2.15)
 - `AdminAudit.vue` -> `nexa_knowledge_audit_logs`
+
+**OS 보강 화면과 ARCH §1-C:** 인터럽트·페이징·드라이버·NFS 경로·헬스·쓰로틀은 **스키마(SPEC §2.9~)** 가 있고, **실제 티어 이동·프롬프트 조립**은 `engines`·잡에서 수행한다. 위 Vue는 **운영자가 상태를 보고 고치는 창구**에 해당한다.
 
 ---
 
@@ -219,11 +258,13 @@ src/domains/
 
 ## 6) 적용 체크리스트
 
-- [ ] `admin/views/content/sections`에 용어 관리 전용 섹션 분리
-- [ ] `help/views/content`에 탐색/설명/족보 화면 분리
-- [ ] 화면명과 API/테이블 책임이 1:1로 대응
-- [ ] 기존 `AdminContent.vue` 탭/라우팅과 충돌 없이 통합
-- [ ] `DependencyMapView`가 문서-용어-기능 연결을 시각화
+- `admin/views/content/sections`에 용어 관리 전용 섹션 분리
+- **OS 보강(SPEC §2.9~)** 전용 섹션을 `admin`에 두고, `kernel_events`·감사 연계 화면은 **일반 API에 노출하지 않음**
+- `help/views/content`에 탐색/설명/족보 **읽기 전용** 화면 분리 (`TraceabilityView` 등과 `admin`의 경로 편집 뷰 역할 구분)
+- 화면명과 API/테이블 책임이 1:1로 대응
+- 기존 `AdminContent.vue` 탭/라우팅과 충돌 없이 통합
+- `DependencyMapView`가 문서-용어-기능 연결을 시각화
+- `KnowledgeTraceabilityPathsView`(admin)와 캔버스·`TraceabilityView`(help)의 **편집 vs 읽기** 경계가 문서/권한과 일치
 
 ---
 
@@ -231,9 +272,10 @@ src/domains/
 
 요청하신 방향대로, `views/` 하위는 **현재 구조 복사**가 아니라  
 **용어 관리 자산을 위한 예상 Vue 파일 구조(주석 포함)** 로 제시했다.  
+**ARCH §1-C / SPEC §2.9~** OS 보강에 대응하는 **admin 전용** Vue를 §4·§5에 추가했고, `admin` vs `help` 역할은 **§2-A**에서 정리했다.  
 구현 시 본 구조를 기반으로 우선순위 섹션부터 단계적으로 반영한다.
 
-# \_ 용어 및 시스템 설계 파일 관리 디렉토리 및 기획 자원 구조
+# 부록) KNOWLEDGE REF — 디렉토리 및 기획 자원 구조
 
 본 문서는 지능형 용어 관리 시스템에서 **디렉토리 역할 분리**와 **기획 자원(문서) 연계 경로**를 정의한다.  
 핵심 원칙은 "렌더링은 `frame`, 로직은 `engines`, 표준/자산은 `system`"이다.
@@ -244,10 +286,12 @@ src/domains/
 
 본 문서는 구조/경로 원칙만 다룬다. 상세 계약은 아래 SSOT 문서를 따른다.
 
-- `_ 용어 및 시스템 설계 파일 관리 표준 계약서.md`
-- `_ 용어 및 시스템 설계 파일 관리 CRUD 테이블 명세서.md`
-- `_ 용어 및 시스템 설계 파일 관리 자산 통합 스키마 DDL.md`
-- `_ 용어 및 시스템 설계 파일 관리 와 Linguistic Routing.md`
+- `_KNOWLEDGE RULE 지식 자산 관리 표준 계약 및 규약.md` (**§5** Knowledge OS 안전 축)
+- `_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md`
+- `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`
+- `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` (**§0** · **§1-B** · **§1-C** · **§1-D**)
+- `_KNOWLEDGE ARCH 언어적 라우팅 및 지능형 정규화.md`
+- `_NEXA GUIDE 플랫폼 구현 단계 및 로드맵.md`
 
 ---
 
@@ -295,13 +339,33 @@ src/
     │               ├── AdminTierAccess.vue
     │               ├── AdminUiTheme.vue
     │               ├── AdminApiLimits.vue
-    │               └── AdminAiResources.vue
+    │               ├── AdminAiResources.vue
+    │               ├── KnowledgeDefinitionsView.vue
+    │               ├── KnowledgeTokensView.vue
+    │               ├── KnowledgeReferencesView.vue
+    │               ├── KnowledgeVectorsView.vue
+    │               ├── KnowledgeChangeQueueView.vue
+    │               ├── KnowledgeDocSyncView.vue
+    │               ├── KnowledgeDistributionView.vue
+    │               ├── KnowledgeResidencyView.vue
+    │               ├── KnowledgeContextPagingView.vue
+    │               ├── KnowledgeCapabilityDriversView.vue
+    │               ├── KnowledgeTraceabilityPathsView.vue
+    │               ├── KnowledgeKernelEventsView.vue
+    │               ├── KnowledgeHealthSignalsView.vue
+    │               └── KnowledgeResponsePoliciesView.vue
     └── help/                  # 사용자/관리자 공용 도움말 도메인
         └── views/
             ├── left/
             │   └── HelpLeftNav.vue
+            ├── right/
+            │   └── HelpRightPanel.vue
             └── content/
-                └── HelpView.vue
+                ├── HelpView.vue
+                ├── KnowledgeExplorerView.vue
+                ├── DependencyMapView.vue
+                ├── TraceabilityView.vue
+                └── RoutingExplainView.vue
 ```
 
 ### 책임 규칙
@@ -345,6 +409,8 @@ src/
 
 - `Input -> English IR -> SNT/IND/EFF`
 
+**논리 경로 인덱스:** `nexa_knowledge_traceability_paths`는 **Inode식** `logical_path` ↔ `anchor_id` 매핑으로, NEXU 캔버스·API가 **경로 문자열**로 족보를 열 때 사용한다. **편집·동기화**는 `admin`의 `KnowledgeTraceabilityPathsView.vue`, **읽기·탐색**은 `help`의 `TraceabilityView.vue` 등과 역할을 나눈다.
+
 실행 원칙:
 
 - 기능 설명 화면에서 해당 기능의 근거 문서 섹션으로 즉시 이동 가능해야 한다.
@@ -356,17 +422,17 @@ src/
 
 이 문서에서는 구조만 다루고, 라우팅 상세 규약(중의성 해소/결과 객체/EN->KO 변환)은 아래 문서를 참조한다.
 
-- `_ 지능형 용어 관리 와 Linguistic Routing(언어적 라우팅).md`
+- `_KNOWLEDGE ARCH 언어적 라우팅 및 지능형 정규화.md`
 
 ---
 
 ## 6) 구현 체크리스트
 
-- [ ] `frame`/`engines`/`system`/`domains` 책임 경계가 코드에 반영됨
-- [ ] 원본 문서 경로가 `NEXA-Documentation/` 기준으로 통일됨
-- [ ] Crawler가 `doc_ref_path`, `doc_anchor`, `source_hash`를 갱신함
-- [ ] `DependencyMap`에서 Doc-Term-Capability 시각화가 동작함
-- [ ] 라우팅 상세는 별도 문서와 중복 없이 참조 링크로 연결됨
+- `frame`/`engines`/`system`/`domains` 책임 경계가 코드에 반영됨
+- 원본 문서 경로가 `NEXA-Documentation/` 기준으로 통일됨
+- Crawler가 `doc_ref_path`, `doc_anchor`, `source_hash`를 갱신함
+- `DependencyMap`에서 Doc-Term-Capability 시각화가 동작함
+- 라우팅 상세는 별도 문서와 중복 없이 참조 링크로 연결됨
 
 ---
 
@@ -374,7 +440,7 @@ src/
 
 지능형 용어 관리 구조의 핵심은 **책임 분리**와 **문서-용어-기능 족보의 일관된 연결**이다.  
 구조 문서는 경계와 경로를 정의하고, 상세 로직/스키마는 SSOT 문서에서 단일 기준으로 관리한다.
-사용자님의 요청에 따라 **`src/docs/`에 위치한 기획 문서 자원**과 **전역 재사용 전략**을 통합하여, NEXA 플랫폼의 철학인 "안전은 딱딱하게, 지능은 유연하게"를 물리적으로 구현한 최적화된 파일 구조를 제안해 드립니다.
+사용자님의 요청에 따라 `**src/docs/`에 위치한 기획 문서 자원**과 **전역 재사용 전략**을 통합하여, NEXA 플랫폼의 철학인 "안전은 딱딱하게, 지능은 유연하게"를 물리적으로 구현한 최적화된 파일 구조를 제안해 드립니다.
 
 이 구조는 **Directory Structure V2.0**의 리팩토링 원칙을 준수하며, 기획 문서를 시스템 내부 지능 자산과 연결하여 사용자와 관리자 모두가 언제든지 참조할 수 있도록 설계되었습니다.
 
@@ -431,14 +497,34 @@ src/
     │               ├── AdminTierAccess.vue
     │               ├── AdminUiTheme.vue
     │               ├── AdminApiLimits.vue
-    │               └── AdminAiResources.vue
+    │               ├── AdminAiResources.vue
+    │               ├── KnowledgeDefinitionsView.vue
+    │               ├── KnowledgeTokensView.vue
+    │               ├── KnowledgeReferencesView.vue
+    │               ├── KnowledgeVectorsView.vue
+    │               ├── KnowledgeChangeQueueView.vue
+    │               ├── KnowledgeDocSyncView.vue
+    │               ├── KnowledgeDistributionView.vue
+    │               ├── KnowledgeResidencyView.vue
+    │               ├── KnowledgeContextPagingView.vue
+    │               ├── KnowledgeCapabilityDriversView.vue
+    │               ├── KnowledgeTraceabilityPathsView.vue
+    │               ├── KnowledgeKernelEventsView.vue
+    │               ├── KnowledgeHealthSignalsView.vue
+    │               └── KnowledgeResponsePoliciesView.vue
     │
     └── help/                    # [도움말/이해] 지능 가이드 및 문서 탐색
         └── views/
             ├── left/
             │   └── HelpLeftNav.vue
+            ├── right/
+            │   └── HelpRightPanel.vue
             └── content/
-                └── HelpView.vue
+                ├── HelpView.vue
+                ├── KnowledgeExplorerView.vue
+                ├── DependencyMapView.vue
+                ├── TraceabilityView.vue
+                └── RoutingExplainView.vue
 ```
 
 ---
@@ -483,7 +569,7 @@ src/
 
 - **문서 노드 (Doc Node):** `src/docs/`에 위치한 기획 문서 원본. 모든 논리의 기원입니다.
 - **용어 노드 (Glossary Node):** Glossary DB에 정의된 핵심 개념 (예: CORE, VOID, WILL).
-- **기능 노드 (Capability Node):** 실질적 권한과 기능을 담당하는 `nexa.*` 네임스페이스 ID.
+- **기능 노드 (Capability Node):** 실질적 권한과 기능을 담당하는 `nexa.`* 네임스페이스 ID.
 - **추적 노드 (Trace Node):** 실시간 실행 사슬에서 발생하는 사실(SNT)-판단(IND)-실행(EFF)의 인스턴스.
 
 ---
@@ -495,7 +581,7 @@ src/
 기존의 정적 지식을 연결하는 로직입니다.
 
 - **[Doc] → (Defines) → [Term]:** 특정 문서가 어떤 용어를 정의하는지 연결합니다.
-- **[Term] → (Mapped-to) → [Capability]:** 용어가 어떤 기능 자격 ID와 매핑되는지 정의합니다. 예를 들어 '보관' 용어는 `nexa.platform.archive.*`와 연결됩니다.
+- **[Term] → (Mapped-to) → [Capability]:** 용어가 어떤 기능 자격 ID와 매핑되는지 정의합니다. 예를 들어 '보관' 용어는 `nexa.platform.archive.`*와 연결됩니다.
 - **[Capability] → (Governed-by) → [Coil]:** 해당 기능이 어떤 6-Coils 가중치(안전, 창의 등)의 영향을 받는지 연결합니다.
 
 #### 2.2 실시간 실행 및 추적 로직 (Dynamic Traceability)
@@ -530,9 +616,9 @@ NEXU 캔버스의 원칙을 Vue Flow 노드에 적용합니다.
 
 이 모든 노드 연결의 중심에는 **Linguistic Routing 엔진**이 있습니다. 이 엔진은 다음과 같은 연결 자동화 로직을 수행합니다.
 
-1.  **언어 정규화:** 사용자가 "데이터 비워줘"라고 하면, 엔진은 이를 `VOID` 용어 노드와 `nexa.platform.archive.purge` 기능 노드로 자동 매핑하여 그래프 상에 경로를 생성합니다.
-2.  **의도-기능 결합:** 사용자의 자연어 설명에서 추출된 키워드를 **태그 클라우드(Tag Cloud)**와 대조하여 최적의 **Fit Score**를 가진 Capability 노드를 추천하고 연결합니다.
-3.  **사후 승인 시각화:** AI가 추천한 새로운 연결(Edge)은 처음엔 '회색 잠재 상태'로 표시되다가, 사용자가 승인(WILL)하는 순간 '유동(FLOW) 상태'의 실선으로 확정됩니다.
+1. **언어 정규화:** 사용자가 "데이터 비워줘"라고 하면, 엔진은 이를 `VOID` 용어 노드와 `nexa.platform.archive.purge` 기능 노드로 자동 매핑하여 그래프 상에 경로를 생성합니다.
+2. **의도-기능 결합:** 사용자의 자연어 설명에서 추출된 키워드를 **태그 클라우드(Tag Cloud)**와 대조하여 최적의 **Fit Score**를 가진 Capability 노드를 추천하고 연결합니다.
+3. **사후 승인 시각화:** AI가 추천한 새로운 연결(Edge)은 처음엔 '회색 잠재 상태'로 표시되다가, 사용자가 승인(WILL)하는 순간 '유동(FLOW) 상태'의 실선으로 확정됩니다.
 
 ### 💡 제언: '지능적 족보' 탐색기 UI
 

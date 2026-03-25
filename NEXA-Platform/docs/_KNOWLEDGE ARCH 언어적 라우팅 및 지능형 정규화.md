@@ -1,8 +1,10 @@
-# _ 용어 및 시스템 설계 파일 관리 와 Linguistic Routing
+# KNOWLEDGE ARCH 언어적 라우팅 및 지능형 정규화
 
 본 문서는 NEXA Knowledge OS와 Linguistic Routing의 연동 계약을 정의한다.
 
 > 네임스페이스 원칙: 공통 지식은 `nexa_knowledge_*`, 프로젝트 생성 지식은 `project_knowledge`로 분리한다.
+
+**맥락:** 입력은 사용자·엣지 등 **여러 출처**에서 올 수 있으나, 본 문서가 다루는 **정규화·IR·Capability 결합**은 주로 위 두 계층과 연결된 텍스트 파이프에 초점을 둔다. 플랫폼 전체의 지식 축 개괄은 `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` **§0** 참고.
 
 ---
 
@@ -30,6 +32,7 @@
 ## 3) 문맥 기반 중의성 해소 규약
 
 ### 3.1 입력 컨텍스트
+
 - `where_scope`
 - `when_tempo`
 - `who_pulse`
@@ -45,6 +48,7 @@
 - 동점이면 최근 실행 이력/사용자 선택 이력을 tie-breaker로 사용
 
 ### 3.3 예시 (`CORE`)
+
 - 후보 A: Where.CORE(주권)
 - 후보 B: Base-Core(펌웨어)
 - `where_scope` 관련 가중치가 높으면 A 우선
@@ -81,16 +85,19 @@
 ## 5) 역방향 로컬라이제이션 계약 (EN -> KO)
 
 출력 생성 순서:
+
 1. 영문 결과의 `term_key` 추출
 2. `ko_label` 역참조
 3. `definitions.vista.summary`를 한국어 요약 템플릿에 삽입
 4. 실행 상태 문구 결합
 
 출력 예:
+
 - EN: `Action queued for CORE validation.`
 - KO: `코어(주권) 검증 작업이 대기열에 등록되었습니다.`
 
 품질 규칙:
+
 - 용어 원문은 일관되게 `ko_label` 사용
 - 상태 표현은 표준어(`실행`, `승인 대기`, `거부`)로 통일
 

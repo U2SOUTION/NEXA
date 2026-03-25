@@ -1,13 +1,15 @@
-# _ 용어 및 시스템 설계 파일 관리 통합 스키마 DDL
+# KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT)
 
 이 문서는 NEXA Knowledge OS + 설계 파일 관리 자산의 실행 가능한 DDL 기준(SSOT)이다.  
-기준 문서: `_ 용어 및 시스템 설계 파일 관리 CRUD 테이블 명세서.md`
+기준 문서: `_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md`
 
 > 네임스페이스 원칙: 공통 지식 계층은 `nexa_knowledge_*`, 프로젝트 생성 지식은 `project_knowledge`로 분리한다.
 
+**범위:** 본 DDL은 위 네임스페이스 중심이다. 엣지·실행·대화 등 **다른 지식 축**은 오케스트레이션 등 별도 SSOT를 보며, 개괄은 `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` **§0** 참고.
+
 ---
 
-## [NEXA-DDL-KNOWLEDGE-CORE] 통합 DDL
+## NEXA-KNOWLEDGE-CORE 통합 DDL
 
 ```sql
 SET search_path TO public;
@@ -314,6 +316,9 @@ CREATE TABLE IF NOT EXISTS nexa_knowledge_response_policies (
   output_mode VARCHAR(20) NOT NULL,
   summary_priority SMALLINT NOT NULL DEFAULT 100,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  coil_weight_override JSONB,
+  ui_entropy_mode VARCHAR(20),
+  throttle_rationale_code VARCHAR(40),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_knowledge_response_policy_scope
@@ -323,8 +328,27 @@ CREATE TABLE IF NOT EXISTS nexa_knowledge_response_policies (
   CONSTRAINT chk_knowledge_response_policy_es
     CHECK (es_threshold >= 0 AND es_threshold <= 1),
   CONSTRAINT chk_knowledge_response_policy_vi
-    CHECK (vi_threshold >= 0 AND vi_threshold <= 1)
+    CHECK (vi_threshold >= 0 AND vi_threshold <= 1),
+  CONSTRAINT chk_knowledge_response_policy_ui_entropy
+    CHECK (ui_entropy_mode IS NULL OR ui_entropy_mode IN ('minimal', 'static', 'normal'))
 );
+
+-- 기존 배포(보강 컬럼 없음) 마이그레이션용 — greenfield 에서는 위 CREATE 가 이미 포함
+ALTER TABLE nexa_knowledge_response_policies
+  ADD COLUMN IF NOT EXISTS coil_weight_override JSONB,
+  ADD COLUMN IF NOT EXISTS ui_entropy_mode VARCHAR(20),
+  ADD COLUMN IF NOT EXISTS throttle_rationale_code VARCHAR(40);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'chk_knowledge_response_policy_ui_entropy'
+  ) THEN
+    ALTER TABLE nexa_knowledge_response_policies
+      ADD CONSTRAINT chk_knowledge_response_policy_ui_entropy
+      CHECK (ui_entropy_mode IS NULL OR ui_entropy_mode IN ('minimal', 'static', 'normal'));
+  END IF;
+END $$;
 
 -- 4-A) Self 공통 자산 계층 (NEXU 채널 + 오케스트레이션 공용)
 CREATE TABLE IF NOT EXISTS nexa_self_profiles (
@@ -407,6 +431,100 @@ CREATE TABLE IF NOT EXISTS nexa_self_capability_links (
   CONSTRAINT chk_self_capability_link_status CHECK (status IN (0, 1))
 );
 
+-- 4-B) OS 보강 (SPEC §2.9~§2.14) — 페이징·드라이버·추적·커널 감사·헬스
+CREATE TABLE IF NOT EXISTS nexa_knowledge_residency (
+  residency_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  entity_type VARCHAR(30) NOT NULL,
+  entity_id UUID NOT NULL,
+  storage_tier VARCHAR(10) NOT NULL,
+  void_hint VARCHAR(20),
+  access_count_rolling INTEGER NOT NULL DEFAULT 0,
+  last_access_at TIMESTAMPTZ,
+  tier_changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  tier_metadata JSONB NOT NULL DEFAULT '{}',
+  status SMALLINT NOT NULL DEFAULT 1,
+  CONSTRAINT chk_knowledge_residency_tier CHECK (storage_tier IN ('L1', 'L2', 'L3')),
+  CONSTRAINT chk_knowledge_residency_status CHECK (status IN (0, 1)),
+  CONSTRAINT uq_knowledge_residency_entity UNIQUE (entity_type, entity_id)
+);
+
+CREATE TABLE IF NOT EXISTS nexa_knowledge_context_paging_sets (
+  set_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  scope_type VARCHAR(20) NOT NULL,
+  scope_id UUID,
+  pinned_definition_ids UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
+  pinned_reference_ids UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
+  intent_hexagon_snapshot JSONB NOT NULL DEFAULT '{}',
+  max_window_tokens INTEGER,
+  label VARCHAR(120),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT chk_knowledge_context_paging_scope
+    CHECK (scope_type IN ('global', 'project', 'user'))
+);
+
+CREATE TABLE IF NOT EXISTS nexa_knowledge_capability_drivers (
+  driver_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  capability_id VARCHAR(200) NOT NULL REFERENCES capabilities(capability_id) ON DELETE RESTRICT,
+  external_provider VARCHAR(80) NOT NULL,
+  manifest JSONB NOT NULL,
+  project_extension_id UUID,
+  sandbox_profile_id UUID,
+  registration_status VARCHAR(20) NOT NULL DEFAULT 'draft',
+  registered_by VARCHAR(120) NOT NULL,
+  registered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_health_at TIMESTAMPTZ,
+  CONSTRAINT chk_knowledge_capability_driver_status
+    CHECK (registration_status IN ('draft', 'active', 'suspended'))
+);
+
+CREATE TABLE IF NOT EXISTS nexa_knowledge_traceability_paths (
+  path_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  logical_path TEXT NOT NULL,
+  anchor_domain VARCHAR(30) NOT NULL,
+  anchor_type VARCHAR(40) NOT NULL,
+  anchor_id UUID NOT NULL,
+  parent_path_id UUID REFERENCES nexa_knowledge_traceability_paths(path_id) ON DELETE SET NULL,
+  depth SMALLINT NOT NULL DEFAULT 0,
+  metadata JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_knowledge_traceability_logical_path UNIQUE (logical_path)
+);
+
+CREATE TABLE IF NOT EXISTS nexa_knowledge_kernel_events (
+  event_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  event_kind VARCHAR(40) NOT NULL,
+  urgency_level SMALLINT NOT NULL DEFAULT 1,
+  user_id UUID,
+  project_id UUID,
+  bypass_indicator BOOLEAN NOT NULL DEFAULT FALSE,
+  target_tier VARCHAR(20),
+  superseded_handles JSONB,
+  policy_snapshot JSONB NOT NULL DEFAULT '{}',
+  related_audit_id UUID,
+  followup_change_request_id UUID REFERENCES nexa_knowledge_change_requests(id) ON DELETE SET NULL,
+  CONSTRAINT chk_knowledge_kernel_urgency CHECK (urgency_level BETWEEN 1 AND 5)
+);
+
+CREATE TABLE IF NOT EXISTS nexa_knowledge_health_signals (
+  signal_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  scope_type VARCHAR(20) NOT NULL,
+  scope_id UUID,
+  signal_kind VARCHAR(40) NOT NULL,
+  value_numeric NUMERIC(8,4),
+  value_smallint SMALLINT,
+  payload JSONB NOT NULL DEFAULT '{}'
+);
+
+COMMENT ON TABLE nexa_knowledge_residency IS 'VOID 티어·스왑 힌트(SPEC §2.9).';
+COMMENT ON TABLE nexa_knowledge_context_paging_sets IS 'Context Paging — 상주 지식 세트(SPEC §2.10).';
+COMMENT ON TABLE nexa_knowledge_capability_drivers IS 'Capability-as-Driver 매니페스트(SPEC §2.11).';
+COMMENT ON TABLE nexa_knowledge_traceability_paths IS 'NFS식 논리 경로 ↔ 앵커(SPEC §2.12).';
+COMMENT ON TABLE nexa_knowledge_kernel_events IS '인터럽트·공감 선점 감사(SPEC §2.13).';
+COMMENT ON TABLE nexa_knowledge_health_signals IS '헬스·Jitter 집계(SPEC §2.14). 고빈도 시 Timescale hypertable 검토.';
+
 -- 5) 인덱스
 CREATE INDEX IF NOT EXISTS idx_knowledge_definitions_category_status
   ON nexa_knowledge_definitions(category, status);
@@ -488,6 +606,38 @@ CREATE INDEX IF NOT EXISTS idx_self_knowledge_map_definition
 CREATE INDEX IF NOT EXISTS idx_self_capability_links_profile_priority
   ON nexa_self_capability_links(self_profile_id, status, priority);
 
+CREATE INDEX IF NOT EXISTS idx_knowledge_residency_tier_access
+  ON nexa_knowledge_residency(storage_tier, last_access_at DESC NULLS LAST);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_context_paging_scope_active
+  ON nexa_knowledge_context_paging_sets(scope_type, scope_id, is_active);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_capability_drivers_cap_status
+  ON nexa_knowledge_capability_drivers(capability_id, registration_status);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_traceability_anchor
+  ON nexa_knowledge_traceability_paths(anchor_domain, anchor_type, anchor_id);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_traceability_parent
+  ON nexa_knowledge_traceability_paths(parent_path_id)
+  WHERE parent_path_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_kernel_events_kind_created
+  ON nexa_knowledge_kernel_events(event_kind, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_kernel_events_user_created
+  ON nexa_knowledge_kernel_events(user_id, created_at DESC)
+  WHERE user_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_kernel_events_urgency_created
+  ON nexa_knowledge_kernel_events(urgency_level, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_health_signals_kind_recorded
+  ON nexa_knowledge_health_signals(signal_kind, recorded_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_health_signals_scope_recorded
+  ON nexa_knowledge_health_signals(scope_type, scope_id, recorded_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_knowledge_vector_hnsw
   ON nexa_knowledge_vectors
   USING hnsw (description_vector vector_cosine_ops)
@@ -501,3 +651,5 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_vector_hnsw
 - `nexa_knowledge_*` 네이밍으로 테이블명 통일
 - `nexa_knowledge_reference_assets`로 참조 자산 링크 테이블 통일
 - `project_assets`는 스토리지/쿼터 원장 역할 유지
+- **OS 보강(SPEC §2.9~§2.14):** `nexa_knowledge_residency`, `nexa_knowledge_context_paging_sets`, `nexa_knowledge_capability_drivers`, `nexa_knowledge_traceability_paths`, `nexa_knowledge_kernel_events`, `nexa_knowledge_health_signals` 및 `nexa_knowledge_response_policies` 보강 컬럼·`ui_entropy_mode` CHECK (§2.15)
+- 기존 DB만 갱신 시: `CREATE TABLE IF NOT EXISTS`는 기존 테이블을 **변경하지 않으므로**, `nexa_knowledge_response_policies`는 본문의 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` 및 `DO $$ ... chk_knowledge_response_policy_ui_entropy` 블록을 반드시 실행한다.

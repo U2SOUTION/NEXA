@@ -277,7 +277,7 @@ NEXU (넥슈 하드웨어)
   Template  넥슈 하드웨어 설정 Template
             오디오 시나리오 Template
 
-NEXA NIXIE (닉시 캔버스)
+NEXU Canvas (넥슈) · NEXA NIXIE (닉시)
   Panel   NEXU Canvas 전용 시각화 Panel
           생성형 UI 컴포넌트
   Template  NEXA NIXIE 프로젝트 구조 Template

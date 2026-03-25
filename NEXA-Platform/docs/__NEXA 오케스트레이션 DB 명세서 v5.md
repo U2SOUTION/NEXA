@@ -89,43 +89,64 @@ Self 공통 자산 연동:
 
 ### 1.1 프로젝트 귀속 테이블 (31개)
 
-| No  | 테이블명                    | 라우터/도메인   | 주요 역할                        | 핵심 기술            |
-| :-- | :-------------------------- | :-------------- | :------------------------------- | :------------------- |
-| 1   | `projects`                  | 전역            | 프로젝트 식별/분류/Quota/Storage | UUID v7, RLS         |
-| 2   | `project_members`           | `/my`           | 멤버 권한/공유 상태              | RLS                  |
-| 3   | `project_settings`          | `/settings`     | 전역 설정/코일 템플릿/임계값     | JSONB                |
-| 4   | `project_assets`            | 전역 자원       | 문서/코드/YAML 관리              | JSONB                |
-| 5   | `project_media`             | `/nexa-media`   | 이미지/사운드/영상               | FFmpeg               |
-| 6   | `project_tags`              | 전역 검색       | 프로젝트 내부 시맨틱 태그        | pgvector             |
-| 7   | `project_logs`              | 전역 로그       | 5W1H 분리 로그 + why_chain       | TimescaleDB          |
-| 8   | `project_resource_versions` | 전역 자원       | 설정/스크립트 버전 이력          | JSONB                |
-| 9   | `project_folders`           | 탐색기          | 트리 구조 + Yjs 스냅샷           | Yjs                  |
-| 10  | `project_links`             | 탐색기          | 외부 URL/검색 참조               | AI Crawler           |
-| 11  | `project_orchestra`         | `/nexa-ai`      | 페르소나/스킬/태스크             | JSONB                |
-| 12  | `project_chats`             | `/nexa-ai`      | 에이전트 대화 히스토리           | Vercel AI SDK        |
-| 13  | `project_agent_sessions`    | `/nexa-ai`      | 실시간 세션 상태/임시 데이터     | JSONB                |
-| 14  | `project_knowledge`         | `/nexa-archive` | 지식 레이어/RAG 원천             | pgvector             |
-| 15  | `project_nodes`             | `/nexa-node`    | 노드 기반 로직/Yjs 스냅샷        | Vue Flow, Yjs        |
-| 16  | `project_scripts`           | `/nexa-node`    | 가변 스크립트/동적 주입          | JSONB/Bytecode       |
-| 17  | `project_simulations`       | `/nexa-node`    | 가상 시뮬레이션 결과             | JSONB                |
-| 18  | `project_panels`            | `/nexa-panel`   | 위젯 목록/개별 설정              | JSONB                |
-| 19  | `project_boards`            | `/nexa-board`   | 대시보드 프리셋                  | JSONB                |
-| 20  | `project_devices`           | `/infra`        | 장치 할당/버전 조합 추적         | MQTT, FK             |
-| 21  | `project_network_topology`  | `/network`      | 장치 간 연결 맵                  | JSONB                |
-| 22  | `project_traces`            | `/nexa-trace`   | 사용자 동작/자동화 시퀀스        | JSONB                |
-| 23  | `project_solutions`         | `/solutions`    | 문제/솔루션 기획 데이터          | JSONB                |
-| 24  | `project_tasks`             | `/erp`          | 업무 일정/마일스톤               | ERP Hub              |
-| 25  | `project_parts_bom`         | `/erp/parts`    | BOM + AI 시맨틱 브릿지           | JSONB, FK            |
-| 26  | `project_extensions`        | `/extension`    | 플러그인/외부 API 연동           | JSONB                |
-| 27  | `project_secrets`           | `/extension`    | 외부 자격증명(암호문만 저장)     | RLS, BYTEA, pgcrypto |
-| 28  | `project_releases`          | `/portfolio`    | 산출물 버전/전시 메타            | JSONB                |
-| 29  | `project_jobs`              | 백그라운드      | 장기 작업 상태/진행률            | JSONB                |
-| 30  | `project_user_presence`     | 협업            | 현재 접속/활동 상태              | UNLOGGED             |
-| 31  | `project_yjs_updates`       | 동기화          | Yjs 증분 업데이트 로그           | BYTEA                |
+| No  | 테이블명                    | 라우터/도메인   | 주요 역할                                                                                          | 핵심 기술            |
+| :-- | :-------------------------- | :-------------- | :------------------------------------------------------------------------------------------------- | :------------------- |
+| 1   | `projects`                  | 전역            | 프로젝트 식별/분류/Quota/Storage                                                                   | UUID v7, RLS         |
+| 2   | `project_members`           | `/my`           | 멤버 권한/공유 상태                                                                                | RLS                  |
+| 3   | `project_settings`          | `/settings`     | 전역 설정/코일 템플릿·`user_defined_threshold`·**`vi_threshold`/`es_threshold`(Empathy)**          | JSONB, NUMERIC       |
+| 4   | `project_assets`            | 전역 자원       | 문서/코드/YAML 관리                                                                                | JSONB                |
+| 5   | `project_media`             | `/nexa-media`   | 이미지/사운드/영상                                                                                 | FFmpeg               |
+| 6   | `project_tags`              | 전역 검색       | 프로젝트 내부 시맨틱 태그                                                                          | pgvector             |
+| 7   | `project_logs`              | 전역 로그       | 5W1H + `why_chain` + **Shell 서사**(`source_shell_id`/`target_shell_id`) + **NIXIE Jitter**(`nixie_feedback`·`confidence_score`) | TimescaleDB          |
+| 8   | `project_resource_versions` | 전역 자원       | 설정/스크립트 버전 이력                                                                            | JSONB                |
+| 9   | `project_folders`           | 탐색기          | 트리 구조 + Yjs 스냅샷                                                                             | Yjs                  |
+| 10  | `project_links`             | 탐색기          | 외부 URL/검색 참조                                                                                 | AI Crawler           |
+| 11  | `project_orchestra`         | `/nexa-ai`      | 페르소나/스킬/태스크                                                                               | JSONB                |
+| 12  | `project_chats`             | `/nexa-ai`      | 에이전트 대화 히스토리                                                                             | Vercel AI SDK        |
+| 13  | `project_agent_sessions`    | `/nexa-ai`      | 실시간 세션·**Multi-Self facet**(`user_id`, `self_profile_id`, `active_facet_key`, `coil_weights`) | UNLOGGED, JSONB      |
+| 14  | `project_knowledge`         | `/nexa-archive` | 지식 레이어/RAG 원천                                                                               | pgvector             |
+| 15  | `project_nodes`             | `/nexa-node`    | 노드 기반 로직/Yjs 스냅샷                                                                          | Vue Flow, Yjs        |
+| 16  | `project_scripts`           | `/nexa-node`    | 가변 스크립트/동적 주입                                                                            | JSONB/Bytecode       |
+| 17  | `project_simulations`       | `/nexa-node`    | 가상 시뮬레이션 결과                                                                               | JSONB                |
+| 18  | `project_panels`            | `/nexa-panel`   | 위젯 목록/개별 설정                                                                                | JSONB                |
+| 19  | `project_boards`            | `/nexa-board`   | 대시보드 프리셋                                                                                    | JSONB                |
+| 20  | `project_devices`           | `/infra`        | 장치 할당/버전 조합 추적                                                                           | MQTT, FK             |
+| 21  | `project_network_topology`  | `/network`      | 장치 간 연결 맵                                                                                    | JSONB                |
+| 22  | `project_traces`            | `/nexa-trace`   | 사용자 동작/자동화 시퀀스                                                                          | JSONB                |
+| 23  | `project_solutions`         | `/solutions`    | 문제/솔루션 기획 데이터                                                                            | JSONB                |
+| 24  | `project_tasks`             | `/erp`          | 업무 일정/마일스톤                                                                                 | ERP Hub              |
+| 25  | `project_parts_bom`         | `/erp/parts`    | BOM + AI 시맨틱 브릿지                                                                             | JSONB, FK            |
+| 26  | `project_extensions`        | `/extension`    | 플러그인/외부 API 연동                                                                             | JSONB                |
+| 27  | `project_secrets`           | `/extension`    | 외부 자격증명(암호문만 저장)                                                                       | RLS, BYTEA, pgcrypto |
+| 28  | `project_releases`          | `/portfolio`    | 산출물 버전/전시 메타                                                                              | JSONB                |
+| 29  | `project_jobs`              | 백그라운드      | 장기 작업 상태/진행률                                                                              | JSONB                |
+| 30  | `project_user_presence`     | 협업            | 현재 접속/활동 상태                                                                                | UNLOGGED             |
+| 31  | `project_yjs_updates`       | 동기화          | Yjs 증분 업데이트 로그                                                                             | BYTEA                |
+
+### 1.1a UCL 실행 트랙 (3개, [NEXA-UCL-04]·[NEXA-UCL-07])
+
+단순 로그가 아니라 **실행 시뮬레이터**(가상 분기·스냅샷 롤백·잔여 태스크 적합도)를 위한 귀속 테이블. 상세 DDL은 `__NEXA 오케스트레이션 스키마 DDL v5.md` §1-5.
+
+| No  | 테이블명           | 주요 역할                    | 핵심 컬럼·메모                                                                                                          |
+| :-- | :----------------- | :--------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
+| 32  | `execution_chains` | UCL 패킷 단위 실시간 사슬    | `residual_fit_score`, `residual_fit_rationale` — `ADAPTER_PARTIAL_SUCCESS` 후 남은 단계 강행 여부(UCL-07 §1.1)          |
+| 33  | `execution_steps`  | 원자 스텝·Dry-run 분리       | `is_virtual`, `target_entity_type` (PHYSICAL/VIRTUAL/NEXU), `pre_state_snapshot`, `post_state_snapshot` — 롤백·타임머신 |
+| 34  | `execution_logs`   | 어댑터 응답·에러 토큰 시계열 | TimescaleDB 하이퍼테이블                                                                                                |
+
+### 1.1c Multi-faceted Self·Empathy (귀속 1개, [SYS 핵심 인프라]·[Empathy])
+
+다중 자아 단면(Now/Energy/Direction/Discovery)과 코일 가중 실시간 동기화, 세션 TTL 이후 복원. 상태 정의 마스터는 공통 **`nexa_self_states`** 등 `nexa_self_*`를 참조한다. DDL은 `__NEXA 오케스트레이션 스키마 DDL v5.md` §1-3·§0D.
+
+| No  | 테이블명                     | 주요 역할                                               | 핵심 컬럼                                                            |
+| :-- | :--------------------------- | :------------------------------------------------------ | :------------------------------------------------------------------- |
+| 35  | `project_self_facet_runtime` | 프로젝트·사용자당 1행, 활성 facet·`coil_weights` 스냅샷 | `UNIQUE(project_id, user_id)`, `active_facet_key`, `active_state_id` |
 
 #### 비고
 
 - `project_logs`/`project_knowledge`는 5W1H SMALLINT 6컬럼 완전 분리
+- **`project_logs` NIXIE·족보:** 한 Soul이 복수 Shell에 나타날 수 있으므로 **발생지** `source_shell_id`와 **연주·피드백 대상** `target_shell_id`로 서사 추적. `confidence_score` < `project_settings.user_defined_threshold`이면 **`nixie_feedback`**에 `error_token`·`parser_version`·`user_defined_threshold_snapshot` 등을 기록해 캔버스 **Jitter**(빛의 떨림)와 동일 행으로 강결합한다. DDL: `__NEXA 오케스트레이션 스키마 DDL v5.md` §1-2·§0C-4·§3.
+- **`project_settings.vi_threshold` / `es_threshold`:** VI(활력)·ES(정서)가 임계 미만이면 Low-Entropy·출력 억제 등 Empathy 제동. NULL이면 플랫폼 기본 정책.
+- **`project_agent_sessions` ↔ `project_self_facet_runtime`:** 세션은 UNLOGGED로 고빈도 갱신, 런타임 테이블은 세션 만료 후에도 마지막 facet·코일 값 복원에 사용.
 - `project_agent_sessions`, `project_user_presence`는 휘발성 데이터 특성상 UNLOGGED/TTL 전략 권장
 
 ### 1.2 프로젝트 비귀속 플랫폼 테이블 (27개)
