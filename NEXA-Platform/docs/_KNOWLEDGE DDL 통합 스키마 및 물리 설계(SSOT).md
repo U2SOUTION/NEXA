@@ -520,12 +520,12 @@ CREATE TABLE IF NOT EXISTS nexa_knowledge_health_signals (
   payload JSONB NOT NULL DEFAULT '{}'
 );
 
-COMMENT ON TABLE nexa_knowledge_residency IS 'VOID 티어·스왑 힌트(SPEC §2.9).';
-COMMENT ON TABLE nexa_knowledge_context_paging_sets IS 'Context Paging — 상주 지식 세트(SPEC §2.10).';
-COMMENT ON TABLE nexa_knowledge_capability_drivers IS 'Capability-as-Driver 매니페스트(SPEC §2.11).';
-COMMENT ON TABLE nexa_knowledge_traceability_paths IS 'NFS식 논리 경로 ↔ 앵커(SPEC §2.12).';
-COMMENT ON TABLE nexa_knowledge_kernel_events IS '인터럽트·공감 선점 감사(SPEC §2.13).';
-COMMENT ON TABLE nexa_knowledge_health_signals IS '헬스·Jitter 집계(SPEC §2.14). 고빈도 시 Timescale hypertable 검토.';
+COMMENT ON TABLE nexa_knowledge_residency IS 'VOID 티어·스왑 힌트.';
+COMMENT ON TABLE nexa_knowledge_context_paging_sets IS 'Context Paging — 상주 지식 세트';
+COMMENT ON TABLE nexa_knowledge_capability_drivers IS 'Capability-as-Driver 매니페스트';
+COMMENT ON TABLE nexa_knowledge_traceability_paths IS 'NFS식 논리 경로 ↔ 앵커';
+COMMENT ON TABLE nexa_knowledge_kernel_events IS '인터럽트·공감 선점 감사.';
+COMMENT ON TABLE nexa_knowledge_health_signals IS '헬스·Jitter 집계.고빈도 시 Timescale hypertable 검토.';
 
 -- 5) 인덱스
 CREATE INDEX IF NOT EXISTS idx_knowledge_definitions_category_status

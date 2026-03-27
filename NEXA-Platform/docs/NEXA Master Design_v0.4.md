@@ -7,9 +7,9 @@
 
 ## 변경 이력
 
-| 버전 | 주요 변경 내용 |
-|------|-------------|
-| v0.3 | 5코일 · Layer 0~2 구조 · Empathy 철학 레이어 확정 |
+| 버전     | 주요 변경 내용                                                                                                             |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| v0.3     | 5코일 · Layer 0~2 구조 · Empathy 철학 레이어 확정                                                                          |
 | **v0.4** | **6코일 확정 (Compliance 추가) · Why 토큰 매핑 · 가중치 수식 · NEXU 캔버스 · ERA 승격 · Capability ID · Low-Entropy 모드** |
 
 ---
@@ -39,13 +39,13 @@
 
 ### 1.1 5대 원칙
 
-| 원칙 | 정의 | 적용 |
-|------|------|------|
-| **Liberation** | 단순·반복은 AI가, 판단·창조는 사람이 | 자동화 가능한 것은 확인 없이 처리 |
-| **Humanity** | 사람이 소외되는 방향으로 작동하지 않는다 | Empathy 원칙과 직결 — 코일 계산 이전에 작동 |
-| **Domain Fluidity** | 농업·산업·일상·예술의 경계를 구분하지 않는다 | 어댑터를 도메인 중립적으로 설계 |
-| **Expansion** | 의식이 더 넓어지도록 새로운 연결을 제시한다 | 답변 후 확장 관점 제안 |
-| **Humility** | 화려함보다 본질, 복잡함보다 단순함 | 불필요한 출력 제거, 핵심만 전달 |
+| 원칙                | 정의                                         | 적용                                        |
+| ------------------- | -------------------------------------------- | ------------------------------------------- |
+| **Liberation**      | 단순·반복은 AI가, 판단·창조는 사람이         | 자동화 가능한 것은 확인 없이 처리           |
+| **Humanity**        | 사람이 소외되는 방향으로 작동하지 않는다     | Empathy 원칙과 직결 — 코일 계산 이전에 작동 |
+| **Domain Fluidity** | 농업·산업·일상·예술의 경계를 구분하지 않는다 | 어댑터를 도메인 중립적으로 설계             |
+| **Expansion**       | 의식이 더 넓어지도록 새로운 연결을 제시한다  | 답변 후 확장 관점 제안                      |
+| **Humility**        | 화려함보다 본질, 복잡함보다 단순함           | 불필요한 출력 제거, 핵심만 전달             |
 
 ### 1.2 Empathy — 철학 레이어에 내재된 원칙
 
@@ -54,11 +54,11 @@ Empathy는 코일이 아닌 **모든 코일 판단의 전제 조건**이다.
 
 **존재 원칙 3가지 (수치화 불가 · 위반 시 즉시 차단)**
 
-| 원칙 | 위반 감지 조건 | 발동 결과 |
-|------|------------|---------|
-| 비수단화 | 사람의 감정·취약성을 효율 달성 수단으로 활용 | 코일 계산 차단 + 재설계 |
-| 비소외 | 판단 결과가 사람을 배제하거나 무시하는 방향 | 실행 중단 + 사람 개입 요청 |
-| 비대체 | AI가 사람의 창의·판단·감정을 대신하려는 시도 | 제안으로 전환, 결정권 사람에게 |
+| 원칙     | 위반 감지 조건                               | 발동 결과                      |
+| -------- | -------------------------------------------- | ------------------------------ |
+| 비수단화 | 사람의 감정·취약성을 효율 달성 수단으로 활용 | 코일 계산 차단 + 재설계        |
+| 비소외   | 판단 결과가 사람을 배제하거나 무시하는 방향  | 실행 중단 + 사람 개입 요청     |
+| 비대체   | AI가 사람의 창의·판단·감정을 대신하려는 시도 | 제안으로 전환, 결정권 사람에게 |
 
 ---
 
@@ -69,14 +69,14 @@ Empathy는 코일이 아닌 **모든 코일 판단의 전제 조건**이다.
 
 ### 2.1 6대 추상 레이어
 
-| 레이어 | 주요 토큰 | 의미 |
-|--------|---------|------|
-| **Where** (Scope) | CORE · FIELD · DOMAIN | 영향 범위와 권위 |
-| **When** (Tempo) | MOMENT · DURATION · ERA | 시간적 흐름과 맥락 |
-| **Who** (Pulse) | WILL · ECHO · TICK · ASK + MUST · SHOULD · MAY | 동력원과 강제성 |
-| **What** (Intent) | FACT · LINK · RULE | 데이터의 본질적 성질 |
-| **How** (State) | FLOW · STUCK · VOID | 에너지 및 변화 상태 |
-| **Why** (Causality) | CAUSE · LOGIC · TARGET | 인과관계와 추론 근거 |
+| 레이어              | 주요 토큰                                      | 의미                 |
+| ------------------- | ---------------------------------------------- | -------------------- |
+| **Where** (Scope)   | SELF · FIELD · DOMAIN                          | 영향 범위와 권위     |
+| **When** (Tempo)    | MOMENT · DURATION · ERA                        | 시간적 흐름과 맥락   |
+| **Who** (Pulse)     | WILL · ECHO · TICK · ASK + MUST · SHOULD · MAY | 동력원과 강제성      |
+| **What** (Intent)   | FACT · LINK · RULE                             | 데이터의 본질적 성질 |
+| **How** (State)     | FLOW · STUCK · VOID                            | 에너지 및 변화 상태  |
+| **Why** (Causality) | CAUSE · LOGIC · TARGET                         | 인과관계와 추론 근거 |
 
 ### 2.2 처리 순서
 
@@ -145,10 +145,10 @@ ERA    → 헌법   (시스템 생존과 직결된 절대 원칙 · 수정 불�
 
 ### 3.1 역할 분리
 
-| 구분 | 위치 | 역할 | 담당 토큰 |
-|------|------|------|---------|
-| **Sentinel** | 엣지 디바이스 | 관찰과 포착 — 원재료 정제 | FIELD · MOMENT · FACT · TICK |
-| **Indicator** | 플랫폼·중앙 | 분석과 조율 — 의미 부여 | CORE·DOMAIN · DURATION·ERA · WILL·ECHO·ASK · LINK·RULE · FLOW·STUCK·VOID |
+| 구분          | 위치          | 역할                      | 담당 토큰                                                                |
+| ------------- | ------------- | ------------------------- | ------------------------------------------------------------------------ |
+| **Sentinel**  | 엣지 디바이스 | 관찰과 포착 — 원재료 정제 | FIELD · MOMENT · FACT · TICK                                             |
+| **Indicator** | 플랫폼·중앙   | 분석과 조율 — 의미 부여   | SELF·DOMAIN · DURATION·ERA · WILL·ECHO·ASK · LINK·RULE · FLOW·STUCK·VOID |
 
 ### 3.2 핵심 전략
 
@@ -219,34 +219,34 @@ ERA    → 헌법   (시스템 생존과 직결된 절대 원칙 · 수정 불�
 
 ### 4.3 3단계 — Decision Matrix
 
-| 확신도 | 위험도 | 룰 충돌 | 긴박도 | 실행 모드 | 철학 원칙 |
-|-------|-------|--------|-------|---------|---------|
-| High | Low | 없음 | Any | ✅ 즉시 실행 | Liberation |
-| High | Low | 있음 | Low | 🔔 충돌 보고 후 대기 | Humanity |
-| High | Mid | 없음 | Low | 👤 사용자 확인 요청 | Humanity |
-| Low | Any | Any | Low | 👤 사용자 확인 요청 | Humanity |
-| Any | High | Any | Low | ❌ 조언·거절 | Humanity |
-| Any | Any | Level 0 위반 | Any | 🚫 즉시 차단 + 로그 | Humility |
-| Any | Any | Any | High | 🚨 긴박 모드 (룰 일부 우회) | Liberation |
+| 확신도 | 위험도 | 룰 충돌      | 긴박도 | 실행 모드                   | 철학 원칙  |
+| ------ | ------ | ------------ | ------ | --------------------------- | ---------- |
+| High   | Low    | 없음         | Any    | ✅ 즉시 실행                | Liberation |
+| High   | Low    | 있음         | Low    | 🔔 충돌 보고 후 대기        | Humanity   |
+| High   | Mid    | 없음         | Low    | 👤 사용자 확인 요청         | Humanity   |
+| Low    | Any    | Any          | Low    | 👤 사용자 확인 요청         | Humanity   |
+| Any    | High   | Any          | Low    | ❌ 조언·거절                | Humanity   |
+| Any    | Any    | Level 0 위반 | Any    | 🚫 즉시 차단 + 로그         | Humility   |
+| Any    | Any    | Any          | High   | 🚨 긴박 모드 (룰 일부 우회) | Liberation |
 
 ### 4.4 4단계 — 어댑터 도메인
 
-| 도메인 | 어댑터 예시 | 철학 연결 |
-|--------|-----------|---------|
-| 일상·IoT | 조명·온도·보안·가전 | Liberation |
-| 업무 | 문서·이메일·캘린더·결제 | Liberation |
-| 농업 | 센서·드론·관개 시스템 | Domain Fluidity |
-| 산업 | 설비·모니터링·물류 | Domain Fluidity |
-| 예술·창작 | 이미지·음악·영상 생성 | Expansion |
-| 지식 | RAG 검색·문서 분석 | Expansion |
+| 도메인    | 어댑터 예시             | 철학 연결       |
+| --------- | ----------------------- | --------------- |
+| 일상·IoT  | 조명·온도·보안·가전     | Liberation      |
+| 업무      | 문서·이메일·캘린더·결제 | Liberation      |
+| 농업      | 센서·드론·관개 시스템   | Domain Fluidity |
+| 산업      | 설비·모니터링·물류      | Domain Fluidity |
+| 예술·창작 | 이미지·음악·영상 생성   | Expansion       |
+| 지식      | RAG 검색·문서 분석      | Expansion       |
 
 ### 4.5 5단계 — 피드백 3계층
 
-| 계층 | 범위 | 내용 |
-|------|------|------|
-| 즉각 피드백 | 이번 실행 | 성공·실패·부분 성공 보고 |
-| 단기 학습 | 이 사용자 패턴 | 3회 이상 반복 패턴 → Level 3 룰 제안 |
-| 장기 진화 | 플랫폼 전체 | 새 어댑터 필요성 감지 · 확장 방향 제시 |
+| 계층        | 범위           | 내용                                   |
+| ----------- | -------------- | -------------------------------------- |
+| 즉각 피드백 | 이번 실행      | 성공·실패·부분 성공 보고               |
+| 단기 학습   | 이 사용자 패턴 | 3회 이상 반복 패턴 → Level 3 룰 제안   |
+| 장기 진화   | 플랫폼 전체    | 새 어댑터 필요성 감지 · 확장 방향 제시 |
 
 > 모든 학습은 사용자 승인 후 적용 (Humanity 원칙)
 
@@ -268,15 +268,15 @@ ERA    → 헌법   (시스템 생존과 직결된 절대 원칙 · 수정 불�
 
 > v0.4 변경: 5코일 → 6코일 (Compliance 추가, LIMIT 대체)
 
-| # | 코일 | 성격 | 레이어 | 핵심 정의 |
-|---|------|------|-------|---------|
-| 1 | **Safety** | 생존 | 시스템 고정 | 물리적 위험·생명 보호 최우선 |
-| 2 | **Stability** | 기술 | 시스템 고정 | 일관성·예측 가능성 보장 |
-| 3 | **Compliance** | 윤리 | 시스템 고정 | 법적·윤리적·시스템 규범 엄격 준수 |
-| 4 | **Efficiency** | 자원 | 시스템 고정 | 최소 자원·최단 경로 지향 |
-| 5 | **Autonomy** | 의지 | 사용자 조정 | 자율 판단 권한의 폭 (태스크 등급 0~4) |
-| 6 | **Creative** | 확장 | 사용자 조정 | 실험·창의적 시도 허용 |
-| — | **Balance** | 지표 | 출력 지표 | 6코일 균형 상태 출력값 |
+| #   | 코일           | 성격 | 레이어      | 핵심 정의                             |
+| --- | -------------- | ---- | ----------- | ------------------------------------- |
+| 1   | **Safety**     | 생존 | 시스템 고정 | 물리적 위험·생명 보호 최우선          |
+| 2   | **Stability**  | 기술 | 시스템 고정 | 일관성·예측 가능성 보장               |
+| 3   | **Compliance** | 윤리 | 시스템 고정 | 법적·윤리적·시스템 규범 엄격 준수     |
+| 4   | **Efficiency** | 자원 | 시스템 고정 | 최소 자원·최단 경로 지향              |
+| 5   | **Autonomy**   | 의지 | 사용자 조정 | 자율 판단 권한의 폭 (태스크 등급 0~4) |
+| 6   | **Creative**   | 확장 | 사용자 조정 | 실험·창의적 시도 허용                 |
+| —   | **Balance**    | 지표 | 출력 지표   | 6코일 균형 상태 출력값                |
 
 > **Compliance 채택 이유:**
 > LIMIT은 '제약·차단'의 느낌이 강하나 코일은 가치 필터.
@@ -288,22 +288,22 @@ ERA    → 헌법   (시스템 생존과 직결된 절대 원칙 · 수정 불�
 
 ### 5.3 Autonomy 태스크 등급표
 
-| 등급 | 이름 | Autonomy 허용 | 행동 방식 | 예시 |
-|------|------|-------------|---------|------|
-| 0 | 완전 자율 | 100% | AI가 바로 실행 | 음악·조명·볼륨 |
-| 1 | 사후 보고 | 80% | 실행 후 알림 | 온도 조정·알림 미루기 |
-| 2 | 사전 제안 | 50% | 제안 후 승인 대기 | 일정 변경·이메일 초안 |
-| 3 | 명시적 확인 | 20% | 구체적으로 물어봄 | 결제·파일 삭제 |
-| 4 | 접근 금지 | 0% | AI 접근 자체 차단 | 보안 설정·계약 |
+| 등급 | 이름        | Autonomy 허용 | 행동 방식         | 예시                  |
+| ---- | ----------- | ------------- | ----------------- | --------------------- |
+| 0    | 완전 자율   | 100%          | AI가 바로 실행    | 음악·조명·볼륨        |
+| 1    | 사후 보고   | 80%           | 실행 후 알림      | 온도 조정·알림 미루기 |
+| 2    | 사전 제안   | 50%           | 제안 후 승인 대기 | 일정 변경·이메일 초안 |
+| 3    | 명시적 확인 | 20%           | 구체적으로 물어봄 | 결제·파일 삭제        |
+| 4    | 접근 금지   | 0%            | AI 접근 자체 차단 | 보안 설정·계약        |
 
 ### 5.4 Domain Layer — 도메인 코일 (4개 · 도메인 진입 시 자동 활성)
 
-| 코일 | 적용 도메인 | 발동 조건 | Source Layer 조정 효과 |
-|------|-----------|---------|----------------------|
-| **Precision** | 산업·제조·농업·의료 | 물리적 장치 직접 제어 | Autonomy 최대 등급 → 2 하향 · Efficiency 양보 |
-| **Privacy** | 데이터·개인정보·학습 | 개인 식별 데이터 접근 | Autonomy 최대 등급 → 1 하향 · Creative 데이터 접근 차단 |
-| **Sustainability** | 농업·환경·에너지 | 자원 소비·환경 영향 발생 | Efficiency 단기 최적화 제한 · Creative 친환경 방향 유도 |
-| **Resonance** | 예술·음악·감각·우주 | 감각적 경험 생성 | Efficiency 양보 · Stability 의도적 불규칙성 허용 |
+| 코일               | 적용 도메인          | 발동 조건                | Source Layer 조정 효과                                  |
+| ------------------ | -------------------- | ------------------------ | ------------------------------------------------------- |
+| **Precision**      | 산업·제조·농업·의료  | 물리적 장치 직접 제어    | Autonomy 최대 등급 → 2 하향 · Efficiency 양보           |
+| **Privacy**        | 데이터·개인정보·학습 | 개인 식별 데이터 접근    | Autonomy 최대 등급 → 1 하향 · Creative 데이터 접근 차단 |
+| **Sustainability** | 농업·환경·에너지     | 자원 소비·환경 영향 발생 | Efficiency 단기 최적화 제한 · Creative 친환경 방향 유도 |
+| **Resonance**      | 예술·음악·감각·우주  | 감각적 경험 생성         | Efficiency 양보 · Stability 의도적 불규칙성 허용        |
 
 ### 5.5 Project Layer — 프로젝트 코일 (선택적 추가 · 무제한)
 
@@ -330,11 +330,11 @@ f(W_project): Project Layer 사용자 조정값 (자유 설정)
 
 코일 가중치 조합이 HEXAGON Why 토큰을 자동 생성한다.
 
-| 우세 코일 그룹 | Why 토큰 | 인과 해석 | GOVERN 방향 |
-|-------------|---------|---------|-----------|
-| Safety · Stability · Compliance | **LOGIC (타당성)** | 시스템 규범과 안전 가드레일 최우선 | GOVERN — 통제 |
-| Efficiency | **TARGET (최종목표)** | 자원 최소화·최단 경로 해결 목표 | RESOLVE — 해결 |
-| Creative · Autonomy | **CAUSE (근원인)** | 사용자 영감·창의적 시도를 행위 원인으로 규정 | OBSERVE — 관찰 |
+| 우세 코일 그룹                  | Why 토큰              | 인과 해석                                    | GOVERN 방향    |
+| ------------------------------- | --------------------- | -------------------------------------------- | -------------- |
+| Safety · Stability · Compliance | **LOGIC (타당성)**    | 시스템 규범과 안전 가드레일 최우선           | GOVERN — 통제  |
+| Efficiency                      | **TARGET (최종목표)** | 자원 최소화·최단 경로 해결 목표              | RESOLVE — 해결 |
+| Creative · Autonomy             | **CAUSE (근원인)**    | 사용자 영감·창의적 시도를 행위 원인으로 규정 | OBSERVE — 관찰 |
 
 ### 5.8 Autonomy Threshold — 실행 게이트 (v0.4 신규)
 
@@ -394,32 +394,32 @@ confidence_score <  user_defined_threshold → 승인 대기 (STUCK + ASK)
 
 **긴장 관계 (한쪽이 올라가면 다른 쪽이 내려감)**
 
-| 쌍 | 이유 |
-|----|------|
-| Safety ↔ Autonomy | 안전할수록 자율성 제한 |
-| Stability ↔ Creative | 안정적일수록 창의적 위험 기피 |
+| 쌍                     | 이유                           |
+| ---------------------- | ------------------------------ |
+| Safety ↔ Autonomy     | 안전할수록 자율성 제한         |
+| Stability ↔ Creative  | 안정적일수록 창의적 위험 기피  |
 | Compliance ↔ Creative | 규범 준수가 강할수록 실험 제한 |
-| Efficiency ↔ Autonomy | 빠를수록 자율 판단 과정 축소 |
+| Efficiency ↔ Autonomy | 빠를수록 자율 판단 과정 축소   |
 
 **협력 관계 (함께 올라가는 쌍)**
 
-| 쌍 | 이유 |
-|----|------|
-| Safety + Stability + Compliance | 안전·안정·준수는 함께 강화 |
-| Autonomy + Efficiency | 자율적일수록 빠른 판단 |
-| Creative + Resonance | 창의성과 감각적 공명은 강화 |
+| 쌍                              | 이유                        |
+| ------------------------------- | --------------------------- |
+| Safety + Stability + Compliance | 안전·안정·준수는 함께 강화  |
+| Autonomy + Efficiency           | 자율적일수록 빠른 판단      |
+| Creative + Resonance            | 창의성과 감각적 공명은 강화 |
 
 ### 6.3 토큰 충돌 해소 (HEXAGON 연계)
 
-**유형 1 — 권위 충돌 (CORE·WILL vs DOMAIN·RULE)**
+**유형 1 — 권위 충돌 (SELF·WILL vs DOMAIN·RULE)**
 
-| WILL 강도 | RULE 레벨 | 긴박도 | 결과 |
-|---------|---------|------|------|
-| MUST | Level 0 | Any | 🚫 차단 |
-| MUST | Level 1 | HIGH | 🚨 긴박 모드 우회 |
-| MUST | Level 1 | LOW | ⬆️ 에스컬레이션 |
-| MUST | Level 2 | Any | 👤 WILL 우선 + 룰 수정 제안 |
-| SHOULD | Level 1 | Any | 🔔 경고 후 사용자 선택 |
+| WILL 강도 | RULE 레벨 | 긴박도 | 결과                        |
+| --------- | --------- | ------ | --------------------------- |
+| MUST      | Level 0   | Any    | 🚫 차단                     |
+| MUST      | Level 1   | HIGH   | 🚨 긴박 모드 우회           |
+| MUST      | Level 1   | LOW    | ⬆️ 에스컬레이션             |
+| MUST      | Level 2   | Any    | 👤 WILL 우선 + 룰 수정 제안 |
+| SHOULD    | Level 1   | Any    | 🔔 경고 후 사용자 선택      |
 
 **유형 2 — 승격 충돌 (FACT → RULE 승격 조건)**
 
@@ -438,12 +438,12 @@ Level 3 → Level 2: 사용자 승인 + 30일 검증 + 위반 없음
 
 ### 7.1 층위 A — 감지 신호 (수치화 가능)
 
-| 신호 | 범위 | 설명 |
-|------|------|------|
-| **Human Presence** | 0 / 1 | 사람 관여 여부 — 0이면 Empathy 비활성 |
-| **Emotional State (ES)** | -1.0 ~ +1.0 | 감정 상태 추정 |
-| **Vitality Index (VI)** | 0.0 ~ 1.0 | 활력 지수 |
-| **Pace Preference (PP)** | fast·normal·slow | ES·VI 연동 자동 결정 |
+| 신호                     | 범위             | 설명                                  |
+| ------------------------ | ---------------- | ------------------------------------- |
+| **Human Presence**       | 0 / 1            | 사람 관여 여부 — 0이면 Empathy 비활성 |
+| **Emotional State (ES)** | -1.0 ~ +1.0      | 감정 상태 추정                        |
+| **Vitality Index (VI)**  | 0.0 ~ 1.0        | 활력 지수                             |
+| **Pace Preference (PP)** | fast·normal·slow | ES·VI 연동 자동 결정                  |
 
 **ES 임계값 → 코일 조정**
 
@@ -519,14 +519,14 @@ VI 0.0      → 철학 레이어 Empathy 즉시 발동
 
 ### 8.1 데이터 유형별 전환 기준
 
-| 전환 | 센서·IoT | 대화·태스크 | 규칙·지식 | 철학·원칙 |
-|------|---------|-----------|---------|---------|
-| FLOW → STUCK | 30초 | 1시간 | 30일 | 불가 |
-| STUCK → POTENTIAL | 5분 | 24시간 | 90일 | 불가 |
-| POTENTIAL → ARCHIVE | 24시간 | 90일 | 180일 | 불가 |
-| ARCHIVE → PURGE | 30일 | 365일 | 730일 | 불가 |
-| POTENTIAL → FLOW | 신호 재개 즉시 | 사용자 재접속 | 참조 발생 즉시 | — |
-| ARCHIVE → ERA | — | — | 관리자+사용자 이중 승인 | 영구 보존 |
+| 전환                | 센서·IoT       | 대화·태스크   | 규칙·지식               | 철학·원칙 |
+| ------------------- | -------------- | ------------- | ----------------------- | --------- |
+| FLOW → STUCK        | 30초           | 1시간         | 30일                    | 불가      |
+| STUCK → POTENTIAL   | 5분            | 24시간        | 90일                    | 불가      |
+| POTENTIAL → ARCHIVE | 24시간         | 90일          | 180일                   | 불가      |
+| ARCHIVE → PURGE     | 30일           | 365일         | 730일                   | 불가      |
+| POTENTIAL → FLOW    | 신호 재개 즉시 | 사용자 재접속 | 참조 발생 즉시          | —         |
+| ARCHIVE → ERA       | —              | —             | 관리자+사용자 이중 승인 | 영구 보존 |
 
 ### 8.2 VOID 유형별 처리
 
@@ -559,31 +559,31 @@ ERA 격상        → PURGE 대상 영구 제외, 시스템 헌법으로 고정
 
 아래 요소는 **UI 디자인 패키지**가 아니라, **6코일 상태·데이터 신뢰도·실행 사슬의 투영**으로 정의한다.
 
-| 요소 | 정의 | 코일·데이터 연결 |
-|------|------|------------------|
-| **Lumina** | 신뢰·안정·근거가 충분할 때의 **발광** — 코일·상태의 “에너지”와 `confidence_score`가 **빛의 강도·색온도**로 투영된다 | confidence ≥ threshold · 코일 가중치·안정 경로 → 발광 |
-| **Jitter** | 불확실·정합성 경고·ASK 대기의 **미세 떨림** — 단순 연출이 아니라 **데이터 신뢰도·근거 체인에 대한 비언어적 경고** | confidence < threshold · 오류·부분성공 → 떨림·점선 |
-| **Fractal Sync** | Capability ID 계층에서 폭발·함몰 전이 | Zoom In/Out → 폭발·응축 |
+| 요소             | 정의                                                                                                                | 코일·데이터 연결                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Lumina**       | 신뢰·안정·근거가 충분할 때의 **발광** — 코일·상태의 “에너지”와 `confidence_score`가 **빛의 강도·색온도**로 투영된다 | confidence ≥ threshold · 코일 가중치·안정 경로 → 발광 |
+| **Jitter**       | 불확실·정합성 경고·ASK 대기의 **미세 떨림** — 단순 연출이 아니라 **데이터 신뢰도·근거 체인에 대한 비언어적 경고**   | confidence < threshold · 오류·부분성공 → 떨림·점선    |
+| **Fractal Sync** | Capability ID 계층에서 폭발·함몰 전이                                                                               | Zoom In/Out → 폭발·응축                               |
 
 **원칙:** Lumina/Jitter는 **스킨**이 아니라 **상태와 신뢰도의 읽기 가능한 출력**이다.
 
 ### 9.2 LOD (Level of Detail) — 하드웨어 프로필
 
-| 모드 | 조건 | 연출 |
-|------|------|------|
+| 모드     | 조건               | 연출                          |
+| -------- | ------------------ | ----------------------------- |
 | **COLD** | 저사양·배터리 절약 | 최소 애니메이션 · 가독성 우선 |
-| **WARM** | 일반 환경 | 하이브리드 연출 |
-| **HOT** | 고사양·풀 퍼포먼스 | 풀 시뮬레이션 · 잔상 최대 |
+| **WARM** | 일반 환경          | 하이브리드 연출               |
+| **HOT**  | 고사양·풀 퍼포먼스 | 풀 시뮬레이션 · 잔상 최대     |
 
 ### 9.3 에러 → 넥슈 표정 매핑
 
-| 에러 코드 | 넥슈 상태 | 캔버스 연출 |
-|---------|---------|----------|
-| ADAPTER_TIMEOUT | 고개 갸우뚱 | 해당 도트 Jitter |
-| ADAPTER_NOT_FOUND | 고개 갸우뚱 + 흐릿함 | Dim 처리 |
-| ADAPTER_AUTH_DENIED | 경고 + 잠금 | 붉은 테두리 |
-| ADAPTER_PARTIAL_SUCCESS | 고민 + ASK 유도 | 성공/실패 도트 구분 |
-| ADAPTER_FATAL | Shocked + 차단 | 전체 경고 톤 |
+| 에러 코드               | 넥슈 상태            | 캔버스 연출         |
+| ----------------------- | -------------------- | ------------------- |
+| ADAPTER_TIMEOUT         | 고개 갸우뚱          | 해당 도트 Jitter    |
+| ADAPTER_NOT_FOUND       | 고개 갸우뚱 + 흐릿함 | Dim 처리            |
+| ADAPTER_AUTH_DENIED     | 경고 + 잠금          | 붉은 테두리         |
+| ADAPTER_PARTIAL_SUCCESS | 고민 + ASK 유도      | 성공/실패 도트 구분 |
+| ADAPTER_FATAL           | Shocked + 차단       | 전체 경고 톤        |
 
 ### 9.4 Ambient Interface 원칙
 
@@ -645,26 +645,26 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;  -- TimescaleDB
 
 ### 11.2 핵심 테이블 목록
 
-| 테이블 | 엔진 | 역할 |
-|--------|------|------|
-| users | PostgreSQL | 사용자 계정·권한 |
-| orchestrators | PostgreSQL | 오케스트레이터 정의·전체 UCL |
-| agents | PostgreSQL | 에이전트 정의·페르소나·모델 |
-| orchestrator_agents | PostgreSQL | 오케스트레이터 ↔ 에이전트 N:M 매핑 |
-| skills | PostgreSQL | 스킬 명세·도구 정의 |
-| agent_skills | PostgreSQL | 에이전트 ↔ 스킬 N:M 매핑 |
-| documents | PostgreSQL | 원본 문서·지식베이스 |
-| document_index | PostgreSQL + pgvector | 요약·키워드·벡터 색인 (Smart RAG) |
-| tasks | PostgreSQL | 태스크 정의·상태·AI 초안 |
-| conversations | TimescaleDB | 대화 이력 시계열 압축 |
-| token_conflicts | PostgreSQL | 충돌 이력·해소 기록 |
-| empathy_signals | TimescaleDB | Empathy 실시간 신호 |
-| balance_coil_definitions | PostgreSQL | 코일 항목 정의 (system/user 구분) |
-| balance_coil_templates | PostgreSQL | 도메인별·사용자별 가중치 프리셋 |
-| capability_definitions | PostgreSQL | Capability ID 메타데이터 |
-| capability_grant_history | PostgreSQL | 발급·폐기 이력 감사 |
-| project_settings | PostgreSQL | 현재 적용 template_id · threshold |
-| ucl_configs | PostgreSQL | UCL 고정 설정 (Level 0) |
+| 테이블                   | 엔진                  | 역할                                |
+| ------------------------ | --------------------- | ----------------------------------- |
+| users                    | PostgreSQL            | 사용자 계정·권한                    |
+| orchestrators            | PostgreSQL            | 오케스트레이터 정의·전체 UCL        |
+| agents                   | PostgreSQL            | 에이전트 정의·페르소나·모델         |
+| orchestrator_agents      | PostgreSQL            | 오케스트레이터 ↔ 에이전트 N:M 매핑 |
+| skills                   | PostgreSQL            | 스킬 명세·도구 정의                 |
+| agent_skills             | PostgreSQL            | 에이전트 ↔ 스킬 N:M 매핑           |
+| documents                | PostgreSQL            | 원본 문서·지식베이스                |
+| document_index           | PostgreSQL + pgvector | 요약·키워드·벡터 색인 (Smart RAG)   |
+| tasks                    | PostgreSQL            | 태스크 정의·상태·AI 초안            |
+| conversations            | TimescaleDB           | 대화 이력 시계열 압축               |
+| token_conflicts          | PostgreSQL            | 충돌 이력·해소 기록                 |
+| empathy_signals          | TimescaleDB           | Empathy 실시간 신호                 |
+| balance_coil_definitions | PostgreSQL            | 코일 항목 정의 (system/user 구분)   |
+| balance_coil_templates   | PostgreSQL            | 도메인별·사용자별 가중치 프리셋     |
+| capability_definitions   | PostgreSQL            | Capability ID 메타데이터            |
+| capability_grant_history | PostgreSQL            | 발급·폐기 이력 감사                 |
+| project_settings         | PostgreSQL            | 현재 적용 template_id · threshold   |
+| ucl_configs              | PostgreSQL            | UCL 고정 설정 (Level 0)             |
 
 ### 11.3 주요 DDL
 
@@ -838,33 +838,33 @@ CREATE POLICY user_isolation ON empathy_signals
 
 ## 12. 구현 로드맵
 
-| 단계 | 목표 | 주요 작업 |
-|------|------|---------|
-| 1단계 | 기반 인프라 | PostgreSQL + pgvector + TimescaleDB · 스키마 생성 · Ollama 연동 |
-| 2단계 | UCL 고정 레이어 | 철학 레이어 · Level 0 규칙 · 오케스트레이터 UCL |
-| 3단계 | Smart RAG | document_index · pgvector 검색 · 원본 JOIN |
-| 4단계 | 코일 시스템 | 6코일 가중치 엔진 · 도메인 코일 발동 · Compliance 검사 |
-| 5단계 | Empathy 엔진 | 센서 입력 · 신호 계산 · Low-Entropy 모드 · 패턴 학습 |
-| 6단계 | NEXU 캔버스 | Lumina · Jitter · Ambient Interface · Self facet (자아의 단면) UI |
-| 7단계 | 사용자 편집 개방 | Vue 페르소나·스킬·태스크·코일 편집 UI |
-| 8단계 | 고도화 | 도메인 동시 진입 처리 · Capability ID · ERA 승격 |
+| 단계  | 목표             | 주요 작업                                                         |
+| ----- | ---------------- | ----------------------------------------------------------------- |
+| 1단계 | 기반 인프라      | PostgreSQL + pgvector + TimescaleDB · 스키마 생성 · Ollama 연동   |
+| 2단계 | UCL 고정 레이어  | 철학 레이어 · Level 0 규칙 · 오케스트레이터 UCL                   |
+| 3단계 | Smart RAG        | document_index · pgvector 검색 · 원본 JOIN                        |
+| 4단계 | 코일 시스템      | 6코일 가중치 엔진 · 도메인 코일 발동 · Compliance 검사            |
+| 5단계 | Empathy 엔진     | 센서 입력 · 신호 계산 · Low-Entropy 모드 · 패턴 학습              |
+| 6단계 | NEXU 캔버스      | Lumina · Jitter · Ambient Interface · Self facet (자아의 단면) UI |
+| 7단계 | 사용자 편집 개방 | Vue 페르소나·스킬·태스크·코일 편집 UI                             |
+| 8단계 | 고도화           | 도메인 동시 진입 처리 · Capability ID · ERA 승격                  |
 
 ---
 
 ## 13. 미완성 항목
 
-| 항목 | 우선순위 | 비고 |
-|------|---------|------|
-| 도메인 동시 진입 처리 | 🔴 높음 | 농업 + 예술처럼 두 도메인 겹칠 때 |
-| Compliance 코일 충돌 케이스 | 🔴 높음 | Compliance vs Creative 구체적 시나리오 |
-| Capability ID 전체 네임스페이스 | 🟡 중간 | nexa.* 전체 트리 설계 |
-| Layer 1 도메인 코일 추가 여부 | 🟡 중간 | IoT 별도 코일 필요 여부 |
-| 코일 간 가중치 수치 확정 | 🟡 중간 | W_domain이 W_source를 얼마나 제한하는가 |
-| NEXU 캔버스 Vue 컴포넌트 | 🟡 중간 | Lumina·Jitter 실제 구현 |
-| ERA 전환 구체적 조건 | 🟢 낮음 | 어떤 데이터가 ERA가 되는가 |
-| 기존 문서 v0.4 반영 업데이트 | 🟢 낮음 | 문서 3 등 기존 문서 동기화 |
+| 항목                            | 우선순위 | 비고                                    |
+| ------------------------------- | -------- | --------------------------------------- |
+| 도메인 동시 진입 처리           | 🔴 높음  | 농업 + 예술처럼 두 도메인 겹칠 때       |
+| Compliance 코일 충돌 케이스     | 🔴 높음  | Compliance vs Creative 구체적 시나리오  |
+| Capability ID 전체 네임스페이스 | 🟡 중간  | nexa.\* 전체 트리 설계                  |
+| Layer 1 도메인 코일 추가 여부   | 🟡 중간  | IoT 별도 코일 필요 여부                 |
+| 코일 간 가중치 수치 확정        | 🟡 중간  | W_domain이 W_source를 얼마나 제한하는가 |
+| NEXU 캔버스 Vue 컴포넌트        | 🟡 중간  | Lumina·Jitter 실제 구현                 |
+| ERA 전환 구체적 조건            | 🟢 낮음  | 어떤 데이터가 ERA가 되는가              |
+| 기존 문서 v0.4 반영 업데이트    | 🟢 낮음  | 문서 3 등 기존 문서 동기화              |
 
 ---
 
-*NEXA Platform · Master Design Document v0.4 · 내부 설계 문서*
-*최종 업데이트: 2026년 3월*
+_NEXA Platform · Master Design Document v0.4 · 내부 설계 문서_
+_최종 업데이트: 2026년 3월_

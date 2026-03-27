@@ -1,4 +1,5 @@
 # NEXA MQTT 인프라 설계 문서 v0.4
+
 ## 개인 NAS + Cloudflare Tunnel 기반 IoT 통신 구축
 
 > **목적**
@@ -10,11 +11,11 @@
 
 ## 변경 이력
 
-| 버전 | 주요 변경 |
-|------|---------|
-| v0.1 | 기본 구조 · MQTT · Cloudflare · Docker · 보안 · NEXA 연결 |
-| v0.2 | Capability ID 펌웨어 적용 · 지능적 동적 토픽 구성 · 객체 분화 설계 |
-| v0.3 | 보안 강화 · 3단계 디바이스 검증 · 계정별 격리 · 사전 등록 기반 편입 · 토픽 구조 변경 |
+| 버전     | 주요 변경                                                                                                                                |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| v0.1     | 기본 구조 · MQTT · Cloudflare · Docker · 보안 · NEXA 연결                                                                                |
+| v0.2     | Capability ID 펌웨어 적용 · 지능적 동적 토픽 구성 · 객체 분화 설계                                                                       |
+| v0.3     | 보안 강화 · 3단계 디바이스 검증 · 계정별 격리 · 사전 등록 기반 편입 · 토픽 구조 변경                                                     |
 | **v0.4** | **NODE-03 연계 · 이중 등록 경로(A·B) · OTA 베이스라인 · pending→approve→MQTT provision 흐름 · Capability ID 등록 시점 확정 · 보안 보완** |
 
 ---
@@ -40,7 +41,35 @@
 
 ## 1. 핵심 개념 용어집
 
+### SSOT (Single Source of Truth)
+
+- 해설: "물리적 파일은 '과거의 흔적'일 뿐이고, SSOT(원장)는 시스템이 현재 인정하는 '유일한 공식 입장'이다."
+- 도입 이유: 원장(SSOT)이 없다면, AI는 수만 개의 물리적 파일을 전수 조사해야 하므로 시스템 부하가 발생하며, 어떤 데이터가 최신인지 판단할 기준이 없어 과거 데이터를 분석하는 오류(Hallucination 등)를 범하게 된다.
+- 역활 : 특정 데이터가 현재 L1에 있는지 L3에 있는지를 결정하는 '주소록'이다.
+- 작동 원리: AI가 데이터를 요청하면, 먼저 SSOT(원장)를 보고 "L1에 있네? 바로 읽자" 혹은 "L3에 있네? L1으로 깨워 올린 뒤에 읽자"라고 판단한다.
+
+### L1, L2, L3 (Data Residency Layers)
+
+- 개념: 데이터의 접근 속도와 중요도에 따라 물리적 위치를 나누는 계층화(Tiering) 구조입니다.
+- 해설: 숫자가 낮을수록 "빠르고 비싼(현재용)", 높을수록 "느리고 저렴한(보관용)" 저장소입니다.
+
+- L1 (Hot Cache / Active):
+
+  - 현재 작업 중인 데이터. 주로 메모리(RAM)에 머물며 AI가 즉시 분석하거나 사용자가 실시간으로 편집하는 상태입니다.
+  - 특징: 속도가 가장 빠르지만, 전원이 꺼지거나 캐시가 비워지면 사라질 수 있는 휘발성이 있습니다.
+
+- L2 (Warm Standby / Local DB):
+
+  - 자주 사용하는 데이터. 로컬 DB나 고속 SSD에 저장되어 L1으로 즉시 올라갈 준비가 된 상태입니다.
+  - 특징: L1보다는 느리지만 영구 저장이 가능하며, 성능과 안정성의 절충안입니다.
+
+- L3 (Cold Archive / Persistent Storage):
+
+  - 과거의 기록. 클라우드 저장소나 물리 하드디스크에 안전하게 보관된 상태(VOID/잠재 상태)입니다.
+  - 특징: 용량이 무제한에 가깝고 안전하지만, AI가 이를 읽으려면 반드시 L1으로 호출(Rehydrate)하는 과정을 거쳐야 합니다.
+
 ### MQTT
+
 **Message Queuing Telemetry Transport**
 
 ```
@@ -553,13 +582,13 @@ nexa/
 // NEXA 서버 — 동적 구독 및 라우팅
 
 const SUBSCRIPTIONS = [
-  { pattern: 'nexa/u/+/+/+/sensor/#',   handler: handleSensorData    },
-  { pattern: 'nexa/u/+/+/+/actuator/#', handler: handleActuatorData  },
-  { pattern: 'nexa/u/+/alert/safety/#', handler: handleSafetyAlert   },
+  { pattern: 'nexa/u/+/+/+/sensor/#', handler: handleSensorData },
+  { pattern: 'nexa/u/+/+/+/actuator/#', handler: handleActuatorData },
+  { pattern: 'nexa/u/+/alert/safety/#', handler: handleSafetyAlert },
   { pattern: 'nexa/u/+/alert/vitality/#', handler: handleVitalityAlert },
-  { pattern: 'nexa/u/+/+/+/+/+/+/stuck', handler: handleStuck      },
-  { pattern: 'nexa/u/+/+/+/+/+/+/void',  handler: handleVoid       },
-  { pattern: 'nexa/u/+/system/#',       handler: handleSystem        },
+  { pattern: 'nexa/u/+/+/+/+/+/+/stuck', handler: handleStuck },
+  { pattern: 'nexa/u/+/+/+/+/+/+/void', handler: handleVoid },
+  { pattern: 'nexa/u/+/system/#', handler: handleSystem },
 ]
 
 // 모든 구독 등록
@@ -577,16 +606,16 @@ broker.on('message', (topic, message) => {
   // HEXAGON 토큰 자동 완성
   const hexPacket = {
     ...packet,
-    where: capInfo.domain === 'farm' ? 'FIELD' : 'CORE',
-    who:   capInfo.type === 'sensor' ? 'TICK' : 'WILL',
-    what:  'FACT',
+    where: capInfo.domain === 'farm' ? 'FIELD' : 'SELF',
+    who: capInfo.type === 'sensor' ? 'TICK' : 'WILL',
+    what: 'FACT',
   }
 
   // 상태별 자동 라우팅
-  if (topic.endsWith('/stuck'))        routeToStuckHandler(hexPacket)
-  else if (topic.endsWith('/void'))    routeToVoidHandler(hexPacket)
+  if (topic.endsWith('/stuck')) routeToStuckHandler(hexPacket)
+  else if (topic.endsWith('/void')) routeToVoidHandler(hexPacket)
   else if (topic.includes('/safety/')) routeToSafetyHandler(hexPacket)
-  else                                 routeToNormalHandler(hexPacket)
+  else routeToNormalHandler(hexPacket)
 
   // TimescaleDB 저장
   saveToTimescale(topic, hexPacket)
@@ -600,13 +629,13 @@ function parseCapabilityId(capId) {
   // "nexa.usr_001.farm.field_a.sensor.temperature.v1"
   const parts = capId.split('.')
   return {
-    namespace: parts[0],  // nexa
-    userId:    parts[1],  // usr_001
-    domain:    parts[2],  // farm
-    location:  parts[3],  // field_a
-    type:      parts[4],  // sensor
-    function:  parts[5],  // temperature
-    version:   parts[6],  // v1
+    namespace: parts[0], // nexa
+    userId: parts[1], // usr_001
+    domain: parts[2], // farm
+    location: parts[3], // field_a
+    type: parts[4], // sensor
+    function: parts[5], // temperature
+    version: parts[6], // v1
   }
 }
 ```
@@ -686,17 +715,17 @@ FLOW 복귀:
 
 ### 6.1 등록 방식 — 수동 vs 자동
 
-| 방식 | 주체 | 흐름 | 현재 구현 |
-|------|------|------|---------|
-| **수동 등록** | 사용자 먼저 | 웹에서 디바이스 생성 → device_token 발급 → 디바이스에 입력 | ✅ 구현됨 |
-| **자동 등록** | 디바이스 먼저 | 디바이스 접속 → pending 대기 → 사용자 승인 | 🔜 경로 A·B 구현 시 추가 |
+| 방식          | 주체          | 흐름                                                       | 현재 구현                |
+| ------------- | ------------- | ---------------------------------------------------------- | ------------------------ |
+| **수동 등록** | 사용자 먼저   | 웹에서 디바이스 생성 → device_token 발급 → 디바이스에 입력 | ✅ 구현됨                |
+| **자동 등록** | 디바이스 먼저 | 디바이스 접속 → pending 대기 → 사용자 승인                 | 🔜 경로 A·B 구현 시 추가 |
 
 ### 6.2 이중 등록 경로
 
-| 경로 | 대상 | WiFi 설정 방식 | 특징 |
-|------|------|--------------|------|
-| **경로 A — USB + Improv** | 개발자·dev 보드·복구 | Web Serial + Improv Wi-Fi 시리얼 전송 | AP 접속 불필요 · PC Chrome/Edge 전용 |
-| **경로 B — 무선 AP** | 공장 출하 제품·모바일 | Captive Portal (192.168.4.1) | USB 불필요 · 스마트폰 가능 |
+| 경로                      | 대상                  | WiFi 설정 방식                        | 특징                                 |
+| ------------------------- | --------------------- | ------------------------------------- | ------------------------------------ |
+| **경로 A — USB + Improv** | 개발자·dev 보드·복구  | Web Serial + Improv Wi-Fi 시리얼 전송 | AP 접속 불필요 · PC Chrome/Edge 전용 |
+| **경로 B — 무선 AP**      | 공장 출하 제품·모바일 | Captive Portal (192.168.4.1)          | USB 불필요 · 스마트폰 가능           |
 
 ### 6.3 경로 A — USB + Serial (Improv)
 
@@ -882,13 +911,13 @@ OTA 완료 보고:
 
 ### 6.8 등록 관련 API 요약
 
-| API | 메서드 | 인증 | 역할 |
-|-----|--------|------|------|
-| `/api/devices/register` | POST | 없음 (디바이스) | pending 저장 |
-| `/api/devices/pending` | GET | JWT (사용자) | 대기 목록 조회 |
-| `/api/devices/approve` | POST | JWT (사용자) | 승인·Capability ID 확정 |
-| `/api/devices` | GET/PATCH/DELETE | JWT (사용자) | 등록 디바이스 관리 |
-| `/api/ota/firmware` | GET | device_secret | OTA 바이너리 제공 |
+| API                     | 메서드           | 인증            | 역할                    |
+| ----------------------- | ---------------- | --------------- | ----------------------- |
+| `/api/devices/register` | POST             | 없음 (디바이스) | pending 저장            |
+| `/api/devices/pending`  | GET              | JWT (사용자)    | 대기 목록 조회          |
+| `/api/devices/approve`  | POST             | JWT (사용자)    | 승인·Capability ID 확정 |
+| `/api/devices`          | GET/PATCH/DELETE | JWT (사용자)    | 등록 디바이스 관리      |
+| `/api/ota/firmware`     | GET              | device_secret   | OTA 바이너리 제공       |
 
 ---
 
@@ -1209,13 +1238,13 @@ const client = mqtt.connect('wss://mqtt.yourdomain.com/mqtt', {
   clean: true,
   reconnectPeriod: 3000,
   connectTimeout: 10000,
-  keepalive: 60,  // Cloudflare 타임아웃 방지
+  keepalive: 60, // Cloudflare 타임아웃 방지
 })
 
 client.on('connect', () => {
   // 동적 구독 — 패턴으로 전체 수신
   // 내 계정 디바이스만 구독
-  client.subscribe(`nexa/u/${userId}/#`,       { qos: 0 })
+  client.subscribe(`nexa/u/${userId}/#`, { qos: 0 })
   client.subscribe(`nexa/u/${userId}/alert/#`, { qos: 1 })
 })
 
@@ -1242,7 +1271,7 @@ const broker = mqtt.connect('mqtt://localhost:1883', {
 })
 
 broker.on('connect', () => {
-  broker.subscribe('nexa/#', { qos: 1 })  // 서버는 전체 구독
+  broker.subscribe('nexa/#', { qos: 1 }) // 서버는 전체 구독
 })
 
 broker.on('message', (topic, message) => {
@@ -1299,7 +1328,7 @@ cloudflared tunnel create nexa-tunnel
 
 ```yaml
 # ~/.cloudflared/config.yml
-tunnel: {터널-UUID}
+tunnel: { 터널-UUID }
 credentials-file: /root/.cloudflared/{터널-UUID}.json
 
 ingress:
@@ -1347,18 +1376,17 @@ cloudflared tunnel run nexa-tunnel
 version: '3.8'
 
 services:
-
   emqx:
     image: emqx/emqx:latest
     container_name: nexa-emqx
     restart: always
     ports:
-      - "1883:1883"
-      - "8083:8083"
-      - "18083:18083"
+      - '1883:1883'
+      - '8083:8083'
+      - '18083:18083'
     environment:
       EMQX_NAME: nexa-broker
-      EMQX_ALLOW_ANONYMOUS: "false"
+      EMQX_ALLOW_ANONYMOUS: 'false'
     volumes:
       - ./emqx/data:/opt/emqx/data
       - ./emqx/etc:/opt/emqx/etc
@@ -1370,7 +1398,7 @@ services:
     container_name: nexa-server
     restart: always
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       MQTT_BROKER: mqtt://emqx:1883
       DB_URL: postgresql://postgres:password@postgres:5432/nexa
@@ -1385,7 +1413,7 @@ services:
     container_name: nexa-postgres
     restart: always
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       POSTGRES_DB: nexa
       POSTGRES_USER: postgres
@@ -1427,29 +1455,29 @@ networks:
 
 ## 11. 기술 스택 전체
 
-| 레이어 | 기술 | 역할 | 비고 |
-|--------|------|------|------|
-| **메시지 브로커** | EMQX | MQTT 브로커 | Docker · 관리 UI |
-| **터널** | Cloudflare Tunnel | 외부 접근 | 무료 · 공인IP 불필요 |
-| **백엔드** | Node.js + Express | API + 동적 라우터 | MQTT 클라이언트 내장 |
-| **프론트** | Vue 3 | 웹 앱 | MQTT.js + NEXA NIXIE 연동 |
-| **DB** | PostgreSQL + TimescaleDB | 시계열 저장 | IoT 데이터 최적화 |
-| **컨테이너** | Docker + Compose | 서비스 관리 | NAS 호환 |
-| **MQTT 클라이언트** | MQTT.js | JS용 클라이언트 | 브라우저·Node 모두 |
-| **IoT 펌웨어** | ESP32 + PubSubClient | 디바이스 | Capability ID 내장 |
-| **보안** | Cloudflare TLS | 암호화 | 자동 인증서 |
-| **ID 체계** | Capability ID | 전 계층 통일 식별 | 동적 토픽 기반 |
+| 레이어              | 기술                     | 역할              | 비고                      |
+| ------------------- | ------------------------ | ----------------- | ------------------------- |
+| **메시지 브로커**   | EMQX                     | MQTT 브로커       | Docker · 관리 UI          |
+| **터널**            | Cloudflare Tunnel        | 외부 접근         | 무료 · 공인IP 불필요      |
+| **백엔드**          | Node.js + Express        | API + 동적 라우터 | MQTT 클라이언트 내장      |
+| **프론트**          | Vue 3                    | 웹 앱             | MQTT.js + NEXA NIXIE 연동 |
+| **DB**              | PostgreSQL + TimescaleDB | 시계열 저장       | IoT 데이터 최적화         |
+| **컨테이너**        | Docker + Compose         | 서비스 관리       | NAS 호환                  |
+| **MQTT 클라이언트** | MQTT.js                  | JS용 클라이언트   | 브라우저·Node 모두        |
+| **IoT 펌웨어**      | ESP32 + PubSubClient     | 디바이스          | Capability ID 내장        |
+| **보안**            | Cloudflare TLS           | 암호화            | 자동 인증서               |
+| **ID 체계**         | Capability ID            | 전 계층 통일 식별 | 동적 토픽 기반            |
 
 ### IoT 디바이스별 MQTT 라이브러리
 
-| 플랫폼 | 라이브러리 | 비고 |
-|--------|----------|------|
-| ESP32 / Arduino | PubSubClient | 가장 널리 사용 |
-| ESP32 | AsyncMqttClient | 비동기 처리 |
-| Raspberry Pi | paho-mqtt (Python) | 안정적 |
-| Python | paho-mqtt | 서버·PC용 |
-| Node.js | MQTT.js | 백엔드 |
-| 브라우저 | MQTT.js | WebSocket |
+| 플랫폼          | 라이브러리         | 비고           |
+| --------------- | ------------------ | -------------- |
+| ESP32 / Arduino | PubSubClient       | 가장 널리 사용 |
+| ESP32           | AsyncMqttClient    | 비동기 처리    |
+| Raspberry Pi    | paho-mqtt (Python) | 안정적         |
+| Python          | paho-mqtt          | 서버·PC용      |
+| Node.js         | MQTT.js            | 백엔드         |
+| 브라우저        | MQTT.js            | WebSocket      |
 
 ---
 
@@ -1513,8 +1541,6 @@ Step 4. Safety 알림 Jitter 연동
 
 ---
 
-
-
 ```
 1. 익명 연결 금지
    EMQX: allow_anonymous = false
@@ -1573,29 +1599,29 @@ STUCK 감지 시 (서버):
 
 ## 14. 트러블슈팅 예상 항목
 
-| 증상 | 원인 | 해결 |
-|------|------|------|
-| WebSocket 연결 안 됨 | Cloudflare WebSocket 비활성 | 대시보드 → Network → WebSocket ON |
-| 연결 후 100초 끊김 | Cloudflare 타임아웃 | MQTT keepalive 60 설정 |
-| 외부 접속 안 됨 | cloudflared 실행 안 됨 | docker logs nexa-cloudflared 확인 |
-| 인증 실패 | ACL 설정 오류 | EMQX 대시보드 → Access Control 확인 |
-| 메시지 지연 | QoS 2 과다 사용 | 실시간 데이터는 QoS 0으로 변경 |
-| 동적 토픽 누락 | 구독 패턴 범위 좁음 | 와일드카드 패턴 재확인 |
-| 신규 디바이스 미등록 | Registry 핸들러 오류 | nexa/system/capability/registry 구독 확인 |
-| VI 알림 미발생 | VI 임계값 연동 오류 | VI 0.4 이하 조건 로직 확인 |
-| 디바이스 재연결 반복 | clientId 중복 | MAC 주소 기반 고유 ID 확인 |
-| 서명 검증 실패 | 타임스탬프 불일치 | 디바이스 시간 동기화 (NTP) 확인 |
-| 토큰 만료 오류 | 24시간 초과 | NEXA UI에서 새 임시 토큰 발급 |
-| pending 목록에 안 뜸 | register API 미호출 | 디바이스 STA 연결 여부 · 서버 로그 확인 |
-| provision 미수신 | MQTT 구독 누락 | 디바이스가 provision 토픽 구독 중인지 확인 |
-| Captive Portal 접속 안 됨 | AP 모드 미진입 | 디바이스 공장 초기화 후 재시도 |
-| OTA 실패 후 부팅 불가 | 펌웨어 손상 | USB + ESP Web Tools로 베이스라인 재플래시 |
-| 타 계정 접근 시도 | ACL 위반 | security_events 로그 확인 |
+| 증상                      | 원인                        | 해결                                       |
+| ------------------------- | --------------------------- | ------------------------------------------ |
+| WebSocket 연결 안 됨      | Cloudflare WebSocket 비활성 | 대시보드 → Network → WebSocket ON          |
+| 연결 후 100초 끊김        | Cloudflare 타임아웃         | MQTT keepalive 60 설정                     |
+| 외부 접속 안 됨           | cloudflared 실행 안 됨      | docker logs nexa-cloudflared 확인          |
+| 인증 실패                 | ACL 설정 오류               | EMQX 대시보드 → Access Control 확인        |
+| 메시지 지연               | QoS 2 과다 사용             | 실시간 데이터는 QoS 0으로 변경             |
+| 동적 토픽 누락            | 구독 패턴 범위 좁음         | 와일드카드 패턴 재확인                     |
+| 신규 디바이스 미등록      | Registry 핸들러 오류        | nexa/system/capability/registry 구독 확인  |
+| VI 알림 미발생            | VI 임계값 연동 오류         | VI 0.4 이하 조건 로직 확인                 |
+| 디바이스 재연결 반복      | clientId 중복               | MAC 주소 기반 고유 ID 확인                 |
+| 서명 검증 실패            | 타임스탬프 불일치           | 디바이스 시간 동기화 (NTP) 확인            |
+| 토큰 만료 오류            | 24시간 초과                 | NEXA UI에서 새 임시 토큰 발급              |
+| pending 목록에 안 뜸      | register API 미호출         | 디바이스 STA 연결 여부 · 서버 로그 확인    |
+| provision 미수신          | MQTT 구독 누락              | 디바이스가 provision 토픽 구독 중인지 확인 |
+| Captive Portal 접속 안 됨 | AP 모드 미진입              | 디바이스 공장 초기화 후 재시도             |
+| OTA 실패 후 부팅 불가     | 펌웨어 손상                 | USB + ESP Web Tools로 베이스라인 재플래시  |
+| 타 계정 접근 시도         | ACL 위반                    | security_events 로그 확인                  |
 
 ---
 
 > **참고 문서:** [NEXA-NODE-03] ESP32 베이스라인 펌웨어 및 디바이스 등록 설계
 
-*NEXA Platform · MQTT Infrastructure v0.2 · 내부 설계 문서*
-*최종 업데이트: 2026년 3월*
-*관련 문서: NEXA Master Design_v0.4.md · NEXU VISION 넥슈는 무엇이가 v0.2.md · UCL 09 REF Coil Registry v0.1.md*
+_NEXA Platform · MQTT Infrastructure v0.2 · 내부 설계 문서_
+_최종 업데이트: 2026년 3월_
+_관련 문서: NEXA Master Design_v0.4.md · NEXU VISION 넥슈는 무엇이가 v0.2.md · UCL 09 REF Coil Registry v0.1.md_

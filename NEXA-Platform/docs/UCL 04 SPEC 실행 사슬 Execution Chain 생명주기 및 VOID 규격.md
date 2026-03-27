@@ -37,15 +37,15 @@ NEXA의 모든 지능적 박동(Pulse)은 다음 세 가지 상태 중 하나에
 - **주체**: ECHO (AI), WILL (사용자)
 - **특징**: 맥락 유지, 페르소나 학습, 그림자 프로젝트 포함.
 
-| 전이 단계                         | 발생 조건          | 수치 기준        | 비고                                              |
-| :-------------------------------- | :----------------- | :--------------- | :------------------------------------------------ |
-| **FLOW → STUCK**                  | 응답/상호작용 중단 | 1시간 무응답     | 세션 타임아웃 및 넥슈의 '맥락적 침묵' 진입        |
-| **STUCK → VOID.POTENTIAL**        | 세션 명시적 종료   | 즉시 혹은 24시간 | **'영감 모드(자아 파노라마)'**의 재료로 대기      |
-| **VOID.POTENTIAL → VOID.ARCHIVE** | 장기 미재개        | 90일 경과        | **TimescaleDB 압축 정책** 적용 (데이터 손실 없음) |
-| **MOMENT → DURATION**            | 컨텍스트 맥락 유지 | 1시간 이상        | when_tempo 기준 전이 임계치 |
-| **DURATION → ARCHIVE**          | 장기 미재개 및 압축 시점 | 90일 경과        | TimescaleDB 압축 시점에 지식화(knowledge化) |
-| **ARCHIVE → ERA** (신설)        | 데이터 발생 후 365일(1년) 이상 경과 + `nature_tag`가 RULE 또는 INTENT 상태 + 삭제되지 않고 살아남은 핵심 자산 | 365일 이상 | ERA 단계로 격상(VOID.PURGE 제외) |
-| **VOID.ARCHIVE → VOID.PURGE**     | 법적/보안 소멸 및 보존 조건 미충족 | 365일 경과 | 개인정보 보호 및 족보(Why Chain) 최종 정리. 단, ERA 승격 조건을 만족하는 핵심 자산은 purge 제외 |
+| 전이 단계                         | 발생 조건                                                                                                     | 수치 기준        | 비고                                                                                            |
+| :-------------------------------- | :------------------------------------------------------------------------------------------------------------ | :--------------- | :---------------------------------------------------------------------------------------------- |
+| **FLOW → STUCK**                  | 응답/상호작용 중단                                                                                            | 1시간 무응답     | 세션 타임아웃 및 넥슈의 '맥락적 침묵' 진입                                                      |
+| **STUCK → VOID.POTENTIAL**        | 세션 명시적 종료                                                                                              | 즉시 혹은 24시간 | **'영감 모드(자아 파노라마)'**의 재료로 대기                                                    |
+| **VOID.POTENTIAL → VOID.ARCHIVE** | 장기 미재개                                                                                                   | 90일 경과        | **TimescaleDB 압축 정책** 적용 (데이터 손실 없음)                                               |
+| **MOMENT → DURATION**             | 컨텍스트 맥락 유지                                                                                            | 1시간 이상       | when_tempo 기준 전이 임계치                                                                     |
+| **DURATION → ARCHIVE**            | 장기 미재개 및 압축 시점                                                                                      | 90일 경과        | TimescaleDB 압축 시점에 지식화(knowledge化)                                                     |
+| **ARCHIVE → ERA** (신설)          | 데이터 발생 후 365일(1년) 이상 경과 + `nature_tag`가 RULE 또는 INTENT 상태 + 삭제되지 않고 살아남은 핵심 자산 | 365일 이상       | ERA 단계로 격상(VOID.PURGE 제외)                                                                |
+| **VOID.ARCHIVE → VOID.PURGE**     | 법적/보안 소멸 및 보존 조건 미충족                                                                            | 365일 경과       | 개인정보 보호 및 족보(Why Chain) 최종 정리. 단, ERA 승격 조건을 만족하는 핵심 자산은 purge 제외 |
 
 **데이터 보존 정책(ERA = Soul 분리):** ERA 단계의 데이터는 `VOID.PURGE`(물리 삭제) 대상에서 영구 제외되며, 시스템의 **'영혼(Soul)' 데이터**로 분리 관리된다.
 
@@ -165,7 +165,7 @@ CREATE TABLE execution_chains (
     capability_id VARCHAR(100) NOT NULL, -- 행사된 기능 자격 ID (nexa.platform.archive.hub 등)
 
     -- 3. HEXAGON(5W1H) 정수 토큰 (1ms 필터링 및 지능적 인덱스)
-    where_scope SMALLINT NOT NULL, -- CORE(1), FIELD(2), DOMAIN(3)
+    where_scope SMALLINT NOT NULL, -- SELF(1), FIELD(2), DOMAIN(3)
     when_tempo SMALLINT NOT NULL,  -- MOMENT(1), DURATION(2), ERA(3)
     who_pulse SMALLINT NOT NULL,   -- WILL(1), ECHO(2), TICK(3), ASK(4)
     what_intent SMALLINT NOT NULL, -- FACT(1), LINK(2), RULE(3)
@@ -202,7 +202,7 @@ CREATE INDEX idx_exec_chains_hexagon ON execution_chains(
 
 ### 2. `execution_steps` (상세 실행 단계 테이블)
 
-복합 태스크(예: 외출 모드)를 원자적 작업 단위로 분해하여 관리합니다 [Conversation History].
+복합 태스크(예: 외출 모드)를 원자적 작업 단위로 분해하여 관리합니다.
 
 `execution_chains`가 하나의 완결된 '악보(Intent)'라면, `execution_steps`는 그 악보를 구성하는 개별 '마디(Atomic Action)'입니다. 이 테이블의 유효성은 다음 네 가지 지점에서 발생합니다.
 
@@ -236,11 +236,12 @@ CREATE TABLE execution_steps (
 
     -- 4. 타임머신 및 시뮬레이션 (뒤로가기/앞으로가기 핵심) [Conversation History, 15]
     is_virtual BOOLEAN DEFAULT FALSE, -- 실물(EFF) 미발동 가상 시뮬레이션 여부
-    target_entity_type VARCHAR(30) NOT NULL -- PHYSICAL, NEXU, AUTHORIZED_VIRTUAL, SIMULATION_NODE 등 확실한 구분
+    target_entity_type VARCHAR(30) NOT NULL, -- PHYSICAL, NEXU, AUTHORIZED_VIRTUAL, SIMULATION_NODE 등 확실한 구분
     timeline_branch_id UUID, -- 평행 우주(분기된 타임라인) 식별자
     post_state_snapshot JSONB, -- 실행 후 시스템 상태 스냅샷 (복원용 핵심 데이터)
 
     -- 5. 지능적 족보 및 에러 처리
+    worker_id VARCHAR(100), -- 전처리/정규화를 담당한 워커 식별자
     why_step_logic JSONB, -- 해당 단계가 생성된 개별 추론 근거
     error_token JSONB, -- 실패 시 재규격화된 UCL 에러 토큰
 
@@ -277,6 +278,7 @@ CREATE TABLE execution_logs (
     packet_id UUID NOT NULL REFERENCES execution_chains(packet_id) ON DELETE CASCADE,
     step_id UUID REFERENCES execution_steps(step_id) ON DELETE SET NULL,
 
+    worker_id VARCHAR(100), -- 직전 처리 워커 식별자
     adapter_id VARCHAR(100), -- 실행을 담당한 실제 어댑터 (예: 'home-assistant-01')
     raw_response JSONB, -- 네이티브 API의 날것의 응답 데이터
     error_token JSONB,  -- 실패 시 생성된 UCL 에러 토큰 (ADAPTER_TIMEOUT 등)
@@ -292,6 +294,7 @@ CREATE TABLE execution_logs (
 
 1.  **5W1H 컬럼 완전 분리:** `ucl_header` JSONB에 묻어두지 않고 6개의 `SMALLINT` 컬럼으로 분리했습니다. 이는 DB 레벨에서 90% 이상의 데이터를 1ms 내에 필터링하기 위한 **NEXA의 핵심 성능 전략**입니다.
 2.  **동력원(Pulse)과 경로(Channel)의 명시:** `who_pulse`와 `input_channel`을 통해 이 실행이 사람의 의지(WILL)인지, AI의 제안(ECHO)인지, 아니면 넥슈의 자율 판단인지 즉각 판별합니다.
+3.  **관측성 최소 추적 키 고정:** `worker_id`, `adapter_id`, `packet_id(chain_id 역할)`, `error_token`을 공통 추적 키로 유지하여 "누가/왜/어디서 실패했는가"를 Why Chain과 함께 역추적 가능하게 합니다.
 3.  **지능적 생명주기 수용:** `how_state` 컬럼을 통해 `FLOW`에서 `VOID`로 넘어가는 **데이터 수명 주기 정책**을 실제 DB 레벨에서 감시하고 제어할 수 있습니다.
 4.  **역추적 참조 사슬:** `why_chain` JSONB 필드와 `packet_id`를 통해 **[SNT(사실) → IND(판단) → EFF(실행)]**로 이어지는 인과관계를 완벽하게 역추적하여 시스템 투명성을 보장합니다.
 5.  **RLS 및 보안 격리:** `project_id`를 기반으로 행 수준 보안(RLS)을 적용하여, 특정 프로젝트나 사용자의 실행 사슬이 타인에게 노출되지 않도록 강력하게 격리합니다.

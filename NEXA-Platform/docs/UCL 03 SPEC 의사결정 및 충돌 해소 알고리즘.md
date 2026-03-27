@@ -118,7 +118,7 @@ Safety     > Stability > Efficiency > Autonomy > Creative
 
 ## 3.1 유형 1: 권위 충돌 (WILL vs RULE)
 
-대상: `CORE.WILL`과 `DOMAIN.RULE` 충돌
+대상: `SELF.WILL`과 `DOMAIN.RULE` 충돌
 
 결정 순서:
 

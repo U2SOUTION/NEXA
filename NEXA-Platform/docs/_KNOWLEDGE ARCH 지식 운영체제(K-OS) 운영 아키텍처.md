@@ -11,15 +11,15 @@
 
 플랫폼에서 **지식에 가까운 데이터**는 `nexa_knowledge_*` / `project_knowledge`만이 아니다. 아래는 **개괄 분류**이며, 테이블·수명·RLS·승격(ASK→GOVERN→ERA)이 다르므로 **한 계층에 몰아넣지 않는 것**을 원칙으로 한다. 세부 매핑·명명은 추후 통합 정리할 수 있다.
 
-| 축(예시) | 성격 | 흔한 저장·문서 |
-| :-- | :-- | :-- |
-| **공통 규범·용어·RAG 원천** | 플랫폼이 공유하는 “말과 규칙” | `nexa_knowledge_*` |
-| **프로젝트 생성 지식** | 도메인/협업 산출 | `project_knowledge` |
-| **엣지·물리 관측** | 시계열·디바이스 상태 | `device_registry`, MQTT/TSDB, `project_*` 인프라 계열 |
-| **상호작용·서사** | 사용자↔플랫폼↔닉시 | `project_logs`, `project_chats`, 세션·쉘 필드 등 |
-| **실행·족보** | UCL·스냅샷·드라이 런 | `execution_*`, 오케스트레이션 DDL 명세 |
-| **Self·공감** | facet·코일·VI/ES | `nexa_self_*`, 응답 정책 |
-| **전역 요약·마켓** | 공개 요약·FAQ 등 | `global_knowledge_base`, `support_faq` 류 |
+| 축(예시)                    | 성격                          | 흔한 저장·문서                                        |
+| :-------------------------- | :---------------------------- | :---------------------------------------------------- |
+| **공통 규범·용어·RAG 원천** | 플랫폼이 공유하는 “말과 규칙” | `nexa_knowledge_*`                                    |
+| **프로젝트 생성 지식**      | 도메인/협업 산출              | `project_knowledge`                                   |
+| **엣지·물리 관측**          | 시계열·디바이스 상태          | `device_registry`, MQTT/TSDB, `project_*` 인프라 계열 |
+| **상호작용·서사**           | 사용자↔플랫폼↔닉시          | `project_logs`, `project_chats`, 세션·쉘 필드 등      |
+| **실행·족보**               | UCL·스냅샷·드라이 런          | `execution_*`, 오케스트레이션 DDL 명세                |
+| **Self·공감**               | facet·코일·VI/ES              | `nexa_self_*`, 응답 정책                              |
+| **전역 요약·마켓**          | 공개 요약·FAQ 등              | `global_knowledge_base`, `support_faq` 류             |
 
 **본 `_KNOWLEDGE*` 문서군**은 위 표에서 **첫 두 행(공통 + 프로젝트 지식 계층)** 과 이들과 맞닿는 **라우팅·배포·감사**를 다루는 것을 1차 범위로 한다. 나머지 축은 **오케스트레이션·인프라 명세**와 연동하되, “모두 한 테이블의 지식”으로 합치지 않는다.
 
@@ -181,7 +181,7 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 
 ### 2.5 Edge Distribution Packager (`system/jobs`)
 
-- Nano/Micro/Vista 대상별 패키지 생성
+- Nano/Micro/Zenith 대상별 패키지 생성
 - ESP32(Nano)용 경량 사전 OTA 배포
 
 ### 2.6 Ollama 연동(보조 엔진) — CRUD와의 관계
@@ -247,8 +247,8 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 ### 4.2 문맥 기반 중의성 해소 정책
 
 - 동일 `term_key`가 다중 의미를 가질 경우, 현재 헥사곤 컨텍스트를 우선 사용
-- 예: `CORE`
-  - `where_scope` 가중치 우세 -> 주권 의미(Where.CORE)
+- 예: `SELF`
+  - `where_scope` 가중치 우세 -> 주권 의미(Where.SELF)
   - `what_intent` + 펌웨어 문맥 우세 -> Base-Core 의미
 
 ### 4.3 역방향 로컬라이제이션 정책 (EN -> KO)
@@ -375,7 +375,7 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 ## 6) 수용 기준 (Definition of Done)
 
 - 차등 배포 패키지가 nano/micro/vista로 분리 생성된다.
-- `CORE` 같은 중의어 입력에서 컨텍스트 기반 분기가 재현된다.
+- 만약 중의어 입력에서 컨텍스트 기반 분기가 재현된다.
 - 영문 결과가 한국어 summary로 일관되게 변환된다.
 - 문서 변경 시 `doc_ref_path`, `doc_anchor` 자동 동기화가 동작한다.
 - 불변 토큰 변경은 승인 전 반영되지 않는다.

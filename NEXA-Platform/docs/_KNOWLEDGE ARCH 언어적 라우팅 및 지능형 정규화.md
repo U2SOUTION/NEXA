@@ -49,9 +49,9 @@
 - `context_score`는 각 후보 의미에 대해 헥사곤 필드 가중치 합으로 계산
 - 동점이면 최근 실행 이력/사용자 선택 이력을 tie-breaker로 사용
 
-### 3.3 예시 (`CORE`)
+### 3.3 예시 (`SELF`)
 
-- 후보 A: Where.CORE(주권)
+- 후보 A: Where.SELF(주권)
 - 후보 B: Base-Core(펌웨어)
 - `where_scope` 관련 가중치가 높으면 A 우선
 - 펌웨어 태그(`SYS`, `FW`) 문맥이 강하면 B 우선
@@ -70,8 +70,8 @@
   "normalized_terms": [
     {
       "term_id": "018f0000-0000-7000-8000-000000000001",
-      "term_key": "CORE",
-      "sense_key": "WHERE_CORE",
+      "term_key": "SELF",
+      "sense_key": "WHERE_SELF",
       "layer_type": 1,
       "token_value": 3
     }
@@ -95,7 +95,7 @@
 
 출력 예:
 
-- EN: `Action queued for CORE validation.`
+- EN: `Action queued for SELF validation.`
 - KO: `코어(주권) 검증 작업이 대기열에 등록되었습니다.`
 
 품질 규칙:

@@ -1067,7 +1067,7 @@ NEXA 오케스트라 프로젝트 스키마 DDL (귀속 31개 · 비귀속 27개
 ✨
 
 1. 사전 요구사항 (확장·스키마)
-SET search_path TO public;
+   SET search_path TO public;
 
 -- TimescaleDB·벡터 검색
 CREATE EXTENSION IF NOT EXISTS timescaledb;
@@ -1173,7 +1173,7 @@ log_id UUID DEFAULT uuid_generate_v7(),
 project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 -- 5W1H 토큰 (SMALLINT. nullable. 점진적 채움)
-where_scope SMALLINT, -- Where: CORE, FIELD, DOMAIN 등 영향 범위
+where_scope SMALLINT, -- Where: SELF, FIELD, DOMAIN 등 영향 범위
 when_tempo SMALLINT, -- When: MOMENT, DURATION, ERA 등 시간적 맥락
 who_pulse SMALLINT, -- Who: WILL, ECHO, TICK, ASK 등 동력원
 what_intent SMALLINT, -- What: FACT, LINK, RULE 등 데이터 성격
@@ -1206,6 +1206,7 @@ COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비�
 -- - Shadow Project(TRIAL): VOID.ARCHIVE 생략, STUCK/VOID.POTENTIAL 이후 7일 경과 시 VOID.PURGE 이행 가능(휘발성 강화)
 
 ## -- VOID 스케줄러(권장 구현 예시)
+
 -- 공통 규칙:
 -- - project_logs에 how_state=3(VOID)로 생성/전이될 때 extra_data->>'void_stage'와 extra_data->>'void_stage_started_at'을 반드시 세팅한다.
 -- - 저장(보존): void_stage가 POTENTIAL/ARCHIVE인 동안 해당 행은 유지한다.
@@ -1226,6 +1227,7 @@ COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비�
 -- - extra_data->>'scope_subtype'='TRIAL' 인 경우: POTENTIAL/ARCHIVE 시작 후 7일 경과 => 삭제
 
 ## -- (예시 SQL; 배치 권한 보안을 위해 직접 실행은 시스템 계정에서만 수행)
+
 -- UPDATE project_logs
 -- SET extra_data = jsonb_set(extra_data, '{void_stage}', '"ARCHIVE"', true),
 -- extra_data = jsonb_set(extra_data, '{void_stage_started_at}', to_jsonb(now()), true)
@@ -1238,6 +1240,7 @@ COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비�
 -- );
 
 ## -- DELETE FROM project_logs
+
 -- WHERE how_state = 3
 -- AND extra_data->>'void_stage' = 'ARCHIVE'
 -- AND (
@@ -1354,7 +1357,7 @@ created_at TIMESTAMPTZ DEFAULT NOW(),
 -- 성격·수명 주기 [문서 5]. RULE=시방서 핵심 제원(실행 가이드라인) 장기 기억·RAG 활용. DDL-00 §2.9.4
 nature_tag VARCHAR(32), -- ROUTINE, INCIDENT, INTENT, RULE(시방서 기반 실행 규칙 지식)
 -- 5W1H 토큰 (SMALLINT. nullable. 완전 분리로 고속 정수 인덱싱)
-where_scope SMALLINT, -- Where: CORE, FIELD, DOMAIN
+where_scope SMALLINT, -- Where: SELF, FIELD, DOMAIN
 when_tempo SMALLINT, -- When: MOMENT, DURATION, ERA
 who_pulse SMALLINT, -- Who: WILL, ECHO, TICK, ASK 등
 what_intent SMALLINT, -- What: FACT, LINK, RULE
@@ -1549,7 +1552,7 @@ pgcrypto 확장으로 컬럼을 한 번 더 보호할 수 있다. 예: 애플리
 권장
 
 1. 앱에서 AES-256-GCM 암호문을 BYTEA로 저장하고, 2) 필요 시 pgcrypto로 동일 컬럼을 한 번 더 암호화하는 이중 레이어 구성을 권장한다.
-  -- pgcrypto 사용 예시 (선택): 암호화 키는 애플리케이션에서 SET LOCAL로 주입 후 사용
+   -- pgcrypto 사용 예시 (선택): 암호화 키는 애플리케이션에서 SET LOCAL로 주입 후 사용
    -- INSERT: encrypted_value := pgp_sym_encrypt('평문비밀값', current_setting('app.encryption_key'));
    -- SELECT: pgp_sym_decrypt(encrypted_value, current_setting('app.encryption_key')) AS decrypted;
    -- 확장은 §0에서 CREATE EXTENSION pgcrypto; 로 로드됨.
@@ -1849,7 +1852,7 @@ CREATE TABLE nixie_shell_configs (
 config_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
 shell_id UUID NOT NULL REFERENCES nixie_shells(shell_id) ON DELETE CASCADE,
 rendering_profile VARCHAR(20) NOT NULL DEFAULT 'WARM'
-  CHECK (rendering_profile IN ('COLD', 'WARM', 'HOT', 'AUTO')),
+CHECK (rendering_profile IN ('COLD', 'WARM', 'HOT', 'AUTO')),
 override_settings JSONB,
 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 UNIQUE (shell_id)
@@ -2255,7 +2258,7 @@ PRIMARY KEY (log_id, created_at) 추가, project_id FK 명시 후 create_hyperta
 비귀속 하이퍼테이블
 platform_audit_logs, api_usage_stats, ai_consultation_logs에 PRIMARY KEY (id, created_at) 추가.
 인덱스
-§7단계 추가: 31개 프로젝트 테이블에 CREATE INDEX idx**project_id ON *(project_id) 등.
+§7단계 추가: 31개 프로젝트 테이블에 CREATE INDEX idx\*\*project_id ON *(project_id) 등.
 RLS
 §8단계 추가: 31개 테이블 ENABLE ROW LEVEL SECURITY 및 CREATE POLICY (멤버십 기반). project_members는 자기 행만 노출하도록 정책 분리.
 외부 참조 FK

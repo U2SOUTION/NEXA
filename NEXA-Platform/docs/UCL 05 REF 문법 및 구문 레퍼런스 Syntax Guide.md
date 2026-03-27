@@ -34,7 +34,7 @@ UCL 패킷은 JSONB 형식으로 구성되며, 인디케이터(Indicator)와 어
 
 | 레이어    | 주요 토큰 (SMALLINT 매핑) | 의미 및 판단 기준                                           |
 | :-------- | :------------------------ | :---------------------------------------------------------- |
-| **Where** | CORE, FIELD, DOMAIN       | 영향 범위: 개인(CORE), 현장(FIELD), 전역 원칙(DOMAIN)       |
+| **Where** | SELF, FIELD, DOMAIN       | 영향 범위: 개인(SELF), 현장(FIELD), 전역 원칙(DOMAIN)       |
 | **When**  | MOMENT, DURATION, ERA     | 시간 맥락: 즉각(MOMENT), 지속(DURATION), 거대 패러다임(ERA) |
 | **Who**   | WILL, ECHO, TICK, ASK     | 동력원: 사람(WILL), AI(ECHO), 자동(TICK), 승인대기(ASK)     |
 | **What**  | FACT, LINK, RULE          | 본질: 사실(FACT), 관계(LINK), 질서(RULE)                    |

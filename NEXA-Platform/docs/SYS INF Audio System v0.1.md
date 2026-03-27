@@ -1,4 +1,5 @@
 # NEXA 오디오 시스템 설계 문서 v0.1
+
 ## 공간을 감각으로 채우는 지능형 오디오 레이어
 
 > **설계 철학**
@@ -166,13 +167,13 @@ def set_windows_volume(level: float):
 
 ### 3.2 Duck 레벨 기준
 
-| 상황 | Duck 레벨 | 전환 시간 | 복귀 대기 |
-|------|---------|---------|---------|
-| Wake word 감지 | 20% | 0.3초 | — |
-| TTS 응답 재생 | 15% | 0.3초 | 응답 완료 후 1초 |
-| 전화 연동 | 10% | 0.5초 | 통화 종료 후 2초 |
-| 긴급 알림 (Safety) | 5% | 즉각 | 알림 확인 후 |
-| 취침 유도 | 점진적 감소 | 10분 | 수면 감지 후 정지 |
+| 상황               | Duck 레벨   | 전환 시간 | 복귀 대기         |
+| ------------------ | ----------- | --------- | ----------------- |
+| Wake word 감지     | 20%         | 0.3초     | —                 |
+| TTS 응답 재생      | 15%         | 0.3초     | 응답 완료 후 1초  |
+| 전화 연동          | 10%         | 0.5초     | 통화 종료 후 2초  |
+| 긴급 알림 (Safety) | 5%          | 즉각      | 알림 확인 후      |
+| 취침 유도          | 점진적 감소 | 10분      | 수면 감지 후 정지 |
 
 ### 3.3 Python 구현
 
@@ -395,13 +396,13 @@ NEXA 연동:
 
 ### 5.3 멀티채널 구성
 
-| 구성 | 채널 | 활용 |
-|------|------|------|
-| 스테레오 | 2.0 | 기본 · 넥슈 내장 |
-| 2.1 | 서브우퍼 포함 | 거실 메인 시스템 |
-| 5.1 | 홈시어터 | HDMI ARC 연동 |
-| Dolby Atmos | 7.1.4 | 고급 공간 오디오 |
-| 멀티룸 | N×2.0 | Snapcast 분산 |
+| 구성        | 채널          | 활용             |
+| ----------- | ------------- | ---------------- |
+| 스테레오    | 2.0           | 기본 · 넥슈 내장 |
+| 2.1         | 서브우퍼 포함 | 거실 메인 시스템 |
+| 5.1         | 홈시어터      | HDMI ARC 연동    |
+| Dolby Atmos | 7.1.4         | 고급 공간 오디오 |
+| 멀티룸      | N×2.0         | Snapcast 분산    |
 
 ---
 
@@ -530,15 +531,15 @@ class AudioMoodClassifier:
 
 ### 7.1 넥슈 Lumina ↔ 오디오 매핑
 
-| 오디오 신호 | Lumina 반응 | 설명 |
-|-----------|-----------|------|
-| 볼륨 크기 (RMS) | 밝기 비례 | 조용할수록 희미, 클수록 밝게 |
-| 저음 (Bass) | 황금·주황 비율 | 따뜻함 |
-| 고음 (Treble) | 청백 비율 | 차가움·집중 |
-| BPM | 맥동 속도 | 빠른 음악 → 빠른 Jitter |
-| 무음 | 희미한 맥동 | 배경 존재 표시 |
-| Duck 구간 | 색온도 → 청백 | 음성 모드 |
-| TTS 재생 | 황금 밝음 | 넥슈 말하는 중 |
+| 오디오 신호     | Lumina 반응    | 설명                         |
+| --------------- | -------------- | ---------------------------- |
+| 볼륨 크기 (RMS) | 밝기 비례      | 조용할수록 희미, 클수록 밝게 |
+| 저음 (Bass)     | 황금·주황 비율 | 따뜻함                       |
+| 고음 (Treble)   | 청백 비율      | 차가움·집중                  |
+| BPM             | 맥동 속도      | 빠른 음악 → 빠른 Jitter      |
+| 무음            | 희미한 맥동    | 배경 존재 표시               |
+| Duck 구간       | 색온도 → 청백  | 음성 모드                    |
+| TTS 재생        | 황금 밝음      | 넥슈 말하는 중               |
 
 ### 7.2 WS2812B LED 제어 (MQTT 연동)
 
@@ -724,41 +725,41 @@ Lumina: 보라 맥동 유지 (우주 감지 상태)
 
 ### 9.1 오디오 상태 발행
 
-| 토픽 | 발행 주체 | 내용 |
-|------|---------|------|
-| `nexa/u/{uid}/audio/status` | Python 파이프라인 | 재생 상태 · 볼륨 · 현재 트랙 |
-| `nexa/u/{uid}/audio/analysis` | Python 파이프라인 | BPM · 주파수 · RMS · 무드 |
-| `nexa/u/{uid}/audio/duck` | 넥슈 오케스트레이터 | Duck 시작·종료 이벤트 |
-| `nexa/u/{uid}/nexu/lumina/audio` | Python 파이프라인 | Lumina 색상·밝기 |
-| `nexa/u/{uid}/audio/snapcast/{room}` | Snapcast 컨트롤러 | 방별 볼륨·음소거 |
+| 토픽                                 | 발행 주체           | 내용                         |
+| ------------------------------------ | ------------------- | ---------------------------- |
+| `nexa/u/{uid}/audio/status`          | Python 파이프라인   | 재생 상태 · 볼륨 · 현재 트랙 |
+| `nexa/u/{uid}/audio/analysis`        | Python 파이프라인   | BPM · 주파수 · RMS · 무드    |
+| `nexa/u/{uid}/audio/duck`            | 넥슈 오케스트레이터 | Duck 시작·종료 이벤트        |
+| `nexa/u/{uid}/nexu/lumina/audio`     | Python 파이프라인   | Lumina 색상·밝기             |
+| `nexa/u/{uid}/audio/snapcast/{room}` | Snapcast 컨트롤러   | 방별 볼륨·음소거             |
 
 ### 9.2 오디오 명령 구독
 
-| 토픽 | 구독 주체 | 명령 |
-|------|---------|------|
-| `nexa/u/{uid}/audio/command` | Python 파이프라인 | play·pause·volume·duck·restore |
-| `nexa/u/{uid}/audio/scene` | Python 파이프라인 | morning·sleep·focus·party·away |
-| `nexa/u/{uid}/audio/snapcast/{room}/command` | Snapcast 컨트롤러 | 방별 볼륨·소스 변경 |
+| 토픽                                         | 구독 주체         | 명령                           |
+| -------------------------------------------- | ----------------- | ------------------------------ |
+| `nexa/u/{uid}/audio/command`                 | Python 파이프라인 | play·pause·volume·duck·restore |
+| `nexa/u/{uid}/audio/scene`                   | Python 파이프라인 | morning·sleep·focus·party·away |
+| `nexa/u/{uid}/audio/snapcast/{room}/command` | Snapcast 컨트롤러 | 방별 볼륨·소스 변경            |
 
 ### 9.3 페이로드 예시 — 오디오 분석
 
 ```json
 {
-  "cap":   "nexa.usr001.home.audio.analysis.v1",
-  "where": "CORE",
-  "when":  "MOMENT",
-  "who":   "TICK",
-  "what":  "FACT",
-  "how":   "FLOW",
-  "bpm":   98.5,
-  "rms":   0.42,
-  "bass":  0.65,
-  "mid":   0.48,
+  "cap": "nexa.usr001.home.audio.analysis.v1",
+  "where": "SELF",
+  "when": "MOMENT",
+  "who": "TICK",
+  "what": "FACT",
+  "how": "FLOW",
+  "bpm": 98.5,
+  "rms": 0.42,
+  "bass": 0.65,
+  "mid": 0.48,
   "treble": 0.31,
-  "mood":  "calm",
+  "mood": "calm",
   "lumina_color": "soft_gold",
   "is_silent": false,
-  "ts":    1711234567890
+  "ts": 1711234567890
 }
 ```
 
@@ -766,15 +767,15 @@ Lumina: 보라 맥동 유지 (우주 감지 상태)
 
 ## 10. HEXAGON 연결
 
-| 오디오 이벤트 | Where | When | Who | What | How |
-|------------|-------|------|-----|------|-----|
-| 음악 재생 중 | CORE | DURATION | TICK | FACT | FLOW |
-| Wake word 감지 | CORE | MOMENT | ASK | RULE | FLOW |
-| Duck 실행 | CORE | MOMENT | WILL | RULE | FLOW |
-| Restore 완료 | CORE | MOMENT | TICK | FACT | FLOW |
-| 취침 유도 시작 | FIELD | DURATION | WILL | RULE | FLOW |
-| 우주 이벤트 오디오 | DOMAIN | MOMENT | ECHO | LINK | FLOW |
-| 볼륨 이상 감지 | CORE | MOMENT | TICK | FACT | STUCK |
+| 오디오 이벤트      | Where  | When     | Who  | What | How   |
+| ------------------ | ------ | -------- | ---- | ---- | ----- |
+| 음악 재생 중       | SELF   | DURATION | TICK | FACT | FLOW  |
+| Wake word 감지     | SELF   | MOMENT   | ASK  | RULE | FLOW  |
+| Duck 실행          | SELF   | MOMENT   | WILL | RULE | FLOW  |
+| Restore 완료       | SELF   | MOMENT   | TICK | FACT | FLOW  |
+| 취침 유도 시작     | FIELD  | DURATION | WILL | RULE | FLOW  |
+| 우주 이벤트 오디오 | DOMAIN | MOMENT   | ECHO | LINK | FLOW  |
+| 볼륨 이상 감지     | SELF   | MOMENT   | TICK | FACT | STUCK |
 
 ---
 
@@ -893,19 +894,19 @@ python nexa_audio.py --user-id usr001 --sample-rate 44100
 
 ### 12.1 등급별 오디오 하드웨어
 
-| 등급 | 앰프 | 스피커 | 마이크 | 특징 |
-|------|------|-------|-------|------|
-| **Lite** | MAX98357A (I2S) | 3W 패시브 | INMP441 | 넥슈 내장 · 소형 |
-| **Standard** | HiFiBerry AMP2 | 20W×2 패시브 | ReSpeaker 2-Mic | RPi HAT · 고음질 |
-| **Pro** | WiFi 앰프 (Snapcast) | 기존 홈오디오 | ReSpeaker 4-Mic | 멀티룸 · 최고음질 |
+| 등급         | 앰프                 | 스피커        | 마이크          | 특징              |
+| ------------ | -------------------- | ------------- | --------------- | ----------------- |
+| **Lite**     | MAX98357A (I2S)      | 3W 패시브     | INMP441         | 넥슈 내장 · 소형  |
+| **Standard** | HiFiBerry AMP2       | 20W×2 패시브  | ReSpeaker 2-Mic | RPi HAT · 고음질  |
+| **Pro**      | WiFi 앰프 (Snapcast) | 기존 홈오디오 | ReSpeaker 4-Mic | 멀티룸 · 최고음질 |
 
 ### 12.2 WiFi 앰프 옵션 (Snapcast 클라이언트 내장)
 
-| 제품 | 출력 | 특징 |
-|------|------|------|
-| **Raspberry Pi + 앰프 HAT** | 20~60W | 완전 제어 가능 · NEXA 통합 최적 |
-| **Arylic Up2Stream** | 50W×2 | WiFi 내장 · Snapcast 지원 |
-| **Volumio 기반 DAC** | DAC 출력 | 고음질 · 기존 앰프 연결 |
+| 제품                        | 출력     | 특징                            |
+| --------------------------- | -------- | ------------------------------- |
+| **Raspberry Pi + 앰프 HAT** | 20~60W   | 완전 제어 가능 · NEXA 통합 최적 |
+| **Arylic Up2Stream**        | 50W×2    | WiFi 내장 · Snapcast 지원       |
+| **Volumio 기반 DAC**        | DAC 출력 | 고음질 · 기존 앰프 연결         |
 
 ### 12.3 무선 저지연 음원 소스 전송
 
@@ -925,20 +926,20 @@ python nexa_audio.py --user-id usr001 --sample-rate 44100
 
 ## 13. 미해결 과제
 
-| 우선순위 | 과제 | 내용 |
-|---------|------|------|
-| 🔴 높음 | Wake word 엔진 선택 | Porcupine vs openWakeWord vs Picovoice — "넥슈야" 커스텀 학습 |
-| 🔴 높음 | Duck 타이밍 최적화 | 너무 빠르면 부자연스럽고 느리면 음성 잘림 — 실측 필요 |
-| 🟡 중간 | 음악 장르 자동 분류 | BPM·주파수만으로 정확도 한계 — 경량 ML 모델 도입 검토 |
-| 🟡 중간 | iOS AirPlay + Snapcast 동기화 | iPhone에서 재생 시 Snapcast와 동기화 방법 |
-| 🟡 중간 | Dolby Atmos 파이프라인 | Linux에서 Atmos 처리 방법 (현재 Windows 전용) |
-| 🟡 중간 | 구형 스마트폰 오디오 출력 | Snapcast Android 앱 연동 · 지연 최적화 |
-| 🟢 낮음 | 임펄스 응답 측정 자동화 | 공간 음향 특성 자동 측정·적용 파이프라인 |
-| 🟢 낮음 | 음악 감정 → ES 연동 | 재생 음악이 사용자 ES에 영향 주는 방향성 연구 |
-| 🟢 낮음 | 공간 이동 감지 + 오디오 핸드오프 | 방 이동 시 음악이 자연스럽게 따라오는 것 |
+| 우선순위 | 과제                             | 내용                                                          |
+| -------- | -------------------------------- | ------------------------------------------------------------- |
+| 🔴 높음  | Wake word 엔진 선택              | Porcupine vs openWakeWord vs Picovoice — "넥슈야" 커스텀 학습 |
+| 🔴 높음  | Duck 타이밍 최적화               | 너무 빠르면 부자연스럽고 느리면 음성 잘림 — 실측 필요         |
+| 🟡 중간  | 음악 장르 자동 분류              | BPM·주파수만으로 정확도 한계 — 경량 ML 모델 도입 검토         |
+| 🟡 중간  | iOS AirPlay + Snapcast 동기화    | iPhone에서 재생 시 Snapcast와 동기화 방법                     |
+| 🟡 중간  | Dolby Atmos 파이프라인           | Linux에서 Atmos 처리 방법 (현재 Windows 전용)                 |
+| 🟡 중간  | 구형 스마트폰 오디오 출력        | Snapcast Android 앱 연동 · 지연 최적화                        |
+| 🟢 낮음  | 임펄스 응답 측정 자동화          | 공간 음향 특성 자동 측정·적용 파이프라인                      |
+| 🟢 낮음  | 음악 감정 → ES 연동              | 재생 음악이 사용자 ES에 영향 주는 방향성 연구                 |
+| 🟢 낮음  | 공간 이동 감지 + 오디오 핸드오프 | 방 이동 시 음악이 자연스럽게 따라오는 것                      |
 
 ---
 
-*NEXA Platform · Audio System Design v0.1 · 내부 설계 문서*
-*최종 업데이트: 2026년 3월*
-*관련 문서: NEXU VISION 넥슈는 무엇이가 v0.2.md · NEXA_NEXU_Hardware_v0.1.md · NEXA_MQTT_Infrastructure_v0.4.md*
+_NEXA Platform · Audio System Design v0.1 · 내부 설계 문서_
+_최종 업데이트: 2026년 3월_
+_관련 문서: NEXU VISION 넥슈는 무엇이가 v0.2.md · NEXA_NEXU_Hardware_v0.1.md · NEXA_MQTT_Infrastructure_v0.4.md_
