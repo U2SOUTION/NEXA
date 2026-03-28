@@ -31,23 +31,14 @@
         <Controls />
       </Teleport>
       <Teleport :to="nexionMinimapHostEl" :disabled="minimapTeleportDisabled">
-        <MiniMap
-          class="nexion-minimap-teleported"
-          pannable
-          zoomable
-          :width="minimapWidth"
-          :height="minimapHeight"
-          :mask-color="minimapMaskColor"
-          :mask-stroke-color="minimapMaskStrokeColor"
-          :node-color="minimapNodeColor"
-          :node-stroke-color="minimapNodeStrokeColor"
-        />
+        <MiniMap class="nexion-minimap-teleported" pannable zoomable :width="minimapWidth" :height="minimapHeight" :mask-color="minimapMaskColor" :mask-stroke-color="minimapMaskStrokeColor" :node-color="minimapNodeColor" :node-stroke-color="minimapNodeStrokeColor" />
       </Teleport>
       <NexionFlowHooks />
     </VueFlow>
 
     <div class="nexion-canvas-view__hint text-caption">
-      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기 · <strong>연결선</strong> 클릭 시 강조 표시 · 여러 개는 <strong>Ctrl</strong>/<strong>⌘</strong>+클릭 · <strong>Delete</strong>/<strong>Backspace</strong>로 끊기 · 휠: 줌 · 드래그: 팬
+      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기 · <strong>연결선</strong> 클릭 시 강조 표시 · 여러 개는 <strong>Ctrl</strong>/<strong>⌘</strong>+클릭 · <strong>Delete</strong>/<strong>Backspace</strong>로
+      끊기 · 휠: 줌 · 드래그: 팬
     </div>
   </div>
 </template>
@@ -65,18 +56,11 @@ import '@vue-flow/minimap/dist/style.css'
 
 import { useNexionFlowStore } from '@domains/nexion/modules/core/stores/nexionFlowStore'
 import { useUserSettingsStore } from '@system/store/userSettingsStore'
-import {
-  isNexionFlowDebug,
-  nxnDiag,
-  printNexionFlowDebugHintOnce,
-} from '@domains/nexion/modules/core/utils/nexionFlowDebug'
+import { isNexionFlowDebug, nxnDiag, printNexionFlowDebugHintOnce } from '@domains/nexion/modules/core/utils/nexionFlowDebug'
 import NexionCardNode from './nodes/NexionCardNode.vue'
 import NexionGroupNode from './nodes/NexionGroupNode.vue'
 import NexionFlowHooks from './NexionFlowHooks.vue'
-import {
-  nexionControlsHostEl,
-  nexionMinimapHostEl,
-} from '@domains/nexion/modules/core/utils/nexionMinimapHost'
+import { nexionControlsHostEl, nexionMinimapHostEl } from '@domains/nexion/modules/core/utils/nexionMinimapHost'
 
 const nexionFlowStore = useNexionFlowStore()
 const { nodes, edges } = storeToRefs(nexionFlowStore)
@@ -100,9 +84,7 @@ const canvasBgResolved = computed(() => {
 const nexionFlowCssVars = computed(() => {
   const n = nexionUi.value
   const baseW = Number(n.edgeStrokeWidth)
-  const selectedW = Number.isFinite(baseW)
-    ? Math.min(5, Math.round(baseW * 1.45 * 10) / 10)
-    : 3
+  const selectedW = Number.isFinite(baseW) ? Math.min(5, Math.round(baseW * 1.45 * 10) / 10) : 3
   const edgeStroke = n.edgeStrokeColor?.trim() || '#1976d2'
   const connStroke = n.connectionStrokeColor?.trim() || '#1976d2'
   const selectedStroke = n.edgeSelectedStrokeColor?.trim() || connStroke
@@ -132,34 +114,10 @@ function minimapColorOrAuto(saved, darkFallback, lightFallback) {
   return $q.dark.isActive ? darkFallback : lightFallback
 }
 
-const minimapMaskColor = computed(() =>
-  minimapColorOrAuto(
-    nexionUi.value.minimapMaskColor,
-    'rgba(255, 255, 255, 0.08)',
-    'rgba(0, 0, 0, 0.08)',
-  ),
-)
-const minimapMaskStrokeColor = computed(() =>
-  minimapColorOrAuto(
-    nexionUi.value.minimapMaskStrokeColor,
-    'rgba(255, 255, 255, 0.2)',
-    'rgba(0, 0, 0, 0.18)',
-  ),
-)
-const minimapNodeColor = computed(() =>
-  minimapColorOrAuto(
-    nexionUi.value.minimapNodeColor,
-    'rgba(100, 181, 246, 0.4)',
-    'rgba(25, 118, 210, 0.35)',
-  ),
-)
-const minimapNodeStrokeColor = computed(() =>
-  minimapColorOrAuto(
-    nexionUi.value.minimapNodeStrokeColor,
-    'rgba(144, 202, 249, 0.65)',
-    'rgba(25, 118, 210, 0.85)',
-  ),
-)
+const minimapMaskColor = computed(() => minimapColorOrAuto(nexionUi.value.minimapMaskColor, 'rgba(255, 255, 255, 0.08)', 'rgba(0, 0, 0, 0.08)'))
+const minimapMaskStrokeColor = computed(() => minimapColorOrAuto(nexionUi.value.minimapMaskStrokeColor, 'rgba(255, 255, 255, 0.2)', 'rgba(0, 0, 0, 0.18)'))
+const minimapNodeColor = computed(() => minimapColorOrAuto(nexionUi.value.minimapNodeColor, 'rgba(100, 181, 246, 0.4)', 'rgba(25, 118, 210, 0.35)'))
+const minimapNodeStrokeColor = computed(() => minimapColorOrAuto(nexionUi.value.minimapNodeStrokeColor, 'rgba(144, 202, 249, 0.65)', 'rgba(25, 118, 210, 0.85)'))
 
 /** 우측 호스트 없을 때(캔버스 코너) 기본 크기 */
 const MINIMAP_FLOAT_W = 200
@@ -313,9 +271,7 @@ async function onNexionConnectWrapped(conn) {
   })
 
   if (piniaCount > 0 && domLayers === 0) {
-    console.warn(
-      '[NexionFlow] ⚠️ Pinia에 엣지는 있는데 DOM에 .vue-flow__edge가 없음 → createGraphEdges·isValidConnection 재검증 실패, 또는 렌더 지연/레이어',
-    )
+    console.warn('[NexionFlow] ⚠️ Pinia에 엣지는 있는데 DOM에 .vue-flow__edge가 없음 → createGraphEdges·isValidConnection 재검증 실패, 또는 렌더 지연/레이어')
   }
 
   if (isNexionFlowDebug()) {
@@ -365,10 +321,7 @@ function onNexionVueFlowError(err) {
   if (!NXN_LOG) return
   const code = err?.code ?? err?.name
   const isEdge = typeof code === 'string' && String(code).includes('EDGE')
-  const bucket =
-    isEdge || (typeof code === 'string' && String(code).includes('NODE'))
-      ? '노드/엣지 검증·조회'
-      : '기타'
+  const bucket = isEdge || (typeof code === 'string' && String(code).includes('NODE')) ? '노드/엣지 검증·조회' : '기타'
   console.warn('[NexionFlow] vue-flow error', {
     code,
     message: err?.message,

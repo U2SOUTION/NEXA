@@ -27,20 +27,16 @@
                   캔버스에서 <strong>연결선을 클릭</strong>해 선택한 뒤 <strong>Delete</strong> 또는 <strong>Backspace</strong>로 제거하거나, 아래 버튼을 사용합니다.
                 </p>
                 <template v-if="selectedEdgeId">
-                  <q-list dense bordered class="rounded-borders q-mb-sm">
-                    <q-item>
-                      <q-item-section>
-                        <q-item-label caption>연결 ID</q-item-label>
-                        <q-item-label class="text-mono text-caption">{{ selectedEdgeId }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item v-if="selectedEdgePair">
-                      <q-item-section>
-                        <q-item-label caption>출발 → 도착 (노드)</q-item-label>
-                        <q-item-label class="text-mono text-caption">{{ selectedEdgePair }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
+                  <div class="nexion-meta-plain q-mb-sm">
+                    <div class="nexion-meta-plain__row">
+                      <span class="nexion-meta-plain__label">연결 ID</span>
+                      <span class="nexion-meta-plain__value text-mono">{{ selectedEdgeId }}</span>
+                    </div>
+                    <div v-if="selectedEdgePair" class="nexion-meta-plain__row">
+                      <span class="nexion-meta-plain__label">출발 → 도착 (노드)</span>
+                      <span class="nexion-meta-plain__value text-mono">{{ selectedEdgePair }}</span>
+                    </div>
+                  </div>
                   <q-btn outline color="negative" size="sm" class="full-width" label="이 연결 끊기" @click="removeSelectedEdge" />
                 </template>
                 <div v-else class="text-caption text-grey-6">선택된 연결선이 없습니다.</div>
@@ -51,32 +47,24 @@
               <div class="nexion-accordion-content">
                 <template v-if="selectedNode">
                   <q-input v-model="labelEdit" class="q-mb-sm" outlined dense label="표시 제목" @blur="commitLabel" @keyup.enter="commitLabel" />
-                  <q-list bordered separator class="rounded-borders q-mb-md">
-                    <q-item>
-                      <q-item-section>
-                        <q-item-label caption>노드 ID</q-item-label>
-                        <q-item-label class="text-mono text-caption">{{ selectedNode.id }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item>
-                      <q-item-section>
-                        <q-item-label caption>Link ID (Phase 1 스텁)</q-item-label>
-                        <q-item-label class="text-mono text-caption">{{ selectedNode.data?.linkId || '—' }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item>
-                      <q-item-section>
-                        <q-item-label caption>유형</q-item-label>
-                        <q-item-label>{{ selectedNode.type === 'nexionGroup' ? '그룹 (부모)' : '카드' }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item v-if="selectedNode.parentNode">
-                      <q-item-section>
-                        <q-item-label caption>부모</q-item-label>
-                        <q-item-label class="text-mono text-caption">{{ selectedNode.parentNode }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
+                  <div class="nexion-meta-plain q-mb-md">
+                    <div class="nexion-meta-plain__row">
+                      <span class="nexion-meta-plain__label">노드 ID</span>
+                      <span class="nexion-meta-plain__value text-mono">{{ selectedNode.id }}</span>
+                    </div>
+                    <div class="nexion-meta-plain__row">
+                      <span class="nexion-meta-plain__label">유형</span>
+                      <span class="nexion-meta-plain__value">{{ selectedNode.type === 'nexionGroup' ? '그룹 (부모)' : '카드' }}</span>
+                    </div>
+                    <div class="nexion-meta-plain__row nexion-meta-plain__row--stack">
+                      <div class="nexion-meta-plain__label">Link ID (Phase 1 스텁)</div>
+                      <div class="nexion-meta-plain__value text-mono">{{ selectedNode.data?.linkId || '—' }}</div>
+                    </div>
+                    <div v-if="selectedNode.parentNode" class="nexion-meta-plain__row">
+                      <span class="nexion-meta-plain__label">부모</span>
+                      <span class="nexion-meta-plain__value text-mono">{{ selectedNode.parentNode }}</span>
+                    </div>
+                  </div>
 
                   <q-btn outline color="negative" size="sm" class="full-width" label="이 노드 삭제" @click="removeCurrent" />
 
@@ -264,5 +252,65 @@ function removeSelectedEdge() {
   overflow: hidden;
   box-sizing: border-box;
   background: transparent;
+}
+
+/* 아코디언 카드(q-list bordered)와 겹쳐 보이지 않게 — 배경·테두리 없는 텍스트 리스트 */
+.nexion-meta-plain {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 2px 0 0;
+}
+
+/* 한 행에 라벨(왼쪽) + 값(오른쪽) */
+.nexion-meta-plain__row {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.08));
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+}
+
+.nexion-meta-plain__label {
+  flex-shrink: 0;
+  max-width: 46%;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--nexa-text-secondary, rgba(0, 0, 0, 0.55));
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.nexion-meta-plain__value {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--nexa-text-primary, inherit);
+  text-align: right;
+  word-break: break-all;
+}
+
+/* Link ID 등 앞으로 길어질 값 — 라벨 위·본문 아래(전체 너비) */
+.nexion-meta-plain__row--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+
+  .nexion-meta-plain__label {
+    max-width: none;
+  }
+
+  .nexion-meta-plain__value {
+    flex: none;
+    text-align: left;
+  }
 }
 </style>
