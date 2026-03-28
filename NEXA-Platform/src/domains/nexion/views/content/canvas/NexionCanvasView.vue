@@ -7,14 +7,15 @@
       :default-edge-options="nexionFlowStore.defaultEdgeOptions"
       :min-zoom="0.15"
       :max-zoom="2"
-      :snap-to-grid="false"
-      :connection-radius="72"
+      :snap-to-grid="nexionUi.snapToGrid"
+      :connection-radius="nexionUi.connectionRadius"
       :zoom-on-double-click="false"
       :nodes-connectable="true"
       :is-valid-connection="isNexionValidConnection"
       :elevate-edges-on-select="true"
       fit-view-on-init
       class="nexion-vue-flow"
+      :style="nexionFlowCssVars"
       @connect="onNexionConnectWrapped"
       @connect-start="onNexionConnectStart"
       @connect-end="onNexionConnectEnd"
@@ -23,14 +24,28 @@
       @node-click="onNodeClick"
     >
       <Background
-        variant="dots"
-        :gap="18"
-        :size="1.25"
-        pattern-color="rgba(25, 118, 210, 0.35)"
-        bg-color="var(--nexa-background, #ececec)"
+        :variant="nexionUi.backgroundVariant"
+        :gap="nexionUi.backgroundDotGap"
+        :size="nexionUi.backgroundDotSize"
+        :pattern-color="nexionUi.backgroundPatternColor"
+        :bg-color="canvasBgResolved"
       />
-      <Controls />
-      <MiniMap pannable zoomable />
+      <Teleport :to="nexionControlsHostEl" :disabled="controlsTeleportDisabled">
+        <Controls />
+      </Teleport>
+      <Teleport :to="nexionMinimapHostEl" :disabled="minimapTeleportDisabled">
+        <MiniMap
+          class="nexion-minimap-teleported"
+          pannable
+          zoomable
+          :width="minimapWidth"
+          :height="minimapHeight"
+          :mask-color="minimapMaskColor"
+          :mask-stroke-color="minimapMaskStrokeColor"
+          :node-color="minimapNodeColor"
+          :node-stroke-color="minimapNodeStrokeColor"
+        />
+      </Teleport>
       <NexionFlowHooks />
     </VueFlow>
 
@@ -41,7 +56,8 @@
 </template>
 
 <script setup>
-import { markRaw, nextTick, onMounted } from 'vue'
+import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import { VueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -52,6 +68,7 @@ import '@vue-flow/controls/dist/style.css'
 import '@vue-flow/minimap/dist/style.css'
 
 import { useNexionFlowStore } from '@domains/nexion/modules/core/stores/nexionFlowStore'
+import { useUserSettingsStore } from '@system/store/userSettingsStore'
 import {
   isNexionFlowDebug,
   nxnDiag,
@@ -60,9 +77,119 @@ import {
 import NexionCardNode from './nodes/NexionCardNode.vue'
 import NexionGroupNode from './nodes/NexionGroupNode.vue'
 import NexionFlowHooks from './NexionFlowHooks.vue'
+import {
+  nexionControlsHostEl,
+  nexionMinimapHostEl,
+} from '@domains/nexion/modules/core/utils/nexionMinimapHost'
 
 const nexionFlowStore = useNexionFlowStore()
 const { nodes, edges } = storeToRefs(nexionFlowStore)
+const userSettings = useUserSettingsStore()
+const $q = useQuasar()
+
+const nexionUi = computed(() => userSettings.settings.nexionFlow)
+
+const nexionFlowCssVars = computed(() => {
+  const n = nexionUi.value
+  return {
+    '--nxn-edge-stroke': n.edgeStrokeColor,
+    '--nxn-edge-width': String(n.edgeStrokeWidth),
+    '--nxn-conn-stroke': n.connectionStrokeColor,
+    '--nxn-conn-width': String(n.connectionStrokeWidth),
+  }
+})
+
+const canvasBgResolved = computed(() => {
+  const c = nexionUi.value.canvasBgColor?.trim()
+  return c || 'var(--nexa-background, #ececec)'
+})
+
+function minimapColorOrAuto(saved, darkFallback, lightFallback) {
+  const t = saved?.trim()
+  if (t) return t
+  return $q.dark.isActive ? darkFallback : lightFallback
+}
+
+const minimapMaskColor = computed(() =>
+  minimapColorOrAuto(
+    nexionUi.value.minimapMaskColor,
+    'rgba(255, 255, 255, 0.08)',
+    'rgba(0, 0, 0, 0.08)',
+  ),
+)
+const minimapMaskStrokeColor = computed(() =>
+  minimapColorOrAuto(
+    nexionUi.value.minimapMaskStrokeColor,
+    'rgba(255, 255, 255, 0.2)',
+    'rgba(0, 0, 0, 0.18)',
+  ),
+)
+const minimapNodeColor = computed(() =>
+  minimapColorOrAuto(
+    nexionUi.value.minimapNodeColor,
+    'rgba(100, 181, 246, 0.4)',
+    'rgba(25, 118, 210, 0.35)',
+  ),
+)
+const minimapNodeStrokeColor = computed(() =>
+  minimapColorOrAuto(
+    nexionUi.value.minimapNodeStrokeColor,
+    'rgba(144, 202, 249, 0.65)',
+    'rgba(25, 118, 210, 0.85)',
+  ),
+)
+
+/** 우측 호스트 없을 때(캔버스 코너) 기본 크기 */
+const MINIMAP_FLOAT_W = 200
+const MINIMAP_FLOAT_H = 120
+
+const minimapWidth = ref(MINIMAP_FLOAT_W)
+const minimapHeight = ref(MINIMAP_FLOAT_H)
+
+/** 대상이 없거나 언마운트 직전에 비워졌을 때는 캔버스 안에 렌더( Teleport 비활성 ) */
+const minimapTeleportDisabled = computed(() => nexionMinimapHostEl.value == null)
+const controlsTeleportDisabled = computed(() => nexionControlsHostEl.value == null)
+
+let minimapResizeObserver = null
+
+function setMinimapDimensions(w, h) {
+  const iw = Math.max(64, Math.round(w))
+  const ih = Math.max(48, Math.round(h))
+  minimapWidth.value = iw
+  minimapHeight.value = ih
+}
+
+watch(
+  nexionMinimapHostEl,
+  (el) => {
+    minimapResizeObserver?.disconnect()
+    minimapResizeObserver = null
+
+    if (!el) {
+      setMinimapDimensions(MINIMAP_FLOAT_W, MINIMAP_FLOAT_H)
+      return
+    }
+
+    minimapResizeObserver = new ResizeObserver((entries) => {
+      const { width, height } = entries[0]?.contentRect ?? {}
+      if (width == null || width < 4) return
+      const h = height != null && height >= 4 ? height : width * (MINIMAP_FLOAT_H / MINIMAP_FLOAT_W)
+      setMinimapDimensions(width, h)
+    })
+    minimapResizeObserver.observe(el)
+    const r = el.getBoundingClientRect()
+    if (r.width >= 4) {
+      const h = r.height >= 4 ? r.height : r.width * (MINIMAP_FLOAT_H / MINIMAP_FLOAT_W)
+      setMinimapDimensions(r.width, h)
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  minimapResizeObserver?.disconnect()
+  minimapResizeObserver = null
+})
 
 const NXN_LOG = import.meta.env.DEV
 
@@ -257,13 +384,15 @@ onMounted(() => {
   cursor: grabbing;
 }
 
-/* SVG stroke에 CSS 변수가 안 먹는 환경 대비 */
+/* 엣지·드래그 연결선 — 사용자 설정(`--nxn-*`) + 설정 화면 기본값 */
 .nexion-vue-flow :deep(.vue-flow__edge-path) {
-  stroke: #1976d2;
+  stroke: var(--nxn-edge-stroke, #1976d2);
+  stroke-width: var(--nxn-edge-width, 2);
 }
 
 .nexion-vue-flow :deep(.vue-flow__connection-path) {
-  stroke: #1976d2;
+  stroke: var(--nxn-conn-stroke, #1976d2);
+  stroke-width: var(--nxn-conn-width, 2);
 }
 
 /*
@@ -279,6 +408,100 @@ onMounted(() => {
 .nexion-vue-flow :deep(.vue-flow__node .vue-flow__handle) {
   z-index: 10;
   pointer-events: auto;
+}
+
+/*
+ * MiniMap Teleport 시 VueFlow 밖으로 나가므로 `.vue-flow__panel` 코너 고정을 풀고
+ * 호스트 가로 100%에 맞춤. 배경은 투명·테마 톤(props + 투명 패널).
+ */
+#nexion-minimap-host .vue-flow__panel {
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+#nexion-minimap-host .vue-flow__panel svg,
+#nexion-minimap-host .vue-flow__minimap {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  background: transparent;
+}
+
+/* Controls: Map 라벨 오른쪽 가로 한 줄 */
+#nexion-controls-host .vue-flow__panel {
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  margin: 0;
+  width: auto;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+#nexion-controls-host .vue-flow__controls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+#nexion-controls-host .vue-flow__controls-button {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  padding: 0;
+  background: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  box-shadow: none;
+}
+
+#nexion-controls-host .vue-flow__controls-button:hover {
+  background: var(--nexa-surface-hover);
+}
+
+#nexion-controls-host .vue-flow__controls-button svg {
+  max-width: 12px;
+  max-height: 12px;
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+  color: var(--nexa-text-secondary);
+}
+
+/* 텔레포트 안 될 때(캔버스 코너)에도 컨트롤이 다크 모드에서 어색하지 않도록 */
+.nexion-vue-flow .vue-flow__controls-button {
+  background: var(--nexa-surface);
+  border: 1px solid var(--nexa-border-color);
+  box-shadow: none;
+}
+
+.nexion-vue-flow .vue-flow__controls-button:hover {
+  background: var(--nexa-surface-hover);
+}
+
+.nexion-vue-flow .vue-flow__controls-button svg {
+  fill: currentColor;
+  color: var(--nexa-text-secondary);
 }
 </style>
 

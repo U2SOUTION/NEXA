@@ -18,10 +18,53 @@ export type UserSettingsPartsManagement = {
   binScale?: number
 }
 
+/** Nexion(Vue Flow) 캔버스 — 설정 UI에서 조정, localStorage `userSettings`에 저장 */
+export type UserSettingsNexionFlow = {
+  edgeStrokeColor: string
+  edgeStrokeWidth: number
+  connectionStrokeColor: string
+  connectionStrokeWidth: number
+  /** 비우면 `var(--nexa-background)` 계열 사용 */
+  canvasBgColor: string
+  backgroundDotGap: number
+  backgroundDotSize: number
+  backgroundPatternColor: string
+  backgroundVariant: 'dots' | 'lines' | 'cross'
+  /** 핸들에 연결 끌어 놓을 때 스냅 거리(px) */
+  connectionRadius: number
+  snapToGrid: boolean
+  /** 비우면 라이트/다크에 맞는 기본 미니맵 톤 사용 */
+  minimapMaskColor: string
+  minimapMaskStrokeColor: string
+  minimapNodeColor: string
+  minimapNodeStrokeColor: string
+}
+
 export type UserSettings = {
   theme: UserSettingsTheme
   drawer: UserSettingsDrawer
   partsManagement: UserSettingsPartsManagement
+  nexionFlow: UserSettingsNexionFlow
+}
+
+export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
+  return {
+    edgeStrokeColor: '#1976d2',
+    edgeStrokeWidth: 2,
+    connectionStrokeColor: '#1976d2',
+    connectionStrokeWidth: 2,
+    canvasBgColor: '',
+    backgroundDotGap: 18,
+    backgroundDotSize: 1.25,
+    backgroundPatternColor: 'rgba(25, 118, 210, 0.35)',
+    backgroundVariant: 'dots',
+    connectionRadius: 72,
+    snapToGrid: false,
+    minimapMaskColor: '',
+    minimapMaskStrokeColor: '',
+    minimapNodeColor: '',
+    minimapNodeStrokeColor: '',
+  }
 }
 
 const defaultSettings: UserSettings = {
@@ -38,6 +81,7 @@ const defaultSettings: UserSettings = {
     shelfBinDisplayMode: 'scroll',
     binScale: 0.5,
   },
+  nexionFlow: getDefaultNexionFlowUi(),
 }
 
 export const useUserSettingsStore = defineStore('userSettings', () => {
@@ -60,6 +104,11 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
             ...defaultSettings.partsManagement,
             ...settings.value.partsManagement,
             ...parsedSettings.partsManagement,
+          },
+          nexionFlow: {
+            ...defaultSettings.nexionFlow,
+            ...settings.value.nexionFlow,
+            ...(parsedSettings.nexionFlow ?? {}),
           },
         }
       } catch (error) {
@@ -125,6 +174,19 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     saveSettings()
   }
 
+  const patchNexionFlowSettings = (partial: Partial<UserSettingsNexionFlow>) => {
+    settings.value.nexionFlow = {
+      ...settings.value.nexionFlow,
+      ...partial,
+    }
+    saveSettings()
+  }
+
+  const resetNexionFlowSettings = () => {
+    settings.value.nexionFlow = getDefaultNexionFlowUi()
+    saveSettings()
+  }
+
   watch(
     () => settings.value.theme.isDarkMode,
     (newValue) => {
@@ -144,5 +206,7 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     setRightDrawerOpen,
     setShelfBinDisplayMode,
     setBinScale,
+    patchNexionFlowSettings,
+    resetNexionFlowSettings,
   }
 })

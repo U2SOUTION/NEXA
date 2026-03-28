@@ -38,9 +38,10 @@ const { activeTab } = storeToRefs(settingsStore)
 const menuItems = [
   { id: 'shortcuts', label: '단축키 설정', icon: 'keyboard' },
   { id: 'layout', label: '레이아웃 설정', icon: 'dashboard' },
+  { id: 'nexion', label: 'Nexion 캔버스', icon: 'account_tree' },
   { id: 'iot', label: 'IoT 장치 구성', icon: 'devices' },
   { id: 'system', label: '시스템 운영', icon: 'tune' },
-  { id: 'theme', label: '테마 및 디자인', icon: 'palette' }
+  { id: 'theme', label: '테마 및 디자인', icon: 'palette' },
 ]
 
 function setActiveTab(tabId) {

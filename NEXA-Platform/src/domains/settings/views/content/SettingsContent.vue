@@ -8,6 +8,9 @@
       <q-tab-panel name="layout" class="q-pa-none">
         <LayoutSettings :settings="layoutSettings" />
       </q-tab-panel>
+      <q-tab-panel name="nexion" class="q-pa-none">
+        <NexionFlowSettings />
+      </q-tab-panel>
       <q-tab-panel name="iot" class="q-pa-none">
         <IotSettings :settings="iotSettings" />
       </q-tab-panel>
@@ -37,6 +40,7 @@ import LayoutSettings from '../../components/LayoutSettings.vue'
 import ShortcutsSettings from '../../components/ShortcutsSettings.vue'
 import IotSettings from '../../components/IotSettings.vue'
 import SystemSettings from '../../components/SystemSettings.vue'
+import NexionFlowSettings from '../../components/NexionFlowSettings.vue'
 
 const settingsStore = useSettingsStore()
 const { activeTab } = storeToRefs(settingsStore)

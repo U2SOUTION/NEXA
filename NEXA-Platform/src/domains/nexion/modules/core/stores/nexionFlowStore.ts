@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref, shallowRef, triggerRef } from 'vue'
+import { computed, ref, shallowRef, triggerRef } from 'vue'
 import type { Edge, GraphEdge, GraphNode, Node } from '@vue-flow/core'
 import { applyEdgeChanges, applyNodeChanges, addEdge as vfAddEdge } from '@vue-flow/core'
 import type { Connection, EdgeChange, NodeChange } from '@vue-flow/core'
 import { v4 as uuidv4 } from 'uuid'
+
+import { useUserSettingsStore } from '@system/store/userSettingsStore'
 
 import { isNexionFlowDebug, nxnDiag } from '../utils/nexionFlowDebug'
 
@@ -13,11 +15,6 @@ function shortLinkId(): string {
   return `nxn-${uuidv4().slice(0, 8)}`
 }
 
-const defaultEdgeOptions = {
-  type: 'smoothstep' as const,
-  style: { stroke: '#1976d2', strokeWidth: 2 },
-}
-
 const NXN_LOG = import.meta.env.DEV
 
 function nxnLog(...args: unknown[]) {
@@ -25,6 +22,16 @@ function nxnLog(...args: unknown[]) {
 }
 
 export const useNexionFlowStore = defineStore('nexionFlow', () => {
+  const userSettings = useUserSettingsStore()
+
+  const defaultEdgeOptions = computed(() => ({
+    type: 'smoothstep' as const,
+    style: {
+      stroke: userSettings.settings.nexionFlow.edgeStrokeColor,
+      strokeWidth: userSettings.settings.nexionFlow.edgeStrokeWidth,
+    },
+  }))
+
   const nodes = shallowRef<Node[]>([])
   /** 연결 반영은 v-model·addEdge 모두 새 배열 할당 — shallowRef만으로는 뷰 갱신이 약할 때 triggerRef 보강 */
   const edges = shallowRef<Edge[]>([])
@@ -84,7 +91,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     // source/target/sourceHandle/targetHandle는 conn이 최종 우선(스프레드 순서)
     const next = vfAddEdge(
       {
-        ...defaultEdgeOptions,
+        ...defaultEdgeOptions.value,
         id: `e-${conn.source}-${conn.target}-${uuidv4().slice(0, 6)}`,
         ...conn,
         // setEdges → createGraphEdges 재검증 시 핸들이 비면 엣지가 통째로 제거될 수 있어 명시 보정
