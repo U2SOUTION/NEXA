@@ -7,11 +7,14 @@
     <div class="nexion-group-node__slot">
       <span v-if="showDetail" class="text-caption text-grey">자식 카드는 그룹 안에 배치 (부모–자식)</span>
     </div>
+    <Handle id="in" class="nexion-group-node__handle" type="target" :position="Position.Left" />
+    <Handle id="out" class="nexion-group-node__handle" type="source" :position="Position.Right" />
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { Handle, Position } from '@vue-flow/core'
 import { storeToRefs } from 'pinia'
 import { useNexionFlowStore } from '@domains/nexion/modules/core/stores/nexionFlowStore'
 
@@ -67,5 +70,16 @@ const showDetail = computed(() => store.showNodeDetail(viewportZoom.value))
   flex: 1;
   padding: 8px;
   pointer-events: none;
+}
+
+.nexion-group-node__handle {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+  background: var(--nexa-primary, #1976d2);
+  border: 2px solid var(--nexa-background, #fff);
+  z-index: 10;
+  pointer-events: auto;
 }
 </style>

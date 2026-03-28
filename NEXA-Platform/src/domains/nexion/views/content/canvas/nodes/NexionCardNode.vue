@@ -1,10 +1,11 @@
 <template>
   <div class="nexion-card-node" :class="{ 'nexion-card-node--selected': selected }">
-    <Handle id="in" class="nexion-card-node__handle" type="target" :position="Position.Left" />
+    <!-- 본문을 핸들보다 먼저 두면 제목 블록이 왼쪽 in 핸들을 덮어 elementFromPoint가 연결 실패함 → 핸들은 맨 뒤 + z-index로 최상위 -->
     <div class="nexion-card-node__title">{{ data.label }}</div>
     <div v-if="showDetail" class="nexion-card-node__meta text-caption">{{ data.linkId }}</div>
     <div v-if="showDetail" class="nexion-card-node__hint text-caption">Why Chain · WILL 실선 연결</div>
-    <Handle class="nexion-card-node__handle" type="source" :position="Position.Right" />
+    <Handle id="in" class="nexion-card-node__handle" type="target" :position="Position.Left" />
+    <Handle id="out" class="nexion-card-node__handle" type="source" :position="Position.Right" />
   </div>
 </template>
 
@@ -73,5 +74,7 @@ const showDetail = computed(() => store.showNodeDetail(viewportZoom.value))
   min-height: 14px;
   background: var(--nexa-primary, #1976d2);
   border: 2px solid var(--nexa-background, #fff);
+  z-index: 10;
+  pointer-events: auto;
 }
 </style>

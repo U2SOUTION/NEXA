@@ -4,14 +4,15 @@
 </template>
 
 <script setup>
-import { watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { watch, onMounted, onUnmounted, nextTick, toRaw } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useVueFlow } from '@vue-flow/core'
 import { useNexionFlowStore } from '@domains/nexion/modules/core/stores/nexionFlowStore'
+import { isNexionFlowDebug, nxnDiag } from '@domains/nexion/modules/core/utils/nexionFlowDebug'
 
-const { viewport, screenToFlowCoordinate, fitView } = useVueFlow()
+const { viewport, screenToFlowCoordinate, fitView, updateNodeInternals, setEdges } = useVueFlow()
 const store = useNexionFlowStore()
-const { pendingFitNodeId } = storeToRefs(store)
+const { pendingFitNodeId, edges, nodes } = storeToRefs(store)
 
 const PANE_SELECTOR = '.nexion-vue-flow .vue-flow__pane'
 
@@ -101,9 +102,60 @@ watch(pendingFitNodeId, (id) => {
   })
 })
 
+/**
+ * 엣지 추가 시 핸들 bounds 갱신. `deep: true`로 edges를 보면 Vue Flow 내부가 엣지 객체를 자주 바꿔
+ * updateNodeInternals ↔ 반응형이 무한에 가깝게 도는 경우가 있어 **id 시그니처만** 감시.
+ */
+function getEdgeLayoutSignature() {
+  return edges.value
+    .map((e) => [e.id, e.source, e.target, e.sourceHandle ?? '', e.targetHandle ?? ''].join(':'))
+    .sort()
+    .join('|')
+}
+
+/**
+ * 같은 화면에 머물 때 v-model만으로는 내부 store 엣지가 한 박자 늦거나 빠지는 경우가 있어
+ * (다른 도메인 갔다 오면 리마운트로 복구되는 현상과 동일).
+ * Pinia SSOT를 `setEdges`로 한 번 더 밀어 넣어 내부와 DOM을 맞춤.
+ */
+watch(
+  () => getEdgeLayoutSignature(),
+  async () => {
+    await nextTick()
+    const plain = edges.value.map((e) => ({ ...toRaw(e) }))
+    setEdges(plain)
+    await nextTick()
+    updateNodeInternals()
+    if (isNexionFlowDebug()) {
+      const domEdges = document.querySelectorAll('.nexion-vue-flow .vue-flow__edge').length
+      const domPaths = document.querySelectorAll('.nexion-vue-flow .vue-flow__edge-path').length
+      nxnDiag('edges 시그니처 → setEdges + updateNodeInternals 후', {
+        piniaEdgeCount: edges.value.length,
+        domEdgeLayers: domEdges,
+        domEdgePaths: domPaths,
+      })
+    }
+  },
+)
+
+watch(
+  () => nodes.value.length,
+  () => {
+    nextTick(() => updateNodeInternals())
+  },
+)
+
 onMounted(() => {
   updateSpawnFromViewport()
   scheduleBindPane()
+  /* 라우트 복귀 시 Pinia에만 엣지가 있는 초기 상태 동기화 */
+  nextTick(async () => {
+    if (!edges.value.length) return
+    const plain = edges.value.map((e) => ({ ...toRaw(e) }))
+    setEdges(plain)
+    await nextTick()
+    updateNodeInternals()
+  })
 })
 
 onUnmounted(() => {

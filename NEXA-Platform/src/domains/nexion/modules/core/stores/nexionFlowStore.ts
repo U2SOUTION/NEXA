@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref, shallowRef } from 'vue'
+import { ref, shallowRef, triggerRef } from 'vue'
 import type { Edge, GraphEdge, GraphNode, Node } from '@vue-flow/core'
 import { applyEdgeChanges, applyNodeChanges, addEdge as vfAddEdge } from '@vue-flow/core'
 import type { Connection, EdgeChange, NodeChange } from '@vue-flow/core'
 import { v4 as uuidv4 } from 'uuid'
+
+import { isNexionFlowDebug, nxnDiag } from '../utils/nexionFlowDebug'
 
 const LOD_ZOOM_DETAIL = 0.55
 
@@ -13,11 +15,18 @@ function shortLinkId(): string {
 
 const defaultEdgeOptions = {
   type: 'smoothstep' as const,
-  style: { stroke: 'var(--nexa-primary, #1976d2)', strokeWidth: 2 },
+  style: { stroke: '#1976d2', strokeWidth: 2 },
+}
+
+const NXN_LOG = import.meta.env.DEV
+
+function nxnLog(...args: unknown[]) {
+  if (NXN_LOG) console.log('[NexionFlow]', ...args)
 }
 
 export const useNexionFlowStore = defineStore('nexionFlow', () => {
   const nodes = shallowRef<Node[]>([])
+  /** 연결 반영은 v-model·addEdge 모두 새 배열 할당 — shallowRef만으로는 뷰 갱신이 약할 때 triggerRef 보강 */
   const edges = shallowRef<Edge[]>([])
   const selectedNodeId = ref<string | null>(null)
   const viewportZoom = ref(1)
@@ -61,15 +70,43 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
   }
 
   function onConnect(conn: Connection) {
-    if (!conn.source || !conn.target) return
-    edges.value = vfAddEdge(
+    nxnLog('onConnect payload', { ...conn })
+    if (!conn.source || !conn.target) {
+      nxnLog('onConnect skipped: missing source or target')
+      return
+    }
+    const dup = edges.value.some((e) => e.source === conn.source && e.target === conn.target)
+    if (dup) {
+      nxnLog('onConnect skipped: duplicate source→target', conn.source, '→', conn.target)
+      return
+    }
+    const before = edges.value.length
+    // source/target/sourceHandle/targetHandle는 conn이 최종 우선(스프레드 순서)
+    const next = vfAddEdge(
       {
-        ...conn,
-        id: `e-${conn.source}-${conn.target}-${uuidv4().slice(0, 6)}`,
         ...defaultEdgeOptions,
+        id: `e-${conn.source}-${conn.target}-${uuidv4().slice(0, 6)}`,
+        ...conn,
+        // setEdges → createGraphEdges 재검증 시 핸들이 비면 엣지가 통째로 제거될 수 있어 명시 보정
+        sourceHandle: conn.sourceHandle ?? 'out',
+        targetHandle: conn.targetHandle ?? 'in',
       },
       edges.value,
     ) as Edge[]
+    edges.value = next
+    triggerRef(edges)
+    nxnLog('onConnect applied addEdge', { before, after: next.length, lastEdge: next[next.length - 1] })
+    if (isNexionFlowDebug()) {
+      const le = next[next.length - 1]
+      nxnDiag('onConnect 직후 마지막 엣지(필드)', {
+        id: le?.id,
+        source: le?.source,
+        target: le?.target,
+        sourceHandle: le?.sourceHandle,
+        targetHandle: le?.targetHandle,
+        type: le?.type,
+      })
+    }
   }
 
   function addDocNodeAtSpawn() {
