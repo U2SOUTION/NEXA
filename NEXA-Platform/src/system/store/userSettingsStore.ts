@@ -26,9 +26,8 @@ export type UserSettingsNexionFlow = {
   connectionStrokeWidth: number
   /** 비우면 `var(--nexa-background)` 계열 사용 */
   canvasBgColor: string
-  /** 핸들에 연결 끌어 놓을 때 스냅 거리(px) */
+  /** 핸들 연결 스냅 거리(px). 0이면 끔(핸들 정중앙에만 연결), 1–120 사용 */
   connectionRadius: number
-  snapToGrid: boolean
   /** 비우면 라이트/다크에 맞는 기본 미니맵 톤 사용 */
   minimapMaskColor: string
   minimapMaskStrokeColor: string
@@ -60,13 +59,22 @@ export function sanitizeNexionEdgeStrokeWidth(raw: number): number {
   return Math.min(0.9, Math.max(0.3, v))
 }
 
-/** 제거된 Vue Flow Background(점/선 패턴) 설정 — 예전 localStorage 정리용 */
-const LEGACY_NEXION_FLOW_GRID_KEYS = [
+/** 제거된 nexionFlow 필드 — 예전 localStorage 정리용 */
+const LEGACY_NEXION_FLOW_KEYS = [
   'backgroundDotGap',
   'backgroundDotSize',
   'backgroundPatternColor',
   'backgroundVariant',
+  'snapToGrid',
 ] as const
+
+/** 핸들 근접 연결 스냅 반경 */
+function sanitizeNexionConnectionRadius(raw: number): number {
+  const n = Number(raw)
+  const fallback = 72
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(120, Math.max(0, Math.round(n)))
+}
 
 export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
   return {
@@ -76,7 +84,6 @@ export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
     connectionStrokeWidth: 2,
     canvasBgColor: '',
     connectionRadius: 72,
-    snapToGrid: false,
     minimapMaskColor: '',
     minimapMaskStrokeColor: '',
     minimapNodeColor: '',
@@ -129,8 +136,9 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
               ...(parsedSettings.nexionFlow ?? {}),
             }
             merged.edgeStrokeWidth = sanitizeNexionEdgeStrokeWidth(merged.edgeStrokeWidth)
+            merged.connectionRadius = sanitizeNexionConnectionRadius(merged.connectionRadius)
             const loose = merged as unknown as Record<string, unknown>
-            for (const k of LEGACY_NEXION_FLOW_GRID_KEYS) delete loose[k]
+            for (const k of LEGACY_NEXION_FLOW_KEYS) delete loose[k]
             return merged
           })(),
         }
@@ -204,6 +212,9 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     }
     if (partial.edgeStrokeWidth !== undefined) {
       next.edgeStrokeWidth = sanitizeNexionEdgeStrokeWidth(partial.edgeStrokeWidth)
+    }
+    if (partial.connectionRadius !== undefined) {
+      next.connectionRadius = sanitizeNexionConnectionRadius(partial.connectionRadius)
     }
     settings.value.nexionFlow = next
     saveSettings()

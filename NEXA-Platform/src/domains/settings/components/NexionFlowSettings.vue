@@ -39,10 +39,12 @@
     </div>
 
     <div class="settings-section q-mb-lg">
-      <div class="text-subtitle1 text-weight-medium q-mb-sm">연결·그리드</div>
-      <div class="text-caption q-mb-xs">연결 스냅 반경 ({{ nx.connectionRadius }}px)</div>
-      <q-slider class="q-mb-md" :model-value="nx.connectionRadius" :min="32" :max="120" :step="4" dense color="primary" @update:model-value="(v) => patch({ connectionRadius: v })" />
-      <q-toggle :model-value="nx.snapToGrid" label="그리드에 스냅" @update:model-value="(v) => patch({ snapToGrid: v })" />
+      <div class="text-subtitle1 text-weight-medium q-mb-sm">연결 스냅</div>
+      <p class="text-caption text-grey-7 q-mb-xs">
+        선을 끌 때 핸들에 <strong>얼마나 가까이</strong> 가면 붙일지입니다. <strong>0</strong>이면 스냅을 쓰지 않고, 핸들 중심에 맞출 때만 연결됩니다.
+      </p>
+      <div class="text-caption q-mb-xs">스냅 반경 ({{ nx.connectionRadius }}px)</div>
+      <q-slider :model-value="nx.connectionRadius" :min="0" :max="120" :step="4" dense color="primary" @update:model-value="(v) => patch({ connectionRadius: v })" />
     </div>
 
     <div class="settings-section q-mb-lg">

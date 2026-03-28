@@ -8,7 +8,6 @@
       :connection-line-style="nexionConnectionLineStyle"
       :min-zoom="0.15"
       :max-zoom="2"
-      :snap-to-grid="nexionUi.snapToGrid"
       :connection-radius="nexionUi.connectionRadius"
       :zoom-on-double-click="false"
       :nodes-connectable="true"
