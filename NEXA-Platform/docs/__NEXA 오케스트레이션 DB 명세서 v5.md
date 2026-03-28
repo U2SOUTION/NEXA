@@ -42,6 +42,15 @@ Self 공통 자산 연동:
 
 - 닉시(`NEXA NIXIE`) 경유 채널(`사용자 -> NEXU Canvas -> 오케스트레이션`)과 직접 경로(`사용자 -> 오케스트레이션`)는 동일한 `nexa_self_*` 플랫폼 공동 자산 규칙을 사용한다.
 
+### 0A-1. NFS·Inode·동기화 원장 (`doc_anchor`, `doc_sync_state`)
+
+실행 DB와 지식 OS의 **경로·앵커·동기화**는 `_KNOWLEDGE` 통합 SSOT를 1순위로 따른다.
+
+- **통합 DDL·필드 명세:** `docs/_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`, `docs/_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md` §2.2·§2.12.
+- **`nexa_knowledge_traceability_paths`:** 논리 경로와 앵커 UUID 연결(Inode·NFS). 플랫폼·Nexion 공통 앵커 컬럼명은 **`doc_anchor`**(과거 `anchor_id` 폐기). 전체 NFS 컬럼 세트·RLS·선택 인덱스는 `[NXN] [SCHM]` §4·`[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.sql` §1-A·§3.
+- **`nexa_knowledge_doc_sync_state`:** PK **`sync_id`**, 식별 **`(project_id, doc_anchor)`**, 다도메인 **`responsible_domain`**, 잠금 **`lock_metadata`**, 해시 **`prev_source_hash`/`curr_source_hash`**, 상태 **`ok|changed|missing|conflict|error`** — **파일 실종·유예·삭제의 단일 머신은 아님**; 그 역할은 **`nexa_knowledge_traceability_paths` + `[NXN] [SCHM]` §4.4.1**이며 본 테이블은 **보조 헬스**다. 상세는 `[NXN] [SCHM]` §6·§4.4.2.
+- **`project_id` (Nexion·지식 NFS):** 위 원장들의 **`project_id` NOT NULL**은 **통합 DB에서의 테넌트·RLS 구획**이다. **Nexion을 별도 DB로 쪼갤 필요는 없고**, **“비즈니스 워크플로 프로젝트 = Nexion 제품 정의”**와도 동일시하지 않는다. 문장 SSOT: `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1.2**, `[NXN] [API] ...` **§2.2.1**.
+
 ---
 
 ## 0. Capability ID(기능 자격 ID) 전제
@@ -144,7 +153,7 @@ Self 공통 자산 연동:
 #### 비고
 
 - `project_logs`/`project_knowledge`는 5W1H SMALLINT 6컬럼 완전 분리
-- **`project_logs` NIXIE·족보:** 한 Soul이 복수 Shell에 나타날 수 있으므로 **발생지** `source_shell_id`와 **연주·피드백 대상** `target_shell_id`로 서사 추적. `confidence_score` < `project_settings.user_defined_threshold`이면 **`nixie_feedback`**에 `error_token`·`parser_version`·`user_defined_threshold_snapshot` 등을 기록해 캔버스 **Jitter**(빛의 떨림)와 동일 행으로 강결합한다. DDL: `__NEXA 오케스트레이션 스키마 DDL v5.md` §1-2·§0C-4·§3.
+- **`project_logs` NIXIE·족보:** 한 Soul이 복수 Shell에 나타날 수 있으므로 **발생지** `source_shell_id`와 **연주·피드백 대상** `target_shell_id`로 서사 추적. `confidence_score` < `project_settings.user_defined_threshold`이면 **`nixie_feedback`**에 `error_token`·`parser_version`·`user_defined_threshold_snapshot` 등을 기록해 **NEXA NIXIE**가 NEXU 등 쉘 **표면에서 연출하는 Jitter**(빛의 떨림)와 동일 행으로 강결합한다. Nexion 캔버스 표현 주체·용어는 `[NXN] [UIUX]` **§4.3.1**과 맞춘다. DDL: `__NEXA 오케스트레이션 스키마 DDL v5.md` §1-2·§0C-4·§3.
 - **`project_settings.vi_threshold` / `es_threshold`:** VI(활력)·ES(정서)가 임계 미만이면 Low-Entropy·출력 억제 등 Empathy 제동. NULL이면 플랫폼 기본 정책.
 - **`project_agent_sessions` ↔ `project_self_facet_runtime`:** 세션은 UNLOGGED로 고빈도 갱신, 런타임 테이블은 세션 만료 후에도 마지막 facet·코일 값 복원에 사용.
 - `project_agent_sessions`, `project_user_presence`는 휘발성 데이터 특성상 UNLOGGED/TTL 전략 권장

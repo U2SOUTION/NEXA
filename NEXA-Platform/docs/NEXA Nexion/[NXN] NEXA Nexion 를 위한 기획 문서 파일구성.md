@@ -8,14 +8,16 @@
 
 **Nexion ≠ 플랫폼 `project`:** `project_id`·`project_members`는 통합 DB·RLS의 **테넌트 구획**이지 Nexion 제품 정의의 중심이 아니다. 확장(Extension) 등은 **별도 프로그램**이다. 상세는 `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1.1**.
 
+**진행·요구사항 SSOT:** `[NXN] [PRD] Nexion 기능과 작업 순서.md` — 기능 범위, **Phase 1~4·Ext 순서**, DoD, `_KNOWLEDGE` 필드 정합 이슈(체크리스트). **실행용 `[ ]` 항목**은 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md`(Phase 번호는 PRD와 동일).
+
 **문서 읽기 계층(비중):**
 
 | 계층 | 문서(예시) | 용도 |
 |------|------------|------|
-| **본문(핵심)** | `[NXN] [CNCP]`, `[NXN] [UIUX]`, `[NXN] [ARCH] NFS ...`, `[NXN] [SCHM]`, `[NXN] [DDL]`, `[NXN] [API]` | 제품 정의·스키마·API·NFS 운영의 **직접 근거**. |
+| **본문(핵심)** | `[NXN] [PRD]`, `[NXN] [CNCP]`, `[NXN] [UIUX]`, `[NXN] [ARCH] NFS ...`, `[NXN] [SCHM]`, `[NXN] [DDL]`, `[NXN] [API]` | PRD는 **진행·Phase SSOT**; 나머지는 제품 정의·스키마·API·NFS **직접 근거**. |
 | **부록·참고** | `NEXA 부록-협업 스택·큐·오케스트레이션 흐름·머메이드.md`, 플랫폼 `__NEXA 오케스트레이션 스키마 DDL v5` 등 | 오케스트레이션·협업 스택 **맥락**; Nexion 코어 구현 순서의 **선행 조건로 두지 않음**(Tier B·배포 시 맞춤). |
 
-구현 티어(Tier A/B)·Phase·API 분리는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두, `[NXN] [API] ...` **§1.1**을 본다.
+구현 티어(Tier A/B)·**코어 Phase 순서**는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**를 SSOT로 하고, 티어 표·체크박스는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두, API 분리는 `[NXN] [API] ...` **§1.1**을 본다.
 
 ---
 
@@ -30,13 +32,18 @@
 - **`CNCP` (Concept):** 철학, 전략, 서사적 배경 설계.
 - **`ARCH` (Architecture):** 시스템 구조, 노드 연결 및 위상 연산 로직.
 - **`SPEC` (Specification):** 기능 제원, API 계약, 5W1H 매핑 규격.
-- **`UIUX` (Interface):** Vue Flow 노드 연출, Lumina/Jitter 시각 피드백 가이드.
+- **`UIUX` (Interface):** Vue Flow 노드 연출, **§4.3.1 NEXA NIXIE 시각 규약**, Lumina·Jitter·`nixie_lumina_profile` 정합.
 - **`SCHM` (Schema):** 지식 베이스 및 Capability ID 연동 DDL(명세).
 - **`DDL` (DDL):** 실행 가능한 CREATE/INDEX/TRIGGER/RLS 등 쿼리 모음(명세와 분리).
+- **`PRD` (Product Requirements):** 요구사항, 구현 순서·전략, DoD, Phase 번호 SSOT(§3.2).
 
 ---
 
 ### 3. NEXA Nexion 기획 문서 파일명(현재 폴더 기준)
+
+#### **[Phase 0] 요구사항·진행 그림 (SSOT)**
+
+- `[NXN] [PRD] Nexion 기능과 작업 순서.md`
 
 #### **[Phase 1] 개념 및 철학 (Core Philosophy)**
 
@@ -57,7 +64,7 @@
 **스키마와 직결되는 데이터 축:**
 
 - **지능형 서사 파일 시스템(NFS) 인덱스:** 물리 폴더 구조와 논리 카드 계층을 연결하는 `nexa_knowledge_traceability_paths` 테이블이 핵심이다. **Inode** 역할로 탐색기에서의 위치 변경을 앵커 ID로 추적한다.
-- **문서 동기화 및 해시 관리:** `nexa_knowledge_doc_sync_state`로 외부 탐색기에서의 파일 수정·삭제·제목 변경을 감지하고 `last_sync_status`를 관리한다.
+- **문서 동기화 및 해시 관리:** 외부 탐색기 변화의 **상태 머신(유예·삭제)** 은 `nexa_knowledge_traceability_paths` + SCHM **§4.4.1**; `nexa_knowledge_doc_sync_state`는 해시·잡·다도메인 **보조 헬스**(SPEC §2.2·SCHM §6).
 - **Link ID 및 접두어 매핑:** 카드별 Link ID(접두어)와 실제 파일명을 양방향으로 동기화하기 위한 참조 무결성 제약이 필요하다.
 - **고아 자산(Orphaned) 관리:** 노드와 연결되지 않은 문서를 식별하기 위한 `status` 및 Nexion 전용 연결 테이블 `nexa_knowledge_nexion_doc_node_links`가 정의된다.
 

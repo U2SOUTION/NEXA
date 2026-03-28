@@ -33,14 +33,16 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 - **무결성:** Link ID·경로·연결 상태는 CHECK·유니크·RLS 등으로 강제한다.
 - **복구성:** 외부 변경은 즉시 물리 삭제하지 않고 상태 전이(`active` → `moved` 등)로 처리한다.
 
-### 2.1 (보충) `project_id`·`project_members` — 플랫폼 영속 계층 vs Nexion 정체성
+### 2.1 (보충) `project_id`·`project_members` — 테넌트 격리 vs 제품 정체성
 
-- **`project_id` 컬럼:** 테이블 행을 **플랫폼 통합 DB 안에서** 격리·조회하기 위한 **호스트 측 구획**이다. **Nexion 제품 개념의 ‘프로젝트’와 동일시하지 않는다** — 제1원칙·용어는 `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1.1**을 본다.
-- **`project_members`:** 위 구획에 대해 “누가 접근 가능한가”를 DB·RLS가 판단할 때 쓰는 **오케스트레이션 SSOT 테이블**이다. Nexion 코어 로직의 필수 개념이 아니라, **공유 배포 시 선택적으로 맞물리는 외연**이다.
+- **`project_id` 컬럼:** 테이블 행을 **플랫폼 통합 DB 안에서** 격리·조회하기 위한 **호스트 측 테넌트(데이터 구획) 키**다. DDL에서 NOT NULL·복합 유니크에 넣는 것은 **RLS·멀티테넌시**를 위한 것이며, **“Nexion = 오케스트레이션의 업무 프로젝트 엔티티”**를 의미하지 않는다.
+- **워크플로 “프로젝트”와의 관계:** Nexion은 **비즈니스 로직(일정·산출물·승인 워크플로)으로서의 프로젝트**에 종속되지 않는다. 테넌트 키가 `projects` 행 UUID와 같을 수는 있으나, **스키마·쿼리는 워크플로 수명주기를 전제로 하지 않는다**고 본다.
+- **개발자 오해 방지:** `project_id` 필수는 **별도 DB/별도 계정**을 요구하지 않는다. **동일 통합 DB + 구획 키** 패턴이다. 문장 SSOT는 `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1.1·§1.2**, API는 `[NXN] [API] ...` **§2.2.1**을 본다.
+- **`project_members`:** 위 구획에 대해 “누가 접근 가능한가”를 DB·RLS가 판단할 때 쓰는 **오케스트레이션 SSOT 테이블**이다. Nexion **제품 도메인 모델의 필수 개념**은 아니라, **호스트 플랫폼과 맞물리는 외연**이다.
 
 ### 2.2 구현 티어 A·B(스키마·범위 고정)
 
-개발 순서·체크리스트와 동일한 구분을 스키마에 매핑한다. 상세 Phase는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두를 본다.
+개발 순서·체크리스트와 동일한 구분을 스키마에 매핑한다. **코어 Phase 번호·순서**는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**, 티어·체크박스는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두를 본다.
 
 | 티어 | 테이블·범위 | 비고 |
 |------|-------------|------|
@@ -55,7 +57,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 
 **`nexa_knowledge_traceability_paths`**는 플랫폼·에이전트가 **논리 경로(NFS)** 로 지능 자산을 찾을 때 참조하는 **전역 인덱스(정적 지도)** 다. 폴더·파일의 논리/물리 경로·`link_id`를 한 행에 묶고, **계층(`parent_path_id`, `depth`)**·**앵커 도메인/유형**·**상주·접근 힌트**·**NIXIE 메타**까지 두어 Nexion **무한 줌·트리 탐색**과 Knowledge OS·오케스트레이션 객체를 같은 테이블에서 연결한다. Nexion 캔버스·Doc Sync Crawler·AI 라우팅이 동일 근거를 본다.
 
-**`nexa_knowledge_doc_sync_state`**는 **전역** 동기화 큐의 근거로, 자산마다 해시·경로·상태·**책임 도메인·정책·잠금**을 남긴다(§6). Nexion 외 ERP·IoT 등이 동일 테이블을 쓸 때 **쓰기 주체·충돌 메타**로 조율한다.
+**`nexa_knowledge_doc_sync_state`**는 **해시·스캔 잡·다도메인 잠금**을 남기는 **보조(헬스) 원장**이다(§6). **외부 파일 실종·유예·삭제의 단일 상태 머신은 `nexa_knowledge_traceability_paths` §4.4.1**이며, **NEXA NIXIE 연출(§4.4.2·UIUX §4.3.1)의 데이터 입력**도 그쪽을 1순위로 본다. ERP·IoT 등이 동일 테이블을 쓸 때 **쓰기 주체·충돌 메타**는 여전히 본 테이블에 둔다.
 
 **`nexa_knowledge_nexion_doc_node_links`**는 **NEXA Nexion 전용**으로, `doc_anchor`와 Vue Flow `node_id`의 연결 행만 담는다. 플랫폼 공통의 `nexa_knowledge_reference_assets` 등 광의 참조 자산과 이름·역할이 겹치지 않게 범위를 한정한다. Late Anchoring 이후 귀속·고아(orphaned) 상태를 UI·쿼리로 드러낸다.
 
@@ -95,7 +97,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 | `last_access_at`         | TIMESTAMPTZ  | NULL     | —                    | `(storage_tier, last_access_at DESC NULLS LAST)` 등                               | **상주·스왑:** 마지막으로 이 경로(또는 연결 자산)가 **읽혔거나 라우팅에 사용된** 시각. 오래되면 L3 강등 후보. |
 | `access_count_rolling`   | INTEGER      | NOT NULL | `0`                  | `CHECK (access_count_rolling >= 0)`                                               | **상주·스왑:** 롤링 윈도우(예: 7일) 내 접근 횟수 등. 배치가 VOID 스왑·프리페치 우선순위를 정할 때 사용. 윈도우 경계·리셋 규칙은 운영 SPEC에 명시. |
 | `metadata`               | JSONB        | NOT NULL | `'{}'`               | GIN 선택                                                                          | **UX·기술 메타:** MIME, 아이콘 키, 캔버스 레이아웃 힌트, `canvas_layout_hint` 등(SPEC 예시와 동일 계열). 스키마 고정이 필요한 키는 문서화. |
-| `nixie_lumina_profile`   | JSONB        | NULL     | —                    | —                                                                                 | **NIXIE:** 이 자산에 대한 **Lumina(발광)** 강도·색·펄스, **Jitter(떨림)** 주기·임계 등 **캔버스 개별 프로파일**. 신뢰도·VOID·헬스 신호와 연동할 때는 키 규약을 SPEC에 둔다. |
+| `nixie_lumina_profile`   | JSONB        | NULL     | —                    | —                                                                                 | **NEXA NIXIE 시각 규약(UIUX §4.3.1):** 이 자산에 대해 **NIXIE가** 적용할 **Lumina·Jitter** 파라미터(강도·색·펄스·임계 등). NEXU Canvas는 **표면**이며 연출 **주체는 NIXIE**. 신뢰도·VOID·헬스 신호와 연동할 때 키 규약은 UIUX·API와 맞춘다. |
 | `created_at`             | TIMESTAMPTZ  | NOT NULL | `now()`              | —                                                                                 | 생성 시각. |
 | `updated_at`             | TIMESTAMPTZ  | NOT NULL | `now()`              | 트리거 갱신(DDL)                                                                  | 수정 시각. |
 
@@ -105,7 +107,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 | -- | ---- | ---- |
 | **계층·탐색** | `parent_path_id`, `depth` | DB에서 트리 재구성·무한 줌 레벨별 필터; AI·API가 하위 경로만 순회 가능. |
 | **앵커 확장** | `anchor_domain`, `anchor_type`, `doc_anchor` | 문서 외 객체도 동일 NFS 행으로 등록; 라우팅·RAG·오케스트레이션이 **단일 테이블**로 해석. |
-| **NIXIE·UX** | `metadata`, `nixie_lumina_profile` | 캔버스 표현·발광·지터로 **신뢰도·상태를 시각적으로 증명**. |
+| **NIXIE·UX** | `metadata`, `nixie_lumina_profile` | **NIXIE**가 NEXU 표면에서 Lumina·Jitter로 **신뢰도·상태를 시각적으로 증명**(UIUX §4.3.1). |
 | **상주·생명주기** | `storage_tier`, `last_access_at`, `access_count_rolling` | VOID L1~L3와 연계한 **스왑 힌트**; 자주 안 쓰는 경로의 아카이브 후보 식별. |
 | **무결성·감사** | `missing_since`, `related_audit_id`, `status` | 미발견 시각·감사 로그로 **일시 오류 vs 삭제·이동** 설명 가능. |
 
@@ -126,6 +128,8 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 
 **근거:** §4.4 열거, §9 `traceability_paths` 문단, `missing_since` 필드 정의(§4 표).  
 **전제:** `status`에 `missing` 값은 두지 않는다. **유예 중**에는 `active`를 유지하고 **`missing_since`로만 “실종 시각”을 표시**한다.
+
+**진실원(구현·UI 고정):** 외부 파일 시스템 관점의 **실종·유예·삭제 판정은 오직 본 절 표(§4.4.1)와 `nexa_knowledge_traceability_paths` 컬럼(`status`, `missing_since`, …)만 따른다.** “파일이 잠시 안 보임 / 삭제됨”에 대한 **NIXIE 비언어 연출**은 **`doc_sync_state.last_sync_status`가 아니라** 위 전이와 **`nixie_lumina_profile`** 을 우선 입력으로 한다(§4.4.2). **표현 주체·용어는 UIUX §4.3.1.**
 
 **운영 상수(환경·SPEC에서 단일화):**
 
@@ -155,17 +159,26 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 
 **`doc_sync_state`와의 역할 분담(동일 스캔 패스에서 권장):**
 
-| `traceability_paths` | `doc_sync_state.last_sync_status` (같은 `doc_anchor`) |
-|----------------------|--------------------------------------------------------|
-| 파일 없음·유예 중 | `missing` 또는 `error`(I/O) — 플랫폼 정책으로 하나로 통일 |
-| 유예 초과 → `deleted` | `missing` 유지 또는 정책에 따라 종료 코드 |
-| 정상 확인 | 크롤러가 해시까지 맞추면 `ok`, 내용만 다르면 `changed` 등(§6.2) |
+| 구분 | 역할 |
+|------|------|
+| **`nexa_knowledge_traceability_paths`(§4.4.1)** | **진실원:** 파일 미발견 시 유예 중에도 `status='active'` + `missing_since` 설정; 연속 미발견 임계 초과 시 `status='deleted'`. **판정·UI 전이는 항상 이쪽을 우선.** |
+| **`nexa_knowledge_doc_sync_state`(§6)** | **보조(헬스·해시·다도메인):** 스캔 잡이 기록하는 `ok` / `changed` / `conflict` / `error` 및 선택적 `missing`. `last_sync_status='missing'`은 “**이번 프로브에서 리소스를 찾지 못함**” 수준의 **운영 신호**로 둘 수 있으나, **유예·삭제 여부는 traceability 표만 따른다.** 두 테이블 값이 어긋날 수 있으며, **불일치 시 §4.4.1·traceability가 이긴다.** |
+
+동일 스캔 패스에서 잡이 traceability 행을 먼저 §4.4.1에 맞게 갱신한 뒤, `doc_sync_state`에 해시·I/O·충돌 메타를 덧붙이는 순서를 권장한다.
+
+#### 4.4.2 Nexion Desk — NIXIE 연출 데이터 소스 (고정)
+
+**연출 주체는 NEXA NIXIE** — UIUX **§4.3.1**, 필드는 **`nixie_lumina_profile`**.
+
+- **유예 중 “실종” 감지:** `traceability_paths.status = 'active'` **이면서** `missing_since IS NOT NULL`.
+- **삭제 확정:** `traceability_paths.status = 'deleted'`(통상 `missing_since` 유지·감사 연계).
+- **`doc_sync_state`:** 대시보드·스케줄러·다도메인 ERP/IoT 분기용. **NIXIE Jitter·Lumina 강도·색의 1차 트리거로 `last_sync_status`만 쓰지 않는다**; 필요 시 보조 가중치로만 병합한다.
 
 ### 4.5 보강 스키마 방향(한 줄 요약)
 
 1. **경로 중심 탐색:** `/프로젝트/…` 문자열 + `parent_path_id`/`depth`로 NFS·트리 UX를 지원한다.  
 2. **지능형 스케줄링:** 접근 흔적·`storage_tier`로 덜 쓰는 지식의 압축·아카이브(VOID) 후보를 고른다.  
-3. **시각적 증명:** `nixie_lumina_profile` 등으로 캔버스에서 Jitter·Lumina로 신뢰도·상태를 즉시 드러낸다.
+3. **시각적 증명:** `nixie_lumina_profile`에 따라 **NEXU 캔버스 표면에서 NIXIE가** Lumina·Jitter로 신뢰도·상태를 즉시 드러낸다(UIUX §4.3.1).
 
 `nexa_knowledge_traceability_paths`는 지식 운영체제의 **정적 지도**이며, 실시간 추론 경로(why_chain)·물리 토폴로지(network_topology) 등과 맞물릴 때 **생각에서 실행까지** 끊김 없는 추적이 완성된다.
 
@@ -241,11 +254,13 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 
 ## 6. `nexa_knowledge_doc_sync_state` 필드 명세
 
-**기능:** 자산 앵커(`doc_anchor` 등)별로 **전역 공유** 동기화 상태를 둔다. Nexion·ERP·IoT 등 **여러 도메인**이 같은 행을 읽되, **책임 도메인·쓰기 주체·정책·잠금**을 분리해 병목·충돌을 관리한다.
+**기능:** 자산 앵커(`doc_anchor` 등)별로 **스캔 잡·해시·다도메인 잠금**을 남기는 **보조(헬스) 원장**이다. **파일 실종·유예·삭제의 단일 상태 머신은 `nexa_knowledge_traceability_paths` §4.4.1**이며, 본 테이블은 그와 **동시에 갱신될 수 있으나 UI·판정의 1순위가 되지 않는다.**
+
+**전역 공유:** Nexion·ERP·IoT 등 **여러 도메인**이 같은 행을 읽되, **책임 도메인·쓰기 주체·정책·잠금**을 분리해 병목·충돌을 관리한다.
 
 **목적:** (1) 어떤 시스템이 이 행을 **주도**하는지, (2) 마지막 갱신이 **누구**인지, (3) 자산 종류에 따른 **해시·스캔 분기**, (4) **동기화 주기·우선순위**, (5) 다도메인 **논리 잠금·충돌 메타**를 한 테이블에서 조회 가능하게 한다.
 
-**`_KNOWLEDGE` SSOT와의 관계:** 통합 SPEC §2.2의 `doc_ref_path` 중심 모델과 병행할 때는 **마이그레이션으로 컬럼 합치기** 또는 **뷰**로 정합을 맞춘다. 본 §6은 **앵커·프로젝트·다도메인** 확장을 우선 서술한다.
+**`_KNOWLEDGE` SSOT와의 관계:** 통합 SSOT·SPEC §2.2·본 §6은 **동일 `nexa_knowledge_doc_sync_state` 모델**으로 수렴했다(2026-03). 기존 DB에 구형 `id`/`doc_ref_path`/`last_hash` 테이블만 있는 경우 **마이그레이션·뷰**로 이행한다.
 
 ### 6.1 필드 표 (통합)
 
@@ -274,7 +289,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 
 - **`ok`:** 기대 상태와 일치(경로·해시·가상 자산 버전 등 정책에 따름).
 - **`changed`:** 해시·메타·원격 버전 변경 감지.
-- **`missing`:** 파일·원격 객체 미발견.
+- **`missing`:** (보조) **이번 동기화 프로브**에서 파일·원격 객체를 찾지 못했다는 **잡 단위 신호**. **유예 중 실종·삭제 확정은 `nexa_knowledge_traceability_paths` §4.4.1(`status`, `missing_since`)만 본다.** `missing`과 `active`+`missing_since`가 공존해도 **연출·비즈니스 판정은 traceability 우선**이다.
 - **`conflict`:** 둘 이상 도메인/소스가 동시에 다른 진실을 주장하거나, 디스크와 DB가 어긋나 **수동·정책 해결**이 필요. **`lock_metadata.conflict_parties` 등으로 당사자를 기록.**
 - **`error`:** I/O·권한·네트워크 등 기술 오류.
 
@@ -298,6 +313,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 
 Nexion 외 **ERP·IoT** 등 다른 도메인이 유입되어도 동기화 메타가 **섞이지 않도록** 필드 설계를 명시한다.
 
+- **진실원 분리(재명시):** 본 테이블은 **헬스·해시·잠금** 보조층이다. **NFS 파일 실종·유예·삭제**는 §4.4.1·`traceability_paths`만이 단일 머신이다.
 - **다도메인 조율:** `responsible_domain`으로 동기화 **책임 주체**를 고정하고, `last_writer_domain`으로 **마지막 쓰기 주체**를 남긴다. `lock_metadata`는 **논리 잠금**과, `last_sync_status = conflict` 시 **어느 시스템들 간 충돌인지**(`conflict_parties` 등)를 기록하는 용도로 쓴다.
 - **자산 불가지론(형태 중립):** `sync_asset_kind`·`hash_profile`로 마크다운·이미지·영상·**가상 DB 로우** 등 **서로 다른 동기화·해시 전략**을 분기한다. 크롤러·잡은 이 두 값을 기준으로 파이프라인을 선택한다.
 
@@ -363,7 +379,7 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 
 **`traceability_paths`:** `active`에서 디스크 경로만 바뀌면 앵커를 유지한 채 `moved`로 둘 수 있다. 노드 연결 해제·미매핑이면 `orphaned`로 갈 수 있다. 크롤러가 대상을 찾지 못하면 **`missing_since`를 최초 1회 설정**하고, 유예 기간 내 재발견 시 NULL로 되돌린다. 미발견 스캔이 임계를 넘으면 `deleted`로 본다. **구현 단계의 이벤트·전이 표는 §4.4.1에 고정**한다. `moved`·`orphaned`·`deleted` 등 **상태 전환 시 `related_audit_id`로 감사 행을 연결**하는 것을 권장한다. `moved`에서 재동기화가 끝나면 다시 `active`로 돌아갈 수 있다. 계층 필드(`parent_path_id`, `depth`)는 `logical_path` 변경·이동 시 **트리 정합**을 맞춰 갱신한다.
 
-**`doc_sync_state`:** `changed` 뒤 해시·경로(또는 가상 자산 버전)가 다시 맞으면 `ok`로 정리한다. **`conflict`** 는 `lock_metadata`에 충돌 당사 도메인·시각·사유를 남긴 뒤, 책임 도메인(`responsible_domain`) 또는 승인 큐에서 해결하면 `ok`로 수렴시키고 잠금 필드를 비운다. 다도메인이 동시에 갱신할 때는 **잠금 TTL·`last_writer_domain` 검사**로 재발을 줄인다.
+**`doc_sync_state`:** (보조) `changed` 뒤 해시·경로(또는 가상 자산 버전)가 다시 맞으면 `ok`로 정리한다. **`conflict`** 는 `lock_metadata`에 충돌 당사 도메인·시각·사유를 남긴 뒤, 책임 도메인(`responsible_domain`) 또는 승인 큐에서 해결하면 `ok`로 수렴시키고 잠금 필드를 비운다. 다도메인이 동시에 갱신할 때는 **잠금 TTL·`last_writer_domain` 검사**로 재발을 줄인다. **파일 미발견·유예·삭제 전이는 §4.4.1을 따르며, `last_sync_status='missing'`만으로 UI 상태를 바꾸지 않는다.**
 
 **`nexa_knowledge_residency`:** `storage_tier`를 바꿀 때 **`tier_changed_at`** 과 함께 **`transition_reason_code`** 를 설정한다(자동 스왑·수동·정합 수리 구분). **`swap_policy_id`** 가 금지하는 방향(예: ERA를 L3로 내림)은 정책 엔진에서 차단. **`last_consistency_check_at`** 는 정합 잡이 주기적으로 갱신하며, 불일치 발견 시 사유 코드·감사와 연계한다.
 

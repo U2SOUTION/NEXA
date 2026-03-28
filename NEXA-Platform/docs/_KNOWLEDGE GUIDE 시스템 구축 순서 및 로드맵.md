@@ -168,22 +168,22 @@
 ### 산출물
 
 - 문서 동기화 배치/잡
-- 동기화 상태 대시보드(`success/fail/skipped/deleted`)
+- 동기화 상태 대시보드(`ok/changed/missing/conflict/error` — SPEC §2.2·SCHM §6)
 
 ### 체크리스트
 
 - [ ] 신규/수정 문서 탐지
-- [ ] 삭제 문서 감지 시 `last_sync_status='deleted'` 전환
+- [ ] 삭제·미발견 문서 감지 시 **`traceability_paths` §4.4.1** 전이(`missing_since`·`status`); 같은 패스에서 `doc_sync_state` 보조 갱신
 - [ ] 앵커 파싱 정확도 검증
 - [ ] 참조 테이블 자동 갱신
-- [ ] 실패 시 `last_error` 기록
+- [ ] 실패 시 `last_error_code`·`lock_metadata` 기록
 - [ ] 삭제 문서 참조(`nexa_knowledge_references`) `status=0` 비활성화
 - [ ] 삭제/복구 이벤트 감사 로그 기록 검증
 - [ ] `error_token` 기록 품질 검증(누락/과다 분류 점검)
 
 ### UI 확인 가능 시점
 
-- **운영 화면 확인 가능:** 5단계 종료 시점 (동기화 상태 대시보드 `success/fail/skipped/deleted` 확인 가능)
+- **운영 화면 확인 가능:** 5단계 종료 시점 (동기화 상태 대시보드 `ok/changed/missing/conflict/error` 확인 가능)
 - **족보 시각화 확인 가능:** 5단계 이후 (`DependencyMap`에서 Doc-Term-Capability 연결 확인)
 
 ---

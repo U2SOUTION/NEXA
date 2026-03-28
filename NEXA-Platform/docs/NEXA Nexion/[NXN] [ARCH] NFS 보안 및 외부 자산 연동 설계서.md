@@ -9,6 +9,7 @@
 - `[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md` — `traceability_paths`, `doc_sync_state`, `residency` 필드 SSOT
 - `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md` — 실행 DDL
 - `[NXN] [API] NEXA Nexion API 및 통신 규약.md` — 클라이언트·백엔드 JSON 계약, 문서 프록시·비실경로 노출
+- `[NXN] [UIUX] NEXA Nexion 인터페이스 레이아웃 및 Vue Flow 운영 규약.md` **§4.3.1** — **NEXA NIXIE 시각 규약**(Lumina·Jitter 표현 주체), **`nixie_lumina_profile`**
 - `NEXA Nexion 개발 순서와 체크 리스트.md` — 단계별 구현
 - `docs/_KNOWLEDGE*.md` — 플랫폼 지식 계층 SSOT
 
@@ -74,7 +75,7 @@
 
 **명시적 결정:** 주·보조 **두 물리 위치를 한 행에 “공식 이중 경로”로 고정**하는 전용 컬럼은 본 단계에서 두지 않는다. `doc_sync_state`에는 **`metadata` 컬럼이 없다**(DDL 기준). `lock_metadata`는 SCHM대로 **논리 잠금·충돌 당사자** 전용이며, NAS 백업 경로 병기 용도로 쓰지 않는다.
 
-- **장애 신호:** 크롤러·잡이 주 루트에서 대상을 찾지 못하면 `doc_sync_state.last_sync_status`를 `missing` 또는 `error`로 올릴 수 있다(SCHM §6.2). `nexa_knowledge_traceability_paths`의 `missing_since`·`status`는 **경로 행 단위 실종·유예**에 쓰며, **구현 전이는 SCHM §4.4.1**을 따른다.
+- **장애 신호:** **`nexa_knowledge_traceability_paths`의 `missing_since`·`status`가 단일 진실원**이며 전이는 **SCHM §4.4.1**만 따른다. 같은 스캔 패스에서 `doc_sync_state.last_sync_status`를 `missing`/`error` 등으로 올릴 수는 있으나(SCHM §6.2), 그것은 **보조 헬스**이고 UI·유예·삭제 판정은 traceability만 본다.
 - **페일오버 동작:** “Emergency Policy”·쓰기 SSOT·split-brain 방지·재동기화 절차는 **운영 SPEC·인프라 런북**에서 정의한다. 본 ARCH는 **스키마가 제공하는 관측 지점**(`last_sync_status`, `missing_since`, `residency`)만 연결한다.
 - **`nexa_knowledge_residency`:** VOID 티어·스왑 **원장**이다. L3가 **아카이브·원격 계층**을 의미할 **배치**는 있으나, **L3 ≡ NAS**로 단정하지 않는다. NAS는 **마운트 + 정책** 문제이고, 티어는 **플랫폼 상주 모델** 문제다.
 - **오케스트레이션:** `redundancy` 코일 등 가중치와 잡 스케줄은 **오케스트레이션 SSOT**를 따른다. 본 문서에 수치(예: 9~10)를 고정하지 않는다.
@@ -116,8 +117,8 @@
 
 ### 3.4 UX·NIXIE(시각·부하)
 
-- **[ ] 동기화 불일치 피드백:** `last_sync_status != 'ok'`인 노드에 **`nixie_lumina_profile`** 등으로 캔버스 **Jitter** 등 비언어 경고를 줄지 UIUX 문서와 맞춘다.
+- **[ ] 동기화 불일치 피드백:** 데이터 1순위는 **`traceability_paths` §4.4.1**(`missing_since`·`status`); `doc_sync_state`는 보조. **연출 주체는 NEXA NIXIE** — **`nixie_lumina_profile`**(SCHM §4)·**UIUX §4.3.1**(시각 규약 SSOT)·§4.4·API §10을 맞춘다. 문서·이슈에는 「NEXU 캔버스**에서** Jitter」가 아니라 「**NEXU 캔버스 위에서 NIXIE가** Jitter」로 통일한다.
 - **[ ] 가상 노드·승인:** 외부 변경으로 `is_virtual = true` 등일 때 **ASK/WILL** 승인 UI 흐름을 UIUX·API와 맞춘다.
 - **[ ] 저부하 제동:** 시스템 부하·사용자 활력(VI)이 낮을 때 대규모 크롤링·동기화를 완화하는 정책을 오케스트레이션·CNCP 문서와 연계할지 검토한다.
 
-**구현 병목 유의:** **동기화 지연 구간의 충돌 해결**과 **실시간 헬스·시각 경고(Jitter 등)** 는 초기 스프린트에서 조기 프로토타입하는 것이 유리하다.
+**구현 병목 유의:** **동기화 지연 구간의 충돌 해결**과 **실시간 헬스·NIXIE 시각 경고(Lumina·Jitter 등)** 는 초기 스프린트에서 조기 프로토타입하는 것이 유리하다(표현 주체·용어는 UIUX **§4.3.1**).

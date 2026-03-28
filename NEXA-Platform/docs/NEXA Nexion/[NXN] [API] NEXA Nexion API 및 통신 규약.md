@@ -5,11 +5,11 @@
 - **목적:** Nexion 웹/확장 클라이언트와 백엔드 간 **JSON 계약**을 고정한다. Vue Flow·Resource Explorer·TipTap·용어 추출(Ollama)이 동일 SSOT를 본다.
 - **범위:** `nexa_knowledge_*` 중 Nexion 직결 리소스(추적 경로, 동기화 상태, 노드–앵커 링크, 문서 본문 입출력). 오케스트레이션 전체(`execution_chains` 등)는 별도 SSOT.
 - **비범위:** RLS 정책 SQL, 크롤러 내부 알고리즘, Ollama 설치 절차(인프라 런북).
-- **용어:** URL·경로의 `project_id`는 **플랫폼 DB 테넌트 구획**(RLS·`project_members` 등)을 위한 것이며, **“Nexion = 플랫폼 프로젝트 하나”** 를 뜻하지 않는다. Nexion 정체성·확장 프로그램과의 분리는 `[NXN] [CNCP] ... 지식 OS ...` **§1.1** 참고.
+- **용어:** URL·경로의 `project_id`는 **플랫폼 DB 테넌트 구획**(RLS·`project_members` 등)을 위한 것이며, **“Nexion = 플랫폼 프로젝트 하나”** 를 뜻하지 않는다. Nexion 정체성·확장 프로그램과의 분리는 `[NXN] [CNCP] ... 지식 OS ...` **§1.1** 참고. **필수 경로 변수와 “비즈니스 워크플로 프로젝트” 종속은 별개** — **§2.2**·CNCP **§1.2**.
 
 ### 1.1 계약 티어 — REST v1 **Core** vs **Extended**
 
-스키마 티어(Tier A/B)와 정렬한다. 상위 정의는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두, `[NXN] [SCHM] ...` **§2.2**를 본다.
+스키마 티어(Tier A/B)와 정렬한다. Phase·순서는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**, 티어·체크리스트는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두, `[NXN] [SCHM] ...` **§2.2**를 본다.
 
 - **Core(v1 Phase 1 고정 계약):** Nexion 데스크·크롤러·Late Anchoring에 **필수**인 공개 엔드포인트만 해당한다. 하위 호환 깨짐 시 버전 정책(예: `/v2`)을 검토한다.
 - **Extended:** 확장 UX·플랫폼 연동·내부 서비스 계정 전용. **미구현·스펙 변경**이 Core보다 허용 폭이 넓다.
@@ -30,7 +30,7 @@
 - `[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md` — 필드·상태 열거 SSOT
 - `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md`
 - `[NXN] [ARCH] NFS 보안 및 외부 자산 연동 설계서.md` — `physical_path` 상대·비 URI, 클라이언트에 실경로 비노출
-- `[NXN] [UIUX] NEXA Nexion 인터페이스 레이아웃 및 Vue Flow 운영 규약.md`
+- `[NXN] [UIUX] NEXA Nexion 인터페이스 레이아웃 및 Vue Flow 운영 규약.md` — **§4.3.1 NEXA NIXIE 시각 규약**, §4.4 임계
 - `[NXN] [SPEC] NEXA Nexion 확장 프로그램(Extension) 기능 명세.md` — 편집·용어 추출 UX·에러 토큰
 
 ---
@@ -47,6 +47,12 @@
 - **인증:** 세션 쿠키 또는 `Authorization: Bearer <token>`(플랫폼 표준에 맞춤).
 - **프로젝트(경로 변수):** `project_id`는 **UUID**. RLS 활성화 시 요청 주체가 해당 구획의 멤버(`project_members` 등)인지 서버에서 검증한다. **제품 철학상 “Nexion 자체가 프로젝트 엔티티”는 아님** — §1 용어 참고.
 - **권장 헤더(선택):** `X-NXN-Project-Id: <uuid>` — 단일 프로젝트 워크스페이스 UI에서 경로 생략 시 대체.
+
+#### 2.2.1 개발자 고정: 테넌트 `project_id` vs 워크플로 “프로젝트”
+
+- **`/projects/{project_id}/...`가 필수인 이유:** 통합 DB에서 Nexion 메타(`nexa_knowledge_*`)를 **행 단위로 격리**하고 RLS를 걸기 위한 **테넌트(데이터 구획) 키**다. **별도 DB·별도 사용자 체계**로 Nexion만 떼어 구현할 필요가 없다.
+- **CNCP §1.1과의 정합:** Nexion은 **비즈니스 로직(워크플로)으로서의 플랫폼 프로젝트**에 종속되지 않는다. 테넌트 키가 `projects` 테이블 UUID와 같을 수는 있으나, **API·도메인 코드는 “PM 일정·산출물 워크플로” 전제를 두지 않는다**고 본다.
+- **SSOT:** 이 이원례의 문장 기준은 `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1.2**다.
 
 ### 2.3 타임스탬프·ID
 
@@ -327,9 +333,12 @@ SCHM에 전용 테이블이 없을 수 있으므로, v1은 **API 형태만 고�
 
 ## 10. UI 신뢰도·NIXIE와의 매핑
 
-- UIUX의 **신뢰도 점수·Jitter**는 단일 DB 컬럼에 고정되어 있지 않을 수 있다. v1 권장:
-  - **동기화 헬스:** `last_sync_status !== 'ok'` 이면 Jitter 후보.
-  - **세부 강도:** `nixie_lumina_profile`(traceability) 또는 `doc_sync_state` 메타를 병합해 클라이언트가 `confidence_score`(0~100)를 **파생**한다.
+**표현 주체 SSOT:** Lumina·Jitter 등 비언어 시각 피드백은 **NEXA NIXIE**가 연출하고, NEXU Canvas는 **표면**이다 — UIUX **§4.3.1**. DB 자산 메타는 **`nixie_lumina_profile`**(SCHM §4).
+
+- UIUX의 **신뢰도 점수·NIXIE 연출**은 단일 DB 컬럼에 고정되어 있지 않을 수 있다. v1 권장:
+  - **파일 실종·유예·삭제(데이터 1순위):** SCHM **§4.4.1** — `traceability_paths.status`·`missing_since`(유예: `active`+`missing_since`; 확정: `deleted`). **“실종”에 대한 NIXIE 연출 입력은 이 조합을 우선**한다.
+  - **보조 헬스:** `doc_sync_state.last_sync_status`(`ok`/`changed`/`missing`/`conflict`/`error`)는 대시보드·스케줄·다도메인용; **NIXIE Jitter 단독 트리거로 쓰지 않는다**(§6.2·SPEC §2.2).
+  - **세부 강도:** `nixie_lumina_profile`(traceability)와 위 신호를 병합해 클라이언트가 `confidence_score`(0~100)를 **파생**한다.
 - 서버가 `GET .../traceability/tree` 등에 **`confidence_score`를 포함**시키도록 정책 함수를 두는 것을 허용한다(파생 규칙은 구현 문서에 명시).
 
 ---

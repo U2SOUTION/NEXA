@@ -243,16 +243,27 @@ CREATE TABLE IF NOT EXISTS nexa_knowledge_distribution_bindings (
 );
 
 CREATE TABLE IF NOT EXISTS nexa_knowledge_doc_sync_state (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-  doc_ref_path VARCHAR(255) UNIQUE NOT NULL,
-  last_hash VARCHAR(64) NOT NULL,
-  last_scanned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  last_sync_status VARCHAR(20) NOT NULL DEFAULT 'success',
-  last_error TEXT,
-  missing_since TIMESTAMPTZ,
-  deleted_at TIMESTAMPTZ,
+  sync_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  project_id UUID NOT NULL,
+  doc_anchor UUID NOT NULL,
+  responsible_domain VARCHAR(40) NOT NULL DEFAULT 'nexion',
+  last_writer_domain VARCHAR(40),
+  anchor_domain VARCHAR(30),
+  sync_asset_kind VARCHAR(40) NOT NULL DEFAULT 'document_file',
+  hash_profile VARCHAR(40),
+  sync_policy_id UUID,
+  sync_priority_cached SMALLINT,
+  last_sync_status VARCHAR(30) NOT NULL,
+  lock_metadata JSONB NOT NULL DEFAULT '{}',
+  last_error_code VARCHAR(80),
+  prev_source_hash VARCHAR(128),
+  curr_source_hash VARCHAR(128),
+  last_scanned_path TEXT,
+  last_synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_doc_sync_project_anchor UNIQUE (project_id, doc_anchor),
   CONSTRAINT chk_knowledge_doc_sync_status
-    CHECK (last_sync_status IN ('success', 'fail', 'skipped', 'deleted'))
+    CHECK (last_sync_status IN ('ok', 'changed', 'missing', 'conflict', 'error'))
 );
 
 CREATE TABLE IF NOT EXISTS nexa_knowledge_change_requests (
@@ -485,7 +496,7 @@ CREATE TABLE IF NOT EXISTS nexa_knowledge_traceability_paths (
   logical_path TEXT NOT NULL,
   anchor_domain VARCHAR(30) NOT NULL,
   anchor_type VARCHAR(40) NOT NULL,
-  anchor_id UUID NOT NULL,
+  doc_anchor UUID NOT NULL,
   parent_path_id UUID REFERENCES nexa_knowledge_traceability_paths(path_id) ON DELETE SET NULL,
   depth SMALLINT NOT NULL DEFAULT 0,
   metadata JSONB NOT NULL DEFAULT '{}',
@@ -523,7 +534,8 @@ CREATE TABLE IF NOT EXISTS nexa_knowledge_health_signals (
 COMMENT ON TABLE nexa_knowledge_residency IS 'VOID 티어·스왑 힌트.';
 COMMENT ON TABLE nexa_knowledge_context_paging_sets IS 'Context Paging — 상주 지식 세트';
 COMMENT ON TABLE nexa_knowledge_capability_drivers IS 'Capability-as-Driver 매니페스트';
-COMMENT ON TABLE nexa_knowledge_traceability_paths IS 'NFS식 논리 경로 ↔ 앵커';
+COMMENT ON TABLE nexa_knowledge_traceability_paths IS 'NFS식 논리 경로 ↔ doc_anchor(문서·실행 앵커 UUID)';
+COMMENT ON TABLE nexa_knowledge_doc_sync_state IS '동기화 잡·해시·다도메인 헬스(SCHM §6). 파일 실종·유예·삭제 머신은 traceability_paths §4.4.1';
 COMMENT ON TABLE nexa_knowledge_kernel_events IS '인터럽트·공감 선점 감사.';
 COMMENT ON TABLE nexa_knowledge_health_signals IS '헬스·Jitter 집계.고빈도 시 Timescale hypertable 검토.';
 
@@ -563,8 +575,29 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_reference_assets_ref_sort
 CREATE INDEX IF NOT EXISTS idx_knowledge_reference_assets_asset
   ON nexa_knowledge_reference_assets(asset_id);
 
-CREATE INDEX IF NOT EXISTS idx_knowledge_doc_sync_status
-  ON nexa_knowledge_doc_sync_state(last_sync_status, last_scanned_at DESC);
+CREATE INDEX IF NOT EXISTS idx_doc_sync_doc_anchor
+  ON nexa_knowledge_doc_sync_state(doc_anchor);
+
+CREATE INDEX IF NOT EXISTS idx_doc_sync_project_synced
+  ON nexa_knowledge_doc_sync_state(project_id, last_synced_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_doc_sync_responsible_domain
+  ON nexa_knowledge_doc_sync_state(project_id, responsible_domain);
+
+CREATE INDEX IF NOT EXISTS idx_doc_sync_project_status
+  ON nexa_knowledge_doc_sync_state(project_id, last_sync_status)
+  WHERE last_sync_status IN ('changed', 'missing', 'conflict', 'error');
+
+CREATE INDEX IF NOT EXISTS idx_doc_sync_policy_priority
+  ON nexa_knowledge_doc_sync_state(sync_priority_cached, last_synced_at);
+
+CREATE INDEX IF NOT EXISTS idx_doc_sync_sync_policy
+  ON nexa_knowledge_doc_sync_state(sync_policy_id)
+  WHERE sync_policy_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_doc_sync_anchor_domain
+  ON nexa_knowledge_doc_sync_state(anchor_domain, doc_anchor)
+  WHERE anchor_domain IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_knowledge_distribution_profiles_tier_status
   ON nexa_knowledge_distribution_profiles(intelligence_tier, status);
@@ -618,7 +651,7 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_capability_drivers_cap_status
   ON nexa_knowledge_capability_drivers(capability_id, registration_status);
 
 CREATE INDEX IF NOT EXISTS idx_knowledge_traceability_anchor
-  ON nexa_knowledge_traceability_paths(anchor_domain, anchor_type, anchor_id);
+  ON nexa_knowledge_traceability_paths(anchor_domain, anchor_type, doc_anchor);
 
 CREATE INDEX IF NOT EXISTS idx_knowledge_traceability_parent
   ON nexa_knowledge_traceability_paths(parent_path_id)
@@ -653,5 +686,7 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_vector_hnsw
 - `nexa_knowledge_*` 네이밍으로 테이블명 통일
 - `nexa_knowledge_reference_assets`로 참조 자산 링크 테이블 통일
 - `project_assets`는 스토리지/쿼터 원장 역할 유지
+- **Nexion 정합(2026-03):** `nexa_knowledge_traceability_paths`의 앵커 컬럼명을 **`doc_anchor`**로 통일(과거 `anchor_id` 명칭 폐기). `nexa_knowledge_doc_sync_state`는 **`[NXN] [SCHM]` §6·`[NXN] [DDL]`** 과 동일한 PK(`sync_id`)·식별(`project_id`,`doc_anchor`)·해시(`prev_source_hash`/`curr_source_hash`)·상태(`ok|changed|missing|conflict|error`)·`responsible_domain`·`lock_metadata` 모델로 수렴. **파일 실종·유예·삭제의 단일 머신은 SCHM §4.4.1(`traceability_paths`)**이며 `doc_sync_state`는 보조 헬스다. 필드 설명은 `_KNOWLEDGE SPEC CRUD ...` §2.2·§2.12를 따른다.
 - **OS 보강(SPEC §2.9~§2.14):** `nexa_knowledge_residency`, `nexa_knowledge_context_paging_sets`, `nexa_knowledge_capability_drivers`, `nexa_knowledge_traceability_paths`, `nexa_knowledge_kernel_events`, `nexa_knowledge_health_signals` 및 `nexa_knowledge_response_policies` 보강 컬럼·`ui_entropy_mode` CHECK (§2.15)
 - 기존 DB만 갱신 시: `CREATE TABLE IF NOT EXISTS`는 기존 테이블을 **변경하지 않으므로**, `nexa_knowledge_response_policies`는 본문의 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` 및 `DO $$ ... chk_knowledge_response_policy_ui_entropy` 블록을 반드시 실행한다.
+- **구형 스키마 마이그레이션:** 이미 배포된 DB에 `nexa_knowledge_traceability_paths.anchor_id` 또는 구형 `nexa_knowledge_doc_sync_state`(`id`,`doc_ref_path`,`last_hash` 등)가 있으면 **단일 마이그레이션**으로 컬럼 rename·신규 컬럼 추가·데이터 백필·인덱스 재생성을 수행한다. NFS 전개 컬럼(`project_id`,`link_id`,`physical_path` 등)은 **`[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.sql`** §1-A를 참고해 `ALTER`로 확장한다(통합 SSOT 본 블록은 **경량 traceability** 정의를 유지할 수 있음).

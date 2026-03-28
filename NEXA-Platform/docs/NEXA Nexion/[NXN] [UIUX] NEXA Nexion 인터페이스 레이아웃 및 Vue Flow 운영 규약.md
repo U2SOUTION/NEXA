@@ -6,15 +6,15 @@
 
 ### 1.1 구현 티어·Phase와 UI 범위(요약)
 
-- **Tier A(코어):** §2·§4·§6·§7의 3단 레이아웃, Vue Flow, 탐색기·고아 필터, Late Anchoring, NFS 동기화 UI는 **코어 UI**다. 백엔드 계약은 `[NXN] [API] NEXA Nexion API 및 통신 규약.md` **§1.1 Core**(§4~7)와 맞춘다.
+- **Tier A(코어):** §2·§4·§6·§7의 3단 레이아웃, Vue Flow, 탐색기·고아 필터, Late Anchoring, NFS 동기화 UI는 **코어 UI**다. **구현 Phase 순서**는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**. 백엔드 계약은 `[NXN] [API] NEXA Nexion API 및 통신 규약.md` **§1.1 Core**(§4~7)와 맞춘다.
 - **Phase Ext:** §3의 TipTap·Ollama·`Terms Inspector`는 **Extension 트랙**(코어 Phase 번호와 분리). API는 동 문서 **§1.1 Extended**, UX·에러 흐름은 `[NXN] [SPEC] NEXA Nexion 확장 프로그램(Extension) 기능 명세.md`를 본다.
-- **Tier B:** Lumina·Jitter를 DB·테넌트(RLS)와 강하게 묶는 연출·워크스페이스 가드는 플랫폼 배포 단계 — `[NXN] [API]` §10 및 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md`의 **Phase B-ops**와 정합한다. Tier A에서는 동기화 불일치 등 **클라이언트 파생**으로 Jitter를 시작해도 된다.
+- **Tier B:** **NEXA NIXIE 시각 규약(§4.3.1)**·`nixie_lumina_profile`(SCHM §4)을 DB·테넌트(RLS)와 강하게 묶는 연출·워크스페이스 가드는 플랫폼 배포 단계 — `[NXN] [API]` §10 및 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md`의 **Phase B-ops**와 정합한다. Tier A에서는 동기화 불일치 등 **클라이언트 파생**으로 NIXIE 연출을 시작해도 된다.
 
 ### 1.2 초보자를 위한 안내(읽는 순서·용어)
 
 본 문서는 **Vue Flow를 처음 쓰는 구현자**도 따라갈 수 있도록 용어와 판단 근거를 짧게 밝힌다.
 
-- **권장 읽기 순서:** §2(레이아웃·폴더) → §4.1~4.2(Vue Flow 채택·중첩·줌) → §4.3 이하(시각 규약) → §3(탐색·편집) → §5~§8(NFS·Late Anchoring 등).
+- **권장 읽기 순서:** §2(레이아웃·폴더) → §4.1~4.2(Vue Flow 채택·중첩·줌) → **§4.3.1(NEXA NIXIE 시각 규약)** → §4.3~§4.4(노드·임계) → §3(탐색·편집) → §5~§8(NFS·Late Anchoring 등).
 - **최소 용어:**
   - **노드(Node):** 캔버스 위의 한 덩어리(카드, 그룹 박스 등).
   - **엣지(Edge):** 노드와 노드를 잇는 연결선.
@@ -214,10 +214,29 @@ Nexion 도메인 트리(§2.3)와 별도로, **이미 존재하는 엔진·시�
 - **Doc Node:** 문서 형태 아이콘, 파일명(순수 제목) 표시.
 - **Capability Node:** `nexa.`* 계층 구조를 반영한 도트 또는 블록 형태.
 
-### 4.4 시각적 피드백 (Lumina & Jitter)
+### 4.3.1 NEXA NIXIE 시각 규약 — Lumina·Jitter **표현 주체** (명문화)
+
+플랫폼 전역 용어(`_KNOWLEDGE REF` 등)와 동일하게, **비언어 시각 피드백의 주체는 NEXA NIXIE(닉시)** 로 고정한다. **NEXU Canvas(넥슈)** 는 Vue Flow **서사 지도·표면(surface)** 일 뿐이며, 스스로 “얼굴”이나 “떨림 의도”를 가진 별도 에이전트가 아니다.
+
+| 구분 | 역할 |
+|------|------|
+| **NEXU Canvas** | 노드·엣지·뷰포트를 올리는 **디지털 쉘 안의 지도**. Lumina·Jitter가 **그려지는 좌표계·캐리어**. |
+| **NEXA NIXIE** | Lumina(발광)·Jitter(떨림) 등 **시각·비언어 피드백을 연출하는 주체**. 구현체는 닉시 렌더 파이프·믹서 등(REF 디렉터리의 `nixie-visualizer` 등). |
+| **`nixie_lumina_profile`** | 자산(경로 행) 단위로 발광·떨림 강도·임계를 담는 **DB 메타** — SCHM §4 필드 표. Tier B·API §10과 정합. |
+
+**문서·코드 표기 규칙(고정):**
+
+- **권장:** 「**NEXU 캔버스 위에서 NEXA NIXIE가** Jitter·Lumina를 연출한다」「**`nixie_lumina_profile`에 따른 NIXIE 연출**」.
+- **지양:** 「넥슈(NEXU) 캔버스**에서** Jitter가 발생한다」처럼 **NEXU를 연출 주체로 단정**하는 문장(표면과 주체 혼동).
+
+다른 NXN·ARCH·SCHM·API 문서는 본 절을 **Nexion 범위의 시각 피드백 SSOT**로 인용한다.
+
+### 4.4 시각적 피드백 (Lumina & Jitter) — 임계·데이터 소스
+
+**연출 주체는 §4.3.1.** 아래는 임계·입력 데이터만 정리한다.
 
 - **정상 상태:** 신뢰도 점수가 임계값(기본 95) 이상일 때 안정적인 호박색(Amber) 발광.
-- **Jitter(떨림):** 신뢰도 미달 또는 외부 파일 시스템과의 동기화 불일치 시 미세 떨림으로 ASK 유도.
+- **Jitter(떨림):** 신뢰도 미달 또는 **외부 파일 시스템 불일치** 시, **NIXIE**가 미세 떨림으로 ASK를 유도한다. **파일 실종·유예·삭제의 데이터 소스는 `nexa_knowledge_traceability_paths` + SCHM §4.4.1**(`status`, `missing_since`)이며, `nexa_knowledge_doc_sync_state.last_sync_status`는 **보조 가중치**로만 병합한다(SPEC §2.2·API §10).
 - **Reddish(발색):** 연산 부하가 높거나 중요한 안전 규칙(Level 0) 위반 시 붉은 톤.
 
 **수치 SSOT:** UI·API·DB 메타에서 동일 임계값을 쓸 경우, **본 문서 §4.4의 95** 를 기준으로 하고 다른 문서는 이를 인용한다(변경 시 한 곳에서 먼저 수정).

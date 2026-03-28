@@ -6,9 +6,9 @@
 
 **NXN 명세 정렬:** 본 파일의 `CREATE TABLE`·제약·인덱스는 **`[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md`** §4~§7과 **맞춘다.**
 
-**구현 티어(Tier A/B):** Tier A(코어)만 배포할 때 `nexa_knowledge_residency`·전면 RLS 등 **Tier B 객체는 생략하거나 후행 마이그레이션**으로 둔다. 정의는 SCHM **§2.2**, 순서는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두.
+**구현 티어(Tier A/B):** Tier A(코어)만 배포할 때 `nexa_knowledge_residency`·전면 RLS 등 **Tier B 객체는 생략하거나 후행 마이그레이션**으로 둔다. 정의는 SCHM **§2.2**, **코어 Phase 순서**는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**, 체크리스트는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두.
 
-**플랫폼 진실원(1순위 SSOT):** 실행 DB에 올라가는 `nexa_knowledge_*` 객체의 **이름·컬럼·소유 스키마**는 **`docs/_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`**(이하 **통합 SSOT**)가 우선한다. 본 NXN DDL 파일은 **통합 SSOT에 아직 없을 때의 스캐폴드(레시피)** 이며, 통합본과 내용이 갈라지면 **항상 통합 SSOT + 마이그레이션으로 수렴**시킨다(NXN 문서만 고치고 DB를 양립시키지 않는다).
+**플랫폼 진실원(1순위 SSOT):** 실행 DB에 올라가는 `nexa_knowledge_*` 객체의 **이름·컬럼·소유 스키마**는 **`docs/_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`**(이하 **통합 SSOT**)가 우선한다. **`nexa_knowledge_doc_sync_state`** 및 traceability의 **`doc_anchor`** 명칭은 SSOT와 본 파일이 **정합**된다. 본 NXN DDL의 **NFS 전개**(`traceability_paths`의 `project_id`·`link_id`·`physical_path` 등)는 SSOT 경량 정의보다 넓을 수 있으며, 그 경우 **통합 SSOT + 단일 마이그레이션**으로 컬럼을 확장하고 문서를 맞춘다(NXN 문서만 고치고 DB를 양립시키지 않는다).
 
 ### 0.0 `CREATE` 실행 전 필수 절차(명시)
 
@@ -29,6 +29,7 @@
 
 ## 0. 사전 조건
 
+- **`project_id` NOT NULL(개발자 고정):** 본 파일의 Nexion 직결 테이블은 **플랫폼 통합 DB 안에서의 테넌트(데이터 격리) 키**로 `project_id`를 둔다. **별도 DB·별도 사용자 체계**로 Nexion만 분리할 필요는 없다. **“비즈니스 워크플로 프로젝트” 종속**과는 별개 — `[NXN] [CNCP] ... 지식 OS ...` **§1.2**, `[NXN] [API] ...` **§2.2.1**, SCHM **§2.1**.
 - `uuid_generate_v7()` 사용 시: `pg_uuidv7` 확장 또는 동등 구현. 없으면 `gen_random_uuid()`로 치환.
 - **`project_members`:** 플랫폼 SSOT는 **`docs/__NEXA 오케스트레이션 스키마 DDL v5.md`** §1-1과 동일하다. DB에 테이블이 없으면 동일 폴더 **`project_members 오케스트레이션 DDL v5 정렬.sql`** 을 먼저 실행한다(기존 `projects.owner_id` 백필 포함).  
 - **`nxn_user_project_ids()` (RLS):** 표준은 `project_members` 조인이다. 멤버 테이블 생성 전 임시로만 `projects.owner_id` 본문을 쓴다 — 본 문서 §5·동명 `.sql` §5 주석 «비상».
@@ -129,7 +130,7 @@ CREATE INDEX idx_residency_swap_policy
     WHERE swap_policy_id IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
--- 1-C) 전역 동기화 상태 — SCHM §6
+-- 1-C) 전역 동기화 상태 — SCHM §6 (보조 헬스; 파일 유예·삭제 머신은 1-A + SCHM §4.4.1)
 -- ---------------------------------------------------------------------------
 CREATE TABLE nexa_knowledge_doc_sync_state (
     sync_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),

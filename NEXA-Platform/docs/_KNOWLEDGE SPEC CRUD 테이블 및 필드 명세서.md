@@ -179,25 +179,38 @@ AI 모델은 **프롬프트 길이·추론 시간·검색/호출 횟수**처럼 
 - `WARM`은 `nano/micro`, `HOT`은 `nano/micro/vista`를 허용한다.
 - `WARM`의 패키지 상한은 `<= 256KB`, `HOT`의 패키지 상한은 `<= 4096KB`로 고정한다.
 
-### 2.2 `nexa_knowledge_doc_sync_state` (문서 동기화 상태)
+### 2.2 `nexa_knowledge_doc_sync_state` (문서·자산 동기화 상태, Nexion §6 정합)
 
-| 컬럼명             | 타입         | 제약                    | 설명                 |
-| :----------------- | :----------- | :---------------------- | :------------------- |
-| `id`               | UUID         | PK, DEFAULT uuid_v7()   | 상태 ID              |
-| `doc_ref_path`     | VARCHAR(255) | UNIQUE, NOT NULL        | 문서 경로            |
-| `last_hash`        | VARCHAR(64)  | NOT NULL                | 최근 해시            |
-| `last_scanned_at`  | TIMESTAMPTZ  | NOT NULL, DEFAULT now() | 최근 스캔            |
-| `last_sync_status` | VARCHAR(20)  | NOT NULL                | success/fail/skipped/deleted |
-| `last_error`       | TEXT         | NULL                    | 실패 사유            |
-| `missing_since`    | TIMESTAMPTZ  | NULL                    | 파일 미발견 최초 시각 |
-| `deleted_at`       | TIMESTAMPTZ  | NULL                    | 삭제 확정 시각       |
+> **통합 SSOT·실행 DDL:** `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`, `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.sql` §1-C. 상세 규약·다도메인 잠금은 `[NXN] [SCHM]` §6.
+>
+> **진실원 분리(고정):** 외부 파일의 **실종·유예·삭제** 판정과 UI(Jitter 등) 입력은 **`nexa_knowledge_traceability_paths` + `[NXN] [SCHM]` §4.4.1 상태 머신**만 따른다. 본 테이블은 **스캔 잡·해시·충돌·I/O**의 **보조(헬스) 원장**이다. `last_sync_status='missing'`은 “이번 프로브에서 미발견” 수준의 운영 신호일 뿐, **유예 중인지·삭제 확정인지는 `traceability_paths.status`·`missing_since`가 단일 기준**이다.
 
-삭제 이벤트 처리 규약:
+| 컬럼명                 | 타입         | 제약                           | 설명 |
+| :--------------------- | :----------- | :----------------------------- | :--- |
+| `sync_id`              | UUID         | PK, DEFAULT uuid_v7()        | 동기화 행 ID |
+| `project_id`           | UUID         | NOT NULL                       | 테넌트/프로젝트 |
+| `doc_anchor`           | UUID         | NOT NULL, UNIQUE(project_id, doc_anchor) | 대상 범용 앵커(문서·가상 자산 공통) |
+| `responsible_domain`   | VARCHAR(40)  | NOT NULL, DEFAULT `nexion`     | 동기화 책임·정책 배정 주도 도메인 코드 |
+| `last_writer_domain`   | VARCHAR(40)  | NULL                           | 마지막으로 본 행을 갱신한 도메인·잡 식별자 |
+| `anchor_domain`        | VARCHAR(30)  | NULL                           | `nexa_knowledge_traceability_paths.anchor_domain`과 동일 해석이면 조인 없이 라우팅 |
+| `sync_asset_kind`      | VARCHAR(40)  | NOT NULL, DEFAULT `document_file` | 자산·동기화 분기(파일/마크다운/가상 DB 행 등) |
+| `hash_profile`         | VARCHAR(40)  | NULL                           | 해시·동등성 전략(`content_sha256`, `mtime_size` 등) |
+| `sync_policy_id`       | UUID         | NULL                           | 주기·재시도·우선순위 등 정책 원장 FK(선택) |
+| `sync_priority_cached` | SMALLINT     | NULL                           | 스케줄러 큐용 우선순위 캐시 |
+| `last_sync_status`     | VARCHAR(30)  | NOT NULL, CHECK                | `ok` / `changed` / `missing` / `conflict` / `error` — `missing`은 §4.4.1과 별개의 **보조 프로브 신호**(§6.2) |
+| `lock_metadata`        | JSONB        | NOT NULL, DEFAULT `{}`         | 논리 잠금·충돌 당사자 등 |
+| `last_error_code`      | VARCHAR(80)  | NULL                           | 앱/크롤러 오류 코드 |
+| `prev_source_hash`     | VARCHAR(128) | NULL                           | 이전 스캔 해시 |
+| `curr_source_hash`     | VARCHAR(128) | NULL                           | 현재 스캔 해시 |
+| `last_scanned_path`    | TEXT         | NULL                           | 마지막으로 본 물리 경로 또는 가상 자산 URI |
+| `last_synced_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 마지막 동기화(잡 완료) 시각 |
+| `updated_at`           | TIMESTAMPTZ  | NOT NULL, DEFAULT now()        | 행 수정 시각 |
 
-- Crawler가 파일 미발견 감지 시 `last_sync_status='deleted'`로 전환
-- 최초 미발견 시각은 `missing_since`에 기록하고, 삭제 확정 시 `deleted_at` 기록
-- 해당 `doc_ref_path`를 참조하는 `nexa_knowledge_references`는 `status=0`으로 비활성화
-- 위 전환 이벤트는 `nexa_knowledge_audit_logs`에 반드시 기록
+운영·이벤트 규약(요약):
+
+- **파일 실종·유예·삭제:** 크롤러는 **`nexa_knowledge_traceability_paths`만** SCHM §4.4.1에 따라 갱신한다(유예 중 `active`+`missing_since`, 임계 초과 `deleted`). 이후 같은 패스에서 본 테이블에 해시·I/O·충돌을 기록한다.
+- **본 테이블 `last_sync_status`:** 내용 변경은 `changed`; 다도메인 충돌은 `conflict`와 `lock_metadata`; 기술 오류는 `error`; 정상 일치는 `ok`. `missing`은 프로브가 리소스를 찾지 못한 **보조 신호**로 둘 수 있으나, **비활성화·Jitter 강도 등 사용자 영향 판단은 traceability §4.4.1을 우선**한다.
+- 해당 앵커를 참조하는 `nexa_knowledge_references` 등은 **`traceability_paths.status='deleted'`** 또는 정책상 확정 실종 이후 `status=0` 등으로 연계하고, 전환은 `nexa_knowledge_audit_logs`에 남긴다.
 
 ### 2.3 `nexa_knowledge_change_requests` (불변 토큰 승인 큐)
 
@@ -367,7 +380,7 @@ AI 모델은 **프롬프트 길이·추론 시간·검색/호출 횟수**처럼 
 
 - **읽기 경로:** 라우터·RAG가 `entity_type`+`entity_id`로 조회 후, L1 미스 시 L2 폴백 등.
 - **쓰기 경로:** 토큰/참조 갱신 시 `last_access_at`·`access_count_rolling` 갱신(배치 가능).
-- **VOID 정책:** `nexa_knowledge_doc_sync_state`의 삭제·잠재 상태와 **동일 사용자 스토리**로 연결할 수 있다.
+- **VOID 정책:** 파일 실종·삭제 서사는 **`nexa_knowledge_traceability_paths` §4.4.1**이 주도하고, `nexa_knowledge_doc_sync_state`·`residency`는 **보조·티어**와 같은 사용자 스토리로 맞물리게 할 수 있다.
 
 | 컬럼명               | 타입         | 제약                           | 설명 |
 | :------------------- | :----------- | :----------------------------- | :--- |
@@ -478,13 +491,13 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 
 #### 역할
 
-사용자·캔버스·API가 **파일 시스템 경로처럼** 익숙한 문자열로 족보를 탐색할 수 있게 하되, 물리 스키마는 여전히 **UUID·시계열**이다. 본 테이블은 **Inode 역할**: `logical_path` ↔ `anchor_id` 매핑과, 트리 탐색을 위한 `parent_path_id`·`depth`를 제공한다.
+사용자·캔버스·API가 **파일 시스템 경로처럼** 익숙한 문자열로 족보를 탐색할 수 있게 하되, 물리 스키마는 여전히 **UUID·시계열**이다. 본 테이블은 **Inode 역할**: `logical_path` ↔ **`doc_anchor`** 매핑과, 트리 탐색을 위한 `parent_path_id`·`depth`를 제공한다.
 
 #### 경로 규칙 (권장)
 
 - 선행 `/` 통일, 대소문자 민감도 정책을 팀에서 한 가지로 고정.
 - **버전**은 경로에 넣거나 `metadata.version`으로 분리(중복 경로 방지).
-- `anchor_domain='orchestration'`일 때 `anchor_id`는 **다른 DB의 `packet_id` 등**을 가리킬 수 있으며, FK는 걸지 않거나 **느슨한 참조**로만 문서화한다.
+- `anchor_domain='orchestration'`일 때 `doc_anchor`는 **다른 DB의 `packet_id` 등**을 가리킬 수 있으며, FK는 걸지 않거나 **느슨한 참조**로만 문서화한다.
 
 #### 캔버스·NIXIE
 
@@ -501,7 +514,7 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 | `logical_path`   | TEXT         | NOT NULL                 | 유일 논리 경로(슬래시 구분) |
 | `anchor_domain`  | VARCHAR(30)  | NOT NULL                 | `knowledge` / `orchestration` 등 |
 | `anchor_type`    | VARCHAR(40)  | NOT NULL                 | `term` / `reference` / `execution_packet` 등 |
-| `anchor_id`      | UUID         | NOT NULL                 | 대상 PK(도메인별 해석) |
+| `doc_anchor`     | UUID         | NOT NULL                 | 대상 앵커 UUID(도메인별 해석) |
 | `parent_path_id` | UUID         | NULL, FK -> path_id      | 트리 상위(선택) |
 | `depth`          | SMALLINT     | NOT NULL, DEFAULT 0      | 깊이 |
 | `metadata`       | JSONB        | NOT NULL, DEFAULT '{}'   | MIME·아이콘·캔버스 힌트 |
@@ -510,7 +523,7 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 유니크·인덱스(권장):
 
 - `UNIQUE(logical_path)` — 경로 단일 앵커
-- `(anchor_domain, anchor_type, anchor_id)` — 역조회(앵커→경로)
+- `(anchor_domain, anchor_type, doc_anchor)` — 역조회(앵커→경로)
 
 ---
 
@@ -695,7 +708,7 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 | `nexa_knowledge_distribution_profiles` | 일치 | 프로파일명 CHECK(`nano/micro/vista`) 반영 |
 | `nexa_hardware_profiles` | 일치 | COLD/WARM/HOT 하드웨어 제약 반영 |
 | `nexa_knowledge_distribution_bindings` | 일치 | 지능 위계-하드웨어 매핑 제약 반영 |
-| `nexa_knowledge_doc_sync_state` | 일치 | `last_sync_status` 운영 인덱스 반영 |
+| `nexa_knowledge_doc_sync_state` | 일치 | Nexion §6·SSOT: `sync_id`/`doc_anchor`/`last_synced_at`·부분 인덱스(`idx_doc_sync_project_status` 등) 반영 |
 | `nexa_knowledge_change_requests` | 일치 | `is_pending`, `review_note`, 상태 CHECK 반영 |
 | `nexa_knowledge_ref_rules` | 일치 | 활성 규칙 단일화 인덱스 반영 |
 | `nexa_knowledge_reference_assets` | 일치 | `project_assets` FK + usage_type CHECK 반영 |

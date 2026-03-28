@@ -215,8 +215,8 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 4. `project_knowledge`는 공통 지식 규칙(`nexa_knowledge_ref_rules`)으로 검증
 5. 닉시(`NEXA NIXIE`) 채널 입력은 `nexa_self_profiles`/`nexa_self_states`로 Self 상태를 해석
 6. `nexa_self_explosions` + `nexa_self_knowledge_map`이 Coil/지식/Capability 후보를 전개
-7. 삭제 문서 감지 시 `nexa_knowledge_doc_sync_state.last_sync_status='deleted'`로 전환
-8. 삭제 문서 참조(`doc_ref_path`)를 사용하는 `nexa_knowledge_references`는 `status=0`으로 비활성화
+7. 삭제·미발견 문서 감지 시 **`nexa_knowledge_traceability_paths`를 `[NXN] [SCHM]` §4.4.1**에 따라 갱신(유예: `active`+`missing_since`; 확정: `deleted`). 같은 스캔 패스에서 `nexa_knowledge_doc_sync_state`에 해시·`error`·선택적 `missing` 등 **보조 헬스**를 덧붙인다.
+8. 동일 앵커를 참조하는 `nexa_knowledge_references`(`doc_ref_path`·`doc_anchor` 등)는 **traceability 삭제 확정 등** 앱 정책에 따라 `status=0`으로 비활성화
 9. Packager가 지능 위계별 패키지 생성 후 배포
 10. Routing Adapter가 입력을 정규화하고 중의성 해소
 11. Indicator가 영문 결과를 생성
@@ -272,12 +272,12 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 - 변경 요청은 `change_requests` 큐에 적재
 - 승인 후에만 본 테이블 반영
 
-### 4.5 삭제 문서 참조 처리 정책
+### 4.5 삭제·미발견 문서 참조 처리 정책
 
-- 파일 삭제 감지 시 `nexa_knowledge_doc_sync_state.last_sync_status='deleted'`로 기록
-- `missing_since`는 최초 미발견 시각, `deleted_at`는 삭제 확정 시각으로 관리
-- 해당 문서를 참조하는 `nexa_knowledge_references`는 soft deactivate(`status=0`)
-- 삭제/복구 전환은 모두 `nexa_knowledge_audit_logs`에 기록
+- **단일 상태 머신:** `nexa_knowledge_traceability_paths` + SCHM **§4.4.1**(유예 중 `active`+`missing_since`, 임계 초과 `deleted`). 물리 경로 단서는 traceability·`doc_sync_state.last_scanned_path` 등에 남길 수 있으나 **판정 순서는 §4.4.1 우선**이다.
+- `nexa_knowledge_doc_sync_state`의 `missing`·`error`·`conflict`는 **헬스·다도메인** 보조층이다.
+- 해당 문서를 참조하는 `nexa_knowledge_references`는 **traceability 삭제 확정** 등 앱 정책에 따라 soft deactivate(`status=0`)로 연계한다.
+- 삭제·복구·충돌 해소 전환은 모두 `nexa_knowledge_audit_logs`에 기록한다.
 
 ### 4.6 자가 회복 피드백 루프 정책
 

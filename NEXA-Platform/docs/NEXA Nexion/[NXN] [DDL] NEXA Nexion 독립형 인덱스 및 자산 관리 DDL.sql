@@ -1,9 +1,12 @@
 -- =============================================================================
 -- NEXA Nexion — nexa_knowledge_* 스키마 (DBeaver 등에서 순차 실행용)
 -- 원본 명세: 동일 폴더 `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md`
+-- project_id = 플랫폼 DB 테넌트(행 격리·RLS) 키. 별도 DB 불필요. 제품 정체성은 CNCP §1.2.
 -- =============================================================================
 -- 실행 전 필수: docs/_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md 와
 --   테이블명·컬럼 충돌 여부를 대조할 것(MD §0.0).
+-- doc_sync_state·doc_anchor 명칭은 SSOT와 정합. traceability NFS 전개 컬럼은
+--   SSOT 경량 CREATE와 다를 수 있음 → 동명 테이블이 있으면 §0.0에 따라 ALTER로 확장.
 -- 사전 조건:
 --   - uuid_generate_v7(): pg_uuidv7 확장 또는 동등 구현. 없으면 DEFAULT를
 --     gen_random_uuid()로 바꾼 뒤 실행.
@@ -105,7 +108,7 @@ CREATE INDEX idx_residency_swap_policy
     WHERE swap_policy_id IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
--- §1-C) 전역 동기화 상태 — SCHM §6
+-- §1-C) 전역 동기화 상태 — SCHM §6 (보조 헬스; 파일 유예·삭제 머신은 §1-A+SCHM §4.4.1)
 -- ---------------------------------------------------------------------------
 CREATE TABLE nexa_knowledge_doc_sync_state (
     sync_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),

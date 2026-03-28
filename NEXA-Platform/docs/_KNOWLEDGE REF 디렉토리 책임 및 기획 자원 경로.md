@@ -424,7 +424,7 @@ src/
 
 - `Input -> English IR -> SNT/IND/EFF`
 
-**논리 경로 인덱스:** `nexa_knowledge_traceability_paths`는 **Inode식** `logical_path` ↔ `anchor_id` 매핑으로, NEXU 캔버스·API가 **경로 문자열**로 족보를 열 때 사용한다. **편집·동기화**는 `admin`의 `KnowledgeTraceabilityPathsView.vue`, **읽기·탐색**은 `help`의 `TraceabilityView.vue` 등과 역할을 나눈다.
+**논리 경로 인덱스:** `nexa_knowledge_traceability_paths`는 **Inode식** `logical_path` ↔ **`doc_anchor`** 매핑으로, NEXU 캔버스·API가 **경로 문자열**로 족보를 열 때 사용한다. **편집·동기화**는 `admin`의 `KnowledgeTraceabilityPathsView.vue`, **읽기·탐색**은 `help`의 `TraceabilityView.vue` 등과 역할을 나눈다.
 
 실행 원칙:
 

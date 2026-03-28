@@ -11,15 +11,29 @@
 
 - **엄격한 계층 분리 (Strict Layering):** 기존 기획 문서나 데이터 원본에 직접 배선을 하지 않는 독립 계층으로 존재합니다 .
 - **자산으로서의 문서:** 문서는 Nexion에 종속된 데이터가 아니라, 독립적으로 존재하는 '참조 자산'입니다. 프로그램은 문서 내부를 강제로 수정하지 않고 해시(Hash)나 경로를 통해 앵커링만 수행합니다 .
+- **시각 피드백 주체:** **NEXU Canvas**는 Vue Flow **서사 표면**이고, **Lumina·Jitter** 등 비언어 연출은 **NEXA NIXIE**가 수행한다. 용어·표기 SSOT는 `[NXN] [UIUX] NEXA Nexion 인터페이스 레이아웃 및 Vue Flow 운영 규약.md` **§4.3.1**; 지식 NFS 행 메타는 **`nixie_lumina_profile`**(`[NXN] [SCHM]` §4).
 
 “NEXA Nexion은 지식 내용을 저장하지 않고, 지식이 만들어지는 ‘이유와 관계’를 추적하는 시스템이다”
 
 ### 1.1 Nexion은 ‘프로젝트’가 아니다 — `project_id`·`project_members`와의 느슨한 관계
 
 - **제1원칙(완전 독립형):** Nexion의 정체성은 **외부 문서 본문·타 업무 프로젝트의 생명주기와 직접 동일시되지 않는** 독립 관제 데스크다. “어떤 지식을 **참고·편집할 권한**이 누구에게 있는가”는 **플랫폼·배포 정책**에서 나중에 조율할 수 있는 축이며, **Nexion 제품 정의의 중심에 ‘프로젝트 개념’을 두지 않는다.**
-- **`project_id` / `project_members`:** 공유 DB(`nexa_knowledge_*`)에 행을 올릴 때 **호스트(플랫폼)가 테넌트·RLS 경계를 나누기 위해 쓰는 기술적 구획**이다. 정의는 **`docs/__NEXA 오케스트레이션 스키마 DDL v5.md`** 등 플랫폼 SSOT에 맞춘다. Nexion은 이 구획을 **필요 시 이용**할 뿐, **“Nexion = 특정 project 한 줄”** 로 읽히면 안 된다.
+- **`project_id` / `project_members`:** 공유 DB(`nexa_knowledge_*`)에 행을 올릴 때 **호스트(플랫폼)가 테넌트·RLS 경계를 나누기 위해 쓰는 기술적 구획**이다. 정의는 **`docs/__NEXA 오케스트레이션 스키마 DDL v5.md`** 등 플랫폼 SSOT에 맞춘다. Nexion은 이 구획을 **필요 시 이용**할 뿐, **“Nexion = 특정 project 한 줄”** 로 읽히면 안 된다. **DDL·API에서 `project_id`가 필수인 것과 모순되지 않음** — 이원론은 아래 **§1.2**에 고정한다.
 - **확장 프로그램(Extension 등):** 문서 편집·용어 정리 등은 **Nexion 코어와 무관한 별도 프로그램**으로 둔다. 추가·교체·병행이 가능하며, Nexion은 그들의 **소비자·배치 옵션**일 뿐 동일 제품으로 묶지 않는다.
-- **구현 티어·로드맵:** DB·API·Phase를 **Tier A(코어) / Tier B(플랫폼 공유)** 로 나누고, Extension은 **Phase Ext**로 분리한다. 한글 표와 Phase 매핑은 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두, 스키마 매핑은 `[NXN] [SCHM] ...` **§2.2**, API는 `[NXN] [API] ...` **§1.1**을 본다.
+- **구현 티어·로드맵:** DB·API·Phase를 **Tier A(코어) / Tier B(플랫폼 공유)** 로 나누고, Extension은 **Phase Ext**로 분리한다. **코어 Phase 1~4·Ext 순서**는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**가 SSOT이고, 티어 표·체크리스트는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두, 스키마 매핑은 `[NXN] [SCHM] ...` **§2.2**, API는 `[NXN] [API] ...` **§1.1**을 본다.
+
+### 1.2 개발 가이드: `project_id` — 테넌트(데이터 격리) vs 비즈니스 프로젝트(워크플로)
+
+Nexion은 **플랫폼 통합 DB·동일 계정/세션 체계** 위에서 동작한다. **`project_id`가 API·DDL에서 필수이고 RLS에 쓰인다고 해서, “Nexion 전용 DB” 또는 “플랫폼 `projects`와 무관한 별도 테넌트 모델”로 구현할 필요가 없다** — 오해는 아래 축으로만 나누면 해소된다.
+
+| 축 | 의미 | Nexion 구현에서의 위치 |
+|----|------|-------------------------|
+| **테넌트 / 데이터 격리 (`project_id`)** | Postgres 행을 나누는 **호스트 플랫폼의 기술적 테넌트 키**. `project_members`·RLS·`/projects/{project_id}/...` API가 이 구획을 전제한다. | **철저히 따른다.** 모든 Nexion 직결 `nexa_knowledge_*` 행에 `project_id` NOT NULL을 유지하고, 서버는 요청 경로·세션과 정합되는 구획만 노출한다. |
+| **비즈니스 프로젝트(워크플로)** | 일정·산출물·승인 게이트 등 **제품 도메인의 “프로젝트 업무”** | **종속하지 않는다.** §1.1대로 Nexion 제품 정의의 중심에 두지 않는다. 테넌트 키가 플랫폼 `projects` 테이블의 UUID와 **같은 값을 쓸 수는 있으나**, Nexion 코어는 **그 행의 워크플로 수명주기·PM 기능에 묶이지 않는다**고 가정하고 코드를 짠다. |
+
+**한 줄 규칙:** `project_id` = **데이터 격리 단위(Tenant partition)** 로만 필수이며, **“Nexion = 이 팀의 일감/마일스톤 도구”**가 아니다.
+
+**교차 참조(구현 시):** `[NXN] [SCHM]` §2.1, `[NXN] [API]` §2.2, `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md` §0, `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두.
 
 ## 2. 지식 층위와의 관계: 계층 불가지론 (Layer Agnostic)
 

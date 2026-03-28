@@ -251,7 +251,7 @@ graph TD
 
     %% 5. 시각화 및 피드백 레이어 (NIXIE)
     subgraph NIXIE_Interface [서사 시각화 레이어: NIXIE]
-        NIX[닉시 NIXIE: Jitter·Lumina (Nexion Canvas)]
+        NIX[닉시 NIXIE: Jitter·Lumina @ NEXU Canvas 표면]
         RPV[Reasoning Path Visualizer: 족보 추적]
     end
 
@@ -297,7 +297,7 @@ graph TD
    - **Residency:** 지식이 L1(캐시)부터 L3(아카이브) 중 어디에 머물지 결정하는 **플랫폼 원장**입니다.
 
 5. **NIXIE 인터페이스:**
-   - **Lumina & Jitter:** 신뢰도 점수가 낮거나(95점 미만) 동기화 오류 시 닉시 도트를 미세하게 떨리게(Jitter) 하여 사용자에게 비언어적 경고를 보냅니다.
+   - **Lumina & Jitter:** 신뢰도 점수가 낮거나(95점 미만) 동기화 오류 시 **NIXIE**가 NEXU 캔버스 위 도트에 Jitter 등을 연출합니다. 용어·주체 SSOT는 `[NXN] [UIUX]` **§4.3.1**, DB 메타는 `nixie_lumina_profile`(SCHM §4).
    - **Reasoning Path Visualizer:** 사용자가 특정 결과를 클릭하면 **[판단 → 사실 → 기획 문서]**로 이어지는 유래를 시각적으로 하이라이트합니다.
 
 이 다이어그램은 단순한 시스템 설계도를 넘어, NEXA 플랫폼이 지능적 자산을 어떻게 **'박제'**하고 현실에서 어떻게 **'연주'**하는지를 보여주는 전체 아키텍처의 청사진입니다.

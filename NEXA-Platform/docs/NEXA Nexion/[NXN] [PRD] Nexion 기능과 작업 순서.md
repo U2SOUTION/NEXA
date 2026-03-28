@@ -15,6 +15,7 @@ Nexion의 **'독립형 관제 데스크'** 기능.
 
 이 PRD는 **진행 그림**을 먼저 세우는 문서다. UI·캔버스·용어의 **기술 세부**는 아래를 기준으로 이후 문서를 맞춘다.
 
+- **Phase 번호·실행 체크박스(담당 문서):** `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` — **Phase 1~4·Ext·B-ops 번호는 본 문서 §3.2·§3.4와 동일**해야 한다.
 - **Vue Flow 채택·`engines/diagram` 과의 관계·부모-자식·시맨틱 줌·LOD:** `[NXN] [UIUX] NEXA Nexion 인터페이스 레이아웃 및 Vue Flow 운영 규약.md` (특히 §4.1~4.2).
 - **3패널·독립 도메인 `nexion`·Extension 폴더 경계:** 동 UIUX 문서 §2.
 - **Late Anchoring·족보 철학:** `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md`.
@@ -36,6 +37,7 @@ Nexion의 **'독립형 관제 데스크'** 기능.
 - **NFS·크롤러·물리 경로·보안:** `[NXN] [ARCH] NFS 보안 및 외부 자산 연동 설계서.md`.
 - **테이블·필드·상태 머신:** `[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md`, `[NXN] [DDL] ...` (실행 SQL).
 - **REST 계약:** `[NXN] [API] NEXA Nexion API 및 통신 규약.md` (Core vs Extended).
+- **테넌트 `project_id` vs 제품 정체성:** `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1.2**, API **§2.2.1** — DB·경로에 `project_id`가 필수여도 **워크플로 프로젝트 엔티티와 동일시하지 않는다**.
 
 ---
 
@@ -50,13 +52,16 @@ UI를 먼저 구성한 뒤 **Late Anchoring**과 **Inode식 추적** 로직을 �
 - **Extension:** TipTap·Ollama·용어 추출은 **코어 Phase 번호와 섞지 않고 Phase Ext**로 부른다(API·UI에서 Extended 계약).
 - **환경(Phase 0 성격):** `DOCS_PATH`(예: `NEXA-Documentation/`), PostgreSQL·확장, 로컬 PoC vs 공유 DB는 스프린트 착수 전에 한 줄이라도 팀 합의로 고정한다.
 
-#### 3.2 단계 목록(권장 순서)
+#### 3.2 단계 목록(권장 순서) — **NXN 코어 Phase SSOT**
+
+아래 번호가 다른 `[NXN] *` 문서의 “Phase N” 언급과 **어긋나면 안 된다.** 실행용 `[ ]` 체크리스트는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md`에 둔다.
 
 1. **Phase 1 — UI 프로토타이핑 (Vue Flow):** 카드 생성, DnD, 라인 연결, (가능하면) 부모-자식·줌에 따른 표시 등 **시각적 경험**을 먼저 확정.
    - _선택 분할:_ **1a** 도메인 셸·3패널 껍데기 → **1b** 캔버스만 최소 동작. 디버깅 시 프레임 이슈와 플로우 이슈를 분리한다.
-2. **Phase 2 — DB 뼈대 (Tier A):** 위 MVP DB 세 테이블(및 SCHM·DDL에 따른 제약)로 UI에서 발생한 사건을 **영속화**할 준비를 갖춘다.
+2. **Phase 2 — DB 뼈대 (Tier A):** 위 MVP DB 세 테이블(및 SCHM·DDL에 따른 제약)로 UI에서 발생한 사건을 **영속화**할 준비를 갖춘다. §3.3에 따라 **Core API** 를 이 단계 초반에 고정·연결한다.
 3. **Phase 3 — 백엔드 동기화 (Doc Sync Crawler):** 파일 시스템 스캔으로 DB·UI를 잇는 크롤러를 구현한다.
-4. **Phase Ext — 지능 확장:** TipTap·Ollama 용어 추출 등을 **독립 모듈**로 추가한다(도메인 `modules/extension/`, API Extended).
+4. **Phase 4 — Late Anchoring·고아·mv:** `nexion_doc_node_links`로 노드↔`doc_anchor` 연결, Orphaned 표시, 카드 이동과 디스크 `mv`·ASK 흐름을 완성한다.
+5. **Phase Ext — 지능 확장:** TipTap·Ollama 용어 추출 등을 **독립 모듈**로 추가한다(도메인 `modules/extension/`, API Extended). **코어 Phase 번호와 혼동하지 않는다.**
 
 #### 3.3 계약·타입 전략(리스크 완화)
 
@@ -70,11 +75,12 @@ UI를 먼저 구성한 뒤 **Late Anchoring**과 **Inode식 추적** 로직을 �
 | Phase 1   | 로컬에서 저장 없이 캔버스에서 노드·엣지 조작이 재현 가능하다.                               |
 | Phase 2   | 선택한 `project_id`(또는 단일 구획)에 대해 경로·노드-링크·동기화 상태가 DB에 기록·조회된다. |
 | Phase 3   | 디렉터리/파일 변경이 크롤러 → DB → UI 중 **최소 한 경로**로 반영된다.                       |
+| Phase 4   | 노드와 문서 앵커 연결·고아 필터·mv/ASK가 **한 사용자 시나리오**로 끝까지 동작한다.         |
 | Phase Ext | 문서 편집·용어 추출이 **코어 캔버스 없이도** 끌 수 있거나, 탭으로 분리해 끌 수 있다.        |
 
 #### 3.5 초기 릴리스에서 늦춰도 되는 것(기대치 관리)
 
-- **자연어 기반 LOD·Fit Score·의도 중력 자동 추론** 등은 본 PRD §1의 비전과 연결되나, **Phase 1~3·Phase Ext의 필수 범위에 넣지 않는다.** 수동 줌·LOD·규칙 기반 연출만으로 먼저 출발한다.
+- **자연어 기반 LOD·Fit Score·의도 중력 자동 추론** 등은 본 PRD §1의 비전과 연결되나, **Phase 1~4·Phase Ext의 필수 범위에 넣지 않는다.** 수동 줌·LOD·규칙 기반 연출만으로 먼저 출발한다.
 - **Tier B:** RLS 전면, `residency`, 다도메인 `anchor_*` 전개는 플랫폼 배포 단계에서 맞춘다.
 
 ---
@@ -82,11 +88,18 @@ UI를 먼저 구성한 뒤 **Late Anchoring**과 **Inode식 추적** 로직을 �
 ### 💡 최종 체크리스트
 
 1.  **[x] DB 필드명 통일(대조 결과, 2026-03-28 기준):**
+
     - **`nexa_knowledge_traceability_paths` PK `path_id`:** `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`, `_KNOWLEDGE SPEC CRUD ...` §2.12, `[NXN] [SCHM]`·`[NXN] [DDL]`·`[NXN] [API]` 와 **동일**하다. **`parent_path_id`** FK 대상도 동일.
-    - **앵커 컬럼명:** SSOT·SPEC §2.12 는 **`anchor_id`**, NXN SCHM·DDL 은 문서 중심 명칭 **`doc_anchor`**. 의미는 동일 축이나 **이름은 통합 마이그레이션 시 한쪽으로 수렴**할 것(`[NXN] [SCHM]` §4 상단·SCHM이 SSOT 수렴 전제를 둠).
+    - **앵커 컬럼명:** SSOT·SPEC §2.12는 NXN과 같이 **`doc_anchor`**로 수렴(과거 `anchor_id` 폐기). 통합 SSOT 본문은 **경량 traceability** 정의를 유지할 수 있으며, NFS 전개 컬럼은 `[NXN] [DDL]` §1-A·마이그레이션으로 확장한다.
     - **`nexa_knowledge_residency` PK `residency_id`:** SSOT 4-B 블록과 NXN DDL **일치**.
-    - **`nexa_knowledge_doc_sync_state`:** SSOT·SPEC §2.2 는 PK **`id`**, 식별 **`doc_ref_path`**, 해시 **`last_hash`**, 상태값 `success|fail|…`. NXN DDL 은 PK **`sync_id`**, **`doc_anchor`**, **`curr_source_hash`**, 상태값 `ok|changed|…` 등 **스키마가 별 갈래** — Nexion 구현 전 **`_KNOWLEDGE` 쪽으로 컬럼·이름을 맞추거나**, NXN을 확장안으로 두고 **통합 DDL 한 줄기로 병합 계획**을 문서화해야 한다(단순 PK 이름만의 문제가 아님).
+    - **`nexa_knowledge_doc_sync_state`:** SSOT·SPEC §2.2·NXN SCHM §6·NXN DDL §1-C가 **동일 모델**(PK `sync_id`, 식별 `project_id`+`doc_anchor`, …)로 수렴했다. **`last_sync_status`의 `missing`은 traceability §4.4.1과 별개의 보조 프로브 신호**이며, 유예·삭제·**NIXIE 연출** 입력은 **`traceability_paths`만** 단일 머신이다(SCHM §4.4.2). **Lumina·Jitter 표현 주체는 NIXIE**(UIUX §4.3.1).
     - **`nexa_knowledge_nexion_doc_node_links`:** 통합 SSOT DDL 파일에는 **테이블 정의 없음**(Nexion 전용). PK **`doc_node_link_id`** 는 NXN 문서 내 일관.
+
+      > > 정리:
+
+      - “얼마나 떨어뜨릴까” → 전용 테이블·Extension·UI 상태는 의도적으로 멀게 둘 수 있음.
+      - “같은 진실원에 어떻게 맞출까” → 공유 원장(traceability, doc_sync)은 거리를 두되 데이터는 한 스키마에 맞추는 쪽이 보통.
+
 2.  **[ ] API 계약 선행:** Phase 2 초반에 **Core 엔드포인트** 목록을 확정하여 UI와 백엔드의 충돌을 방지.
 3.  **[ ] 고아 자산 처리:** NFS 루트로 이동된 고아 자산들이 사용자에게 피로감을 주지 않도록 **Resource Explorer**에서의 시각적 필터링 수준을 차후 아이디어 검토
 
@@ -123,7 +136,7 @@ Nexion은 물리적 폴더 구조를 논리적 지도로 치환하는 **NFS**의
 
 - **폴더명 = Link ID:** Nexion의 카드 계층은 실제 외부 탐색기의 디렉터리 구조와 일체화됩니다.
 - **Late Anchoring:** 설계 노드에 의지 중력이 실려 실제 파일이 연결(Anchor)되는 순간, 시스템은 해당 자산에 **Capability ID**를 발급하고 **지능적 족보(Traceability)**에 박제합니다.
-- **Inode식 추적:** 파일 이름이 바뀌거나 외부에서 이동되어도 UUID 기반의 **앵커 ID**를 통해 Nexion 캔버스의 위치를 자동으로 유지하며, 정합성이 깨질 때만 **Jitter(미세 떨림)**로 사용자에게 알립니다.
+- **Inode식 추적:** 파일 이름이 바뀌거나 외부에서 이동되어도 UUID 기반의 **앵커 ID**를 통해 Nexion(NEXU) 캔버스의 위치를 자동으로 유지하며, 정합성이 깨질 때만 **NEXA NIXIE가 NEXU 캔버스 위에서 Jitter(미세 떨림)** 로 사용자에게 알립니다(UIUX §4.3.1).
 
 **요약하자면,** Nexion에서의 설계는 **"의지 중력에 의해 사유의 경로가 선명해지고, 다중 자아 선택을 통해 칠판의 논리 도구가 바뀌며, 그 결과가 NFS를 통해 물리적 자산으로 박제되는 과정"**입니다. 넥슈 캔버스가 우주 전체를 보여주는 '지도'라면, Nexion은 그 지도 위의 특정 지점에서 실제 연주를 준비하는 '지휘자의 데스크'로 정의.
 
@@ -164,7 +177,7 @@ NEXA 아키텍처에서 **사용자의 의지** ( **'의도 중력(Intent Gravit
     단순히 화면을 키우는 것이 아니라, AI의 판단에 따라 정보의 밀도를 변환 > .
 
     - **동적 계층 필터링:** AI가 "이 흐름에서는 사실(Fact) 위주로 보라"고 판단하면, 중력 축을 따라 **사실(SNT)** 노드들만 고배율 LOD로 활성화하고 나머지는 도트 형태로 압축(Implosion)합니다.
-    - **시각적 피드백 연동:** 확신도가 낮은 경로는 **Jitter(떨림)** 효과를 주어 사용자의 주의를 끌고, 핵심 규범(ERA)이나 승인된 경로는 강한 **Lumina(발광)**로 시각적 이정표를 제공합니다.
+    - **시각적 피드백 연동:** 확신도가 낮은 경로는 **NIXIE**가 **Jitter**를, 핵심 규범(ERA)이나 승인된 경로는 **Lumina**로 시각적 이정표를 제공합니다(NEXU 캔버스 표면·`nixie_lumina_profile`·UIUX §4.3.1).
 
     ####### ④ 설계 요약: AI 지휘 매뉴얼
 
