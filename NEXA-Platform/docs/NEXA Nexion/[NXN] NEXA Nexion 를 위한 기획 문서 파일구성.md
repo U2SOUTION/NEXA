@@ -42,7 +42,6 @@
 - `[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md` (필드·상태·규칙 명세)
 - `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md` (CREATE·인덱스·RLS·트리거·예시 쿼리)
 - `[NXN] [API] NEXA Nexion API 및 통신 규약.md` (작성 예정)
-- `[NXN] [SPEC] Doc Sync Crawler 및 자동화 잡 명세.md` (작성 예정)
 
 **스키마와 직결되는 데이터 축:**
 
@@ -54,7 +53,7 @@
 ### 4. DDL 이후에 필요한 보완 문서
 
 - **`[NXN] [API] NEXA Nexion API 및 통신 규약`:** Vue Flow와 백엔드, Ollama 전역 엔진 사이의 데이터 교환 규격(JSON 패킷 구조).
-- **`[NXN] [SPEC] Doc Sync Crawler 및 자동화 잡 명세`:** 외부 탐색기 변경 감지, 해시 비교, 삭제 시 **Soft Deactivate** 처리.
+- **`[NXN] [ARCH] NFS 보안 및 외부 자산 연동 설계서` §3:** Doc Sync Crawler·배치 잡 관련 **구현 체크리스트**(경로·동기화 무결성·거버넌스·UX). 스캔 주기·해시·Soft 처리 방향은 여기서 아키텍처 범위로 정리하고, 세부 계약은 API·오케스트레이션 SSOT와 맞춘다.
 - **`[NXN] [GUIDE] 개발자용 Nexion 활용 가이드`:** 백지에서 뼈대를 그리고 Late Anchoring을 수행하는 워크플로우.
 
 ### 5. 최종 단계: 오케스트레이션 엔진과의 결합

@@ -352,7 +352,7 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 - `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md` — `nexa_knowledge_residency` 등 통합 `CREATE TABLE`
 - `_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md` — `nexa_knowledge_residency` §2.9 상세
 - `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md` — CREATE(§1), CHECK(§2), **선택 인덱스(§3, 조건부)**, 트리거(§4), RLS(§5), 예시 쿼리(§6)
-- `[NXN] [SPEC] Doc Sync Crawler 및 자동화 잡 명세.md` — 스캔 주기, 해시 비교, Soft 처리(작성 예정)
+- `[NXN] [ARCH] NFS 보안 및 외부 자산 연동 설계서.md` — §3 Doc Sync Crawler·자동화 잡 구현 체크리스트; 스캔·큐 세부는 오케스트레이션 SSOT
 - `[NXN] [API] NEXA Nexion API 및 통신 규약.md` — API 페이로드(작성 예정)
 
 운영 배포 전 인증·멤버십 모델에 맞춰 RLS·FK를 최종 확정한다.
