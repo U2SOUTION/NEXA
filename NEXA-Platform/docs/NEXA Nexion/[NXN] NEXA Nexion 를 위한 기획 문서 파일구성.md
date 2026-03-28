@@ -6,6 +6,17 @@
 
 **_KNOWLEDGE와의 관계:** 지식·문서 DB·운영 규약의 **기획 기준은 `docs/_KNOWLEDGE*.md`**(특히 DDL SSOT·SPEC)이다. Nexion은 그 구현을 준비하던 과정에서 **모든 문서를 한 그림으로 다루는 편집·추적 데스크**로 범위가 넓어졌고, **구현은 Nexion을 먼저** 가져갈 수 있으나, 공유 테이블(`nexa_knowledge_*` 등)의 **스키마 진실은 _KNOWLEDGE에 수렴**시킨다.
 
+**Nexion ≠ 플랫폼 `project`:** `project_id`·`project_members`는 통합 DB·RLS의 **테넌트 구획**이지 Nexion 제품 정의의 중심이 아니다. 확장(Extension) 등은 **별도 프로그램**이다. 상세는 `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1.1**.
+
+**문서 읽기 계층(비중):**
+
+| 계층 | 문서(예시) | 용도 |
+|------|------------|------|
+| **본문(핵심)** | `[NXN] [CNCP]`, `[NXN] [UIUX]`, `[NXN] [ARCH] NFS ...`, `[NXN] [SCHM]`, `[NXN] [DDL]`, `[NXN] [API]` | 제품 정의·스키마·API·NFS 운영의 **직접 근거**. |
+| **부록·참고** | `NEXA 부록-협업 스택·큐·오케스트레이션 흐름·머메이드.md`, 플랫폼 `__NEXA 오케스트레이션 스키마 DDL v5` 등 | 오케스트레이션·협업 스택 **맥락**; Nexion 코어 구현 순서의 **선행 조건로 두지 않음**(Tier B·배포 시 맞춤). |
+
+구현 티어(Tier A/B)·Phase·API 분리는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두, `[NXN] [API] ...` **§1.1**을 본다.
+
 ---
 
 ### 1. 컨텍스트 코드(Context) 정의
@@ -41,7 +52,7 @@
 
 - `[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md` (필드·상태·규칙 명세)
 - `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md` (CREATE·인덱스·RLS·트리거·예시 쿼리)
-- `[NXN] [API] NEXA Nexion API 및 통신 규약.md` (작성 예정)
+- `[NXN] [API] NEXA Nexion API 및 통신 규약.md` — REST v1, NFS·동기화·링크·본문·캔버스·용어 추출
 
 **스키마와 직결되는 데이터 축:**
 
@@ -52,7 +63,7 @@
 
 ### 4. DDL 이후에 필요한 보완 문서
 
-- **`[NXN] [API] NEXA Nexion API 및 통신 규약`:** Vue Flow와 백엔드, Ollama 전역 엔진 사이의 데이터 교환 규격(JSON 패킷 구조).
+- **`[NXN] [API] NEXA Nexion API 및 통신 규약`:** Vue Flow와 백엔드, Ollama 전역 엔진 사이의 **REST v1·JSON** 계약(초안 반영, OpenAPI화 권장).
 - **`[NXN] [ARCH] NFS 보안 및 외부 자산 연동 설계서` §3:** Doc Sync Crawler·배치 잡 관련 **구현 체크리스트**(경로·동기화 무결성·거버넌스·UX). 스캔 주기·해시·Soft 처리 방향은 여기서 아키텍처 범위로 정리하고, 세부 계약은 API·오케스트레이션 SSOT와 맞춘다.
 - **`[NXN] [GUIDE] 개발자용 Nexion 활용 가이드`:** 백지에서 뼈대를 그리고 Late Anchoring을 수행하는 워크플로우.
 

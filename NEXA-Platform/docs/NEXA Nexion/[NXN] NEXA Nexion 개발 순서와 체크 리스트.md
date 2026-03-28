@@ -1,124 +1,97 @@
-### Phase 1: 지식 운영체제(Knowledge OS) 기반 DB 구축
+## 구현 티어(Tier A / Tier B)
 
-가장 먼저 수행해야 할 작업은 시스템의 '뼈대'를 만드는 것입니다. Nexion은 독립형 데스크이지만, 그 데이터는 플랫폼 전체의 진실원(SSOT)인 `nexa_knowledge_*` 계층과 정합되어야 합니다.
+철학·부담 분리는 `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1·§1.1**과 정합한다. 스키마·API·Phase는 아래 **두 티어**로 고정한다. 상세 매핑은 `[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md` **§2.2**, API는 `[NXN] [API] NEXA Nexion API 및 통신 규약.md` **§1.1**을 본다.
 
-- **[ ] 핵심 테이블 생성:** `nexa_knowledge_traceability_paths`(NFS 인덱스), `nexa_knowledge_residency`(상주 원장), `nexa_knowledge_doc_sync_state`(전역 동기화) 테이블을 DDL에 따라 생성합니다.
-- **[ ] Inode 식별자 확정:** 파일 위치가 바뀌어도 추적 가능한 `doc_anchor`(UUID) 유니크 제약과 `path_id` PK 체계를 확인합니다.
-- **[ ] 정책 데이터 시드 주입:** 시스템 기본 스왑 정책 및 동기화 정책 데이터를 먼저 주입하여 외래키(FK) 참조 오류를 방지합니다.
+### Tier A — Nexion 코어(독립형 관제 데스크 최소 기능)
 
-### Phase 2: 백엔드 핵심 - Doc Sync Crawler 구현
+| 항목 | 내용 |
+|------|------|
+| **목표** | 문서·지식 범위의 **관계·족보·외부 자산 참조**만 확보. 플랫폼 전 스택·오케스트레이션 전제 없음. |
+| **필수 테이블** | `nexa_knowledge_traceability_paths`, `nexa_knowledge_nexion_doc_node_links`, `nexa_knowledge_doc_sync_state`(크롤러·저장 경합에 필요한 **최소 컬럼** 위주로 시작 가능). |
+| **초기 제외(후행)** | `nexa_knowledge_residency`(VOID·스왑 원장) — **Tier B**. |
+| **traceability 사용 범위** | 초기에는 **`anchor_domain` = `knowledge`** 중심 행만 채워도 됨. `orchestration`·`device` 등 광의 도메인·NIXIE DB 연동은 **Tier B**. |
+| **선택 컬럼** | `nixie_lumina_profile` 등은 **NULL 허용** 전제 — Tier A에서 UI 로컬 파생으로 시작 가능. |
+| **API** | **REST v1 Core**(§1.1 목록)만 Phase 1 계약으로 고정. |
+| **RLS·`project_members`** | 단일 사용자·로컬 PoC에서는 비활성 또는 단일 구획; **전면 적용은 Tier B**. |
 
-Nexion의 핵심은 물리적 폴더 구조를 지능적 서사(NFS)로 변환하는 것입니다. 백그라운드에서 파일 시스템을 감시하는 크롤러를 먼저 구축합니다.
+### Tier B — 플랫폼 공유·운영 완성도
 
-- **[ ] 파일 시스템 스캔 로직:** `src/docs/` 폴더를 스캔하여 폴더명(Link ID)과 파일명(순수 제목)을 추출하는 기능을 구현합니다.
-- **[ ] 해시(Hash) 기반 변경 감지:** 파일 내용의 `source_hash`를 비교하여 `doc_sync_state`를 `changed` 또는 `ok`로 갱신하는 로직을 작성합니다.
-- **[ ] 상태 전이 관리:** 파일 미발견 시 즉시 삭제하지 않고 `missing_since`를 기록하며 `status = 'moved'`로 처리하는 복구 우선 로직을 적용합니다.
+| 항목 | 내용 |
+|------|------|
+| **목표** | 통합 DB·테넌시·다도메인 동기화·감사와 정합. |
+| **추가·전개** | `nexa_knowledge_residency`, `doc_sync_state` **전 필드·`lock_metadata`·책임 도메인**, traceability **전 `anchor_*`·NIXIE 프로파일 DB 반영**, 스왑·동기화 **정책 시드·FK 원장**. |
+| **보안 배포** | RLS 전면, `project_members`·`nxn_user_project_ids()` 등 플랫폼 표준. |
+| **API** | **Extended**(캔버스 레이아웃, 용어 추출 엔진, 내부 크롤 리포트 등 §1.1). |
 
-### Phase 3: 프론트엔드 기초 - 3단 레이아웃 및 Vue Flow
+### Phase ↔ 티어 매핑(요약)
 
-사용자가 체감하는 '사고의 칠판'을 구성합니다. 표준 3단 패널 레이아웃을 채택하여 작업 효율을 높입니다.
-
-- **[ ] 3-Panel 레이아웃 구성:** 좌측(탐색기), 중앙(Vue Flow 캔버스), 우측(속성 편집기) 구조를 잡습니다.
-- **[ ] Vue Flow 연동:** 노드를 드래그 앤 드롭으로 배치하고 `node_id`를 생성하는 기초 기능을 구현합니다.
-- **[ ] 무한 줌(Fractal Zoom) 기초:** 마침표(.) 계층 구조에 따라 노드가 폭발/함몰될 수 있도록 `depth` 필드와 연동한 필터링 로직을 준비합니다.
-
-### Phase 4: 지능 자산 연결 - Late Anchoring 로직
-
-설계도(노드)와 실제 자산(파일)을 연결하는 Nexion만의 핵심 워크플로우를 구현합니다.
-
-- **[ ] 노드-앵커 매핑:** `nexa_knowledge_nexion_doc_node_links` 테이블을 통해 Vue Flow 노드와 `doc_anchor`를 연결합니다.
-- **[ ] 고아 자산(Orphaned) 식별:** 어떤 노드에도 연결되지 않은 파일을 탐색기 상단에 별도로 표시하는 필터를 구현합니다.
-- **[ ] 물리적 이동(mv) 자동화:** 노드 위치 변경 시 실제 디스크의 폴더 구조를 변경하거나 제안하는 '동기화 승인(ASK)' 팝업을 연동합니다.
-
-### Phase 5: 편집 및 지능 확장 - TipTap & Ollama
-
-문서를 편집하고 그 안에서 지능을 추출하는 단계를 구현하여 도구의 완성도를 높입니다.
-
-- **[ ] TipTap 에디터 통합:** 좌측 드로어에서 파일 클릭 시 중앙 탭에 에디터를 열고, 저장 시 `source_hash`를 갱신하도록 구현합니다.
-- **[ ] Ollama 용어 추출 엔진:** 편집 중인 문서에서 핵심 용어를 추출하여 우측 'Terms Inspector'에 보여주는 전역 엔진 호출 로직을 붙입니다.
-- **[ ] 영문 IR(중간 표현) 박제:** 노드 속성창에서 '번역 액션'을 통해 AI가 이해할 수 있는 영문 메타데이터를 저장하는 기능을 추가합니다.
-
-### Phase 6: 거버넌스 및 시각적 피드백(NIXIE) 적용
-
-마지막으로 시스템의 신뢰도를 시각화하고 보안 정책을 적용하여 운영 단계로 끌어올립니다.
-
-- **[ ] Lumina & Jitter 연출:** `confidence_score`가 임계값(95) 미만일 때 노드가 미세하게 떨리는(Jitter) 시각 효과를 Vue Flow에 적용합니다.
-- **[ ] RLS(행 수준 보안) 활성화:** 사용자의 소속 프로젝트(`project_id`)에 따라 데이터 접근을 격리하는 DB 정책을 활성화합니다.
-- **[ ] 감사 로그(Audit Log) 연동:** 상태 변경(`active` → `moved` 등) 시 `related_audit_id`를 남겨 지능적 족보(Traceability)를 완성합니다.
+- **Phase 1:** **1-A(필수)** = Tier A 테이블·제약·Core API 전제. **1-B(선택)** = Tier B 테이블 + 정책 시드·RLS 전제.
+- **Phase 2~4:** Tier A 중심(크롤러, Vue Flow, Late Anchoring).
+- **Phase Ext:** TipTap·Ollama 등 — **Extension 별도 트랙**. `[NXN] [SPEC] NEXA Nexion 확장 프로그램(Extension) 기능 명세.md` 참고. **코어 Phase 번호와 혼동하지 않는다.**
+- **Phase B-ops(구 Phase 6에 해당):** Tier B — NIXIE·RLS·감사·residency 연동.
 
 ---
 
-**💡 개발 시작 전 최종 체크리스트:**
+### Phase 1-A: 지식 운영체제(Knowledge OS) 기반 DB — **Tier A**
+
+가장 먼저 수행할 작업은 시스템의 뼈대를 만드는 것이다. Nexion은 독립형 데스크이지만, 데이터는 플랫폼 전체의 진실원(SSOT)인 `nexa_knowledge_*` 계층과 정합되어야 한다.
+
+- **[ ] Tier A 핵심 테이블 생성:** `nexa_knowledge_traceability_paths`, `nexa_knowledge_nexion_doc_node_links`, `nexa_knowledge_doc_sync_state`를 DDL·SCHM에 따라 생성한다. **`residency`는 이 단계에서 생략 가능**(Tier B).
+- **[ ] Inode 식별자 확정:** 파일 위치가 바뀌어도 추적 가능한 `doc_anchor`(UUID) 유니크 제약과 `path_id` PK 체계를 확인한다.
+- **[ ] Tier A 정책 최소화:** Tier A만 배포할 때는 스왑·동기화 **원장 FK·시드**를 강제하지 않아도 된다(컬럼·FK는 SCHM·DDL의 **선택 배포** 절을 따름). Tier B로 갈 때 시드·FK를 맞춘다.
+
+### Phase 1-B: 플랫폼 공유 스키마 — **Tier B(선택)**
+
+- **[ ] `nexa_knowledge_residency` 및 연관 원장:** VOID·스왑 상주 원장과 SCHM §5 정합.
+- **[ ] 정책 데이터 시드:** 시스템 기본 스왑·동기화 정책 시드 주입으로 FK 참조 오류를 방지한다.
+- **[ ] RLS·멤버십(선택):** 공유 배포 시 `project_members` 정렬 DDL·RLS 활성화를 계획한다.
+
+### Phase 2: 백엔드 핵심 — Doc Sync Crawler 구현
+
+Nexion의 핵심은 물리적 폴더 구조를 지능적 서사(NFS)로 변환하는 것이다. 백그라운드에서 파일 시스템을 감시하는 크롤러를 먼저 구축한다.
+
+- **[ ] 파일 시스템 스캔 로직:** `DOCS_PATH`가 가리키는 **`NEXA-Documentation/`** 트리를 스캔하여 폴더명(Link ID)과 파일명(순수 제목)을 추출하는 기능을 구현한다(`[NXN] [ARCH] NFS ...` §1.1).
+- **[ ] 해시(Hash) 기반 변경 감지:** 파일 내용의 `source_hash`를 비교하여 `doc_sync_state`를 `changed` 또는 `ok`로 갱신하는 로직을 작성한다.
+- **[ ] 상태 전이 관리:** `nexa_knowledge_traceability_paths`의 `missing_since`·`status`는 **`[NXN] [SCHM] ...` §4.4.1 표(크롤러 상태 머신)** 를 그대로 구현한다. 유예 중에는 `active`+`missing_since`, 확정 시에만 `deleted` 등.
+
+### Phase 3: 프론트엔드 기초 — 3단 레이아웃 및 Vue Flow
+
+사용자가 체감하는 사고의 칠판을 구성한다. 표준 3단 패널 레이아웃을 채택하여 작업 효율을 높인다.
+
+- **[ ] 3-Panel 레이아웃 구성:** 좌측(탐색기), 중앙(Vue Flow 캔버스), 우측(속성 편집기) 구조를 잡는다.
+- **[ ] Vue Flow 연동:** 노드를 드래그 앤 드롭으로 배치하고 `node_id`를 생성하는 기초 기능을 구현한다.
+- **[ ] 무한 줌(Fractal Zoom) 기초:** 마침표(.) 계층 구조에 따라 노드가 폭발/함몰될 수 있도록 `depth` 필드와 연동한 필터링 로직을 준비한다.
+
+### Phase 4: 지능 자산 연결 — Late Anchoring 로직
+
+설계도(노드)와 실제 자산(파일)을 연결하는 Nexion만의 핵심 워크플로우를 구현한다.
+
+- **[ ] 노드-앵커 매핑:** `nexa_knowledge_nexion_doc_node_links` 테이블을 통해 Vue Flow 노드와 `doc_anchor`를 연결한다.
+- **[ ] 고아 자산(Orphaned) 식별:** 어떤 노드에도 연결되지 않은 파일을 탐색기 상단에 별도로 표시하는 필터를 구현한다.
+- **[ ] 물리적 이동(mv) 자동화:** 노드 위치 변경 시 실제 디스크의 폴더 구조를 변경하거나 제안하는 동기화 승인(ASK) 팝업을 연동한다.
+
+### Phase Ext: 편집 및 지능 확장 — TipTap 및 Ollama(**Extension 트랙**)
+
+문서 편집·용어 추출은 **Nexion 코어와 분리된 확장**이다. 일정·버전은 코어 Phase와 독립한다.
+
+- **[ ] TipTap 에디터 통합:** 좌측 드로어에서 파일 클릭 시 중앙 탭에 에디터를 열고, 저장 시 `source_hash`를 갱신하도록 구현한다.
+- **[ ] Ollama 용어 추출 엔진:** 편집 중인 문서에서 핵심 용어를 추출하여 우측 Terms Inspector에 보여주는 전역 엔진 호출 로직을 붙인다(API **Extended**).
+- **[ ] 영문 IR(중간 표현) 박제:** 노드 속성창에서 번역 액션을 통해 AI가 이해할 수 있는 영문 메타데이터를 저장하는 기능을 추가한다.
+
+### Phase B-ops: 거버넌스 및 시각적 피드백(NIXIE) — **Tier B**
+
+시스템 신뢰도 시각화·보안 정책은 **플랫폼 배포 단계**에 맞춘다.
+
+- **[ ] Lumina & Jitter 연출:** `confidence_score`가 임계값(95) 미만일 때 노드가 미세하게 떨리는(Jitter) 시각 효과를 Vue Flow에 적용한다. Tier A에서는 클라이언트 파생만으로도 시작 가능(`[NXN] [API]` §10).
+- **[ ] RLS(행 수준 보안) 활성화:** 사용자의 소속 프로젝트(`project_id`)에 따라 데이터 접근을 격리하는 DB 정책을 활성화한다(Tier B).
+- **[ ] 감사 로그(Audit Log) 연동:** 상태 변경(`active` → `moved` 등) 시 `related_audit_id`를 남겨 지능적 족보(Traceability)를 완성한다.
+
+---
+
+**개발 시작 전 최종 체크리스트:**
 
 - [ ] **PostgreSQL 확장 확인:** `vector`, `timescaledb`, `pg_uuidv7` 설치 완료 여부.
 - [ ] **UUID v7 함수:** 시간순 정렬을 위한 `uuid_generate_v7()` 함수 등록 여부.
-- [ ] **디렉터리 권한:** 백엔드 크롤러가 `src/docs/` 폴더를 읽고 쓸 수 있는 권한 확보 여부.
+- [ ] **디렉터리 권한:** 백엔드 크롤러가 **`DOCS_PATH`(`NEXA-Documentation/` 등)** 를 읽고 쓸 수 있는 권한 확보 여부.
 - [ ] **개발 전략:** 복잡한 오케스트레이션 로직 이전에 **NFS 인덱싱 정합성**을 최우선으로 확보할 것.
-
----
-
-## 참고 사항
-
-일반적인 시스템(IoT + AI + 협업 플랫폼)을 구축하기 위한 로드맵 예시와 체크리스트.
-📍 시스템 구축 로드맵 (Roadmap)
-
-1.  Phase 1: 기반 인프라 구축 (Foundational)
-
-- Redis 클러스터 구성 및 성능 테스트 (수천 대 접속 대비)
-  - PM2를 이용한 기본 Node.js 서버 환경 설정
-  - gRPC 기반의 IoT 데이터 수집 인터페이스 정의
-
-1.  Phase 2: 실시간 협업 레이어 (Real-time)
-
-- Hocuspocus 서버 설정 및 Yjs 연동
-  - Unified를 활용한 데이터 파싱/변환 로직 구현
-  - 실시간 동기화 지연 시간(Latency) 최적화
-
-1.  Phase 3: 비동기 작업 처리 (Asynchronous)
-
-- BullMQ를 이용한 작업 큐(Queue) 설계
-  - Worker 프로세스 분리 및 V8 Isolate 격리 환경 검증
-  - AI 분석 로직(Python 등)과 Node.js 워커 간의 통신 구현
-
-1.  Phase 4: 고도화 및 안정화 (Scaling)
-
-- 부하 테스트 (수천 대 기기 가상 시뮬레이션)
-  - BullBoard 등 모니터링 시스템 도입
-  - 예외 처리 및 데이터 복구(Persistence) 시나리오 점검
-
-✅ 핵심 체크리스트 (Checklist)
-
-- 성능: 수천 대의 기기가 동시에 쏠 때 Redis 메모리가 버티는가?
-- 격리: 무거운 AI 연산이 Hocuspocus의 실시간 동기화를 방해하지 않는가? (V8 Isolate 성능)
-- 정합성: 여러 사용자가 동시에 AI 결과물을 수정할 때 Yjs가 충돌을 잘 해결하는가?
-- 보안: 외부에서 들어오는 Lua 스크립트나 데이터가 샌드박스를 탈출할 위험은 없는가?
-
----
-
-## 기획문서를 단순한 기록이 아니라 'AI의 최초 등불(Index)'로 삼겠다는 핵심 포인트 3가지
-
-1. 등불(Index)의 설계: "기획서가 곧 데이터다"
-   기획 문서를 작성할 때부터 Unified와 Yjs를 활용해 문장을 원자 단위(Atomic Unit)로 쪼개야 합니다.
-
-- Check: 문서의 각 섹션이나 문장에 고유한 의미 ID를 부여하세요.
-- Benefit: 나중에 AI가 이 문서를 읽을 때, 단순 텍스트가 아니라 "이것은 UCL(Execution Chain)의 입력 규약이다"라는 맥락(Context)을 즉시 파악하게 됩니다.
-
-2. 지식화의 기초 자산: "Hocuspocus의 기록"
-   기획 툴에서 협업하며 발생하는 모든 수정 이력(Update)을 Hocuspocus를 통해 Redis와 JSONB Vault에 쌓으세요.
-
-- Check: 단순 결과물이 아닌, '왜(Why)' 고쳤는지에 대한 서사(Narrative)를 함께 캡처해야 합니다.
-- Benefit: 이것이 나중에 Reasoning Path Visualizer(족보 추적)의 강력한 근거 자료가 됩니다.
-
-3. 거버넌스 구축의 첫걸음: "기초 규약(Schema) 정의"
-   IoT 센서값과 신규 데이터가 '지식'이 되려면, 기획 툴에서 정의한 도메인 모델을 따라야 합니다.
-
-- Check: 기획 툴 내에 '용어 사전(Glossary)'과 '엔티티 관계'를 실시간으로 정의하는 기능을 넣으세요.
-- Benefit: AI가 이 사전(등불)을 들고 현장에서 오는 생소한 센서값을 "아, 이것은 기획서 4.2절에서 정의한 그 데이터구나!"라고 매핑하게 됩니다.
-
-2단계 로드맵 : [Phase 0.1 - The Beacon]
-
-1.  Editor: Yjs + TipTap(또는 유사 에디터)으로 실시간 편집 환경 구축.
-2.  Sync: Hocuspocus로 편집 데이터를 중앙 제어.
-3.  Parser: Unified를 이용해 문서를 5W1H 토큰으로 실시간 변환하여 PG-Vector에 임베딩.
-
-이 기획 관리 툴에서 다루실 첫 번째 기획서 주제는 무엇인가요? (예: IoT 센서 규약, 혹은 AI 오케스트레이션 로직 등) 구체적인 주제가 있다면 그에 맞는 인덱스 구조를 함께 구상해 볼 수 있습니다.
+- [ ] **티어 선택:** PoC는 **Tier A + Core API**만으로도 충분한지, **Tier B** 일정을 별도로 잡았는지 명시한다.

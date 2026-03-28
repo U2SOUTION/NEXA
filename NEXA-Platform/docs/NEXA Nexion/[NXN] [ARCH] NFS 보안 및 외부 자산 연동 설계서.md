@@ -8,6 +8,7 @@
 
 - `[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md` — `traceability_paths`, `doc_sync_state`, `residency` 필드 SSOT
 - `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md` — 실행 DDL
+- `[NXN] [API] NEXA Nexion API 및 통신 규약.md` — 클라이언트·백엔드 JSON 계약, 문서 프록시·비실경로 노출
 - `NEXA Nexion 개발 순서와 체크 리스트.md` — 단계별 구현
 - `docs/_KNOWLEDGE*.md` — 플랫폼 지식 계층 SSOT
 
@@ -19,14 +20,14 @@
 
 ### 1.1 파일 위치 분리 (Site External Storage)
 
-현재 **루트** 하위의 `docs/`를 웹 사이트가 직접 접근할 수 없는 **외부 디렉터리 또는 별도 저장소(`NEXA-Documentation/` 등)** 로 옮기는 것을 설계한다.
+**`NEXA-Documentation/`** — 지식 원본(주로 Markdown 등)을 두는 **표준 외부 저장소 디렉터리**다. **워크스페이스(저장소) 루트 바로 아래**에 두고, 애플리케이션 코드 트리(예: `NEXA-Platform/`)와 **형제**로 배치하는 것을 NXN 기본 전제로 한다. 웹 서버가 이 경로를 URL로 직접 노출하지 않도록 **보안 경계**를 둔다.
 
 - **AI 지식 활용:** NEXA의 AI(Ollama 등)는 파일을 직접 탐색하기보다, **`Doc Sync Crawler`**가 외부 저장소를 스캔하여 **`pgvector`**에 저장한 벡터 데이터와 **`JSONB Raw Vault`**에 아톰화된 요약본을 주로 사용하기 때문에, 원본을 외부에 두어도 **성능만으로 외부 저장을 막을 필요는 없다**는 전제와 맞춘다.
 - **보안 메커니즘:** 원본 파일은 외부 저장소에 두고, 시스템 내에서는 **`nexa_knowledge_traceability_paths.physical_path`**(상대)와 **런타임 문서 루트** 조합으로 위치를 관리한다. 또한 **`V8 Isolate`** 기반 샌드박스로 사용자 스크립트·AI 접근을 격리하여 메인 시스템을 보호한다.
 
 #### 문서 루트·경로 계약
 
-- Node.js 설정 파일(`.env` 등)에 **런타임 문서 루트(절대 경로)** 를 둔다. 예: `DOCS_PATH=/data/nfs/knowledge_base/docs`
+- Node.js 설정 파일(`.env` 등)에 **런타임 문서 루트(절대 경로)** `DOCS_PATH`를 둔다. **로컬·개발 기본 예:** `DOCS_PATH=<워크스페이스>/NEXA-Documentation` (위 표준 디렉터리를 가리킴). 운영에서는 동일 계약으로 NAS 마운트 지점 등을 가리킨다.
 - **NXN 기본 결정:** `nexa_knowledge_traceability_paths.physical_path`에는 **문서 루트를 제외한 상대 경로만** 둔다(슬래시 방향·`..` 금지 등 정규화 규칙은 크롤러·**§3** 체크리스트에서 단일화).
 - **원격 URI 비채택:** `nfs://`, `smb://`, `s3://` 등 **스킴이 붙은 문자열은 `physical_path`에 넣지 않는다.** NAS·공유 폴더·객체 스토어는 **호스트/컨테이너에서 마운트**한 뒤, 그 마운트 지점을 `DOCS_PATH`(또는 아래 프로젝트 루트)로 삼아 **동일한 상대 경로 계약**을 적용한다.
 - **프로젝트별 루트:** `traceability_paths.project_id`가 **서로 다른 물리 트리**를 가리키면 `.env` 하나만으로는 부족하다. **프로젝트(테넌트) → 문서 루트** 매핑을 설정·비밀 저장소·DB 설정 테이블 등으로 두는 방식은 구현 시 **§3·API 규약**에서 확정한다.
@@ -73,7 +74,7 @@
 
 **명시적 결정:** 주·보조 **두 물리 위치를 한 행에 “공식 이중 경로”로 고정**하는 전용 컬럼은 본 단계에서 두지 않는다. `doc_sync_state`에는 **`metadata` 컬럼이 없다**(DDL 기준). `lock_metadata`는 SCHM대로 **논리 잠금·충돌 당사자** 전용이며, NAS 백업 경로 병기 용도로 쓰지 않는다.
 
-- **장애 신호:** 크롤러·잡이 주 루트에서 대상을 찾지 못하면 `doc_sync_state.last_sync_status`를 `missing` 또는 `error`로 올릴 수 있다(SCHM §6.2). `nexa_knowledge_traceability_paths.missing_since`·`status`는 **경로 행 단위 실종·유예**에 쓴다(SCHM §4).
+- **장애 신호:** 크롤러·잡이 주 루트에서 대상을 찾지 못하면 `doc_sync_state.last_sync_status`를 `missing` 또는 `error`로 올릴 수 있다(SCHM §6.2). `nexa_knowledge_traceability_paths`의 `missing_since`·`status`는 **경로 행 단위 실종·유예**에 쓰며, **구현 전이는 SCHM §4.4.1**을 따른다.
 - **페일오버 동작:** “Emergency Policy”·쓰기 SSOT·split-brain 방지·재동기화 절차는 **운영 SPEC·인프라 런북**에서 정의한다. 본 ARCH는 **스키마가 제공하는 관측 지점**(`last_sync_status`, `missing_since`, `residency`)만 연결한다.
 - **`nexa_knowledge_residency`:** VOID 티어·스왑 **원장**이다. L3가 **아카이브·원격 계층**을 의미할 **배치**는 있으나, **L3 ≡ NAS**로 단정하지 않는다. NAS는 **마운트 + 정책** 문제이고, 티어는 **플랫폼 상주 모델** 문제다.
 - **오케스트레이션:** `redundancy` 코일 등 가중치와 잡 스케줄은 **오케스트레이션 SSOT**를 따른다. 본 문서에 수치(예: 9~10)를 고정하지 않는다.
@@ -84,7 +85,7 @@
 
 - **[ ] 루트 결합:** `resolvePhysicalPath(project_id, physical_path)` — 프로젝트별 루트 매핑이 있으면 여기서만 조합한다.
 - **[ ] 경로 정규화:** 상대 경로 문자열 규칙(구분자, `..`, NFC 등)을 크롤러·API에서 통일한다.
-- **[ ] 유예 기간:** `traceability_paths.missing_since`·`status`와 크롤러 임계로 **일시 I/O 오류와 삭제**를 구분한다(SCHM §4.4).
+- **[ ] 유예 기간:** `traceability_paths`의 `missing_since`·`status` 전이는 **SCHM §4.4.1 상태 머신 표**로 고정하고, `GRACE_SCAN_COUNT` 등 상수는 환경에서 단일화한다.
 - **[ ] 샌드박스:** `V8 Isolate` 프로필에 **해결된 절대 경로(루트+상대)** 만 허용하고, URI 스킴 분기는 요구하지 않는다.
 
 ---
@@ -96,12 +97,13 @@
 
 ### 3.1 연결 안정성·경로 (인프라)
 
-- **[ ] 가용성·타임아웃:** 일시적 네트워크·권한 오류를 **물리 삭제(`deleted`)**로 오판하지 않도록 `missing_since`·유예 임계·재시도 정책을 크롤러와 맞춘다(§1 하단·SCHM §4.4).
+- **[ ] 가용성·타임아웃:** 일시적 네트워크·권한 오류를 **물리 삭제(`deleted`)**로 오판하지 않도록 SCHM **§4.4.1** 유예·연속 스캔 규칙과 재시도 정책을 맞춘다.
 - **[ ] 경로 계약:** `physical_path`는 **§1.1**(상대·비 URI)을 따른다. 별도 “URI 수용” 분기는 두지 않는다.
 - **[ ] `DOCS_PATH`·심볼릭 링크:** 런타임 루트가 **실디렉터리만** 허용할지, **symlink 허용**할지(컨테이너·보안 영향) 배포 정책으로 확정한다.
 
 ### 3.2 추적·동기화 무결성
 
+- **[ ] `traceability_paths` 상태 머신:** SCHM **§4.4.1** 표를 코드(크롤러)에 그대로 반영한다.
 - **[ ] Sync lag·낙관적 락:** 스캔 주기 사이 에디터 쓰기와 겹칠 때 **`doc_sync_state`의 소스 해시(예: `curr_source_hash` 등, SCHM·DDL 컬럼명 준수)** 대조로 덮어쓰기 방지 여부를 정한다.
 - **[ ] `doc_anchor` 불변·복제:** 탐색기에서 **복사·붙여넣기** 시 신규 앵커 부여 vs 동일 내용 **중복으로 `conflict`** 전이 등 예외 규격을 정한다.
 - **[ ] 대량 이동(Bulk mv):** 폴더 전체 이동 시 `logical_path`·**`parent_path_id`/`depth` 트리 정합**·DB 부하를 고려한 배치 처리·검증 순서를 정한다.

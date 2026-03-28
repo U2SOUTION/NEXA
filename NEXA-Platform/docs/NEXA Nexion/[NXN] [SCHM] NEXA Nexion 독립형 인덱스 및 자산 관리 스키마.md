@@ -33,6 +33,22 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 - **무결성:** Link ID·경로·연결 상태는 CHECK·유니크·RLS 등으로 강제한다.
 - **복구성:** 외부 변경은 즉시 물리 삭제하지 않고 상태 전이(`active` → `moved` 등)로 처리한다.
 
+### 2.1 (보충) `project_id`·`project_members` — 플랫폼 영속 계층 vs Nexion 정체성
+
+- **`project_id` 컬럼:** 테이블 행을 **플랫폼 통합 DB 안에서** 격리·조회하기 위한 **호스트 측 구획**이다. **Nexion 제품 개념의 ‘프로젝트’와 동일시하지 않는다** — 제1원칙·용어는 `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 악보 설계 철학.md` **§1.1**을 본다.
+- **`project_members`:** 위 구획에 대해 “누가 접근 가능한가”를 DB·RLS가 판단할 때 쓰는 **오케스트레이션 SSOT 테이블**이다. Nexion 코어 로직의 필수 개념이 아니라, **공유 배포 시 선택적으로 맞물리는 외연**이다.
+
+### 2.2 구현 티어 A·B(스키마·범위 고정)
+
+개발 순서·체크리스트와 동일한 구분을 스키마에 매핑한다. 상세 Phase는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두를 본다.
+
+| 티어 | 테이블·범위 | 비고 |
+|------|-------------|------|
+| **Tier A (Nexion 코어)** | `nexa_knowledge_traceability_paths`(초기에는 **`anchor_domain` = `knowledge`** 중심 운용 가능), `nexa_knowledge_nexion_doc_node_links`, `nexa_knowledge_doc_sync_state`(크롤러·저장 동기화에 필요한 **최소 컬럼 집합**부터 배포 가능) | `nixie_lumina_profile` 등 **NULL 허용** 컬럼은 미사용으로 두어도 된다. |
+| **Tier B (플랫폼 공유)** | `nexa_knowledge_residency`, `traceability_paths`의 **전 도메인·NIXIE 메타**, `doc_sync_state`의 **전 필드·`lock_metadata`·다도메인 책임**, 스왑·동기화 **정책 원장·시드·FK**, RLS·`project_members` 정합 | Nexion **이후** 또는 플랫폼 마이그레이션·테넌시와 함께 수렴. |
+
+**DDL 배포:** Tier A만 먼저 올릴 때 Tier B 전용 `CREATE`/RLS 블록은 **생략하거나 후행 마이그레이션**으로 둔다. `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md` 상단 「구현 티어」 참고.
+
 ---
 
 ## 3. 테이블 개요
@@ -105,6 +121,45 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 - **`moved`:** 경로만 바뀌고 앵커는 동일(탐색기 이동 감지). `related_audit_id`에 이동 감사를 남기기 권장.
 - **`orphaned`:** 노드 미연결 등 논리적 고아(`nexa_knowledge_nexion_doc_node_links`와 불일치 등).
 - **`deleted`:** 파일 소실·삭제가 확정(연속 미발견 스캔 임계 초과 등). `missing_since`와 함께 해석.
+
+#### 4.4.1 Doc Sync Crawler — `missing_since`·`status` 상태 머신(구현 고정)
+
+**근거:** §4.4 열거, §9 `traceability_paths` 문단, `missing_since` 필드 정의(§4 표).  
+**전제:** `status`에 `missing` 값은 두지 않는다. **유예 중**에는 `active`를 유지하고 **`missing_since`로만 “실종 시각”을 표시**한다.
+
+**운영 상수(환경·SPEC에서 단일화):**
+
+| 상수 | 의미 | 권장 |
+|------|------|------|
+| `GRACE_SCAN_COUNT` | `missing_since` 설정 후, **삭제로 올리기 전** 허용하는 연속 “미발견” 스캔 횟수 | ≥ 2 (팀 조정) |
+| `SCAN_INTERVAL_SEC` | 크롤러 주기(낙관적 락·UI와의 정합에 사용) | 운영 SPEC |
+
+**크롤러 이벤트 → `nexa_knowledge_traceability_paths` 갱신(물리 파일 기준):**
+
+| 현재 `status` | 현재 `missing_since` | 크롤러 관측 | 다음 `status` | 다음 `missing_since` | 필수 부가 갱신 |
+|---------------|----------------------|-------------|---------------|----------------------|----------------|
+| `active` | NULL | `DOCS_PATH`+`physical_path`에서 **파일 존재** | `active` | NULL | `last_seen_at` = now |
+| `active` | NULL | 파일 **없음** (최초) | `active` | **now()** (최초 1회만 set) | — |
+| `active` | **T** (설정됨) | 파일 **여전히 없음** | `active` | **T** 유지 | 연속 미발견 카운트 +1; `GRACE_SCAN_COUNT` 미만이면 유예 계속 |
+| `active` | **T** | 연속 미발견 **≥ `GRACE_SCAN_COUNT`** | **`deleted`** | **T** 유지(감사·해석용) | `related_audit_id` 권장(§9) |
+| `active` | **T** | 파일 **재발견** | `active` | **NULL** | `last_seen_at` = now |
+| `moved` | NULL 또는 T | 동기화 후 **새 경로에서 파일 확인** | `active` | NULL | `logical_path`/`physical_path`/`parent_path_id`/`depth` 정합, `last_seen_at` |
+| `moved` | T | 유예·삭제 규칙은 위 `active` 행과 **동일** | (동일) | (동일) | `moved`는 “이동 처리 중”에 한해 임시로 둘 수 있음 |
+| `orphaned` | * | 물리 파일 존재 여부는 **고아 판별과 별개**로 관측 가능 | `orphaned` 유지 또는 위 행에 합류 | NULL/T는 **미발견 규칙 동일** | 고아 해제는 **링크 테이블** 갱신 후 `active` 등으로 별도 전이 |
+| `deleted` | T | 파일 **재발견**(복구) | `active` 또는 **`moved`** | NULL | 인간·정책 승인 후에만 복구 전이; 감사 권장 |
+
+**금지·주의:**
+
+- 파일이 한 번 안 보였다고 즉시 `deleted` 또는 `moved`로 바꾸지 않는다. **첫 미발견 = `missing_since` 설정 + `active` 유지**(유예).
+- **`moved`:** 디스크에서 “안 보임”이 아니라, **같은 `doc_anchor`에 대해 새 물리 위치를 확정**했을 때(탐색기 이동 반영) 사용한다(§4.4·§9).
+
+**`doc_sync_state`와의 역할 분담(동일 스캔 패스에서 권장):**
+
+| `traceability_paths` | `doc_sync_state.last_sync_status` (같은 `doc_anchor`) |
+|----------------------|--------------------------------------------------------|
+| 파일 없음·유예 중 | `missing` 또는 `error`(I/O) — 플랫폼 정책으로 하나로 통일 |
+| 유예 초과 → `deleted` | `missing` 유지 또는 정책에 따라 종료 코드 |
+| 정상 확인 | 크롤러가 해시까지 맞추면 `ok`, 내용만 다르면 `changed` 등(§6.2) |
 
 ### 4.5 보강 스키마 방향(한 줄 요약)
 
@@ -306,7 +361,7 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 
 ## 9. 상태 전이(운영 규약)
 
-**`traceability_paths`:** `active`에서 디스크 경로만 바뀌면 앵커를 유지한 채 `moved`로 둘 수 있다. 노드 연결 해제·미매핑이면 `orphaned`로 갈 수 있다. 크롤러가 대상을 찾지 못하면 **`missing_since`를 최초 1회 설정**하고, 유예 기간 내 재발견 시 NULL로 되돌린다. 미발견 스캔이 임계를 넘으면 `deleted`로 본다. `moved`·`orphaned`·`deleted` 등 **상태 전환 시 `related_audit_id`로 감사 행을 연결**하는 것을 권장한다. `moved`에서 재동기화가 끝나면 다시 `active`로 돌아갈 수 있다. 계층 필드(`parent_path_id`, `depth`)는 `logical_path` 변경·이동 시 **트리 정합**을 맞춰 갱신한다.
+**`traceability_paths`:** `active`에서 디스크 경로만 바뀌면 앵커를 유지한 채 `moved`로 둘 수 있다. 노드 연결 해제·미매핑이면 `orphaned`로 갈 수 있다. 크롤러가 대상을 찾지 못하면 **`missing_since`를 최초 1회 설정**하고, 유예 기간 내 재발견 시 NULL로 되돌린다. 미발견 스캔이 임계를 넘으면 `deleted`로 본다. **구현 단계의 이벤트·전이 표는 §4.4.1에 고정**한다. `moved`·`orphaned`·`deleted` 등 **상태 전환 시 `related_audit_id`로 감사 행을 연결**하는 것을 권장한다. `moved`에서 재동기화가 끝나면 다시 `active`로 돌아갈 수 있다. 계층 필드(`parent_path_id`, `depth`)는 `logical_path` 변경·이동 시 **트리 정합**을 맞춰 갱신한다.
 
 **`doc_sync_state`:** `changed` 뒤 해시·경로(또는 가상 자산 버전)가 다시 맞으면 `ok`로 정리한다. **`conflict`** 는 `lock_metadata`에 충돌 당사 도메인·시각·사유를 남긴 뒤, 책임 도메인(`responsible_domain`) 또는 승인 큐에서 해결하면 `ok`로 수렴시키고 잠금 필드를 비운다. 다도메인이 동시에 갱신할 때는 **잠금 TTL·`last_writer_domain` 검사**로 재발을 줄인다.
 
@@ -317,6 +372,8 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 ## 10. 배포 전제·인덱스·RLS·트리거 (정리)
 
 현재 단계에서는 **실 DB에 본 스키마가 아직 없을 수 있다.** 아래는 “무엇을 언제·어디에 둘지”만 정리한다. **`nexa_knowledge_*` 접두 객체는 전체 플랫폼에서 공유**하는 네임스페이스로 본다. NXN 문서의 DDL은 **명세·레시피**이고, 실제 배포는 **플랫폼 통합 마이그레이션**에서 단일 경로로 가져가며, **복잡도를 줄이기 위해 현재 테이블(§1 수준)부터 두고 천천히 확장**해도 된다.
+
+**플랫폼 SSOT 병합:** 실행 DB에 대한 **1순위 진실**은 `docs/_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`다. `CREATE`를 돌리기 전에 통합본과 테이블·컬럼을 대조하고, 충돌은 **마이그레이션으로 통합 SSOT에 수렴**시키는 절차를 **`[NXN] [DDL] ...` §0.0**에 명시해 두었다.
 
 ### 10.1 적용 순서(원칙)
 
@@ -337,7 +394,7 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 
 ### 10.4 RLS
 
-`nexa_knowledge_traceability_paths`, `nexa_knowledge_doc_sync_state`, `nexa_knowledge_nexion_doc_node_links`는 `ENABLE ROW LEVEL SECURITY`를 켤 수 있다. 격리 단위는 `project_id` ∈ 현재 사용자 소속 프로젝트이며, 구현은 `nxn_user_project_ids()`와 `project_members`(실제 테이블명 반영) 전제다.
+`nexa_knowledge_traceability_paths`, `nexa_knowledge_doc_sync_state`, `nexa_knowledge_nexion_doc_node_links`는 `ENABLE ROW LEVEL SECURITY`를 켤 수 있다. 격리 단위는 `project_id` ∈ 현재 사용자가 접근 가능한 프로젝트이며, 구현은 `nxn_user_project_ids()`로 캡슐화한다. **`project_members` 정의는 `docs/__NEXA 오케스트레이션 스키마 DDL v5.md` §1-1과 동일**하며, 테이블이 없으면 `[NXN] [DDL] project_members 오케스트레이션 DDL v5 정렬.sql` 로 생성한다. 멤버 테이블 부재 시에만 `projects.owner_id` **임시** 본문을 쓴다(`[NXN] [DDL] ...` §5 A/B).
 
 **`nexa_knowledge_residency`:** §5.1에서 **`project_id`를 비정규화**해 두었으므로, RLS 예시는 **`project_id IS NULL`(플랫폼 전역 행은 관리자·시스템 역할만)** 또는 **`project_id IN (nxn_user_project_ids())`** 로 단순화할 수 있다. `project_id`가 아직 backfill 되지 않은 레거시 행은 마이그레이션으로 채우거나, 전환 기간 한시적으로 조인 기반 정책을 병행한다. 배치·크롤러·스케줄러는 `BYPASSRLS` 전용 역할 등으로 처리한다.
 
@@ -353,6 +410,6 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 - `_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md` — `nexa_knowledge_residency` §2.9 상세
 - `[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.md` — CREATE(§1), CHECK(§2), **선택 인덱스(§3, 조건부)**, 트리거(§4), RLS(§5), 예시 쿼리(§6)
 - `[NXN] [ARCH] NFS 보안 및 외부 자산 연동 설계서.md` — §3 Doc Sync Crawler·자동화 잡 구현 체크리스트; 스캔·큐 세부는 오케스트레이션 SSOT
-- `[NXN] [API] NEXA Nexion API 및 통신 규약.md` — API 페이로드(작성 예정)
+- `[NXN] [API] NEXA Nexion API 및 통신 규약.md` — Vue Flow·백엔드 JSON 계약(REST v1)
 
 운영 배포 전 인증·멤버십 모델에 맞춰 RLS·FK를 최종 확정한다.

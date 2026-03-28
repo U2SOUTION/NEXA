@@ -36,7 +36,7 @@ TipTap을 사용중임으로, 같은 개발사(Tiptap)에서 만든 **Hocuspocus
 
 NEXA의 핵심인 **'Doc Sync Crawler'**를 백엔드에서 상시 구동하기 위해 필요합니다.
 
-- **역할:** 사이트 외부 저장소(`src/docs/` 외 구역)를 실시간으로 감시하여 파일 생성, 수정, 삭제, 이동(mv)을 즉시 감지합니다.
+- **역할:** 사이트 외부 저장소(**`NEXA-Documentation/`** 등 `DOCS_PATH` 구역)를 실시간으로 감시하여 파일 생성, 수정, 삭제, 이동(mv)을 즉시 감지합니다.
 - **NFS 연동:** 감지된 변경 사항을 `nexa_knowledge_traceability_paths`의 **Inode(doc_anchor)** 로직과 연결하여, 파일명이 바뀌어도 시스템이 족보(Traceability)를 잃지 않게 유지합니다.
 
 ### B.3 마크다운 및 AST 처리: **Unified (Remark/Rehype)**
@@ -315,3 +315,70 @@ graph TD
 - **고찰(체크리스트):** Hocuspocus/Yjs가 User와 ISS 사이의 가교 역할을 할 때, IoT 실시간 스트림과 사용자 실시간 협업 데이터가 **ISS(Stream Splitter)** 에서 만나는 시점의 **타임스탬프 동기화**가 서사(Narrative) 완성의 핵심이 될 수 있다.
 - **PoC 우선순위:** 거대 설계도에서 가장 먼저 프로토타입으로 검증할 모듈(예: Decision Matrix vs Execution Chain)은 `NEXA Nexion 개발 순서와 체크 리스트.md`와 함께 정한다.
 - **단계 구현:** 노드 기준 Phase 1~6은 위 로드맵 문서를 참고한다.
+
+## 참고 사항
+
+### 일반적인 시스템(IoT + AI + 협업 플랫폼)을 구축하기 위한 로드맵 예시와.
+
+📍 시스템 구축 로드맵 (Roadmap)
+
+1.  Phase 1: 기반 인프라 구축 (Foundational)
+
+- Redis 클러스터 구성 및 성능 테스트 (수천 대 접속 대비)
+  - PM2를 이용한 기본 Node.js 서버 환경 설정
+  - gRPC 기반의 IoT 데이터 수집 인터페이스 정의
+
+1.  Phase 2: 실시간 협업 레이어 (Real-time)
+
+- Hocuspocus 서버 설정 및 Yjs 연동
+  - Unified를 활용한 데이터 파싱/변환 로직 구현
+  - 실시간 동기화 지연 시간(Latency) 최적화
+
+1.  Phase 3: 비동기 작업 처리 (Asynchronous)
+
+- BullMQ를 이용한 작업 큐(Queue) 설계
+  - Worker 프로세스 분리 및 V8 Isolate 격리 환경 검증
+  - AI 분석 로직(Python 등)과 Node.js 워커 간의 통신 구현
+
+1.  Phase 4: 고도화 및 안정화 (Scaling)
+
+- 부하 테스트 (수천 대 기기 가상 시뮬레이션)
+  - BullBoard 등 모니터링 시스템 도입
+  - 예외 처리 및 데이터 복구(Persistence) 시나리오 점검
+
+✅ 핵심 체크리스트 (Checklist)
+
+- 성능: 수천 대의 기기가 동시에 쏠 때 Redis 메모리가 버티는가?
+- 격리: 무거운 AI 연산이 Hocuspocus의 실시간 동기화를 방해하지 않는가? (V8 Isolate 성능)
+- 정합성: 여러 사용자가 동시에 AI 결과물을 수정할 때 Yjs가 충돌을 잘 해결하는가?
+- 보안: 외부에서 들어오는 Lua 스크립트나 데이터가 샌드박스를 탈출할 위험은 없는가?
+
+---
+
+### 기획문서를 단순한 기록이 아니라 'AI의 최초 등불(Index)'로 삼겠다는 핵심 포인트 3가지
+
+1. 등불(Index)의 설계: "기획서가 곧 데이터다"
+   기획 문서를 작성할 때부터 Unified와 Yjs를 활용해 문장을 원자 단위(Atomic Unit)로 쪼개야 합니다.
+
+- Check: 문서의 각 섹션이나 문장에 고유한 의미 ID를 부여하세요.
+- Benefit: 나중에 AI가 이 문서를 읽을 때, 단순 텍스트가 아니라 "이것은 UCL(Execution Chain)의 입력 규약이다"라는 맥락(Context)을 즉시 파악하게 됩니다.
+
+2. 지식화의 기초 자산: "Hocuspocus의 기록"
+   기획 툴에서 협업하며 발생하는 모든 수정 이력(Update)을 Hocuspocus를 통해 Redis와 JSONB Vault에 쌓으세요.
+
+- Check: 단순 결과물이 아닌, '왜(Why)' 고쳤는지에 대한 서사(Narrative)를 함께 캡처해야 합니다.
+- Benefit: 이것이 나중에 Reasoning Path Visualizer(족보 추적)의 강력한 근거 자료가 됩니다.
+
+3. 거버넌스 구축의 첫걸음: "기초 규약(Schema) 정의"
+   IoT 센서값과 신규 데이터가 '지식'이 되려면, 기획 툴에서 정의한 도메인 모델을 따라야 합니다.
+
+- Check: 기획 툴 내에 '용어 사전(Glossary)'과 '엔티티 관계'를 실시간으로 정의하는 기능을 넣으세요.
+- Benefit: AI가 이 사전(등불)을 들고 현장에서 오는 생소한 센서값을 "아, 이것은 기획서 4.2절에서 정의한 그 데이터구나!"라고 매핑하게 됩니다.
+
+2단계 로드맵 : [Phase 0.1 - The Beacon]
+
+1.  Editor: Yjs + TipTap(또는 유사 에디터)으로 실시간 편집 환경 구축.
+2.  Sync: Hocuspocus로 편집 데이터를 중앙 제어.
+3.  Parser: Unified를 이용해 문서를 5W1H 토큰으로 실시간 변환하여 PG-Vector에 임베딩.
+
+이 기획 관리 툴에서 다루실 첫 번째 기획서 주제는 무엇인가요? (예: IoT 센서 규약, 혹은 AI 오케스트레이션 로직 등) 구체적인 주제가 있다면 그에 맞는 인덱스 구조를 함께 구상해 볼 수 있습니다.
