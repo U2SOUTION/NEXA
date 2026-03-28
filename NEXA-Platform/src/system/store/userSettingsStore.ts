@@ -29,7 +29,8 @@ export type UserSettingsNexionFlow = {
   backgroundDotGap: number
   backgroundDotSize: number
   backgroundPatternColor: string
-  backgroundVariant: 'dots' | 'lines' | 'cross'
+  /** Vue Flow Background는 `dots` | `lines` 만 지원 (구버전 `cross` 등은 로드 시 dots로 정규화) */
+  backgroundVariant: 'dots' | 'lines'
   /** 핸들에 연결 끌어 놓을 때 스냅 거리(px) */
   connectionRadius: number
   snapToGrid: boolean
@@ -45,6 +46,27 @@ export type UserSettings = {
   drawer: UserSettingsDrawer
   partsManagement: UserSettingsPartsManagement
   nexionFlow: UserSettingsNexionFlow
+}
+
+/** 연결선 두께: 0.3~5px. 1 미만은 0.1 단위, 1 이상은 정수만 */
+export function sanitizeNexionEdgeStrokeWidth(raw: number): number {
+  const n = Number(raw)
+  const fallback = 2
+  if (!Number.isFinite(n)) return fallback
+
+  let v = Math.min(5, Math.max(0.3, n))
+
+  if (v >= 1) {
+    return Math.min(5, Math.max(1, Math.round(v)))
+  }
+
+  v = Math.round(v * 10) / 10
+  if (v >= 1) return 1
+  return Math.min(0.9, Math.max(0.3, v))
+}
+
+function sanitizeNexionBackgroundVariant(raw: unknown): 'dots' | 'lines' {
+  return raw === 'lines' ? 'lines' : 'dots'
 }
 
 export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
@@ -105,11 +127,16 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
             ...settings.value.partsManagement,
             ...parsedSettings.partsManagement,
           },
-          nexionFlow: {
-            ...defaultSettings.nexionFlow,
-            ...settings.value.nexionFlow,
-            ...(parsedSettings.nexionFlow ?? {}),
-          },
+          nexionFlow: (() => {
+            const merged: UserSettingsNexionFlow = {
+              ...defaultSettings.nexionFlow,
+              ...settings.value.nexionFlow,
+              ...(parsedSettings.nexionFlow ?? {}),
+            }
+            merged.edgeStrokeWidth = sanitizeNexionEdgeStrokeWidth(merged.edgeStrokeWidth)
+            merged.backgroundVariant = sanitizeNexionBackgroundVariant(merged.backgroundVariant)
+            return merged
+          })(),
         }
       } catch (error) {
         console.error('Failed to parse user settings:', error)
@@ -175,10 +202,17 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
   }
 
   const patchNexionFlowSettings = (partial: Partial<UserSettingsNexionFlow>) => {
-    settings.value.nexionFlow = {
+    const next = {
       ...settings.value.nexionFlow,
       ...partial,
     }
+    if (partial.edgeStrokeWidth !== undefined) {
+      next.edgeStrokeWidth = sanitizeNexionEdgeStrokeWidth(partial.edgeStrokeWidth)
+    }
+    if (partial.backgroundVariant !== undefined) {
+      next.backgroundVariant = sanitizeNexionBackgroundVariant(partial.backgroundVariant)
+    }
+    settings.value.nexionFlow = next
     saveSettings()
   }
 

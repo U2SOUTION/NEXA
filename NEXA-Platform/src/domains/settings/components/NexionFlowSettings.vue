@@ -1,229 +1,91 @@
 <template>
-  <div class="nexion-flow-settings q-pa-sm">
-    <div class="text-h6 q-mb-sm">Nexion 캔버스 (Vue Flow)</div>
-    <p class="text-caption text-grey-7 q-mb-lg">
-      노드 연결선·배경·미니맵 등은 사용자 설정에 저장되며, Nexion 도메인 캔버스에 즉시 반영됩니다.
-    </p>
+  <div class="nexion-flow-settings" :class="{ 'q-pa-sm': !embedded, 'nexion-flow-settings--embedded': embedded }">
+    <template v-if="!embedded">
+      <div class="text-h6 q-mb-sm">Nexion 캔버스 (Vue Flow)</div>
+      <p class="text-caption text-grey-7 q-mb-lg">노드 연결선·배경·미니맵 등은 사용자 설정에 저장되며, Nexion 도메인 캔버스에 즉시 반영됩니다.</p>
+    </template>
+    <p v-else class="text-caption text-grey-7 q-mb-md">변경 사항은 저장되며 캔버스에 바로 적용됩니다. 동일 항목은 우측 패널 <strong>설정</strong> 탭이나 상단 헤더 <strong>설정</strong> → Nexion 캔버스에서도 편집할 수 있습니다.</p>
 
     <div class="settings-section q-mb-lg">
-      <div class="text-subtitle1 text-weight-medium q-mb-md">연결선 (엣지)</div>
-      <div class="row q-col-gutter-md items-end">
-        <div class="col-12 col-sm-4">
-          <div class="text-caption q-mb-xs">선 색</div>
-          <q-input
-            :model-value="nx.edgeStrokeColor"
-            dense
-            outlined
-            @update:model-value="(v) => patch({ edgeStrokeColor: v })"
-          >
-            <template #append>
-              <q-icon name="colorize" class="cursor-pointer">
-                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-color
-                    :model-value="nx.edgeStrokeColor"
-                    @update:model-value="(v) => patch({ edgeStrokeColor: v })"
-                  />
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
+      <div class="text-subtitle1 text-weight-medium q-mb-sm">연결선 (엣지)</div>
+      <div class="nxf-pair row items-center no-wrap q-gutter-x-sm">
+        <div class="col">
+          <div class="text-caption q-mb-xs">선 두께 ({{ edgeWidthLabel }}px)</div>
+          <q-slider :model-value="nx.edgeStrokeWidth" :min="0.1" :max="5" :step="0.1" dense color="primary" @update:model-value="(v) => patch({ edgeStrokeWidth: v })" />
         </div>
-        <div class="col-12 col-sm-8">
-          <div class="text-caption q-mb-xs">선 두께 ({{ nx.edgeStrokeWidth }}px)</div>
-          <q-slider
-            :model-value="nx.edgeStrokeWidth"
-            :min="1"
-            :max="8"
-            :step="1"
-            label
-            color="primary"
-            @update:model-value="(v) => patch({ edgeStrokeWidth: v })"
-          />
-        </div>
+        <NexionColorSwatch class="nxf-pair__swatch" :model-value="nx.edgeStrokeColor" aria-label="엣지 선 색" @update:model-value="(v) => patch({ edgeStrokeColor: v })" />
       </div>
     </div>
 
     <div class="settings-section q-mb-lg">
-      <div class="text-subtitle1 text-weight-medium q-mb-md">연결 드래그 미리보기</div>
-      <div class="row q-col-gutter-md items-end">
-        <div class="col-12 col-sm-4">
-          <div class="text-caption q-mb-xs">선 색</div>
-          <q-input
-            :model-value="nx.connectionStrokeColor"
-            dense
-            outlined
-            @update:model-value="(v) => patch({ connectionStrokeColor: v })"
-          >
-            <template #append>
-              <q-icon name="colorize" class="cursor-pointer">
-                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-color
-                    :model-value="nx.connectionStrokeColor"
-                    @update:model-value="(v) => patch({ connectionStrokeColor: v })"
-                  />
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
-        </div>
-        <div class="col-12 col-sm-8">
+      <div class="text-subtitle1 text-weight-medium q-mb-sm">연결 드래그 미리보기</div>
+      <p class="text-caption text-grey-7 q-mb-sm">카드 <strong>오른쪽 핸들</strong>에서 선을 끌어 <strong>왼쪽 핸들</strong>로 가져가는 동안에만 보이는 임시 선입니다. 놓기 전까지의 모양이며, 이미 연결된 선(엣지)과는 별도 설정입니다.</p>
+      <div class="nxf-pair row items-center no-wrap q-gutter-x-sm">
+        <div class="col">
           <div class="text-caption q-mb-xs">선 두께 ({{ nx.connectionStrokeWidth }}px)</div>
-          <q-slider
-            :model-value="nx.connectionStrokeWidth"
-            :min="1"
-            :max="8"
-            :step="1"
-            label
-            color="primary"
-            @update:model-value="(v) => patch({ connectionStrokeWidth: v })"
-          />
+          <q-slider :model-value="nx.connectionStrokeWidth" :min="1" :max="8" :step="1" dense color="primary" @update:model-value="(v) => patch({ connectionStrokeWidth: v })" />
         </div>
+        <NexionColorSwatch class="nxf-pair__swatch" :model-value="nx.connectionStrokeColor" aria-label="연결 미리보기 선 색" @update:model-value="(v) => patch({ connectionStrokeColor: v })" />
       </div>
     </div>
 
     <div class="settings-section q-mb-lg">
-      <div class="text-subtitle1 text-weight-medium q-mb-md">캔버스 배경</div>
-      <q-input
-        class="q-mb-md"
-        :model-value="nx.canvasBgColor"
-        dense
-        outlined
-        label="배경색 (CSS)"
-        hint="비우면 플랫폼 테마 배경(`--nexa-background`)을 사용합니다."
-        placeholder="예: #1e1e1e 또는 transparent"
-        @update:model-value="(v) => patch({ canvasBgColor: v ?? '' })"
-      />
-      <div class="row q-col-gutter-md q-mb-md">
-        <div class="col-12 col-sm-4">
-          <q-select
-            :model-value="nx.backgroundVariant"
-            :options="bgVariantOptions"
-            dense
-            outlined
-            label="패턴 종류"
-            option-value="value"
-            option-label="label"
-            emit-value
-            map-options
-            @update:model-value="(v) => patch({ backgroundVariant: v })"
-          />
+      <div class="text-subtitle1 text-weight-medium q-mb-sm">캔버스 배경</div>
+      <div class="row items-center no-wrap q-gutter-x-sm q-mb-sm">
+        <div class="col text-caption">배경</div>
+        <NexionColorSwatch clearable :model-value="nx.canvasBgColor" aria-label="캔버스 배경 색" @update:model-value="(v) => patch({ canvasBgColor: v ?? '' })" />
+      </div>
+
+      <div class="row q-col-gutter-sm q-mb-md">
+        <div class="col-12">
+          <p class="text-caption text-grey-7 q-mb-xs">노드 뒤 그리드 무늬입니다. <strong>점</strong>은 도트 격자, <strong>격자선</strong>은 가로·세로 실선입니다. 줌을 조금 낮추면 차이가 잘 보입니다.</p>
+          <q-select :model-value="nx.backgroundVariant" :options="bgVariantOptions" dense outlined label="패턴 종류" option-value="value" option-label="label" emit-value map-options @update:model-value="(v) => patch({ backgroundVariant: v })" />
         </div>
-        <div class="col-12 col-sm-4">
+        <div class="col-12 col-sm-6">
           <div class="text-caption q-mb-xs">패턴 간격 ({{ nx.backgroundDotGap }})</div>
-          <q-slider
-            :model-value="nx.backgroundDotGap"
-            :min="8"
-            :max="40"
-            :step="1"
-            label
-            color="primary"
-            @update:model-value="(v) => patch({ backgroundDotGap: v })"
-          />
+          <q-slider :model-value="nx.backgroundDotGap" :min="8" :max="40" :step="1" dense color="primary" @update:model-value="(v) => patch({ backgroundDotGap: v })" />
         </div>
-        <div class="col-12 col-sm-4">
+        <div class="col-12 col-sm-6">
           <div class="text-caption q-mb-xs">패턴 크기 ({{ nx.backgroundDotSize }})</div>
-          <q-slider
-            :model-value="nx.backgroundDotSize"
-            :min="0.5"
-            :max="3"
-            :step="0.05"
-            label
-            color="primary"
-            @update:model-value="(v) => patch({ backgroundDotSize: v })"
-          />
+          <q-slider :model-value="nx.backgroundDotSize" :min="0.5" :max="3" :step="0.05" dense color="primary" @update:model-value="(v) => patch({ backgroundDotSize: v })" />
         </div>
       </div>
-      <div class="text-caption q-mb-xs">패턴 색 (CSS)</div>
-      <q-input
-        :model-value="nx.backgroundPatternColor"
-        dense
-        outlined
-        @update:model-value="(v) => patch({ backgroundPatternColor: v })"
-      >
-        <template #append>
-          <q-icon name="colorize" class="cursor-pointer">
-            <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-              <q-color
-                :model-value="nx.backgroundPatternColor"
-                @update:model-value="(v) => patch({ backgroundPatternColor: v })"
-              />
-            </q-popup-proxy>
-          </q-icon>
-        </template>
-      </q-input>
+
+      <div class="row items-center no-wrap q-gutter-x-sm">
+        <div class="col text-caption">패턴 색</div>
+        <NexionColorSwatch :model-value="nx.backgroundPatternColor" fallback-for-picker="#1976d2" aria-label="배경 패턴 색" @update:model-value="(v) => patch({ backgroundPatternColor: v })" />
+      </div>
     </div>
 
     <div class="settings-section q-mb-lg">
-      <div class="text-subtitle1 text-weight-medium q-mb-md">연결·그리드</div>
+      <div class="text-subtitle1 text-weight-medium q-mb-sm">연결·그리드</div>
       <div class="text-caption q-mb-xs">연결 스냅 반경 ({{ nx.connectionRadius }}px)</div>
-      <q-slider
-        class="q-mb-md"
-        :model-value="nx.connectionRadius"
-        :min="32"
-        :max="120"
-        :step="4"
-        label
-        color="primary"
-        @update:model-value="(v) => patch({ connectionRadius: v })"
-      />
-      <q-toggle
-        :model-value="nx.snapToGrid"
-        label="그리드에 스냅"
-        @update:model-value="(v) => patch({ snapToGrid: v })"
-      />
+      <q-slider class="q-mb-md" :model-value="nx.connectionRadius" :min="32" :max="120" :step="4" dense color="primary" @update:model-value="(v) => patch({ connectionRadius: v })" />
+      <q-toggle :model-value="nx.snapToGrid" label="그리드에 스냅" @update:model-value="(v) => patch({ snapToGrid: v })" />
     </div>
 
     <div class="settings-section q-mb-lg">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">미니맵 (우측 패널)</div>
-      <p class="text-caption text-grey-7 q-mb-md">
-        색 필드를 비우면 라이트/다크 테마에 맞는 기본 톤이 사용됩니다.
-      </p>
-      <div class="row q-col-gutter-sm">
-        <div class="col-12 col-sm-6">
-          <q-input
-            :model-value="nx.minimapMaskColor"
-            dense
-            outlined
-            label="마스크(비포커스 영역) 색"
-            @update:model-value="(v) => patch({ minimapMaskColor: v ?? '' })"
-          />
-        </div>
-        <div class="col-12 col-sm-6">
-          <q-input
-            :model-value="nx.minimapMaskStrokeColor"
-            dense
-            outlined
-            label="마스크 테두리"
-            @update:model-value="(v) => patch({ minimapMaskStrokeColor: v ?? '' })"
-          />
-        </div>
-        <div class="col-12 col-sm-6">
-          <q-input
-            :model-value="nx.minimapNodeColor"
-            dense
-            outlined
-            label="노드 면 색"
-            @update:model-value="(v) => patch({ minimapNodeColor: v ?? '' })"
-          />
-        </div>
-        <div class="col-12 col-sm-6">
-          <q-input
-            :model-value="nx.minimapNodeStrokeColor"
-            dense
-            outlined
-            label="노드 테두리"
-            @update:model-value="(v) => patch({ minimapNodeStrokeColor: v ?? '' })"
-          />
-        </div>
+      <p class="text-caption text-grey-7 q-mb-sm">비우면 라이트/다크 기본 톤입니다. 칸을 누르면 색 선택, × 로 자동 톤으로 돌아갑니다.</p>
+
+      <div class="nxf-mini-row row items-center no-wrap q-gutter-x-sm q-mb-xs">
+        <div class="col text-caption">마스크(비포커스)</div>
+        <NexionColorSwatch clearable :model-value="nx.minimapMaskColor" aria-label="미니맵 마스크 색" @update:model-value="(v) => patch({ minimapMaskColor: v ?? '' })" />
       </div>
-      <q-btn
-        class="q-mt-md"
-        flat
-        dense
-        color="primary"
-        label="미니맵 색만 기본(자동 테마)으로"
-        @click="clearMinimapColors"
-      />
+      <div class="nxf-mini-row row items-center no-wrap q-gutter-x-sm q-mb-xs">
+        <div class="col text-caption">마스크 테두리</div>
+        <NexionColorSwatch clearable :model-value="nx.minimapMaskStrokeColor" aria-label="미니맵 마스크 테두리" @update:model-value="(v) => patch({ minimapMaskStrokeColor: v ?? '' })" />
+      </div>
+      <div class="nxf-mini-row row items-center no-wrap q-gutter-x-sm q-mb-xs">
+        <div class="col text-caption">노드 면</div>
+        <NexionColorSwatch clearable :model-value="nx.minimapNodeColor" aria-label="미니맵 노드 면 색" @update:model-value="(v) => patch({ minimapNodeColor: v ?? '' })" />
+      </div>
+      <div class="nxf-mini-row row items-center no-wrap q-gutter-x-sm q-mb-sm">
+        <div class="col text-caption">노드 테두리</div>
+        <NexionColorSwatch clearable :model-value="nx.minimapNodeStrokeColor" aria-label="미니맵 노드 테두리 색" @update:model-value="(v) => patch({ minimapNodeStrokeColor: v ?? '' })" />
+      </div>
+
+      <q-btn flat dense color="primary" label="미니맵 색만 전부 자동" @click="clearMinimapColors" />
     </div>
 
     <q-separator class="q-my-md" />
@@ -236,16 +98,28 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUserSettingsStore } from '@system/store/userSettingsStore'
+import NexionColorSwatch from './NexionColorSwatch.vue'
+
+defineProps({
+  embedded: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const userSettings = useUserSettingsStore()
 const { settings } = storeToRefs(userSettings)
 
 const nx = computed(() => settings.value.nexionFlow)
 
+const edgeWidthLabel = computed(() => {
+  const w = nx.value.edgeStrokeWidth
+  return w >= 1 ? String(Math.round(w)) : w.toFixed(1)
+})
+
 const bgVariantOptions = [
-  { label: '점 (dots)', value: 'dots' },
-  { label: '선 (lines)', value: 'lines' },
-  { label: '십자 (cross)', value: 'cross' },
+  { label: '점 격자 (dots)', value: 'dots' },
+  { label: '격자선 (lines)', value: 'lines' },
 ]
 
 function patch(partial) {
@@ -269,5 +143,17 @@ function resetAll() {
 <style lang="scss" scoped>
 .nexion-flow-settings {
   max-width: 720px;
+}
+
+.nexion-flow-settings--embedded {
+  max-width: none;
+}
+
+.nxf-pair__swatch {
+  padding-top: 18px;
+}
+
+.nxf-mini-row .col {
+  min-width: 0;
 }
 </style>

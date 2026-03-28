@@ -87,6 +87,7 @@
     font-size: 0.75rem;
     background-color: var(--nexa-accordion-content-bg);
     border-radius: 0;
+    padding: 2px 10px;
 
     // chat-list 내 q-item: 아코디언 헤더 스타일 제외 (채널 내 채팅 목록 컴팩트 표시)
     .chat-list .q-item {

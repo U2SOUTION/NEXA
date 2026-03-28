@@ -5,6 +5,7 @@
       v-model:edges="edges"
       :node-types="nodeTypes"
       :default-edge-options="nexionFlowStore.defaultEdgeOptions"
+      :connection-line-style="nexionConnectionLineStyle"
       :min-zoom="0.15"
       :max-zoom="2"
       :snap-to-grid="nexionUi.snapToGrid"
@@ -24,10 +25,12 @@
       @node-click="onNodeClick"
     >
       <Background
+        :key="nexionBackgroundKey"
         :variant="nexionUi.backgroundVariant"
         :gap="nexionUi.backgroundDotGap"
         :size="nexionUi.backgroundDotSize"
-        :pattern-color="nexionUi.backgroundPatternColor"
+        :color="nexionUi.backgroundPatternColor"
+        :line-width="nexionBackgroundLineWidth"
         :bg-color="canvasBgResolved"
       />
       <Teleport :to="nexionControlsHostEl" :disabled="controlsTeleportDisabled">
@@ -85,9 +88,10 @@ import {
 const nexionFlowStore = useNexionFlowStore()
 const { nodes, edges } = storeToRefs(nexionFlowStore)
 const userSettings = useUserSettingsStore()
+const { settings: userSettingsRef } = storeToRefs(userSettings)
 const $q = useQuasar()
 
-const nexionUi = computed(() => userSettings.settings.nexionFlow)
+const nexionUi = computed(() => userSettingsRef.value.nexionFlow)
 
 const nexionFlowCssVars = computed(() => {
   const n = nexionUi.value
@@ -99,10 +103,30 @@ const nexionFlowCssVars = computed(() => {
   }
 })
 
+/** 드래그로 연결하는 동안만 보이는 임시 선 — 코어에 스타일을 직접 넘겨 CSS 변수만으로 덮이지 않는 경우 대비 */
+const nexionConnectionLineStyle = computed(() => {
+  const n = nexionUi.value
+  return {
+    stroke: n.connectionStrokeColor,
+    strokeWidth: n.connectionStrokeWidth,
+  }
+})
+
 const canvasBgResolved = computed(() => {
   const c = nexionUi.value.canvasBgColor?.trim()
   return c || 'var(--nexa-background, #ececec)'
 })
+
+/** `lines` 패턴이 너무 얇으면 점과 구분이 어려워 기본 두께를 조금 올림 */
+const nexionBackgroundLineWidth = computed(() =>
+  nexionUi.value.backgroundVariant === 'lines' ? 1.15 : 1,
+)
+
+/** Background 컴포넌트가 prop 변경에 약할 때 강제 갱신 */
+const nexionBackgroundKey = computed(
+  () =>
+    `${nexionUi.value.backgroundVariant}-${nexionUi.value.backgroundDotGap}-${nexionUi.value.backgroundDotSize}-${nexionUi.value.backgroundPatternColor}-${canvasBgResolved.value}-${nexionBackgroundLineWidth.value}`,
+)
 
 function minimapColorOrAuto(saved, darkFallback, lightFallback) {
   const t = saved?.trim()

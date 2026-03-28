@@ -4,15 +4,18 @@
 </template>
 
 <script setup>
-import { watch, onMounted, onUnmounted, nextTick, toRaw } from 'vue'
+import { watch, onMounted, onUnmounted, nextTick, toRaw, triggerRef } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useVueFlow } from '@vue-flow/core'
 import { useNexionFlowStore } from '@domains/nexion/modules/core/stores/nexionFlowStore'
+import { useUserSettingsStore } from '@system/store/userSettingsStore'
 import { isNexionFlowDebug, nxnDiag } from '@domains/nexion/modules/core/utils/nexionFlowDebug'
 
 const { viewport, screenToFlowCoordinate, fitView, updateNodeInternals, setEdges } = useVueFlow()
 const store = useNexionFlowStore()
 const { pendingFitNodeId, edges, nodes } = storeToRefs(store)
+const userSettings = useUserSettingsStore()
+const { settings: userSettingsRef } = storeToRefs(userSettings)
 
 const PANE_SELECTOR = '.nexion-vue-flow .vue-flow__pane'
 
@@ -107,10 +110,30 @@ watch(pendingFitNodeId, (id) => {
  * updateNodeInternals ↔ 반응형이 무한에 가깝게 도는 경우가 있어 **id 시그니처만** 감시.
  */
 function getEdgeLayoutSignature() {
-  return edges.value
+  const nf = userSettingsRef.value.nexionFlow
+  /** 엣지 스타일만 바뀌면 시그니처가 그대로라 setEdges가 안 불려 Vue Flow 내부가 갱신되지 않음 */
+  const uiEdge = `${nf.edgeStrokeColor}|${nf.edgeStrokeWidth}`
+  const edgesPart = edges.value
     .map((e) => [e.id, e.source, e.target, e.sourceHandle ?? '', e.targetHandle ?? ''].join(':'))
     .sort()
     .join('|')
+  return `${uiEdge}@@${edgesPart}`
+}
+
+/** store 메서드 대신 동일 로직(프록시에 액션이 안 붙는 환경 대비) */
+function syncEdgeStylesFromNexionUiNow() {
+  const { edgeStrokeColor, edgeStrokeWidth } = userSettingsRef.value.nexionFlow
+  const list = edges.value
+  if (!list.length) return
+  edges.value = list.map((e) => ({
+    ...e,
+    style: {
+      ...(e.style && typeof e.style === 'object' && !Array.isArray(e.style) ? e.style : {}),
+      stroke: edgeStrokeColor,
+      strokeWidth: edgeStrokeWidth,
+    },
+  }))
+  triggerRef(edges)
 }
 
 /**
@@ -121,6 +144,8 @@ function getEdgeLayoutSignature() {
 watch(
   () => getEdgeLayoutSignature(),
   async () => {
+    /* 시그니처 watch가 store watch보다 먼저 돌 수 있어, setEdges 전에 스타일을 확실히 맞춤 */
+    syncEdgeStylesFromNexionUiNow()
     await nextTick()
     const plain = edges.value.map((e) => ({ ...toRaw(e) }))
     setEdges(plain)

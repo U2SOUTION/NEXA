@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { computed, ref, shallowRef, triggerRef } from 'vue'
+import { defineStore, storeToRefs } from 'pinia'
+import { computed, ref, shallowRef, triggerRef, watch } from 'vue'
 import type { Edge, GraphEdge, GraphNode, Node } from '@vue-flow/core'
 import { applyEdgeChanges, applyNodeChanges, addEdge as vfAddEdge } from '@vue-flow/core'
 import type { Connection, EdgeChange, NodeChange } from '@vue-flow/core'
@@ -23,12 +23,13 @@ function nxnLog(...args: unknown[]) {
 
 export const useNexionFlowStore = defineStore('nexionFlow', () => {
   const userSettings = useUserSettingsStore()
+  const { settings: userSettingsRef } = storeToRefs(userSettings)
 
   const defaultEdgeOptions = computed(() => ({
     type: 'smoothstep' as const,
     style: {
-      stroke: userSettings.settings.nexionFlow.edgeStrokeColor,
-      strokeWidth: userSettings.settings.nexionFlow.edgeStrokeWidth,
+      stroke: userSettingsRef.value.nexionFlow.edgeStrokeColor,
+      strokeWidth: userSettingsRef.value.nexionFlow.edgeStrokeWidth,
     },
   }))
 
@@ -36,6 +37,36 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
   /** 연결 반영은 v-model·addEdge 모두 새 배열 할당 — shallowRef만으로는 뷰 갱신이 약할 때 triggerRef 보강 */
   const edges = shallowRef<Edge[]>([])
   const selectedNodeId = ref<string | null>(null)
+
+  /**
+   * 엣지 생성 시 스타일이 객체로 박히면 CSS 변수보다 우선해 색/두께 변경이 캔버스에 안 보임.
+   * 사용자 설정 변경 시 모든 엣지 `style`을 다시 맞춘다.
+   */
+  function syncAllEdgesStyleFromNexionUi() {
+    const { edgeStrokeColor, edgeStrokeWidth } = userSettingsRef.value.nexionFlow
+    const list = edges.value
+    if (!list.length) return
+    edges.value = list.map((e) => ({
+      ...e,
+      style: {
+        ...(e.style && typeof e.style === 'object' && !Array.isArray(e.style) ? e.style : {}),
+        stroke: edgeStrokeColor,
+        strokeWidth: edgeStrokeWidth,
+      },
+    }))
+    triggerRef(edges)
+  }
+
+  watch(
+    () => [
+      userSettingsRef.value.nexionFlow.edgeStrokeColor,
+      userSettingsRef.value.nexionFlow.edgeStrokeWidth,
+    ] as const,
+    () => {
+      syncAllEdgesStyleFromNexionUi()
+    },
+    { flush: 'post' },
+  )
   const viewportZoom = ref(1)
   /** 뷰 중앙(플로 좌표) — 좌측 패널 “중앙에 추가”에 사용, FlowHooks가 갱신 */
   const spawnFlowPosition = ref({ x: 240, y: 200 })
@@ -194,6 +225,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     spawnFlowPosition,
     pendingFitNodeId,
     defaultEdgeOptions,
+    syncAllEdgesStyleFromNexionUi,
     LOD_ZOOM_DETAIL,
     setViewportZoom,
     showNodeDetail,
