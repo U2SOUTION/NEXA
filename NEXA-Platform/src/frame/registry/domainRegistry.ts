@@ -119,6 +119,12 @@ const domainConfigs: Record<string, DomainConfig> = {
     content: () => import('@domains/trace/TraceDomain.vue'),
     right: null,
   },
+  // NEXA Nexion (지식 데스크 · Vue Flow)
+  nexion: {
+    left: () => import('@domains/nexion/views/left/NexionLeftNav.vue'),
+    content: () => import('@domains/nexion/NexionDomain.vue'),
+    right: () => import('@domains/nexion/views/right/NexionRightPanel.vue'),
+  },
   // 넥사 AI (Ollama)
   'nexa-ai': {
     left: () => import('@domains/ai/views/left/AiLeftNav.vue'),

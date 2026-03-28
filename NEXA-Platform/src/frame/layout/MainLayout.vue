@@ -174,6 +174,7 @@ const currentMenu = computed(() => {
     '/nexa-node': 'automation',
     '/nexa-archive': 'nexa-archive',
     '/nexa-trace': 'nexa-trace',
+    '/nexa-nexion': 'nexion',
     '/nexa-ai': 'nexa-ai',
     '/erp': 'nexa-erp',
     '/erp/parts': 'erp-parts', // ERP 하위 부품관리 서브도메인
@@ -209,6 +210,7 @@ const mainMenuTabs = [
   { name: 'nexa-panel', label: 'NEXA PANEL', displayLabel: 'PANEL', icon: 'widgets', route: '/nexa-panel', exact: false, nexaPrefix: true },
   { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
   { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
+  { name: 'nexion', label: 'NEXA NEXION', displayLabel: 'NEXION', icon: 'account_tree', route: '/nexa-nexion', exact: false, nexaPrefix: true },
   { name: 'nexa-archive', label: 'NEXA ARCHIVE', displayLabel: 'ARCHIVE', icon: 'article', route: '/nexa-archive', exact: false, nexaPrefix: true },
   { name: 'nexa-ai', label: 'NEXA AI', displayLabel: 'AI', icon: 'smart_toy', route: '/nexa-ai', exact: false, nexaPrefix: true },
   { name: 'nexa-erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
@@ -765,6 +767,11 @@ function handleMainContentDoubleClick(event) {
     target.closest('a') ||
     target.closest('.q-btn')
   ) {
+    return
+  }
+
+  // Vue Flow(Nexion 등): 더블클릭으로 노드 추가·줌 등 도메인이 처리하도록 그대로 둠 (preventDefault 금지)
+  if (target.closest('.vue-flow') || target.closest('.nexion-vue-flow')) {
     return
   }
 

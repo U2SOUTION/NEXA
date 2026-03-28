@@ -28,6 +28,11 @@ export const domainRoutes: RouteRecordRaw[] = [
     component: () => import('@domains/trace/TraceDomain.vue'),
   },
   {
+    path: 'nexa-nexion',
+    name: 'NexaNexion',
+    component: () => import('@domains/nexion/NexionDomain.vue'),
+  },
+  {
     path: 'nexa-ai',
     name: 'NexaAi',
     component: () => import('@domains/ai/AiDomain.vue'),
