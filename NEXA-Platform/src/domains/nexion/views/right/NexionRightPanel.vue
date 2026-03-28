@@ -61,7 +61,7 @@
               </div>
             </q-expansion-item>
 
-            <q-expansion-item icon="settings" label="설정" caption="연결선·배경·미니맵·그리드 (저장됨)">
+            <q-expansion-item icon="settings" label="설정" caption="연결선·배경·미니맵 (저장됨)">
               <div class="nexion-accordion-content nexion-accordion-content--flush">
                 <NexionFlowSettings embedded />
               </div>
@@ -73,7 +73,7 @@
       <q-tab-panel name="settings" class="q-pa-none right-panel-inner">
         <div class="panel-scroll-area">
           <div class="nexion-panel-padding">
-            <q-expansion-item icon="settings" label="설정" caption="연결선·배경·미니맵·그리드 (저장됨)" default-opened>
+            <q-expansion-item icon="settings" label="설정" caption="연결선·배경·미니맵 (저장됨)" default-opened>
               <div class="nexion-accordion-content nexion-accordion-content--flush">
                 <NexionFlowSettings embedded />
               </div>

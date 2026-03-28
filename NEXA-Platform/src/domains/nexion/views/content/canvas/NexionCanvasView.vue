@@ -24,15 +24,6 @@
       @error="onNexionVueFlowError"
       @node-click="onNodeClick"
     >
-      <Background
-        :key="nexionBackgroundKey"
-        :variant="nexionUi.backgroundVariant"
-        :gap="nexionUi.backgroundDotGap"
-        :size="nexionUi.backgroundDotSize"
-        :color="nexionUi.backgroundPatternColor"
-        :line-width="nexionBackgroundLineWidth"
-        :bg-color="canvasBgResolved"
-      />
       <Teleport :to="nexionControlsHostEl" :disabled="controlsTeleportDisabled">
         <Controls />
       </Teleport>
@@ -53,7 +44,7 @@
     </VueFlow>
 
     <div class="nexion-canvas-view__hint text-caption">
-      점무늬 <strong>빈 바탕</strong> 더블클릭: 카드 추가 · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기(반대 방향·같은 쪽끼리는 무시됨) · 휠: 줌 · 드래그: 팬
+      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기(반대 방향·같은 쪽끼리는 무시됨) · 휠: 줌 · 드래그: 팬
     </div>
   </div>
 </template>
@@ -62,7 +53,6 @@
 import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { VueFlow } from '@vue-flow/core'
-import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import { MiniMap } from '@vue-flow/minimap'
 import { storeToRefs } from 'pinia'
@@ -93,6 +83,11 @@ const $q = useQuasar()
 
 const nexionUi = computed(() => userSettingsRef.value.nexionFlow)
 
+const canvasBgResolved = computed(() => {
+  const c = nexionUi.value.canvasBgColor?.trim()
+  return c || 'var(--nexa-background, #ececec)'
+})
+
 const nexionFlowCssVars = computed(() => {
   const n = nexionUi.value
   return {
@@ -100,6 +95,7 @@ const nexionFlowCssVars = computed(() => {
     '--nxn-edge-width': String(n.edgeStrokeWidth),
     '--nxn-conn-stroke': n.connectionStrokeColor,
     '--nxn-conn-width': String(n.connectionStrokeWidth),
+    '--nxn-canvas-bg': canvasBgResolved.value,
   }
 })
 
@@ -111,22 +107,6 @@ const nexionConnectionLineStyle = computed(() => {
     strokeWidth: n.connectionStrokeWidth,
   }
 })
-
-const canvasBgResolved = computed(() => {
-  const c = nexionUi.value.canvasBgColor?.trim()
-  return c || 'var(--nexa-background, #ececec)'
-})
-
-/** `lines` 패턴이 너무 얇으면 점과 구분이 어려워 기본 두께를 조금 올림 */
-const nexionBackgroundLineWidth = computed(() =>
-  nexionUi.value.backgroundVariant === 'lines' ? 1.15 : 1,
-)
-
-/** Background 컴포넌트가 prop 변경에 약할 때 강제 갱신 */
-const nexionBackgroundKey = computed(
-  () =>
-    `${nexionUi.value.backgroundVariant}-${nexionUi.value.backgroundDotGap}-${nexionUi.value.backgroundDotSize}-${nexionUi.value.backgroundPatternColor}-${canvasBgResolved.value}-${nexionBackgroundLineWidth.value}`,
-)
 
 function minimapColorOrAuto(saved, darkFallback, lightFallback) {
   const t = saved?.trim()
@@ -402,6 +382,7 @@ onMounted(() => {
 
 .nexion-vue-flow :deep(.vue-flow__pane) {
   cursor: grab;
+  background: var(--nxn-canvas-bg, var(--nexa-background, #ececec));
 }
 
 .nexion-vue-flow :deep(.vue-flow__pane.selection-active) {

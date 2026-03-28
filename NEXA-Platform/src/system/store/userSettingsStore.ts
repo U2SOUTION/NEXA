@@ -26,11 +26,6 @@ export type UserSettingsNexionFlow = {
   connectionStrokeWidth: number
   /** 비우면 `var(--nexa-background)` 계열 사용 */
   canvasBgColor: string
-  backgroundDotGap: number
-  backgroundDotSize: number
-  backgroundPatternColor: string
-  /** Vue Flow Background는 `dots` | `lines` 만 지원 (구버전 `cross` 등은 로드 시 dots로 정규화) */
-  backgroundVariant: 'dots' | 'lines'
   /** 핸들에 연결 끌어 놓을 때 스냅 거리(px) */
   connectionRadius: number
   snapToGrid: boolean
@@ -65,9 +60,13 @@ export function sanitizeNexionEdgeStrokeWidth(raw: number): number {
   return Math.min(0.9, Math.max(0.3, v))
 }
 
-function sanitizeNexionBackgroundVariant(raw: unknown): 'dots' | 'lines' {
-  return raw === 'lines' ? 'lines' : 'dots'
-}
+/** 제거된 Vue Flow Background(점/선 패턴) 설정 — 예전 localStorage 정리용 */
+const LEGACY_NEXION_FLOW_GRID_KEYS = [
+  'backgroundDotGap',
+  'backgroundDotSize',
+  'backgroundPatternColor',
+  'backgroundVariant',
+] as const
 
 export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
   return {
@@ -76,10 +75,6 @@ export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
     connectionStrokeColor: '#1976d2',
     connectionStrokeWidth: 2,
     canvasBgColor: '',
-    backgroundDotGap: 18,
-    backgroundDotSize: 1.25,
-    backgroundPatternColor: 'rgba(25, 118, 210, 0.35)',
-    backgroundVariant: 'dots',
     connectionRadius: 72,
     snapToGrid: false,
     minimapMaskColor: '',
@@ -134,7 +129,8 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
               ...(parsedSettings.nexionFlow ?? {}),
             }
             merged.edgeStrokeWidth = sanitizeNexionEdgeStrokeWidth(merged.edgeStrokeWidth)
-            merged.backgroundVariant = sanitizeNexionBackgroundVariant(merged.backgroundVariant)
+            const loose = merged as unknown as Record<string, unknown>
+            for (const k of LEGACY_NEXION_FLOW_GRID_KEYS) delete loose[k]
             return merged
           })(),
         }
@@ -208,9 +204,6 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     }
     if (partial.edgeStrokeWidth !== undefined) {
       next.edgeStrokeWidth = sanitizeNexionEdgeStrokeWidth(partial.edgeStrokeWidth)
-    }
-    if (partial.backgroundVariant !== undefined) {
-      next.backgroundVariant = sanitizeNexionBackgroundVariant(partial.backgroundVariant)
     }
     settings.value.nexionFlow = next
     saveSettings()

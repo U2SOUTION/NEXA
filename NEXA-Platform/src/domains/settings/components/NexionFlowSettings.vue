@@ -31,29 +31,10 @@
 
     <div class="settings-section q-mb-lg">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">캔버스 배경</div>
-      <div class="row items-center no-wrap q-gutter-x-sm q-mb-sm">
-        <div class="col text-caption">배경</div>
-        <NexionColorSwatch clearable :model-value="nx.canvasBgColor" aria-label="캔버스 배경 색" @update:model-value="(v) => patch({ canvasBgColor: v ?? '' })" />
-      </div>
-
-      <div class="row q-col-gutter-sm q-mb-md">
-        <div class="col-12">
-          <p class="text-caption text-grey-7 q-mb-xs">노드 뒤 그리드 무늬입니다. <strong>점</strong>은 도트 격자, <strong>격자선</strong>은 가로·세로 실선입니다. 줌을 조금 낮추면 차이가 잘 보입니다.</p>
-          <q-select :model-value="nx.backgroundVariant" :options="bgVariantOptions" dense outlined label="패턴 종류" option-value="value" option-label="label" emit-value map-options @update:model-value="(v) => patch({ backgroundVariant: v })" />
-        </div>
-        <div class="col-12 col-sm-6">
-          <div class="text-caption q-mb-xs">패턴 간격 ({{ nx.backgroundDotGap }})</div>
-          <q-slider :model-value="nx.backgroundDotGap" :min="8" :max="40" :step="1" dense color="primary" @update:model-value="(v) => patch({ backgroundDotGap: v })" />
-        </div>
-        <div class="col-12 col-sm-6">
-          <div class="text-caption q-mb-xs">패턴 크기 ({{ nx.backgroundDotSize }})</div>
-          <q-slider :model-value="nx.backgroundDotSize" :min="0.5" :max="3" :step="0.05" dense color="primary" @update:model-value="(v) => patch({ backgroundDotSize: v })" />
-        </div>
-      </div>
-
+      <p class="text-caption text-grey-7 q-mb-sm">단색 바탕만 적용합니다. 비우면 테마 배경을 씁니다.</p>
       <div class="row items-center no-wrap q-gutter-x-sm">
-        <div class="col text-caption">패턴 색</div>
-        <NexionColorSwatch :model-value="nx.backgroundPatternColor" fallback-for-picker="#1976d2" aria-label="배경 패턴 색" @update:model-value="(v) => patch({ backgroundPatternColor: v })" />
+        <div class="col text-caption">바탕 색</div>
+        <NexionColorSwatch clearable :model-value="nx.canvasBgColor" aria-label="캔버스 배경 색" @update:model-value="(v) => patch({ canvasBgColor: v ?? '' })" />
       </div>
     </div>
 
@@ -116,11 +97,6 @@ const edgeWidthLabel = computed(() => {
   const w = nx.value.edgeStrokeWidth
   return w >= 1 ? String(Math.round(w)) : w.toFixed(1)
 })
-
-const bgVariantOptions = [
-  { label: '점 격자 (dots)', value: 'dots' },
-  { label: '격자선 (lines)', value: 'lines' },
-]
 
 function patch(partial) {
   userSettings.patchNexionFlowSettings(partial)
