@@ -122,17 +122,21 @@ function getEdgeLayoutSignature() {
 
 /** store 메서드 대신 동일 로직(프록시에 액션이 안 붙는 환경 대비) */
 function syncEdgeStylesFromNexionUiNow() {
-  const { edgeStrokeColor, edgeStrokeWidth } = userSettingsRef.value.nexionFlow
+  const { edgeStrokeWidth } = userSettingsRef.value.nexionFlow
   const list = edges.value
   if (!list.length) return
-  edges.value = list.map((e) => ({
-    ...e,
-    style: {
-      ...(e.style && typeof e.style === 'object' && !Array.isArray(e.style) ? e.style : {}),
-      stroke: edgeStrokeColor,
-      strokeWidth: edgeStrokeWidth,
-    },
-  }))
+  edges.value = list.map((e) => {
+    const prev =
+      e.style && typeof e.style === 'object' && !Array.isArray(e.style) ? { ...e.style } : {}
+    delete prev.stroke
+    return {
+      ...e,
+      style: {
+        ...prev,
+        strokeWidth: edgeStrokeWidth,
+      },
+    }
+  })
   triggerRef(edges)
 }
 

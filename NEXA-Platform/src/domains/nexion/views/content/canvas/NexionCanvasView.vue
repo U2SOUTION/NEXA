@@ -9,6 +9,8 @@
       :min-zoom="0.15"
       :max-zoom="2"
       :connection-radius="nexionUi.connectionRadius"
+      :delete-key-code="nexionDeleteKeyCodes"
+      :multi-selection-key-code="nexionMultiSelectionKeys"
       :zoom-on-double-click="false"
       :nodes-connectable="true"
       :is-valid-connection="isNexionValidConnection"
@@ -22,6 +24,8 @@
       @edges-change="onNexionEdgesChangeLog"
       @error="onNexionVueFlowError"
       @node-click="onNodeClick"
+      @edge-click="onNexionEdgeClick"
+      @pane-click="onNexionPaneClick"
     >
       <Teleport :to="nexionControlsHostEl" :disabled="controlsTeleportDisabled">
         <Controls />
@@ -43,7 +47,7 @@
     </VueFlow>
 
     <div class="nexion-canvas-view__hint text-caption">
-      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기(반대 방향·같은 쪽끼리는 무시됨) · 휠: 줌 · 드래그: 팬
+      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기 · <strong>연결선</strong> 클릭 시 강조 표시 · 여러 개는 <strong>Ctrl</strong>/<strong>⌘</strong>+클릭 · <strong>Delete</strong>/<strong>Backspace</strong>로 끊기 · 휠: 줌 · 드래그: 팬
     </div>
   </div>
 </template>
@@ -82,6 +86,12 @@ const $q = useQuasar()
 
 const nexionUi = computed(() => userSettingsRef.value.nexionFlow)
 
+/** 코어 기본은 Backspace만 — Delete도 허용 */
+const nexionDeleteKeyCodes = ['Backspace', 'Delete']
+
+/** Vue Flow 기본과 동일 — Windows/Linux는 Ctrl, macOS는 ⌘ 로 멀티 선택 */
+const nexionMultiSelectionKeys = ['Control', 'Meta']
+
 const canvasBgResolved = computed(() => {
   const c = nexionUi.value.canvasBgColor?.trim()
   return c || 'var(--nexa-background, #ececec)'
@@ -89,10 +99,19 @@ const canvasBgResolved = computed(() => {
 
 const nexionFlowCssVars = computed(() => {
   const n = nexionUi.value
+  const baseW = Number(n.edgeStrokeWidth)
+  const selectedW = Number.isFinite(baseW)
+    ? Math.min(5, Math.round(baseW * 1.45 * 10) / 10)
+    : 3
+  const edgeStroke = n.edgeStrokeColor?.trim() || '#1976d2'
+  const connStroke = n.connectionStrokeColor?.trim() || '#1976d2'
+  const selectedStroke = n.edgeSelectedStrokeColor?.trim() || connStroke
   return {
-    '--nxn-edge-stroke': n.edgeStrokeColor,
+    '--nxn-edge-stroke': edgeStroke,
     '--nxn-edge-width': String(n.edgeStrokeWidth),
-    '--nxn-conn-stroke': n.connectionStrokeColor,
+    '--nxn-edge-selected-stroke': selectedStroke,
+    '--nxn-edge-selected-width': String(selectedW),
+    '--nxn-conn-stroke': connStroke,
     '--nxn-conn-width': String(n.connectionStrokeWidth),
     '--nxn-canvas-bg': canvasBgResolved.value,
   }
@@ -102,7 +121,7 @@ const nexionFlowCssVars = computed(() => {
 const nexionConnectionLineStyle = computed(() => {
   const n = nexionUi.value
   return {
-    stroke: n.connectionStrokeColor,
+    stroke: n.connectionStrokeColor?.trim() || '#1976d2',
     strokeWidth: n.connectionStrokeWidth,
   }
 })
@@ -308,6 +327,14 @@ function onNodeClick({ node }) {
   nexionFlowStore.selectNode(node.id)
 }
 
+function onNexionEdgeClick({ edge }) {
+  if (edge?.id) nexionFlowStore.selectEdge(edge.id)
+}
+
+function onNexionPaneClick() {
+  nexionFlowStore.clearUiSelection()
+}
+
 /** 연결 디버그: 콘솔 필터 `[NexionFlow]` */
 function onNexionConnectStart(payload) {
   if (!NXN_LOG) return
@@ -379,24 +406,37 @@ onMounted(() => {
   height: 100%;
 }
 
-.nexion-vue-flow :deep(.vue-flow__pane) {
+/* 이 블록은 scoped가 아님 — `:deep()`는 scoped 전용이라 여기서 쓰면 선택자가 무효가 되어 스타일이 전부 빠질 수 있음 */
+.nexion-vue-flow .vue-flow__pane {
   cursor: grab;
   background: var(--nxn-canvas-bg, var(--nexa-background, #ececec));
 }
 
-.nexion-vue-flow :deep(.vue-flow__pane.selection-active) {
+.nexion-vue-flow .vue-flow__pane.selection-active {
   cursor: grabbing;
 }
 
-/* 엣지·드래그 연결선 — 사용자 설정(`--nxn-*`) + 설정 화면 기본값 */
-.nexion-vue-flow :deep(.vue-flow__edge-path) {
+/*
+ * 엣지 색은 인라인 stroke를 쓰지 않고 CSS만 사용 — 선택(`.selected`) 강조가 보이도록 함.
+ * Vue Flow 코어 기본은 비선택 #b1b1b7·선택 #555 라서, 아래로 설정색을 덮어씀.
+ */
+.nexion-vue-flow .vue-flow__edge-path {
   stroke: var(--nxn-edge-stroke, #1976d2);
   stroke-width: var(--nxn-edge-width, 2);
+  stroke-opacity: 1;
 }
 
-.nexion-vue-flow :deep(.vue-flow__connection-path) {
+.nexion-vue-flow .vue-flow__edge.selected .vue-flow__edge-path,
+.nexion-vue-flow .vue-flow__edge:focus-visible .vue-flow__edge-path {
+  stroke: var(--nxn-edge-selected-stroke, var(--nxn-conn-stroke, #1976d2));
+  stroke-width: var(--nxn-edge-selected-width, 3);
+  stroke-opacity: 1;
+}
+
+.nexion-vue-flow .vue-flow__connection-path {
   stroke: var(--nxn-conn-stroke, #1976d2);
   stroke-width: var(--nxn-conn-width, 2);
+  stroke-opacity: 1;
 }
 
 /*
@@ -404,12 +444,12 @@ onMounted(() => {
  * 기본 pointer-events가 auto라 마우스 업 시 elementFromPoint가 핸들이 아닌 이 레이어를 맞춤 → @connect 미발화.
  * 코어는 내부 .vue-flow__connection에만 pointer-events:none을 두므로 래퍼에 명시 필요.
  */
-.nexion-vue-flow :deep(.vue-flow__connectionline) {
+.nexion-vue-flow .vue-flow__connectionline {
   pointer-events: none;
 }
 
 /* 커스텀 노드 내부 본문이 핸들 위에 올라가는 경우 대비(카드/그룹에서도 개별 z-index 지정함) */
-.nexion-vue-flow :deep(.vue-flow__node .vue-flow__handle) {
+.nexion-vue-flow .vue-flow__node .vue-flow__handle {
   z-index: 10;
   pointer-events: auto;
 }

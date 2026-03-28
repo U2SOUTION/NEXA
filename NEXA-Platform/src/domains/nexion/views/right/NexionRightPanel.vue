@@ -21,6 +21,32 @@
               </div>
             </q-expansion-item>
 
+            <q-expansion-item icon="link" label="연결선" caption="선택 후 키 또는 버튼으로 끊기">
+              <div class="nexion-accordion-content">
+                <p class="text-caption text-grey-7 q-mb-sm">
+                  캔버스에서 <strong>연결선을 클릭</strong>해 선택한 뒤 <strong>Delete</strong> 또는 <strong>Backspace</strong>로 제거하거나, 아래 버튼을 사용합니다.
+                </p>
+                <template v-if="selectedEdgeId">
+                  <q-list dense bordered class="rounded-borders q-mb-sm">
+                    <q-item>
+                      <q-item-section>
+                        <q-item-label caption>연결 ID</q-item-label>
+                        <q-item-label class="text-mono text-caption">{{ selectedEdgeId }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item v-if="selectedEdgePair">
+                      <q-item-section>
+                        <q-item-label caption>출발 → 도착 (노드)</q-item-label>
+                        <q-item-label class="text-mono text-caption">{{ selectedEdgePair }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                  <q-btn outline color="negative" size="sm" class="full-width" label="이 연결 끊기" @click="removeSelectedEdge" />
+                </template>
+                <div v-else class="text-caption text-grey-6">선택된 연결선이 없습니다.</div>
+              </div>
+            </q-expansion-item>
+
             <q-expansion-item icon="label" label="노드 속성" caption="선택한 카드·그룹">
               <div class="nexion-accordion-content">
                 <template v-if="selectedNode">
@@ -96,7 +122,7 @@ import NexionFlowSettings from '@domains/settings/components/NexionFlowSettings.
 
 const $q = useQuasar()
 const store = useNexionFlowStore()
-const { nodes, selectedNodeId } = storeToRefs(store)
+const { nodes, edges, selectedNodeId, selectedEdgeId } = storeToRefs(store)
 
 const rightMainTab = ref('canvas')
 
@@ -111,6 +137,13 @@ const selectedNode = computed(() => {
   const id = selectedNodeId.value
   if (!id) return null
   return nodes.value.find((n) => n.id === id) ?? null
+})
+
+const selectedEdgePair = computed(() => {
+  const id = selectedEdgeId.value
+  if (!id) return ''
+  const e = edges.value.find((x) => x.id === id)
+  return e ? `${e.source} → ${e.target}` : ''
 })
 
 watch(
@@ -148,6 +181,12 @@ function removeCurrent() {
   }).onOk(() => {
     store.removeNode(id)
   })
+}
+
+function removeSelectedEdge() {
+  const id = selectedEdgeId.value
+  if (!id) return
+  store.removeEdge(id)
 }
 </script>
 

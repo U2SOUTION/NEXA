@@ -15,6 +15,21 @@
         </div>
         <NexionColorSwatch class="nxf-pair__swatch" :model-value="nx.edgeStrokeColor" aria-label="엣지 선 색" @update:model-value="(v) => patch({ edgeStrokeColor: v })" />
       </div>
+      <p class="text-caption text-grey-7 q-mt-sm q-mb-xs">클릭해 선택한 연결선은 색·두께가 잠시 바뀝니다. (멀티 선택: <strong>Ctrl</strong> 또는 <strong>⌘</strong> 누른 채 클릭)</p>
+      <div class="nxf-pair row items-center no-wrap q-gutter-x-sm">
+        <div class="col">
+          <div class="text-caption q-mb-xs">선택 시 강조 색</div>
+          <span class="text-caption text-grey-7">비우면 미리보기 선 색과 동일</span>
+        </div>
+        <NexionColorSwatch
+          class="nxf-pair__swatch"
+          clearable
+          :model-value="nx.edgeSelectedStrokeColor"
+          fallback-for-picker="#ff9800"
+          aria-label="선택된 연결선 강조 색"
+          @update:model-value="(v) => patch({ edgeSelectedStrokeColor: v ?? '' })"
+        />
+      </div>
     </div>
 
     <div class="settings-section q-mb-lg">

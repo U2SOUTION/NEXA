@@ -27,8 +27,8 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
 
   const defaultEdgeOptions = computed(() => ({
     type: 'smoothstep' as const,
+    /** `stroke`은 인라인으로 넣지 않음 — CSS `--nxn-edge-stroke`·선택 스타일이 먹도록 */
     style: {
-      stroke: userSettingsRef.value.nexionFlow.edgeStrokeColor,
       strokeWidth: userSettingsRef.value.nexionFlow.edgeStrokeWidth,
     },
   }))
@@ -37,23 +37,39 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
   /** 연결 반영은 v-model·addEdge 모두 새 배열 할당 — shallowRef만으로는 뷰 갱신이 약할 때 triggerRef 보강 */
   const edges = shallowRef<Edge[]>([])
   const selectedNodeId = ref<string | null>(null)
+  /** 우측 패널·버튼용 — 캔버스에서 연결선 클릭 시 설정 */
+  const selectedEdgeId = ref<string | null>(null)
+
+  watch(
+    edges,
+    (list) => {
+      if (selectedEdgeId.value != null && !list.some((e) => e.id === selectedEdgeId.value)) {
+        selectedEdgeId.value = null
+      }
+    },
+    { deep: true },
+  )
 
   /**
    * 엣지 생성 시 스타일이 객체로 박히면 CSS 변수보다 우선해 색/두께 변경이 캔버스에 안 보임.
    * 사용자 설정 변경 시 모든 엣지 `style`을 다시 맞춘다.
    */
   function syncAllEdgesStyleFromNexionUi() {
-    const { edgeStrokeColor, edgeStrokeWidth } = userSettingsRef.value.nexionFlow
+    const { edgeStrokeWidth } = userSettingsRef.value.nexionFlow
     const list = edges.value
     if (!list.length) return
-    edges.value = list.map((e) => ({
-      ...e,
-      style: {
-        ...(e.style && typeof e.style === 'object' && !Array.isArray(e.style) ? e.style : {}),
-        stroke: edgeStrokeColor,
-        strokeWidth: edgeStrokeWidth,
-      },
-    }))
+    edges.value = list.map((e) => {
+      const prev =
+        e.style && typeof e.style === 'object' && !Array.isArray(e.style) ? { ...e.style } : {}
+      delete (prev as { stroke?: unknown }).stroke
+      return {
+        ...e,
+        style: {
+          ...prev,
+          strokeWidth: edgeStrokeWidth,
+        },
+      }
+    })
     triggerRef(edges)
   }
 
@@ -65,7 +81,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     () => {
       syncAllEdgesStyleFromNexionUi()
     },
-    { flush: 'post' },
+    { flush: 'post', immediate: true },
   )
   const viewportZoom = ref(1)
   /** 뷰 중앙(플로 좌표) — 좌측 패널 “중앙에 추가”에 사용, FlowHooks가 갱신 */
@@ -101,6 +117,26 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
 
   function selectNode(id: string | null) {
     selectedNodeId.value = id
+    if (id != null) selectedEdgeId.value = null
+  }
+
+  function selectEdge(id: string | null) {
+    selectedEdgeId.value = id
+    if (id != null) selectedNodeId.value = null
+  }
+
+  /** 빈 판 클릭 등 — 우측 패널·선택 상태만 초기화(Vue Flow 자체 선택은 내부 동작 따름) */
+  function clearUiSelection() {
+    selectedNodeId.value = null
+    selectedEdgeId.value = null
+  }
+
+  function removeEdge(edgeId: string) {
+    const next = edges.value.filter((e) => e.id !== edgeId)
+    if (next.length === edges.value.length) return
+    edges.value = next
+    triggerRef(edges)
+    if (selectedEdgeId.value === edgeId) selectedEdgeId.value = null
   }
 
   function onEdgesChange(changes: EdgeChange[]) {
@@ -203,6 +239,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     nodes.value = nodes.value.filter((n) => n.id !== id && n.parentNode !== id)
     edges.value = edges.value.filter((e) => e.source !== id && e.target !== id)
     if (selectedNodeId.value === id) selectedNodeId.value = null
+    triggerRef(edges)
   }
 
   function setNodeLabel(id: string, label: string) {
@@ -215,12 +252,14 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     nodes.value = []
     edges.value = []
     selectedNodeId.value = null
+    selectedEdgeId.value = null
   }
 
   return {
     nodes,
     edges,
     selectedNodeId,
+    selectedEdgeId,
     viewportZoom,
     spawnFlowPosition,
     pendingFitNodeId,
@@ -241,6 +280,9 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     setNodeLabel,
     resetPrototype,
     selectNode,
+    selectEdge,
+    removeEdge,
+    clearUiSelection,
     setSpawnFlowPosition,
     requestFitView,
     consumePendingFitView,

@@ -22,6 +22,8 @@ export type UserSettingsPartsManagement = {
 export type UserSettingsNexionFlow = {
   edgeStrokeColor: string
   edgeStrokeWidth: number
+  /** 비우면 연결 미리보기 색(`connectionStrokeColor`)으로 선택 강조 */
+  edgeSelectedStrokeColor: string
   connectionStrokeColor: string
   connectionStrokeWidth: number
   /** 비우면 `var(--nexa-background)` 계열 사용 */
@@ -80,6 +82,7 @@ export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
   return {
     edgeStrokeColor: '#1976d2',
     edgeStrokeWidth: 2,
+    edgeSelectedStrokeColor: '',
     connectionStrokeColor: '#1976d2',
     connectionStrokeWidth: 2,
     canvasBgColor: '',
