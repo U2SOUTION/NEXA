@@ -6,8 +6,8 @@
       :node-types="nodeTypes"
       :default-edge-options="nexionFlowStore.defaultEdgeOptions"
       :connection-line-style="nexionConnectionLineStyle"
-      :min-zoom="0.15"
-      :max-zoom="2"
+      :min-zoom="nflowMinZoom"
+      :max-zoom="nflowMaxZoom"
       :connection-radius="nexionUi.connectionRadius"
       :delete-key-code="nexionDeleteKeyCodes"
       :multi-selection-key-code="nexionMultiSelectionKeys"
@@ -64,6 +64,10 @@ import { nexionControlsHostEl, nexionMinimapHostEl } from '@domains/nexion/modul
 
 const nexionFlowStore = useNexionFlowStore()
 const { nodes, edges } = storeToRefs(nexionFlowStore)
+
+/** Vue Flow 뷰포트 한계 — 이전 0.15~2 는 프랙탈 줌에 너무 좁음(브라우저·부동소수 실질 한계 내 최대한 넓게) */
+const nflowMinZoom = 0.002
+const nflowMaxZoom = 256
 const userSettings = useUserSettingsStore()
 const { settings: userSettingsRef } = storeToRefs(userSettings)
 const $q = useQuasar()
@@ -96,6 +100,9 @@ const nexionFlowCssVars = computed(() => {
     '--nxn-conn-stroke': connStroke,
     '--nxn-conn-width': String(n.connectionStrokeWidth),
     '--nxn-canvas-bg': canvasBgResolved.value,
+    '--nxn-card-title-fs': `${n.cardTitleFontPx}px`,
+    '--nxn-card-body-fs': `${n.cardBodyFontPx}px`,
+    '--nxn-card-footer-fs': `${n.cardFooterFontPx}px`,
   }
 })
 

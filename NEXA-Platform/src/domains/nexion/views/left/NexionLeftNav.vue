@@ -28,15 +28,15 @@
       <q-item
         clickable
         v-ripple
-        :disable="!selectedGroupId"
-        @click="addChildIntoGroup"
+        :disable="!selectedContainerId"
+        @click="addChildIntoContainer"
       >
         <q-item-section avatar>
           <q-icon name="subdirectory_arrow_right" />
         </q-item-section>
         <q-item-section>
-          <q-item-label>선택 그룹에 자식 카드</q-item-label>
-          <q-item-label caption>그룹 선택 후 사용</q-item-label>
+          <q-item-label>선택 노드에 자식 카드</q-item-label>
+          <q-item-label caption>그룹은 박스가 자동 확장 · 카드는 크기 고정 후 줌으로</q-item-label>
         </q-item-section>
       </q-item>
     </q-list>
@@ -92,11 +92,13 @@ const { nodes, selectedNodeId } = storeToRefs(store)
 
 const nodeList = computed(() => [...nodes.value].sort((a, b) => a.id.localeCompare(b.id)))
 
-const selectedGroupId = computed(() => {
+/** 자식 카드를 넣을 수 있는 부모: 그룹 또는 카드 */
+const selectedContainerId = computed(() => {
   const id = selectedNodeId.value
   if (!id) return null
   const n = nodes.value.find((x) => x.id === id)
-  return n?.type === 'nexionGroup' ? id : null
+  if (!n || (n.type !== 'nexionGroup' && n.type !== 'nexionCard')) return null
+  return id
 })
 
 function addCardCenter() {
@@ -107,9 +109,9 @@ function addGroupCenter() {
   store.addGroupAtSpawn()
 }
 
-function addChildIntoGroup() {
-  if (!selectedGroupId.value) return
-  store.addChildCard(selectedGroupId.value)
+function addChildIntoContainer() {
+  if (!selectedContainerId.value) return
+  store.addChildCard(selectedContainerId.value)
 }
 
 function focusNode(id) {

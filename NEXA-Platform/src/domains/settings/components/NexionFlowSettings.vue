@@ -45,6 +45,45 @@
     </div>
 
     <div class="settings-section q-mb-lg">
+      <div class="text-subtitle1 text-weight-medium q-mb-sm">카드 (노드) 표시</div>
+      <p class="text-caption text-grey-7 q-mb-sm">
+        헤더·본문·풋터 레이아웃의 기준 글자 크기입니다. <strong>프랙탈 줌·LOD</strong>로 화면 배율에 따라 일부 영역은 숨기거나 축소할 예정이며, 줌 임계·최소·최대 글자 등은 추후 같은 패널에서 정합니다.
+      </p>
+      <div class="text-caption q-mb-xs">헤더 이름 ({{ nx.cardTitleFontPx }}px)</div>
+      <q-slider
+        :model-value="nx.cardTitleFontPx"
+        :min="10"
+        :max="18"
+        :step="1"
+        dense
+        color="primary"
+        class="q-mb-md"
+        @update:model-value="(v) => patch({ cardTitleFontPx: v })"
+      />
+      <div class="text-caption q-mb-xs">중앙 컨텐츠 ({{ nx.cardBodyFontPx }}px)</div>
+      <q-slider
+        :model-value="nx.cardBodyFontPx"
+        :min="7"
+        :max="18"
+        :step="1"
+        dense
+        color="primary"
+        class="q-mb-md"
+        @update:model-value="(v) => patch({ cardBodyFontPx: v })"
+      />
+      <div class="text-caption q-mb-xs">풋터 부가 정보 ({{ nx.cardFooterFontPx }}px)</div>
+      <q-slider
+        :model-value="nx.cardFooterFontPx"
+        :min="6"
+        :max="14"
+        :step="1"
+        dense
+        color="primary"
+        @update:model-value="(v) => patch({ cardFooterFontPx: v })"
+      />
+    </div>
+
+    <div class="settings-section q-mb-lg">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">캔버스 배경</div>
       <p class="text-caption text-grey-7 q-mb-sm">단색 바탕만 적용합니다. 비우면 테마 배경을 씁니다.</p>
       <div class="row items-center no-wrap q-gutter-x-sm">

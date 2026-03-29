@@ -11,8 +11,163 @@ import { isNexionFlowDebug, nxnDiag } from '../utils/nexionFlowDebug'
 
 const LOD_ZOOM_DETAIL = 0.55
 
+/** 그룹 자식 추가 후 패딩·최소 크기 (px) */
+const GROUP_PAD = { l: 12, r: 16, t: 44, b: 16 }
+const GROUP_MIN_W = 200
+const GROUP_MIN_H = 160
+/** 카드가 부모일 때 고정 박스(자동 확장 없음 — 줌으로 탐색) */
+const CARD_PARENT_W = 280
+/** 헤더·중앙 추가 영역·풋터 3분할 기준 최소 높이 */
+const CARD_PARENT_H = 268
+/** 그룹 안 자식 카드 기본 크기 */
+const CHILD_IN_GROUP_W = 168
+const CHILD_IN_GROUP_H = 96
+/** 카드 안 1단 자식 — 루트 카드(280×268) 본문에 맞춤 */
+const CHILD_IN_CARD_W = 118
+const CHILD_IN_CARD_H = 138
+/** 프랙탈 깊이에서도 부모 본문에 맞출 때 유지할 최소 박스(px) — 더 작으면 노드만 한계 */
+const CARD_CHILD_ABS_MIN_W = 24
+const CARD_CHILD_ABS_MIN_H = 28
+/** 1단 자식 선호 종횡비 (w/h) */
+const CARD_CHILD_ASPECT = CHILD_IN_CARD_W / CHILD_IN_CARD_H
+
 function shortLinkId(): string {
   return `nxn-${uuidv4().slice(0, 8)}`
+}
+
+function parsePxFromStyle(w: unknown, fallback: number): number {
+  if (typeof w !== 'string') return fallback
+  const m = w.trim().match(/^([\d.]+)px$/i)
+  if (!m) return fallback
+  const n = Number(m[1])
+  return Number.isFinite(n) ? n : fallback
+}
+
+/**
+ * 카드 노드 “중앙 본문 슬롯” 인셋(px).
+ * 작은 카드(프랙탈 깊이)에서는 고정 px 크롬이 본문을 0으로 만들 수 있어 ph·pw 비율로 축소한다.
+ * NexionCardNode.vue 의 cqw/cqh 크롬과 대략 맞춘다.
+ */
+function getCardContentInset(parent: Node) {
+  const st =
+    parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style) ? parent.style : {}
+  const pw = parsePxFromStyle((st as { width?: string }).width, CARD_PARENT_W)
+  const ph = parsePxFromStyle((st as { height?: string }).height, CARD_PARENT_H)
+  const minBody = 6
+
+  let padX: number
+  let top: number
+  let bottom: number
+
+  const proportional = ph < 132 || pw < 98
+  if (proportional) {
+    padX = Math.max(2, Math.min(8, Math.round(pw * 0.045)))
+    top = Math.max(5, Math.round(ph * 0.26))
+    bottom = Math.max(4, Math.round(ph * 0.2))
+  } else {
+    const small = ph <= 200 || pw <= 165
+    padX = small ? 6 : 8
+    top = small ? 46 : 58
+    bottom = small ? 36 : 46
+  }
+
+  if (top + bottom + minBody > ph) {
+    const scale = (ph - minBody) / (top + bottom)
+    top = Math.max(4, Math.floor(top * scale))
+    bottom = Math.max(3, Math.floor(bottom * scale))
+  }
+  if (2 * padX + CARD_CHILD_ABS_MIN_W > pw) {
+    padX = Math.max(1, Math.floor((pw - CARD_CHILD_ABS_MIN_W) / 2))
+  }
+
+  return { top, bottom, padX, pw, ph }
+}
+
+function getCardContentInnerBox(parent: Node) {
+  const { top, bottom, padX, pw, ph } = getCardContentInset(parent)
+  return {
+    innerW: Math.max(0, pw - 2 * padX),
+    innerH: Math.max(0, ph - top - bottom),
+  }
+}
+
+/** inner 직사각형 안에 들어가도록 종횡비 유지 + 여백 */
+function fitChildSizeInInner(innerW: number, innerH: number, margin: number): { w: number; h: number } {
+  const aw = Math.max(0, innerW - margin * 2)
+  const ah = Math.max(0, innerH - margin * 2)
+  if (aw < 1 || ah < 1) {
+    return { w: 1, h: 1 }
+  }
+  let w = aw
+  let h = w / CARD_CHILD_ASPECT
+  if (h > ah) {
+    h = ah
+    w = h * CARD_CHILD_ASPECT
+  }
+  const wI = Math.max(1, Math.floor(w))
+  const hI = Math.max(1, Math.floor(h))
+  return {
+    w: Math.min(aw, Math.max(Math.min(CARD_CHILD_ABS_MIN_W, aw), wI)),
+    h: Math.min(ah, Math.max(Math.min(CARD_CHILD_ABS_MIN_H, ah), hI)),
+  }
+}
+
+/** 캔버스 루트에 가까운 쪽부터 세는 nexionCard 단계(루트 카드=0, 그 직속 자식=1, …) */
+function nexionCardNestingLevel(list: Node[], nodeId: string): number {
+  let level = 0
+  let cur: Node | undefined = list.find((n) => n.id === nodeId)
+  while (cur?.parentNode) {
+    const p = list.find((n) => n.id === cur!.parentNode)
+    if (!p) break
+    if (p.type === 'nexionCard') level += 1
+    cur = p
+  }
+  return level
+}
+
+/**
+ * 카드 자식 노드 픽셀 크기 — tier≥2 는 항상 부모 본문(inner)에 맞춤(프랙탈 무한 깊이).
+ * tier 1 은 선호 크기이되 부모 inner 를 넘지 않음.
+ */
+function cardChildSizePx(parent: Node | undefined, tier: number): { w: number; h: number } {
+  if (!parent || parent.type !== 'nexionCard') {
+    return { w: CHILD_IN_CARD_W, h: CHILD_IN_CARD_H }
+  }
+  const { innerW, innerH } = getCardContentInnerBox(parent)
+  const margin = tier >= 3 ? 2 : tier === 2 ? 3 : 4
+  const fitted = fitChildSizeInInner(innerW, innerH, margin)
+
+  if (tier <= 1) {
+    const w = Math.min(CHILD_IN_CARD_W, fitted.w)
+    const h = Math.min(CHILD_IN_CARD_H, fitted.h)
+    return { w: Math.max(1, w), h: Math.max(1, h) }
+  }
+  return { w: Math.max(1, fitted.w), h: Math.max(1, fitted.h) }
+}
+
+function clampChildPositionInCardParent(child: Node, parent: Node) {
+  const { top, bottom, padX, pw, ph } = getCardContentInset(parent)
+  const st =
+    child.style && typeof child.style === 'object' && !Array.isArray(child.style) ? child.style : {}
+  const cw = parsePxFromStyle((st as { width?: string }).width, CARD_CHILD_ABS_MIN_W)
+  const ch = parsePxFromStyle((st as { height?: string }).height, CARD_CHILD_ABS_MIN_H)
+  const maxX = Math.max(padX, pw - padX - cw)
+  const maxY = Math.max(top, ph - bottom - ch)
+  const x = Math.min(Math.max(padX, child.position.x), maxX)
+  const y = Math.min(Math.max(top, child.position.y), maxY)
+  return { x, y }
+}
+
+function clampAllNexionCardChildren(list: Node[]): Node[] {
+  const byId = new Map(list.map((n) => [n.id, n]))
+  return list.map((n) => {
+    if (!n.parentNode) return n
+    const p = byId.get(n.parentNode)
+    if (!p || p.type !== 'nexionCard') return n
+    const pos = clampChildPositionInCardParent(n, p)
+    if (pos.x === n.position.x && pos.y === n.position.y) return n
+    return { ...n, position: pos }
+  })
 }
 
 const NXN_LOG = import.meta.env.DEV
@@ -36,6 +191,60 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
   const nodes = shallowRef<Node[]>([])
   /** 연결 반영은 v-model·addEdge 모두 새 배열 할당 — shallowRef만으로는 뷰 갱신이 약할 때 triggerRef 보강 */
   const edges = shallowRef<Edge[]>([])
+
+  function fitGroupToChildren(groupId: string) {
+    const group = nodes.value.find((n) => n.id === groupId)
+    if (!group || group.type !== 'nexionGroup') return
+    const children = nodes.value.filter((n) => n.parentNode === groupId)
+    if (!children.length) return
+    let maxR = 0
+    let maxB = 0
+    for (const c of children) {
+      const cw = parsePxFromStyle(
+        c.style && typeof c.style === 'object' ? (c.style as { width?: string }).width : undefined,
+        CHILD_IN_GROUP_W,
+      )
+      const ch = parsePxFromStyle(
+        c.style && typeof c.style === 'object' ? (c.style as { height?: string }).height : undefined,
+        CHILD_IN_GROUP_H,
+      )
+      maxR = Math.max(maxR, c.position.x + cw)
+      maxB = Math.max(maxB, c.position.y + ch)
+    }
+    const st =
+      group.style && typeof group.style === 'object' && !Array.isArray(group.style) ? group.style : {}
+    const curW = parsePxFromStyle((st as { width?: string }).width, GROUP_MIN_W)
+    const curH = parsePxFromStyle((st as { height?: string }).height, GROUP_MIN_H)
+    const gw = Math.max(curW, maxR + GROUP_PAD.r)
+    const gh = Math.max(curH, maxB + GROUP_PAD.b)
+    nodes.value = nodes.value.map((n) =>
+      n.id === groupId ? { ...n, style: { ...st, width: `${gw}px`, height: `${gh}px` } } : n,
+    )
+    triggerRef(nodes)
+  }
+
+  function ensureCardParentBounds(parentId: string) {
+    const parent = nodes.value.find((x) => x.id === parentId)
+    if (!parent || parent.type !== 'nexionCard') return
+    const st =
+      parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style) ? { ...parent.style } : {}
+    const hasW = typeof st.width === 'string' && st.width.length > 0
+    const hasH = typeof st.height === 'string' && st.height.length > 0
+    if (hasW && hasH) return
+    nodes.value = nodes.value.map((n) =>
+      n.id === parentId
+        ? {
+            ...n,
+            style: {
+              ...st,
+              width: hasW ? st.width : `${CARD_PARENT_W}px`,
+              height: hasH ? st.height : `${CARD_PARENT_H}px`,
+            },
+          }
+        : n,
+    )
+    triggerRef(nodes)
+  }
   const selectedNodeId = ref<string | null>(null)
   /** 우측 패널·버튼용 — 캔버스에서 연결선 클릭 시 설정 */
   const selectedEdgeId = ref<string | null>(null)
@@ -112,7 +321,8 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
 
   /** Vue Flow `apply-default`(기본 true)일 때는 사용하지 않음. 제어 모드 전환 시에만 연결. */
   function onNodesChange(changes: NodeChange[]) {
-    nodes.value = applyNodeChanges(changes, nodes.value as unknown as GraphNode[]) as Node[]
+    const next = applyNodeChanges(changes, nodes.value as unknown as GraphNode[]) as Node[]
+    nodes.value = clampAllNexionCardChildren(next)
   }
 
   function selectNode(id: string | null) {
@@ -193,23 +403,57 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     return addGroupNode({ x: p.x - 100, y: p.y - 80 })
   }
 
-  function addDocNode(flowPosition: { x: number; y: number }, parentId?: string) {
+  type AddDocNodeOpts = {
+    /** 그룹 자식 기본 박스 */
+    groupChild?: boolean
+    /** 카드 안 자식 — 작은 박스, nestedInCard */
+    cardChild?: boolean
+  }
+
+  function addDocNode(flowPosition: { x: number; y: number }, parentId?: string, opts?: AddDocNodeOpts) {
     const id = `node-${uuidv4().slice(0, 8)}`
     const linkId = shortLinkId()
+    const parent = parentId ? nodes.value.find((x) => x.id === parentId) : undefined
+
+    const data: Record<string, unknown> = { label: '새 카드', linkId }
+    let style: Record<string, string> | undefined
+    if (opts?.cardChild && parentId) {
+      const parentLv = nexionCardNestingLevel(nodes.value, parentId)
+      const tier = parentLv + 1
+      data.nestedInCard = true
+      data.nexionCardTier = tier
+      const { w, h } = cardChildSizePx(parent, tier)
+      style = { width: `${w}px`, height: `${h}px` }
+    } else if (opts?.groupChild) {
+      style = { width: `${CHILD_IN_GROUP_W}px`, height: `${CHILD_IN_GROUP_H}px` }
+    } else if (!parentId) {
+      /** 부모 없음 — 스타일 없으면 플로 노드 래퍼가 0에 가까워져 핸들·엣지만 보임 */
+      style = { width: `${CARD_PARENT_W}px`, height: `${CARD_PARENT_H}px` }
+    }
+
     const n: Node = {
       id,
       type: 'nexionCard',
       position: flowPosition,
-      data: { label: '새 카드', linkId },
-      ...(parentId
+      data: data as Node['data'],
+      ...(style ? { style } : {}),
+      ...(parentId && parent
         ? {
             parentNode: parentId,
+            /**
+             * 커스텀 extent 튜플은 플로 절대좌표로 해석되는 경우가 있어 부모-상대 드래그가 깨짐.
+             * `parent` + onNodesChange 클램프로 본문 안만 유지.
+             */
             extent: 'parent' as const,
-            expandParent: true,
+            /** 그룹: 자식에 맞춰 부모 확장. 카드: 크기 고정·줌으로 탐색 */
+            expandParent: parent.type === 'nexionGroup',
           }
         : {}),
     }
     nodes.value = [...nodes.value, n]
+    if (parent?.type === 'nexionCard' && opts?.cardChild) {
+      nodes.value = clampAllNexionCardChildren(nodes.value)
+    }
     selectNode(id)
     return id
   }
@@ -230,9 +474,25 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
 
   function addChildCard(parentId: string) {
     const parent = nodes.value.find((x) => x.id === parentId)
-    if (!parent || parent.type !== 'nexionGroup') return null
-    // 자식 좌표는 부모 로컬(부모 박스 기준)
-    return addDocNode({ x: 20, y: 52 }, parentId)
+    if (!parent || (parent.type !== 'nexionGroup' && parent.type !== 'nexionCard')) return null
+
+    if (parent.type === 'nexionCard') {
+      ensureCardParentBounds(parentId)
+      const p2 = nodes.value.find((x) => x.id === parentId)
+      if (!p2) return null
+      const inset = getCardContentInset(p2)
+      const parentLv = nexionCardNestingLevel(nodes.value, parentId)
+      const { w: cw, h: ch } = cardChildSizePx(p2, parentLv + 1)
+      const innerW = inset.pw - 2 * inset.padX
+      const innerH = inset.ph - inset.top - inset.bottom
+      const x = inset.padX + Math.max(0, (innerW - cw) / 2)
+      const y = inset.top + Math.max(0, (innerH - ch) / 2)
+      return addDocNode({ x, y }, parentId, { cardChild: true })
+    }
+
+    const id = addDocNode({ x: 20, y: 52 }, parentId, { groupChild: true })
+    fitGroupToChildren(parentId)
+    return id
   }
 
   function removeNode(id: string) {

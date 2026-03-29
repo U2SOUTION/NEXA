@@ -5,7 +5,7 @@
       <span v-if="showDetail" class="nexion-group-node__id text-caption">{{ data.linkId }}</span>
     </div>
     <div class="nexion-group-node__slot">
-      <span v-if="showDetail" class="text-caption text-grey">자식 카드는 그룹 안에 배치 (부모–자식)</span>
+      <span v-if="showDetail" class="text-caption text-grey">자식 추가 시 이 박스가 자동으로 넓어집니다</span>
     </div>
     <Handle id="in" class="nexion-group-node__handle" type="target" :position="Position.Left" />
     <Handle id="out" class="nexion-group-node__handle" type="source" :position="Position.Right" />

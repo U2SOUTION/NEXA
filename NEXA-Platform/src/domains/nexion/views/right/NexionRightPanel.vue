@@ -54,7 +54,7 @@
                     </div>
                     <div class="nexion-meta-plain__row">
                       <span class="nexion-meta-plain__label">유형</span>
-                      <span class="nexion-meta-plain__value">{{ selectedNode.type === 'nexionGroup' ? '그룹 (부모)' : '카드' }}</span>
+                      <span class="nexion-meta-plain__value">{{ selectedNodeTypeLabel }}</span>
                     </div>
                     <div class="nexion-meta-plain__row nexion-meta-plain__row--stack">
                       <div class="nexion-meta-plain__label">Link ID (Phase 1 스텁)</div>
@@ -132,6 +132,14 @@ const selectedEdgePair = computed(() => {
   if (!id) return ''
   const e = edges.value.find((x) => x.id === id)
   return e ? `${e.source} → ${e.target}` : ''
+})
+
+const selectedNodeTypeLabel = computed(() => {
+  const n = selectedNode.value
+  if (!n) return ''
+  if (n.type === 'nexionGroup') return '그룹 (부모)'
+  const hasChildren = nodes.value.some((x) => x.parentNode === n.id)
+  return hasChildren ? '카드 (부모)' : '카드'
 })
 
 watch(

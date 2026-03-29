@@ -35,6 +35,12 @@ export type UserSettingsNexionFlow = {
   minimapMaskStrokeColor: string
   minimapNodeColor: string
   minimapNodeStrokeColor: string
+  /** 카드 헤더(이름) 기본 글자 크기(px). 프랙탈 줌·LOD와 별도로 설정 기준 크기 */
+  cardTitleFontPx: number
+  /** 카드 본문(중앙 컨텐츠·안내 문구 등) 글자 크기(px) */
+  cardBodyFontPx: number
+  /** 카드 풋터(부가 ID 등) 글자 크기(px) */
+  cardFooterFontPx: number
 }
 
 export type UserSettings = {
@@ -78,6 +84,27 @@ function sanitizeNexionConnectionRadius(raw: number): number {
   return Math.min(120, Math.max(0, Math.round(n)))
 }
 
+export function sanitizeNexionCardTitleFontPx(raw: number): number {
+  const n = Number(raw)
+  const fallback = 13
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(18, Math.max(10, Math.round(n)))
+}
+
+export function sanitizeNexionCardBodyFontPx(raw: number): number {
+  const n = Number(raw)
+  const fallback = 12
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(18, Math.max(7, Math.round(n)))
+}
+
+export function sanitizeNexionCardFooterFontPx(raw: number): number {
+  const n = Number(raw)
+  const fallback = 11
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(14, Math.max(6, Math.round(n)))
+}
+
 export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
   return {
     edgeStrokeColor: '#1976d2',
@@ -91,6 +118,9 @@ export function getDefaultNexionFlowUi(): UserSettingsNexionFlow {
     minimapMaskStrokeColor: '',
     minimapNodeColor: '',
     minimapNodeStrokeColor: '',
+    cardTitleFontPx: 13,
+    cardBodyFontPx: 12,
+    cardFooterFontPx: 11,
   }
 }
 
@@ -140,6 +170,9 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
             }
             merged.edgeStrokeWidth = sanitizeNexionEdgeStrokeWidth(merged.edgeStrokeWidth)
             merged.connectionRadius = sanitizeNexionConnectionRadius(merged.connectionRadius)
+            merged.cardTitleFontPx = sanitizeNexionCardTitleFontPx(merged.cardTitleFontPx)
+            merged.cardBodyFontPx = sanitizeNexionCardBodyFontPx(merged.cardBodyFontPx)
+            merged.cardFooterFontPx = sanitizeNexionCardFooterFontPx(merged.cardFooterFontPx)
             const loose = merged as unknown as Record<string, unknown>
             for (const k of LEGACY_NEXION_FLOW_KEYS) delete loose[k]
             return merged
@@ -218,6 +251,15 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     }
     if (partial.connectionRadius !== undefined) {
       next.connectionRadius = sanitizeNexionConnectionRadius(partial.connectionRadius)
+    }
+    if (partial.cardTitleFontPx !== undefined) {
+      next.cardTitleFontPx = sanitizeNexionCardTitleFontPx(partial.cardTitleFontPx)
+    }
+    if (partial.cardBodyFontPx !== undefined) {
+      next.cardBodyFontPx = sanitizeNexionCardBodyFontPx(partial.cardBodyFontPx)
+    }
+    if (partial.cardFooterFontPx !== undefined) {
+      next.cardFooterFontPx = sanitizeNexionCardFooterFontPx(partial.cardFooterFontPx)
     }
     settings.value.nexionFlow = next
     saveSettings()
