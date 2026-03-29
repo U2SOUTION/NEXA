@@ -44,9 +44,7 @@ function parsePxFromStyle(w: unknown, fallback: number): number {
 }
 
 /**
- * 카드 노드 “중앙 본문 슬롯” 인셋(px).
- * 작은 카드(프랙탈 깊이)에서는 고정 px 크롬이 본문을 0으로 만들 수 있어 ph·pw 비율로 축소한다.
- * NexionCardNode.vue 의 cqw/cqh 크롬과 대략 맞춘다.
+ * 카드 노드 “중앙 본문 슬롯” 인셋(플로 px) — 카드 DOM 크롬과 대응 (뷰포트 줌과 무관).
  */
 function getCardContentInset(parent: Node) {
   const st =

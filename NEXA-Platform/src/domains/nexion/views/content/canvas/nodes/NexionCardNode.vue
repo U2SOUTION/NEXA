@@ -122,16 +122,15 @@ function onRemoveSelf() {
 </script>
 
 <style lang="scss" scoped>
+/* 컨테이너 = 카드 박스. 타이포: 설정(--nxn-card-*-fs)이 상한, 작은 박스만 cqi 로 축소 (뷰포트 줌 /z 보정은 제거 — 돋보기 왜곡·설정 무시 원인) */
 .nexion-card-node {
   container-type: size;
   container-name: nxn-card;
 
-  --nxn-cap-title: var(--nxn-card-title-fs, 13px);
-  --nxn-cap-body: var(--nxn-card-body-fs, 12px);
-  --nxn-cap-footer: var(--nxn-card-footer-fs, 11px);
-  --nxn-card-title-fs-local: clamp(3.5px, 4.85cqw, var(--nxn-cap-title));
-  --nxn-card-body-fs-local: clamp(3px, 4.35cqw, var(--nxn-cap-body));
-  --nxn-card-footer-fs-local: clamp(2.75px, 3.95cqw, var(--nxn-cap-footer));
+  /* 큰 박스: min(설정, 큰 cqi) → 설정 적용. 작은 박스만 cqi 가 더 작아져 축소 */
+  --nxn-card-title-fs-local: min(var(--nxn-card-title-fs, 13px), max(6px, 8cqi));
+  --nxn-card-body-fs-local: min(var(--nxn-card-body-fs, 12px), max(5px, 7.2cqi));
+  --nxn-card-footer-fs-local: min(var(--nxn-card-footer-fs, 11px), max(5px, 6.6cqi));
 
   display: flex;
   flex-direction: column;
@@ -139,7 +138,7 @@ function onRemoveSelf() {
   height: 100%;
   min-height: 0;
   box-sizing: border-box;
-  border-radius: clamp(3px, 2.6cqw, 10px);
+  border-radius: 8px;
   border: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.18));
   background: var(--nexa-background-elevated, #fff);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
@@ -153,6 +152,18 @@ function onRemoveSelf() {
   &--nested {
     min-width: 0;
     box-shadow: none;
+
+    /* 아이콘은 px 고정·글자만 cqi → 비율 깨짐 방지: 하한을 px 로 올림 */
+    --nxn-card-title-fs-local: min(var(--nxn-card-title-fs, 13px), max(7px, 7.5cqi));
+    --nxn-card-body-fs-local: min(var(--nxn-card-body-fs, 12px), max(6px, 6.8cqi));
+    --nxn-card-footer-fs-local: min(var(--nxn-card-footer-fs, 11px), max(7px, 6.4cqi));
+  }
+
+  &--nested-deep {
+    /* 3단 이상: 플로 박스가 작아도 본문·Link 줄이 4~5px 로 떨어지지 않게 */
+    --nxn-card-title-fs-local: min(var(--nxn-card-title-fs, 13px), max(9px, 8.5cqi));
+    --nxn-card-body-fs-local: min(var(--nxn-card-body-fs, 12px), max(8px, 7.5cqi));
+    --nxn-card-footer-fs-local: min(var(--nxn-card-footer-fs, 11px), max(8px, 7.5cqi));
   }
 
   &--selected {
@@ -170,12 +181,22 @@ function onRemoveSelf() {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: clamp(1px, 1.4cqw, 6px);
-  min-height: clamp(18px, 20cqh, 40px);
-  padding: clamp(2px, 2.2cqh, 8px) clamp(2px, 2.8cqw, 12px) clamp(2px, 2.2cqh, 8px)
-    clamp(2px, 3.2cqw, 12px);
+  gap: 4px;
+  min-height: 36px;
+  padding: 6px 6px 6px 10px;
   border-bottom: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.1));
   background: rgba(0, 0, 0, 0.03);
+}
+
+.nexion-card-node--nested .nexion-card-node__header {
+  min-height: 26px;
+  padding: 4px 6px 4px 8px;
+  gap: 2px;
+}
+
+.nexion-card-node--nested-deep .nexion-card-node__header {
+  min-height: 22px;
+  padding: 3px 4px 3px 6px;
 }
 
 .body--dark .nexion-card-node__header {
@@ -198,29 +219,59 @@ function onRemoveSelf() {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  margin: 0 -0.5cqw 0 0;
+  margin: 0 -2px 0 0;
 }
 
 .nexion-card-node__action-btn {
   opacity: 0.82;
 
   :deep(.q-btn__wrapper) {
-    min-width: clamp(14px, 10.5cqw, 34px);
-    min-height: clamp(14px, 10.5cqw, 34px);
+    min-width: 24px;
+    min-height: 24px;
     padding: 0;
   }
 
   :deep(.q-icon) {
-    font-size: clamp(9px, 7.2cqw, 18px);
+    font-size: 15px;
+  }
+}
+
+.nexion-card-node--nested .nexion-card-node__action-btn {
+  :deep(.q-btn__wrapper) {
+    min-width: max(18px, calc(var(--nxn-card-title-fs-local) * 1.55));
+    min-height: max(18px, calc(var(--nxn-card-title-fs-local) * 1.55));
+  }
+
+  :deep(.q-icon) {
+    font-size: max(10px, calc(var(--nxn-card-title-fs-local) * 1.08));
+  }
+}
+
+.nexion-card-node--nested-deep .nexion-card-node__action-btn {
+  :deep(.q-btn__wrapper) {
+    min-width: max(16px, calc(var(--nxn-card-title-fs-local) * 1.65));
+    min-height: max(16px, calc(var(--nxn-card-title-fs-local) * 1.65));
+  }
+
+  :deep(.q-icon) {
+    font-size: max(9px, calc(var(--nxn-card-title-fs-local) * 1.12));
   }
 }
 
 .nexion-card-node__body {
   flex: 1;
   min-height: 0;
-  padding: clamp(2px, 2.6cqh, 10px) clamp(2px, 2.8cqw, 10px);
+  padding: 8px;
   font-size: var(--nxn-card-body-fs-local);
   background: rgba(0, 0, 0, 0.015);
+}
+
+.nexion-card-node--nested .nexion-card-node__body {
+  padding: 5px 6px;
+}
+
+.nexion-card-node--nested-deep .nexion-card-node__body {
+  padding: 3px 4px;
 }
 
 .body--dark .nexion-card-node__body {
@@ -229,10 +280,18 @@ function onRemoveSelf() {
 
 .nexion-card-node__footer {
   flex-shrink: 0;
-  padding: clamp(2px, 2cqh, 8px) clamp(2px, 3cqw, 12px) clamp(2px, 2.4cqh, 10px);
+  padding: 6px 10px 8px;
   border-top: 1px solid var(--nexa-border-color, rgba(0, 0, 0, 0.1));
   font-size: var(--nxn-card-footer-fs-local);
   line-height: 1.35;
+}
+
+.nexion-card-node--nested .nexion-card-node__footer {
+  padding: 4px 8px 6px;
+}
+
+.nexion-card-node--nested-deep .nexion-card-node__footer {
+  padding: 3px 6px 5px;
 }
 
 .nexion-card-node__footer-line {
@@ -253,9 +312,11 @@ function onRemoveSelf() {
 
 .nexion-card-node__footer-meta {
   flex-shrink: 0;
-  font-size: clamp(2.5px, 3.5cqw, calc(var(--nxn-card-footer-fs-local) * 0.95));
+  /* 풋터와 동일 크기 — 0.92 배 제거(깊은 카드에서 줌해도 부가만 알아보기 어렵던 원인) */
+  font-size: inherit;
   color: var(--nexa-text-secondary, rgba(0, 0, 0, 0.5));
   white-space: nowrap;
+  opacity: 0.88;
 }
 
 .nexion-card-node__footer-collapsed {
@@ -266,13 +327,29 @@ function onRemoveSelf() {
 }
 
 .nexion-card-node__handle {
-  width: clamp(6px, 5.8cqw, 16px);
-  height: clamp(6px, 5.8cqw, 16px);
-  min-width: clamp(6px, 5.8cqw, 16px);
-  min-height: clamp(6px, 5.8cqw, 16px);
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
   background: var(--nexa-primary, #1976d2);
-  border: clamp(1px, 0.55cqw, 2px) solid var(--nexa-background, #fff);
+  border: 2px solid var(--nexa-background, #fff);
   z-index: 10;
   pointer-events: auto;
+}
+
+.nexion-card-node--nested .nexion-card-node__handle {
+  width: 11px;
+  height: 11px;
+  min-width: 11px;
+  min-height: 11px;
+  border-width: 1.5px;
+}
+
+.nexion-card-node--nested-deep .nexion-card-node__handle {
+  width: 9px;
+  height: 9px;
+  min-width: 9px;
+  min-height: 9px;
+  border-width: 1px;
 }
 </style>
