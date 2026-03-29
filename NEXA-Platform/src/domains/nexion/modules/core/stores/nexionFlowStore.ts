@@ -11,6 +11,36 @@ import { isNexionFlowDebug, nxnDiag } from '../utils/nexionFlowDebug'
 
 const LOD_ZOOM_DETAIL = 0.55
 
+/** 뷰포트 줌이 커질수록 플로 좌표상 중첩 카드 박스도 키움 — CSS 스케일만이 아니라 실제 노드 크기 갱신 */
+const ZOOM_FLOW_SIZE_BOOST_MAX = 3.2
+
+function zoomFlowSizeBoost(zoom: number): number {
+  if (!Number.isFinite(zoom) || zoom <= 0) return 1
+  return Math.min(ZOOM_FLOW_SIZE_BOOST_MAX, Math.max(1, Math.sqrt(zoom / LOD_ZOOM_DETAIL)))
+}
+
+function collectSubtreeNodeIds(rootId: string, list: Node[]): Set<string> {
+  const byId = new Map(list.map((n) => [n.id, n]))
+  if (!byId.has(rootId)) return new Set([rootId])
+  const childrenByParent = new Map<string, string[]>()
+  for (const n of list) {
+    if (!n.parentNode) continue
+    const arr = childrenByParent.get(n.parentNode) ?? []
+    arr.push(n.id)
+    childrenByParent.set(n.parentNode, arr)
+  }
+  const out = new Set<string>()
+  const q = [rootId]
+  for (let i = 0; i < q.length; i++) {
+    const id = q[i]
+    if (out.has(id)) continue
+    out.add(id)
+    const ch = childrenByParent.get(id)
+    if (ch) for (const c of ch) q.push(c)
+  }
+  return out
+}
+
 /** 그룹 자식 추가 후 패딩·최소 크기 (px) */
 const GROUP_PAD = { l: 12, r: 16, t: 44, b: 16 }
 const GROUP_MIN_W = 200
@@ -143,6 +173,64 @@ function cardChildSizePx(parent: Node | undefined, tier: number): { w: number; h
   return { w: Math.max(1, fitted.w), h: Math.max(1, fitted.h) }
 }
 
+/**
+ * 중첩 카드의 플로 크기 — `cardChildSizePx` 기준에 줌 부스트를 곱하고 부모 본문 안으로 클램프.
+ * 구조(data.tier)는 그대로 두고 style 만 줌에 맞춰 다시 맞출 때 사용.
+ */
+function nestedCardFlowBoxPx(parent: Node | undefined, tier: number, zoom: number): { w: number; h: number } {
+  const base = cardChildSizePx(parent, tier)
+  const boost = zoomFlowSizeBoost(zoom)
+  if (!parent || parent.type !== 'nexionCard') {
+    return {
+      w: Math.max(CARD_CHILD_ABS_MIN_W, Math.round(base.w * boost)),
+      h: Math.max(CARD_CHILD_ABS_MIN_H, Math.round(base.h * boost)),
+    }
+  }
+  const margin = tier >= 3 ? 2 : tier === 2 ? 3 : 4
+  const { innerW, innerH } = getCardContentInnerBox(parent)
+  const maxW = Math.max(CARD_CHILD_ABS_MIN_W, innerW - margin * 2)
+  const maxH = Math.max(CARD_CHILD_ABS_MIN_H, innerH - margin * 2)
+  let w = Math.round(base.w * boost)
+  let h = Math.round(base.h * boost)
+  w = Math.min(maxW, Math.max(CARD_CHILD_ABS_MIN_W, w))
+  h = Math.min(maxH, Math.max(CARD_CHILD_ABS_MIN_H, h))
+  return { w, h }
+}
+
+/**
+ * 모든 `nestedInCard` 노드의 width/height 를 현재 줌 기준으로 재계산(부모→자식 연쇄 반영).
+ */
+function rebakeNestedCardFlowSizesFromZoom(list: Node[], zoom: number): { list: Node[]; changed: boolean } {
+  let cur = list
+  let any = false
+  for (let pass = 0; pass < 20; pass++) {
+    const byId = new Map(cur.map((n) => [n.id, n]))
+    let passChanged = false
+    const mapped = cur.map((n) => {
+      if (n.type !== 'nexionCard') return n
+      const d = (n.data || {}) as Record<string, unknown>
+      if (!d.nestedInCard || !n.parentNode) return n
+      const parent = byId.get(n.parentNode)
+      if (!parent || parent.type !== 'nexionCard') return n
+      const tier = typeof d.nexionCardTier === 'number' ? d.nexionCardTier : 1
+      const { w, h } = nestedCardFlowBoxPx(parent, tier, zoom)
+      const st = n.style && typeof n.style === 'object' && !Array.isArray(n.style) ? { ...n.style } : {}
+      const curW = parsePxFromStyle((st as { width?: string }).width, w)
+      const curH = parsePxFromStyle((st as { height?: string }).height, h)
+      if (curW === w && curH === h) return n
+      passChanged = true
+      return {
+        ...n,
+        style: { ...st, width: `${w}px`, height: `${h}px` },
+      }
+    })
+    if (!passChanged) break
+    any = true
+    cur = clampAllNexionCardChildren(mapped)
+  }
+  return { list: cur, changed: any }
+}
+
 function clampChildPositionInCardParent(child: Node, parent: Node) {
   const { top, bottom, padX, pw, ph } = getCardContentInset(parent)
   const st =
@@ -166,6 +254,60 @@ function clampAllNexionCardChildren(list: Node[]): Node[] {
     if (pos.x === n.position.x && pos.y === n.position.y) return n
     return { ...n, position: pos }
   })
+}
+
+/** 플로 좌표상 카드 짧은 변 — 스타일 없으면 루트/중첩 기본 */
+function cardFlowMinDimensionPx(n: Node): number {
+  const st = n.style && typeof n.style === 'object' && !Array.isArray(n.style) ? n.style : {}
+  let w = parsePxFromStyle((st as { width?: string }).width, 0)
+  let h = parsePxFromStyle((st as { height?: string }).height, 0)
+  if (w <= 0 || h <= 0) {
+    const d = (n.data || {}) as Record<string, unknown>
+    const nested = !!d.nestedInCard
+    w = w || (nested ? CHILD_IN_CARD_W : CARD_PARENT_W)
+    h = h || (nested ? CHILD_IN_CARD_H : CARD_PARENT_H)
+  }
+  return Math.min(w, h)
+}
+
+/** 화면상 짧은 변 대략치(px) ≈ 플로 크기 × 글로벌 뷰포트 줌 — 시맨틱 줌에 사용 */
+function cardScreenMinDim(n: Node, zoom: number): number {
+  return cardFlowMinDimensionPx(n) * zoom
+}
+
+/** 티어가 깊을수록 조금 더 큰 화면 크기를 요구 */
+const LOD_SCREEN_MIN_T1 = 46
+const LOD_SCREEN_PER_TIER = 18
+
+function minScreenShortEdgeForLodTier(tier: number): number {
+  if (tier <= 0) return 0
+  return LOD_SCREEN_MIN_T1 + (tier - 1) * LOD_SCREEN_PER_TIER
+}
+
+/** 부모 카드가 LOD로 숨겨지면 자손 카드도 숨김 */
+function computeNexionCardLodHidden(
+  n: Node,
+  byId: Map<string, Node>,
+  zoom: number,
+  memo: Map<string, boolean>,
+): boolean {
+  if (n.type !== 'nexionCard') return false
+  if (memo.has(n.id)) return memo.get(n.id)!
+  const d = (n.data || {}) as Record<string, unknown>
+  const tier =
+    typeof d.nexionCardTier === 'number'
+      ? d.nexionCardTier
+      : d.nestedInCard
+        ? 1
+        : 0
+  const sm = cardScreenMinDim(n, zoom)
+  let hide = tier > 0 && sm < minScreenShortEdgeForLodTier(tier)
+  if (!hide && n.parentNode) {
+    const p = byId.get(n.parentNode)
+    if (p?.type === 'nexionCard' && computeNexionCardLodHidden(p, byId, zoom, memo)) hide = true
+  }
+  memo.set(n.id, hide)
+  return hide
 }
 
 const NXN_LOG = import.meta.env.DEV
@@ -317,10 +459,59 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     return zoom >= LOD_ZOOM_DETAIL
   }
 
-  /** Vue Flow `apply-default`(기본 true)일 때는 사용하지 않음. 제어 모드 전환 시에만 연결. */
+  /** Link ID 풋터: 화면에서 카드가 충분히 크면 줌 수치와 무관하게 전체 줄 표시 */
+  function showCardFooterDetail(nodeId: string, zoom: number): boolean {
+    const n = nodes.value.find((x) => x.id === nodeId)
+    if (!n || n.type !== 'nexionCard') return showNodeDetail(zoom)
+    const sm = cardScreenMinDim(n, zoom)
+    if (sm >= 84) return true
+    return showNodeDetail(zoom)
+  }
+
+  /**
+   * 뷰포트 줌에 따라 중첩 카드에 `hidden` 설정 — 줌 아웃 시 깊은 카드는 숨기고,
+   * 부모가 숨겨지면 자손 카드도 숨김.
+   */
+  function applyLodHiddenFlags(zoom: number) {
+    const list = nodes.value
+    const byId = new Map(list.map((x) => [x.id, x]))
+    const memo = new Map<string, boolean>()
+    let changed = false
+    const next = list.map((n) => {
+      if (n.type !== 'nexionCard') return n
+      const hide = computeNexionCardLodHidden(n, byId, zoom, memo)
+      if (!!n.hidden !== hide) {
+        changed = true
+        return { ...n, hidden: hide }
+      }
+      return n
+    })
+    if (changed) {
+      nodes.value = next
+      triggerRef(nodes)
+    }
+  }
+
+  /**
+   * Pinia `nodes` 안의 중첩 카드 style 크기를 현재 뷰포트 줌에 맞게 다시 계산.
+   * (로컬 스토리지와 무관 — 논리 그래프는 동일, 플로 좌표 박스만 갱신)
+   */
+  function rebakeNestedCardFlowSizes(zoom?: number) {
+    const z = zoom ?? viewportZoom.value
+    const { list, changed } = rebakeNestedCardFlowSizesFromZoom(nodes.value, z)
+    if (!changed) return
+    nodes.value = list
+    triggerRef(nodes)
+  }
+
+  /** Vue Flow `apply-default="false"` + `@nodes-change` — 드래그 후 카드 자식 위치 클램프 */
   function onNodesChange(changes: NodeChange[]) {
     const next = applyNodeChanges(changes, nodes.value as unknown as GraphNode[]) as Node[]
     nodes.value = clampAllNexionCardChildren(next)
+    if (changes.some((c) => c.type === 'add' || c.type === 'remove')) {
+      rebakeNestedCardFlowSizes(viewportZoom.value)
+      applyLodHiddenFlags(viewportZoom.value)
+    }
   }
 
   function selectNode(id: string | null) {
@@ -420,7 +611,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
       const tier = parentLv + 1
       data.nestedInCard = true
       data.nexionCardTier = tier
-      const { w, h } = cardChildSizePx(parent, tier)
+      const { w, h } = nestedCardFlowBoxPx(parent, tier, viewportZoom.value)
       style = { width: `${w}px`, height: `${h}px` }
     } else if (opts?.groupChild) {
       style = { width: `${CHILD_IN_GROUP_W}px`, height: `${CHILD_IN_GROUP_H}px` }
@@ -453,6 +644,8 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
       nodes.value = clampAllNexionCardChildren(nodes.value)
     }
     selectNode(id)
+    rebakeNestedCardFlowSizes(viewportZoom.value)
+    applyLodHiddenFlags(viewportZoom.value)
     return id
   }
 
@@ -467,6 +660,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     }
     nodes.value = [...nodes.value, n]
     selectNode(id)
+    applyLodHiddenFlags(viewportZoom.value)
     return id
   }
 
@@ -480,7 +674,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
       if (!p2) return null
       const inset = getCardContentInset(p2)
       const parentLv = nexionCardNestingLevel(nodes.value, parentId)
-      const { w: cw, h: ch } = cardChildSizePx(p2, parentLv + 1)
+      const { w: cw, h: ch } = nestedCardFlowBoxPx(p2, parentLv + 1, viewportZoom.value)
       const innerW = inset.pw - 2 * inset.padX
       const innerH = inset.ph - inset.top - inset.bottom
       const x = inset.padX + Math.max(0, (innerW - cw) / 2)
@@ -494,10 +688,15 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
   }
 
   function removeNode(id: string) {
-    nodes.value = nodes.value.filter((n) => n.id !== id && n.parentNode !== id)
-    edges.value = edges.value.filter((e) => e.source !== id && e.target !== id)
-    if (selectedNodeId.value === id) selectedNodeId.value = null
+    const removeIds = collectSubtreeNodeIds(id, nodes.value)
+    nodes.value = nodes.value.filter((n) => !removeIds.has(n.id))
+    edges.value = edges.value.filter((e) => !removeIds.has(e.source) && !removeIds.has(e.target))
+    if (selectedNodeId.value != null && removeIds.has(selectedNodeId.value)) {
+      selectedNodeId.value = null
+    }
     triggerRef(edges)
+    rebakeNestedCardFlowSizes(viewportZoom.value)
+    applyLodHiddenFlags(viewportZoom.value)
   }
 
   function setNodeLabel(id: string, label: string) {
@@ -526,6 +725,9 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     LOD_ZOOM_DETAIL,
     setViewportZoom,
     showNodeDetail,
+    showCardFooterDetail,
+    applyLodHiddenFlags,
+    rebakeNestedCardFlowSizes,
     onNodesChange,
     onEdgesChange,
     onConnect,

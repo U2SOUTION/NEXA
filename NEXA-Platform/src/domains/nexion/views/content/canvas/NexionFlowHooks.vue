@@ -87,7 +87,10 @@ watch(
   () => viewport.value.zoom,
   (z) => {
     store.setViewportZoom(z)
+    store.rebakeNestedCardFlowSizes(z)
+    store.applyLodHiddenFlags(z)
     updateSpawnFromViewport()
+    nextTick(() => updateNodeInternals())
   },
   { immediate: true },
 )

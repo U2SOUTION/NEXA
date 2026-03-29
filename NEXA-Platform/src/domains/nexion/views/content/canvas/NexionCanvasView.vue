@@ -3,6 +3,7 @@
     <VueFlow
       v-model:nodes="nodes"
       v-model:edges="edges"
+      :apply-default="false"
       :node-types="nodeTypes"
       :default-edge-options="nexionFlowStore.defaultEdgeOptions"
       :connection-line-style="nexionConnectionLineStyle"
@@ -21,7 +22,8 @@
       @connect="onNexionConnectWrapped"
       @connect-start="onNexionConnectStart"
       @connect-end="onNexionConnectEnd"
-      @edges-change="onNexionEdgesChangeLog"
+      @nodes-change="nexionFlowStore.onNodesChange"
+      @edges-change="onNexionEdgesChangeWrapped"
       @error="onNexionVueFlowError"
       @node-click="onNodeClick"
       @edge-click="onNexionEdgeClick"
@@ -309,7 +311,8 @@ function onNexionConnectEnd(event) {
   console.log('[NexionFlow] connectEnd', event)
 }
 
-function onNexionEdgesChangeLog(changes) {
+function onNexionEdgesChangeWrapped(changes) {
+  nexionFlowStore.onEdgesChange(changes)
   if (!NXN_LOG || !changes?.length) return
   const notable = changes.filter((c) => c.type === 'add' || c.type === 'remove')
   if (notable.length) {

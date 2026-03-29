@@ -2,6 +2,7 @@
   <div
     class="nexion-card-node"
     :class="cardRootClass"
+    :style="cardReadabilityStyle"
   >
     <!-- 핸들보다 앞에 두면 제목/버튼이 핸들을 덮어 연결 판정이 실패할 수 있음 → 핸들은 맨 아래 + z-index -->
     <header class="nexion-card-node__header">
@@ -57,7 +58,11 @@
 
     <footer class="nexion-card-node__footer">
       <template v-if="showDetail">
-        <div class="nexion-card-node__footer-line" :title="data.linkId || undefined">
+        <div
+          class="nexion-card-node__footer-line"
+          :class="{ 'nexion-card-node__footer-line--stack': data.nestedInCard }"
+          :title="data.linkId || undefined"
+        >
           <span class="nexion-card-node__footer-id text-mono">{{ data.linkId || '—' }}</span>
           <span class="nexion-card-node__footer-meta">· Link ID · 부가</span>
         </div>
@@ -90,7 +95,27 @@ const $q = useQuasar()
 const store = useNexionFlowStore()
 const { viewportZoom } = storeToRefs(store)
 
-const showDetail = computed(() => store.showNodeDetail(viewportZoom.value))
+const showDetail = computed(() => store.showCardFooterDetail(props.id, viewportZoom.value))
+
+/**
+ * cqi 는 플로 좌표 박스 크기만 보므로, 캔버스 줌만 키우면 “돋보기 확대”처럼 보임.
+ * 뷰포트 줌에 맞춰 플로 공간에서도 글자 하한을 키워 실제로 읽을 수 있게 함.
+ */
+const cardReadabilityStyle = computed(() => {
+  if (!props.data.nestedInCard) return undefined
+  const z = viewportZoom.value
+  const z0 = store.LOD_ZOOM_DETAIL
+  const mul = Math.min(3.25, Math.max(1, z / z0))
+  const ramp = Math.sqrt(mul)
+  const tier = typeof props.data.nexionCardTier === 'number' ? props.data.nexionCardTier : 1
+  const deep = tier >= 2 ? 1.12 : 1
+  const r = (n) => Math.round(n * 10) / 10
+  return {
+    '--nxn-nested-title-floor': `${r(7 * ramp * deep)}px`,
+    '--nxn-nested-body-floor': `${r(6 * ramp * deep)}px`,
+    '--nxn-nested-footer-floor': `${r(6.8 * ramp * deep)}px`,
+  }
+})
 
 const cardRootClass = computed(() => {
   const tier = props.data.nexionCardTier ?? (props.data.nestedInCard ? 1 : 0)
@@ -122,7 +147,7 @@ function onRemoveSelf() {
 </script>
 
 <style lang="scss" scoped>
-/* 컨테이너 = 카드 박스. 타이포: 설정(--nxn-card-*-fs)이 상한, 작은 박스만 cqi 로 축소 (뷰포트 줌 /z 보정은 제거 — 돋보기 왜곡·설정 무시 원인) */
+/* 컨테이너 = 카드 박스. 루트: 설정·cqi. 중첩: --nxn-nested-*-floor 로 뷰포트 줌에 맞춰 플로 공간 글자 하한 상향(돋보기 현상 완화) */
 .nexion-card-node {
   container-type: size;
   container-name: nxn-card;
@@ -153,17 +178,33 @@ function onRemoveSelf() {
     min-width: 0;
     box-shadow: none;
 
-    /* 아이콘은 px 고정·글자만 cqi → 비율 깨짐 방지: 하한을 px 로 올림 */
-    --nxn-card-title-fs-local: min(var(--nxn-card-title-fs, 13px), max(7px, 7.5cqi));
-    --nxn-card-body-fs-local: min(var(--nxn-card-body-fs, 12px), max(6px, 6.8cqi));
-    --nxn-card-footer-fs-local: min(var(--nxn-card-footer-fs, 11px), max(7px, 6.4cqi));
+    --nxn-card-title-fs-local: min(
+      var(--nxn-card-title-fs, 13px),
+      max(var(--nxn-nested-title-floor, 7px), 7.5cqi)
+    );
+    --nxn-card-body-fs-local: min(
+      var(--nxn-card-body-fs, 12px),
+      max(var(--nxn-nested-body-floor, 6px), 6.8cqi)
+    );
+    --nxn-card-footer-fs-local: min(
+      var(--nxn-card-footer-fs, 11px),
+      max(var(--nxn-nested-footer-floor, 7px), 6.4cqi)
+    );
   }
 
   &--nested-deep {
-    /* 3단 이상: 플로 박스가 작아도 본문·Link 줄이 4~5px 로 떨어지지 않게 */
-    --nxn-card-title-fs-local: min(var(--nxn-card-title-fs, 13px), max(9px, 8.5cqi));
-    --nxn-card-body-fs-local: min(var(--nxn-card-body-fs, 12px), max(8px, 7.5cqi));
-    --nxn-card-footer-fs-local: min(var(--nxn-card-footer-fs, 11px), max(8px, 7.5cqi));
+    --nxn-card-title-fs-local: min(
+      var(--nxn-card-title-fs, 13px),
+      max(var(--nxn-nested-title-floor, 9px), 8.5cqi)
+    );
+    --nxn-card-body-fs-local: min(
+      var(--nxn-card-body-fs, 12px),
+      max(var(--nxn-nested-body-floor, 8px), 7.5cqi)
+    );
+    --nxn-card-footer-fs-local: min(
+      var(--nxn-card-footer-fs, 11px),
+      max(var(--nxn-nested-footer-floor, 8px), 7.5cqi)
+    );
   }
 
   &--selected {
@@ -204,8 +245,8 @@ function onRemoveSelf() {
 }
 
 .nexion-card-node__title {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 2.5em;
   font-size: var(--nxn-card-title-fs-local);
   font-weight: 600;
   line-height: 1.25;
@@ -317,6 +358,27 @@ function onRemoveSelf() {
   color: var(--nexa-text-secondary, rgba(0, 0, 0, 0.5));
   white-space: nowrap;
   opacity: 0.88;
+}
+
+/* 한 줄 flex 에서 Link ID 가 0 너비로 밀리는 경우 방지 — 중첩 카드는 세로로 쌓음 */
+.nexion-card-node__footer-line--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+}
+
+.nexion-card-node__footer-line--stack .nexion-card-node__footer-id {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  word-break: break-all;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.nexion-card-node__footer-line--stack .nexion-card-node__footer-meta {
+  white-space: normal;
 }
 
 .nexion-card-node__footer-collapsed {
