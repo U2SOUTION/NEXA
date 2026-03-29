@@ -45,7 +45,7 @@ function collectSubtreeNodeIds(rootId: string, list: Node[]): Set<string> {
 const GROUP_PAD = { l: 12, r: 16, t: 44, b: 16 }
 const GROUP_MIN_W = 200
 const GROUP_MIN_H = 160
-/** 카드가 부모일 때 고정 박스(자동 확장 없음 — 줌으로 탐색) */
+/** 카드가 부모일 때 기본 박스 — 자식이 있으면 `fitCardParentToNestedChildren` 로 본문에 맞게 확장 */
 const CARD_PARENT_W = 280
 /** 헤더·중앙 추가 영역·풋터 3분할 기준 최소 높이 */
 const CARD_PARENT_H = 268
@@ -60,6 +60,9 @@ const CARD_CHILD_ABS_MIN_W = 24
 const CARD_CHILD_ABS_MIN_H = 28
 /** 1단 자식 선호 종횡비 (w/h) */
 const CARD_CHILD_ASPECT = CHILD_IN_CARD_W / CHILD_IN_CARD_H
+/** 카드 본문 안 중첩 카드 우·하단 여유(플로 px) — 부모 width/height 산출 */
+const CARD_NEST_BODY_PAD_R = 8
+const CARD_NEST_BODY_PAD_B = 8
 
 function shortLinkId(): string {
   return `nxn-${uuidv4().slice(0, 8)}`
@@ -173,11 +176,20 @@ function cardChildSizePx(parent: Node | undefined, tier: number): { w: number; h
   return { w: Math.max(1, fitted.w), h: Math.max(1, fitted.h) }
 }
 
+/** 선택 포커스 중첩 카드: 부모 한도 안에서 1단 기본 크기에 가깝게 플로 박스를 키워 텍스트·헤더와 비율 맞춤 */
+const READING_FOCUS_FLOW_W = Math.round(CHILD_IN_CARD_W * 0.9)
+const READING_FOCUS_FLOW_H = Math.round(CHILD_IN_CARD_H * 0.9)
+
 /**
  * 중첩 카드의 플로 크기 — `cardChildSizePx` 기준에 줌 부스트를 곱하고 부모 본문 안으로 클램프.
  * 구조(data.tier)는 그대로 두고 style 만 줌에 맞춰 다시 맞출 때 사용.
  */
-function nestedCardFlowBoxPx(parent: Node | undefined, tier: number, zoom: number): { w: number; h: number } {
+function nestedCardFlowBoxPx(
+  parent: Node | undefined,
+  tier: number,
+  zoom: number,
+  flowCtx?: { nodeId: string; readingFocusId: string | null },
+): { w: number; h: number } {
   const base = cardChildSizePx(parent, tier)
   const boost = zoomFlowSizeBoost(zoom)
   if (!parent || parent.type !== 'nexionCard') {
@@ -194,13 +206,26 @@ function nestedCardFlowBoxPx(parent: Node | undefined, tier: number, zoom: numbe
   let h = Math.round(base.h * boost)
   w = Math.min(maxW, Math.max(CARD_CHILD_ABS_MIN_W, w))
   h = Math.min(maxH, Math.max(CARD_CHILD_ABS_MIN_H, h))
+  if (
+    flowCtx?.readingFocusId &&
+    flowCtx.nodeId === flowCtx.readingFocusId &&
+    flowCtx.readingFocusId.length > 0
+  ) {
+    w = Math.min(maxW, Math.max(w, READING_FOCUS_FLOW_W))
+    h = Math.min(maxH, Math.max(h, READING_FOCUS_FLOW_H))
+  }
   return { w, h }
 }
 
 /**
  * 모든 `nestedInCard` 노드의 width/height 를 현재 줌 기준으로 재계산(부모→자식 연쇄 반영).
+ * `readingFocusId`: 해당 중첩 카드 선택 시 플로 박스 읽기용 하한.
  */
-function rebakeNestedCardFlowSizesFromZoom(list: Node[], zoom: number): { list: Node[]; changed: boolean } {
+function rebakeNestedCardFlowSizesFromZoom(
+  list: Node[],
+  zoom: number,
+  readingFocusId: string | null = null,
+): { list: Node[]; changed: boolean } {
   let cur = list
   let any = false
   for (let pass = 0; pass < 20; pass++) {
@@ -213,7 +238,10 @@ function rebakeNestedCardFlowSizesFromZoom(list: Node[], zoom: number): { list: 
       const parent = byId.get(n.parentNode)
       if (!parent || parent.type !== 'nexionCard') return n
       const tier = typeof d.nexionCardTier === 'number' ? d.nexionCardTier : 1
-      const { w, h } = nestedCardFlowBoxPx(parent, tier, zoom)
+      const { w, h } = nestedCardFlowBoxPx(parent, tier, zoom, {
+        nodeId: n.id,
+        readingFocusId,
+      })
       const st = n.style && typeof n.style === 'object' && !Array.isArray(n.style) ? { ...n.style } : {}
       const curW = parsePxFromStyle((st as { width?: string }).width, w)
       const curH = parsePxFromStyle((st as { height?: string }).height, h)
@@ -254,6 +282,98 @@ function clampAllNexionCardChildren(list: Node[]): Node[] {
     if (pos.x === n.position.x && pos.y === n.position.y) return n
     return { ...n, position: pos }
   })
+}
+
+/**
+ * `nexionCard` 부모 플로 크기를 직접 자식 중첩 카드 바운딩 + 헤더·풋터 인셋에 맞게 키움(줄이지 않음).
+ * 인셋이 pw/ph에 의존하므로 소수 회 반복.
+ */
+function fitCardParentToNestedChildren(list: Node[], cardId: string): Node[] {
+  const parent = list.find((n) => n.id === cardId)
+  if (!parent || parent.type !== 'nexionCard') return list
+
+  const children = list.filter((n) => {
+    if (n.parentNode !== cardId || n.type !== 'nexionCard') return false
+    const d = (n.data || {}) as Record<string, unknown>
+    return !!d.nestedInCard
+  })
+  if (!children.length) return list
+
+  const st0 =
+    parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style)
+      ? { ...(parent.style as Record<string, string>) }
+      : {}
+  let pw = parsePxFromStyle(st0.width, CARD_PARENT_W)
+  let ph = parsePxFromStyle(st0.height, CARD_PARENT_H)
+
+  for (let iter = 0; iter < 8; iter++) {
+    const synthetic = {
+      ...parent,
+      style: { ...st0, width: `${pw}px`, height: `${ph}px` },
+    } as Node
+    const inset = getCardContentInset(synthetic)
+    let maxR = 0
+    let maxB = 0
+    for (const c of children) {
+      const st = c.style && typeof c.style === 'object' && !Array.isArray(c.style) ? c.style : {}
+      const cw = parsePxFromStyle((st as { width?: string }).width, CHILD_IN_CARD_W)
+      const ch = parsePxFromStyle((st as { height?: string }).height, CHILD_IN_CARD_H)
+      maxR = Math.max(maxR, c.position.x + cw)
+      maxB = Math.max(maxB, c.position.y + ch)
+    }
+    const needW = Math.max(CARD_PARENT_W, Math.ceil(maxR + inset.padX + CARD_NEST_BODY_PAD_R))
+    const needH = Math.max(CARD_PARENT_H, Math.ceil(maxB + inset.bottom + CARD_NEST_BODY_PAD_B))
+    if (needW === pw && needH === ph) break
+    pw = needW
+    ph = needH
+  }
+
+  const curW = parsePxFromStyle(st0.width, CARD_PARENT_W)
+  const curH = parsePxFromStyle(st0.height, CARD_PARENT_H)
+  if (curW === pw && curH === ph) return list
+
+  return list.map((n) =>
+    n.id === cardId ? { ...n, style: { ...st0, width: `${pw}px`, height: `${ph}px` } } : n,
+  )
+}
+
+/** 중첩 카드 한 장부터 조상 `nexionCard`까지 안쪽 부모부터 순서대로 맞춤 */
+function bubbleFitCardParentsFromNestedNode(list: Node[], nestedNodeId: string): Node[] {
+  const node = list.find((n) => n.id === nestedNodeId)
+  let pid: string | undefined = node?.parentNode
+  const chain: string[] = []
+  while (pid) {
+    const p = list.find((x) => x.id === pid)
+    if (!p || p.type !== 'nexionCard') break
+    chain.push(pid)
+    pid = p.parentNode
+  }
+  let out = list
+  for (const id of chain) {
+    out = fitCardParentToNestedChildren(out, id)
+    out = clampAllNexionCardChildren(out)
+  }
+  return out
+}
+
+/** 줌 리베이크 후 자식 크기가 바뀌면 모든 `nexionCard` 부모를 깊은 쪽부터 다시 맞춤 */
+function fitAllCardParentsToNestedChildren(list: Node[]): Node[] {
+  const parentIds = new Set<string>()
+  for (const n of list) {
+    if (n.type !== 'nexionCard') continue
+    const d = (n.data || {}) as Record<string, unknown>
+    if (d.nestedInCard && n.parentNode) parentIds.add(n.parentNode)
+  }
+  if (!parentIds.size) return list
+  const order = [...parentIds].sort(
+    (a, b) => nexionCardNestingLevel(list, b) - nexionCardNestingLevel(list, a),
+  )
+  let out = list
+  for (const pid of order) {
+    out = fitCardParentToNestedChildren(out, pid)
+    out = clampAllNexionCardChildren(out)
+  }
+  return out
 }
 
 /** 플로 좌표상 카드 짧은 변 — 스타일 없으면 루트/중첩 기본 */
@@ -498,19 +618,48 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
    */
   function rebakeNestedCardFlowSizes(zoom?: number) {
     const z = zoom ?? viewportZoom.value
-    const { list, changed } = rebakeNestedCardFlowSizesFromZoom(nodes.value, z)
+    const sid = selectedNodeId.value
+    const readingFocus =
+      sid != null && nodes.value.some((x) => x.id === sid && x.type === 'nexionCard') ? sid : null
+    const { list, changed } = rebakeNestedCardFlowSizesFromZoom(nodes.value, z, readingFocus)
     if (!changed) return
-    nodes.value = list
+    nodes.value = fitAllCardParentsToNestedChildren(list)
     triggerRef(nodes)
   }
 
-  /** Vue Flow `apply-default="false"` + `@nodes-change` — 드래그 후 카드 자식 위치 클램프 */
+  /** Vue Flow `apply-default="false"` + `@nodes-change` — 드래그 후 카드 자식 위치 클램프 · 부모 카드 본문에 맞게 확장 */
   function onNodesChange(changes: NodeChange[]) {
-    const next = applyNodeChanges(changes, nodes.value as unknown as GraphNode[]) as Node[]
-    nodes.value = clampAllNexionCardChildren(next)
+    let next = applyNodeChanges(changes, nodes.value as unknown as GraphNode[]) as Node[]
+    next = clampAllNexionCardChildren(next)
+    nodes.value = next
+
     if (changes.some((c) => c.type === 'add' || c.type === 'remove')) {
       rebakeNestedCardFlowSizes(viewportZoom.value)
       applyLodHiddenFlags(viewportZoom.value)
+    }
+
+    const touchedNested = new Set<string>()
+    for (const ch of changes) {
+      if (ch.type === 'position' || ch.type === 'dimensions') {
+        const node = nodes.value.find((n) => n.id === ch.id)
+        const d = node?.data as Record<string, unknown> | undefined
+        if (node?.parentNode && d?.nestedInCard) touchedNested.add(node.id)
+      }
+      if (ch.type === 'add' && 'item' in ch) {
+        const item = ch.item as Node
+        const d = item.data as Record<string, unknown> | undefined
+        if (item.type === 'nexionCard' && item.parentNode && d?.nestedInCard) {
+          touchedNested.add(item.id)
+        }
+      }
+    }
+    if (touchedNested.size > 0) {
+      let list = nodes.value
+      for (const nid of touchedNested) {
+        list = bubbleFitCardParentsFromNestedNode(list, nid)
+      }
+      nodes.value = clampAllNexionCardChildren(list)
+      triggerRef(nodes)
     }
   }
 
@@ -611,7 +760,10 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
       const tier = parentLv + 1
       data.nestedInCard = true
       data.nexionCardTier = tier
-      const { w, h } = nestedCardFlowBoxPx(parent, tier, viewportZoom.value)
+      const { w, h } = nestedCardFlowBoxPx(parent, tier, viewportZoom.value, {
+        nodeId: id,
+        readingFocusId: null,
+      })
       style = { width: `${w}px`, height: `${h}px` }
     } else if (opts?.groupChild) {
       style = { width: `${CHILD_IN_GROUP_W}px`, height: `${CHILD_IN_GROUP_H}px` }
@@ -634,7 +786,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
              * `parent` + onNodesChange 클램프로 본문 안만 유지.
              */
             extent: 'parent' as const,
-            /** 그룹: 자식에 맞춰 부모 확장. 카드: 크기 고정·줌으로 탐색 */
+            /** 그룹: Vue Flow 부모 확장. 카드: 스토어에서 `bubbleFitCardParentsFromNestedNode` 로 플로 크기 조정 */
             expandParent: parent.type === 'nexionGroup',
           }
         : {}),
@@ -646,6 +798,11 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     selectNode(id)
     rebakeNestedCardFlowSizes(viewportZoom.value)
     applyLodHiddenFlags(viewportZoom.value)
+    if (parent?.type === 'nexionCard' && opts?.cardChild) {
+      nodes.value = bubbleFitCardParentsFromNestedNode(nodes.value, id)
+      nodes.value = clampAllNexionCardChildren(nodes.value)
+      triggerRef(nodes)
+    }
     return id
   }
 

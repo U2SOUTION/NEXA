@@ -39,8 +39,8 @@
     </VueFlow>
 
     <div class="nexion-canvas-view__hint text-caption">
-      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기 · <strong>연결선</strong> 클릭 시 강조 표시 · 여러 개는 <strong>Ctrl</strong>/<strong>⌘</strong>+클릭 · <strong>Delete</strong>/<strong>Backspace</strong>로
-      끊기 · 휠: 줌 · 드래그: 팬
+      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · <strong>카드 선택</strong>: 중앙 정렬 + 필요 시 줌 인 · 박스·폰트 비율 유지(전체 텍스트) · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기 · <strong>연결선</strong> 클릭 시 강조 · 여러 개는 <strong>Ctrl</strong>/<strong>⌘</strong>+클릭 ·
+      <strong>Delete</strong>/<strong>Backspace</strong>로 끊기 · 휠: 줌 · 드래그: 팬 · <strong>빈 바탕 클릭</strong> 시 선택 해제
     </div>
   </div>
 </template>

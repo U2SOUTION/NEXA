@@ -13,11 +13,14 @@ import { isNexionFlowDebug, nxnDiag } from '@domains/nexion/modules/core/utils/n
 
 const { viewport, screenToFlowCoordinate, fitView, updateNodeInternals, setEdges } = useVueFlow()
 const store = useNexionFlowStore()
-const { pendingFitNodeId, edges, nodes } = storeToRefs(store)
+const { pendingFitNodeId, edges, nodes, selectedNodeId } = storeToRefs(store)
 const userSettings = useUserSettingsStore()
 const { settings: userSettingsRef } = storeToRefs(userSettings)
 
 const PANE_SELECTOR = '.nexion-vue-flow .vue-flow__pane'
+
+/** NexionCanvasView.vue 의 VueFlow `:max-zoom` 과 맞춤 — 선택 시 가독하게 줌 인 허용 */
+const NEXION_FLOW_MAX_ZOOM = 256
 
 let paneEl = null
 let paneRetryTimer = null
@@ -99,6 +102,30 @@ watch(
   () => [viewport.value.x, viewport.value.y],
   () => updateSpawnFromViewport(),
 )
+
+/**
+ * 카드 선택 시 뷰포트 중앙에 맞추고, 필요하면 줌 인(현재 줌 이하로는 내리지 않음).
+ * min/max 를 동일하게 두면 팬만 되어 중첩 카드가 작은 플로 박스에 갇힌 채로 남는 문제가 생김.
+ */
+watch(selectedNodeId, async (id) => {
+  const pin = id ? nodes.value.find((n) => n.id === id) : undefined
+  if (id && pin?.type === 'nexionCard') {
+    await nextTick()
+    await nextTick()
+    const z = viewport.value.zoom
+    await fitView({
+      nodes: [id],
+      duration: 300,
+      padding: 0.2,
+      minZoom: z,
+      maxZoom: NEXION_FLOW_MAX_ZOOM,
+      includeHiddenNodes: false,
+    })
+  }
+  await nextTick()
+  store.rebakeNestedCardFlowSizes(viewport.value.zoom)
+  updateNodeInternals()
+})
 
 watch(pendingFitNodeId, (id) => {
   if (!id) return
