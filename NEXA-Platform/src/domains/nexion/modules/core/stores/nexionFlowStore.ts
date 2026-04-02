@@ -395,13 +395,24 @@ function cardScreenMinDim(n: Node, zoom: number): number {
   return cardFlowMinDimensionPx(n) * zoom
 }
 
-/** 티어가 깊을수록 조금 더 큰 화면 크기를 요구 */
-const LOD_SCREEN_MIN_T1 = 46
-const LOD_SCREEN_PER_TIER = 18
+/** 티어가 깊을수록 조금 더 큰 화면 크기를 요구(줌 아웃 시 과도한 숨김 완화 위해 보수적으로 낮춤) */
+const LOD_SCREEN_MIN_T1 = 42
+const LOD_SCREEN_PER_TIER = 14
 
 function minScreenShortEdgeForLodTier(tier: number): number {
   if (tier <= 0) return 0
   return LOD_SCREEN_MIN_T1 + (tier - 1) * LOD_SCREEN_PER_TIER
+}
+
+/** 선택 노드에서 루트까지 조상 체인 — 이 노드들은 LOD로 숨기지 않음(목록·포커스와 캔버스 일치) */
+function isNodeOnSelectedChain(nodeId: string, selectedId: string | null, byId: Map<string, Node>): boolean {
+  if (!selectedId) return false
+  let cur: Node | undefined = byId.get(selectedId)
+  while (cur) {
+    if (cur.id === nodeId) return true
+    cur = cur.parentNode ? byId.get(cur.parentNode) : undefined
+  }
+  return false
 }
 
 /** 부모 카드가 LOD로 숨겨지면 자손 카드도 숨김 */
@@ -410,9 +421,14 @@ function computeNexionCardLodHidden(
   byId: Map<string, Node>,
   zoom: number,
   memo: Map<string, boolean>,
+  selectedId: string | null,
 ): boolean {
   if (n.type !== 'nexionCard') return false
   if (memo.has(n.id)) return memo.get(n.id)!
+  if (isNodeOnSelectedChain(n.id, selectedId, byId)) {
+    memo.set(n.id, false)
+    return false
+  }
   const d = (n.data || {}) as Record<string, unknown>
   const tier =
     typeof d.nexionCardTier === 'number'
@@ -424,7 +440,7 @@ function computeNexionCardLodHidden(
   let hide = tier > 0 && sm < minScreenShortEdgeForLodTier(tier)
   if (!hide && n.parentNode) {
     const p = byId.get(n.parentNode)
-    if (p?.type === 'nexionCard' && computeNexionCardLodHidden(p, byId, zoom, memo)) hide = true
+    if (p?.type === 'nexionCard' && computeNexionCardLodHidden(p, byId, zoom, memo, selectedId)) hide = true
   }
   memo.set(n.id, hide)
   return hide
@@ -596,10 +612,11 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     const list = nodes.value
     const byId = new Map(list.map((x) => [x.id, x]))
     const memo = new Map<string, boolean>()
+    const sel = selectedNodeId.value
     let changed = false
     const next = list.map((n) => {
       if (n.type !== 'nexionCard') return n
-      const hide = computeNexionCardLodHidden(n, byId, zoom, memo)
+      const hide = computeNexionCardLodHidden(n, byId, zoom, memo, sel)
       if (!!n.hidden !== hide) {
         changed = true
         return { ...n, hidden: hide }

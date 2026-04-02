@@ -50,7 +50,10 @@
       @click="confirmReset"
     />
 
-    <div class="text-caption text-grey-7 q-mb-xs">노드 목록</div>
+    <div class="text-caption text-grey-7 q-mb-xs">
+      노드 목록
+      <span class="text-grey-6"> · LOD로 캔버스에서 숨긴 카드는 배지 표시(줌 인·선택 시 표시)</span>
+    </div>
     <q-scroll-area style="height: 220px" class="border rounded-borders">
       <q-list dense v-if="nodeList.length">
         <q-item
@@ -68,7 +71,16 @@
               {{ n.data.linkId }}
             </q-item-label>
           </q-item-section>
-          <q-item-section side>
+          <q-item-section side class="nexion-left-nav__badges">
+            <q-badge
+              v-if="n.type === 'nexionCard' && n.hidden"
+              color="grey-7"
+              text-color="white"
+              class="q-mr-xs"
+              outline
+            >
+              숨김
+            </q-badge>
             <q-badge :color="n.type === 'nexionGroup' ? 'secondary' : 'primary'" outline>
               {{ n.type === 'nexionGroup' ? 'G' : 'C' }}
             </q-badge>

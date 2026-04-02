@@ -1,8 +1,13 @@
+// server/middleware/deviceAuth.middleware.ts
 /**
- * Device Token 인증 [NEXA-AUTH-01] §5.3
+ * Device Token 인증 [NEXA-AUTH-01] (문서 5.3)
  * JWT 없을 때 X-Device-Token으로 디바이스 인증 → req.user 설정
  * Redis 캐시 우선, 미스 시 DB 조회. 응답 전 last_seen, mac_address, ip_address 갱신
+ *
+ * 에러 응답은 `auth.middleware.ts`와 같이 **ApiErrorCode** + `{ code, message }` 로 통일합니다.
+ * (과거 문자열 리터럴과 값은 동일하나, 스키마·자동완성을 위해 상수 사용)
  */
+import { ApiErrorCode } from '@system/schemas/errors.js'
 import { allowedDomainsSchema } from '@system/schemas/jsonb.js'
 import { parseJsonb } from '@/utils/parseJsonb.js'
 import type { AuthUser } from '@/types/common.js'
@@ -34,24 +39,21 @@ export const deviceTokenAuth: AuthMiddlewareFn = async (req, res, next) => {
 
   const rawToken = req.headers?.['x-device-token']
   if (!rawToken || typeof rawToken !== 'string') {
-    return res.status(401).json({ code: 'UNAUTHORIZED', message: '인증이 필요합니다.' })
+    return res.status(401).json({ code: ApiErrorCode.UNAUTHORIZED, message: '인증이 필요합니다.' })
   }
 
   const tokenHash = hashDeviceToken(rawToken)
   if (!tokenHash) {
-    return res.status(401).json({ code: 'INVALID_TOKEN', message: '유효하지 않은 디바이스 토큰입니다.' })
+    return res.status(401).json({ code: ApiErrorCode.INVALID_TOKEN, message: '유효하지 않은 디바이스 토큰입니다.' })
   }
 
   let cached = await devicesService.getDeviceFromCache(tokenHash)
   let row = null
   if (cached?.user_id && cached?.device_id) {
     if (!cached.is_active) {
-      return res.status(401).json({ code: 'DEVICE_INACTIVE', message: '비활성화된 디바이스입니다.' })
+      return res.status(401).json({ code: ApiErrorCode.DEVICE_INACTIVE, message: '비활성화된 디바이스입니다.' })
     }
-    const userRow = (await pool.query(
-      'SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at FROM users WHERE id = $1 AND deleted_at IS NULL',
-      [cached.user_id]
-    )).rows[0]
+    const userRow = (await pool.query('SELECT id, email, display_name, role, tier, allowed_domains, created_at, updated_at FROM users WHERE id = $1 AND deleted_at IS NULL', [cached.user_id])).rows[0]
     if (userRow) {
       req.user = toUserResponse({ ...userRow, u_id: userRow.id })
       req.deviceId = cached.device_id
@@ -65,20 +67,15 @@ export const deviceTokenAuth: AuthMiddlewareFn = async (req, res, next) => {
 
   row = await devicesService.getDeviceByTokenHash(tokenHash)
   if (!row) {
-    return res.status(401).json({ code: 'INVALID_TOKEN', message: '디바이스를 찾을 수 없습니다.' })
+    return res.status(401).json({ code: ApiErrorCode.INVALID_TOKEN, message: '디바이스를 찾을 수 없습니다.' })
   }
   if (!row.is_active) {
-    return res.status(401).json({ code: 'DEVICE_INACTIVE', message: '비활성화된 디바이스입니다.' })
+    return res.status(401).json({ code: ApiErrorCode.DEVICE_INACTIVE, message: '비활성화된 디바이스입니다.' })
   }
 
   req.user = toUserResponse(row) as AuthUser
   req.deviceId = row.id as string
-  await devicesService.setDeviceCache(
-    tokenHash,
-    toUserId(String(row.user_id ?? '')),
-    row.id as string,
-    Boolean(row.is_active),
-  )
+  await devicesService.setDeviceCache(tokenHash, toUserId(String(row.user_id ?? '')), row.id as string, Boolean(row.is_active))
   await devicesService.updateDeviceLastSeen(row.id as string, {
     mac_address: (req.headers?.['x-device-mac'] ?? row.mac_address ?? null) as string | null,
     ip_address: (req.ip ?? req.connection?.remoteAddress ?? null) as string | null,

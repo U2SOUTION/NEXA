@@ -5,7 +5,7 @@
 > 네임스페이스 원칙: `nexa_knowledge_*`는 플랫폼 공통 Knowledge OS 계층이며,
 > `project_knowledge`는 해당 계층 위에서 생성되는 프로젝트 단위 지식 분기다.
 
-**참고:** 엣지 데이터·실행·닉시 대화 등도 넓게는 “지식”에 가깝지만, **저장소·수명**이 다르므로 본 문서의 `views/`·경로는 **Knowledge OS 관리 화면** 중심이다. 전체 스펙트럼 개괄은 `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` **§0**을 본다.
+**참고:** 엣지 데이터·실행·닉시 대화 등도 넓게는 “지식”에 가깝지만, **저장소·수명**이 다르므로 본 문서의 `views/`·경로는 **Knowledge OS 관리 화면** 중심이다. 전체 스펙트럼 개괄은 `_KNOWLEDGE ARCH 지식 운영체제(NEXA-OS) 운영 아키텍처.md` **§0**을 본다.
 
 ## 넥사 시스템 기획문서를 넘어 철학적 토대 자산화
 
@@ -43,7 +43,7 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 
 ### 5. 넥슈(NEXU): 지식 OS의 '서사적 지휘자'
 
-넥슈는 단순한 가이드 에이전트가 아니라, 지식 OS에 저장된 방대한 **'언어 너머의 뜻(Inspiration)'**을 실제 실행 프로토콜인 UCL로 번역하는 역할을 수행합니다.
+넥슈는 단순한 가이드 에이전트가 아니라, 지식 OS에 저장된 방대한 **'언어 너머의 뜻(Inspiration)'**을 실제 실행 프로토콜인 N-MAP로 번역하는 역할을 수행합니다.
 
 - **다중체(Self) 자산의 인출기:** 지식 OS의 `nexa_self_*` 계층에 저장된 사용자의 다양한 자아(Persona)와 상태 정보를 바탕으로, 사용자가 **Self facet (자아의 단면)** 을 선택하는 순간 시스템 전체의 논리와 물리적 환경을 재설계합니다.
 - **맥락적 침묵과 개입:** 지식 OS가 관리하는 **사용자 행동 신호(ES/VI)**를 분석하여, 사용자가 능숙할 때는 조용히 대기(그림자 모드)하다가 흐름이 끊기거나 변심(VOID)이 감지될 때만 지식 베이스를 바탕으로 적절한 조언을 던집니다.
@@ -79,7 +79,7 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 - `_KNOWLEDGE RULE 지식 자산 관리 표준 계약 및 규약.md` (**§5** Knowledge OS 안전 축)
 - `_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md`
 - `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`
-- `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` (**§0** 지식 스펙트럼 · **§1-B** · **§1-C** · **§1-D**)
+- `_KNOWLEDGE ARCH 지식 운영체제(NEXA-OS) 운영 아키텍처.md` (**§0** 지식 스펙트럼 · **§1-B** · **§1-C** · **§1-D**)
 - `_KNOWLEDGE ARCH 언어적 라우팅 및 지능형 정규화.md`
 - `_NEXA GUIDE 플랫폼 구현 단계 및 로드맵.md` (플랫폼 전체 구현 순서; Knowledge·오케스트레이션·UI)
 
@@ -95,7 +95,7 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 
 **본 문서에서 끝까지 완전 규정하지 않고, 이후 오케스트레이션·AI/도메인 단에서 고도화하는 것:**
 
-- 오케스트레이션의 **실행 사슬·큐·스케줄·내부 정책** 상세, UCL·런타임 운영 규범 전부
+- 오케스트레이션의 **실행 사슬·큐·스케줄·내부 정책** 상세, N-MAP·런타임 운영 규범 전부
 - **Linguistic routing·IR·LLM·도메인 추론**의 알고리즘·프롬프트·모델 선정·품질 튜닝
 
 위 후자는 **`__NEXA` 오케스트레이션 명세·DDL**, `_KNOWLEDGE ARCH`의 연동 절(예: §1-C), **도메인/AI 구현**에서 반복 확장한다.
@@ -174,7 +174,7 @@ src/domains/
 │               ├── KnowledgeVectorsView.vue          # 임베딩 상태/재생성 관리
 │               ├── KnowledgeChangeQueueView.vue      # 불변 토큰 변경 승인 큐
 │               ├── KnowledgeDocSyncView.vue          # 문서 동기화 상태/재실행
-│               ├── KnowledgeDistributionView.vue     # nano/micro/vista 배포 프로파일 관리
+│               ├── KnowledgeDistributionView.vue     # Nano/Micro/Kinetic/Zenith 배포 프로파일 관리
 │               ├── KnowledgeResidencyView.vue        # VOID 티어·스왑 힌트 (`nexa_knowledge_residency`, SPEC §2.9)
 │               ├── KnowledgeContextPagingView.vue        # Context Paging (`nexa_knowledge_context_paging_sets`, §2.10)
 │               ├── KnowledgeCapabilityDriversView.vue    # 드라이버 매니페스트 (`nexa_knowledge_capability_drivers`, §2.11)
@@ -219,7 +219,7 @@ src/domains/
 - `KnowledgeResponsePoliciesView.vue` -> `nexa_knowledge_response_policies` (ES/VI·`output_mode`·보강 컬럼 §2.15)
 - `AdminAudit.vue` -> `nexa_knowledge_audit_logs`
 
-**OS 보강 화면과 ARCH §1-C:** 인터럽트·페이징·드라이버·NFS 경로·헬스·쓰로틀은 **스키마(SPEC §2.9~)** 가 있고, **실제 티어 이동·프롬프트 조립**은 `engines`·잡에서 수행한다. 위 Vue는 **운영자가 상태를 보고 고치는 창구**에 해당한다.
+**OS 보강 화면과 ARCH §1-C:** 인터럽트·페이징·드라이버·N-PATH 경로·헬스·쓰로틀은 **스키마(SPEC §2.9~)** 가 있고, **실제 티어 이동·프롬프트 조립**은 `engines`·잡에서 수행한다. 위 Vue는 **운영자가 상태를 보고 고치는 창구**에 해당한다.
 
 ---
 
@@ -304,7 +304,7 @@ src/domains/
 - `_KNOWLEDGE RULE 지식 자산 관리 표준 계약 및 규약.md` (**§5** Knowledge OS 안전 축)
 - `_KNOWLEDGE SPEC CRUD 테이블 및 필드 명세서.md`
 - `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`
-- `_KNOWLEDGE ARCH 지식 운영체제(K-OS) 운영 아키텍처.md` (**§0** · **§1-B** · **§1-C** · **§1-D**)
+- `_KNOWLEDGE ARCH 지식 운영체제(NEXA-OS) 운영 아키텍처.md` (**§0** · **§1-B** · **§1-C** · **§1-D**)
 - `_KNOWLEDGE ARCH 언어적 라우팅 및 지능형 정규화.md`
 - `_NEXA GUIDE 플랫폼 구현 단계 및 로드맵.md`
 
@@ -321,7 +321,7 @@ src/
 │       └── lumina/
 │
 ├── engines/                  # 순수 로직/연산 레이어
-│   ├── ucl-parser/
+│   ├── map-parser/
 │   ├── flow-visualizer/
 │   ├── localization-adapter/
 │   └── routing-adapter/
@@ -470,7 +470,7 @@ src/
 │   ├── AIS/                     # AI 워크스페이스 및 오케스트레이터 (PRD, SCHEMA)
 │   ├── NOD/                     # 노드/엣지/IoT 로직 (SPEC, FLOW)
 │   ├── AUTH/                    # 인증 및 Capability 권한 체계
-│   └── UCL/                     # UCL 프로토콜 및 실행 사슬 명세
+│   └── MAP/                     # N-MAP 프로토콜 및 실행 사슬 명세
 │
 ├── frame/                       # [뼈대] 플랫폼 전역 레이아웃 및 엠비언트 요소
 │   ├── layouts/                 # MainLayout, U2BeeLayout (크롬 확장용)
@@ -480,7 +480,7 @@ src/
 │       └── lumina/              # NEXU 캔버스 Lumina·엠비언트 발광 (NEXA NIXIE·닉시 계열)
 │
 ├── engines/                     # [엔진] 전역 재사용 가능 지능/시각화 엔진 (Strict)
-│   ├── ucl-parser/              # 5W1H 영문 IR 변환 및 실행 사슬 엔진
+│   ├── map-parser/              # 5W1H 영문 IR 변환 및 실행 사슬 엔진
 │   ├── nixie-visualizer/        # NEXU 캔버스(닉시·NEXA NIXIE) 렌더·믹서 노드 (Three.js/D3)
 │   └── flow-visualizer/         # Vue Flow 기반 공용 관계도/의존성 맵 엔진
 │
@@ -558,7 +558,7 @@ src/
 
 #### ③ 엔진 레이어 분리 (`engines/`)
 
-- `ucl-parser`와 `nixie-visualizer` 등은 특정 도메인에 종속되지 않는 **Strict Layer**로 관리하여, 추후 npm 패키지로 분리하거나 다른 프로젝트에서 재사용할 수 있는 구조를 갖췄습니다.
+- `map-parser`와 `nixie-visualizer` 등은 특정 도메인에 종속되지 않는 **Strict Layer**로 관리하여, 추후 npm 패키지로 분리하거나 다른 프로젝트에서 재사용할 수 있는 구조를 갖췄습니다.
 
 #### ④ 3단계 지능 위계 및 하드웨어 프로파일링 반영
 

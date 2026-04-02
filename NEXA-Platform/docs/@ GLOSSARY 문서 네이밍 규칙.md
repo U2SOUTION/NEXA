@@ -47,7 +47,7 @@ NEXA  플랫폼 정체성 (최상위)
         ├── 서비스 영역        AIS NOD BRD ARC TRC PRT
         ├── 인프라 영역        INF NET ERP
         ├── 관리·운영 영역     ADM MYP HLP DEV
-        ├── 횡단 관심사        PRJ AUTH DDL UCL
+        ├── 횡단 관심사        PRJ AUTH DDL N-MAP
         └── 하드웨어·특수      NEXA NIXIE
 ```
 
@@ -90,7 +90,7 @@ NO   →  SYS    다른 플랫폼에서도 쓸 수 있는 기술 원칙, 아키�
 | 02 | `AUTH` | 인증·권한 | 로그인, 토큰, Capability 등 인증·권한 공통 처리 |
 | 03 | `DDL` | DB 스키마 | 전체 DB 설계, 테이블 정의. SCHEMA 타입과 함께 자주 사용 |
 | 04 | `PRJ` | 프로젝트 공통 | project_id 기반 데이터 격리 등 프로젝트 전반에 걸친 구조 |
-| 05 | `UCL` | UCL 엔진 | UCL 언어·실행 프로토콜·파이프라인 관련 전용 문서 |
+| 05 | `N-MAP` | N-MAP 엔진 | N-MAP 언어·실행 프로토콜·파이프라인 관련 전용 문서 |
 
 ### 서비스 영역
 

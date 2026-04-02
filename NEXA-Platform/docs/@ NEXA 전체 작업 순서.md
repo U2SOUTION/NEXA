@@ -10,7 +10,6 @@
 - [ ] `SYS GLOSSARY 문서 네이밍 규칙.md` 확정 및 @ 적용
 - [ ] `SYS GUIDE 문서 관리 방법.md` 검토
 - [ ] 기존 파일명 네이밍 규칙 일괄 정리 (GUIDE 문서 정리 목록 참조)
-- [ ] 용어집 파일 4개 → `SYS GLOSSARY NEXA 용어집 v1.md` 통합
 - [ ] `NEXA Master Design v0.4` → `NEXA REF Master Design v0.4.md` 전환
 
 ---
@@ -40,10 +39,10 @@
 
 ---
 
-## UCL — UCL 엔진
+## N-MAP — N-MAP 엔진
 
-- [ ] `UCL ADR` 주요 결정 사항 기록
-- [ ] `UCL GUIDE` 사용 방법 작성
+- [ ] `N-MAP ADR` 주요 결정 사항 기록
+- [ ] `N-MAP GUIDE` 사용 방법 작성
 - [ ] SPEC 문서 간 중복 확인 및 통합
 
 ---
@@ -106,5 +105,5 @@
 
 ---
 
-*작성: 2026-03-22*
-*상태: 수시 업데이트 필요*
+_작성: 2026-03-22_
+_상태: 수시 업데이트 필요_

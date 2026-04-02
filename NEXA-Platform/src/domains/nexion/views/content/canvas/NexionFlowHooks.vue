@@ -11,16 +11,21 @@ import { useNexionFlowStore } from '@domains/nexion/modules/core/stores/nexionFl
 import { useUserSettingsStore } from '@system/store/userSettingsStore'
 import { isNexionFlowDebug, nxnDiag } from '@domains/nexion/modules/core/utils/nexionFlowDebug'
 
-const { viewport, screenToFlowCoordinate, fitView, updateNodeInternals, setEdges } = useVueFlow()
+const {
+  viewport,
+  screenToFlowCoordinate,
+  fitView,
+  setCenter,
+  findNode,
+  updateNodeInternals,
+  setEdges,
+} = useVueFlow()
 const store = useNexionFlowStore()
 const { pendingFitNodeId, edges, nodes, selectedNodeId } = storeToRefs(store)
 const userSettings = useUserSettingsStore()
 const { settings: userSettingsRef } = storeToRefs(userSettings)
 
 const PANE_SELECTOR = '.nexion-vue-flow .vue-flow__pane'
-
-/** NexionCanvasView.vue 의 VueFlow `:max-zoom` 과 맞춤 — 선택 시 가독하게 줌 인 허용 */
-const NEXION_FLOW_MAX_ZOOM = 256
 
 let paneEl = null
 let paneRetryTimer = null
@@ -103,27 +108,39 @@ watch(
   () => updateSpawnFromViewport(),
 )
 
+function parseFlowPx(v, fallback) {
+  if (typeof v !== 'string') return fallback
+  const m = v.trim().match(/^([\d.]+)px$/i)
+  if (!m) return fallback
+  const n = Number(m[1])
+  return Number.isFinite(n) ? n : fallback
+}
+
 /**
- * 카드 선택 시 뷰포트 중앙에 맞추고, 필요하면 줌 인(현재 줌 이하로는 내리지 않음).
- * min/max 를 동일하게 두면 팬만 되어 중첩 카드가 작은 플로 박스에 갇힌 채로 남는 문제가 생김.
+ * 카드 선택 시: 줌은 유지하고 해당 노드 중심만 뷰 중앙으로 팬.
+ * (fitView 는 노드에 맞춰 줌이 튀어 과확대되는 경우가 많아 제외)
  */
 watch(selectedNodeId, async (id) => {
   const pin = id ? nodes.value.find((n) => n.id === id) : undefined
   if (id && pin?.type === 'nexionCard') {
     await nextTick()
     await nextTick()
+    const gn = typeof findNode === 'function' ? findNode(id) : null
     const z = viewport.value.zoom
-    await fitView({
-      nodes: [id],
-      duration: 300,
-      padding: 0.2,
-      minZoom: z,
-      maxZoom: NEXION_FLOW_MAX_ZOOM,
-      includeHiddenNodes: false,
-    })
+    if (gn && gn.computedPosition) {
+      const dw = gn.dimensions?.width
+      const dh = gn.dimensions?.height
+      const st = pin.style && typeof pin.style === 'object' && !Array.isArray(pin.style) ? pin.style : {}
+      const fw = typeof dw === 'number' && dw > 0 ? dw : parseFlowPx(st.width, 280)
+      const fh = typeof dh === 'number' && dh > 0 ? dh : parseFlowPx(st.height, 268)
+      const cx = gn.computedPosition.x + fw / 2
+      const cy = gn.computedPosition.y + fh / 2
+      await setCenter(cx, cy, { zoom: z, duration: 260 })
+    }
   }
   await nextTick()
   store.rebakeNestedCardFlowSizes(viewport.value.zoom)
+  store.applyLodHiddenFlags(viewport.value.zoom)
   updateNodeInternals()
 })
 

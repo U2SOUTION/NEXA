@@ -77,21 +77,21 @@ _  파일명 앞   진행 중, 미완료. 탐색기 최상단에 위치
 
 ### Context별 현재 단계 (2026-03-22 기준)
 
-| Context | 완료된 DocType | 부족한 것 |
-|---------|--------------|---------|
-| `NEXA` | VISION, CONCEPT, REF | ADR (주요 결정 기록) |
-| `SYS` | ARCH, CONCEPT, GLOSSARY, GUIDE | SPEC, ADR |
-| `AIS` | SPEC, ARCH, RFC, DESIGN | ADR (결정 완료 기록) |
-| `NOD` | RFC, SPEC, DESIGN, ARCH | ADR, SCHEMA |
-| `ADM` | RFC, DESIGN | SPEC, SCHEMA |
-| `AUTH` | RFC | ARCH, DESIGN, SPEC |
-| `NEXU` | VISION, ARCH, REQ | DESIGN, SPEC |
-| `NEXA NIXIE` | ARCH, CONCEPT | DESIGN, SPEC |
-| `ARC` | RFC | ARCH, DESIGN |
-| `DDL` | SCHEMA | REF 확정 |
-| `UCL` | ARCH, SPEC, DESIGN | ADR, GUIDE |
-| `INF` | GUIDE | ARCH |
-| `DEV` | GUIDE | — |
+| Context      | 완료된 DocType                 | 부족한 것            |
+| ------------ | ------------------------------ | -------------------- |
+| `NEXA`       | VISION, CONCEPT, REF           | ADR (주요 결정 기록) |
+| `SYS`        | ARCH, CONCEPT, GLOSSARY, GUIDE | SPEC, ADR            |
+| `AIS`        | SPEC, ARCH, RFC, DESIGN        | ADR (결정 완료 기록) |
+| `NOD`        | RFC, SPEC, DESIGN, ARCH        | ADR, SCHEMA          |
+| `ADM`        | RFC, DESIGN                    | SPEC, SCHEMA         |
+| `AUTH`       | RFC                            | ARCH, DESIGN, SPEC   |
+| `NEXU`       | VISION, ARCH, REQ              | DESIGN, SPEC         |
+| `NEXA NIXIE` | ARCH, CONCEPT                  | DESIGN, SPEC         |
+| `ARC`        | RFC                            | ARCH, DESIGN         |
+| `DDL`        | SCHEMA                         | REF 확정             |
+| `N-MAP`      | ARCH, SPEC, DESIGN             | ADR, GUIDE           |
+| `INF`        | GUIDE                          | ARCH                 |
+| `DEV`        | GUIDE                          | —                    |
 
 ---
 
@@ -104,7 +104,7 @@ SYS REF Context 작업 체크리스트 템플릿 A 서비스기능.md
   → AIS, NOD, BRD, ARC, TRC 등 UI + 백엔드 + 데이터가 함께 있는 Context
 
 SYS REF Context 작업 체크리스트 템플릿 B 기술인프라.md
-  → AUTH, DDL, INF, UCL, NEXU 등 기술 구조 중심 Context
+  → AUTH, DDL, INF, N-MAP, NEXU 등 기술 구조 중심 Context
 ```
 
 ### 새 Context 작업 시작 방법
@@ -186,21 +186,5 @@ RFC 단계 문서가 결정 완료되면 파일명을 바꿔요.
 
 ---
 
-## 정리가 필요한 파일 목록 (2026-03-22 기준)
-
-네이밍 규칙 미적용 파일들이에요. 내용 확인 후 순차적으로 정리.
-
-| 현재 파일명 | 변경 후 파일명 | 비고 |
-|------------|--------------|------|
-| `@ GLOSSARY SYS 문서 네이밍 규칙 FULL CATE.md` | `@ SYS REF 문서 네이밍 규칙 전체.md` | @ 유지 |
-| `@ SYS GLOSSARY 문서 네이밍 규칙.md` | `@ SYS GLOSSARY 문서 네이밍 규칙.md` | @ 유지, 현재 OK |
-| `NEXA 용어집 Glossary v0.2.md` | `SYS GLOSSARY NEXA 용어집 v0.2.md` | — |
-| `NEXA Master Design_v0.4.md` | `NEXA REF Master Design v0.4.md` | — |
-| `AIS DESIGN tiptap 엔진 도메인 옵션.md` | 현재 OK | 번호 없음 의도적 |
-| `AIS RFC 탐색기 미디어탭 동기화 기획.md` | 현재 OK | 번호 없음 의도적 |
-| `AIS RFC AI 드롭존 첨부 기능 플랜.md` | `AIS RFC AI 드롭존 첨부 기능.md` | PLAN → 플랜 제거 |
-
----
-
-*작성: 2026-03-22*
-*상태: 수시 업데이트 필요*
+_작성: 2026-03-22_
+_상태: 수시 업데이트 필요_

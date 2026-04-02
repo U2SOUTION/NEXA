@@ -3,6 +3,9 @@
 # Cursor IDE AI 컨텍스트에서 제외할 파일/폴더
 # ============================================
 
+#임시 제외 폴더
+**/NEXA-Documentation/
+
 # 의존성 (모든 하위 프로젝트)
 **/node_modules/
 node_modules/

@@ -187,7 +187,7 @@ ARCHIVE     폐기 유예기간 초과 후 이동. 추적용으로 보존
 
 - `/nexa-trace`  사용자 동작 기록, 자동화 로직과 연계 가능
 - `/nexa-archive`  ARCHIVE 이동 후 보존 공간
-- `UCL`  ASK 발행 및 VOID 처리가 UCL 실행 흐름 안에서 동작
+- `N-MAP`  ASK 발행 및 VOID 처리가 N-MAP 실행 흐름 안에서 동작
 
 ---
 

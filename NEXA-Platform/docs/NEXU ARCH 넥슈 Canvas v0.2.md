@@ -756,7 +756,6 @@ CREATE TABLE dot_connections (
 
 _NEXA Platform · NEXU Canvas Design v0.2 · 내부 설계 문서_
 _최종 업데이트: 2026년 3월_
-_관련 문서: NEXA Master Design_v0.4.md · @ GLOSSARY NEXA 용어집 Glossary v0.2.md · NEXA NIXIE CONCEPT 닉스 Canvas.md_
 
 ---
 

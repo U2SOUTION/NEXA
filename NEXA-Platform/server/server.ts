@@ -1,5 +1,8 @@
-// 간단한 Express API 서버
-// 부품 데이터 관리를 위한 REST API
+// /server/server.ts
+/**
+ * 간단한 Express API 서버
+ * 부품 데이터 관리를 위한 REST API
+ */
 
 import './loadEnv.js' // 루트 .env 로드 (dbConfig보다 먼저 실행)
 
@@ -24,11 +27,12 @@ import devicesRouter from './domains/devices/devices.routes.js'
 import projectsRouter from './domains/projects/projects.routes.js'
 import adminRouter from './routes/admin.routes.js'
 import { jwtAuthMiddleware } from './middleware/auth.middleware.js'
+import { errorMiddleware } from './middleware/error.middleware.js'
 import { UPLOAD_BASE_DIR } from './config/upload.js'
 import { initDocsFolders } from './config/documentConfig.js'
 import { pool, dbConfig } from './config/dbConfig.js'
 import { JSON_BODY_LIMIT, URLENCODED_BODY_LIMIT } from './config/bodyLimits.js'
-import { errMessage, errCode } from './utils/errUtils.js'
+import { errMessage, errCode, toApiErrorBody, NexaErr } from './utils/errUtils.js'
 import type { Request, Response, NextFunction } from 'express'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -78,10 +82,8 @@ app.get('/api/package-json', async (req, res) => {
     res.json(packageJson)
   } catch (error: unknown) {
     console.error('[API] package.json 읽기 실패:', error)
-    res.status(500).json({
-      error: 'package.json을 읽을 수 없습니다.',
-      message: errMessage(error),
-    })
+    const { status, body } = toApiErrorBody(error)
+    res.status(status).json({ ...body, error: 'package.json을 읽을 수 없습니다.' })
   }
 })
 
@@ -167,11 +169,8 @@ app.get('/api/admin/sidebar-settings', async (req, res) => {
     res.json({})
   } catch (error: unknown) {
     console.error('[GET /api/admin/sidebar-settings] 설정 조회 실패:', error)
-    res.status(500).json({
-      success: false,
-      error: '설정 조회 실패',
-      message: errMessage(error),
-    })
+    const { status, body } = toApiErrorBody(error)
+    res.status(status).json({ success: false, ...body, error: '설정 조회 실패' })
   }
 })
 
@@ -187,11 +186,8 @@ app.post('/api/admin/sidebar-settings', async (req, res) => {
     })
   } catch (error: unknown) {
     console.error('[POST /api/admin/sidebar-settings] 설정 저장 실패:', error)
-    res.status(500).json({
-      success: false,
-      error: '설정 저장 실패',
-      message: errMessage(error),
-    })
+    const { status, body } = toApiErrorBody(error)
+    res.status(status).json({ success: false, ...body, error: '설정 저장 실패' })
   }
 })
 
@@ -236,7 +232,7 @@ if (frontendDist) {
   app.use(express.static(frontendDist))
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) return next()
-    res.sendFile(path.join(frontendDist, 'index.html'), (err: unknown) => (err ? next() : undefined))
+    res.sendFile(path.join(frontendDist, 'index.html'), (err: unknown) => (err ? next(err) : undefined))
   })
 }
 
@@ -246,22 +242,14 @@ app.use((req: Request, res: Response) => {
   if (res.headersSent) {
     return
   }
-  res.status(404).json({ error: '요청한 리소스를 찾을 수 없습니다.' })
-})
-
-// Express 에러 핸들러 (모든 라우트 이후에 추가)
-// 에러 핸들러는 반드시 4개의 매개변수를 가져야 함: (err, req, res, next)
-app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
-  // 응답이 이미 보내졌는지 확인
-  if (res.headersSent) {
-    return next(err)
-  }
-  console.error('Express 에러:', err)
-  res.status(500).json({
-    error: '서버 내부 오류가 발생했습니다.',
-    message: errMessage(err),
+  res.status(404).json({
+    error: '요청한 리소스를 찾을 수 없습니다.',
+    nexaCode: NexaErr.NOT_FOUND,
   })
 })
+
+// Express 에러 핸들러 (모든 라우트 이후에 추가) — errUtils + toApiErrorBody
+app.use(errorMiddleware)
 
 // 서버 시작
 async function startServer() {

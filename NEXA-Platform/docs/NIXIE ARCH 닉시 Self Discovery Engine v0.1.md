@@ -128,7 +128,7 @@ Persona VOID·POTENTIAL 상태
 [보정]
 선택한 나를 기반으로
 시스템이 점진적으로 조정
-코일·닉시·UCL 변화
+코일·닉시·N-MAP 변화
           ↓
 [해체]
 이 나가 영원하지 않음을 인식
@@ -405,7 +405,7 @@ Self facet (자아의 단면)를 무시해도 아무 일 없음
   → autonomy · creative · empathy 등
 
 장기 변화 (30일 이상):
-  UCL 기본값 업데이트
+  N-MAP 기본값 업데이트
   Level 3 룰 제안
   사용자 승인 후 적용
 ```

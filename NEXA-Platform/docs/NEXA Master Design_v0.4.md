@@ -19,7 +19,7 @@
 1. [NEXA 철학 레이어](#1-nexa-철학-레이어)
 2. [HEXAGON Protocol](#2-hexagon-protocol)
 3. [Sentinel / Indicator 구조](#3-sentinel--indicator-구조)
-4. [UCL 5단계 프로토콜](#4-ucl-5단계-프로토콜)
+4. [N-MAP 5단계 프로토콜](#4-n-map-5단계-프로토콜)
 5. [코일 시스템](#5-코일-시스템)
 6. [충돌 해소 매트릭스](#6-충돌-해소-매트릭스)
 7. [Empathy 설계](#7-empathy-설계)
@@ -165,7 +165,7 @@ ERA    → 헌법   (시스템 생존과 직결된 절대 원칙 · 수정 불�
 
 ---
 
-## 4. UCL 5단계 프로토콜
+## 4. N-MAP 5단계 프로토콜
 
 ### 4.1 전체 흐름
 
@@ -648,7 +648,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;  -- TimescaleDB
 | 테이블                   | 엔진                  | 역할                                |
 | ------------------------ | --------------------- | ----------------------------------- |
 | users                    | PostgreSQL            | 사용자 계정·권한                    |
-| orchestrators            | PostgreSQL            | 오케스트레이터 정의·전체 UCL        |
+| orchestrators            | PostgreSQL            | 오케스트레이터 정의·전체 N-MAP        |
 | agents                   | PostgreSQL            | 에이전트 정의·페르소나·모델         |
 | orchestrator_agents      | PostgreSQL            | 오케스트레이터 ↔ 에이전트 N:M 매핑 |
 | skills                   | PostgreSQL            | 스킬 명세·도구 정의                 |
@@ -664,7 +664,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;  -- TimescaleDB
 | capability_definitions   | PostgreSQL            | Capability ID 메타데이터            |
 | capability_grant_history | PostgreSQL            | 발급·폐기 이력 감사                 |
 | project_settings         | PostgreSQL            | 현재 적용 template_id · threshold   |
-| ucl_configs              | PostgreSQL            | UCL 고정 설정 (Level 0)             |
+| map_configs              | PostgreSQL            | N-MAP 고정 설정 (Level 0)             |
 
 ### 11.3 주요 DDL
 
@@ -841,7 +841,7 @@ CREATE POLICY user_isolation ON empathy_signals
 | 단계  | 목표             | 주요 작업                                                         |
 | ----- | ---------------- | ----------------------------------------------------------------- |
 | 1단계 | 기반 인프라      | PostgreSQL + pgvector + TimescaleDB · 스키마 생성 · Ollama 연동   |
-| 2단계 | UCL 고정 레이어  | 철학 레이어 · Level 0 규칙 · 오케스트레이터 UCL                   |
+| 2단계 | N-MAP 고정 레이어  | 철학 레이어 · Level 0 규칙 · 오케스트레이터 N-MAP                   |
 | 3단계 | Smart RAG        | document_index · pgvector 검색 · 원본 JOIN                        |
 | 4단계 | 코일 시스템      | 6코일 가중치 엔진 · 도메인 코일 발동 · Compliance 검사            |
 | 5단계 | Empathy 엔진     | 센서 입력 · 신호 계산 · Low-Entropy 모드 · 패턴 학습              |

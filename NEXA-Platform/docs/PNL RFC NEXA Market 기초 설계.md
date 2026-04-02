@@ -292,9 +292,9 @@ AUTH (인증·권한)
 PRJ (프로젝트 공통)
   Template  프로젝트 격리 구조 Template
 
-UCL (UCL 엔진)
-  Panel   UCL 실행 상태, 파이프라인 모니터링 Panel
-  Template  UCL 로직 구조 Template
+N-MAP (N-MAP 엔진)
+  Panel   N-MAP 실행 상태, 파이프라인 모니터링 Panel
+  Template  N-MAP 로직 구조 Template
 ```
 
 ---

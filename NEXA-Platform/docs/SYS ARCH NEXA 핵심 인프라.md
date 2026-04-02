@@ -46,7 +46,7 @@ flowchart TD
 포지션: 사람을 감지하고 전체 시스템에 인간 중심성을 주입하는 감각 레이어
 
 재사용처:
-  UCL → Empathy 가드레일
+  N-MAP → Empathy 가드레일
   코일 → ES·VI·PP 신호로 코일값 자동 조정
   NEXA NIXIE → 사용자 상태에 따른 렌더링 변화
   어댑터 → 응답 속도·밀도 조정
@@ -136,7 +136,7 @@ flowchart TD
 포지션: 넥슈와 에이전트의 인격을 정의하는 존재 언어
 
 재사용처:
-  에이전트 UCL → 어떤 성격으로 말할 것인가
+  에이전트 N-MAP → 어떤 성격으로 말할 것인가
   도메인 진입 → 도메인별 다른 인격 자동 적용
   Empathy 연동 → 사용자 상태에 따른 인격 조정
   코일 연동 → empathy=9이면 따뜻한 인격
@@ -223,7 +223,7 @@ flowchart LR
     end
 
     user <-->|"자연어·감각"| nexu
-    nexu <-->|"구조화된 UCL 패킷"| orch
+    nexu <-->|"구조화된 N-MAP 패킷"| orch
     nexu <-->|"직접 실행"| pc
     nexu <-->|"직접 제어"| iot
     orch --> agents
