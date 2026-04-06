@@ -7,86 +7,68 @@
   <div class="nixie-dev-controls" :class="{ 'nixie-dev-controls--embedded': embedded }">
     <template v-if="!embedded">
       <div class="text-caption text-weight-bold q-mb-xs">NIXIE · N-MAP 시뮬</div>
-      <q-separator class="q-mb-sm" />
+      <q-separator class="q-mb-xs" />
     </template>
 
-    <div class="text-overline q-mb-xs">흐름 / 펄스</div>
-    <div class="row q-col-gutter-xs q-mb-sm">
-      <div class="col-4"><q-btn dense outline size="sm" class="full-width" label="FLOW" @click="nmap.setHowState('FLOW')" /></div>
-      <div class="col-4"><q-btn dense outline size="sm" class="full-width" label="STUCK" @click="nmap.setHowState('STUCK')" /></div>
-      <div class="col-4"><q-btn dense outline size="sm" class="full-width" label="VOID" @click="nmap.setHowState('VOID')" /></div>
-    </div>
-    <div class="row q-col-gutter-xs q-mb-sm">
-      <div class="col-4"><q-btn dense flat size="sm" class="full-width" label="WILL" @click="nmap.setWhoPulse('WILL')" /></div>
-      <div class="col-4"><q-btn dense flat size="sm" class="full-width" label="ECHO" @click="nmap.setWhoPulse('ECHO')" /></div>
-      <div class="col-4"><q-btn dense flat size="sm" class="full-width" label="ASK" @click="nmap.setWhoPulse('ASK')" /></div>
-    </div>
-
-    <div class="text-overline q-mb-xs">신뢰도</div>
-    <div class="row items-center q-gutter-sm q-mb-xs">
-      <q-slider :model-value="snapshot.confidence_score" :min="0" :max="100" label color="primary" class="col" @update:model-value="nmap.setConfidenceScore" />
-      <span class="text-caption" style="min-width: 2rem">{{ snapshot.confidence_score }}</span>
-    </div>
-    <div class="row q-col-gutter-xs q-mb-sm">
-      <q-btn dense outline size="sm" label="고신뢰 100" @click="nmap.setConfidenceScore(100)" />
-      <q-btn dense outline size="sm" label="저신뢰 90" @click="nmap.setConfidenceScore(90)" />
-      <q-btn dense outline size="sm" label="저신뢰 80" @click="nmap.setConfidenceScore(80)" />
+    <!-- 흐름 + 펄스 -->
+    <div class="row items-center q-gutter-x-xs q-mb-xs no-wrap">
+      <span class="nixie-dev-controls__lbl">흐름</span>
+      <q-btn dense outline size="sm" padding="xs sm" label="FLOW" @click="nmap.setHowState('FLOW')" />
+      <q-btn dense outline size="sm" padding="xs sm" label="STUCK" @click="nmap.setHowState('STUCK')" />
+      <q-btn dense outline size="sm" padding="xs sm" label="VOID" @click="nmap.setHowState('VOID')" />
+      <q-separator vertical inset class="q-mx-xs" />
+      <span class="nixie-dev-controls__lbl">펄스</span>
+      <q-btn dense flat size="sm" padding="xs sm" label="WILL" @click="nmap.setWhoPulse('WILL')" />
+      <q-btn dense flat size="sm" padding="xs sm" label="ECHO" @click="nmap.setWhoPulse('ECHO')" />
+      <q-btn dense flat size="sm" padding="xs sm" label="ASK" @click="nmap.setWhoPulse('ASK')" />
     </div>
 
-    <div class="text-overline q-mb-xs">경고 토큰</div>
-    <div class="row q-col-gutter-xs q-mb-sm">
-      <q-btn dense outline size="sm" label="타임아웃" @click="nmap.setWarnToken('ADAPTER_TIMEOUT')" />
-      <q-btn dense flat size="sm" label="해제" @click="nmap.setWarnToken(null)" />
+    <!-- 신뢰도 -->
+    <div class="row items-center q-gutter-x-xs q-mb-xs">
+      <span class="nixie-dev-controls__lbl">신뢰도</span>
+      <q-slider :model-value="snapshot.confidence_score" :min="0" :max="100" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="nmap.setConfidenceScore" />
+      <span class="text-caption nixie-dev-controls__num">{{ snapshot.confidence_score }}</span>
     </div>
 
-    <q-separator class="q-my-sm" />
-
-    <div class="text-overline q-mb-xs">로우-엔트로피</div>
-    <div class="row q-col-gutter-xs q-mb-sm">
-      <q-btn dense outline size="sm" label="full" @click="nmap.setUiEntropyMode('full')" />
-      <q-btn dense outline size="sm" label="minimal" @click="nmap.setUiEntropyMode('minimal')" />
-      <q-btn dense outline size="sm" label="static" @click="nmap.setUiEntropyMode('static')" />
+    <!-- 경고 -->
+    <div class="row items-center q-gutter-x-xs q-mb-xs">
+      <span class="nixie-dev-controls__lbl">경고</span>
+      <q-btn dense outline size="sm" padding="xs sm" label="타임아웃" @click="nmap.setWarnToken('ADAPTER_TIMEOUT')" />
+      <q-btn dense flat size="sm" padding="xs sm" label="해제" @click="nmap.setWarnToken(null)" />
     </div>
 
-    <div class="text-overline q-mb-xs">가상 실행 (Ghost)</div>
-    <q-toggle :model-value="snapshot.is_virtual" dense label="is_virtual" class="q-mb-sm" @update:model-value="nmap.setIsVirtual" />
-
-    <div class="text-overline q-mb-xs">Nebula Influx</div>
-    <div class="row q-col-gutter-xs q-mb-sm">
-      <q-btn dense outline size="sm" label="외부 쉘 유입" @click="nmap.simulateNebulaInflux()" />
-      <q-btn dense flat size="sm" label="로컬 복귀" @click="nmap.clearNebulaToLocal()" />
+    <!-- 엔트로피 + 가상 + Nebula -->
+    <div class="row items-center q-gutter-x-xs q-mb-xs flex-wrap">
+      <span class="nixie-dev-controls__lbl">엔트로피</span>
+      <q-btn dense outline size="sm" padding="xs sm" label="full" @click="nmap.setUiEntropyMode('full')" />
+      <q-btn dense outline size="sm" padding="xs sm" label="minimal" @click="nmap.setUiEntropyMode('minimal')" />
+      <q-btn dense outline size="sm" padding="xs sm" label="static" @click="nmap.setUiEntropyMode('static')" />
+      <q-separator vertical inset class="q-mx-xs" />
+      <q-toggle :model-value="snapshot.is_virtual" dense left-label label="가상" @update:model-value="nmap.setIsVirtual" />
+      <q-separator vertical inset class="q-mx-xs" />
+      <q-btn dense outline size="sm" padding="xs sm" label="Nebula" @click="nmap.simulateNebulaInflux()" />
+      <q-btn dense flat size="sm" padding="xs sm" label="Lokeol" @click="nmap.clearNebulaToLocal()" />
     </div>
 
-    <div class="text-overline q-mb-xs">임계값 (Threshold)</div>
-    <div class="row items-center q-gutter-sm q-mb-sm">
-      <q-slider :model-value="snapshot.user_defined_threshold" :min="70" :max="100" label color="amber" class="col" @update:model-value="nmap.setUserDefinedThreshold" />
-      <span class="text-caption" style="min-width: 2rem">{{ snapshot.user_defined_threshold }}</span>
-    </div>
-    <div class="row q-col-gutter-xs q-mb-sm">
-      <q-btn dense outline size="sm" label="95" @click="nmap.setUserDefinedThreshold(95)" />
-      <q-btn dense outline size="sm" label="98" @click="nmap.setUserDefinedThreshold(98)" />
+    <!-- 임계값 -->
+    <div class="row items-center q-gutter-x-xs q-mb-xs">
+      <span class="nixie-dev-controls__lbl">임계값</span>
+      <q-slider :model-value="snapshot.user_defined_threshold" :min="70" :max="100" dense color="amber" class="nixie-dev-controls__slider col" @update:model-value="nmap.setUserDefinedThreshold" />
+      <span class="text-caption nixie-dev-controls__num">{{ snapshot.user_defined_threshold }}</span>
     </div>
 
-    <q-separator class="q-my-sm" />
+    <q-separator class="q-my-xs" />
 
-    <div class="text-overline q-mb-xs">HUD 텍스트 시뮬 (A–Z·스페이스, 길이 제한 없음)</div>
-    <div class="text-caption text-grey-6 q-mb-xs">반영: 필드 밖 클릭(포커스 아웃) 또는 Enter. 한글·숫자는 제거되며 A–Z만 HUD에 그려짐. 글자마다 가로 폭이 달라 한 줄에 들어가는 개수는 가변(글자 간 간격은 1칸).</div>
-    <q-input
-      v-model="hudDraft"
-      dense
-      outlined
-      class="q-mb-xs"
-      placeholder="예: NEXA MAP (포커스 아웃 또는 Enter 로 HUD 반영)"
-      @focus="hudInputFocused = true"
-      @blur="onHudBlur"
-      @keydown.enter.prevent="commitHudText"
-    />
-    <div class="row q-col-gutter-xs q-mb-sm">
-      <q-btn dense flat size="sm" label="텍스트 지우기" @click="clearHudText" />
+    <!-- HUD 텍스트 -->
+    <div class="row items-start q-gutter-x-xs q-mb-xs">
+      <span class="nixie-dev-controls__lbl q-pt-sm">HUD</span>
+      <div class="col">
+        <q-input v-model="hudDraft" dense outlined hide-bottom-space placeholder="A–Z, blur/Enter 반영" @focus="hudInputFocused = true" @blur="onHudBlur" @keydown.enter.prevent="commitHudText" />
+      </div>
+      <q-btn dense flat size="sm" padding="xs sm" class="q-mt-xs" label="지우기" @click="clearHudText" />
     </div>
 
-    <q-separator class="q-my-sm" />
-    <q-btn dense flat color="primary" size="sm" label="스냅샷 기본값" @click="nmap.resetToDefaults()" />
+    <q-btn dense flat color="primary" size="sm" class="full-width q-mt-xs" label="스냅샷 기본값" @click="nmap.resetToDefaults()" />
   </div>
 </template>
 
@@ -139,15 +121,33 @@ function clearHudText() {
 
 <style scoped lang="scss">
 .nixie-dev-controls {
-  padding: 8px;
+  padding: 6px 8px;
   max-height: 55vh;
   overflow: auto;
 }
 
 .nixie-dev-controls--embedded {
-  padding: 4px 8px 12px;
-  max-height: min(58vh, 520px);
+  padding: 4px 6px 8px;
+  max-height: min(50vh, 420px);
   border-bottom: none;
   background: transparent;
+}
+
+.nixie-dev-controls__lbl {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1.2;
+  opacity: 0.72;
+  min-width: 2.5rem;
+}
+
+.nixie-dev-controls__slider {
+  min-width: 72px;
+  max-width: 100%;
+}
+
+.nixie-dev-controls__num {
+  min-width: 1.5rem;
+  text-align: right;
 }
 </style>
