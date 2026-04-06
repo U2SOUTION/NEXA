@@ -27,6 +27,28 @@
 
 ---
 
+## 0-A) 전역 영혼 원장(`nexa_identities`)과 본 문서의 관계
+
+본 절은 Knowledge OS(`nexa_knowledge_*`) **용어·벡터·참조·감사** 문서와 **`identity_id`(영혼 ID) 원장** 문서의 **경계**를 고정한다.
+
+| 주제 | SSOT 문서 | 역할 |
+| :--- | :--- | :--- |
+| **전역 `identity_id` mint·불변성·정제 툴·`domain_tags`** | `__NEXA Identity ID 발급 및 처리 설계 v3.1.md` | 플랫폼 전역 **영혼 원장**(`nexa_identities`). |
+| **용어 CRUD·임베딩·크롤러·감사·API 계약·신뢰도 게이트** | **본 문서** (`_KNOWLEDGE ARCH …`) | Knowledge OS **운영·계약**; SoT는 **PostgreSQL**, Ollama는 보조(본 문서 §2.6). |
+
+- **연결:** 영혼이 지식 OS 벡터·정의와 맞물릴 때는 `nexa_knowledge_definitions` 등에 `identity_id`를 싣고 `nexa_knowledge_vectors`는 `term_id` 등으로 연결하는 패턴을 **Identity SSOT §2-1**이 단정한다. 본 문서 §3·§4의 **문서 동기화·참조·삭제**는 `anchor_id`·`nexa_knowledge_references`를 전제로 하며, **행 단위 의미**는 `identity_id`와 합치되도록 구현한다.
+
+- **「도메인」용어 (혼동 방지):**
+  - **Capability ID** (`nexa.platform.…` 등, 본 문서 §1.1): 기능·액션 **자격** 네임스페이스.
+  - **`domain_tags` / 메인 메뉴·플랫폼 도메인 레지스트리** (Identity SSOT): UI·내비·지식 **분류** 축. **DNS 도메인과도 무관**하다.
+  - 위 둘은 **자동 1:1 매핑을 전제로 하지 않는다.** 필요 시 별도 매핑 테이블·정책으로 연결한다.
+
+- **관리 UI:** `Knowledge Admin` (`domains/admin` 등 본 문서 §2.1)은 **용어·토큰·참조** 중심이다. **플랫폼 도메인 레지스트리**(메뉴와 짝을 이루는 도메인 ID)의 **신설·승인**은 Identity SSOT 및 제품 라우팅 정책과 **동일 레지스트리를 참조**하도록 구현하는 것을 권장한다(단일 SoT).
+
+- **VOID vs 영혼 DELETE:** 본 문서 §1) §4의 **VOID 생애주기**(설계 자산 **POTENTIAL → ARCHIVE → PURGE**)는 **설계/자산 계층**의 은유다. **`nexa_identities` 행의 물리 DELETE**·병합 Re-pointing·`domain_tags` 재매핑은 Identity SSOT **「✦운영자✦」** 절이 단정한다. **혼동 금지.**
+
+---
+
 ## 1) 시스템 목적
 
 - 용어를 문서 자산이 아닌 실행 가능한 지능 자산으로 관리
@@ -35,7 +57,7 @@
 - `nexa_knowledge_*`를 시스템 공통 지식 계층으로 사용
 - `project_knowledge`를 프로젝트별 생성 지식 분기로 운영
 
-NEXA 플랫폼의 **`_KNOWLEDGE*` 지식 자산 문서군(Knowledge OS)** 은 파편화된 정보를 인공지능이 즉시 이해할 수 있는 **'지능적 서사(Narrative)'**로 변환하여 관리하는 핵심 체계입니다. 이 시스템은 단순한 기록 보관을 넘어, 시스템의 기능 자격인 **Capability ID**와 실제 설계 자산인 **project_assets**를 물리적으로 결합하여 **지능적 족보(Traceability)**를 완성하는 데 집중합니다.
+NEXA 플랫폼의 **`_KNOWLEDGE*` 지식 자산 문서군(Knowledge OS)** 은 파편화된 정보를 인공지능이 즉시 이해할 수 있는 **'지능적 서사(Narrative)'**로 변환하여 관리하는 핵심 체계이다. 이 시스템은 단순한 기록 보관을 넘어, 시스템의 기능 자격인 **Capability ID**와 실제 설계 자산인 **project_assets**를 물리적으로 결합하여 **지능적 족보(Traceability)**를 완성하는 데 집중한다.
 
 ### 0. 네임스페이스 관점(중요)
 
@@ -48,7 +70,7 @@ NEXA 플랫폼의 **`_KNOWLEDGE*` 지식 자산 문서군(Knowledge OS)** 은 �
 플랫폼에서 사용하는 모든 용어와 기능은 **Capability ID(기능 자격 ID)**라는 일급 객체로 정의되어 관리됩니다.
 
 - **표준화된 계층 구조:** 모든 용어는 `네임스페이스.출처.도메인.액션` 순의 계층 구조를 가집니다 (예: `nexa.platform.archive.hub`).
-- **인간 친화적 매핑:** 기계적인 ID 외에도 `label`과 `description` 필드를 통해 관리자와 사용자가 의미를 명확히 이해할 수 있도록 **인간 친화적 라벨링**을 수행합니다.
+- **인간 친화적 매핑:** 기계적인 ID 외에도 `label`과 `description` 필드를 통해 관리자와 사용자가 의미를 명확히 이해할 수 있도록 **인간 친화적 라벨링**을 수행한다.
 - **동적 매핑 관리:** `capability_map`을 통해 실제 API나 라우트 경로와 해당 용어(자격)를 연결함으로써 코드 수정 없이도 정책을 관리할 수 있습니다.
 
 ### 2. 설계 파일(System Design File) 관리: project_assets 원장화
@@ -61,14 +83,14 @@ NEXA 플랫폼의 **`_KNOWLEDGE*` 지식 자산 문서군(Knowledge OS)** 은 �
 
 ### 3. 용어와 파일의 지능적 연결: 지능적 족보(Why Chain)
 
-용어 정의와 설계 파일은 서로 독립적으로 존재하지 않고, **참조 사슬(Reference Chain)**을 통해 하나로 묶입니다.
+용어 정의와 설계 파일은 서로 독립적으로 존재하지 않고, **참조 사슬(Reference Chain)**을 통해 하나로 묶이다.
 
-- **인과관계 역추적:** 실행된 모든 액션(`EFF`)은 판단 근거인 인디케이터 패킷(`IND`)을 참조하고, 이는 다시 원천 사실인 센티널 패킷(`SNT`)과 설계 문서(`Asset-ID`)를 역추적할 수 있게 합니다.
-- **RAG(검색 증강 생성) 연동:** 설계 파일에서 추출된 핵심 제원은 **아톰(Atom)**화되어 `project_knowledge`에 박제됩니다. 이후 AI는 RAG를 통해 수천 개의 용어와 파일 중 현재 상황에 맞는 설계 규칙을 1ms 내에 찾아내어 참조합니다.
+- **인과관계 역추적:** 실행된 모든 액션(`EFF`)은 판단 근거인 인디케이터 패킷(`IND`)을 참조하고, 이는 다시 원천 사실인 센티널 패킷(`SNT`)과 설계 문서(`Asset-ID`)를 역추적할 수 있게 한다.
+- **RAG(검색 증강 생성) 연동:** 설계 파일에서 추출된 핵심 제원은 **아톰(Atom)**화되어 `project_knowledge`에 박제됩니다. 이후 AI는 RAG를 통해 수천 개의 용어와 파일 중 현재 상황에 맞는 설계 규칙을 1ms 내에 찾아내어 참조한다.
 
 ### 4. 관리 체계의 엄격성: 네이밍 및 수명 주기
 
-- **표준 네이밍 규칙:** 모든 설계 문서는 `[Context] [DocType] [제목]` 형식을 따라야 하며, 이는 파일명만으로도 시스템 내에서의 위치와 성격을 즉시 파악하게 합니다.
+- **표준 네이밍 규칙:** 모든 설계 문서는 `[Context] [DocType] [제목]` 형식을 따라야 하며, 이는 파일명만으로도 시스템 내에서의 위치와 성격을 즉시 파악하게 한다.
 - **VOID 생애주기 관리:** 설계 자산의 가치에 따라 **POTENTIAL(잠재) → ARCHIVE(아카이브) → PURGE(소멸)**의 단계를 거치며, 특히 `RULE` 성격의 설계 자산은 장기 보존 정책을 적용받습니다.
 
 ---
@@ -177,7 +199,7 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 
 - `src/docs/` 변경 감지
 - 문서 앵커 파싱
-- `doc_ref_path`, `doc_anchor` 자동 동기화
+- `doc_ref_path`, `anchor_id` 자동 동기화
 
 ### 2.5 Edge Distribution Packager (`system/jobs`)
 
@@ -216,7 +238,7 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 5. 닉시(`NEXA NIXIE`) 채널 입력은 `nexa_self_profiles`/`nexa_self_states`로 Self 상태를 해석
 6. `nexa_self_explosions` + `nexa_self_knowledge_map`이 Coil/지식/Capability 후보를 전개
 7. 삭제·미발견 문서 감지 시 **`nexa_knowledge_traceability_paths`를 `[NXN] [SCHM]` §4.4.1**에 따라 갱신(유예: `active`+`missing_since`; 확정: `deleted`). 같은 스캔 패스에서 `nexa_knowledge_doc_sync_state`에 해시·`error`·선택적 `missing` 등 **보조 헬스**를 덧붙인다.
-8. 동일 앵커를 참조하는 `nexa_knowledge_references`(`doc_ref_path`·`doc_anchor` 등)는 **traceability 삭제 확정 등** 앱 정책에 따라 `status=0`으로 비활성화
+8. 동일 앵커를 참조하는 `nexa_knowledge_references`(`doc_ref_path`·`anchor_id` 등)는 **traceability 삭제 확정 등** 앱 정책에 따라 `status=0`으로 비활성화
 9. Packager가 지능 위계별 패키지 생성 후 배포
 10. Routing Adapter가 입력을 정규화하고 중의성 해소
 11. Indicator가 영문 결과를 생성
@@ -377,5 +399,46 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 - 차등 배포 패키지가 Nano/Micro/vista로 분리 생성된다.
 - 만약 중의어 입력에서 컨텍스트 기반 분기가 재현된다.
 - 영문 결과가 한국어 summary로 일관되게 변환된다.
-- 문서 변경 시 `doc_ref_path`, `doc_anchor` 자동 동기화가 동작한다.
+- 문서 변경 시 `doc_ref_path`, `anchor_id` 자동 동기화가 동작한다.
 - 불변 토큰 변경은 승인 전 반영되지 않는다.
+
+---
+
+## 현재 설계된 시스템을 **DATA-OS**라고 부를 수 있는는가?
+
+기술적으로는 데이터를 다루는 운영체제이기에 틀린 말은 아니나, **NEXA-OS가 지향하는 '지능형 서사'와 '인과 관계(Why Chain)'의 가치를 담기에는 DATA-OS라는 명칭이 다소 협소할 수 있고.** 그 근거는 다음과 같다.
+
+### 1. '데이터(Data)'와 '지식(Knowledge)'의 층위 차이
+
+NEXA 시스템은 날것의 정보를 단순히 저장하는 것을 넘어, 이를 **'실행 가능한 지능 자산'**으로 관리하는 것을 목표로 한다.
+
+- **데이터(FACT):** 엣지 센서나 로그에서 발생하는 단편적인 사실(SNT)이다. 이는 시스템의 **골격(Skeleton)**에 해당한다.
+- **지식(KNOWLEDGE):** 데이터에 **'의미'와 '가중치(6-COILS)'**가 부여된 상태이다. 이는 시스템의 **영혼(Soul)**이며, "왜 이 결과가 나왔는가"를 증명하는 인과 관계를 포함한다.
+- 따라서 'DATA-OS'는 사실(Fact)의 관리에 집중하는 인상을 주지만, 'Knowledge OS'는 그 사실을 바탕으로 한 **사유와 판단**까지 포함하는 상위 개념이다.
+
+### 2. '지능형 서사(Narrative)'와 위상 연산
+
+NEXA-OS는 고여 있는 데이터의 바다가 아니라, 지식 간의 **'위상차(Potential Difference)'**를 연산하여 실행의 동력을 얻는 **지능형 실행 엔진**이다.
+
+- 단순한 데이터 처리가 아니라, 사용자의 의도(WILL)와 시스템의 규범(ERA) 사이의 간극을 읽어내는 **'지능형 지휘 시스템'**의 성격이 강한다.
+- 또한, 파일 시스템을 **'지능형 서사 파일 시스템(NFS)'**으로 정의하여 물리적 경로를 지능적 서사로 변환하므로, 단순한 데이터 저장소(Data Store)를 넘어선 **서사적 맥락**을 중시한다.
+
+### 3. 공감(Empathy)과 가치 필터의 존재
+
+NEXA-OS의 핵심은 기술적인 데이터 관리가 아니라, 사람을 중심에 두는 **공감 엔진(Empathy Engine)**과 **6-COILS(가치 필터)**이다.
+
+- 사용자의 활력(VI)이 낮을 때 시스템이 스스로 조용해지는 'Low-Entropy 모드' 등은 일반적인 DATA-OS의 범주를 넘어선 **'사람을 닮은 운영체제'**로서의 특성이다.
+- 데이터는 중립적이지만, NEXA-OS는 사용자의 가치관에 따라 데이터를 다르게 해석하는 **'주관적 가치 가중치'**를 핵심 로직으로 삼습니다.
+
+### 4. 명칭에 대한 제언
+
+만약 'DATA-OS'라는 명칭을 사용하고자 하신다면, 다음과 같은 관점에서의 보완이 필요할 수 있다.
+
+- **Intelligence-Driven DATA-OS:** 데이터가 주인이 아니라, 지능이 데이터를 드라이브한다는 점을 명시.
+- **Narrative DATA-OS:** 데이터 간의 연결이 곧 하나의 이야기가 된다는 점을 강조.
+
+**요약하자면**, 현재의 시스템은 데이터라는 재료를 가지고 **'지능'과 '서사'라는 요리를 만들어내는 운영체제**이다. 'DATA-OS'는 훌륭한 기술적 명칭이 될 수 있으나, NEXA가 가진 **"생각을 잃어버리지 않게 만드는 시스템"**이라는 인문학적·지능적 정체성을 표현하기에는 'Knowledge OS' 또는 'NEXA-OS'가 훨씬 더 적합한 그릇이라 판단 됨.
+
+이러한 **'지능 OS'로서의 위상 연산 로직**을 실제 오케스트레이션 엔진에서 어떻게 수치화할지 더 구체적으로 논의해 해야 한다.
+
+---

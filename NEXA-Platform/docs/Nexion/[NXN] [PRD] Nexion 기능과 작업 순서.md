@@ -60,7 +60,7 @@ UI를 먼저 구성한 뒤 **Late Anchoring**과 **Inode식 추적** 로직을 �
    - _선택 분할:_ **1a** 도메인 셸·3패널 껍데기 → **1b** 캔버스만 최소 동작. 디버깅 시 프레임 이슈와 플로우 이슈를 분리한다.
 2. **Phase 2 — DB 뼈대 (Tier A):** 위 MVP DB 세 테이블(및 SCHM·DDL에 따른 제약)로 UI에서 발생한 사건을 **영속화**할 준비를 갖춘다. §3.3에 따라 **Core API** 를 이 단계 초반에 고정·연결한다.
 3. **Phase 3 — 백엔드 동기화 (Doc Sync Crawler):** 파일 시스템 스캔으로 DB·UI를 잇는 크롤러를 구현한다.
-4. **Phase 4 — Late Anchoring·고아·mv:** `nexion_doc_node_links`로 노드↔`doc_anchor` 연결, Orphaned 표시, 카드 이동과 디스크 `mv`·ASK 흐름을 완성한다.
+4. **Phase 4 — Late Anchoring·고아·mv:** `nexion_doc_node_links`로 노드↔`anchor_id` 연결, Orphaned 표시, 카드 이동과 디스크 `mv`·ASK 흐름을 완성한다.
 5. **Phase Ext — 지능 확장:** TipTap·Ollama 용어 추출 등을 **독립 모듈**로 추가한다(도메인 `modules/extension/`, API Extended). **코어 Phase 번호와 혼동하지 않는다.**
 
 #### 3.3 계약·타입 전략(리스크 완화)
@@ -90,9 +90,8 @@ UI를 먼저 구성한 뒤 **Late Anchoring**과 **Inode식 추적** 로직을 �
 1.  **[x] DB 필드명 통일(대조 결과, 2026-03-28 기준):**
 
     - **`nexa_knowledge_traceability_paths` PK `path_id`:** `_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`, `_KNOWLEDGE SPEC CRUD ...` §2.12, `[NXN] [SCHM]`·`[NXN] [DDL]`·`[NXN] [API]` 와 **동일**하다. **`parent_path_id`** FK 대상도 동일.
-    - **앵커 컬럼명:** SSOT·SPEC §2.12는 NXN과 같이 **`doc_anchor`**로 수렴(과거 `anchor_id` 폐기). 통합 SSOT 본문은 **경량 traceability** 정의를 유지할 수 있으며, N-PATH 전개 컬럼은 `[NXN] [DDL]` §1-A·마이그레이션으로 확장한다.
     - **`nexa_knowledge_residency` PK `residency_id`:** SSOT 4-B 블록과 NXN DDL **일치**.
-    - **`nexa_knowledge_doc_sync_state`:** SSOT·SPEC §2.2·NXN SCHM §6·NXN DDL §1-C가 **동일 모델**(PK `sync_id`, 식별 `project_id`+`doc_anchor`, …)로 수렴했다. **`last_sync_status`의 `missing`은 traceability §4.4.1과 별개의 보조 프로브 신호**이며, 유예·삭제·**NIXIE 연출** 입력은 **`traceability_paths`만** 단일 머신이다(SCHM §4.4.2). **Lumina·Jitter 표현 주체는 NIXIE**(UIUX §4.3.1).
+    - **`nexa_knowledge_doc_sync_state`:** SSOT·SPEC §2.2·NXN SCHM §6·NXN DDL §1-C가 **동일 모델**(PK `sync_id`, 식별 `project_id`+`anchor_id`, …)로 수렴했다. **`last_sync_status`의 `missing`은 traceability §4.4.1과 별개의 보조 프로브 신호**이며, 유예·삭제·**NIXIE 연출** 입력은 **`traceability_paths`만** 단일 머신이다(SCHM §4.4.2). **Lumina·Jitter 표현 주체는 NIXIE**(UIUX §4.3.1).
     - **`nexa_knowledge_nexion_doc_node_links`:** 통합 SSOT DDL 파일에는 **테이블 정의 없음**(Nexion 전용). PK **`doc_node_link_id`** 는 NXN 문서 내 일관.
 
       > > 정리:

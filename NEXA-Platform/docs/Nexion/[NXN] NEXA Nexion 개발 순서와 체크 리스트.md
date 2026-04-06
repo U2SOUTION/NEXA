@@ -49,7 +49,7 @@
 ### Phase 2: DB 뼈대 — Tier A (**PRD §3.2-2**)
 
 - **[ ] Tier A 핵심 테이블 생성:** `nexa_knowledge_traceability_paths`, `nexa_knowledge_nexion_doc_node_links`, `nexa_knowledge_doc_sync_state`를 DDL·SCHM에 따라 생성한다. **`residency`는 생략 가능**(Tier B).
-- **[ ] Inode 식별자 확정:** `doc_anchor`(UUID) 유니크·`path_id` PK 체계 확인.
+- **[ ] Inode 식별자 확정:** `anchor_id`(UUID) 유니크·`path_id` PK 체계 확인.
 - **[ ] Tier A 정책 최소화:** 스왑·동기화 원장 FK·시드는 SCHM·DDL **선택 배포**; Tier B에서 보강.
 - **[ ] Core API 선행 고정:** `[NXN] [API]` Core 목록·mock 또는 최소 구현으로 UI와 연결(PRD §3.3).
 
@@ -67,7 +67,7 @@
 
 ### Phase 4: 지능 자산 연결 — Late Anchoring (**PRD §3.2-4**)
 
-- **[ ] 노드-앵커 매핑:** `nexa_knowledge_nexion_doc_node_links` 로 Vue Flow `node_id` ↔ `doc_anchor`.
+- **[ ] 노드-앵커 매핑:** `nexa_knowledge_nexion_doc_node_links` 로 Vue Flow `node_id` ↔ `anchor_id`.
 - **[ ] 고아 자산(Orphaned) 식별:** Resource Explorer 필터.
 - **[ ] 물리적 이동(mv) 자동화:** ASK·동기화 승인.
 

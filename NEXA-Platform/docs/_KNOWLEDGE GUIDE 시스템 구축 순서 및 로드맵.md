@@ -163,7 +163,7 @@
 
 - `src/docs/` 해시/변경시각 기반 변경 감지
 - anchor/tag 파싱
-- `doc_ref_path`, `doc_anchor`, `source_hash` 자동 갱신
+- `doc_ref_path`, `anchor_id`, `source_hash` 자동 갱신
 
 ### 산출물
 

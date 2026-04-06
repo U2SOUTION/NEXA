@@ -52,7 +52,7 @@ server/
 - **역할 분리**: API·비즈니스 로직·DB 쿼리는 `server/`에 두고, `src/`에는 UI·클라이언트 상태만 둔다
 - **환경 변수**: `NEXA-Platform/.env`를 `loadEnv.ts`로 로드. 비밀·연결 정보는 코드에 하드코딩하지 않는다
 - **실행 전제**: Postgres 등 의존 서비스 기동 후 서버 실행 (`server/README.md` 참조)
-- **검증·보안**: 요청/응답 경계에서 Zod 검증, `doc_anchor`·`path_id` 기반 문서 접근 (`coding-style.md` Backend와 정합)
+- **검증·보안**: 요청/응답 경계에서 Zod 검증, `anchor_id`·`path_id` 기반 문서 접근 (`coding-style.md` Backend와 정합)
 - **HTTP 레이트 리밋**: 기획 문서에 **`express-rate-limit` 패키지명은 없으나**, **Rate Limiting(처리율 제한)** 은 다수 문서에서 요구된다. **BullMQ(Redis)** 와는 별개 — 전자는 **HTTP 요청 입구** 완화, 후자는 **비동기 작업 큐**. Express에서는 **`express-rate-limit`** 을 구현 후보로 두고, 스토어는 단일 인스턴스(메모리) vs 다중 인스턴스(**Redis** 연동, 기술 가이드의 Rate Limit·캐시 전략과 정합)로 선택한다. **정책·수치·예외(Fast-Track 등)** 는 아래 **주제·접두어**로 `docs/`에서 탐색한다(파일명은 변경될 수 있으므로 **문서 인덱스·용어집** 진입점을 병행).
   - **`@ GLOSSARY` 계열 — 기술 스택 통합**: Rate Limiting 정의, Redis 연동 흐름, **Fast-Track** 개념
   - **`AUTH` 접두 — 인증·계정 RFC**: IP·사용자·디바이스별 한도, **api_usage**·tier, Rate limit 수치 절
@@ -67,21 +67,21 @@ server/
 
 > npm 패키지·인프라·문서상 계획 스택의 **전체 큐레이션·주의사항**은 `stack-and-dependencies.md`를 본다.
 
-| 계층 | 기술 | 비고 |
-| :--- | :--- | :--- |
-| **Frontend** | Quasar 2 + Vue 3 + TypeScript | SPA, `--nexa-*` CSS 변수 전용 |
-| **Backend** | Node.js + Express (`server/`) | REST API. NestJS는 별도 도입 시 문서 갱신 |
+| 계층                 | 기술                                     | 비고                                                                                                                   |
+| :------------------- | :--------------------------------------- | :--------------------------------------------------------------------------------------------------------------------- |
+| **Frontend**         | Quasar 2 + Vue 3 + TypeScript            | SPA, `--nexa-*` CSS 변수 전용                                                                                          |
+| **Backend**          | Node.js + Express (`server/`)            | REST API. NestJS는 별도 도입 시 문서 갱신                                                                              |
 | **HTTP 레이트 리밋** | express-rate-limit (+ Redis 스토어 선택) | BullMQ와 무관(미들웨어). **Rate Limit 정책**은 §1 `server/` 불릿의 주제·접두어로 기획 문서 탐색. 라이브러리명은 구현체 |
-| **DB** | PostgreSQL + PG-Vector | `nexa_identities`, `nexa_system_capabilities`, `nexa_knowledge_traceability_paths` |
-| **실시간** | Yjs + Hocuspocus | CRDT 기반 협업 편집 |
-| **작업 큐** | BullMQ (Redis) | 우선순위 스케줄링, 자가 회복 재시도 |
-| **파일 감시** | Chokidar | Doc Sync Crawler의 변경 감지 엔진 |
-| **스키마 검증** | Zod | N-MAP 패킷·IR 데이터 형식 무결성 |
-| **AI 양자화** | TurboQuant (Google) | data-oblivious 벡터 양자화, 프라이버시 친화 |
-| **병렬 연산** | OpenCL | GPU/FPGA/CPU 병렬 벡터 검색 가속 |
-| **에이전트** | OpenClaw (MIT) | Adapter를 스킬로 구현, 로컬 우선 실행 |
-| **Edge** | ESP32 + ESPHome | 나노 센티널, MQTT 통신 |
-| **시각화** | Vue Flow + NIXIE | 캔버스 + 비언어적 서사 시각화 |
+| **DB**               | PostgreSQL + PG-Vector                   | `nexa_identities`, `nexa_system_capabilities`, `nexa_knowledge_traceability_paths`                                     |
+| **실시간**           | Yjs + Hocuspocus                         | CRDT 기반 협업 편집                                                                                                    |
+| **작업 큐**          | BullMQ (Redis)                           | 우선순위 스케줄링, 자가 회복 재시도                                                                                    |
+| **파일 감시**        | Chokidar                                 | Doc Sync Crawler의 변경 감지 엔진                                                                                      |
+| **스키마 검증**      | Zod                                      | N-MAP 패킷·IR 데이터 형식 무결성                                                                                       |
+| **AI 양자화**        | TurboQuant (Google)                      | data-oblivious 벡터 양자화, 프라이버시 친화                                                                            |
+| **병렬 연산**        | OpenCL                                   | GPU/FPGA/CPU 병렬 벡터 검색 가속                                                                                       |
+| **에이전트**         | OpenClaw (MIT)                           | Adapter를 스킬로 구현, 로컬 우선 실행                                                                                  |
+| **Edge**             | ESP32 + ESPHome                          | 나노 센티널, MQTT 통신                                                                                                 |
+| **시각화**           | Vue Flow + NIXIE                         | 캔버스 + 비언어적 서사 시각화                                                                                          |
 
 ---
 

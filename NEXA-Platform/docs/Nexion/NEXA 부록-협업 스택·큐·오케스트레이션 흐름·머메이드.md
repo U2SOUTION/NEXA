@@ -37,7 +37,7 @@ TipTap을 사용중임으로, 같은 개발사(Tiptap)에서 만든 **Hocuspocus
 NEXA의 핵심인 **'Doc Sync Crawler'**를 백엔드에서 상시 구동하기 위해 필요합니다.
 
 - **역할:** 사이트 외부 저장소(**`NEXA-Documentation/`** 등 `DOCS_PATH` 구역)를 실시간으로 감시하여 파일 생성, 수정, 삭제, 이동(mv)을 즉시 감지합니다.
-- **N-PATH 연동:** 감지된 변경 사항을 `nexa_knowledge_traceability_paths`의 **Inode(doc_anchor)** 로직과 연결하여, 파일명이 바뀌어도 시스템이 족보(Traceability)를 잃지 않게 유지합니다.
+- **N-PATH 연동:** 감지된 변경 사항을 `nexa_knowledge_traceability_paths`의 **Inode(anchor_id)** 로직과 연결하여, 파일명이 바뀌어도 시스템이 족보(Traceability)를 잃지 않게 유지합니다.
 
 ### B.3 마크다운 및 AST 처리: **Unified (Remark/Rehype)**
 
@@ -293,7 +293,7 @@ graph TD
 
 4. **Knowledge OS 레이어:**
 
-   - **Traceability Paths (N-PATH):** 물리적 경로와 불변의 `doc_anchor`를 연결하는 **Inode 인덱스**로, 지식의 족보를 유지합니다.
+   - **Traceability Paths (N-PATH):** 물리적 경로와 불변의 `anchor_id`를 연결하는 **Inode 인덱스**로, 지식의 족보를 유지합니다.
    - **Residency:** 지식이 L1(캐시)부터 L3(아카이브) 중 어디에 머물지 결정하는 **플랫폼 원장**입니다.
 
 5. **NIXIE 인터페이스:**

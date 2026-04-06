@@ -16,8 +16,8 @@
 
 | 구분         | 본 문서 절         | 엔드포인트(패턴 예)                                                                                           |
 | ------------ | ------------------ | ------------------------------------------------------------------------------------------------------------- |
-| **Core**     | §4 추적 경로       | `GET .../traceability/tree`, `GET .../traceability/by-anchor/{doc_anchor}` 등 §4에 기술된 공개 경로           |
-| **Core**     | §5 동기화 상태     | `GET .../sync-state/{doc_anchor}`, `POST .../sync-state/query` 등 §5 공개 경로                                |
+| **Core**     | §4 추적 경로       | `GET .../traceability/tree`, `GET .../traceability/by-anchor/{anchor_id}` 등 §4에 기술된 공개 경로            |
+| **Core**     | §5 동기화 상태     | `GET .../sync-state/{anchor_id}`, `POST .../sync-state/query` 등 §5 공개 경로                                 |
 | **Core**     | §6 노드–문서 링크  | §6의 `GET`/`PUT`/`PATCH .../nexion/links` 계열                                                                |
 | **Core**     | §7 문서 본문       | §7의 마크다운 읽기·쓰기 공개 경로                                                                             |
 | **Extended** | §8 캔버스 레이아웃 | `GET`/`PUT .../canvas-layout` 등                                                                              |
@@ -95,7 +95,7 @@ Extension SPEC의 토큰과 정렬한다.
 | `OLLAMA_MODEL_NOT_FOUND` | 모델 없음                 |
 | `TERM_EXTRACTION_FAILED` | 용어 추출 실패            |
 | `NXN_PROJECT_FORBIDDEN`  | 프로젝트 접근 거부        |
-| `NXN_ANCHOR_NOT_FOUND`   | `doc_anchor` 미등록       |
+| `NXN_ANCHOR_NOT_FOUND`   | `anchor_id` 미등록        |
 | `NXN_SYNC_CONFLICT`      | 해시·버전 충돌(낙관적 락) |
 | `NXN_VALIDATION_ERROR`   | 입력 검증 실패            |
 
@@ -103,7 +103,7 @@ Extension SPEC의 토큰과 정렬한다.
 
 ## 3. 보안·N-PATH 계약
 
-- **실물리 경로 비노출:** 응답 JSON에 **호스트 절대 경로**를 넣지 않는다. 클라이언트는 `logical_path`, `doc_anchor`, `path_id`, `title` 등만 수신한다.
+- **실물리 경로 비노출:** 응답 JSON에 **호스트 절대 경로**를 넣지 않는다. 클라이언트는 `logical_path`, `anchor_id`, `path_id`, `title` 등만 수신한다.
 - **본문 서빙:** 마크다운 읽기/쓰기는 **앵커 또는 내부 `path_id`** 기준 엔드포인트로만 수행하고, 서버가 **`DOCS_PATH`**(기본 전제: **`NEXA-Documentation/`** 루트)와 DB `physical_path`(상대)를 조합한다. 상세는 `[NXN] [ARCH] N-PATH ...` §1.1.
 
 ---
@@ -124,7 +124,7 @@ SCHM §4 `nexa_knowledge_traceability_paths`에 대응.
 | `path_id`              | uuid           | PK                                             |
 | `parent_path_id`       | uuid \| null   |                                                |
 | `depth`                | number         |                                                |
-| `doc_anchor`           | uuid           |                                                |
+| `anchor_id`            | uuid           |                                                |
 | `link_id`              | string         |                                                |
 | `logical_path`         | string         | N-PATH 논리 경로                               |
 | `title`                | string         |                                                |
@@ -137,7 +137,7 @@ SCHM §4 `nexa_knowledge_traceability_paths`에 대응.
 
 ### 4.2 단건 조회
 
-`GET /projects/{project_id}/traceability/by-anchor/{doc_anchor}`  
+`GET /projects/{project_id}/traceability/by-anchor/{anchor_id}`  
 `GET /projects/{project_id}/traceability/{path_id}`
 
 ---
@@ -148,9 +148,9 @@ SCHM §6 `nexa_knowledge_doc_sync_state`.
 
 ### 5.1 앵커별 조회
 
-`GET /projects/{project_id}/sync-state/{doc_anchor}`
+`GET /projects/{project_id}/sync-state/{anchor_id}`
 
-**응답 필드 예시:** `doc_anchor`, `last_sync_status` (`ok` \| `changed` \| `missing` \| `conflict` \| `error`), `curr_source_hash`, `prev_source_hash`, `last_synced_at`, `responsible_domain`(있다면).
+**응답 필드 예시:** `anchor_id`, `last_sync_status` (`ok` \| `changed` \| `missing` \| `conflict` \| `error`), `curr_source_hash`, `prev_source_hash`, `last_synced_at`, `responsible_domain`(있다면).
 
 ### 5.2 일괄 조회
 
@@ -160,7 +160,7 @@ SCHM §6 `nexa_knowledge_doc_sync_state`.
 
 ```json
 {
-  "doc_anchors": ["uuid", "..."]
+  "anchor_ids": ["uuid", "..."]
 }
 ```
 
@@ -184,7 +184,7 @@ SCHM §7 `nexa_knowledge_nexion_doc_node_links`.
 
 ```json
 {
-  "doc_anchor": "uuid",
+  "anchor_id": "uuid",
   "node_id": "uuid",
   "asset_type": "document",
   "status": "linked"
@@ -207,13 +207,13 @@ TipTap·Explorer와 정합. Extension SPEC §2.3과 호환되도록 필드명을
 
 ### 7.1 읽기
 
-`GET /projects/{project_id}/documents/{doc_anchor}/content`
+`GET /projects/{project_id}/documents/{anchor_id}/content`
 
 **응답 예:**
 
 ```json
 {
-  "doc_anchor": "uuid",
+  "anchor_id": "uuid",
   "title": "string",
   "mime": "text/markdown",
   "body": "string",
@@ -226,7 +226,7 @@ TipTap·Explorer와 정합. Extension SPEC §2.3과 호환되도록 필드명을
 
 ### 7.2 저장
 
-`PUT /projects/{project_id}/documents/{doc_anchor}/content`
+`PUT /projects/{project_id}/documents/{anchor_id}/content`
 
 **본문:**
 
@@ -264,7 +264,7 @@ SCHM에 전용 테이블이 없을 수 있으므로, v1은 **API 형태만 고�
       "id": "uuid",
       "type": "doc",
       "position": { "x": 0, "y": 0 },
-      "data": { "label": "string", "doc_anchor": "uuid|null" }
+      "data": { "label": "string", "anchor_id": "uuid|null" }
     }
   ],
   "edges": [
@@ -302,7 +302,7 @@ SCHM에 전용 테이블이 없을 수 있으므로, v1은 **API 형태만 고�
 {
   "domain": "nxn",
   "doc_id": "uuid",
-  "doc_anchor": "uuid",
+  "anchor_id": "uuid",
   "title": "string",
   "content": "string",
   "locale": "ko-KR",
@@ -311,7 +311,7 @@ SCHM에 전용 테이블이 없을 수 있으므로, v1은 **API 형태만 고�
 }
 ```
 
-- `doc_id`는 클라이언트 상관 ID로 쓰고, 서버 권위는 `doc_anchor`·`project_id`(헤더/세션 컨텍스트)로 맞춘다.
+- `doc_id`는 클라이언트 상관 ID로 쓰고, 서버 권위는 `anchor_id`·`project_id`(헤더/세션 컨텍스트)로 맞춘다.
 
 **응답:**
 

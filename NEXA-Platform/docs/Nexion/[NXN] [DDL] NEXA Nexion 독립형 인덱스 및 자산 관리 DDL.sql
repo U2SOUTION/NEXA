@@ -5,7 +5,7 @@
 -- =============================================================================
 -- 실행 전 필수: docs/_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md 와
 --   테이블명·컬럼 충돌 여부를 대조할 것(MD §0.0).
--- doc_sync_state·doc_anchor 명칭은 SSOT와 정합. traceability N-PATH 전개 컬럼은
+-- doc_sync_state·anchor_id 명칭은 SSOT와 정합. traceability N-PATH 전개 컬럼은
 --   SSOT 경량 CREATE와 다를 수 있음 → 동명 테이블이 있으면 §0.0에 따라 ALTER로 확장.
 -- 사전 조건:
 --   - uuid_generate_v7(): pg_uuidv7 확장 또는 동등 구현. 없으면 DEFAULT를
@@ -28,7 +28,7 @@ CREATE TABLE nexa_knowledge_traceability_paths (
     project_id UUID NOT NULL,
     parent_path_id UUID REFERENCES nexa_knowledge_traceability_paths(path_id) ON DELETE SET NULL,
     depth SMALLINT NOT NULL DEFAULT 0,
-    doc_anchor UUID NOT NULL,
+    anchor_id UUID NOT NULL,
     anchor_domain VARCHAR(30) NOT NULL DEFAULT 'knowledge',
     anchor_type VARCHAR(40) NOT NULL DEFAULT 'document_file',
     link_id VARCHAR(120) NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE nexa_knowledge_traceability_paths (
         storage_tier IS NULL OR storage_tier IN ('L1', 'L2', 'L3')
     ),
     CONSTRAINT chk_trace_access_count CHECK (access_count_rolling >= 0),
-    CONSTRAINT uq_trace_project_doc_anchor UNIQUE (project_id, doc_anchor)
+    CONSTRAINT uq_trace_project_anchor_id UNIQUE (project_id, anchor_id)
 );
 
 CREATE UNIQUE INDEX uq_trace_project_link_logical
@@ -68,7 +68,7 @@ CREATE INDEX idx_trace_parent_path ON nexa_knowledge_traceability_paths(parent_p
 CREATE INDEX idx_trace_project_depth ON nexa_knowledge_traceability_paths(project_id, depth);
 
 CREATE INDEX idx_trace_anchor_lookup
-    ON nexa_knowledge_traceability_paths(anchor_domain, anchor_type, doc_anchor);
+    ON nexa_knowledge_traceability_paths(anchor_domain, anchor_type, anchor_id);
 
 CREATE INDEX idx_trace_project_physical
     ON nexa_knowledge_traceability_paths(project_id, physical_path);
@@ -113,7 +113,7 @@ CREATE INDEX idx_residency_swap_policy
 CREATE TABLE nexa_knowledge_doc_sync_state (
     sync_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     project_id UUID NOT NULL,
-    doc_anchor UUID NOT NULL,
+    anchor_id UUID NOT NULL,
     responsible_domain VARCHAR(40) NOT NULL DEFAULT 'nexion',
     last_writer_domain VARCHAR(40),
     anchor_domain VARCHAR(30),
@@ -129,13 +129,13 @@ CREATE TABLE nexa_knowledge_doc_sync_state (
     last_scanned_path TEXT,
     last_synced_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_doc_sync_project_anchor UNIQUE (project_id, doc_anchor),
+    CONSTRAINT uq_doc_sync_project_anchor UNIQUE (project_id, anchor_id),
     CONSTRAINT chk_sync_status CHECK (
         last_sync_status IN ('ok', 'changed', 'missing', 'conflict', 'error')
     )
 );
 
-CREATE INDEX idx_doc_sync_doc_anchor ON nexa_knowledge_doc_sync_state(doc_anchor);
+CREATE INDEX idx_doc_sync_anchor_id ON nexa_knowledge_doc_sync_state(anchor_id);
 
 CREATE INDEX idx_doc_sync_project_synced
     ON nexa_knowledge_doc_sync_state(project_id, last_synced_at DESC);
@@ -149,7 +149,7 @@ CREATE INDEX idx_doc_sync_responsible_domain
 CREATE TABLE nexa_knowledge_nexion_doc_node_links (
     doc_node_link_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     project_id UUID NOT NULL,
-    doc_anchor UUID NOT NULL,
+    anchor_id UUID NOT NULL,
     node_id UUID,
     asset_type VARCHAR(30) NOT NULL DEFAULT 'document',
     status VARCHAR(20) NOT NULL DEFAULT 'linked',
@@ -164,7 +164,7 @@ CREATE INDEX idx_knxn_doc_node_project_status
     ON nexa_knowledge_nexion_doc_node_links(project_id, status);
 
 CREATE INDEX idx_knxn_doc_node_anchor
-    ON nexa_knowledge_nexion_doc_node_links(doc_anchor);
+    ON nexa_knowledge_nexion_doc_node_links(anchor_id);
 
 -- ---------------------------------------------------------------------------
 -- §2 CHECK 제약(연결 일관성) — SCHM §7
@@ -215,7 +215,7 @@ CREATE INDEX idx_doc_sync_sync_policy
     WHERE sync_policy_id IS NOT NULL;
 
 CREATE INDEX idx_doc_sync_anchor_domain
-    ON nexa_knowledge_doc_sync_state(anchor_domain, doc_anchor)
+    ON nexa_knowledge_doc_sync_state(anchor_domain, anchor_id)
     WHERE anchor_domain IS NOT NULL;
 
 CREATE INDEX idx_knxn_doc_node_node_id
@@ -313,14 +313,14 @@ CREATE POLICY nxn_doc_node_links_tenant_isolation
 -- §6 예시 쿼리 — 바인딩 변수(:project_id 등) 치환 후 별도 실행 권장
 -- =============================================================================
 /*
-SELECT l.doc_node_link_id, l.doc_anchor, t.title, t.logical_path, t.physical_path, l.updated_at
+SELECT l.doc_node_link_id, l.anchor_id, t.title, t.logical_path, t.physical_path, l.updated_at
 FROM nexa_knowledge_nexion_doc_node_links l
-JOIN nexa_knowledge_traceability_paths t ON t.doc_anchor = l.doc_anchor AND t.project_id = l.project_id
+JOIN nexa_knowledge_traceability_paths t ON t.anchor_id = l.anchor_id AND t.project_id = l.project_id
 WHERE l.project_id = :project_id
   AND l.status = 'orphaned'
 ORDER BY l.updated_at DESC;
 
-SELECT s.doc_anchor, s.responsible_domain, s.last_writer_domain,
+SELECT s.anchor_id, s.responsible_domain, s.last_writer_domain,
        s.last_sync_status, s.lock_metadata, s.last_synced_at
 FROM nexa_knowledge_doc_sync_state s
 WHERE s.project_id = :project_id

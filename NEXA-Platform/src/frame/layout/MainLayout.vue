@@ -95,6 +95,9 @@
       </q-toolbar>
     </q-footer>
 
+    <!-- 온라인 NIXIE: 뷰포트 고정 오버레이 · 드래그로 자유 이동 (푸터와 독립) -->
+    <NixieOnlineCharacter v-if="!isIframeMode" />
+
     <WindowPresetEditModal v-model="showWindowPresetModal" />
   </q-layout>
 </template>
@@ -111,6 +114,7 @@ import { useUserSettingsStore } from '@system/store/userSettingsStore'
 // Frame Layer Components & Registry
 import GlobalNavbarLeft from './components/GlobalNavbarLeft.vue'
 import GlobalNavbarRight from './components/GlobalNavbarRight.vue'
+import NixieOnlineCharacter from './components/NixieOnlineCharacter.vue'
 import { getLeftSidebarComponent, getRightSidebarComponent, getHeaderActionsComponent } from '@frame/registry/domainRegistry'
 
 // Composables & Utils

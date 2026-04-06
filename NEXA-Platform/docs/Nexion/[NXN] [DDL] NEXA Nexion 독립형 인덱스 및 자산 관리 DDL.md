@@ -1,14 +1,15 @@
 # [NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL
 
 **DBeaver 등 일괄 실행용 순수 SQL**
-1. **`[NXN] [DDL] project_members 오케스트레이션 DDL v5 정렬.sql`** — `project_members` 없을 때 **먼저** 실행(정의는 `docs/__NEXA 오케스트레이션 스키마 DDL v5.md` §1-1·§3).  
+
+1. **`[NXN] [DDL] project_members 오케스트레이션 DDL v5 정렬.sql`** — `project_members` 없을 때 **먼저** 실행(정의는 `docs/__NEXA 오케스트레이션 스키마 DDL v5.md` §1-1·§3).
 2. **`[NXN] [DDL] NEXA Nexion 독립형 인덱스 및 자산 관리 DDL.sql`** — 본 MD §1~§5와 동일(§6 예시는 파일 하단 주석).
 
 **NXN 명세 정렬:** 본 파일의 `CREATE TABLE`·제약·인덱스는 **`[NXN] [SCHM] NEXA Nexion 독립형 인덱스 및 자산 관리 스키마.md`** §4~§7과 **맞춘다.**
 
 **구현 티어(Tier A/B):** Tier A(코어)만 배포할 때 `nexa_knowledge_residency`·전면 RLS 등 **Tier B 객체는 생략하거나 후행 마이그레이션**으로 둔다. 정의는 SCHM **§2.2**, **코어 Phase 순서**는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**, 체크리스트는 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md` 서두.
 
-**플랫폼 진실원(1순위 SSOT):** 실행 DB에 올라가는 `nexa_knowledge_*` 객체의 **이름·컬럼·소유 스키마**는 **`docs/_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`**(이하 **통합 SSOT**)가 우선한다. **`nexa_knowledge_doc_sync_state`** 및 traceability의 **`doc_anchor`** 명칭은 SSOT와 본 파일이 **정합**된다. 본 NXN DDL의 **N-PATH 전개**(`traceability_paths`의 `project_id`·`link_id`·`physical_path` 등)는 SSOT 경량 정의보다 넓을 수 있으며, 그 경우 **통합 SSOT + 단일 마이그레이션**으로 컬럼을 확장하고 문서를 맞춘다(NXN 문서만 고치고 DB를 양립시키지 않는다).
+**플랫폼 진실원(1순위 SSOT):** 실행 DB에 올라가는 `nexa_knowledge_*` 객체의 **이름·컬럼·소유 스키마**는 **`docs/_KNOWLEDGE DDL 통합 스키마 및 물리 설계(SSOT).md`**(이하 **통합 SSOT**)가 우선한다. **`nexa_knowledge_doc_sync_state`** 및 traceability의 **`anchor_id`** 명칭은 SSOT와 본 파일이 **정합**된다. 본 NXN DDL의 **N-PATH 전개**(`traceability_paths`의 `project_id`·`link_id`·`physical_path` 등)는 SSOT 경량 정의보다 넓을 수 있으며, 그 경우 **통합 SSOT + 단일 마이그레이션**으로 컬럼을 확장하고 문서를 맞춘다(NXN 문서만 고치고 DB를 양립시키지 않는다).
 
 ### 0.0 `CREATE` 실행 전 필수 절차(명시)
 
@@ -31,7 +32,7 @@
 
 - **`project_id` NOT NULL(개발자 고정):** 본 파일의 Nexion 직결 테이블은 **플랫폼 통합 DB 안에서의 테넌트(데이터 격리) 키**로 `project_id`를 둔다. **별도 DB·별도 사용자 체계**로 Nexion만 분리할 필요는 없다. **“비즈니스 워크플로 프로젝트” 종속**과는 별개 — `[NXN] [CNCP] ... 지식 OS ...` **§1.2**, `[NXN] [API] ...` **§2.2.1**, SCHM **§2.1**.
 - `uuid_generate_v7()` 사용 시: `pg_uuidv7` 확장 또는 동등 구현. 없으면 `gen_random_uuid()`로 치환.
-- **`project_members`:** 플랫폼 SSOT는 **`docs/__NEXA 오케스트레이션 스키마 DDL v5.md`** §1-1과 동일하다. DB에 테이블이 없으면 동일 폴더 **`project_members 오케스트레이션 DDL v5 정렬.sql`** 을 먼저 실행한다(기존 `projects.owner_id` 백필 포함).  
+- **`project_members`:** 플랫폼 SSOT는 **`docs/__NEXA 오케스트레이션 스키마 DDL v5.md`** §1-1과 동일하다. DB에 테이블이 없으면 동일 폴더 **`project_members 오케스트레이션 DDL v5 정렬.sql`** 을 먼저 실행한다(기존 `projects.owner_id` 백필 포함).
 - **`nxn_user_project_ids()` (RLS):** 표준은 `project_members` 조인이다. 멤버 테이블 생성 전 임시로만 `projects.owner_id` 본문을 쓴다 — 본 문서 §5·동명 `.sql` §5 주석 «비상».
 - `related_audit_id` → `nexa_knowledge_audit_logs` 등 **감사 테이블 FK**는 인프라 준비 후 선택 적용.
 
@@ -50,7 +51,7 @@ CREATE TABLE nexa_knowledge_traceability_paths (
     project_id UUID NOT NULL,
     parent_path_id UUID REFERENCES nexa_knowledge_traceability_paths(path_id) ON DELETE SET NULL,
     depth SMALLINT NOT NULL DEFAULT 0,
-    doc_anchor UUID NOT NULL,
+    anchor_id UUID NOT NULL,
     anchor_domain VARCHAR(30) NOT NULL DEFAULT 'knowledge',
     anchor_type VARCHAR(40) NOT NULL DEFAULT 'document_file',
     link_id VARCHAR(120) NOT NULL,
@@ -78,7 +79,7 @@ CREATE TABLE nexa_knowledge_traceability_paths (
         storage_tier IS NULL OR storage_tier IN ('L1', 'L2', 'L3')
     ),
     CONSTRAINT chk_trace_access_count CHECK (access_count_rolling >= 0),
-    CONSTRAINT uq_trace_project_doc_anchor UNIQUE (project_id, doc_anchor)
+    CONSTRAINT uq_trace_project_anchor_id UNIQUE (project_id, anchor_id)
 );
 
 CREATE UNIQUE INDEX uq_trace_project_link_logical
@@ -90,7 +91,7 @@ CREATE INDEX idx_trace_parent_path ON nexa_knowledge_traceability_paths(parent_p
 CREATE INDEX idx_trace_project_depth ON nexa_knowledge_traceability_paths(project_id, depth);
 
 CREATE INDEX idx_trace_anchor_lookup
-    ON nexa_knowledge_traceability_paths(anchor_domain, anchor_type, doc_anchor);
+    ON nexa_knowledge_traceability_paths(anchor_domain, anchor_type, anchor_id);
 
 CREATE INDEX idx_trace_project_physical
     ON nexa_knowledge_traceability_paths(project_id, physical_path);
@@ -135,7 +136,7 @@ CREATE INDEX idx_residency_swap_policy
 CREATE TABLE nexa_knowledge_doc_sync_state (
     sync_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     project_id UUID NOT NULL,
-    doc_anchor UUID NOT NULL,
+    anchor_id UUID NOT NULL,
     responsible_domain VARCHAR(40) NOT NULL DEFAULT 'nexion',
     last_writer_domain VARCHAR(40),
     anchor_domain VARCHAR(30),
@@ -151,13 +152,13 @@ CREATE TABLE nexa_knowledge_doc_sync_state (
     last_scanned_path TEXT,
     last_synced_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_doc_sync_project_anchor UNIQUE (project_id, doc_anchor),
+    CONSTRAINT uq_doc_sync_project_anchor UNIQUE (project_id, anchor_id),
     CONSTRAINT chk_sync_status CHECK (
         last_sync_status IN ('ok', 'changed', 'missing', 'conflict', 'error')
     )
 );
 
-CREATE INDEX idx_doc_sync_doc_anchor ON nexa_knowledge_doc_sync_state(doc_anchor);
+CREATE INDEX idx_doc_sync_anchor_id ON nexa_knowledge_doc_sync_state(anchor_id);
 
 CREATE INDEX idx_doc_sync_project_synced
     ON nexa_knowledge_doc_sync_state(project_id, last_synced_at DESC);
@@ -171,7 +172,7 @@ CREATE INDEX idx_doc_sync_responsible_domain
 CREATE TABLE nexa_knowledge_nexion_doc_node_links (
     doc_node_link_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     project_id UUID NOT NULL,
-    doc_anchor UUID NOT NULL,
+    anchor_id UUID NOT NULL,
     node_id UUID,
     asset_type VARCHAR(30) NOT NULL DEFAULT 'document',
     status VARCHAR(20) NOT NULL DEFAULT 'linked',
@@ -186,7 +187,7 @@ CREATE INDEX idx_knxn_doc_node_project_status
     ON nexa_knowledge_nexion_doc_node_links(project_id, status);
 
 CREATE INDEX idx_knxn_doc_node_anchor
-    ON nexa_knowledge_nexion_doc_node_links(doc_anchor);
+    ON nexa_knowledge_nexion_doc_node_links(anchor_id);
 ```
 
 ---
@@ -250,7 +251,7 @@ CREATE INDEX idx_doc_sync_sync_policy
     WHERE sync_policy_id IS NOT NULL;
 
 CREATE INDEX idx_doc_sync_anchor_domain
-    ON nexa_knowledge_doc_sync_state(anchor_domain, doc_anchor)
+    ON nexa_knowledge_doc_sync_state(anchor_domain, anchor_id)
     WHERE anchor_domain IS NOT NULL;
 
 -- nexion links
@@ -299,7 +300,7 @@ PostgreSQL 13 이하: `EXECUTE PROCEDURE nxn_touch_updated_at();`
 - **테넌트 테이블:** `project_id` ∈ 현재 사용자가 접근 가능한 프로젝트 집합(`nxn_user_project_ids()`).
 - **residency:** `project_id IS NOT NULL` 인 행만 동일 정책. `project_id IS NULL`(플랫폼 전역)은 **서비스 역할·BYPASSRLS**로만 다루는 것을 권장(SCHM §10.4).
 - **세션:** 앱·DBeaver에서 `SET app.current_user_id = '<uuid>'` 를 주지 않으면 RLS 통과 행이 없을 수 있다.
-- **표준:** `project_members`는 **`docs/__NEXA 오케스트레이션 스키마 DDL v5.md`** 와 맞추고, 없으면 **`project_members 오케스트레이션 DDL v5 정렬.sql`** 로 생성·백필한다.  
+- **표준:** `project_members`는 **`docs/__NEXA 오케스트레이션 스키마 DDL v5.md`** 와 맞추고, 없으면 **`project_members 오케스트레이션 DDL v5 정렬.sql`** 로 생성·백필한다.
 - **임시:** 멤버 테이블 생성 전에만 **A**(`projects.owner_id`)를 쓰고, 생성 후 **B**로 교체한다.
 
 **A) 임시 — `project_members` 없음**
@@ -372,15 +373,15 @@ CREATE POLICY nxn_doc_node_links_tenant_isolation
 
 ```sql
 -- 고아 자산(노드 미연결) + 경로 메타
-SELECT l.doc_node_link_id, l.doc_anchor, t.title, t.logical_path, t.physical_path, l.updated_at
+SELECT l.doc_node_link_id, l.anchor_id, t.title, t.logical_path, t.physical_path, l.updated_at
 FROM nexa_knowledge_nexion_doc_node_links l
-JOIN nexa_knowledge_traceability_paths t ON t.doc_anchor = l.doc_anchor AND t.project_id = l.project_id
+JOIN nexa_knowledge_traceability_paths t ON t.anchor_id = l.anchor_id AND t.project_id = l.project_id
 WHERE l.project_id = :project_id
   AND l.status = 'orphaned'
 ORDER BY l.updated_at DESC;
 
 -- 동기화 이상 + 책임 도메인
-SELECT s.doc_anchor, s.responsible_domain, s.last_writer_domain,
+SELECT s.anchor_id, s.responsible_domain, s.last_writer_domain,
        s.last_sync_status, s.lock_metadata, s.last_synced_at
 FROM nexa_knowledge_doc_sync_state s
 WHERE s.project_id = :project_id

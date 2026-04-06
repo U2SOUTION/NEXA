@@ -1,295 +1,339 @@
-**[NXN] [UIUX] NEXA Nexion 인터페이스 레이아웃 및 Vue Flow 운영 규약**
+# [NXN] [UIUX] NEXA Nexion 인터페이스 레이아웃 및 Vue Flow 운영 규약
 
-## 1. 개요 및 목적
+| 항목 | 내용 |
+| :--- | :--- |
+| **SSOT (제품·5대)** | `_[NXN] NEXA Nexion 5대 지능 관리 시스템.md` — 5대 정의, 파이프라인, Identity 하위 정제, Nexion vs 런타임 경계. |
+| **SSOT (데스크 셸)** | `[NXN] [UIUX] Nexion 기초 인터페이스 및 운영 규약 (v1.0).md` — 3패널·5대 매핑·공통 철학. |
+| **핵심 구현 스택 (요약)** | **Vue Flow**(`@vue-flow/core`) + **Dagre**(계층 자동 배치·엣지) + **ExplorerTree**(좌측 파일·리소스 트리·DnD). **상세 표·역할 정의**는 데스크 셸 SSOT **§3 기술 스택**, §5~§5.2. |
+| **본 문서 범위** | **레이아웃 슬롯**, **Vue Flow 단일 SSOT**, **N-PATH·Late Anchoring UI**, **소스 트리(`src/domains/nexion/`)**, **`engines`/`system` 관계**, **NIXIE 연출 규약**(캔버스 노드 + 플랫폼 오버레이 캐릭터), Phase·티어. **승인·배포·티어** 세부는 ARCH·운영 SSOT. |
 
-**NEXA Nexion**은 지식 운영체제(Knowledge OS)의 논리 구조를 설계하는 **독립형 관제 데스크**로서, 개발자가 시스템의 서사를 시각적으로 조립하고 파일 시스템과 동기화할 수 있는 환경을 제공한다. 본 문서는 플랫폼의 표준 인터페이스 규격을 준수하면서도, **Vue Flow**를 통한 지능형 설계 경험을 극대화하기 위한 레이아웃 및 운영 규약을 정의한다.
+---
 
-**Nexion 데스크와 NEXU 캔버스(역할 경계):** 플랫폼 **홈**에 가까운 **넥슈 캔버스(NEXU Canvas)** 는 전역 스케일의 **지능 지도·Capability 도트 조망**에 가깝다. 반면 **`nexion` 도메인**은 특정 구획에서 **Why Chain·N-PATH·Late Anchoring** 을 다루는 **사고의 칠판·관제 데스크**다. Nexion UI는 Vue Flow 위에 올라가는 **작업 면**에 집중하고, “전역 NEXU 홈” 수준의 기능을 이 도메인 안에 끌어와 구현하지 않는다(상세·비유는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` 부록 “NEXION Desk VS NEXU Canvas”).
+## 목차
 
-### 1.1 구현 티어·Phase와 UI 범위(요약)
+1. [SSOT 정렬 및 범위](#1-ssot-정렬-및-범위)
+2. [구현 티어·Phase·트랙](#2-구현-티어phase트랙)
+3. [읽는 순서·용어·빈 상태](#3-읽는-순서용어빈-상태)
+4. [3패널 레이아웃·플랫폼 프레임](#4-3패널-레이아웃플랫폼-프레임)
+5. [소스 코드 디렉터리 구조](#5-소스-코드-디렉터리-구조)
+6. [노드·문서 필터·편집·Extension](#6-노드문서-필터편집extension)
+7. [Vue Flow 운영 규약](#7-vue-flow-운영-규약)
+8. [지능형 문서 편집·저장 (Safe Saving)](#8-지능형-문서-편집저장-safe-saving)
+9. [N-PATH 동기화 UI](#9-n-path-동기화-ui)
+10. [Late Anchoring·Why Chain](#10-late-anchoringwhy-chain)
+11. [결론](#11-결론)
 
-- **Tier A(코어):** §2·§4·§6·§7의 3단 레이아웃, Vue Flow, 탐색기·고아 필터, Late Anchoring, N-PATH 동기화 UI는 **코어 UI**다. **구현 Phase 순서**는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**. 백엔드 계약은 `[NXN] [API] NEXA Nexion API 및 통신 규약.md` **§1.1 Core**(§4~7)와 맞춘다.
+---
+
+## 1. SSOT 정렬 및 범위
+
+### 1.1 5대와 이 문서의 관계
+
+| 5대 | 본 문서에서 다루는 UI 초점 |
+| :--- | :--- |
+| **Nexion Database** | 중앙 **Vue Flow** 로 ER·스키마 시각화(기초 SSOT와 동일 스택). Dry-run·승인·DDL은 API·ARCH와 정합. |
+| **Nexion Identity** | 캔버스 **노드 메타·Link ID** 와 맞닿는 부분. **정제·Re-pointing** UI는 **Identity 하위 모듈**(5대 SSOT), 본 문서는 캔버스·트리와 **참조만** 연결. |
+| **Nexion Capability** | Capability 노드·`nexa.*` 시각화, Late Anchoring 게이트웨이 UI. |
+| **Nexion Glossary** | 우측 **Terms Inspector**(Ollama)·IR·용어 연동(Extension 트랙). |
+| **Nexion Narrative** | **ExplorerTree + Vue Flow + N-PATH + Doc Sync** 가 본 문서의 **주 무대**. |
+
+**Nexion 데스크 vs NEXU 캔버스:** 플랫폼 **홈**에 가까운 **NEXU Canvas** 는 전역 스케일 **지도·Capability 조망**에 가깝다. **`nexion` 도메인**은 **Why Chain·N-PATH·Late Anchoring** 을 다루는 **사고의 칠판·관제 데스크**다. Nexion UI는 Vue Flow **작업 면**에 집중하고, “전역 NEXU 홈” 수준 기능을 이 도메인 안에 끌어와 구현하지 않는다(상세·비유는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` 부록 “NEXION Desk VS NEXU Canvas”).
+
+### 1.2 목적 (한 줄)
+
+**NEXA Nexion**은 Knowledge OS 논리 구조를 설계하는 **독립형 관제 데스크**로서, **Vue Flow** 기반 지능형 설계 경험을 극대화하기 위한 **레이아웃·운영·디렉터리 규약**을 본 문서에서 단정한다.
+
+---
+
+## 2. 구현 티어·Phase·트랙
+
+- **Tier A(코어):** **§4·§6·§7·§9·§10** — 3단 레이아웃, Vue Flow, 탐색기·고아 필터, Late Anchoring, N-PATH 동기화 UI는 **코어 UI**다. **§5** 는 소스 트리·엔진 관계(개발 규약). **구현 Phase 순서**는 `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§3.2**. 백엔드 계약은 `[NXN] [API] NEXA Nexion API 및 통신 규약.md` **§1.1 Core**(§4~7)와 맞춘다.
 - **Phase 2와 API 선행:** UI만 장기간 진행하면 DB·API와 충돌하기 쉽다. Phase 2 **초반**에 Core 엔드포인트 목록을 **이름·역할 수준에서라도** 고정하고, 가능하면 mock·최소 구현으로 UI와 연결한다 — PRD **§3.3**, `[NXN] [API]` **§1.1 Core**와 동시에 맞춘다.
 - **Phase 1 분할(디버깅):** PRD **§3.2**와 같이 **1a** 도메인 셸·3패널 껍데기 → **1b** 캔버스만 최소 동작으로 나누어, 프레임 이슈와 플로우 이슈를 분리한다.
-- **후행 비전(UI 범위 밖으로 두는 것):** 다중 자아(Self Facet)·코일 가중치·자연어로 의도 중력(X7)을 자동 추론하는 UI 등은 PRD 부록·향후 확장으로 두고, 본 문서의 **Tier A 필수 레이아웃**에 넣지 않는다(아래 **§4.2** MVP 줌·LOD 범위와 함께 본다).
-- **Phase Ext:** §3의 TipTap·Ollama·`Terms Inspector`는 **Extension 트랙**(코어 Phase 번호와 분리). API는 동 문서 **§1.1 Extended**, UX·에러 흐름은 `[NXN] [SPEC] NEXA Nexion 확장 프로그램(Extension) 기능 명세.md`를 본다.
-- **Tier B:** **NEXA NIXIE 시각 규약(§4.3.1)**·`nixie_lumina_profile`(SCHM §4)을 DB·테넌트(RLS)와 강하게 묶는 연출·워크스페이스 가드는 플랫폼 배포 단계 — `[NXN] [API]` §10 및 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md`의 **Phase B-ops**와 정합한다. Tier A에서는 동기화 불일치 등 **클라이언트 파생**으로 NIXIE 연출을 시작해도 된다.
+- **후행 비전(UI 범위 밖):** 다중 자아(Self Facet)·코일 가중치·자연어로 의도 중력(X7) 자동 추론 UI 등은 PRD 부록·향후 확장으로 두고, 본 문서의 **Tier A 필수 레이아웃**에 넣지 않는다(§7.2 MVP 줌·LOD 범위와 함께 본다).
+- **Phase Ext:** §6의 TipTap·Ollama·`Terms Inspector`는 **Extension 트랙**(코어 Phase 번호와 분리). API는 동 문서 **§1.1 Extended**, UX·에러 흐름은 `[NXN] [SPEC] NEXA Nexion 확장 프로그램(Extension) 기능 명세.md`(존재 시)를 본다.
+- **Tier B:** **NEXA NIXIE 시각 규약(§7.4)**·`nixie_lumina_profile`(SCHM §4)을 DB·테넌트(RLS)와 강하게 묶는 연출·워크스페이스 가드는 플랫폼 배포 단계 — `[NXN] [API]` §10 및 `[NXN] NEXA Nexion 개발 순서와 체크 리스트.md`의 **Phase B-ops**와 정합한다. Tier A에서는 동기화 불일치 등 **클라이언트 파생**으로 NIXIE 연출을 시작해도 된다.
 
-### 1.2 초보자를 위한 안내(읽는 순서·용어)
+---
 
-본 문서는 **Vue Flow를 처음 쓰는 구현자**도 따라갈 수 있도록 용어와 판단 근거를 짧게 밝힌다.
+## 3. 읽는 순서·용어·빈 상태
 
-- **권장 읽기 순서:** §2(레이아웃·폴더) → §4.1~4.2(Vue Flow 채택·중첩·줌) → **§4.3.1(NEXA NIXIE 시각 규약)** → §4.3~§4.4(노드·임계) → §3(탐색·편집) → §5~§8(N-PATH·Late Anchoring 등).
-- **최소 용어:**
-  - **노드(Node):** 캔버스 위의 한 덩어리(카드, 그룹 박스 등).
-  - **엣지(Edge):** 노드와 노드를 잇는 연결선.
-  - **뷰포트(Viewport):** 사용자가 보는 캔버스 영역; **줌(확대/축소)**·**팬(이동)** 은 뷰포트 변환으로 처리된다.
-  - **드로어:** 화면 왼쪽·오른쪽에 붙는 패널(§2.1).
-  - **앵커(`doc_anchor`):** 파일·문서를 DB에서 식별하는 ID(N-PATH·API 문서 참고).
-  - **Why Chain(인과 사슬):** 노드 간 엣지로 형성되는 **지능적 족보·인과 흐름**을 PRD에서 이르는 이름(§4.5·§7과 연결).
-- **Vue Flow 공식 문서:** 구현 전 `@vue-flow/core` 기준으로 [Vue Flow 문서](https://vueflow.dev/)에서 **Getting Started**, **Nodes**, **Viewport**, **Composables** 를 순서대로 읽는 것을 권장한다(버전별 API는 공식 문서가 최종이다).
+### 3.1 권장 읽기 순서
 
-### 1.3 UI 상태·에러·빈 화면(초보자용 체크리스트)
+**Vue Flow를 처음 쓰는 구현자** 기준: §4(레이아웃)·§5(소스 트리) → §7.1~7.2(Vue Flow 채택·줌·LOD) → **§7.4~§7.4.1(NIXIE: 캔버스 연출 주체 + 온라인 캐릭터 오버레이)** → §7.5~7.6(임계·엣지) → §6(탐색·편집) → §8~§10(저장·N-PATH·Late Anchoring).
 
-구현 시 다음을 **문서·스크린별로** 한 번씩 정해 두면 이후 논의가 줄어든다.
+### 3.2 최소 용어
 
-| 상황                    | 권장 표현 위치                      | 메모                                                                        |
-| ----------------------- | ----------------------------------- | --------------------------------------------------------------------------- |
-| 데이터 로딩 중          | 왼쪽 트리·캔버스·우측 패널 각각     | 스켈레톤 또는 스피너; 캔버스는 레이아웃 튐을 줄이기 위해 **고정 높이** 유지 |
-| 아무 노드도 선택 안 함  | 우측 패널                           | “노드를 선택하세요” 등 **빈 상태** 카피                                     |
-| API 실패(`error_code`)  | 토스트 + (필요 시) 해당 패널 인라인 | `[NXN] [API]` §2.5·§2.6 과 동일 토큰 사용                                   |
-| 동기화 충돌·낙관적 락   | 중앙 배너 또는 모달                 | 사용자 **확인(ASK)** 후 재시도                                              |
-| Extension 미설치·비활성 | 해당 탭                             | 숨김 vs 비활성+툴팁 중 팀 규칙 하나로 통일                                  |
+| 용어 | 설명 |
+| :--- | :--- |
+| **노드(Node)** | 캔버스 위 한 덩어리(카드, 그룹 박스 등). |
+| **엣지(Edge)** | 노드 간 연결선. |
+| **뷰포트(Viewport)** | 사용자가 보는 캔버스 영역; **줌·팬**은 뷰포트 변환. |
+| **드로어** | 좌·우에 붙는 패널(§4.1). |
+| **앵커(`anchor_id`)** | 파일·문서를 DB에서 식별하는 ID(N-PATH·API 참고). |
+| **Why Chain** | 노드 간 엣지로 형성되는 **인과·족보** 흐름(PRD·§7.6·§10 연결). |
 
-## 2. 인터페이스 레이아웃 (3-Panel Layout)
+**Vue Flow 공식:** `@vue-flow/core` 기준 [Vue Flow 문서](https://vueflow.dev/) — Getting Started → Nodes → Viewport → Composables(버전별 API는 공식이 최종).
 
-NEXA 플랫폼의 표준 프레임워크를 계승하여 개발자에게 익숙한 **3단 구성**을 채택한다.
+### 3.3 UI 상태·에러·빈 화면
 
-### 2.1 패널 역할 및 드로어 성격(고정)
+| 상황 | 권장 표현 위치 | 메모 |
+| :--- | :--- | :--- |
+| 데이터 로딩 중 | 왼쪽 트리·캔버스·우측 패널 각각 | 스켈레톤 또는 스피너; 캔버스는 **고정 높이**로 레이아웃 튐 방지 |
+| 아무 노드도 선택 안 함 | 우측 패널 | “노드를 선택하세요” 등 빈 상태 카피 |
+| API 실패(`error_code`) | 토스트 + (필요 시) 패널 인라인 | `[NXN] [API]` §2.5·§2.6 과 동일 토큰 |
+| 동기화 충돌·낙관적 락 | 중앙 배너 또는 모달 | 사용자 **ASK** 후 재시도 |
+| Extension 미설치·비활성 | 해당 탭 | 숨김 vs 비활성+툴팁 — 팀 규칙 하나로 통일 |
 
-플랫폼 **왼쪽 / 중앙 / 오른쪽** 슬롯만 따른다(`domainRegistry`의 `left`·`content`·`right`). Nexion에서 **좌·우는 “드로어” 성격**을 벗어나지 않는다.
+---
 
-| 슬롯       | 성격                           | 담당 UX(요약)                                                                                                                                                                                                                 |
-| ---------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **왼쪽**   | **탐색·목록·내비**             | N-PATH 문서 트리, 고아(Orphaned) 그룹, 캔버스 연동 필터, 워크스페이스·프로젝트 구획 전환(필요 시). **속성 편집·에디터 본문·Vue Flow 캔버스 본체는 두지 않는다.**                                                              |
-| **중앙**   | **주 작업 면**                 | Vue Flow 캔버스, 엣지 편집, 무한 줌(Fractal Zoom 연출·줌 기반 표시 용어는 **§4.2**). Extension인 **문서 편집 탭**(TipTap)은 중앙 영역 **하위**로만 둔다(좌/우로 빼지 않음).                                                   |
-| **오른쪽** | **선택 대상의 상세·부가 도구** | 선택 노드 메타(Link ID, 제목, 영문 IR), Late Anchoring·`doc_anchor` 연결 UI, 동기화·신뢰도 힌트. Extension인 **Terms Inspector**(Ollama 결과)는 **우측 패널 탭**으로만 둔다. **문서 전체 트리·캔버스 전체 맵은 두지 않는다.** |
+## 4. 3패널 레이아웃·플랫폼 프레임
 
-**`project_id`·구획 전환과 제품 개념:** 왼쪽의 “워크스페이스·프로젝트 구획 전환”은 DB·RLS 상의 **`project_id` 테넌트(구획) 식별**을 바꾸는 UI일 뿐이며, 플랫폼 **워크플로 프로젝트 엔티티와 동일한 것으로 취급하지 않는다** — `[NXN] [PRD] Nexion 기능과 작업 순서.md` **§2.1**, `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 N-PATH(지도) 설계 철학.md` **§1.2**, `[NXN] [API]` **§2.2.1** 과 정합한다.
+NEXA 플랫폼 표준 **좌 / 중 / 우** 만 사용한다(`domainRegistry`의 `left`·`content`·`right`). **좌·우는 드로어 성격**을 벗어나지 않는다.
 
-### 2.2 플랫폼 프레임 정합
+### 4.1 패널 역할
 
-- **도메인 키·경로:** **`nexion`** — 소스 루트 **`NEXA-Platform/src/domains/nexion/`** (기존 `dev` 하위 `dev-tools` 안에 두는 안은 **채택하지 않음**).
-- **등록:** `src/frame/registry/domainRegistry.ts`에 `left` / `content` / `right`를 각각 `NexionLeftNav.vue`·`NexionDomain.vue`(또는 content만 감싸는 셸)·`NexionRightPanel.vue`로 연결하고, `src/frame/router/domainRoutes.ts`에 경로를 추가한다. 패턴은 `nexa-board`, `automation` 등 타 도메인과 동일하다.
-- **백엔드:** NXN REST는 `server/domains/nexion/`(또는 플랫폼 라우팅 규약에 맞는 동일 패턴)에 두어 `projects`, `archive` 등과 일관되게 한다.
+| 슬롯 | 성격 | 담당 UX(요약) |
+| :--- | :--- | :--- |
+| **왼쪽** | 탐색·목록·내비 | N-PATH 문서 트리, 고아(Orphaned) 그룹, 캔버스 연동 필터, 워크스페이스·프로젝트 구획 전환(필요 시). **속성 편집·에디터 본문·Vue Flow 본체는 두지 않음.** |
+| **중앙** | 주 작업 면 | Vue Flow, 엣지 편집, 무한 줌(§7.2). Extension **문서 편집 탭**(TipTap)은 중앙 **하위**만. |
+| **오른쪽** | 선택 대상 상세·부가 도구 | Link ID, 제목, 영문 IR, Late Anchoring·`anchor_id`, 동기화·신뢰도. **Terms Inspector**는 **우측 탭**만. **문서 전체 트리·캔버스 전체 맵은 두지 않음.** |
 
-### 2.3 `src/domains/nexion/` 파일·폴더 구조(권장)
+**`project_id`·구획 전환:** 왼쪽 “워크스페이스·프로젝트 구획 전환”은 DB·RLS 상 **`project_id` 테넌트** 를 바꾸는 UI일 뿐, 플랫폼 **워크플로 프로젝트 엔티티와 동일시하지 않는다** — `[NXN] [PRD]` **§2.1**, `[NXN] [CNCP] NEXA Nexion 지식 OS 관리 및 N-PATH(지도) 설계 철학.md` **§1.2**, `[NXN] [API]` **§2.2.1** 과 정합.
 
-아래는 **§2.1 성격**을 깨지 않도록 나눈 권장 트리다. `modules/core`와 `modules/extension`으로 **Tier A 코어 UI**와 **Phase Ext**를 폴더로도 구분한다.
+### 4.2 도메인 키·경로·등록
+
+- **도메인 키·경로:** **`nexion`** — 소스 루트 **`NEXA-Platform/src/domains/nexion/`** (기존 `dev` 하위 `dev-tools` 안 배치안은 **채택하지 않음**).
+- **등록:** `src/frame/registry/domainRegistry.ts`에 `left` / `content` / `right` → `NexionLeftNav.vue`·`NexionDomain.vue`(셸)·`NexionRightPanel.vue`, `src/frame/router/domainRoutes.ts`에 경로. 패턴은 `nexa-board`, `automation` 등과 동일.
+- **백엔드:** NXN REST는 `server/domains/nexion/`(또는 플랫폼 라우팅 규약 동일 패턴).
+
+---
+
+## 5. 소스 코드 디렉터리 구조
+
+### 5.1 `src/domains/nexion/` 권장 트리
+
+**§4.1 성격**을 깨지 않도록 나눈 권장 트리. `modules/core`와 `modules/extension`으로 **Tier A** 와 **Phase Ext** 를 폴더로도 구분한다.
 
 ```text
 src/domains/nexion/
 ├── NexionDomain.vue                 # 도메인 진입·인터컴·레이아웃 셸; content 슬롯에 연결
 ├── views/
 │   ├── left/
-│   │   └── NexionLeftNav.vue        # 왼쪽 전용: 문서 트리, 고아, 필터, (선택) 구획 전환
+│   │   └── NexionLeftNav.vue        # 왼쪽: 문서 트리, 고아, 필터, (선택) 구획 전환
 │   ├── content/
-│   │   ├── NexionContent.vue        # 중앙 셸: 캔버스 vs 편집 탭 등 라우트/상태 스위치
+│   │   ├── NexionContent.vue        # 중앙 셸: 캔버스 vs 편집 탭 스위치
 │   │   ├── canvas/
 │   │   │   ├── NexionCanvasView.vue # Vue Flow 메인 뷰
 │   │   │   ├── NexionFlowToolbar.vue
-│   │   │   └── …                    # 줌·미니맵·동기화 배너 등 캔버스 주변 UI
-│   │   └── workspace/               # (선택) 중앙 하위: 동기화 큐, 타임라인 등 “작업 면”에 붙는 패널
+│   │   │   └── …                    # 줌·미니맵·동기화 배너 등
+│   │   └── workspace/               # (선택) 동기화 큐, 타임라인 등
 │   └── right/
-│       ├── NexionRightPanel.vue     # 오른쪽 전용: 탭 컨테이너(속성 | Terms Inspector | …)
+│       ├── NexionRightPanel.vue     # 오른쪽: 탭 컨테이너(속성 | Terms Inspector | …)
 │       └── panels/
-│           ├── NodeAttributesPanel.vue      # 코어: 메타·IR·앵커·Late Anchoring 필드
-│           ├── SyncHealthPanel.vue          # 코어(선택): 동기화·신뢰도 요약
-│           └── TermsInspectorPanel.vue      # Extension: Ollama 용어 추출 결과
+│           ├── NodeAttributesPanel.vue
+│           ├── SyncHealthPanel.vue
+│           └── TermsInspectorPanel.vue
 ├── modules/
-│   ├── core/                        # 코어(Tier A) — API Core·캔버스·N-PATH 연동
-│   │   ├── components/
-│   │   │   └── flow/                # 커스텀 노드·엣지 Vue
+│   ├── core/                        # Tier A — API Core·캔버스·N-PATH 연동
+│   │   ├── components/flow/         # 커스텀 노드·엣지 Vue
 │   │   ├── composables/             # useNexionCanvas, useSelection, useTraceabilityTree 등
-│   │   ├── services/                # nxn API 클라이언트(§4~7), 동기화 상태 구독
-│   │   └── config/                  # 플로우 기본값, 임계값 등
-│   └── extension/                   # Phase Ext — 교체·비활성화 용이하게 한 덩어리
-│       ├── editor/                  # TipTap 래퍼, 저장·해시 연동(중앙 탭에서만 사용)
-│       ├── term-extraction/         # Terms Inspector용 UI composable만(규격·호출 본체는 §2.4.2 system 승격)
-│       └── composables/             # Extension 전용 조합 로직
-└── …                                # 도메인 전용 상수·테스트만. 타입·런타임 규격은 §2.4.3 (`system/types`·schemas)
+│   │   ├── services/                # nxn API 클라이언트, 동기화 상태 구독
+│   │   └── config/
+│   └── extension/                   # Phase Ext
+│       ├── editor/                  # TipTap 래퍼(중앙 탭에서만)
+│       ├── term-extraction/
+│       └── composables/
+└── …                                # 도메인 상수·테스트. 타입·규격은 §5.4
 ```
 
 **구조 규칙(요약):**
 
-- **왼쪽 `views/left/`** 에는 탐색·리스트·필터만 둔다. `modules/core`의 트리 데이터 훅을 주입해도 되되, **편집 폼·플로우 노드 정의**는 중앙/우측 또는 `modules`로 보낸다.
-- **중앙 `views/content/`** 에만 캔버스와(Extension 시) **문서 편집 탭**을 둔다. TipTap 관련 SFC는 `modules/extension/editor/`에 두고, 탭 셸만 `content/`에 얇게 유지한다.
-- **오른쪽 `views/right/panels/`** 에 속성·앵커·IR·Terms Inspector를 탭으로 나눈다. Extension 패널은 **파일명·폴더**로 `extension` 계열과 구분 가능하게 둔다.
-- **서버:** `server/domains/nexion/` 에 라우트·컨트롤러·서비스를 두고, `[NXN] [API]` **Core / Extended** 경계를 주석 또는 하위 폴더(`routes/core`, `routes/extension` 등)로 맞출 수 있다(구현 선택).
+- **`views/left/`** — 탐색·리스트·필터만. 편집 폼·플로우 노드 정의는 중앙·우측 또는 `modules`.
+- **`views/content/`** — 캔버스와(Extension 시) 문서 편집 탭만. TipTap SFC는 `modules/extension/editor/`.
+- **`views/right/panels/`** — 속성·앵커·IR·Terms Inspector 탭.
+- **서버:** `server/domains/nexion/` — `[NXN] [API]` Core / Extended 경계를 주석 또는 `routes/core`, `routes/extension` 등으로 맞출 수 있음.
 
-### 2.4 `src/engines/` · `src/system/` 과의 관계(현재 리포지토리 **파일·폴더명** 기준)
+### 5.2 `src/engines/` 재사용(참고)
 
-Nexion 도메인 트리(§2.3)와 별도로, **이미 존재하는 엔진·시스템 레이어**를 어떻게 쓸지 구분한다. 아래는 **이름 참고**이며, 실제 import 경로는 프로젝트 alias(`@engines/…`, `@system/…` 등)에 맞춘다.
+Nexion 캔버스 **SSOT는 Vue Flow**(§7.1). `engines/diagram` 등은 **대체 구현이 아니라** 줌·이벤트·설정 패널 아이디어 **참고용**.
 
-#### 2.4.1 재사용 가능(예측) — 도메인에서는 가져다 쓰기만
+| 상위 폴더 | 참고 예 | Nexion에서의 용도 |
+| :--- | :--- | :--- |
+| `block/` | NexaBlock, BoardBlock 등 | 필요 시 블록 위젯만 선택 |
+| `charts/` | NexaChart 등 | 지식 맵에 차트 붙일 때 |
+| `diagram/` | NexaDiagram, `flow/`, `erd/` 등 | **Vue Flow와 역할 구분**(§7.1). 줌·테마만 일부 재사용 |
+| `renderers/` | DataCardRenderer 등 | 데이터 바인딩 카드 |
+| `services/` | flowManager 등 | 실행·배선 맥락 검토 |
+| `tiptap/` | TiptapEditor 등 | Extension 문서 편집 래핑 |
+| `sentinel/` | AGENTS.md 등 | 정책 참고 |
 
-**`src/engines/`** (기능 엔진; Nexion은 래핑·조합)
+### 5.3 `src/system/` 재사용(참고)
 
-| 상위 폴더    | 참고할 파일·하위 이름(예)                                                                                                                                                                                                               | Nexion에서의 예측 용도                                                                                                                           |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `block/`     | `NexaBlock.vue`, `BoardBlock`, `ChartBlock`, `DeviceBlock`, `TimeBlock`, `WeatherBlock`                                                                                                                                                 | 캔버스에 블록형 위젯이 필요할 때만 선택                                                                                                          |
-| `charts/`    | `NexaChart.vue`, `MultiChartContainer`, `bar/`·`line/`·`pie/`·`area/`·`scatter/`, `utils/chartEvents`·`chartTheme` 등                                                                                                                   | 지식 맵에 차트가 붙는 경우                                                                                                                       |
-| `diagram/`   | `NexaDiagram.vue`, `NodeCanvas.vue`, `flow/`(`FlowDiagram`, `FlowNodeRenderer`), `filetree/`, `network/`, `erd/`, `dependency/`, `panels/*SettingsPanel`, `utils/diagramZoom`·`diagramEvents`·`diagramLayout`·`diagramTheme`, `config/` | **Nexion 캔버스의 구현 SSOT는 Vue Flow**다. 본 엔진과의 역할 구분·학습 순서는 **§4.1** 필수 참고. 줌·이벤트·설정 패널 UI만 참고·일부 재사용 가능 |
-| `renderers/` | `DataCardRenderer`, `DataChartRenderer`, `DataTableRenderer`, `DataListRenderer`                                                                                                                                                        | 데이터 바인딩 카드 렌더                                                                                                                          |
-| `services/`  | `evaluatorService.ts`, `flowManager.ts`                                                                                                                                                                                                 | 실행·배선 맥락에서 검토                                                                                                                          |
-| `tiptap/`    | `skins/base`·`full`/`TiptapEditor.vue`, `extensions/`, `utils/clipboardImage`·`youtube`·`fileFormat`                                                                                                                                    | **Extension 문서 편집**: 기존 에디터 스킨·유틸 우선 래핑                                                                                         |
-| `sentinel/`  | `AGENTS.md` 등                                                                                                                                                                                                                          | 정책·에이전트 가이드 참고                                                                                                                        |
+| 상위 폴더 | 참고 예 | Nexion 용도 |
+| :--- | :--- | :--- |
+| `components/ui/` | ExplorerTree, ExplorerViewCard 등 | **왼쪽 드로어** 트리 우선 |
+| `composables/` | useDomainIntercom 등 | 인터컴·인증·URL 상태 |
+| `schemas/` | Zod 규격 | §5.4, NXN 확장 시 |
+| **`types/`** | ids, common | **필수**(§5.4) |
+| `utils/` | path-tree-builder 등 | 경로·그래프 |
 
-**`src/system/`** (플랫폼 공용)
+### 5.4 `system`으로 승격 권장
 
-| 상위 폴더        | 참고할 이름(예)                                                                                                               | Nexion에서의 예측 용도                      |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `boot/`          | `pinia.ts` 등                                                                                                                 | 기존 부트 흐름 유지                         |
-| `components/ui/` | `explorer/ExplorerTree`·`ExplorerViewCard`, `viewer/`, `TableEmptyState`, `NexaSpinner`, `ProjectSelector` 등                 | **왼쪽 드로어** 트리·탐색기 계열 우선       |
-| `composables/`   | `useDomainIntercom`, `useAuthenticatedFetch`, `useGlobalShortcuts`, `url-state/` 등                                           | 도메인 인터컴·인증·URL 상태                 |
-| `config/`        | `componentTaxonomy`, `fileTypes`, `url-state/`                                                                                | 설정·분류                                   |
-| `constants/`     | (파일명은 구현 시 확인)                                                                                                       | 공통 상수                                   |
-| `css/`           | `nexa-system/`, `extension/`, `themes/`                                                                                       | 스타일 계승                                 |
-| `schemas/`       | `common/`, `engine/`, `modules/`, `recipes/`, `storage/`, `ai_responses`, `auth`, `devices`, `projects`, `errors`, `jsonb` 등 | **Zod** 규격(§2.4.3); NXN 추가 시 여기 확장 |
-| `services/`      | `device/` 등                                                                                                                  | 기존 서비스 패턴 참고                       |
-| `store/`         | (도메인 스토어와 분리된 공용만)                                                                                               | Pinia                                       |
-| **`types/`**     | `index.ts`, `ids.ts`, `common/`                                                                                               | **필수**(§2.4.3)                            |
-| `utils/`         | `markdown/`, `graph-doc/`, `path-categorizer/`, `path-tree-builder`, `generateId` 등                                          | 마크다운·경로·그래프 분석                   |
+| 승격 대상(예) | 권장 위치 |
+| :--- | :--- |
+| 용어 추출 요청/응답 JSON | `system/schemas/` Zod(예: `schemas/nxn/termExtraction.ts`) |
+| NXN REST 응답 스키마 | `system/schemas/nxn/` + `system/types`에 `z.infer` re-export |
+| NXN API Thin 클라이언트 | `system/services/nxn/` — 도메인 서비스는 UI 조합만 얇게 |
+| Ollama/추론 프록시 | `system/services/ai/` 등과 정합 |
 
-#### 2.4.2 Nexion을 만들며 전역(`system`)으로 빼기 권장 — 콘텐츠·타 도메인 재사용
+`domains/nexion/modules/extension/term-extraction/` 에는 **패널용 composable·로컬 상태**만, **페이로드 형태**는 스키마만 참조.
 
-다른 화면에서도 동일한 **검증·호출 규격**을 쓰게 하려면 `domains/nexion` 안에만 두지 않고 승격한다.
+### 5.5 타입·스키마 필수 규칙
 
-| 승격 대상(예)                                                   | 권장 위치                                                                                  | 비고                                                       |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| 용어 추출 요청/응답(JSON)                                       | `system/schemas/` 에 Zod 정의(예: `schemas/nxn/termExtraction.ts` 또는 `schemas/ai/` 하위) | `TermsInspectorPanel`·향후 타 AI 패널 공용                 |
-| NXN REST 응답(traceability, sync-state, node-links, documents…) | `system/schemas/nxn/` 등으로 절 추가 + 필요 시 `system/types` 에 `z.infer` re-export       | fetch 후 `safeParse`·에러 코드 정합(`[NXN] [API]`)         |
-| NXN API Thin 클라이언트                                         | `system/services/nxn/` (또는 `system/services/api/nxnClient.ts`)                           | 도메인 `modules/core/services` 는 UI 상태·조합 위주로 얇게 |
-| Ollama/추론 프록시 호출 래퍼                                    | 기존 `schemas/ai_responses.ts` 등과 정합해 `system/services/ai/` 확장                      | Extension 전용이 아닌 “플랫폼 AI 호출”로 통일              |
+- **`src/system/types/` 필수.** NXN 공용 타입을 `domains/nexion/**/types.ts` 에 새로 만들지 않는다. `system/types/index.ts` 에서 re-export(도메인 내부 `types` 금지 정책과 동일).
+- **런타임 검증 경계**는 **`src/system/schemas/` Zod**. 타입은 `z.infer` (**스키마 우선**).
+- Nexion 코드에서는 **`@system/types`**, **`@system/schemas/…`** (프로젝트 alias) 로만 import.
 
-`domains/nexion/modules/extension/term-extraction/` 에는 **패널·탭에 묶인 composable·로컬 상태**만 두고, **페이로드·응답 형태**는 위 스키마/타입만 참조한다.
+---
 
-#### 2.4.3 타입·스키마 필수 규칙 — `system/types` + Zod
+## 6. 노드·문서 필터·편집·Extension
 
-- **`src/system/types/` 는 필수다.** NXN 관련 공용 타입을 `domains/nexion/**/types.ts` 에 새로 만들지 않는다. 순수 컴파일타임 타입만 `system/types/` 하위에 추가하고, **`system/types/index.ts` 에서 re-export** 한다(기존 `system/types/index.ts` 주석: 단일 정의 위치·도메인 내부 `types` 금지).
-- **런타임 검증이 필요한 경계**(REST 응답, 폼, 용어 추출 결과, Extension ↔ 코어 메시지)는 **`src/system/schemas/` 에 Zod 스키마**로 정의한다. 타입은 **`z.infer<typeof SomeSchema>`** 로 두고, 필요 시 `system/types` 에서 스키마 추론 타입을 re-export 한다(**스키마 우선, 타입은 보조** — 동일 파일 헤더 정책).
-- **서버**에서 이미 Zod를 쓰는 경우(예: `server/domains/ai/`)와 **필드명·코드**를 맞추거나, 공유 패키지가 없으면 주석으로 SSOT를 명시한다.
-- Nexion 도메인 코드에서는 **`@system/types`**, **`@system/schemas/…`** (프로젝트 alias 기준) 로만 가져온다.
+### 6.1 좌측(Resource Explorer)
 
-## 3. 노드와 문서 필터링 및 편집
+- **문서 필터:** 캔버스에서 노드 선택 시, 해당 Link ID와 연결된 문서만 리스트에 노출.
+- **계층:** “이하 모든 문서 포함” 등 상위 경로 기준 하위 일괄 표시.
+- **고아:** 어떤 노드에도 귀속되지 않은 문서는 **Orphaned** 그룹 최상단. 밀도·배지는 팀 규칙·PRD 체크리스트와 정합.
 
-- **좌측 드로어 (Resource Explorer):**
-  - **문서 리스트 필터링:** 캔버스에서 특정 카드(노드)를 선택하면, 해당 노드의 Link ID와 연결된 문서만 리스트에 노출한다.
-  - **계층 옵션:** "이하 모든 문서 포함" 체크박스로 상위 경로 노드 기준 하위 디렉터리 문서를 한꺼번에 볼 수 있다.
-  - **고아 자산 관리:** 어떤 노드에도 귀속되지 않은 문서는 Orphaned 그룹으로 최상단에 배치한다. 목록 밀도·배지·접기 등 **피로감 완화 수준**은 팀에서 별도로 정하며, PRD 최종 체크리스트의 검토 항목과 맞출 수 있다.
-- **중앙 컨텐츠 (Vue Flow & TipTap Editor):**
-  - **기능 1 요약:** 좌측 드로어에서 문서를 클릭하면 TipTap 탭을 열고, 편집 후 저장 시 원본 파일과 메타(`source_hash`)를 동기화한다.
+### 6.2 중앙(Vue Flow & TipTap)
 
-### 3.1 현재 문서 AI 핵심 용어 추출 (Ollama)
+- 좌측에서 문서 클릭 시 TipTap 탭 오픈, 저장 시 원본 파일·메타(`source_hash`) 동기화.
 
-- **기능 2:** 편집 중인 현재 문서를 기준으로 Ollama 모델을 호출해 핵심 용어와 1~2문장 설명을 추출한다.
-- **표시 위치:** 우측 드로어에 `Terms Inspector` 패널을 두고 결과를 리스트로 표시한다.
-- **사용자 제어:** 추출 결과는 자동 반영하지 않고, 사용자가 선택한 항목만 문서에 삽입한다.
-- **실패 처리:** 모델 타임아웃·실패 시 1회 재시도 후 ASK 메시지를 표시한다.
+### 6.3 Ollama 핵심 용어 추출(Extension)
 
-상세 계약은 `**[NXN] [API] NEXA Nexion API 및 통신 규약.md`**(HTTP·JSON)와 `**[NXN] [SPEC] NEXA Nexion 확장 프로그램(Extension) 기능 명세.md\*\*`(UX·확장 흐름)를 따른다.
+- 현재 문서 기준 Ollama 호출 → 핵심 용어·짧은 설명.
+- **표시:** 우측 `Terms Inspector`. 자동 반영 금지, 사용자 선택 항목만 삽입.
+- **실패:** 1회 재시도 후 ASK 메시지.
 
-## 4. Vue Flow 노드 및 엣지 운영 규약
+상세 계약: `[NXN] [API] NEXA Nexion API 및 통신 규약.md`(HTTP·JSON), 확장 UX는 `[NXN] [SPEC] NEXA Nexion 확장 프로그램(Extension) 기능 명세.md`(문서 존재 시).
 
-### 4.1 Vue Flow 채택 이유·기존 `engines/diagram` 과의 관계(초보자용)
+---
 
-플랫폼에는 이미 **`src/engines/diagram/`** (`NexaDiagram`, `NodeCanvas`, `flow/`, `filetree/` 등) 이 있다. Nexion은 이와 **별도의 캔버스 구현**을 쓴다.
+## 7. Vue Flow 운영 규약
 
-| 질문                                                | 문서상 답(고정)                                                                                                                                                                                    |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Nexion 중앙 캔버스의 **단일 구현 SSOT**는 무엇인가? | **Vue Flow**(`@vue-flow/core` 계열). 새 기능·버그 수정·성능 튜닝은 **Vue Flow 기준**으로 한다.                                                                                                     |
-| `engines/diagram` 은 어떻게 쓰는가?                 | **Nexion 캔버스 대체재가 아니다.** 줌·이벤트 처리, 설정 패널 UI, 색·테마 아이디어 등 **참고용**으로만 가져온다. 코드를 직접 섞을 경우 **두 세계의 좌표계·상태 모델이 달라** 유지보수가 어려워진다. |
-| 처음 Vue Flow를 쓸 때 주의점                        | 노드·엣지는 **데이터 배열 + 반응형**으로 관리한다. DOM을 수동으로 그리는 방식과 다르니, 공식 문서의 **controlled flow** 패턴을 먼저 익힌다(§1.2 링크).                                             |
+### 7.1 채택 이유·`engines/diagram` 과의 관계
 
-**한 줄 요약:** 보드·다이어그램 도구용 엔진(`engines/diagram`)과 **지식 맵 데스크(Nexion)** 는 목적이 다르다. Nexion은 **Vue Flow만** 본다.
+| 질문 | 문서상 답 |
+| :--- | :--- |
+| Nexion 중앙 캔버스 **단일 SSOT** | **Vue Flow**(`@vue-flow/core`). 새 기능·버그·튜닝은 Vue Flow 기준. |
+| `engines/diagram` | **Nexion 캔버스 대체재 아님.** 줌·이벤트·설정 UI **참고만**. 코드 직접 혼합 시 좌표계·상태 이중 유지보수 위험. |
+| 초보자 주의 | 노드·엣지는 **데이터 배열 + 반응형**. 공식 **controlled flow** 패턴 권장(§3.2 링크). |
 
-**Phase 1 스프린트 분할:** 셸(3패널·라우팅)과 캔버스 동작을 한 번에 디버깅하지 않도록, PRD **§3.2**의 **Phase 1a / 1b** 나눔을 그대로 따른다(§1.1).
+**Phase 1a / 1b:** PRD **§3.2** 분할을 따른다(§2).
 
-### 4.2 계층 노드·줌에 따른 표시(중첩 가능 여부·용어·Nexion에서의 이름)
+### 7.2 계층·줌·LOD·MVP 범위
 
-**질문: “Vue Flow 노드 안에 또 다른 노드를 넣고, 줌 레벨에 따라 보이거나 숨길 수 있나?”**
+- **중첩(노드 안의 노드):** 가능. 복합·그룹·부모–자식 계층 — Vue Flow에서는 자식에 **부모 노드 id** 를 지정해 같은 좌표계 안에 배치(공식 parent node / subflow — 버전별 프로퍼티명 확인).
+- **줌에 따른 표시 전환:** 뷰포트 **zoom** 을 구독해 자식·라벨 `v-if` / `opacity` / `visibility` 토글, 또는 요약 노드 ↔ 상세 노드 교체.
 
-- **중첩(노드 안의 노드):** **가능하다.** 그래프 이론·시각화에서는 **복합 노드(compound node)**, **그룹 노드(group node)**, **부모–자식 계층(parent–child hierarchy)** 등으로 부른다. Vue Flow에서는 자식 노드에 **부모 노드 id**를 지정해 같은 캔버스 좌표계 안에서 **부모 경계 안에 배치**하는 패턴을 쓴다(공식 문서의 parent node / subflow 개념 — 버전별 프로퍼티명은 문서 확인).
-- **줌에 따라 보이기/숨기기:** **가능하다.** 뷰포트의 **줌 배율(zoom level)** 을 읽어, (1) 자식 노드·라벨을 `v-if` / CSS `opacity` / `visibility` 로 토글하거나, (2) 같은 자리에서 **요약 노드 ↔ 상세 노드**로 컴포넌트를 바꾼다. 이때 쓰는 대표 용어는 다음과 같다.
+| 용어(영문) | 한글 설명 | Nexion 연결 |
+| :--- | :--- | :--- |
+| **Semantic zoom** | 확대할수록 **의미·디테일이 달라지는** 줌(단순 확대 아님). | Fractal Zoom 연출과 같은 계열. |
+| **Level of detail (LOD)** | 거리·줌에 따라 표시 **정밀도만** 단계 변경. | 대형 트리에서 성능·가독성. |
+| **Hierarchical graph** | 부모–자식 관계 그래프. | N-PATH `depth`·폴더 계층과 개념 정합. |
+| **Collapse / expand** | 그룹 내 자식 일괄 숨김·표시. | 줌과 별도 **사용자 제스처**로 조합 가능. |
 
-| 용어(영문)                            | 한글 설명                                                                                      | Nexion 기획과의 연결                                                     |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| **Semantic zoom(시맨틱 줌)**          | 확대할수록 **의미·디테일이 달라지는** 줌. 단순 확대가 아니라 “보여 주는 정보의 종류”가 바뀐다. | 본 문서 다른 곳의 **무한 줌(Fractal Zoom)** 연출과 같은 계열로 설계한다. |
-| **Level of detail(LOD, 디테일 단계)** | 거리·줌에 따라 **표시 정밀도만** 단계적으로 바꾸는 기법(아이콘만 → 라벨 → 전체 메타).          | 트리가 커질 때 성능·가독성에 유리하다.                                   |
-| **Hierarchical graph(계층 그래프)**   | 부모–자식 관계를 갖는 그래프.                                                                  | N-PATH `depth`·폴더 계층과 개념적으로 맞춘다.                            |
-| **Collapse / expand(접기·펼치기)**    | 그룹 노드 안의 자식을 한꺼번에 숨기거나 보이게 함.                                             | 줌과 별도로 **사용자 제스처**로도 조합 가능하다.                         |
+**구현 단계(권장):** (1) 부모–자식 노드만 동작 (`extent` 등 공식 옵션). (2) zoom 구독 후 임계값을 **상수**로 분리해 튜닝. (3) 자식 수가 매우 많으면 LOD·가상화 검토.
 
-**구현 시 권장(초보자용 단계):**
+**MVP:** 자연어 LOD·Fit Score·**의도 중력(X7) 자동 추론** 등은 PRD **§3.5**에 따라 코어 필수 범위 **밖**. 초기에는 **수동 줌·팬**, **고정 임계·규칙 기반** LOD만.
 
-1. **먼저** 부모–자식 노드만 동작하게 만든다(자식이 부모 밖으로 나가지 않게 `extent` 등 공식 옵션 확인).
-2. **다음** `useVueFlow()` 등으로 **현재 zoom** 을 구독하고, 임계값(예: 0.5 미만이면 자식 숨김)을 **상수로** 빼 두어 튜닝한다.
-3. **성능:** 자식이 매우 많으면 DOM 수를 줄이기 위해 LOD·가상화를 검토한다(필요 시 별도 스파이크).
+### 7.3 노드 유형별 시각화
 
-**MVP(Phase 1~4·Phase Ext)에서의 줌·LOD 범위:** 자연어 입력으로 노드별 LOD·깊이를 바꾸는 기능, **Fit Score**, **의도 중력(Intent Gravity / X7) 자동 추론** 등은 PRD **§3.5**에 따라 **코어·Ext 필수 범위에 넣지 않는다.** 초기에는 **수동 줌·팬**, **고정 임계값·규칙 기반** LOD·연출만으로 출발하고, 비전·후속 설계는 PRD **§1**·부록 “AI협력을 통한 UX의 확장”을 본다.
+- **Doc Node:** 문서 아이콘, 파일명(순수 제목).
+- **Capability Node:** `nexa.*` 계층을 반영한 도트·블록.
 
-이 절은 **기술적으로 가능함**과 **용어 SSOT**을 명시한 것이며, 실제 임계값·애니메이션은 구현 스프린트에서 조정한다.
+### 7.4 NEXA NIXIE 시각 규약 — 표현 주체
 
-### 4.3 노드 유형별 시각화
+**비언어 시각 피드백 주체는 NEXA NIXIE** 로 고정. **NEXU Canvas** 는 Vue Flow **지도·표면**일 뿐, 연출 주체가 아니다.
 
-노드는 단순한 상자가 아니라, 데이터의 신뢰도와 시스템 상태를 투영하는 **살아있는 광원**으로 연출한다.
+| 구분 | 역할 |
+| :--- | :--- |
+| **NEXU Canvas** | 노드·엣지·뷰포트 **좌표계·캐리어**. |
+| **NEXA NIXIE** | Lumina·Jitter 등 **연출 주체**. |
+| **`nixie_lumina_profile`** | 자산 단위 발광·떨림 메타 — SCHM §4, Tier B·API §10. |
 
-- **Doc Node:** 문서 형태 아이콘, 파일명(순수 제목) 표시.
-- **Capability Node:** `nexa.`\* 계층 구조를 반영한 도트 또는 블록 형태.
+**표기:** 「**NEXU 캔버스 위에서 NEXA NIXIE가** Jitter·Lumina를 연출한다」 권장. 「NEXU에서 Jitter가 발생」처럼 **표면을 주체로 단정**하는 문장은 지양.
 
-### 4.3.1 NEXA NIXIE 시각 규약 — Lumina·Jitter **표현 주체** (명문화)
+### 7.4.1 플랫폼 오버레이 — 온라인 NIXIE 캐릭터 (`NixieOnlineCharacter`)
 
-플랫폼 전역 용어(`_KNOWLEDGE REF` 등)와 동일하게, **비언어 시각 피드백의 주체는 NEXA NIXIE(닉시)** 로 고정한다. **NEXU Canvas(넥슈)** 는 Vue Flow **서사 지도·표면(surface)** 일 뿐이며, 스스로 “얼굴”이나 “떨림 의도”를 가진 별도 에이전트가 아니다.
+**§7.4~7.5** 가 다루는 것은 **Vue Flow 캔버스 위의 노드·엣지**에 붙는 **비언어 연출**(Lumina·Jitter 등)이다. 이와 **별도 축**으로, **온라인 NIXIE** 는 AI 협력 시스템과 사용자 사이 **중간 소통**을 담당하는 **플랫폼 전역 캐릭터**(약 100×100px 슬롯)로 둔다. 구현상으로는 다음과 같이 **연결하면 문서·코드가 맞물린다.**
 
-| 구분                       | 역할                                                                                                                                          |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **NEXU Canvas**            | 노드·엣지·뷰포트를 올리는 **디지털 쉘 안의 지도**. Lumina·Jitter가 **그려지는 좌표계·캐리어**.                                                |
-| **NEXA NIXIE**             | Lumina(발광)·Jitter(떨림) 등 **시각·비언어 피드백을 연출하는 주체**. 구현체는 닉시 렌더 파이프·믹서 등(REF 디렉터리의 `nixie-visualizer` 등). |
-| **`nixie_lumina_profile`** | 자산(경로 행) 단위로 발광·떨림 강도·임계를 담는 **DB 메타** — SCHM §4 필드 표. Tier B·API §10과 정합.                                         |
+| 구분 | 내용 |
+| :--- | :--- |
+| **구현 컴포넌트** | `src/frame/layout/components/NixieOnlineCharacter.vue` |
+| **마운트** | `src/frame/layout/MainLayout.vue` — `q-layout` 내부, **`v-if="!isIframeMode"`** 로 전역 셸에만 표시. **`domains/nexion` 이 아니라 frame 레이어**이므로 **모든 도메인**에서 동일하게 떠 있다. |
+| **레이아웃 성격** | **푸터·3패널 플로우에 포함하지 않는다.** `position: fixed`, 높은 `z-index`, **뷰포트 오버레이**. |
+| **이동** | 사용자가 **드래그**해 화면 내 임의 위치로 옮길 수 있음. 위치는 **`localStorage` 키 `nexa.nixie.online.position`** 에 저장해 새로고침 후에도 유지(구현 세부는 코드 주석 참고). |
+| **§7.5 데이터와의 관계** | 캔버스 노드의 Jitter·Lumina는 **노드·traceability·동기화 원장**을 입력으로 한다. `NixieOnlineCharacter`는 **같은 NIXIE 개념**을 **“플랫폼 얼굴”** 로 쓰는 자리이므로, 향후 **`confidence`·동기화 요약·ASK 배너** 등을 **동일 SSOT**에서 파생해 이 컴포넌트(또는 전용 composable)에 주입하면 §7.5와 **충돌 없이** 맞출 수 있다. |
+| **SSOT 문서** | 철학·아키텍처: `docs/NIXIE ARCH 닉시 설계도.md`, `docs/NIXIE 지능형 서사 및 감각 처리 통합 규약.md`. |
 
-**문서·코드 표기 규칙(고정):**
+**한 줄:** **캔버스 = NEXU 표면 + NIXIE가 노드에 그리는 연출**, **`NixieOnlineCharacter` = 온라인 NIXIE 캐릭터 슬롯(전역 오버레이)** — 둘 다 “NIXIE”이지만 **레이어가 다르다.**
 
-- **권장:** 「**NEXU 캔버스 위에서 NEXA NIXIE가** Jitter·Lumina를 연출한다」「**`nixie_lumina_profile`에 따른 NIXIE 연출**」.
-- **지양:** 「넥슈(NEXU) 캔버스**에서** Jitter가 발생한다」처럼 **NEXU를 연출 주체로 단정**하는 문장(표면과 주체 혼동).
+### 7.5 Lumina·Jitter·Reddish — 임계·데이터
 
-다른 NXN·ARCH·SCHM·API 문서는 본 절을 **Nexion 범위의 시각 피드백 SSOT**로 인용한다.
+- **정상:** 신뢰도 임계(기본 95) 이상 → Amber 발광.
+- **Jitter:** 신뢰도 미달 또는 **파일 시스템 불일치** → NIXIE가 미세 떨림으로 ASK 유도. 데이터 소스: `nexa_knowledge_traceability_paths` + SCHM §4.4.1 등; `doc_sync_state` 는 보조 가중치(SPEC §2.2·API §10).
+- **Reddish:** 부하·Level 0 안전 위반 등.
 
-### 4.4 시각적 피드백 (Lumina & Jitter) — 임계·데이터 소스
+**수치 SSOT:** UI·API·DB가 동일 임계를 쓸 때 **본 절 95** 를 기준으로 인용한다.
 
-**연출 주체는 §4.3.1.** 아래는 임계·입력 데이터만 정리한다.
+### 7.6 엣지·Why Chain
 
-- **정상 상태:** 신뢰도 점수가 임계값(기본 95) 이상일 때 안정적인 호박색(Amber) 발광.
-- **Jitter(떨림):** 신뢰도 미달 또는 **외부 파일 시스템 불일치** 시, **NIXIE**가 미세 떨림으로 ASK를 유도한다. **파일 실종·유예·삭제의 데이터 소스는 `nexa_knowledge_traceability_paths` + SCHM §4.4.1**(`status`, `missing_since`)이며, `nexa_knowledge_doc_sync_state.last_sync_status`는 **보조 가중치**로만 병합한다(SPEC §2.2·API §10).
-- **Reddish(발색):** 연산 부하가 높거나 중요한 안전 규칙(Level 0) 위반 시 붉은 톤.
+- **실선:** 사용자 승인(**WILL**) 확정 연결.
+- **점선:** AI 제안·검토 중(ECHO·VOID 등 토큰은 PRD·API에서 세분화).
 
-**수치 SSOT:** UI·API·DB 메타에서 동일 임계값을 쓸 경우, **본 문서 §4.4의 95** 를 기준으로 하고 다른 문서는 이를 인용한다(변경 시 한 곳에서 먼저 수정).
+---
 
-### 4.5 엣지(Edge) 연출
+## 8. 지능형 문서 편집·저장 (Safe Saving)
 
-노드를 잇는 엣지 집합은 PRD에서 **Why Chain(인과 사슬)** 이라 부른다 — §7 Late Anchoring·Traceability와 같은 서사 축이다.
+1. 기본 **마크다운(.md)** — TipTap 출력을 마크다운으로 저장.
+2. 명명 **`[Link ID] [제목].md`** 등 N-PATH 규칙 유지; 제목 변경 시 경로·파일명 동기화.
+3. 편집 중에도 `source_hash`·`anchor_id` 추적로 캔버스와 참조 사슬 유지.
 
-- **실선:** 사용자가 승인(**WILL**)하여 확정된 논리 연결.
-- **점선:** AI의 제안·검토 중인 잠재 연결. PRD·API에서 **ECHO**(제안)·**VOID**(미확정) 등 토큰으로 세분화할 수 있으며, UI에서는 점선·스타일·툴팁으로 구분 가능하면 된다.
+### 8.1 TipTap 실시간 반영·Ollama 경계 (기획 SSOT)
 
-## 5. 지능형 문서 편집 및 저장 규약 (Safe Saving)
+**타이핑 → 로컬 UI 반영**과 **Ollama 호출 타이밍**은 `[NXN] [UIUX] Nexion TipTap 편집·실시간 반영 및 Ollama 연동 기획.md` 에서 단정한다. 요지: **로컬 실시간(에디터·탭·선택적 캔버스 라벨 디바운스)** 과 **명시적 트리거의 추출(Ollama)** 을 분리하고, 추출 결과 **자동 삽입 금지**는 §6.3과 동일.
 
-에디터를 통한 편집은 N-PATH(지능형 서사 경로 체계)의 무결성을 유지하기 위해 다음을 준수한다.
+---
 
-1. **마크다운 표준:** 특별한 사유가 없으면 **마크다운(.md)**을 기본으로 하며, TipTap 출력을 마크다운으로 변환해 저장한다.
-2. **확장자 및 명명 규칙:** `[Link ID] [제목].md` 등 N-PATH 명명 규칙을 유지한다. 에디터에서 제목이 바뀌면 디렉터리 구조에 맞춰 파일명을 동기화한다.
-3. **실시간 앵커 유지:** 편집 중에도 `source_hash`와 `doc_anchor`를 추적해 캔버스 노드와의 참조 사슬이 끊기지 않게 한다.
+## 9. N-PATH 동기화 UI
 
-## 6. 지능형 서사 경로 체계(N-PATH) 동기화 UI
+- **외부 변경 알림:** Doc Sync Crawler 감지 → 캔버스 상단 동기화 대기 큐.
+- **가상 재구성:** `is_virtual=true` 고스트로 예고 → **ASK** 후 **WILL** 반영 등 PRD **§2**·SCHM 상태 머신과 정합.
+- **타임라인:** `post_state_snapshot` 비교(타임머신 컨트롤러).
 
-외부 탐색기에서의 물리적 변화를 캔버스에 반영하는 **승인 및 히스토리** 워크플로를 UI에 녹인다.
+---
 
-- **외부 변경 알림:** `Doc Sync Crawler`가 폴더·파일명 변경을 감지하면 캔버스 상단에 동기화 대기 큐 알림을 노출한다.
-- **가상 재구성 (Drafting):** 동기화 실행 시 `is_virtual=true` 가상 노드를 고스트 형태로 보여 변경 예고를 한다. 사용자 **확인(ASK)** 후 승인되면 **WILL**에 해당하는 상태로 반영하고(예: 가상 해제·구조 확정), 거부·보류 시 큐·스냅샷만 유지하는 등 PRD **§2**·SCHM 상태 머신과 맞춘다.
-- **타임머신 컨트롤러:** 하단 타임라인에서 `post_state_snapshot`으로 이전 설계와 탐색기 기반 새 구조를 비교한다.
+## 10. Late Anchoring·Why Chain
 
-## 7. 노드 연결 및 지능 자산화 프로세스 (Late Anchoring)
+1. **선 설계(Drawing):** 좌측 DnD 또는 빈 곳 더블클릭으로 카드·Link ID.
+2. **후 연결(Late Anchoring):** 우측·DnD로 파일 연결, 정책에 따라 `mv`.
+3. **번역 액션:** 영문 IR 생성·수정.
 
-캔버스 인터랙션은 지능 자산으로 데이터화한다. 아래 단계와 엣지(§4.5)는 함께 **Why Chain** 을 만든다.
+엣지(§7.6)와 함께 **Why Chain** 을 형성한다.
 
-1. **선 설계 (Drawing):** 좌측에서 노드를 끌어오거나 빈 곳 더블 클릭으로 카드 생성(Link ID 자동 발급).
-2. **후 연결 (Late Anchoring):** 우측 참조 필드에 파일을 드래그 앤 드롭해 연결. 시스템은 해당 파일을 노드의 폴더(Link ID) 구조로 이동(`mv`)할 수 있다.
-3. **번역 액션:** 노드의 번역 버튼으로 영문 IR을 생성·수정해 AI가 읽을 수 있는 지능형 악보로 박제한다.
+---
 
-## 8. 결론
+## 11. 결론
 
-NEXA Nexion의 UI/UX는 **기술은 배경으로 숨고 사유는 전면으로**라는 철학을 실현한다. 모든 시각적 배치는 플랫폼의 **지능적 족보(Traceability)**로 기록되며, 노드·엣지로 표현된 **Why Chain** 과 N-PATH·`doc_anchor` 가 같은 원장에 수렴한다.
+NEXA Nexion UI/UX는 **기술은 배경으로, 사유는 전면으로** 철학을 따른다. 시각 배치는 **지능적 족보(Traceability)** 로 기록되고, 노드·엣지 **Why Chain** 과 N-PATH·`anchor_id` 가 같은 원장에 수렴한다.
 
-### 보강된 UIUX 설계의 이점
+| 이점 | 설명 |
+| :--- | :--- |
+| **작업 집중** | 노드 선택 시 관련 문서만 필터링. |
+| **끊김 없는 왕복** | 설계도(Nexion)와 TipTap 편집 빠른 전환. |
+| **데이터 정합** | N-PATH 명명·위치 규약으로 수동 정리 부담 감소. |
 
-- **작업 집중도:** 노드 선택 시 관련 문서만 필터링해 현재 맥락에 집중한다.
-- **중단 없는 워크플로:** 설계도(Nexion)와 TipTap 편집을 빠르게 왕복한다.
-- **데이터 정합성:** 에디터가 N-PATH 명명·위치 규약을 강제해 수동 정리 부담을 줄인다.
+---
+
+**상호 참고:** `[NXN] [UIUX] Nexion TipTap 편집·실시간 반영 및 Ollama 연동 기획.md`, `[NXN] [UIUX] Nexion 5대 지능 — Vue Flow·Dagre·ExplorerTree 구현 정리.md`, `[NXN] [UIUX] ① Nexion Database — 스키마·ER(골격) 관리 설계.md`, `[NXN] [UIUX] ② Nexion Identity — 영혼 ID·족보 관리 설계.md`, `[NXN] [UIUX] ③ Nexion Capability — 자격·Tier·Late Anchoring 관리 설계.md`, `[NXN] [UIUX] ④ Nexion Glossary — 용어·언어 라우팅 관리 설계.md`, `[NXN] [UIUX] ⑤ Nexion Narrative — 기획·물리(저장) 관리 설계.md`, `[NXN] [PRD] Nexion 기능과 작업 순서.md`, `[NXN] [API] NEXA Nexion API 및 통신 규약.md`, `docs/NIXIE ARCH 닉시 설계도.md`, `docs/NIXIE 지능형 서사 및 감각 처리 통합 규약.md`.

@@ -8,6 +8,8 @@
 1. 좌측 드로어 문서 아이템 클릭 → TipTap 에디터 열기 → 편집/저장
 2. 현재 문서 기준 Ollama 모델로 핵심 용어 + 설명 추출
 
+**TipTap 실시간 반영 vs Ollama 트리거 경계(기획):** `[NXN] [UIUX] Nexion TipTap 편집·실시간 반영 및 Ollama 연동 기획.md` — 본 SPEC의 흐름과 API 계약을 UX·정책 측에서 보강한다.
+
 ---
 
 ## 2. 기능 1: 좌측 드로어 문서 클릭 기반 TipTap 편집/저장

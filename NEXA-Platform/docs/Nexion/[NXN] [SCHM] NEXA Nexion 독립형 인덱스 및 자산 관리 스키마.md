@@ -29,7 +29,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 ## 2. 설계 원칙
 
 - **독립성:** Nexion 메타데이터는 원본 문서를 파괴하지 않고 별도 테이블로만 관리한다.
-- **추적성:** 물리 경로가 바뀌어도 `doc_anchor`로 동일 자산을 추적한다.
+- **추적성:** 물리 경로가 바뀌어도 `anchor_id`로 동일 자산을 추적한다.
 - **무결성:** Link ID·경로·연결 상태는 CHECK·유니크·RLS 등으로 강제한다.
 - **복구성:** 외부 변경은 즉시 물리 삭제하지 않고 상태 전이(`active` → `moved` 등)로 처리한다.
 
@@ -59,7 +59,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 
 **`nexa_knowledge_doc_sync_state`**는 **해시·스캔 잡·다도메인 잠금**을 남기는 **보조(헬스) 원장**이다(§6). **외부 파일 실종·유예·삭제의 단일 상태 머신은 `nexa_knowledge_traceability_paths` §4.4.1**이며, **NEXA NIXIE 연출(§4.4.2·UIUX §4.3.1)의 데이터 입력**도 그쪽을 1순위로 본다. ERP·IoT 등이 동일 테이블을 쓸 때 **쓰기 주체·충돌 메타**는 여전히 본 테이블에 둔다.
 
-**`nexa_knowledge_nexion_doc_node_links`**는 **NEXA Nexion 전용**으로, `doc_anchor`와 Vue Flow `node_id`의 연결 행만 담는다. 플랫폼 공통의 `nexa_knowledge_reference_assets` 등 광의 참조 자산과 이름·역할이 겹치지 않게 범위를 한정한다. Late Anchoring 이후 귀속·고아(orphaned) 상태를 UI·쿼리로 드러낸다.
+**`nexa_knowledge_nexion_doc_node_links`**는 **NEXA Nexion 전용**으로, `anchor_id`와 Vue Flow `node_id`의 연결 행만 담는다. 플랫폼 공통의 `nexa_knowledge_reference_assets` 등 광의 참조 자산과 이름·역할이 겹치지 않게 범위를 한정한다. Late Anchoring 이후 귀속·고아(orphaned) 상태를 UI·쿼리로 드러낸다.
 
 **`nexa_knowledge_residency`**는 경로 테이블과 별도로, **임의 지식 엔티티**의 VOID 티어·접근 메타·**스왑 정책(`swap_policy_id`)**·**테넌트(`project_id`)**·**전이 사유·정합 검증 시각**을 담는 **원장**이다. 필드 표는 **§5**에 두며, SSOT DDL과 병합 시 **본 표를 기준으로 마이그레이션**한다(본 절에서 표를 삭제하지 않는다).
 
@@ -81,8 +81,8 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 | `project_id`           | UUID         | NOT NULL | —                    | FK·복합 인덱스                                                                  | 테넌트/프로젝트. 전역 공통 행이 필요하면 별도 규약(예: 시스템 프로젝트 UUID)으로 문서화.                                                                                                                                                                                       |
 | `parent_path_id`       | UUID         | NULL     | —                    | FK → 본 테이블 `path_id`, `ON DELETE SET NULL`; 인덱스 권장                     | **계층:** 직계 상위 경로 행. NULL이면 루트(또는 프로젝트 루트)로 해석. Nexion **논리 경로 트리**·재귀 CTE 없이도 상·하위를 즉시 잇는다.                                                                                                                                        |
 | `depth`                | SMALLINT     | NOT NULL | `0`                  | `CHECK (depth >= 0)`; `(project_id, depth)` 등 복합 인덱스로 줌 레벨 필터 가속  | **계층:** 논리 트리 깊이. 무한 줌에서 “현재 줌 레벨 이하만” 빠르게 거르는 데 사용. `logical_path` 파싱과 불일치 시 크롤러/배치가 정정.                                                                                                                                         |
-| `doc_anchor`           | UUID         | NOT NULL | —                    | UNIQUE(또는 `(project_id, doc_anchor)` 정책에 맞게); 역조회 인덱스              | **범용 앵커 UUID.** 문서 파일에 한정되지 않으며, `anchor_domain`·`anchor_type`이 정의한 **대상 행의 PK**(또는 느슨한 외부 ID)와 짝을 이룬다. 문서 중심 UI에서는 기존과 같이 “문서 앵커”로 읽어도 된다.                                                                         |
-| `anchor_domain`        | VARCHAR(30)  | NOT NULL | `'knowledge'`        | CHECK(허용 값 집합); `(anchor_domain, anchor_type, doc_anchor)` 인덱스 권장     | **추적 도메인:** 앵커가 어느 경계에 속하는지. 예: `knowledge`(용어·참조·문서), `orchestration`(실행 패킷·다른 DB의 packet_id 등), `device` … . FK를 걸지 않는 외부 앵커는 도메인·타입·문서화된 해석 규칙으로만 연결.                                                           |
+| `anchor_id`            | UUID         | NOT NULL | —                    | UNIQUE(또는 `(project_id, anchor_id)` 정책에 맞게); 역조회 인덱스               | **범용 앵커 UUID.** 문서 파일에 한정되지 않으며, `anchor_domain`·`anchor_type`이 정의한 **대상 행의 PK**(또는 느슨한 외부 ID)와 짝을 이룬다. 문서 중심 UI에서는 기존과 같이 “문서 앵커”로 읽어도 된다.                                                                         |
+| `anchor_domain`        | VARCHAR(30)  | NOT NULL | `'knowledge'`        | CHECK(허용 값 집합); `(anchor_domain, anchor_type, anchor_id)` 인덱스 권장      | **추적 도메인:** 앵커가 어느 경계에 속하는지. 예: `knowledge`(용어·참조·문서), `orchestration`(실행 패킷·다른 DB의 packet_id 등), `device` … . FK를 걸지 않는 외부 앵커는 도메인·타입·문서화된 해석 규칙으로만 연결.                                                           |
 | `anchor_type`          | VARCHAR(40)  | NOT NULL | —                    | 위와 복합                                                                       | **앵커 세부 유형.** 예: `term`, `reference`, `execution_packet`, `document_file` … . AI·API가 라우팅할 때 최소 분기 키.                                                                                                                                                        |
 | `link_id`              | VARCHAR(120) | NOT NULL | —                    | 프로젝트+활성 시 부분 유니크(DDL)                                               | 카드/폴더 접두어 ID. N-PATH 카드 계층과 디렉터리 매핑.                                                                                                                                                                                                                         |
 | `logical_path`         | TEXT         | NOT NULL | —                    | `(project_id, link_id, logical_path)` 유니크 등                                 | 슬래시 구분 **논리 경로**(N-PATH). `/프로젝트/기획/배터리` 형태 권장; 대소문자·선행 `/` 정책은 팀 단일화.                                                                                                                                                                      |
@@ -106,7 +106,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 | 축                | 필드                                                     | 효과                                                                                        |
 | ----------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | **계층·탐색**     | `parent_path_id`, `depth`                                | DB에서 트리 재구성·무한 줌 레벨별 필터; AI·API가 하위 경로만 순회 가능.                     |
-| **앵커 확장**     | `anchor_domain`, `anchor_type`, `doc_anchor`             | 문서 외 객체도 동일 N-PATH 행으로 등록; 라우팅·RAG·오케스트레이션이 **단일 테이블**로 해석. |
+| **앵커 확장**     | `anchor_domain`, `anchor_type`, `anchor_id`              | 문서 외 객체도 동일 N-PATH 행으로 등록; 라우팅·RAG·오케스트레이션이 **단일 테이블**로 해석. |
 | **NIXIE·UX**      | `metadata`, `nixie_lumina_profile`                       | **NIXIE**가 NEXU 표면에서 Lumina·Jitter로 **신뢰도·상태를 시각적으로 증명**(UIUX §4.3.1).   |
 | **상주·생명주기** | `storage_tier`, `last_access_at`, `access_count_rolling` | VOID L1~L3와 연계한 **스왑 힌트**; 자주 안 쓰는 경로의 아카이브 후보 식별.                  |
 | **무결성·감사**   | `missing_since`, `related_audit_id`, `status`            | 미발견 시각·감사 로그로 **일시 오류 vs 삭제·이동** 설명 가능.                               |
@@ -155,7 +155,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 **금지·주의:**
 
 - 파일이 한 번 안 보였다고 즉시 `deleted` 또는 `moved`로 바꾸지 않는다. **첫 미발견 = `missing_since` 설정 + `active` 유지**(유예).
-- **`moved`:** 디스크에서 “안 보임”이 아니라, **같은 `doc_anchor`에 대해 새 물리 위치를 확정**했을 때(탐색기 이동 반영) 사용한다(§4.4·§9).
+- **`moved`:** 디스크에서 “안 보임”이 아니라, **같은 `anchor_id`에 대해 새 물리 위치를 확정**했을 때(탐색기 이동 반영) 사용한다(§4.4·§9).
 
 **`doc_sync_state`와의 역할 분담(동일 스캔 패스에서 권장):**
 
@@ -254,7 +254,7 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 
 ## 6. `nexa_knowledge_doc_sync_state` 필드 명세
 
-**기능:** 자산 앵커(`doc_anchor` 등)별로 **스캔 잡·해시·다도메인 잠금**을 남기는 **보조(헬스) 원장**이다. **파일 실종·유예·삭제의 단일 상태 머신은 `nexa_knowledge_traceability_paths` §4.4.1**이며, 본 테이블은 그와 **동시에 갱신될 수 있으나 UI·판정의 1순위가 되지 않는다.**
+**기능:** 자산 앵커(`anchor_id` 등)별로 **스캔 잡·해시·다도메인 잠금**을 남기는 **보조(헬스) 원장**이다. **파일 실종·유예·삭제의 단일 상태 머신은 `nexa_knowledge_traceability_paths` §4.4.1**이며, 본 테이블은 그와 **동시에 갱신될 수 있으나 UI·판정의 1순위가 되지 않는다.**
 
 **전역 공유:** Nexion·ERP·IoT 등 **여러 도메인**이 같은 행을 읽되, **책임 도메인·쓰기 주체·정책·잠금**을 분리해 병목·충돌을 관리한다.
 
@@ -268,10 +268,10 @@ SSOT와 이름·형이 겹치면 **통합 DDL에 맞추는 마이그레이션**�
 | ---------------------- | ------------ | -------- | -------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sync_id`              | UUID         | NOT NULL | `uuid_generate_v7()` | PK                                                       | 행 식별자.                                                                                                                                                                                                                                                                              |
 | `project_id`           | UUID         | NOT NULL | —                    | 복합 인덱스                                              | 테넌트/프로젝트.                                                                                                                                                                                                                                                                        |
-| `doc_anchor`           | UUID         | NOT NULL | —                    | `UNIQUE(project_id, doc_anchor)` 등 팀 정책              | 대상 **범용 앵커**. 가상 자산(DB만 존재)도 동일 패턴으로 식별.                                                                                                                                                                                                                          |
+| `anchor_id`            | UUID         | NOT NULL | —                    | `UNIQUE(project_id, anchor_id)` 등 팀 정책               | 대상 **범용 앵커**. 가상 자산(DB만 존재)도 동일 패턴으로 식별.                                                                                                                                                                                                                          |
 | `responsible_domain`   | VARCHAR(40)  | NOT NULL | —                    | 인덱스; CHECK는 코드 레지스트리와 연동해 선택            | **책임 도메인:** 이 자산의 동기화 **소유·정책 배정**을 주도하는 시스템 코드. 예: `nexion`, `erp`, `iot`, `help` … 플랫폼 **도메인 코드 레지스트리**(별도 SPEC)에 등록된 값만 허용 권장.                                                                                                 |
 | `last_writer_domain`   | VARCHAR(40)  | NULL     | —                    | —                                                        | **쓰기 주체:** `last_synced_at` 기준 **가장 최근에 본 행을 갱신한** 도메인·잡·서비스 식별자. 감사·디버깅용. 배치 크롤러는 자신의 코드를 매번 기록.                                                                                                                                      |
-| `anchor_domain`        | VARCHAR(30)  | NULL     | —                    | `(anchor_domain, doc_anchor)` 조회용 인덱스 선택         | `nexa_knowledge_traceability_paths.anchor_domain`과 **동일 해석**이면 조인 없이 라우팅. NULL이면 `traceability`만 조인해 해석.                                                                                                                                                          |
+| `anchor_domain`        | VARCHAR(30)  | NULL     | —                    | `(anchor_domain, anchor_id)` 조회용 인덱스 선택          | `nexa_knowledge_traceability_paths.anchor_domain`과 **동일 해석**이면 조인 없이 라우팅. NULL이면 `traceability`만 조인해 해석.                                                                                                                                                          |
 | `sync_asset_kind`      | VARCHAR(40)  | NOT NULL | `'document_file'`    | 인덱스                                                   | **자산·동기화 분기 카테고리.** 크롤러가 해시 방식·스캔 생략·외부 API 호출 여부를 고른다. 예: `document_file`, `markdown`, `image`, `video`, `binary_large`, `virtual_db_row`, `api_backed` … `traceability_paths.anchor_type`과 **코드셋을 맞추거나** 여기서 상위 그룹만 둔다고 문서화. |
 | `hash_profile`         | VARCHAR(40)  | NULL     | —                    | —                                                        | **해시·동등성 전략.** 예: `content_sha256`, `perceptual_image`, `mtime_size`, `etag_only`, `none_virtual`. NULL이면 `sync_asset_kind`의 **기본 프로파일**을 쓴다.                                                                                                                       |
 | `sync_policy_id`       | UUID         | NULL     | —                    | FK → 동기화 정책 원장(별도 테이블·SPEC); 스케줄러 인덱스 | **동기화 정책 ID.** 주기·타임아웃·재시도·**우선순위(priority)**·실시간 vs 배치 큐를 정책 행에서 읽는다. 모든 행이 동일 주기일 필요 없음.                                                                                                                                                |
@@ -321,20 +321,20 @@ Nexion 외 **ERP·IoT** 등 다른 도메인이 유입되어도 동기화 메타
 
 ## 7. `nexa_knowledge_nexion_doc_node_links` 필드 명세
 
-**기능:** `doc_anchor`와 Vue Flow `node_id` 사이의 연결 행만 두고, `linked` / `orphaned` / `archived`로 귀속 상태를 관리한다. 테이블명에 **Nexion**을 넣어 일반어 `Composer`와의 충돌을 피한다.
+**기능:** `anchor_id`와 Vue Flow `node_id` 사이의 연결 행만 두고, `linked` / `orphaned` / `archived`로 귀속 상태를 관리한다. 테이블명에 **Nexion**을 넣어 일반어 `Composer`와의 충돌을 피한다.
 
 **목적:** Late Anchoring 이후에도 캔버스 노드와 실제 파일이 어떻게 묶였는지 명시하고, 고아 자산을 쿼리·UI로 드러낸다.
 
 ### 7.1 명문화 — Nexion 전용 연결 레이어
 
-- **레이어 분리:** Vue Flow **`node_id`** 와 `doc_anchor`의 연결은 **오직 본 테이블**에만 둔다. 플랫폼 공통 지식 계층(`_KNOWLEDGE`의 `nexa_knowledge_references` 등)과 **역할이 섞이지 않게** 하여, 공통 스키마의 순수성과 Nexion UI 전용 메타의 **논리적 분리**를 유지한다.
+- **레이어 분리:** Vue Flow **`node_id`** 와 `anchor_id`의 연결은 **오직 본 테이블**에만 둔다. 플랫폼 공통 지식 계층(`_KNOWLEDGE`의 `nexa_knowledge_references` 등)과 **역할이 섞이지 않게** 하여, 공통 스키마의 순수성과 Nexion UI 전용 메타의 **논리적 분리**를 유지한다.
 - **Late Anchoring:** `status`(`linked`, `orphaned`, `archived`)로 **설계(노드) 선행 → 이후 실제 자산 연결** 흐름을 데이터 레벨에서 안정적으로 표현한다. 연결 전·해제 후 상태가 쿼리·UI에서 일관되게 드러나야 한다.
 
 | 컬럼명             | 타입(권장)  | NULL     | 기본값               | 제약·인덱스                                   | 설명                                     |
 | ------------------ | ----------- | -------- | -------------------- | --------------------------------------------- | ---------------------------------------- |
 | `doc_node_link_id` | UUID        | NOT NULL | `uuid_generate_v7()` | PK                                            | 연결 행 식별자                           |
 | `project_id`       | UUID        | NOT NULL | —                    | 인덱스                                        | 프로젝트                                 |
-| `doc_anchor`       | UUID        | NOT NULL | —                    | 인덱스                                        | 연결 문서 앵커                           |
+| `anchor_id`        | UUID        | NOT NULL | —                    | 인덱스                                        | 연결 문서 앵커                           |
 | `node_id`          | UUID        | NULL     | —                    | 부분 인덱스(linked)                           | Vue Flow 노드 ID                         |
 | `asset_type`       | VARCHAR(30) | NOT NULL | `document`           | 인덱스                                        | `document` / `image` / `media` / `other` |
 | `status`           | VARCHAR(20) | NOT NULL | `linked`             | `chk_nxn_doc_node_status` + 연결 일관성 CHECK | 아래 열거 설명 참조                      |
@@ -363,7 +363,7 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 
 **M-LINK-1:** `link_id`는 프로젝트 안에서 카드 식별자로 유지한다. 활성 행 기준 유일성은 DDL의 부분 유니크로 보강할 수 있다.
 
-**M-LINK-2:** 파일명·제목은 바꿀 수 있으나 `doc_anchor`는 불변으로 둔다.
+**M-LINK-2:** 파일명·제목은 바꿀 수 있으나 `anchor_id`는 불변으로 둔다.
 
 **M-LINK-3:** `logical_path`가 바뀌면 `physical_path`와 동기화 로그를 함께 갱신한다.
 
@@ -371,7 +371,7 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 
 **M-LINK-5:** `parent_path_id`가 NULL이 아니면 상위 행과 **동일 `project_id`**(또는 문서화된 루트 예외)를 만족해야 하고, `depth`는 상위 `depth + 1`과 맞춘다. 순환 참조는 앱·제약으로 금지한다.
 
-**M-LINK-6:** `anchor_domain`·`anchor_type`·`doc_anchor` 조합은 **같은 실체를 가리키는 중복 행**을 만들지 않도록 유니크 또는 운영 검증으로 관리한다(정책은 통합 SPEC에 둔다).
+**M-LINK-6:** `anchor_domain`·`anchor_type`·`anchor_id` 조합은 **같은 실체를 가리키는 중복 행**을 만들지 않도록 유니크 또는 운영 검증으로 관리한다(정책은 통합 SPEC에 둔다).
 
 ---
 
@@ -399,8 +399,8 @@ DDL에는 위 일관성을 `chk_nxn_doc_node_linked_consistency` CHECK로 구현
 
 ### 10.2 인덱스: 필수(최소) vs 선택(운영)
 
-- **최소(테이블과 함께 두는 것):** DDL §1에 이미 포함된 유니크·조회용 인덱스(예: 논리 경로 유니크, `doc_anchor` 조회, Nexion 링크의 프로젝트·상태·앵커 인덱스)를 말한다. 통합 DDL로 옮길 때도 이 층은 보통 유지한다.
-- **선택(DDL §3):** 프로젝트+상태 목록, 물리 경로 역조회, 활성 `link_id` 부분 유니크, 해시 조회, 동기화 시각 정렬, 이상 상태 부분 인덱스, `doc_anchor`당 1행 정책 시 유니크, `node_id` 역조회(linked), 프로젝트+자산 타입, **`doc_sync_state`의 `responsible_domain`·`sync_policy_id`·`sync_priority_cached` 스케줄 스윕**, **`residency`의 `project_id`·`swap_policy_id`·`last_consistency_check_at` 스윕** 등이다. **성능·운영 요구가 생긴 뒤** `EXPLAIN` 근거로 추가한다.
+- **최소(테이블과 함께 두는 것):** DDL §1에 이미 포함된 유니크·조회용 인덱스(예: 논리 경로 유니크, `anchor_id` 조회, Nexion 링크의 프로젝트·상태·앵커 인덱스)를 말한다. 통합 DDL로 옮길 때도 이 층은 보통 유지한다.
+- **선택(DDL §3):** 프로젝트+상태 목록, 물리 경로 역조회, 활성 `link_id` 부분 유니크, 해시 조회, 동기화 시각 정렬, 이상 상태 부분 인덱스, `anchor_id`당 1행 정책 시 유니크, `node_id` 역조회(linked), 프로젝트+자산 타입, **`doc_sync_state`의 `responsible_domain`·`sync_policy_id`·`sync_priority_cached` 스케줄 스윕**, **`residency`의 `project_id`·`swap_policy_id`·`last_consistency_check_at` 스윕** 등이다. **성능·운영 요구가 생긴 뒤** `EXPLAIN` 근거로 추가한다.
 
 ### 10.3 소유권·공유 범위 (결정)
 

@@ -138,7 +138,7 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 
 - 원본 기획 문서 저장소: `NEXA-Documentation/`
 - 플랫폼 내부 운영/가이드 문서: `NEXA-Platform/docs/`
-- Crawler는 원본 문서를 스캔해 `doc_ref_path`, `doc_anchor`, `source_hash`를 갱신
+- Crawler는 원본 문서를 스캔해 `doc_ref_path`, `anchor_id`, `source_hash`를 갱신
 - 파일명 규칙 파서가 `context_code`, `doctype_code`, `version_label`, `prefix_flag`를 추출해 저장
 
 ---
@@ -407,7 +407,7 @@ src/
 
 ### 3.2 시스템 내부 참조 방식
 
-- Crawler는 원본 문서 저장소를 스캔하여 `doc_ref_path`, `doc_anchor`, `source_hash`를 갱신한다.
+- Crawler는 원본 문서 저장소를 스캔하여 `doc_ref_path`, `anchor_id`, `source_hash`를 갱신한다.
 - 파일명 규칙 파서는 `context_code`, `doctype_code`, `version_label`, `prefix_flag`를 함께 추출한다.
 - DB(`nexa_knowledge_references`)에는 원본 문서 상대 경로와 코드 기반 분류 메타데이터를 함께 저장한다.
 - `DependencyMap.vue`는 `Doc -> Term -> Capability` 관계를 시각화한다.
@@ -424,7 +424,7 @@ src/
 
 - `Input -> English IR -> SNT/IND/EFF`
 
-**논리 경로 인덱스:** `nexa_knowledge_traceability_paths`는 **Inode식** `logical_path` ↔ **`doc_anchor`** 매핑으로, NEXU 캔버스·API가 **경로 문자열**로 족보를 열 때 사용한다. **편집·동기화**는 `admin`의 `KnowledgeTraceabilityPathsView.vue`, **읽기·탐색**은 `help`의 `TraceabilityView.vue` 등과 역할을 나눈다.
+**논리 경로 인덱스:** `nexa_knowledge_traceability_paths`는 **Inode식** `logical_path` ↔ **`anchor_id`** 매핑으로, NEXU 캔버스·API가 **경로 문자열**로 족보를 열 때 사용한다. **편집·동기화**는 `admin`의 `KnowledgeTraceabilityPathsView.vue`, **읽기·탐색**은 `help`의 `TraceabilityView.vue` 등과 역할을 나눈다.
 
 실행 원칙:
 
@@ -445,7 +445,7 @@ src/
 
 - `frame`/`engines`/`system`/`domains` 책임 경계가 코드에 반영됨
 - 원본 문서 경로가 `NEXA-Documentation/` 기준으로 통일됨
-- Crawler가 `doc_ref_path`, `doc_anchor`, `source_hash`를 갱신함
+- Crawler가 `doc_ref_path`, `anchor_id`, `source_hash`를 갱신함
 - `DependencyMap`에서 Doc-Term-Capability 시각화가 동작함
 - 라우팅 상세는 별도 문서와 중복 없이 참조 링크로 연결됨
 

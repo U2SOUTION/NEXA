@@ -64,7 +64,7 @@ AI 모델은 **프롬프트 길이·추론 시간·검색/호출 횟수**처럼 
 | `capability_id`    | VARCHAR(120) | NOT NULL                          | 기능 ID (`nexa.*`)           |
 | `source_filename`  | VARCHAR(255) | NULL                              | 원본 파일명                  |
 | `doc_ref_path`     | VARCHAR(255) | NULL                              | 문서 경로                    |
-| `doc_anchor`       | VARCHAR(100) | NULL                              | 문서 앵커                    |
+| `anchor_id`        | VARCHAR(100) | NULL                              | 문서 앵커                    |
 | `source_hash`      | VARCHAR(64)  | NULL                              | 문서 해시                    |
 | `context_code`     | VARCHAR(20)  | NULL                              | Context 코드 (`SYS`, `AIS`)  |
 | `doctype_code`     | VARCHAR(20)  | NULL                              | DocType 코드 (`RFC`, `ARCH`) |
@@ -185,26 +185,26 @@ AI 모델은 **프롬프트 길이·추론 시간·검색/호출 횟수**처럼 
 >
 > **진실원 분리(고정):** 외부 파일의 **실종·유예·삭제** 판정과 UI(Jitter 등) 입력은 **`nexa_knowledge_traceability_paths` + `[NXN] [SCHM]` §4.4.1 상태 머신**만 따른다. 본 테이블은 **스캔 잡·해시·충돌·I/O**의 **보조(헬스) 원장**이다. `last_sync_status='missing'`은 “이번 프로브에서 미발견” 수준의 운영 신호일 뿐, **유예 중인지·삭제 확정인지는 `traceability_paths.status`·`missing_since`가 단일 기준**이다.
 
-| 컬럼명                 | 타입         | 제약                                     | 설명                                                                                                         |
-| :--------------------- | :----------- | :--------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| `sync_id`              | UUID         | PK, DEFAULT uuid_v7()                    | 동기화 행 ID                                                                                                 |
-| `project_id`           | UUID         | NOT NULL                                 | 테넌트/프로젝트                                                                                              |
-| `doc_anchor`           | UUID         | NOT NULL, UNIQUE(project_id, doc_anchor) | 대상 범용 앵커(문서·가상 자산 공통)                                                                          |
-| `responsible_domain`   | VARCHAR(40)  | NOT NULL, DEFAULT `nexion`               | 동기화 책임·정책 배정 주도 도메인 코드                                                                       |
-| `last_writer_domain`   | VARCHAR(40)  | NULL                                     | 마지막으로 본 행을 갱신한 도메인·잡 식별자                                                                   |
-| `anchor_domain`        | VARCHAR(30)  | NULL                                     | `nexa_knowledge_traceability_paths.anchor_domain`과 동일 해석이면 조인 없이 라우팅                           |
-| `sync_asset_kind`      | VARCHAR(40)  | NOT NULL, DEFAULT `document_file`        | 자산·동기화 분기(파일/마크다운/가상 DB 행 등)                                                                |
-| `hash_profile`         | VARCHAR(40)  | NULL                                     | 해시·동등성 전략(`content_sha256`, `mtime_size` 등)                                                          |
-| `sync_policy_id`       | UUID         | NULL                                     | 주기·재시도·우선순위 등 정책 원장 FK(선택)                                                                   |
-| `sync_priority_cached` | SMALLINT     | NULL                                     | 스케줄러 큐용 우선순위 캐시                                                                                  |
-| `last_sync_status`     | VARCHAR(30)  | NOT NULL, CHECK                          | `ok` / `changed` / `missing` / `conflict` / `error` — `missing`은 §4.4.1과 별개의 **보조 프로브 신호**(§6.2) |
-| `lock_metadata`        | JSONB        | NOT NULL, DEFAULT `{}`                   | 논리 잠금·충돌 당사자 등                                                                                     |
-| `last_error_code`      | VARCHAR(80)  | NULL                                     | 앱/크롤러 오류 코드                                                                                          |
-| `prev_source_hash`     | VARCHAR(128) | NULL                                     | 이전 스캔 해시                                                                                               |
-| `curr_source_hash`     | VARCHAR(128) | NULL                                     | 현재 스캔 해시                                                                                               |
-| `last_scanned_path`    | TEXT         | NULL                                     | 마지막으로 본 물리 경로 또는 가상 자산 URI                                                                   |
-| `last_synced_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()                  | 마지막 동기화(잡 완료) 시각                                                                                  |
-| `updated_at`           | TIMESTAMPTZ  | NOT NULL, DEFAULT now()                  | 행 수정 시각                                                                                                 |
+| 컬럼명                 | 타입         | 제약                                    | 설명                                                                                                         |
+| :--------------------- | :----------- | :-------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
+| `sync_id`              | UUID         | PK, DEFAULT uuid_v7()                   | 동기화 행 ID                                                                                                 |
+| `project_id`           | UUID         | NOT NULL                                | 테넌트/프로젝트                                                                                              |
+| `anchor_id`            | UUID         | NOT NULL, UNIQUE(project_id, anchor_id) | 대상 범용 앵커(문서·가상 자산 공통)                                                                          |
+| `responsible_domain`   | VARCHAR(40)  | NOT NULL, DEFAULT `nexion`              | 동기화 책임·정책 배정 주도 도메인 코드                                                                       |
+| `last_writer_domain`   | VARCHAR(40)  | NULL                                    | 마지막으로 본 행을 갱신한 도메인·잡 식별자                                                                   |
+| `anchor_domain`        | VARCHAR(30)  | NULL                                    | `nexa_knowledge_traceability_paths.anchor_domain`과 동일 해석이면 조인 없이 라우팅                           |
+| `sync_asset_kind`      | VARCHAR(40)  | NOT NULL, DEFAULT `document_file`       | 자산·동기화 분기(파일/마크다운/가상 DB 행 등)                                                                |
+| `hash_profile`         | VARCHAR(40)  | NULL                                    | 해시·동등성 전략(`content_sha256`, `mtime_size` 등)                                                          |
+| `sync_policy_id`       | UUID         | NULL                                    | 주기·재시도·우선순위 등 정책 원장 FK(선택)                                                                   |
+| `sync_priority_cached` | SMALLINT     | NULL                                    | 스케줄러 큐용 우선순위 캐시                                                                                  |
+| `last_sync_status`     | VARCHAR(30)  | NOT NULL, CHECK                         | `ok` / `changed` / `missing` / `conflict` / `error` — `missing`은 §4.4.1과 별개의 **보조 프로브 신호**(§6.2) |
+| `lock_metadata`        | JSONB        | NOT NULL, DEFAULT `{}`                  | 논리 잠금·충돌 당사자 등                                                                                     |
+| `last_error_code`      | VARCHAR(80)  | NULL                                    | 앱/크롤러 오류 코드                                                                                          |
+| `prev_source_hash`     | VARCHAR(128) | NULL                                    | 이전 스캔 해시                                                                                               |
+| `curr_source_hash`     | VARCHAR(128) | NULL                                    | 현재 스캔 해시                                                                                               |
+| `last_scanned_path`    | TEXT         | NULL                                    | 마지막으로 본 물리 경로 또는 가상 자산 URI                                                                   |
+| `last_synced_at`       | TIMESTAMPTZ  | NOT NULL, DEFAULT now()                 | 마지막 동기화(잡 완료) 시각                                                                                  |
+| `updated_at`           | TIMESTAMPTZ  | NOT NULL, DEFAULT now()                 | 행 수정 시각                                                                                                 |
 
 운영·이벤트 규약(요약):
 
@@ -254,7 +254,7 @@ AI 모델은 **프롬프트 길이·추론 시간·검색/호출 횟수**처럼 
 | `reference_id` | UUID         | FK -> references.id, NOT NULL | 문서 참조 레코드                       |
 | `asset_id`     | UUID         | FK -> project_assets.asset_id | 자산 원장 ID                           |
 | `usage_type`   | VARCHAR(20)  | NOT NULL                      | embedded/attachment/citation/thumbnail |
-| `doc_anchor`   | VARCHAR(100) | NULL                          | 문서 내 첨부 앵커                      |
+| `anchor_id`    | VARCHAR(100) | NULL                          | 문서 내 첨부 앵커                      |
 | `caption`      | VARCHAR(255) | NULL                          | 캡션                                   |
 | `sort_order`   | INTEGER      | NOT NULL, DEFAULT 0           | 정렬 순서                              |
 | `is_primary`   | BOOLEAN      | NOT NULL, DEFAULT FALSE       | 대표 자산 여부                         |
@@ -491,13 +491,13 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 
 #### 역할
 
-사용자·캔버스·API가 **파일 시스템 경로처럼** 익숙한 문자열로 족보를 탐색할 수 있게 하되, 물리 스키마는 여전히 **UUID·시계열**이다. 본 테이블은 **Inode 역할**: `logical_path` ↔ **`doc_anchor`** 매핑과, 트리 탐색을 위한 `parent_path_id`·`depth`를 제공한다.
+사용자·캔버스·API가 **파일 시스템 경로처럼** 익숙한 문자열로 족보를 탐색할 수 있게 하되, 물리 스키마는 여전히 **UUID·시계열**이다. 본 테이블은 **Inode 역할**: `logical_path` ↔ **`anchor_id`** 매핑과, 트리 탐색을 위한 `parent_path_id`·`depth`를 제공한다.
 
 #### 경로 규칙 (권장)
 
 - 선행 `/` 통일, 대소문자 민감도 정책을 팀에서 한 가지로 고정.
 - **버전**은 경로에 넣거나 `metadata.version`으로 분리(중복 경로 방지).
-- `anchor_domain='orchestration'`일 때 `doc_anchor`는 **다른 DB의 `packet_id` 등**을 가리킬 수 있으며, FK는 걸지 않거나 **느슨한 참조**로만 문서화한다.
+- `anchor_domain='orchestration'`일 때 `anchor_id`는 **다른 DB의 `packet_id` 등**을 가리킬 수 있으며, FK는 걸지 않거나 **느슨한 참조**로만 문서화한다.
 
 #### 캔버스·NIXIE
 
@@ -514,7 +514,7 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 | `logical_path`   | TEXT        | NOT NULL                | 유일 논리 경로(슬래시 구분)                  |
 | `anchor_domain`  | VARCHAR(30) | NOT NULL                | `knowledge` / `orchestration` 등             |
 | `anchor_type`    | VARCHAR(40) | NOT NULL                | `term` / `reference` / `execution_packet` 등 |
-| `doc_anchor`     | UUID        | NOT NULL                | 대상 앵커 UUID(도메인별 해석)                |
+| `anchor_id`      | UUID        | NOT NULL                | 대상 앵커 UUID(도메인별 해석)                |
 | `parent_path_id` | UUID        | NULL, FK -> path_id     | 트리 상위(선택)                              |
 | `depth`          | SMALLINT    | NOT NULL, DEFAULT 0     | 깊이                                         |
 | `metadata`       | JSONB       | NOT NULL, DEFAULT '{}'  | MIME·아이콘·캔버스 힌트                      |
@@ -523,7 +523,7 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 유니크·인덱스(권장):
 
 - `UNIQUE(logical_path)` — 경로 단일 앵커
-- `(anchor_domain, anchor_type, doc_anchor)` — 역조회(앵커→경로)
+- `(anchor_domain, anchor_type, anchor_id)` — 역조회(앵커→경로)
 
 ---
 
@@ -704,30 +704,30 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 
 ### 5.2 보강 테이블 정합성
 
-| 테이블                                         | 정합 상태                           | 비고                                                                                                       |
-| :--------------------------------------------- | :---------------------------------- | :--------------------------------------------------------------------------------------------------------- |
-| `nexa_knowledge_distribution_profiles`         | 일치                                | 프로파일명 CHECK(`Nano/Micro/Kinetic/Zenith`) 반영                                                         |
-| `nexa_hardware_profiles`                       | 일치                                | COLD/WARM/HOT 하드웨어 제약 반영                                                                           |
-| `nexa_knowledge_distribution_bindings`         | 일치                                | 지능 위계-하드웨어 매핑 제약 반영                                                                          |
-| `nexa_knowledge_doc_sync_state`                | 일치                                | Nexion §6·SSOT: `sync_id`/`doc_anchor`/`last_synced_at`·부분 인덱스(`idx_doc_sync_project_status` 등) 반영 |
-| `nexa_knowledge_change_requests`               | 일치                                | `is_pending`, `review_note`, 상태 CHECK 반영                                                               |
-| `nexa_knowledge_ref_rules`                     | 일치                                | 활성 규칙 단일화 인덱스 반영                                                                               |
-| `nexa_knowledge_reference_assets`              | 일치                                | `project_assets` FK + usage_type CHECK 반영                                                                |
-| `nexa_knowledge_error_patterns`                | 일치                                | 오류 패턴 집계 + 검토 상태 워크플로 반영                                                                   |
-| `nexa_knowledge_response_policies`             | 일치                                | ES/VI 임계값 기반 출력 정책 반영                                                                           |
-| `nexa_self_profiles`                           | 일치                                | 사용자별 Self 프로필 분리 반영                                                                             |
-| `nexa_self_facets`                             | 일치                                | Multi-faceted Self 축 반영                                                                                 |
-| `nexa_self_states`                             | 일치                                | `Empty` 포함 상태 모델 반영                                                                                |
-| `nexa_self_explosions`                         | 일치                                | 역방향 분해 맵(Explosion) 반영                                                                             |
-| `nexa_self_knowledge_map`                      | 일치                                | Self-knowledge 브리지 반영                                                                                 |
-| `nexa_self_capability_links`                   | 일치                                | Self-Capability 연결 반영                                                                                  |
-| `nexa_knowledge_residency`                     | SSOT DDL 반영 (통합 DDL `4-B` 블록) | VOID L1/L2/L3·스왑 힌트 (`§2.9`)                                                                           |
-| `nexa_knowledge_context_paging_sets`           | SSOT DDL 반영 (통합 DDL `4-B` 블록) | Context Paging (`§2.10`)                                                                                   |
-| `nexa_knowledge_capability_drivers`            | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 드라이버 매니페스트 (`§2.11`)                                                                              |
-| `nexa_knowledge_traceability_paths`            | SSOT DDL 반영 (통합 DDL `4-B` 블록) | N-PATH 경로 인덱스 (`§2.12`)                                                                               |
-| `nexa_knowledge_kernel_events`                 | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 인터럽트·선점 감사 (`§2.13`)                                                                               |
-| `nexa_knowledge_health_signals`                | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 헬스·Jitter 집계 (`§2.14`)                                                                                 |
-| `nexa_knowledge_response_policies` (보강 컬럼) | SSOT DDL 반영 (`ALTER` + CHECK)     | `coil_weight_override` 등 (`§2.15`)                                                                        |
+| 테이블                                         | 정합 상태                           | 비고                                                                                                      |
+| :--------------------------------------------- | :---------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `nexa_knowledge_distribution_profiles`         | 일치                                | 프로파일명 CHECK(`Nano/Micro/Kinetic/Zenith`) 반영                                                        |
+| `nexa_hardware_profiles`                       | 일치                                | COLD/WARM/HOT 하드웨어 제약 반영                                                                          |
+| `nexa_knowledge_distribution_bindings`         | 일치                                | 지능 위계-하드웨어 매핑 제약 반영                                                                         |
+| `nexa_knowledge_doc_sync_state`                | 일치                                | Nexion §6·SSOT: `sync_id`/`anchor_id`/`last_synced_at`·부분 인덱스(`idx_doc_sync_project_status` 등) 반영 |
+| `nexa_knowledge_change_requests`               | 일치                                | `is_pending`, `review_note`, 상태 CHECK 반영                                                              |
+| `nexa_knowledge_ref_rules`                     | 일치                                | 활성 규칙 단일화 인덱스 반영                                                                              |
+| `nexa_knowledge_reference_assets`              | 일치                                | `project_assets` FK + usage_type CHECK 반영                                                               |
+| `nexa_knowledge_error_patterns`                | 일치                                | 오류 패턴 집계 + 검토 상태 워크플로 반영                                                                  |
+| `nexa_knowledge_response_policies`             | 일치                                | ES/VI 임계값 기반 출력 정책 반영                                                                          |
+| `nexa_self_profiles`                           | 일치                                | 사용자별 Self 프로필 분리 반영                                                                            |
+| `nexa_self_facets`                             | 일치                                | Multi-faceted Self 축 반영                                                                                |
+| `nexa_self_states`                             | 일치                                | `Empty` 포함 상태 모델 반영                                                                               |
+| `nexa_self_explosions`                         | 일치                                | 역방향 분해 맵(Explosion) 반영                                                                            |
+| `nexa_self_knowledge_map`                      | 일치                                | Self-knowledge 브리지 반영                                                                                |
+| `nexa_self_capability_links`                   | 일치                                | Self-Capability 연결 반영                                                                                 |
+| `nexa_knowledge_residency`                     | SSOT DDL 반영 (통합 DDL `4-B` 블록) | VOID L1/L2/L3·스왑 힌트 (`§2.9`)                                                                          |
+| `nexa_knowledge_context_paging_sets`           | SSOT DDL 반영 (통합 DDL `4-B` 블록) | Context Paging (`§2.10`)                                                                                  |
+| `nexa_knowledge_capability_drivers`            | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 드라이버 매니페스트 (`§2.11`)                                                                             |
+| `nexa_knowledge_traceability_paths`            | SSOT DDL 반영 (통합 DDL `4-B` 블록) | N-PATH 경로 인덱스 (`§2.12`)                                                                              |
+| `nexa_knowledge_kernel_events`                 | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 인터럽트·선점 감사 (`§2.13`)                                                                              |
+| `nexa_knowledge_health_signals`                | SSOT DDL 반영 (통합 DDL `4-B` 블록) | 헬스·Jitter 집계 (`§2.14`)                                                                                |
+| `nexa_knowledge_response_policies` (보강 컬럼) | SSOT DDL 반영 (`ALTER` + CHECK)     | `coil_weight_override` 등 (`§2.15`)                                                                       |
 
 ### 5.3 제약/인덱스 정합성
 
