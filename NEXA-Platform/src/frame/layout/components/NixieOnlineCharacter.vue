@@ -4,16 +4,7 @@
   명세: docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md
 -->
 <template>
-  <div
-    class="nixie-online"
-    role="img"
-    :aria-label="ariaLabel"
-    data-nixie-mode="online-gsap"
-    :class="{ 'nixie-online--dragging': dragging }"
-    :style="positionStyle"
-    @mousedown="onPointerDown"
-    @touchstart="onTouchStart"
-  >
+  <div class="nixie-online" role="img" :aria-label="ariaLabel" data-nixie-mode="online-gsap" :class="{ 'nixie-online--dragging': dragging }" :style="positionStyle" @mousedown="onPointerDown" @touchstart="onTouchStart">
     <div ref="tiltRef" class="nixie-online__tilt">
       <div
         ref="hudRef"
@@ -24,8 +15,10 @@
           'nixie-online__hud--void': snapshot.how_state === 'VOID',
         }"
       >
-        <div ref="gridRef" class="nixie-online__grid" aria-hidden="true">
-          <span v-for="n in DOT_COUNT" :key="n" class="nixie-online__dot" />
+        <div class="nixie-online__grid-mask">
+          <div ref="gridRef" class="nixie-online__grid" aria-hidden="true">
+            <span v-for="i in dotIndices" :key="i" class="nixie-online__dot" />
+          </div>
         </div>
       </div>
     </div>
@@ -33,6 +26,7 @@
 </template>
 
 <script setup>
+import { mapUppercaseTextToHudDots } from '@system/nixie/nixieUppercaseDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { storeToRefs } from 'pinia'
 import gsap from 'gsap'
@@ -41,6 +35,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 const COLS = 18
 const ROWS = 6
 const DOT_COUNT = COLS * ROWS
+/** Vue `v-for="n in NUMBER"`는 변수일 때 범위 반복이 안 될 수 있어 인덱스 배열로 고정 */
+const dotIndices = Array.from({ length: DOT_COUNT }, (_, i) => i)
 
 const W = 180
 const H = 60
@@ -126,6 +122,14 @@ function getDots() {
   return Array.from(root.querySelectorAll('.nixie-online__dot'))
 }
 
+/** 시뮴 텍스트가 있으면 길이 DOT_COUNT 의 on/off 마스크, 없으면 null */
+function getDemoTextMask() {
+  const raw = snapshot.value.demo_hud_text ?? ''
+  if (!String(raw).trim()) return null
+  const scroll = Number(snapshot.value.demo_hud_scroll_offset ?? 0)
+  return mapUppercaseTextToHudDots(raw, Number.isFinite(scroll) ? scroll : 0)
+}
+
 const isLowConfidence = computed(() => snapshot.value.confidence_score < snapshot.value.user_defined_threshold)
 
 const isReddish = computed(() => {
@@ -154,7 +158,49 @@ function syncLumina() {
   const dots = getDots()
   if (!dots.length) return
 
+  /* 이전 타임라인에서 남은 inline opacity 가 CSS(특히 스코프·모디파이어)와 엇갈리지 않게 초기화 */
+  gsap.set(dots, { clearProps: 'opacity' })
+
+  const mask = getDemoTextMask()
   const ent = snapshot.value.ui_entropy_mode
+
+  if (mask) {
+    const offDots = dots.filter((_, i) => !mask[i])
+    const litDots = dots.filter((_, i) => mask[i])
+    gsap.set(offDots, { opacity: 0.06 })
+    if (!litDots.length) return
+
+    if (ent === 'static') {
+      gsap.set(litDots, { opacity: 0.55 })
+      return
+    }
+    if (ent === 'minimal') {
+      gsap.set(litDots, { opacity: 0.58 })
+      luminaTl = gsap.timeline({ repeat: -1 })
+      luminaTl.to(litDots, { opacity: 0.48, duration: 1.2, ease: 'sine.inOut' })
+      luminaTl.to(litDots, { opacity: 0.72, duration: 1.2, ease: 'sine.inOut' })
+      return
+    }
+
+    const pulse = snapshot.value.who_pulse
+    const dur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
+    gsap.set(litDots, { opacity: 0.45 })
+    luminaTl = gsap.timeline({ repeat: -1 })
+    luminaTl.to(litDots, {
+      opacity: 0.92,
+      duration: dur * 0.45,
+      stagger: { each: 0.015, from: 'random' },
+      ease: 'sine.inOut',
+    })
+    luminaTl.to(litDots, {
+      opacity: 0.38,
+      duration: dur * 0.55,
+      stagger: { each: 0.012, from: 'random' },
+      ease: 'sine.inOut',
+    })
+    return
+  }
+
   if (ent === 'static') {
     gsap.set(dots, { opacity: 0.38 })
     return
@@ -195,20 +241,23 @@ function syncJitter() {
   if (ent !== 'full') return
 
   const s = snapshot.value
-  const need =
-    s.confidence_score < s.user_defined_threshold || s.how_state === 'STUCK' || s.who_pulse === 'ASK'
+  const need = s.confidence_score < s.user_defined_threshold || s.how_state === 'STUCK' || s.who_pulse === 'ASK'
 
   if (!need) return
 
+  const mask = getDemoTextMask()
+  const targets = mask ? dots.filter((_, i) => mask[i]) : dots
+  if (!targets.length) return
+
   const tl = gsap.timeline({ repeat: -1, repeatRefresh: true })
-  tl.to(dots, {
+  tl.to(targets, {
     x: () => gsap.utils.random(-2.2, 2.2),
     y: () => gsap.utils.random(-2.2, 2.2),
     duration: 0.12,
     stagger: { each: 0.006 },
     ease: 'sine.inOut',
   })
-  tl.to(dots, {
+  tl.to(targets, {
     x: 0,
     y: 0,
     duration: 0.14,
@@ -227,8 +276,7 @@ function syncConfused() {
   if (!el) return
 
   const s = snapshot.value
-  const on =
-    s.warn_token === 'ADAPTER_TIMEOUT' || (s.how_state === 'STUCK' && isLowConfidence.value)
+  const on = s.warn_token === 'ADAPTER_TIMEOUT' || (s.how_state === 'STUCK' && isLowConfidence.value)
 
   if (!on) {
     confusedTween = gsap.to(el, { rotation: 0, duration: 0.35, ease: 'power2.out' })
@@ -277,6 +325,13 @@ watch(
     nextTick(syncAllVisuals)
   },
   { deep: true },
+)
+
+watch(
+  () => [snapshot.value.demo_hud_text ?? '', snapshot.value.demo_hud_scroll_offset ?? 0],
+  () => {
+    nextTick(syncAllVisuals)
+  },
 )
 
 watch(nebulaPulse, () => {
@@ -386,6 +441,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
+/* 온라인 닉시 캐릭터 컨테이너 스타일 */
 .nixie-online {
   position: fixed;
   z-index: 5000;
@@ -398,16 +454,19 @@ onBeforeUnmount(() => {
   cursor: grab;
 }
 
+/* 드래그 중 커서 스타일 */
 .nixie-online--dragging {
   cursor: grabbing;
 }
 
+/* 온라인 닉시 캐릭터 틸트 스타일 */
 .nixie-online__tilt {
   width: 100%;
   height: 100%;
   transform-origin: 50% 60%;
 }
 
+/* 온라인 닉시 캐릭터 컨테이너 스타일 */
 .nixie-online__hud {
   width: 100%;
   height: 100%;
@@ -419,14 +478,30 @@ onBeforeUnmount(() => {
     0 4px 16px rgba(0, 0, 0, 0.12),
     inset 0 0 0 1px rgba(255, 180, 80, 0.25);
   overflow: hidden;
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
 
+/* 코너 패딩이 시각적으로 균일해지도록 그리드를 외곽 라운드보다 안쪽에서 한 번 더 클립 */
+.nixie-online__grid-mask {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  margin: 0.5px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* 가상 실행 고스트 레이어 스타일 */
 .nixie-online__hud--virtual {
   border-style: dashed;
   opacity: 0.92;
 }
 
+/* 빨간색 경고 도트 스타일 */
 .nixie-online__hud--reddish {
   border-color: rgba(220, 80, 60, 0.65);
   box-shadow:
@@ -434,30 +509,38 @@ onBeforeUnmount(() => {
     inset 0 0 0 1px rgba(255, 120, 80, 0.45);
 }
 
+/* 빈 영역 도트 스타일 */
 .nixie-online__hud--void {
   filter: saturate(0.65);
 }
 
+/* 도트 그리드 스타일 */
 .nixie-online__grid {
   display: grid;
   grid-template-columns: repeat(18, 1fr);
   grid-template-rows: repeat(6, 1fr);
+  /* 1px gap은 DPR/서브픽셀에서 뭉개져 한 덩어리처럼 보일 수 있음 → 2px로 유지 */
   gap: 1px;
   width: 100%;
   height: 100%;
-  padding: 3px;
+  padding: 2px;
   box-sizing: border-box;
 }
 
+/* 도트 스타일 */
 .nixie-online__dot {
   display: block;
+  box-sizing: border-box;
   border-radius: 1px;
-  background: linear-gradient(180deg, #ffb347 0%, #ff8c00 55%, #c65d00 100%);
-  box-shadow: 0 0 3px rgba(255, 160, 60, 0.55);
+  background: linear-gradient(180deg, #ffb347 0%, #f38807 55%, #dc8437 100%);
+  box-shadow:
+    0 0 3px rgba(255, 160, 60, 0.55),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.22);
   opacity: 0.45;
   will-change: transform, opacity;
 }
 
+/* 가상 실행 고스트 레이어 도트 스타일 */
 .nixie-online__hud--virtual .nixie-online__dot {
   opacity: 0.38;
   box-shadow: none;

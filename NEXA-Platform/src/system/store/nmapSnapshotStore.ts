@@ -1,3 +1,4 @@
+import { getMaxGlyphSlotsForGrid, normalizeDemoHudText } from '@system/nixie/nixieUppercaseDotMap'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
@@ -15,6 +16,10 @@ export type NmapSnapshot = {
   is_virtual: boolean
   source_shell_id: string | null
   user_defined_threshold: number
+  /** 시뮬: HUD 도트 텍스트(대문자·스페이스, 길이 제한 없음). 빈 문자열이면 기본 루미나만 */
+  demo_hud_text: string
+  /** 긴 문자열 좌→우 흐름용: 정규화된 문자열 기준 시작 글자 인덱스 */
+  demo_hud_scroll_offset: number
 }
 
 const LOCAL_SHELL_ID = 'local'
@@ -30,6 +35,8 @@ function defaultSnapshot(): NmapSnapshot {
     is_virtual: false,
     source_shell_id: LOCAL_SHELL_ID,
     user_defined_threshold: 95,
+    demo_hud_text: '',
+    demo_hud_scroll_offset: 0,
   }
 }
 
@@ -74,6 +81,23 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     applyPatch({ user_defined_threshold: Math.max(0, Math.min(100, user_defined_threshold)) })
   }
 
+  function setDemoHudText(raw: string | null | undefined) {
+    const demo_hud_text = normalizeDemoHudText(String(raw ?? ''))
+    const maxSlots = getMaxGlyphSlotsForGrid()
+    const maxOff = Math.max(0, demo_hud_text.length - maxSlots)
+    const prev = snapshot.value.demo_hud_scroll_offset ?? 0
+    const demo_hud_scroll_offset = Math.min(Math.max(0, Math.floor(prev)), maxOff)
+    applyPatch({ demo_hud_text, demo_hud_scroll_offset })
+  }
+
+  function setDemoHudScrollOffset(offset: number) {
+    const full = normalizeDemoHudText(snapshot.value.demo_hud_text)
+    const maxSlots = getMaxGlyphSlotsForGrid()
+    const maxOff = Math.max(0, full.length - maxSlots)
+    const o = Math.max(0, Math.min(Math.floor(offset), maxOff))
+    applyPatch({ demo_hud_scroll_offset: o })
+  }
+
   function resetToDefaults() {
     snapshot.value = defaultSnapshot()
     nebulaPulse.value = 0
@@ -102,6 +126,8 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     setSourceShellId,
     setUserDefinedThreshold,
     resetToDefaults,
+    setDemoHudText,
+    setDemoHudScrollOffset,
     simulateNebulaInflux,
     clearNebulaToLocal,
   }

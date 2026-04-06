@@ -68,13 +68,32 @@
     </div>
 
     <q-separator class="q-my-sm" />
+
+    <div class="text-overline q-mb-xs">HUD 텍스트 시뮬 (A–Z·스페이스, 길이 제한 없음)</div>
+    <div class="text-caption text-grey-6 q-mb-xs">반영: 필드 밖 클릭(포커스 아웃) 또는 Enter. 한글·숫자는 제거되며 A–Z만 HUD에 그려짐. 한 번에 보이는 글자 수는 HUD 폭(현재 3글자).</div>
+    <q-input
+      v-model="hudDraft"
+      dense
+      outlined
+      class="q-mb-xs"
+      placeholder="예: NEXA MAP (포커스 아웃 또는 Enter 로 HUD 반영)"
+      @focus="hudInputFocused = true"
+      @blur="onHudBlur"
+      @keydown.enter.prevent="commitHudText"
+    />
+    <div class="row q-col-gutter-xs q-mb-sm">
+      <q-btn dense flat size="sm" label="텍스트 지우기" @click="clearHudText" />
+    </div>
+
+    <q-separator class="q-my-sm" />
     <q-btn dense flat color="primary" size="sm" label="스냅샷 기본값" @click="nmap.resetToDefaults()" />
   </div>
 </template>
 
 <script setup>
-import { storeToRefs } from 'pinia'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
+import { storeToRefs } from 'pinia'
+import { onMounted, ref, watch } from 'vue'
 
 defineProps({
   /** Nexion 우측 패널 아코디언 안에 넣을 때 true (제목·외곽선 생략) */
@@ -86,6 +105,36 @@ defineProps({
 
 const nmap = useNmapSnapshotStore()
 const { snapshot } = storeToRefs(nmap)
+
+/** 타이핑은 로컬에만 두고, blur / Enter 에서 스토어 반영 → 닉시 HUD 갱신 */
+const hudDraft = ref('')
+const hudInputFocused = ref(false)
+
+onMounted(() => {
+  hudDraft.value = snapshot.value.demo_hud_text ?? ''
+})
+
+watch(
+  () => snapshot.value.demo_hud_text,
+  (v) => {
+    if (!hudInputFocused.value) hudDraft.value = v ?? ''
+  },
+)
+
+function commitHudText() {
+  nmap.setDemoHudText(hudDraft.value)
+  hudDraft.value = snapshot.value.demo_hud_text ?? ''
+}
+
+function onHudBlur() {
+  hudInputFocused.value = false
+  commitHudText()
+}
+
+function clearHudText() {
+  nmap.setDemoHudText('')
+  hudDraft.value = ''
+}
 </script>
 
 <style scoped lang="scss">
