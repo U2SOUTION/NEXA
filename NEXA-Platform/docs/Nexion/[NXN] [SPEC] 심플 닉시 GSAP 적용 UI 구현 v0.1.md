@@ -8,15 +8,15 @@
 
 ---
 
-### 개발용 컨트롤: `NixieDevControls.vue` · 우측 사이드바
+### 개발용 컨트롤: `NixieDevControls.vue` · Nexion 우측 패널 아코디언
 
 | 항목 | 규약 |
 | :--- | :--- |
 | **파일** | `NEXA-Platform/src/frame/layout/components/NixieDevControls.vue` |
 | **역할** | 시뮬레이션용 버튼·슬라이더·토글만 둔다. **`useNmapSnapshotStore`의 `actions`만** 호출하고, **직접 `state`를 변이하지 않는다.** |
-| **배치 (확정)** | **플랫폼 우측 사이드바** — `MainLayout.vue`의 **`q-drawer` `side="right"`** 영역 안에 마운트한다. |
-| **도메인 우측 패널과의 관계** | 동일 드로어 안에 **도메인별 `rightSidebarComponent`** 가 이미 있을 수 있다. 이 경우 **세로 스택**(예: 상단 `NixieDevControls` + 하단 기존 패널) 또는 **스크롤 한 열**로 배치하거나, **개발 모드에서만** 닉시 패널을 노출하는 등 구현에서 선택한다. 원칙은 **우측 드로어 안에만 둔다**는 것이다. |
-| **프로덕션** | 기본은 **개발·검증용**. 필요 시 `import.meta.env.DEV` 또는 별도 플래그로 숨긴다. |
+| **배치 (확정)** | **Nexion 도메인 우측 패널** — `src/domains/nexion/views/right/NexionRightPanel.vue` 의 **단일 `q-expansion-item`**(라벨 예: **NIXIE 시뮬**) 안에 **`<NixieDevControls embedded />`** 로 둔다. 기존 미니맵·연결선 등과 동일한 아코디언 패턴을 따른다. |
+| **MainLayout** | `MainLayout` 우측 `q-drawer`에는 **마운트하지 않는다.** 도메인별 `rightSidebarComponent` 구성만 사용한다. |
+| **배포·체험** | 컴포넌트는 **`import.meta.env.DEV`로 숨기지 않는다.** 일반 사용자 체험용으로 **프로덕션 빌드에 포함**할 수 있다(정책 확정 전까지 유지 가능). 이후 숨김이 필요하면 `NexionRightPanel`에서 아코디언·플래그로 제어한다. |
 
 `NixieOnlineCharacter.vue`에는 시뮬 UI를 **넣지 않고**, 닉시는 **스토어 구독 + GSAP**만 담당한다.
 
@@ -31,7 +31,7 @@
 | **버튼 역할** | 각 버튼(또는 버튼 그룹)은 특정 표현 요소를 가리킨다. 클릭 시 `useNmapSnapshotStore`의 **action** 호출, 또는 해당 요소 전용 **GSAP 트리거 함수** 호출(스토어 필드와 1:1이 아닐 수 있는 요소는 헬퍼로 분리). |
 | **목적**      | 연출이 의도대로 보이는지·프레임·타임라인 순서를 **수동으로 재현**해 디자인·기획 합의를 먼저 얻는다.                                                                                                        |
 | **범위**      | 17개를 **한 번에** 다 넣을 필요는 없다. 우선 **Lumina·Jitter·갸우뚱·Reddish·맥박** 등 핵심부터 버튼을 붙이고, 나머지는 이터레이션으로 추가한다.                                                            |
-| **배치**      | **`NixieDevControls.vue`** — 위 절 **「개발용 컨트롤」** 참조(우측 사이드바).                                                                                                                               |
+| **배치**      | **`NixieDevControls.vue`** — **NexionRightPanel** 아코디언(위 **「개발용 컨트롤」**).                                                                                                                        |
 
 **정리:** 실서비스 입력이 오기 전까지, **지능형 표현 요소 = 액션 버튼으로 시뮬레이션**하는 것을 **본 v0.1 구현의 기본 진행 방식**으로 명시한다.
 
@@ -151,15 +151,15 @@
 
 ### 개발용 인터랙션 (프로토타입)
 
-- **컨테이너:** 모든 시뮬 UI는 **`NixieDevControls.vue`** 에만 둔다. **우측 사이드바** 배치는 위 **「개발용 컨트롤」** 절.
+- **컨테이너:** 모든 시뮬 UI는 **`NixieDevControls.vue`** 에만 둔다. **Nexion 우측 패널 아코디언** 배치는 위 **「개발용 컨트롤」** 절.
 - **스토어 강제 변경:** 상세 시나리오는 **「시뮬레이션 우선: N-MAP 스토어(Pinia) 강제 변경」** (로우-엔트로피·고스트·네뷸라·임계값).
 - **임시 액션 버튼:** **지능형 표현 요소 목록**과 대응. 예) 「정상 FLOW」「저확신」「STUCK」「타임아웃」「맥박만」「갸우뚱만」 등. 클릭 시 `useNmapSnapshotStore`의 **action** 또는 **요소별 GSAP 헬퍼** 호출 → `NixieOnlineCharacter`는 구독으로 GSAP 트리거.
-- **가시성:** 기본은 `import.meta.env.DEV` 등으로 제한 가능(팀 규칙).
+- **가시성:** 배포 포함 시 사용자에게 노출될 수 있음. 숨김이 필요하면 **NexionRightPanel**에서 아코디언 제거 또는 설정 플래그로 제어(팀 규칙).
 
 ---
 
 ### 정리
 
-- 본 문서는 **GSAP·`NixieDevControls.vue`·우측 사이드바·임시 액션 버튼 시뮬레이션**의 상세를 담는다. **N-MAP 필드·기본값·Pinia 경로**는 `심플 닉시(Simple NIXIE) 테스트 버전 구현 명세.md` 를 SSOT로 한다.
+- 본 문서는 **GSAP·`NixieDevControls.vue`·Nexion 우측 아코디언·임시 액션 버튼 시뮬레이션**의 상세를 담는다. **N-MAP 필드·기본값·Pinia 경로**는 `심플 닉시(Simple NIXIE) 테스트 버전 구현 명세.md` 를 SSOT로 한다.
 - **Rive 기반 캐릭터**는 본 경로의 필수 스택이 아니다.
 - 세부 수치·프레임 예산·우선 구현 순서는 구현 중 확정한다.

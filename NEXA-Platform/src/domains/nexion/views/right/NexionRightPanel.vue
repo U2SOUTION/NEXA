@@ -21,6 +21,15 @@
               </div>
             </q-expansion-item>
 
+            <q-expansion-item icon="flare" label="NIXIE 시뮬" caption="N-MAP 스냅샷 · 전역 닉시 반응 (체험)">
+              <div class="nexion-accordion-content nexion-accordion-content--flush">
+                <p class="text-caption text-grey-7 q-mb-sm q-px-sm q-pt-xs">
+                  화면의 <strong>닉시</strong>는 앱 전역 오버레이입니다. 아래 컨트롤은 Pinia 스토어만 갱신하며, 배포 빌드에서도 체험용으로 둘 수 있습니다.
+                </p>
+                <NixieDevControls embedded />
+              </div>
+            </q-expansion-item>
+
             <q-expansion-item icon="link" label="연결선" caption="선택 후 키 또는 버튼으로 끊기">
               <div class="nexion-accordion-content">
                 <p class="text-caption text-grey-7 q-mb-sm">
@@ -104,6 +113,7 @@ import { ref, watch, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useQuasar } from 'quasar'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
+import NixieDevControls from '@frame/layout/components/NixieDevControls.vue'
 import { useNexionFlowStore } from '@domains/nexion/modules/core/stores/nexionFlowStore'
 import { setNexionControlsHost, setNexionMinimapHost } from '@domains/nexion/modules/core/utils/nexionMinimapHost'
 import NexionFlowSettings from '@domains/settings/components/NexionFlowSettings.vue'

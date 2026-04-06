@@ -1,7 +1,7 @@
 ## [NXN-SPEC] 심플 닉시(Simple NIXIE) 테스트 버전 구현 명세
 
 **구현 위치:** `NEXA-Platform\src\frame\layout\components\NixieOnlineCharacter.vue`  
-**개발용 시뮬 패널:** `NEXA-Platform\src\frame\layout\components\NixieDevControls.vue` — **우측 사이드바**(`MainLayout`의 `q-drawer` `side="right"`)에 배치. 상세는 GSAP UI 명세.  
+**시뮬 패널:** `NEXA-Platform\src\frame\layout\components\NixieDevControls.vue` — **Nexion 도메인 우측 패널** `NexionRightPanel.vue`의 **단일 `q-expansion-item`(NIXIE 시뮬)** 안에 `embedded` 로 배치. 배포 시 체험용 노출 여부는 정책에 따름. 상세는 GSAP UI 명세.  
 **N-MAP 스토어(계획):** `NEXA-Platform\src\system\store\nmapSnapshotStore.ts` — §3.1 네이밍·import, **§3.2 트리**  
 **참고 SSOT:** `docs/NIXIE ARCH 닉시 설계도.md`, `docs/Nexion/[NXN] [UIUX] Nexion 5대 지능 — Vue Flow·Dagre·ExplorerTree 구현 정리.md` §6 (NIXIE 연동), `docs/rules/stack-and-dependencies.md` §3 (Pinia)  
 **연출·UI·GSAP (상세):** `docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md` — **Lumina·Jitter·갸우뚱·개발용 버튼 등 모든 시각 구현**  
@@ -49,7 +49,7 @@ Nexion 기능 구축과 병행하여 실제 데이터 흐름을 검증하기 위
 | `how_state`               | FLOW / STUCK / VOID   | 색·배경 리듬, STUCK 시 Jitter 가산      |
 | `who_pulse`               | WILL / ECHO / ASK     | Lumina 밝기·점멸 주기(WILL = 가장 안정) |
 | `confidence_score`        | 0–100                 | `user_defined_threshold` **미만**이면 Jitter ON |
-| (확장) 경고·타임아웃 토큰 | 예: `ADAPTER_TIMEOUT` | **갸우뚱** + Reddish                    |
+| `warn_token`              | 예: `ADAPTER_TIMEOUT` / `null` | **갸우뚱** + Reddish                    |
 | (권장) `schemaVersion`    | 스냅샷 계약 버전      | 필드 확장·마이그레이션 시 호환용        |
 | `ui_entropy_mode`         | 예: `full` / `minimal` / `static` | 로우-엔트로피 제동·GSAP·Jitter 억제 수준 |
 | `is_virtual`              | `boolean`             | 가상 실행·고스트 레이어 표시            |
@@ -100,16 +100,18 @@ NEXA-Platform/
 │
 ├── src/
 │   ├── frame/layout/
-│   │   ├── MainLayout.vue                   … `<NixieOnlineCharacter />` 전역 마운트 · **우측 `q-drawer`에 `<NixieDevControls />`**
+│   │   ├── MainLayout.vue                   … `<NixieOnlineCharacter />` 전역 마운트
 │   │   └── components/
 │   │       ├── NixieOnlineCharacter.vue   … 온라인 닉시 HUD · 스토어 구독 · GSAP(상세는 GSAP 명세)
-│   │       └── NixieDevControls.vue         … N-MAP 시뮬 버튼·슬라이더 · `actions`만 호출
+│   │       └── NixieDevControls.vue         … N-MAP 시뮬 UI (`actions`만 호출 · Nexion 우측 아코디언에서 사용)
 │   │
 │   ├── system/store/
 │   │   ├── nmapSnapshotStore.ts             … [계획] N-MAP 스냅샷 Pinia SSOT
 │   │   └── (선택) nmapSnapshotTypes.ts      … 스냅샷 타입만 분리할 때
 │   │
 │   └── domains/nexion/
+│       ├── views/right/
+│       │   └── NexionRightPanel.vue         … **NIXIE 시뮬** 아코디언에 `<NixieDevControls embedded />`
 │       ├── modules/core/stores/
 │       │   └── nexionFlowStore.ts           … Nexion 캔버스(생산자 측 기존 스토어)
 │       └── (선택) composables/ 또는 modules/core/utils/
@@ -121,8 +123,8 @@ NEXA-Platform/
 | 구분            | 경로                                               | 역할                                           |
 | :-------------- | :------------------------------------------------- | :--------------------------------------------- |
 | **소비자(UI)**  | `frame/layout/components/NixieOnlineCharacter.vue` | `useNmapSnapshotStore` 구독 → GSAP 연출 (명세) |
-| **개발 시뮬**   | `frame/layout/components/NixieDevControls.vue`     | 스토어 `actions`만 호출 · **우측 사이드바** 배치 |
-| **부트스트랩**  | `frame/layout/MainLayout.vue`                      | 닉시 마운트 + 우측 드로어에 `NixieDevControls` 마운트 |
+| **시뮬 UI**     | `frame/layout/components/NixieDevControls.vue`     | 스토어 `actions`만 호출 · **NexionRightPanel** 아코디언 |
+| **부트스트랩**  | `frame/layout/MainLayout.vue`                      | `NixieOnlineCharacter` 전역 마운트(우측 드로어는 도메인 패널) |
 | **전역 SSOT**   | `system/store/nmapSnapshotStore.ts`                | N-MAP 스냅샷 `state` + 갱신 `actions`          |
 | **도메인 상태** | `domains/nexion/.../nexionFlowStore.ts`            | 플로우·노드 등(닉시와 별개; mapper의 입력)     |
 | **매핑(선택)**  | `domains/nexion/**` 하위 `composables` / `utils`   | 생산자가 스냅샷 형식으로만 주입                |
