@@ -1,10 +1,10 @@
 <!--
-  NIXIE 온라인 — 18×6 도트 HUD · N-MAP Pinia 구독 · GSAP 연출.
+  NIXIE 온라인 — 24×7 도트 HUD · N-MAP Pinia 구독 · GSAP 연출.
   시뮬 UI는 NixieDevControls.vue (우측 패널).
   명세: docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md
 -->
 <template>
-  <div class="nixie-online" role="img" :aria-label="ariaLabel" data-nixie-mode="online-gsap" :class="{ 'nixie-online--dragging': dragging }" :style="positionStyle" @mousedown="onPointerDown" @touchstart="onTouchStart">
+  <div ref="rootEl" class="nixie-online" role="img" :aria-label="ariaLabel" data-nixie-mode="online-gsap" :class="{ 'nixie-online--dragging': dragging }" :style="positionStyle" @mousedown="onPointerDown" @touchstart="onTouchStart">
     <div ref="tiltRef" class="nixie-online__tilt">
       <div
         ref="hudRef"
@@ -16,8 +16,11 @@
         }"
       >
         <div class="nixie-online__grid-mask">
-          <div ref="gridRef" class="nixie-online__grid" aria-hidden="true">
-            <span v-for="i in dotIndices" :key="i" class="nixie-online__dot" />
+          <!-- 18:7 비율로 트랙 영역을 고정 → gap 제외 시 각 셀 정사각형 -->
+          <div class="nixie-online__grid-aspect" :style="{ aspectRatio: `${COLS} / ${ROWS}` }">
+            <div ref="gridRef" class="nixie-online__grid" :style="gridTemplateStyle" aria-hidden="true">
+              <span v-for="i in dotIndices" :key="i" class="nixie-online__dot" />
+            </div>
           </div>
         </div>
       </div>
@@ -26,20 +29,26 @@
 </template>
 
 <script setup>
-import { mapUppercaseTextToHudDots } from '@system/nixie/nixieUppercaseDotMap'
+import { mapUppercaseTextToHudDots, NIXIE_GRID_COLS as COLS, NIXIE_GRID_ROWS as ROWS } from '@system/nixie/nixieUppercaseDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { storeToRefs } from 'pinia'
 import gsap from 'gsap'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-const COLS = 18
-const ROWS = 6
 const DOT_COUNT = COLS * ROWS
 /** Vue `v-for="n in NUMBER"`는 변수일 때 범위 반복이 안 될 수 있어 인덱스 배열로 고정 */
 const dotIndices = Array.from({ length: DOT_COUNT }, (_, i) => i)
 
-const W = 180
-const H = 60
+const gridTemplateStyle = {
+  gridTemplateColumns: `repeat(${COLS}, 1fr)`,
+  gridTemplateRows: `repeat(${ROWS}, 1fr)`,
+}
+
+/**
+ * HUD 바깥 가로(px). 240×(7/24) 그리드 비율로 세로는 자동 — 180 대비 가로만 넓히고
+ * 그리드 높이(비율 영역)는 약 70px로 이전 18×7·180폭 때와 유사.
+ */
+const W = 240
 const STORAGE_KEY = 'nexa.nixie.online.position'
 
 defineProps({
@@ -52,9 +61,13 @@ defineProps({
 const nmapStore = useNmapSnapshotStore()
 const { snapshot, nebulaPulse } = storeToRefs(nmapStore)
 
+const rootEl = ref(null)
 const tiltRef = ref(null)
 const hudRef = ref(null)
 const gridRef = ref(null)
+/** 실제 렌더 높이(비율·패딩 반영) — 드래그 경계용 */
+const frameHeight = ref(88)
+let frameResizeObserver = null
 
 const x = ref(0)
 const y = ref(0)
@@ -80,15 +93,23 @@ function maxX() {
 }
 
 function maxY() {
-  return Math.max(0, window.innerHeight - H)
+  return Math.max(0, window.innerHeight - frameHeight.value)
 }
 
 function defaultPosition() {
   const margin = 16
+  const fh = frameHeight.value > 0 ? frameHeight.value : Math.round((W * ROWS) / COLS) + 24
   return {
     x: Math.max(margin, window.innerWidth - W - margin),
-    y: Math.max(margin, window.innerHeight - H - margin),
+    y: Math.max(margin, window.innerHeight - fh - margin),
   }
+}
+
+function measureFrame() {
+  const el = rootEl.value
+  if (!el) return
+  const h = el.offsetHeight
+  if (h > 0) frameHeight.value = h
 }
 
 function loadPosition() {
@@ -122,7 +143,7 @@ function getDots() {
   return Array.from(root.querySelectorAll('.nixie-online__dot'))
 }
 
-/** 시뮴 텍스트가 있으면 길이 DOT_COUNT 의 on/off 마스크, 없으면 null */
+/** 시뮴 텍스트가 있으면 길이 DOT_COUNT(24×7) 의 on/off 마스크, 없으면 null */
 function getDemoTextMask() {
   const raw = snapshot.value.demo_hud_text ?? ''
   if (!String(raw).trim()) return null
@@ -410,6 +431,7 @@ function onTouchEnd(e) {
 }
 
 function onResize() {
+  measureFrame()
   applyBounds()
   savePosition()
 }
@@ -423,11 +445,22 @@ onMounted(() => {
   window.addEventListener('resize', onResize)
 
   nextTick(() => {
+    measureFrame()
+    applyBounds()
     syncAllVisuals()
+    if (rootEl.value) {
+      frameResizeObserver = new ResizeObserver(() => {
+        measureFrame()
+        applyBounds()
+      })
+      frameResizeObserver.observe(rootEl.value)
+    }
   })
 })
 
 onBeforeUnmount(() => {
+  frameResizeObserver?.disconnect()
+  frameResizeObserver = null
   killLumina()
   killJitter()
   if (confusedTween) confusedTween.kill()
@@ -445,8 +478,8 @@ onBeforeUnmount(() => {
 .nixie-online {
   position: fixed;
   z-index: 5000;
-  width: 180px;
-  height: 60px;
+  width: 240px;
+  height: auto;
   box-sizing: border-box;
   padding: 4px;
   user-select: none;
@@ -487,12 +520,24 @@ onBeforeUnmount(() => {
 
 /* 코너 패딩이 시각적으로 균일해지도록 그리드를 외곽 라운드보다 안쪽에서 한 번 더 클립 */
 .nixie-online__grid-mask {
-  flex: 1;
+  flex: 0 0 auto;
+  width: 100%;
   min-width: 0;
   min-height: 0;
   margin: 0.5px;
+  padding: 2px;
+  box-sizing: border-box;
   border-radius: 5px;
   overflow: hidden;
+}
+
+/* 열:행 = COLS:ROWS → 1fr 트랙 정사각형 */
+.nixie-online__grid-aspect {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 4px;
 }
 
 /* 가상 실행 고스트 레이어 스타일 */
@@ -514,23 +559,26 @@ onBeforeUnmount(() => {
   filter: saturate(0.65);
 }
 
-/* 도트 그리드 스타일 */
+/* 도트 그리드 — 2px gap: 정수 픽셀로 모니터/DPR에 덜 끌림 (1px보다 안정적) */
 .nixie-online__grid {
   display: grid;
-  grid-template-columns: repeat(18, 1fr);
-  grid-template-rows: repeat(6, 1fr);
-  /* 1px gap은 DPR/서브픽셀에서 뭉개져 한 덩어리처럼 보일 수 있음 → 2px로 유지 */
-  gap: 1px;
+  gap: 0.8px;
   width: 100%;
   height: 100%;
-  padding: 2px;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
   box-sizing: border-box;
+  contain: layout;
+  transform: translateZ(0);
 }
 
 /* 도트 스타일 */
 .nixie-online__dot {
   display: block;
   box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
   border-radius: 1px;
   background: linear-gradient(180deg, #ffb347 0%, #f38807 55%, #dc8437 100%);
   box-shadow:

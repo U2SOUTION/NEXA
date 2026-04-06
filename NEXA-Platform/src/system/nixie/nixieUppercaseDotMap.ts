@@ -1,38 +1,32 @@
 /**
- * 18×6 NIXIE HUD용 영문 대문자 5×5 도트 매핑.
- * 가로: 글리프(5열) + 슬롯 간 1열 간격 · 세로 5행, 하단 1행은 여백.
- * 긴 문자열은 이후 좌→우 스크롤(demo_hud_scroll_offset)으로 창만 이동.
+ * 24×7 NIXIE HUD용 영문 대문자 도트 매핑.
+ * 글리프마다 가로 열 수가 다를 수 있음(예: I=3열). 글리프 사이는 NIXIE_GLYPH_GAP_COLS(1열)만.
+ * 세로: 5행 글리프를 그리드 세로 중앙(상·하 동일 여백).
  */
 
-export const NIXIE_GRID_COLS = 18
-export const NIXIE_GRID_ROWS = 6
+export const NIXIE_GRID_COLS = 24
+export const NIXIE_GRID_ROWS = 7
+/** 최대 가로 열 수(대부분의 글자) */
 export const NIXIE_GLYPH_W = 5
 export const NIXIE_GLYPH_H = 5
+export const NIXIE_GLYPH_GAP_COLS = 1
 
-/** 현재 그리드 너비에 들어가는 최대 글리프 수(스크롤 없이 보이는 창 크기) */
-export function getMaxGlyphSlotsForGrid(): number {
-  let n = 0
-  for (let s = 0; ; s++) {
-    const colStart = 1 + s * (NIXIE_GLYPH_W + 1)
-    if (colStart + NIXIE_GLYPH_W > NIXIE_GRID_COLS) return n
-    n++
-  }
-}
+const EMPTY_FALLBACK: string[] = ['00000', '00000', '00000', '00000', '00000']
 
-/** 행별 '0' | '1' 문자열 (왼쪽→오른쪽) */
+/** 행별 '0' | '1' 문자열. 행마다 길이 동일 = 해당 글리프 가로 열 수 */
 const GLYPHS: Record<string, string[]> = {
   A: ['01110', '10001', '10001', '11111', '10001'],
   B: ['11110', '10001', '11110', '10001', '11110'],
   C: ['01110', '10001', '10000', '10001', '01110'],
-  D: ['11100', '10010', '10001', '10010', '11100'],
-  E: ['11111', '10000', '11110', '10000', '11111'],
-  F: ['11111', '10000', '11110', '10000', '10000'],
+  D: ['11100', '10010', '10010', '10010', '11100'],
+  E: ['1111', '1000', '1111', '1000', '1111'],
+  F: ['1111', '1000', '1111', '1000', '1000'],
   G: ['01110', '10000', '10111', '10001', '01110'],
   H: ['10001', '10001', '11111', '10001', '10001'],
-  I: ['11111', '00100', '00100', '00100', '11111'],
+  I: ['111', '010', '010', '010', '111'],
   J: ['00111', '00010', '00010', '10010', '01100'],
   K: ['10001', '10010', '11100', '10010', '10001'],
-  L: ['10000', '10000', '10000', '10000', '11111'],
+  L: ['10000', '10000', '10000', '10000', '11100'],
   M: ['10001', '11011', '10101', '10001', '10001'],
   N: ['10001', '11001', '10101', '10011', '10001'],
   O: ['01110', '10001', '10001', '10001', '01110'],
@@ -47,10 +41,47 @@ const GLYPHS: Record<string, string[]> = {
   X: ['10001', '01010', '00100', '01010', '10001'],
   Y: ['10001', '01010', '00100', '00100', '00100'],
   Z: ['11111', '00010', '00100', '01000', '11111'],
-  ' ': ['00000', '00000', '00000', '00000', '00000'],
+  /** 단어 간격: 도트 없이 2열만 진행 */
+  ' ': ['00', '00', '00', '00', '00'],
 }
 
-const EMPTY_SLOT = GLYPHS[' ']!
+export function glyphColWidthForChar(ch: string): number {
+  const g = GLYPHS[ch] ?? EMPTY_FALLBACK
+  return g[0]?.length ?? NIXIE_GLYPH_W
+}
+
+function getGlyphRows(ch: string): string[] {
+  return GLYPHS[ch] ?? EMPTY_FALLBACK
+}
+
+/** 글리프 시작 행(0-based) */
+export function getGlyphRowOffset(rows = NIXIE_GRID_ROWS, glyphH = NIXIE_GLYPH_H): number {
+  return Math.max(0, Math.floor((rows - glyphH) / 2))
+}
+
+/**
+ * 정규화된 문자열에서, 스크롤 시작 인덱스로 허용되는 최댓값
+ * (해당 인덱스부터 그리드에 1글자 이상 들어갈 수 있어야 함)
+ */
+export function getMaxScrollOffsetChars(fullNormalized: string): number {
+  const t = fullNormalized
+  if (!t.length) return 0
+  for (let start = t.length - 1; start >= 0; start--) {
+    if (fitsVisibleFrom(t, start)) return start
+  }
+  return 0
+}
+
+function fitsVisibleFrom(t: string, start: number): boolean {
+  let col = 0
+  for (let i = start; i < t.length; i++) {
+    const w = glyphColWidthForChar(t[i]!)
+    if (i > start) col += NIXIE_GLYPH_GAP_COLS
+    if (col + w > NIXIE_GRID_COLS) break
+    col += w
+  }
+  return col > 0
+}
 
 /** 입력을 대문자·스페이스만 남김(길이 제한 없음, 스토어에 그대로 보관) */
 export function normalizeDemoHudText(input: string): string {
@@ -65,8 +96,8 @@ export function normalizeDemoHudText(input: string): string {
 }
 
 /**
- * HUD 18×6 도트 on/off 배열(길이 108).
- * `scrollOffset`: 정규화된 문자열에서 몇 글자부터 그릴지(이후 좌→우 흐름용).
+ * HUD 24×7 도트 on/off 배열.
+ * `scrollOffset`: 정규화된 문자열에서 시작 글자 인덱스.
  */
 export function mapUppercaseTextToHudDots(input: string, scrollOffset = 0): boolean[] {
   const len = NIXIE_GRID_COLS * NIXIE_GRID_ROWS
@@ -74,26 +105,28 @@ export function mapUppercaseTextToHudDots(input: string, scrollOffset = 0): bool
   const full = normalizeDemoHudText(input)
   if (!full) return out
 
-  const maxSlots = getMaxGlyphSlotsForGrid()
   const off = Math.max(0, Math.floor(scrollOffset))
-  const text = full.slice(off, off + maxSlots)
-  if (!text.length) return out
+  const rowOffset = getGlyphRowOffset()
 
-  for (let slot = 0; slot < text.length; slot++) {
-    const ch = text[slot]!
-    const glyph = GLYPHS[ch] ?? EMPTY_SLOT
-    const colStart = 1 + slot * (NIXIE_GLYPH_W + 1)
+  let col = 0
+  for (let i = off; i < full.length; i++) {
+    const ch = full[i]!
+    const glyph = getGlyphRows(ch)
+    const w = glyph[0]!.length
+    if (i > off) col += NIXIE_GLYPH_GAP_COLS
+    if (col + w > NIXIE_GRID_COLS) break
 
     for (let r = 0; r < NIXIE_GLYPH_H; r++) {
-      const rowStr = glyph[r] ?? '00000'
-      for (let c = 0; c < NIXIE_GLYPH_W; c++) {
-        const bit = rowStr[c] === '1'
-        if (!bit) continue
-        const col = colStart + c
-        const idx = r * NIXIE_GRID_COLS + col
+      const rowStr = glyph[r] ?? ''
+      for (let c = 0; c < rowStr.length; c++) {
+        if (rowStr[c] !== '1') continue
+        const gridCol = col + c
+        const gridRow = r + rowOffset
+        const idx = gridRow * NIXIE_GRID_COLS + gridCol
         if (idx >= 0 && idx < len) out[idx] = true
       }
     }
+    col += w
   }
   return out
 }

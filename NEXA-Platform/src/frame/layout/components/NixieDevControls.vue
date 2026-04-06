@@ -70,7 +70,7 @@
     <q-separator class="q-my-sm" />
 
     <div class="text-overline q-mb-xs">HUD 텍스트 시뮬 (A–Z·스페이스, 길이 제한 없음)</div>
-    <div class="text-caption text-grey-6 q-mb-xs">반영: 필드 밖 클릭(포커스 아웃) 또는 Enter. 한글·숫자는 제거되며 A–Z만 HUD에 그려짐. 한 번에 보이는 글자 수는 HUD 폭(현재 3글자).</div>
+    <div class="text-caption text-grey-6 q-mb-xs">반영: 필드 밖 클릭(포커스 아웃) 또는 Enter. 한글·숫자는 제거되며 A–Z만 HUD에 그려짐. 글자마다 가로 폭이 달라 한 줄에 들어가는 개수는 가변(글자 간 간격은 1칸).</div>
     <q-input
       v-model="hudDraft"
       dense

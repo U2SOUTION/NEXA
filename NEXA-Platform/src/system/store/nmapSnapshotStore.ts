@@ -1,4 +1,4 @@
-import { getMaxGlyphSlotsForGrid, normalizeDemoHudText } from '@system/nixie/nixieUppercaseDotMap'
+import { getMaxScrollOffsetChars, normalizeDemoHudText } from '@system/nixie/nixieUppercaseDotMap'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
@@ -83,8 +83,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   function setDemoHudText(raw: string | null | undefined) {
     const demo_hud_text = normalizeDemoHudText(String(raw ?? ''))
-    const maxSlots = getMaxGlyphSlotsForGrid()
-    const maxOff = Math.max(0, demo_hud_text.length - maxSlots)
+    const maxOff = getMaxScrollOffsetChars(demo_hud_text)
     const prev = snapshot.value.demo_hud_scroll_offset ?? 0
     const demo_hud_scroll_offset = Math.min(Math.max(0, Math.floor(prev)), maxOff)
     applyPatch({ demo_hud_text, demo_hud_scroll_offset })
@@ -92,8 +91,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   function setDemoHudScrollOffset(offset: number) {
     const full = normalizeDemoHudText(snapshot.value.demo_hud_text)
-    const maxSlots = getMaxGlyphSlotsForGrid()
-    const maxOff = Math.max(0, full.length - maxSlots)
+    const maxOff = getMaxScrollOffsetChars(full)
     const o = Math.max(0, Math.min(Math.floor(offset), maxOff))
     applyPatch({ demo_hud_scroll_offset: o })
   }
