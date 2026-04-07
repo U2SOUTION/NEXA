@@ -1,7 +1,7 @@
 /**
  * NIXIE HUD 24×7 도트 매핑(그리드·마퀴·정규화).
  *
- * 지원: 라틴 대·소문자(소문자는 대문자와 동일 도형), 숫자, 공백, 모스 **·**(`.`) **다**(`-`).
+ * 지원: 라틴 대·소문자(소문자는 7행 패턴: 상2·하1 공백 행 + 본문 4행), 숫자, 공백, 모스 `.` `-`.
  * 전각 영숫자·일부 기호는 ASCII로 치환. 한글 등은 추후 `GLYPHS`·`normalizeDemoHudText` 확장.
  */
 
@@ -9,8 +9,11 @@ export const NIXIE_GRID_COLS = 24
 export const NIXIE_GRID_ROWS = 7
 /** 최대 가로 열 수(대부분의 글자) */
 export const NIXIE_GLYPH_W = 5
+/** 대문자·숫자·모스 등 기본 글리프 세로 행 수(소문자는 7행 별도) */
 export const NIXIE_GLYPH_H = 5
-export const NIXIE_GLYPH_GAP_COLS = 0
+/** 소문자 HUD: 7행 = 상단 공백 2 + 본문 4 + 하단 공백 1 */
+export const NIXIE_HUD_LOWER_ROWS = 7
+export const NIXIE_GLYPH_GAP_COLS = 1
 
 const EMPTY_FALLBACK: string[] = ['00000', '00000', '00000', '00000', '00000']
 
@@ -20,8 +23,7 @@ const EMPTY_FALLBACK: string[] = ['00000', '00000', '00000', '00000', '00000']
 const HUD_TAPE_GAP_CHAR = '\uE900'
 
 /**
- * HUD 기본 글리프(대문자 A–Z, 0–9, 스페이스). 소문자는 `getGlyphRows`에서 여기 대문자로 폴백.
- * 모스 등은 `NIXIE_HUD_MORSE_ELEMENTS` 등을 `GLYPHS`에 병합.
+ * HUD 대문자·숫자·스페이스. 소문자는 `NIXIE_HUD_LATIN_LOWER`에 별도 정의.
  */
 export const NIXIE_HUD_LATIN_UPPER_DIGITS: Record<string, string[]> = {
   A: ['01110', '10001', '10001', '11111', '10001'],
@@ -63,18 +65,56 @@ export const NIXIE_HUD_LATIN_UPPER_DIGITS: Record<string, string[]> = {
   ' ': ['00', '00', '00', '00', '00'],
 }
 
+/** 소문자 7행: 행0·1·6은 `0000`, 행2–5는 본문(각 4열). 별도 오프셋 없이 그리드 전고(7)에 맞춤. */
+function hudLatinLower7(a: string, b: string, c: string, d: string): string[] {
+  const z = '0000'
+  return [z, z, a, b, c, d, z]
+}
+
+/**
+ * HUD 소문자 a–z. 행마다 동일 열 수(4). 시뮬에서 본문 4행(`hudLatinLower7` 인자)만 조정하면 됨.
+ */
+export const NIXIE_HUD_LATIN_LOWER: Record<string, string[]> = {
+  a: hudLatinLower7('0111', '0001', '0111', '1001'),
+  b: hudLatinLower7('1000', '1111', '1001', '1111'),
+  c: hudLatinLower7('0111', '1000', '1000', '0111'),
+  d: hudLatinLower7('0001', '0111', '1001', '0111'),
+  e: hudLatinLower7('0111', '1111', '1000', '0111'),
+  f: hudLatinLower7('0110', '1000', '1110', '1000'),
+  g: hudLatinLower7('0111', '1001', '0111', '1110'),
+  h: hudLatinLower7('1000', '1111', '1001', '1001'),
+  i: hudLatinLower7('0100', '0000', '0100', '0100'),
+  j: hudLatinLower7('0010', '0000', '0010', '1100'),
+  k: hudLatinLower7('1001', '1011', '1100', '1011'),
+  l: hudLatinLower7('1100', '0100', '0100', '1110'),
+  m: hudLatinLower7('1101', '1010', '1010', '1010'),
+  n: hudLatinLower7('1111', '1001', '1001', '1001'),
+  o: hudLatinLower7('0111', '1001', '1001', '0111'),
+  p: hudLatinLower7('1111', '1001', '1111', '1000'),
+  q: hudLatinLower7('0111', '1001', '0111', '0001'),
+  r: hudLatinLower7('1011', '1100', '1000', '1000'),
+  s: hudLatinLower7('0111', '1000', '0011', '1111'),
+  t: hudLatinLower7('0100', '1110', '0100', '0011'),
+  u: hudLatinLower7('1001', '1001', '1001', '0111'),
+  v: hudLatinLower7('1001', '1001', '0101', '0010'),
+  w: hudLatinLower7('1001', '1010', '1010', '0101'),
+  x: hudLatinLower7('1001', '0101', '0101', '1001'),
+  y: hudLatinLower7('1001', '1001', '0111', '0001'),
+  z: hudLatinLower7('1111', '0011', '0110', '1111'),
+}
 /**
  * 모스부호 요소(텍스트로 `.` 띠, `-` 닻). 글자 사이는 공백으로 구분.
  * `·`(U+00B7) 등은 정규화에서 `.`로 통일.
  */
 export const NIXIE_HUD_MORSE_ELEMENTS: Record<string, string[]> = {
-  '.': ['1', '1', '1', '1', '1'],
+  '.': ['0', '0', '0', '0', '1'],
   '-': ['000', '000', '111', '000', '000'],
 }
 
 /** 런타임 조회용(테이프 경계 글리프 포함). */
 const GLYPHS: Record<string, string[]> = {
   ...NIXIE_HUD_LATIN_UPPER_DIGITS,
+  ...NIXIE_HUD_LATIN_LOWER,
   ...NIXIE_HUD_MORSE_ELEMENTS,
   [HUD_TAPE_GAP_CHAR]: ['0000', '0000', '0000', '0000', '0000'],
 }
@@ -96,12 +136,6 @@ function getGlyphRows(ch: string): string[] {
   if (Object.prototype.hasOwnProperty.call(GLYPHS, ch)) {
     return GLYPHS[ch]!
   }
-  const cp = ch.codePointAt(0)
-  if (cp !== undefined && cp >= 97 && cp <= 122) {
-    const upper = String.fromCodePoint(cp - 32)
-    const g = NIXIE_HUD_LATIN_UPPER_DIGITS[upper]
-    if (g) return g
-  }
   return EMPTY_FALLBACK
 }
 
@@ -110,9 +144,16 @@ export function glyphColWidthForChar(ch: string): number {
   return g[0]?.length ?? NIXIE_GLYPH_W
 }
 
-/** 글리프 시작 행(0-based) */
+/** 고정 높이 glyphH 기준 세로 중앙(레거시·문서용) */
 export function getGlyphRowOffset(rows = NIXIE_GRID_ROWS, glyphH = NIXIE_GLYPH_H): number {
   return Math.max(0, Math.floor((rows - glyphH) / 2))
+}
+
+/** 실제 글리프 행 수에 맞춘 세로 시작(소문자 7행→0, 대문자 5행→1). 패턴에 여백을 넣은 경우 오프셋 추가 없음. */
+export function hudRowOffsetForGlyph(glyph: string[]): number {
+  const h = glyph.length
+  if (h <= 0) return getGlyphRowOffset()
+  return Math.max(0, Math.floor((NIXIE_GRID_ROWS - h) / 2))
 }
 
 /** 인덱스 0부터 전체 문자열이 그리드 너비 안에 들어가면 true(마퀴 불필요) */
@@ -182,42 +223,33 @@ export function normalizeDemoHudText(input: string): string {
 }
 
 function drawGlyphInto(out: boolean[], len: number, col: number, rowOffset: number, glyph: string[]): void {
-  for (let r = 0; r < NIXIE_GLYPH_H; r++) {
+  const gh = glyph.length
+  for (let r = 0; r < gh; r++) {
     const rowStr = glyph[r] ?? ''
     for (let c = 0; c < rowStr.length; c++) {
       if (rowStr[c] !== '1') continue
       const gridCol = col + c
       const gridRow = r + rowOffset
+      if (gridRow < 0 || gridRow >= NIXIE_GRID_ROWS) continue
       const idx = gridRow * NIXIE_GRID_COLS + gridCol
       if (idx >= 0 && idx < len) out[idx] = true
     }
   }
 }
 
-function drawGlyphColumnInto(
-  out: boolean[],
-  len: number,
-  gridCol: number,
-  rowOffset: number,
-  glyph: string[],
-  glyphCol: number,
-): void {
-  for (let r = 0; r < NIXIE_GLYPH_H; r++) {
+function drawGlyphColumnInto(out: boolean[], len: number, gridCol: number, rowOffset: number, glyph: string[], glyphCol: number): void {
+  const gh = glyph.length
+  for (let r = 0; r < gh; r++) {
     const rowStr = glyph[r] ?? ''
-    if (rowStr[glyphCol] !== '1') continue
+    if (glyphCol >= rowStr.length || rowStr[glyphCol] !== '1') continue
     const gridRow = r + rowOffset
+    if (gridRow < 0 || gridRow >= NIXIE_GRID_ROWS) continue
     const idx = gridRow * NIXIE_GRID_COLS + gridCol
     if (idx >= 0 && idx < len) out[idx] = true
   }
 }
 
-function mapTapeToHudDotsColScroll(
-  full: string,
-  scrollCols: number,
-  out: boolean[],
-  len: number,
-  rowOffset: number,
-): void {
+function mapTapeToHudDotsColScroll(full: string, scrollCols: number, out: boolean[], len: number): void {
   const period = hudTapePeriodWidthCols(full)
   if (period <= 0) return
   let skip = Math.floor(scrollCols) % period
@@ -249,7 +281,7 @@ function mapTapeToHudDotsColScroll(
         skip--
         continue
       }
-      drawGlyphColumnInto(out, len, gridCol, rowOffset, glyph, gc)
+      drawGlyphColumnInto(out, len, gridCol, hudRowOffsetForGlyph(glyph), glyph, gc)
       gridCol++
     }
     k++
@@ -267,7 +299,6 @@ export function mapHudTextToDots(input: string, scrollOffset = 0): boolean[] {
   const full = normalizeDemoHudText(input)
   if (!full) return out
 
-  const rowOffset = getGlyphRowOffset()
   const off = Math.max(0, Math.floor(scrollOffset))
 
   if (textFitsCompletelyInGrid(full)) {
@@ -278,13 +309,13 @@ export function mapHudTextToDots(input: string, scrollOffset = 0): boolean[] {
       const w = glyph[0]!.length
       if (i > 0) col += NIXIE_GLYPH_GAP_COLS
       if (col + w > NIXIE_GRID_COLS) break
-      drawGlyphInto(out, len, col, rowOffset, glyph)
+      drawGlyphInto(out, len, col, hudRowOffsetForGlyph(glyph), glyph)
       col += w
     }
     return out
   }
 
-  mapTapeToHudDotsColScroll(full, off, out, len, rowOffset)
+  mapTapeToHudDotsColScroll(full, off, out, len)
   return out
 }
 

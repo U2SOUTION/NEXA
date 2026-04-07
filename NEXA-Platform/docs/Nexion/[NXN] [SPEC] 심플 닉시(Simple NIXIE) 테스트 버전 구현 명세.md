@@ -1,7 +1,7 @@
 ## [NXN-SPEC] 심플 닉시(Simple NIXIE) 테스트 버전 구현 명세
 
-**구현 위치:** `NEXA-Platform\src\frame\layout\components\NixieOnlineCharacter.vue`  
-**시뮬 패널:** `NEXA-Platform\src\frame\layout\components\NixieDevControls.vue` — **Nexion 도메인 우측 패널** `NexionRightPanel.vue`의 **단일 `q-expansion-item`(NIXIE 시뮬)** 안에 `embedded` 로 배치. 배포 시 체험용 노출 여부는 정책에 따름. 상세는 GSAP UI 명세.  
+**구현 위치:** `NEXA-Platform\src\system\nixie\components\NixieOnlineCharacter.vue`  
+**시뮬 패널:** `NEXA-Platform\src\system\nixie\components\NixieDevControls.vue` — **Nexion 도메인 우측 패널** `NexionRightPanel.vue`의 **단일 `q-expansion-item`(NIXIE 시뮬)** 안에 `embedded` 로 배치. 배포 시 체험용 노출 여부는 정책에 따름. 상세는 GSAP UI 명세.  
 **N-MAP 스토어(계획):** `NEXA-Platform\src\system\store\nmapSnapshotStore.ts` — §3.1 네이밍·import, **§3.2 트리**  
 **참고 SSOT:** `docs/NIXIE ARCH 닉시 설계도.md`, `docs/Nexion/[NXN] [UIUX] Nexion 5대 지능 — Vue Flow·Dagre·ExplorerTree 구현 정리.md` §6 (NIXIE 연동), `docs/rules/stack-and-dependencies.md` §3 (Pinia)  
 **연출·UI·GSAP (상세):** `docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md` — **Lumina·Jitter·갸우뚱·개발용 버튼 등 모든 시각 구현**  
@@ -122,8 +122,8 @@ NEXA-Platform/
 
 | 구분            | 경로                                               | 역할                                           |
 | :-------------- | :------------------------------------------------- | :--------------------------------------------- |
-| **소비자(UI)**  | `frame/layout/components/NixieOnlineCharacter.vue` | `useNmapSnapshotStore` 구독 → GSAP 연출 (명세) |
-| **시뮬 UI**     | `frame/layout/components/NixieDevControls.vue`     | 스토어 `actions`만 호출 · **NexionRightPanel** 아코디언 |
+| **소비자(UI)**  | `system/nixie/components/NixieOnlineCharacter.vue` | `useNmapSnapshotStore` 구독 → GSAP 연출 (명세) |
+| **시뮬 UI**     | `system/nixie/components/NixieDevControls.vue`     | 스토어 `actions`만 호출 · **NexionRightPanel** 아코디언 |
 | **부트스트랩**  | `frame/layout/MainLayout.vue`                      | `NixieOnlineCharacter` 전역 마운트(우측 드로어는 도메인 패널) |
 | **전역 SSOT**   | `system/store/nmapSnapshotStore.ts`                | N-MAP 스냅샷 `state` + 갱신 `actions`          |
 | **도메인 상태** | `domains/nexion/.../nexionFlowStore.ts`            | 플로우·노드 등(닉시와 별개; mapper의 입력)     |

@@ -12,7 +12,7 @@
 
 | 항목 | 규약 |
 | :--- | :--- |
-| **파일** | `NEXA-Platform/src/frame/layout/components/NixieDevControls.vue` |
+| **파일** | `NEXA-Platform/src/system/nixie/components/NixieDevControls.vue` |
 | **역할** | 시뮬레이션용 버튼·슬라이더·토글만 둔다. **`useNmapSnapshotStore`의 `actions`만** 호출하고, **직접 `state`를 변이하지 않는다.** |
 | **배치 (확정)** | **Nexion 도메인 우측 패널** — `src/domains/nexion/views/right/NexionRightPanel.vue` 의 **단일 `q-expansion-item`**(라벨 예: **NIXIE 시뮬**) 안에 **`<NixieDevControls embedded />`** 로 둔다. 기존 미니맵·연결선 등과 동일한 아코디언 패턴을 따른다. |
 | **MainLayout** | `MainLayout` 우측 `q-drawer`에는 **마운트하지 않는다.** 도메인별 `rightSidebarComponent` 구성만 사용한다. |

@@ -270,7 +270,7 @@ Nexion 캔버스 **SSOT는 Vue Flow**(§7.1). `engines/diagram` 등은 **대체 
 
 | 구분 | 내용 |
 | :--- | :--- |
-| **구현 컴포넌트** | `src/frame/layout/components/NixieOnlineCharacter.vue` |
+| **구현 컴포넌트** | `src/system/nixie/components/NixieOnlineCharacter.vue` |
 | **마운트** | `src/frame/layout/MainLayout.vue` — `q-layout` 내부, **`v-if="!isIframeMode"`** 로 전역 셸에만 표시. **`domains/nexion` 이 아니라 frame 레이어**이므로 **모든 도메인**에서 동일하게 떠 있다. |
 | **레이아웃 성격** | **푸터·3패널 플로우에 포함하지 않는다.** `position: fixed`, 높은 `z-index`, **뷰포트 오버레이**. |
 | **이동** | 사용자가 **드래그**해 화면 내 임의 위치로 옮길 수 있음. 위치는 **`localStorage` 키 `nexa.nixie.online.position`** 에 저장해 새로고침 후에도 유지(구현 세부는 코드 주석 참고). |

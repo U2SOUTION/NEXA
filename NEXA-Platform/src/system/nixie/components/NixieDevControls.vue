@@ -63,7 +63,20 @@
     <div class="row items-start q-gutter-x-xs q-mb-xs">
       <span class="nixie-dev-controls__lbl q-pt-sm">HUD</span>
       <div class="col">
-        <q-input v-model="hudDraft" dense outlined hide-bottom-space placeholder="A–Z·a–z·0–9·모스 . - (한글 등 제외) blur/Enter" @focus="hudInputFocused = true" @blur="onHudBlur" @keydown.enter.prevent="commitHudText" />
+        <q-input
+          v-model="hudDraft"
+          dense
+          outlined
+          hide-bottom-space
+          input-class="nixie-dev-controls__hud-input"
+          autocapitalize="off"
+          autocomplete="off"
+          :spellcheck="false"
+          placeholder="A–Z·a–z·0–9·모스 . - (한글 등 제외) blur/Enter"
+          @focus="hudInputFocused = true"
+          @blur="onHudBlur"
+          @keydown.enter.prevent="commitHudText"
+        />
       </div>
       <q-btn dense flat size="sm" padding="xs sm" class="q-mt-xs" label="지우기" @click="clearHudText" />
     </div>
@@ -149,5 +162,11 @@ function clearHudText() {
 .nixie-dev-controls__num {
   min-width: 1.5rem;
   text-align: right;
+}
+
+/* 대문자 강제·자동 대문자 방지 — HUD에 입력한 대·소문자 그대로 표시 */
+:deep(.nixie-dev-controls__hud-input) {
+  text-transform: none;
+  font-variant: normal;
 }
 </style>

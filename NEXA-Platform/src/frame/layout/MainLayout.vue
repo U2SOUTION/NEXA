@@ -114,7 +114,7 @@ import { useUserSettingsStore } from '@system/store/userSettingsStore'
 // Frame Layer Components & Registry
 import GlobalNavbarLeft from './components/GlobalNavbarLeft.vue'
 import GlobalNavbarRight from './components/GlobalNavbarRight.vue'
-import NixieOnlineCharacter from './components/NixieOnlineCharacter.vue'
+import NixieOnlineCharacter from '@system/nixie/components/NixieOnlineCharacter.vue'
 import { getLeftSidebarComponent, getRightSidebarComponent, getHeaderActionsComponent } from '@frame/registry/domainRegistry'
 
 // Composables & Utils
