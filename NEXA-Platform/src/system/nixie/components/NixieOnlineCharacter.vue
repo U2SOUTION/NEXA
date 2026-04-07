@@ -9,6 +9,7 @@
       <div
         ref="hudRef"
         class="nixie-online__hud"
+        :style="hudWarnStyle"
         :class="{
           'nixie-online__hud--virtual': snapshot.is_virtual,
           'nixie-online__hud--reddish': isReddish,
@@ -30,13 +31,7 @@
 
 <script setup>
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
-import {
-  mapHudTextToDots,
-  normalizeDemoHudText,
-  textFitsCompletelyInGrid,
-  NIXIE_GRID_COLS as COLS,
-  NIXIE_GRID_ROWS as ROWS,
-} from '@system/nixie/nixieDotMap'
+import { mapHudTextToDots, normalizeDemoHudText, textFitsCompletelyInGrid, NIXIE_GRID_COLS as COLS, NIXIE_GRID_ROWS as ROWS } from '@system/nixie/nixieDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { storeToRefs } from 'pinia'
 import gsap from 'gsap'
@@ -116,6 +111,18 @@ function clamp(v, min, max) {
   return Math.min(Math.max(v, min), max)
 }
 
+/**
+ * 신뢰도가 `user_defined_threshold`보다 아래로 얼마나 떨어졌는지 0~1.
+ * 임계값 이상이면 0, 0에 가까울수록 1에 가깝게(선형).
+ */
+function confidenceRelativeThresholdStress(confidence, threshold) {
+  const c = clamp(Number(confidence), 0, 100)
+  const th = clamp(Number(threshold), 0, 100)
+  if (c >= th) return 0
+  const thSafe = Math.max(th, 1e-6)
+  return clamp((th - c) / thSafe, 0, 1)
+}
+
 function maxX() {
   return Math.max(0, window.innerWidth - W)
 }
@@ -180,11 +187,20 @@ function getDemoTextMask() {
   return mapHudTextToDots(norm, Number.isFinite(scroll) ? scroll : 0)
 }
 
-const isLowConfidence = computed(() => snapshot.value.confidence_score < snapshot.value.user_defined_threshold)
+const thresholdStress = computed(() => confidenceRelativeThresholdStress(snapshot.value.confidence_score, snapshot.value.user_defined_threshold))
+
+/** 경고 테두리 강도 0~1 — warn 시 1, STUCK 시 임계 대비 스트레스 연속값 */
+const hudWarnStyle = computed(() => {
+  const s = snapshot.value
+  let t = 0
+  if (s.warn_token != null) t = 1
+  else if (s.how_state === 'STUCK') t = thresholdStress.value
+  return { '--nixie-warn-t': String(t) }
+})
 
 const isReddish = computed(() => {
   const s = snapshot.value
-  return s.warn_token != null || (s.how_state === 'STUCK' && isLowConfidence.value)
+  return s.warn_token != null || (s.how_state === 'STUCK' && thresholdStress.value > 0.02)
 })
 
 function killLumina() {
@@ -212,72 +228,54 @@ function syncLumina() {
   gsap.set(dots, { clearProps: 'opacity' })
 
   const mask = getDemoTextMask()
-  const ent = snapshot.value.ui_entropy_mode
+  const entropy = clamp(Number(snapshot.value.entropy_level ?? 100), 0, 100) / 100
+  const pulseMix = 0.55 + entropy * 0.45
 
   if (mask) {
     const offDots = dots.filter((_, i) => !mask[i])
     const litDots = dots.filter((_, i) => mask[i])
-    gsap.set(offDots, { opacity: 0.06 })
+    gsap.set(offDots, { opacity: 0.03 + entropy * 0.08 })
     if (!litDots.length) return
 
-    if (ent === 'static') {
-      gsap.set(litDots, { opacity: 0.55 })
-      return
-    }
-    if (ent === 'minimal') {
-      gsap.set(litDots, { opacity: 0.58 })
-      luminaTl = gsap.timeline({ repeat: -1 })
-      luminaTl.to(litDots, { opacity: 0.48, duration: 1.2, ease: 'sine.inOut' })
-      luminaTl.to(litDots, { opacity: 0.72, duration: 1.2, ease: 'sine.inOut' })
-      return
-    }
-
     const pulse = snapshot.value.who_pulse
-    const dur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
-    gsap.set(litDots, { opacity: 0.45 })
+    const baseDur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
+    const dur = clamp(baseDur * (1.45 - entropy * 0.75), 0.35, 2.8)
+    const minOpacity = 0.2 + entropy * 0.25
+    const maxOpacity = 0.55 + entropy * 0.37
+    gsap.set(litDots, { opacity: minOpacity + 0.05 })
     luminaTl = gsap.timeline({ repeat: -1 })
     luminaTl.to(litDots, {
-      opacity: 0.92,
-      duration: dur * 0.45,
-      stagger: { each: 0.015, from: 'random' },
+      opacity: maxOpacity,
+      duration: dur * 0.45 * pulseMix,
+      stagger: { each: 0.006 + entropy * 0.012, from: 'random' },
       ease: 'sine.inOut',
     })
     luminaTl.to(litDots, {
-      opacity: 0.38,
-      duration: dur * 0.55,
-      stagger: { each: 0.012, from: 'random' },
+      opacity: minOpacity,
+      duration: dur * 0.55 * pulseMix,
+      stagger: { each: 0.005 + entropy * 0.01, from: 'random' },
       ease: 'sine.inOut',
     })
-    return
-  }
-
-  if (ent === 'static') {
-    gsap.set(dots, { opacity: 0.38 })
-    return
-  }
-  if (ent === 'minimal') {
-    gsap.set(dots, { opacity: 0.55 })
-    luminaTl = gsap.timeline({ repeat: -1 })
-    luminaTl.to(dots, { opacity: 0.4, duration: 1.2, ease: 'sine.inOut' })
-    luminaTl.to(dots, { opacity: 0.62, duration: 1.2, ease: 'sine.inOut' })
     return
   }
 
   const pulse = snapshot.value.who_pulse
-  const dur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
-
-  gsap.set(dots, { opacity: 0.35 })
+  const baseDur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
+  const dur = clamp(baseDur * (1.45 - entropy * 0.75), 0.35, 2.8)
+  const minOpacity = 0.16 + entropy * 0.22
+  const maxOpacity = 0.48 + entropy * 0.44
+  gsap.set(dots, { opacity: minOpacity + 0.04 })
   luminaTl = gsap.timeline({ repeat: -1 })
   luminaTl.to(dots, {
-    opacity: 0.92,
-    duration: dur * 0.45,
-    stagger: { each: 0.015, from: 'random' },
+    opacity: maxOpacity,
+    duration: dur * 0.45 * pulseMix,
+    stagger: { each: 0.006 + entropy * 0.012, from: 'random' },
     ease: 'sine.inOut',
   })
   luminaTl.to(dots, {
-    opacity: 0.28,
-    duration: dur * 0.55,
-    stagger: { each: 0.012, from: 'random' },
+    opacity: minOpacity,
+    duration: dur * 0.55 * pulseMix,
+    stagger: { each: 0.005 + entropy * 0.01, from: 'random' },
     ease: 'sine.inOut',
   })
 }
@@ -287,31 +285,54 @@ function syncJitter() {
   const dots = getDots()
   if (!dots.length) return
 
-  const ent = snapshot.value.ui_entropy_mode
-  if (ent !== 'full') return
+  /**
+   * Jitter(일렁임) 연속 매핑 규칙:
+   * - confidence_score: 전반 불안정도(낮을수록 커짐)
+   * - user_defined_threshold: 사용자가 정한 "걱정선"(안전 하한), 판단 기준선
+   *   -> confidence가 이 선 아래로 얼마나 내려왔는지(thStress)를 0~1로 반영
+   * - entropy_level: 연출 스케일 게인(0이면 거의 정적, 100이면 최대)
+   * - STUCK / ASK / warn_token: 단계 전환이 아니라 intensity 가중치로만 더함
+   */
+  const entropy = clamp(Number(snapshot.value.entropy_level ?? 100), 0, 100) / 100
 
   const s = snapshot.value
-  const need = s.confidence_score < s.user_defined_threshold || s.how_state === 'STUCK' || s.who_pulse === 'ASK'
+  const confidence = clamp(Number(s.confidence_score ?? 100), 0, 100)
+  const instability = 1 - confidence / 100
+  const thStress = confidenceRelativeThresholdStress(confidence, Number(s.user_defined_threshold ?? 100))
 
-  if (!need) return
+  // 전역 낮은 신뢰도 + 임계선 대비 부족 분을 함께 반영(연속).
+  let intensity = clamp(0.55 * instability + 0.45 * thStress, 0, 1)
+  if (s.how_state === 'STUCK') intensity += 0.08
+  if (s.who_pulse === 'ASK') intensity += 0.06
+  if (s.warn_token != null) intensity += 0.05
+  intensity *= entropy
+  intensity = clamp(intensity, 0, 1)
+
+  // 거의 안정 상태에서는 미세 연산을 생략.
+  if (intensity < 0.02) return
 
   const mask = getDemoTextMask()
   const targets = mask ? dots.filter((_, i) => mask[i]) : dots
   if (!targets.length) return
 
+  const amplitude = 0.08 + intensity * 2.4
+  const durationOut = clamp(0.22 - intensity * 0.12, 0.08, 0.22)
+  const durationBack = clamp(0.24 - intensity * 0.1, 0.09, 0.24)
+  const staggerEach = 0.004 + intensity * 0.004
+
   const tl = gsap.timeline({ repeat: -1, repeatRefresh: true })
   tl.to(targets, {
-    x: () => gsap.utils.random(-2.2, 2.2),
-    y: () => gsap.utils.random(-2.2, 2.2),
-    duration: 0.12,
-    stagger: { each: 0.006 },
+    x: () => gsap.utils.random(-amplitude, amplitude),
+    y: () => gsap.utils.random(-amplitude, amplitude),
+    duration: durationOut,
+    stagger: { each: staggerEach },
     ease: 'sine.inOut',
   })
   tl.to(targets, {
     x: 0,
     y: 0,
-    duration: 0.14,
-    stagger: { each: 0.006 },
+    duration: durationBack,
+    stagger: { each: staggerEach },
     ease: 'sine.inOut',
   })
   jitterAnim = tl
@@ -326,17 +347,43 @@ function syncConfused() {
   if (!el) return
 
   const s = snapshot.value
-  const on = s.warn_token === 'ADAPTER_TIMEOUT' || (s.how_state === 'STUCK' && isLowConfidence.value)
+  const confidence = clamp(Number(s.confidence_score ?? 100), 0, 100)
+  const instability = 1 - confidence / 100
+  const thresholdStress = confidenceRelativeThresholdStress(confidence, s.user_defined_threshold)
+  const entropy = clamp(Number(s.entropy_level ?? 100), 0, 100) / 100
 
-  if (!on) {
+  // 갸우뚱 강도: 신뢰도 하락 + 임계선 하회 정도 + 엔트로피를 연속 합성.
+  // STUCK일 때만 이 강도를 사용하고, 타임아웃은 최대 강도로 고정.
+  const blended = clamp(0.45 * instability + 0.55 * thresholdStress, 0, 1)
+  let mag = 0
+  if (s.warn_token === 'ADAPTER_TIMEOUT') mag = 1
+  else if (s.how_state === 'STUCK') mag = blended * (0.35 + entropy * 0.65)
+
+  let targetDeg = 12 * clamp(mag, 0, 1)
+
+  if (targetDeg < 0.25) {
     confusedTween = gsap.to(el, { rotation: 0, duration: 0.35, ease: 'power2.out' })
     return
   }
 
-  confusedTween = gsap.to(el, {
-    rotation: 12,
-    duration: 0.45,
-    ease: 'back.out(1.7)',
+  // 이벤트마다 "현재 방향"의 반대로만 기울임(무조건 역전).
+  const currentRotation = Number(gsap.getProperty(el, 'rotation') ?? 0)
+  const dir = currentRotation >= 0 ? -1 : 1
+  targetDeg *= dir
+
+  // 반동감을 키우기 위해 목표 각도에 추가 오버슈트를 주고,
+  // 이후 settle 단계에서 살짝 되돌아오게 2-스텝 타임라인 사용.
+  const overshoot = targetDeg * 1.2
+  confusedTween = gsap.timeline()
+  confusedTween.to(el, {
+    rotation: overshoot,
+    duration: 0.32,
+    ease: 'back.out(2.4)',
+  })
+  confusedTween.to(el, {
+    rotation: targetDeg,
+    duration: 0.2,
+    ease: 'elastic.out(1, 0.45)',
   })
 }
 
@@ -589,10 +636,10 @@ onBeforeUnmount(() => {
 
 /* 빨간색 경고 도트 스타일 */
 .nixie-online__hud--reddish {
-  border-color: rgba(220, 80, 60, 0.65);
+  border-color: rgba(220, 80, 60, calc(0.35 + var(--nixie-warn-t, 0) * 0.45));
   box-shadow:
-    0 4px 18px rgba(200, 60, 40, 0.35),
-    inset 0 0 0 1px rgba(255, 120, 80, 0.45);
+    0 4px calc(16px + var(--nixie-warn-t, 0) * 8px) rgba(200, 60, 40, calc(0.2 + var(--nixie-warn-t, 0) * 0.35)),
+    inset 0 0 0 1px rgba(255, 120, 80, calc(0.25 + var(--nixie-warn-t, 0) * 0.35));
 }
 
 /* 빈 영역 도트 스타일 */

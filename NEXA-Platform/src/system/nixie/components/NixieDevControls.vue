@@ -9,52 +9,48 @@
       <div class="text-caption text-weight-bold q-mb-xs">NIXIE · N-MAP 시뮬</div>
       <q-separator class="q-mb-xs" />
     </template>
+    <p class="text-caption text-grey-7 q-mb-sm q-px-sm q-pt-xs text-center">화면의 <strong>닉시</strong>는 전역 오버레이. 컨트롤은 Pinia 스토어만 갱신하며, 사용자 체험용.</p>
 
     <!-- 흐름 + 펄스 -->
     <div class="row items-center q-gutter-x-xs q-mb-xs no-wrap">
       <span class="nixie-dev-controls__lbl">흐름</span>
-      <q-btn dense outline size="sm" padding="xs sm" label="FLOW" @click="nmap.setHowState('FLOW')" />
-      <q-btn dense outline size="sm" padding="xs sm" label="STUCK" @click="nmap.setHowState('STUCK')" />
-      <q-btn dense outline size="sm" padding="xs sm" label="VOID" @click="nmap.setHowState('VOID')" />
+      <q-btn dense size="sm" padding="xs sm" label="FLOW" :outline="snapshot.how_state !== 'FLOW'" :unelevated="snapshot.how_state === 'FLOW'" :color="snapshot.how_state === 'FLOW' ? 'primary' : 'grey-7'" @click="nmap.setHowState('FLOW')" />
+      <q-btn dense size="sm" padding="xs sm" label="STUCK" :outline="snapshot.how_state !== 'STUCK'" :unelevated="snapshot.how_state === 'STUCK'" :color="snapshot.how_state === 'STUCK' ? 'amber-9' : 'grey-7'" @click="nmap.setHowState('STUCK')" />
+      <q-btn dense size="sm" padding="xs sm" label="VOID" :outline="snapshot.how_state !== 'VOID'" :unelevated="snapshot.how_state === 'VOID'" :color="snapshot.how_state === 'VOID' ? 'blue-grey-6' : 'grey-7'" @click="nmap.setHowState('VOID')" />
       <q-separator vertical inset class="q-mx-xs" />
       <span class="nixie-dev-controls__lbl">펄스</span>
-      <q-btn dense flat size="sm" padding="xs sm" label="WILL" @click="nmap.setWhoPulse('WILL')" />
-      <q-btn dense flat size="sm" padding="xs sm" label="ECHO" @click="nmap.setWhoPulse('ECHO')" />
-      <q-btn dense flat size="sm" padding="xs sm" label="ASK" @click="nmap.setWhoPulse('ASK')" />
+      <q-btn dense size="sm" padding="xs sm" label="WILL" :flat="snapshot.who_pulse !== 'WILL'" :unelevated="snapshot.who_pulse === 'WILL'" :color="snapshot.who_pulse === 'WILL' ? 'deep-orange-8' : 'grey-7'" @click="nmap.setWhoPulse('WILL')" />
+      <q-btn dense size="sm" padding="xs sm" label="ECHO" :flat="snapshot.who_pulse !== 'ECHO'" :unelevated="snapshot.who_pulse === 'ECHO'" :color="snapshot.who_pulse === 'ECHO' ? 'cyan-8' : 'grey-7'" @click="nmap.setWhoPulse('ECHO')" />
+      <q-btn dense size="sm" padding="xs sm" label="ASK" :flat="snapshot.who_pulse !== 'ASK'" :unelevated="snapshot.who_pulse === 'ASK'" :color="snapshot.who_pulse === 'ASK' ? 'purple-8' : 'grey-7'" @click="nmap.setWhoPulse('ASK')" />
     </div>
 
-    <!-- 신뢰도 -->
+    <!-- 슬라이더 3단: 신뢰도 / 엔트로피 / 임계값 -->
     <div class="row items-center q-gutter-x-xs q-mb-xs">
       <span class="nixie-dev-controls__lbl">신뢰도</span>
       <q-slider :model-value="snapshot.confidence_score" :min="0" :max="100" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="nmap.setConfidenceScore" />
       <span class="text-caption nixie-dev-controls__num">{{ snapshot.confidence_score }}</span>
     </div>
-
-    <!-- 경고 -->
     <div class="row items-center q-gutter-x-xs q-mb-xs">
-      <span class="nixie-dev-controls__lbl">경고</span>
-      <q-btn dense outline size="sm" padding="xs sm" label="타임아웃" @click="nmap.setWarnToken('ADAPTER_TIMEOUT')" />
-      <q-btn dense flat size="sm" padding="xs sm" label="해제" @click="nmap.setWarnToken(null)" />
-    </div>
-
-    <!-- 엔트로피 + 가상 + Nebula -->
-    <div class="row items-center q-gutter-x-xs q-mb-xs flex-wrap">
       <span class="nixie-dev-controls__lbl">엔트로피</span>
-      <q-btn dense outline size="sm" padding="xs sm" label="full" @click="nmap.setUiEntropyMode('full')" />
-      <q-btn dense outline size="sm" padding="xs sm" label="minimal" @click="nmap.setUiEntropyMode('minimal')" />
-      <q-btn dense outline size="sm" padding="xs sm" label="static" @click="nmap.setUiEntropyMode('static')" />
-      <q-separator vertical inset class="q-mx-xs" />
-      <q-toggle :model-value="snapshot.is_virtual" dense left-label label="가상" @update:model-value="nmap.setIsVirtual" />
-      <q-separator vertical inset class="q-mx-xs" />
-      <q-btn dense outline size="sm" padding="xs sm" label="Nebula" @click="nmap.simulateNebulaInflux()" />
-      <q-btn dense flat size="sm" padding="xs sm" label="Lokeol" @click="nmap.clearNebulaToLocal()" />
+      <q-slider :model-value="snapshot.entropy_level" :min="0" :max="100" dense color="deep-orange" class="nixie-dev-controls__slider col" @update:model-value="nmap.setEntropyLevel" />
+      <span class="text-caption nixie-dev-controls__num">{{ snapshot.entropy_level }}</span>
     </div>
-
-    <!-- 임계값 -->
     <div class="row items-center q-gutter-x-xs q-mb-xs">
       <span class="nixie-dev-controls__lbl">임계값</span>
       <q-slider :model-value="snapshot.user_defined_threshold" :min="70" :max="100" dense color="amber" class="nixie-dev-controls__slider col" @update:model-value="nmap.setUserDefinedThreshold" />
       <span class="text-caption nixie-dev-controls__num">{{ snapshot.user_defined_threshold }}</span>
+    </div>
+
+    <!-- 경고·상태 액션 묶음 -->
+    <div class="row items-center q-gutter-x-xs q-mb-xs flex-wrap">
+      <span class="nixie-dev-controls__lbl">경고/상태</span>
+      <q-btn dense size="sm" padding="xs sm" label="타임아웃" :outline="snapshot.warn_token !== 'ADAPTER_TIMEOUT'" :unelevated="snapshot.warn_token === 'ADAPTER_TIMEOUT'" :color="snapshot.warn_token === 'ADAPTER_TIMEOUT' ? 'negative' : 'grey-7'" @click="nmap.setWarnToken('ADAPTER_TIMEOUT')" />
+      <q-btn dense size="sm" padding="xs sm" label="해제" :flat="snapshot.warn_token != null" :unelevated="snapshot.warn_token == null" :color="snapshot.warn_token == null ? 'positive' : 'grey-7'" @click="nmap.setWarnToken(null)" />
+      <q-separator vertical inset class="q-mx-xs" />
+      <q-toggle :model-value="snapshot.is_virtual" dense left-label label="가상" @update:model-value="nmap.setIsVirtual" />
+      <q-separator vertical inset class="q-mx-xs" />
+      <q-btn dense size="sm" padding="xs sm" label="Nebula" :outline="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local'" :unelevated="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local'" :color="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local' ? 'indigo-7' : 'grey-7'" @click="nmap.simulateNebulaInflux()" />
+      <q-btn dense size="sm" padding="xs sm" label="Lokeol" :flat="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local'" :unelevated="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local'" :color="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local' ? 'teal-7' : 'grey-7'" @click="nmap.clearNebulaToLocal()" />
     </div>
 
     <q-separator class="q-my-xs" />
@@ -150,8 +146,10 @@ function clearHudText() {
   flex-shrink: 0;
   font-size: 11px;
   line-height: 1.2;
-  opacity: 0.72;
-  min-width: 2.5rem;
+  opacity: 0.52;
+  min-width: 3.1rem;
+  text-align: right;
+  margin-right: 4px;
 }
 
 .nixie-dev-controls__slider {

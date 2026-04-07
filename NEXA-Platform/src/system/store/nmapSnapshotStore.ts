@@ -5,7 +5,6 @@ import { ref, type Ref } from 'vue'
 
 export type HowState = 'FLOW' | 'STUCK' | 'VOID'
 export type WhoPulse = 'WILL' | 'ECHO' | 'ASK'
-export type UiEntropyMode = 'full' | 'minimal' | 'static'
 
 export type NmapSnapshot = {
   schemaVersion: number
@@ -13,7 +12,8 @@ export type NmapSnapshot = {
   who_pulse: WhoPulse
   confidence_score: number
   warn_token: string | null
-  ui_entropy_mode: UiEntropyMode
+  /** 엔트로피 강도(0~100). 0=정적에 가까움, 100=가장 동적 */
+  entropy_level: number
   is_virtual: boolean
   source_shell_id: string | null
   user_defined_threshold: number
@@ -32,7 +32,7 @@ function defaultSnapshot(): NmapSnapshot {
     who_pulse: 'ECHO',
     confidence_score: 100,
     warn_token: null,
-    ui_entropy_mode: 'full',
+    entropy_level: 100,
     is_virtual: false,
     source_shell_id: LOCAL_SHELL_ID,
     user_defined_threshold: 95,
@@ -66,8 +66,8 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     applyPatch({ warn_token })
   }
 
-  function setUiEntropyMode(ui_entropy_mode: UiEntropyMode) {
-    applyPatch({ ui_entropy_mode })
+  function setEntropyLevel(entropy_level: number) {
+    applyPatch({ entropy_level: Math.max(0, Math.min(100, entropy_level)) })
   }
 
   function setIsVirtual(is_virtual: boolean) {
@@ -156,7 +156,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     setWhoPulse,
     setConfidenceScore,
     setWarnToken,
-    setUiEntropyMode,
+    setEntropyLevel,
     setIsVirtual,
     setSourceShellId,
     setUserDefinedThreshold,
