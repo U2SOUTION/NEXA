@@ -11,15 +11,6 @@ export type MorseSoundEvent = {
   ms: number
 }
 
-export type MorseTimingInput = {
-  /** PARIS 기준 WPM — dit(ms) = 1200 / wpm (오버라이드 없을 때) */
-  wpm: number
-  /** null이면 WPM으로 dit 계산, 숫자면 직접 지정(ms) */
-  ditMsOverride: number | null
-}
-
-const WPM_MIN = 5
-const WPM_MAX = 60
 const DIT_MS_MIN = 20
 const DIT_MS_MAX = 500
 
@@ -27,13 +18,9 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n))
 }
 
-/** WPM 또는 dit 오버라이드로 dit 길이(ms) 결정 */
-export function resolveMorseDitMs(input: MorseTimingInput): number {
-  if (input.ditMsOverride != null && Number.isFinite(input.ditMsOverride)) {
-    return clamp(Math.round(input.ditMsOverride), DIT_MS_MIN, DIT_MS_MAX)
-  }
-  const wpm = clamp(Number(input.wpm) || 20, WPM_MIN, WPM_MAX)
-  return clamp(Math.round(1200 / wpm), DIT_MS_MIN, DIT_MS_MAX)
+/** 스냅샷 dit(ms) — 항상 20~500ms로 고정(재생·타임라인 공통) */
+export function clampMorseDitMs(ms: number): number {
+  return clamp(Math.round(Number(ms) || 60), DIT_MS_MIN, DIT_MS_MAX)
 }
 
 /**
