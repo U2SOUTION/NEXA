@@ -49,16 +49,35 @@
       <q-separator vertical inset class="q-mx-xs" />
       <q-toggle :model-value="snapshot.is_virtual" dense left-label label="가상" @update:model-value="nmap.setIsVirtual" />
       <q-separator vertical inset class="q-mx-xs" />
-      <q-btn dense size="sm" padding="xs sm" label="Nebula" :outline="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local'" :unelevated="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local'" :color="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local' ? 'indigo-7' : 'grey-7'" @click="nmap.simulateNebulaInflux()" />
-      <q-btn dense size="sm" padding="xs sm" label="Lokeol" :flat="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local'" :unelevated="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local'" :color="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local' ? 'teal-7' : 'grey-7'" @click="nmap.clearNebulaToLocal()" />
+      <q-btn
+        dense
+        size="sm"
+        padding="xs sm"
+        label="Nebula"
+        :outline="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local'"
+        :unelevated="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local'"
+        :color="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local' ? 'indigo-7' : 'grey-7'"
+        @click="nmap.simulateNebulaInflux()"
+      />
+      <q-btn
+        dense
+        size="sm"
+        padding="xs sm"
+        label="Lokeol"
+        :flat="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local'"
+        :unelevated="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local'"
+        :color="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local' ? 'teal-7' : 'grey-7'"
+        @click="nmap.clearNebulaToLocal()"
+      />
     </div>
 
     <q-separator class="q-my-xs" />
 
-    <!-- HUD 텍스트 -->
-    <div class="row items-start q-gutter-x-xs q-mb-xs">
-      <span class="nixie-dev-controls__lbl q-pt-sm">HUD</span>
-      <div class="col">
+    <!-- HUD: 분해 줄은 2행·입력 열만 → 라벨|입력|지우기는 항상 한 행에서 세로 가운데 정렬 -->
+    <div class="nixie-dev-controls__hud" :class="{ 'nixie-dev-controls__hud--decomposed': showHudDecomposedLine }">
+      <div v-if="showHudDecomposedLine" class="nixie-dev-controls__hud-decomposed text-caption text-grey-6">분해 출력: {{ hudDecomposedPreview || '(없음)' }}</div>
+      <span class="nixie-dev-controls__lbl nixie-dev-controls__hud-label">HUD</span>
+      <div class="col min-width-0 nixie-dev-controls__hud-field">
         <q-input
           v-model="hudDraft"
           dense
@@ -68,13 +87,13 @@
           autocapitalize="off"
           autocomplete="off"
           :spellcheck="false"
-          placeholder="A–Z·a–z·0–9·모스 . - (한글 등 제외) blur/Enter"
+          placeholder="A–Z·a–z·0–9·한글·모스 . - blur/Enter"
           @focus="hudInputFocused = true"
           @blur="onHudBlur"
           @keydown.enter.prevent="commitHudText"
         />
       </div>
-      <q-btn dense flat size="sm" padding="xs sm" class="q-mt-xs" label="지우기" @click="clearHudText" />
+      <q-btn class="nixie-dev-controls__hud-clear" dense flat size="sm" padding="8px 12px" label="지우기" @click="clearHudText" />
     </div>
 
     <q-btn dense flat color="primary" size="sm" class="full-width q-mt-xs" label="스냅샷 기본값" @click="nmap.resetToDefaults()" />
@@ -83,8 +102,9 @@
 
 <script setup>
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
+import { normalizeDemoHudText } from '@system/nixie/nixieDotMap'
 import { storeToRefs } from 'pinia'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 defineProps({
   /** Nexion 우측 패널 아코디언 안에 넣을 때 true (제목·외곽선 생략) */
@@ -96,17 +116,19 @@ defineProps({
 
 const nmap = useNmapSnapshotStore()
 const { snapshot } = storeToRefs(nmap)
-
-/** 타이핑은 로컬에만 두고, blur / Enter 에서 스토어 반영 → 닉시 HUD 갱신 */
+const hasHangulChar = /[\u3131-\u318e\uac00-\ud7a3]/
 const hudDraft = ref('')
 const hudInputFocused = ref(false)
 
+const showHudDecomposedLine = computed(() => hasHangulChar.test(hudDraft.value ?? ''))
+const hudDecomposedPreview = computed(() => normalizeDemoHudText(hudDraft.value ?? ''))
+
 onMounted(() => {
-  hudDraft.value = snapshot.value.demo_hud_text ?? ''
+  hudDraft.value = snapshot.value.demo_hud_text_raw ?? ''
 })
 
 watch(
-  () => snapshot.value.demo_hud_text,
+  () => snapshot.value.demo_hud_text_raw,
   (v) => {
     if (!hudInputFocused.value) hudDraft.value = v ?? ''
   },
@@ -114,7 +136,6 @@ watch(
 
 function commitHudText() {
   nmap.setDemoHudText(hudDraft.value)
-  hudDraft.value = snapshot.value.demo_hud_text ?? ''
 }
 
 function onHudBlur() {
@@ -150,6 +171,42 @@ function clearHudText() {
   min-width: 3.1rem;
   text-align: right;
   margin-right: 4px;
+}
+
+/** HUD: 3열 그리드 — `grid-template-areas` 만으로 분해 줄 유무에 따라 행 구성 */
+.nixie-dev-controls__hud {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  column-gap: 8px;
+  row-gap: 4px;
+  align-items: center;
+  margin-bottom: 4px;
+  grid-template-areas:
+    'label input clear';
+}
+
+.nixie-dev-controls__hud--decomposed {
+  grid-template-areas:
+    '. preview .'
+    'label input clear';
+}
+
+.nixie-dev-controls__hud-label {
+  grid-area: label;
+}
+
+.nixie-dev-controls__hud-field {
+  grid-area: input;
+}
+
+.nixie-dev-controls__hud-clear {
+  grid-area: clear;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+}
+
+.nixie-dev-controls__hud-decomposed {
+  grid-area: preview;
 }
 
 .nixie-dev-controls__slider {

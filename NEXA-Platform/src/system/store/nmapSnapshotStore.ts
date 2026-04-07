@@ -17,8 +17,10 @@ export type NmapSnapshot = {
   is_virtual: boolean
   source_shell_id: string | null
   user_defined_threshold: number
-  /** 시뮬: HUD 도트 텍스트(A–Z·a–z·0–9·스페이스·모스 `.` `-`, 전각·중점 등 정규화). 빈 문자열이면 기본 루미나만 */
+  /** 시뮬: HUD 도트 텍스트(A–Z·a–z·0–9·한글·스페이스·모스 `.` `-`, 전각·중점 등 정규화). 빈 문자열이면 기본 루미나만 */
   demo_hud_text: string
+  /** 시뮬 입력 원문(사용자 타이핑 그대로 유지; 예: 한글 완성형) */
+  demo_hud_text_raw: string
   /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
 }
@@ -37,6 +39,7 @@ function defaultSnapshot(): NmapSnapshot {
     source_shell_id: LOCAL_SHELL_ID,
     user_defined_threshold: 95,
     demo_hud_text: '',
+    demo_hud_text_raw: '',
     demo_hud_scroll_offset: 0,
   }
 }
@@ -83,20 +86,21 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
   }
 
   function setDemoHudText(raw: string | null | undefined) {
-    const demo_hud_text = normalizeDemoHudText(String(raw ?? ''))
+    const demo_hud_text_raw = String(raw ?? '')
+    const demo_hud_text = normalizeDemoHudText(demo_hud_text_raw)
     if (!demo_hud_text.length) {
-      applyPatch({ demo_hud_text: '', demo_hud_scroll_offset: 0 })
+      applyPatch({ demo_hud_text: '', demo_hud_text_raw, demo_hud_scroll_offset: 0 })
       return
     }
     if (textFitsCompletelyInGrid(demo_hud_text)) {
-      applyPatch({ demo_hud_text, demo_hud_scroll_offset: 0 })
+      applyPatch({ demo_hud_text, demo_hud_text_raw, demo_hud_scroll_offset: 0 })
       return
     }
     const period = hudTapePeriodWidthCols(demo_hud_text)
     const prev = snapshot.value.demo_hud_scroll_offset ?? 0
     const demo_hud_scroll_offset =
       period > 0 ? ((Math.floor(prev) % period) + period) % period : 0
-    applyPatch({ demo_hud_text, demo_hud_scroll_offset })
+    applyPatch({ demo_hud_text, demo_hud_text_raw, demo_hud_scroll_offset })
   }
 
   function setDemoHudScrollOffset(offset: number) {

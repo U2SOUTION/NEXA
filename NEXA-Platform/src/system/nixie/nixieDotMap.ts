@@ -1,8 +1,8 @@
 /**
  * NIXIE HUD 24×7 도트 매핑(그리드·마퀴·정규화).
  *
- * 지원: 라틴 대·소문자(소문자는 7행 패턴: 상2·하1 공백 행 + 본문 4행), 숫자, 공백, 모스 `.` `-`.
- * 전각 영숫자·일부 기호는 ASCII로 치환. 한글 등은 추후 `GLYPHS`·`normalizeDemoHudText` 확장.
+ * 지원: 라틴 대·소문자, 숫자, 공백, 모스 `.` `-`, 한글(완성형→자모 분해 표시).
+ * 전각 영숫자·일부 기호는 ASCII로 치환. 한글은 예: `감` -> `ㄱ ㅏ ㅁ`.
  */
 
 export const NIXIE_GRID_COLS = 24
@@ -71,6 +71,12 @@ function hudLatinLower7(a: string, b: string, c: string, d: string): string[] {
   return [z, z, a, b, c, d, z]
 }
 
+/** 한글 자모 7행: 상단 1칸, 본문 5행, 하단 1칸 */
+function hudHangulJamo7(a: string, b: string, c: string, d: string, e = d): string[] {
+  const z = '0000'
+  return [z, a, b, c, d, e, z]
+}
+
 /**
  * HUD 소문자 a–z. 행마다 동일 열 수(4). 시뮬에서 본문 4행(`hudLatinLower7` 인자)만 조정하면 됨.
  */
@@ -111,12 +117,127 @@ export const NIXIE_HUD_MORSE_ELEMENTS: Record<string, string[]> = {
   '-': ['000', '000', '111', '000', '000'],
 }
 
+/** 한글 자모(저밀도 4열/7행) — 복합 자모는 정규화에서 기본 자모열로 분해. */
+
+export const NIXIE_HUD_HANGUL_JAMO: Record<string, string[]> = {
+  // 자음 (Consonants)
+  ㄱ: hudHangulJamo7('111', '001', '001', '001', '001'),
+  ㄲ: hudHangulJamo7('1111', '0011', '0011', '0011', '0011'),
+  ㄴ: hudHangulJamo7('100', '100', '100', '100', '111'),
+  ㄷ: hudHangulJamo7('111', '100', '100', '100', '111'),
+  ㄸ: hudHangulJamo7('111', '110', '110', '110', '111'),
+  ㄹ: hudHangulJamo7('111', '001', '111', '100', '111'),
+  ㅁ: hudHangulJamo7('111', '101', '101', '101', '111'),
+  ㅂ: hudHangulJamo7('101', '101', '111', '101', '111'),
+  ㅃ: hudHangulJamo7('1001', '1111', '1111', '1111', '1111'),
+  ㅅ: hudHangulJamo7('010', '010', '101', '101', '101'),
+  ㅆ: hudHangulJamo7('0101', '0101', '1010', '1010', '1010'),
+  ㅇ: hudHangulJamo7('010', '101', '101', '101', '010'),
+  ㅈ: hudHangulJamo7('111', '001', '110', '101', '101'),
+  ㅉ: hudHangulJamo7('1111', '0011', '1110', '1010', '1010'),
+  ㅊ: hudHangulJamo7('010', '111', '010', '101', '101'),
+  ㅋ: hudHangulJamo7('111', '001', '111', '001', '001'),
+  ㅌ: hudHangulJamo7('111', '100', '111', '100', '111'),
+  ㅍ: hudHangulJamo7('1111', '0110', '0110', '0110', '1111'),
+  ㅎ: hudHangulJamo7('0110', '0000', '0110', '1001', '0110'),
+
+  // 모음 (Vowels)
+  ㅏ: hudHangulJamo7('100', '100', '110', '100', '100'),
+  ㅐ: hudHangulJamo7('101', '101', '111', '101', '101'),
+  ㅑ: hudHangulJamo7('010', '011', '010', '011', '010'),
+  ㅒ: hudHangulJamo7('010', '011', '010', '011', '010'),
+  ㅓ: hudHangulJamo7('010', '110', '110', '010', '010'),
+  ㅔ: hudHangulJamo7('101', '101', '111', '101', '101'),
+  ㅕ: hudHangulJamo7('010', '110', '110', '010', '010'),
+  ㅖ: hudHangulJamo7('101', '111', '111', '101', '101'),
+  ㅗ: hudHangulJamo7('000', '010', '010', '111', '000'),
+  ㅛ: hudHangulJamo7('0000', '1010', '1111', '0000', '0000'),
+  ㅜ: hudHangulJamo7('000', '111', '010', '010', '010'),
+  ㅠ: hudHangulJamo7('0000', '1111', '1010', '1010', '1010'),
+  ㅡ: hudHangulJamo7('000', '000', '111', '000', '000'),
+  ㅣ: hudHangulJamo7('1', '1', '1', '1', '1'),
+}
+
 /** 런타임 조회용(테이프 경계 글리프 포함). */
 const GLYPHS: Record<string, string[]> = {
   ...NIXIE_HUD_LATIN_UPPER_DIGITS,
   ...NIXIE_HUD_LATIN_LOWER,
   ...NIXIE_HUD_MORSE_ELEMENTS,
+  ...NIXIE_HUD_HANGUL_JAMO,
   [HUD_TAPE_GAP_CHAR]: ['0000', '0000', '0000', '0000', '0000'],
+}
+
+const CHOSEONG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'] as const
+const JUNGSEONG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'] as const
+const JONGSEONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'] as const
+
+const COMPLEX_VOWEL_TO_BASIC: Record<string, string[]> = {
+  ㅘ: ['ㅗ', 'ㅏ'],
+  ㅙ: ['ㅗ', 'ㅐ'],
+  ㅚ: ['ㅗ', 'ㅣ'],
+  ㅝ: ['ㅜ', 'ㅓ'],
+  ㅞ: ['ㅜ', 'ㅔ'],
+  ㅟ: ['ㅜ', 'ㅣ'],
+  ㅢ: ['ㅡ', 'ㅣ'],
+}
+
+const COMPLEX_FINAL_TO_BASIC: Record<string, string[]> = {
+  ㄳ: ['ㄱ', 'ㅅ'],
+  ㄵ: ['ㄴ', 'ㅈ'],
+  ㄶ: ['ㄴ', 'ㅎ'],
+  ㄺ: ['ㄹ', 'ㄱ'],
+  ㄻ: ['ㄹ', 'ㅁ'],
+  ㄼ: ['ㄹ', 'ㅂ'],
+  ㄽ: ['ㄹ', 'ㅅ'],
+  ㄾ: ['ㄹ', 'ㅌ'],
+  ㄿ: ['ㄹ', 'ㅍ'],
+  ㅀ: ['ㄹ', 'ㅎ'],
+  ㅄ: ['ㅂ', 'ㅅ'],
+}
+
+const TENSE_CONSONANT_TO_BASIC: Record<string, string> = {
+  ㄲ: 'ㄱ',
+  ㄸ: 'ㄷ',
+  ㅃ: 'ㅂ',
+  ㅆ: 'ㅅ',
+  ㅉ: 'ㅈ',
+}
+
+function normalizeCompatJamo(ch: string): string {
+  if (Object.prototype.hasOwnProperty.call(NIXIE_HUD_HANGUL_JAMO, ch)) return ch
+  return TENSE_CONSONANT_TO_BASIC[ch] ?? ch
+}
+
+function decomposeHangulSyllableToJamo(ch: string): string[] | null {
+  const cp = ch.codePointAt(0)
+  if (cp === undefined) return null
+  if (cp < 0xac00 || cp > 0xd7a3) return null
+  const sIndex = cp - 0xac00
+  const l = Math.floor(sIndex / 588)
+  const v = Math.floor((sIndex % 588) / 28)
+  const t = sIndex % 28
+
+  const cho = normalizeCompatJamo(CHOSEONG[l] ?? '')
+  const jungRaw = JUNGSEONG[v] ?? ''
+  const jung = (COMPLEX_VOWEL_TO_BASIC[jungRaw] ?? [jungRaw]).map(normalizeCompatJamo)
+  const jongRaw = JONGSEONG[t] ?? ''
+  const jong = jongRaw ? (COMPLEX_FINAL_TO_BASIC[jongRaw] ?? [jongRaw]).map(normalizeCompatJamo) : []
+
+  return [cho, ...jung, ...jong].filter(Boolean)
+}
+
+function expandCompatJamoInput(ch: string): string[] | null {
+  if (Object.prototype.hasOwnProperty.call(COMPLEX_VOWEL_TO_BASIC, ch)) {
+    return COMPLEX_VOWEL_TO_BASIC[ch]!.map(normalizeCompatJamo).filter(Boolean)
+  }
+  if (Object.prototype.hasOwnProperty.call(COMPLEX_FINAL_TO_BASIC, ch)) {
+    return COMPLEX_FINAL_TO_BASIC[ch]!.map(normalizeCompatJamo).filter(Boolean)
+  }
+  const normalized = normalizeCompatJamo(ch)
+  if (Object.prototype.hasOwnProperty.call(NIXIE_HUD_HANGUL_JAMO, normalized)) {
+    return [normalized]
+  }
+  return null
 }
 
 /** 전각·유사 문자 → HUD 입력용 ASCII */
@@ -139,9 +260,26 @@ function getGlyphRows(ch: string): string[] {
   return EMPTY_FALLBACK
 }
 
+function glyphVisibleWidth(glyph: string[]): number {
+  let w = 0
+  for (const row of glyph) {
+    const idx = row.lastIndexOf('1')
+    if (idx >= 0) w = Math.max(w, idx + 1)
+  }
+  return w > 0 ? w : 1
+}
+
+function glyphDrawWidthForChar(ch: string, glyph: string[]): number {
+  if (Object.prototype.hasOwnProperty.call(NIXIE_HUD_HANGUL_JAMO, ch)) {
+    // 자모는 우측 공백 열을 제거해 자모 사이 간격이 GAP 값만 적용되게 함.
+    return glyphVisibleWidth(glyph)
+  }
+  return glyph[0]?.length ?? NIXIE_GLYPH_W
+}
+
 export function glyphColWidthForChar(ch: string): number {
   const g = getGlyphRows(ch)
-  return g[0]?.length ?? NIXIE_GLYPH_W
+  return glyphDrawWidthForChar(ch, g)
 }
 
 /** 고정 높이 glyphH 기준 세로 중앙(레거시·문서용) */
@@ -202,12 +340,22 @@ export function getMaxScrollOffsetChars(fullNormalized: string): number {
 }
 
 /**
- * HUD에 쓸 문자만 남김: A–Z, a–z, 0–9, 공백, 모스 `.` `-`.
- * 전각·중점 등은 `narrowCompatChar`로 ASCII에 맞춤. (한글 등 미지원 문자는 제거.)
+ * HUD에 쓸 문자만 남김: A–Z, a–z, 0–9, 공백, 모스 `.` `-`, 한글(자모 분해).
+ * 한글 완성형은 예: `감` -> `ㄱ ㅏ ㅁ` 형태로 확장.
  */
 export function normalizeDemoHudText(input: string): string {
   let out = ''
   for (const ch0 of input) {
+    const decomposed = decomposeHangulSyllableToJamo(ch0)
+    if (decomposed) {
+      out += decomposed.join('')
+      continue
+    }
+    const jamoExpanded = expandCompatJamoInput(ch0)
+    if (jamoExpanded) {
+      out += jamoExpanded.join('')
+      continue
+    }
     const ch = narrowCompatChar(ch0)
     if (ch === '\t' || ch === '\n' || ch === '\r') {
       out += ' '
@@ -218,15 +366,17 @@ export function normalizeDemoHudText(input: string): string {
     else if (ch >= 'a' && ch <= 'z') out += ch
     else if (ch >= '0' && ch <= '9') out += ch
     else if (ch === '.' || ch === '-') out += ch
+    else if (Object.prototype.hasOwnProperty.call(NIXIE_HUD_HANGUL_JAMO, ch)) out += normalizeCompatJamo(ch)
   }
   return out
 }
 
-function drawGlyphInto(out: boolean[], len: number, col: number, rowOffset: number, glyph: string[]): void {
+function drawGlyphInto(out: boolean[], len: number, col: number, rowOffset: number, glyph: string[], drawWidth: number): void {
   const gh = glyph.length
   for (let r = 0; r < gh; r++) {
     const rowStr = glyph[r] ?? ''
-    for (let c = 0; c < rowStr.length; c++) {
+    const rw = Math.min(rowStr.length, drawWidth)
+    for (let c = 0; c < rw; c++) {
       if (rowStr[c] !== '1') continue
       const gridCol = col + c
       const gridRow = r + rowOffset
@@ -264,7 +414,7 @@ function mapTapeToHudDotsColScroll(full: string, scrollCols: number, out: boolea
     const idx = k % periodSlots
     const ch = idx < full.length ? full[idx]! : HUD_TAPE_GAP_CHAR
     const glyph = getGlyphRows(ch)
-    const gw = glyph[0]!.length
+    const gw = glyphDrawWidthForChar(ch, glyph)
 
     if (k > 0) {
       for (let g = 0; g < NIXIE_GLYPH_GAP_COLS; g++) {
@@ -306,10 +456,10 @@ export function mapHudTextToDots(input: string, scrollOffset = 0): boolean[] {
     for (let i = 0; i < full.length; i++) {
       const ch = full[i]!
       const glyph = getGlyphRows(ch)
-      const w = glyph[0]!.length
+      const w = glyphDrawWidthForChar(ch, glyph)
       if (i > 0) col += NIXIE_GLYPH_GAP_COLS
       if (col + w > NIXIE_GRID_COLS) break
-      drawGlyphInto(out, len, col, hudRowOffsetForGlyph(glyph), glyph)
+      drawGlyphInto(out, len, col, hudRowOffsetForGlyph(glyph), glyph, w)
       col += w
     }
     return out
