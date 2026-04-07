@@ -1,4 +1,8 @@
-import { getMaxScrollOffsetChars, normalizeDemoHudText } from '@system/nixie/nixieUppercaseDotMap'
+import {
+  getMaxScrollOffsetChars,
+  normalizeDemoHudText,
+  textFitsCompletelyInGrid,
+} from '@system/nixie/nixieUppercaseDotMap'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
@@ -16,7 +20,7 @@ export type NmapSnapshot = {
   is_virtual: boolean
   source_shell_id: string | null
   user_defined_threshold: number
-  /** 시뮬: HUD 도트 텍스트(대문자·스페이스, 길이 제한 없음). 빈 문자열이면 기본 루미나만 */
+  /** 시뮬: HUD 도트 텍스트(A–Z·0–9·스페이스, 전각 영숫자 정규화, 길이 제한 없음). 빈 문자열이면 기본 루미나만 */
   demo_hud_text: string
   /** 긴 문자열 좌→우 흐름용: 정규화된 문자열 기준 시작 글자 인덱스 */
   demo_hud_scroll_offset: number
@@ -96,6 +100,23 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     applyPatch({ demo_hud_scroll_offset: o })
   }
 
+  /** 긴 HUD 텍스트용: 한 글자씩 시작 인덱스를 올려 오른쪽→왼쪽 흐름(끝에서 0으로 루프) */
+  function tickDemoHudMarquee() {
+    const demo_hud_text = normalizeDemoHudText(snapshot.value.demo_hud_text ?? '')
+    if (!demo_hud_text.length) {
+      applyPatch({ demo_hud_scroll_offset: 0 })
+      return
+    }
+    if (textFitsCompletelyInGrid(demo_hud_text)) {
+      if (snapshot.value.demo_hud_scroll_offset !== 0) applyPatch({ demo_hud_scroll_offset: 0 })
+      return
+    }
+    const maxOff = getMaxScrollOffsetChars(demo_hud_text)
+    const cur = snapshot.value.demo_hud_scroll_offset ?? 0
+    const next = cur >= maxOff ? 0 : cur + 1
+    applyPatch({ demo_hud_scroll_offset: next })
+  }
+
   function resetToDefaults() {
     snapshot.value = defaultSnapshot()
     nebulaPulse.value = 0
@@ -126,6 +147,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     resetToDefaults,
     setDemoHudText,
     setDemoHudScrollOffset,
+    tickDemoHudMarquee,
     simulateNebulaInflux,
     clearNebulaToLocal,
   }

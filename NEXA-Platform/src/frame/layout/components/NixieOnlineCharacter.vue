@@ -29,7 +29,13 @@
 </template>
 
 <script setup>
-import { mapUppercaseTextToHudDots, NIXIE_GRID_COLS as COLS, NIXIE_GRID_ROWS as ROWS } from '@system/nixie/nixieUppercaseDotMap'
+import {
+  mapUppercaseTextToHudDots,
+  normalizeDemoHudText,
+  textFitsCompletelyInGrid,
+  NIXIE_GRID_COLS as COLS,
+  NIXIE_GRID_ROWS as ROWS,
+} from '@system/nixie/nixieUppercaseDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { storeToRefs } from 'pinia'
 import gsap from 'gsap'
@@ -83,6 +89,27 @@ let luminaTl = null
 /** @type {gsap.core.Timeline | null} */
 let jitterAnim = null
 let confusedTween = null
+
+/** @type {ReturnType<typeof setInterval> | null} */
+let hudMarqueeTimer = null
+const HUD_MARQUEE_MS = 320
+
+function syncHudMarqueeTimer() {
+  if (hudMarqueeTimer != null) {
+    clearInterval(hudMarqueeTimer)
+    hudMarqueeTimer = null
+  }
+  const full = normalizeDemoHudText(snapshot.value.demo_hud_text ?? '')
+  if (!full.length || textFitsCompletelyInGrid(full)) {
+    nmapStore.tickDemoHudMarquee()
+    return
+  }
+  nmapStore.tickDemoHudMarquee()
+  hudMarqueeTimer = window.setInterval(() => {
+    if (document.hidden) return
+    nmapStore.tickDemoHudMarquee()
+  }, HUD_MARQUEE_MS)
+}
 
 function clamp(v, min, max) {
   return Math.min(Math.max(v, min), max)
@@ -146,9 +173,10 @@ function getDots() {
 /** 시뮴 텍스트가 있으면 길이 DOT_COUNT(24×7) 의 on/off 마스크, 없으면 null */
 function getDemoTextMask() {
   const raw = snapshot.value.demo_hud_text ?? ''
-  if (!String(raw).trim()) return null
+  const norm = normalizeDemoHudText(String(raw))
+  if (!norm.length) return null
   const scroll = Number(snapshot.value.demo_hud_scroll_offset ?? 0)
-  return mapUppercaseTextToHudDots(raw, Number.isFinite(scroll) ? scroll : 0)
+  return mapUppercaseTextToHudDots(norm, Number.isFinite(scroll) ? scroll : 0)
 }
 
 const isLowConfidence = computed(() => snapshot.value.confidence_score < snapshot.value.user_defined_threshold)
@@ -355,6 +383,13 @@ watch(
   },
 )
 
+watch(
+  () => snapshot.value.demo_hud_text ?? '',
+  () => {
+    nextTick(syncHudMarqueeTimer)
+  },
+)
+
 watch(nebulaPulse, () => {
   nextTick(runNebulaPulse)
 })
@@ -448,6 +483,7 @@ onMounted(() => {
     measureFrame()
     applyBounds()
     syncAllVisuals()
+    syncHudMarqueeTimer()
     if (rootEl.value) {
       frameResizeObserver = new ResizeObserver(() => {
         measureFrame()
@@ -459,6 +495,10 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (hudMarqueeTimer != null) {
+    clearInterval(hudMarqueeTimer)
+    hudMarqueeTimer = null
+  }
   frameResizeObserver?.disconnect()
   frameResizeObserver = null
   killLumina()

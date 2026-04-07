@@ -9,7 +9,7 @@ export const NIXIE_GRID_ROWS = 7
 /** 최대 가로 열 수(대부분의 글자) */
 export const NIXIE_GLYPH_W = 5
 export const NIXIE_GLYPH_H = 5
-export const NIXIE_GLYPH_GAP_COLS = 1
+export const NIXIE_GLYPH_GAP_COLS = 0
 
 const EMPTY_FALLBACK: string[] = ['00000', '00000', '00000', '00000', '00000']
 
@@ -18,7 +18,7 @@ const GLYPHS: Record<string, string[]> = {
   A: ['01110', '10001', '10001', '11111', '10001'],
   B: ['11110', '10001', '11110', '10001', '11110'],
   C: ['01110', '10001', '10000', '10001', '01110'],
-  D: ['11100', '10010', '10010', '10010', '11100'],
+  D: ['1110', '1001', '1001', '1001', '1110'],
   E: ['1111', '1000', '1111', '1000', '1111'],
   F: ['1111', '1000', '1111', '1000', '1000'],
   G: ['01110', '10000', '10111', '10001', '01110'],
@@ -26,7 +26,8 @@ const GLYPHS: Record<string, string[]> = {
   I: ['111', '010', '010', '010', '111'],
   J: ['00111', '00010', '00010', '10010', '01100'],
   K: ['10001', '10010', '11100', '10010', '10001'],
-  L: ['10000', '10000', '10000', '10000', '11100'],
+  /** 4열: 5열(11110)이면 오른쪽 빈 열+글리프 간격으로 L 뒤가 2칸처럼 보임 */
+  L: ['1000', '1000', '1000', '1000', '1111'],
   M: ['10001', '11011', '10101', '10001', '10001'],
   N: ['10001', '11001', '10101', '10011', '10001'],
   O: ['01110', '10001', '10001', '10001', '01110'],
@@ -41,8 +42,28 @@ const GLYPHS: Record<string, string[]> = {
   X: ['10001', '01010', '00100', '01010', '10001'],
   Y: ['10001', '01010', '00100', '00100', '00100'],
   Z: ['11111', '00010', '00100', '01000', '11111'],
+  /** 0–9: 3열 (한 줄에 더 많이 표시·마퀴와 궁합) */
+  '0': ['111', '101', '101', '101', '111'],
+  '1': ['010', '110', '010', '010', '111'],
+  '2': ['111', '001', '111', '100', '111'],
+  '3': ['111', '001', '011', '001', '111'],
+  '4': ['101', '101', '111', '001', '001'],
+  '5': ['111', '100', '111', '001', '111'],
+  '6': ['111', '100', '111', '101', '111'],
+  '7': ['111', '001', '001', '001', '001'],
+  '8': ['111', '101', '111', '101', '111'],
+  '9': ['111', '101', '111', '001', '111'],
   /** 단어 간격: 도트 없이 2열만 진행 */
   ' ': ['00', '00', '00', '00', '00'],
+}
+
+/** 전각 A–Z / 0–9 → ASCII 동일 문자 */
+function narrowCompatChar(ch: string): string {
+  const cp = ch.codePointAt(0)
+  if (cp === undefined) return ch
+  if (cp >= 0xff21 && cp <= 0xff3a) return String.fromCodePoint(cp - 0xff21 + 0x41)
+  if (cp >= 0xff10 && cp <= 0xff19) return String.fromCodePoint(cp - 0xff10 + 0x30)
+  return ch
 }
 
 export function glyphColWidthForChar(ch: string): number {
@@ -83,14 +104,35 @@ function fitsVisibleFrom(t: string, start: number): boolean {
   return col > 0
 }
 
-/** 입력을 대문자·스페이스만 남김(길이 제한 없음, 스토어에 그대로 보관) */
+/** 인덱스 0부터 전체 문자열이 그리드 너비 안에 들어가면 true(마퀴 불필요) */
+export function textFitsCompletelyInGrid(fullNormalized: string): boolean {
+  if (!fullNormalized.length) return true
+  let col = 0
+  for (let i = 0; i < fullNormalized.length; i++) {
+    const w = glyphColWidthForChar(fullNormalized[i]!)
+    if (i > 0) col += NIXIE_GLYPH_GAP_COLS
+    if (col + w > NIXIE_GRID_COLS) return false
+    col += w
+  }
+  return true
+}
+
+/**
+ * HUD에 쓸 문자만 남김: A–Z, 0–9, 스페이스.
+ * 전각 영문·전각 숫자(Ａ–Ｚ, ０–９)는 ASCII로 치환 후 허용.
+ */
 export function normalizeDemoHudText(input: string): string {
   const u = input.toUpperCase()
   let out = ''
-  for (let i = 0; i < u.length; i++) {
-    const ch = u[i]!
+  for (const ch0 of u) {
+    const ch = narrowCompatChar(ch0)
+    if (ch === '\t' || ch === '\n' || ch === '\r') {
+      out += ' '
+      continue
+    }
     if (ch === ' ') out += ' '
     else if (ch >= 'A' && ch <= 'Z') out += ch
+    else if (ch >= '0' && ch <= '9') out += ch
   }
   return out
 }

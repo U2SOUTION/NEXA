@@ -63,7 +63,7 @@
     <div class="row items-start q-gutter-x-xs q-mb-xs">
       <span class="nixie-dev-controls__lbl q-pt-sm">HUD</span>
       <div class="col">
-        <q-input v-model="hudDraft" dense outlined hide-bottom-space placeholder="A–Z, blur/Enter 반영" @focus="hudInputFocused = true" @blur="onHudBlur" @keydown.enter.prevent="commitHudText" />
+        <q-input v-model="hudDraft" dense outlined hide-bottom-space placeholder="A–Z·0–9(한글 등은 제외) blur/Enter" @focus="hudInputFocused = true" @blur="onHudBlur" @keydown.enter.prevent="commitHudText" />
       </div>
       <q-btn dense flat size="sm" padding="xs sm" class="q-mt-xs" label="지우기" @click="clearHudText" />
     </div>
