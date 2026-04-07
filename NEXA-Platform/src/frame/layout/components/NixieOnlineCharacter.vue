@@ -29,13 +29,14 @@
 </template>
 
 <script setup>
+import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
 import {
-  mapUppercaseTextToHudDots,
+  mapHudTextToDots,
   normalizeDemoHudText,
   textFitsCompletelyInGrid,
   NIXIE_GRID_COLS as COLS,
   NIXIE_GRID_ROWS as ROWS,
-} from '@system/nixie/nixieUppercaseDotMap'
+} from '@system/nixie/nixieDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { storeToRefs } from 'pinia'
 import gsap from 'gsap'
@@ -92,7 +93,6 @@ let confusedTween = null
 
 /** @type {ReturnType<typeof setInterval> | null} */
 let hudMarqueeTimer = null
-const HUD_MARQUEE_MS = 320
 
 function syncHudMarqueeTimer() {
   if (hudMarqueeTimer != null) {
@@ -105,10 +105,11 @@ function syncHudMarqueeTimer() {
     return
   }
   nmapStore.tickDemoHudMarquee()
+  const ms = Math.max(16, Math.floor(NIXIE_HUD_MARQUEE.intervalMs))
   hudMarqueeTimer = window.setInterval(() => {
     if (document.hidden) return
     nmapStore.tickDemoHudMarquee()
-  }, HUD_MARQUEE_MS)
+  }, ms)
 }
 
 function clamp(v, min, max) {
@@ -176,7 +177,7 @@ function getDemoTextMask() {
   const norm = normalizeDemoHudText(String(raw))
   if (!norm.length) return null
   const scroll = Number(snapshot.value.demo_hud_scroll_offset ?? 0)
-  return mapUppercaseTextToHudDots(norm, Number.isFinite(scroll) ? scroll : 0)
+  return mapHudTextToDots(norm, Number.isFinite(scroll) ? scroll : 0)
 }
 
 const isLowConfidence = computed(() => snapshot.value.confidence_score < snapshot.value.user_defined_threshold)

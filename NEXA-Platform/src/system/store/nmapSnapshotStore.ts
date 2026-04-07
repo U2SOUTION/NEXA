@@ -1,8 +1,5 @@
-import {
-  getMaxScrollOffsetChars,
-  normalizeDemoHudText,
-  textFitsCompletelyInGrid,
-} from '@system/nixie/nixieUppercaseDotMap'
+import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
+import { hudTapePeriodWidthCols, normalizeDemoHudText, textFitsCompletelyInGrid } from '@system/nixie/nixieDotMap'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
@@ -20,9 +17,9 @@ export type NmapSnapshot = {
   is_virtual: boolean
   source_shell_id: string | null
   user_defined_threshold: number
-  /** 시뮬: HUD 도트 텍스트(A–Z·0–9·스페이스, 전각 영숫자 정규화, 길이 제한 없음). 빈 문자열이면 기본 루미나만 */
+  /** 시뮬: HUD 도트 텍스트(A–Z·a–z·0–9·스페이스·모스 `.` `-`, 전각·중점 등 정규화). 빈 문자열이면 기본 루미나만 */
   demo_hud_text: string
-  /** 긴 문자열 좌→우 흐름용: 정규화된 문자열 기준 시작 글자 인덱스 */
+  /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
 }
 
@@ -87,20 +84,37 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   function setDemoHudText(raw: string | null | undefined) {
     const demo_hud_text = normalizeDemoHudText(String(raw ?? ''))
-    const maxOff = getMaxScrollOffsetChars(demo_hud_text)
+    if (!demo_hud_text.length) {
+      applyPatch({ demo_hud_text: '', demo_hud_scroll_offset: 0 })
+      return
+    }
+    if (textFitsCompletelyInGrid(demo_hud_text)) {
+      applyPatch({ demo_hud_text, demo_hud_scroll_offset: 0 })
+      return
+    }
+    const period = hudTapePeriodWidthCols(demo_hud_text)
     const prev = snapshot.value.demo_hud_scroll_offset ?? 0
-    const demo_hud_scroll_offset = Math.min(Math.max(0, Math.floor(prev)), maxOff)
+    const demo_hud_scroll_offset =
+      period > 0 ? ((Math.floor(prev) % period) + period) % period : 0
     applyPatch({ demo_hud_text, demo_hud_scroll_offset })
   }
 
   function setDemoHudScrollOffset(offset: number) {
     const full = normalizeDemoHudText(snapshot.value.demo_hud_text)
-    const maxOff = getMaxScrollOffsetChars(full)
-    const o = Math.max(0, Math.min(Math.floor(offset), maxOff))
+    if (!full.length) {
+      applyPatch({ demo_hud_scroll_offset: 0 })
+      return
+    }
+    if (textFitsCompletelyInGrid(full)) {
+      applyPatch({ demo_hud_scroll_offset: 0 })
+      return
+    }
+    const period = hudTapePeriodWidthCols(full)
+    const o = period > 0 ? ((Math.floor(offset) % period) + period) % period : 0
     applyPatch({ demo_hud_scroll_offset: o })
   }
 
-  /** 긴 HUD 텍스트용: 한 글자씩 시작 인덱스를 올려 오른쪽→왼쪽 흐름(끝에서 0으로 루프) */
+  /** 긴 HUD: `NIXIE_HUD_MARQUEE.colsPerTick` 열씩 스크롄(주기=테이프 열 합) */
   function tickDemoHudMarquee() {
     const demo_hud_text = normalizeDemoHudText(snapshot.value.demo_hud_text ?? '')
     if (!demo_hud_text.length) {
@@ -111,9 +125,11 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
       if (snapshot.value.demo_hud_scroll_offset !== 0) applyPatch({ demo_hud_scroll_offset: 0 })
       return
     }
-    const maxOff = getMaxScrollOffsetChars(demo_hud_text)
+    const period = hudTapePeriodWidthCols(demo_hud_text)
+    if (period <= 0) return
     const cur = snapshot.value.demo_hud_scroll_offset ?? 0
-    const next = cur >= maxOff ? 0 : cur + 1
+    const step = Math.max(1, Math.floor(NIXIE_HUD_MARQUEE.colsPerTick))
+    const next = (cur + step) % period
     applyPatch({ demo_hud_scroll_offset: next })
   }
 
