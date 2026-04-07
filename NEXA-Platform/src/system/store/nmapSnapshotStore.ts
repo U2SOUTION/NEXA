@@ -1,5 +1,6 @@
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
 import { encodeTextToMorseHudText, hudTapePeriodWidthCols, normalizeDemoHudText, textFitsCompletelyInGrid } from '@system/nixie/nixieDotMap'
+import { resolveMorseDitMs } from '@system/nixie/morseTimeline'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
@@ -24,6 +25,12 @@ export type NmapSnapshot = {
   demo_hud_text_raw: string
   /** 시뮬: 원문을 모스(`.` `-` `^`)로 변환해 HUD에 표시 */
   demo_hud_morse_enabled: boolean
+  /** 모스 속도(WPM). PARIS 기준 dit(ms)≈1200/WPM — `morse_dit_ms_override`가 있으면 무시 */
+  morse_wpm: number
+  /** dit 길이(ms) 직접 지정. null이면 WPM으로 계산 */
+  morse_dit_ms_override: number | null
+  /** 이후 I2S/앰프 재생용 캐리어 주파수(Hz) — 타임라인과 함께 전달 가능 */
+  morse_tone_hz: number
   /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
 }
@@ -45,6 +52,9 @@ function defaultSnapshot(): NmapSnapshot {
     demo_hud_text: '',
     demo_hud_text_raw: '',
     demo_hud_morse_enabled: false,
+    morse_wpm: 20,
+    morse_dit_ms_override: null,
+    morse_tone_hz: 800,
     demo_hud_scroll_offset: 0,
   }
 }
@@ -89,6 +99,35 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   function setUserDefinedThreshold(user_defined_threshold: number) {
     applyPatch({ user_defined_threshold: Math.max(0, Math.min(100, user_defined_threshold)) })
+  }
+
+  function setMorseWpm(wpm: number) {
+    applyPatch({ morse_wpm: Math.max(5, Math.min(60, Math.round(Number(wpm) || 20))) })
+  }
+
+  function setMorseDitMsOverride(ms: number | null) {
+    if (ms == null || !Number.isFinite(ms)) {
+      applyPatch({ morse_dit_ms_override: null })
+      return
+    }
+    applyPatch({ morse_dit_ms_override: Math.max(20, Math.min(500, Math.round(ms))) })
+  }
+
+  /** dit 직접 지정 켜기: 현재 WPM 기준 dit 값으로 초기화 */
+  function setMorseUseCustomDit(enabled: boolean) {
+    if (enabled) {
+      const dit = resolveMorseDitMs({
+        wpm: snapshot.value.morse_wpm,
+        ditMsOverride: null,
+      })
+      applyPatch({ morse_dit_ms_override: dit })
+    } else {
+      applyPatch({ morse_dit_ms_override: null })
+    }
+  }
+
+  function setMorseToneHz(hz: number) {
+    applyPatch({ morse_tone_hz: Math.max(300, Math.min(2000, Math.round(Number(hz) || 800))) })
   }
 
   /** 시뮬: 원문을 모스(`.` `-` `^`)로 변환해 HUD에 표시 */
@@ -199,6 +238,10 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     resetToDefaults,
     setDemoHudText,
     setDemoHudMorseEnabled,
+    setMorseWpm,
+    setMorseDitMsOverride,
+    setMorseUseCustomDit,
+    setMorseToneHz,
     setDemoHudScrollOffset,
     tickDemoHudMarquee,
     simulateNebulaInflux,
