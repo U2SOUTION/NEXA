@@ -1,11 +1,12 @@
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
-import { hudTapePeriodWidthCols, normalizeDemoHudText, textFitsCompletelyInGrid } from '@system/nixie/nixieDotMap'
+import { encodeTextToMorseHudText, hudTapePeriodWidthCols, normalizeDemoHudText, textFitsCompletelyInGrid } from '@system/nixie/nixieDotMap'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
 export type HowState = 'FLOW' | 'STUCK' | 'VOID'
 export type WhoPulse = 'WILL' | 'ECHO' | 'ASK'
 
+/** 시뮬: Nexion 스냅샷 형식 */
 export type NmapSnapshot = {
   schemaVersion: number
   how_state: HowState
@@ -21,12 +22,15 @@ export type NmapSnapshot = {
   demo_hud_text: string
   /** 시뮬 입력 원문(사용자 타이핑 그대로 유지; 예: 한글 완성형) */
   demo_hud_text_raw: string
+  /** 시뮬: 원문을 모스(`.` `-` `^`)로 변환해 HUD에 표시 */
+  demo_hud_morse_enabled: boolean
   /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
 }
 
 const LOCAL_SHELL_ID = 'local'
 
+/** 시뮬: 기본 스냅샷 */
 function defaultSnapshot(): NmapSnapshot {
   return {
     schemaVersion: 1,
@@ -40,10 +44,12 @@ function defaultSnapshot(): NmapSnapshot {
     user_defined_threshold: 95,
     demo_hud_text: '',
     demo_hud_text_raw: '',
+    demo_hud_morse_enabled: false,
     demo_hud_scroll_offset: 0,
   }
 }
 
+/** 시뮬: Nexion 스냅샷 관리 스토어 */
 export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
   const snapshot: Ref<NmapSnapshot> = ref(defaultSnapshot())
   /** Nebula 시뮬 시 Nixie 쪽에서 watch 할 트리거 */
@@ -85,9 +91,16 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     applyPatch({ user_defined_threshold: Math.max(0, Math.min(100, user_defined_threshold)) })
   }
 
+  /** 시뮬: 원문을 모스(`.` `-` `^`)로 변환해 HUD에 표시 */
+  function buildNormalizedHudText(raw: string): string {
+    const source = snapshot.value.demo_hud_morse_enabled ? encodeTextToMorseHudText(raw) : raw
+    return normalizeDemoHudText(source)
+  }
+
+  /** 시뮬: 원문을 모스(`.` `-` `^`)로 변환해 HUD에 표시 */
   function setDemoHudText(raw: string | null | undefined) {
     const demo_hud_text_raw = String(raw ?? '')
-    const demo_hud_text = normalizeDemoHudText(demo_hud_text_raw)
+    const demo_hud_text = buildNormalizedHudText(demo_hud_text_raw)
     if (!demo_hud_text.length) {
       applyPatch({ demo_hud_text: '', demo_hud_text_raw, demo_hud_scroll_offset: 0 })
       return
@@ -98,11 +111,30 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     }
     const period = hudTapePeriodWidthCols(demo_hud_text)
     const prev = snapshot.value.demo_hud_scroll_offset ?? 0
-    const demo_hud_scroll_offset =
-      period > 0 ? ((Math.floor(prev) % period) + period) % period : 0
+    const demo_hud_scroll_offset = period > 0 ? ((Math.floor(prev) % period) + period) % period : 0
     applyPatch({ demo_hud_text, demo_hud_text_raw, demo_hud_scroll_offset })
   }
 
+  /** 시뮬: 모스 모드 활성화 여부 설정 */
+  function setDemoHudMorseEnabled(enabled: boolean) {
+    const demo_hud_morse_enabled = Boolean(enabled)
+    const demo_hud_text_raw = snapshot.value.demo_hud_text_raw ?? ''
+    const demo_hud_text = normalizeDemoHudText(demo_hud_morse_enabled ? encodeTextToMorseHudText(demo_hud_text_raw) : demo_hud_text_raw)
+    if (!demo_hud_text.length) {
+      applyPatch({ demo_hud_morse_enabled, demo_hud_text: '', demo_hud_scroll_offset: 0 })
+      return
+    }
+    if (textFitsCompletelyInGrid(demo_hud_text)) {
+      applyPatch({ demo_hud_morse_enabled, demo_hud_text, demo_hud_scroll_offset: 0 })
+      return
+    }
+    const period = hudTapePeriodWidthCols(demo_hud_text)
+    const prev = snapshot.value.demo_hud_scroll_offset ?? 0
+    const demo_hud_scroll_offset = period > 0 ? ((Math.floor(prev) % period) + period) % period : 0
+    applyPatch({ demo_hud_morse_enabled, demo_hud_text, demo_hud_scroll_offset })
+  }
+
+  /** 시뮬: HUD 스크롤 오프셋 설정 */
   function setDemoHudScrollOffset(offset: number) {
     const full = normalizeDemoHudText(snapshot.value.demo_hud_text)
     if (!full.length) {
@@ -166,6 +198,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     setUserDefinedThreshold,
     resetToDefaults,
     setDemoHudText,
+    setDemoHudMorseEnabled,
     setDemoHudScrollOffset,
     tickDemoHudMarquee,
     simulateNebulaInflux,

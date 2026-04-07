@@ -73,11 +73,29 @@
 
     <q-separator class="q-my-xs" />
 
+    <div class="row items-center q-gutter-x-xs q-mb-xs">
+      <span class="nixie-dev-controls__lbl">모스</span>
+      <q-btn
+        dense
+        size="sm"
+        padding="xs sm"
+        label="변환"
+        :outline="!snapshot.demo_hud_morse_enabled"
+        :unelevated="snapshot.demo_hud_morse_enabled"
+        :color="snapshot.demo_hud_morse_enabled ? 'deep-purple-7' : 'grey-7'"
+        @click="toggleMorseMode"
+      />
+      <span class="text-caption text-grey-6">공백은 `^` 로 표시</span>
+    </div>
+
     <!-- HUD: 분해 줄은 2행·입력 열만 → 라벨|입력|지우기는 항상 한 행에서 세로 가운데 정렬 -->
     <div class="nixie-dev-controls__hud" :class="{ 'nixie-dev-controls__hud--decomposed': showHudDecomposedLine }">
       <div v-if="showHudDecomposedLine" class="nixie-dev-controls__hud-decomposed text-caption text-grey-6">분해 출력: {{ hudDecomposedPreview || '(없음)' }}</div>
       <span class="nixie-dev-controls__lbl nixie-dev-controls__hud-label">HUD</span>
       <div class="col min-width-0 nixie-dev-controls__hud-field">
+        <div v-if="snapshot.demo_hud_morse_enabled" class="text-caption text-deep-purple-5 q-mb-xs">
+          모스 출력: {{ hudMorsePreview || '(없음)' }}
+        </div>
         <q-input
           v-model="hudDraft"
           dense
@@ -102,7 +120,7 @@
 
 <script setup>
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
-import { normalizeDemoHudText } from '@system/nixie/nixieDotMap'
+import { encodeTextToMorseHudText, normalizeDemoHudText } from '@system/nixie/nixieDotMap'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 
@@ -122,6 +140,7 @@ const hudInputFocused = ref(false)
 
 const showHudDecomposedLine = computed(() => hasHangulChar.test(hudDraft.value ?? ''))
 const hudDecomposedPreview = computed(() => normalizeDemoHudText(hudDraft.value ?? ''))
+const hudMorsePreview = computed(() => encodeTextToMorseHudText(hudDraft.value ?? ''))
 
 onMounted(() => {
   hudDraft.value = snapshot.value.demo_hud_text_raw ?? ''
@@ -146,6 +165,10 @@ function onHudBlur() {
 function clearHudText() {
   nmap.setDemoHudText('')
   hudDraft.value = ''
+}
+
+function toggleMorseMode() {
+  nmap.setDemoHudMorseEnabled(!snapshot.value.demo_hud_morse_enabled)
 }
 </script>
 
