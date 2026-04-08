@@ -6,7 +6,14 @@ import { ref, type Ref } from 'vue'
 export type HowState = 'FLOW' | 'STUCK' | 'VOID'
 export type WhoPulse = 'WILL' | 'ECHO' | 'ASK'
 
-/** 시뮬: Nexion 스냅샷 형식 */
+/** 모스 미리듣기 스테레오: L=-1, ALL(중앙)=0, R=1 — Web Audio `StereoPannerNode.pan` */
+export type MorseStereoPan = -1 | 0 | 1
+
+/**
+ * 시뮬: Nexion 스냅샷 형식.
+ * `morse_dit_ms` / `morse_tone_hz` / `morse_volume` 은 HUD·미리듣기·타임라인에 쓰이며,
+ * 향후 N-MAP 상황(entropy·confidence·how_state 등)에 따라 덮어쓰기·보간하는 매핑은 본편 닉시 단계에서 별도 모듈로 둘 예정(현재 미연결).
+ */
 export type NmapSnapshot = {
   schemaVersion: number
   how_state: HowState
@@ -30,6 +37,8 @@ export type NmapSnapshot = {
   morse_tone_hz: number
   /** 모스 재생 볼륨(0~100). Web Audio 마스터 게인에 비례 */
   morse_volume: number
+  /** 모스 미리듣기 L/R/중앙 — 엿듣기·대화 연출용 */
+  morse_stereo_pan: MorseStereoPan
   /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
 }
@@ -54,6 +63,7 @@ function defaultSnapshot(): NmapSnapshot {
     morse_dit_ms: 60,
     morse_tone_hz: 800,
     morse_volume: 35,
+    morse_stereo_pan: 0,
     demo_hud_scroll_offset: 0,
   }
 }
@@ -110,6 +120,10 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   function setMorseVolume(percent: number) {
     applyPatch({ morse_volume: Math.max(0, Math.min(100, Math.round(Number(percent) || 0))) })
+  }
+
+  function setMorseStereoPan(pan: MorseStereoPan) {
+    applyPatch({ morse_stereo_pan: pan })
   }
 
   /** 시뮬: 원문을 모스(`.` `-` `^`)로 변환해 HUD에 표시 */
@@ -223,6 +237,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     setMorseDitMs,
     setMorseToneHz,
     setMorseVolume,
+    setMorseStereoPan,
     setDemoHudScrollOffset,
     tickDemoHudMarquee,
     simulateNebulaInflux,
