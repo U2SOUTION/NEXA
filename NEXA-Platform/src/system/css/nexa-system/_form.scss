@@ -43,6 +43,34 @@
   max-width: 100%;
 }
 
+// Dense 입력폼/셀렉트 높이 최적화
+// 상하 패딩을 줄여 패널 내 세로 공간 점유를 완화
+.q-field--dense .q-field__control,
+.q-input.q-field--dense .q-field__control,
+.q-select.q-field--dense .q-field__control {
+  min-height: 24px;
+  height: 24px;
+}
+
+// 드롭다운 화살표/append 영역의 수직 여백도 함께 축소
+.q-field--dense .q-field__append,
+.q-field--dense .q-field__prepend {
+  min-height: 24px;
+}
+
+// 드롭다운 화살표/append 영역의 수직 여백도 함께 축소
+.q-select.q-field--dense .q-field__native,
+.q-select.q-field--dense .q-field__input {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 20px;
+}
+// 드롭다운 화살표/append 영역의 수직 여백도 함께 축소
+.q-select.q-field--dense .q-field__marginal {
+  min-height: 24px;
+  height: 24px;
+}
+
 // Outlined 보더 스타일
 // 모든 outlined 입력 폼에 적용되는 보더 스타일
 //Akill code
@@ -194,6 +222,9 @@ body .q-menu[role='listbox'],
 body .q-menu[role='listbox'] .q-item,
 .q-menu[role='listbox'] .q-item {
   background-color: transparent;
+  min-height: 30px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 
   &:hover {
     background-color: var(--nexa-select-item-hover-bg);

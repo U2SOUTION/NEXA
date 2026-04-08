@@ -160,8 +160,8 @@
             <q-btn dense size="sm" padding="xs sm" label="OMEGA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1" :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(1)" />
           </q-btn-group>
         </div>
-        <div ref="morseAtomicClockHostEl" class="row items-start no-wrap q-gutter-x-xs q-mb-xs">
-          <span class="nixie-dev-controls__lbl q-pt-xs">A-Clock</span>
+        <div ref="morseAtomicClockHostEl" class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
+          <span class="nixie-dev-controls__lbl">A-Clock</span>
           <div class="col min-width-0">
             <q-select
               v-if="isAtomicClockCompact"
@@ -674,7 +674,7 @@ function onHudBlur() {
 .nixie-dev-controls__hud {
   display: grid;
   grid-template-columns: auto 1fr;
-  column-gap: 8px;
+  column-gap: 5px;
   row-gap: 4px;
   align-items: center;
   margin-bottom: 4px;
@@ -689,6 +689,7 @@ function onHudBlur() {
 
 .nixie-dev-controls__hud-label {
   grid-area: label;
+  margin-right: 0;
 }
 
 .nixie-dev-controls__hud-field {
