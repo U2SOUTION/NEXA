@@ -82,12 +82,22 @@
 
     <div class="row items-center q-gutter-x-xs q-mb-xs nixie-dev-controls__morse-head">
       <span class="nixie-dev-controls__lbl">MORSE</span>
-      <q-btn dense size="sm" padding="xs sm" label="변환" :outline="!snapshot.demo_hud_morse_enabled" :unelevated="snapshot.demo_hud_morse_enabled" :color="snapshot.demo_hud_morse_enabled ? 'deep-purple-7' : 'grey-7'" @click="toggleMorseMode" />
-      <span class="text-caption text-grey-6">공백은 `^` 로 표시</span>
+      <q-btn dense size="sm" padding="xs sm" label="변환 >" :outline="!snapshot.demo_hud_morse_enabled" :unelevated="snapshot.demo_hud_morse_enabled" :color="snapshot.demo_hud_morse_enabled ? 'deep-purple-7' : 'grey-7'" @click="toggleMorseMode" />
       <div v-if="snapshot.demo_hud_morse_enabled" class="row items-center no-wrap q-gutter-x-xs q-ml-auto nixie-dev-controls__morse-trail">
-        <span class="text-caption text-grey-6 nixie-dev-controls__morse-play-lbl">미리듣기</span>
+        <span class="text-caption text-grey-6 nixie-dev-controls__morse-readout">{{ morseParisWpmApproxUi }} WPM · {{ morseDitMsUi }}ms</span>
         <q-spinner v-if="morsePlaying" color="positive" size="1.15em" class="nixie-dev-controls__morse-spinner" />
         <q-btn flat round dense color="positive" :icon="morsePlaying ? 'stop' : 'play_arrow'" :disable="!morsePlaying && !canPlayMorsePreview" :aria-label="morsePlaying ? '모스 재생 중지' : '모스 재생'" @click="onMorsePlayClick" />
+        <q-btn
+          flat
+          round
+          size="sm"
+          :icon="'repeat_one'"
+          :color="morseLoopEnabled ? 'red-6' : 'grey-6'"
+          :aria-label="morseLoopEnabled ? '연속 재생 켜짐' : '연속 재생 꺼짐'"
+          :title="morseLoopEnabled ? '연속 재생 ON' : '연속 재생 OFF'"
+          class="nixie-dev-controls__morse-loop-btn"
+          @click="morseLoopEnabled = !morseLoopEnabled"
+        />
       </div>
     </div>
 
@@ -99,8 +109,8 @@
       </div>
       <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
         <span class="nixie-dev-controls__lbl">TONE</span>
-        <q-slider v-model="morseToneSlider" :min="50" :max="2000" dense color="indigo" class="nixie-dev-controls__slider col" @change="onMorseToneSliderChange" />
-        <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseToneSlider }} Hz</span>
+        <q-slider v-model="morseToneSlider" :min="0" :max="MORSE_TONE_LOG_STEPS" dense color="indigo" class="nixie-dev-controls__slider col" @change="onMorseToneSliderChange" />
+        <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseToneHzUi }} Hz</span>
       </div>
       <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
         <span class="nixie-dev-controls__lbl">VOLUME</span>
@@ -115,10 +125,29 @@
           <q-btn dense size="sm" padding="xs sm" label="OMEGA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1" :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(1)" />
         </q-btn-group>
       </div>
+      <div class="row items-start no-wrap q-gutter-x-xs q-mb-xs">
+        <span class="nixie-dev-controls__lbl q-pt-xs">ATOM</span>
+        <div class="col row q-gutter-xs nixie-dev-controls__atom-wrap">
+          <q-btn
+            v-for="atom in morseAtomicClockOptions"
+            :key="atom.key"
+            dense
+            size="sm"
+            padding="xs sm"
+            :label="atom.label"
+            :title="atom.tooltip"
+            :outline="snapshot.morse_atomic_clock !== atom.key"
+            :unelevated="snapshot.morse_atomic_clock === atom.key"
+            :color="snapshot.morse_atomic_clock === atom.key ? 'indigo-7' : 'grey-7'"
+            class="nixie-dev-controls__atom-btn"
+            @click="commitMorseAtomicClock(atom.key)"
+          />
+        </div>
+      </div>
       <div class="text-center q-mb-xs q-px-xs nixie-dev-controls__morse-timeline">
         <div class="text-caption text-grey-6">재생 타임라인: dit {{ morseDitMsUi }}ms · 총 {{ morsePlayDurationMsUi }}ms (DOT/DASH/GAP)</div>
         <div class="nixie-dev-controls__morse-timeline-hint text-grey-7">
-          PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsUi }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤 {{ morseToneSlider }}Hz · 볼륨 {{ morseVolumeSlider }}%
+          PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsUi }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤 {{ morseToneHzUi }}Hz · 볼륨 {{ morseVolumeSlider }}% · 원자 {{ morseAtomicClockLabel }}
         </div>
       </div>
     </template>
@@ -180,13 +209,72 @@ const hasHangulChar = /[\u3131-\u318e\uac00-\ud7a3]/
 const hudDraft = ref('')
 const hudInputFocused = ref(false)
 const morsePlaying = ref(false)
+const morseLoopEnabled = ref(false)
+const morseLoopRequested = ref(false)
 /** dit 변경 등으로 재생이 겹칠 때 이전 `finally`가 UI 상태를 덮어쓰지 않게 함 */
 let morsePlayGeneration = 0
+const morseAtomicClockOptions = [
+  { key: 'H_1420MHz', label: 'H 1420MHz', tooltip: 'Hydrogen' },
+  { key: 'Cs_9192631770Hz', label: 'Cs 9.19GHz', tooltip: 'Cesium' },
+  { key: 'Rb_6834682610Hz', label: 'Rb 6.83GHz', tooltip: 'Rubidium' },
+  { key: 'Sr_429THz', label: 'Sr 429THz', tooltip: 'Strontium' },
+  { key: 'Yb_518THz', label: 'Yb 518THz', tooltip: 'Ytterbium' },
+  { key: 'YbPlus_E2_688THz', label: 'Yb+ E2 688THz', tooltip: 'Ytterbium Ion (E2)' },
+  { key: 'YbPlus_E3_642THz', label: 'Yb+ E3 642THz', tooltip: 'Ytterbium Ion (E3)' },
+  { key: 'HgPlus_1064THz', label: 'Hg+ 1064THz', tooltip: 'Mercury Ion' },
+  { key: 'AlPlus_1121THz', label: 'Al+ 1121THz', tooltip: 'Aluminium Ion' },
+  { key: 'CaPlus_411THz', label: 'Ca+ 411THz', tooltip: 'Calcium Ion' },
+  { key: 'Mg_655THz', label: 'Mg 655THz', tooltip: 'Magnesium' },
+  { key: 'InPlus_1267THz', label: 'In+ 1267THz', tooltip: 'Indium Ion' },
+  { key: 'TlPlus_1483THz', label: 'Tl+ 1483THz', tooltip: 'Thallium Ion' },
+  { key: 'Dy_235THz', label: 'Dy 235THz', tooltip: 'Dysprosium' },
+  { key: 'Th229_Nuclear', label: 'Th-229 Nuclear', tooltip: 'Thorium-229 Nuclear Clock' },
+]
+/** 원자 프리셋별 DIT(ms) 기본값 — 체험용 1차 매핑 */
+const morseAtomicClockDitPresetMs = {
+  H_1420MHz: 60,
+  Cs_9192631770Hz: 48,
+  Rb_6834682610Hz: 52,
+  Sr_429THz: 66,
+  Yb_518THz: 64,
+  YbPlus_E2_688THz: 58,
+  YbPlus_E3_642THz: 62,
+  HgPlus_1064THz: 46,
+  AlPlus_1121THz: 44,
+  CaPlus_411THz: 72,
+  Mg_655THz: 56,
+  InPlus_1267THz: 42,
+  TlPlus_1483THz: 40,
+  Dy_235THz: 84,
+  Th229_Nuclear: 96,
+}
+const MORSE_TONE_MIN_HZ = 1
+const MORSE_TONE_MAX_HZ = 12000
+const MORSE_TONE_LOG_STEPS = 1000
 
 /** 모스 슬라이더: 드래그는 로컬만, 손 뗄 때(@change) 스토어·재생 반영 */
 const morseDitSlider = ref(60)
-const morseToneSlider = ref(800)
+/** 로그 스케일 톤 슬라이더 위치(0~MORSE_TONE_LOG_STEPS) */
+const morseToneSlider = ref(0)
 const morseVolumeSlider = ref(35)
+
+function clampMorseToneHz(v) {
+  const n = Math.round(Number(v) || MORSE_TONE_MIN_HZ)
+  return Math.max(MORSE_TONE_MIN_HZ, Math.min(MORSE_TONE_MAX_HZ, n))
+}
+
+function toneSliderPosToHz(pos) {
+  const p = Math.max(0, Math.min(MORSE_TONE_LOG_STEPS, Number(pos) || 0))
+  const ratio = p / MORSE_TONE_LOG_STEPS
+  const hz = MORSE_TONE_MIN_HZ * Math.pow(MORSE_TONE_MAX_HZ / MORSE_TONE_MIN_HZ, ratio)
+  return clampMorseToneHz(hz)
+}
+
+function toneHzToSliderPos(hz) {
+  const h = clampMorseToneHz(hz)
+  const ratio = Math.log(h / MORSE_TONE_MIN_HZ) / Math.log(MORSE_TONE_MAX_HZ / MORSE_TONE_MIN_HZ)
+  return Math.round(ratio * MORSE_TONE_LOG_STEPS)
+}
 
 /** 스냅샷은 `applyPatch` 때마다 객체 전체가 갈아끼워짐. 배열을 watch 소스로 쓰면 매번 새 참조라
  *  다른 필드(신뢰도·엔트로피 등)만 바뀌어도 콜백이 돌아 로컬 슬라이더가 덮어써져 핸들/값이 엇갈림.
@@ -201,7 +289,7 @@ watch(
 watch(
   () => snapshot.value.morse_tone_hz,
   (v) => {
-    morseToneSlider.value = v
+    morseToneSlider.value = toneHzToSliderPos(v)
   },
   { immediate: true },
 )
@@ -232,6 +320,12 @@ const morseParisWpmApproxUi = computed(() => {
 const morseDahMsUi = computed(() => morseDitMsUi.value * 3)
 const morseInterCharGapMsUi = computed(() => morseDitMsUi.value * 3)
 const morseWordGapMsUi = computed(() => morseDitMsUi.value * 7)
+const morseToneHzUi = computed(() => toneSliderPosToHz(morseToneSlider.value))
+const morseAtomicClockLabel = computed(() => {
+  const key = snapshot.value.morse_atomic_clock
+  const found = morseAtomicClockOptions.find((x) => x.key === key)
+  return found ? found.label : 'H 1420MHz'
+})
 
 const morsePlayDurationMsUi = computed(() => {
   if (!snapshot.value.demo_hud_morse_enabled) return 0
@@ -251,6 +345,7 @@ const canPlayMorsePreview = computed(() => {
 
 function onMorsePlayClick() {
   if (morsePlaying.value) {
+    morseLoopRequested.value = false
     stopMorsePlayback()
     return
   }
@@ -259,19 +354,26 @@ function onMorsePlayClick() {
 
 async function playMorsePreview() {
   if (!canPlayMorsePreview.value) return
-  const s = normalizeDemoHudText(encodeTextToMorseHudText(hudDraft.value ?? ''))
-  const events = buildMorseSoundTimeline(s, morseDitMsUi.value)
-  if (!events.length) return
   const gen = ++morsePlayGeneration
+  morseLoopRequested.value = true
   morsePlaying.value = true
   try {
-    await playMorseTimeline(events, {
-      frequencyHz: Math.max(50, Math.min(2000, Math.round(Number(morseToneSlider.value) || 800))),
-      volume: (Math.max(0, Math.min(100, Math.round(Number(morseVolumeSlider.value) || 0))) / 100) * MORSE_MASTER_GAIN_MAX,
-      stereoPan: clampMorseStereoPan(snapshot.value.morse_stereo_pan),
-    })
+    do {
+      const s = normalizeDemoHudText(encodeTextToMorseHudText(hudDraft.value ?? ''))
+      const events = buildMorseSoundTimeline(s, morseDitMsUi.value)
+      if (!events.length) break
+      await playMorseTimeline(events, {
+        frequencyHz: morseToneHzUi.value,
+        volume: (Math.max(0, Math.min(100, Math.round(Number(morseVolumeSlider.value) || 0))) / 100) * MORSE_MASTER_GAIN_MAX,
+        stereoPan: clampMorseStereoPan(snapshot.value.morse_stereo_pan),
+      })
+      if (!morseLoopRequested.value || gen !== morsePlayGeneration) break
+    } while (morseLoopEnabled.value)
   } finally {
-    if (gen === morsePlayGeneration) morsePlaying.value = false
+    if (gen === morsePlayGeneration) {
+      morseLoopRequested.value = false
+      morsePlaying.value = false
+    }
   }
 }
 
@@ -285,8 +387,9 @@ function onMorseDitSliderChange(val) {
 }
 
 function onMorseToneSliderChange(val) {
-  nmap.setMorseToneHz(val)
-  setMorseCarrierFrequencyHz(val)
+  const hz = toneSliderPosToHz(val)
+  nmap.setMorseToneHz(hz)
+  setMorseCarrierFrequencyHz(hz)
 }
 
 function onMorseVolumeSliderChange(val) {
@@ -305,6 +408,19 @@ function clampMorseStereoPan(v) {
 function commitMorseStereoPan(pan) {
   nmap.setMorseStereoPan(pan)
   setMorseStereoPanValue(pan)
+}
+
+function commitMorseAtomicClock(key) {
+  const wasPlaying = morsePlaying.value
+  nmap.setMorseAtomicClock(key)
+  const nextDit = morseAtomicClockDitPresetMs[key] ?? 60
+  /** 버튼 클릭 즉시: 슬라이더 핸들 + 실제 DIT 적용(재생 중이면 재시작) */
+  morseDitSlider.value = nextDit
+  onMorseDitSliderChange(nextDit)
+  /** 원자 버튼 = 플레이 버튼 겸용(단, 이미 재생 중이면 자동 재생 트리거 금지) */
+  if (!wasPlaying && canPlayMorsePreview.value) {
+    void playMorsePreview()
+  }
 }
 
 onMounted(() => {
@@ -384,6 +500,15 @@ function toggleMorseMode() {
   flex-shrink: 0;
 }
 
+.nixie-dev-controls__morse-readout {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.nixie-dev-controls__morse-loop-btn :deep(.q-icon) {
+  font-size: 0.95rem;
+}
+
 .nixie-dev-controls__morse-pan-group {
   min-width: 0;
   flex: 1 1 auto;
@@ -392,6 +517,15 @@ function toggleMorseMode() {
 
 .nixie-dev-controls__morse-pan-group :deep(.q-btn) {
   flex: 1 1 0;
+}
+
+.nixie-dev-controls__atom-wrap {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.nixie-dev-controls__atom-btn {
+  flex: 0 0 auto;
 }
 
 .nixie-dev-controls__morse-timeline-hint {

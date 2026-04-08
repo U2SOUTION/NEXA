@@ -121,7 +121,7 @@ export function setMorseMasterGainLinear(linearGain: number): void {
 
 /** 재생 중 캐리어 주파수(Hz) — 예약된 톤 오실레이터에 즉시 반영 */
 export function setMorseCarrierFrequencyHz(hz: number): void {
-  const f = Math.max(50, Math.min(8000, hz))
+  const f = Math.max(1, Math.min(12000, hz))
   const ctx = activeCtx
   if (!ctx) return
   const t = ctx.currentTime
@@ -215,7 +215,7 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   activeCtx = ctx
   await ctx.resume()
 
-  const freq = Math.max(50, Math.min(8000, options.frequencyHz))
+  const freq = Math.max(1, Math.min(12000, options.frequencyHz))
   const vol = Math.min(MORSE_MASTER_GAIN_MAX, Math.max(0, options.volume ?? 0.12))
 
   const master = ctx.createGain()

@@ -8,6 +8,23 @@ export type WhoPulse = 'WILL' | 'ECHO' | 'ASK'
 
 /** 모스 미리듣기 스테레오: L=-1, ALL(중앙)=0, R=1 — Web Audio `StereoPannerNode.pan` */
 export type MorseStereoPan = -1 | 0 | 1
+/** 원자 기준 프리셋 키(가청 매핑 전 기준 주파수 식별자) */
+export type MorseAtomicClockKey =
+  | 'H_1420MHz'
+  | 'Cs_9192631770Hz'
+  | 'Rb_6834682610Hz'
+  | 'Sr_429THz'
+  | 'Yb_518THz'
+  | 'YbPlus_E2_688THz'
+  | 'YbPlus_E3_642THz'
+  | 'HgPlus_1064THz'
+  | 'AlPlus_1121THz'
+  | 'CaPlus_411THz'
+  | 'Mg_655THz'
+  | 'InPlus_1267THz'
+  | 'TlPlus_1483THz'
+  | 'Dy_235THz'
+  | 'Th229_Nuclear'
 
 /**
  * 시뮬: Nexion 스냅샷 형식.
@@ -33,12 +50,14 @@ export type NmapSnapshot = {
   demo_hud_morse_enabled: boolean
   /** 모스 dit 길이(ms) 20~500 — 재생·타임라인에 항상 적용 */
   morse_dit_ms: number
-  /** 이후 I2S/앰프 재생용 캐리어 주파수(Hz) 50~2000 — 타임라인과 함께 전달 가능 */
+  /** 이후 I2S/앰프 재생용 캐리어 주파수(Hz) 1~12000 — 타임라인과 함께 전달 가능 */
   morse_tone_hz: number
   /** 모스 재생 볼륨(0~100). Web Audio 마스터 게인에 비례 */
   morse_volume: number
   /** 모스 미리듣기 L/R/중앙 — 엿듣기·대화 연출용 */
   morse_stereo_pan: MorseStereoPan
+  /** 원자 기준 프리셋 키 — 이후 DIT/톤 매핑에 사용 */
+  morse_atomic_clock: MorseAtomicClockKey
   /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
 }
@@ -64,6 +83,7 @@ function defaultSnapshot(): NmapSnapshot {
     morse_tone_hz: 800,
     morse_volume: 35,
     morse_stereo_pan: 0,
+    morse_atomic_clock: 'H_1420MHz',
     demo_hud_scroll_offset: 0,
   }
 }
@@ -115,7 +135,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
   }
 
   function setMorseToneHz(hz: number) {
-    applyPatch({ morse_tone_hz: Math.max(50, Math.min(2000, Math.round(Number(hz) || 800))) })
+    applyPatch({ morse_tone_hz: Math.max(1, Math.min(12000, Math.round(Number(hz) || 800))) })
   }
 
   function setMorseVolume(percent: number) {
@@ -124,6 +144,10 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   function setMorseStereoPan(pan: MorseStereoPan) {
     applyPatch({ morse_stereo_pan: pan })
+  }
+
+  function setMorseAtomicClock(key: MorseAtomicClockKey) {
+    applyPatch({ morse_atomic_clock: key })
   }
 
   /** 시뮬: 원문을 모스(`.` `-` `^`)로 변환해 HUD에 표시 */
@@ -238,6 +262,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     setMorseToneHz,
     setMorseVolume,
     setMorseStereoPan,
+    setMorseAtomicClock,
     setDemoHudScrollOffset,
     tickDemoHudMarquee,
     simulateNebulaInflux,

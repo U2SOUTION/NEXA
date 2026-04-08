@@ -1,6 +1,7 @@
 <template>
-  <div class="nexion-canvas-view">
-    <VueFlow
+  <div ref="nexionCanvasRootEl" class="nexion-canvas-view">
+    <div ref="nexionFlowHostEl" class="nexion-flow-host">
+      <VueFlow
       v-model:nodes="nodes"
       v-model:edges="edges"
       :apply-default="false"
@@ -28,15 +29,16 @@
       @node-click="onNodeClick"
       @edge-click="onNexionEdgeClick"
       @pane-click="onNexionPaneClick"
-    >
-      <Teleport :to="nexionControlsHostEl" :disabled="controlsTeleportDisabled">
-        <Controls />
-      </Teleport>
-      <Teleport :to="nexionMinimapHostEl" :disabled="minimapTeleportDisabled">
-        <MiniMap class="nexion-minimap-teleported" pannable zoomable :width="minimapWidth" :height="minimapHeight" :mask-color="minimapMaskColor" :mask-stroke-color="minimapMaskStrokeColor" :node-color="minimapNodeColor" :node-stroke-color="minimapNodeStrokeColor" />
-      </Teleport>
-      <NexionFlowHooks />
-    </VueFlow>
+      >
+        <Teleport :to="nexionControlsHostEl" :disabled="controlsTeleportDisabled">
+          <Controls />
+        </Teleport>
+        <Teleport :to="nexionMinimapHostEl" :disabled="minimapTeleportDisabled">
+          <MiniMap class="nexion-minimap-teleported" pannable zoomable :width="minimapWidth" :height="minimapHeight" :mask-color="minimapMaskColor" :mask-stroke-color="minimapMaskStrokeColor" :node-color="minimapNodeColor" :node-stroke-color="minimapNodeStrokeColor" />
+        </Teleport>
+        <NexionFlowHooks />
+      </VueFlow>
+    </div>
 
     <div class="nexion-canvas-view__hint text-caption">
       <strong>빈 바탕</strong> 더블클릭: 카드 추가 · <strong>카드 선택</strong>: 현재 줌 유지·해당 카드 중심으로 팬 · 박스·폰트 비율 유지(전체 텍스트) · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기 · <strong>연결선</strong> 클릭 시 강조 · 여러 개는 <strong>Ctrl</strong>/<strong>⌘</strong>+클릭 ·
@@ -75,6 +77,8 @@ const { settings: userSettingsRef } = storeToRefs(userSettings)
 const $q = useQuasar()
 
 const nexionUi = computed(() => userSettingsRef.value.nexionFlow)
+const nexionCanvasRootEl = ref(null)
+const nexionFlowHostEl = ref(null)
 
 /** 코어 기본은 Backspace만 — Delete도 허용 */
 const nexionDeleteKeyCodes = ['Backspace', 'Delete']
@@ -328,8 +332,16 @@ function onNexionEdgesChangeWrapped(changes) {
  * DEV에서만 콘솔 — 프로덕션에서는 호출만 되고 로그 없음.
  */
 function onNexionVueFlowError(err) {
-  if (!NXN_LOG) return
   const code = err?.code ?? err?.name
+  if (code === 'MISSING_VIEWPORT_DIMENSIONS') {
+    const host = nexionFlowHostEl.value ?? nexionCanvasRootEl.value
+    const w = host?.clientWidth ?? 0
+    const h = host?.clientHeight ?? 0
+    const hidden = !host || host?.offsetParent == null || w < 4 || h < 4
+    /** 탭 전환/접힘 시점 0px 측정은 정상 과도상태라 noisy warn 생략 */
+    if (hidden) return
+  }
+  if (!NXN_LOG) return
   const isEdge = typeof code === 'string' && String(code).includes('EDGE')
   const bucket = isEdge || (typeof code === 'string' && String(code).includes('NODE')) ? '노드/엣지 검증·조회' : '기타'
   console.warn('[NexionFlow] vue-flow error', {
@@ -520,6 +532,13 @@ onMounted(() => {
   min-height: 0;
   width: 100%;
   height: 100%;
+}
+
+.nexion-flow-host {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 360px;
+  display: flex;
 }
 
 .nexion-canvas-view__hint {
