@@ -3,8 +3,8 @@
  * [NEXA-PLATFORM-TS-01] §2.5
  * ApiErrorCodeType에 새 코드 추가 시 여기에도 필수 추가 → 타입 에러로 누락 방지
  */
-import { ApiErrorCode } from '@/system/schemas/errors'
-import type { ApiErrorCodeType } from '@/system/schemas/errors'
+import { ApiErrorCode } from '@system/schemas/errors'
+import type { ApiErrorCodeType } from '@system/schemas/errors'
 
 export const ERROR_MESSAGES: Record<ApiErrorCodeType, string> = {
   [ApiErrorCode.VALIDATION_ERROR]: '입력값을 확인해 주세요.',

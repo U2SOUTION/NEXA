@@ -60,6 +60,18 @@ export type NmapSnapshot = {
   morse_atomic_clock: MorseAtomicClockKey
   /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
+  /** 모스 미리듣기 시 닉시 HUD를 타임라인과 동기(방식 ②) — false면 재생 중에도 마퀴·기존 스크롄만 사용 */
+  morse_hud_sync_with_playback: boolean
+  /** 모스 미리듣기 재생 중 — 마퀴 틱 억제·스크롄 오버라이드에 사용 */
+  morse_playback_active: boolean
+  /** 재생 세대 — UI 경합 방지용 */
+  morse_playback_generation: number
+  /** 재생 중 `mapHudTextToDots` 스크롄 — null이면 `demo_hud_scroll_offset` */
+  morse_playback_scroll_offset_override: number | null
+  /** 강조할 모스 토큰 인덱스(공백 분리) — -1이면 강조 없음 */
+  morse_playback_highlight_token_index: number
+  /** 재생 시작 직전 `demo_hud_scroll_offset` — 종료 시 복구 */
+  morse_playback_scroll_restore: number
 }
 
 const LOCAL_SHELL_ID = 'local'
@@ -85,6 +97,12 @@ function defaultSnapshot(): NmapSnapshot {
     morse_stereo_pan: 0,
     morse_atomic_clock: 'H_1420MHz',
     demo_hud_scroll_offset: 0,
+    morse_hud_sync_with_playback: true,
+    morse_playback_active: false,
+    morse_playback_generation: 0,
+    morse_playback_scroll_offset_override: null,
+    morse_playback_highlight_token_index: -1,
+    morse_playback_scroll_restore: 0,
   }
 }
 
@@ -211,6 +229,10 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   /** 긴 HUD: `NIXIE_HUD_MARQUEE.colsPerTick` 열씩 스크롄(주기=테이프 열 합) */
   function tickDemoHudMarquee() {
+    const s = snapshot.value
+    if (s.morse_playback_active && (s.morse_hud_sync_with_playback ?? true) && s.demo_hud_morse_enabled) {
+      return
+    }
     const demo_hud_text = normalizeDemoHudText(snapshot.value.demo_hud_text ?? '')
     if (!demo_hud_text.length) {
       applyPatch({ demo_hud_scroll_offset: 0 })
@@ -243,6 +265,40 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     applyPatch({ source_shell_id: LOCAL_SHELL_ID })
   }
 
+  function setMorseHudSyncWithPlayback(enabled: boolean) {
+    applyPatch({ morse_hud_sync_with_playback: Boolean(enabled) })
+  }
+
+  /** 재생 시작 시 호출 — 스크롄 복구값·세대·활성 플래그 */
+  function beginMorsePlaybackHudSync(payload: { generation: number; restoreScroll: number }) {
+    applyPatch({
+      morse_playback_active: true,
+      morse_playback_generation: payload.generation,
+      morse_playback_scroll_restore: payload.restoreScroll,
+      morse_playback_scroll_offset_override: null,
+      morse_playback_highlight_token_index: -1,
+    })
+  }
+
+  /** 재생 중 HUD 프레임(스크롄 오버라이드·강조 토큰) */
+  function setMorsePlaybackHudFrame(scrollOffset: number, highlightTokenIndex: number) {
+    applyPatch({
+      morse_playback_scroll_offset_override: scrollOffset,
+      morse_playback_highlight_token_index: highlightTokenIndex,
+    })
+  }
+
+  /** 재생 종료·정지 시 — 마퀴용 스크롄을 `morse_playback_scroll_restore` 로 복구 */
+  function endMorsePlaybackHudSync() {
+    const restore = snapshot.value.morse_playback_scroll_restore ?? 0
+    applyPatch({
+      morse_playback_active: false,
+      morse_playback_scroll_offset_override: null,
+      morse_playback_highlight_token_index: -1,
+      demo_hud_scroll_offset: restore,
+    })
+  }
+
   return {
     snapshot,
     nebulaPulse,
@@ -267,5 +323,9 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     tickDemoHudMarquee,
     simulateNebulaInflux,
     clearNebulaToLocal,
+    setMorseHudSyncWithPlayback,
+    beginMorsePlaybackHudSync,
+    setMorsePlaybackHudFrame,
+    endMorsePlaybackHudSync,
   }
 })

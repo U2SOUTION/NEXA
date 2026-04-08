@@ -477,6 +477,64 @@ export function getMaxScrollOffsetChars(fullNormalized: string): number {
   return w > 0 ? w - 1 : 0
 }
 
+/**
+ * 테이프 0열 기준, `full[charIndex]` 글리프가 시작하는 **그리드 열 오프셋**.
+ * `mapTapeToHudDotsColScroll` / `hudTapePeriodWidthCols` 와 동일 규칙(슬롯 간 GAP).
+ */
+export function tapeColStartForCharIndex(full: string, charIndex: number): number {
+  const n = full.length
+  if (charIndex <= 0) return 0
+  const end = Math.min(charIndex, n)
+  let total = 0
+  for (let k = 0; k < end; k++) {
+    if (k > 0) total += NIXIE_GLYPH_GAP_COLS
+    total += glyphColWidthForChar(full[k]!)
+  }
+  return total
+}
+
+/**
+ * `morseTimeline` 의 공백 분리 토큰과 동일 규칙(`trim` + `split(/\\s+/)`)으로
+ * `tokenIndex` 번째 토큰이 차지하는 **`fullNormalized` 내 문자 구간** `[start, end)` (end 배타).
+ * `^` 도 한 토큰. 범위 밖이면 `null`.
+ */
+export function getMorseTokenCharRange(fullNormalized: string, tokenIndex: number): { start: number; end: number } | null {
+  const full = fullNormalized
+  if (!full.length || tokenIndex < 0) return null
+  const tokens = full.trim().split(/\s+/).filter(Boolean)
+  if (tokenIndex >= tokens.length) return null
+  let searchFrom = 0
+  while (searchFrom < full.length && /\s/.test(full[searchFrom]!)) searchFrom++
+  for (let t = 0; t < tokens.length; t++) {
+    const tok = tokens[t]!
+    const idx = full.indexOf(tok, searchFrom)
+    if (idx < 0) return null
+    if (t === tokenIndex) return { start: idx, end: idx + tok.length }
+    searchFrom = idx + tok.length
+    while (searchFrom < full.length && full[searchFrom] === ' ') searchFrom++
+  }
+  return null
+}
+
+/**
+ * 긴 테이프에서 `tokenIndex` 토큰이 **24열 뷰 안에서 가운데** 오도록 하는 `scrollOffset`
+ * (`mapHudTextToDots` 의 두 번째 인자와 동일 단위: 건너뛸 그리드 열 수, 주기 내 랩).
+ * 한 화면에 전부 들어가면 `0`.
+ */
+export function scrollOffsetToCenterToken(fullNormalized: string, tokenIndex: number): number {
+  const full = fullNormalized
+  if (!full.length) return 0
+  if (textFitsCompletelyInGrid(full)) return 0
+  const rng = getMorseTokenCharRange(full, tokenIndex)
+  if (!rng) return 0
+  const colStart = tapeColStartForCharIndex(full, rng.start)
+  const colEndEx = tapeColStartForCharIndex(full, rng.end)
+  const center = (colStart + colEndEx) / 2
+  const target = Math.round(center - NIXIE_GRID_COLS / 2)
+  const maxScroll = getMaxScrollOffsetChars(full)
+  return Math.max(0, Math.min(maxScroll, target))
+}
+
 /** 문자열 → HUD에 쓸 문자만 남김: A–Z, a–z, 0–9, 공백, 모스 `.` `-` `^`, 한글(자모 분해). 한글 완성형은 예: `감` -> `ㄱ ㅏ ㅁ` 형태로 확장. */
 export function normalizeDemoHudText(input: string): string {
   let out = ''
@@ -536,8 +594,17 @@ function drawGlyphColumnInto(out: boolean[], len: number, gridCol: number, rowOf
   }
 }
 
-/** 문자열 → HUD 도트 배열에 마퀴 스크롄 그리기. */
-function mapTapeToHudDotsColScroll(full: string, scrollCols: number, out: boolean[], len: number): void {
+/**
+ * 문자열 → HUD 도트 배열에 마퀴 스크롄 그리기.
+ * `drawSlotGlyph` 가 있으면 `slotCharIndex < full.length` 이고 참일 때만 해당 슬롯 글리프를 그린다(마지막 테이프 갭 슬롯은 `drawSlotGlyph` 없을 때만 그림).
+ */
+function mapTapeToHudDotsColScroll(
+  full: string,
+  scrollCols: number,
+  out: boolean[],
+  len: number,
+  drawSlotGlyph?: (slotCharIndex: number) => boolean,
+): void {
   const period = hudTapePeriodWidthCols(full)
   if (period <= 0) return
   let skip = Math.floor(scrollCols) % period
@@ -553,6 +620,8 @@ function mapTapeToHudDotsColScroll(full: string, scrollCols: number, out: boolea
     const ch = idx < full.length ? full[idx]! : HUD_TAPE_GAP_CHAR
     const glyph = getGlyphRows(ch)
     const gw = glyphDrawWidthForChar(ch, glyph)
+    const drawThisSlot =
+      drawSlotGlyph === undefined ? true : idx < full.length && drawSlotGlyph(idx)
 
     if (k > 0) {
       for (let g = 0; g < NIXIE_GLYPH_GAP_COLS; g++) {
@@ -569,7 +638,9 @@ function mapTapeToHudDotsColScroll(full: string, scrollCols: number, out: boolea
         skip--
         continue
       }
-      drawGlyphColumnInto(out, len, gridCol, hudRowOffsetForGlyph(glyph), glyph, gc)
+      if (drawThisSlot) {
+        drawGlyphColumnInto(out, len, gridCol, hudRowOffsetForGlyph(glyph), glyph, gc)
+      }
       gridCol++
     }
     k++
@@ -600,6 +671,46 @@ export function mapHudTextToDots(input: string, scrollOffset = 0): boolean[] {
   }
 
   mapTapeToHudDotsColScroll(full, off, out, len)
+  return out
+}
+
+/**
+ * `mapHudTextToDots` 와 동일 스크롄·테이프 규칙이되, **문자 구간 `[charStart, charEndExclusive)`** 에 해당하는 글리프만 켜진 도트 마스크.
+ * 재생 중 현재 토큰 강조(이중 루미나)용.
+ */
+export function mapHudTextToDotsCharRangeMask(
+  input: string,
+  scrollOffset: number,
+  charStart: number,
+  charEndExclusive: number,
+): boolean[] {
+  const len = NIXIE_GRID_COLS * NIXIE_GRID_ROWS
+  const out = new Array<boolean>(len).fill(false)
+  const full = normalizeDemoHudText(input)
+  if (!full) return out
+  const lo = Math.max(0, Math.min(full.length, Math.floor(charStart)))
+  const hi = Math.max(lo, Math.min(full.length, Math.floor(charEndExclusive)))
+  if (lo >= hi) return out
+
+  const off = Math.max(0, Math.floor(scrollOffset))
+
+  if (textFitsCompletelyInGrid(full)) {
+    let col = 0
+    for (let i = 0; i < full.length; i++) {
+      const ch = full[i]!
+      const glyph = getGlyphRows(ch)
+      const w = glyphDrawWidthForChar(ch, glyph)
+      if (i > 0) col += NIXIE_GLYPH_GAP_COLS
+      if (col + w > NIXIE_GRID_COLS) break
+      if (i >= lo && i < hi) {
+        drawGlyphInto(out, len, col, hudRowOffsetForGlyph(glyph), glyph, w)
+      }
+      col += w
+    }
+    return out
+  }
+
+  mapTapeToHudDotsColScroll(full, off, out, len, (slotIdx) => slotIdx >= lo && slotIdx < hi)
   return out
 }
 

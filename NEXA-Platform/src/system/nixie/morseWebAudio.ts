@@ -1,5 +1,15 @@
 import type { MorseSoundEvent } from './morseTimeline'
 
+/** `playMorseTimeline` 옵션 — 재생 중 HUD 동기 등(정지 시 훅 타이머 전부 정리) */
+export type MorsePlaybackHooks = {
+  /** 각 이벤트(갭 포함) 시작 — `elapsedMs` 는 타임라인 누적 시작 시각(ms) */
+  onEventStart?: (eventIndex: number, event: MorseSoundEvent, elapsedMs: number) => void
+  /** 자연 종료 시 페이드 직후 `play` Promise resolve 직전 */
+  onComplete?: () => void
+  /** `stopMorsePlayback` 또는 새 재생 시작으로 중단 */
+  onStopped?: () => void
+}
+
 /**
  * 모스 미리듣기(Web Audio)
  * - 타임라인을 오실레이터로 스케줄, `stopMorsePlayback` 시 대기 중인 `play` Promise 도 즉시 완료.
@@ -7,6 +17,7 @@ import type { MorseSoundEvent } from './morseTimeline'
  * - 재생 중: `setMorseMasterGainLinear` / `setMorseCarrierFrequencyHz` / `setMorseStereoPanValue` 로 볼륨·톤·L/R 라이브 반영.
  * - 정지·자연 종료: 마스터 페이드아웃 후 `AudioContext` close — 즉시 끊김 팝 완화(`immediate` 는 페이드 생략).
  * - dit(리듬) 변경은 타임라인 재구성이 필요해 UI 쪽에서 재생 재시작으로 처리.
+ * - `playbackHooks`: 이벤트 시작(`onEventStart`)은 `setTimeout`으로 벽시계 정렬 — `stopMorsePlayback` 시 훅 타이머 전부 정리. 자연 종료는 `onComplete`, 중단은 `onStopped`.
  * `MORSE_MASTER_GAIN_MAX`: 슬라이더 100% 환산 시 선형 게인 상한. 1 초과는 의도적 과증폭·연출 여지(클리핑 가능).
  * N-MAP(entropy·confidence 등) → 게인/톤/dit 자동 매핑은 닉시 본편에서 별 레이어로 둘 예정 — 현재는 스냅샷 값 + 수동 컨트롤만.
  */
@@ -32,6 +43,36 @@ const activeOscillators: OscillatorNode[] = []
 
 /** 페이드아웃 후 `close` 예약 — 새 재생 `immediate` 시 취소 */
 let pendingFadeCloseTimer: number | null = null
+
+/** `onEventStart` 등 재생 훅용 `setTimeout` — 정지 시 전부 `clearTimeout` */
+const activePlaybackHookTimers: number[] = []
+
+/** 현재 `playMorseTimeline` 세션의 훅 — 자연 종료는 `onComplete`, 중단은 `onStopped` */
+let activePlaybackHooks: MorsePlaybackHooks | null = null
+
+function clearPlaybackHookTimers(): void {
+  for (const id of activePlaybackHookTimers) {
+    clearTimeout(id)
+  }
+  activePlaybackHookTimers.length = 0
+}
+
+/** 재생 중단 시 훅 타이머 정리 + `onStopped` (자연 종료 경로에서는 호출하지 않음) */
+function notifyPlaybackStopped(): void {
+  const h = activePlaybackHooks
+  activePlaybackHooks = null
+  clearPlaybackHookTimers()
+  h?.onStopped?.()
+}
+
+/** `activePlayResolve` 가 있을 때만 — 자연 종료가 아닌 중단 */
+function resolvePlayPromiseIfPending(): void {
+  if (!activePlayResolve) return
+  const r = activePlayResolve
+  activePlayResolve = null
+  notifyPlaybackStopped()
+  r()
+}
 
 function clearActiveAudioNodes(): void {
   activeMasterGain = null
@@ -113,11 +154,7 @@ function stopMorsePlaybackImmediate(): void {
     }
     activeCtx = null
   }
-  if (activePlayResolve) {
-    const r = activePlayResolve
-    activePlayResolve = null
-    r()
-  }
+  resolvePlayPromiseIfPending()
 }
 
 /** 재생 중 마스터 게인(선형 0~`MORSE_MASTER_GAIN_MAX`) — 슬라이더 놓을 때 반영 */
@@ -179,6 +216,13 @@ export type PlayMorseOptions = {
   volume?: number
   /** `StereoPannerNode.pan` — -1=L, 0=중앙, 1=R */
   stereoPan?: number
+  /** 재생 진행 콜백 — 정지 시 훅용 타이머 전부 정리 */
+  playbackHooks?: MorsePlaybackHooks
+  /**
+   * `stopMorsePlayback` 직후·`playbackHooks` 등록 직후, 오디오 컨텍스트 생성 전에 한 번.
+   * 이전 세션 `onStopped`가 먼저 처리된 뒤이므로 Pinia `beginMorsePlaybackHudSync` 등은 여기서 호출.
+   */
+  onAfterPrepare?: () => void
 }
 
 /**
@@ -193,11 +237,7 @@ export function stopMorsePlayback(options?: StopMorsePlaybackOptions): void {
     activeWaitTimer = null
   }
 
-  const resolvePending = activePlayResolve
-  if (resolvePending) {
-    activePlayResolve = null
-    resolvePending()
-  }
+  resolvePlayPromiseIfPending()
 
   const ctx = activeCtx
   if (!ctx) return
@@ -222,6 +262,9 @@ export function stopMorsePlayback(options?: StopMorsePlaybackOptions): void {
 export async function playMorseTimeline(events: MorseSoundEvent[], options: PlayMorseOptions): Promise<void> {
   stopMorsePlayback({ immediate: true })
   if (!events.length) return
+
+  activePlaybackHooks = options.playbackHooks ?? null
+  options.onAfterPrepare?.()
 
   const ctx = new AudioContext()
   activeCtx = ctx
@@ -279,20 +322,35 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
     t += durSec
   }
 
+  const hooks = options.playbackHooks
+  let elapsedSchedule = 0
+  for (let i = 0; i < events.length; i++) {
+    const ev = events[i]!
+    const startMs = elapsedSchedule
+    if (hooks?.onEventStart) {
+      const delay = Math.max(0, Math.round(startMs))
+      const id = window.setTimeout(() => {
+        hooks.onEventStart!(i, ev, startMs)
+      }, delay)
+      activePlaybackHookTimers.push(id)
+    }
+    elapsedSchedule += ev.ms
+  }
+
   const totalMs = events.reduce((s, ev) => s + ev.ms, 0)
   await new Promise<void>((resolve) => {
     activePlayResolve = resolve
     activeWaitTimer = window.setTimeout(() => {
       activeWaitTimer = null
       if (activeCtx !== ctx) {
-        if (activePlayResolve) {
-          const r = activePlayResolve
-          activePlayResolve = null
-          r()
-        }
+        resolvePlayPromiseIfPending()
         return
       }
       scheduleFadeOutClose(ctx, () => {
+        const h = activePlaybackHooks
+        activePlaybackHooks = null
+        clearPlaybackHookTimers()
+        h?.onComplete?.()
         if (activePlayResolve) {
           const r = activePlayResolve
           activePlayResolve = null

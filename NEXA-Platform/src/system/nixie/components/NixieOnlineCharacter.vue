@@ -31,7 +31,15 @@
 
 <script setup>
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
-import { mapHudTextToDots, normalizeDemoHudText, textFitsCompletelyInGrid, NIXIE_GRID_COLS as COLS, NIXIE_GRID_ROWS as ROWS } from '@system/nixie/nixieDotMap'
+import {
+  getMorseTokenCharRange,
+  mapHudTextToDots,
+  mapHudTextToDotsCharRangeMask,
+  normalizeDemoHudText,
+  textFitsCompletelyInGrid,
+  NIXIE_GRID_COLS as COLS,
+  NIXIE_GRID_ROWS as ROWS,
+} from '@system/nixie/nixieDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { storeToRefs } from 'pinia'
 import gsap from 'gsap'
@@ -178,13 +186,37 @@ function getDots() {
   return Array.from(root.querySelectorAll('.nixie-online__dot'))
 }
 
+/** 마퀴 스크롄 vs 모스 재생 오버라이드 — 동기 재생 중에는 Pinia 오버라이드가 우선 */
+function getDemoHudEffectiveScroll() {
+  const s = snapshot.value
+  const base = Number(s.demo_hud_scroll_offset ?? 0)
+  if (s.morse_playback_active && (s.morse_hud_sync_with_playback ?? true) && s.demo_hud_morse_enabled) {
+    const o = s.morse_playback_scroll_offset_override
+    if (o != null && Number.isFinite(Number(o))) return Number(o)
+  }
+  return Number.isFinite(base) ? base : 0
+}
+
 /** 시뮴 텍스트가 있으면 길이 DOT_COUNT(24×7) 의 on/off 마스크, 없으면 null */
 function getDemoTextMask() {
   const raw = snapshot.value.demo_hud_text ?? ''
   const norm = normalizeDemoHudText(String(raw))
   if (!norm.length) return null
-  const scroll = Number(snapshot.value.demo_hud_scroll_offset ?? 0)
-  return mapHudTextToDots(norm, Number.isFinite(scroll) ? scroll : 0)
+  return mapHudTextToDots(norm, getDemoHudEffectiveScroll())
+}
+
+/** 재생 중 현재 모스 토큰 구간만 켜진 마스크(이중 루미나) — 없으면 null */
+function getDemoMorseHighlightMask() {
+  const s = snapshot.value
+  if (!s.morse_playback_active || !(s.morse_hud_sync_with_playback ?? true) || !s.demo_hud_morse_enabled) return null
+  const ti = s.morse_playback_highlight_token_index
+  if (ti == null || ti < 0) return null
+  const raw = s.demo_hud_text ?? ''
+  const norm = normalizeDemoHudText(String(raw))
+  if (!norm.length) return null
+  const rng = getMorseTokenCharRange(norm, ti)
+  if (!rng) return null
+  return mapHudTextToDotsCharRangeMask(norm, getDemoHudEffectiveScroll(), rng.start, rng.end)
 }
 
 const thresholdStress = computed(() => confidenceRelativeThresholdStress(snapshot.value.confidence_score, snapshot.value.user_defined_threshold))
@@ -228,34 +260,75 @@ function syncLumina() {
   gsap.set(dots, { clearProps: 'opacity' })
 
   const mask = getDemoTextMask()
+  const highlightMask = getDemoMorseHighlightMask()
   const entropy = clamp(Number(snapshot.value.entropy_level ?? 100), 0, 100) / 100
   const pulseMix = 0.55 + entropy * 0.45
 
   if (mask) {
     const offDots = dots.filter((_, i) => !mask[i])
-    const litDots = dots.filter((_, i) => mask[i])
-    gsap.set(offDots, { opacity: 0.03 + entropy * 0.08 })
-    if (!litDots.length) return
+    const hasHighlight = Boolean(highlightMask?.some(Boolean))
+    const baseLitDots = hasHighlight ? dots.filter((_, i) => mask[i] && !highlightMask[i]) : dots.filter((_, i) => mask[i])
+    const highlightLitDots = hasHighlight ? dots.filter((_, i) => mask[i] && highlightMask[i]) : []
+    if (offDots.length) gsap.set(offDots, { opacity: 0.03 + entropy * 0.08 })
+    if (!baseLitDots.length && !highlightLitDots.length) return
 
     const pulse = snapshot.value.who_pulse
     const baseDur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
     const dur = clamp(baseDur * (1.45 - entropy * 0.75), 0.35, 2.8)
     const minOpacity = 0.2 + entropy * 0.25
     const maxOpacity = 0.55 + entropy * 0.37
-    gsap.set(litDots, { opacity: minOpacity + 0.05 })
+    /* 강조 토큰 vs 나머지: 대비를 크게 — 이전(Δ≈0.06)은 거의 구분 안 됨 */
+    const baseMin = hasHighlight ? minOpacity * 0.42 : minOpacity
+    const baseMax = hasHighlight ? maxOpacity * 0.58 : maxOpacity
+    const hiMin = hasHighlight ? minOpacity + 0.2 : minOpacity + 0.06
+    const hiMax = hasHighlight ? Math.min(0.98, maxOpacity + 0.38) : Math.min(0.95, maxOpacity + 0.14)
+    if (baseLitDots.length) gsap.set(baseLitDots, { opacity: baseMin + 0.05 })
+    if (highlightLitDots.length) gsap.set(highlightLitDots, { opacity: hiMin + 0.05 })
     luminaTl = gsap.timeline({ repeat: -1 })
-    luminaTl.to(litDots, {
-      opacity: maxOpacity,
-      duration: dur * 0.45 * pulseMix,
-      stagger: { each: 0.006 + entropy * 0.012, from: 'random' },
-      ease: 'sine.inOut',
-    })
-    luminaTl.to(litDots, {
-      opacity: minOpacity,
-      duration: dur * 0.55 * pulseMix,
-      stagger: { each: 0.005 + entropy * 0.01, from: 'random' },
-      ease: 'sine.inOut',
-    })
+    if (baseLitDots.length) {
+      luminaTl.to(
+        baseLitDots,
+        {
+          opacity: baseMax,
+          duration: dur * 0.45 * pulseMix,
+          stagger: { each: 0.006 + entropy * 0.012, from: 'random' },
+          ease: 'sine.inOut',
+        },
+        0,
+      )
+      luminaTl.to(
+        baseLitDots,
+        {
+          opacity: baseMin,
+          duration: dur * 0.55 * pulseMix,
+          stagger: { each: 0.005 + entropy * 0.01, from: 'random' },
+          ease: 'sine.inOut',
+        },
+        0,
+      )
+    }
+    if (highlightLitDots.length) {
+      luminaTl.to(
+        highlightLitDots,
+        {
+          opacity: hiMax,
+          duration: dur * 0.38 * pulseMix,
+          stagger: { each: 0.004 + entropy * 0.01, from: 'center' },
+          ease: 'sine.inOut',
+        },
+        0,
+      )
+      luminaTl.to(
+        highlightLitDots,
+        {
+          opacity: hiMin,
+          duration: dur * 0.5 * pulseMix,
+          stagger: { each: 0.004 + entropy * 0.008, from: 'center' },
+          ease: 'sine.inOut',
+        },
+        0,
+      )
+    }
     return
   }
 
@@ -425,7 +498,14 @@ watch(
 )
 
 watch(
-  () => [snapshot.value.demo_hud_text ?? '', snapshot.value.demo_hud_scroll_offset ?? 0],
+  () => [
+    snapshot.value.demo_hud_text ?? '',
+    snapshot.value.demo_hud_scroll_offset ?? 0,
+    snapshot.value.morse_playback_active,
+    snapshot.value.morse_playback_scroll_offset_override,
+    snapshot.value.morse_playback_highlight_token_index,
+    snapshot.value.morse_hud_sync_with_playback,
+  ],
   () => {
     nextTick(syncAllVisuals)
   },

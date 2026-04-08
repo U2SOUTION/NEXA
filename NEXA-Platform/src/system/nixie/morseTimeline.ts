@@ -23,11 +23,23 @@ export function clampMorseDitMs(ms: number): number {
   return clamp(Math.round(Number(ms) || 60), DIT_MS_MIN, DIT_MS_MAX)
 }
 
+/** `buildMorseSoundTimelineWithMeta` 결과 — 재생·HUD 동기 공통 */
+export type MorseSoundTimelineMeta = {
+  events: MorseSoundEvent[]
+  /**
+   * `events[i]` 가 HUD에서 맞출 **공백 분리 토큰** 인덱스 (`split(/\\s+/)` 기준).
+   * `^` 전용 이벤트·단어 간 갭(gap)은 표시 대상이 없어 `-1`.
+   */
+  eventDisplayTokenIndex: number[]
+  /** 각 이벤트의 타임라인 시작 시각(ms), `events[i].ms` 누적 전 위치 */
+  eventStartMs: number[]
+}
+
 /**
- * `normalizeDemoHudText` 결과(모스 모드) 문자열을 파싱해 타임라인 생성.
- * 공백으로 토큰 분리: `....` 한 토큰=한 글자(영문/숫자/한글 자모 1단위), `^`=단어 구분.
+ * `buildMorseSoundTimeline` 와 **동일 파싱**으로 이벤트 + 이벤트별 표시 토큰 인덱스 + 시작 시각(ms) 생성.
+ * 공백으로 토큰 분리: `....` 한 토큰=한 글자, `^`=단어 구분.
  */
-export function buildMorseSoundTimeline(hudText: string, ditMs: number): MorseSoundEvent[] {
+export function buildMorseSoundTimelineWithMeta(hudText: string, ditMs: number): MorseSoundTimelineMeta {
   const dit = Math.max(1, Math.round(ditMs))
   const dah = dit * 3
   const intraGap = dit
@@ -35,18 +47,29 @@ export function buildMorseSoundTimeline(hudText: string, ditMs: number): MorseSo
   const wordGap = dit * 7
 
   const raw = hudText.trim()
-  if (!raw.length) return []
+  if (!raw.length) {
+    return { events: [], eventDisplayTokenIndex: [], eventStartMs: [] }
+  }
 
   const tokens = raw.split(/\s+/).filter(Boolean)
-  const out: MorseSoundEvent[] = []
+  const events: MorseSoundEvent[] = []
+  const eventDisplayTokenIndex: number[] = []
 
-  function emitLetter(token: string): void {
+  function emitLetter(token: string, tokenIdx: number): void {
     const parts = token.split('').filter((c) => c === '.' || c === '-')
-    for (let i = 0; i < parts.length; i++) {
-      const p = parts[i]!
-      if (p === '.') out.push({ kind: 'dot', ms: dit })
-      else out.push({ kind: 'dash', ms: dah })
-      if (i < parts.length - 1) out.push({ kind: 'gap', ms: intraGap })
+    for (let j = 0; j < parts.length; j++) {
+      const p = parts[j]!
+      if (p === '.') {
+        events.push({ kind: 'dot', ms: dit })
+        eventDisplayTokenIndex.push(tokenIdx)
+      } else {
+        events.push({ kind: 'dash', ms: dah })
+        eventDisplayTokenIndex.push(tokenIdx)
+      }
+      if (j < parts.length - 1) {
+        events.push({ kind: 'gap', ms: intraGap })
+        eventDisplayTokenIndex.push(tokenIdx)
+      }
     }
   }
 
@@ -54,23 +77,41 @@ export function buildMorseSoundTimeline(hudText: string, ditMs: number): MorseSo
   while (i < tokens.length) {
     const t = tokens[i]!
     if (t === '^') {
-      out.push({ kind: 'gap', ms: wordGap })
+      events.push({ kind: 'gap', ms: wordGap })
+      eventDisplayTokenIndex.push(-1)
       i++
       continue
     }
-    emitLetter(t)
+    emitLetter(t, i)
     i++
     if (i >= tokens.length) break
     const next = tokens[i]!
     if (next === '^') {
-      out.push({ kind: 'gap', ms: wordGap })
+      events.push({ kind: 'gap', ms: wordGap })
+      eventDisplayTokenIndex.push(-1)
       i++
     } else {
-      out.push({ kind: 'gap', ms: interGap })
+      events.push({ kind: 'gap', ms: interGap })
+      eventDisplayTokenIndex.push(i)
     }
   }
 
-  return out
+  const eventStartMs: number[] = []
+  let acc = 0
+  for (let k = 0; k < events.length; k++) {
+    eventStartMs.push(acc)
+    acc += events[k]!.ms
+  }
+
+  return { events, eventDisplayTokenIndex, eventStartMs }
+}
+
+/**
+ * `normalizeDemoHudText` 결과(모스 모드) 문자열을 파싱해 타임라인 생성.
+ * 공백으로 토큰 분리: `....` 한 토큰=한 글자(영문/숫자/한글 자모 1단위), `^`=단어 구분.
+ */
+export function buildMorseSoundTimeline(hudText: string, ditMs: number): MorseSoundEvent[] {
+  return buildMorseSoundTimelineWithMeta(hudText, ditMs).events
 }
 
 /** 타임라인 총 길이(ms) — UI·디버그용 */
