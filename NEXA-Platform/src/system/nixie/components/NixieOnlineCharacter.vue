@@ -31,6 +31,7 @@
 
 <script setup>
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
+import { HUD_LUMINA_PER_EVENT, morsePerEventDotTier, opacityFromMinOpacity } from '@system/nixie/nixieHudLumina'
 import { getMorseTokenCharRange, mapHudTextToDots, mapHudTextToDotsCharRangeMask, normalizeDemoHudText, textFitsCompletelyInGrid, NIXIE_GRID_COLS as COLS, NIXIE_GRID_ROWS as ROWS } from '@system/nixie/nixieDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { storeToRefs } from 'pinia'
@@ -280,7 +281,7 @@ function syncLumina() {
     const pulse = snapshot.value.who_pulse
     const baseDur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
     const dur = clamp(baseDur * (1.45 - entropy * 0.75), 0.35, 2.8)
-    const minOpacity = 0.2 + entropy * 0.25
+    const minOpacity = 0.36 + entropy * 0.35
     const maxOpacity = 0.55 + entropy * 0.37
     /* 강조 토큰 vs 나머지: 대비를 크게 — 이전(Δ≈0.06)은 거의 구분 안 됨 */
     const baseMin = hasHighlight ? minOpacity * 0.42 : minOpacity
@@ -300,17 +301,17 @@ function syncLumina() {
         tokenFullMask = tr ? mapHudTextToDotsCharRangeMask(norm, scroll, tr.start, tr.end) : null
       }
 
-      /* 테이프 맥락은 필터만으로 어둡게 하지 말 것 — GSAP opacity가 최종 밝기를 지배함 */
-      const tapeContextOpacity = clamp(minOpacity * 0.36 + 0.06, 0.11, 0.28)
-      const tokenRestOpacity = clamp(minOpacity * 0.52 + 0.1, 0.22, 0.46)
+      const tapeContextOpacity = opacityFromMinOpacity(minOpacity, HUD_LUMINA_PER_EVENT.tape)
+      const tokenRestOpacity = opacityFromMinOpacity(minOpacity, HUD_LUMINA_PER_EVENT.token)
 
       if (tokenFullMask) {
-        const tapeLitDots = dots.filter((_, i) => {
-          if (!mask[i] || tokenFullMask[i]) return false
-          if (hasHighlight && highlightMask?.[i]) return false
-          return true
-        })
-        const tokenRestLitDots = hasHighlight && highlightMask ? dots.filter((_, i) => mask[i] && tokenFullMask[i] && !highlightMask[i]) : dots.filter((_, i) => mask[i] && tokenFullMask[i])
+        const tapeLitDots = []
+        const tokenRestLitDots = []
+        for (let i = 0; i < dots.length; i++) {
+          const tier = morsePerEventDotTier(i, mask, tokenFullMask, highlightMask, hasHighlight)
+          if (tier === 'tape') tapeLitDots.push(dots[i])
+          else if (tier === 'token') tokenRestLitDots.push(dots[i])
+        }
 
         for (const el of tapeLitDots) el.classList.add('nixie-online__dot--morse-dim-tape')
         if (tapeLitDots.length) gsap.set(tapeLitDots, { opacity: tapeContextOpacity })
@@ -339,7 +340,7 @@ function syncLumina() {
         return
       }
 
-      const tokenRestOpacityFallback = clamp(minOpacity * 0.34 + 0.04, 0.07, 0.26)
+      const tokenRestOpacityFallback = opacityFromMinOpacity(minOpacity, HUD_LUMINA_PER_EVENT.fallbackDim)
       for (const el of baseLitDots) el.classList.add('nixie-online__dot--morse-dim')
       if (baseLitDots.length) gsap.set(baseLitDots, { opacity: tokenRestOpacityFallback })
       const litAll = dots.filter((_, i) => mask[i])

@@ -523,26 +523,17 @@ async function playMorsePreview() {
           }
         },
         playbackHooks: {
-          onEventStart: (i, e, ms) => {
+          onEventStart: (i, e) => {
             if (gen !== morsePlayGeneration) return
             if (syncHud) {
               applyMorsePlaybackFrame(i, e)
             }
-            if (import.meta.env.DEV) {
-              console.log('[morse hook] event', i, e.kind, 'elapsedMs=', ms)
-            }
           },
           onComplete: () => {
             if (syncHud) nmap.endMorsePlaybackHudSync()
-            if (import.meta.env.DEV) {
-              console.log('[morse hook] onComplete (자연 종료)')
-            }
           },
           onStopped: () => {
             if (syncHud) nmap.endMorsePlaybackHudSync()
-            if (import.meta.env.DEV) {
-              console.log('[morse hook] onStopped (중단)')
-            }
           },
         },
       })
