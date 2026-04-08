@@ -87,16 +87,7 @@
       <div v-if="snapshot.demo_hud_morse_enabled" class="row items-center no-wrap q-gutter-x-xs q-ml-auto nixie-dev-controls__morse-trail">
         <span class="text-caption text-grey-6 nixie-dev-controls__morse-play-lbl">미리듣기</span>
         <q-spinner v-if="morsePlaying" color="positive" size="1.15em" class="nixie-dev-controls__morse-spinner" />
-        <q-btn
-          flat
-          round
-          dense
-          color="positive"
-          :icon="morsePlaying ? 'stop' : 'play_arrow'"
-          :disable="!morsePlaying && !canPlayMorsePreview"
-          :aria-label="morsePlaying ? '모스 재생 중지' : '모스 재생'"
-          @click="onMorsePlayClick"
-        />
+        <q-btn flat round dense color="positive" :icon="morsePlaying ? 'stop' : 'play_arrow'" :disable="!morsePlaying && !canPlayMorsePreview" :aria-label="morsePlaying ? '모스 재생 중지' : '모스 재생'" @click="onMorsePlayClick" />
       </div>
     </div>
 
@@ -117,35 +108,11 @@
         <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseVolumeSlider }} %</span>
       </div>
       <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
-        <span class="nixie-dev-controls__lbl">PAN</span>
+        <span class="nixie-dev-controls__lbl">CHANNEL</span>
         <q-btn-group outline class="nixie-dev-controls__morse-pan-group col">
-          <q-btn
-            dense
-            size="sm"
-            padding="xs sm"
-            label="L"
-            :unelevated="(snapshot.morse_stereo_pan ?? 0) === -1"
-            :color="(snapshot.morse_stereo_pan ?? 0) === -1 ? 'deep-purple-7' : 'grey-7'"
-            @click="commitMorseStereoPan(-1)"
-          />
-          <q-btn
-            dense
-            size="sm"
-            padding="xs sm"
-            label="ALL"
-            :unelevated="(snapshot.morse_stereo_pan ?? 0) === 0"
-            :color="(snapshot.morse_stereo_pan ?? 0) === 0 ? 'deep-purple-7' : 'grey-7'"
-            @click="commitMorseStereoPan(0)"
-          />
-          <q-btn
-            dense
-            size="sm"
-            padding="xs sm"
-            label="R"
-            :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1"
-            :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'"
-            @click="commitMorseStereoPan(1)"
-          />
+          <q-btn dense size="sm" padding="xs sm" label="ALPHA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === -1" :color="(snapshot.morse_stereo_pan ?? 0) === -1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(-1)" />
+          <q-btn dense size="sm" padding="xs sm" label="DUAL" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 0" :color="(snapshot.morse_stereo_pan ?? 0) === 0 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(0)" />
+          <q-btn dense size="sm" padding="xs sm" label="OMEGA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1" :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(1)" />
         </q-btn-group>
       </div>
       <div class="text-center q-mb-xs q-px-xs nixie-dev-controls__morse-timeline">
@@ -195,14 +162,7 @@
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText } from '@system/nixie/nixieDotMap'
 import { buildMorseSoundTimeline, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
-import {
-  MORSE_MASTER_GAIN_MAX,
-  playMorseTimeline,
-  setMorseCarrierFrequencyHz,
-  setMorseMasterGainLinear,
-  setMorseStereoPanValue,
-  stopMorsePlayback,
-} from '@system/nixie/morseWebAudio'
+import { MORSE_MASTER_GAIN_MAX, playMorseTimeline, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
@@ -319,7 +279,7 @@ function onMorseDitSliderChange(val) {
   nmap.setMorseDitMs(val)
   if (morsePlaying.value) {
     morsePlayGeneration += 1
-    stopMorsePlayback()
+    stopMorsePlayback({ immediate: true })
     void playMorsePreview()
   }
 }
@@ -352,7 +312,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  stopMorsePlayback()
+  stopMorsePlayback({ immediate: true })
 })
 
 watch(
