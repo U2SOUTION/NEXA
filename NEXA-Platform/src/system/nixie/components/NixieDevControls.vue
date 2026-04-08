@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <!-- 슬라이더 3단: 신뢰도 / 엔트로피 / 임계값 -->
+    <!-- 슬라이더: 신뢰도 / 엔트로피 / 임계값 / 닉시속도(슬라이더↑=빠름 → 내부는 interval_ms 역매핑) -->
     <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl">신뢰도</span>
       <q-slider :model-value="snapshot.confidence_score" :min="0" :max="100" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="nmap.setConfidenceScore" />
@@ -49,6 +49,19 @@
       <span class="nixie-dev-controls__lbl">임계값</span>
       <q-slider :model-value="snapshot.user_defined_threshold" :min="70" :max="100" dense color="amber" class="nixie-dev-controls__slider col" @update:model-value="nmap.setUserDefinedThreshold" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.user_defined_threshold }} %</span>
+    </div>
+    <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+      <span class="nixie-dev-controls__lbl" title="값이 클수록 빠름 · 실제 마퀴는 틱 간격(ms)이 짧아짐">닉시속도</span>
+      <q-slider
+        :model-value="hudMarqueeSpeedUi"
+        :min="HUD_MARQUEE_MS_MIN"
+        :max="HUD_MARQUEE_MS_MAX"
+        dense
+        color="primary"
+        class="nixie-dev-controls__slider col"
+        @update:model-value="commitHudMarqueeSpeedUi"
+      />
+      <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ hudMarqueeSpeedUiRounded }}</span>
     </div>
 
     <!-- 경고·상태 액션 묶음 -->
@@ -152,26 +165,13 @@
           <q-slider v-model="morseVolumeSlider" :min="0" :max="100" dense color="teal" class="nixie-dev-controls__slider col" @change="onMorseVolumeSliderChange" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseVolumeSlider }} %</span>
         </div>
-        <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
-          <span class="nixie-dev-controls__lbl">HUD 동기</span>
-          <q-toggle
-            dense
-            left-label
-            :model-value="snapshot.morse_hud_sync_with_playback ?? true"
-            label="재생·HUD"
-            @update:model-value="nmap.setMorseHudSyncWithPlayback"
-          />
-        </div>
-        <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
-          <span class="nixie-dev-controls__lbl">강조</span>
-          <q-toggle
-            dense
-            left-label
-            :disable="!(snapshot.morse_hud_sync_with_playback ?? true)"
-            :model-value="snapshot.morse_hud_per_event_highlight === true"
-            label="디트·다시만 밝게"
-            @update:model-value="nmap.setMorseHudPerEventHighlight"
-          />
+        <div class="row items-center q-mb-xs flex-wrap nixie-dev-controls__morse-sync-row">
+          <div class="row items-center no-wrap q-gutter-x-xs">
+            <q-toggle dense left-label :model-value="snapshot.morse_hud_sync_with_playback ?? true" label="재생·HUD" @update:model-value="nmap.setMorseHudSyncWithPlayback" />
+          </div>
+          <div class="row items-center no-wrap q-gutter-x-xs">
+            <q-toggle dense left-label :disable="!(snapshot.morse_hud_sync_with_playback ?? true)" :model-value="snapshot.morse_hud_per_event_highlight === true" label="디트·다시 강조" @update:model-value="nmap.setMorseHudPerEventHighlight" />
+          </div>
         </div>
         <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
           <span class="nixie-dev-controls__lbl">CHANNEL</span>
@@ -233,14 +233,10 @@
 </template>
 
 <script setup>
+import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText, scrollOffsetToCenterToken } from '@system/nixie/nixieDotMap'
-import {
-  buildMorseSoundTimeline,
-  buildMorseSoundTimelineWithMeta,
-  clampMorseDitMs,
-  morseTimelineTotalMs,
-} from '@system/nixie/morseTimeline'
+import { buildMorseSoundTimeline, buildMorseSoundTimelineWithMeta, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
 import { MORSE_MASTER_GAIN_MAX, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
 import AudioScopeCanvas from '@engines/audio/components/AudioScopeCanvas.vue'
 import { storeToRefs } from 'pinia'
@@ -308,6 +304,21 @@ const morseAtomicClockDitPresetMs = {
 const MORSE_TONE_MIN_HZ = 1
 const MORSE_TONE_MAX_HZ = 12000
 const MORSE_TONE_LOG_STEPS = 1000
+
+/** 닉시 마퀴: 슬라이더는 클수록 빠름(직관) · 스토어 `hud_marquee_interval_ms`는 틱 간격(작을수록 빠름) */
+const HUD_MARQUEE_MS_MIN = 50
+const HUD_MARQUEE_MS_MAX = 400
+const HUD_MARQUEE_MS_SUM = HUD_MARQUEE_MS_MIN + HUD_MARQUEE_MS_MAX
+
+const hudMarqueeSpeedUi = computed(() => {
+  const ms = snapshot.value.hud_marquee_interval_ms ?? NIXIE_HUD_MARQUEE.intervalMs
+  return HUD_MARQUEE_MS_SUM - ms
+})
+const hudMarqueeSpeedUiRounded = computed(() => `${Math.round(hudMarqueeSpeedUi.value)}`)
+
+function commitHudMarqueeSpeedUi(ui) {
+  nmap.setHudMarqueeIntervalMs(HUD_MARQUEE_MS_SUM - Math.round(Number(ui)))
+}
 
 /** 모스 슬라이더: 드래그는 로컬만, 손 뗄 때(@change) 스토어·재생 반영 */
 const morseDitSlider = ref(60)
@@ -444,8 +455,7 @@ async function playMorsePreview() {
       let lastHudScrollDedupe = NaN
       let lastHudTokenDedupe = NaN
       let lastHudScroll = snapshot.value.demo_hud_scroll_offset ?? 0
-      const syncHud =
-        (snapshot.value.morse_hud_sync_with_playback ?? true) && Boolean(snapshot.value.demo_hud_morse_enabled)
+      const syncHud = (snapshot.value.morse_hud_sync_with_playback ?? true) && Boolean(snapshot.value.demo_hud_morse_enabled)
       /** 재생 시작 시점 기준 — 훅마다 snapshot 재읽기와 달리 고정(기본 true=디트·다시 강조) */
       const preferPerEventHighlight = snapshot.value.morse_hud_per_event_highlight === true
 
@@ -494,10 +504,7 @@ async function playMorsePreview() {
           })
           lastHudScroll = snapshot.value.demo_hud_scroll_offset ?? 0
           if (preferPerEventHighlight) {
-            const fi = events.findIndex(
-              (ev, idx) =>
-                (ev.kind === 'dot' || ev.kind === 'dash') && (eventDisplayTokenIndex[idx] ?? -1) >= 0,
-            )
+            const fi = events.findIndex((ev, idx) => (ev.kind === 'dot' || ev.kind === 'dash') && (eventDisplayTokenIndex[idx] ?? -1) >= 0)
             if (fi >= 0) {
               const tok = eventDisplayTokenIndex[fi] ?? -1
               const r = eventHudCharRange[fi]
@@ -738,6 +745,12 @@ function onHudBlur() {
 
 .nixie-dev-controls__slider-row {
   gap: 5px;
+}
+
+/** HUD 동기 + 강조 한 행 — 두 묶음 사이 간격 */
+.nixie-dev-controls__morse-sync-row {
+  column-gap: 18px;
+  row-gap: 6px;
 }
 
 .nixie-dev-controls__morse-trail {

@@ -89,6 +89,9 @@ let confusedTween = null
 
 /** @type {ReturnType<typeof setInterval> | null} */
 let hudMarqueeTimer = null
+/** 슬라이더 드래그 시 `setInterval`을 매 틱마다 갈아끼우지 않도록 디바운스 */
+let hudMarqueeIntervalDebounce = null
+const HUD_MARQUEE_INTERVAL_RESTART_MS = 100
 
 function syncHudMarqueeTimer() {
   if (hudMarqueeTimer != null) {
@@ -101,7 +104,8 @@ function syncHudMarqueeTimer() {
     return
   }
   nmapStore.tickDemoHudMarquee()
-  const ms = Math.max(16, Math.floor(NIXIE_HUD_MARQUEE.intervalMs))
+  const raw = snapshot.value.hud_marquee_interval_ms ?? NIXIE_HUD_MARQUEE.intervalMs
+  const ms = Math.max(16, Math.floor(Number(raw) || NIXIE_HUD_MARQUEE.intervalMs))
   hudMarqueeTimer = window.setInterval(() => {
     if (document.hidden) return
     nmapStore.tickDemoHudMarquee()
@@ -607,6 +611,17 @@ watch(
   },
 )
 
+watch(
+  () => snapshot.value.hud_marquee_interval_ms ?? NIXIE_HUD_MARQUEE.intervalMs,
+  () => {
+    if (hudMarqueeIntervalDebounce != null) clearTimeout(hudMarqueeIntervalDebounce)
+    hudMarqueeIntervalDebounce = window.setTimeout(() => {
+      hudMarqueeIntervalDebounce = null
+      nextTick(syncHudMarqueeTimer)
+    }, HUD_MARQUEE_INTERVAL_RESTART_MS)
+  },
+)
+
 watch(nebulaPulse, () => {
   nextTick(runNebulaPulse)
 })
@@ -712,6 +727,10 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (hudMarqueeIntervalDebounce != null) {
+    clearTimeout(hudMarqueeIntervalDebounce)
+    hudMarqueeIntervalDebounce = null
+  }
   if (hudMarqueeTimer != null) {
     clearInterval(hudMarqueeTimer)
     hudMarqueeTimer = null

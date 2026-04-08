@@ -60,6 +60,8 @@ export type NmapSnapshot = {
   morse_atomic_clock: MorseAtomicClockKey
   /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
+  /** HUD 마퀴 틱 간격(ms) 50~400 — `NixieOnlineCharacter` `setInterval`에 사용 */
+  hud_marquee_interval_ms: number
   /** 모스 미리듣기 시 닉시 HUD를 타임라인과 동기(방식 ②) — false면 재생 중에도 마퀴·기존 스크롄만 사용 */
   morse_hud_sync_with_playback: boolean
   /**
@@ -110,6 +112,7 @@ function defaultSnapshot(): NmapSnapshot {
     morse_stereo_pan: 0,
     morse_atomic_clock: 'H_1420MHz',
     demo_hud_scroll_offset: 0,
+    hud_marquee_interval_ms: NIXIE_HUD_MARQUEE.intervalMs,
     morse_hud_sync_with_playback: true,
     /** true일 때만 디트·다시마다 한 글자 강조(옵션). false면 토큰 전체 강조 */
     morse_hud_per_event_highlight: false,
@@ -172,6 +175,10 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   function setUserDefinedThreshold(user_defined_threshold: number) {
     applyPatch({ user_defined_threshold: Math.max(0, Math.min(100, user_defined_threshold)) })
+  }
+
+  function setHudMarqueeIntervalMs(ms: number) {
+    applyPatch({ hud_marquee_interval_ms: Math.max(50, Math.min(400, Math.round(Number(ms) || NIXIE_HUD_MARQUEE.intervalMs))) })
   }
 
   function setMorseDitMs(ms: number) {
@@ -374,6 +381,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     setIsVirtual,
     setSourceShellId,
     setUserDefinedThreshold,
+    setHudMarqueeIntervalMs,
     resetToDefaults,
     setDemoHudText,
     setDemoHudMorseEnabled,
