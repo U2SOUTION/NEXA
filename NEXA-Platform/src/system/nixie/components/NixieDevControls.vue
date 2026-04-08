@@ -16,33 +16,36 @@
       <div class="text-caption text-weight-bold q-mb-xs">NIXIE · N-MAP 시뮬</div>
       <q-separator class="q-mb-xs" />
     </template>
-    <p class="text-caption text-grey-7 q-mb-sm q-px-sm q-pt-xs text-center">화면의 <strong>닉시</strong>는 전역 오버레이. 컨트롤은 Pinia 스토어만 갱신하며, 사용자 체험용.</p>
+    <!-- <p class="text-caption text-grey-7 q-mb-sm q-px-sm q-pt-xs text-center">화면의 <strong>닉시</strong>는 전역 오버레이. 컨트롤은 Pinia 스토어만 갱신하며, 사용자 체험용.</p> -->
 
-    <!-- 흐름 + 펄스 -->
-    <div class="row items-center q-gutter-x-xs q-mb-xs no-wrap">
-      <span class="nixie-dev-controls__lbl">흐름</span>
-      <q-btn dense size="sm" padding="xs sm" label="FLOW" :outline="snapshot.how_state !== 'FLOW'" :unelevated="snapshot.how_state === 'FLOW'" :color="snapshot.how_state === 'FLOW' ? 'primary' : 'grey-7'" @click="nmap.setHowState('FLOW')" />
-      <q-btn dense size="sm" padding="xs sm" label="STUCK" :outline="snapshot.how_state !== 'STUCK'" :unelevated="snapshot.how_state === 'STUCK'" :color="snapshot.how_state === 'STUCK' ? 'amber-9' : 'grey-7'" @click="nmap.setHowState('STUCK')" />
-      <q-btn dense size="sm" padding="xs sm" label="VOID" :outline="snapshot.how_state !== 'VOID'" :unelevated="snapshot.how_state === 'VOID'" :color="snapshot.how_state === 'VOID' ? 'blue-grey-6' : 'grey-7'" @click="nmap.setHowState('VOID')" />
-      <q-separator vertical inset class="q-mx-xs" />
-      <span class="nixie-dev-controls__lbl">펄스</span>
-      <q-btn dense size="sm" padding="xs sm" label="WILL" :flat="snapshot.who_pulse !== 'WILL'" :unelevated="snapshot.who_pulse === 'WILL'" :color="snapshot.who_pulse === 'WILL' ? 'deep-orange-8' : 'grey-7'" @click="nmap.setWhoPulse('WILL')" />
-      <q-btn dense size="sm" padding="xs sm" label="ECHO" :flat="snapshot.who_pulse !== 'ECHO'" :unelevated="snapshot.who_pulse === 'ECHO'" :color="snapshot.who_pulse === 'ECHO' ? 'cyan-8' : 'grey-7'" @click="nmap.setWhoPulse('ECHO')" />
-      <q-btn dense size="sm" padding="xs sm" label="ASK" :flat="snapshot.who_pulse !== 'ASK'" :unelevated="snapshot.who_pulse === 'ASK'" :color="snapshot.who_pulse === 'ASK' ? 'purple-8' : 'grey-7'" @click="nmap.setWhoPulse('ASK')" />
+    <!-- 흐름 + 펄스: 공간 부족 시 블록 단위로 다음 줄로 래핑 -->
+    <div class="row items-center q-gutter-x-xs q-gutter-y-xs q-mb-xs nixie-dev-controls__state-wrap">
+      <div class="row items-center q-gutter-x-xs no-wrap nixie-dev-controls__state-group">
+        <span class="nixie-dev-controls__lbl">흐름</span>
+        <q-btn dense size="sm" padding="xs sm" label="FLOW" :outline="snapshot.how_state !== 'FLOW'" :unelevated="snapshot.how_state === 'FLOW'" :color="snapshot.how_state === 'FLOW' ? 'primary' : 'grey-7'" @click="nmap.setHowState('FLOW')" />
+        <q-btn dense size="sm" padding="xs sm" label="STUCK" :outline="snapshot.how_state !== 'STUCK'" :unelevated="snapshot.how_state === 'STUCK'" :color="snapshot.how_state === 'STUCK' ? 'amber-9' : 'grey-7'" @click="nmap.setHowState('STUCK')" />
+        <q-btn dense size="sm" padding="xs sm" label="VOID" :outline="snapshot.how_state !== 'VOID'" :unelevated="snapshot.how_state === 'VOID'" :color="snapshot.how_state === 'VOID' ? 'blue-grey-6' : 'grey-7'" @click="nmap.setHowState('VOID')" />
+      </div>
+      <div class="row items-center q-gutter-x-xs no-wrap nixie-dev-controls__state-group">
+        <span class="nixie-dev-controls__lbl">펄스</span>
+        <q-btn dense size="sm" padding="xs sm" label="WILL" :flat="snapshot.who_pulse !== 'WILL'" :unelevated="snapshot.who_pulse === 'WILL'" :color="snapshot.who_pulse === 'WILL' ? 'deep-orange-8' : 'grey-7'" @click="nmap.setWhoPulse('WILL')" />
+        <q-btn dense size="sm" padding="xs sm" label="ECHO" :flat="snapshot.who_pulse !== 'ECHO'" :unelevated="snapshot.who_pulse === 'ECHO'" :color="snapshot.who_pulse === 'ECHO' ? 'cyan-8' : 'grey-7'" @click="nmap.setWhoPulse('ECHO')" />
+        <q-btn dense size="sm" padding="xs sm" label="ASK" :flat="snapshot.who_pulse !== 'ASK'" :unelevated="snapshot.who_pulse === 'ASK'" :color="snapshot.who_pulse === 'ASK' ? 'purple-8' : 'grey-7'" @click="nmap.setWhoPulse('ASK')" />
+      </div>
     </div>
 
     <!-- 슬라이더 3단: 신뢰도 / 엔트로피 / 임계값 -->
-    <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
+    <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl">신뢰도</span>
       <q-slider :model-value="snapshot.confidence_score" :min="0" :max="100" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="nmap.setConfidenceScore" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.confidence_score }} %</span>
     </div>
-    <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
+    <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl">엔트로피</span>
       <q-slider :model-value="snapshot.entropy_level" :min="0" :max="100" dense color="deep-orange" class="nixie-dev-controls__slider col" @update:model-value="nmap.setEntropyLevel" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.entropy_level }} %</span>
     </div>
-    <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
+    <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl">임계값</span>
       <q-slider :model-value="snapshot.user_defined_threshold" :min="70" :max="100" dense color="amber" class="nixie-dev-controls__slider col" @update:model-value="nmap.setUserDefinedThreshold" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.user_defined_threshold }} %</span>
@@ -82,11 +85,12 @@
 
     <div class="row items-center q-gutter-x-xs q-mb-xs nixie-dev-controls__morse-head">
       <span class="nixie-dev-controls__lbl">MORSE</span>
-      <q-btn dense size="sm" padding="xs sm" label="변환 >" :outline="!snapshot.demo_hud_morse_enabled" :unelevated="snapshot.demo_hud_morse_enabled" :color="snapshot.demo_hud_morse_enabled ? 'deep-purple-7' : 'grey-7'" @click="toggleMorseMode" />
-      <div v-if="snapshot.demo_hud_morse_enabled" class="row items-center no-wrap q-gutter-x-xs q-ml-auto nixie-dev-controls__morse-trail">
-        <span class="text-caption text-grey-6 nixie-dev-controls__morse-readout">{{ morseParisWpmApproxUi }} WPM · {{ morseDitMsUi }}ms</span>
+      <div class="nixie-dev-controls__morse-scope col">
+        <AudioScopeCanvas :active="morsePlaying" :pull-bytes="pullMorseScopeBytes" />
+      </div>
+      <div class="row items-center no-wrap q-gutter-x-xs q-ml-auto nixie-dev-controls__morse-trail">
         <q-spinner v-if="morsePlaying" color="positive" size="1.15em" class="nixie-dev-controls__morse-spinner" />
-        <q-btn flat round dense color="positive" :icon="morsePlaying ? 'stop' : 'play_arrow'" :disable="!morsePlaying && !canPlayMorsePreview" :aria-label="morsePlaying ? '모스 재생 중지' : '모스 재생'" @click="onMorsePlayClick" />
+        <q-btn flat round dense color="positive" :icon="morsePlaying ? 'stop' : 'play_arrow'" :aria-label="morsePlaying ? '모스 재생 중지' : '모스 재생/상세 열기'" @click="onMorsePlayClick" />
         <q-btn
           flat
           round
@@ -101,58 +105,6 @@
       </div>
     </div>
 
-    <template v-if="snapshot.demo_hud_morse_enabled">
-      <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
-        <span class="nixie-dev-controls__lbl">DIT</span>
-        <q-slider v-model="morseDitSlider" :min="20" :max="500" dense color="purple" class="nixie-dev-controls__slider col" @change="onMorseDitSliderChange" />
-        <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseDitMsUi }} ms</span>
-      </div>
-      <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
-        <span class="nixie-dev-controls__lbl">TONE</span>
-        <q-slider v-model="morseToneSlider" :min="0" :max="MORSE_TONE_LOG_STEPS" dense color="indigo" class="nixie-dev-controls__slider col" @change="onMorseToneSliderChange" />
-        <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseToneHzUi }} Hz</span>
-      </div>
-      <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
-        <span class="nixie-dev-controls__lbl">VOLUME</span>
-        <q-slider v-model="morseVolumeSlider" :min="0" :max="100" dense color="teal" class="nixie-dev-controls__slider col" @change="onMorseVolumeSliderChange" />
-        <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseVolumeSlider }} %</span>
-      </div>
-      <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
-        <span class="nixie-dev-controls__lbl">CHANNEL</span>
-        <q-btn-group outline class="nixie-dev-controls__morse-pan-group col">
-          <q-btn dense size="sm" padding="xs sm" label="ALPHA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === -1" :color="(snapshot.morse_stereo_pan ?? 0) === -1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(-1)" />
-          <q-btn dense size="sm" padding="xs sm" label="DUAL" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 0" :color="(snapshot.morse_stereo_pan ?? 0) === 0 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(0)" />
-          <q-btn dense size="sm" padding="xs sm" label="OMEGA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1" :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(1)" />
-        </q-btn-group>
-      </div>
-      <div class="row items-start no-wrap q-gutter-x-xs q-mb-xs">
-        <span class="nixie-dev-controls__lbl q-pt-xs">ATOM</span>
-        <div class="col row q-gutter-xs nixie-dev-controls__atom-wrap">
-          <q-btn
-            v-for="atom in morseAtomicClockOptions"
-            :key="atom.key"
-            dense
-            size="sm"
-            padding="xs sm"
-            :label="atom.label"
-            :title="atom.tooltip"
-            :outline="snapshot.morse_atomic_clock !== atom.key"
-            :unelevated="snapshot.morse_atomic_clock === atom.key"
-            :color="snapshot.morse_atomic_clock === atom.key ? 'indigo-7' : 'grey-7'"
-            class="nixie-dev-controls__atom-btn"
-            @click="commitMorseAtomicClock(atom.key)"
-          />
-        </div>
-      </div>
-      <div class="text-center q-mb-xs q-px-xs nixie-dev-controls__morse-timeline">
-        <div class="text-caption text-grey-6">재생 타임라인: dit {{ morseDitMsUi }}ms · 총 {{ morsePlayDurationMsUi }}ms (DOT/DASH/GAP)</div>
-        <div class="nixie-dev-controls__morse-timeline-hint text-grey-7">
-          PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsUi }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤 {{ morseToneHzUi }}Hz · 볼륨 {{ morseVolumeSlider }}% · 원자 {{ morseAtomicClockLabel }}
-        </div>
-      </div>
-    </template>
-
-    <!-- HUD: 분해·모스 미리보기는 한 줄(그리드 preview 행) — 라벨|입력|지우기는 그 아래 행 -->
     <div class="nixie-dev-controls__hud" :class="{ 'nixie-dev-controls__hud--preview': showHudPreviewRow }">
       <div v-if="showHudPreviewRow" class="nixie-dev-controls__hud-preview q-px-xs text-center">
         <template v-if="showHudDecomposedLine">
@@ -166,6 +118,7 @@
       <span class="nixie-dev-controls__lbl nixie-dev-controls__hud-label">HUD</span>
       <div class="col min-width-0 nixie-dev-controls__hud-field">
         <q-input
+          ref="hudInputEl"
           v-model="hudDraft"
           dense
           outlined
@@ -180,10 +133,81 @@
           @keydown.enter.prevent="commitHudText"
         />
       </div>
-      <q-btn class="nixie-dev-controls__hud-clear" dense flat size="sm" padding="8px 12px" label="지우기" @click="clearHudText" />
     </div>
 
-    <q-btn dense flat color="primary" size="sm" class="full-width q-mt-xs" label="스냅샷 기본값" @click="nmap.resetToDefaults()" />
+    <transition name="morse-detail-expand">
+      <div v-if="snapshot.demo_hud_morse_enabled" class="nixie-dev-controls__morse-detail">
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl">DIT</span>
+          <q-slider v-model="morseDitSlider" :min="20" :max="500" dense color="purple" class="nixie-dev-controls__slider col" @change="onMorseDitSliderChange" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseDitMsUi }} ms</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl">TONE</span>
+          <q-slider v-model="morseToneSlider" :min="0" :max="MORSE_TONE_LOG_STEPS" dense color="indigo" class="nixie-dev-controls__slider col" @change="onMorseToneSliderChange" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseToneHzUi }} Hz</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl">VOLUME</span>
+          <q-slider v-model="morseVolumeSlider" :min="0" :max="100" dense color="teal" class="nixie-dev-controls__slider col" @change="onMorseVolumeSliderChange" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ morseVolumeSlider }} %</span>
+        </div>
+        <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
+          <span class="nixie-dev-controls__lbl">CHANNEL</span>
+          <q-btn-group outline class="nixie-dev-controls__morse-pan-group col">
+            <q-btn dense size="sm" padding="xs sm" label="ALPHA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === -1" :color="(snapshot.morse_stereo_pan ?? 0) === -1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(-1)" />
+            <q-btn dense size="sm" padding="xs sm" label="DUAL" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 0" :color="(snapshot.morse_stereo_pan ?? 0) === 0 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(0)" />
+            <q-btn dense size="sm" padding="xs sm" label="OMEGA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1" :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(1)" />
+          </q-btn-group>
+        </div>
+        <div ref="morseAtomicClockHostEl" class="row items-start no-wrap q-gutter-x-xs q-mb-xs">
+          <span class="nixie-dev-controls__lbl q-pt-xs">A-Clock</span>
+          <div class="col min-width-0">
+            <q-select
+              v-if="isAtomicClockCompact"
+              dense
+              outlined
+              hide-bottom-space
+              emit-value
+              map-options
+              :model-value="snapshot.morse_atomic_clock"
+              :options="morseAtomicClockSelectOptions"
+              option-value="value"
+              option-label="label"
+              class="nixie-dev-controls__atom-select"
+              @update:model-value="commitMorseAtomicClock"
+            />
+            <div v-else class="row q-gutter-xs nixie-dev-controls__atom-wrap">
+              <q-btn
+                v-for="atom in morseAtomicClockOptions"
+                :key="atom.key"
+                dense
+                size="sm"
+                padding="xs sm"
+                :label="atom.label"
+                :title="atom.tooltip"
+                :outline="snapshot.morse_atomic_clock !== atom.key"
+                :unelevated="snapshot.morse_atomic_clock === atom.key"
+                :color="snapshot.morse_atomic_clock === atom.key ? 'indigo-7' : 'grey-7'"
+                class="nixie-dev-controls__atom-btn"
+                @click="commitMorseAtomicClock(atom.key)"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="text-center q-mb-xs q-px-xs nixie-dev-controls__morse-timeline">
+          <div class="nixie-dev-controls__morse-timeline-hint text-grey-7">
+            재생 타임라인: 총 {{ morsePlayDurationMsUi }}ms · PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dit {{ morseDitMsUi }}ms · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsUi }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤
+            {{ morseToneHzUi }}Hz · 볼륨 {{ morseVolumeSlider }}% · 원자 {{ morseAtomicClockLabel }}
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <div class="row items-center justify-center q-gutter-x-sm q-mt-xs nixie-dev-controls__action-row">
+      <q-btn dense outline color="primary" size="sm" class="nixie-dev-controls__action-btn" label="스냅샷 기본값" @click="nmap.resetToDefaults()" />
+      <q-btn dense outline color="grey-6" size="sm" class="nixie-dev-controls__action-btn" :label="snapshot.demo_hud_morse_enabled ? '상세 접기' : '상세 펼치기'" @click="nmap.setDemoHudMorseEnabled(!snapshot.demo_hud_morse_enabled)" />
+    </div>
   </div>
 </template>
 
@@ -191,9 +215,11 @@
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText } from '@system/nixie/nixieDotMap'
 import { buildMorseSoundTimeline, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
-import { MORSE_MASTER_GAIN_MAX, playMorseTimeline, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
+import { MORSE_MASTER_GAIN_MAX, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
+import AudioScopeCanvas from '@engines/audio/components/AudioScopeCanvas.vue'
 import { storeToRefs } from 'pinia'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 defineProps({
   /** Nexion 우측 패널 아코디언 안에 넣을 때 true (제목·외곽선 생략) */
@@ -204,13 +230,18 @@ defineProps({
 })
 
 const nmap = useNmapSnapshotStore()
+const $q = useQuasar()
 const { snapshot } = storeToRefs(nmap)
 const hasHangulChar = /[\u3131-\u318e\uac00-\ud7a3]/
 const hudDraft = ref('')
+const hudInputEl = ref(null)
 const hudInputFocused = ref(false)
 const morsePlaying = ref(false)
 const morseLoopEnabled = ref(false)
 const morseLoopRequested = ref(false)
+const morseAtomicClockHostEl = ref(null)
+const isAtomicClockCompact = ref(false)
+let morseAtomicClockResizeObserver = null
 /** dit 변경 등으로 재생이 겹칠 때 이전 `finally`가 UI 상태를 덮어쓰지 않게 함 */
 let morsePlayGeneration = 0
 const morseAtomicClockOptions = [
@@ -326,6 +357,7 @@ const morseAtomicClockLabel = computed(() => {
   const found = morseAtomicClockOptions.find((x) => x.key === key)
   return found ? found.label : 'H 1420MHz'
 })
+const morseAtomicClockSelectOptions = computed(() => morseAtomicClockOptions.map((x) => ({ label: x.label, value: x.key })))
 
 const morsePlayDurationMsUi = computed(() => {
   if (!snapshot.value.demo_hud_morse_enabled) return 0
@@ -336,7 +368,6 @@ const morsePlayDurationMsUi = computed(() => {
 
 /** HUD 입력 기준 모스 미리듣기(모스 출력과 동일 파이프라인) */
 const canPlayMorsePreview = computed(() => {
-  if (!snapshot.value.demo_hud_morse_enabled) return false
   if ((morseVolumeSlider.value ?? 0) <= 0) return false
   const s = normalizeDemoHudText(encodeTextToMorseHudText(hudDraft.value ?? ''))
   if (!s.length) return false
@@ -349,7 +380,26 @@ function onMorsePlayClick() {
     stopMorsePlayback()
     return
   }
-  void playMorsePreview()
+  if (!snapshot.value.demo_hud_morse_enabled) nmap.setDemoHudMorseEnabled(true)
+  if (canPlayMorsePreview.value) {
+    void playMorsePreview()
+    return
+  }
+  void focusHudInputWithGuide()
+}
+
+async function focusHudInputWithGuide() {
+  await nextTick()
+  hudInputEl.value?.focus?.()
+  $q.notify({
+    message: '재생할 값이 없습니다. HUD 입력창에 텍스트를 입력해 주세요.',
+    color: 'deep-purple-7',
+    textColor: 'white',
+    position: 'bottom',
+    timeout: 1700,
+    group: 'nixie-hud-input-guide',
+    progress: true,
+  })
 }
 
 async function playMorsePreview() {
@@ -404,6 +454,10 @@ function clampMorseStereoPan(v) {
   return 0
 }
 
+function pullMorseScopeBytes(bytes) {
+  return readMorseScopeTimeDomain(bytes)
+}
+
 /** @param pan {-1|0|1} L / ALL / R */
 function commitMorseStereoPan(pan) {
   nmap.setMorseStereoPan(pan)
@@ -411,6 +465,7 @@ function commitMorseStereoPan(pan) {
 }
 
 function commitMorseAtomicClock(key) {
+  if (!key) return
   const wasPlaying = morsePlaying.value
   nmap.setMorseAtomicClock(key)
   const nextDit = morseAtomicClockDitPresetMs[key] ?? 60
@@ -423,18 +478,54 @@ function commitMorseAtomicClock(key) {
   }
 }
 
+function updateAtomicClockCompactMode() {
+  const host = morseAtomicClockHostEl.value
+  const w = host?.clientWidth ?? 0
+  /** 버튼 목록이 과밀해지기 시작하는 폭에서 select로 자동 전환 */
+  isAtomicClockCompact.value = w > 0 && w <= 360
+}
+
+function bindAtomicClockResizeObserver() {
+  if (!morseAtomicClockResizeObserver) return
+  morseAtomicClockResizeObserver.disconnect()
+  const host = morseAtomicClockHostEl.value
+  if (host) morseAtomicClockResizeObserver.observe(host)
+}
+
 onMounted(() => {
   hudDraft.value = snapshot.value.demo_hud_text_raw ?? ''
+  morseAtomicClockResizeObserver = new ResizeObserver(() => updateAtomicClockCompactMode())
+  void nextTick(() => {
+    bindAtomicClockResizeObserver()
+    updateAtomicClockCompactMode()
+  })
 })
 
 onBeforeUnmount(() => {
   stopMorsePlayback({ immediate: true })
+  if (morseAtomicClockResizeObserver) {
+    morseAtomicClockResizeObserver.disconnect()
+    morseAtomicClockResizeObserver = null
+  }
 })
 
 watch(
   () => snapshot.value.demo_hud_text_raw,
   (v) => {
     if (!hudInputFocused.value) hudDraft.value = v ?? ''
+  },
+)
+
+watch(
+  () => snapshot.value.demo_hud_morse_enabled,
+  async (enabled) => {
+    if (!enabled) {
+      isAtomicClockCompact.value = false
+      return
+    }
+    await nextTick()
+    bindAtomicClockResizeObserver()
+    updateAtomicClockCompactMode()
   },
 )
 
@@ -446,18 +537,14 @@ function onHudBlur() {
   hudInputFocused.value = false
   commitHudText()
 }
-
-function clearHudText() {
-  nmap.setDemoHudText('')
-  hudDraft.value = ''
-}
-
-function toggleMorseMode() {
-  nmap.setDemoHudMorseEnabled(!snapshot.value.demo_hud_morse_enabled)
-}
 </script>
 
 <style scoped lang="scss">
+.q-my-xs {
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
 .nixie-dev-controls {
   padding: 6px 8px;
   /* 높이 제한·내부 overflow 제거 — 우측 패널 `panel-scroll-area`만 세로 스크롤 */
@@ -487,6 +574,52 @@ function toggleMorseMode() {
   row-gap: 4px;
 }
 
+.nixie-dev-controls__morse-detail {
+  overflow: hidden;
+}
+
+.morse-detail-expand-enter-active,
+.morse-detail-expand-leave-active {
+  transition:
+    max-height 0.24s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.morse-detail-expand-enter-from,
+.morse-detail-expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.morse-detail-expand-enter-to,
+.morse-detail-expand-leave-from {
+  max-height: 1200px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nixie-dev-controls__state-wrap {
+  flex-wrap: wrap;
+}
+
+.nixie-dev-controls__state-group {
+  flex: 0 0 auto;
+}
+
+.nixie-dev-controls__action-row {
+  flex-wrap: wrap;
+}
+
+.nixie-dev-controls__action-btn {
+  min-width: 90px;
+}
+
+.nixie-dev-controls__slider-row {
+  gap: 5px;
+}
+
 .nixie-dev-controls__morse-trail {
   flex-shrink: 0;
 }
@@ -500,9 +633,12 @@ function toggleMorseMode() {
   flex-shrink: 0;
 }
 
-.nixie-dev-controls__morse-readout {
-  flex-shrink: 0;
-  white-space: nowrap;
+/** 모스 음원 스코프 캔버스 */
+.nixie-dev-controls__morse-scope {
+  min-width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .nixie-dev-controls__morse-loop-btn :deep(.q-icon) {
@@ -537,18 +673,18 @@ function toggleMorseMode() {
 /** HUD: 3열 그리드 — `grid-template-areas` 만으로 분해 줄 유무에 따라 행 구성 */
 .nixie-dev-controls__hud {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   column-gap: 8px;
   row-gap: 4px;
   align-items: center;
   margin-bottom: 4px;
-  grid-template-areas: 'label input clear';
+  grid-template-areas: 'label input';
 }
 
 .nixie-dev-controls__hud--preview {
   grid-template-areas:
-    'preview preview preview'
-    'label input clear';
+    'preview preview'
+    'label input';
 }
 
 .nixie-dev-controls__hud-label {
@@ -557,12 +693,6 @@ function toggleMorseMode() {
 
 .nixie-dev-controls__hud-field {
   grid-area: input;
-}
-
-.nixie-dev-controls__hud-clear {
-  grid-area: clear;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 6px;
 }
 
 .nixie-dev-controls__hud-preview {
@@ -594,7 +724,7 @@ function toggleMorseMode() {
 
 .nixie-dev-controls__num--unit {
   flex: 0 0 auto;
-  min-width: 4.75rem;
+  min-width: 2.5rem;
   white-space: nowrap;
 }
 

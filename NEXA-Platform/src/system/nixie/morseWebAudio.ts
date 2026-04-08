@@ -27,6 +27,7 @@ let activeWaitTimer: number | null = null
 let activePlayResolve: (() => void) | null = null
 let activeMasterGain: GainNode | null = null
 let activeStereoPanner: StereoPannerNode | null = null
+let activeAnalyser: AnalyserNode | null = null
 const activeOscillators: OscillatorNode[] = []
 
 /** 페이드아웃 후 `close` 예약 — 새 재생 `immediate` 시 취소 */
@@ -35,7 +36,18 @@ let pendingFadeCloseTimer: number | null = null
 function clearActiveAudioNodes(): void {
   activeMasterGain = null
   activeStereoPanner = null
+  activeAnalyser = null
   activeOscillators.length = 0
+}
+
+/** 현재 모스 출력 파형 샘플을 0~255로 채움(없으면 false) */
+export function readMorseScopeTimeDomain(target: Uint8Array): boolean {
+  const analyser = activeAnalyser
+  if (!analyser || !target?.length) return false
+  const need = analyser.fftSize
+  if (target.length < need) return false
+  analyser.getByteTimeDomainData(target as Uint8Array<ArrayBuffer>)
+  return true
 }
 
 function getAudioParamAt(param: AudioParam, time: number): number {
@@ -227,9 +239,14 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   const panValue = Math.max(-1, Math.min(1, options.stereoPan ?? 0))
   const panner = ctx.createStereoPanner()
   panner.pan.value = panValue
-  master.connect(panner)
+  const analyser = ctx.createAnalyser()
+  analyser.fftSize = 512
+  analyser.smoothingTimeConstant = 0.72
+  master.connect(analyser)
+  analyser.connect(panner)
   panner.connect(ctx.destination)
   activeStereoPanner = panner
+  activeAnalyser = analyser
 
   let t = ctx.currentTime
   const fade = 0.004
