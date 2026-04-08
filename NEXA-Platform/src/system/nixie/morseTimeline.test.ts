@@ -20,7 +20,19 @@ describe('buildMorseSoundTimelineWithMeta', () => {
   it('메타 배열 길이가 events 와 일치한다', () => {
     const meta = buildMorseSoundTimelineWithMeta('... . ^ .-', DIT)
     expect(meta.eventDisplayTokenIndex.length).toBe(meta.events.length)
+    expect(meta.eventHudCharRange.length).toBe(meta.events.length)
     expect(meta.eventStartMs.length).toBe(meta.events.length)
+  })
+
+  it('eventHudCharRange: dot/dash 는 trim 기준 한 글자, gap 은 null', () => {
+    const meta = buildMorseSoundTimelineWithMeta('...', DIT)
+    expect(meta.eventHudCharRange.length).toBe(meta.events.length)
+    const firstDot = meta.events.findIndex((e) => e.kind === 'dot')
+    expect(firstDot).toBeGreaterThan(-1)
+    expect(meta.eventHudCharRange[firstDot]).toEqual({ start: 0, end: 1 })
+    const intraGap = meta.events.findIndex((e, i) => e.kind === 'gap' && e.ms === DIT && i > 0)
+    expect(intraGap).toBeGreaterThan(-1)
+    expect(meta.eventHudCharRange[intraGap]).toBeNull()
   })
 
   it('eventStartMs 누적이 total 과 일치한다', () => {

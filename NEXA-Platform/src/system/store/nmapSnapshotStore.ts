@@ -62,6 +62,11 @@ export type NmapSnapshot = {
   demo_hud_scroll_offset: number
   /** 모스 미리듣기 시 닉시 HUD를 타임라인과 동기(방식 ②) — false면 재생 중에도 마퀴·기존 스크롄만 사용 */
   morse_hud_sync_with_playback: boolean
+  /**
+   * true: 디트/다시 재생 순간에 해당하는 `.`/`-` **한 글자**만 강조(입문 학습용).
+   * false: 토큰(글자 묶음) 전체 강조 — 눈의 피로가 적음(기본).
+   */
+  morse_hud_per_event_highlight: boolean
   /** 모스 미리듣기 재생 중 — 마퀴 틱 억제·스크롄 오버라이드에 사용 */
   morse_playback_active: boolean
   /** 재생 세대 — UI 경합 방지용 */
@@ -70,6 +75,14 @@ export type NmapSnapshot = {
   morse_playback_scroll_offset_override: number | null
   /** 강조할 모스 토큰 인덱스(공백 분리) — -1이면 강조 없음 */
   morse_playback_highlight_token_index: number
+  /**
+   * `morse_hud_per_event_highlight` 일 때 dot/dash 에 해당하는 `demo_hud_text` 문자 구간 `[start, end)`.
+   * 둘 다 -1이면 토큰 전체 강조(`morse_playback_highlight_token_index`) 사용.
+   */
+  morse_playback_highlight_char_start: number
+  morse_playback_highlight_char_end: number
+  /** false면 루미나 강조 마스크 없음(갭 구간 등) */
+  morse_playback_highlight_accent_active: boolean
   /** 재생 시작 직전 `demo_hud_scroll_offset` — 종료 시 복구 */
   morse_playback_scroll_restore: number
 }
@@ -98,12 +111,25 @@ function defaultSnapshot(): NmapSnapshot {
     morse_atomic_clock: 'H_1420MHz',
     demo_hud_scroll_offset: 0,
     morse_hud_sync_with_playback: true,
+    /** true일 때만 디트·다시마다 한 글자 강조(옵션). false면 토큰 전체 강조 */
+    morse_hud_per_event_highlight: false,
     morse_playback_active: false,
     morse_playback_generation: 0,
     morse_playback_scroll_offset_override: null,
     morse_playback_highlight_token_index: -1,
+    morse_playback_highlight_char_start: -1,
+    morse_playback_highlight_char_end: -1,
+    morse_playback_highlight_accent_active: true,
     morse_playback_scroll_restore: 0,
   }
+}
+
+/** `setMorsePlaybackHudFrame` 세 번째 인자 */
+export type MorsePlaybackHudFrameOptions = {
+  /** dot/dash 한 글자 강조 — 생략·null이면 토큰 전체 강조 */
+  highlightCharRange?: { start: number; end: number } | null
+  /** false면 강조 루미나 없음(갭 등) */
+  accentActive?: boolean
 }
 
 /** 시뮬: Nexion 스냅샷 관리 스토어 */
@@ -269,6 +295,10 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     applyPatch({ morse_hud_sync_with_playback: Boolean(enabled) })
   }
 
+  function setMorseHudPerEventHighlight(enabled: boolean) {
+    applyPatch({ morse_hud_per_event_highlight: Boolean(enabled) })
+  }
+
   /** 재생 시작 시 호출 — 스크롄 복구값·세대·활성 플래그 */
   function beginMorsePlaybackHudSync(payload: { generation: number; restoreScroll: number }) {
     applyPatch({
@@ -277,15 +307,45 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
       morse_playback_scroll_restore: payload.restoreScroll,
       morse_playback_scroll_offset_override: null,
       morse_playback_highlight_token_index: -1,
+      morse_playback_highlight_char_start: -1,
+      morse_playback_highlight_char_end: -1,
+      morse_playback_highlight_accent_active: false,
     })
   }
 
-  /** 재생 중 HUD 프레임(스크롄 오버라이드·강조 토큰) */
-  function setMorsePlaybackHudFrame(scrollOffset: number, highlightTokenIndex: number) {
-    applyPatch({
+  /** 재생 중 HUD 프레임(스크롄 오버라이드·강조 토큰·선택적 문자 구간) */
+  function setMorsePlaybackHudFrame(
+    scrollOffset: number,
+    highlightTokenIndex: number,
+    options?: MorsePlaybackHudFrameOptions,
+  ) {
+    const o = options ?? {}
+    if (o.accentActive === false) {
+      applyPatch({
+        morse_playback_scroll_offset_override: scrollOffset,
+        morse_playback_highlight_token_index: highlightTokenIndex,
+        morse_playback_highlight_accent_active: false,
+        morse_playback_highlight_char_start: -1,
+        morse_playback_highlight_char_end: -1,
+      })
+      return
+    }
+    const hr = o.highlightCharRange
+    const useChar =
+      hr != null && Number.isFinite(hr.start) && Number.isFinite(hr.end) && hr.end > hr.start
+    const patch: Partial<NmapSnapshot> = {
       morse_playback_scroll_offset_override: scrollOffset,
       morse_playback_highlight_token_index: highlightTokenIndex,
-    })
+      morse_playback_highlight_accent_active: true,
+    }
+    if (useChar) {
+      patch.morse_playback_highlight_char_start = Math.floor(hr!.start)
+      patch.morse_playback_highlight_char_end = Math.floor(hr!.end)
+    } else {
+      patch.morse_playback_highlight_char_start = -1
+      patch.morse_playback_highlight_char_end = -1
+    }
+    applyPatch(patch)
   }
 
   /** 재생 종료·정지 시 — 마퀴용 스크롄을 `morse_playback_scroll_restore` 로 복구 */
@@ -295,6 +355,9 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
       morse_playback_active: false,
       morse_playback_scroll_offset_override: null,
       morse_playback_highlight_token_index: -1,
+      morse_playback_highlight_char_start: -1,
+      morse_playback_highlight_char_end: -1,
+      morse_playback_highlight_accent_active: true,
       demo_hud_scroll_offset: restore,
     })
   }
@@ -324,6 +387,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     simulateNebulaInflux,
     clearNebulaToLocal,
     setMorseHudSyncWithPlayback,
+    setMorseHudPerEventHighlight,
     beginMorsePlaybackHudSync,
     setMorsePlaybackHudFrame,
     endMorsePlaybackHudSync,

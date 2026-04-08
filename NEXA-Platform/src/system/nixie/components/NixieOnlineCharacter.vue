@@ -31,15 +31,7 @@
 
 <script setup>
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
-import {
-  getMorseTokenCharRange,
-  mapHudTextToDots,
-  mapHudTextToDotsCharRangeMask,
-  normalizeDemoHudText,
-  textFitsCompletelyInGrid,
-  NIXIE_GRID_COLS as COLS,
-  NIXIE_GRID_ROWS as ROWS,
-} from '@system/nixie/nixieDotMap'
+import { getMorseTokenCharRange, mapHudTextToDots, mapHudTextToDotsCharRangeMask, normalizeDemoHudText, textFitsCompletelyInGrid, NIXIE_GRID_COLS as COLS, NIXIE_GRID_ROWS as ROWS } from '@system/nixie/nixieDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { storeToRefs } from 'pinia'
 import gsap from 'gsap'
@@ -205,18 +197,25 @@ function getDemoTextMask() {
   return mapHudTextToDots(norm, getDemoHudEffectiveScroll())
 }
 
-/** 재생 중 현재 모스 토큰 구간만 켜진 마스크(이중 루미나) — 없으면 null */
+/** 재생 중 현재 모스 토큰·또는 dot/dash 한 글자 구간 마스크(이중 루미나) — 없으면 null */
 function getDemoMorseHighlightMask() {
   const s = snapshot.value
   if (!s.morse_playback_active || !(s.morse_hud_sync_with_playback ?? true) || !s.demo_hud_morse_enabled) return null
-  const ti = s.morse_playback_highlight_token_index
-  if (ti == null || ti < 0) return null
+  if (s.morse_playback_highlight_accent_active === false) return null
   const raw = s.demo_hud_text ?? ''
   const norm = normalizeDemoHudText(String(raw))
   if (!norm.length) return null
+  const scroll = getDemoHudEffectiveScroll()
+  const cs = s.morse_playback_highlight_char_start
+  const ce = s.morse_playback_highlight_char_end
+  if (cs != null && ce != null && cs >= 0 && ce > cs) {
+    return mapHudTextToDotsCharRangeMask(norm, scroll, cs, ce)
+  }
+  const ti = s.morse_playback_highlight_token_index
+  if (ti == null || ti < 0) return null
   const rng = getMorseTokenCharRange(norm, ti)
   if (!rng) return null
-  return mapHudTextToDotsCharRangeMask(norm, getDemoHudEffectiveScroll(), rng.start, rng.end)
+  return mapHudTextToDotsCharRangeMask(norm, scroll, rng.start, rng.end)
 }
 
 const thresholdStress = computed(() => confidenceRelativeThresholdStress(snapshot.value.confidence_score, snapshot.value.user_defined_threshold))
@@ -256,6 +255,10 @@ function syncLumina() {
   const dots = getDots()
   if (!dots.length) return
 
+  for (const el of dots) {
+    el.classList.remove('nixie-online__dot--morse-now', 'nixie-online__dot--morse-dim', 'nixie-online__dot--morse-dim-tape', 'nixie-online__dot--morse-dim-token')
+  }
+
   /* 이전 타임라인에서 남은 inline opacity 가 CSS(특히 스코프·모디파이어)와 엇갈리지 않게 초기화 */
   gsap.set(dots, { clearProps: 'opacity' })
 
@@ -263,6 +266,8 @@ function syncLumina() {
   const highlightMask = getDemoMorseHighlightMask()
   const entropy = clamp(Number(snapshot.value.entropy_level ?? 100), 0, 100) / 100
   const pulseMix = 0.55 + entropy * 0.45
+  const s = snapshot.value
+  const perEventPlayback = s.morse_playback_active && (s.morse_hud_sync_with_playback ?? true) && s.demo_hud_morse_enabled && s.morse_hud_per_event_highlight === true
 
   if (mask) {
     const offDots = dots.filter((_, i) => !mask[i])
@@ -282,6 +287,85 @@ function syncLumina() {
     const baseMax = hasHighlight ? maxOpacity * 0.58 : maxOpacity
     const hiMin = hasHighlight ? minOpacity + 0.2 : minOpacity + 0.06
     const hiMax = hasHighlight ? Math.min(0.98, maxOpacity + 0.38) : Math.min(0.95, maxOpacity + 0.14)
+
+    /* 옵션 ON: (1) 테이프 토큰 밖 맥락 가장 흐림 (2) 같은 토큰 나머지 부호는 중간 밝기 (3) 재생 부호만 색+펄스 */
+    if (perEventPlayback) {
+      const rawText = snapshot.value.demo_hud_text ?? ''
+      const norm = normalizeDemoHudText(String(rawText))
+      const scroll = getDemoHudEffectiveScroll()
+      const tiPlay = snapshot.value.morse_playback_highlight_token_index ?? -1
+      let tokenFullMask = null
+      if (norm.length && tiPlay >= 0) {
+        const tr = getMorseTokenCharRange(norm, tiPlay)
+        tokenFullMask = tr ? mapHudTextToDotsCharRangeMask(norm, scroll, tr.start, tr.end) : null
+      }
+
+      /* 테이프 맥락은 필터만으로 어둡게 하지 말 것 — GSAP opacity가 최종 밝기를 지배함 */
+      const tapeContextOpacity = clamp(minOpacity * 0.36 + 0.06, 0.11, 0.28)
+      const tokenRestOpacity = clamp(minOpacity * 0.52 + 0.1, 0.22, 0.46)
+
+      if (tokenFullMask) {
+        const tapeLitDots = dots.filter((_, i) => {
+          if (!mask[i] || tokenFullMask[i]) return false
+          if (hasHighlight && highlightMask?.[i]) return false
+          return true
+        })
+        const tokenRestLitDots = hasHighlight && highlightMask ? dots.filter((_, i) => mask[i] && tokenFullMask[i] && !highlightMask[i]) : dots.filter((_, i) => mask[i] && tokenFullMask[i])
+
+        for (const el of tapeLitDots) el.classList.add('nixie-online__dot--morse-dim-tape')
+        if (tapeLitDots.length) gsap.set(tapeLitDots, { opacity: tapeContextOpacity })
+
+        for (const el of tokenRestLitDots) el.classList.add('nixie-online__dot--morse-dim-token')
+        if (tokenRestLitDots.length) gsap.set(tokenRestLitDots, { opacity: tokenRestOpacity })
+
+        if (!hasHighlight || !highlightLitDots.length) {
+          return
+        }
+        for (const el of highlightLitDots) {
+          el.classList.add('nixie-online__dot--morse-now')
+        }
+        gsap.set(highlightLitDots, { opacity: hiMin + 0.05 })
+        luminaTl = gsap.timeline({ repeat: -1 })
+        luminaTl.to(highlightLitDots, {
+          opacity: hiMax,
+          duration: dur * 0.38 * pulseMix,
+          ease: 'sine.inOut',
+        })
+        luminaTl.to(highlightLitDots, {
+          opacity: hiMin + 0.05,
+          duration: dur * 0.45 * pulseMix,
+          ease: 'sine.inOut',
+        })
+        return
+      }
+
+      const tokenRestOpacityFallback = clamp(minOpacity * 0.34 + 0.04, 0.07, 0.26)
+      for (const el of baseLitDots) el.classList.add('nixie-online__dot--morse-dim')
+      if (baseLitDots.length) gsap.set(baseLitDots, { opacity: tokenRestOpacityFallback })
+      const litAll = dots.filter((_, i) => mask[i])
+      if (!hasHighlight && litAll.length) {
+        for (const el of litAll) el.classList.add('nixie-online__dot--morse-dim')
+        gsap.set(litAll, { opacity: tokenRestOpacityFallback })
+        return
+      }
+      for (const el of highlightLitDots) el.classList.add('nixie-online__dot--morse-now')
+      if (highlightLitDots.length) {
+        gsap.set(highlightLitDots, { opacity: hiMin + 0.05 })
+        luminaTl = gsap.timeline({ repeat: -1 })
+        luminaTl.to(highlightLitDots, {
+          opacity: hiMax,
+          duration: dur * 0.38 * pulseMix,
+          ease: 'sine.inOut',
+        })
+        luminaTl.to(highlightLitDots, {
+          opacity: hiMin + 0.05,
+          duration: dur * 0.45 * pulseMix,
+          ease: 'sine.inOut',
+        })
+      }
+      return
+    }
+
     if (baseLitDots.length) gsap.set(baseLitDots, { opacity: baseMin + 0.05 })
     if (highlightLitDots.length) gsap.set(highlightLitDots, { opacity: hiMin + 0.05 })
     luminaTl = gsap.timeline({ repeat: -1 })
@@ -504,7 +588,11 @@ watch(
     snapshot.value.morse_playback_active,
     snapshot.value.morse_playback_scroll_offset_override,
     snapshot.value.morse_playback_highlight_token_index,
+    snapshot.value.morse_playback_highlight_char_start,
+    snapshot.value.morse_playback_highlight_char_end,
+    snapshot.value.morse_playback_highlight_accent_active,
     snapshot.value.morse_hud_sync_with_playback,
+    snapshot.value.morse_hud_per_event_highlight,
   ],
   () => {
     nextTick(syncAllVisuals)
@@ -756,10 +844,53 @@ onBeforeUnmount(() => {
   will-change: transform, opacity;
 }
 
+/* 모스 옵션: 현재 디트·다시 — 토큰 나머지와 구분(밝은 황금·초록빛 글로우) */
+.nixie-online__dot--morse-now {
+  background: linear-gradient(180deg, #fff9e6 0%, #ffe066 38%, #ffb300 72%, #e65100 100%);
+  box-shadow:
+    0 0 7px rgb(182, 149, 57),
+    0 0 3px rgba(253, 2, 2, 0.45),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+  filter: none;
+}
+
+/* 옵션 ON일 때 같은 토큰·테이프의 비현재 부호 — 채도·명도 낮춤(GSAP opacity와 함께) */
+
+.nixie-online__dot--morse-dim {
+  filter: saturate(0.58) brightness(0.68);
+}
+
+/* per-event: 테이프에서 현재 토큰 밖 맥락(가장 흐림) */
+.nixie-online__dot--morse-dim-tape {
+  filter: saturate(0.52) brightness(0.52);
+}
+
+/* per-event: 같은 토큰 안·재생 부호가 아닌 부호(중간) */
+.nixie-online__dot--morse-dim-token {
+  filter: saturate(0.98) brightness(0.98);
+}
+
 /* 가상 실행 고스트 레이어 도트 스타일 */
 .nixie-online__hud--virtual .nixie-online__dot {
   opacity: 0.38;
   box-shadow: none;
   background: linear-gradient(180deg, rgba(255, 179, 71, 0.45) 0%, rgba(200, 120, 40, 0.35) 100%);
+}
+
+.nixie-online__hud--virtual .nixie-online__dot--morse-now {
+  background: linear-gradient(180deg, rgba(255, 250, 220, 0.95) 0%, rgba(255, 200, 80, 0.85) 50%, rgba(230, 120, 40, 0.75) 100%);
+  box-shadow: 0 0 6px rgba(255, 220, 140, 0.65);
+}
+
+.nixie-online__hud--virtual .nixie-online__dot--morse-dim {
+  filter: saturate(0.42) brightness(0.62);
+}
+
+.nixie-online__hud--virtual .nixie-online__dot--morse-dim-tape {
+  filter: saturate(0.28) brightness(0.48);
+}
+
+.nixie-online__hud--virtual .nixie-online__dot--morse-dim-token {
+  filter: saturate(0.5) brightness(0.68);
 }
 </style>

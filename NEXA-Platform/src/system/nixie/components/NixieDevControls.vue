@@ -163,6 +163,17 @@
           />
         </div>
         <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
+          <span class="nixie-dev-controls__lbl">강조</span>
+          <q-toggle
+            dense
+            left-label
+            :disable="!(snapshot.morse_hud_sync_with_playback ?? true)"
+            :model-value="snapshot.morse_hud_per_event_highlight === true"
+            label="디트·다시만 밝게"
+            @update:model-value="nmap.setMorseHudPerEventHighlight"
+          />
+        </div>
+        <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
           <span class="nixie-dev-controls__lbl">CHANNEL</span>
           <q-btn-group outline class="nixie-dev-controls__morse-pan-group col">
             <q-btn dense size="sm" padding="xs sm" label="ALPHA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === -1" :color="(snapshot.morse_stereo_pan ?? 0) === -1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(-1)" />
@@ -224,7 +235,12 @@
 <script setup>
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText, scrollOffsetToCenterToken } from '@system/nixie/nixieDotMap'
-import { buildMorseSoundTimeline, buildMorseSoundTimelineWithMeta, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
+import {
+  buildMorseSoundTimeline,
+  buildMorseSoundTimelineWithMeta,
+  clampMorseDitMs,
+  morseTimelineTotalMs,
+} from '@system/nixie/morseTimeline'
 import { MORSE_MASTER_GAIN_MAX, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
 import AudioScopeCanvas from '@engines/audio/components/AudioScopeCanvas.vue'
 import { storeToRefs } from 'pinia'
@@ -422,13 +438,49 @@ async function playMorsePreview() {
       commitHudText()
       const s = normalizeDemoHudText(encodeTextToMorseHudText(hudDraft.value ?? ''))
       const dit = morseDitMsUi.value
-      const { events, eventDisplayTokenIndex } = buildMorseSoundTimelineWithMeta(s, dit)
+      const { events, eventDisplayTokenIndex, eventHudCharRange } = buildMorseSoundTimelineWithMeta(s, dit)
       if (!events.length) break
 
       let lastHudScrollDedupe = NaN
       let lastHudTokenDedupe = NaN
+      let lastHudScroll = snapshot.value.demo_hud_scroll_offset ?? 0
       const syncHud =
         (snapshot.value.morse_hud_sync_with_playback ?? true) && Boolean(snapshot.value.demo_hud_morse_enabled)
+      /** 재생 시작 시점 기준 — 훅마다 snapshot 재읽기와 달리 고정(기본 true=디트·다시 강조) */
+      const preferPerEventHighlight = snapshot.value.morse_hud_per_event_highlight === true
+
+      function applyMorsePlaybackFrame(eventIndex, e) {
+        const perEvent = preferPerEventHighlight
+        const tok = eventDisplayTokenIndex[eventIndex] ?? -1
+        const scrollForTok = tok >= 0 ? scrollOffsetToCenterToken(s, tok) : lastHudScroll
+
+        if (!perEvent) {
+          if (tok < 0) return
+          const scroll = scrollForTok
+          if (scroll !== lastHudScrollDedupe || tok !== lastHudTokenDedupe) {
+            lastHudScrollDedupe = scroll
+            lastHudTokenDedupe = tok
+            lastHudScroll = scroll
+            nmap.setMorsePlaybackHudFrame(scroll, tok)
+          }
+          return
+        }
+
+        if (tok < 0) {
+          nmap.setMorsePlaybackHudFrame(lastHudScroll, -1, { accentActive: false })
+          return
+        }
+
+        lastHudScroll = scrollForTok
+        if (e.kind === 'dot' || e.kind === 'dash') {
+          const r = eventHudCharRange[eventIndex]
+          if (r && r.end > r.start) {
+            nmap.setMorsePlaybackHudFrame(scrollForTok, tok, { highlightCharRange: r })
+          }
+        } else {
+          nmap.setMorsePlaybackHudFrame(scrollForTok, tok, { accentActive: false })
+        }
+      }
 
       await playMorseTimeline(events, {
         frequencyHz: morseToneHzUi.value,
@@ -440,29 +492,41 @@ async function playMorsePreview() {
             generation: gen,
             restoreScroll: snapshot.value.demo_hud_scroll_offset ?? 0,
           })
-          const firstTokIdx = eventDisplayTokenIndex.findIndex((t) => t >= 0)
-          if (firstTokIdx >= 0) {
-            const tok = eventDisplayTokenIndex[firstTokIdx] ?? -1
-            if (tok < 0) return
-            const scroll = scrollOffsetToCenterToken(s, tok)
-            lastHudScrollDedupe = scroll
-            lastHudTokenDedupe = tok
-            nmap.setMorsePlaybackHudFrame(scroll, tok)
+          lastHudScroll = snapshot.value.demo_hud_scroll_offset ?? 0
+          if (preferPerEventHighlight) {
+            const fi = events.findIndex(
+              (ev, idx) =>
+                (ev.kind === 'dot' || ev.kind === 'dash') && (eventDisplayTokenIndex[idx] ?? -1) >= 0,
+            )
+            if (fi >= 0) {
+              const tok = eventDisplayTokenIndex[fi] ?? -1
+              const r = eventHudCharRange[fi]
+              if (tok >= 0 && r && r.end > r.start) {
+                const scroll = scrollOffsetToCenterToken(s, tok)
+                lastHudScrollDedupe = scroll
+                lastHudTokenDedupe = tok
+                lastHudScroll = scroll
+                nmap.setMorsePlaybackHudFrame(scroll, tok, { highlightCharRange: r })
+              }
+            }
+          } else {
+            const firstTokIdx = eventDisplayTokenIndex.findIndex((t) => t >= 0)
+            if (firstTokIdx >= 0) {
+              const tok = eventDisplayTokenIndex[firstTokIdx] ?? -1
+              if (tok < 0) return
+              const scroll = scrollOffsetToCenterToken(s, tok)
+              lastHudScrollDedupe = scroll
+              lastHudTokenDedupe = tok
+              lastHudScroll = scroll
+              nmap.setMorsePlaybackHudFrame(scroll, tok)
+            }
           }
         },
         playbackHooks: {
           onEventStart: (i, e, ms) => {
             if (gen !== morsePlayGeneration) return
             if (syncHud) {
-              const tok = eventDisplayTokenIndex[i] ?? -1
-              if (tok >= 0) {
-                const scroll = scrollOffsetToCenterToken(s, tok)
-                if (scroll !== lastHudScrollDedupe || tok !== lastHudTokenDedupe) {
-                  lastHudScrollDedupe = scroll
-                  lastHudTokenDedupe = tok
-                  nmap.setMorsePlaybackHudFrame(scroll, tok)
-                }
-              }
+              applyMorsePlaybackFrame(i, e)
             }
             if (import.meta.env.DEV) {
               console.log('[morse hook] event', i, e.kind, 'elapsedMs=', ms)
