@@ -28,6 +28,14 @@ const JITTER_DETUNE_MOD_MAX_CENTS = 28
 const MECH_DETUNE_SPREAD_MUL = 1.2
 /** 기계성 — 지터 LFO 깊이 배율 */
 const MECH_JITTER_DEPTH_MUL = 1.05
+/** `uncannyBlend01` — 듀얼 디튜닝 스프레드 추가(어긋난 간격) */
+const UNCANNY_DETUNE_SPREAD_MUL = 0.42
+/** 이질감 — 지터 LFO→detune 깊이 추가 */
+const UNCANNY_JITTER_DEPTH_MUL = 0.52
+/** 이질감 — 지터 LFO 속도 배율(불안정한 떨림) */
+const UNCANNY_JITTER_LFO_MUL = 0.58
+/** 이질감 — 저역통과 Q 소폭 상승(미세한 공진·날카로움) */
+const UNCANNY_LP_Q_EXTRA = 1.15
 /** 저역통과 Q: 기계성↑ 시 공진으로 육중·버즈 강조 */
 const MECH_LP_Q_BASE = 0.85
 const MECH_LP_Q_EXTRA_MAX = 5.2
@@ -82,27 +90,47 @@ export function layerMechanicalBlend01(layers: NixieSoundLayerParams): number {
   return clamp01(layers.mechanicalBlend01 ?? 0)
 }
 
-/** 디튜닝 반스프레드(센트) — 기계성 블렌드 시 스프레드 확대 */
+/** 디튜닝 반스프레드(센트) — 기계성·이질감 블렌드 시 스프레드 확대 */
 export function detuneHalfSpreadCentsForLayer(layers: NixieSoundLayerParams): number {
   const mech = layerMechanicalBlend01(layers)
-  return detune01ToHalfSpreadCents(layers.detune01) * (1 + MECH_DETUNE_SPREAD_MUL * mech)
+  const u = layerUncannyBlend01(layers)
+  return (
+    detune01ToHalfSpreadCents(layers.detune01) * (1 + MECH_DETUNE_SPREAD_MUL * mech) * (1 + UNCANNY_DETUNE_SPREAD_MUL * u)
+  )
 }
 
-/** 지터 LFO → detune 변조(센트) — 기계성 시 약간 더 거칠게 */
+/** 지터 LFO → detune 변조(센트) — 기계성·이질감 시 더 거칠게 */
 export function jitterDetuneModCentsForLayer(layers: NixieSoundLayerParams): number {
   const mech = layerMechanicalBlend01(layers)
-  return jitter01ToDetuneModCents(layers.jitter01) * (1 + MECH_JITTER_DEPTH_MUL * mech)
+  const u = layerUncannyBlend01(layers)
+  return (
+    jitter01ToDetuneModCents(layers.jitter01) *
+    (1 + MECH_JITTER_DEPTH_MUL * mech) *
+    (1 + UNCANNY_JITTER_DEPTH_MUL * u)
+  )
 }
 
-/** 저역통과 Q — 기계성이 높을수록 날카로운 피크 */
+/** 저역통과 Q — 기계성·이질감이 높을수록 날카로운 피크 */
 export function lowpassQForLayer(layers: NixieSoundLayerParams): number {
   const mech = layerMechanicalBlend01(layers)
-  return MECH_LP_Q_BASE + mech * MECH_LP_Q_EXTRA_MAX
+  const u = layerUncannyBlend01(layers)
+  return MECH_LP_Q_BASE + mech * MECH_LP_Q_EXTRA_MAX + u * UNCANNY_LP_Q_EXTRA
 }
 
 /** 의미 공간감 블렌드 0~1 */
 export function layerSpaceBlend01(layers: NixieSoundLayerParams): number {
   return clamp01(layers.spaceBlend01 ?? 0)
+}
+
+/** 의미 이질감 블렌드 0~1 */
+export function layerUncannyBlend01(layers: NixieSoundLayerParams): number {
+  return clamp01(layers.uncannyBlend01 ?? 0)
+}
+
+/** 지터 LFO 주파수(Hz) — 이질감↑ 시 더 빠른 피치 변조 */
+export function jitterLfoHzForLayer(layers: NixieSoundLayerParams): number {
+  const u = layerUncannyBlend01(layers)
+  return JITTER_LFO_HZ * (1 + UNCANNY_JITTER_LFO_MUL * u)
 }
 
 /**
@@ -180,6 +208,7 @@ function applyLayerParams(g: ProbeGraph, layers: NixieSoundLayerParams): void {
   g.osc2.detune.setTargetAtTime(-half, t, PARAM_SMOOTH_SEC)
 
   g.tremGain.gain.setTargetAtTime(release01ToTremoloDepth(layers.release01), t, PARAM_SMOOTH_SEC)
+  g.jitterLfo.frequency.setTargetAtTime(jitterLfoHzForLayer(layers), t, PARAM_SMOOTH_SEC)
   g.jitterGain.gain.setTargetAtTime(jitterDetuneModCentsForLayer(layers), t, PARAM_SMOOTH_SEC)
 
   applySpaceReverbParams(g.dryGain, g.wetGain, g.feedbackGain, g.spaceDelay, layers, t)
@@ -251,7 +280,7 @@ export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): 
 
   const jitterLfo = ctx.createOscillator()
   jitterLfo.type = 'sine'
-  jitterLfo.frequency.setValueAtTime(JITTER_LFO_HZ, t0)
+  jitterLfo.frequency.setValueAtTime(jitterLfoHzForLayer(layers), t0)
   const jitterGain = ctx.createGain()
   jitterGain.gain.setValueAtTime(jitterDetuneModCentsForLayer(layers), t0)
   jitterLfo.connect(jitterGain)

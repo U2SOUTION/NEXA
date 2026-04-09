@@ -26,6 +26,10 @@ export type NixieSoundLayerParams = {
    * 의미 축 **공간감** 전달(0~1, 선택). Delay+피드백(간이 리버브) 웻/드라이·지연에 사용.
    */
   spaceBlend01?: number
+  /**
+   * 의미 축 **이질감** 전달(0~1, 선택). 지터 LFO 속도·디튜닝/지터 강조·LP Q 미세 상승에 사용.
+   */
+  uncannyBlend01?: number
 }
 
 function clampUi100(n: number): number {

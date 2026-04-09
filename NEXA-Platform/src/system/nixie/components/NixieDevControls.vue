@@ -587,7 +587,7 @@ const morseToneHzEffective = computed(() => {
   const base = morseToneHzUi.value
   if (!atmosphereMappingEnabled.value) return base
   const d = morseAtmosphereDelta.value
-  return clampMorseToneHz(base + d.carrierOffsetHzFromTension + 0.5 * d.carrierUncannyOffsetMaxHz)
+  return clampMorseToneHz(base + d.carrierOffsetHzFromTension + 0.68 * d.carrierUncannyOffsetMaxHz)
 })
 const morseAtomicClockLabel = computed(() => {
   const key = snapshot.value.morse_atomic_clock

@@ -5,6 +5,7 @@ import {
   detuneHalfSpreadCentsForLayer,
   filter01ToLowpassHz,
   jitterDetuneModCentsForLayer,
+  jitterLfoHzForLayer,
   layerMechanicalBlend01,
   lowpassQForLayer,
   release01ToTremoloDepth,
@@ -296,6 +297,10 @@ export function setMorseSoundLayerParams(layers: NixieSoundLayerParams): void {
   if (trem) {
     trem.gain.setTargetAtTime(release01ToTremoloDepth(layers.release01), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
   }
+  const jLfo = activeMorseLayerJitterLfo
+  if (jLfo) {
+    jLfo.frequency.setTargetAtTime(jitterLfoHzForLayer(layers), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+  }
   if (jit) {
     jit.gain.setTargetAtTime(jitterDetuneModCentsForLayer(layers), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
   }
@@ -460,7 +465,7 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
 
   const jitterLfo = ctx.createOscillator()
   jitterLfo.type = 'sine'
-  jitterLfo.frequency.setValueAtTime(6.3, tFade)
+  jitterLfo.frequency.setValueAtTime(jitterLfoHzForLayer(layers), tFade)
   const jitterGain = ctx.createGain()
   jitterGain.gain.setValueAtTime(jitterDetuneModCentsForLayer(layers), tFade)
   jitterLfo.connect(jitterGain)

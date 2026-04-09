@@ -40,10 +40,17 @@ const R2_UNCANNY_JITTER_FACTOR = 0.75
  * 열: filter, release, detune, jitter
  */
 /** 인덱스 2 = 기계성 — 필터·디튜닝·지터 가중 상향(듣기 쉬운 기계 질감) */
-const W_FILTER = [0.45, 0.15, 0.44, 0.2, 0.3, 0.35] as const
-const W_RELEASE = [0.25, 0.1, 0.04, 0.4, 0.35, 0.3] as const
-const W_DETUNE = [0.15, 0.35, 0.36, 0.25, 0.4, 0.5] as const
-const W_JITTER = [0.35, 0.55, 0.44, 0.1, 0.2, 0.15] as const
+/** 인덱스 1 = 이질감 — 디튜닝·지터·릴리즈·필터 가중 상향(불안정·어긋남) */
+const W_FILTER = [0.45, 0.26, 0.44, 0.2, 0.3, 0.35] as const
+const W_RELEASE = [0.25, 0.22, 0.04, 0.4, 0.35, 0.3] as const
+const W_DETUNE = [0.15, 0.52, 0.36, 0.25, 0.4, 0.5] as const
+const W_JITTER = [0.35, 0.72, 0.44, 0.1, 0.2, 0.15] as const
+
+/** 표 B — 이질감: 캐리어 흔들림 상한(Hz) 스케일 (이전 30 → 청감 강화) */
+const MORSE_UNCANNY_CARRIER_OFFSET_MAX_HZ = 52
+
+/** 표 B — dit가 이질감에 살짝 달라붙지 않게(리듬 미세 불안) */
+const MORSE_UNCANNY_DIT_SCALE_MUL = 0.09
 
 function clamp01(x: number): number {
   if (!Number.isFinite(x)) return 0
@@ -117,6 +124,7 @@ export function mapNixieSoundAtmosphereToLayerParams(
     jitter01,
     mechanicalBlend01: a.mechanical01,
     spaceBlend01: a.space01,
+    uncannyBlend01: a.uncanniness01,
   }
 }
 
@@ -141,18 +149,21 @@ export function mapNixieSoundAtmosphereToMorseDelta(atmosphere: NixieSoundAtmosp
   let ditScale =
     (1 - 0.25 * a.tension01) * 0.95 * 1.0 * 1.0 * (0.85 + 0.15 * a.vitality01) * 1.0
 
-  /** 기계성: dit 살짝 짧게(리듬이 더 딱딱하게) */
+  /** 기계성: dit 살짧게(리듬이 더 딱딱하게) */
   ditScale *= 1 - 0.1 * a.mechanical01
+
+  /** 이질감: dit 미세 단축(살짝 빨라져 “어색한” 리듬) */
+  ditScale *= 1 - MORSE_UNCANNY_DIT_SCALE_MUL * a.uncanniness01
 
   if (a.tension01 >= NIXIE_ATMOSPHERE_R1_HIGH_THRESHOLD && a.vitality01 >= NIXIE_ATMOSPHERE_R1_HIGH_THRESHOLD) {
     ditScale = Math.max(ditScale, R1_DIT_FLOOR)
   }
 
   const carrierOffsetHzFromTension = 120 * a.tension01
-  const carrierUncannyOffsetMaxHz = 30 * a.uncanniness01
+  const carrierUncannyOffsetMaxHz = MORSE_UNCANNY_CARRIER_OFFSET_MAX_HZ * a.uncanniness01
 
   const panWobbleDepth01 = clamp01(
-    0.05 * a.tension01 + 0.25 * a.uncanniness01 + 0.15 * a.space01,
+    0.05 * a.tension01 + 0.4 * a.uncanniness01 + 0.15 * a.space01,
   )
 
   return {
