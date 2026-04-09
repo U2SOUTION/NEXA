@@ -34,6 +34,10 @@ export type NixieSoundLayerParams = {
    * 의미 축 **활력** 전달(0~1, 선택). 트레몰로 LFO 속도 등 “에너지” 청감에 사용.
    */
   vitalityBlend01?: number
+  /**
+   * 의미 축 **조화** 전달(0~1, 선택). 듀얼 오실 중 둘째 음에 5도 간격(비율)을 얹어 화음으로 구분.
+   */
+  harmonyBlend01?: number
 }
 
 function clampUi100(n: number): number {

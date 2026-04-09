@@ -66,6 +66,8 @@ export const NIXIE_SPACE_WET_LP_Q = 0.65
 const TREMOLO_HZ = 2.4
 /** 활력↑ 시 릴리즈 트레몰로 LFO 가속(에너지·맥박 청감) */
 const VITALITY_TREMOLO_HZ_MUL = 0.58
+/** 조화↑ 시 둘째 오실 주파수 비율 — 1(유니즌) → 3/2(완전 5도) */
+const HARMONY_INTERVAL_MAX_RATIO = 3 / 2
 const JITTER_LFO_HZ = 6.3
 
 /** `setTargetAtTime` 시간 상수(초) */
@@ -156,6 +158,20 @@ export function layerVitalityBlend01(layers: NixieSoundLayerParams): number {
 export function tremoloHzForLayer(layers: NixieSoundLayerParams): number {
   const v = layerVitalityBlend01(layers)
   return TREMOLO_HZ * (1 + VITALITY_TREMOLO_HZ_MUL * v)
+}
+
+/** 의미 조화 블렌드 0~1 */
+export function layerHarmonyBlend01(layers: NixieSoundLayerParams): number {
+  return clamp01(layers.harmonyBlend01 ?? 0)
+}
+
+/**
+ * 듀얼 오실에서 **osc2** 기준 주파수 배율 — 조화 0 이면 1(유니즌+센트 스프레드만), 1 이면 완전 5도.
+ * osc1 은 기준 Hz, osc2 는 `기준Hz × 이 값`.
+ */
+export function harmonyIntervalRatioForLayer(layers: NixieSoundLayerParams): number {
+  const h = layerHarmonyBlend01(layers)
+  return 1 + h * (HARMONY_INTERVAL_MAX_RATIO - 1)
 }
 
 /** 지터 LFO 주파수(Hz) — 이질감↑ 시 더 빠른 피치 변조 */
@@ -347,6 +363,10 @@ function applyLayerParams(g: ProbeGraph, layers: NixieSoundLayerParams): void {
   g.osc1.detune.setTargetAtTime(half, t, PARAM_SMOOTH_SEC)
   g.osc2.detune.setTargetAtTime(-half, t, PARAM_SMOOTH_SEC)
 
+  const harmR = harmonyIntervalRatioForLayer(layers)
+  g.osc1.frequency.setTargetAtTime(NIXIE_SOUND_LAYER_PROBE_CARRIER_HZ, t, PARAM_SMOOTH_SEC)
+  g.osc2.frequency.setTargetAtTime(NIXIE_SOUND_LAYER_PROBE_CARRIER_HZ * harmR, t, PARAM_SMOOTH_SEC)
+
   g.tremLfo.frequency.setTargetAtTime(tremoloHzForLayer(layers), t, PARAM_SMOOTH_SEC)
   g.tremGain.gain.setTargetAtTime(release01ToTremoloDepth(layers.release01), t, PARAM_SMOOTH_SEC)
   g.jitterLfo.frequency.setTargetAtTime(jitterLfoHzForLayer(layers), t, PARAM_SMOOTH_SEC)
@@ -382,8 +402,9 @@ export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): 
   const osc2 = ctx.createOscillator()
   osc1.type = oscType
   osc2.type = oscType
+  const harmR = harmonyIntervalRatioForLayer(layers)
   osc1.frequency.setValueAtTime(carrier, t0)
-  osc2.frequency.setValueAtTime(carrier, t0)
+  osc2.frequency.setValueAtTime(carrier * harmR, t0)
 
   const g1 = ctx.createGain()
   const g2 = ctx.createGain()

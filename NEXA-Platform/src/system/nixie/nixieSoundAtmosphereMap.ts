@@ -126,6 +126,7 @@ export function mapNixieSoundAtmosphereToLayerParams(
     spaceBlend01: a.space01,
     uncannyBlend01: a.uncanniness01,
     vitalityBlend01: a.vitality01,
+    harmonyBlend01: a.harmony01,
   }
 }
 

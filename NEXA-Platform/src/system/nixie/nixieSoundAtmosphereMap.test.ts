@@ -52,6 +52,7 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
       spaceBlend01: 0,
       uncannyBlend01: 0,
       vitalityBlend01: 0,
+      harmonyBlend01: 0,
     })
   })
 
@@ -70,6 +71,7 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
       spaceBlend01: 0,
       uncannyBlend01: 0,
       vitalityBlend01: 0,
+      harmonyBlend01: 0,
     })
   })
 

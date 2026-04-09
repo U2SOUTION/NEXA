@@ -14,6 +14,7 @@ import {
   release01ToTremoloDepth,
   NIXIE_SPACE_WET_LP_HZ,
   NIXIE_SPACE_WET_LP_Q,
+  harmonyIntervalRatioForLayer,
   spaceReverbGainParams,
   stopUncannyNoiseBranch,
   tremoloHzForLayer,
@@ -99,6 +100,9 @@ let activePlaybackHooks: MorsePlaybackHooks | null = null
 let activePlaybackTimelineStartSec: number | null = null
 let activePlaybackTotalSec: number | null = null
 
+/** `setMorseCarrierFrequencyHz`·화음 비율 — 마지막으로 적용된 레이어(매핑 시 harmony 포함) */
+let lastMorseSoundLayers: NixieSoundLayerParams | null = null
+
 function clearPlaybackHookTimers(): void {
   for (const id of activePlaybackHookTimers) {
     clearTimeout(id)
@@ -161,6 +165,7 @@ function clearActiveAudioNodes(): void {
   activeOscillators.length = 0
   activePlaybackTimelineStartSec = null
   activePlaybackTotalSec = null
+  lastMorseSoundLayers = null
 }
 
 /** 기계성이 높을수록 닷 꼬리를 더 짧게(스타카토에 가깝게) */
@@ -290,12 +295,20 @@ export function setMorseCarrierFrequencyHz(hz: number): void {
   const ctx = activeCtx
   if (!ctx) return
   const t = ctx.currentTime
-  for (const osc of activeOscillators) {
-    try {
-      osc.frequency.cancelScheduledValues(t)
-      osc.frequency.setValueAtTime(f, t)
-    } catch {
-      /* noop */
+  const layers = lastMorseSoundLayers ?? DEFAULT_MORSE_SOUND_LAYERS
+  const harmR = harmonyIntervalRatioForLayer(layers)
+  for (let i = 0; i < activeOscillators.length; i += 2) {
+    const o1 = activeOscillators[i]
+    const o2 = activeOscillators[i + 1]
+    if (o1 && o2) {
+      try {
+        o1.frequency.cancelScheduledValues(t)
+        o2.frequency.cancelScheduledValues(t)
+        o1.frequency.setValueAtTime(f, t)
+        o2.frequency.setValueAtTime(f * harmR, t)
+      } catch {
+        /* noop */
+      }
     }
   }
 }
@@ -304,6 +317,7 @@ export function setMorseCarrierFrequencyHz(hz: number): void {
 export function setMorseSoundLayerParams(layers: NixieSoundLayerParams): void {
   const ctx = activeCtx
   if (!ctx) return
+  lastMorseSoundLayers = layers
   const t = ctx.currentTime
   const filter = activeMorseFilter
   const tremLfo = activeMorseLayerTremLfo
@@ -337,6 +351,19 @@ export function setMorseSoundLayerParams(layers: NixieSoundLayerParams): void {
   const uncannyNoise = activeMorseUncannyNoise
   if (uncannyNoise) {
     applyUncannyNoiseBranchParams(uncannyNoise, layers, t)
+  }
+  const harmR = harmonyIntervalRatioForLayer(layers)
+  for (let i = 0; i < activeOscillators.length; i += 2) {
+    const o1 = activeOscillators[i]
+    const o2 = activeOscillators[i + 1]
+    if (o1 && o2) {
+      try {
+        const base = getAudioParamAt(o1.frequency, t)
+        o2.frequency.setTargetAtTime(base * harmR, t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+      } catch {
+        /* noop */
+      }
+    }
   }
   const half = detuneHalfSpreadCentsForLayer(layers)
   for (let i = 0; i < activeOscillators.length; i += 2) {
@@ -443,6 +470,7 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   const freq = Math.max(1, Math.min(12000, options.frequencyHz))
   const vol = Math.min(MORSE_MASTER_GAIN_MAX, Math.max(0, options.volume ?? 0.12))
   const layers = options.soundLayers ?? DEFAULT_MORSE_SOUND_LAYERS
+  lastMorseSoundLayers = layers
 
   const master = ctx.createGain()
   const tFade = ctx.currentTime
@@ -549,12 +577,13 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
     const mech = layerMechanicalBlend01(layers)
     const oscType = mech >= 0.12 ? 'square' : 'sine'
 
+    const harmR = harmonyIntervalRatioForLayer(lastMorseSoundLayers ?? layers)
     const osc1 = ctx.createOscillator()
     const osc2 = ctx.createOscillator()
     osc1.type = oscType
     osc2.type = oscType
     osc1.frequency.value = freq
-    osc2.frequency.value = freq
+    osc2.frequency.value = freq * harmR
     const half = detuneHalfSpreadCentsForLayer(layers)
     osc1.detune.setValueAtTime(half, t)
     osc2.detune.setValueAtTime(-half, t)
