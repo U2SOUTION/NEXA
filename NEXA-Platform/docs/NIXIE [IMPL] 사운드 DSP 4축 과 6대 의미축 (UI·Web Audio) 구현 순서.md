@@ -117,6 +117,8 @@
 - `NIXIE 음악 건반 인터페이스와 비언어적 공감.md` — 개념·시나리오
 - Nixie UI 상수(마퀴 등): `src/system/nixie/nixieUiConfig.ts` (`NIXIE_HUD_MARQUEE`)
 - 사운드 레이어 정규화(단계 B): `src/system/nixie/nixieSoundLayerParams.ts`
+- 의미 6축 정규화(§8 M-B): `src/system/nixie/nixieSoundAtmosphereParams.ts`
+- 의미 → DSP·모스 **매핑**(§8 M-C·M-D): `src/system/nixie/nixieSoundAtmosphereMap.ts` (`mapNixieSoundAtmosphereToLayerParams`, `mapNixieSoundAtmosphereToMorseDelta`, `NIXIE_SOUND_ATMOSPHERE_MAP_SPEC_VERSION`) — 단위 테스트: `nixieSoundAtmosphereMap.test.ts`
 - 사운드 레이어 파이프·축별 DSP(단계 C·D): `src/system/nixie/nixieSoundLayerAudio.ts`
 - (선택) 기존 모스 구현: `src/system/nixie/morseWebAudio.ts`
 
@@ -139,15 +141,19 @@ NEXA NIXIE v0.3 **음악적 통신 장비** 관점에서 위 6축에 대해 **�
 - **M-B — 파라미터 객체로 묶기**
   - **내용:** 6개 `ref`를 하나의 객체로 정규화. 예: `getNixieSoundAtmosphere()` → `{ tension01, uncanniness01, mechanical01, space01, vitality01, harmony01 }` (모두 0~1). 타입·필드명은 코드에 한 번만 정의.
   - **산출물:** 이벤트·매핑 레이어가 받을 **의미 벡터**.
+  - **구현:** `src/system/nixie/nixieSoundAtmosphereParams.ts` (`getNixieSoundAtmosphere`, `NixieSoundAtmosphereParams`, `NixieSoundAtmosphereUi0to100`), `NixieDevControls`의 `nixieSoundAtmosphere` computed + `watch`(M-C 구독 지점). 단위 테스트: `nixieSoundAtmosphereParams.test.ts`.
 - **M-C — 매핑 설계 고정**
   - **내용:** **의미 6축 → DSP 4축(`NixieSoundLayerParams`)** 및 **모스 파생 파라미터**(dit 스케일, 캐리어 오프셋, 패닝 등)로 가는 **표 또는 함수 목록**을 문서·주석으로 고정. 축 상관(긴장 vs 활력 등) 시 **가중치·상한 규칙** 한 줄씩. **구현은 다음 스텝** — 여기서는 “무엇이 어디로 가는지”만 합의.
-  - **산출물:** 매핑 SSOT 초안(코드 없어도 됨).
+  - **산출물:** 매핑 SSOT(§8 표 A~D·합성 규칙). **버전 추적:** `nixieSoundAtmosphereMap.ts`의 `NIXIE_SOUND_ATMOSPHERE_MAP_SPEC_VERSION` (문서 M-C v0.1 과 동기).
+  - **구현(문서 SSOT):** 아래 **「M-C 매핑 설계 고정 (v0.1)」** 표 A~D·합성 규칙. **코드화(가중 합·클램프·R1~R3)** 는 M-D (`nixieSoundAtmosphereMap.ts` 등).
 - **M-D — 매핑 구현 (순수 함수)**
   - **내용:** `nixieSoundAtmosphereMap.ts` 등에 **의미 벡터 → DSP 목표**만 계산하는 **순수 함수**(부작용 없음). 필요 시 **의미 → 모스 옵션** 보조 함수 분리. 단위 테스트는 **수치·클램프** 위주.
   - **산출물:** 오디오 모듈이 import 가능한 **매핑 모듈**.
+  - **구현:** `mapNixieSoundAtmosphereToLayerParams`(표 A·R1~R3), `mapNixieSoundAtmosphereToMorseDelta`(표 B·R1 dit 하한), `sanitizeNixieSoundAtmosphereParams`. 튜닝 상수 `NIXIE_ATMOSPHERE_RELEASE_MECHANICAL_BETA` 등. 테스트: `nixieSoundAtmosphereMap.test.ts`.
 - **M-E — 개발 패널에 연결·체험**
   - **내용:** M-A UI가 **M-D 출력**을 구독하도록 연결. **모드 선택(권장):** (1) **DSP 직접 슬라이더** 유지 + **의미 슬라이더**는 별도 행에서 DSP를 덮어쓰기, 또는 (2) **의미만 표시**하고 DSP는 읽기 전용·미러. **레이어 파이프(테스트 사인)**·**모스 미리듣기**에 동일 매핑 결과를 적용할지 순서대로 검증.
   - **산출물:** 귀·UI로 **의미↔청각** 검증 완료.
+  - **구현(모드 1):** `NixieDevControls.vue` — `atmosphereMappingEnabled` 토글 **의미→DSP·모스**. 켜면 `effectiveNixieSoundLayers`(`mapNixieSoundAtmosphereToLayerParams`)가 TEST 프로브·`playMorseTimeline`의 `soundLayers`·재생 중 `setMorseSoundLayerParams`에만 사용(4축 DSP 슬라이더는 오디오 무시). 모스: `morseDitMsEffective`·`morseToneHzEffective`(`mapNixieSoundAtmosphereToMorseDelta`, 표 B·R1 dit 하한). 재생 중 의미·톤 변경은 `watch(morseToneHzEffective)` 등으로 반영; dit 변화는 타임라인 재구성을 위해 `watch(morseDitMsEffective)`로 재생 재시작.
 - **M-F — 상태·이벤트 연동**
   - **내용:** N-MAP·스냅샷·HUD 이벤트가 **의미 벡터(또는 델타)** 만 보내도록 설계. Pinia 필드·스키마 확정은 **여기서**. 필요 시 **프리셋 = 의미 벡터 스냅샷**만 저장.
   - **산출물:** 운영 시 **직접 Hz 없이** 재현 가능.
@@ -157,45 +163,55 @@ NEXA NIXIE v0.3 **음악적 통신 장비** 관점에서 위 6축에 대해 **�
 - **DSP 4축 단계 A~D가 이미 구현된 상태**이므로, 의미 축은 **새 슬라이더 묶음의 M-A부터** 쌓으면 된다. 기존 DSP 슬라이더를 제거할 필요는 없다(§8 표 — 의미 vs DSP 역할 분담).
 - **조화·스케일**처럼 **순수 모스 사인만으로는 한계가 있는 항목**은 M-C에서 **“모스 경로 / 건반·샘플 경로”** 로 나누어 적어 두고, M-E에서는 모스에 적용 가능한 부분만 먼저 연결한다.
 
-#### M-C 매핑 설계용 빈 표 (템플릿)
+#### M-C 매핑 설계 고정 (v0.1)
 
-아래는 **M-C**에서 채우는 **초안용** 표다. 숫자는 **가중(0~1)**·**기여 방향(+/-)**·**“주 / 보”** 등 팀에서 통일한 표기로 쓰면 된다. 빈 칸은 **의도적으로 미정**일 수 있다.
+**역할:** 의미 벡터 `NixieSoundAtmosphereParams`(각 `*01` ∈ [0,1])가 **DSP 4축·모스 파생값**에 어떻게 기여하는지 **가중치**로 고정한다. 표의 **셀 값은 0~1 스칼라 가중**(해당 의미 축이 **최대(1.0)** 일 때 그 DSP 차원으로의 **상대 기여**). 실제 합성·클램프는 **M-D**에서 코드화한다.
 
-**표 A — 의미 축 → DSP 4축(`NixieSoundLayerParams`) 기여**
+**합성(권장 초안, M-D에서 구현)**
 
-| 의미 축 ↓ | `filter01` | `release01` | `detune01` | `jitter01` | 비고(주·보조, 상한) |
+- **DSP 각 차원** `k` ∈ {filter, release, detune, jitter}:  
+  `dsp_k = clamp01( Σ_i w[i,k] * axis_i )` — `axis_i`는 6축 `*01`, `w[i,k]`는 **표 A** 해당 셀. 필요 시 **표 C**로 열·행 정규화 또는 상한을 추가한다.
+- **기계성 × 릴리즈:** 기계성은 **짧은 꼬리(스타카토)** 쪽 의미이므로, **표 A의 `release01` 열은 “높을수록 트레몰로·꼬리 강함”** 과 충돌할 수 있다. M-D에서는 **별도 항**으로 `release01_eff = clamp01( base_dsp − β * mechanical01 )` 형태의 **감쇠**를 허용한다(계수 `β`는 튜닝).
+- **모스:** 스냅샷 기준 **dit(ms)**·**캐리어 Hz**·**CHANNEL 패닝**은 유지하고, 의미 축은 **델타(가감)** 만 준다(표 B).
+
+**표 A — 의미 축 → DSP 4축(`NixieSoundLayerParams`) 기여 가중 `w[i,k]`**
+
+| 의미 축 ↓ | `filter01` | `release01` | `detune01` | `jitter01` | 비고 |
 | --- | --- | --- | --- | --- | --- |
-| 긴장 (Tension) | | | | | |
-| 이질감 (Uncanniness) | | | | | |
-| 기계성 (Mechanicalness) | | | | | |
-| 공간감 (Spaciousness) | | | | | |
-| 활력 (Vitality) | | | | | |
-| 조화 (Harmony) | | | | | |
+| 긴장 (Tension) | 0.45 | 0.25 | 0.15 | 0.35 | 날카로움·밀도 — 필터·지터 주 |
+| 이질감 (Uncanniness) | 0.15 | 0.10 | 0.35 | **0.55** | 지터·디튜닝 주 |
+| 기계성 (Mechanicalness) | 0.25 | 0.05 | 0.10 | 0.15 | `release01` 합성 시 **R3(감쇠)** 로 짧은 꼬리 쪽으로 보정. 값은 보조 수준 |
+| 공간감 (Spaciousness) | 0.20 | 0.40 | 0.25 | 0.10 | 릴리즈(트레몰로·잔향 느낌) 보조 — **진짜 리버브는 후속** |
+| 활력 (Vitality) | 0.30 | 0.35 | 0.40 | 0.20 | 속도감·입체 — 디튜닝·릴리즈 |
+| 조화 (Harmony) | 0.35 | 0.30 | **0.50** | 0.15 | 안정·정렬 — 디튜닝·필터 |
 
-**표 B — 의미 축 → 모스·타임라인·톤 (모스 경로에 한함)**
+**표 B — 의미 축 → 모스·타임라인·톤 (델타·계수, 모스 경로)**
 
-| 의미 축 ↓ | dit(ms) 또는 배율 | 캐리어 Hz 오프셋 | 스테레오 pan / 기타 | 비고 |
+| 의미 축 ↓ | dit **배율** (1=변화 없음, &lt;1 빠름) | 캐리어 **Hz 오프셋 계수** (× `tension01` 등으로 스케일) | pan **보조** (기존 L/D/R 외 미세 흔들림 깊이 0~1) | 비고 |
 | --- | --- | --- | --- | --- |
-| 긴장 | | | | |
-| 이질감 | | | | |
-| 기계성 | | | | |
-| 공간감 | | | | |
-| 활력 | | | | |
-| 조화 | | | | |
+| 긴장 | 0.75 ~ 1.0 (M-D: `1 - 0.25·tension01`) | +0 ~ +120 Hz 스케일 | 0.05 | dit·톤 상승 — **HUD 동기와 충돌 시 상한** |
+| 이질감 | 0.95 | ±30 Hz 랜덤·LFO는 M-D | 0.25 | 패닝 흔들림은 **깊이만**; 채널 버튼 우선 |
+| 기계성 | 1.0 | 0 | 0 | 리듬은 **기계적 정밀** — dit는 보통 고정에 가깝게 |
+| 공간감 | 1.0 | 0 | 0.15 | **Delay/Reverb는 건반·후속**; 모스는 pan 보조만 |
+| 활력 | `0.85 ~ 1.0` (`1 - 0.15·(1-vitality01)`) | 0 | 0 | **timeScale** 연동은 M-D·HUD 문서와 함께 검토 |
+| 조화 | 1.0 | 0 | 0 | 스케일·화성은 **건반 경로** |
 
-**표 C — 축 상관·가중 규칙 (선택)**
+**표 C — 축 상관·가중 규칙**
 
-| 규칙 ID | 조건 (예: 긴장↑ ∧ 활력↑) | 처리 (예: 활력 가중 0.7배) | 비고 |
+| 규칙 ID | 조건 | 처리 | 비고 |
 | --- | --- | --- | --- |
-| R1 | | | |
-| R2 | | | |
+| R1 | `tension01`·`vitality01` 둘 다 높음 | `jitter01` 합성 시 둘 중 작은 쪽에 **0.85배** 보수 적용 또는 `dit` 배율 **하한 0.82** | 리듬·밀도가 과도하게 중복되지 않게 |
+| R2 | `harmony01` ≥ 0.6 | `uncanniness01`·`jitter` 유래 항에 **0.75배** 감쇠 | 안정감 vs 불안정감 |
+| R3 | `mechanical01` ≥ 0.5 | `release01` 효과에 **기계성 감쇠** (`release01_eff` 위 합성식) | 스타카토 vs 긴 꼬리 |
 
-**표 D — 적용 채널 (후속 음원용 체크)**
+**표 D — 적용 채널 (v0.1 목표)**
 
 | 출력·효과 | 모스 미리듣기 | 레이어 파이프(테스트 사인) | 건반·샘플(후속) |
 | --- | --- | --- | --- |
-| 예: 공간감 → Delay | ☐ | ☐ | ☐ |
-| 예: 조화 → 스케일 | ☐ (한계 있음) | ☐ | ☐ |
+| DSP 4축 합성 결과 | ☑ | ☑ | ☐ |
+| dit / Hz 오프셋 델타 | ☑ | — | ☐ |
+| 공간감 → Delay/Reverb | ☐ | ☐(Delay 우선) | ☑ |
+| 조화 → 스케일·화성 | ☐ (사인 한계) | ☐ | ☑ |
 
 ### DSP 4축(필터·릴리즈·디튜닝·지터)과의 관계
 
