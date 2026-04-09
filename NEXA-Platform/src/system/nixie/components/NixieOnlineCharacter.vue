@@ -105,7 +105,8 @@ function syncHudMarqueeTimer() {
   }
   nmapStore.tickDemoHudMarquee()
   const raw = snapshot.value.hud_marquee_interval_ms ?? NIXIE_HUD_MARQUEE.intervalMs
-  const ms = Math.max(16, Math.floor(Number(raw) || NIXIE_HUD_MARQUEE.intervalMs))
+  const n = Math.floor(Number(raw) || NIXIE_HUD_MARQUEE.intervalMs)
+  const ms = Math.max(NIXIE_HUD_MARQUEE.intervalMsMin, Math.min(NIXIE_HUD_MARQUEE.intervalMsMax, n))
   hudMarqueeTimer = window.setInterval(() => {
     if (document.hidden) return
     nmapStore.tickDemoHudMarquee()
@@ -864,33 +865,33 @@ onBeforeUnmount(() => {
   will-change: transform, opacity;
 }
 
-/* 모스 옵션: 현재 디트·다시 — 토큰 나머지와 구분(밝은 황금·초록빛 글로우) */
-.nixie-online__dot--morse-now {
-  background: linear-gradient(180deg, #fff9e6 0%, #ffe066 38%, #ffb300 72%, #e65100 100%);
-  box-shadow:
-    0 0 7px rgb(182, 149, 57),
-    0 0 3px rgba(253, 2, 2, 0.45),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.18);
-  filter: none;
-}
-
-/* 옵션 ON일 때 같은 토큰·테이프의 비현재 부호 — 채도·명도 낮춤(GSAP opacity와 함께) */
-
+/* 1. 일반모드 도트 스타일 */
+/* 도트 전체 배경 가장 가벼운 흐림 */
 .nixie-online__dot--morse-dim {
   filter: saturate(0.58) brightness(0.68);
 }
 
-/* per-event: 테이프에서 현재 토큰 밖 맥락(가장 흐림) */
-.nixie-online__dot--morse-dim-tape {
-  filter: saturate(0.52) brightness(0.52);
+/* 모스 옵션: 현재 재생중인 디트·다시 — 토큰 나머지와 구분(밝은 황금·초록빛 글로우) */
+.nixie-online__dot--morse-now {
+  background: linear-gradient(180deg, #fff9e6 0%, #ffe066 38%, #ffb300 72%, #f6ca05ee 100%);
+  box-shadow:
+    0 0 7px rgb(182, 111, 57),
+    0 0 3px rgba(240, 109, 2, 0.45),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+  filter: none;
 }
 
-/* per-event: 같은 토큰 안·재생 부호가 아닌 부호(중간) */
+/* per-event: 테이프에서 현재 하나의 토큰 밖 맥락(어두운 색) */
+.nixie-online__dot--morse-dim-tape {
+  filter: saturate(0.12) brightness(0.12);
+}
+
+/* per-event: 하나의 토큰중 재생이 이닌 부호 도트 (중간) */
 .nixie-online__dot--morse-dim-token {
   filter: saturate(0.98) brightness(0.98);
 }
 
-/* 가상 실행 고스트 레이어 도트 스타일 */
+/* 2. 가상 실행 고스트 레이어 도트 스타일 */
 .nixie-online__hud--virtual .nixie-online__dot {
   opacity: 0.38;
   box-shadow: none;

@@ -1,9 +1,10 @@
+/**
+ * `buildMorseSoundTimelineWithMeta` 테스트.
+ * 모스 문자열 → 사운드 이벤트 타임라인 생성 검증.
+ */
+
 import { describe, expect, it } from 'vitest'
-import {
-  buildMorseSoundTimeline,
-  buildMorseSoundTimelineWithMeta,
-  morseTimelineTotalMs,
-} from './morseTimeline'
+import { buildMorseSoundTimeline, buildMorseSoundTimelineWithMeta, morseTimelineTotalMs } from './morseTimeline'
 
 const DIT = 60
 
@@ -45,9 +46,7 @@ describe('buildMorseSoundTimelineWithMeta', () => {
   it('... . 에서 글자 간 갭(ms=interGap)은 다음 토큰 인덱스 1', () => {
     const meta = buildMorseSoundTimelineWithMeta('... .', DIT)
     const interGapMs = DIT * 3
-    const interLetterGap = meta.events.findIndex(
-      (e, i) => e.kind === 'gap' && e.ms === interGapMs && meta.eventDisplayTokenIndex[i] === 1,
-    )
+    const interLetterGap = meta.events.findIndex((e, i) => e.kind === 'gap' && e.ms === interGapMs && meta.eventDisplayTokenIndex[i] === 1)
     expect(interLetterGap).toBeGreaterThan(-1)
     expect(meta.eventDisplayTokenIndex[0]).toBe(0)
   })

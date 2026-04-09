@@ -9,22 +9,7 @@ export type WhoPulse = 'WILL' | 'ECHO' | 'ASK'
 /** 모스 미리듣기 스테레오: L=-1, ALL(중앙)=0, R=1 — Web Audio `StereoPannerNode.pan` */
 export type MorseStereoPan = -1 | 0 | 1
 /** 원자 기준 프리셋 키(가청 매핑 전 기준 주파수 식별자) */
-export type MorseAtomicClockKey =
-  | 'H_1420MHz'
-  | 'Cs_9192631770Hz'
-  | 'Rb_6834682610Hz'
-  | 'Sr_429THz'
-  | 'Yb_518THz'
-  | 'YbPlus_E2_688THz'
-  | 'YbPlus_E3_642THz'
-  | 'HgPlus_1064THz'
-  | 'AlPlus_1121THz'
-  | 'CaPlus_411THz'
-  | 'Mg_655THz'
-  | 'InPlus_1267THz'
-  | 'TlPlus_1483THz'
-  | 'Dy_235THz'
-  | 'Th229_Nuclear'
+export type MorseAtomicClockKey = 'H_1420MHz' | 'Cs_9192631770Hz' | 'Rb_6834682610Hz' | 'Sr_429THz' | 'Yb_518THz' | 'YbPlus_E2_688THz' | 'YbPlus_E3_642THz' | 'HgPlus_1064THz' | 'AlPlus_1121THz' | 'CaPlus_411THz' | 'Mg_655THz' | 'InPlus_1267THz' | 'TlPlus_1483THz' | 'Dy_235THz' | 'Th229_Nuclear'
 
 /**
  * 시뮬: Nexion 스냅샷 형식.
@@ -60,7 +45,7 @@ export type NmapSnapshot = {
   morse_atomic_clock: MorseAtomicClockKey
   /** 긴 문자열 마퀴: 테이프 왼쪽에서 건너뛸 그리드 열 수(도트 1칸=1열), 주기=hudTapePeriodWidthCols */
   demo_hud_scroll_offset: number
-  /** HUD 마퀴 틱 간격(ms) 50~400 — `NixieOnlineCharacter` `setInterval`에 사용 */
+  /** HUD 마퀴 틱 간격(ms) — `NIXIE_HUD_MARQUEE.intervalMsMin~intervalMsMax`, `NixieOnlineCharacter` `setInterval` */
   hud_marquee_interval_ms: number
   /** 모스 미리듣기 시 닉시 HUD를 타임라인과 동기(방식 ②) — false면 재생 중에도 마퀴·기존 스크롄만 사용 */
   morse_hud_sync_with_playback: boolean
@@ -178,7 +163,9 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
   }
 
   function setHudMarqueeIntervalMs(ms: number) {
-    applyPatch({ hud_marquee_interval_ms: Math.max(50, Math.min(400, Math.round(Number(ms) || NIXIE_HUD_MARQUEE.intervalMs))) })
+    const lo = NIXIE_HUD_MARQUEE.intervalMsMin
+    const hi = NIXIE_HUD_MARQUEE.intervalMsMax
+    applyPatch({ hud_marquee_interval_ms: Math.max(lo, Math.min(hi, Math.round(Number(ms) || NIXIE_HUD_MARQUEE.intervalMs))) })
   }
 
   function setMorseDitMs(ms: number) {
@@ -321,11 +308,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
   }
 
   /** 재생 중 HUD 프레임(스크롄 오버라이드·강조 토큰·선택적 문자 구간) */
-  function setMorsePlaybackHudFrame(
-    scrollOffset: number,
-    highlightTokenIndex: number,
-    options?: MorsePlaybackHudFrameOptions,
-  ) {
+  function setMorsePlaybackHudFrame(scrollOffset: number, highlightTokenIndex: number, options?: MorsePlaybackHudFrameOptions) {
     const o = options ?? {}
     if (o.accentActive === false) {
       applyPatch({
@@ -338,8 +321,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
       return
     }
     const hr = o.highlightCharRange
-    const useChar =
-      hr != null && Number.isFinite(hr.start) && Number.isFinite(hr.end) && hr.end > hr.start
+    const useChar = hr != null && Number.isFinite(hr.start) && Number.isFinite(hr.end) && hr.end > hr.start
     const patch: Partial<NmapSnapshot> = {
       morse_playback_scroll_offset_override: scrollOffset,
       morse_playback_highlight_token_index: highlightTokenIndex,

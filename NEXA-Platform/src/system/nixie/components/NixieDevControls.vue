@@ -52,15 +52,7 @@
     </div>
     <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl" title="값이 클수록 빠름 · 실제 마퀴는 틱 간격(ms)이 짧아짐">닉시속도</span>
-      <q-slider
-        :model-value="hudMarqueeSpeedUi"
-        :min="HUD_MARQUEE_MS_MIN"
-        :max="HUD_MARQUEE_MS_MAX"
-        dense
-        color="primary"
-        class="nixie-dev-controls__slider col"
-        @update:model-value="commitHudMarqueeSpeedUi"
-      />
+      <q-slider :model-value="hudMarqueeSpeedUi" :min="HUD_MARQUEE_MS_MIN" :max="HUD_MARQUEE_MS_MAX" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="commitHudMarqueeSpeedUi" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ hudMarqueeSpeedUiRounded }}</span>
     </div>
 
@@ -305,9 +297,9 @@ const MORSE_TONE_MIN_HZ = 1
 const MORSE_TONE_MAX_HZ = 12000
 const MORSE_TONE_LOG_STEPS = 1000
 
-/** 닉시 마퀴: 슬라이더는 클수록 빠름(직관) · 스토어 `hud_marquee_interval_ms`는 틱 간격(작을수록 빠름) */
-const HUD_MARQUEE_MS_MIN = 50
-const HUD_MARQUEE_MS_MAX = 400
+/** 닉시 마퀴: 슬라이더는 클수록 빠름 · 스토어는 틱 간격(ms). `SUM - ui` → ui=max 일 때 `intervalMsMin`(가장 빠름) */
+const HUD_MARQUEE_MS_MIN = NIXIE_HUD_MARQUEE.marqueeSpeedUiMin
+const HUD_MARQUEE_MS_MAX = NIXIE_HUD_MARQUEE.marqueeSpeedUiMax
 const HUD_MARQUEE_MS_SUM = HUD_MARQUEE_MS_MIN + HUD_MARQUEE_MS_MAX
 
 const hudMarqueeSpeedUi = computed(() => {

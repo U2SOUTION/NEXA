@@ -8,4 +8,14 @@ export const NIXIE_HUD_MARQUEE = {
   colsPerTick: 1,
   // 마퀴 틱 간격(ms). 값이 작을수록 빠르게 흐름.
   intervalMs: 220,
+  /** 스토어·`setInterval`과 동일 — 브라우저 타이머 하한에 맞춤 */
+  intervalMsMin: 16,
+  /** 가장 느린 틱(긴 간격) */
+  intervalMsMax: 500,
+  /**
+   * 개발 패널 슬라이더(클수록 빠름). `interval = (min+max) - ui` 이므로
+   * max=500일 때 틱 간격은 `intervalMsMin`(가장 빠름).
+   */
+  marqueeSpeedUiMin: 16,
+  marqueeSpeedUiMax: 500,
 }
