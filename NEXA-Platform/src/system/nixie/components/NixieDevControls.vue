@@ -13,6 +13,7 @@
   - 의미 6축(M-A): 긴장·이질감·기계성·공간감·활력·조화 슬라이더 — 로컬 ref(0~100). 동 문서 §8 M-A.
   - 의미 6축(M-B): `getNixieSoundAtmosphere` → `nixieSoundAtmosphere` computed. 동 문서 §8 M-B.
   - 의미 매핑(M-E): 토글 ON 시 `mapNixieSoundAtmosphereToLayerParams` / `mapNixieSoundAtmosphereToMorseDelta` 가 레이어 프로브·모스 미리듣기에 적용. DSP 4축 슬라이더는 오디오에 반영되지 않음(문서 §8 M-E 모드 1). 동 문서 §8 M-E.
+  - 의미 6축·매핑 토글(M-F): `nmapSnapshotStore` `sound_atmosphere_*` / `sound_atmosphere_mapping_enabled` — SSOT. 동 문서 §8 M-F.
 -->
 <template>
   <div class="nixie-dev-controls" :class="{ 'nixie-dev-controls--embedded': embedded }">
@@ -201,44 +202,93 @@
         <q-separator class="q-my-xs" />
         <div class="row items-center q-mb-xs q-px-xs flex-wrap q-gutter-x-sm">
           <q-toggle
-            v-model="atmosphereMappingEnabled"
+            :model-value="Boolean(snapshot.sound_atmosphere_mapping_enabled)"
             dense
             left-label
             color="cyan-7"
             label="의미→DSP·모스"
+            @update:model-value="nmap.setSoundAtmosphereMappingEnabled"
           />
-          <span class="text-caption text-grey-6">켜면 6축 매핑이 TEST·모스에 적용 · 4축 슬라이더는 오디오 무시</span>
+          <span class="text-caption text-grey-6">켜면 6축 매핑이 TEST·모스에 적용 · 4축 슬라이더는 오디오 무시 · 값은 스냅샷(Pinia)</span>
         </div>
-        <div class="text-caption text-grey-7 q-mb-xs q-px-xs">M-A~E · 의미 6축 (`nixieSoundAtmosphere` · 선택 시 매핑 연동)</div>
+        <div class="text-caption text-grey-7 q-mb-xs q-px-xs">M-A~F · 의미 6축 (`nixieSoundAtmosphere` · Pinia `sound_atmosphere_*`)</div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="긴장 (Tension)">TENSION</span>
-          <q-slider v-model="atmosphereTension" :min="0" :max="100" dense color="deep-purple-5" class="nixie-dev-controls__slider col" />
-          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereTension }} %</span>
+          <q-slider
+            :model-value="snapshot.sound_atmosphere_tension ?? 0"
+            :min="0"
+            :max="100"
+            dense
+            color="deep-purple-5"
+            class="nixie-dev-controls__slider col"
+            @update:model-value="nmap.setSoundAtmosphereTension"
+          />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_tension ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="이질감 (Uncanniness)">UNCANNY</span>
-          <q-slider v-model="atmosphereUncanniness" :min="0" :max="100" dense color="indigo-5" class="nixie-dev-controls__slider col" />
-          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereUncanniness }} %</span>
+          <q-slider
+            :model-value="snapshot.sound_atmosphere_uncanniness ?? 0"
+            :min="0"
+            :max="100"
+            dense
+            color="indigo-5"
+            class="nixie-dev-controls__slider col"
+            @update:model-value="nmap.setSoundAtmosphereUncanniness"
+          />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_uncanniness ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="기계성 (Mechanicalness)">MECHANICAL</span>
-          <q-slider v-model="atmosphereMechanical" :min="0" :max="100" dense color="blue-grey-6" class="nixie-dev-controls__slider col" />
-          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereMechanical }} %</span>
+          <q-slider
+            :model-value="snapshot.sound_atmosphere_mechanical ?? 0"
+            :min="0"
+            :max="100"
+            dense
+            color="blue-grey-6"
+            class="nixie-dev-controls__slider col"
+            @update:model-value="nmap.setSoundAtmosphereMechanical"
+          />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_mechanical ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="공간감 (Spaciousness)">SPACE</span>
-          <q-slider v-model="atmosphereSpace" :min="0" :max="100" dense color="cyan-6" class="nixie-dev-controls__slider col" />
-          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereSpace }} %</span>
+          <q-slider
+            :model-value="snapshot.sound_atmosphere_space ?? 0"
+            :min="0"
+            :max="100"
+            dense
+            color="cyan-6"
+            class="nixie-dev-controls__slider col"
+            @update:model-value="nmap.setSoundAtmosphereSpace"
+          />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_space ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="활력 (Vitality)">VITALITY</span>
-          <q-slider v-model="atmosphereVitality" :min="0" :max="100" dense color="light-green-5" class="nixie-dev-controls__slider col" />
-          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereVitality }} %</span>
+          <q-slider
+            :model-value="snapshot.sound_atmosphere_vitality ?? 0"
+            :min="0"
+            :max="100"
+            dense
+            color="light-green-5"
+            class="nixie-dev-controls__slider col"
+            @update:model-value="nmap.setSoundAtmosphereVitality"
+          />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_vitality ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="조화 (Harmony)">HARMONY</span>
-          <q-slider v-model="atmosphereHarmony" :min="0" :max="100" dense color="amber-7" class="nixie-dev-controls__slider col" />
-          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereHarmony }} %</span>
+          <q-slider
+            :model-value="snapshot.sound_atmosphere_harmony ?? 0"
+            :min="0"
+            :max="100"
+            dense
+            color="amber-7"
+            class="nixie-dev-controls__slider col"
+            @update:model-value="nmap.setSoundAtmosphereHarmony"
+          />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_harmony ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs q-gutter-x-sm">
           <q-toggle dense left-label color="cyan-7" :model-value="soundLayerProbeOn" label="TEST" @update:model-value="onSoundLayerProbeToggle" />
@@ -281,8 +331,8 @@
         </div>
         <div class="text-center q-mb-xs q-px-xs nixie-dev-controls__morse-timeline">
           <div class="nixie-dev-controls__morse-timeline-hint text-grey-7">
-            재생 타임라인: 총 {{ morsePlayDurationMsUi }}ms · PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dit {{ morseDitMsEffective }}ms<template v-if="atmosphereMappingEnabled"><span class="text-grey-5"> (슬라이더 {{ morseDitMsUi }})</span></template> · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsEffective }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤
-            {{ morseToneHzEffective }}Hz<template v-if="atmosphereMappingEnabled"><span class="text-grey-5"> (슬라이더 {{ morseToneHzUi }})</span></template> · 볼륨 {{ morseVolumeSlider }}% · 원자 {{ morseAtomicClockLabel }}
+            재생 타임라인: 총 {{ morsePlayDurationMsUi }}ms · PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dit {{ morseDitMsEffective }}ms<template v-if="snapshot.sound_atmosphere_mapping_enabled"><span class="text-grey-5"> (슬라이더 {{ morseDitMsUi }})</span></template> · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsEffective }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤
+            {{ morseToneHzEffective }}Hz<template v-if="snapshot.sound_atmosphere_mapping_enabled"><span class="text-grey-5"> (슬라이더 {{ morseToneHzUi }})</span></template> · 볼륨 {{ morseVolumeSlider }}% · 원자 {{ morseAtomicClockLabel }}
           </div>
         </div>
       </div>
@@ -404,26 +454,18 @@ const soundLayerJitter = ref(0)
 /** 단계 C: 전용 파이프 테스트 톤(사용자 제스처로만 시작) */
 const soundLayerProbeOn = ref(false)
 
-/** §8 M-A: 의미 6축 — 로컬(0~100) */
-const atmosphereTension = ref(0)
-const atmosphereUncanniness = ref(0)
-const atmosphereMechanical = ref(0)
-const atmosphereSpace = ref(0)
-const atmosphereVitality = ref(0)
-const atmosphereHarmony = ref(0)
+/** §8 M-E~F: 의미→DSP·모스 매핑 토글 — 스냅샷 `sound_atmosphere_mapping_enabled` */
+const atmosphereMappingEnabled = computed(() => Boolean(snapshot.value.sound_atmosphere_mapping_enabled))
 
-/** §8 M-E: 켜면 의미 6축 매핑이 레이어 프로브·모스에 덮어씀(4축 슬라이더는 오디오 미사용) */
-const atmosphereMappingEnabled = ref(false)
-
-/** §8 M-B: `getNixieSoundAtmosphere` — 매핑·이벤트는 이 객체만 사용 */
+/** §8 M-B·M-F: `getNixieSoundAtmosphere` — 값은 Pinia `sound_atmosphere_*` */
 const nixieSoundAtmosphere = computed(() =>
   getNixieSoundAtmosphere({
-    tension: atmosphereTension.value,
-    uncanniness: atmosphereUncanniness.value,
-    mechanical: atmosphereMechanical.value,
-    space: atmosphereSpace.value,
-    vitality: atmosphereVitality.value,
-    harmony: atmosphereHarmony.value,
+    tension: snapshot.value.sound_atmosphere_tension ?? 0,
+    uncanniness: snapshot.value.sound_atmosphere_uncanniness ?? 0,
+    mechanical: snapshot.value.sound_atmosphere_mechanical ?? 0,
+    space: snapshot.value.sound_atmosphere_space ?? 0,
+    vitality: snapshot.value.sound_atmosphere_vitality ?? 0,
+    harmony: snapshot.value.sound_atmosphere_harmony ?? 0,
   }),
 )
 

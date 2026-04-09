@@ -15,6 +15,7 @@ export type MorseAtomicClockKey = 'H_1420MHz' | 'Cs_9192631770Hz' | 'Rb_68346826
  * 시뮬: Nexion 스냅샷 형식.
  * `morse_dit_ms` / `morse_tone_hz` / `morse_volume` 은 HUD·미리듣기·타임라인에 쓰이며,
  * 향후 N-MAP 상황(entropy·confidence·how_state 등)에 따라 덮어쓰기·보간하는 매핑은 본편 닉시 단계에서 별도 모듈로 둘 예정(현재 미연결).
+ * §8 M-F: 의미 6축(0~100)·의미→DSP·모스 토글 — `getNixieSoundAtmosphere` / 매핑 모듈 입력 SSOT.
  */
 export type NmapSnapshot = {
   schemaVersion: number
@@ -27,6 +28,15 @@ export type NmapSnapshot = {
   is_virtual: boolean
   source_shell_id: string | null
   user_defined_threshold: number
+  /** §8 M-F — 닉시 사운드 의미 6축(개발 패널·이벤트 공통, 0~100) */
+  sound_atmosphere_tension: number
+  sound_atmosphere_uncanniness: number
+  sound_atmosphere_mechanical: number
+  sound_atmosphere_space: number
+  sound_atmosphere_vitality: number
+  sound_atmosphere_harmony: number
+  /** §8 M-E~F — 의미 벡터→DSP·모스 매핑 적용 여부 */
+  sound_atmosphere_mapping_enabled: boolean
   /** 시뮬: HUD 도트 텍스트(A–Z·a–z·0–9·한글·스페이스·모스 `.` `-`, 전각·중점 등 정규화). 빈 문자열이면 기본 루미나만 */
   demo_hud_text: string
   /** 시뮬 입력 원문(사용자 타이핑 그대로 유지; 예: 한글 완성형) */
@@ -76,10 +86,39 @@ export type NmapSnapshot = {
 
 const LOCAL_SHELL_ID = 'local'
 
+function clampUi100(n: number): number {
+  const x = Number(n)
+  if (!Number.isFinite(x)) return 0
+  return Math.max(0, Math.min(100, Math.round(x)))
+}
+
+/** §8 M-F — `applyPatch`마다 보정. 구버전·부분 객체에 키가 없으면 spread 후에도 `undefined`가 남아 UI(토글·슬라이더)가 깨짐 */
+function ensureSoundAtmosphereFields(next: NmapSnapshot): NmapSnapshot {
+  const d = defaultSnapshot()
+  const t = next.sound_atmosphere_tension
+  const u = next.sound_atmosphere_uncanniness
+  const m = next.sound_atmosphere_mechanical
+  const sp = next.sound_atmosphere_space
+  const v = next.sound_atmosphere_vitality
+  const h = next.sound_atmosphere_harmony
+  const mapOn = next.sound_atmosphere_mapping_enabled
+  return {
+    ...next,
+    schemaVersion: Math.max(next.schemaVersion ?? 1, 2),
+    sound_atmosphere_tension: typeof t === 'number' && Number.isFinite(t) ? clampUi100(t) : d.sound_atmosphere_tension,
+    sound_atmosphere_uncanniness: typeof u === 'number' && Number.isFinite(u) ? clampUi100(u) : d.sound_atmosphere_uncanniness,
+    sound_atmosphere_mechanical: typeof m === 'number' && Number.isFinite(m) ? clampUi100(m) : d.sound_atmosphere_mechanical,
+    sound_atmosphere_space: typeof sp === 'number' && Number.isFinite(sp) ? clampUi100(sp) : d.sound_atmosphere_space,
+    sound_atmosphere_vitality: typeof v === 'number' && Number.isFinite(v) ? clampUi100(v) : d.sound_atmosphere_vitality,
+    sound_atmosphere_harmony: typeof h === 'number' && Number.isFinite(h) ? clampUi100(h) : d.sound_atmosphere_harmony,
+    sound_atmosphere_mapping_enabled: typeof mapOn === 'boolean' ? mapOn : d.sound_atmosphere_mapping_enabled,
+  }
+}
+
 /** 시뮬: 기본 스냅샷 */
 function defaultSnapshot(): NmapSnapshot {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     how_state: 'FLOW',
     who_pulse: 'ECHO',
     confidence_score: 100,
@@ -88,6 +127,14 @@ function defaultSnapshot(): NmapSnapshot {
     is_virtual: false,
     source_shell_id: LOCAL_SHELL_ID,
     user_defined_threshold: 95,
+    /** §8 M-B: 의미 6축 슬라이더 → 스냅샷 `sound_atmosphere_*` */
+    sound_atmosphere_tension: 0,
+    sound_atmosphere_uncanniness: 0,
+    sound_atmosphere_mechanical: 0,
+    sound_atmosphere_space: 0,
+    sound_atmosphere_vitality: 0,
+    sound_atmosphere_harmony: 0,
+    sound_atmosphere_mapping_enabled: false,
     demo_hud_text: '',
     demo_hud_text_raw: '',
     demo_hud_morse_enabled: false,
@@ -99,7 +146,7 @@ function defaultSnapshot(): NmapSnapshot {
     demo_hud_scroll_offset: 0,
     hud_marquee_interval_ms: NIXIE_HUD_MARQUEE.intervalMs,
     morse_hud_sync_with_playback: true,
-    /** true일 때만 디트·다시마다 한 글자 강조(옵션). false면 토큰 전체 강조 */
+    /** true일 때만 디트(단음)·다시(장음)마다 한 글자 강조(옵션). false면 토큰 전체 강조 */
     morse_hud_per_event_highlight: false,
     morse_playback_active: false,
     morse_playback_generation: 0,
@@ -127,7 +174,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
   const nebulaPulse: Ref<number> = ref(0)
 
   function applyPatch(partial: Partial<NmapSnapshot>) {
-    snapshot.value = { ...snapshot.value, ...partial }
+    snapshot.value = ensureSoundAtmosphereFields({ ...snapshot.value, ...partial })
   }
 
   function setHowState(how_state: HowState) {
@@ -160,6 +207,29 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
 
   function setUserDefinedThreshold(user_defined_threshold: number) {
     applyPatch({ user_defined_threshold: Math.max(0, Math.min(100, user_defined_threshold)) })
+  }
+
+  // §8 M-B: 의미 6축 슬라이더 → 스냅샷 `sound_atmosphere_*`
+  function setSoundAtmosphereTension(v: number) {
+    applyPatch({ sound_atmosphere_tension: clampUi100(v) })
+  }
+  function setSoundAtmosphereUncanniness(v: number) {
+    applyPatch({ sound_atmosphere_uncanniness: clampUi100(v) })
+  }
+  function setSoundAtmosphereMechanical(v: number) {
+    applyPatch({ sound_atmosphere_mechanical: clampUi100(v) })
+  }
+  function setSoundAtmosphereSpace(v: number) {
+    applyPatch({ sound_atmosphere_space: clampUi100(v) })
+  }
+  function setSoundAtmosphereVitality(v: number) {
+    applyPatch({ sound_atmosphere_vitality: clampUi100(v) })
+  }
+  function setSoundAtmosphereHarmony(v: number) {
+    applyPatch({ sound_atmosphere_harmony: clampUi100(v) })
+  }
+  function setSoundAtmosphereMappingEnabled(enabled: boolean) {
+    applyPatch({ sound_atmosphere_mapping_enabled: Boolean(enabled) })
   }
 
   function setHudMarqueeIntervalMs(ms: number) {
@@ -363,10 +433,20 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     setIsVirtual,
     setSourceShellId,
     setUserDefinedThreshold,
+    /** §8 M-B: 의미 6축 슬라이더 → 스냅샷 `sound_atmosphere_*` */
+    setSoundAtmosphereTension,
+    setSoundAtmosphereUncanniness,
+    setSoundAtmosphereMechanical,
+    setSoundAtmosphereSpace,
+    setSoundAtmosphereVitality,
+    setSoundAtmosphereHarmony,
+    /** §8 M-F: 의미→DSP·모스 매핑 토글 — 스냅샷 `sound_atmosphere_mapping_enabled` */
+    setSoundAtmosphereMappingEnabled,
     setHudMarqueeIntervalMs,
     resetToDefaults,
     setDemoHudText,
     setDemoHudMorseEnabled,
+    /** §8 M-E~F: 의미→DSP·모스 매핑 적용 여부 — 스냅샷 `sound_atmosphere_mapping_enabled` */
     setMorseDitMs,
     setMorseToneHz,
     setMorseVolume,

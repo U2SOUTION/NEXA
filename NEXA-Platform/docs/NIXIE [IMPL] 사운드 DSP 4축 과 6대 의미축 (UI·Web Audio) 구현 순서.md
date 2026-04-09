@@ -118,6 +118,7 @@
 - Nixie UI 상수(마퀴 등): `src/system/nixie/nixieUiConfig.ts` (`NIXIE_HUD_MARQUEE`)
 - 사운드 레이어 정규화(단계 B): `src/system/nixie/nixieSoundLayerParams.ts`
 - 의미 6축 정규화(§8 M-B): `src/system/nixie/nixieSoundAtmosphereParams.ts`
+- 의미 6축·매핑 토글 SSOT(§8 M-F): `src/system/store/nmapSnapshotStore.ts` (`sound_atmosphere_*`, `sound_atmosphere_mapping_enabled`)
 - 의미 → DSP·모스 **매핑**(§8 M-C·M-D): `src/system/nixie/nixieSoundAtmosphereMap.ts` (`mapNixieSoundAtmosphereToLayerParams`, `mapNixieSoundAtmosphereToMorseDelta`, `NIXIE_SOUND_ATMOSPHERE_MAP_SPEC_VERSION`) — 단위 테스트: `nixieSoundAtmosphereMap.test.ts`
 - 사운드 레이어 파이프·축별 DSP(단계 C·D): `src/system/nixie/nixieSoundLayerAudio.ts`
 - (선택) 기존 모스 구현: `src/system/nixie/morseWebAudio.ts`
@@ -157,6 +158,7 @@ NEXA NIXIE v0.3 **음악적 통신 장비** 관점에서 위 6축에 대해 **�
 - **M-F — 상태·이벤트 연동**
   - **내용:** N-MAP·스냅샷·HUD 이벤트가 **의미 벡터(또는 델타)** 만 보내도록 설계. Pinia 필드·스키마 확정은 **여기서**. 필요 시 **프리셋 = 의미 벡터 스냅샷**만 저장.
   - **산출물:** 운영 시 **직접 Hz 없이** 재현 가능.
+  - **구현:** `nmapSnapshotStore` — `sound_atmosphere_tension` … `sound_atmosphere_harmony`(0~100), `sound_atmosphere_mapping_enabled`. `resetToDefaults`·`applyPatch`에 포함. UI는 `NixieDevControls`가 스냅샷에 바인딩; 다른 모듈은 `useNmapSnapshotStore().snapshot` 또는 전용 setter로 동일 필드 갱신.
 
 **진행 시 유의**
 
