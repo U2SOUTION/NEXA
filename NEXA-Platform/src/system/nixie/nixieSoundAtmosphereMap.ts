@@ -1,7 +1,7 @@
 /**
  * 의미 6축 → DSP 4(`NixieSoundLayerParams`)·모스 델타 — **M-D** 순수 함수.
  *
- * SSOT: `docs/NIXIE [IMPL] 사운드 DSP 4축 과 6대 의미축 (UI·Web Audio) 구현 순서.md`
+ * SSOT: `docs/NIXIE [ARCH] 사운드 DSP 4축 과 6대 의미축 (UI·Web Audio) 아키텍셔.md`
  * 「M-C 매핑 설계 고정 (v0.1)」표 A~C·합성식.
  */
 

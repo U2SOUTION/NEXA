@@ -9,7 +9,7 @@
   - 스냅샷 applyPatch 가 통째로 갈아끼워지므로 morse 필드는 배열 watch 금지 → dit/tone/volume 스칼라별 watch 로만 로컬 슬라이더 동기화.
   - N-MAP 수치 → 모스 파라미터 자동 매핑은 아직 없음. 본격 닉시 진행 시 연출 레이어에서 추가 예정.
   - PAN L / ALL / R: 스냅샷 `morse_stereo_pan` + Web Audio `StereoPannerNode`, 재생 중 버튼만으로도 실시간 체험 가능.
-  - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): 단계 A는 로컬 ref만(0~100), Web Audio 미연동 — docs/NIXIE [IMPL] 사운드 DSP 4축 과 6대 의미축 (UI·Web Audio) 구현 순서.md
+  - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): 단계 A는 로컬 ref만(0~100), Web Audio 미연동 — docs/NIXIE [ARCH] 사운드 DSP 4축 과 6대 의미축 (UI·Web Audio) 아키텍셔.md
   - 의미 6축(M-A): 긴장·이질감·기계성·공간감·활력·조화 슬라이더 — 로컬 ref(0~100). 동 문서 §8 M-A.
   - 의미 6축(M-B): `getNixieSoundAtmosphere` → `nixieSoundAtmosphere` computed. 동 문서 §8 M-B.
   - 의미 매핑(M-E): 토글 ON 시 `mapNixieSoundAtmosphereToLayerParams` / `mapNixieSoundAtmosphereToMorseDelta` 가 레이어 프로브·모스 미리듣기에 적용. DSP 4축 슬라이더는 오디오에 반영되지 않음(문서 §8 M-E 모드 1). 동 문서 §8 M-E.
