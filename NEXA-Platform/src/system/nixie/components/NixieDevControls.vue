@@ -9,7 +9,7 @@
   - 스냅샷 applyPatch 가 통째로 갈아끼워지므로 morse 필드는 배열 watch 금지 → dit/tone/volume 스칼라별 watch 로만 로컬 슬라이더 동기화.
   - N-MAP 수치 → 모스 파라미터 자동 매핑은 아직 없음. 본격 닉시 진행 시 연출 레이어에서 추가 예정.
   - PAN L / ALL / R: 스냅샷 `morse_stereo_pan` + Web Audio `StereoPannerNode`, 재생 중 버튼만으로도 실시간 체험 가능.
-  - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): 단계 A는 로컬 ref만(0~100), Web Audio 미연동 — docs/NIXIE [IMPL] 사운드 레이어 4축(UI·Web Audio) 구현 순서.md
+  - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): 단계 A는 로컬 ref만(0~100), Web Audio 미연동 — docs/NIXIE [IMPL] 사운드 DSP 4축 과 6대 의미축 (UI·Web Audio) 구현 순서.md
 -->
 <template>
   <div class="nixie-dev-controls" :class="{ 'nixie-dev-controls--embedded': embedded }">
@@ -195,6 +195,8 @@
           <q-slider v-model="soundLayerJitter" :min="0" :max="100" dense color="pink-6" class="nixie-dev-controls__slider col" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ soundLayerJitter }} %</span>
         </div>
+        <q-separator class="q-my-xs" />
+        
         <div class="row items-center no-wrap q-mb-xs q-gutter-x-sm">
           <q-toggle dense left-label color="cyan-7" :model-value="soundLayerProbeOn" label="TEST" @update:model-value="onSoundLayerProbeToggle" />
           <span class="text-caption text-grey-6 nixie-dev-controls__probe-hint">듀얼 사인 {{ NIXIE_SOUND_LAYER_PROBE_CARRIER_HZ }}Hz · LP / Tremolo / D Tuning / Vibrato</span>
