@@ -12,8 +12,11 @@ import {
   layerMechanicalBlend01,
   lowpassQForLayer,
   release01ToTremoloDepth,
+  NIXIE_SPACE_WET_LP_HZ,
+  NIXIE_SPACE_WET_LP_Q,
   spaceReverbGainParams,
   stopUncannyNoiseBranch,
+  tremoloHzForLayer,
 } from './nixieSoundLayerAudio'
 
 /** 모스 재생 시 사운드 레이어 미지정이면 — 레거시 단일 사인에 가깝게(밝은 LP, 트레몰로·디튜닝·지터 없음) */
@@ -303,8 +306,12 @@ export function setMorseSoundLayerParams(layers: NixieSoundLayerParams): void {
   if (!ctx) return
   const t = ctx.currentTime
   const filter = activeMorseFilter
+  const tremLfo = activeMorseLayerTremLfo
   const trem = activeMorseLayerTremGain
   const jit = activeMorseLayerJitterGain
+  if (tremLfo) {
+    tremLfo.frequency.setTargetAtTime(tremoloHzForLayer(layers), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+  }
   if (filter) {
     filter.type = 'lowpass'
     filter.frequency.setTargetAtTime(filter01ToLowpassHz(layers.filter01), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
@@ -455,6 +462,10 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   const delayInputMerge = ctx.createGain()
   delayInputMerge.gain.setValueAtTime(1, tFade)
   const spaceDelay = ctx.createDelay(1)
+  const spaceWetLp = ctx.createBiquadFilter()
+  spaceWetLp.type = 'lowpass'
+  spaceWetLp.frequency.setValueAtTime(NIXIE_SPACE_WET_LP_HZ, tFade)
+  spaceWetLp.Q.setValueAtTime(NIXIE_SPACE_WET_LP_Q, tFade)
   const feedbackGain = ctx.createGain()
   const dryGain = ctx.createGain()
   const wetGain = ctx.createGain()
@@ -465,8 +476,9 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   postFilterGain.connect(delayInputMerge)
   feedbackGain.connect(delayInputMerge)
   delayInputMerge.connect(spaceDelay)
-  spaceDelay.connect(wetGain)
-  spaceDelay.connect(feedbackGain)
+  spaceDelay.connect(spaceWetLp)
+  spaceWetLp.connect(wetGain)
+  spaceWetLp.connect(feedbackGain)
   postFilterGain.connect(dryGain)
   dryGain.connect(master)
   wetGain.connect(master)
@@ -481,7 +493,7 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
 
   const tremLfo = ctx.createOscillator()
   tremLfo.type = 'sine'
-  tremLfo.frequency.setValueAtTime(2.4, tFade)
+  tremLfo.frequency.setValueAtTime(tremoloHzForLayer(layers), tFade)
   const tremGain = ctx.createGain()
   tremGain.gain.setValueAtTime(release01ToTremoloDepth(layers.release01), tFade)
   tremLfo.connect(tremGain)

@@ -30,6 +30,10 @@ export type NixieSoundLayerParams = {
    * 의미 축 **이질감** 전달(0~1, 선택). 지터 LFO 속도·디튜닝/지터 강조·LP Q 미세 상승에 사용.
    */
   uncannyBlend01?: number
+  /**
+   * 의미 축 **활력** 전달(0~1, 선택). 트레몰로 LFO 속도 등 “에너지” 청감에 사용.
+   */
+  vitalityBlend01?: number
 }
 
 function clampUi100(n: number): number {

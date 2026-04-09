@@ -53,10 +53,19 @@ const MECH_LP_Q_EXTRA_MAX = 5.2
 /** 이 값 이상이면 프로브 시작 시 스퀘어 파형(사인 대비 기계음) */
 const MECH_SQUARE_WAVE_THRESHOLD = 0.12
 
-/** 공간감 — Delay+피드백 최대 지연(초), `DelayNode` 버퍼 상한 */
-const SPACE_DELAY_MAX_SEC = 0.55
+/** 공간감 — 블렌드 1일 때 추가되는 지연(초) — 짧은 슬랩백보다 약간 긴 꼬리 쪽 */
+const SPACE_DELAY_RANGE_SEC = 0.42
+/** 최소 지연(초) — 과도한 “탁” 소리 완화 */
+const SPACE_DELAY_MIN_SEC = 0.05
+/** `delayTime` 만 길게 스무딩 — 슬라이더 조작 시 지퍼/뿅 클릭 완화 */
+const SPACE_DELAY_TIME_SMOOTH_SEC = 0.32
+/** 웻·피드백 경로 저역통과 — 프로브·모스 동일 */
+export const NIXIE_SPACE_WET_LP_HZ = 3400
+export const NIXIE_SPACE_WET_LP_Q = 0.65
 
 const TREMOLO_HZ = 2.4
+/** 활력↑ 시 릴리즈 트레몰로 LFO 가속(에너지·맥박 청감) */
+const VITALITY_TREMOLO_HZ_MUL = 0.58
 const JITTER_LFO_HZ = 6.3
 
 /** `setTargetAtTime` 시간 상수(초) */
@@ -136,6 +145,17 @@ export function layerSpaceBlend01(layers: NixieSoundLayerParams): number {
 /** 의미 이질감 블렌드 0~1 */
 export function layerUncannyBlend01(layers: NixieSoundLayerParams): number {
   return clamp01(layers.uncannyBlend01 ?? 0)
+}
+
+/** 의미 활력 블렌드 0~1 */
+export function layerVitalityBlend01(layers: NixieSoundLayerParams): number {
+  return clamp01(layers.vitalityBlend01 ?? 0)
+}
+
+/** 릴리즈 트레몰로 LFO(Hz) — 활력↑ 시 더 빠른 진폭 변조 */
+export function tremoloHzForLayer(layers: NixieSoundLayerParams): number {
+  const v = layerVitalityBlend01(layers)
+  return TREMOLO_HZ * (1 + VITALITY_TREMOLO_HZ_MUL * v)
 }
 
 /** 지터 LFO 주파수(Hz) — 이질감↑ 시 더 빠른 피치 변조 */
@@ -260,11 +280,12 @@ export function spaceReverbGainParams(layers: NixieSoundLayerParams): {
   wetLinear: number
 } {
   const s = layerSpaceBlend01(layers)
+  /** 낮은 피드백·낮은 웻 — 전형적인 디지털 딜레이 “뿅/스프링” 느낌 완화, 전체 레벨도 살짝 낮춤 */
   return {
-    delaySec: 0.028 + s * SPACE_DELAY_MAX_SEC,
-    feedback: Math.min(0.72, 0.06 + s * 0.7),
-    dryLinear: Math.max(0.15, 1 - s * 0.68),
-    wetLinear: 0.12 + s * 0.72,
+    delaySec: SPACE_DELAY_MIN_SEC + s * SPACE_DELAY_RANGE_SEC,
+    feedback: Math.min(0.34, 0.02 + s * 0.28),
+    dryLinear: Math.max(0.28, 1 - s * 0.45),
+    wetLinear: 0.038 + s * 0.26,
   }
 }
 
@@ -278,8 +299,8 @@ export function applySpaceReverbParams(
   t: number,
 ): void {
   const p = spaceReverbGainParams(layers)
-  const d = Math.max(0.001, Math.min(SPACE_DELAY_MAX_SEC + 0.05, p.delaySec))
-  delay.delayTime.setTargetAtTime(d, t, PARAM_SMOOTH_SEC)
+  const d = Math.max(0.002, Math.min(SPACE_DELAY_MIN_SEC + SPACE_DELAY_RANGE_SEC + 0.06, p.delaySec))
+  delay.delayTime.setTargetAtTime(d, t, SPACE_DELAY_TIME_SMOOTH_SEC)
   feedbackGain.gain.setTargetAtTime(p.feedback, t, PARAM_SMOOTH_SEC)
   dryGain.gain.setTargetAtTime(p.dryLinear, t, PARAM_SMOOTH_SEC)
   wetGain.gain.setTargetAtTime(p.wetLinear, t, PARAM_SMOOTH_SEC)
@@ -299,6 +320,8 @@ type ProbeGraph = {
   feedbackGain: GainNode
   delayInputMerge: GainNode
   spaceDelay: DelayNode
+  /** 딜레이 탭 → 웻/피드백 전 저역 — 날카로운 “뿅” 톤 완화 */
+  spaceWetLp: BiquadFilterNode
   tremLfo: OscillatorNode
   tremGain: GainNode
   jitterLfo: OscillatorNode
@@ -324,6 +347,7 @@ function applyLayerParams(g: ProbeGraph, layers: NixieSoundLayerParams): void {
   g.osc1.detune.setTargetAtTime(half, t, PARAM_SMOOTH_SEC)
   g.osc2.detune.setTargetAtTime(-half, t, PARAM_SMOOTH_SEC)
 
+  g.tremLfo.frequency.setTargetAtTime(tremoloHzForLayer(layers), t, PARAM_SMOOTH_SEC)
   g.tremGain.gain.setTargetAtTime(release01ToTremoloDepth(layers.release01), t, PARAM_SMOOTH_SEC)
   g.jitterLfo.frequency.setTargetAtTime(jitterLfoHzForLayer(layers), t, PARAM_SMOOTH_SEC)
   g.jitterGain.gain.setTargetAtTime(jitterDetuneModCentsForLayer(layers), t, PARAM_SMOOTH_SEC)
@@ -374,6 +398,10 @@ export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): 
   const delayInputMerge = ctx.createGain()
   delayInputMerge.gain.setValueAtTime(1, t0)
   const spaceDelay = ctx.createDelay(1)
+  const spaceWetLp = ctx.createBiquadFilter()
+  spaceWetLp.type = 'lowpass'
+  spaceWetLp.frequency.setValueAtTime(NIXIE_SPACE_WET_LP_HZ, t0)
+  spaceWetLp.Q.setValueAtTime(NIXIE_SPACE_WET_LP_Q, t0)
   const feedbackGain = ctx.createGain()
   const dryGain = ctx.createGain()
   const wetGain = ctx.createGain()
@@ -385,13 +413,14 @@ export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): 
   postFilterGain.connect(delayInputMerge)
   feedbackGain.connect(delayInputMerge)
   delayInputMerge.connect(spaceDelay)
-  spaceDelay.connect(wetGain)
-  spaceDelay.connect(feedbackGain)
+  spaceDelay.connect(spaceWetLp)
+  spaceWetLp.connect(wetGain)
+  spaceWetLp.connect(feedbackGain)
   postFilterGain.connect(dryGain)
 
   const tremLfo = ctx.createOscillator()
   tremLfo.type = 'sine'
-  tremLfo.frequency.setValueAtTime(TREMOLO_HZ, t0)
+  tremLfo.frequency.setValueAtTime(tremoloHzForLayer(layers), t0)
   const tremGain = ctx.createGain()
   tremGain.gain.setValueAtTime(release01ToTremoloDepth(layers.release01), t0)
   tremLfo.connect(tremGain)
@@ -435,6 +464,7 @@ export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): 
     feedbackGain,
     delayInputMerge,
     spaceDelay,
+    spaceWetLp,
     tremLfo,
     tremGain,
     jitterLfo,
@@ -520,6 +550,7 @@ export function stopNixieSoundLayerProbe(): void {
     g.feedbackGain.disconnect()
     g.delayInputMerge.disconnect()
     g.spaceDelay.disconnect()
+    g.spaceWetLp.disconnect()
     g.tremGain.disconnect()
     g.jitterGain.disconnect()
     g.uncannyNoise.gainModDepth.disconnect()

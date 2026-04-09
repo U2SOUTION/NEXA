@@ -51,6 +51,7 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
       mechanicalBlend01: 0,
       spaceBlend01: 0,
       uncannyBlend01: 0,
+      vitalityBlend01: 0,
     })
   })
 
@@ -68,6 +69,7 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
       mechanicalBlend01: 0,
       spaceBlend01: 0,
       uncannyBlend01: 0,
+      vitalityBlend01: 0,
     })
   })
 
@@ -87,6 +89,15 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
         uncanniness01: 0.85,
       }).uncannyBlend01,
     ).toBe(0.85)
+  })
+
+  it('활력 축이 의미 vitalityBlend01 로 전달된다', () => {
+    expect(
+      mapNixieSoundAtmosphereToLayerParams({
+        ...zero,
+        vitality01: 0.9,
+      }).vitalityBlend01,
+    ).toBe(0.9)
   })
 
   it('R3: 기계성 ≥ 임계일 때 릴리즈 감쇠', () => {
@@ -118,7 +129,7 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
   })
 
   it('R1: 긴장·활력 둘 다 높을 때 지터에 0.85 배 보수', () => {
-    const jitterBase = 0.35 * 0.6 + 0.2 * 0.6
+    const jitterBase = 0.35 * 0.6 + 0.34 * 0.6
     expect(
       mapNixieSoundAtmosphereToLayerParams({
         ...zero,
@@ -132,7 +143,7 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
         tension01: 0.6,
         vitality01: 0.49,
       }).jitter01,
-    ).toBeCloseTo(0.35 * 0.6 + 0.2 * 0.49)
+    ).toBeCloseTo(0.35 * 0.6 + 0.34 * 0.49)
   })
 })
 
@@ -147,7 +158,7 @@ describe('mapNixieSoundAtmosphereToMorseDelta', () => {
       tension01: 1,
       vitality01: 1,
     })
-    const raw = (1 - 0.25) * 0.95 * (0.85 + 0.15)
+    const raw = (1 - 0.25) * 0.95 * (1.1 - 0.48)
     expect(d.ditScale).toBe(Math.max(raw, 0.82))
   })
 

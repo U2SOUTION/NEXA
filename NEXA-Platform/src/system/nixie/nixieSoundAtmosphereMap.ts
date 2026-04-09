@@ -41,10 +41,10 @@ const R2_UNCANNY_JITTER_FACTOR = 0.75
  */
 /** 인덱스 2 = 기계성 — 필터·디튜닝·지터 가중 상향(듣기 쉬운 기계 질감) */
 /** 인덱스 1 = 이질감 — 디튜닝·지터·릴리즈·필터 가중 상향(불안정·어긋남) */
-const W_FILTER = [0.45, 0.32, 0.44, 0.2, 0.3, 0.35] as const
-const W_RELEASE = [0.25, 0.28, 0.04, 0.4, 0.35, 0.3] as const
-const W_DETUNE = [0.15, 0.6, 0.36, 0.25, 0.4, 0.5] as const
-const W_JITTER = [0.35, 0.82, 0.44, 0.1, 0.2, 0.15] as const
+const W_FILTER = [0.45, 0.32, 0.44, 0.2, 0.42, 0.35] as const
+const W_RELEASE = [0.25, 0.28, 0.04, 0.4, 0.5, 0.3] as const
+const W_DETUNE = [0.15, 0.6, 0.36, 0.25, 0.56, 0.5] as const
+const W_JITTER = [0.35, 0.82, 0.44, 0.1, 0.34, 0.15] as const
 
 /** 표 B — 이질감: 캐리어 흔들림 상한(Hz) — 모스 톤 박기·LFO 진폭 상한 */
 const MORSE_UNCANNY_CARRIER_OFFSET_MAX_HZ = 64
@@ -125,6 +125,7 @@ export function mapNixieSoundAtmosphereToLayerParams(
     mechanicalBlend01: a.mechanical01,
     spaceBlend01: a.space01,
     uncannyBlend01: a.uncanniness01,
+    vitalityBlend01: a.vitality01,
   }
 }
 
@@ -146,8 +147,13 @@ export type NixieSoundMorseAtmosphereDelta = {
 export function mapNixieSoundAtmosphereToMorseDelta(atmosphere: NixieSoundAtmosphereParams): NixieSoundMorseAtmosphereDelta {
   const a = sanitizeNixieSoundAtmosphereParams(atmosphere)
 
+  /**
+   * 활력: dit(ms) 배율 — `ditScale`↑ 이면 dit 가 길어져 WPM↓ 이므로,
+   * 활력↑ 일수록 배율을 낮춰 **더 빠른(짧은) dit** 이 되게 한다.
+   * 범위는 이전 (0.62+0.48v) 과 동일 폭으로 역방향: v=0 → 1.1, v=1 → 0.62.
+   */
   let ditScale =
-    (1 - 0.25 * a.tension01) * 0.95 * 1.0 * 1.0 * (0.85 + 0.15 * a.vitality01) * 1.0
+    (1 - 0.25 * a.tension01) * 0.95 * 1.0 * 1.0 * (1.1 - 0.48 * a.vitality01) * 1.0
 
   /** 기계성: dit 살짧게(리듬이 더 딱딱하게) */
   ditScale *= 1 - 0.1 * a.mechanical01
@@ -163,7 +169,7 @@ export function mapNixieSoundAtmosphereToMorseDelta(atmosphere: NixieSoundAtmosp
   const carrierUncannyOffsetMaxHz = MORSE_UNCANNY_CARRIER_OFFSET_MAX_HZ * a.uncanniness01
 
   const panWobbleDepth01 = clamp01(
-    0.05 * a.tension01 + 0.48 * a.uncanniness01 + 0.15 * a.space01,
+    0.05 * a.tension01 + 0.48 * a.uncanniness01 + 0.15 * a.space01 + 0.18 * a.vitality01,
   )
 
   return {
