@@ -1,7 +1,10 @@
 import type { MorseSoundEvent } from './morseTimeline'
 import type { NixieSoundLayerParams } from './nixieSoundLayerParams'
+import type { UncannyNoiseBranch } from './nixieSoundLayerAudio'
 import {
   applySpaceReverbParams,
+  applyUncannyNoiseBranchParams,
+  createUncannyNoiseBranch,
   detuneHalfSpreadCentsForLayer,
   filter01ToLowpassHz,
   jitterDetuneModCentsForLayer,
@@ -10,6 +13,7 @@ import {
   lowpassQForLayer,
   release01ToTremoloDepth,
   spaceReverbGainParams,
+  stopUncannyNoiseBranch,
 } from './nixieSoundLayerAudio'
 
 /** 모스 재생 시 사운드 레이어 미지정이면 — 레거시 단일 사인에 가깝게(밝은 LP, 트레몰로·디튜닝·지터 없음) */
@@ -76,6 +80,9 @@ let activeMorseWetGain: GainNode | null = null
 let activeMorseSpaceFeedback: GainNode | null = null
 let activeMorseSpaceDelay: DelayNode | null = null
 
+/** 이질감 전용 잡음 — LFO 변조 포함 */
+let activeMorseUncannyNoise: UncannyNoiseBranch | null = null
+
 /** 페이드아웃 후 `close` 예약 — 새 재생 `immediate` 시 취소 */
 let pendingFadeCloseTimer: number | null = null
 
@@ -137,6 +144,10 @@ function stopMorseLayerLfos(): void {
   activeMorseWetGain = null
   activeMorseSpaceFeedback = null
   activeMorseSpaceDelay = null
+  if (activeMorseUncannyNoise) {
+    stopUncannyNoiseBranch(activeMorseUncannyNoise)
+  }
+  activeMorseUncannyNoise = null
 }
 
 function clearActiveAudioNodes(): void {
@@ -210,6 +221,11 @@ function scheduleFadeOutClose(ctx: AudioContext, afterClose?: () => void): void 
     if (activeCtx === ctx) activeCtx = null
     afterClose?.()
     return
+  }
+  /** 이질감 잡음은 마스터 페이드와 무관하게 즉시 끊음(루프 버퍼·LFO가 남아 소리가 이어지는 것 방지) */
+  if (activeMorseUncannyNoise) {
+    stopUncannyNoiseBranch(activeMorseUncannyNoise)
+    activeMorseUncannyNoise = null
   }
   const t = ctx.currentTime
   const cur = getAudioParamAt(master.gain, t)
@@ -310,6 +326,10 @@ export function setMorseSoundLayerParams(layers: NixieSoundLayerParams): void {
   const del = activeMorseSpaceDelay
   if (dry && wet && fb && del) {
     applySpaceReverbParams(dry, wet, fb, del, layers, t)
+  }
+  const uncannyNoise = activeMorseUncannyNoise
+  if (uncannyNoise) {
+    applyUncannyNoiseBranchParams(uncannyNoise, layers, t)
   }
   const half = detuneHalfSpreadCentsForLayer(layers)
   for (let i = 0; i < activeOscillators.length; i += 2) {
@@ -455,6 +475,10 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   activeMorseSpaceFeedback = feedbackGain
   activeMorseSpaceDelay = spaceDelay
 
+  const uncannyNoise = createUncannyNoiseBranch(ctx, layers, tFade)
+  uncannyNoise.gain.connect(master)
+  activeMorseUncannyNoise = uncannyNoise
+
   const tremLfo = ctx.createOscillator()
   tremLfo.type = 'sine'
   tremLfo.frequency.setValueAtTime(2.4, tFade)
@@ -492,6 +516,9 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
 
   tremLfo.start(tFade)
   jitterLfo.start(tFade)
+  uncannyNoise.gainLfo.start(tFade)
+  uncannyNoise.fcLfo.start(tFade)
+  uncannyNoise.src.start(tFade)
 
   const totalMs = events.reduce((s, ev) => s + ev.ms, 0)
   let t = ctx.currentTime

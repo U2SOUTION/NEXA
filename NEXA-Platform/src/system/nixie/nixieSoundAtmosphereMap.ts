@@ -41,16 +41,16 @@ const R2_UNCANNY_JITTER_FACTOR = 0.75
  */
 /** 인덱스 2 = 기계성 — 필터·디튜닝·지터 가중 상향(듣기 쉬운 기계 질감) */
 /** 인덱스 1 = 이질감 — 디튜닝·지터·릴리즈·필터 가중 상향(불안정·어긋남) */
-const W_FILTER = [0.45, 0.26, 0.44, 0.2, 0.3, 0.35] as const
-const W_RELEASE = [0.25, 0.22, 0.04, 0.4, 0.35, 0.3] as const
-const W_DETUNE = [0.15, 0.52, 0.36, 0.25, 0.4, 0.5] as const
-const W_JITTER = [0.35, 0.72, 0.44, 0.1, 0.2, 0.15] as const
+const W_FILTER = [0.45, 0.32, 0.44, 0.2, 0.3, 0.35] as const
+const W_RELEASE = [0.25, 0.28, 0.04, 0.4, 0.35, 0.3] as const
+const W_DETUNE = [0.15, 0.6, 0.36, 0.25, 0.4, 0.5] as const
+const W_JITTER = [0.35, 0.82, 0.44, 0.1, 0.2, 0.15] as const
 
-/** 표 B — 이질감: 캐리어 흔들림 상한(Hz) 스케일 (이전 30 → 청감 강화) */
-const MORSE_UNCANNY_CARRIER_OFFSET_MAX_HZ = 52
+/** 표 B — 이질감: 캐리어 흔들림 상한(Hz) — 모스 톤 박기·LFO 진폭 상한 */
+const MORSE_UNCANNY_CARRIER_OFFSET_MAX_HZ = 64
 
 /** 표 B — dit가 이질감에 살짝 달라붙지 않게(리듬 미세 불안) */
-const MORSE_UNCANNY_DIT_SCALE_MUL = 0.09
+const MORSE_UNCANNY_DIT_SCALE_MUL = 0.14
 
 function clamp01(x: number): number {
   if (!Number.isFinite(x)) return 0
@@ -163,7 +163,7 @@ export function mapNixieSoundAtmosphereToMorseDelta(atmosphere: NixieSoundAtmosp
   const carrierUncannyOffsetMaxHz = MORSE_UNCANNY_CARRIER_OFFSET_MAX_HZ * a.uncanniness01
 
   const panWobbleDepth01 = clamp01(
-    0.05 * a.tension01 + 0.4 * a.uncanniness01 + 0.15 * a.space01,
+    0.05 * a.tension01 + 0.48 * a.uncanniness01 + 0.15 * a.space01,
   )
 
   return {

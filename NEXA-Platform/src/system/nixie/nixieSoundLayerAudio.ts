@@ -29,13 +29,24 @@ const MECH_DETUNE_SPREAD_MUL = 1.2
 /** 기계성 — 지터 LFO 깊이 배율 */
 const MECH_JITTER_DEPTH_MUL = 1.05
 /** `uncannyBlend01` — 듀얼 디튜닝 스프레드 추가(어긋난 간격) */
-const UNCANNY_DETUNE_SPREAD_MUL = 0.42
+const UNCANNY_DETUNE_SPREAD_MUL = 0.58
 /** 이질감 — 지터 LFO→detune 깊이 추가 */
-const UNCANNY_JITTER_DEPTH_MUL = 0.52
+const UNCANNY_JITTER_DEPTH_MUL = 0.72
 /** 이질감 — 지터 LFO 속도 배율(불안정한 떨림) */
-const UNCANNY_JITTER_LFO_MUL = 0.58
+const UNCANNY_JITTER_LFO_MUL = 0.82
 /** 이질감 — 저역통과 Q 소폭 상승(미세한 공진·날카로움) */
-const UNCANNY_LP_Q_EXTRA = 1.15
+const UNCANNY_LP_Q_EXTRA = 1.55
+/** 이질감 전용 잡음 — 하이패스 기준(Hz). LFO로 주변 스윕 */
+const UNCANNY_NOISE_HPF_HZ = 2600
+/** 이질감 잡음 마스터 선형 게인 상한(0~1 블렌드 × 이 값). 프로브 출력과 균형 */
+const UNCANNY_NOISE_GAIN_MAX = 0.048
+/** 잡음 레벨 LFO(Hz) — 서로 다른 속도로 “숨 쉬는” 느낌 */
+const UNCANNY_NOISE_LFO_GAIN_HZ_BASE = 0.42
+const UNCANNY_NOISE_LFO_FC_HZ_BASE = 0.11
+/** 게인 오실 진폭(±, 선형) — `uncannyBlend` 에 비례해 깊이 상한 */
+const UNCANNY_NOISE_GAIN_MOD_DEPTH_MAX = 0.028
+/** 컷오프 LFO 진폭(Hz) — `uncannyBlend` 에 비례 */
+const UNCANNY_NOISE_FC_MOD_DEPTH_HZ = 1050
 /** 저역통과 Q: 기계성↑ 시 공진으로 육중·버즈 강조 */
 const MECH_LP_Q_BASE = 0.85
 const MECH_LP_Q_EXTRA_MAX = 5.2
@@ -134,6 +145,111 @@ export function jitterLfoHzForLayer(layers: NixieSoundLayerParams): number {
 }
 
 /**
+ * 이질감 전용 백색 잡음(하이패스) 선형 게인 — `uncannyBlend01` 만 반영(긴장 축과 무관).
+ */
+export function uncannyNoiseGainLinear(layers: NixieSoundLayerParams): number {
+  return layerUncannyBlend01(layers) * UNCANNY_NOISE_GAIN_MAX
+}
+
+function createWhiteNoiseBuffer(ctx: AudioContext, durationSec: number): AudioBuffer {
+  const sampleRate = ctx.sampleRate
+  const length = Math.max(1, Math.floor(sampleRate * durationSec))
+  const buf = ctx.createBuffer(1, length, sampleRate)
+  const d = buf.getChannelData(0)
+  for (let i = 0; i < length; i++) d[i] = Math.random() * 2 - 1
+  return buf
+}
+
+/** 루프 잡음 `AudioBufferSourceNode` 정지·분리 — 프로브·모스 정리용 */
+export function stopUncannyNoiseBufferSource(s: AudioBufferSourceNode): void {
+  try {
+    s.stop()
+  } catch {
+    /* noop */
+  }
+  try {
+    s.disconnect()
+  } catch {
+    /* noop */
+  }
+}
+
+function uncannyNoiseGainLfoHz(u01: number): number {
+  return UNCANNY_NOISE_LFO_GAIN_HZ_BASE * (1 + 0.42 * u01)
+}
+
+function uncannyNoiseFcLfoHz(u01: number): number {
+  return UNCANNY_NOISE_LFO_FC_HZ_BASE * (1 + 0.38 * u01)
+}
+
+/** 이질감 잡음 — 루프 백색 + 하이패스 + LFO(레벨·컷오프 변조) */
+export type UncannyNoiseBranch = {
+  src: AudioBufferSourceNode
+  hp: BiquadFilterNode
+  gain: GainNode
+  gainLfo: OscillatorNode
+  gainModDepth: GainNode
+  fcLfo: OscillatorNode
+  fcModDepth: GainNode
+}
+
+/**
+ * 이질감 전용 잡음 가지 — `gain` 을 마스터에 연결한 뒤 `gainLfo`·`fcLfo`·`src` 를 `t` 에서 `start`.
+ */
+export function createUncannyNoiseBranch(
+  ctx: AudioContext,
+  layers: NixieSoundLayerParams,
+  t0: number,
+): UncannyNoiseBranch {
+  const u = layerUncannyBlend01(layers)
+  const noiseBuf = createWhiteNoiseBuffer(ctx, 2)
+  const src = ctx.createBufferSource()
+  src.buffer = noiseBuf
+  src.loop = true
+  const hp = ctx.createBiquadFilter()
+  hp.type = 'highpass'
+  hp.frequency.setValueAtTime(UNCANNY_NOISE_HPF_HZ, t0)
+  hp.Q.setValueAtTime(0.707, t0)
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(uncannyNoiseGainLinear(layers), t0)
+
+  const gainLfo = ctx.createOscillator()
+  gainLfo.type = 'sine'
+  gainLfo.frequency.setValueAtTime(uncannyNoiseGainLfoHz(u), t0)
+  const gainModDepth = ctx.createGain()
+  gainModDepth.gain.setValueAtTime(UNCANNY_NOISE_GAIN_MOD_DEPTH_MAX * u, t0)
+  gainLfo.connect(gainModDepth)
+  gainModDepth.connect(gain.gain)
+
+  const fcLfo = ctx.createOscillator()
+  fcLfo.type = 'sine'
+  fcLfo.frequency.setValueAtTime(uncannyNoiseFcLfoHz(u), t0)
+  const fcModDepth = ctx.createGain()
+  fcModDepth.gain.setValueAtTime(UNCANNY_NOISE_FC_MOD_DEPTH_HZ * u, t0)
+  fcLfo.connect(fcModDepth)
+  fcModDepth.connect(hp.frequency)
+
+  src.connect(hp)
+  hp.connect(gain)
+
+  return { src, hp, gain, gainLfo, gainModDepth, fcLfo, fcModDepth }
+}
+
+/** 재생 중 이질감 슬라이더·매핑 반영 — 잡음 평균 레벨·변조 깊이·LFO 속도 */
+export function applyUncannyNoiseBranchParams(
+  branch: UncannyNoiseBranch,
+  layers: NixieSoundLayerParams,
+  t: number,
+): void {
+  const u = layerUncannyBlend01(layers)
+  branch.gain.gain.setTargetAtTime(uncannyNoiseGainLinear(layers), t, PARAM_SMOOTH_SEC)
+  branch.gainModDepth.gain.setTargetAtTime(UNCANNY_NOISE_GAIN_MOD_DEPTH_MAX * u, t, PARAM_SMOOTH_SEC)
+  branch.fcModDepth.gain.setTargetAtTime(UNCANNY_NOISE_FC_MOD_DEPTH_HZ * u, t, PARAM_SMOOTH_SEC)
+  branch.gainLfo.frequency.setTargetAtTime(uncannyNoiseGainLfoHz(u), t, PARAM_SMOOTH_SEC)
+  branch.fcLfo.frequency.setTargetAtTime(uncannyNoiseFcLfoHz(u), t, PARAM_SMOOTH_SEC)
+}
+
+/**
  * 공간감(리버브 느낌) — Delay 시간·피드백·드라이/웻.
  * `spaceBlend01` 이 클수록 지연·반사·웻이 커진다.
  */
@@ -187,6 +303,7 @@ type ProbeGraph = {
   tremGain: GainNode
   jitterLfo: OscillatorNode
   jitterGain: GainNode
+  uncannyNoise: UncannyNoiseBranch
 }
 
 let probeGraph: ProbeGraph | null = null
@@ -213,13 +330,15 @@ function applyLayerParams(g: ProbeGraph, layers: NixieSoundLayerParams): void {
 
   applySpaceReverbParams(g.dryGain, g.wetGain, g.feedbackGain, g.spaceDelay, layers, t)
 
+  applyUncannyNoiseBranchParams(g.uncannyNoise, layers, t)
+
   g.master.gain.setTargetAtTime(NIXIE_SOUND_LAYER_PROBE_OUTPUT_LINEAR, t, PARAM_SMOOTH_SEC)
 }
 
 /**
  * 테스트 사인 파이프 시작. 브라우저 정책상 사용자 제스처(토글 클릭 등) 직후 호출 권장.
  *
- * 그래프: osc1/osc2(±detune, 지터 LFO) → 합성 → 저역통과 → 트레몰로(릴리즈) → (드라이+Delay·피드백·웻) → 마스터 → 출력
+ * 그래프: … → 마스터; 이질감 전용 하이패스 백색 잡음 → 마스터(텐션과 별도 질감).
  */
 export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): Promise<void> {
   stopNixieSoundLayerProbe()
@@ -290,6 +409,9 @@ export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): 
   const master = ctx.createGain()
   master.gain.setValueAtTime(NIXIE_SOUND_LAYER_PROBE_OUTPUT_LINEAR, t0)
 
+  const uncannyNoise = createUncannyNoiseBranch(ctx, layers, t0)
+  uncannyNoise.gain.connect(master)
+
   osc1.connect(g1)
   osc2.connect(g2)
   g1.connect(filter)
@@ -317,6 +439,7 @@ export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): 
     tremGain,
     jitterLfo,
     jitterGain,
+    uncannyNoise,
   }
   probeGraph = graph
 
@@ -332,6 +455,9 @@ export async function startNixieSoundLayerProbe(layers: NixieSoundLayerParams): 
   osc2.start(t0)
   tremLfo.start(t0)
   jitterLfo.start(t0)
+  uncannyNoise.gainLfo.start(t0)
+  uncannyNoise.fcLfo.start(t0)
+  uncannyNoise.src.start(t0)
 }
 
 /** 슬라이더 반영 — 파이프가 살아 있을 때만 */
@@ -350,6 +476,28 @@ function stopOscSafe(o: OscillatorNode): void {
   o.disconnect()
 }
 
+/** 이질감 잡음 LFO·버퍼 정지 — 마스터에서 먼저 분리해 페이드 대기 중에도 잡음이 새지 않게 함 */
+export function stopUncannyNoiseBranch(b: UncannyNoiseBranch): void {
+  try {
+    b.gain.disconnect()
+  } catch {
+    /* noop */
+  }
+  try {
+    b.gainModDepth.disconnect()
+  } catch {
+    /* noop */
+  }
+  try {
+    b.fcModDepth.disconnect()
+  } catch {
+    /* noop */
+  }
+  stopOscSafe(b.gainLfo)
+  stopOscSafe(b.fcLfo)
+  stopUncannyNoiseBufferSource(b.src)
+}
+
 /** 모든 노드 정리 후 컨텍스트 종료 */
 export function stopNixieSoundLayerProbe(): void {
   const g = probeGraph
@@ -360,6 +508,7 @@ export function stopNixieSoundLayerProbe(): void {
   stopOscSafe(g.osc2)
   stopOscSafe(g.tremLfo)
   stopOscSafe(g.jitterLfo)
+  stopUncannyNoiseBranch(g.uncannyNoise)
 
   try {
     g.g1.disconnect()
@@ -373,6 +522,10 @@ export function stopNixieSoundLayerProbe(): void {
     g.spaceDelay.disconnect()
     g.tremGain.disconnect()
     g.jitterGain.disconnect()
+    g.uncannyNoise.gainModDepth.disconnect()
+    g.uncannyNoise.fcModDepth.disconnect()
+    g.uncannyNoise.hp.disconnect()
+    g.uncannyNoise.gain.disconnect()
     g.master.disconnect()
   } catch {
     // 일부 브라우저/상태에서 무시

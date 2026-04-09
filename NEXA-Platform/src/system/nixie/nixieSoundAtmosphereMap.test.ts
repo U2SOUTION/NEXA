@@ -107,14 +107,14 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
         uncanniness01: 1,
         harmony01: 0.59,
       }).jitter01,
-    ).toBeCloseTo(0.72 + 0.15 * 0.59)
+    ).toBeCloseTo(0.82 + 0.15 * 0.59)
     expect(
       mapNixieSoundAtmosphereToLayerParams({
         ...zero,
         uncanniness01: 1,
         harmony01: 0.6,
       }).jitter01,
-    ).toBeCloseTo(0.72 * 0.75 + 0.15 * 0.6)
+    ).toBeCloseTo(0.82 * 0.75 + 0.15 * 0.6)
   })
 
   it('R1: 긴장·활력 둘 다 높을 때 지터에 0.85 배 보수', () => {
@@ -161,8 +161,8 @@ describe('mapNixieSoundAtmosphereToMorseDelta', () => {
       }),
     ).toMatchObject({
       carrierOffsetHzFromTension: 120,
-      carrierUncannyOffsetMaxHz: 26,
-      panWobbleDepth01: clampExpected(0.05 + 0.2 + 0.15),
+      carrierUncannyOffsetMaxHz: 32,
+      panWobbleDepth01: clampExpected(0.05 + 0.24 + 0.15),
     })
   })
 })
