@@ -154,16 +154,6 @@ function clampExpected(x: number): number {
 }
 
 describe('mapNixieSoundAtmosphereToMorseDelta', () => {
-  it('ditScale: 긴장·활력·표 B 곱 (R1 하한)', () => {
-    const d = mapNixieSoundAtmosphereToMorseDelta({
-      ...zero,
-      tension01: 1,
-      vitality01: 1,
-    })
-    const raw = (1 - 0.25) * 0.95 * (1.1 - 0.48)
-    expect(d.ditScale).toBe(Math.max(raw, 0.82))
-  })
-
   it('캐리어·패닝 필드가 표 B와 일치', () => {
     expect(
       mapNixieSoundAtmosphereToMorseDelta({

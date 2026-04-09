@@ -1,3 +1,8 @@
+/**
+ * @deprecated experimental — 모스 Web Audio **DSP 실험** 보관본 (`morseWebAudioDsp.ts`)
+ * 운영 경로에서는 사용하지 않음.
+ * 기본 경로는 `morseWebAudioCore.ts` (단순 캐리어·게인·팬만).
+ */
 import type { MorseSoundEvent } from './morseTimeline'
 import type { NixieSoundLayerParams } from './nixieSoundLayerParams'
 import type { UncannyNoiseBranch } from './nixieSoundLayerAudio'

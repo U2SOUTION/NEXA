@@ -11,7 +11,7 @@
 | 파일 | 역할 |
 |------|------|
 | `src/system/nixie/morseTimeline.ts` | `normalizeDemoHudText` 결과 문자열 → `MorseSoundEvent[]` (`dot` / `dash` / `gap`, ms). 토큰은 공백 분리, `^`는 단어 간 갭. |
-| `src/system/nixie/morseWebAudio.ts` | `playMorseTimeline(events, options)` — Web Audio로 이벤트 순서 재생, `totalMs` 후 페이드·종료. **UI 진행 상태 콜백 없음.** |
+| `src/system/nixie/morseWebAudioCore.ts` | `playMorseTimeline(events, options)` — Web Audio로 이벤트 순서 재생, `totalMs` 후 페이드·종료(운영). DSP 실험 그래프는 `morseWebAudioDsp.ts`에 별도 보관. |
 | `src/system/nixie/nixieDotMap.ts` | `normalizeDemoHudText`, `encodeTextToMorseHudText`, `mapHudTextToDots(input, scrollOffset)`, `hudTapePeriodWidthCols`, `textFitsCompletelyInGrid`. 긴 문자열은 **열 단위 테이프 스크롄**으로 24×7에 매핑. |
 | `src/system/nixie/nixieUiConfig.ts` (`NIXIE_HUD_MARQUEE`) | 마퀴 `intervalMs`, `colsPerTick` — **재생 DIT와 무관한 고정 주기.** |
 | `src/system/store/nmapSnapshotStore.ts` | `demo_hud_text`, `demo_hud_morse_enabled`, `demo_hud_scroll_offset`, `morse_dit_ms` 등. `tickDemoHudMarquee()`가 `demo_hud_scroll_offset`만 갱신. |
@@ -47,7 +47,7 @@
 |------|------|------|
 | **A** | `morseTimeline.ts` | `buildMorseSoundTimeline`와 동일 파싱으로 **이벤트 인덱스 → 누적 시작 ms** 배열, 또는 **토큰 인덱스 → [startMs, endMs)** 생성 함수 추가 (예: `buildMorseEventSchedule`, `getMorseTokenTimeRanges`). `^`·글자 간 갭 포함 일치 필수. |
 | **B** | `nixieDotMap.ts` (또는 전용 `morseHudLayout.ts`) | 정규화된 HUD 문자열에서 **토큰 경계의 “테이프 상 열 위치”**를 구해, **중앙 정렬 스크롄 오프셋**을 계산하는 헬퍼 (예: `scrollOffsetToCenterToken(full, tokenIndex)`). 기존 `hudTapePeriodWidthCols` / `mapTapeToHudDotsColScroll` 규칙과 충돌 없이 검증. |
-| **C** | `morseWebAudio.ts` | `playMorseTimeline`에 **옵션 콜백** 추가: `onEventStart?(index, event, elapsedMs)`, `onComplete?()`, `onStop?()` — 재생 루프와 동일한 순서로 호출. 정지 시 타이머 정리. |
+| **C** | `morseWebAudioCore.ts` | `playMorseTimeline`에 **옵션 콜백** 추가: `onEventStart?(index, event, elapsedMs)`, `onComplete?()`, `onStop?()` — 재생 루프와 동일한 순서로 호출. 정지 시 타이머 정리. |
 | **D** | `nmapSnapshotStore.ts` | 재생 UI 동기용 필드 추가 (예: `morse_playback_active`, `morse_playback_mode: 'idle' \| 'sync-window'`, `morse_playback_highlight: { tokenIndex, eventIndex }`). 또는 최소한 **Pinia에 재생 상태만** 두고 나머지는 별 모듈. |
 | **E** | `NixieDevControls.vue` | `playMorsePreview`에서 재생 시작/종료 시 스토어 갱신, 콜백에서 토큰/이벤트 인덱스 갱신. **루프 재생** 시 세대 번호(`morsePlayGeneration`)와 동일하게 무효화. |
 | **F** | `NixieOnlineCharacter.vue` | `morse_playback_active && demo_hud_morse_enabled && sync 모드`일 때: (1) **기존 `hudMarqueeTimer` 일시 중지** 또는 `tickDemoHudMarquee` 무시, (2) `getDemoTextMask` 분기 — **스토어가 지정한 스크롄/하이라이트**로 마스크 생성, (3) `syncLumina`에서 **현재 토큰 도트만 더 밝게** (이중 마스크: base + accent). |
@@ -69,7 +69,7 @@
 | **0** | **베이스라인** | `quasar dev`로 앱이 뜨고, 콘솔에 빨간 에러가 없다. `@/...` import가 있으면 **`@system/...` 등 정의된 별칭으로만** 고친다(§4.3). 가능하면 **`quasar build`** 한 번으로 모듈 해석 오류가 없는지 본다(모나코 플러그인 등 **별도 이슈**는 문서화만 하고 모스 작업과 섞지 않는다). |
 | **1** | **`morseTimeline.ts`만** — `buildMorseSoundTimeline`와 **동일 파싱**으로 `events` + **이벤트별 표시 토큰 인덱스**(또는 누적 ms 배열)를 내는 함수 추가 | 짧은/긴 문자열, `^` 포함 샘플에 대해 **수동으로 기대 토큰 경계와 일치**하는지 확인. **UI·스토어·오디오 코드 변경 없음.** |
 | **2** | **`nixieDotMap.ts`만** — 토큰 인덱스 → **문자 구간**, `scrollOffsetToCenterToken` / **강조용 char-range 마스크** 등 레이아웃 헬퍼 | §1의 `mapHudTextToDots`·`hudTapePeriodWidthCols`와 **같은 정규화 문자열**을 넣었을 때 스크롄이 **한 주기 안에서만** 도는지, 짧은 문장은 스크롄 0인지 확인. **여전히 Vue/Pinia 없음.** |
-| **3** | **`morseWebAudio.ts`만** — `playMorseTimeline`에 **`onEventStart` / `onComplete` / 정지 시 타이머 정리`**만 추가 | 미리듣기 재생 시 **콘솔 로그**로 이벤트 인덱스가 타임라인 순서대로 찍히는지 확인. **Pinia 갱신 없음.** |
+| **3** | **`morseWebAudioCore.ts`만** — `playMorseTimeline`에 **`onEventStart` / `onComplete` / 정지 시 타이머 정리`**만 추가 | 미리듣기 재생 시 **콘솔 로그**로 이벤트 인덱스가 타임라인 순서대로 찍히는지 확인. **Pinia 갱신 없음.** |
 | **4** | **`nmapSnapshotStore.ts`만** — 재생 동기에 필요한 **필드 + action** 최소 집합 (`morse_playback_active`, 스크롄 오버라이드, 하이라이트 인덱스, 종료 시 복구 등) | DevTools에서 action을 **수동 호출**하거나 임시 버튼으로 스냅샷만 바꿔 **필드가 일관되게 갱신·복귀**하는지 확인. **닉시 캐릭터는 아직 안 묶어도 됨.** |
 | **5** | **`NixieDevControls.vue`** — 미리듣기 시작/종료 시 **4번 action** 호출, **3번 콜백**에서 스크롄·토큰 갱신, **세대 번호로 무효화**, **같은 값이면 `applyPatch` 생략(디듀프)** | 재생 중 HUD 숫자/스크롄이 **과도하게 깜빡이지 않는지**, 연속 클릭 시 꼬이지 않는지 확인. |
 | **6** | **`NixieOnlineCharacter.vue`** — 동기 모드일 때 마퀴 타이머/`tick` 무시, 마스크·`syncLumina`에 **base + accent** | 재생 중에만 **마퀴와 재생 스크롄이 싸우지 않는지**, 끄면 **예전 HUD·마퀴로 돌아오는지** 확인(§4.3 항목 6). |
@@ -80,7 +80,7 @@
 - **0단계(적용 기록):** `src/system/config/errorMessages.ts`에서 `@/system/schemas/errors` → `@system/schemas/errors` 로 수정함. Vite/Rollup **`Failed to resolve import "@/..."`** 를 제거하는 것이 0단계의 핵심이다. `quasar build`는 이후 단계에서 **Monaco 플러그인 `writeBundle`(Windows 경로 이중 결합)** 또는 **d3 `schemeCategory20` export** 등으로 실패할 수 있으며, 그때는 §4.3과 **모스 작업과 분리**해 추적한다.
 - **1단계(적용 기록):** `morseTimeline.ts`에 `buildMorseSoundTimelineWithMeta` 추가 — `events`·`eventDisplayTokenIndex`(토큰 인덱스, `^`/단어 갭은 `-1`)·`eventStartMs` 누적. `buildMorseSoundTimeline`은 **동일 `events`** 를 메타에서 위임해 파싱 이원화 방지. 검증: `src/system/nixie/morseTimeline.test.ts` + `npx vitest run src/system/nixie/morseTimeline.test.ts`.
 - **2단계(적용 기록):** `nixieDotMap.ts`에 `tapeColStartForCharIndex`, `getMorseTokenCharRange`, `scrollOffsetToCenterToken`, `mapHudTextToDotsCharRangeMask` 추가. `mapTapeToHudDotsColScroll`에 **슬롯 필터** 옵션을 넣어 전체 테이프와 동일 스크롄으로 부분 문자만 그리기. 검증: `src/system/nixie/nixieDotMap.morseLayout.test.ts` + `npx vitest run src/system/nixie/nixieDotMap.morseLayout.test.ts`.
-- **3단계(적용 기록):** `morseWebAudio.ts`에 `MorsePlaybackHooks` + `PlayMorseOptions.playbackHooks` — `onEventStart`(이벤트 인덱스·이벤트·누적 `elapsedMs`), `onComplete`(자연 종료·페이드 후), `onStopped`(중단). `activePlaybackHookTimers` + `stopMorsePlayback` / `resolvePlayPromiseIfPending`에서 정리. **UI 연결 없이** 브라우저에서 `playbackHooks`로 `console.log`로 순서 확인 가능.
+- **3단계(적용 기록):** `morseWebAudioCore.ts`에 `MorsePlaybackHooks` + `PlayMorseOptions.playbackHooks` — `onEventStart`(이벤트 인덱스·이벤트·누적 `elapsedMs`), `onComplete`(자연 종료·페이드 후), `onStopped`(중단). `activePlaybackHookTimers` + `stopMorsePlayback` / `resolvePlayPromiseIfPending`에서 정리. **UI 연결 없이** 브라우저에서 `playbackHooks`로 `console.log`로 순서 확인 가능.
 - **4단계(적용 기록):** `nmapSnapshotStore.ts`에 `morse_hud_sync_with_playback`, `morse_playback_active`, `morse_playback_generation`, `morse_playback_scroll_offset_override`, `morse_playback_highlight_token_index`, `morse_playback_scroll_restore` 및 `setMorseHudSyncWithPlayback` / `beginMorsePlaybackHudSync` / `setMorsePlaybackHudFrame` / `endMorsePlaybackHudSync`. 동기 모드 재생 중 `tickDemoHudMarquee`는 **조기 return**(마퀴와 재생 스크롄 경합 방지).
 - **0→1→2**는 **순수 함수**라서 Vue 없이도 디버그하기 쉽다. 여기서 파싱/스크롄이 틀리면 **3 이후를 붙여도 고쳐지지 않는다.**
 - **3에서 Pinia를 넣지 말고** 콜백만 검증하면, 오디오 쪽 버그와 상태 버그를 **분리**할 수 있다.
@@ -102,7 +102,7 @@
 |------|------|------|
 | **A** | `nixieUiConfig` (`NIXIE_HUD_MARQUEE`) vs 재생 | 동기 모드에서 `intervalMs`를 **`ditMs * k` (또는 이벤트 경계마다 스텝)** 로 두는 방식 중 선택. **가변 갭**이 많아 **고정 interval만으로는 부족** → **토큰/이벤트 종료 시점에만 스크롄 스텝**하는 편이 안전. |
 | **B** | `tickDemoHudMarquee` | 옵션: “재생 동기 모드”일 때는 **오디오 스케줄 또는 콜백이 `setDemoHudScrollOffset`을 호출**하고, `setInterval` 마퀴는 비활성. |
-| **C** | `morseWebAudio` | 필요 시 **AudioContext `currentTime`** 기준 진행률 노출로 드리프트 보정. |
+| **C** | `morseWebAudioCore` | 필요 시 **AudioContext `currentTime`** 기준 진행률 노출로 드리프트 보정. |
 | **D** | 사용자 옵션 | **“마퀴 = DIT 동기(①)”** vs **“윈도우·센터 강조(②)”** 전환. 스토어에 `morse_hud_sync_mode: 'marquee-dit' \| 'center-window'` 등. |
 | **E** | 회귀 테스트 | ①/② 전환, 재생 없이 일반 HUD만 켠 경우 기존 마퀴와 동일 동작 유지. |
 
@@ -148,5 +148,5 @@
 | 2026-04-09 | 0단계: `errorMessages.ts` `@system` import 적용, §2.3 진행 팁에 0단계 기록 추가 |
 | 2026-04-09 | 1단계: `buildMorseSoundTimelineWithMeta` + `morseTimeline.test.ts`, §2.3 진행 팁에 1단계 기록 |
 | 2026-04-09 | 2단계: 모스 HUD 레이아웃 헬퍼(`nixieDotMap`) + `nixieDotMap.morseLayout.test.ts`, §2.3 진행 팁에 2단계 기록 |
-| 2026-04-09 | 3단계: `morseWebAudio` `playbackHooks` + 타이머 정리, §2.3 진행 팁에 3단계 기록 |
+| 2026-04-09 | 3단계: `morseWebAudioCore` `playbackHooks` + 타이머 정리, §2.3 진행 팁에 3단계 기록 |
 | 2026-04-09 | 4단계: `nmapSnapshotStore` 모스 재생 HUD 필드·action + `tickDemoHudMarquee` 동기 모드 조기 return |

@@ -4,15 +4,15 @@
   명세: docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md
 
   현재 상태(모스·오디오)
-  - DIT/TONE/VOLUME: 드래그는 로컬 ref, 손 뗄 때(@change) 스토어 반영. 재생 중 TONE/VOLUME은 morseWebAudio 라이브 반영, DIT는 재생 재시작.
+  - DIT/TONE/VOLUME: 드래그는 로컬 ref, 손 뗄 때(@change) 스토어 반영. 재생 중 TONE/VOLUME은 morseWebAudioCore 라이브 반영, DIT는 재생 재시작.
   - 미리듣기: 스피너+중지, stop 시 오디오·Promise 정리. 재생 세대 번호로 finally 경합 방지.
   - 스냅샷 applyPatch 가 통째로 갈아끼워지므로 morse 필드는 배열 watch 금지 → dit/tone/volume 스칼라별 watch 로만 로컬 슬라이더 동기화.
   - N-MAP 수치 → 모스 파라미터 자동 매핑은 아직 없음. 본격 닉시 진행 시 연출 레이어에서 추가 예정.
   - PAN L / ALL / R: 스냅샷 `morse_stereo_pan` + Web Audio `StereoPannerNode`, 재생 중 버튼만으로도 실시간 체험 가능.
-  - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): 단계 A는 로컬 ref만(0~100), Web Audio 미연동 — docs/NIXIE [ARCH] 사운드 DSP 4축 과 6대 의미축 (UI·Web Audio) 아키텍셔.md
+  - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): TEST(레이어 프로브)에만 Web Audio 반영. 모스 미리듣기는 morseWebAudioCore(단순 경로)·레이어 무시 — 동 문서
   - 의미 6축(M-A): 긴장·이질감·기계성·공간감·활력·조화 슬라이더 — 로컬 ref(0~100). 동 문서 §8 M-A.
   - 의미 6축(M-B): `getNixieSoundAtmosphere` → `nixieSoundAtmosphere` computed. 동 문서 §8 M-B.
-  - 의미 매핑(M-E): 토글 ON 시 `mapNixieSoundAtmosphereToLayerParams` / `mapNixieSoundAtmosphereToMorseDelta` 가 레이어 프로브·모스 미리듣기에 적용. DSP 4축 슬라이더는 오디오에 반영되지 않음(문서 §8 M-E 모드 1). 동 문서 §8 M-E.
+  - 의미 매핑(M-E): 토글 ON 시 레이어 목표값은 매핑 결과 사용; 모스 DIT는 별도 정책(원자시계). DSP 4축은 매핑 ON일 때 오디오 목표에서 대체됨(문서 §8 M-E). 프로브·모스 공통 상태이나 모스 재생 그래프는 Core 단순 경로.
   - 의미 6축·매핑 토글(M-F): `nmapSnapshotStore` `sound_atmosphere_*` / `sound_atmosphere_mapping_enabled` — SSOT. 동 문서 §8 M-F.
 -->
 <template>
@@ -178,7 +178,7 @@
             <q-btn dense size="sm" padding="xs sm" label="OMEGA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1" :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(1)" />
           </q-btn-group>
         </div>
-        <!-- 사운드 레이어 4축 — 단계 C: 전용 AudioContext · 사인 → 마스터 게인(4축 평균) -->
+        <!-- 사운드 레이어 4축 — TEST(레이어 프로브)에만 청각 반영 · 모스 미리듣기는 Core 단순 경로 -->
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="Filter (subtractive layer)">FILTER</span>
           <q-slider v-model="soundLayerFilter" :min="0" :max="100" dense color="blue-grey-5" class="nixie-dev-controls__slider col" />
@@ -209,7 +209,7 @@
             label="의미→DSP·모스"
             @update:model-value="nmap.setSoundAtmosphereMappingEnabled"
           />
-          <span class="text-caption text-grey-6">켜면 6축 매핑이 TEST·모스에 적용 · 4축 슬라이더는 오디오 무시 · 값은 스냅샷(Pinia)</span>
+          <span class="text-caption text-grey-6">켜면 6축→레이어 목표(TEST·상태) · 모스 그래프는 Core 단순 재생 · 4축은 매핑 ON이면 목표에서 대체 · Pinia</span>
         </div>
         <div class="text-caption text-grey-7 q-mb-xs q-px-xs">M-A~F · 의미 6축 (`nixieSoundAtmosphere` · Pinia `sound_atmosphere_*`)</div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
@@ -331,7 +331,7 @@
         </div>
         <div class="text-center q-mb-xs q-px-xs nixie-dev-controls__morse-timeline">
           <div class="nixie-dev-controls__morse-timeline-hint text-grey-7">
-            재생 타임라인: 총 {{ morsePlayDurationMsUi }}ms · PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dit {{ morseDitMsEffective }}ms<template v-if="snapshot.sound_atmosphere_mapping_enabled"><span class="text-grey-5"> (슬라이더 {{ morseDitMsUi }})</span></template> · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsEffective }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤
+            재생 타임라인: 총 {{ morsePlayDurationMsUi }}ms · PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dit {{ morseDitMsEffective }}ms · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsEffective }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤
             {{ morseToneHzEffective }}Hz<template v-if="snapshot.sound_atmosphere_mapping_enabled"><span class="text-grey-5"> (슬라이더 {{ morseToneHzUi }})</span></template> · 볼륨 {{ morseVolumeSlider }}% · 원자 {{ morseAtomicClockLabel }}
           </div>
         </div>
@@ -357,7 +357,8 @@ import { NIXIE_SOUND_LAYER_PROBE_CARRIER_HZ, startNixieSoundLayerProbe, stopNixi
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText, scrollOffsetToCenterToken } from '@system/nixie/nixieDotMap'
 import { buildMorseSoundTimeline, buildMorseSoundTimelineWithMeta, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
-import { MORSE_MASTER_GAIN_MAX, getMorsePlaybackProgress01, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseSoundLayerParams, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
+// DSP 실험 경로 보관: @system/nixie/morseWebAudioDsp (현재 미사용)
+import { MORSE_MASTER_GAIN_MAX, getMorsePlaybackProgress01, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseSoundLayerParams, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudioCore'
 import AudioScopeCanvas from '@engines/audio/components/AudioScopeCanvas.vue'
 import { storeToRefs } from 'pinia'
 import { useQuasar } from 'quasar'
@@ -563,12 +564,8 @@ const hudMorsePreview = computed(() => encodeTextToMorseHudText(hudDraft.value ?
 /** 슬라이더 값 기준(드래그 중 포함) — 타임라인 힌트·표시용 */
 const morseDitMsUi = computed(() => clampMorseDitMs(morseDitSlider.value))
 
-/** M-E: 스냅샷 dit × 표 B `ditScale`(매핑 OFF 시 슬라이더와 동일) */
-const morseDitMsEffective = computed(() => {
-  const base = morseDitMsUi.value
-  if (!atmosphereMappingEnabled.value) return base
-  return clampMorseDitMs(Math.round(base * morseAtmosphereDelta.value.ditScale))
-})
+/** DIT(ms) — 의미 6축 비관여; 스냅샷 슬라이더·원자시계만 */
+const morseDitMsEffective = computed(() => morseDitMsUi.value)
 
 /** PARIS 기준 관용 환산: WPM ≈ 1200 / dit(ms) — 교육·교신에서 흔한 참고값(엄밀한 시험 단위는 아님) */
 const morseParisWpmApproxUi = computed(() => {
@@ -582,13 +579,18 @@ const morseInterCharGapMsUi = computed(() => morseDitMsEffective.value * 3)
 const morseWordGapMsUi = computed(() => morseDitMsEffective.value * 7)
 const morseToneHzUi = computed(() => toneSliderPosToHz(morseToneSlider.value))
 
-/** M-E: 슬라이더 톤 + 표 B 캐리어 오프셋(이질감은 결정론적 중심 오프셋) */
+/** M-E: 슬라이더 톤 + TENSION 캐리어 오프셋 — UNCANNY는 `morseWebAudioCore` 보조 불협 레이어로 처리 */
 const morseToneHzEffective = computed(() => {
   const base = morseToneHzUi.value
   if (!atmosphereMappingEnabled.value) return base
   const d = morseAtmosphereDelta.value
-  return clampMorseToneHz(base + d.carrierOffsetHzFromTension + 0.78 * d.carrierUncannyOffsetMaxHz)
+  return clampMorseToneHz(base + d.carrierOffsetHzFromTension)
 })
+
+/** 매핑 ON일 때만 0~1 — 모스 보조 불협 오실 */
+const morseUncanniness01ForAudio = computed(() =>
+  atmosphereMappingEnabled.value ? nixieSoundAtmosphere.value.uncanniness01 : 0,
+)
 const morseAtomicClockLabel = computed(() => {
   const key = snapshot.value.morse_atomic_clock
   const found = morseAtomicClockOptions.find((x) => x.key === key)
@@ -696,6 +698,8 @@ async function playMorsePreview() {
         frequencyHz: morseToneHzEffective.value,
         volume: (Math.max(0, Math.min(100, Math.round(Number(morseVolumeSlider.value) || 0))) / 100) * MORSE_MASTER_GAIN_MAX,
         stereoPan: clampMorseStereoPan(snapshot.value.morse_stereo_pan),
+        uncanniness01: morseUncanniness01ForAudio.value,
+        panWobbleDepth01: atmosphereMappingEnabled.value ? morseAtmosphereDelta.value.panWobbleDepth01 : 0,
         soundLayers: effectiveNixieSoundLayers.value,
         onAfterPrepare: () => {
           if (!syncHud) return
