@@ -174,7 +174,7 @@
             <q-btn dense size="sm" padding="xs sm" label="OMEGA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1" :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(1)" />
           </q-btn-group>
         </div>
-        <!-- 사운드 레이어 4축 — 단계 A: CHANNEL 아래, 한 슬라이더당 한 행 · 로컬만(0~100) -->
+        <!-- 사운드 레이어 4축 — 단계 C: 전용 AudioContext · 사인 → 마스터 게인(4축 평균) -->
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="Filter (subtractive layer)">FILTER</span>
           <q-slider v-model="soundLayerFilter" :min="0" :max="100" dense color="blue-grey-5" class="nixie-dev-controls__slider col" />
@@ -194,6 +194,10 @@
           <span class="nixie-dev-controls__lbl" title="Jitter">JITTER</span>
           <q-slider v-model="soundLayerJitter" :min="0" :max="100" dense color="pink-6" class="nixie-dev-controls__slider col" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ soundLayerJitter }} %</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs q-gutter-x-sm">
+          <q-toggle dense left-label color="cyan-7" :model-value="soundLayerProbeOn" label="TEST" @update:model-value="onSoundLayerProbeToggle" />
+          <span class="text-caption text-grey-6 nixie-dev-controls__probe-hint">듀얼 사인 {{ NIXIE_SOUND_LAYER_PROBE_CARRIER_HZ }}Hz · LP / Tremolo / D Tuning / Vibrato</span>
         </div>
         <div ref="morseAtomicClockHostEl" class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
           <span class="nixie-dev-controls__lbl">A-Clock</span>
@@ -248,10 +252,12 @@
 
 <script setup>
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieUiConfig'
+import { getNixieSoundLayers } from '@system/nixie/nixieSoundLayerParams'
+import { NIXIE_SOUND_LAYER_PROBE_CARRIER_HZ, startNixieSoundLayerProbe, stopNixieSoundLayerProbe, updateNixieSoundLayerProbeGain } from '@system/nixie/nixieSoundLayerAudio'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText, scrollOffsetToCenterToken } from '@system/nixie/nixieDotMap'
 import { buildMorseSoundTimeline, buildMorseSoundTimelineWithMeta, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
-import { MORSE_MASTER_GAIN_MAX, getMorsePlaybackProgress01, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
+import { MORSE_MASTER_GAIN_MAX, getMorsePlaybackProgress01, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseSoundLayerParams, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
 import AudioScopeCanvas from '@engines/audio/components/AudioScopeCanvas.vue'
 import { storeToRefs } from 'pinia'
 import { useQuasar } from 'quasar'
@@ -340,11 +346,45 @@ const morseDitSlider = ref(60)
 const morseToneSlider = ref(0)
 const morseVolumeSlider = ref(35)
 
-/** 사운드 레이어 4축 — 단계 A: 0~100 로컬만, 오디오 미연동 */
+/** 사운드 레이어 4축 — 슬라이더 0~100; `nixieSoundLayers`로 0~1 정규화(단계 B) */
 const soundLayerFilter = ref(0)
 const soundLayerRelease = ref(0)
 const soundLayerDetune = ref(0)
 const soundLayerJitter = ref(0)
+/** 단계 C: 전용 파이프 테스트 톤(사용자 제스처로만 시작) */
+const soundLayerProbeOn = ref(false)
+
+/** 오디오·이벤트는 이 객체만 구독하면 됨 (`getNixieSoundLayers`) */
+const nixieSoundLayers = computed(() =>
+  getNixieSoundLayers({
+    filter: soundLayerFilter.value,
+    release: soundLayerRelease.value,
+    detune: soundLayerDetune.value,
+    jitter: soundLayerJitter.value,
+  }),
+)
+
+function onSoundLayerProbeToggle(on) {
+  soundLayerProbeOn.value = on
+  if (on) {
+    void startNixieSoundLayerProbe(nixieSoundLayers.value)
+  } else {
+    stopNixieSoundLayerProbe()
+  }
+}
+
+watch(
+  nixieSoundLayers,
+  (layers) => {
+    if (soundLayerProbeOn.value) {
+      updateNixieSoundLayerProbeGain(layers)
+    }
+    if (morsePlaying.value) {
+      setMorseSoundLayerParams(layers)
+    }
+  },
+  { deep: true },
+)
 
 function clampMorseToneHz(v) {
   const n = Math.round(Number(v) || MORSE_TONE_MIN_HZ)
@@ -516,6 +556,7 @@ async function playMorsePreview() {
         frequencyHz: morseToneHzUi.value,
         volume: (Math.max(0, Math.min(100, Math.round(Number(morseVolumeSlider.value) || 0))) / 100) * MORSE_MASTER_GAIN_MAX,
         stereoPan: clampMorseStereoPan(snapshot.value.morse_stereo_pan),
+        soundLayers: nixieSoundLayers.value,
         onAfterPrepare: () => {
           if (!syncHud) return
           nmap.beginMorsePlaybackHudSync({
@@ -656,6 +697,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopMorsePlayback({ immediate: true })
+  stopNixieSoundLayerProbe()
   if (morseAtomicClockResizeObserver) {
     morseAtomicClockResizeObserver.disconnect()
     morseAtomicClockResizeObserver = null
@@ -891,6 +933,11 @@ function onHudBlur() {
   flex: 0 0 auto;
   min-width: 2.5rem;
   white-space: nowrap;
+}
+
+.nixie-dev-controls__probe-hint {
+  min-width: 0;
+  line-height: 1.25;
 }
 
 /* 대문자 강제·자동 대문자 방지 — HUD에 입력한 대·소문자 그대로 표시 */

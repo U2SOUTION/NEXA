@@ -1,4 +1,21 @@
 import type { MorseSoundEvent } from './morseTimeline'
+import type { NixieSoundLayerParams } from './nixieSoundLayerParams'
+import {
+  detune01ToHalfSpreadCents,
+  filter01ToLowpassHz,
+  jitter01ToDetuneModCents,
+  release01ToTremoloDepth,
+} from './nixieSoundLayerAudio'
+
+/** 모스 재생 시 사운드 레이어 미지정이면 — 레거시 단일 사인에 가깝게(밝은 LP, 트레몰로·디튜닝·지터 없음) */
+const DEFAULT_MORSE_SOUND_LAYERS: NixieSoundLayerParams = {
+  filter01: 1,
+  release01: 0,
+  detune01: 0,
+  jitter01: 0,
+}
+
+const MORSE_LAYER_PARAM_SMOOTH_SEC = 0.04
 
 /** `playMorseTimeline` 옵션 — 재생 중 HUD 동기 등(정지 시 훅 타이머 전부 정리) */
 export type MorsePlaybackHooks = {
@@ -41,6 +58,13 @@ let activeStereoPanner: StereoPannerNode | null = null
 let activeAnalyser: AnalyserNode | null = null
 const activeOscillators: OscillatorNode[] = []
 
+/** DSP 4축 — `playMorseTimeline` 세션 공유 노드 */
+let activeMorseFilter: BiquadFilterNode | null = null
+let activeMorseLayerTremLfo: OscillatorNode | null = null
+let activeMorseLayerTremGain: GainNode | null = null
+let activeMorseLayerJitterLfo: OscillatorNode | null = null
+let activeMorseLayerJitterGain: GainNode | null = null
+
 /** 페이드아웃 후 `close` 예약 — 새 재생 `immediate` 시 취소 */
 let pendingFadeCloseTimer: number | null = null
 
@@ -78,13 +102,45 @@ function resolvePlayPromiseIfPending(): void {
   r()
 }
 
+function stopMorseLayerLfos(): void {
+  for (const o of [activeMorseLayerTremLfo, activeMorseLayerJitterLfo]) {
+    if (o) {
+      try {
+        o.stop()
+      } catch {
+        /* noop */
+      }
+      try {
+        o.disconnect()
+      } catch {
+        /* noop */
+      }
+    }
+  }
+  activeMorseLayerTremLfo = null
+  activeMorseLayerJitterLfo = null
+  activeMorseLayerTremGain = null
+  activeMorseLayerJitterGain = null
+  activeMorseFilter = null
+}
+
 function clearActiveAudioNodes(): void {
+  stopMorseLayerLfos()
   activeMasterGain = null
   activeStereoPanner = null
   activeAnalyser = null
   activeOscillators.length = 0
   activePlaybackTimelineStartSec = null
   activePlaybackTotalSec = null
+}
+
+/** 이벤트 길이·RELEASE 축 → 엔벨로프 꼬리(초). 지속 트레몰로와 별개. */
+function morseEnvelopeReleaseSec(durSec: number, release01: number): number {
+  if (!Number.isFinite(durSec) || durSec <= 0) return 0.002
+  const r = Math.max(0, Math.min(1, release01))
+  const cap = Math.min(durSec * 0.45, 0.12)
+  const floor = 0.002
+  return floor + r * Math.max(cap - floor, 0)
 }
 
 /** 현재 모스 출력 파형 샘플을 0~255로 채움(없으면 false) */
@@ -203,6 +259,36 @@ export function setMorseCarrierFrequencyHz(hz: number): void {
   }
 }
 
+/** 재생 중 사운드 레이어 4축 — 필터·트레몰로·지터·듀얼 디튜닝(활성 오실에만) */
+export function setMorseSoundLayerParams(layers: NixieSoundLayerParams): void {
+  const ctx = activeCtx
+  if (!ctx) return
+  const t = ctx.currentTime
+  const filter = activeMorseFilter
+  const trem = activeMorseLayerTremGain
+  const jit = activeMorseLayerJitterGain
+  if (filter) {
+    filter.type = 'lowpass'
+    filter.frequency.setTargetAtTime(filter01ToLowpassHz(layers.filter01), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+    filter.Q.setValueAtTime(0.85, t)
+  }
+  if (trem) {
+    trem.gain.setTargetAtTime(release01ToTremoloDepth(layers.release01), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+  }
+  if (jit) {
+    jit.gain.setTargetAtTime(jitter01ToDetuneModCents(layers.jitter01), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+  }
+  const half = detune01ToHalfSpreadCents(layers.detune01)
+  for (let i = 0; i < activeOscillators.length; i += 2) {
+    const o1 = activeOscillators[i]
+    const o2 = activeOscillators[i + 1]
+    if (o1 && o2) {
+      o1.detune.setTargetAtTime(half, t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+      o2.detune.setTargetAtTime(-half, t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+    }
+  }
+}
+
 /** 재생 중 스테레오 패닝 -1(왼쪽) ~ 1(오른쪽), 0=중앙 — 짧은 선형 램프로 전환(클릭·팝 완화) */
 export function setMorseStereoPanValue(pan: number): void {
   const target = Math.max(-1, Math.min(1, pan))
@@ -235,6 +321,11 @@ export type PlayMorseOptions = {
   volume?: number
   /** `StereoPannerNode.pan` — -1=L, 0=중앙, 1=R */
   stereoPan?: number
+  /**
+   * 사운드 레이어 DSP 4축(0~1). 생략 시 레거시 단일 사인에 가까운 기본값.
+   * 필터·듀얼 detune·지터 LFO·릴리즈(트레몰로+닷 꼬리 길이).
+   */
+  soundLayers?: NixieSoundLayerParams
   /** 재생 진행 콜백 — 정지 시 훅용 타이머 전부 정리 */
   playbackHooks?: MorsePlaybackHooks
   /**
@@ -291,12 +382,45 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
 
   const freq = Math.max(1, Math.min(12000, options.frequencyHz))
   const vol = Math.min(MORSE_MASTER_GAIN_MAX, Math.max(0, options.volume ?? 0.12))
+  const layers = options.soundLayers ?? DEFAULT_MORSE_SOUND_LAYERS
 
   const master = ctx.createGain()
   const tFade = ctx.currentTime
   master.gain.setValueAtTime(0, tFade)
   master.gain.linearRampToValueAtTime(vol, tFade + MORSE_PLAY_FADE_IN_SEC)
   activeMasterGain = master
+
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'lowpass'
+  filter.frequency.setValueAtTime(filter01ToLowpassHz(layers.filter01), tFade)
+  filter.Q.setValueAtTime(0.85, tFade)
+
+  const postFilterGain = ctx.createGain()
+  postFilterGain.gain.setValueAtTime(1, tFade)
+
+  const tremLfo = ctx.createOscillator()
+  tremLfo.type = 'sine'
+  tremLfo.frequency.setValueAtTime(2.4, tFade)
+  const tremGain = ctx.createGain()
+  tremGain.gain.setValueAtTime(release01ToTremoloDepth(layers.release01), tFade)
+  tremLfo.connect(tremGain)
+  tremGain.connect(postFilterGain.gain)
+
+  const jitterLfo = ctx.createOscillator()
+  jitterLfo.type = 'sine'
+  jitterLfo.frequency.setValueAtTime(6.3, tFade)
+  const jitterGain = ctx.createGain()
+  jitterGain.gain.setValueAtTime(jitter01ToDetuneModCents(layers.jitter01), tFade)
+  jitterLfo.connect(jitterGain)
+
+  activeMorseFilter = filter
+  activeMorseLayerTremLfo = tremLfo
+  activeMorseLayerTremGain = tremGain
+  activeMorseLayerJitterLfo = jitterLfo
+  activeMorseLayerJitterGain = jitterGain
+
+  filter.connect(postFilterGain)
+  postFilterGain.connect(master)
 
   const panValue = Math.max(-1, Math.min(1, options.stereoPan ?? 0))
   const panner = ctx.createStereoPanner()
@@ -310,12 +434,15 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   activeStereoPanner = panner
   activeAnalyser = analyser
 
+  tremLfo.start(tFade)
+  jitterLfo.start(tFade)
+
   const totalMs = events.reduce((s, ev) => s + ev.ms, 0)
   let t = ctx.currentTime
   activePlaybackTimelineStartSec = t
   activePlaybackTotalSec = Math.max(totalMs / 1000, 1e-6)
 
-  const fade = 0.004
+  const baseAttack = 0.004
 
   for (const e of events) {
     const durSec = e.ms / 1000
@@ -324,24 +451,46 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
       continue
     }
 
-    const osc = ctx.createOscillator()
-    osc.type = 'sine'
-    osc.frequency.value = freq
+    const osc1 = ctx.createOscillator()
+    const osc2 = ctx.createOscillator()
+    osc1.type = 'sine'
+    osc2.type = 'sine'
+    osc1.frequency.value = freq
+    osc2.frequency.value = freq
+    const half = detune01ToHalfSpreadCents(layers.detune01)
+    osc1.detune.setValueAtTime(half, t)
+    osc2.detune.setValueAtTime(-half, t)
+    jitterGain.connect(osc1.detune)
+    jitterGain.connect(osc2.detune)
+
+    const g1 = ctx.createGain()
+    const g2 = ctx.createGain()
+    g1.gain.setValueAtTime(0.5, t)
+    g2.gain.setValueAtTime(0.5, t)
+
     const env = ctx.createGain()
     env.gain.value = 0
-    osc.connect(env)
-    env.connect(master)
+    osc1.connect(g1)
+    osc2.connect(g2)
+    g1.connect(env)
+    g2.connect(env)
+    env.connect(filter)
 
-    const attack = Math.min(fade, durSec / 4)
-    const release = Math.min(fade, durSec / 4)
+    const attack = Math.min(baseAttack, durSec / 4)
+    let releaseSec = morseEnvelopeReleaseSec(durSec, layers.release01)
+    if (attack + releaseSec > durSec * 0.92) {
+      releaseSec = Math.max(0.002, durSec * 0.92 - attack)
+    }
     env.gain.setValueAtTime(0, t)
     env.gain.linearRampToValueAtTime(1, t + attack)
-    env.gain.setValueAtTime(1, t + durSec - release)
+    env.gain.setValueAtTime(1, t + durSec - releaseSec)
     env.gain.linearRampToValueAtTime(0, t + durSec)
 
-    osc.start(t)
-    osc.stop(t + durSec)
-    activeOscillators.push(osc)
+    osc1.start(t)
+    osc2.start(t)
+    osc1.stop(t + durSec)
+    osc2.stop(t + durSec)
+    activeOscillators.push(osc1, osc2)
     t += durSec
   }
 
