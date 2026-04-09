@@ -17,6 +17,15 @@ export type NixieSoundLayerParams = {
   release01: number
   detune01: number
   jitter01: number
+  /**
+   * 의미 축 **기계성** 전달(0~1, 선택). `getNixieSoundLayers`에는 없음.
+   * 프로브·모스에서 스퀘어 파형·필터 Q·디튜닝/지터 부스트에 사용.
+   */
+  mechanicalBlend01?: number
+  /**
+   * 의미 축 **공간감** 전달(0~1, 선택). Delay+피드백(간이 리버브) 웻/드라이·지연에 사용.
+   */
+  spaceBlend01?: number
 }
 
 function clampUi100(n: number): number {

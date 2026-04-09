@@ -1,10 +1,14 @@
 import type { MorseSoundEvent } from './morseTimeline'
 import type { NixieSoundLayerParams } from './nixieSoundLayerParams'
 import {
-  detune01ToHalfSpreadCents,
+  applySpaceReverbParams,
+  detuneHalfSpreadCentsForLayer,
   filter01ToLowpassHz,
-  jitter01ToDetuneModCents,
+  jitterDetuneModCentsForLayer,
+  layerMechanicalBlend01,
+  lowpassQForLayer,
   release01ToTremoloDepth,
+  spaceReverbGainParams,
 } from './nixieSoundLayerAudio'
 
 /** 모스 재생 시 사운드 레이어 미지정이면 — 레거시 단일 사인에 가깝게(밝은 LP, 트레몰로·디튜닝·지터 없음) */
@@ -65,6 +69,12 @@ let activeMorseLayerTremGain: GainNode | null = null
 let activeMorseLayerJitterLfo: OscillatorNode | null = null
 let activeMorseLayerJitterGain: GainNode | null = null
 
+/** 공간감 — Delay+피드백(드라이/웻 분기) */
+let activeMorseDryGain: GainNode | null = null
+let activeMorseWetGain: GainNode | null = null
+let activeMorseSpaceFeedback: GainNode | null = null
+let activeMorseSpaceDelay: DelayNode | null = null
+
 /** 페이드아웃 후 `close` 예약 — 새 재생 `immediate` 시 취소 */
 let pendingFadeCloseTimer: number | null = null
 
@@ -122,6 +132,10 @@ function stopMorseLayerLfos(): void {
   activeMorseLayerTremGain = null
   activeMorseLayerJitterGain = null
   activeMorseFilter = null
+  activeMorseDryGain = null
+  activeMorseWetGain = null
+  activeMorseSpaceFeedback = null
+  activeMorseSpaceDelay = null
 }
 
 function clearActiveAudioNodes(): void {
@@ -132,6 +146,13 @@ function clearActiveAudioNodes(): void {
   activeOscillators.length = 0
   activePlaybackTimelineStartSec = null
   activePlaybackTotalSec = null
+}
+
+/** 기계성이 높을수록 닷 꼬리를 더 짧게(스타카토에 가깝게) */
+function morseRelease01Effective(layers: NixieSoundLayerParams): number {
+  const mech = layerMechanicalBlend01(layers)
+  const r = layers.release01
+  return Math.max(0, Math.min(1, r * (1 - 0.48 * mech)))
 }
 
 /** 이벤트 길이·RELEASE 축 → 엔벨로프 꼬리(초). 지속 트레몰로와 별개. */
@@ -270,15 +291,22 @@ export function setMorseSoundLayerParams(layers: NixieSoundLayerParams): void {
   if (filter) {
     filter.type = 'lowpass'
     filter.frequency.setTargetAtTime(filter01ToLowpassHz(layers.filter01), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
-    filter.Q.setValueAtTime(0.85, t)
+    filter.Q.setTargetAtTime(lowpassQForLayer(layers), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
   }
   if (trem) {
     trem.gain.setTargetAtTime(release01ToTremoloDepth(layers.release01), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
   }
   if (jit) {
-    jit.gain.setTargetAtTime(jitter01ToDetuneModCents(layers.jitter01), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
+    jit.gain.setTargetAtTime(jitterDetuneModCentsForLayer(layers), t, MORSE_LAYER_PARAM_SMOOTH_SEC)
   }
-  const half = detune01ToHalfSpreadCents(layers.detune01)
+  const dry = activeMorseDryGain
+  const wet = activeMorseWetGain
+  const fb = activeMorseSpaceFeedback
+  const del = activeMorseSpaceDelay
+  if (dry && wet && fb && del) {
+    applySpaceReverbParams(dry, wet, fb, del, layers, t)
+  }
+  const half = detuneHalfSpreadCentsForLayer(layers)
   for (let i = 0; i < activeOscillators.length; i += 2) {
     const o1 = activeOscillators[i]
     const o2 = activeOscillators[i + 1]
@@ -393,10 +421,34 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   const filter = ctx.createBiquadFilter()
   filter.type = 'lowpass'
   filter.frequency.setValueAtTime(filter01ToLowpassHz(layers.filter01), tFade)
-  filter.Q.setValueAtTime(0.85, tFade)
+  filter.Q.setValueAtTime(lowpassQForLayer(layers), tFade)
 
   const postFilterGain = ctx.createGain()
   postFilterGain.gain.setValueAtTime(1, tFade)
+
+  const srInit = spaceReverbGainParams(layers)
+  const delayInputMerge = ctx.createGain()
+  delayInputMerge.gain.setValueAtTime(1, tFade)
+  const spaceDelay = ctx.createDelay(1)
+  const feedbackGain = ctx.createGain()
+  const dryGain = ctx.createGain()
+  const wetGain = ctx.createGain()
+  spaceDelay.delayTime.setValueAtTime(srInit.delaySec, tFade)
+  feedbackGain.gain.setValueAtTime(srInit.feedback, tFade)
+  dryGain.gain.setValueAtTime(srInit.dryLinear, tFade)
+  wetGain.gain.setValueAtTime(srInit.wetLinear, tFade)
+  postFilterGain.connect(delayInputMerge)
+  feedbackGain.connect(delayInputMerge)
+  delayInputMerge.connect(spaceDelay)
+  spaceDelay.connect(wetGain)
+  spaceDelay.connect(feedbackGain)
+  postFilterGain.connect(dryGain)
+  dryGain.connect(master)
+  wetGain.connect(master)
+  activeMorseDryGain = dryGain
+  activeMorseWetGain = wetGain
+  activeMorseSpaceFeedback = feedbackGain
+  activeMorseSpaceDelay = spaceDelay
 
   const tremLfo = ctx.createOscillator()
   tremLfo.type = 'sine'
@@ -410,7 +462,7 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   jitterLfo.type = 'sine'
   jitterLfo.frequency.setValueAtTime(6.3, tFade)
   const jitterGain = ctx.createGain()
-  jitterGain.gain.setValueAtTime(jitter01ToDetuneModCents(layers.jitter01), tFade)
+  jitterGain.gain.setValueAtTime(jitterDetuneModCentsForLayer(layers), tFade)
   jitterLfo.connect(jitterGain)
 
   activeMorseFilter = filter
@@ -420,7 +472,6 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   activeMorseLayerJitterGain = jitterGain
 
   filter.connect(postFilterGain)
-  postFilterGain.connect(master)
 
   const panValue = Math.max(-1, Math.min(1, options.stereoPan ?? 0))
   const panner = ctx.createStereoPanner()
@@ -451,13 +502,16 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
       continue
     }
 
+    const mech = layerMechanicalBlend01(layers)
+    const oscType = mech >= 0.12 ? 'square' : 'sine'
+
     const osc1 = ctx.createOscillator()
     const osc2 = ctx.createOscillator()
-    osc1.type = 'sine'
-    osc2.type = 'sine'
+    osc1.type = oscType
+    osc2.type = oscType
     osc1.frequency.value = freq
     osc2.frequency.value = freq
-    const half = detune01ToHalfSpreadCents(layers.detune01)
+    const half = detuneHalfSpreadCentsForLayer(layers)
     osc1.detune.setValueAtTime(half, t)
     osc2.detune.setValueAtTime(-half, t)
     jitterGain.connect(osc1.detune)
@@ -477,7 +531,7 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
     env.connect(filter)
 
     const attack = Math.min(baseAttack, durSec / 4)
-    let releaseSec = morseEnvelopeReleaseSec(durSec, layers.release01)
+    let releaseSec = morseEnvelopeReleaseSec(durSec, morseRelease01Effective(layers))
     if (attack + releaseSec > durSec * 0.92) {
       releaseSec = Math.max(0.002, durSec * 0.92 - attack)
     }

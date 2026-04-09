@@ -48,6 +48,8 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
       release01: 0,
       detune01: 0,
       jitter01: 0,
+      mechanicalBlend01: 0,
+      spaceBlend01: 0,
     })
   })
 
@@ -62,7 +64,18 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
       release01: 0.25,
       detune01: 0.15,
       jitter01: 0.35,
+      mechanicalBlend01: 0,
+      spaceBlend01: 0,
     })
+  })
+
+  it('공간감 축이 의미 spaceBlend01 로 전달된다', () => {
+    expect(
+      mapNixieSoundAtmosphereToLayerParams({
+        ...zero,
+        space01: 0.7,
+      }).spaceBlend01,
+    ).toBe(0.7)
   })
 
   it('R3: 기계성 ≥ 임계일 때 릴리즈 감쇠', () => {
@@ -70,8 +83,9 @@ describe('mapNixieSoundAtmosphereToLayerParams', () => {
       ...zero,
       mechanical01: 1,
     })
+    expect(base.mechanicalBlend01).toBe(1)
     expect(base.release01).toBeCloseTo(
-      clampExpected(0.05 - NIXIE_ATMOSPHERE_RELEASE_MECHANICAL_BETA * 1),
+      clampExpected(0.04 - NIXIE_ATMOSPHERE_RELEASE_MECHANICAL_BETA * 1),
     )
   })
 

@@ -24,7 +24,7 @@ export const NIXIE_ATMOSPHERE_R3_MECHANICAL_THRESHOLD = 0.5
  * R3: `release01_eff = clamp01(release_base − β·mechanical01)` 의 β (튜닝).
  * 문서 M-C 합성식과 동일 의미.
  */
-export const NIXIE_ATMOSPHERE_RELEASE_MECHANICAL_BETA = 0.35
+export const NIXIE_ATMOSPHERE_RELEASE_MECHANICAL_BETA = 0.52
 
 /** R1: 지터 보수 배율 */
 const R1_JITTER_FACTOR = 0.85
@@ -39,10 +39,11 @@ const R2_UNCANNY_JITTER_FACTOR = 0.75
  * 표 A — 행 순서: 긴장, 이질감, 기계성, 공간감, 활력, 조화
  * 열: filter, release, detune, jitter
  */
-const W_FILTER = [0.45, 0.15, 0.25, 0.2, 0.3, 0.35] as const
-const W_RELEASE = [0.25, 0.1, 0.05, 0.4, 0.35, 0.3] as const
-const W_DETUNE = [0.15, 0.35, 0.1, 0.25, 0.4, 0.5] as const
-const W_JITTER = [0.35, 0.55, 0.15, 0.1, 0.2, 0.15] as const
+/** 인덱스 2 = 기계성 — 필터·디튜닝·지터 가중 상향(듣기 쉬운 기계 질감) */
+const W_FILTER = [0.45, 0.15, 0.44, 0.2, 0.3, 0.35] as const
+const W_RELEASE = [0.25, 0.1, 0.04, 0.4, 0.35, 0.3] as const
+const W_DETUNE = [0.15, 0.35, 0.36, 0.25, 0.4, 0.5] as const
+const W_JITTER = [0.35, 0.55, 0.44, 0.1, 0.2, 0.15] as const
 
 function clamp01(x: number): number {
   if (!Number.isFinite(x)) return 0
@@ -109,7 +110,14 @@ export function mapNixieSoundAtmosphereToLayerParams(
     release01 = clamp01(release01 - beta * a.mechanical01)
   }
 
-  return { filter01, release01, detune01, jitter01 }
+  return {
+    filter01,
+    release01,
+    detune01,
+    jitter01,
+    mechanicalBlend01: a.mechanical01,
+    spaceBlend01: a.space01,
+  }
 }
 
 /** 표 B — 모스 경로 델타 (스냅샷 dit·캐리어·패닝에 가감) */
@@ -132,6 +140,9 @@ export function mapNixieSoundAtmosphereToMorseDelta(atmosphere: NixieSoundAtmosp
 
   let ditScale =
     (1 - 0.25 * a.tension01) * 0.95 * 1.0 * 1.0 * (0.85 + 0.15 * a.vitality01) * 1.0
+
+  /** 기계성: dit 살짝 짧게(리듬이 더 딱딱하게) */
+  ditScale *= 1 - 0.1 * a.mechanical01
 
   if (a.tension01 >= NIXIE_ATMOSPHERE_R1_HIGH_THRESHOLD && a.vitality01 >= NIXIE_ATMOSPHERE_R1_HIGH_THRESHOLD) {
     ditScale = Math.max(ditScale, R1_DIT_FLOOR)
