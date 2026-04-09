@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <!-- 슬라이더: 신뢰도 / 엔트로피 / 임계값 / 닉시속도(슬라이더↑=빠름 → 내부는 interval_ms 역매핑) -->
+    <!-- 슬라이더: 신뢰도 / 엔트로피 / 임계값 / 닉시 마퀴 흐름 속도(슬라이더↑=빠름 → 내부는 interval_ms 역매핑) -->
     <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl">신뢰도</span>
       <q-slider :model-value="snapshot.confidence_score" :min="0" :max="100" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="nmap.setConfidenceScore" />
@@ -159,10 +159,10 @@
         </div>
         <div class="row items-center q-mb-xs flex-wrap nixie-dev-controls__morse-sync-row">
           <div class="row items-center no-wrap q-gutter-x-xs">
-            <q-toggle dense left-label :model-value="snapshot.morse_hud_sync_with_playback ?? true" label="재생·HUD" @update:model-value="nmap.setMorseHudSyncWithPlayback" />
+            <q-toggle dense left-label :model-value="snapshot.morse_hud_sync_with_playback ?? true" label="동기·HUD" @update:model-value="nmap.setMorseHudSyncWithPlayback" />
           </div>
           <div class="row items-center no-wrap q-gutter-x-xs">
-            <q-toggle dense left-label :disable="!(snapshot.morse_hud_sync_with_playback ?? true)" :model-value="snapshot.morse_hud_per_event_highlight === true" label="디트·다시 강조" @update:model-value="nmap.setMorseHudPerEventHighlight" />
+            <q-toggle dense left-label :disable="!(snapshot.morse_hud_sync_with_playback ?? true)" :model-value="snapshot.morse_hud_per_event_highlight === true" label="단점·장점 강조" @update:model-value="nmap.setMorseHudPerEventHighlight" />
           </div>
         </div>
         <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
