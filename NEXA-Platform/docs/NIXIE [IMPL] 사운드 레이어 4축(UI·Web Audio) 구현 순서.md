@@ -109,4 +109,5 @@
 ## 7. 관련 문서
 
 - `NIXIE 음악 건반 인터페이스와 비언어적 공감.md` — 개념·시나리오
+- Nixie UI 상수(마퀴 등): `src/system/nixie/nixieUiConfig.ts` (`NIXIE_HUD_MARQUEE`)
 - (선택) 기존 모스 구현: `src/system/nixie/morseWebAudio.ts`

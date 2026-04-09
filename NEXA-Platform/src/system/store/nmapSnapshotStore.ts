@@ -1,4 +1,4 @@
-import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
+import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieUiConfig'
 import { encodeTextToMorseHudText, hudTapePeriodWidthCols, normalizeDemoHudText, textFitsCompletelyInGrid } from '@system/nixie/nixieDotMap'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'

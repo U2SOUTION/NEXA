@@ -13,7 +13,7 @@
 | `src/system/nixie/morseTimeline.ts` | `normalizeDemoHudText` 결과 문자열 → `MorseSoundEvent[]` (`dot` / `dash` / `gap`, ms). 토큰은 공백 분리, `^`는 단어 간 갭. |
 | `src/system/nixie/morseWebAudio.ts` | `playMorseTimeline(events, options)` — Web Audio로 이벤트 순서 재생, `totalMs` 후 페이드·종료. **UI 진행 상태 콜백 없음.** |
 | `src/system/nixie/nixieDotMap.ts` | `normalizeDemoHudText`, `encodeTextToMorseHudText`, `mapHudTextToDots(input, scrollOffset)`, `hudTapePeriodWidthCols`, `textFitsCompletelyInGrid`. 긴 문자열은 **열 단위 테이프 스크롄**으로 24×7에 매핑. |
-| `src/system/nixie/nixieHudMarqueeConfig.ts` | 마퀴 `intervalMs`, `colsPerTick` — **재생 DIT와 무관한 고정 주기.** |
+| `src/system/nixie/nixieUiConfig.ts` (`NIXIE_HUD_MARQUEE`) | 마퀴 `intervalMs`, `colsPerTick` — **재생 DIT와 무관한 고정 주기.** |
 | `src/system/store/nmapSnapshotStore.ts` | `demo_hud_text`, `demo_hud_morse_enabled`, `demo_hud_scroll_offset`, `morse_dit_ms` 등. `tickDemoHudMarquee()`가 `demo_hud_scroll_offset`만 갱신. |
 | `src/system/nixie/components/NixieDevControls.vue` | `buildMorseSoundTimeline` + `playMorseTimeline` 호출, **`morsePlaying`은 컴포넌트 로컬 ref** — 닉시 캐릭터와 공유되지 않음. |
 | `src/system/nixie/components/NixieOnlineCharacter.vue` | `getDemoTextMask()` → `mapHudTextToDots(norm, scroll)`. `syncHudMarqueeTimer()` → `setInterval`로 `tickDemoHudMarquee()`. `syncLumina()`로 마스크에 켜진 도트 전체에 펄스. |
@@ -100,7 +100,7 @@
 
 | 순서 | 작업 | 비고 |
 |------|------|------|
-| **A** | `nixieHudMarqueeConfig` vs 재생 | 동기 모드에서 `intervalMs`를 **`ditMs * k` (또는 이벤트 경계마다 스텝)** 로 두는 방식 중 선택. **가변 갭**이 많아 **고정 interval만으로는 부족** → **토큰/이벤트 종료 시점에만 스크롄 스텝**하는 편이 안전. |
+| **A** | `nixieUiConfig` (`NIXIE_HUD_MARQUEE`) vs 재생 | 동기 모드에서 `intervalMs`를 **`ditMs * k` (또는 이벤트 경계마다 스텝)** 로 두는 방식 중 선택. **가변 갭**이 많아 **고정 interval만으로는 부족** → **토큰/이벤트 종료 시점에만 스크롄 스텝**하는 편이 안전. |
 | **B** | `tickDemoHudMarquee` | 옵션: “재생 동기 모드”일 때는 **오디오 스케줄 또는 콜백이 `setDemoHudScrollOffset`을 호출**하고, `setInterval` 마퀴는 비활성. |
 | **C** | `morseWebAudio` | 필요 시 **AudioContext `currentTime`** 기준 진행률 노출로 드리프트 보정. |
 | **D** | 사용자 옵션 | **“마퀴 = DIT 동기(①)”** vs **“윈도우·센터 강조(②)”** 전환. 스토어에 `morse_hud_sync_mode: 'marquee-dit' \| 'center-window'` 등. |

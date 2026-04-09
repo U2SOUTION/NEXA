@@ -9,6 +9,7 @@
   - 스냅샷 applyPatch 가 통째로 갈아끼워지므로 morse 필드는 배열 watch 금지 → dit/tone/volume 스칼라별 watch 로만 로컬 슬라이더 동기화.
   - N-MAP 수치 → 모스 파라미터 자동 매핑은 아직 없음. 본격 닉시 진행 시 연출 레이어에서 추가 예정.
   - PAN L / ALL / R: 스냅샷 `morse_stereo_pan` + Web Audio `StereoPannerNode`, 재생 중 버튼만으로도 실시간 체험 가능.
+  - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): 단계 A는 로컬 ref만(0~100), Web Audio 미연동 — docs/NIXIE [IMPL] 사운드 레이어 4축(UI·Web Audio) 구현 순서.md
 -->
 <template>
   <div class="nixie-dev-controls" :class="{ 'nixie-dev-controls--embedded': embedded }">
@@ -173,6 +174,27 @@
             <q-btn dense size="sm" padding="xs sm" label="OMEGA" :unelevated="(snapshot.morse_stereo_pan ?? 0) === 1" :color="(snapshot.morse_stereo_pan ?? 0) === 1 ? 'deep-purple-7' : 'grey-7'" @click="commitMorseStereoPan(1)" />
           </q-btn-group>
         </div>
+        <!-- 사운드 레이어 4축 — 단계 A: CHANNEL 아래, 한 슬라이더당 한 행 · 로컬만(0~100) -->
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="Filter (subtractive layer)">FILTER</span>
+          <q-slider v-model="soundLayerFilter" :min="0" :max="100" dense color="blue-grey-5" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ soundLayerFilter }} %</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="Release / tail">RELEASE</span>
+          <q-slider v-model="soundLayerRelease" :min="0" :max="100" dense color="teal-6" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ soundLayerRelease }} ms</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="Detune">DETUNE</span>
+          <q-slider v-model="soundLayerDetune" :min="0" :max="100" dense color="orange-7" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ soundLayerDetune }} ct</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="Jitter">JITTER</span>
+          <q-slider v-model="soundLayerJitter" :min="0" :max="100" dense color="pink-6" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ soundLayerJitter }} %</span>
+        </div>
         <div ref="morseAtomicClockHostEl" class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
           <span class="nixie-dev-controls__lbl">A-Clock</span>
           <div class="col min-width-0">
@@ -225,7 +247,7 @@
 </template>
 
 <script setup>
-import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
+import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieUiConfig'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText, scrollOffsetToCenterToken } from '@system/nixie/nixieDotMap'
 import { buildMorseSoundTimeline, buildMorseSoundTimelineWithMeta, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
@@ -317,6 +339,12 @@ const morseDitSlider = ref(60)
 /** 로그 스케일 톤 슬라이더 위치(0~MORSE_TONE_LOG_STEPS) */
 const morseToneSlider = ref(0)
 const morseVolumeSlider = ref(35)
+
+/** 사운드 레이어 4축 — 단계 A: 0~100 로컬만, 오디오 미연동 */
+const soundLayerFilter = ref(0)
+const soundLayerRelease = ref(0)
+const soundLayerDetune = ref(0)
+const soundLayerJitter = ref(0)
 
 function clampMorseToneHz(v) {
   const n = Math.round(Number(v) || MORSE_TONE_MIN_HZ)
@@ -680,6 +708,9 @@ function onHudBlur() {
   padding: 4px 6px 8px;
   border-bottom: none;
   background: transparent;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .nixie-dev-controls__lbl {

@@ -397,7 +397,13 @@ const startWidth = ref(0)
 const startResize = (event) => {
   isResizing.value = true
   startX.value = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX
-  startWidth.value = userSettings.settings.drawer.rightWidth
+  /** 열린 상태인데 저장 너비가 50 미만이면 복원 — 그렇지 않으면 첫 드래그에서 newWidth<=50 으로 바로 닫힘 */
+  let rw = userSettings.settings.drawer.rightWidth
+  if (userSettings.settings.drawer.rightOpen && rw < 50) {
+    rw = calculateRestoreWidth(rw, 800, 300)
+    userSettings.settings.drawer.rightWidth = rw
+  }
+  startWidth.value = rw
 
   document.body.style.cursor = 'ew-resize'
   document.body.style.userSelect = 'none'

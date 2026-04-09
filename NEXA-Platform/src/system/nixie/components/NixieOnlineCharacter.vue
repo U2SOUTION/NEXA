@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
+import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieUiConfig'
 import { HUD_LUMINA_PER_EVENT, morsePerEventDotTier, opacityFromMinOpacity } from '@system/nixie/nixieHudLumina'
 import { getMorseTokenCharRange, mapHudTextToDots, mapHudTextToDotsCharRangeMask, normalizeDemoHudText, textFitsCompletelyInGrid, NIXIE_GRID_COLS as COLS, NIXIE_GRID_ROWS as ROWS } from '@system/nixie/nixieDotMap'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
