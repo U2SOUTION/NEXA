@@ -10,6 +10,7 @@
   - N-MAP 수치 → 모스 파라미터 자동 매핑은 아직 없음. 본격 닉시 진행 시 연출 레이어에서 추가 예정.
   - PAN L / ALL / R: 스냅샷 `morse_stereo_pan` + Web Audio `StereoPannerNode`, 재생 중 버튼만으로도 실시간 체험 가능.
   - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): 단계 A는 로컬 ref만(0~100), Web Audio 미연동 — docs/NIXIE [IMPL] 사운드 DSP 4축 과 6대 의미축 (UI·Web Audio) 구현 순서.md
+  - 의미 6축(M-A): 긴장·이질감·기계성·공간감·활력·조화 슬라이더는 로컬 ref만(0~100), 오디오·매핑 미연동. 동 문서 §8 M-A.
 -->
 <template>
   <div class="nixie-dev-controls" :class="{ 'nixie-dev-controls--embedded': embedded }">
@@ -196,7 +197,37 @@
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ soundLayerJitter }} %</span>
         </div>
         <q-separator class="q-my-xs" />
-        
+        <div class="text-caption text-grey-7 q-mb-xs q-px-xs">M-A · 의미 6축 (로컬만 · 오디오·매핑 미연동)</div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="긴장 (Tension)">TENSION</span>
+          <q-slider v-model="atmosphereTension" :min="0" :max="100" dense color="deep-purple-5" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereTension }} %</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="이질감 (Uncanniness)">UNCANNY</span>
+          <q-slider v-model="atmosphereUncanniness" :min="0" :max="100" dense color="indigo-5" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereUncanniness }} %</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="기계성 (Mechanicalness)">MECHANICAL</span>
+          <q-slider v-model="atmosphereMechanical" :min="0" :max="100" dense color="blue-grey-6" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereMechanical }} %</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="공간감 (Spaciousness)">SPACE</span>
+          <q-slider v-model="atmosphereSpace" :min="0" :max="100" dense color="cyan-6" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereSpace }} %</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="활력 (Vitality)">VITALITY</span>
+          <q-slider v-model="atmosphereVitality" :min="0" :max="100" dense color="light-green-5" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereVitality }} %</span>
+        </div>
+        <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
+          <span class="nixie-dev-controls__lbl" title="조화 (Harmony)">HARMONY</span>
+          <q-slider v-model="atmosphereHarmony" :min="0" :max="100" dense color="amber-7" class="nixie-dev-controls__slider col" />
+          <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ atmosphereHarmony }} %</span>
+        </div>
         <div class="row items-center no-wrap q-mb-xs q-gutter-x-sm">
           <q-toggle dense left-label color="cyan-7" :model-value="soundLayerProbeOn" label="TEST" @update:model-value="onSoundLayerProbeToggle" />
           <span class="text-caption text-grey-6 nixie-dev-controls__probe-hint">듀얼 사인 {{ NIXIE_SOUND_LAYER_PROBE_CARRIER_HZ }}Hz · LP / Tremolo / D Tuning / Vibrato</span>
@@ -355,6 +386,14 @@ const soundLayerDetune = ref(0)
 const soundLayerJitter = ref(0)
 /** 단계 C: 전용 파이프 테스트 톤(사용자 제스처로만 시작) */
 const soundLayerProbeOn = ref(false)
+
+/** §8 M-A: 의미 6축 — 로컬만(0~100). M-B에서 `getNixieSoundAtmosphere` 등으로 정규화. */
+const atmosphereTension = ref(0)
+const atmosphereUncanniness = ref(0)
+const atmosphereMechanical = ref(0)
+const atmosphereSpace = ref(0)
+const atmosphereVitality = ref(0)
+const atmosphereHarmony = ref(0)
 
 /** 오디오·이벤트는 이 객체만 구독하면 됨 (`getNixieSoundLayers`) */
 const nixieSoundLayers = computed(() =>

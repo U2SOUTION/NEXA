@@ -135,6 +135,7 @@ NEXA NIXIE v0.3 **음악적 통신 장비** 관점에서 위 6축에 대해 **�
 - **M-A — 슬라이더 UI만**
   - **내용:** 닉시 개발 패널(또는 전용 블록)에 **6개 슬라이더**(긴장·이질감·기계성·공간감·활력·조화). 범위 `0~100` 또는 `0~1` 통일, **로컬 `ref`만** 바인딩. **이 단계에서는 Web Audio·모스에 연결하지 않음.**
   - **산출물:** 화면에 **6축의 단일 진실 원천**(체험용).
+  - **구현:** `NixieDevControls.vue` — 사운드 레이어 4축·`q-separator` 아래 `M-A · 의미 6축` 블록, 라벨 TENSION/UNCANNY/… , `atmosphereTension` 등 로컬 `ref` 6개(`0~100`).
 - **M-B — 파라미터 객체로 묶기**
   - **내용:** 6개 `ref`를 하나의 객체로 정규화. 예: `getNixieSoundAtmosphere()` → `{ tension01, uncanniness01, mechanical01, space01, vitality01, harmony01 }` (모두 0~1). 타입·필드명은 코드에 한 번만 정의.
   - **산출물:** 이벤트·매핑 레이어가 받을 **의미 벡터**.
