@@ -4,12 +4,12 @@
   명세: docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md
 
   현재 상태(모스·오디오)
-  - DIT/TONE/VOLUME: 드래그는 로컬 ref, 손 뗄 때(@change) 스토어 반영. 재생 중 TONE/VOLUME은 morseWebAudioCore 라이브 반영, DIT는 재생 재시작.
+  - DIT/TONE/VOLUME: 드래그는 로컬 ref, 손 뗄 때(@change) 스토어 반영. 재생 중 TONE은 watch로 캐리어 Hz 라이브. VOLUME은 v-model 변경 시 마스터 게인 watch로 라이브, @change는 Pinia만. DIT는 재생 재시작.
   - 미리듣기: 스피너+중지, stop 시 오디오·Promise 정리. 재생 세대 번호로 finally 경합 방지.
   - 스냅샷 applyPatch 가 통째로 갈아끼워지므로 morse 필드는 배열 watch 금지 → dit/tone/volume 스칼라별 watch 로만 로컬 슬라이더 동기화.
   - N-MAP 수치 → 모스 파라미터 자동 매핑은 아직 없음. 본격 닉시 진행 시 연출 레이어에서 추가 예정.
   - PAN L / ALL / R: 스냅샷 `morse_stereo_pan` + Web Audio `StereoPannerNode`, 재생 중 버튼만으로도 실시간 체험 가능.
-  - 사운드 레이어 4축(FILTER·RELEASE·DETUNE·JITTER): TEST(레이어 프로브)에만 Web Audio 반영. 모스 미리듣기는 morseWebAudioCore(단순 경로)·레이어 무시 — 동 문서
+  - 사운드 레이어: TEST(프로브) + 모스 재생 중 `effectiveNixieSoundLayers` watch → `setMorseSoundLayerParams`(공간·언캐니·다음 토큰 DSP). 의미→DSP 매핑 OFF면 6축 슬라이더는 레이어에 안 들어가므로 4축만 모스에 영향.
   - 의미 6축(M-A): 긴장·이질감·기계성·공간감·활력·조화 슬라이더 — 로컬 ref(0~100). 동 문서 §8 M-A.
   - 의미 6축(M-B): `getNixieSoundAtmosphere` → `nixieSoundAtmosphere` computed. 동 문서 §8 M-B.
   - 의미 매핑(M-E): 토글 ON 시 레이어 목표값은 매핑 결과 사용; 모스 DIT는 별도 정책(원자시계). DSP 4축은 매핑 ON일 때 오디오 목표에서 대체됨(문서 §8 M-E). 프로브·모스 공통 상태이나 모스 재생 그래프는 Core 단순 경로.
@@ -509,7 +509,7 @@ watch(
       setMorseSoundLayerParams(layers)
     }
   },
-  { deep: true },
+  { deep: true, flush: 'sync' },
 )
 
 function clampMorseToneHz(v) {
@@ -764,6 +764,16 @@ watch(morseToneHzEffective, (hz) => {
     setMorseCarrierFrequencyHz(hz)
   }
 })
+
+watch(
+  morseVolumeSlider,
+  (pct) => {
+    if (!morsePlaying.value) return
+    const n = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)))
+    setMorseMasterGainLinear((n / 100) * MORSE_MASTER_GAIN_MAX)
+  },
+  { flush: 'sync' },
+)
 
 watch(morseDitMsEffective, (dit, prev) => {
   if (prev === undefined) return
