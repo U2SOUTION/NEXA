@@ -50,6 +50,10 @@ const activePlaybackHookTimers: number[] = []
 /** 현재 `playMorseTimeline` 세션의 훅 — 자연 종료는 `onComplete`, 중단은 `onStopped` */
 let activePlaybackHooks: MorsePlaybackHooks | null = null
 
+/** 타임라인 진행률(0~1) — `AudioContext.currentTime` 기준, `clearActiveAudioNodes` 시 해제 */
+let activePlaybackTimelineStartSec: number | null = null
+let activePlaybackTotalSec: number | null = null
+
 function clearPlaybackHookTimers(): void {
   for (const id of activePlaybackHookTimers) {
     clearTimeout(id)
@@ -79,6 +83,8 @@ function clearActiveAudioNodes(): void {
   activeStereoPanner = null
   activeAnalyser = null
   activeOscillators.length = 0
+  activePlaybackTimelineStartSec = null
+  activePlaybackTotalSec = null
 }
 
 /** 현재 모스 출력 파형 샘플을 0~255로 채움(없으면 false) */
@@ -89,6 +95,19 @@ export function readMorseScopeTimeDomain(target: Uint8Array): boolean {
   if (target.length < need) return false
   analyser.getByteTimeDomainData(target as Uint8Array<ArrayBuffer>)
   return true
+}
+
+/**
+ * 재생 중 타임라인 진행률 0~1 (`AudioContext` 스케줄 기준).
+ * 재생 없음·정지 직후에는 `null`.
+ */
+export function getMorsePlaybackProgress01(): number | null {
+  const ctx = activeCtx
+  if (!ctx || activePlaybackTimelineStartSec == null || activePlaybackTotalSec == null) return null
+  const total = activePlaybackTotalSec
+  if (total <= 0) return null
+  const elapsed = ctx.currentTime - activePlaybackTimelineStartSec
+  return Math.max(0, Math.min(1, elapsed / total))
 }
 
 function getAudioParamAt(param: AudioParam, time: number): number {
@@ -291,7 +310,11 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
   activeStereoPanner = panner
   activeAnalyser = analyser
 
+  const totalMs = events.reduce((s, ev) => s + ev.ms, 0)
   let t = ctx.currentTime
+  activePlaybackTimelineStartSec = t
+  activePlaybackTotalSec = Math.max(totalMs / 1000, 1e-6)
+
   const fade = 0.004
 
   for (const e of events) {
@@ -337,7 +360,6 @@ export async function playMorseTimeline(events: MorseSoundEvent[], options: Play
     elapsedSchedule += ev.ms
   }
 
-  const totalMs = events.reduce((s, ev) => s + ev.ms, 0)
   await new Promise<void>((resolve) => {
     activePlayResolve = resolve
     activeWaitTimer = window.setTimeout(() => {

@@ -51,7 +51,7 @@
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.user_defined_threshold }} %</span>
     </div>
     <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
-      <span class="nixie-dev-controls__lbl" title="값이 클수록 빠름 · 실제 마퀴는 틱 간격(ms)이 짧아짐">닉시속도</span>
+      <span class="nixie-dev-controls__lbl" title="값이 클수록 빠름 · 실제 마퀴는 틱 간격(ms)이 짧아짐">흐름속도</span>
       <q-slider :model-value="hudMarqueeSpeedUi" :min="HUD_MARQUEE_MS_MIN" :max="HUD_MARQUEE_MS_MAX" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="commitHudMarqueeSpeedUi" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ hudMarqueeSpeedUiRounded }}</span>
     </div>
@@ -91,7 +91,7 @@
     <div class="row items-center q-gutter-x-xs q-mb-xs nixie-dev-controls__morse-head">
       <span class="nixie-dev-controls__lbl">MORSE</span>
       <div class="nixie-dev-controls__morse-scope col">
-        <AudioScopeCanvas :active="morsePlaying" :pull-bytes="pullMorseScopeBytes" />
+        <AudioScopeCanvas :active="morsePlaying" :pull-bytes="pullMorseScopeBytes" :pull-playhead-progress="pullMorsePlayheadProgress" />
       </div>
       <div class="row items-center no-wrap q-gutter-x-xs q-ml-auto nixie-dev-controls__morse-trail">
         <q-spinner v-if="morsePlaying" color="positive" size="1.15em" class="nixie-dev-controls__morse-spinner" />
@@ -229,7 +229,7 @@ import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieHudMarqueeConfig'
 import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText, scrollOffsetToCenterToken } from '@system/nixie/nixieDotMap'
 import { buildMorseSoundTimeline, buildMorseSoundTimelineWithMeta, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
-import { MORSE_MASTER_GAIN_MAX, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
+import { MORSE_MASTER_GAIN_MAX, getMorsePlaybackProgress01, playMorseTimeline, readMorseScopeTimeDomain, setMorseCarrierFrequencyHz, setMorseMasterGainLinear, setMorseStereoPanValue, stopMorsePlayback } from '@system/nixie/morseWebAudio'
 import AudioScopeCanvas from '@engines/audio/components/AudioScopeCanvas.vue'
 import { storeToRefs } from 'pinia'
 import { useQuasar } from 'quasar'
@@ -577,6 +577,12 @@ function pullMorseScopeBytes(bytes) {
   return readMorseScopeTimeDomain(bytes)
 }
 
+/** 스코프 캔버스 플레이헤드 — 재생 중에만 0~1, 아니면 null */
+function pullMorsePlayheadProgress() {
+  if (!morsePlaying.value) return null
+  return getMorsePlaybackProgress01()
+}
+
 /** @param pan {-1|0|1} L / ALL / R */
 function commitMorseStereoPan(pan) {
   nmap.setMorseStereoPan(pan)
@@ -760,6 +766,8 @@ function onHudBlur() {
 
 /** 모스 음원 스코프 캔버스 */
 .nixie-dev-controls__morse-scope {
+  position: relative;
+  overflow: visible;
   min-width: 24px;
   height: 24px;
   border-radius: 6px;
