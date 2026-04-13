@@ -15,7 +15,7 @@
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="dashboard_customize" class="q-mr-sm" />
-              <span>NEXA BOARD</span>
+              <span>NEXA NEXAGE</span>
             </div>
           </template>
         </q-btn>
@@ -123,7 +123,7 @@ const recentBoards = computed(() => {
 
 // 빠른 접근 함수들
 function goToNexaBoard() {
-  router.push('/nexa-board')
+  router.push('/nexage')
 }
 
 function goToPartsManagement() {
@@ -131,12 +131,12 @@ function goToPartsManagement() {
 }
 
 function goToAddDevice() {
-  router.push('/nexa-board/add-device')
+  router.push('/nexage/add-device')
 }
 
 function selectBoard(board) {
   dashboardLayoutStore.setSelectedNodeForDashboard(board)
-  router.push('/nexa-board')
+  router.push('/nexage')
 }
 </script>
 

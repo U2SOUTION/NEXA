@@ -118,7 +118,7 @@ import NixieOnlineCharacter from '@system/nixie/components/NixieOnlineCharacter.
 import { getLeftSidebarComponent, getRightSidebarComponent, getHeaderActionsComponent } from '@frame/registry/domainRegistry'
 
 // Composables & Utils
-import WindowPresetEditModal from '@domains/board/components/window/WindowPresetEditModal.vue'
+import WindowPresetEditModal from '@domains/nexage/components/window/WindowPresetEditModal.vue'
 import { useSidebarGesture } from '@system/composables/useSidebarGesture'
 const $q = useQuasar()
 const router = useRouter()
@@ -173,11 +173,11 @@ const currentMenu = computed(() => {
   if (path === '/' || path === '') return 'home'
 
   const menuMap = {
-    '/nexa-board': 'nexa-board',
+    '/nexage': 'nexage',
     '/nexet': 'nexet',
-    '/nexa-node': 'automation',
+    '/nexel': 'nexel',
     '/nexa-archive': 'nexa-archive',
-    '/nexa-trace': 'nexa-trace',
+    '/nexeed': 'nexeed',
     '/nexa-nexion': 'nexion',
     '/nexa-ai': 'nexa-ai',
     '/erp': 'nexa-erp',
@@ -210,10 +210,10 @@ const currentMenu = computed(() => {
 
 const mainMenuTabs = [
   { name: 'home', label: 'HOME', displayLabel: 'HOME', icon: 'home', route: '/', exact: false, nexaPrefix: false },
-  { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: false, nexaPrefix: true },
+  { name: 'nexage', label: 'NEXA NEXAGE', displayLabel: 'NEXAGE', icon: 'dashboard', route: '/nexage', exact: false, nexaPrefix: true },
   { name: 'nexet', label: 'NEXET', displayLabel: 'NEXET', icon: 'widgets', route: '/nexet', exact: false, nexaPrefix: true },
-  { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
-  { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
+  { name: 'nexel', label: 'NEXA NEXEL', displayLabel: 'NEXEL', icon: 'hub', route: '/nexel', exact: false, nexaPrefix: true },
+  { name: 'nexeed', label: 'NEXA NEXEED', displayLabel: 'NEXEED', icon: 'analytics', route: '/nexeed', exact: false, nexaPrefix: true },
   { name: 'nexion', label: 'NEXA NEXION', displayLabel: 'NEXION', icon: 'account_tree', route: '/nexa-nexion', exact: false, nexaPrefix: true },
   { name: 'nexa-archive', label: 'NEXA ARCHIVE', displayLabel: 'ARCHIVE', icon: 'article', route: '/nexa-archive', exact: false, nexaPrefix: true },
   { name: 'nexa-ai', label: 'NEXA AI', displayLabel: 'AI', icon: 'smart_toy', route: '/nexa-ai', exact: false, nexaPrefix: true },

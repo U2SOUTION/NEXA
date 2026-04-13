@@ -444,10 +444,11 @@ function mapRouteToFile(routePath: string): string | null {
     '/my': 'src/pages/MyPage.vue',
     '/parts-management': 'src/pages/PartsManagementPage.vue',
     '/nexet': 'src/pages/NexaPanelPage.vue',
-    '/nexa-node': 'src/pages/NexaNodePage.vue',
+    '/nexel': 'src/domains/nexel/NexelDomain.vue',
     '/nexa-teach': 'src/pages/NexaTeachPage.vue',
-    '/nexa-board': 'src/pages/NexaBoardPage.vue',
-    '/board-admin': 'src/pages/BoardAdminPage.vue',
+    '/nexage': 'src/domains/nexage/NexageDomain.vue',
+    '/nexage/admin': 'src/domains/nexage/views/admin/NexageAdminPage.vue',
+    '/nexeed': 'src/domains/nexeed/NexeedDomain.vue',
     '/': 'src/pages/HomePage.vue',
   }
   return routeMap[routePath] || null

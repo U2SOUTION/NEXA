@@ -105,7 +105,7 @@ export const CATEGORY_TYPES = {
     description: '대시보드 컴포넌트',
   },
   NEXA_BOARD: {
-    id: 'nexa-board',
+    id: 'nexage',
     icon: 'view_quilt',
     description: '넥사보드 컴포넌트',
   },
@@ -200,7 +200,7 @@ export const CATEGORY_DISPLAY_NAMES = {
 
   // 대시보드/넥사보드
   dashboard: '대시보드',
-  'nexa-board': '넥사보드',
+  nexage: '넥세이지',
   nexet: '넥사넥셋',
 
   // 다이어그램/차트
@@ -334,7 +334,7 @@ export const PATH_MAPPING_RULES = [
 
   // 대시보드/넥사보드
   {
-    pattern: /nexa-board|dashboard\/board/i,
+    pattern: /nexage|nexa-board|dashboard\/board/i,
     categoryId: CATEGORY_TYPES.NEXA_BOARD.id,
   },
   {

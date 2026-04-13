@@ -384,14 +384,14 @@ watch(showHelper, () => {
 onMounted(() => {
   setupZoom()
   renderDiagram()
-  window.addEventListener('nexa-node-helper-hide', hideHelper)
-  window.addEventListener('nexa-node-new-canvas', showHelperHint)
+  window.addEventListener('nexel-helper-hide', hideHelper)
+  window.addEventListener('nexel-new-canvas', showHelperHint)
   window.addEventListener('keydown', handleGlobalKeydown)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('nexa-node-helper-hide', hideHelper)
-  window.removeEventListener('nexa-node-new-canvas', showHelperHint)
+  window.removeEventListener('nexel-helper-hide', hideHelper)
+  window.removeEventListener('nexel-new-canvas', showHelperHint)
   window.removeEventListener('keydown', handleGlobalKeydown)
   cancelTempLine()
 })

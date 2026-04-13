@@ -51,7 +51,7 @@ const CATEGORY_ICONS = {
 
 /**
  * 컴포넌트 경로에서 디렉토리 경로 배열 추출
- * @param {string} path - 컴포넌트 경로 (예: 'src/system/components/ui/BaseModal.vue' 또는 'src/domains/board/components/BoardConfigEditor.vue')
+ * @param {string} path - 컴포넌트 경로 (예: 'src/system/components/ui/BaseModal.vue' 또는 'src/domains/nexage/components/NexageConfigEditor.vue')
  * @returns {Array<string>} 디렉토리 경로 배열 (예: ['ui'] 또는 ['domains', 'board'])
  */
 function extractDirectoryPath(path: string): string[] {

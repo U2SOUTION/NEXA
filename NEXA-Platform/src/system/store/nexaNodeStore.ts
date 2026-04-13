@@ -111,7 +111,7 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
 
     activeBlueprint.value = blueprint
     if (!skipHelperNotification) {
-      window.dispatchEvent(new CustomEvent('nexa-node-new-canvas'))
+      window.dispatchEvent(new CustomEvent('nexel-new-canvas'))
     }
   }
 
@@ -120,7 +120,7 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
     if (index >= 0) {
       selectedDeviceIds.value.splice(index, 1)
       if (selectedDeviceIds.value.length === 0) {
-        window.dispatchEvent(new CustomEvent('nexa-node-helper-hide'))
+        window.dispatchEvent(new CustomEvent('nexel-helper-hide'))
       }
       return
     }
@@ -129,7 +129,7 @@ export const useNexaNodeStore = defineStore('nexaNode', () => {
       createDefaultBlueprint(true)
     }
     if (selectedDeviceIds.value.length === 1) {
-      window.dispatchEvent(new CustomEvent('nexa-node-helper-hide'))
+      window.dispatchEvent(new CustomEvent('nexel-helper-hide'))
     }
   }
 

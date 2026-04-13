@@ -37,11 +37,11 @@ const domainConfigs: Record<string, DomainConfig> = {
     right: null,
   },
   // 넥사보드
-  'nexa-board': {
-    left: () => import('@domains/board/views/left/BoardLeftNav.vue'),
-    content: () => import('@domains/board/BoardDomain.vue'),
-    right: () => import('@domains/board/views/right/BoardRightPanel.vue'),
-    headerActions: () => import('@domains/board/components/BoardHeaderActions.vue'),
+  nexage: {
+    left: () => import('@domains/nexage/views/left/NexageLeftNav.vue'),
+    content: () => import('@domains/nexage/NexageDomain.vue'),
+    right: () => import('@domains/nexage/views/right/NexageRightPanel.vue'),
+    headerActions: () => import('@domains/nexage/components/NexageHeaderActions.vue'),
   },
   // 넥사넥셋
   nexet: {
@@ -49,11 +49,11 @@ const domainConfigs: Record<string, DomainConfig> = {
     content: () => import('@domains/nexet/NexetDomain.vue'),
     right: () => import('@domains/nexet/views/right/NexetRightPanel.vue'),
   },
-  // 넥사노드 (자동화)
-  automation: {
-    left: () => import('@domains/node/views/left/NodeLeftNav.vue'),
-    content: () => import('@domains/node/views/content/NodeContent.vue'),
-    right: () => import('@domains/node/views/right/NodeRightPanel.vue'),
+  // 넥사 넥셀 (자동화)
+  nexel: {
+    left: () => import('@domains/nexel/views/left/NexelLeftNav.vue'),
+    content: () => import('@domains/nexel/NexelDomain.vue'),
+    right: () => import('@domains/nexel/views/right/NexelRightPanel.vue'),
   },
   // 인프라 관리
   infra: {
@@ -113,10 +113,10 @@ const domainConfigs: Record<string, DomainConfig> = {
     content: () => import('@domains/archive/ArchiveDomain.vue'),
     right: () => import('@domains/archive/views/right/ArchiveRightPanel.vue'),
   },
-  // 넥사트레이스
-  'nexa-trace': {
-    left: () => import('@domains/trace/views/left/TraceLeftNav.vue'),
-    content: () => import('@domains/trace/TraceDomain.vue'),
+  // 넥사 넥씨드 (Nexeed)
+  nexeed: {
+    left: () => import('@domains/nexeed/views/left/NexeedLeftNav.vue'),
+    content: () => import('@domains/nexeed/NexeedDomain.vue'),
     right: null,
   },
   // NEXA Nexion (지식 데스크 · Vue Flow)

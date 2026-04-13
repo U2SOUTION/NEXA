@@ -61,7 +61,7 @@ export const componentTaxonomy = {
           name: '오버레이',
           description: '모달, 다이얼로그, 드로어',
           icon: 'layers',
-          examples: ['BaseModal.vue', 'DocumentSettingsModal.vue', 'BoardManagerDrawer.vue'],
+          examples: ['BaseModal.vue', 'DocumentSettingsModal.vue', 'NexageManagerDrawer.vue'],
           typicalLocations: ['components/modals/', 'components/drawer/'],
         },
         {
@@ -173,7 +173,7 @@ export const componentTaxonomy = {
           name: '플로팅',
           description: '드래그 가능한 요소',
           icon: 'open_with',
-          examples: ['BoardManagerDrawer.vue'],
+          examples: ['NexageManagerDrawer.vue'],
           characteristics: ['위치 변경 가능'],
         },
         {

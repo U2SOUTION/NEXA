@@ -172,7 +172,7 @@
           <q-card-section>
             <div class="text-h6 q-mb-md">빠른 접근</div>
             <div class="row q-gutter-md">
-              <q-btn flat color="primary" icon="dashboard_customize" label="NEXA BOARD" @click="goToNexaBoard" class="col-12 col-md-4" size="lg" />
+              <q-btn flat color="primary" icon="dashboard_customize" label="NEXA NEXAGE" @click="goToNexaBoard" class="col-12 col-md-4" size="lg" />
               <q-btn flat color="primary" icon="inventory_2" label="부품관리" @click="goToPartsManagement" class="col-12 col-md-4" size="lg" />
               <q-btn flat color="primary" icon="devices_other" label="디바이스 추가" @click="goToAddDevice" class="col-12 col-md-4" size="lg" />
             </div>
@@ -256,7 +256,7 @@ const recentBoards = computed(() => {
 
 // 빠른 접근 함수들
 function goToNexaBoard() {
-  router.push('/nexa-board')
+  router.push('/nexage')
 }
 
 function goToPartsManagement() {
@@ -268,12 +268,12 @@ function goToAddDevice() {
 }
 
 function goToBoardAdmin() {
-  router.push('/nexa-board/admin')
+  router.push('/nexage/admin')
 }
 
 function selectBoard(board) {
   dashboardLayoutStore.setSelectedNodeForDashboard(board)
-  router.push('/nexa-board')
+  router.push('/nexage')
 }
 </script>
 

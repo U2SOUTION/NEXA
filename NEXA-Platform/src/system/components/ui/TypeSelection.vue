@@ -95,7 +95,7 @@ import { useBoardEditorStore } from '@system/store/boardEditorStore'
 const props = defineProps({
   modelValue: {
     type: String,
-    // required: true, // modelValue는 초기에 null일 수 있으므로 false로 변경하거나, BoardAdminPage에서 초기값을 확실히 주도록 합니다.
+    // required: true, // modelValue는 초기에 null일 수 있으므로 false로 변경하거나, NexageAdminPage에서 초기값을 확실히 주도록 합니다.
     default: null,
   },
   isSelectable: {
@@ -134,8 +134,8 @@ const guideMessage = computed(() => {
   } else if (props.drawerContextType === 'root-context' || (!props.drawerContextType && props.selectedDirectoryType === 'root')) {
     return '최상위 레벨에서 생성할 항목 타입을 선택하세요.'
   } else if (!props.drawerContextType && props.selectedDirectoryType === 'sub' && !props.selectedParentGroupName) {
-    // 1단계에서 sub를 선택했지만 아직 부모 그룹을 선택하지 않은 경우 (BoardAdminPage에서 안내)
-    return '상위 그룹을 선택한 후 진행해주세요.' // 이 메시지는 BoardAdminPage에서 더 자세히 안내함
+    // 1단계에서 sub를 선택했지만 아직 부모 그룹을 선택하지 않은 경우 (NexageAdminPage에서 안내)
+    return '상위 그룹을 선택한 후 진행해주세요.' // 이 메시지는 NexageAdminPage에서 더 자세히 안내함
   }
   return '생성 또는 수정할 항목의 타입을 선택하세요.' // 기본 메시지
 })

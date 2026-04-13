@@ -4,13 +4,17 @@ import { useAuthStore } from '@system/store/authStore'
 export const domainRoutes: RouteRecordRaw[] = [
   { path: '', component: () => import('@domains/home/views/content/HomeView.vue'), name: 'Home' },
   {
-    path: 'nexa-board',
-    component: () => import('@domains/board/BoardDomain.vue'),
+    path: 'nexage',
+    component: () => import('@domains/nexage/NexageDomain.vue'),
     children: [
-      { path: '', component: () => import('@domains/board/views/content/BoardContent.vue'), name: 'NexaBoard' },
-      { path: 'add-device', component: () => import('@domains/infra/components/AddDeviceForm.vue'), name: 'BoardAddDevice' },
-      { path: 'admin', component: () => import('@domains/board/views/admin/BoardAdminPage.vue'), name: 'BoardAdmin' },
+      { path: '', component: () => import('@domains/nexage/views/content/NexageContent.vue'), name: 'Nexage' },
+      { path: 'add-device', component: () => import('@domains/infra/components/AddDeviceForm.vue'), name: 'NexageAddDevice' },
+      { path: 'admin', component: () => import('@domains/nexage/views/admin/NexageAdminPage.vue'), name: 'NexageAdmin' },
     ],
+  },
+  {
+    path: 'nexa-board',
+    redirect: '/nexage',
   },
   {
     path: 'nexet',
@@ -18,14 +22,22 @@ export const domainRoutes: RouteRecordRaw[] = [
     component: () => import('@domains/nexet/NexetDomain.vue'),
   },
   {
+    path: 'nexel',
+    name: 'Nexel',
+    component: () => import('@domains/nexel/NexelDomain.vue'),
+  },
+  {
     path: 'nexa-node',
-    name: 'NexaNode',
-    component: () => import('@domains/node/NodeDomain.vue'),
+    redirect: '/nexel',
+  },
+  {
+    path: 'nexeed',
+    name: 'Nexeed',
+    component: () => import('@domains/nexeed/NexeedDomain.vue'),
   },
   {
     path: 'nexa-trace',
-    name: 'NexaTrace',
-    component: () => import('@domains/trace/TraceDomain.vue'),
+    redirect: '/nexeed',
   },
   {
     path: 'nexa-nexion',

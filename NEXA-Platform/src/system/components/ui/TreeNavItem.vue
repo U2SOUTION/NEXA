@@ -131,9 +131,9 @@ function handleNodeClick() {
   if (dashboardLayoutStore.currentViewMode === 'dashboard') {
     dashboardLayoutStore.setSelectedNodeForDashboard(props.node)
     if (props.node.type === 'board') {
-      // 보드 선택 시 /nexa-board로 라우팅하여 상단 메뉴가 NEXA BOARD로 유지되도록 함
-      if (router.currentRoute.value.path !== '/nexa-board') {
-        router.push('/nexa-board')
+      // 보드 선택 시 /nexage로 라우팅하여 상단 메뉴가 NEXA NEXAGE로 유지되도록 함
+      if (router.currentRoute.value.path !== '/nexage') {
+        router.push('/nexage')
       }
     } else if (props.node.type === 'group') {
       if (hasChildren.value) toggleExpansion()
@@ -146,8 +146,8 @@ function handleNodeClick() {
       toggleExpansion()
     }
 
-    if (router.currentRoute.value.path !== '/nexa-board/admin') {
-      router.push('/nexa-board/admin')
+    if (router.currentRoute.value.path !== '/nexage/admin') {
+      router.push('/nexage/admin')
     }
   }
 }
