@@ -1,15 +1,15 @@
 <template>
-  <q-page class="panel-domain-container">
-    <PanelContent />
+  <q-page class="nexet-domain-container">
+    <NexetContent />
   </q-page>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
 import { useDomainIntercom } from '@system/composables/useDomainIntercom'
-import PanelContent from './views/content/PanelContent.vue'
+import NexetContent from './views/content/NexetContent.vue'
 
-const { reportActive } = useDomainIntercom('nexa-panel')
+const { reportActive } = useDomainIntercom('nexet')
 
 onMounted(() => {
   reportActive()
@@ -17,7 +17,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.panel-domain-container {
+.nexet-domain-container {
   background: var(--nexa-background);
   height: 100%;
 }

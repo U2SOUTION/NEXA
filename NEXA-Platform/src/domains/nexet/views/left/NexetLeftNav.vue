@@ -1,26 +1,26 @@
 <!-- NexaPannelSidebar.vue
-  넥사패널 페이지 왼쪽 사이드바
-  패널 카테고리 네비게이션
+  넥사넥셋 페이지 왼쪽 사이드바
+  넥셋 카테고리 네비게이션
 -->
 
 <template>
-  <div class="nexa-panel-sidebar">
+  <div class="nexet-sidebar">
     <q-list>
       <!-- 헤더 -->
       <div class="sidebar-header q-pa-md">
         <div class="text-h4 text-primary q-mb-xs text-bold">NEXA PANNEL</div>
-        <div class="text-caption text-grey-7">패널 카탈로그 및 관리</div>
+        <div class="text-caption text-grey-7">넥셋 카탈로그 및 관리</div>
       </div>
 
       <q-separator />
 
-      <!-- 패널 카테고리 -->
+      <!-- 넥셋 카테고리 -->
       <div class="q-pa-sm">
         <q-btn flat dense @click="selectTab('device')" :class="['btn-nexa-primary q-mb-xs text-bold full-width q-py-xs', { 'active-menu': activeTab === 'device' }]">
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="devices" class="q-mr-sm" />
-              <span>디바이스 패널</span>
+              <span>디바이스 넥셋</span>
             </div>
           </template>
         </q-btn>
@@ -28,7 +28,7 @@
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="folder" class="q-mr-sm" />
-              <span>프로젝트 패널</span>
+              <span>프로젝트 넥셋</span>
             </div>
           </template>
         </q-btn>
@@ -36,7 +36,7 @@
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="inventory_2" class="q-mr-sm" />
-              <span>부품 패널</span>
+              <span>부품 넥셋</span>
             </div>
           </template>
         </q-btn>
@@ -44,7 +44,7 @@
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="extension" class="q-mr-sm" />
-              <span>기타 패널</span>
+              <span>기타 넥셋</span>
             </div>
           </template>
         </q-btn>
@@ -52,7 +52,7 @@
           <template v-slot:default>
             <div class="full-width row items-center justify-center">
               <q-icon name="settings" class="q-mr-sm" />
-              <span>패널 관리</span>
+              <span>넥셋 관리</span>
             </div>
           </template>
         </q-btn>
@@ -60,16 +60,16 @@
 
       <q-separator />
 
-      <!-- 패널 통계 -->
+      <!-- 넥셋 통계 -->
       <div class="q-pa-sm">
-        <div class="text-subtitle2 text-bold q-mb-sm q-px-sm">패널 통계</div>
+        <div class="text-subtitle2 text-bold q-mb-sm q-px-sm">넥셋 통계</div>
         <div class="panel-stats q-pa-sm">
           <div class="stat-item q-mb-xs">
-            <div class="stat-label text-caption text-grey-6">등록된 패널</div>
+            <div class="stat-label text-caption text-grey-6">등록된 넥셋</div>
             <div class="stat-value text-h6 text-primary">-</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label text-caption text-grey-6">사용 중인 패널</div>
+            <div class="stat-label text-caption text-grey-6">사용 중인 넥셋</div>
             <div class="stat-value text-h6 text-primary">-</div>
           </div>
         </div>
@@ -91,7 +91,7 @@ function selectTab(tab) {
 </script>
 
 <style lang="scss" scoped>
-.nexa-panel-sidebar {
+.nexet-sidebar {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -133,4 +133,3 @@ function selectTab(tab) {
   }
 }
 </style>
-

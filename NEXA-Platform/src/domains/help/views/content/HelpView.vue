@@ -38,7 +38,7 @@
           </h3>
           <ul class="text-body2 text-grey-7">
             <li>첫 보드 만들기</li>
-            <li>패널 추가하기</li>
+            <li>넥셋 추가하기</li>
             <li>자동화 규칙 작성하기</li>
             <li>프로젝트 관리하기</li>
           </ul>
@@ -105,7 +105,7 @@ const helpTab = ref('guide')
   padding: 16px 35px;
 }
 
-// 탭 패널 배경 제거 및 간격 제거
+// 탭 넥셋 배경 제거 및 간격 제거
 :deep(.q-tab-panels) {
   background: transparent;
 }

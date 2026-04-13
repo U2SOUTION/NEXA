@@ -57,7 +57,7 @@
 │       │   │   ├── ConnectorView.vue      # /archive/connector - 데이터 매핑, 동기화 로그, 필드 정의 및 검증
 │       │   │   └── InsightsView.vue       # /archive/insights - D3.js 기반 전역 지식 관계망 (Global Map)
 │       │   └── right/
-│       │       └── ArchiveRightPanel.vue  # 라우트별 분기/공용 패널
+│       │       └── ArchiveRightPanel.vue  # 라우트별 분기/공용 넥셋
 │       │
 │       ├── router/                        # (선택) 도메인 하위 라우트 정의 모듈
 │       │    └── archive-routes.js          # /archive → /archive/hub 로 리다이렉트, 하위 4뷰 등록

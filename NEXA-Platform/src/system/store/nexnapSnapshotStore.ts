@@ -28,7 +28,7 @@ export type NexnapSnapshot = {
   is_virtual: boolean
   source_shell_id: string | null
   user_defined_threshold: number
-  /** §8 M-F — 닉시 사운드 의미 6축(개발 패널·이벤트 공통, 0~100) */
+  /** §8 M-F — 닉시 사운드 의미 6축(개발 넥셋·이벤트 공통, 0~100) */
   sound_atmosphere_tension: number
   sound_atmosphere_uncanniness: number
   sound_atmosphere_mechanical: number

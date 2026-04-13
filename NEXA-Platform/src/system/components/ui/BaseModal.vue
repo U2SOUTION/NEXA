@@ -23,7 +23,7 @@
 
         <!-- 중간 컨텐츠 (최소화 시 숨김) -->
         <div v-if="!isMinimized" class="base-modal-body">
-          <!-- 탭이 있을 때: 탭 패널 사용 -->
+          <!-- 탭이 있을 때: 탭 넥셋 사용 -->
           <template v-if="tabs && tabs.length > 0">
             <q-tabs v-model="activeTab" dense class="base-modal-tabs" active-color="primary" />
             <div class="base-modal-tab-panels-wrapper">

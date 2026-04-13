@@ -139,7 +139,7 @@ export const componentTaxonomy = {
         {
           id: 'right',
           name: '우측',
-          description: '오른쪽 사이드바/패널',
+          description: '오른쪽 사이드바/넥셋',
           icon: 'chevron_right',
           examples: ['RightSidebar.vue', 'DevToolsPanel.vue', 'NexaBoardToolsPanel.vue'],
           characteristics: ['도구', '설정', '정보'],
@@ -182,7 +182,7 @@ export const componentTaxonomy = {
           description: '다른 컴포넌트 내부',
           icon: 'view_in_ar',
           examples: ['TimeBlock.vue', 'ChartBlock.vue'],
-          characteristics: ['블록', '패널 내부'],
+          characteristics: ['블록', '넥셋 내부'],
         },
       ],
     },
@@ -394,25 +394,25 @@ export const componentTaxonomy = {
     namePatterns: {
       'data-display': ['Chart', 'Table', 'List', 'Card', 'Renderer', 'Viewer'],
       'data-input': ['Form', 'Input', 'Editor'],
-      'navigation': ['Nav', 'Sidebar', 'Menu', 'Breadcrumb'],
-      'layout': ['Layout', 'Panel', 'Block', 'Container'],
-      'overlay': ['Modal', 'Dialog', 'Drawer', 'Popover'],
-      'settings': ['Settings', 'Config', 'Management'],
+      navigation: ['Nav', 'Sidebar', 'Menu', 'Breadcrumb'],
+      layout: ['Layout', 'Panel', 'Block', 'Container'],
+      overlay: ['Modal', 'Dialog', 'Drawer', 'Popover'],
+      settings: ['Settings', 'Config', 'Management'],
       'dev-tools': ['DevTools', 'Debug', 'Analyzer'],
       'utility-ui': ['Filter', 'Empty', 'Skeleton', 'Loader'],
       'context-menu': ['ContextMenu', 'Menu'],
-      'diagram': ['Diagram', 'Graph', 'Flow'],
-      'board': ['Board', 'Dashboard'],
+      diagram: ['Diagram', 'Graph', 'Flow'],
+      board: ['Board', 'Dashboard'],
     },
 
     // 경로 기반 자동 분류 규칙
     pathPatterns: {
-      'independent-system': ['/block/', '/charts/', '/panel/', '/diagram/'],
+      'independent-system': ['/block/', '/charts/', '/nexet/', '/diagram/'],
       'context-dependent': ['/parts-management/', '/form/', '/settings/'],
       'generic-ui': ['/ui/'],
-      'page': ['/pages/'],
-      'layout': ['/layouts/'],
-      'renderer': ['/renderers/'],
+      page: ['/pages/'],
+      layout: ['/layouts/'],
+      renderer: ['/renderers/'],
       'dev-tools': ['/dev-tools/'],
     },
 
@@ -458,7 +458,7 @@ export const componentTaxonomy = {
           ...cat,
           dimensionId: dim.id,
           dimensionName: dim.name,
-        }))
+        })),
       )
     },
 
@@ -518,4 +518,3 @@ export const componentTaxonomy = {
 
 // 기본 export
 export default componentTaxonomy
-

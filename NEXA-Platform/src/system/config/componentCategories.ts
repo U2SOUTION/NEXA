@@ -56,7 +56,7 @@ export const CATEGORY_TYPES = {
   LAYOUT_PANELS: {
     id: 'layout-panels',
     icon: 'dashboard',
-    description: '패널 컴포넌트',
+    description: '넥셋 컴포넌트',
   },
 
   // 부품 관리 시스템
@@ -110,9 +110,9 @@ export const CATEGORY_TYPES = {
     description: '넥사보드 컴포넌트',
   },
   NEXA_PANEL: {
-    id: 'nexa-panel',
+    id: 'nexet',
     icon: 'widgets',
-    description: '넥사패널 컴포넌트',
+    description: '넥사넥셋 컴포넌트',
   },
 
   // 다이어그램/차트
@@ -185,7 +185,7 @@ export const CATEGORY_DISPLAY_NAMES = {
   // 레이아웃
   layout: '레이아웃',
   'layout-sidebars': '사이드바',
-  'layout-panels': '패널',
+  'layout-panels': '넥셋',
 
   // 부품 관리 시스템
   'parts-management': '부품 관리',
@@ -201,7 +201,7 @@ export const CATEGORY_DISPLAY_NAMES = {
   // 대시보드/넥사보드
   dashboard: '대시보드',
   'nexa-board': '넥사보드',
-  'nexa-panel': '넥사패널',
+  nexet: '넥사넥셋',
 
   // 다이어그램/차트
   diagram: '다이어그램',
@@ -294,7 +294,7 @@ export const PATH_MAPPING_RULES = [
     categoryId: CATEGORY_TYPES.LAYOUT_SIDEBARS.id,
   },
 
-  // 레이아웃 - 패널
+  // 레이아웃 - 넥셋
   {
     pattern: /(panel|panels)\//i,
     categoryId: CATEGORY_TYPES.LAYOUT_PANELS.id,
@@ -338,7 +338,7 @@ export const PATH_MAPPING_RULES = [
     categoryId: CATEGORY_TYPES.NEXA_BOARD.id,
   },
   {
-    pattern: /nexa-panel|panels\/nexa/i,
+    pattern: /nexet|panels\/nexa/i,
     categoryId: CATEGORY_TYPES.NEXA_PANEL.id,
   },
   {

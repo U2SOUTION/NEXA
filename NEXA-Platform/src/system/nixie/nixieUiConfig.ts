@@ -15,7 +15,7 @@ export const NIXIE_HUD_MARQUEE = {
   /** 가장 느린 틱(긴 간격) */
   intervalMsMax: 500,
   /**
-   * 개발 패널 슬라이더(클수록 빠름). `interval = (min+max) - ui` 이므로
+   * 개발 넥셋 슬라이더(클수록 빠름). `interval = (min+max) - ui` 이므로
    * max=500일 때 틱 간격은 `intervalMsMin`(가장 빠름).
    */
   marqueeSpeedUiMin: 16,

@@ -8,12 +8,12 @@ export const FeedbackStatusEnum = z.enum(['NONE', 'IMPOSSIBLE', 'INAPPROPRIATE',
 
 /**
  * [DisplaySchema]
- * 패널의 시각적 상태와 실시간 피드백을 담당합니다.
+ * 넥셋의 시각적 상태와 실시간 피드백을 담당합니다.
  */
 export const DisplaySchema = z.object({
   // 1. 시각적 테마 정보
   theme: z.object({
-    primaryColor: z.string(), // 패널의 강조 색상 (RAW/RESULT 구분용)
+    primaryColor: z.string(), // 넥셋의 강조 색상 (RAW/RESULT 구분용)
     backgroundColor: z.string().default('#ffffff'),
     icon: z.string().optional(),
   }),

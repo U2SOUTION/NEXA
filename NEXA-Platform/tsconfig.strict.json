@@ -45,7 +45,7 @@
     "src/system/composables/**/*.ts",
     "src/domains/infra/**/*.ts",
     "src/domains/erp/**/*.ts",
-    "src/domains/panel/**/*.ts",
+    "src/domains/nexet/**/*.ts",
     "src/domains/dev/modules/theme-manager/**/*.ts",
     "src/domains/parts/**/*.ts",
     "src/domains/dev/modules/document-manager/**/*.ts",

@@ -17,7 +17,7 @@
     <div v-if="!hasDiagram" class="canvas-empty-state">
       <slot name="canvas-template">
         <div class="canvas-empty-title">NEXA NODE를 드래그하여 제어 로직을 구성하세요</div>
-        <div class="canvas-empty-process">장비선택 - 노드선택 - 패널선택 - 연결 - 뷰포트 - 런타임 정책</div>
+        <div class="canvas-empty-process">장비선택 - 노드선택 - 넥셋선택 - 연결 - 뷰포트 - 런타임 정책</div>
         <div class="canvas-empty-template">템플릿 선택하면 빠르게 시작 할 수 있습니다.</div>
         <p class="canvas-empty-text">기본 트리거 → 로직 → 액션 흐름이 자동 배치됩니다.</p>
       </slot>

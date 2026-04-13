@@ -33,8 +33,8 @@ cores/
 │   ├── time/       # 시간 블록 예제
 │   └── weather/    # 날씨 블록 예제
 └── panels/         # NexaPanel 사용 예제
-    ├── card/       # 카드 패널 예제
-    └── gauge/      # 게이지 패널 예제
+    ├── card/       # 카드 넥셋 예제
+    └── gauge/      # 게이지 넥셋 예제
 ```
 
 ## 💡 사용 예시
@@ -44,18 +44,10 @@ cores/
 <template>
   <div class="nexa-chart-bar-sample">
     <h4>막대 그래프 기본 사용법</h4>
-    <NexaChart
-      type="bar"
-      :data="exampleData"
-      :options="exampleOptions"
-    />
-    
+    <NexaChart type="bar" :data="exampleData" :options="exampleOptions" />
+
     <h4>고급 옵션 사용법</h4>
-    <NexaChart
-      type="bar"
-      :data="advancedData"
-      :options="advancedOptions"
-    />
+    <NexaChart type="bar" :data="advancedData" :options="advancedOptions" />
   </div>
 </template>
 
@@ -66,10 +58,12 @@ import NexaChart from 'src/charts/NexaChart.vue'
 // 예제 데이터 (학습용)
 const exampleData = {
   labels: ['1월', '2월', '3월'],
-  datasets: [{
-    label: '매출',
-    data: [100, 200, 150]
-  }]
+  datasets: [
+    {
+      label: '매출',
+      data: [100, 200, 150],
+    },
+  ],
 }
 
 const exampleOptions = {
@@ -80,11 +74,11 @@ const exampleOptions = {
 
 ## 🔄 Library와의 차이
 
-| 구분 | cores | Library |
-|------|------|---------|
+| 구분     | cores                   | Library                           |
+| -------- | ----------------------- | --------------------------------- |
 | **목적** | 코어 컴포넌트 사용 예제 | 바로 사용할 수 있는 완성 컴포넌트 |
-| **성격** | 코어 컴포넌트 응용 | 독립적, 완성된 컴포넌트 |
-| **사용** | 학습/참고용 | 프로젝트에 직접 복사/사용 |
+| **성격** | 코어 컴포넌트 응용      | 독립적, 완성된 컴포넌트           |
+| **사용** | 학습/참고용             | 프로젝트에 직접 복사/사용         |
 
 ## 📚 핵심 컴포넌트 목록
 
@@ -94,7 +88,7 @@ NEXA 플랫폼의 핵심 컴포넌트는 다음과 같습니다:
 2. **Board** (`src/board/`) - 보드 컴포넌트
 3. **Chart** (`src/charts/`) - 차트 컴포넌트
 4. **Block** (`src/block/`) - 블록 컴포넌트
-5. **Panel** (`src/panel/`) - 패널 컴포넌트
+5. **Panel** (`src/panel/`) - 넥셋 컴포넌트
 6. **Teach** (`src/teach/`) - 티치 컴포넌트
 7. **Diagram** (`src/diagram/`) - 다이어그램 컴포넌트
 

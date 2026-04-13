@@ -5,7 +5,7 @@
 -->
 <template>
   <div class="data-chart-renderer">
-    <!-- 차트 설정 패널 -->
+    <!-- 차트 설정 넥셋 -->
     <div class="chart-settings-panel">
       <div class="settings-row">
         <!-- 차트 타입 선택 -->
@@ -89,7 +89,6 @@
       <q-spinner color="primary" size="48px" />
       <p>차트를 불러오는 중...</p>
     </div>
-
   </div>
 </template>
 

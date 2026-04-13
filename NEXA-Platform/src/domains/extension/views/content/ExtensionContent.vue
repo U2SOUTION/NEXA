@@ -33,7 +33,7 @@
       </div>
     </template>
 
-    <!-- 일반 모드 (팝업/사이드 패널): 기존 레이아웃 -->
+    <!-- 일반 모드 (팝업/사이드 넥셋): 기존 레이아웃 -->
     <template v-else>
       <div class="u2bee-container">
         <!-- 상단 헤더: 로고 + 액션 버튼 -->
@@ -44,11 +44,11 @@
             <span class="logo-text logo-red">U2SOLUTION</span>
           </div>
           <div class="header-actions">
-            <!-- 사이드 패널로 전환 버튼 (팝업 모드일 때만 표시) -->
-            <!-- 주의: Chrome Extension API에서 사이드 패널을 프로그래밍 방식으로 닫는 공식 API가 없으므로, -->
-            <!-- 사이드 패널에서 팝업으로 전환하는 버튼은 제공하지 않습니다. -->
+            <!-- 사이드 넥셋로 전환 버튼 (팝업 모드일 때만 표시) -->
+            <!-- 주의: Chrome Extension API에서 사이드 넥셋을 프로그래밍 방식으로 닫는 공식 API가 없으므로, -->
+            <!-- 사이드 넥셋에서 팝업으로 전환하는 버튼은 제공하지 않습니다. -->
             <!-- 사용자는 확장 프로그램 아이콘을 클릭하여 팝업을 열 수 있습니다. -->
-            <q-btn v-if="isIframeMode && currentMode === 'popup'" flat dense label="사이드 패널로" icon="view_sidebar" size="sm" @click="toggleExtensionMode" class="mode-toggle-btn" />
+            <q-btn v-if="isIframeMode && currentMode === 'popup'" flat dense label="사이드 넥셋로" icon="view_sidebar" size="sm" @click="toggleExtensionMode" class="mode-toggle-btn" />
             <span class="theme-label">THEME</span>
             <q-btn-toggle v-model="selectedTheme" :options="themeOptions" dense size="sm" />
             <q-btn flat dense label="설정" size="sm" />
@@ -187,13 +187,13 @@ const currentMode = computed(() => {
   if (route.query.mode === 'injected') return 'injected'
   // window.self !== window.top으로 iframe 감지 (fallback)
   if (window.self !== window.top) {
-    // 기본적으로 popup으로 간주 (사이드 패널로 전환 가능)
+    // 기본적으로 popup으로 간주 (사이드 넥셋로 전환 가능)
     return 'popup'
   }
   return null
 })
 
-// 팝업/사이드 패널 전환
+// 팝업/사이드 넥셋 전환
 const toggleExtensionMode = () => {
   if (!isIframeMode.value) return
 
@@ -366,7 +366,7 @@ onMounted(() => {
   if (currentMode.value === 'injected') {
     document.body.classList.add('injected-mode')
   }
-  // 사이드 패널 모드일 때 body에 클래스 추가
+  // 사이드 넥셋 모드일 때 body에 클래스 추가
   if (currentMode.value === 'sidepanel') {
     document.body.classList.add('sidepanel-mode')
   }
@@ -395,7 +395,7 @@ onMounted(() => {
 onUnmounted(() => {
   // Injected 모드 클래스 제거
   document.body.classList.remove('injected-mode')
-  // 사이드 패널 모드 클래스 제거
+  // 사이드 넥셋 모드 클래스 제거
   document.body.classList.remove('sidepanel-mode')
 
   if (isIframeMode.value) {
@@ -420,7 +420,7 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
-//메인페이지 카테고리별 패널 스타일 (크롬 확장 프로그램, NEXA Desktop, 기타)
+//메인페이지 카테고리별 넥셋 스타일 (크롬 확장 프로그램, NEXA Desktop, 기타)
 .extension-category-panel {
   border-radius: 4px;
   padding: 16px 35px;

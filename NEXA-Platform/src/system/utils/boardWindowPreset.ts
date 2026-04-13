@@ -7,7 +7,7 @@ export const PRESET_METADATA = {
   single: {
     label: '단일 창',
     icon: 'crop_square',
-    description: '하나의 큰 패널로 구성됩니다.',
+    description: '하나의 큰 넥셋로 구성됩니다.',
     thumbnail: { type: 'single', panes: ['main'] },
     category: 'basic',
     available: true,
@@ -15,7 +15,7 @@ export const PRESET_METADATA = {
   'split-lr': {
     label: '좌우 분할',
     icon: 'view_week',
-    description: '왼쪽과 오른쪽, 두 개의 패널로 분할됩니다.',
+    description: '왼쪽과 오른쪽, 두 개의 넥셋로 분할됩니다.',
     thumbnail: { type: 'split-lr', panes: ['left', 'right'] },
     category: 'basic',
     available: true,
@@ -23,7 +23,7 @@ export const PRESET_METADATA = {
   'l-shape': {
     label: 'L자형 분할',
     icon: 'view_quilt',
-    description: '왼쪽 패널과, 상하로 분할된 오른쪽 패널로 구성됩니다.',
+    description: '왼쪽 넥셋과, 상하로 분할된 오른쪽 넥셋로 구성됩니다.',
     thumbnail: { type: 'l-shape', panes: ['left', 'top', 'bottom'] },
     category: 'basic',
     available: true,
@@ -31,7 +31,7 @@ export const PRESET_METADATA = {
   'split-tb': {
     label: '상하 분할',
     icon: 'view_stream',
-    description: '위쪽과 아래쪽, 두 개의 패널로 분할됩니다.',
+    description: '위쪽과 아래쪽, 두 개의 넥셋로 분할됩니다.',
     thumbnail: { type: 'split-tb', panes: ['top', 'bottom'] },
     category: 'basic',
     available: true,
@@ -40,14 +40,16 @@ export const PRESET_METADATA = {
 
 // 헬퍼 함수들
 export function getPresetMetadata(preset: string) {
-  return (PRESET_METADATA as Record<string, (typeof PRESET_METADATA)[PresetKey]>)[preset] || {
-    label: preset,
-    icon: 'dashboard_customize',
-    description: '사용자 정의 레이아웃입니다.',
-    thumbnail: { type: 'default', panes: [] },
-    category: 'custom',
-    available: false,
-  }
+  return (
+    (PRESET_METADATA as Record<string, (typeof PRESET_METADATA)[PresetKey]>)[preset] || {
+      label: preset,
+      icon: 'dashboard_customize',
+      description: '사용자 정의 레이아웃입니다.',
+      thumbnail: { type: 'default', panes: [] },
+      category: 'custom',
+      available: false,
+    }
+  )
 }
 
 export function getPresetLabel(preset: string) {
@@ -81,4 +83,3 @@ export function validatePreset(preset: string) {
 export function canApplyPreset(preset: string, boardNode: { type?: string } | null | undefined) {
   return validatePreset(preset) && (!boardNode || boardNode.type === 'board')
 }
-

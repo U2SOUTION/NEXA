@@ -74,7 +74,7 @@
       @mousedown="handleRightToggleMouseDown"
     >
       <q-icon name="double_arrow" :style="{ transform: `rotate(${rightIconRotation})` }" />
-      <span class="toggle-label">RIGHT PANEL</span>
+      <span class="toggle-label">RIGHT NEXET</span>
     </div>
 
     <!-- 푸터 -->
@@ -174,7 +174,7 @@ const currentMenu = computed(() => {
 
   const menuMap = {
     '/nexa-board': 'nexa-board',
-    '/nexa-panel': 'nexa-panel',
+    '/nexet': 'nexet',
     '/nexa-node': 'automation',
     '/nexa-archive': 'nexa-archive',
     '/nexa-trace': 'nexa-trace',
@@ -211,7 +211,7 @@ const currentMenu = computed(() => {
 const mainMenuTabs = [
   { name: 'home', label: 'HOME', displayLabel: 'HOME', icon: 'home', route: '/', exact: false, nexaPrefix: false },
   { name: 'nexa-board', label: 'NEXA BOARD', displayLabel: 'BOARD', icon: 'dashboard', route: '/nexa-board', exact: false, nexaPrefix: true },
-  { name: 'nexa-panel', label: 'NEXA PANEL', displayLabel: 'PANEL', icon: 'widgets', route: '/nexa-panel', exact: false, nexaPrefix: true },
+  { name: 'nexet', label: 'NEXET', displayLabel: 'NEXET', icon: 'widgets', route: '/nexet', exact: false, nexaPrefix: true },
   { name: 'automation', label: 'NEXA NODE', displayLabel: 'NODE', icon: 'hub', route: '/nexa-node', exact: false, nexaPrefix: true },
   { name: 'nexa-trace', label: 'NEXA TRACE', displayLabel: 'TRACE', icon: 'analytics', route: '/nexa-trace', exact: false, nexaPrefix: true },
   { name: 'nexion', label: 'NEXA NEXION', displayLabel: 'NEXION', icon: 'account_tree', route: '/nexa-nexion', exact: false, nexaPrefix: true },
@@ -767,16 +767,7 @@ function setLastOpenedSidebar(side) {
 function handleMainContentDoubleClick(event) {
   // 사이드바, 토글 버튼, 입력 필드 등은 제외
   const target = event.target
-  if (
-    target.closest('.q-drawer') ||
-    target.closest('.sidebar-toggle-button') ||
-    target.closest('input') ||
-    target.closest('textarea') ||
-    target.closest('[contenteditable="true"]') ||
-    target.closest('button') ||
-    target.closest('a') ||
-    target.closest('.q-btn')
-  ) {
+  if (target.closest('.q-drawer') || target.closest('.sidebar-toggle-button') || target.closest('input') || target.closest('textarea') || target.closest('[contenteditable="true"]') || target.closest('button') || target.closest('a') || target.closest('.q-btn')) {
     return
   }
 

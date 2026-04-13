@@ -743,7 +743,7 @@ export const useDocumentManagerStore = defineStore('documentManager', () => {
     }
 
     // 본문 클릭 시 자동 닫기 (TOCPanel 제거로 인해 더 이상 필요 없음)
-    // 사이드바의 PanelTOC는 본문 클릭 시 자동 닫기 기능이 없음
+    // 사이드바의 NexetTOC는 본문 클릭 시 자동 닫기 기능이 없음
   }
 
   // 파싱된 내용 (computed)

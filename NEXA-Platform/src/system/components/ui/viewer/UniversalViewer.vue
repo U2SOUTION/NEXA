@@ -132,9 +132,9 @@
             </div>
           </div>
         </template>
-        <!-- JSON: 코드 패널에서 열리므로 뷰어 비활성화. 복원 시 아래 주석 블록 해제 후, 위 placeholder·hidden div 제거 -->
+        <!-- JSON: 코드 넥셋에서 열리므로 뷰어 비활성화. 복원 시 아래 주석 블록 해제 후, 위 placeholder·hidden div 제거 -->
         <template v-else-if="isJsonFile">
-          <div class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">JSON 파일은 코드 패널에서 확인하세요.</div>
+          <div class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">JSON 파일은 코드 넥셋에서 확인하세요.</div>
           <div v-if="false" v-html="highlightedJson" aria-hidden="true"></div>
           <!--
           <div v-if="textFileFetchError" class="universal-viewer-placeholder text-grey-6 text-center q-pa-lg">파일을 불러올 수 없습니다.</div>

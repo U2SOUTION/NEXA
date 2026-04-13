@@ -53,7 +53,7 @@ body.dark {
   --nexa-drawer-bg: var(--nexa-background); // 드로어 배경색
   --nexa-drawer-text: var(--nexa-text-primary); // 드로어 텍스트 색상
   --nexa-drawer-border: var(--nexa-border-color-darker); // 드로어 보더 색상
-  --nexa-drawer-header-bg: var(--nexa-panel-header); // 드로어 헤더 배경색
+  --nexa-drawer-header-bg: var(--nexet-header); // 드로어 헤더 배경색
   --nexa-drawer-item-hover-bg: rgba(255, 255, 255, 0.05); // 드로어 아이템 호버 배경색
   --nexa-surface-hover: #4d4d4d; // 호버 상태 표면 배경색
   --nexa-surface-active: #5d5d5d; // 클릭 상태 표면 배경색
@@ -141,19 +141,19 @@ body.dark {
   --nexa-item-inactive-opacity: 0.2; // 비활성 투명도
 
   // ============================================
-  // 6. 패널 색상 (panel-*)
+  // 6. 넥셋 색상 (panel-*)
   // ============================================
-  // 패널 = 설정 그룹, 컨테이너 등 UI 컨테이너 요소
-  // 섹션 그룹, 설정 패널, 컨텍스트 패널 등에 사용
+  // 넥셋 = 설정 그룹, 컨테이너 등 UI 컨테이너 요소
+  // 섹션 그룹, 설정 넥셋, 컨텍스트 넥셋 등에 사용
 
   // 기본 상태
-  --nexa-panel-bg: rgba(61, 61, 61, 0.4); // 패널 배경색
-  --nexa-panel-border: rgba(0, 0, 0, 0.385); // 패널 보더 색상
-  --nexa-panel-text: var(--nexa-text-primary); // 패널 텍스트 색상
-  --nexa-panel-header: #272727; // 패널/메뉴 헤더 배경색 (컨텍스트 메뉴 타이틀용)
+  --nexet-bg: rgba(61, 61, 61, 0.4); // 넥셋 배경색
+  --nexet-border: rgba(0, 0, 0, 0.385); // 넥셋 보더 색상
+  --nexet-text: var(--nexa-text-primary); // 넥셋 텍스트 색상
+  --nexet-header: #272727; // 넥셋/메뉴 헤더 배경색 (컨텍스트 메뉴 타이틀용)
 
   // 호버 상태
-  --nexa-panel-hover-bg: rgba(61, 61, 61, 0.6); // 패널 호버 배경색
+  --nexet-hover-bg: rgba(61, 61, 61, 0.6); // 넥셋 호버 배경색
 
   // ============================================
   // 7. 폼 컨트롤 색상 (form-*)

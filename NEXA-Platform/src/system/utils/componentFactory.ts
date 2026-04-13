@@ -88,7 +88,7 @@ export function updateBoard(board: BoardComponent, updates: Partial<Pick<BoardCo
 }
 
 /**
- * 새로운 패널 컴포넌트 생성
+ * 새로운 넥셋 컴포넌트 생성
  *
  * @example
  * ```typescript
@@ -110,7 +110,7 @@ export function createPanel(data: { panelType: string; grid: { x: number; y: num
       tags: data.tags,
     }),
 
-    // 패널 자율적 구조
+    // 넥셋 자율적 구조
     panelType: data.panelType,
     grid: data.grid,
     content: data.content || null,
@@ -136,7 +136,7 @@ export function createPanel(data: { panelType: string; grid: { x: number; y: num
 }
 
 /**
- * 패널 이동 (인터랙션 표준화)
+ * 넥셋 이동 (인터랙션 표준화)
  */
 export function movePanel(panel: PanelComponent, newPosition: { x: number; y: number }): PanelComponent {
   return {
@@ -159,7 +159,7 @@ export function movePanel(panel: PanelComponent, newPosition: { x: number; y: nu
           y: newPosition.y,
         },
         enabled: true,
-        label: '패널 이동',
+        label: '넥셋 이동',
       },
     ],
     metadata: {
@@ -213,12 +213,12 @@ export function createChart(data: {
 
     // 데이터 소스 표준화
     dataSource: data.dataSource
-      ? {
+      ? ({
           type: data.dataSource.type,
           connection: data.dataSource.connection,
           query: data.dataSource.query,
           refreshInterval: data.dataSource.refreshInterval,
-        } as DataSourceContract
+        } as DataSourceContract)
       : undefined,
 
     // 표준 메서드
@@ -279,12 +279,12 @@ export function createBlock(data: {
 
     // 데이터 소스 표준화
     dataSource: data.dataSource
-      ? {
+      ? ({
           type: data.dataSource.type,
           connection: data.dataSource.connection,
           query: data.dataSource.query,
           refreshInterval: data.dataSource.refreshInterval,
-        } as DataSourceContract
+        } as DataSourceContract)
       : undefined,
 
     // 표준 메서드
@@ -323,9 +323,7 @@ export function migrateBoardToStandardContract(oldBoard: { id: string; name: str
       author: oldBoard.author,
       description: oldBoard.name,
     }),
-    preset: (oldBoard.preset === 'split-lr' || oldBoard.preset === 'l-shape' || oldBoard.preset === 'split-tb'
-      ? oldBoard.preset
-      : 'single') as BoardComponent['preset'],
+    preset: (oldBoard.preset === 'split-lr' || oldBoard.preset === 'l-shape' || oldBoard.preset === 'split-tb' ? oldBoard.preset : 'single') as BoardComponent['preset'],
     panes: [],
     devices: oldBoard.devices || [],
     dataSource: undefined,

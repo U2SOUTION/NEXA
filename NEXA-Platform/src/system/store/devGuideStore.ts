@@ -81,7 +81,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
       사이드바: ['sidebar', 'side-bar'],
       버튼: ['button', 'btn'],
       차트: ['chart'],
-      패널: ['panel'],
+      넥셋: ['nexet'],
       폼: ['form'],
       입력: ['input'],
       카드: ['card'],
@@ -461,10 +461,7 @@ export const useDevGuideStore = defineStore('devGuide', () => {
   }
 
   function getCategoryStatistics(): Record<string, unknown> {
-    const categoryStats: Record<
-      string,
-      { name: string; totalSamples: number; favoriteCount: number; recentCount: number; cachedCount: number; errorCount: number; samples: DevGuideSample[] }
-    > = {}
+    const categoryStats: Record<string, { name: string; totalSamples: number; favoriteCount: number; recentCount: number; cachedCount: number; errorCount: number; samples: DevGuideSample[] }> = {}
     samples.value.forEach((sample) => {
       const category = sample.category || getComponentCategory(sample.componentPath ?? '') || '기타'
       if (!categoryStats[category]) {

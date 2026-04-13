@@ -1,6 +1,6 @@
 <!--
   NIXIE 온라인 — 24×7 도트 HUD · Nexnap Pinia 구독 · GSAP 연출.
-  시뮬 UI는 NixieDevControls.vue (우측 패널).
+  시뮬 UI는 NixieDevControls.vue (우측 넥셋).
   명세: docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md
 -->
 <template>

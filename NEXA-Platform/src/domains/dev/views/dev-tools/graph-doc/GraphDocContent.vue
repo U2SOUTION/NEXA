@@ -71,16 +71,7 @@
         <div class="graph-container-full">
           <!-- 렌더링 중 스피너 -->
           <NexaSpinner v-if="isAnalyzing" size="md" message="렌더링 중..." centered />
-          <NexaDiagram
-            ref="dependencyDiagramRef"
-            type="dependency"
-            :data="dependencyDiagramData"
-            :options="dependencyDiagramOptions"
-            @node-click="handleDependencyNodeClick"
-            @node-hover="handleDependencyNodeHover"
-            @loaded="handleDependencyDiagramLoaded"
-            @error="handleDependencyDiagramError"
-          />
+          <NexaDiagram ref="dependencyDiagramRef" type="dependency" :data="dependencyDiagramData" :options="dependencyDiagramOptions" @node-click="handleDependencyNodeClick" @node-hover="handleDependencyNodeHover" @loaded="handleDependencyDiagramLoaded" @error="handleDependencyDiagramError" />
         </div>
       </div>
 
@@ -662,7 +653,7 @@ async function handleAnalyzeWithTarget(target, skipHistory = false) {
   }
 }
 
-// TODO: 향후 노드 정보 패널 추가 시 사용 예정
+// TODO: 향후 노드 정보 넥셋 추가 시 사용 예정
 // VS Code에서 파일 열기
 // function handleOpenInVSCode() {
 //   if (!selectedNode.value) return

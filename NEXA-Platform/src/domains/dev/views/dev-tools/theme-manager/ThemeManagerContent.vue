@@ -77,7 +77,7 @@ const defaultTranslations = {
   surface: '표면',
   button: '버튼',
   item: '아이템',
-  panel: '패널',
+  panel: '넥셋',
   form: '폼',
   modal: '모달',
   toast: '토스트',
@@ -163,15 +163,17 @@ const sortedColorCategories = computed(() => {
   // 검색 필터 적용
   if (props.searchQuery) {
     const query = props.searchQuery.toLowerCase()
-    filtered = categories.map((category) => ({
-      ...category,
-      colors: category.colors.filter((color) => {
-        const name = color.name.toLowerCase()
-        const value = color.value.toLowerCase()
-        const categoryName = category.category.toLowerCase()
-        return name.includes(query) || value.includes(query) || categoryName.includes(query)
-      }),
-    })).filter((category) => category.colors.length > 0)
+    filtered = categories
+      .map((category) => ({
+        ...category,
+        colors: category.colors.filter((color) => {
+          const name = color.name.toLowerCase()
+          const value = color.value.toLowerCase()
+          const categoryName = category.category.toLowerCase()
+          return name.includes(query) || value.includes(query) || categoryName.includes(query)
+        }),
+      }))
+      .filter((category) => category.colors.length > 0)
   }
 
   // 카테고리 필터 적용
@@ -278,7 +280,7 @@ const toggleTheme = (value) => {
 }
 
 /**
- * 색상 클릭 핸들러 (변수명 복사 + 오른쪽 패널에 전달)
+ * 색상 클릭 핸들러 (변수명 복사 + 오른쪽 넥셋에 전달)
  * @param {Object} color - 색상 객체 {name: string, value: string}
  * @param {Event} event - 클릭 이벤트 객체
  */
@@ -300,7 +302,7 @@ function handleColorClick(color, event) {
     value: color.value,
   })
 
-  // 오른쪽 패널에 색상 전달
+  // 오른쪽 넥셋에 색상 전달
   const customEvent = new CustomEvent('theme-color-selected', {
     detail: {
       color: selectedColor.value,
@@ -484,8 +486,8 @@ async function copyVariableName(variableName, event) {
   .color-preview {
     margin-top: 1.5rem;
     padding: 1rem;
-    background-color: var(--nexa-panel-bg);
-    border: 1px solid var(--nexa-panel-border);
+    background-color: var(--nexet-bg);
+    border: 1px solid var(--nexet-border);
     border-radius: 8px;
 
     h4 {
@@ -523,8 +525,8 @@ async function copyVariableName(variableName, event) {
   .color-variables-section {
     //margin-top: 1rem;
     padding: 1rem;
-    background-color: var(--nexa-panel-bg);
-    border: 1px solid var(--nexa-panel-border);
+    background-color: var(--nexet-bg);
+    border: 1px solid var(--nexet-border);
     border-radius: 8px;
 
     .section-subtitle {

@@ -1,15 +1,15 @@
 <!-- CardPanelSample.vue
-  카드 패널 샘플 - NexaPanel 컴포넌트 사용 예제
+  카드 넥셋 샘플 - NexaPanel 컴포넌트 사용 예제
   코어 컴포넌트 응용 가이드
 -->
 <template>
   <div class="card-panel-sample">
     <div class="sample-section">
-      <h4 class="section-title">카드 패널 기본 사용법</h4>
+      <h4 class="section-title">카드 넥셋 기본 사용법</h4>
       <div class="section-content">
         <div class="panel-placeholder">
           <q-icon name="view_module" size="48px" color="grey-5" />
-          <p class="placeholder-text">NexaPanel 카드 패널 예제</p>
+          <p class="placeholder-text">NexaPanel 카드 넥셋 예제</p>
         </div>
       </div>
     </div>
@@ -28,14 +28,14 @@
 
 <script setup>
 // 코어 컴포넌트 import (실제 사용 시)
-// import NexaPanel from '@domains/panel/components/NexaPanel.vue'
+// import NexaPanel from '@domains/nexet/components/NexaPanel.vue'
 
 // 예제 데이터 (참고용)
 // eslint-disable-next-line no-unused-vars
 const cardContent = {
   title: '카드 제목',
   body: '카드 내용',
-  footer: '카드 푸터'
+  footer: '카드 푸터',
 }
 </script>
 

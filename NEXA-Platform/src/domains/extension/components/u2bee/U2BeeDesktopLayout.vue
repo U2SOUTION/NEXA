@@ -3,7 +3,7 @@
     <q-page class="u2bee-page">
       <!-- 충분한 공간 - 모든 메뉴 구성 -->
       <div class="u2bee-desktop-layout">
-        <!-- 사이드바 + 메인 콘텐츠 + 우측 패널 (필요시) -->
+        <!-- 사이드바 + 메인 콘텐츠 + 우측 넥셋 (필요시) -->
         <div class="u2bee-desktop-content">
           <aside class="u2bee-desktop-sidebar">
             <slot name="sidebar">
@@ -19,7 +19,7 @@
 
           <aside v-if="$slots.rightPanel" class="u2bee-desktop-right-panel">
             <slot name="rightPanel">
-              <!-- 우측 패널 슬롯 -->
+              <!-- 우측 넥셋 슬롯 -->
             </slot>
           </aside>
         </div>

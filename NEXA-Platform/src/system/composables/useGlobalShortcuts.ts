@@ -380,7 +380,7 @@ export function getDefaultShortcuts(handlers: ShortcutHandlers = {}) {
       handler: handlers.toggleLeftSidebarCtrlLeft || (() => {}),
     },
     {
-      description: '오른쪽 사이드 패널 토글 (Ctrl+Right)',
+      description: '오른쪽 사이드 넥셋 토글 (Ctrl+Right)',
       combo: 'ctrl+right',
       id: 'toggleRightSidebarCtrlRight',
       handler: handlers.toggleRightSidebarCtrlRight || (() => {}),

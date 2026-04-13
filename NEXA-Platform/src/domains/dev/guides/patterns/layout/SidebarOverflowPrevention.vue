@@ -28,7 +28,7 @@
     <div class="solution-section">
       <h4 class="section-title">✅ 해결 방법</h4>
       <div class="code-block">
-        <pre><code>// 1. 패널 전체 오버플로우 방지
+        <pre><code>// 1. 넥셋 전체 오버플로우 방지
 .dev-guide-panel {
   width: 100%;
   min-width: 0; // flex 컨테이너가 줄어들 수 있도록
@@ -97,13 +97,13 @@
     <!-- 핵심 포인트 -->
     <div class="key-points-section">
       <h4 class="section-title">🔑 핵심 포인트</h4>
-      <div class="problem-note" style="background-color: rgba(76, 175, 80, 0.1); border-left-color: var(--nexa-success);">
+      <div class="problem-note" style="background-color: rgba(76, 175, 80, 0.1); border-left-color: var(--nexa-success)">
         <p><strong>⚠️ 핵심 해결책은 단 2줄만 필요합니다:</strong></p>
-        <ul style="margin-top: 8px; padding-left: 20px;">
+        <ul style="margin-top: 8px; padding-left: 20px">
           <li><code>overflow: hidden</code> - 넘치는 내용을 가립니다</li>
           <li><code>width: 0</code> - flex 아이템이 부모 크기를 초과하지 않도록 합니다</li>
         </ul>
-        <p style="margin-top: 12px;">나머지 스타일(`flex-shrink`, `text-overflow`, `max-width` 등)은 선택사항이며, 실제로는 필요하지 않았습니다.</p>
+        <p style="margin-top: 12px">나머지 스타일(`flex-shrink`, `text-overflow`, `max-width` 등)은 선택사항이며, 실제로는 필요하지 않았습니다.</p>
       </div>
       <ul class="points-list">
         <li><strong>width: 0</strong>: ⚠️ <strong>가장 중요!</strong> `flex: 1`을 가진 아이템이 여러 개일 때, `min-width: 0`만으로는 부족할 수 있습니다. `width: 0`을 명시하면 flex 아이템이 부모 크기를 초과하지 않고 제대로 줄어듭니다.</li>
@@ -116,7 +116,7 @@
     <!-- 실제 적용 예시 -->
     <div class="example-section">
       <h4 class="section-title">📝 실제 적용 예시</h4>
-      
+
       <!-- 예시 1: 텍스트 줄바꿈 -->
       <div class="example-subsection">
         <h5 class="subsection-title">예시 1: 텍스트 줄바꿈 (여러 줄 허용)</h5>
@@ -192,9 +192,8 @@
   }
 }</code></pre>
         </div>
-        <p class="problem-note" style="background-color: rgba(76, 175, 80, 0.1); border-left-color: var(--nexa-success); margin-top: 8px;">
-          <strong>✅ 실제 적용 결과:</strong> `overflow: hidden`과 `width: 0` 두 줄만으로 문제가 완벽하게 해결되었습니다. 
-          나머지 스타일(`flex-shrink`, `text-overflow`, `max-width` 등)은 모두 주석 처리했지만 정상 작동합니다.
+        <p class="problem-note" style="background-color: rgba(76, 175, 80, 0.1); border-left-color: var(--nexa-success); margin-top: 8px">
+          <strong>✅ 실제 적용 결과:</strong> `overflow: hidden`과 `width: 0` 두 줄만으로 문제가 완벽하게 해결되었습니다. 나머지 스타일(`flex-shrink`, `text-overflow`, `max-width` 등)은 모두 주석 처리했지만 정상 작동합니다.
         </p>
       </div>
     </div>
@@ -213,22 +212,22 @@
     <!-- 왜 이번에 시간이 걸렸는지 -->
     <div class="lesson-learned-section">
       <h4 class="section-title">💡 교훈: 왜 이번에 시간이 걸렸는가?</h4>
-      <div class="problem-note" style="background-color: rgba(237, 178, 15, 0.1); border-left-color: var(--nexa-warning);">
+      <div class="problem-note" style="background-color: rgba(237, 178, 15, 0.1); border-left-color: var(--nexa-warning)">
         <p><strong>문제 상황:</strong></p>
-        <ul style="margin-top: 8px; padding-left: 20px;">
+        <ul style="margin-top: 8px; padding-left: 20px">
           <li>기존 샘플에는 `min-width: 0`과 `overflow: hidden`만 있었음</li>
           <li>하지만 한 줄 레이아웃에서 태그가 여러 개일 때 여전히 부모를 밀어냄</li>
           <li>아코디언 화살표와 탭 메뉴까지 밀려나가는 문제 발생</li>
         </ul>
-        <p style="margin-top: 12px;"><strong>해결 과정:</strong></p>
-        <ul style="margin-top: 8px; padding-left: 20px;">
+        <p style="margin-top: 12px"><strong>해결 과정:</strong></p>
+        <ul style="margin-top: 8px; padding-left: 20px">
           <li>처음에는 `flex-shrink`, `max-width` 등으로 시도했지만 실패</li>
           <li>여러 번 시도 후 `width: 0`을 추가하니 해결됨</li>
           <li>Flexbox의 기본 동작: `flex: 1`을 가진 아이템이 여러 개일 때, `min-width: 0`만으로는 부족</li>
           <li>`width: 0`을 명시하면 flex 아이템이 부모 크기를 초과하지 않고 제대로 줄어듦</li>
         </ul>
-        <p style="margin-top: 12px;"><strong>핵심 교훈:</strong></p>
-        <ul style="margin-top: 8px; padding-left: 20px;">
+        <p style="margin-top: 12px"><strong>핵심 교훈:</strong></p>
+        <ul style="margin-top: 8px; padding-left: 20px">
           <li><strong>해결책은 단 2줄만 필요:</strong> <code>overflow: hidden</code>과 <code>width: 0</code></li>
           <li><code>min-width: 0</code>만으로는 부족한 경우가 있음</li>
           <li>한 줄 레이아웃에서 여러 flex 아이템이 있을 때는 <code>width: 0</code>이 필수</li>

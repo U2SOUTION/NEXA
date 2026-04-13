@@ -15,7 +15,7 @@ describe('NEXA 엔진 통합 시뮬레이션', () => {
       metadata: { id: 'bp-001', createdAt: new Date(), version: '1.0.0' },
       config: { name: '지구 온난화 감시 아트를 위한 온도 배합' },
       composition: {
-        // 데이터의 시작과 끝을 담당하는 패널
+        // 데이터의 시작과 끝을 담당하는 넥셋
         panels: [
           { metadata: { id: 'p-raw-1' }, identity: { type: 'RAW_SOURCE' }, display: { label: '서울 온도 센서' } },
           { metadata: { id: 'p-res-1' }, identity: { type: 'LOGIC_RESULT' }, display: { label: '아트 조명 강도' } },

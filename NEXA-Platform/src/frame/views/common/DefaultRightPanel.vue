@@ -17,7 +17,7 @@
       <div class="default-panel-content q-pa-md">
         <div class="text-center text-grey-6">
           <q-icon name="info" size="48px" class="q-mb-md" />
-          <div class="text-h6 q-mb-sm">우측 패널</div>
+          <div class="text-h6 q-mb-sm">우측 넥셋</div>
           <div class="text-caption">이 메뉴에는 전용 우측 패널이 없습니다.</div>
         </div>
       </div>
@@ -28,5 +28,5 @@
 <script setup>
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
 import NexaBlock from '@engines/block/NexaBlock.vue'
-// 기본 우측 패널 - 향후 전역 도구나 설정 등을 추가할 수 있음
+// 기본 우측 넥셋 - 향후 전역 도구나 설정 등을 추가할 수 있음
 </script>

@@ -1,6 +1,6 @@
 <!--
   NIXIE Nexnap 시뮬레이션 — 스토어 actions 만 호출.
-  Nexion 우측 패널 아코디언에 embedded 로 배치(배포 시 체험용 노출 가능).
+  Nexion 우측 넥셋 아코디언에 embedded 로 배치(배포 시 체험용 노출 가능).
   명세: docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md
 
   현재 상태(모스·오디오)
@@ -311,7 +311,7 @@ import { useQuasar } from 'quasar'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 defineProps({
-  /** Nexion 우측 패널 아코디언 안에 넣을 때 true (제목·외곽선 생략) */
+  /** Nexion 우측 넥셋 아코디언 안에 넣을 때 true (제목·외곽선 생략) */
   embedded: {
     type: Boolean,
     default: false,
@@ -849,7 +849,7 @@ function onHudBlur() {
 
 .nixie-dev-controls {
   padding: 6px 8px;
-  /* 높이 제한·내부 overflow 제거 — 우측 패널 `panel-scroll-area`만 세로 스크롤 */
+  /* 높이 제한·내부 overflow 제거 — 우측 넥셋 `panel-scroll-area`만 세로 스크롤 */
   overflow: visible;
 }
 

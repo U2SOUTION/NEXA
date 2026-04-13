@@ -5,7 +5,7 @@
  * - headerActions: 헤더 액션 컴포넌트 주입받기
  * - left: 왼쪽 사이드바 컴포넌트 주입받기
  * - content: 메인 컨텐츠 컴포넌트 주입받기
- * - right: 오른쪽 패널 컴포넌트 주입받기
+ * - right: 오른쪽 넥셋 컴포넌트 주입받기
  */
 import type { Component } from 'vue'
 
@@ -43,11 +43,11 @@ const domainConfigs: Record<string, DomainConfig> = {
     right: () => import('@domains/board/views/right/BoardRightPanel.vue'),
     headerActions: () => import('@domains/board/components/BoardHeaderActions.vue'),
   },
-  // 넥사패널
-  'nexa-panel': {
-    left: () => import('@domains/panel/views/left/PanelLeftNav.vue'),
-    content: () => import('@domains/panel/PanelDomain.vue'),
-    right: () => import('@domains/panel/views/right/PanelRightPanel.vue'),
+  // 넥사넥셋
+  nexet: {
+    left: () => import('@domains/nexet/views/left/NexetLeftNav.vue'),
+    content: () => import('@domains/nexet/NexetDomain.vue'),
+    right: () => import('@domains/nexet/views/right/NexetRightPanel.vue'),
   },
   // 넥사노드 (자동화)
   automation: {

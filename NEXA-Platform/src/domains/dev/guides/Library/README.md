@@ -18,7 +18,7 @@
 ```
 Library/
 ├── charts/          # 완성된 차트 컴포넌트
-├── panels/          # 완성된 패널 컴포넌트
+├── panels/          # 완성된 넥셋 컴포넌트
 ├── diagrams/        # 완성된 다이어그램 컴포넌트
 ├── layouts/         # 완성된 레이아웃 컴포넌트
 └── widgets/         # 완성된 위젯 컴포넌트
@@ -30,11 +30,7 @@ Library/
 <!-- Library/charts/SalesChart.vue -->
 <template>
   <div class="sales-chart">
-    <NexaChart
-      type="bar"
-      :data="salesData"
-      :options="chartOptions"
-    />
+    <NexaChart type="bar" :data="salesData" :options="chartOptions" />
   </div>
 </template>
 
@@ -45,7 +41,7 @@ import { ref, computed } from 'vue'
 // 완성된 컴포넌트 - props로 데이터 받음
 const props = defineProps({
   salesData: Array,
-  period: String
+  period: String,
 })
 
 // 내부 로직 포함
@@ -57,11 +53,11 @@ const chartOptions = computed(() => ({
 
 ## 🔄 cores와의 차이
 
-| 구분 | Library | cores |
-|------|---------|------|
+| 구분     | Library                           | cores                   |
+| -------- | --------------------------------- | ----------------------- |
 | **목적** | 바로 사용할 수 있는 완성 컴포넌트 | 코어 컴포넌트 사용 예제 |
-| **성격** | 독립적, 완성된 컴포넌트 | 코어 컴포넌트 응용 |
-| **사용** | 프로젝트에 직접 복사/사용 | 학습/참고용 |
+| **성격** | 독립적, 완성된 컴포넌트           | 코어 컴포넌트 응용      |
+| **사용** | 프로젝트에 직접 복사/사용         | 학습/참고용             |
 
 ---
 

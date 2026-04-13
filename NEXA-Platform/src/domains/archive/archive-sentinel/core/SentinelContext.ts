@@ -60,7 +60,7 @@ export interface SentinelContext {
    * --------------------------- */
   currentCategoryIds?: string[] // 현재 분류 ID
   categories?: string[] // 현재 분류 이름 (사용자 지정 시 primaryCandidate 등에 사용)
-  relatedEntityIds?: string[] // 연결된 문서/패널/부품 등
+  relatedEntityIds?: string[] // 연결된 문서/넥셋/부품 등
 
   /* ---------------------------
    * 상태 정보

@@ -188,7 +188,7 @@ async function handleColorClick(color, event) {
   // 변수명 복사 (키 조합에 따라 단계별 제거)
   await copyVariableName(color.name, event)
 
-  // 오른쪽 패널에 색상 전달
+  // 오른쪽 넥셋에 색상 전달
   emit('colorSelected', color)
 }
 

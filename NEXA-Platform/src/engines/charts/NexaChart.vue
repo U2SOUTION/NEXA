@@ -150,7 +150,7 @@ const emit = defineEmits(['data-click', 'data-hover'])
  *
  * 3. 설정 기능
  *    - onSettings: Function - 설정 콜백
- *    - isSettingsOpen: ref(false) - 설정 패널 상태
+ *    - isSettingsOpen: ref(false) - 설정 넥셋 상태
  *    - handleSettings: Function - 설정 처리
  *    - settingsOptions: Object - 설정 옵션
  *    - Slot Props: { isSettingsOpen, handleSettings, settingsOptions }
@@ -258,38 +258,38 @@ function renderChart() {
   isRendering = true
 
   try {
-  if (!chartSvgRef.value || !props.data || props.data.length === 0) {
-    // 데이터가 없으면 SVG만 제거
-    if (chartSvgRef.value) {
-      d3.select(chartSvgRef.value).selectAll('*').remove()
+    if (!chartSvgRef.value || !props.data || props.data.length === 0) {
+      // 데이터가 없으면 SVG만 제거
+      if (chartSvgRef.value) {
+        d3.select(chartSvgRef.value).selectAll('*').remove()
+      }
+      return
     }
-    return
-  }
 
-  // 기존 SVG 제거
-  d3.select(chartSvgRef.value).selectAll('*').remove()
+    // 기존 SVG 제거
+    d3.select(chartSvgRef.value).selectAll('*').remove()
 
     // 툴팁이 없으면 생성 (인스턴스별 고유 툴팁)
-  // 단독 차트용 클래스 추가하여 CSS에서 별도 제어 가능하도록
-  if (!tooltip) {
+    // 단독 차트용 클래스 추가하여 CSS에서 별도 제어 가능하도록
+    if (!tooltip) {
       // 기존 툴팁이 있으면 제거 (안전장치 - 동일 인스턴스 재생성 시)
       const existingTooltip = d3.select(`[data-chart-tooltip-id="${tooltipId}"]`)
       if (!existingTooltip.empty()) {
         existingTooltip.remove()
       }
 
-    tooltip = d3
-      .select('body')
-      .append('div')
-      .attr('class', 'chart-tooltip chart-tooltip-single')
+      tooltip = d3
+        .select('body')
+        .append('div')
+        .attr('class', 'chart-tooltip chart-tooltip-single')
         .attr('data-chart-tooltip-id', tooltipId) // 고유 ID 추가
-      // 기본 스타일은 CSS에서 관리, 동적으로 변경되는 속성만 인라인으로 설정
-      .style('position', 'fixed')
-      .style('pointer-events', 'none')
-      .style('opacity', 0)
-      .style('z-index', 10000)
-      .style('display', 'none')
-  }
+        // 기본 스타일은 CSS에서 관리, 동적으로 변경되는 속성만 인라인으로 설정
+        .style('position', 'fixed')
+        .style('pointer-events', 'none')
+        .style('opacity', 0)
+        .style('z-index', 10000)
+        .style('display', 'none')
+    }
 
     // 마진 설정 (기본값: 타이틀 없을 때는 top: 50)
     const margin = props.margin
@@ -298,8 +298,8 @@ function renderChart() {
           top: 20,
           right: 20,
           bottom: 20,
-    left: 40,
-  }
+          left: 40,
+        }
 
     // 타이틀이 있으면 타이틀 높이만큼만 top 마진 설정 (겹침 방지, 최소 간격)
     if (props.title) {
@@ -312,84 +312,84 @@ function renderChart() {
     const chartWidth = Math.max(0, actualWidth.value - margin.left - margin.right)
     const chartHeight = Math.max(0, actualHeight.value - margin.top - margin.bottom)
 
-  // SVG 생성
-  // overflow, display는 CSS에서 관리 (_chart.scss)
+    // SVG 생성
+    // overflow, display는 CSS에서 관리 (_chart.scss)
     svg = d3.select(chartSvgRef.value).append('svg').attr('width', actualWidth.value).attr('height', actualHeight.value)
 
-  // 차트 그룹 생성 (축 제외)
-  chartGroup = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
+    // 차트 그룹 생성 (축 제외)
+    chartGroup = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
-  // 축 그룹 생성 (별도 그룹으로 분리하여 필터 효과 제외)
-  const axesGroup = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`).attr('class', 'chart-axes-group')
+    // 축 그룹 생성 (별도 그룹으로 분리하여 필터 효과 제외)
+    const axesGroup = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`).attr('class', 'chart-axes-group')
 
-  // 스타일 효과 적용 (단일 차트용 - 차트 데이터 요소에만 적용, 축 제외)
-  const style = props.style || {}
-  if (style.opacity !== undefined) {
-    chartGroup.style('opacity', style.opacity)
-  }
+    // 스타일 효과 적용 (단일 차트용 - 차트 데이터 요소에만 적용, 축 제외)
+    const style = props.style || {}
+    if (style.opacity !== undefined) {
+      chartGroup.style('opacity', style.opacity)
+    }
 
-  // 차트 그리기 영역 보더 (파이 차트 제외)
-  if (props.type !== 'pie') {
-    const borderStrokeWidth = 1
-    const borderOffset = borderStrokeWidth - 6
-    chartGroup
-      .append('rect')
-      .attr('class', 'chart-border')
-      .attr('x', borderOffset)
-      .attr('y', borderOffset)
-      .attr('width', chartWidth - borderOffset * 2)
-      .attr('height', chartHeight - borderOffset * 2)
-      .attr('fill', 'none')
-      .attr('pointer-events', 'none')
-  }
+    // 차트 그리기 영역 보더 (파이 차트 제외)
+    if (props.type !== 'pie') {
+      const borderStrokeWidth = 1
+      const borderOffset = borderStrokeWidth - 6
+      chartGroup
+        .append('rect')
+        .attr('class', 'chart-border')
+        .attr('x', borderOffset)
+        .attr('y', borderOffset)
+        .attr('width', chartWidth - borderOffset * 2)
+        .attr('height', chartHeight - borderOffset * 2)
+        .attr('fill', 'none')
+        .attr('pointer-events', 'none')
+    }
 
-  // 차트 타입에 따라 렌더링 함수 호출
-  const chartConfig = {
-    data: props.data,
-    chartWidth,
-    chartHeight,
-    xField: props.xField,
-    yField: props.yField,
-    columns: props.columns || [],
-    chartOptions: props.options || {},
-    chartGroup,
-    axesGroup, // 축은 별도 그룹으로 전달
-    svg,
-    tooltip,
-    aggregation: props.aggregation || 'count',
-    aggregationOptions: props.aggregationOptions || [],
-    onDataClick: (data) => emit('data-click', data),
-    onDataHover: (data) => emit('data-hover', data),
-    // 단일 차트용 스타일 및 인터랙션 옵션
-    showAxes: true, // 단일 차트는 축 표시
-    showLabels: props.showLabels,
-    interaction: props.interaction,
-    style: props.style,
-  }
+    // 차트 타입에 따라 렌더링 함수 호출
+    const chartConfig = {
+      data: props.data,
+      chartWidth,
+      chartHeight,
+      xField: props.xField,
+      yField: props.yField,
+      columns: props.columns || [],
+      chartOptions: props.options || {},
+      chartGroup,
+      axesGroup, // 축은 별도 그룹으로 전달
+      svg,
+      tooltip,
+      aggregation: props.aggregation || 'count',
+      aggregationOptions: props.aggregationOptions || [],
+      onDataClick: (data) => emit('data-click', data),
+      onDataHover: (data) => emit('data-hover', data),
+      // 단일 차트용 스타일 및 인터랙션 옵션
+      showAxes: true, // 단일 차트는 축 표시
+      showLabels: props.showLabels,
+      interaction: props.interaction,
+      style: props.style,
+    }
 
-  switch (props.type) {
-    case 'bar':
-      renderBarChart(chartConfig)
-      break
-    case 'line':
-      renderLineChart(chartConfig)
-      break
-    case 'area':
-      renderAreaChart(chartConfig)
-      break
-    case 'pie':
-      renderPieChart(chartConfig)
-      break
-    case 'scatter':
-      renderScatterChart(chartConfig)
-      break
-    default:
+    switch (props.type) {
+      case 'bar':
+        renderBarChart(chartConfig)
+        break
+      case 'line':
+        renderLineChart(chartConfig)
+        break
+      case 'area':
+        renderAreaChart(chartConfig)
+        break
+      case 'pie':
+        renderPieChart(chartConfig)
+        break
+      case 'scatter':
+        renderScatterChart(chartConfig)
+        break
+      default:
       // 알 수 없는 차트 타입
-  }
+    }
 
-  // 범례 렌더링 (우측 아래) - 단독 차트 모드에서는 범례 숨김
-  // 멀티 차트 모드에서만 범례가 의미가 있으므로 단독 차트에서는 표시하지 않음
-  // (단독 차트는 Chart.vue를 사용하지 않고 DataChartRenderer에서 직접 처리)
+    // 범례 렌더링 (우측 아래) - 단독 차트 모드에서는 범례 숨김
+    // 멀티 차트 모드에서만 범례가 의미가 있으므로 단독 차트에서는 표시하지 않음
+    // (단독 차트는 Chart.vue를 사용하지 않고 DataChartRenderer에서 직접 처리)
   } finally {
     // 렌더링 완료 후 플래그 해제 (동기적으로 해제하여 안정성 확보)
     isRendering = false
@@ -471,23 +471,23 @@ function setupResizeObserver() {
       if (hasSizeChanged) {
         // requestAnimationFrame으로 렌더링 최적화
         requestAnimationFrame(() => {
-      nextTick(() => {
-        renderChart()
-      })
-    })
+          nextTick(() => {
+            renderChart()
+          })
+        })
       }
       resizeTimer = null
     }, 100) // 100ms debounce
   })
 
-    resizeObserver.observe(chartContainerRef.value)
+  resizeObserver.observe(chartContainerRef.value)
 }
 
 // Lifecycle
 onMounted(() => {
   nextTick(() => {
     updateChartSize()
-  setupResizeObserver()
+    setupResizeObserver()
     renderChart()
   })
 })

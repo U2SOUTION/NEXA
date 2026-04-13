@@ -1,5 +1,5 @@
 // U2BEE Layout 전용 스타일
-// 팝업/사이드패널 환경에서 사용되는 레이아웃 스타일
+// 팝업/사이드넥셋 환경에서 사용되는 레이아웃 스타일
 
 // ============================================
 // 기본 리셋
@@ -29,7 +29,7 @@ body.standalone-mode {
     background-color: transparent !important;
   }
 
-  // 사이드 패널 모드에서는 패딩을 반으로 줄임
+  // 사이드 넥셋 모드에서는 패딩을 반으로 줄임
   &.sidepanel-mode {
     padding: 20px 12px;
   }

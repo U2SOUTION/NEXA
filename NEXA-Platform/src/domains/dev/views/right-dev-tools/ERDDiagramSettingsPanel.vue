@@ -1,5 +1,5 @@
 <!-- ERDDiagramSettingsPanel.vue
-  ERD 다이어그램 설정 패널
+  ERD 다이어그램 설정 넥셋
   슬라이더와 셀렉트를 적절히 혼합하여 구성
 -->
 <template>

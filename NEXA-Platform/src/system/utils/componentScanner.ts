@@ -26,9 +26,9 @@ const CATEGORY_DISPLAY_NAMES = {
   'parts-management': '부품 관리',
   sidebars: '사이드바',
   settings: '설정',
-  'side-panel': '사이드 패널',
+  'side-panel': '사이드 넥셋',
   'dev-tools': '개발 도구',
-  panel: '패널',
+  panel: '넥셋',
   diagram: '다이어그램',
   charts: '차트',
   board: '보드',
@@ -270,10 +270,7 @@ export async function scanAndCategorizeComponents(maxDepth = 0): Promise<Scanned
  * @param {Array} existingCategories - 기존 카테고리 배열 (선택적)
  * @returns {Array} 병합된 카테고리 배열
  */
-export function mergeWithExistingCategories(
-  scannedCategories: ScannedCategory[],
-  existingCategories: ScannedCategory[] = []
-): ScannedCategory[] {
+export function mergeWithExistingCategories(scannedCategories: ScannedCategory[], existingCategories: ScannedCategory[] = []): ScannedCategory[] {
   const merged: ScannedCategory[] = []
   const scannedMap = new Map(scannedCategories.map((cat: ScannedCategory) => [cat.name, cat]))
 

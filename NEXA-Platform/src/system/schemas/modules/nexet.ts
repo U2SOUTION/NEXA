@@ -8,19 +8,19 @@ import { MetadataSchema } from '../common/metadata' // 생성일, ID 등 기본 
 import { SemanticSchema } from '../common/semantic' // 데이터의 의미와 태그 규격
 import { CommandSchema } from '../common/command' // 제어 명령 규격
 import { DisplaySchema } from '../common/display' // 시각적 상태 및 피드백 규격
-import { HardwareClassEnum, CapabilityProfileEnum, UpdateFrequencyEnum, DataCriticalityEnum, PanelDomainEnum, SystemScopeEnum, ControlModeEnum, VisualTypeEnum } from '../common/taxonomy' // 사전 정의된 분류 목록(Enum)들
+import { HardwareClassEnum, CapabilityProfileEnum, UpdateFrequencyEnum, DataCriticalityEnum, NexetDomainEnum, SystemScopeEnum, ControlModeEnum, VisualTypeEnum } from '../common/taxonomy' // 사전 정의된 분류 목록(Enum)들
 
 /**
- * [ PanelTypeEnum ]
- * 패널을 두 가지로 분리합니다: 가공 안 된 원천(RAW) vs 로직으로 정제된 결과(RESULT)
+ * [ NexetTypeEnum ]
+ * 넥셋을 두 가지로 분리합니다: 가공 안 된 원천(RAW) vs 로직으로 정제된 결과(RESULT)
  */
-export const PanelTypeEnum = z.enum(['RAW_SOURCE', 'LOGIC_RESULT'])
+export const NexetTypeEnum = z.enum(['RAW_SOURCE', 'LOGIC_RESULT'])
 
 /**
- * [ PanelSchema ]
- * NEXA 시스템의 최소 단위인 '패널'의 전체 구조를 정의하는 핵심 스키마입니다.
+ * [ NexetSchema ]
+ * NEXA 시스템의 최소 단위인 '넥셋'의 전체 구조를 정의하는 핵심 스키마입니다.
  */
-export const PanelSchema = z.object({
+export const NexetSchema = z.object({
   // 1. 기본 정보: 시스템이 자동으로 관리하는 생성/수정/신원 정보
   metadata: MetadataSchema.extend({
     // [비전 반영] 지구적 규모를 위한 좌표 정보 추가
@@ -36,12 +36,12 @@ export const PanelSchema = z.object({
   // 2. 의미론적 정보: 사람이 이해하는 태그나 설명문
   semantic: SemanticSchema,
 
-  // 3. 패널 정체성: 이 패널이 어떤 종류이고 어디까지 노출될지 결정
+  // 3. 넥셋 정체성: 이 패널이 어떤 종류이고 어디까지 노출될지 결정
   identity: z.object({
-    type: PanelTypeEnum, // RAW_SOURCE(원천) 인가 LOGIC_RESULT(결과) 인가
+    type: NexetTypeEnum, // RAW_SOURCE(원천) 인가 LOGIC_RESULT(결과) 인가
     hwClass: HardwareClassEnum, // 물리적 분류 (열 제어, 조명 제어 등)
     hwProfile: CapabilityProfileEnum, // 장치 특성 (정밀 제어, 단순 OnOff 등)
-    domain: PanelDomainEnum, // 기능적 분류 (액추에이터, 센서 등)
+    domain: NexetDomainEnum, // 기능적 분류 (액추에이터, 센서 등)
     scope: z.array(SystemScopeEnum), // 노출 범위 (보드, 노드, 글로벌 등)
     mode: ControlModeEnum, // 제어 모드 (수동, AI 최적화 등)
     visual: VisualTypeEnum, // UI 형태 (슬라이더, 비디오 스트림 등)
@@ -66,8 +66,8 @@ export const PanelSchema = z.object({
     layout: z.object({
       x: z.number(), // 캔버스 가로 좌표
       y: z.number(), // 캔버스 세로 좌표
-      width: z.number().default(300), // 패널 가로 크기
-      height: z.number().default(200), // 패널 세로 크기
+      width: z.number().default(300), // 넥셋 가로 크기
+      height: z.number().default(200), // 넥셋 세로 크기
     }),
 
     // 수치 조절 범위 설정
@@ -98,4 +98,4 @@ export const PanelSchema = z.object({
  * [ Panel 타입 추론 ]
  * 정의한 Zod 스키마를 바탕으로 실제 코딩에서 쓸 TypeScript 타입을 자동으로 만듭니다.
  */
-export type Panel = z.infer<typeof PanelSchema>
+export type Panel = z.infer<typeof NexetSchema>

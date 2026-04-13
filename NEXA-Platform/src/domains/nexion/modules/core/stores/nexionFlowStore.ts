@@ -80,8 +80,7 @@ function parsePxFromStyle(w: unknown, fallback: number): number {
  * 카드 노드 “중앙 본문 슬롯” 인셋(플로 px) — 카드 DOM 크롬과 대응 (뷰포트 줌과 무관).
  */
 function getCardContentInset(parent: Node) {
-  const st =
-    parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style) ? parent.style : {}
+  const st = parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style) ? parent.style : {}
   const pw = parsePxFromStyle((st as { width?: string }).width, CARD_PARENT_W)
   const ph = parsePxFromStyle((st as { height?: string }).height, CARD_PARENT_H)
   const minBody = 6
@@ -184,12 +183,7 @@ const READING_FOCUS_FLOW_H = Math.round(CHILD_IN_CARD_H * 0.9)
  * 중첩 카드의 플로 크기 — `cardChildSizePx` 기준에 줌 부스트를 곱하고 부모 본문 안으로 클램프.
  * 구조(data.tier)는 그대로 두고 style 만 줌에 맞춰 다시 맞출 때 사용.
  */
-function nestedCardFlowBoxPx(
-  parent: Node | undefined,
-  tier: number,
-  zoom: number,
-  flowCtx?: { nodeId: string; readingFocusId: string | null },
-): { w: number; h: number } {
+function nestedCardFlowBoxPx(parent: Node | undefined, tier: number, zoom: number, flowCtx?: { nodeId: string; readingFocusId: string | null }): { w: number; h: number } {
   const base = cardChildSizePx(parent, tier)
   const boost = zoomFlowSizeBoost(zoom)
   if (!parent || parent.type !== 'nexionCard') {
@@ -206,11 +200,7 @@ function nestedCardFlowBoxPx(
   let h = Math.round(base.h * boost)
   w = Math.min(maxW, Math.max(CARD_CHILD_ABS_MIN_W, w))
   h = Math.min(maxH, Math.max(CARD_CHILD_ABS_MIN_H, h))
-  if (
-    flowCtx?.readingFocusId &&
-    flowCtx.nodeId === flowCtx.readingFocusId &&
-    flowCtx.readingFocusId.length > 0
-  ) {
+  if (flowCtx?.readingFocusId && flowCtx.nodeId === flowCtx.readingFocusId && flowCtx.readingFocusId.length > 0) {
     w = Math.min(maxW, Math.max(w, READING_FOCUS_FLOW_W))
     h = Math.min(maxH, Math.max(h, READING_FOCUS_FLOW_H))
   }
@@ -221,11 +211,7 @@ function nestedCardFlowBoxPx(
  * 모든 `nestedInCard` 노드의 width/height 를 현재 줌 기준으로 재계산(부모→자식 연쇄 반영).
  * `readingFocusId`: 해당 중첩 카드 선택 시 플로 박스 읽기용 하한.
  */
-function rebakeNestedCardFlowSizesFromZoom(
-  list: Node[],
-  zoom: number,
-  readingFocusId: string | null = null,
-): { list: Node[]; changed: boolean } {
+function rebakeNestedCardFlowSizesFromZoom(list: Node[], zoom: number, readingFocusId: string | null = null): { list: Node[]; changed: boolean } {
   let cur = list
   let any = false
   for (let pass = 0; pass < 20; pass++) {
@@ -261,8 +247,7 @@ function rebakeNestedCardFlowSizesFromZoom(
 
 function clampChildPositionInCardParent(child: Node, parent: Node) {
   const { top, bottom, padX, pw, ph } = getCardContentInset(parent)
-  const st =
-    child.style && typeof child.style === 'object' && !Array.isArray(child.style) ? child.style : {}
+  const st = child.style && typeof child.style === 'object' && !Array.isArray(child.style) ? child.style : {}
   const cw = parsePxFromStyle((st as { width?: string }).width, CARD_CHILD_ABS_MIN_W)
   const ch = parsePxFromStyle((st as { height?: string }).height, CARD_CHILD_ABS_MIN_H)
   const maxX = Math.max(padX, pw - padX - cw)
@@ -299,10 +284,7 @@ function fitCardParentToNestedChildren(list: Node[], cardId: string): Node[] {
   })
   if (!children.length) return list
 
-  const st0 =
-    parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style)
-      ? { ...(parent.style as Record<string, string>) }
-      : {}
+  const st0 = parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style) ? { ...(parent.style as Record<string, string>) } : {}
   let pw = parsePxFromStyle(st0.width, CARD_PARENT_W)
   let ph = parsePxFromStyle(st0.height, CARD_PARENT_H)
 
@@ -332,9 +314,7 @@ function fitCardParentToNestedChildren(list: Node[], cardId: string): Node[] {
   const curH = parsePxFromStyle(st0.height, CARD_PARENT_H)
   if (curW === pw && curH === ph) return list
 
-  return list.map((n) =>
-    n.id === cardId ? { ...n, style: { ...st0, width: `${pw}px`, height: `${ph}px` } } : n,
-  )
+  return list.map((n) => (n.id === cardId ? { ...n, style: { ...st0, width: `${pw}px`, height: `${ph}px` } } : n))
 }
 
 /** 중첩 카드 한 장부터 조상 `nexionCard`까지 안쪽 부모부터 순서대로 맞춤 */
@@ -365,9 +345,7 @@ function fitAllCardParentsToNestedChildren(list: Node[]): Node[] {
     if (d.nestedInCard && n.parentNode) parentIds.add(n.parentNode)
   }
   if (!parentIds.size) return list
-  const order = [...parentIds].sort(
-    (a, b) => nexionCardNestingLevel(list, b) - nexionCardNestingLevel(list, a),
-  )
+  const order = [...parentIds].sort((a, b) => nexionCardNestingLevel(list, b) - nexionCardNestingLevel(list, a))
   let out = list
   for (const pid of order) {
     out = fitCardParentToNestedChildren(out, pid)
@@ -416,13 +394,7 @@ function isNodeOnSelectedChain(nodeId: string, selectedId: string | null, byId: 
 }
 
 /** 부모 카드가 LOD로 숨겨지면 자손 카드도 숨김 */
-function computeNexionCardLodHidden(
-  n: Node,
-  byId: Map<string, Node>,
-  zoom: number,
-  memo: Map<string, boolean>,
-  selectedId: string | null,
-): boolean {
+function computeNexionCardLodHidden(n: Node, byId: Map<string, Node>, zoom: number, memo: Map<string, boolean>, selectedId: string | null): boolean {
   if (n.type !== 'nexionCard') return false
   if (memo.has(n.id)) return memo.get(n.id)!
   if (isNodeOnSelectedChain(n.id, selectedId, byId)) {
@@ -430,12 +402,7 @@ function computeNexionCardLodHidden(
     return false
   }
   const d = (n.data || {}) as Record<string, unknown>
-  const tier =
-    typeof d.nexionCardTier === 'number'
-      ? d.nexionCardTier
-      : d.nestedInCard
-        ? 1
-        : 0
+  const tier = typeof d.nexionCardTier === 'number' ? d.nexionCardTier : d.nestedInCard ? 1 : 0
   const sm = cardScreenMinDim(n, zoom)
   let hide = tier > 0 && sm < minScreenShortEdgeForLodTier(tier)
   if (!hide && n.parentNode) {
@@ -476,34 +443,24 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     let maxR = 0
     let maxB = 0
     for (const c of children) {
-      const cw = parsePxFromStyle(
-        c.style && typeof c.style === 'object' ? (c.style as { width?: string }).width : undefined,
-        CHILD_IN_GROUP_W,
-      )
-      const ch = parsePxFromStyle(
-        c.style && typeof c.style === 'object' ? (c.style as { height?: string }).height : undefined,
-        CHILD_IN_GROUP_H,
-      )
+      const cw = parsePxFromStyle(c.style && typeof c.style === 'object' ? (c.style as { width?: string }).width : undefined, CHILD_IN_GROUP_W)
+      const ch = parsePxFromStyle(c.style && typeof c.style === 'object' ? (c.style as { height?: string }).height : undefined, CHILD_IN_GROUP_H)
       maxR = Math.max(maxR, c.position.x + cw)
       maxB = Math.max(maxB, c.position.y + ch)
     }
-    const st =
-      group.style && typeof group.style === 'object' && !Array.isArray(group.style) ? group.style : {}
+    const st = group.style && typeof group.style === 'object' && !Array.isArray(group.style) ? group.style : {}
     const curW = parsePxFromStyle((st as { width?: string }).width, GROUP_MIN_W)
     const curH = parsePxFromStyle((st as { height?: string }).height, GROUP_MIN_H)
     const gw = Math.max(curW, maxR + GROUP_PAD.r)
     const gh = Math.max(curH, maxB + GROUP_PAD.b)
-    nodes.value = nodes.value.map((n) =>
-      n.id === groupId ? { ...n, style: { ...st, width: `${gw}px`, height: `${gh}px` } } : n,
-    )
+    nodes.value = nodes.value.map((n) => (n.id === groupId ? { ...n, style: { ...st, width: `${gw}px`, height: `${gh}px` } } : n))
     triggerRef(nodes)
   }
 
   function ensureCardParentBounds(parentId: string) {
     const parent = nodes.value.find((x) => x.id === parentId)
     if (!parent || parent.type !== 'nexionCard') return
-    const st =
-      parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style) ? { ...parent.style } : {}
+    const st = parent.style && typeof parent.style === 'object' && !Array.isArray(parent.style) ? { ...parent.style } : {}
     const hasW = typeof st.width === 'string' && st.width.length > 0
     const hasH = typeof st.height === 'string' && st.height.length > 0
     if (hasW && hasH) return
@@ -522,7 +479,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     triggerRef(nodes)
   }
   const selectedNodeId = ref<string | null>(null)
-  /** 우측 패널·버튼용 — 캔버스에서 연결선 클릭 시 설정 */
+  /** 우측 넥셋·버튼용 — 캔버스에서 연결선 클릭 시 설정 */
   const selectedEdgeId = ref<string | null>(null)
 
   watch(
@@ -544,8 +501,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     const list = edges.value
     if (!list.length) return
     edges.value = list.map((e) => {
-      const prev =
-        e.style && typeof e.style === 'object' && !Array.isArray(e.style) ? { ...e.style } : {}
+      const prev = e.style && typeof e.style === 'object' && !Array.isArray(e.style) ? { ...e.style } : {}
       delete (prev as { stroke?: unknown }).stroke
       return {
         ...e,
@@ -559,17 +515,14 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
   }
 
   watch(
-    () => [
-      userSettingsRef.value.nexionFlow.edgeStrokeColor,
-      userSettingsRef.value.nexionFlow.edgeStrokeWidth,
-    ] as const,
+    () => [userSettingsRef.value.nexionFlow.edgeStrokeColor, userSettingsRef.value.nexionFlow.edgeStrokeWidth] as const,
     () => {
       syncAllEdgesStyleFromNexionUi()
     },
     { flush: 'post', immediate: true },
   )
   const viewportZoom = ref(1)
-  /** 뷰 중앙(플로 좌표) — 좌측 패널 “중앙에 추가”에 사용, FlowHooks가 갱신 */
+  /** 뷰 중앙(플로 좌표) — 좌측 넥셋 “중앙에 추가”에 사용, FlowHooks가 갱신 */
   const spawnFlowPosition = ref({ x: 240, y: 200 })
   const pendingFitNodeId = ref<string | null>(null)
 
@@ -636,8 +589,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
   function rebakeNestedCardFlowSizes(zoom?: number) {
     const z = zoom ?? viewportZoom.value
     const sid = selectedNodeId.value
-    const readingFocus =
-      sid != null && nodes.value.some((x) => x.id === sid && x.type === 'nexionCard') ? sid : null
+    const readingFocus = sid != null && nodes.value.some((x) => x.id === sid && x.type === 'nexionCard') ? sid : null
     const { list, changed } = rebakeNestedCardFlowSizesFromZoom(nodes.value, z, readingFocus)
     if (!changed) return
     nodes.value = fitAllCardParentsToNestedChildren(list)
@@ -690,7 +642,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
     if (id != null) selectedNodeId.value = null
   }
 
-  /** 빈 판 클릭 등 — 우측 패널·선택 상태만 초기화(Vue Flow 자체 선택은 내부 동작 따름) */
+  /** 빈 판 클릭 등 — 우측 넥셋·선택 상태만 초기화(Vue Flow 자체 선택은 내부 동작 따름) */
   function clearUiSelection() {
     selectedNodeId.value = null
     selectedEdgeId.value = null
@@ -874,9 +826,7 @@ export const useNexionFlowStore = defineStore('nexionFlow', () => {
   }
 
   function setNodeLabel(id: string, label: string) {
-    nodes.value = nodes.value.map((n) =>
-      n.id === id ? { ...n, data: { ...n.data, label } } : n,
-    )
+    nodes.value = nodes.value.map((n) => (n.id === id ? { ...n, data: { ...n.data, label } } : n))
   }
 
   function resetPrototype() {

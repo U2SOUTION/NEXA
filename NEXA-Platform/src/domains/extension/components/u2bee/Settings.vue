@@ -20,21 +20,10 @@
       <q-item class="settings-item">
         <q-item-section>
           <q-item-label class="settings-item-label">UI 표시 방식</q-item-label>
-          <q-item-label class="settings-item-caption">사이드 패널 또는 사이트에 직접 삽입</q-item-label>
+          <q-item-label class="settings-item-caption">사이드 넥셋 또는 사이트에 직접 삽입</q-item-label>
         </q-item-section>
         <q-item-section side>
-          <q-select
-            v-model="uiMode"
-            :options="uiModeOptions"
-            option-label="label"
-            option-value="value"
-            emit-value
-            map-options
-            dense
-            outlined
-            class="ui-mode-select"
-            @update:model-value="handleUIModeChange"
-          />
+          <q-select v-model="uiMode" :options="uiModeOptions" option-label="label" option-value="value" emit-value map-options dense outlined class="ui-mode-select" @update:model-value="handleUIModeChange" />
         </q-item-section>
       </q-item>
       <q-item v-if="uiMode === 'injected'" class="settings-item">
@@ -121,7 +110,7 @@ import TabCustomizer from './TabCustomizer.vue'
 const uiMode = ref('sidepanel') // 'sidepanel' | 'injected'
 const injectUIEnabled = ref(false)
 const uiModeOptions = [
-  { label: '사이드 패널', value: 'sidepanel' },
+  { label: '사이드 넥셋', value: 'sidepanel' },
   { label: '사이트 삽입', value: 'injected' },
 ]
 
@@ -144,7 +133,7 @@ onMounted(async () => {
         {
           type: 'REQUEST_SETTINGS',
         },
-        '*'
+        '*',
       )
 
       // 설정 수신 대기
@@ -170,7 +159,7 @@ function handleSettingsMessage(event) {
 function handleUIModeChange(newMode) {
   uiMode.value = newMode
   saveSettings()
-  
+
   if (newMode === 'injected') {
     // 사이트 삽입 모드로 전환 시 자동으로 활성화 (사용자 편의)
     if (!injectUIEnabled.value) {
@@ -179,7 +168,7 @@ function handleUIModeChange(newMode) {
       console.log('[Settings] 사이트 삽입 모드가 활성화되었습니다. 페이지를 새로고침하면 적용됩니다.')
     }
   } else {
-    // 사이드 패널 모드로 전환 시 삽입 UI 비활성화
+    // 사이드 넥셋 모드로 전환 시 삽입 UI 비활성화
     injectUIEnabled.value = false
     saveSettings()
   }
@@ -189,7 +178,7 @@ function handleUIModeChange(newMode) {
 function handleInjectUIChange(enabled) {
   injectUIEnabled.value = enabled
   saveSettings()
-  
+
   if (enabled) {
     console.log('[Settings] 사이트 삽입이 활성화되었습니다. 페이지를 새로고침하면 적용됩니다.')
   } else {
@@ -210,7 +199,7 @@ function saveSettings() {
             u2bee_injectUI_enabled: injectUIEnabled.value,
           },
         },
-        '*'
+        '*',
       )
     }
   } catch (error) {

@@ -1,5 +1,5 @@
 <!-- DevToolsPanel.vue
-  DEV 메뉴 전용 우측 도구 패널
+  DEV 메뉴 전용 우측 도구 넥셋
   Mermaid 차트 스타일 편집 등 개발 도구 제공
 -->
 
@@ -12,7 +12,7 @@
       <!-- 목차 섹션 (문서 관리자 메뉴이고 목차가 있을 때만 표시) -->
       <div v-if="activeMenu === 'document-manager' && hasTOCItems" class="accordion-wrapper">
         <q-expansion-item ref="tocExpansionRef" icon="menu" label="목차" :model-value="tocShouldAutoExpand" @update:model-value="onTOCExpansionChange">
-          <PanelTOC
+          <NexetTOC
             :items="documentStore.tocItems || []"
             :current-section-id="documentStore.currentSectionId"
             :auto-collapse="tocAutoCollapse"
@@ -33,39 +33,39 @@
       <!-- Mermaid 스타일 섹션 (문서 관리자 메뉴이고 Mermaid 블록이 있을 때만 표시) -->
       <div v-if="activeMenu === 'document-manager' && hasMermaidBlocks" class="accordion-wrapper">
         <q-expansion-item ref="mermaidStyleExpansionRef" icon="palette" label="Mermaid 차트 스타일" :model-value="shouldAutoExpand" @update:model-value="onExpansionChange">
-          <PanelMermaidStyle :file-path="documentStore.selectedFile?.name || ''" :content="documentStore.displayContent || ''" />
+          <NexetMermaidStyle :file-path="documentStore.selectedFile?.name || ''" :content="documentStore.displayContent || ''" />
         </q-expansion-item>
       </div>
 
-      <!-- 테마 색상 패널 (activeMenu === 'theme-manager') -->
+      <!-- 테마 색상 넥셋 (activeMenu === 'theme-manager') -->
       <div v-if="activeMenu === 'theme-manager'" class="accordion-wrapper">
         <q-expansion-item icon="palette" label="테마 색상" :model-value="themeColorPanelExpanded" @update:model-value="themeColorPanelExpanded = $event">
           <ThemeColorPanel :selected-color="selectedColor" :usage-count="usageCount" :usage-files="usageFiles" @file-clicked="handleFileClick" />
         </q-expansion-item>
       </div>
 
-      <!-- 데이터베이스 테이블 상세 정보 패널 (activeMenu === 'database-viewer') -->
+      <!-- 데이터베이스 테이블 상세 정보 넥셋 (activeMenu === 'database-viewer') -->
       <div v-if="activeMenu === 'database-viewer'" class="accordion-wrapper">
         <q-expansion-item icon="table_view" label="DB 테이블 상세 정보" :model-value="databaseTableDetailExpanded" @update:model-value="databaseTableDetailExpanded = $event">
           <DatabaseTableDetailSimple :table-name="selectedTableName" />
         </q-expansion-item>
       </div>
 
-      <!-- 다이어그램 설정 패널 (범용) -->
+      <!-- 다이어그램 설정 넥셋 (범용) -->
       <div v-if="activeDiagramType" class="accordion-wrapper">
         <q-expansion-item icon="tune" :label="diagramSettingsLabel" :model-value="diagramSettingsExpanded" @update:model-value="diagramSettingsExpanded = $event">
           <DiagramSettingsPanel :diagram-type="activeDiagramType" @settings-changed="handleDiagramSettingsChanged" @settings-saved="handleDiagramSettingsSaved" @settings-reset="handleDiagramSettingsReset" />
         </q-expansion-item>
       </div>
 
-      <!-- ERD 다이어그램 설정 패널 (호환성 유지 - database-viewer) -->
+      <!-- ERD 다이어그램 설정 넥셋 (호환성 유지 - database-viewer) -->
       <div v-if="activeMenu === 'database-viewer' && !activeDiagramType" class="accordion-wrapper">
         <q-expansion-item icon="tune" label="ERD 다이어그램 설정" :model-value="erdSettingsExpanded" @update:model-value="erdSettingsExpanded = $event">
           <ERDDiagramSettingsPanel />
         </q-expansion-item>
       </div>
 
-      <!-- 컴포넌트 라이브러리 패널들 (activeMenu === 'component-library') -->
+      <!-- 컴포넌트 라이브러리 넥셋들 (activeMenu === 'component-library') -->
       <template v-if="activeMenu === 'component-library'">
         <!-- 규칙 위반 경고 -->
         <div v-if="componentLibrarySelectedComponent || componentLibrarySelectedViolation" class="accordion-wrapper">
@@ -117,7 +117,7 @@
         </div>
       </template>
 
-      <!-- 개발 가이드 패널 (activeMenu === 'dev-guide') -->
+      <!-- 개발 가이드 넥셋 (activeMenu === 'dev-guide') -->
       <template v-if="activeMenu === 'dev-guide'">
         <!-- 샘플 상세 정보 -->
         <div class="accordion-wrapper">
@@ -134,16 +134,16 @@
         </div>
       </template>
 
-      <!-- GraphDoc 패널들 (activeMenu === 'graph-doc' 또는 'document-generator') -->
+      <!-- GraphDoc 넥셋들 (activeMenu === 'graph-doc' 또는 'document-generator') -->
       <template v-if="activeMenu === 'graph-doc' || activeMenu === 'document-generator'">
-        <!-- 히스토리 패널 -->
+        <!-- 히스토리 넥셋 -->
         <div class="accordion-wrapper">
           <q-expansion-item icon="history" label="히스토리" :model-value="graphDocHistoryExpanded" @update:model-value="graphDocHistoryExpanded = $event" default-opened>
             <HistoryTab />
           </q-expansion-item>
         </div>
 
-        <!-- 고정 노드 관리 패널 -->
+        <!-- 고정 노드 관리 넥셋 -->
         <div class="accordion-wrapper">
           <q-expansion-item icon="lock" label="고정 노드" :model-value="graphDocFixedNodesExpanded" @update:model-value="graphDocFixedNodesExpanded = $event">
             <FixedNodesTab />
@@ -151,9 +151,9 @@
         </div>
       </template>
 
-      <!-- 에러 트래킹 패널들 (activeMenu === 'error-tracking') -->
+      <!-- 에러 트래킹 넥셋들 (activeMenu === 'error-tracking') -->
       <template v-if="activeMenu === 'error-tracking'">
-        <!-- 에러 설정 패널 -->
+        <!-- 에러 설정 넥셋 -->
         <div class="accordion-wrapper">
           <q-expansion-item icon="settings" label="에러 설정" :model-value="errorTrackingSettingsExpanded" @update:model-value="errorTrackingSettingsExpanded = $event">
             <div class="q-pa-md">
@@ -188,7 +188,7 @@
           </q-expansion-item>
         </div>
 
-        <!-- 에러 액션 패널 -->
+        <!-- 에러 액션 넥셋 -->
         <div class="accordion-wrapper">
           <q-expansion-item icon="flash_on" label="에러 액션" :model-value="errorTrackingActionsExpanded" @update:model-value="errorTrackingActionsExpanded = $event">
             <div class="q-pa-md">
@@ -216,7 +216,7 @@
           </q-expansion-item>
         </div>
 
-        <!-- 에러 분석 패널 -->
+        <!-- 에러 분석 넥셋 -->
         <div class="accordion-wrapper">
           <q-expansion-item icon="analytics" label="에러 분석" :model-value="errorTrackingAnalysisExpanded" @update:model-value="errorTrackingAnalysisExpanded = $event">
             <div class="q-pa-md">
@@ -275,13 +275,13 @@
 </template>
 
 <script setup>
-// DevRightPanel.vue - 개발 도구 우측 패널
+// DevRightPanel.vue - 개발 도구 우측 넥셋
 import { computed, ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useDocumentManagerStore } from '@system/store/documentManagerStore'
 import { QExpansionItem } from 'quasar'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
-import PanelMermaidStyle from '@domains/panel/components/components/PanelMermaidStyle.vue'
-import PanelTOC from '@domains/panel/components/components/PanelTOC.vue'
+import NexetMermaidStyle from '@domains/nexet/components/components/NexetMermaidStyle.vue'
+import NexetTOC from '@domains/nexet/components/components/NexetTOC.vue'
 import ThemeColorPanel from './right-dev-tools/ThemeColorPanel.vue'
 import ERDDiagramSettingsPanel from './right-dev-tools/ERDDiagramSettingsPanel.vue'
 import DiagramSettingsPanel from '@engines/diagram/panels/DiagramSettingsPanel.vue'
@@ -313,24 +313,24 @@ const tocAutoCollapse = computed(() => documentStore.tocAutoCollapse)
 // useDevMenuState composable 사용으로 변경
 const { activeMenu, initialize: initializeMenuState } = useDevMenuState()
 
-// 테마 색상 패널 상태
+// 테마 색상 넥셋 상태
 const selectedColor = ref(null)
 const usageCount = ref(0)
 const usageFiles = ref([])
 const themeColorPanelExpanded = ref(true)
 
-// 데이터베이스 테이블 상세 정보 패널 상태
+// 데이터베이스 테이블 상세 정보 넥셋 상태
 const selectedTableName = ref(null)
 const databaseTableDetailExpanded = ref(false)
 
-// ERD 다이어그램 설정 패널 상태 (호환성 유지)
+// ERD 다이어그램 설정 넥셋 상태 (호환성 유지)
 const erdSettingsExpanded = ref(false)
 
-// 범용 다이어그램 설정 패널 상태
+// 범용 다이어그램 설정 넥셋 상태
 const diagramSettingsExpanded = ref(false)
 const activeDiagramType = ref(null)
 
-// 다이어그램 설정 패널 라벨
+// 다이어그램 설정 넥셋 라벨
 const diagramSettingsLabel = computed(() => {
   if (!activeDiagramType.value) return '다이어그램 설정'
   const labels = {
@@ -343,7 +343,7 @@ const diagramSettingsLabel = computed(() => {
   return labels[activeDiagramType.value] || '다이어그램 설정'
 })
 
-// 컴포넌트 라이브러리 패널 상태
+// 컴포넌트 라이브러리 넥셋 상태
 const componentLibrarySelectedComponent = ref(null)
 const componentLibrarySelectedViolation = ref(null)
 const componentLibraryIsScanning = ref(false)
@@ -354,16 +354,16 @@ const componentLibraryInterfaceExpanded = ref(false)
 const componentLibraryQuickActionsExpanded = ref(false)
 const componentLibraryRelatedDocsExpanded = ref(false)
 
-// 에러 트래킹 패널 상태
+// 에러 트래킹 넥셋 상태
 const errorTrackingSettingsExpanded = ref(false)
 const errorTrackingActionsExpanded = ref(false)
 const errorTrackingAnalysisExpanded = ref(false)
 
-// 개발 가이드 패널 상태
+// 개발 가이드 넥셋 상태
 const devGuidePanelExpanded = ref(true)
 const devGuideStatisticsExpanded = ref(true)
 
-// GraphDoc 패널 상태
+// GraphDoc 넥셋 상태
 const graphDocHistoryExpanded = ref(true)
 const graphDocFixedNodesExpanded = ref(false)
 
@@ -617,7 +617,7 @@ onMounted(() => {
     activeDiagramType.value = diagramTypes.ERD
   } else if (activeMenu.value === 'graph-doc' || activeMenu.value === 'document-generator') {
     activeDiagramType.value = 'dependency'
-    console.log('[DevToolsPanel] graph-doc 메뉴 감지, 히스토리 패널 표시 예정')
+    console.log('[DevToolsPanel] graph-doc 메뉴 감지, 히스토리 넥셋 표시 예정')
   }
 
   // 전역 이벤트 리스너 등록 (다른 컴포넌트와의 호환성을 위해 유지)

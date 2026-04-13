@@ -34,7 +34,7 @@ html {
 }
 
 // 2-1. 에디터·뷰어: 가로/세로 스크롤 허용
-// 에디터는 "에디터 자체 스크롤" 전략으로 패널(.ai-editor-panel)이 스크롤 컨테이너 → AiEditorPanel.vue 주석 참고
+// 에디터는 "에디터 자체 스크롤" 전략으로 넥셋(.ai-editor-panel)이 스크롤 컨테이너 → AiEditorPanel.vue 주석 참고
 .ai-editor-panel,
 .universal-viewer-csv-table-wrapper {
   overflow-x: auto !important;

@@ -3,7 +3,7 @@
  * 오디오·이벤트 쪽은 이 객체만 받도록 맞춘다(단계 B).
  */
 
-/** 개발 패널 슬라이더 원시 값 (0~100) */
+/** 개발 넥셋 슬라이더 원시 값 (0~100) */
 export type NixieSoundLayerUi0to100 = {
   filter: number
   release: number

@@ -18,7 +18,6 @@
  * ```
  */
 
-
 /**
  * 테이블 키보드 이벤트 Composable
  *
@@ -34,7 +33,9 @@
  * @param {Function} params.clearSelection - 선택 초기화 함수 (optional)
  * @returns {Object} 키보드 이벤트 핸들러 및 설정 함수
  */
-interface RowWithId { id: number | string }
+interface RowWithId {
+  id: number | string
+}
 
 interface TableKeyboardParams {
   filteredClasses: { value: RowWithId[] }
@@ -48,17 +49,7 @@ interface TableKeyboardParams {
   clearSelection?: () => void
 }
 
-export function useTableKeyboard({
-  filteredClasses,
-  selectedRows,
-  multiSelectMode,
-  lastSelectedIndex,
-  pagination,
-  isSidebarDetailViewActive,
-  exitSidebarDetailView,
-  partsDataStore,
-  clearSelection,
-}: TableKeyboardParams) {
+export function useTableKeyboard({ filteredClasses, selectedRows, multiSelectMode, lastSelectedIndex, pagination, isSidebarDetailViewActive, exitSidebarDetailView, partsDataStore, clearSelection }: TableKeyboardParams) {
   /**
    * 선택 반전 함수
    */
@@ -72,9 +63,7 @@ export function useTableKeyboard({
     selectedRows.value = inverted
 
     if (selectedRows.value.length > 0) {
-      lastSelectedIndex.value = filteredClasses.value.findIndex(
-        (r: RowWithId) => r.id === selectedRows.value[selectedRows.value.length - 1].id
-      )
+      lastSelectedIndex.value = filteredClasses.value.findIndex((r: RowWithId) => r.id === selectedRows.value[selectedRows.value.length - 1].id)
       partsDataStore.selectedPartClass = selectedRows.value[0]
     } else {
       lastSelectedIndex.value = -1
@@ -94,12 +83,7 @@ export function useTableKeyboard({
     if (evt.key === 'Escape' || evt.keyCode === 27) {
       // 입력 필드에 포커스가 있으면 기본 동작 허용
       const activeElement = document.activeElement
-      const isInputField =
-        activeElement &&
-        (activeElement.tagName === 'INPUT' ||
-          activeElement.tagName === 'TEXTAREA' ||
-          (activeElement as HTMLElement).isContentEditable ||
-          activeElement.closest('input, textarea, [contenteditable]'))
+      const isInputField = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || (activeElement as HTMLElement).isContentEditable || activeElement.closest('input, textarea, [contenteditable]'))
 
       // 입력 필드가 아니면 처리
       if (!isInputField) {
@@ -131,12 +115,7 @@ export function useTableKeyboard({
     if ((evt.ctrlKey || evt.metaKey) && (evt.key === 'a' || evt.key === 'A') && evt.keyCode === 65) {
       // 입력 필드에 포커스가 있으면 기본 동작 허용 (텍스트 선택)
       const activeElement = document.activeElement
-      const isInputField =
-        activeElement &&
-        (activeElement.tagName === 'INPUT' ||
-          activeElement.tagName === 'TEXTAREA' ||
-          (activeElement as HTMLElement).isContentEditable ||
-          activeElement.closest('input, textarea, [contenteditable]'))
+      const isInputField = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || (activeElement as HTMLElement).isContentEditable || activeElement.closest('input, textarea, [contenteditable]'))
 
       // 입력 필드가 아니고, 필터된 결과가 있을 때만 처리
       if (!isInputField && filteredClasses.value.length > 0) {
@@ -182,7 +161,7 @@ export function useTableKeyboard({
           // 복수 선택 모드 진입 (전체 선택 시)
           multiSelectMode.value = true
 
-          // 첫 번째 선택된 항목을 상세 패널과 동기화
+          // 첫 번째 선택된 항목을 상세 넥셋과 동기화
           partsDataStore.selectedPartClass = selectedRows.value[0]
         }
       }
@@ -190,20 +169,10 @@ export function useTableKeyboard({
     }
 
     // Ctrl + Shift + I: 선택 반전
-    if (
-      (evt.ctrlKey || evt.metaKey) &&
-      evt.shiftKey &&
-      (evt.key === 'i' || evt.key === 'I') &&
-      evt.keyCode === 73
-    ) {
+    if ((evt.ctrlKey || evt.metaKey) && evt.shiftKey && (evt.key === 'i' || evt.key === 'I') && evt.keyCode === 73) {
       // 입력 필드에 포커스가 있으면 기본 동작 허용
       const activeElement = document.activeElement
-      const isInputField =
-        activeElement &&
-        (activeElement.tagName === 'INPUT' ||
-          activeElement.tagName === 'TEXTAREA' ||
-          (activeElement as HTMLElement).isContentEditable ||
-          activeElement.closest('input, textarea, [contenteditable]'))
+      const isInputField = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || (activeElement as HTMLElement).isContentEditable || activeElement.closest('input, textarea, [contenteditable]'))
 
       // 입력 필드가 아니고, 필터된 결과가 있을 때만 처리
       if (!isInputField && filteredClasses.value.length > 0) {
@@ -240,4 +209,3 @@ export function useTableKeyboard({
     cleanupKeyboardListeners,
   }
 }
-

@@ -1,14 +1,8 @@
 <template>
-  <div class="nexa-panel-section">
+  <div class="nexet-section">
     <div class="q-pa-sm">
       <q-list>
-        <q-item
-          v-for="panel in panelTypes"
-          :key="panel.id"
-          clickable
-          v-ripple
-          @click="addNewPanel"
-        >
+        <q-item v-for="panel in nexetTypes" :key="panel.id" clickable v-ripple @click="addNewPanel">
           <q-item-section avatar>
             <q-icon :name="panel.icon" color="primary" />
           </q-item-section>
@@ -24,7 +18,7 @@
 
 <script setup>
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
-import { panelTypes } from '@domains/panel/components/config/panelTypes'
+import { nexetTypes } from '@domains/nexet/components/config/nexetTypes'
 
 const dashboardLayoutStore = useDashboardLayoutStore()
 
@@ -34,7 +28,7 @@ function addNewPanel() {
 </script>
 
 <style lang="scss" scoped>
-.nexa-panel-section {
+.nexet-section {
   .q-item {
     border-bottom: 1px solid var(--nexa-border-color);
 

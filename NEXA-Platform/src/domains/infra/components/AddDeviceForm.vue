@@ -6,91 +6,35 @@
       </q-card-section>
 
       <q-card-section>
-        <q-stepper
-          v-model="registrationStep"
-          ref="stepper"
-          color="primary"
-          animated
-          flat
-          bordered
-          header-nav
-          class="bg-transparent text-white"
-        >
+        <q-stepper v-model="registrationStep" ref="stepper" color="primary" animated flat bordered header-nav class="bg-transparent text-white">
           <q-step :name="1" title="Wi-Fi 정보 입력" icon="wifi" :done="registrationStep > 1">
             <p class="text-caption q-mb-md text-grey-5">
               등록하려는 기기(ESP32)에서 등록 버튼(또는 특정 동작)을 실행하여<br />
               등록 대기 상태로 만든 후, 아래 정보를 입력하세요.
             </p>
             <q-form @submit="handleWifiSubmit" class="q-gutter-md">
-              <q-input
-                filled
-                dark
-                v-model="formData.deviceName"
-                label="기기 이름 (식별용)"
-                lazy-rules
-                :rules="[(val) => !!val || '기기 이름을 입력하세요']"
-              />
-              <q-input
-                filled
-                dark
-                v-model="formData.wifiSsid"
-                label="Wi-Fi 아이디 (SSID)"
-                autocomplete="username"
-                lazy-rules
-                :rules="[(val) => !!val || 'Wi-Fi 아이디를 입력하세요']"
-              />
-              <q-input
-                filled
-                dark
-                v-model="formData.wifiPassword"
-                label="Wi-Fi 비밀번호"
-                type="password"
-                autocomplete="new-password"
-                lazy-rules
-                :rules="[(val) => !!val || 'Wi-Fi 비밀번호를 입력하세요']"
-              />
+              <q-input filled dark v-model="formData.deviceName" label="기기 이름 (식별용)" lazy-rules :rules="[(val) => !!val || '기기 이름을 입력하세요']" />
+              <q-input filled dark v-model="formData.wifiSsid" label="Wi-Fi 아이디 (SSID)" autocomplete="username" lazy-rules :rules="[(val) => !!val || 'Wi-Fi 아이디를 입력하세요']" />
+              <q-input filled dark v-model="formData.wifiPassword" label="Wi-Fi 비밀번호" type="password" autocomplete="new-password" lazy-rules :rules="[(val) => !!val || 'Wi-Fi 비밀번호를 입력하세요']" />
               <q-stepper-navigation class="q-pt-md">
-                <q-btn
-                  label="Wi-Fi 연결 시도"
-                  type="submit"
-                  color="primary"
-                  :loading="loadingWifi"
-                />
+                <q-btn label="Wi-Fi 연결 시도" type="submit" color="primary" :loading="loadingWifi" />
                 <q-btn label="취소" color="grey" @click="cancelAndGoBack" class="q-ml-sm" />
               </q-stepper-navigation>
             </q-form>
           </q-step>
 
-          <q-step
-            :name="2"
-            title="연결 중"
-            icon="settings_ethernet"
-            :done="registrationStep > 2"
-            caption="잠시만 기다려주세요"
-          >
+          <q-step :name="2" title="연결 중" icon="settings_ethernet" :done="registrationStep > 2" caption="잠시만 기다려주세요">
             <div class="text-center q-pa-md">
               <q-spinner-dots color="primary" size="40px" />
               <p class="q-mt-md">Wi-Fi 연결 및 기기 인증 중...</p>
-              <p class="text-caption text-grey-5">
-                ESP32에서 Wi-Fi 접속 및 서버 연결을 시도합니다.
-              </p>
+              <p class="text-caption text-grey-5">ESP32에서 Wi-Fi 접속 및 서버 연결을 시도합니다.</p>
             </div>
             <!-- 이 단계에서는 자동으로 다음으로 넘어가므로 네비게이션 불필요 -->
           </q-step>
 
           <q-step :name="3" title="최종 등록" icon="check_circle">
-            <p class="text-caption q-mb-sm text-grey-5">
-              디바이스가 성공적으로 서버에 연결되었습니다.
-            </p>
-            <q-field
-              filled
-              dark
-              label="디바이스 MAC 주소"
-              stack-label
-              dense
-              readonly
-              class="q-mb-md"
-            >
+            <p class="text-caption q-mb-sm text-grey-5">디바이스가 성공적으로 서버에 연결되었습니다.</p>
+            <q-field filled dark label="디바이스 MAC 주소" stack-label dense readonly class="q-mb-md">
               <template v-slot:control>
                 <div class="self-center full-width no-outline" tabindex="0">
                   {{ formData.macAddress }}
@@ -98,22 +42,9 @@
               </template>
             </q-field>
             <q-form @submit="handleFinalRegistration" class="q-gutter-md">
-              <q-input
-                filled
-                dark
-                v-model="formData.apiKey"
-                label="발급된 API 키 (또는 연동 키)"
-                lazy-rules
-                :rules="[(val) => !!val || 'API 키를 입력하세요']"
-                hint="플랫폼에서 이 디바이스용으로 생성/발급된 키를 입력하세요."
-              />
+              <q-input filled dark v-model="formData.apiKey" label="발급된 API 키 (또는 연동 키)" lazy-rules :rules="[(val) => !!val || 'API 키를 입력하세요']" hint="플랫폼에서 이 디바이스용으로 생성/발급된 키를 입력하세요." />
               <q-stepper-navigation class="q-pt-md">
-                <q-btn
-                  label="등록 완료"
-                  type="submit"
-                  color="primary"
-                  :loading="loadingRegistration"
-                />
+                <q-btn label="등록 완료" type="submit" color="primary" :loading="loadingRegistration" />
                 <q-btn label="취소" color="grey" @click="cancelAndGoBack" class="q-ml-sm" />
               </q-stepper-navigation>
             </q-form>
@@ -190,7 +121,7 @@ const handleFinalRegistration = () => {
   }, 1500)
 }
 
-// 컴포넌트가 마운트될 때 (즉, 오른쪽 패널에 표시될 때) 폼 초기화
+// 컴포넌트가 마운트될 때 (즉, 오른쪽 넥셋에 표시될 때) 폼 초기화
 onMounted(() => {
   resetForm()
 })

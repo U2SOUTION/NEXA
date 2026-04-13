@@ -73,11 +73,11 @@ const { getItemExpanded } = useTOC({
   tocItems: computed(() => props.tocItems),
   tocExpanded: computed(() => props.tocExpandedMap),
   tocAutoCollapse: computed(() => props.autoCollapse),
-  tocAutoCloseOnContentClick: computed(() => false), // 패널에서는 사용하지 않음
+  tocAutoCloseOnContentClick: computed(() => false), // 넥셋에서는 사용하지 않음
   currentSectionId: computed(() => props.currentSectionId),
-  allTOCExpandedState: computed(() => false), // 패널에서는 사용하지 않음
-  isManualHighlight: computed(() => false), // 패널에서는 사용하지 않음
-  selectedFile: computed(() => null), // 패널에서는 사용하지 않음
+  allTOCExpandedState: computed(() => false), // 넥셋에서는 사용하지 않음
+  isManualHighlight: computed(() => false), // 넥셋에서는 사용하지 않음
+  selectedFile: computed(() => null), // 넥셋에서는 사용하지 않음
 })
 
 /**

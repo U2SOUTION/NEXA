@@ -5,7 +5,7 @@
 
     <div class="panel-scroll-area">
       <div class="q-pa-md">
-        <div class="text-subtitle2 text-primary q-mb-sm">PANEL DETAILS</div>
+        <div class="text-subtitle2 text-primary q-mb-sm">NEXET DETAILS</div>
         <q-card flat bordered class="bg-surface">
           <q-card-section>
             <div class="text-caption text-grey-7">속성 및 설정</div>

@@ -13,9 +13,9 @@ export const domainRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: 'nexa-panel',
+    path: 'nexet',
     name: 'NexaPanel',
-    component: () => import('@domains/panel/PanelDomain.vue'),
+    component: () => import('@domains/nexet/NexetDomain.vue'),
   },
   {
     path: 'nexa-node',

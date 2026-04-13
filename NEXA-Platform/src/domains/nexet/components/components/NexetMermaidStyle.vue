@@ -1,11 +1,11 @@
-<!-- PanelMermaidStyle.vue
-  Mermaid 차트 스타일 편집 패널
+<!-- NexetMermaidStyle.vue
+  Mermaid 차트 스타일 편집 넥셋
   파일 레벨 스타일 설정
-  Props 기반으로 재사용 가능하도록 패널화
+  Props 기반으로 재사용 가능하도록 넥셋화
 -->
 
 <template>
-  <div class="nexa-panel-section mermaid-style-section q-pa-md">
+  <div class="nexet-section mermaid-style-section q-pa-md">
     <!-- 스타일 상태 표시 -->
     <div class="style-status q-mb-md q-pa-sm" :class="hasCustomStyle ? 'status-custom' : 'status-default'">
       <q-icon :name="hasCustomStyle ? 'check_circle' : 'info'" size="16px" class="q-mr-xs" />
@@ -606,7 +606,7 @@ async function applyStyle() {
       })
     }
   } catch (error) {
-    console.error('[PanelMermaidStyle] 스타일 적용 실패:', error)
+    console.error('[NexetMermaidStyle] 스타일 적용 실패:', error)
     $q.notify({
       type: 'negative',
       message: '스타일 적용 중 오류가 발생했습니다.',
@@ -641,5 +641,3 @@ function resetToDefault() {
 </script>
 
 <!-- 스타일은 src/system/css/nexa-system/_panel.scss에서 전역으로 관리됩니다 -->
-
-

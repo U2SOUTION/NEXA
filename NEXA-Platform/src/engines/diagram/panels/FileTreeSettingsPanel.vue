@@ -1,5 +1,5 @@
 <!-- FileTreeSettingsPanel.vue
-  파일 트리 다이어그램 설정 패널
+  파일 트리 다이어그램 설정 넥셋
 -->
 <template>
   <div class="file-tree-settings-panel">
@@ -10,27 +10,13 @@
 
         <div class="row items-center q-gutter-sm q-mb-sm">
           <div class="col-auto text-caption slider-label">노드 너비</div>
-          <q-slider
-            v-model.number="localSettings.nodeSize.width"
-            :min="schema.nodeSize.width.min"
-            :max="schema.nodeSize.width.max"
-            :step="schema.nodeSize.width.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.nodeSize.width" :min="schema.nodeSize.width.min" :max="schema.nodeSize.width.max" :step="schema.nodeSize.width.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.width }}px</div>
         </div>
 
         <div class="row items-center q-gutter-sm">
           <div class="col-auto text-caption slider-label">노드 높이</div>
-          <q-slider
-            v-model.number="localSettings.nodeSize.height"
-            :min="schema.nodeSize.height.min"
-            :max="schema.nodeSize.height.max"
-            :step="schema.nodeSize.height.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.nodeSize.height" :min="schema.nodeSize.height.min" :max="schema.nodeSize.height.max" :step="schema.nodeSize.height.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.height }}px</div>
         </div>
       </div>
@@ -42,42 +28,20 @@
         <!-- 트리 방향 -->
         <div class="q-mb-md">
           <div class="subsection-title">트리 방향</div>
-          <q-select
-            v-model="localSettings.layout.orientation"
-            :options="orientationOptions"
-            dense
-            outlined
-            emit-value
-            map-options
-            @update:model-value="handleSettingsChange"
-          />
+          <q-select v-model="localSettings.layout.orientation" :options="orientationOptions" dense outlined emit-value map-options @update:model-value="handleSettingsChange" />
         </div>
 
         <!-- 노드 간격 -->
         <div class="row items-center q-gutter-sm q-mb-sm">
           <div class="col-auto text-caption slider-label">노드 간격</div>
-          <q-slider
-            v-model.number="localSettings.layout.nodesep"
-            :min="schema.layout.nodesep.min"
-            :max="schema.layout.nodesep.max"
-            :step="schema.layout.nodesep.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.layout.nodesep" :min="schema.layout.nodesep.min" :max="schema.layout.nodesep.max" :step="schema.layout.nodesep.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.nodesep }}px</div>
         </div>
 
         <!-- 레벨 간격 -->
         <div class="row items-center q-gutter-sm">
           <div class="col-auto text-caption slider-label">레벨 간격</div>
-          <q-slider
-            v-model.number="localSettings.layout.ranksep"
-            :min="schema.layout.ranksep.min"
-            :max="schema.layout.ranksep.max"
-            :step="schema.layout.ranksep.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.layout.ranksep" :min="schema.layout.ranksep.min" :max="schema.layout.ranksep.max" :step="schema.layout.ranksep.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.ranksep }}px</div>
         </div>
       </div>
@@ -94,16 +58,7 @@
         <!-- 초기 확장 레벨 -->
         <div class="q-mb-md">
           <div class="subsection-title">초기 확장 레벨</div>
-          <q-input
-            v-model.number="localSettings.expandLevel"
-            type="number"
-            :min="schema.expandLevel.min"
-            :max="schema.expandLevel.max"
-            dense
-            outlined
-            hint="0 = 모두 닫힘, -1 = 모두 열림"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-input v-model.number="localSettings.expandLevel" type="number" :min="schema.expandLevel.min" :max="schema.expandLevel.max" dense outlined hint="0 = 모두 닫힘, -1 = 모두 열림" @update:model-value="handleSettingsChange" />
         </div>
       </div>
 
@@ -168,11 +123,7 @@ function handleSettingsChange() {
   if (localSettings.value.nodeSize?.width !== oldSettings.nodeSize?.width || localSettings.value.nodeSize?.height !== oldSettings.nodeSize?.height) {
     changedTypes.push('nodeSize')
   }
-  if (
-    localSettings.value.layout?.orientation !== oldSettings.layout?.orientation ||
-    localSettings.value.layout?.nodesep !== oldSettings.layout?.nodesep ||
-    localSettings.value.layout?.ranksep !== oldSettings.layout?.ranksep
-  ) {
+  if (localSettings.value.layout?.orientation !== oldSettings.layout?.orientation || localSettings.value.layout?.nodesep !== oldSettings.layout?.nodesep || localSettings.value.layout?.ranksep !== oldSettings.layout?.ranksep) {
     changedTypes.push('layout')
   }
   if (localSettings.value.showFileIcons !== oldSettings.showFileIcons || localSettings.value.expandLevel !== oldSettings.expandLevel) {

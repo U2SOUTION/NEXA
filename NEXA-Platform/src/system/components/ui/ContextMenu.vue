@@ -43,14 +43,7 @@
 <template>
   <Teleport to="body">
     <Transition name="context-menu-fade">
-      <div
-        v-if="visible"
-        ref="menuRef"
-        class="context-menu"
-        :style="menuStyle"
-        @click.stop
-        @contextmenu.prevent
-      >
+      <div v-if="visible" ref="menuRef" class="context-menu" :style="menuStyle" @click.stop @contextmenu.prevent>
         <!-- 타이틀 영역 -->
         <div class="context-menu-header">
           <q-icon name="menu" size="16px" class="context-menu-header-icon" />
@@ -73,11 +66,7 @@
                 'context-menu-item--active': activeIndex === index,
                 'context-menu-item--disabled': isItemDisabled(item),
               }"
-              :style="
-                isItemDisabled(item)
-                  ? { opacity: '0.3', color: 'var(--nexa-text-secondary, rgba(0, 0, 0, 0.3))' }
-                  : {}
-              "
+              :style="isItemDisabled(item) ? { opacity: '0.3', color: 'var(--nexa-text-secondary, rgba(0, 0, 0, 0.3))' } : {}"
               @click="handleItemClick(item, $event)"
               @mouseenter="activeIndex = index"
             >
@@ -113,12 +102,7 @@
     </Transition>
 
     <!-- 외부 클릭 감지를 위한 오버레이 -->
-    <div
-      v-if="visible"
-      class="context-menu-overlay"
-      @click="handleOverlayClick"
-      @contextmenu.prevent="handleOverlayClick"
-    />
+    <div v-if="visible" class="context-menu-overlay" @click="handleOverlayClick" @contextmenu.prevent="handleOverlayClick" />
   </Teleport>
 </template>
 
@@ -384,7 +368,7 @@ watch(
     display: flex;
     align-items: center;
     padding: 8px 16px;
-    background-color: var(--nexa-panel-header, rgba(0, 0, 0, 0.05));
+    background-color: var(--nexet-header, rgba(0, 0, 0, 0.05));
     border-radius: 4px 4px 0 0;
   }
 

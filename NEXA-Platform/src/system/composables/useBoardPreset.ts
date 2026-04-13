@@ -1,8 +1,5 @@
 import { ref, computed } from 'vue'
-import {
-  useDashboardLayoutStore,
-  type PresetKey,
-} from '@system/store/dashboardLayoutStore'
+import { useDashboardLayoutStore, type PresetKey } from '@system/store/dashboardLayoutStore'
 import { useBoardMenuStore } from '@system/store/boardMenuStore'
 
 interface BoardNodeLike extends Record<string, unknown> {
@@ -153,7 +150,7 @@ export function useBoardPreset(mode = 'select') {
     const boardId = boardNode.id
 
     try {
-      // 초기 패널 설정 생성 (빈 상태로 시작)
+      // 초기 넥셋 설정 생성 (빈 상태로 시작)
       const initialPanesConfig: Record<string, { nexaPanels: unknown[]; size: number }> = {}
       const allPaneIds = dashboardLayoutStore.getAllPaneIdsForPreset(preset)
       const presetConfigs = dashboardLayoutStore.presetPaneConfigurations
@@ -164,10 +161,7 @@ export function useBoardPreset(mode = 'select') {
 
         // 중첩 구조 처리
         if (!paneDefaultConfig && presetConf?.panes.some((p: { isContainer?: boolean }) => p.isContainer)) {
-          const containerPane = presetConf.panes.find(
-            (p: { isContainer?: boolean; nestedConfig?: { panes: { id: string }[] } }) =>
-              p.isContainer && p.nestedConfig?.panes.some((np: { id: string }) => np.id === paneId)
-          )
+          const containerPane = presetConf.panes.find((p: { isContainer?: boolean; nestedConfig?: { panes: { id: string }[] } }) => p.isContainer && p.nestedConfig?.panes.some((np: { id: string }) => np.id === paneId))
           if (containerPane?.nestedConfig) {
             paneDefaultConfig = containerPane.nestedConfig.panes.find((np: { id: string }) => np.id === paneId)
           }
@@ -181,11 +175,7 @@ export function useBoardPreset(mode = 'select') {
         }
       })
 
-      const updatedNode = await boardMenuStore.configureBoardLayout(
-        boardId,
-        preset,
-        initialPanesConfig as Parameters<typeof boardMenuStore.configureBoardLayout>[2]
-      )
+      const updatedNode = await boardMenuStore.configureBoardLayout(boardId, preset, initialPanesConfig as Parameters<typeof boardMenuStore.configureBoardLayout>[2])
 
       if (updatedNode) {
         dashboardLayoutStore.setActivePreset(preset, updatedNode)
@@ -231,4 +221,3 @@ export function useBoardPreset(mode = 'select') {
     mode,
   }
 }
-

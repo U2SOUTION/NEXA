@@ -7,12 +7,7 @@
         <h3 class="section-title">플랫폼 테마</h3>
       </div>
       <div class="theme-list">
-        <div
-          v-for="theme in platformThemes"
-          :key="theme.id"
-          class="theme-item"
-          :class="{ active: theme.id === currentPlatformTheme, unavailable: !theme.available }"
-        >
+        <div v-for="theme in platformThemes" :key="theme.id" class="theme-item" :class="{ active: theme.id === currentPlatformTheme, unavailable: !theme.available }">
           <div class="theme-icon">
             <q-icon :name="theme.icon" />
           </div>
@@ -21,15 +16,7 @@
             <div class="theme-description">{{ theme.description }}</div>
           </div>
           <div class="theme-actions">
-            <q-btn
-              v-if="theme.available"
-              flat
-              dense
-              color="primary"
-              label="선택"
-              :disable="theme.id === currentPlatformTheme"
-              @click="selectPlatformTheme(theme.id)"
-            />
+            <q-btn v-if="theme.available" flat dense color="primary" label="선택" :disable="theme.id === currentPlatformTheme" @click="selectPlatformTheme(theme.id)" />
             <q-chip v-else size="sm" color="grey" text-color="white">준비 중</q-chip>
           </div>
         </div>
@@ -43,12 +30,7 @@
         <h3 class="section-title">확장 프로그램 테마</h3>
       </div>
       <div class="theme-list">
-        <div
-          v-for="theme in extensionThemes"
-          :key="theme.id"
-          class="theme-item"
-          :class="{ active: theme.id === currentExtensionTheme, unavailable: !theme.available }"
-        >
+        <div v-for="theme in extensionThemes" :key="theme.id" class="theme-item" :class="{ active: theme.id === currentExtensionTheme, unavailable: !theme.available }">
           <div class="theme-icon">
             <q-icon :name="theme.icon" />
           </div>
@@ -57,15 +39,7 @@
             <div class="theme-description">{{ theme.description }}</div>
           </div>
           <div class="theme-actions">
-            <q-btn
-              v-if="theme.available"
-              flat
-              dense
-              color="primary"
-              label="선택"
-              :disable="theme.id === currentExtensionTheme"
-              @click="selectExtensionTheme(theme.id)"
-            />
+            <q-btn v-if="theme.available" flat dense color="primary" label="선택" :disable="theme.id === currentExtensionTheme" @click="selectExtensionTheme(theme.id)" />
             <q-chip v-else size="sm" color="grey" text-color="white">준비 중</q-chip>
           </div>
         </div>
@@ -79,12 +53,7 @@
         <h3 class="section-title">파이썬 웹뷰 테마</h3>
       </div>
       <div class="theme-list">
-        <div
-          v-for="theme in webviewThemes"
-          :key="theme.id"
-          class="theme-item"
-          :class="{ active: theme.id === currentWebviewTheme, unavailable: !theme.available }"
-        >
+        <div v-for="theme in webviewThemes" :key="theme.id" class="theme-item" :class="{ active: theme.id === currentWebviewTheme, unavailable: !theme.available }">
           <div class="theme-icon">
             <q-icon :name="theme.icon" />
           </div>
@@ -93,15 +62,7 @@
             <div class="theme-description">{{ theme.description }}</div>
           </div>
           <div class="theme-actions">
-            <q-btn
-              v-if="theme.available"
-              flat
-              dense
-              color="primary"
-              label="선택"
-              :disable="theme.id === currentWebviewTheme"
-              @click="selectWebviewTheme(theme.id)"
-            />
+            <q-btn v-if="theme.available" flat dense color="primary" label="선택" :disable="theme.id === currentWebviewTheme" @click="selectWebviewTheme(theme.id)" />
             <q-chip v-else size="sm" color="grey" text-color="white">준비 중</q-chip>
           </div>
         </div>
@@ -131,7 +92,7 @@ const currentWebviewTheme = ref(themeSettings.webview.current)
 function selectPlatformTheme(themeId) {
   currentPlatformTheme.value = themeId
   // TODO: 실제 테마 적용 로직 (목업 단계에서는 표시만)
-  
+
   // 다크/라이트 테마의 경우 기존 toggleTheme 로직 활용
   if (themeId === 'dark') {
     $q.dark.set(true)
@@ -140,9 +101,9 @@ function selectPlatformTheme(themeId) {
     $q.dark.set(false)
     document.body.classList.remove('dark')
   }
-  
+
   $q.notify({
-    message: `플랫폼 테마가 "${platformThemes.value.find(t => t.id === themeId)?.name}"로 변경되었습니다`,
+    message: `플랫폼 테마가 "${platformThemes.value.find((t) => t.id === themeId)?.name}"로 변경되었습니다`,
     type: 'positive',
     position: 'top',
     timeout: 2000,
@@ -154,7 +115,7 @@ function selectExtensionTheme(themeId) {
   currentExtensionTheme.value = themeId
   // TODO: 실제 테마 적용 로직 (목업 단계에서는 표시만)
   $q.notify({
-    message: `확장 프로그램 테마가 "${extensionThemes.value.find(t => t.id === themeId)?.name}"로 변경되었습니다`,
+    message: `확장 프로그램 테마가 "${extensionThemes.value.find((t) => t.id === themeId)?.name}"로 변경되었습니다`,
     type: 'positive',
     position: 'top',
     timeout: 2000,
@@ -166,7 +127,7 @@ function selectWebviewTheme(themeId) {
   currentWebviewTheme.value = themeId
   // TODO: 실제 테마 적용 로직 (목업 단계에서는 표시만)
   $q.notify({
-    message: `웹뷰 테마가 "${webviewThemes.value.find(t => t.id === themeId)?.name}"로 변경되었습니다`,
+    message: `웹뷰 테마가 "${webviewThemes.value.find((t) => t.id === themeId)?.name}"로 변경되었습니다`,
     type: 'positive',
     position: 'top',
     timeout: 2000,
@@ -215,8 +176,8 @@ function selectWebviewTheme(themeId) {
       align-items: center;
       gap: 1rem;
       padding: 1rem;
-      background-color: var(--nexa-panel-bg);
-      border: 1px solid var(--nexa-panel-border);
+      background-color: var(--nexet-bg);
+      border: 1px solid var(--nexet-border);
       border-radius: 8px;
       transition: all 0.2s ease;
 

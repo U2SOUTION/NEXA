@@ -491,7 +491,7 @@ watch(showAddDialog, (newVal) => {
   border-radius: 14px;
 
   .settings-header {
-    background-color: var(--nexa-panel-header);
+    background-color: var(--nexet-header);
     padding: 3px 16px;
     border-radius: 14px 14px 0 0;
 

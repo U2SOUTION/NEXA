@@ -99,13 +99,13 @@ const viewModeModel = computed({
 })
 const expandedNodeIds = ref([])
 const listSectionRef = ref(null)
-/** 스플릿터 오른쪽 패널 크기. 테이블 뷰에서 list-section·테이블이 이 크기를 채우도록 사용 */
+/** 스플릿터 오른쪽 넥셋 크기. 테이블 뷰에서 list-section·테이블이 이 크기를 채우도록 사용 */
 const panelSize = ref({ width: 0, height: 0 })
 let listSectionResizeObserver = null
-/** ResizeObserver로 관찰 중인 요소 (스플릿터 패널). unmount 시 unobserve용 */
+/** ResizeObserver로 관찰 중인 요소 (스플릿터 넥셋). unmount 시 unobserve용 */
 let observedPanelEl = null
 
-/** 테이블 뷰일 때만 list-section 높이=패널 높이로 고정해 검은 영역이 패널 크기만큼만 나오고, 테이블이 그걸 채우도록 함 */
+/** 테이블 뷰일 때만 list-section 높이=넥셋 높이로 고정해 검은 영역이 넥셋 크기만큼만 나오고, 테이블이 그걸 채우도록 함 */
 const listSectionStyle = computed(() => {
   const base = { minWidth: 0, width: '100%', maxWidth: '100%' }
   if (viewModeModel.value !== 'table' || !panelSize.value.height) {
@@ -280,7 +280,7 @@ onMounted(() => {
   nextTick(() => {
     const listEl = listSectionRef.value
     if (!listEl || typeof ResizeObserver === 'undefined') return
-    // 실제 보이는 높이/너비는 스플릿터가 제한하는 '패널'에 있음. list-section은 내용 높이만 가짐.
+    // 실제 보이는 높이/너비는 스플릿터가 제한하는 '넥셋'에 있음. list-section은 내용 높이만 가짐.
     const panelEl = listEl.parentElement
     if (!panelEl) {
       measurePanel(listEl, 'list-section (no parent)')

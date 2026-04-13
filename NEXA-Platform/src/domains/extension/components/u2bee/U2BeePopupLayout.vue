@@ -8,10 +8,10 @@
         </slot>
       </q-tabs>
 
-      <!-- 탭 패널 -->
+      <!-- 탭 넥셋 -->
       <q-tab-panels v-model="activeTab" class="u2bee-panels">
         <slot name="panels" :activeTab="activeTab">
-          <!-- 기본 패널 슬롯 (자식 컴포넌트에서 override) -->
+          <!-- 기본 넥셋 슬롯 (자식 컴포넌트에서 override) -->
         </slot>
       </q-tab-panels>
     </q-page>

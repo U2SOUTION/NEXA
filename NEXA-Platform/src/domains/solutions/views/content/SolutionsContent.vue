@@ -136,7 +136,7 @@ const activeTab = ref('industrial')
   padding: 16px 35px;
 }
 
-// 탭 패널 배경 제거 및 간격 제거
+// 탭 넥셋 배경 제거 및 간격 제거
 :deep(.q-tab-panels) {
   background: transparent;
 }

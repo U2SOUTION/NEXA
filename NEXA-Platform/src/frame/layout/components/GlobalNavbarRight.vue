@@ -26,8 +26,8 @@
       <q-btn flat dense :icon="leftSidebarOpen ? 'left_panel_close' : 'left_panel_open'" :label="showLabels ? '왼쪽 사이드바' : undefined" class="text-primary" @click="$emit('toggle-left')">
         <q-tooltip>왼쪽 사이드바 {{ leftSidebarOpen ? '닫기' : '열기' }} (Ctrl+B)</q-tooltip>
       </q-btn>
-      <q-btn flat dense :icon="rightSidebarOpen ? 'right_panel_close' : 'right_panel_open'" :label="showLabels ? '사이드패널' : undefined" class="text-primary" @click="$emit('toggle-right')">
-        <q-tooltip>오른쪽 사이드 패널 {{ rightSidebarOpen ? '닫기' : '열기' }} (Ctrl+])</q-tooltip>
+      <q-btn flat dense :icon="rightSidebarOpen ? 'right_panel_close' : 'right_panel_open'" :label="showLabels ? '사이드넥셋' : undefined" class="text-primary" @click="$emit('toggle-right')">
+        <q-tooltip>오른쪽 사이드 넥셋 {{ rightSidebarOpen ? '닫기' : '열기' }} (Ctrl+])</q-tooltip>
       </q-btn>
       <q-btn flat dense :icon="isDarkMode ? 'light_mode' : 'dark_mode'" :label="showLabels ? '테마전환' : undefined" class="text-primary" @click="$emit('toggle-theme')">
         <q-tooltip>{{ isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환' }}</q-tooltip>

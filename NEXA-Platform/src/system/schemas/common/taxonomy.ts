@@ -50,14 +50,14 @@ export const DataCriticalityEnum = z.enum([
  */
 
 // 도메인 분류: 데이터의 기능적 정체성
-export const PanelDomainEnum = z.enum([
+export const NexetDomainEnum = z.enum([
   'SENSING', // 외부로부터 들어오는 순수 데이터
   'ACTUATING', // 외부로 나가는 제어 명령
   'SYSTEM', // 장치 자체의 건강 상태 (RSSI, CPU 등)
   'ANALYTICS', // AI가 가공하여 생성한 2차 지표
 ])
 
-// 사용 범위: NEXA의 어떤 메뉴(Canvas)에서 이 패널을 사용할 것인가
+// 사용 범위: NEXA의 어떤 메뉴(Canvas)에서 이 넥셋을 사용할 것인가
 export const SystemScopeEnum = z.enum([
   'BOARD', // 사용자용 대시보드 화면
   'NODE', // 로직을 설계하는 노드 에디터

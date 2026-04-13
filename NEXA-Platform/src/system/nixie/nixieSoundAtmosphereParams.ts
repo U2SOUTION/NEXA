@@ -3,7 +3,7 @@
  * 매핑(M-C~)·이벤트는 `NixieSoundAtmosphereParams`만 받도록 맞춘다.
  */
 
-/** 개발 패널 슬라이더 원시 값 (0~100) */
+/** 개발 넥셋 슬라이더 원시 값 (0~100) */
 export type NixieSoundAtmosphereUi0to100 = {
   tension: number
   uncanniness: number

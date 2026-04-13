@@ -22,7 +22,7 @@
               <strong>2. 헤더 설정:</strong> 필요한 경우 요청 헤더를 추가하세요 (예: Content-Type).<br />
               <strong>3. 본문 설정:</strong> POST/PUT 요청의 경우 JSON 또는 텍스트 본문을 입력하세요.<br />
               <strong>4. 요청 전송:</strong> "요청 전송" 버튼을 클릭하거나 Enter 키를 누르세요.<br />
-              <strong>5. 응답 확인:</strong> 오른쪽 패널에서 상태 코드, 응답 시간, 헤더, 본문을 확인하세요.
+              <strong>5. 응답 확인:</strong> 오른쪽 넥셋에서 상태 코드, 응답 시간, 헤더, 본문을 확인하세요.
             </div>
           </div>
         </div>
@@ -636,7 +636,7 @@ onMounted(() => {
   background: transparent;
 }
 
-// 공통 패널 요소
+// 공통 넥셋 요소
 .api-tester-panel-header {
   padding: 3px;
   display: flex;

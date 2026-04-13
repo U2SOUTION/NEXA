@@ -1,5 +1,5 @@
 <!-- ThemeColorPanel.vue
-  선택한 색상의 상세 정보 및 편집 패널
+  선택한 색상의 상세 정보 및 편집 넥셋
 -->
 <template>
   <div class="theme-color-panel">
@@ -348,8 +348,8 @@ function handleFileClick(filePath) {
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background-color: var(--nexa-panel-bg);
-    border: 1px solid var(--nexa-panel-border);
+    background-color: var(--nexet-bg);
+    border: 1px solid var(--nexet-border);
     border-radius: 8px;
 
     .color-preview-box {
@@ -464,8 +464,8 @@ function handleFileClick(filePath) {
   .universal-colors-section,
   .edit-section {
     padding: 1rem;
-    background-color: var(--nexa-panel-bg);
-    border: 1px solid var(--nexa-panel-border);
+    background-color: var(--nexet-bg);
+    border: 1px solid var(--nexet-border);
     border-radius: 8px;
 
     .edit-content {

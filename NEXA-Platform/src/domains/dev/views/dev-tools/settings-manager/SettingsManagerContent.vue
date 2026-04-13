@@ -352,7 +352,7 @@ function getUsageLocations(keyName) {
       locations.push({
         path: '@domains/dev/views/right-dev-tools/ERDDiagramSettingsPanel.vue',
         type: 'component',
-        description: 'ERD 다이어그램 설정 패널에서 사용',
+        description: 'ERD 다이어그램 설정 넥셋에서 사용',
       })
     } else if (configFileName.includes('viewMode')) {
       locations.push({

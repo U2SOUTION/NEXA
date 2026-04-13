@@ -1,10 +1,10 @@
-<!-- PanelTOC.vue
-  목차 패널
-  Props 기반으로 재사용 가능하도록 패널화
+<!-- NexetTOC.vue
+  목차 넥셋
+  Props 기반으로 재사용 가능하도록 넥셋화
   TOCItem은 같은 폴더의 별도 파일로 관리 (재귀 컴포넌트 특성상 안정성을 위해 분리)
 -->
 <template>
-  <div class="nexa-panel-section toc-section">
+  <div class="nexet-section toc-section">
     <!-- 헤더 컨트롤 -->
     <div class="row items-center justify-between q-gutter-xs toc-header-controls">
       <q-toggle :model-value="props.isAllExpanded" @update:model-value="handleToggleAll" size="sm" dense :label="props.isAllExpanded ? '전체 접기' : '전체 펼치기'" color="primary" />
@@ -82,11 +82,11 @@ const { getItemExpanded } = useTOC({
   tocItems: computed(() => props.items),
   tocExpanded: computed(() => props.tocExpandedMap),
   tocAutoCollapse: computed(() => props.autoCollapse),
-  tocAutoCloseOnContentClick: computed(() => false), // 패널에서는 사용하지 않음
+  tocAutoCloseOnContentClick: computed(() => false), // 넥셋에서는 사용하지 않음
   currentSectionId: computed(() => props.currentSectionId),
   allTOCExpandedState: computed(() => props.isAllExpanded),
-  isManualHighlight: computed(() => false), // 패널에서는 사용하지 않음
-  selectedFile: computed(() => null), // 패널에서는 사용하지 않음
+  isManualHighlight: computed(() => false), // 넥셋에서는 사용하지 않음
+  selectedFile: computed(() => null), // 넥셋에서는 사용하지 않음
 })
 
 /**

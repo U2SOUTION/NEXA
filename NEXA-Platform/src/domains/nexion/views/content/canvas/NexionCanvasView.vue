@@ -2,33 +2,33 @@
   <div ref="nexionCanvasRootEl" class="nexion-canvas-view">
     <div ref="nexionFlowHostEl" class="nexion-flow-host">
       <VueFlow
-      v-model:nodes="nodes"
-      v-model:edges="edges"
-      :apply-default="false"
-      :node-types="nodeTypes"
-      :default-edge-options="nexionFlowStore.defaultEdgeOptions"
-      :connection-line-style="nexionConnectionLineStyle"
-      :min-zoom="nflowMinZoom"
-      :max-zoom="nflowMaxZoom"
-      :connection-radius="nexionUi.connectionRadius"
-      :delete-key-code="nexionDeleteKeyCodes"
-      :multi-selection-key-code="nexionMultiSelectionKeys"
-      :zoom-on-double-click="false"
-      :nodes-connectable="true"
-      :is-valid-connection="isNexionValidConnection"
-      :elevate-edges-on-select="true"
-      fit-view-on-init
-      class="nexion-vue-flow"
-      :style="nexionFlowCssVars"
-      @connect="onNexionConnectWrapped"
-      @connect-start="onNexionConnectStart"
-      @connect-end="onNexionConnectEnd"
-      @nodes-change="nexionFlowStore.onNodesChange"
-      @edges-change="onNexionEdgesChangeWrapped"
-      @error="onNexionVueFlowError"
-      @node-click="onNodeClick"
-      @edge-click="onNexionEdgeClick"
-      @pane-click="onNexionPaneClick"
+        v-model:nodes="nodes"
+        v-model:edges="edges"
+        :apply-default="false"
+        :node-types="nodeTypes"
+        :default-edge-options="nexionFlowStore.defaultEdgeOptions"
+        :connection-line-style="nexionConnectionLineStyle"
+        :min-zoom="nflowMinZoom"
+        :max-zoom="nflowMaxZoom"
+        :connection-radius="nexionUi.connectionRadius"
+        :delete-key-code="nexionDeleteKeyCodes"
+        :multi-selection-key-code="nexionMultiSelectionKeys"
+        :zoom-on-double-click="false"
+        :nodes-connectable="true"
+        :is-valid-connection="isNexionValidConnection"
+        :elevate-edges-on-select="true"
+        fit-view-on-init
+        class="nexion-vue-flow"
+        :style="nexionFlowCssVars"
+        @connect="onNexionConnectWrapped"
+        @connect-start="onNexionConnectStart"
+        @connect-end="onNexionConnectEnd"
+        @nodes-change="nexionFlowStore.onNodesChange"
+        @edges-change="onNexionEdgesChangeWrapped"
+        @error="onNexionVueFlowError"
+        @node-click="onNodeClick"
+        @edge-click="onNexionEdgeClick"
+        @pane-click="onNexionPaneClick"
       >
         <Teleport :to="nexionControlsHostEl" :disabled="controlsTeleportDisabled">
           <Controls />
@@ -41,8 +41,8 @@
     </div>
 
     <div class="nexion-canvas-view__hint text-caption">
-      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · <strong>카드 선택</strong>: 현재 줌 유지·해당 카드 중심으로 팬 · 박스·폰트 비율 유지(전체 텍스트) · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기 · <strong>연결선</strong> 클릭 시 강조 · 여러 개는 <strong>Ctrl</strong>/<strong>⌘</strong>+클릭 ·
-      <strong>Delete</strong>/<strong>Backspace</strong>로 끊기 · 휠: 줌 · 드래그: 팬 · <strong>빈 바탕 클릭</strong> 시 선택 해제
+      <strong>빈 바탕</strong> 더블클릭: 카드 추가 · <strong>카드 선택</strong>: 현재 줌 유지·해당 카드 중심으로 팬 · 박스·폰트 비율 유지(전체 텍스트) · 연결은 <strong>오른쪽 핸들(out)</strong>에서 끌어 <strong>왼쪽 핸들(in)</strong>에 놓기 · <strong>연결선</strong> 클릭 시 강조 · 여러 개는
+      <strong>Ctrl</strong>/<strong>⌘</strong>+클릭 · <strong>Delete</strong>/<strong>Backspace</strong>로 끊기 · 휠: 줌 · 드래그: 팬 · <strong>빈 바탕 클릭</strong> 시 선택 해제
     </div>
   </div>
 </template>
@@ -431,7 +431,7 @@ onMounted(() => {
 
 /*
  * MiniMap Teleport 시 VueFlow 밖으로 나가므로 `.vue-flow__panel` 코너 고정을 풀고
- * 호스트 가로 100%에 맞춤. 배경은 투명·테마 톤(props + 투명 패널).
+ * 호스트 가로 100%에 맞춤. 배경은 투명·테마 톤(props + 투명 넥셋).
  */
 #nexion-minimap-host .vue-flow__panel {
   position: relative;

@@ -18,8 +18,8 @@
           <p class="text-body2 text-grey-7">통신 상태 모니터링, 오류 감지, 성능 최적화, 보안 관리를 통한 시스템 안정성 및 효율성 보장</p>
         </div>
         <div class="q-mb-md description-item">
-          <h4 class="text-subtitle1 q-mb-sm">패널화</h4>
-          <p class="text-body2 text-grey-7">네트워크의 각 기능(WiFi 상태, CAN 버스 모니터링, Socket 연결, MQTT 토픽 등)을 패널로 만들어 Nexa Board에 통합하여 실시간 모니터링 및 제어 가능</p>
+          <h4 class="text-subtitle1 q-mb-sm">넥셋화</h4>
+          <p class="text-body2 text-grey-7">네트워크의 각 기능(WiFi 상태, CAN 버스 모니터링, Socket 연결, MQTT 토픽 등)을 넥셋로 만들어 Nexa Board에 통합하여 실시간 모니터링 및 제어 가능</p>
         </div>
       </div>
 
@@ -272,7 +272,7 @@ const networkTab = ref('wifi')
   padding: 16px 35px;
 }
 
-// 탭 패널 배경 제거
+// 탭 넥셋 배경 제거
 :deep(.q-tab-panels) {
   background: transparent;
 }

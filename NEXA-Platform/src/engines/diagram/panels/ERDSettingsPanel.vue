@@ -1,5 +1,5 @@
 <!-- ERDSettingsPanel.vue
-  ERD 다이어그램 설정 패널
+  ERD 다이어그램 설정 넥셋
   기존 ERDDiagramSettingsPanel.vue를 리팩토링하여 범용 시스템 사용
 -->
 <template>
@@ -11,27 +11,13 @@
 
         <div class="row items-center q-gutter-sm q-mb-sm">
           <div class="col-auto text-caption slider-label">노드 너비</div>
-          <q-slider
-            v-model.number="localSettings.nodeSize.width"
-            :min="schema.nodeSize.width.min"
-            :max="schema.nodeSize.width.max"
-            :step="schema.nodeSize.width.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.nodeSize.width" :min="schema.nodeSize.width.min" :max="schema.nodeSize.width.max" :step="schema.nodeSize.width.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.width }}px</div>
         </div>
 
         <div class="row items-center q-gutter-sm">
           <div class="col-auto text-caption slider-label">노드 높이</div>
-          <q-slider
-            v-model.number="localSettings.nodeSize.height"
-            :min="schema.nodeSize.height.min"
-            :max="schema.nodeSize.height.max"
-            :step="schema.nodeSize.height.step"
-            class="col"
-            @update:model-value="handleSettingsChange"
-          />
+          <q-slider v-model.number="localSettings.nodeSize.height" :min="schema.nodeSize.height.min" :max="schema.nodeSize.height.max" :step="schema.nodeSize.height.step" class="col" @update:model-value="handleSettingsChange" />
           <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.nodeSize.height }}px</div>
         </div>
       </div>
@@ -44,14 +30,7 @@
         <div class="q-mb-md">
           <div class="row items-center q-gutter-sm">
             <div class="col-auto text-caption slider-label">노드 간격 (nodesep)</div>
-            <q-slider
-              v-model.number="localSettings.layout.nodesep"
-              :min="schema.layout.nodesep.min"
-              :max="schema.layout.nodesep.max"
-              :step="schema.layout.nodesep.step"
-              class="col"
-              @update:model-value="handleSettingsChange"
-            />
+            <q-slider v-model.number="localSettings.layout.nodesep" :min="schema.layout.nodesep.min" :max="schema.layout.nodesep.max" :step="schema.layout.nodesep.step" class="col" @update:model-value="handleSettingsChange" />
             <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.nodesep }}px</div>
           </div>
           <div class="hint-text">같은 레벨 내 노드 간 수평 최소 간격</div>
@@ -61,14 +40,7 @@
         <div class="q-mb-md">
           <div class="row items-center q-gutter-sm">
             <div class="col-auto text-caption slider-label">레벨 간격 (ranksep)</div>
-            <q-slider
-              v-model.number="localSettings.layout.ranksep"
-              :min="schema.layout.ranksep.min"
-              :max="schema.layout.ranksep.max"
-              :step="schema.layout.ranksep.step"
-              class="col"
-              @update:model-value="handleSettingsChange"
-            />
+            <q-slider v-model.number="localSettings.layout.ranksep" :min="schema.layout.ranksep.min" :max="schema.layout.ranksep.max" :step="schema.layout.ranksep.step" class="col" @update:model-value="handleSettingsChange" />
             <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.ranksep }}px</div>
           </div>
           <div class="hint-text">서로 다른 레벨 간 수직 최소 간격</div>
@@ -78,26 +50,12 @@
         <div class="q-mb-md">
           <div class="row items-center q-gutter-sm q-mb-md">
             <div class="col-auto text-caption slider-label">마진 X</div>
-            <q-slider
-              v-model.number="localSettings.layout.marginx"
-              :min="schema.layout.marginx.min"
-              :max="schema.layout.marginx.max"
-              :step="schema.layout.marginx.step"
-              class="col margin-slider"
-              @update:model-value="handleSettingsChange"
-            />
+            <q-slider v-model.number="localSettings.layout.marginx" :min="schema.layout.marginx.min" :max="schema.layout.marginx.max" :step="schema.layout.marginx.step" class="col margin-slider" @update:model-value="handleSettingsChange" />
             <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.marginx }}px</div>
           </div>
           <div class="row items-center q-gutter-sm">
             <div class="col-auto text-caption slider-label">마진 Y</div>
-            <q-slider
-              v-model.number="localSettings.layout.marginy"
-              :min="schema.layout.marginy.min"
-              :max="schema.layout.marginy.max"
-              :step="schema.layout.marginy.step"
-              class="col margin-slider"
-              @update:model-value="handleSettingsChange"
-            />
+            <q-slider v-model.number="localSettings.layout.marginy" :min="schema.layout.marginy.min" :max="schema.layout.marginy.max" :step="schema.layout.marginy.step" class="col margin-slider" @update:model-value="handleSettingsChange" />
             <div class="col-auto text-caption text-weight-medium slider-value">{{ localSettings.layout.marginy }}px</div>
           </div>
         </div>
@@ -105,15 +63,7 @@
         <!-- 레이아웃 방향 (셀렉트) -->
         <div>
           <div class="subsection-title">레이아웃 방향</div>
-          <q-select
-            v-model="localSettings.layout.rankdir"
-            :options="rankdirOptions"
-            dense
-            outlined
-            emit-value
-            map-options
-            @update:model-value="handleSettingsChange"
-          >
+          <q-select v-model="localSettings.layout.rankdir" :options="rankdirOptions" dense outlined emit-value map-options @update:model-value="handleSettingsChange">
             <template v-slot:option="scope">
               <q-item v-bind="scope.itemProps">
                 <q-item-section avatar>

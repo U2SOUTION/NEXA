@@ -44,7 +44,7 @@
 }
 
 // Dense 입력폼/셀렉트 높이 최적화
-// 상하 패딩을 줄여 패널 내 세로 공간 점유를 완화
+// 상하 패딩을 줄여 넥셋 내 세로 공간 점유를 완화
 .q-field--dense .q-field__control,
 .q-input.q-field--dense .q-field__control,
 .q-select.q-field--dense .q-field__control {
@@ -389,9 +389,9 @@ body .q-menu[role='listbox'] .q-item,
 
 // q-uploader 헤더 배경색 및 라벨 색상
 // .q-uploader *의 transparent !important를 덮어쓰기 위해 !important 사용
-// --nexa-form-indicator-active-color는 투명도가 있어 보이지 않으므로 패널 헤더 색상 사용
+// --nexa-form-indicator-active-color는 투명도가 있어 보이지 않으므로 넥셋 헤더 색상 사용
 .q-uploader__header {
-  background-color: var(--nexa-panel-header) !important;
+  background-color: var(--nexet-header) !important;
   color: var(--nexa-form-indicator-active-color) !important;
 
   // 헤더 내부 모든 텍스트 요소

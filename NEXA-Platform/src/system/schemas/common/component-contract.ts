@@ -1,7 +1,7 @@
 /**
  * 컴포넌트 표준 계약 (Component Standard Contract)
  *
- * 모든 컴포넌트(노드, 보드, 차트, 블록, 패널)가 따라야 하는 최소한의 공통 규약
+ * 모든 컴포넌트(노드, 보드, 차트, 블록, 넥셋)가 따라야 하는 최소한의 공통 규약
  *
  * @see docs/컴포넌트_표준_계약.md
  */
@@ -40,7 +40,7 @@ export interface ActionContract {
   id: string
   /** 액션 타입 */
   type: ActionType
-  /** 대상 (디바이스 ID, 패널 ID 등) */
+  /** 대상 (디바이스 ID, 넥셋 ID 등) */
   target: string
   /** 액션 파라미터 */
   params: Record<string, unknown>
@@ -102,7 +102,7 @@ export interface BoardComponent extends ComponentContract {
   type: 'board'
   /** 레이아웃 프리셋 */
   preset: 'single' | 'split-lr' | 'l-shape' | 'split-tb'
-  /** 창(Pane) 구조 및 패널 배열 */
+  /** 창(Pane) 구조 및 넥셋 배열 */
   panes: Array<{
     id: string
     panels: Array<{
@@ -160,11 +160,11 @@ export interface BlockComponent extends ComponentContract {
 }
 
 /**
- * 패널 컴포넌트 확장 인터페이스
+ * 넥셋 컴포넌트 확장 인터페이스
  */
 export interface PanelComponent extends ComponentContract {
   type: 'panel'
-  /** 패널 타입 */
+  /** 넥셋 타입 */
   panelType: string
   /** 그리드 위치/크기 */
   grid: {
@@ -173,7 +173,7 @@ export interface PanelComponent extends ComponentContract {
     w: number
     h: number
   }
-  /** 패널 내용 */
+  /** 넥셋 내용 */
   content: unknown
 }
 

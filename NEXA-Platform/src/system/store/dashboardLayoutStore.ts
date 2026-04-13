@@ -135,18 +135,10 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
     return id
   }
 
-  function setActivePreset(
-    presetName: PresetKey,
-    boardNodeForPanes: BoardNodeForDashboard | null = null,
-  ): void {
-    console.log(
-      `[DLS setActivePreset] Called with presetName: ${presetName}, boardNode id: ${boardNodeForPanes?.id}, isLayoutConfigured: ${boardNodeForPanes?.isLayoutConfigured}`,
-    )
+  function setActivePreset(presetName: PresetKey, boardNodeForPanes: BoardNodeForDashboard | null = null): void {
+    console.log(`[DLS setActivePreset] Called with presetName: ${presetName}, boardNode id: ${boardNodeForPanes?.id}, isLayoutConfigured: ${boardNodeForPanes?.isLayoutConfigured}`)
     if (boardNodeForPanes?.dashboardPanesConfig) {
-      console.log(
-        '[DLS setActivePreset] boardNodeForPanes.dashboardPanesConfig:',
-        JSON.parse(JSON.stringify(boardNodeForPanes.dashboardPanesConfig)),
-      )
+      console.log('[DLS setActivePreset] boardNodeForPanes.dashboardPanesConfig:', JSON.parse(JSON.stringify(boardNodeForPanes.dashboardPanesConfig)))
     }
 
     if (presets.value.includes(presetName)) {
@@ -159,9 +151,7 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
         return
       }
 
-      const boardDashboardPanesConfig = boardNodeForPanes?.dashboardPanesConfig
-        ? JSON.parse(JSON.stringify(boardNodeForPanes.dashboardPanesConfig))
-        : null
+      const boardDashboardPanesConfig = boardNodeForPanes?.dashboardPanesConfig ? JSON.parse(JSON.stringify(boardNodeForPanes.dashboardPanesConfig)) : null
 
       console.log(`[DLS setActivePreset] Initializing panes for preset: ${presetName}.`)
 
@@ -174,18 +164,12 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
 
           if (paneConfig.isContainer) {
             newPanesState[paneId] = {
-              size:
-                savedConfig?.size !== undefined && savedConfig?.size !== null
-                  ? savedConfig.size
-                  : defaultSize,
+              size: savedConfig?.size !== undefined && savedConfig?.size !== null ? savedConfig.size : defaultSize,
             }
           } else {
             newPanesState[paneId] = {
               nexaPanels: savedConfig?.nexaPanels || [],
-              size:
-                savedConfig?.size !== undefined && savedConfig?.size !== null
-                  ? savedConfig.size
-                  : defaultSize,
+              size: savedConfig?.size !== undefined && savedConfig?.size !== null ? savedConfig.size : defaultSize,
             }
           }
         })
@@ -193,16 +177,11 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
         if (lShapeConfig.panes[1]?.isContainer && lShapeConfig.panes[1]?.nestedConfig?.panes) {
           lShapeConfig.panes[1].nestedConfig!.panes.forEach((nestedPaneConfig) => {
             const paneId = nestedPaneConfig.id
-            const savedConfig = boardDashboardPanesConfig
-              ? boardDashboardPanesConfig[paneId]
-              : null
+            const savedConfig = boardDashboardPanesConfig ? boardDashboardPanesConfig[paneId] : null
             const defaultSize = nestedPaneConfig.defaultSize
             newPanesState[paneId] = {
               nexaPanels: savedConfig?.nexaPanels || [],
-              size:
-                savedConfig?.size !== undefined && savedConfig?.size !== null
-                  ? savedConfig.size
-                  : defaultSize,
+              size: savedConfig?.size !== undefined && savedConfig?.size !== null ? savedConfig.size : defaultSize,
             }
           })
         }
@@ -210,16 +189,8 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
         const allValidPaneIds = getAllPaneIdsForPreset(presetName)
         allValidPaneIds.forEach((paneId) => {
           let paneDefaultConfig = presetConfig.panes.find((p) => p.id === paneId)
-          if (
-            !paneDefaultConfig &&
-            presetConfig.panes.some((p) => p.isContainer)
-          ) {
-            const containerPane = presetConfig.panes.find(
-              (p) =>
-                p.isContainer &&
-                p.nestedConfig &&
-                p.nestedConfig.panes.some((np) => np.id === paneId),
-            )
+          if (!paneDefaultConfig && presetConfig.panes.some((p) => p.isContainer)) {
+            const containerPane = presetConfig.panes.find((p) => p.isContainer && p.nestedConfig && p.nestedConfig.panes.some((np) => np.id === paneId))
             if (containerPane?.nestedConfig) {
               paneDefaultConfig = containerPane.nestedConfig.panes.find((np) => np.id === paneId)
             }
@@ -230,11 +201,7 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
           if (boardDashboardPanesConfig && boardDashboardPanesConfig[paneId]) {
             newPanesState[paneId] = {
               nexaPanels: boardDashboardPanesConfig[paneId].nexaPanels || [],
-              size:
-                boardDashboardPanesConfig[paneId].size !== undefined &&
-                boardDashboardPanesConfig[paneId].size !== null
-                  ? boardDashboardPanesConfig[paneId].size
-                  : defaultSize,
+              size: boardDashboardPanesConfig[paneId].size !== undefined && boardDashboardPanesConfig[paneId].size !== null ? boardDashboardPanesConfig[paneId].size : defaultSize,
             }
           } else {
             newPanesState[paneId] = { nexaPanels: [], size: defaultSize }
@@ -244,11 +211,7 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
 
       panes.value = newPanesState
 
-      if (
-        boardNodeForPanes &&
-        boardNodeForPanes.type === 'board' &&
-        (boardNodeForPanes as { isLayoutConfigured?: boolean }).isLayoutConfigured
-      ) {
+      if (boardNodeForPanes && boardNodeForPanes.type === 'board' && (boardNodeForPanes as { isLayoutConfigured?: boolean }).isLayoutConfigured) {
         _saveDashboardConfigToBoardStore()
       }
     } else {
@@ -256,13 +219,9 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
     }
   }
 
-  function addPanelToPane(
-    paneId: string,
-    panelData: Partial<NexaPanel> = {},
-  ): void {
+  function addPanelToPane(paneId: string, panelData: Partial<NexaPanel> = {}): void {
     if (!panes.value[paneId]) {
-      const currentPreset =
-        activePreset.value || (presets.value.includes('single') ? 'single' : presets.value[0])
+      const currentPreset = activePreset.value || (presets.value.includes('single') ? 'single' : presets.value[0])
       const allValidPaneIds = getAllPaneIdsForPreset(currentPreset)
 
       if (allValidPaneIds.includes(paneId)) {
@@ -272,11 +231,7 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
             if (!panes.value[pid]) {
               let paneDefaultConfig = presetConfig.panes.find((p) => p.id === pid)
               if (!paneDefaultConfig && presetConfig.panes.some((p) => p.isContainer)) {
-                const containerPane = presetConfig.panes.find(
-                  (p) =>
-                    p.isContainer &&
-                    p.nestedConfig?.panes.some((np) => np.id === pid),
-                )
+                const containerPane = presetConfig.panes.find((p) => p.isContainer && p.nestedConfig?.panes.some((np) => np.id === pid))
                 if (containerPane?.nestedConfig) {
                   paneDefaultConfig = containerPane.nestedConfig.panes.find((np) => np.id === pid)
                 }
@@ -287,9 +242,7 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
           })
         }
       } else {
-        console.error(
-          `[DashboardLayoutStore] Pane "${paneId}" is not valid for preset "${currentPreset}".`,
-        )
+        console.error(`[DashboardLayoutStore] Pane "${paneId}" is not valid for preset "${currentPreset}".`)
         return
       }
     }
@@ -297,8 +250,8 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
     if (panes.value[paneId]) {
       const newPanel: NexaPanel = {
         id: (panelData.id as string) || getNextPanelId(),
-        title: (panelData.title as string) || '새 패널',
-        content: (panelData.content as string) || '패널 내용입니다.',
+        title: (panelData.title as string) || '새 넥셋',
+        content: (panelData.content as string) || '넥셋 내용입니다.',
         x: panelData.x === undefined ? 0 : panelData.x,
         y: panelData.y === undefined ? 0 : panelData.y,
         w: panelData.w === undefined ? 4 : panelData.w,
@@ -316,18 +269,12 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
 
   function removePanelFromPane(paneId: string, panelId: string): void {
     if (panes.value[paneId]?.nexaPanels) {
-      panes.value[paneId].nexaPanels = panes.value[paneId].nexaPanels!.filter(
-        (p) => p.id !== panelId && p.i !== panelId,
-      )
+      panes.value[paneId].nexaPanels = panes.value[paneId].nexaPanels!.filter((p) => p.id !== panelId && p.i !== panelId)
       _saveDashboardConfigToBoardStore()
     }
   }
 
-  function updatePanelGridLayout(
-    paneId: string,
-    panelId: string,
-    newLayoutProps: Partial<NexaPanel>,
-  ): void {
+  function updatePanelGridLayout(paneId: string, panelId: string, newLayoutProps: Partial<NexaPanel>): void {
     if (panes.value[paneId]?.nexaPanels) {
       const panel = panes.value[paneId].nexaPanels!.find((p) => p.i === panelId)
       if (panel) {
@@ -378,23 +325,17 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
       } else if (node.dashboardPreset && !node.isLayoutConfigured) {
         setActivePreset(node.dashboardPreset, null)
       } else {
-        const defaultPresetKey: PresetKey =
-          presets.value.includes('single') ? 'single' : (presets.value[0] as PresetKey)
+        const defaultPresetKey: PresetKey = presets.value.includes('single') ? 'single' : (presets.value[0] as PresetKey)
         activePreset.value = defaultPresetKey
         const newPanesState: DashboardPanesState = {}
         getAllPaneIdsForPreset(defaultPresetKey).forEach((pid) => {
-          const pConf =
-            presetPaneConfigurations[defaultPresetKey].panes.find((p) => p.id === pid) ||
-            presetPaneConfigurations[defaultPresetKey].panes
-              .find((p) => p.isContainer)
-              ?.nestedConfig?.panes.find((np) => np.id === pid)
+          const pConf = presetPaneConfigurations[defaultPresetKey].panes.find((p) => p.id === pid) || presetPaneConfigurations[defaultPresetKey].panes.find((p) => p.isContainer)?.nestedConfig?.panes.find((np) => np.id === pid)
           newPanesState[pid] = { nexaPanels: [], size: pConf?.defaultSize || 50 }
         })
         panes.value = newPanesState
       }
     } else if (!nodeInfo) {
-      const defaultPresetKey: PresetKey =
-        activePreset.value || (presets.value.includes('single') ? 'single' : (presets.value[0] as PresetKey))
+      const defaultPresetKey: PresetKey = activePreset.value || (presets.value.includes('single') ? 'single' : (presets.value[0] as PresetKey))
       setActivePreset(defaultPresetKey, null)
     }
   }
@@ -411,11 +352,7 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
     let changed = false
     if (Array.isArray(resizedPanesInfo)) {
       resizedPanesInfo.forEach((paneInfo) => {
-        if (
-          panes.value[paneInfo.id] &&
-          typeof paneInfo.size === 'number' &&
-          panes.value[paneInfo.id].size !== paneInfo.size
-        ) {
+        if (panes.value[paneInfo.id] && typeof paneInfo.size === 'number' && panes.value[paneInfo.id].size !== paneInfo.size) {
           panes.value[paneInfo.id].size = paneInfo.size
           changed = true
         }
@@ -447,10 +384,7 @@ export const useDashboardLayoutStore = defineStore('dashboardLayout', () => {
           boardMenuStore.updateNode(node.id, { dashboardPreset: newPresetName })
           const updatedBoardNode = boardMenuStore.getNodeById(node.id)
           setActivePreset(newPresetName, updatedBoardNode as BoardNodeForDashboard | null)
-          if (
-            updatedBoardNode &&
-            (updatedBoardNode as { isLayoutConfigured?: boolean }).isLayoutConfigured
-          ) {
+          if (updatedBoardNode && (updatedBoardNode as { isLayoutConfigured?: boolean }).isLayoutConfigured) {
             _saveDashboardConfigToBoardStore()
           }
         } else {

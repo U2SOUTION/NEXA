@@ -1,5 +1,5 @@
 <!-- DependencyGraphSettingsPanel.vue
-  의존성 그래프 다이어그램 설정 패널
+  의존성 그래프 다이어그램 설정 넥셋
 -->
 <template>
   <div class="dependency-graph-settings-panel">

@@ -31,7 +31,7 @@
             <q-list dense style="min-width: 150px">
               <q-item clickable v-close-popup @click="openAddNexaPanelDialog(paneConfig.id)">
                 <q-item-section avatar style="min-width: 30px"><q-icon name="add_box" size="xs" /> </q-item-section>
-                <q-item-section>패널 추가</q-item-section>
+                <q-item-section>넥셋 추가</q-item-section>
               </q-item>
               <q-separator />
               <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 분할')">
@@ -71,11 +71,11 @@
             @dragstart.stop="() => handleItemDragStart(panel.i)"
             @dragend.stop="() => handleItemDragEnd(panel.i)"
             class="grid-item-card"
-            :drag-allow-from="`.pane-nexa-panel-header[data-nexa-panel-id='${panel.i}']`"
+            :drag-allow-from="`.pane-nexet-header[data-nexet-id='${panel.i}']`"
             :draggable-cancel="'.no-drag'"
           >
             <q-card flat class="full-height column no-wrap bg-custom-dark-card">
-              <q-card-section :data-nexa-panel-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move">
+              <q-card-section :data-nexet-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexet-header cursor-move">
                 <div class="text-caption col ellipsis q-pl-xs">{{ panel.title }}</div>
                 <q-space />
                 <q-btn flat dense round icon="more_vert" size="xs" @click.stop class="no-drag">
@@ -88,7 +88,7 @@
                       <q-separator />
                       <q-item clickable @click="dashboardLayoutStore.removePanelFromPane(paneConfig.id, panel.i)">
                         <q-item-section avatar style="min-width: 30px"><q-icon name="delete_outline" size="xs" /></q-item-section>
-                        <q-item-section>패널 닫기</q-item-section>
+                        <q-item-section>넥셋 닫기</q-item-section>
                       </q-item>
                     </q-list>
                   </q-menu>
@@ -106,11 +106,11 @@
             <q-icon name="dashboard" size="xl" class="q-mb-md text-grey-6" />
             <div class="text-subtitle1 q-mb-sm">패널이 비어 있습니다</div>
             <p class="text-caption q-mb-md">
-              우측 상단 또는 창 내부의 '패널 추가' 버튼으로 다양한 패널을 추가해 보세요.<br />
+              우측 상단 또는 창 내부의 '넥셋 추가' 버튼으로 다양한 넥셋을 추가해 보세요.<br />
               창 사이의 분할선을 드래그하여 크기를 자유롭게 조절할 수 있습니다.<br />
               나만의 맞춤형 대시보드를 구성하여 작업 효율을 높여보세요!
             </p>
-            <q-btn flat color="secondary" label="이 창에 패널 추가" icon="add_box" @click="openAddNexaPanelDialog(paneConfig.id)" class="q-mt-sm" />
+            <q-btn flat color="secondary" label="이 창에 넥셋 추가" icon="add_box" @click="openAddNexaPanelDialog(paneConfig.id)" class="q-mt-sm" />
           </div>
         </div>
       </pane>
@@ -125,7 +125,7 @@
       :horizontal="currentPresetConfig.horizontal"
       @resized="(eventData) => handleSplitterResized(eventData, 'l-shape-root')"
     >
-      <!-- L-shape 왼쪽 패널 (일반 패널과 동일하게 처리) -->
+      <!-- L-shape 왼쪽 넥셋 (일반 패널과 동일하게 처리) -->
       <pane
         :key="currentPresetConfig.panes[0].id"
         :id="currentPresetConfig.panes[0].id"
@@ -154,7 +154,7 @@
             <q-list dense style="min-width: 150px">
               <q-item clickable v-close-popup @click="openAddNexaPanelDialog(currentPresetConfig.panes[0].id)">
                 <q-item-section avatar style="min-width: 30px"><q-icon name="add_box" size="xs" /></q-item-section>
-                <q-item-section>패널 추가</q-item-section>
+                <q-item-section>넥셋 추가</q-item-section>
               </q-item>
               <q-separator />
               <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 분할')">
@@ -194,11 +194,11 @@
             @dragstart.stop="() => handleItemDragStart(panel.i)"
             @dragend.stop="() => handleItemDragEnd(panel.i)"
             class="grid-item-card"
-            :drag-allow-from="`.pane-nexa-panel-header[data-nexa-panel-id='${panel.i}']`"
+            :drag-allow-from="`.pane-nexet-header[data-nexet-id='${panel.i}']`"
             :draggable-cancel="'.no-drag'"
           >
             <q-card flat class="full-height column no-wrap bg-custom-dark-card">
-              <q-card-section :data-nexa-panel-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move">
+              <q-card-section :data-nexet-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexet-header cursor-move">
                 <div class="text-caption col ellipsis q-pl-xs">{{ panel.title }}</div>
                 <q-space />
                 <q-btn flat dense round icon="more_vert" size="xs" @click.stop class="no-drag">
@@ -211,7 +211,7 @@
                       <q-separator />
                       <q-item clickable @click="dashboardLayoutStore.removePanelFromPane(currentPresetConfig.panes[0].id, panel.i)">
                         <q-item-section avatar style="min-width: 30px"><q-icon name="delete_outline" size="xs" /></q-item-section>
-                        <q-item-section>패널 닫기</q-item-section>
+                        <q-item-section>넥셋 닫기</q-item-section>
                       </q-item>
                     </q-list>
                   </q-menu>
@@ -232,11 +232,11 @@
             <q-icon name="dashboard" size="xl" class="q-mb-md text-grey-6" />
             <div class="text-subtitle1 q-mb-sm">패널이 비어 있습니다</div>
             <p class="text-caption q-mb-md">
-              우측 상단 또는 창 내부의 '패널 추가' 버튼으로 다양한 패널을 추가해 보세요.<br />
+              우측 상단 또는 창 내부의 '넥셋 추가' 버튼으로 다양한 넥셋을 추가해 보세요.<br />
               창 사이의 분할선을 드래그하여 크기를 자유롭게 조절할 수 있습니다.<br />
               나만의 맞춤형 대시보드를 구성하여 작업 효율을 높여보세요!
             </p>
-            <q-btn flat color="secondary" label="이 창에 패널 추가" icon="add_box" @click="openAddNexaPanelDialog(currentPresetConfig.panes[0].id)" class="q-mt-sm" />
+            <q-btn flat color="secondary" label="이 창에 넥셋 추가" icon="add_box" @click="openAddNexaPanelDialog(currentPresetConfig.panes[0].id)" class="q-mt-sm" />
           </div>
         </div>
       </pane>
@@ -268,7 +268,7 @@
                 <q-list dense style="min-width: 150px">
                   <q-item clickable v-close-popup @click="openAddNexaPanelDialog(nestedPaneConfig.id)">
                     <q-item-section avatar style="min-width: 30px"><q-icon name="add_box" size="xs" /> </q-item-section>
-                    <q-item-section>패널 추가</q-item-section>
+                    <q-item-section>넥셋 추가</q-item-section>
                   </q-item>
                   <q-separator />
                   <q-item clickable v-close-popup @click="showFeatureNotReadyAlert('창 분할')">
@@ -308,11 +308,11 @@
                 @dragstart.stop="() => handleItemDragStart(panel.i)"
                 @dragend.stop="() => handleItemDragEnd(panel.i)"
                 class="grid-item-card"
-                :drag-allow-from="`.pane-nexa-panel-header[data-nexa-panel-id='${panel.i}']`"
+                :drag-allow-from="`.pane-nexet-header[data-nexet-id='${panel.i}']`"
                 :draggable-cancel="'.no-drag'"
               >
                 <q-card flat class="full-height column no-wrap bg-custom-dark-card">
-                  <q-card-section :data-nexa-panel-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexa-panel-header cursor-move">
+                  <q-card-section :data-nexet-id="panel.i" class="bg-black text-grey-5 q-pa-xs row items-center no-wrap pane-nexet-header cursor-move">
                     <div class="text-caption col ellipsis q-pl-xs">{{ panel.title }}</div>
                     <q-space />
                     <q-btn flat dense round icon="more_vert" size="xs" @click.stop class="no-drag">
@@ -325,7 +325,7 @@
                           <q-separator />
                           <q-item clickable @click="dashboardLayoutStore.removePanelFromPane(nestedPaneConfig.id, panel.i)">
                             <q-item-section avatar style="min-width: 30px"><q-icon name="delete_outline" size="xs" /></q-item-section>
-                            <q-item-section>패널 닫기</q-item-section>
+                            <q-item-section>넥셋 닫기</q-item-section>
                           </q-item>
                         </q-list>
                       </q-menu>
@@ -343,11 +343,11 @@
                 <q-icon name="dashboard" size="xl" class="q-mb-md text-grey-6" />
                 <div class="text-subtitle1 q-mb-sm">패널이 비어 있습니다</div>
                 <p class="text-caption q-mb-md">
-                  우측 상단 또는 창 내부의 '패널 추가' 버튼으로 다양한 패널을 추가해 보세요.<br />
+                  우측 상단 또는 창 내부의 '넥셋 추가' 버튼으로 다양한 넥셋을 추가해 보세요.<br />
                   창 사이의 분할선을 드래그하여 크기를 자유롭게 조절할 수 있습니다.<br />
                   나만의 맞춤형 대시보드를 구성하여 작업 효율을 높여보세요!
                 </p>
-                <q-btn flat color="secondary" label="이 창에 패널 추가" icon="add_box" @click="openAddNexaPanelDialog(nestedPaneConfig.id)" class="q-mt-sm" />
+                <q-btn flat color="secondary" label="이 창에 넥셋 추가" icon="add_box" @click="openAddNexaPanelDialog(nestedPaneConfig.id)" class="q-mt-sm" />
               </div>
             </div>
           </pane>
@@ -355,19 +355,19 @@
       </pane>
     </splitpanes>
 
-    <!-- 패널 추가 다이얼로그 -->
+    <!-- 넥셋 추가 다이얼로그 -->
     <NexaPanelDialog v-model="showAddNexaPanelDialog" @addNexaPanel="handleNexaPanelAddedFromDialog" />
 
-    <!-- 패널 이동 다이얼로그 -->
+    <!-- 넥셋 이동 다이얼로그 -->
     <q-dialog v-model="showMovePanelDialog" persistent>
       <q-card style="width: 400px; max-width: 90vw">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">패널 이동</div>
+          <div class="text-h6">넥셋 이동</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
         <q-card-section>
-          <p>'{{ panelToMove?.title || '패널' }}'을(를) 어느 창으로 이동하시겠습니까?</p>
+          <p>'{{ panelToMove?.title || '넥셋' }}'을(를) 어느 창으로 이동하시겠습니까?</p>
           <q-list bordered separator>
             <q-item v-for="destPane in availableTargetPanes" :key="destPane.id" clickable v-ripple @click="movePanelToPane(destPane.id)" :disable="destPane.id === panelToMove?.currentPaneId">
               <q-item-section>
@@ -400,7 +400,7 @@ import { GridLayout, GridItem } from 'vue3-grid-layout-next'
 import 'vue3-grid-layout-next/dist/style.css'
 
 import { useDashboardLayoutStore } from '@system/store/dashboardLayoutStore'
-import NexaPanelDialog from '@domains/panel/components/NexaPanelDialog.vue'
+import NexaPanelDialog from '@domains/nexet/components/NexaPanelDialog.vue'
 
 const $q = useQuasar()
 const dashboardLayoutStore = useDashboardLayoutStore()
@@ -715,7 +715,7 @@ function handleItemDragStart(panelId_i) {
   isDraggingEnabled.value = true
   const panel = findPanelInAnyPane(panelId_i)
   if (panel.item) {
-    draggingItem.value = { ...panel.item, title: panel.item.title || '패널' }
+    draggingItem.value = { ...panel.item, title: panel.item.title || '넥셋' }
   }
 }
 
@@ -793,11 +793,11 @@ function movePanelToPane(targetPaneId) {
     } else {
       $q.notify({
         type: 'negative',
-        message: '패널 이동 중 오류 발생: 원본 패널을 찾을 수 없습니다.',
+        message: '넥셋 이동 중 오류 발생: 원본 넥셋을 찾을 수 없습니다.',
       })
     }
   } else {
-    $q.notify({ type: 'negative', message: '패널 이동 중 오류 발생: 정보 부족.' })
+    $q.notify({ type: 'negative', message: '넥셋 이동 중 오류 발생: 정보 부족.' })
   }
   showMovePanelDialog.value = false
   panelToMove.value = null
@@ -888,10 +888,10 @@ function showFeatureNotReadyAlert(featureName) {
   background-color: var(--nexa-surface) !important;
 }
 
-.pane-nexa-panel-header {
+.pane-nexet-header {
   cursor: move;
   user-select: none;
-  background-color: var(--nexa-panel-header) !important;
+  background-color: var(--nexet-header) !important;
 }
 
 .dragging-ghost-item {

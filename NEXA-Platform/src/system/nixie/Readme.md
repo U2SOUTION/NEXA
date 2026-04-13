@@ -21,7 +21,7 @@
 - **Nexion 쪽 개념(시뮬)**: `how_state`, `who_pulse`, `confidence_score`, `entropy_level`, `warn_token`, `source_shell_id` 등 **“상황·맥락”** 필드.
 - **Nixie가 실제로 쓰는 값**: `demo_hud_text`, 스크롄·마퀴(`demo_hud_scroll_offset`, `hud_marquee_interval_ms`), 모스 재생·HUD 동기(`morse_*`, `morse_playback_*`) 등 **표시·오디오·타임라인**에 직결되는 필드.
 
-즉 **“백엔드가 나중에 줄 Nexnap 스냅샷”을 미리 맞춰 둔 평면 JSON에 가까운 상태**이고, 지금은 **개발 패널·시뮬**로 그걸 채우고 닉시가 구독하는 구조입니다.
+즉 **“백엔드가 나중에 줄 Nexnap 스냅샷”을 미리 맞춰 둔 평면 JSON에 가까운 상태**이고, 지금은 **개발 넥셋·시뮬**로 그걸 채우고 닉시가 구독하는 구조입니다.
 
 ### 어떻게 갱신되는가
 

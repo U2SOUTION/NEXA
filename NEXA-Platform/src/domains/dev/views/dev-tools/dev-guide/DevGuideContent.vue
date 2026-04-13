@@ -113,7 +113,7 @@
             </div>
           </div>
 
-          <!-- 테스트 컨트롤 패널 -->
+          <!-- 테스트 컨트롤 넥셋 -->
           <div v-if="previewControlsExpanded" class="preview-controls">
             <div class="control-group">
               <div class="control-inputs">

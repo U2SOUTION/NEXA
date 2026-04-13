@@ -19,7 +19,7 @@
       <!-- 메인 콘텐츠 -->
       <q-tab-panels v-if="menuType === 'tabs'" v-model="activeTab" class="u2bee-panels">
         <slot name="panels" :activeTab="activeTab">
-          <!-- 기본 패널 슬롯 -->
+          <!-- 기본 넥셋 슬롯 -->
         </slot>
       </q-tab-panels>
       <div v-else class="u2bee-panels">

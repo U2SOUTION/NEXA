@@ -4,7 +4,7 @@
       <div class="text-h6 q-mb-sm">Nexion 캔버스 (Vue Flow)</div>
       <p class="text-caption text-grey-7 q-mb-lg">노드 연결선·배경·미니맵 등은 사용자 설정에 저장되며, Nexion 도메인 캔버스에 즉시 반영됩니다.</p>
     </template>
-    <p v-else class="text-caption text-grey-7 q-mb-md">변경 사항은 저장되며 캔버스에 바로 적용됩니다. 동일 항목은 우측 패널 <strong>설정</strong> 탭이나 상단 헤더 <strong>설정</strong> → Nexion 캔버스에서도 편집할 수 있습니다.</p>
+    <p v-else class="text-caption text-grey-7 q-mb-md">변경 사항은 저장되며 캔버스에 바로 적용됩니다. 동일 항목은 우측 넥셋 <strong>설정</strong> 탭이나 상단 헤더 <strong>설정</strong> → Nexion 캔버스에서도 편집할 수 있습니다.</p>
 
     <div class="settings-section q-mb-lg">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">연결선 (엣지)</div>
@@ -21,14 +21,7 @@
           <div class="text-caption q-mb-xs">선택 시 강조 색</div>
           <span class="text-caption text-grey-7">비우면 미리보기 선 색과 동일</span>
         </div>
-        <NexionColorSwatch
-          class="nxf-pair__swatch"
-          clearable
-          :model-value="nx.edgeSelectedStrokeColor"
-          fallback-for-picker="#ff9800"
-          aria-label="선택된 연결선 강조 색"
-          @update:model-value="(v) => patch({ edgeSelectedStrokeColor: v ?? '' })"
-        />
+        <NexionColorSwatch class="nxf-pair__swatch" clearable :model-value="nx.edgeSelectedStrokeColor" fallback-for-picker="#ff9800" aria-label="선택된 연결선 강조 색" @update:model-value="(v) => patch({ edgeSelectedStrokeColor: v ?? '' })" />
       </div>
     </div>
 
@@ -46,41 +39,13 @@
 
     <div class="settings-section q-mb-lg">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">카드 (노드) 표시</div>
-      <p class="text-caption text-grey-7 q-mb-sm">
-        헤더·본문·풋터 레이아웃의 기준 글자 크기입니다. <strong>프랙탈 줌·LOD</strong>로 화면 배율에 따라 일부 영역은 숨기거나 축소할 예정이며, 줌 임계·최소·최대 글자 등은 추후 같은 패널에서 정합니다.
-      </p>
+      <p class="text-caption text-grey-7 q-mb-sm">헤더·본문·풋터 레이아웃의 기준 글자 크기입니다. <strong>프랙탈 줌·LOD</strong>로 화면 배율에 따라 일부 영역은 숨기거나 축소할 예정이며, 줌 임계·최소·최대 글자 등은 추후 같은 넥셋에서 정합니다.</p>
       <div class="text-caption q-mb-xs">헤더 이름 ({{ nx.cardTitleFontPx }}px)</div>
-      <q-slider
-        :model-value="nx.cardTitleFontPx"
-        :min="10"
-        :max="18"
-        :step="1"
-        dense
-        color="primary"
-        class="q-mb-md"
-        @update:model-value="(v) => patch({ cardTitleFontPx: v })"
-      />
+      <q-slider :model-value="nx.cardTitleFontPx" :min="10" :max="18" :step="1" dense color="primary" class="q-mb-md" @update:model-value="(v) => patch({ cardTitleFontPx: v })" />
       <div class="text-caption q-mb-xs">중앙 컨텐츠 ({{ nx.cardBodyFontPx }}px)</div>
-      <q-slider
-        :model-value="nx.cardBodyFontPx"
-        :min="7"
-        :max="18"
-        :step="1"
-        dense
-        color="primary"
-        class="q-mb-md"
-        @update:model-value="(v) => patch({ cardBodyFontPx: v })"
-      />
+      <q-slider :model-value="nx.cardBodyFontPx" :min="7" :max="18" :step="1" dense color="primary" class="q-mb-md" @update:model-value="(v) => patch({ cardBodyFontPx: v })" />
       <div class="text-caption q-mb-xs">풋터 부가 정보 ({{ nx.cardFooterFontPx }}px)</div>
-      <q-slider
-        :model-value="nx.cardFooterFontPx"
-        :min="6"
-        :max="14"
-        :step="1"
-        dense
-        color="primary"
-        @update:model-value="(v) => patch({ cardFooterFontPx: v })"
-      />
+      <q-slider :model-value="nx.cardFooterFontPx" :min="6" :max="14" :step="1" dense color="primary" @update:model-value="(v) => patch({ cardFooterFontPx: v })" />
     </div>
 
     <div class="settings-section q-mb-lg">
@@ -94,15 +59,13 @@
 
     <div class="settings-section q-mb-lg">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">연결 스냅</div>
-      <p class="text-caption text-grey-7 q-mb-xs">
-        선을 끌 때 핸들에 <strong>얼마나 가까이</strong> 가면 붙일지입니다. <strong>0</strong>이면 스냅을 쓰지 않고, 핸들 중심에 맞출 때만 연결됩니다.
-      </p>
+      <p class="text-caption text-grey-7 q-mb-xs">선을 끌 때 핸들에 <strong>얼마나 가까이</strong> 가면 붙일지입니다. <strong>0</strong>이면 스냅을 쓰지 않고, 핸들 중심에 맞출 때만 연결됩니다.</p>
       <div class="text-caption q-mb-xs">스냅 반경 ({{ nx.connectionRadius }}px)</div>
       <q-slider :model-value="nx.connectionRadius" :min="0" :max="120" :step="4" dense color="primary" @update:model-value="(v) => patch({ connectionRadius: v })" />
     </div>
 
     <div class="settings-section q-mb-lg">
-      <div class="text-subtitle1 text-weight-medium q-mb-sm">미니맵 (우측 패널)</div>
+      <div class="text-subtitle1 text-weight-medium q-mb-sm">미니맵 (우측 넥셋)</div>
       <p class="text-caption text-grey-7 q-mb-sm">비우면 라이트/다크 기본 톤입니다. 칸을 누르면 색 선택, × 로 자동 톤으로 돌아갑니다.</p>
 
       <div class="nxf-mini-row row items-center no-wrap q-gutter-x-sm q-mb-xs">

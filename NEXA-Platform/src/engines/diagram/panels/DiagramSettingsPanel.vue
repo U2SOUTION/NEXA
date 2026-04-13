@@ -1,18 +1,10 @@
 <!-- DiagramSettingsPanel.vue
-  범용 다이어그램 설정 패널 베이스 컴포넌트
+  범용 다이어그램 설정 넥셋 베이스 컴포넌트
   타입에 따라 적절한 설정 컴포넌트를 동적으로 로드
 -->
 <template>
   <div class="diagram-settings-panel">
-    <component
-      v-if="settingsComponent"
-      :is="settingsComponent"
-      :settings="localSettings"
-      :type="diagramType"
-      @change="handleSettingsChange"
-      @save="handleSave"
-      @reset="handleReset"
-    />
+    <component v-if="settingsComponent" :is="settingsComponent" :settings="localSettings" :type="diagramType" @change="handleSettingsChange" @save="handleSave" @reset="handleReset" />
     <div v-else class="no-settings-message q-pa-md text-center">
       <q-icon name="info" size="48px" color="grey-7" class="q-mb-md" />
       <div class="text-body2 text-grey-7">지원하지 않는 다이어그램 타입입니다.</div>

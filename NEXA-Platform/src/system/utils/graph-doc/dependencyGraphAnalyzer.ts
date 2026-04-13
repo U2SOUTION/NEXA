@@ -443,7 +443,7 @@ function mapRouteToFile(routePath: string): string | null {
     '/help': 'src/pages/HelpPage.vue',
     '/my': 'src/pages/MyPage.vue',
     '/parts-management': 'src/pages/PartsManagementPage.vue',
-    '/nexa-panel': 'src/pages/NexaPanelPage.vue',
+    '/nexet': 'src/pages/NexaPanelPage.vue',
     '/nexa-node': 'src/pages/NexaNodePage.vue',
     '/nexa-teach': 'src/pages/NexaTeachPage.vue',
     '/nexa-board': 'src/pages/NexaBoardPage.vue',

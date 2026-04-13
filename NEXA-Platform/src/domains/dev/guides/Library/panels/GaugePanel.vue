@@ -1,18 +1,18 @@
 <!-- GaugePanel.vue
-  게이지 패널 샘플 컴포넌트
+  게이지 넥셋 샘플 컴포넌트
   개발 가이드용 샘플 파일
 -->
 <template>
   <div class="sample-header">
-    <h3 class="sample-title">게이지 패널 샘플</h3>
-    <p class="sample-description">NexaPanel 컴포넌트를 사용한 게이지 패널 예시</p>
+    <h3 class="sample-title">게이지 넥셋 샘플</h3>
+    <p class="sample-description">NexaPanel 컴포넌트를 사용한 게이지 넥셋 예시</p>
   </div>
   <div class="sample-container">
-      <div class="panel-placeholder">
-        <q-icon name="gauge" size="64px" color="grey-5" />
-        <p class="placeholder-text">패널 미리보기 영역</p>
-      </div>
+    <div class="panel-placeholder">
+      <q-icon name="gauge" size="64px" color="grey-5" />
+      <p class="placeholder-text">넥셋 미리보기 영역</p>
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -37,22 +37,21 @@
 }
 
 .sample-container {
-    .panel-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 200px;
-      background-color: var(--nexa-background);
-      border: 1px dashed var(--nexa-border-color);
-      border-radius: 4px;
+  .panel-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    background-color: var(--nexa-background);
+    border: 1px dashed var(--nexa-border-color);
+    border-radius: 4px;
 
-      .placeholder-text {
-        margin-top: 8px;
-        color: var(--nexa-text-secondary);
-        font-size: 0.875rem;
-      }
+    .placeholder-text {
+      margin-top: 8px;
+      color: var(--nexa-text-secondary);
+      font-size: 0.875rem;
     }
+  }
 }
 </style>
-

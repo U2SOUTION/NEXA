@@ -1,5 +1,5 @@
 <!-- NexaBoardToolsPanel.vue
-  넥사보드 메뉴 전용 우측 도구 패널
+  넥사보드 메뉴 전용 우측 도구 넥셋
   레이아웃, 넥사패널, 디바이스, 히스토리, 알림 관리
 -->
 
@@ -16,7 +16,7 @@
       </div>
       <div class="accordion-wrapper">
         <q-expansion-item icon="dashboard" label="넥사패널">
-          <nexa-panel-section />
+          <nexet-section />
         </q-expansion-item>
       </div>
       <div class="accordion-wrapper">
@@ -41,11 +41,11 @@
 <script setup>
 import { QExpansionItem } from 'quasar'
 import StandardRightHeader from '@frame/layout/components/StandardRightHeader.vue'
-import LayoutSection from '@domains/panel/components/side-panel/LayoutSection.vue'
-import NexaPanelSection from '@domains/panel/components/side-panel/NexaPanelSection.vue'
-import DeviceSection from '@domains/panel/components/side-panel/DeviceSection.vue'
-import HistorySection from '@domains/panel/components/side-panel/HistorySection.vue'
-import NotificationSection from '@domains/panel/components/side-panel/NotificationSection.vue'
+import LayoutSection from '@domains/nexet/components/side-panel/LayoutSection.vue'
+import NexetSection from '@domains/nexet/components/side-panel/NexetSection.vue'
+import DeviceSection from '@domains/nexet/components/side-panel/DeviceSection.vue'
+import HistorySection from '@domains/nexet/components/side-panel/HistorySection.vue'
+import NotificationSection from '@domains/nexet/components/side-panel/NotificationSection.vue'
 </script>
 
 <style lang="scss" scoped>

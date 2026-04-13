@@ -1,5 +1,5 @@
 <!-- DevGuideStatistics.vue
-  개발 가이드 통계 패널
+  개발 가이드 통계 넥셋
   통계 분석 기능 제공
 -->
 <template>
