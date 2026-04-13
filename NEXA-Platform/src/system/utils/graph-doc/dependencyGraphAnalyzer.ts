@@ -449,6 +449,7 @@ function mapRouteToFile(routePath: string): string | null {
     '/nexage': 'src/domains/nexage/NexageDomain.vue',
     '/nexage/admin': 'src/domains/nexage/views/admin/NexageAdminPage.vue',
     '/nexeed': 'src/domains/nexeed/NexeedDomain.vue',
+    '/nexia': 'src/domains/nexia/NexiaDomain.vue',
     '/': 'src/pages/HomePage.vue',
   }
   return routeMap[routePath] || null

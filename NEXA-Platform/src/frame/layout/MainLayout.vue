@@ -179,7 +179,7 @@ const currentMenu = computed(() => {
     '/nexa-archive': 'nexa-archive',
     '/nexeed': 'nexeed',
     '/nexa-nexion': 'nexion',
-    '/nexa-ai': 'nexa-ai',
+    '/nexia': 'nexia',
     '/erp': 'nexa-erp',
     '/erp/parts': 'erp-parts', // ERP 하위 부품관리 서브도메인
     '/infra': 'infra',
@@ -216,7 +216,7 @@ const mainMenuTabs = [
   { name: 'nexeed', label: 'NEXA NEXEED', displayLabel: 'NEXEED', icon: 'analytics', route: '/nexeed', exact: false, nexaPrefix: true },
   { name: 'nexion', label: 'NEXA NEXION', displayLabel: 'NEXION', icon: 'account_tree', route: '/nexa-nexion', exact: false, nexaPrefix: true },
   { name: 'nexa-archive', label: 'NEXA ARCHIVE', displayLabel: 'ARCHIVE', icon: 'article', route: '/nexa-archive', exact: false, nexaPrefix: true },
-  { name: 'nexa-ai', label: 'NEXA AI', displayLabel: 'AI', icon: 'smart_toy', route: '/nexa-ai', exact: false, nexaPrefix: true },
+  { name: 'nexia', label: 'NEXA NEXIA', displayLabel: 'NEXIA', icon: 'smart_toy', route: '/nexia', exact: false, nexaPrefix: true },
   { name: 'nexa-erp', label: 'NEXA ERP', displayLabel: 'ERP', icon: 'business', route: '/erp', exact: false, nexaPrefix: true },
   { name: 'portfolio', label: 'PORTFOLIO', displayLabel: 'PORTFOLIO', icon: 'folder', route: '/portfolio', exact: false, nexaPrefix: false },
   { name: 'infra', label: 'INFRA', displayLabel: 'INFRA', icon: 'settings', route: '/infra', exact: false, nexaPrefix: false },

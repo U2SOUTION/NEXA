@@ -17,7 +17,7 @@
  * 3. **추가 시 규칙**
  *    - 새 타입이 필요하면 이 디렉터리 하위에 모듈로 추가한 뒤, 이 index에서 re-export한다.
  *    - 도메인 전용처럼 보이는 타입도 여기에 정의하고, 해당 도메인에서만 import한다 (도메인 내부 파일에 정의하지 않음).
- *    - 네이밍: PascalCase. 여러 도메인에서 쓰이면 `common/`, 한 도메인 관련이면 `domains/ai.d.ts` 등으로 구분 가능.
+ *    - 네이밍: PascalCase. 여러 도메인에서 쓰이면 `common/`, 한 도메인 관련이면 `domains/nexia.d.ts` 등으로 구분 가능.
  *
  * 4. **import 경로**
  *    - 프로젝트 alias 기준: `@system/types` 또는 `@/system/types` 로 참조.

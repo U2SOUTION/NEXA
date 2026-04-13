@@ -126,10 +126,10 @@ const domainConfigs: Record<string, DomainConfig> = {
     right: () => import('@domains/nexion/views/right/NexionRightPanel.vue'),
   },
   // 넥사 AI (Ollama)
-  'nexa-ai': {
-    left: () => import('@domains/ai/views/left/AiLeftNav.vue'),
-    content: () => import('@domains/ai/AiDomain.vue'),
-    right: () => import('@domains/ai/views/right/AiRightPanel.vue'),
+  nexia: {
+    left: () => import('@domains/nexia/views/left/NexiaLeftNav.vue'),
+    content: () => import('@domains/nexia/NexiaDomain.vue'),
+    right: () => import('@domains/nexia/views/right/NexiaRightPanel.vue'),
   },
   // 확장 프로그램
   extension: {

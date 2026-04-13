@@ -45,16 +45,20 @@ export const domainRoutes: RouteRecordRaw[] = [
     component: () => import('@domains/nexion/NexionDomain.vue'),
   },
   {
-    path: 'nexa-ai',
-    name: 'NexaAi',
-    component: () => import('@domains/ai/AiDomain.vue'),
+    path: 'nexia',
+    name: 'Nexia',
+    component: () => import('@domains/nexia/NexiaDomain.vue'),
     children: [
       {
         path: '',
-        name: 'NexaAiChat',
-        component: () => import('@domains/ai/views/content/AiContent.vue'),
+        name: 'NexiaChat',
+        component: () => import('@domains/nexia/views/content/NexiaContent.vue'),
       },
     ],
+  },
+  {
+    path: 'nexa-ai',
+    redirect: '/nexia',
   },
   {
     path: 'nexa-archive',
