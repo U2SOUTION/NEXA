@@ -50,7 +50,7 @@ flowchart LR
 | 축별 DSP·프로브 그래프 | 필터·트레몰로·듀얼 오실·지터·공간·이질 잡음·**조화 간격** | `src/system/nixie/nixieSoundLayerAudio.ts` |
 | 모스 재생(운영) | `playMorseTimeline`, `setMorseSoundLayerParams`, `setMorseCarrierFrequencyHz` | `src/system/nixie/morseWebAudioCore.ts` |
 | 모스 재생(DSP 실험·비운영) | 위와 유사 API, DSP 그래프 포함 | `src/system/nixie/morseWebAudioDsp.ts` |
-| 스냅샷·토글 | `sound_atmosphere_*`, `sound_atmosphere_mapping_enabled` | `src/system/store/nmapSnapshotStore.ts` |
+| 스냅샷·토글 | `sound_atmosphere_*`, `sound_atmosphere_mapping_enabled` | `src/system/store/nexnapSnapshotStore.ts` |
 | 개발 패널 | 4축 + 6축 슬라이더, 매핑 토글 | `src/system/nixie/components/NixieDevControls.vue` |
 
 의미 축의 선택 필드(`mechanicalBlend01`, `spaceBlend01`, … `harmonyBlend01`)는 매핑 결과로만 채워지며, **프로브·모스**가 동일 타입을 소비한다.
@@ -81,7 +81,7 @@ flowchart LR
 | 활력 | `vitality01` | 트레몰로 속도 등 |
 | 조화 | `harmony01` | `harmonyBlend01` → **듀얼 오실 둘째 음 간격**(1 → 완전 5도 비율) |
 
-스냅샷 필드명·0~100 저장은 `nmapSnapshotStore`와 `NixieDevControls`를 본문으로 한다.
+스냅샷 필드명·0~100 저장은 `nexnapSnapshotStore`와 `NixieDevControls`를 본문으로 한다.
 
 ---
 

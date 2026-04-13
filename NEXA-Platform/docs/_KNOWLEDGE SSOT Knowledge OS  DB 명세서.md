@@ -446,14 +446,14 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 
 #### 역할
 
-하드웨어 OS에서 **디바이스 드라이버**가 커널과 장치 사이를 표준 인터페이스로 연결하듯, NEXA에서는 **외부 SaaS·HTTP API·에지 프로토콜**을 `nexa.*` **Capability ID**에 바인딩하고, N-MAP·오케스트레이션 호출 시 **동일한 자격·감사·샌드박스**를 타게 한다. 본 테이블은 그 **선언적 매니페스트**를 저장한다.
+하드웨어 OS에서 **디바이스 드라이버**가 커널과 장치 사이를 표준 인터페이스로 연결하듯, NEXA에서는 **외부 SaaS·HTTP API·에지 프로토콜**을 `nexa.*` **Capability ID**에 바인딩하고, Nexnap·오케스트레이션 호출 시 **동일한 자격·감사·샌드박스**를 타게 한다. 본 테이블은 그 **선언적 매니페스트**를 저장한다.
 
 #### `manifest`에 넣을 내용 (권장 스키마는 앱 합의)
 
 - **인증:** OAuth scope, API key vault 참조 키(평문 금지)
 - **매핑:** 외부 이벤트 필드 → 내부 HEXAGON/토큰/Intent
 - **한계:** 레이트 리밋, 페이로드 상한, 허용 HTTP 메서드
-- **N-MAP:** 어댑터 템플릿 ID, 기본 `is_virtual` 여부(실물 이펙트 방지)
+- **Nexnap:** 어댑터 템플릿 ID, 기본 `is_virtual` 여부(실물 이펙트 방지)
 
 #### Hot-Plug의 의미
 
@@ -470,7 +470,7 @@ LLM·인디케이터에 넣는 **프롬프트/컨텍스트 윈도우**는 비용
 | `driver_id`            | UUID         | PK, DEFAULT uuid_v7()     | 드라이버 ID                                                             |
 | `capability_id`        | VARCHAR(120) | NOT NULL                  | 표준 `nexa.*` 자격 ID                                                   |
 | `external_provider`    | VARCHAR(80)  | NOT NULL                  | `slack` / `openai` / `custom` 등                                        |
-| `manifest`             | JSONB        | NOT NULL                  | 엔드포인트·스코프·필드 매핑·N-MAP 래퍼 파라미터                         |
+| `manifest`             | JSONB        | NOT NULL                  | 엔드포인트·스코프·필드 매핑·Nexnap 래퍼 파라미터                        |
 | `project_extension_id` | UUID         | NULL                      | (선택) 오케스트레이션 `project_extensions` 행 ID — 동일 DB일 때 FK 검토 |
 | `sandbox_profile_id`   | UUID         | NULL                      | (선택) `sandbox_profiles` 등 격리 프로파일                              |
 | `registration_status`  | VARCHAR(20)  | NOT NULL, DEFAULT 'draft' | `draft` / `active` / `suspended`                                        |

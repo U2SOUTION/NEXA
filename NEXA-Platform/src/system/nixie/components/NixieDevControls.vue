@@ -1,5 +1,5 @@
 <!--
-  NIXIE N-MAP 시뮬레이션 — 스토어 actions 만 호출.
+  NIXIE Nexnap 시뮬레이션 — 스토어 actions 만 호출.
   Nexion 우측 패널 아코디언에 embedded 로 배치(배포 시 체험용 노출 가능).
   명세: docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md
 
@@ -7,18 +7,18 @@
   - DIT/TONE/VOLUME: 드래그는 로컬 ref, 손 뗄 때(@change) 스토어 반영. 재생 중 TONE은 watch로 캐리어 Hz 라이브. VOLUME은 v-model 변경 시 마스터 게인 watch로 라이브, @change는 Pinia만. DIT는 재생 재시작.
   - 미리듣기: 스피너+중지, stop 시 오디오·Promise 정리. 재생 세대 번호로 finally 경합 방지.
   - 스냅샷 applyPatch 가 통째로 갈아끼워지므로 morse 필드는 배열 watch 금지 → dit/tone/volume 스칼라별 watch 로만 로컬 슬라이더 동기화.
-  - N-MAP 수치 → 모스 파라미터 자동 매핑은 아직 없음. 본격 닉시 진행 시 연출 레이어에서 추가 예정.
+  - Nexnap 수치 → 모스 파라미터 자동 매핑은 아직 없음. 본격 닉시 진행 시 연출 레이어에서 추가 예정.
   - PAN L / ALL / R: 스냅샷 `morse_stereo_pan` + Web Audio `StereoPannerNode`, 재생 중 버튼만으로도 실시간 체험 가능.
   - 사운드 레이어: TEST(프로브) + 모스 재생 중 `effectiveNixieSoundLayers` watch → `setMorseSoundLayerParams`(공간·언캐니·다음 토큰 DSP). 의미→DSP 매핑 OFF면 6축 슬라이더는 레이어에 안 들어가므로 4축만 모스에 영향.
   - 의미 6축(M-A): 긴장·이질감·기계성·공간감·활력·조화 슬라이더 — 로컬 ref(0~100). 동 문서 §8 M-A.
   - 의미 6축(M-B): `getNixieSoundAtmosphere` → `nixieSoundAtmosphere` computed. 동 문서 §8 M-B.
   - 의미 매핑(M-E): 토글 ON 시 레이어 목표값은 매핑 결과 사용; 모스 DIT는 별도 정책(원자시계). DSP 4축은 매핑 ON일 때 오디오 목표에서 대체됨(문서 §8 M-E). 프로브·모스 공통 상태이나 모스 재생 그래프는 Core 단순 경로.
-  - 의미 6축·매핑 토글(M-F): `nmapSnapshotStore` `sound_atmosphere_*` / `sound_atmosphere_mapping_enabled` — SSOT. 동 문서 §8 M-F.
+  - 의미 6축·매핑 토글(M-F): `nexnapSnapshotStore` `sound_atmosphere_*` / `sound_atmosphere_mapping_enabled` — SSOT. 동 문서 §8 M-F.
 -->
 <template>
   <div class="nixie-dev-controls" :class="{ 'nixie-dev-controls--embedded': embedded }">
     <template v-if="!embedded">
-      <div class="text-caption text-weight-bold q-mb-xs">NIXIE · N-MAP 시뮬</div>
+      <div class="text-caption text-weight-bold q-mb-xs">NIXIE · Nexnap 시뮬</div>
       <q-separator class="q-mb-xs" />
     </template>
     <!-- <p class="text-caption text-grey-7 q-mb-sm q-px-sm q-pt-xs text-center">화면의 <strong>닉시</strong>는 전역 오버레이. 컨트롤은 Pinia 스토어만 갱신하며, 사용자 체험용.</p> -->
@@ -27,32 +27,33 @@
     <div class="row items-center q-gutter-x-xs q-gutter-y-xs q-mb-xs nixie-dev-controls__state-wrap">
       <div class="row items-center q-gutter-x-xs no-wrap nixie-dev-controls__state-group">
         <span class="nixie-dev-controls__lbl">흐름</span>
-        <q-btn dense size="sm" padding="xs sm" label="FLOW" :outline="snapshot.how_state !== 'FLOW'" :unelevated="snapshot.how_state === 'FLOW'" :color="snapshot.how_state === 'FLOW' ? 'primary' : 'grey-7'" @click="nmap.setHowState('FLOW')" />
-        <q-btn dense size="sm" padding="xs sm" label="STUCK" :outline="snapshot.how_state !== 'STUCK'" :unelevated="snapshot.how_state === 'STUCK'" :color="snapshot.how_state === 'STUCK' ? 'amber-9' : 'grey-7'" @click="nmap.setHowState('STUCK')" />
-        <q-btn dense size="sm" padding="xs sm" label="VOID" :outline="snapshot.how_state !== 'VOID'" :unelevated="snapshot.how_state === 'VOID'" :color="snapshot.how_state === 'VOID' ? 'blue-grey-6' : 'grey-7'" @click="nmap.setHowState('VOID')" />
+        <q-btn dense size="sm" padding="xs sm" label="FLOW" :outline="snapshot.how_state !== 'FLOW'" :unelevated="snapshot.how_state === 'FLOW'" :color="snapshot.how_state === 'FLOW' ? 'primary' : 'grey-7'" @click="nexnap.setHowState('FLOW')" />
+        <q-btn dense size="sm" padding="xs sm" label="STUCK" :outline="snapshot.how_state !== 'STUCK'" :unelevated="snapshot.how_state === 'STUCK'" :color="snapshot.how_state === 'STUCK' ? 'amber-9' : 'grey-7'" @click="nexnap.setHowState('STUCK')" />
+        <q-btn dense size="sm" padding="xs sm" label="VOID" :outline="snapshot.how_state !== 'VOID'" :unelevated="snapshot.how_state === 'VOID'" :color="snapshot.how_state === 'VOID' ? 'blue-grey-6' : 'grey-7'" @click="nexnap.setHowState('VOID')" />
       </div>
       <div class="row items-center q-gutter-x-xs no-wrap nixie-dev-controls__state-group">
         <span class="nixie-dev-controls__lbl">펄스</span>
-        <q-btn dense size="sm" padding="xs sm" label="WILL" :flat="snapshot.who_pulse !== 'WILL'" :unelevated="snapshot.who_pulse === 'WILL'" :color="snapshot.who_pulse === 'WILL' ? 'deep-orange-8' : 'grey-7'" @click="nmap.setWhoPulse('WILL')" />
-        <q-btn dense size="sm" padding="xs sm" label="ECHO" :flat="snapshot.who_pulse !== 'ECHO'" :unelevated="snapshot.who_pulse === 'ECHO'" :color="snapshot.who_pulse === 'ECHO' ? 'cyan-8' : 'grey-7'" @click="nmap.setWhoPulse('ECHO')" />
-        <q-btn dense size="sm" padding="xs sm" label="ASK" :flat="snapshot.who_pulse !== 'ASK'" :unelevated="snapshot.who_pulse === 'ASK'" :color="snapshot.who_pulse === 'ASK' ? 'purple-8' : 'grey-7'" @click="nmap.setWhoPulse('ASK')" />
+        <q-btn dense size="sm" padding="xs sm" label="WILL" :flat="snapshot.who_pulse !== 'WILL'" :unelevated="snapshot.who_pulse === 'WILL'" :color="snapshot.who_pulse === 'WILL' ? 'deep-orange-8' : 'grey-7'" @click="nexnap.setWhoPulse('WILL')" />
+        <q-btn dense size="sm" padding="xs sm" label="ECHO" :flat="snapshot.who_pulse !== 'ECHO'" :unelevated="snapshot.who_pulse === 'ECHO'" :color="snapshot.who_pulse === 'ECHO' ? 'cyan-8' : 'grey-7'" @click="nexnap.setWhoPulse('ECHO')" />
+        <q-btn dense size="sm" padding="xs sm" label="ASK" :flat="snapshot.who_pulse !== 'ASK'" :unelevated="snapshot.who_pulse === 'ASK'" :color="snapshot.who_pulse === 'ASK' ? 'purple-8' : 'grey-7'" @click="nexnap.setWhoPulse('ASK')" />
+        <q-btn dense size="sm" padding="xs sm" label="TICK" :flat="snapshot.who_pulse !== 'TICK'" :unelevated="snapshot.who_pulse === 'TICK'" :color="snapshot.who_pulse === 'TICK' ? 'teal-8' : 'grey-7'" @click="nexnap.setWhoPulse('TICK')" />
       </div>
     </div>
 
     <!-- 슬라이더: 신뢰도 / 엔트로피 / 임계값 / 닉시 마퀴 흐름 속도(슬라이더↑=빠름 → 내부는 interval_ms 역매핑) -->
     <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl">신뢰도</span>
-      <q-slider :model-value="snapshot.confidence_score" :min="0" :max="100" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="nmap.setConfidenceScore" />
+      <q-slider :model-value="snapshot.confidence_score" :min="0" :max="100" dense color="primary" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setConfidenceScore" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.confidence_score }} %</span>
     </div>
     <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl">엔트로피</span>
-      <q-slider :model-value="snapshot.entropy_level" :min="0" :max="100" dense color="deep-orange" class="nixie-dev-controls__slider col" @update:model-value="nmap.setEntropyLevel" />
+      <q-slider :model-value="snapshot.entropy_level" :min="0" :max="100" dense color="deep-orange" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setEntropyLevel" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.entropy_level }} %</span>
     </div>
     <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
       <span class="nixie-dev-controls__lbl">임계값</span>
-      <q-slider :model-value="snapshot.user_defined_threshold" :min="70" :max="100" dense color="amber" class="nixie-dev-controls__slider col" @update:model-value="nmap.setUserDefinedThreshold" />
+      <q-slider :model-value="snapshot.user_defined_threshold" :min="70" :max="100" dense color="amber" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setUserDefinedThreshold" />
       <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.user_defined_threshold }} %</span>
     </div>
     <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
@@ -64,10 +65,10 @@
     <!-- 경고·상태 액션 묶음 -->
     <div class="row items-center q-gutter-x-xs q-mb-xs flex-wrap">
       <span class="nixie-dev-controls__lbl">경고/상태</span>
-      <q-btn dense size="sm" padding="xs sm" label="타임아웃" :outline="snapshot.warn_token !== 'ADAPTER_TIMEOUT'" :unelevated="snapshot.warn_token === 'ADAPTER_TIMEOUT'" :color="snapshot.warn_token === 'ADAPTER_TIMEOUT' ? 'negative' : 'grey-7'" @click="nmap.setWarnToken('ADAPTER_TIMEOUT')" />
-      <q-btn dense size="sm" padding="xs sm" label="해제" :flat="snapshot.warn_token != null" :unelevated="snapshot.warn_token == null" :color="snapshot.warn_token == null ? 'positive' : 'grey-7'" @click="nmap.setWarnToken(null)" />
+      <q-btn dense size="sm" padding="xs sm" label="타임아웃" :outline="snapshot.warn_token !== 'ADAPTER_TIMEOUT'" :unelevated="snapshot.warn_token === 'ADAPTER_TIMEOUT'" :color="snapshot.warn_token === 'ADAPTER_TIMEOUT' ? 'negative' : 'grey-7'" @click="nexnap.setWarnToken('ADAPTER_TIMEOUT')" />
+      <q-btn dense size="sm" padding="xs sm" label="해제" :flat="snapshot.warn_token != null" :unelevated="snapshot.warn_token == null" :color="snapshot.warn_token == null ? 'positive' : 'grey-7'" @click="nexnap.setWarnToken(null)" />
       <q-separator vertical inset class="q-mx-xs" />
-      <q-toggle :model-value="snapshot.is_virtual" dense left-label label="가상" @update:model-value="nmap.setIsVirtual" />
+      <q-toggle :model-value="snapshot.is_virtual" dense left-label label="가상" @update:model-value="nexnap.setIsVirtual" />
       <q-separator vertical inset class="q-mx-xs" />
       <q-btn
         dense
@@ -77,7 +78,7 @@
         :outline="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local'"
         :unelevated="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local'"
         :color="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local' ? 'indigo-7' : 'grey-7'"
-        @click="nmap.simulateNebulaInflux()"
+        @click="nexnap.simulateNebulaInflux()"
       />
       <q-btn
         dense
@@ -87,7 +88,7 @@
         :flat="snapshot.source_shell_id != null && snapshot.source_shell_id !== 'local'"
         :unelevated="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local'"
         :color="snapshot.source_shell_id == null || snapshot.source_shell_id === 'local' ? 'teal-7' : 'grey-7'"
-        @click="nmap.clearNebulaToLocal()"
+        @click="nexnap.clearNebulaToLocal()"
       />
     </div>
 
@@ -164,10 +165,10 @@
         </div>
         <div class="row items-center q-mb-xs flex-wrap nixie-dev-controls__morse-sync-row">
           <div class="row items-center no-wrap q-gutter-x-xs">
-            <q-toggle dense left-label :model-value="snapshot.morse_hud_sync_with_playback ?? true" label="동기·HUD" @update:model-value="nmap.setMorseHudSyncWithPlayback" />
+            <q-toggle dense left-label :model-value="snapshot.morse_hud_sync_with_playback ?? true" label="동기·HUD" @update:model-value="nexnap.setMorseHudSyncWithPlayback" />
           </div>
           <div class="row items-center no-wrap q-gutter-x-xs">
-            <q-toggle dense left-label :disable="!(snapshot.morse_hud_sync_with_playback ?? true)" :model-value="snapshot.morse_hud_per_event_highlight === true" label="단점·장점 강조" @update:model-value="nmap.setMorseHudPerEventHighlight" />
+            <q-toggle dense left-label :disable="!(snapshot.morse_hud_sync_with_playback ?? true)" :model-value="snapshot.morse_hud_per_event_highlight === true" label="단점·장점 강조" @update:model-value="nexnap.setMorseHudPerEventHighlight" />
           </div>
         </div>
         <div class="row items-center no-wrap q-gutter-x-xs q-mb-xs">
@@ -201,93 +202,38 @@
         </div>
         <q-separator class="q-my-xs" />
         <div class="row items-center q-mb-xs q-px-xs flex-wrap q-gutter-x-sm">
-          <q-toggle
-            :model-value="Boolean(snapshot.sound_atmosphere_mapping_enabled)"
-            dense
-            left-label
-            color="cyan-7"
-            label="의미→DSP·모스"
-            @update:model-value="nmap.setSoundAtmosphereMappingEnabled"
-          />
+          <q-toggle :model-value="Boolean(snapshot.sound_atmosphere_mapping_enabled)" dense left-label color="cyan-7" label="의미→DSP·모스" @update:model-value="nexnap.setSoundAtmosphereMappingEnabled" />
           <span class="text-caption text-grey-6">켜면 6축→레이어 목표(TEST·상태) · 모스 그래프는 Core 단순 재생 · 4축은 매핑 ON이면 목표에서 대체 · Pinia</span>
         </div>
         <div class="text-caption text-grey-7 q-mb-xs q-px-xs">M-A~F · 의미 6축 (`nixieSoundAtmosphere` · Pinia `sound_atmosphere_*`)</div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="긴장 (Tension)">TENSION</span>
-          <q-slider
-            :model-value="snapshot.sound_atmosphere_tension ?? 0"
-            :min="0"
-            :max="100"
-            dense
-            color="deep-purple-5"
-            class="nixie-dev-controls__slider col"
-            @update:model-value="nmap.setSoundAtmosphereTension"
-          />
+          <q-slider :model-value="snapshot.sound_atmosphere_tension ?? 0" :min="0" :max="100" dense color="deep-purple-5" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setSoundAtmosphereTension" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_tension ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="이질감 (Uncanniness)">UNCANNY</span>
-          <q-slider
-            :model-value="snapshot.sound_atmosphere_uncanniness ?? 0"
-            :min="0"
-            :max="100"
-            dense
-            color="indigo-5"
-            class="nixie-dev-controls__slider col"
-            @update:model-value="nmap.setSoundAtmosphereUncanniness"
-          />
+          <q-slider :model-value="snapshot.sound_atmosphere_uncanniness ?? 0" :min="0" :max="100" dense color="indigo-5" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setSoundAtmosphereUncanniness" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_uncanniness ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
-          <span class="nixie-dev-controls__lbl" title="기계성 (Mechanicalness)">MECHANICAL</span>
-          <q-slider
-            :model-value="snapshot.sound_atmosphere_mechanical ?? 0"
-            :min="0"
-            :max="100"
-            dense
-            color="blue-grey-6"
-            class="nixie-dev-controls__slider col"
-            @update:model-value="nmap.setSoundAtmosphereMechanical"
-          />
+          <span class="nixie-dev-controls__lbl" title="기계성 (Mechanicalness)">MECHANIC</span>
+          <q-slider :model-value="snapshot.sound_atmosphere_mechanical ?? 0" :min="0" :max="100" dense color="blue-grey-6" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setSoundAtmosphereMechanical" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_mechanical ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="공간감 (Spaciousness)">SPACE</span>
-          <q-slider
-            :model-value="snapshot.sound_atmosphere_space ?? 0"
-            :min="0"
-            :max="100"
-            dense
-            color="cyan-6"
-            class="nixie-dev-controls__slider col"
-            @update:model-value="nmap.setSoundAtmosphereSpace"
-          />
+          <q-slider :model-value="snapshot.sound_atmosphere_space ?? 0" :min="0" :max="100" dense color="cyan-6" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setSoundAtmosphereSpace" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_space ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="활력 (Vitality)">VITALITY</span>
-          <q-slider
-            :model-value="snapshot.sound_atmosphere_vitality ?? 0"
-            :min="0"
-            :max="100"
-            dense
-            color="light-green-5"
-            class="nixie-dev-controls__slider col"
-            @update:model-value="nmap.setSoundAtmosphereVitality"
-          />
+          <q-slider :model-value="snapshot.sound_atmosphere_vitality ?? 0" :min="0" :max="100" dense color="light-green-5" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setSoundAtmosphereVitality" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_vitality ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs nixie-dev-controls__slider-row">
           <span class="nixie-dev-controls__lbl" title="조화 (Harmony)">HARMONY</span>
-          <q-slider
-            :model-value="snapshot.sound_atmosphere_harmony ?? 0"
-            :min="0"
-            :max="100"
-            dense
-            color="amber-7"
-            class="nixie-dev-controls__slider col"
-            @update:model-value="nmap.setSoundAtmosphereHarmony"
-          />
+          <q-slider :model-value="snapshot.sound_atmosphere_harmony ?? 0" :min="0" :max="100" dense color="amber-7" class="nixie-dev-controls__slider col" @update:model-value="nexnap.setSoundAtmosphereHarmony" />
           <span class="text-caption text-grey-4 nixie-dev-controls__num nixie-dev-controls__num--unit">{{ snapshot.sound_atmosphere_harmony ?? 0 }} %</span>
         </div>
         <div class="row items-center no-wrap q-mb-xs q-gutter-x-sm">
@@ -332,15 +278,18 @@
         <div class="text-center q-mb-xs q-px-xs nixie-dev-controls__morse-timeline">
           <div class="nixie-dev-controls__morse-timeline-hint text-grey-7">
             재생 타임라인: 총 {{ morsePlayDurationMsUi }}ms · PARIS <strong>{{ morseParisWpmApproxUi }}</strong> WPM · dit {{ morseDitMsEffective }}ms · dash {{ morseDahMsUi }}ms · 점/대시 {{ morseDitMsEffective }}ms · 글간격 {{ morseInterCharGapMsUi }}ms · 단어(^) {{ morseWordGapMsUi }}ms · 톤
-            {{ morseToneHzEffective }}Hz<template v-if="snapshot.sound_atmosphere_mapping_enabled"><span class="text-grey-5"> (슬라이더 {{ morseToneHzUi }})</span></template> · 볼륨 {{ morseVolumeSlider }}% · 원자 {{ morseAtomicClockLabel }}
+            {{ morseToneHzEffective }}Hz<template v-if="snapshot.sound_atmosphere_mapping_enabled"
+              ><span class="text-grey-5"> (슬라이더 {{ morseToneHzUi }})</span></template
+            >
+            · 볼륨 {{ morseVolumeSlider }}% · 원자 {{ morseAtomicClockLabel }}
           </div>
         </div>
       </div>
     </transition>
 
     <div class="row items-center justify-center q-gutter-x-sm q-mt-xs nixie-dev-controls__action-row">
-      <q-btn dense outline color="primary" size="sm" class="nixie-dev-controls__action-btn" label="스냅샷 기본값" @click="nmap.resetToDefaults()" />
-      <q-btn dense outline color="grey-6" size="sm" class="nixie-dev-controls__action-btn" :label="snapshot.demo_hud_morse_enabled ? '상세 접기' : '상세 펼치기'" @click="nmap.setDemoHudMorseEnabled(!snapshot.demo_hud_morse_enabled)" />
+      <q-btn dense outline color="primary" size="sm" class="nixie-dev-controls__action-btn" label="스냅샷 기본값" @click="nexnap.resetToDefaults()" />
+      <q-btn dense outline color="grey-6" size="sm" class="nixie-dev-controls__action-btn" :label="snapshot.demo_hud_morse_enabled ? '상세 접기' : '상세 펼치기'" @click="nexnap.setDemoHudMorseEnabled(!snapshot.demo_hud_morse_enabled)" />
     </div>
   </div>
 </template>
@@ -348,13 +297,10 @@
 <script setup>
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieUiConfig'
 import { getNixieSoundAtmosphere } from '@system/nixie/nixieSoundAtmosphereParams'
-import {
-  mapNixieSoundAtmosphereToLayerParams,
-  mapNixieSoundAtmosphereToMorseDelta,
-} from '@system/nixie/nixieSoundAtmosphereMap'
+import { mapNixieSoundAtmosphereToLayerParams, mapNixieSoundAtmosphereToMorseDelta } from '@system/nixie/nixieSoundAtmosphereMap'
 import { getNixieSoundLayers } from '@system/nixie/nixieSoundLayerParams'
 import { NIXIE_SOUND_LAYER_PROBE_CARRIER_HZ, startNixieSoundLayerProbe, stopNixieSoundLayerProbe, updateNixieSoundLayerProbeGain } from '@system/nixie/nixieSoundLayerAudio'
-import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
+import { useNexnapSnapshotStore } from '@system/store/nexnapSnapshotStore'
 import { encodeTextToMorseHudText, normalizeDemoHudText, scrollOffsetToCenterToken } from '@system/nixie/nixieDotMap'
 import { buildMorseSoundTimeline, buildMorseSoundTimelineWithMeta, clampMorseDitMs, morseTimelineTotalMs } from '@system/nixie/morseTimeline'
 // DSP 실험 경로 보관: @system/nixie/morseWebAudioDsp (현재 미사용)
@@ -372,9 +318,9 @@ defineProps({
   },
 })
 
-const nmap = useNmapSnapshotStore()
+const nexnap = useNexnapSnapshotStore()
 const $q = useQuasar()
-const { snapshot } = storeToRefs(nmap)
+const { snapshot } = storeToRefs(nexnap)
 const hasHangulChar = /[\u3131-\u318e\uac00-\ud7a3]/
 const hudDraft = ref('')
 const hudInputEl = ref(null)
@@ -438,7 +384,7 @@ const hudMarqueeSpeedUi = computed(() => {
 const hudMarqueeSpeedUiRounded = computed(() => `${Math.round(hudMarqueeSpeedUi.value)}`)
 
 function commitHudMarqueeSpeedUi(ui) {
-  nmap.setHudMarqueeIntervalMs(HUD_MARQUEE_MS_SUM - Math.round(Number(ui)))
+  nexnap.setHudMarqueeIntervalMs(HUD_MARQUEE_MS_SUM - Math.round(Number(ui)))
 }
 
 /** 모스 슬라이더: 드래그는 로컬만, 손 뗄 때(@change) 스토어·재생 반영 */
@@ -484,11 +430,7 @@ const nixieSoundLayers = computed(() =>
 )
 
 /** §8 M-E: 매핑 ON → 의미 벡터에서 온 DSP 목표, OFF → 4축 슬라이더 */
-const effectiveNixieSoundLayers = computed(() =>
-  atmosphereMappingEnabled.value
-    ? mapNixieSoundAtmosphereToLayerParams(nixieSoundAtmosphere.value)
-    : nixieSoundLayers.value,
-)
+const effectiveNixieSoundLayers = computed(() => (atmosphereMappingEnabled.value ? mapNixieSoundAtmosphereToLayerParams(nixieSoundAtmosphere.value) : nixieSoundLayers.value))
 
 function onSoundLayerProbeToggle(on) {
   soundLayerProbeOn.value = on
@@ -588,9 +530,7 @@ const morseToneHzEffective = computed(() => {
 })
 
 /** 매핑 ON일 때만 0~1 — 모스 보조 불협 오실 */
-const morseUncanniness01ForAudio = computed(() =>
-  atmosphereMappingEnabled.value ? nixieSoundAtmosphere.value.uncanniness01 : 0,
-)
+const morseUncanniness01ForAudio = computed(() => (atmosphereMappingEnabled.value ? nixieSoundAtmosphere.value.uncanniness01 : 0))
 const morseAtomicClockLabel = computed(() => {
   const key = snapshot.value.morse_atomic_clock
   const found = morseAtomicClockOptions.find((x) => x.key === key)
@@ -619,7 +559,7 @@ function onMorsePlayClick() {
     stopMorsePlayback()
     return
   }
-  if (!snapshot.value.demo_hud_morse_enabled) nmap.setDemoHudMorseEnabled(true)
+  if (!snapshot.value.demo_hud_morse_enabled) nexnap.setDemoHudMorseEnabled(true)
   if (canPlayMorsePreview.value) {
     void playMorsePreview()
     return
@@ -673,13 +613,13 @@ async function playMorsePreview() {
             lastHudScrollDedupe = scroll
             lastHudTokenDedupe = tok
             lastHudScroll = scroll
-            nmap.setMorsePlaybackHudFrame(scroll, tok)
+            nexnap.setMorsePlaybackHudFrame(scroll, tok)
           }
           return
         }
 
         if (tok < 0) {
-          nmap.setMorsePlaybackHudFrame(lastHudScroll, -1, { accentActive: false })
+          nexnap.setMorsePlaybackHudFrame(lastHudScroll, -1, { accentActive: false })
           return
         }
 
@@ -687,10 +627,10 @@ async function playMorsePreview() {
         if (e.kind === 'dot' || e.kind === 'dash') {
           const r = eventHudCharRange[eventIndex]
           if (r && r.end > r.start) {
-            nmap.setMorsePlaybackHudFrame(scrollForTok, tok, { highlightCharRange: r })
+            nexnap.setMorsePlaybackHudFrame(scrollForTok, tok, { highlightCharRange: r })
           }
         } else {
-          nmap.setMorsePlaybackHudFrame(scrollForTok, tok, { accentActive: false })
+          nexnap.setMorsePlaybackHudFrame(scrollForTok, tok, { accentActive: false })
         }
       }
 
@@ -703,7 +643,7 @@ async function playMorsePreview() {
         soundLayers: effectiveNixieSoundLayers.value,
         onAfterPrepare: () => {
           if (!syncHud) return
-          nmap.beginMorsePlaybackHudSync({
+          nexnap.beginMorsePlaybackHudSync({
             generation: gen,
             restoreScroll: snapshot.value.demo_hud_scroll_offset ?? 0,
           })
@@ -718,7 +658,7 @@ async function playMorsePreview() {
                 lastHudScrollDedupe = scroll
                 lastHudTokenDedupe = tok
                 lastHudScroll = scroll
-                nmap.setMorsePlaybackHudFrame(scroll, tok, { highlightCharRange: r })
+                nexnap.setMorsePlaybackHudFrame(scroll, tok, { highlightCharRange: r })
               }
             }
           } else {
@@ -730,7 +670,7 @@ async function playMorsePreview() {
               lastHudScrollDedupe = scroll
               lastHudTokenDedupe = tok
               lastHudScroll = scroll
-              nmap.setMorsePlaybackHudFrame(scroll, tok)
+              nexnap.setMorsePlaybackHudFrame(scroll, tok)
             }
           }
         },
@@ -742,10 +682,10 @@ async function playMorsePreview() {
             }
           },
           onComplete: () => {
-            if (syncHud) nmap.endMorsePlaybackHudSync()
+            if (syncHud) nexnap.endMorsePlaybackHudSync()
           },
           onStopped: () => {
-            if (syncHud) nmap.endMorsePlaybackHudSync()
+            if (syncHud) nexnap.endMorsePlaybackHudSync()
           },
         },
       })
@@ -784,7 +724,7 @@ watch(morseDitMsEffective, (dit, prev) => {
 })
 
 function onMorseDitSliderChange(val) {
-  nmap.setMorseDitMs(val)
+  nexnap.setMorseDitMs(val)
   if (morsePlaying.value) {
     morsePlayGeneration += 1
     stopMorsePlayback({ immediate: true })
@@ -794,11 +734,11 @@ function onMorseDitSliderChange(val) {
 
 function onMorseToneSliderChange(val) {
   const hz = toneSliderPosToHz(val)
-  nmap.setMorseToneHz(hz)
+  nexnap.setMorseToneHz(hz)
 }
 
 function onMorseVolumeSliderChange(val) {
-  nmap.setMorseVolume(val)
+  nexnap.setMorseVolume(val)
   setMorseMasterGainLinear((Math.max(0, Math.min(100, val)) / 100) * MORSE_MASTER_GAIN_MAX)
 }
 
@@ -821,14 +761,14 @@ function pullMorsePlayheadProgress() {
 
 /** @param pan {-1|0|1} L / ALL / R */
 function commitMorseStereoPan(pan) {
-  nmap.setMorseStereoPan(pan)
+  nexnap.setMorseStereoPan(pan)
   setMorseStereoPanValue(pan)
 }
 
 function commitMorseAtomicClock(key) {
   if (!key) return
   const wasPlaying = morsePlaying.value
-  nmap.setMorseAtomicClock(key)
+  nexnap.setMorseAtomicClock(key)
   const nextDit = morseAtomicClockDitPresetMs[key] ?? 60
   /** 버튼 클릭 즉시: 슬라이더 핸들 + 실제 DIT 적용(재생 중이면 재시작) */
   morseDitSlider.value = nextDit
@@ -892,7 +832,7 @@ watch(
 )
 
 function commitHudText() {
-  nmap.setDemoHudText(hudDraft.value)
+  nexnap.setDemoHudText(hudDraft.value)
 }
 
 function onHudBlur() {

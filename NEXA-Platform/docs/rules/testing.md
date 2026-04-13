@@ -23,7 +23,7 @@
 
 ## 3. NEXA 도메인 무결성 검증
 
-- **HEXAGON 패킷**: N-MAP 패킷이 6축(5W1H) 구조를 갖추었는지 Zod 스키마로 검증
+- **HEXAGON 패킷**: Nexnap 패킷이 6축(5W1H) 구조를 갖추었는지 Zod 스키마로 검증
 - **Identity 불변성**: `nexa_identities` 레코드의 변경 시도를 차단하는 검증 로직 필수
 - **N-PATH 정합성**: 경로 참조가 유효한 `path_id`를 가리키는지 확인
 

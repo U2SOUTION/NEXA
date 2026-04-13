@@ -68,7 +68,7 @@ CREATE TABLE project_settings (
     precision_level SMALLINT DEFAULT 1,    -- 0=엄밀(기계), 1=균형(스마트팜), 2=느슨(아트)
     batch_policy JSONB,                   -- 배칭 규칙: max_batch_size, flush_ms, 우선순위 등
     retention_period_days INTEGER,        -- 로그·캐시 보관 일수
-    user_defined_threshold SMALLINT DEFAULT 95, -- [NEXA-N-MAP-01] Autonomy Threshold(확신도 실행 게이트). 기본 95, UI에서 ±15% 범위 조정
+    user_defined_threshold SMALLINT DEFAULT 95, -- [NEXA-Nexnap-01] Autonomy Threshold(확신도 실행 게이트). 기본 95, UI에서 ±15% 범위 조정
     -- settings_data: JSONB 내부 키로 확장 가능한 프로젝트 정책/파라미터를 저장
     -- 확장 키 예시: confidence_threshold(0~100) — 외부 자원 신뢰도 임계값 등
     settings_data JSONB DEFAULT jsonb_build_object('confidence_threshold', 70),
@@ -139,7 +139,7 @@ CREATE TABLE project_logs (
     why_causality SMALLINT,       -- Why: 코일 밸런서(Coil Balancer) 필터 거친 판단 카테고리
     -- 지능형 서사
     summary TEXT,                 -- Indicator Insight: TTS용 부드러운 조언 문장
-    why_chain JSONB,              -- 지능적 족보: 인과 사슬. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·N-MAP 후보) 노드 구성. [NEXU-SCHEMA]
+    why_chain JSONB,              -- 지능적 족보: 인과 사슬. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·Nexnap 후보) 노드 구성. [NEXU-SCHEMA]
     -- 신뢰도 (Confidence Score)
     confidence_score SMALLINT,    -- 0~100. TICK/ECHO/WILL/ASK 주체별 확신도. project_settings.user_defined_threshold 미만이면 Jitter 연출·ASK(승인 대기) 토큰 근거로 사용. [데이터 신뢰도 초안 §1]
     -- 물리/보안
@@ -151,10 +151,10 @@ CREATE TABLE project_logs (
     PRIMARY KEY (log_id, created_at)
 );
 SELECT create_hypertable('project_logs', 'created_at');
-COMMENT ON COLUMN project_logs.why_chain IS '지능적 족보(Why Chain): 인과 사슬 JSONB. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·N-MAP 후보) 노드 구성. 인디케이터가 일관된 추론 근거를 남기도록 [NEXU-SCHEMA] 규격 준수.';
-COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비가시적 여백. how_state=3(VOID)은 유지하고, extra_data->>''void_stage''로 POTENTIAL/ARCHIVE/PURGE 세분화한다. 또한 stage 기준 시각은 extra_data->>''void_stage_started_at''(timestamptz ISO 문자열)을 사용한다(없으면 created_at). (전이/보존 정책: [NEXA-N-MAP-04])';
+COMMENT ON COLUMN project_logs.why_chain IS '지능적 족보(Why Chain): 인과 사슬 JSONB. inputs(신호 ref_id), reasoning(로직/판단 근거), effects(액션·표정·Nexnap 후보) 노드 구성. 인디케이터가 일관된 추론 근거를 남기도록 [NEXU-SCHEMA] 규격 준수.';
+COMMENT ON COLUMN project_logs.how_state IS 'How 동태 상태. VOID=잠재/비가시적 여백. how_state=3(VOID)은 유지하고, extra_data->>''void_stage''로 POTENTIAL/ARCHIVE/PURGE 세분화한다. 또한 stage 기준 시각은 extra_data->>''void_stage_started_at''(timestamptz ISO 문자열)을 사용한다(없으면 created_at). (전이/보존 정책: [NEXA-Nexnap-04])';
 
--- [NEXA-N-MAP-04] VOID 전이 임계치(프로젝트 로그 기반 상태 전환/보존/삭제)
+-- [NEXA-Nexnap-04] VOID 전이 임계치(프로젝트 로그 기반 상태 전환/보존/삭제)
 -- - Sentinel(TICK): FLOW→STUCK(30초 무갱신) → STUCK→VOID.POTENTIAL(5분 지속) → VOID.POTENTIAL→VOID.ARCHIVE(24시간 경과) → VOID.ARCHIVE→VOID.PURGE(30일, why_chain.inputs/Ref ID가 없을 때)
 -- - Indicator(ECHO/WILL): FLOW→STUCK(1시간 무응답) → STUCK→VOID.POTENTIAL(세션 명시 종료 즉시 또는 24시간) → VOID.POTENTIAL→VOID.ARCHIVE(90일) → VOID.ARCHIVE→VOID.PURGE(365일)
 -- - Shadow Project(TRIAL): VOID.ARCHIVE 생략, STUCK/VOID.POTENTIAL 이후 7일 경과 시 VOID.PURGE 이행 가능(휘발성 강화)

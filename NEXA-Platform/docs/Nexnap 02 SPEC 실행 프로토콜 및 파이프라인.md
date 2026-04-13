@@ -1,13 +1,14 @@
-# [NEXA-N-MAP-02] 실행 프로토콜 및 파이프라인
+# [NEXA-Nexnap-02] 실행 프로토콜 및 파이프라인
 
-> 본 문서는 `- nexa N-MAP Protocol.md`와 `- nexa N-MAP 차별화된 구조는 무엇인가.md`를 통합한 실행 중심 규격서이다.  
+> 본 문서는 `- nexa Nexnap Protocol.md`와 `- nexa Nexnap 차별화된 구조는 무엇인가.md`를 통합한 실행 중심 규격서이다.  
 > 철학/구조/알고리즘/UX를 한 파이프라인으로 정리 한다.
+> 이 문서는 실행 사슬'의 생명주기를 다루고 있고 **"UCL 실행 사슬 및 Nexnap 전송 규격"** 에 관한 문서다
 
 ---
 
 ## 0) 목적
 
-NEXA N-MAP은 입력을 해석하는 파서가 아니라, **사람의 의도(WILL)와 시스템 판단(ECHO), 실행 결과(EFFECT)**를 하나의 실행 사슬로 묶는 프로토콜이다.
+NEXA Nexnap은 입력을 해석하는 파서가 아니라, **사람의 의도(WILL)와 시스템 판단(ECHO), 실행 결과(EFFECT)**를 하나의 실행 사슬로 묶는 프로토콜이다.
 
 - 멀티모달 입력을 HEXAGON(5W1H)으로 표준화
 - 컨텍스트/룰 충돌을 선제적으로 검토
@@ -42,31 +43,31 @@ Level 3: AI 제안 규칙 (승인 후 반영)
 
 ---
 
-## 2) N-MAP 5단계 실행 파이프라인
+## 2) Nexnap 5단계 실행 파이프라인
 
 ### 2.0 실행 사슬(Execution Chain) 생명주기와 실시간 동기화
 
-파이프라인은 **전달만** 하는 것이 아니라, [NEXA-N-MAP-04]에 정의된 **`execution_chains` · `execution_steps`**의 생명주기를 **실시간으로 관장**한다.  
+파이프라인은 **전달만** 하는 것이 아니라, [NEXA-Nexnap-04]에 정의된 **`execution_chains` · `execution_steps`**의 생명주기를 **실시간으로 관장**한다.  
 각 단계 전환 시 `ucl_packet.ucl_header.how_state`와 DB `execution_chains.how_state`는 동일 의미로 동기화한다(SMALLINT: FLOW, STUCK, VOID).
 
 **5단계 파이프라인 ↔ `how_state` 연동(원칙)**
 
-| 단계                  | 역할                  | `how_state` (실시간)                                                                          | 비고                                   |
-| --------------------- | --------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------- |
-| **Listen**            | 입력 표준화·패킷 창립 | **FLOW**                                                                                      | 실행 사슬 생성·진행 중                 |
-| **Context Awareness** | 상태/룰 대조          | **FLOW** (정상) / **STUCK** (충돌·지연·저확신으로 진행 불가)                                  | STUCK 시 인디케이터·ASK 트리거 가능    |
-| **Decision Making**   | 실행 모드 확정        | **FLOW** (즉시 실행) / **STUCK** (승인 대기·ASK) / **VOID** (영감 모드·맥락 플러시 후 재시작) | VOID는 “삭제”가 아닌 잠재 상태(N-MAP-04) |
-| **Adapter Execution** | 논리→네이티브 실행    | **FLOW** / **STUCK** (어댑터 실패·타임아웃)                                                   | `execution_steps`에 원자 스텝 기록     |
-| **Feedback Loop**     | 결과·학습 반영        | **FLOW** / **VOID** (세션 종료·아카이브로의 전환)                                             | 피드백 완료 후 사슬 정리               |
+| 단계                  | 역할                  | `how_state` (실시간)                                                                          | 비고                                      |
+| --------------------- | --------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| **Listen**            | 입력 표준화·패킷 창립 | **FLOW**                                                                                      | 실행 사슬 생성·진행 중                    |
+| **Context Awareness** | 상태/룰 대조          | **FLOW** (정상) / **STUCK** (충돌·지연·저확신으로 진행 불가)                                  | STUCK 시 인디케이터·ASK 트리거 가능       |
+| **Decision Making**   | 실행 모드 확정        | **FLOW** (즉시 실행) / **STUCK** (승인 대기·ASK) / **VOID** (영감 모드·맥락 플러시 후 재시작) | VOID는 “삭제”가 아닌 잠재 상태(Nexnap-04) |
+| **Adapter Execution** | 논리→네이티브 실행    | **FLOW** / **STUCK** (어댑터 실패·타임아웃)                                                   | `execution_steps`에 원자 스텝 기록        |
+| **Feedback Loop**     | 결과·학습 반영        | **FLOW** / **VOID** (세션 종료·아카이브로의 전환)                                             | 피드백 완료 후 사슬 정리                  |
 
 - **동기화 대상:** 오케스트레이터는 패킷 생성 시점에 `execution_chains` 행을 upsert하고, 단계마다 `how_state`·`updated_at`·필요 시 `why_chain`을 갱신한다.
-- **스텝 단위:** `execution_steps.step_status`는 스텝별 FLOW/STUCK/COMPLETED/FAILED/VOID로 세분화한다(N-MAP-04 DDL 맥락).
+- **스텝 단위:** `execution_steps.step_status`는 스텝별 FLOW/STUCK/COMPLETED/FAILED/VOID로 세분화한다(Nexnap-04 DDL 맥락).
 
 ---
 
 ### 2.0.1 영어 커널 — 파이프라인 IR vs 사용자 Summary
 
-[N-MAP-01] **영어 커널 / 다국어 쉘** 전략에 맞춘다.
+[Nexnap-01] **영어 커널 / 다국어 쉘** 전략에 맞춘다.
 
 | 구분                                                               | 언어                     | 내용                             |
 | ------------------------------------------------------------------ | ------------------------ | -------------------------------- |
@@ -147,10 +148,10 @@ Level 3: AI 제안 규칙 (승인 후 반영)
 - **일꾼:** 오케스트레이터가 지시하는 실행 주체의 상위 개념
 - **워커:** 내부 정규화/가공/라우팅 담당(외부 장치 직접 실행 금지)
 - **어댑터:** 외부 실행 경계(기기/API/서비스) 호출 담당
-- 정책 판단(허용/차단/우회)은 오케스트레이터/N-MAP 의사결정 레이어가 담당하며, 어댑터는 승인된 실행 번들을 재판단 없이 수행한다.
+- 정책 판단(허용/차단/우회)은 오케스트레이터/Nexnap 의사결정 레이어가 담당하며, 어댑터는 승인된 실행 번들을 재판단 없이 수행한다.
 
 ```
-N-MAP logical command -> adapter registry -> domain adapter -> native API
+Nexnap logical command -> adapter registry -> domain adapter -> native API
 ```
 
 핸드오프 필수 필드(Worker -> Adapter):
@@ -176,7 +177,7 @@ N-MAP logical command -> adapter registry -> domain adapter -> native API
 - 단기: 반복 패턴 기반 룰 제안(승인 후 반영)
 - 장기: 전체 패턴 분석 -> 어댑터/룰/플랫폼 진화 제안
 
-## 2.6 N-MAP 패킷 구조 엄격 명세 (JSONB Key/Type)
+## 2.6 Nexnap 패킷 구조 엄격 명세 (JSONB Key/Type)
 
 실행 계층 간 통신은 아래 `ucl_packet` JSONB 계약을 기본으로 한다.
 
@@ -238,7 +239,7 @@ N-MAP logical command -> adapter registry -> domain adapter -> native API
 오케스트레이터가 Agent A -> Agent B로 태스크를 넘길 때, 컨텍스트를 아래 3등급으로 분리한다.
 
 **`actor_type` · 권한 상속 (Must-Pass 필수)**  
-[N-MAP-04] `execution_chains` DDL 맥락: `actor_type` ∈ `USER` | `DEVICE` | `AGENT`, `actor_id`는 해당 유형의 UUID다. 핸드오버 시 아래를 **반드시** Must-Pass에 포함한다.
+[Nexnap-04] `execution_chains` DDL 맥락: `actor_type` ∈ `USER` | `DEVICE` | `AGENT`, `actor_id`는 해당 유형의 UUID다. 핸드오버 시 아래를 **반드시** Must-Pass에 포함한다.
 
 | 필드                                                           | 의미           | 상속 규칙                                                                                                                                                             |
 | -------------------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -285,7 +286,7 @@ Must-Pass JSONB 예시 키(핸드오버 확장):
 - `handover.pass_level` (`must` | `must+may`)
 - `handover.expire_at` (휘발 컨텍스트 만료 시각)
 
-## 2.8 어댑터 실패 -> N-MAP 에러 토큰 매핑
+## 2.8 어댑터 실패 -> Nexnap 에러 토큰 매핑
 
 어댑터 실행 실패는 그대로 문자열로 두지 않고 `error_token`으로 재정규화하여 피드백 루프/의사결정으로 재투입한다.
 
@@ -335,7 +336,7 @@ Must-Pass JSONB 예시 키(핸드오버 확장):
 
 ---
 
-## 3) 차별화 포인트: 질문지 없는 Ambient N-MAP
+## 3) 차별화 포인트: 질문지 없는 Ambient Nexnap
 
 기존 “질문-답변 온보딩” 대신, **비침습 Self facet (자아의 단면) 기반 수동 유도**를 채택한다.
 
@@ -370,10 +371,10 @@ Self facet (자아의 단면) 타입(예):
 1. **Listen:** 클릭 이벤트를 입력으로 수집; Self facet (자아의 단면)에 매핑된 프리셋 ID(예: `now_persona_v3`)를 IR에 합친다.
 2. **Awareness:** 현재 세션·프로젝트·디바이스 상태와 Level 0~3 룰을 대조; 충돌 시 **STUCK**으로 전환해 ASK만 띄운다(긴 질문지 없음).
 3. **Decision:** Self facet (자아의 단면)가 의미하는 **의도 묶음**(예: “집중 모드”, “가벼운 대화”)을 `what_intent`·`why_causality`에 반영; 승인이 필요 없으면 **FLOW** 유지.
-4. **역방향 분해(동시):** §4의 1~5단계를 한 번에 실행 — HEXAGON 토큰 재작성, 코일(Source/Domain/Project) 재조정, 에이전트·페르소나 전환, N-MAP 후보 블록 생성, `how_state`가 VOID가 아니면 WILL/즉시 실행 경로 반영.
+4. **역방향 분해(동시):** §4의 1~5단계를 한 번에 실행 — HEXAGON 토큰 재작성, 코일(Source/Domain/Project) 재조정, 에이전트·페르소나 전환, Nexnap 후보 블록 생성, `how_state`가 VOID가 아니면 WILL/즉시 실행 경로 반영.
 5. **Execution / Feedback:** `execution_chains`에 사슬 기록; 사용자에게는 **한국어 Summary**(Self facet (자아의 단면) 확인 문구 + 한 줄 요약)만 노출하고, 내부 IR은 영문 유지(2.0.1).
 
-이 흐름이 **Ambient N-MAP**: 질문 리스트 없이 **행동 1회 = 의미 재구성**이다.
+이 흐름이 **Ambient Nexnap**: 질문 리스트 없이 **행동 1회 = 의미 재구성**이다.
 
 ---
 
@@ -384,7 +385,7 @@ Self facet (자아의 단면) 클릭 1회가 내부에서 다음을 동시 수�
 1. HEXAGON 토큰 재구성 (**영문 IR 기준**으로 정규화, 2.0.1)
 2. 코일 밸런서 재조정(Source/Domain/Project)
 3. 에이전트/페르소나 전환
-4. N-MAP 후보 블록 생성
+4. Nexnap 후보 블록 생성
 5. 실행 전 ASK/WILL 상태 반영
 
 즉, 사용자에게는 단순한 선택으로 보이지만, 내부적으로는 **의도-상태-실행 경로를 재합성**한다.  
@@ -398,7 +399,7 @@ Self facet (자아의 단면) 클릭 1회가 내부에서 다음을 동시 수�
 
 - 컨텍스트 플러시(선입관 완화)
 - 관찰 모드(저자극 표현: Lumina/Jitter)
-- 자아 파노라마(N-MAP 템플릿/오케스트라 후보) 제시
+- 자아 파노라마(Nexnap 템플릿/오케스트라 후보) 제시
 - 선택 시 ASK -> WILL 승격 후 실행 사슬 연결
 
 ---
@@ -429,9 +430,9 @@ Self facet (자아의 단면) 클릭 1회가 내부에서 다음을 동시 수�
 
 ## 7) 데이터·스키마 연계 포인트
 
-**실시간 실행 계층 ([NEXA-N-MAP-04])**
+**실시간 실행 계층 ([NEXA-Nexnap-04])**
 
-- `execution_chains`: N-MAP 패킷 단위 사슬, `how_state`(FLOW/STUCK/VOID), `actor_type`/`actor_id`, `why_chain`
+- `execution_chains`: Nexnap 패킷 단위 사슬, `how_state`(FLOW/STUCK/VOID), `actor_type`/`actor_id`, `why_chain`
 - `execution_steps`: 원자 스텝, `step_status`, `is_virtual`, 타임머신 스냅샷
 - `execution_logs`: 어댑터 응답·지연·에러 토큰 시계열
 
@@ -447,7 +448,7 @@ Why Chain 권장 구조:
 
 - `inputs` (신호/근거 ref)
 - `reasoning` (판단 로직)
-- `effects` (액션/표정/N-MAP 결과)
+- `effects` (액션/표정/Nexnap 결과)
 
 ---
 
@@ -463,7 +464,7 @@ Why Chain 권장 구조:
 
 ## 9) 결론
 
-N-MAP은 단순 파서가 아니라,  
+Nexnap은 단순 파서가 아니라,  
 **철학(Principle) -> 구조(Role/Rule) -> 판단(Matrix) -> 실행(Adapter) -> 성장(Feedback)**  
 으로 이어지는 실행 프로토콜이다.
 

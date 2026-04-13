@@ -1,0 +1,41 @@
+/* VS Code 내장 미리보기 + MPE — 가로 제한·기본 패딩 완화 */
+html,
+body {
+  max-width: none !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.markdown-body {
+  max-width: none !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+.markdown-preview.markdown-preview,
+.markdown-preview-enhanced,
+.markdown-preview-enhanced .markdown-body,
+.markdown-preview-enhanced .markdown-preview,
+body .markdown-body {
+  max-width: none !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* 본문만 그레이 톤 (다크/라이트 — html/body 테마 클래스 대응) */
+html.vscode-dark body,
+body.vscode-dark,
+html.vscode-dark .markdown-body,
+body.vscode-dark .markdown-body {
+  color: #b0b0b0 !important;
+}
+html.vscode-light body,
+body.vscode-light,
+html.vscode-light .markdown-body,
+body.vscode-light .markdown-body {
+  color: #5a5a5a !important;
+}

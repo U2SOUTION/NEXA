@@ -1,12 +1,18 @@
+## 기획 문서 (SSOT)
+
+**Tone.js · P5.js 갈아타기 전략** 전문은 `docs/Nexion/Tone.js+P5.js 기반 갈아타기 전략.md` 한 곳만 유지한다. 이 코드 폴더(`src/system/nixie`)에 동명 `.md`를 두지 않는다(분기·충돌 방지).
+
+---
+
 ## Nixie 맥락에서의 “스냅샷”
 
-여기서 **스냅샷**은 **화면 캡처**나 **디버그 덤프**가 아니라, **N-MAP(Nexion 맵) 쪽에서 정의한 “한 시점의 상태 묶음”**을 코드로 옮긴 **`NmapSnapshot` 객체 하나**를 가리킵니다. Pinia 스토어 `useNmapSnapshotStore`의 `snapshot`이 그 본체입니다.
+여기서 **스냅샷**은 **화면 캡처**나 **디버그 덤프**가 아니라, **Nexnap(Nexion 맵) 쪽에서 정의한 “한 시점의 상태 묶음”**을 코드로 옮긴 **`NexnapSnapshot` 객체 하나**를 가리킵니다. Pinia 스토어 `useNexnapSnapshotStore`의 `snapshot`이 그 본체입니다.
 
-```14:18:e:\NEXA System\NEXA\NEXA-Platform\src\system\store\nmapSnapshotStore.ts
+```14:18:e:\NEXA System\NEXA\NEXA-Platform\src\system\store\nexnapSnapshotStore.ts
 /**
  * 시뮬: Nexion 스냅샷 형식.
  * `morse_dit_ms` / `morse_tone_hz` / `morse_volume` 은 HUD·미리듣기·타임라인에 쓰이며,
- * 향후 N-MAP 상황(entropy·confidence·how_state 등)에 따라 덮어쓰기·보간하는 매핑은 본편 닉시 단계에서 별도 모듈로 둘 예정(현재 미연결).
+ * 향후 Nexnap 상황(entropy·confidence·how_state 등)에 따라 덮어쓰기·보간하는 매핑은 본편 닉시 단계에서 별도 모듈로 둘 예정(현재 미연결).
  */
 ```
 
@@ -15,7 +21,7 @@
 - **Nexion 쪽 개념(시뮬)**: `how_state`, `who_pulse`, `confidence_score`, `entropy_level`, `warn_token`, `source_shell_id` 등 **“상황·맥락”** 필드.
 - **Nixie가 실제로 쓰는 값**: `demo_hud_text`, 스크롄·마퀴(`demo_hud_scroll_offset`, `hud_marquee_interval_ms`), 모스 재생·HUD 동기(`morse_*`, `morse_playback_*`) 등 **표시·오디오·타임라인**에 직결되는 필드.
 
-즉 **“백엔드가 나중에 줄 N-MAP 스냅샷”을 미리 맞춰 둔 평면 JSON에 가까운 상태**이고, 지금은 **개발 패널·시뮬**로 그걸 채우고 닉시가 구독하는 구조입니다.
+즉 **“백엔드가 나중에 줄 Nexnap 스냅샷”을 미리 맞춰 둔 평면 JSON에 가까운 상태**이고, 지금은 **개발 패널·시뮬**로 그걸 채우고 닉시가 구독하는 구조입니다.
 
 ### 어떻게 갱신되는가
 
@@ -23,7 +29,7 @@
 
 ### 정리 한 줄
 
-**Nixie에서의 스냅샷 = 닉시·HUD·모스가 함께 참조하는 “N-MAP 상태 단일 레코드”이며, 현재는 시뮬/개발용으로 채워지고, 나중에 Nexion/N-MAP과 붙일 때의 계약 형태를 염두에 둔 것이다.**
+**Nixie에서의 스냅샷 = 닉시·HUD·모스가 함께 참조하는 “Nexnap 상태 단일 레코드”이며, 현재는 시뮬/개발용으로 채워지고, 나중에 Nexion/Nexnap과 붙일 때의 계약 형태를 염두에 둔 것이다.**
 
 # 한글 모스부호 (SKATS 기반)
 

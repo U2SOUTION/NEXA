@@ -15,6 +15,12 @@ export const NIXIE_GLYPH_H = 5
 export const NIXIE_HUD_LOWER_ROWS = 7
 export const NIXIE_GLYPH_GAP_COLS = 1
 
+/**
+ * P5 등 **시각 레이어** 전용: 실측이 없는 구간을 절차적으로 채우는 모드 식별 문자열.
+ * NEXA OS의 VOID 생애주기·`how_state === 'VOID'` 와 이름·의미를 공유하지 않는다(네임스페이스 분리).
+ */
+export const NIXIE_VISUAL_PROCEDURAL_GAP = 'PROCEDURAL_VOID' as const
+
 const EMPTY_FALLBACK: string[] = ['00000', '00000', '00000', '00000', '00000']
 
 /** 마퀴 무한 루프용: 사용자 입력에 없는 PUA. `normalizeDemoHudText` 에서 제거되지 않도록 비입력 전용.*/

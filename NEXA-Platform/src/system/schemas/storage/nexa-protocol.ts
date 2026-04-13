@@ -10,9 +10,17 @@
  * 소형 AI가 즉시 파싱할 수 있도록 데이터의 본질을 정의하는 헤더 토큰입니다.
  */
 export type WhereScope = 'CORE' | 'FIELD' | 'REALM' // 데이터의 영향 범위 및 권위
-export type WhoPulse = 'WILL' | 'ECHO' | 'TICK' // 사건의 동력원 (의지, 피드백, 자동)
+/**
+ * Nexnap / 스냅샷 `who_pulse` — 의지·피드백·게이트·센티널 사실을 한 축에 두되 **역할은 주석과 용어집으로 구분**한다.
+ * - WILL: 확정 의지·실선 동력
+ * - ECHO: AI/해석·제안 피드백
+ * - ASK: 신뢰도 게이트·승인 대기(운영 규약의 STUCK→ASK)
+ * - TICK: 엣지 센티널·장치·시계열에서 온 **순수 사실 펄스**(브리지·인입 시 누락하면 사운드/시각 파이프가 끊기기 쉬움)
+ */
+export type WhoPulse = 'WILL' | 'ECHO' | 'ASK' | 'TICK'
 export type WhatIntent = 'FACT' | 'LINK' | 'RULE' // 데이터의 본질적 성질
-export type HowState = 'FLOW' | 'STUCK' | 'VOID' // 시스템 내 에너지 상태
+/** 흐름·에너지 상태 — UI·스냅샷 `how_state`. OS 생애주기 용어 VOID(POTENTIAL/ARCHIVE/PURGE)와 동명이의이므로 문서·코드에서 축을 분리한다. */
+export type HowState = 'FLOW' | 'STUCK' | 'VOID'
 
 /**
  * 2. 넥사 유니버설 네이처 (Nexa Nature)

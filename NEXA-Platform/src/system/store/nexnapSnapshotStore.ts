@@ -1,10 +1,10 @@
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieUiConfig'
 import { encodeTextToMorseHudText, hudTapePeriodWidthCols, normalizeDemoHudText, textFitsCompletelyInGrid } from '@system/nixie/nixieDotMap'
+import type { HowState, WhoPulse } from '@system/schemas/storage/nexa-protocol'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
-export type HowState = 'FLOW' | 'STUCK' | 'VOID'
-export type WhoPulse = 'WILL' | 'ECHO' | 'ASK'
+export type { HowState, WhoPulse } from '@system/schemas/storage/nexa-protocol'
 
 /** 모스 미리듣기 스테레오: L=-1, ALL(중앙)=0, R=1 — Web Audio `StereoPannerNode.pan` */
 export type MorseStereoPan = -1 | 0 | 1
@@ -14,10 +14,10 @@ export type MorseAtomicClockKey = 'H_1420MHz' | 'Cs_9192631770Hz' | 'Rb_68346826
 /**
  * 시뮬: Nexion 스냅샷 형식.
  * `morse_dit_ms` / `morse_tone_hz` / `morse_volume` 은 HUD·미리듣기·타임라인에 쓰이며,
- * 향후 N-MAP 상황(entropy·confidence·how_state 등)에 따라 덮어쓰기·보간하는 매핑은 본편 닉시 단계에서 별도 모듈로 둘 예정(현재 미연결).
+ * 향후 Nexnap 상황(entropy·confidence·how_state 등)에 따라 덮어쓰기·보간하는 매핑은 본편 닉시 단계에서 별도 모듈로 둘 예정(현재 미연결).
  * §8 M-F: 의미 6축(0~100)·의미→DSP·모스 토글 — `getNixieSoundAtmosphere` / 매핑 모듈 입력 SSOT.
  */
-export type NmapSnapshot = {
+export type NexnapSnapshot = {
   schemaVersion: number
   how_state: HowState
   who_pulse: WhoPulse
@@ -93,7 +93,7 @@ function clampUi100(n: number): number {
 }
 
 /** §8 M-F — `applyPatch`마다 보정. 구버전·부분 객체에 키가 없으면 spread 후에도 `undefined`가 남아 UI(토글·슬라이더)가 깨짐 */
-function ensureSoundAtmosphereFields(next: NmapSnapshot): NmapSnapshot {
+function ensureSoundAtmosphereFields(next: NexnapSnapshot): NexnapSnapshot {
   const d = defaultSnapshot()
   const t = next.sound_atmosphere_tension
   const u = next.sound_atmosphere_uncanniness
@@ -116,7 +116,7 @@ function ensureSoundAtmosphereFields(next: NmapSnapshot): NmapSnapshot {
 }
 
 /** 시뮬: 기본 스냅샷 */
-function defaultSnapshot(): NmapSnapshot {
+function defaultSnapshot(): NexnapSnapshot {
   return {
     schemaVersion: 2,
     how_state: 'FLOW',
@@ -168,12 +168,12 @@ export type MorsePlaybackHudFrameOptions = {
 }
 
 /** 시뮬: Nexion 스냅샷 관리 스토어 */
-export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
-  const snapshot: Ref<NmapSnapshot> = ref(defaultSnapshot())
+export const useNexnapSnapshotStore = defineStore('nexnapSnapshot', () => {
+  const snapshot: Ref<NexnapSnapshot> = ref(defaultSnapshot())
   /** Nebula 시뮬 시 Nixie 쪽에서 watch 할 트리거 */
   const nebulaPulse: Ref<number> = ref(0)
 
-  function applyPatch(partial: Partial<NmapSnapshot>) {
+  function applyPatch(partial: Partial<NexnapSnapshot>) {
     snapshot.value = ensureSoundAtmosphereFields({ ...snapshot.value, ...partial })
   }
 
@@ -392,7 +392,7 @@ export const useNmapSnapshotStore = defineStore('nmapSnapshot', () => {
     }
     const hr = o.highlightCharRange
     const useChar = hr != null && Number.isFinite(hr.start) && Number.isFinite(hr.end) && hr.end > hr.start
-    const patch: Partial<NmapSnapshot> = {
+    const patch: Partial<NexnapSnapshot> = {
       morse_playback_scroll_offset_override: scrollOffset,
       morse_playback_highlight_token_index: highlightTokenIndex,
       morse_playback_highlight_accent_active: true,

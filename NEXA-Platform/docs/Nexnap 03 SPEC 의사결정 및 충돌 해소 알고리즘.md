@@ -1,20 +1,20 @@
-# [NEXA-N-MAP-03] 의사결정 및 충돌 해소 알고리즘
+# [NEXA-Nexnap-03] 의사결정 및 충돌 해소 알고리즘
 
-> 본 문서는 `- nexa N-MAP Coil Conflict Matrix.md`와 `- nexa N-MAP Decision Matrix 와 충돌 해소 알고리즘.md`를 통합한 규격서다.  
-> 코일 밸런서 충돌(쌍 기준)과 N-MAP 토큰 충돌(유형 기준)을 하나의 실행 프레임으로 정리한다.
+> 본 문서는 `- nexa Nexnap Coil Conflict Matrix.md`와 `- nexa Nexnap Decision Matrix 와 충돌 해소 알고리즘.md`를 통합한 규격서다.  
+> 코일 밸런서 충돌(쌍 기준)과 Nexnap 토큰 충돌(유형 기준)을 하나의 실행 프레임으로 정리한다.
 
 ---
 
 ## 0. 목적
 
-N-MAP의 충돌은 두 층에서 발생한다.
+Nexnap의 충돌은 두 층에서 발생한다.
 
 1. **코일 밸런서 충돌**: Safety/Stability/Efficiency/Autonomy/Creative 사이의 긴장
 2. **토큰 충돌**: WILL-RULE 권위 충돌, FACT-RULE 승격 충돌, DURATION-STUCK-VOID 소멸 충돌
 
 본 문서는 이 두 층을 하나의 Decision Pipeline으로 통합한다.
 
-**연계:** 의사결정 결과는 [NEXA-N-MAP-02] §2.0과 같이 `execution_chains.how_state`(FLOW / STUCK / VOID) 및 `who_pulse`(ASK 등)에 **즉시 반영**되어 실행 사슬과 동기화된다.
+**연계:** 의사결정 결과는 [NEXA-Nexnap-02] §2.0과 같이 `execution_chains.how_state`(FLOW / STUCK / VOID) 및 `who_pulse`(ASK 등)에 **즉시 반영**되어 실행 사슬과 동기화된다.
 
 ---
 
@@ -33,7 +33,7 @@ Safety     > Stability > Efficiency > Autonomy > Creative
 
 ### 1.2 가상 실행 분기: `is_virtual` · `target_entity_type`
 
-[N-MAP-04] `execution_steps`의 **`is_virtual = true`**(시뮬레이션·Dry-run)일 때는 **물리적 EFF(실행결과)가 발생하지 않으므로** 코일 해소 알고리즘이 **별도 분기**를 탄다.
+[Nexnap-04] `execution_steps`의 **`is_virtual = true`**(시뮬레이션·Dry-run)일 때는 **물리적 EFF(실행결과)가 발생하지 않으므로** 코일 해소 알고리즘이 **별도 분기**를 탄다.
 
 | 조건                                                                      | Safety 코일                             | Creative 코일       | 해석                                                                      |
 | ------------------------------------------------------------------------- | --------------------------------------- | ------------------- | ------------------------------------------------------------------------- |
@@ -43,7 +43,7 @@ Safety     > Stability > Efficiency > Autonomy > Creative
 
 **규칙 (Must):**
 
-- 시뮬레이션에서도 **Level 0 위반**은 차단·`Safety VOID`와 동일하게 처리한다(N-MAP-04 §3).
+- 시뮬레이션에서도 **Level 0 위반**은 차단·`Safety VOID`와 동일하게 처리한다(Nexnap-04 §3).
 - 시뮬레이션에서는 **Stability 하한**을 일시 완화할 수 있으나, **실행 승격**(`is_virtual: true → false`) 시에는 통합 매트릭스를 **다시 전체 Safety 가중**으로 평가한다.
 
 ### 1.3 Humanity 원칙
@@ -168,13 +168,13 @@ Safety     > Stability > Efficiency > Autonomy > Creative
 - DURATION -> Level 3 제안: 7일 유지, 일관성 >= 85%
 - Level 3 -> Level 2: 사용자 승인 + 검증 기간 통과
 
-## 3.3 유형 3: 소멸 충돌 (FLOW -> STUCK -> VOID) — [NEXA-N-MAP-04] 정렬
+## 3.3 유형 3: 소멸 충돌 (FLOW -> STUCK -> VOID) — [NEXA-Nexnap-04] 정렬
 
-대상: **`execution_chains` 생명주기**와 동일한 수치 기준을 쓴다. 아래는 N-MAP-04 **데이터 유형별 전이 임계치**와 **일치**해야 한다.
+대상: **`execution_chains` 생명주기**와 동일한 수치 기준을 쓴다. 아래는 Nexnap-04 **데이터 유형별 전이 임계치**와 **일치**해야 한다.
 
 ### 3.3.1 엣지 반사 사슬 (Sentinel / TICK)
 
-| 전이                          | 수치 기준 (N-MAP-04)          |
+| 전이                          | 수치 기준 (Nexnap-04)       |
 | ----------------------------- | --------------------------- |
 | FLOW → STUCK                  | 30초 무갱신                 |
 | STUCK → VOID.POTENTIAL        | 5분 지속                    |
@@ -183,14 +183,14 @@ Safety     > Stability > Efficiency > Autonomy > Creative
 
 ### 3.3.2 인디케이터 서사 사슬 (WILL / ECHO)
 
-| 전이                          | 수치 기준 (N-MAP-04)                           |
+| 전이                          | 수치 기준 (Nexnap-04)                        |
 | ----------------------------- | -------------------------------------------- |
 | FLOW → STUCK                  | 1시간 무응답                                 |
 | STUCK → VOID.POTENTIAL        | 세션 명시 종료 **즉시** 또는 **24시간**      |
 | VOID.POTENTIAL → VOID.ARCHIVE | **90일** 경과 (TimescaleDB 압축 정책과 연동) |
 | VOID.ARCHIVE → VOID.PURGE     | **365일** (법적·보안 소멸)                   |
 
-### 3.3.3 그림자 프로젝트 특례 (N-MAP-04 §5)
+### 3.3.3 그림자 프로젝트 특례 (Nexnap-04 §5)
 
 - TRIAL 등: `VOID.ARCHIVE` 생략 후 **7일** 경과 시 `VOID.PURGE` 가능 — 일반 인디케이터 표와 **불일치할 수 있음**(의도적 휘발).
 
@@ -204,11 +204,11 @@ VOID 해석:
 
 ## 4. 통합 Decision Matrix
 
-N-MAP 토큰 + 코일 상태 + **`confidence_score`(SMALLINT)** + **`target_entity_type`** 를 함께 평가한다.
+Nexnap 토큰 + 코일 상태 + **`confidence_score`(SMALLINT)** + **`target_entity_type`** 를 함께 평가한다.
 
 ### 4.0 `target_entity_type` 가중치 (엔티티 계열)
 
-[N-MAP-04] `execution_steps.target_entity_type` 예: `PHYSICAL`, `NEXU`, `AUTHORIZED_VIRTUAL`, `SIMULATION_NODE` 등.
+[Nexnap-04] `execution_steps.target_entity_type` 예: `PHYSICAL`, `NEXU`, `AUTHORIZED_VIRTUAL`, `SIMULATION_NODE` 등.
 
 | `target_entity_type` 계열                    | Risk 기본 가중      | Creative 허용     | 비고                                            |
 | -------------------------------------------- | ------------------- | ----------------- | ----------------------------------------------- |
@@ -246,7 +246,7 @@ N-MAP 토큰 + 코일 상태 + **`confidence_score`(SMALLINT)** + **`target_enti
 
 ### 4.2 에러 토큰 재투입 규칙 (`ucl_error_packet` → 매트릭스 → ASK)
 
-`[NEXA-N-MAP-02]`의 **`ucl_error_packet`**은 **의사결정 매트릭스로 재투입**되며, 아래에 따라 **`who_pulse = ASK`** 및 **`how_state = STUCK`**를 **확정**한다.
+`[NEXA-Nexnap-02]`의 **`ucl_error_packet`**은 **의사결정 매트릭스로 재투입**되며, 아래에 따라 **`who_pulse = ASK`** 및 **`how_state = STUCK`**를 **확정**한다.
 
 | `error_code`              | 매트릭스 입력       | `how_state`             | `who_pulse`           | 비고                                               |
 | ------------------------- | ------------------- | ----------------------- | --------------------- | -------------------------------------------------- |
@@ -258,7 +258,7 @@ N-MAP 토큰 + 코일 상태 + **`confidence_score`(SMALLINT)** + **`target_enti
 
 **재투입 절차 (확정):**
 
-1. `error_token`의 HEXAGON을 현재 `ucl_header`와 병합(또는 덮어쓰기 규칙은 N-MAP-02 §2.8).
+1. `error_token`의 HEXAGON을 현재 `ucl_header`와 병합(또는 덮어쓰기 규칙은 Nexnap-02 §2.8).
 2. `confidence_score`를 에러 심각도에 따라 하향(예: 타임아웃 반복 시 `user_defined_threshold` 미만 강제).
 3. **ASK가 필요한 모든 경우** `who_pulse := ASK`, `how_state := STUCK`를 **패킷·`execution_chains`에 동시 기록**.
 4. `why_chain.effects[]`에 `error_code`, `retry_policy`, `fallback_action` 요약을 남긴다.
@@ -343,7 +343,7 @@ CREATE TABLE token_conflicts (
 
 ## 8. 결론
 
-NEXA N-MAP의 충돌 해소는 단순 if-else가 아니라,
+NEXA Nexnap의 충돌 해소는 단순 if-else가 아니라,
 **권위(Authority), 생애주기(Decay), 승격(Promotion), 코일 밸런서(Coil Balancer)**를 함께 보는 다층 의사결정이다.
 
 최종 원칙은 명확하다.

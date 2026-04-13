@@ -39,7 +39,7 @@
 ## 3. 기능 2: 현재 문서 기반 Ollama 핵심 용어/설명 추출 (전역 엔진)
 
 핵심 용어 추출은 Nexion 전용 로직으로 고정하지 않고, **전역 엔진(Global Term Extraction Engine)**으로 분리하여 모든 도메인에서 재사용 가능하게 설계한다.  
-호출 주체는 Nexion 확장이지만, 엔진 계약은 NEXA 문서군 전체(NXN/N-MAP/KNOWLEDGE/AI 등)에서 공통으로 사용한다.
+호출 주체는 Nexion 확장이지만, 엔진 계약은 NEXA 문서군 전체(NXN/Nexnap/KNOWLEDGE/AI 등)에서 공통으로 사용한다.
 
 ### 3.1 사용자 흐름
 
@@ -81,7 +81,7 @@
 - 공급자/런타임 식별(분리 필드): `provider` (`ollama`, `openai`, `local-llm` 등), `model`
 - 공통 입력 계약: `domain`, `doc_id`, `title`, `content`, `locale`, `provider`, `model`
 - 공통 출력 계약: `terms[]`, `confidence`, `provider`, `model`, `elapsed_ms`
-- 도메인별 프롬프트는 분리하되(예: NXN/N-MAP), 엔진 인터페이스는 단일 계약으로 유지한다.
+- 도메인별 프롬프트는 분리하되(예: NXN/Nexnap), 엔진 인터페이스는 단일 계약으로 유지한다.
 - Nexion UI는 전역 엔진의 소비자(consumer) 중 하나이며, 다른 도메인 UI에서도 동일 계약으로 호출 가능해야 한다.
 - 네이밍 원칙: 엔진 ID에는 특정 벤더명을 넣지 않고, 벤더/모델은 메타데이터 필드로 관리한다.
 
@@ -103,7 +103,7 @@
 - `OLLAMA_MODEL_NOT_FOUND`
 - `TERM_EXTRACTION_FAILED`
 
-모든 오류는 사용자 메시지와 함께 내부 로그에 기록하고, 필요 시 N-MAP 표준 `error_token` 매핑 레이어로 전달한다.
+모든 오류는 사용자 메시지와 함께 내부 로그에 기록하고, 필요 시 Nexnap 표준 `error_token` 매핑 레이어로 전달한다.
 
 ---
 

@@ -17,12 +17,12 @@
 
 ## 2. 핵심 아키텍처 용어
 
-> 상세 정의는 용어집(`docs/N-MAP 00 NEXA-OS GLOSSARY 용어집 .md`) 참조.
+> 상세 정의는 용어집(`docs/Nexnap 00 NEXA-OS GLOSSARY 용어집 .md`) 참조.
 
 | 용어           | 의미                                                                                                |
 | :------------- | :-------------------------------------------------------------------------------------------------- |
 | **NEXA-OS**    | 지식을 연산하여 실행을 도출하는 지능형 운영체제                                                     |
-| **N-MAP**      | NEXA Meta Action Protocol — 사람의 의도를 기계 동작으로 연결하는 표준 설계도                        |
+| **Nexnap**     | NEXA Meta Action Protocol — 사람의 의도를 기계 동작으로 연결하는 표준 설계도                        |
 | **HEXAGON**    | 모든 데이터 패킷의 6축(5W1H) 정수 토큰 골격                                                         |
 | **COILS**      | AI 판단의 주관적 가치 가중치 밸런서 (Safety, Stability, Compliance, Efficiency, Autonomy, Creative) |
 | **N-PATH**     | NEXA Narrative Path — 지식의 추적 가능한 경로 체계 (DB: `nexa_knowledge_traceability_paths`)        |
@@ -49,12 +49,12 @@
 
 ## 4. 4단계 지능 위계
 
-| 레벨          | 명칭              | 역할                            | HW 프로필 |
-| :------------ | :---------------- | :------------------------------ | :-------- |
-| 1             | 제니스 인디케이터 | 전략적 뇌 (N-MAP Composer)      | HOT       |
-| 2 (생략 가능) | 키네틱 컨트롤러   | 현장 지휘관 (N-MAP Interpreter) | WARM      |
-| 3 (생략 가능) | 마이크로 센티널   | 인식 지능 (N-MAP Awareness)     | WARM      |
-| 4             | 나노 센티널       | 반사 신경 (N-MAP Reflex)        | COLD      |
+| 레벨          | 명칭              | 역할                             | HW 프로필 |
+| :------------ | :---------------- | :------------------------------- | :-------- |
+| 1             | 제니스 인디케이터 | 전략적 뇌 (Nexnap Composer)      | HOT       |
+| 2 (생략 가능) | 키네틱 컨트롤러   | 현장 지휘관 (Nexnap Interpreter) | WARM      |
+| 3 (생략 가능) | 마이크로 센티널   | 인식 지능 (Nexnap Awareness)     | WARM      |
+| 4             | 나노 센티널       | 반사 신경 (Nexnap Reflex)        | COLD      |
 
 ---
 

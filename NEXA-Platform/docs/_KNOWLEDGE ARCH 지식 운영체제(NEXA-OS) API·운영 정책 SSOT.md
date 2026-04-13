@@ -17,7 +17,7 @@
 | **프로젝트 생성 지식**      | 도메인/협업 산출              | `project_knowledge`                                   |
 | **엣지·물리 관측**          | 시계열·디바이스 상태          | `device_registry`, MQTT/TSDB, `project_*` 인프라 계열 |
 | **상호작용·서사**           | 사용자↔플랫폼↔닉시          | `project_logs`, `project_chats`, 세션·쉘 필드 등      |
-| **실행·족보**               | N-MAP·스냅샷·드라이 런        | `execution_*`, 오케스트레이션 DDL 명세                |
+| **실행·족보**               | Nexnap·스냅샷·드라이 런       | `execution_*`, 오케스트레이션 DDL 명세                |
 | **Self·공감**               | facet·코일·VI/ES              | `nexa_self_*`, 응답 정책                              |
 | **전역 요약·마켓**          | 공개 요약·FAQ 등              | `global_knowledge_base`, `support_faq` 류             |
 
@@ -126,7 +126,7 @@ NEXA 플랫폼의 **`_KNOWLEDGE*` 지식 자산 문서군(Knowledge OS)** 은 �
 
 ### 1-C.3 지능형 드라이버 모델 (Universal Intelligence Driver)
 
-- **Capability-as-a-Driver:** 외부 API·연동을 `project_extensions` 등에 등록할 때 **Capability ID**(`nexa.*`)로 표준화하고 **N-MAP 드라이버 래퍼**로 감싼다. 매핑·권한·감사는 **드라이버 매니페스트 + 샌드박스**와 함께 둔다.
+- **Capability-as-a-Driver:** 외부 API·연동을 `project_extensions` 등에 등록할 때 **Capability ID**(`nexa.*`)로 표준화하고 **Nexnap 드라이버 래퍼**로 감싼다. 매핑·권한·감사는 **드라이버 매니페스트 + 샌드박스**와 함께 둔다.
 - **Hot-Plug Intelligence:** 신규 엣지·에이전트를 **선언적 연결**로 5W1H 사슬에 편입. 「코딩 없음」은 **선언·검증 자동화**를 의미하며, **ASK/승인 큐**를 생략하지 않는다.
 
 ### 1-C.4 지능형 서사 경로 체계 (Narrative Path, N-PATH)
@@ -446,7 +446,7 @@ NEXA-OS의 핵심은 기술적인 데이터 관리가 아니라, 사람을 중�
 
 ## 온톨로지(Ontology) VS NEXA-OS
 
-**넥사 지식 운영체제(Knowledge OS, K-OS)**는 전통적인 온톨로지(Ontology)의 개념을 포함하면서도, 이를 **'실행'과 '서사'의 영역으로 확장**했다는 점에서 결정적인 차이가 있다.
+**넥사 지식 운영체제 NEXA-OS**는 전통적인 온톨로지(Ontology)의 개념을 포함하면서도, 이를 **'실행'과 '서사'의 영역으로 확장**했다는 점에서 결정적인 차이가 있다.
 
 온톨로지가 개념 간의 정적인 관계 정의에 집중한다면, 넥사의 지식 OS는 그 관계를 바탕으로 시스템이 어떻게 사고하고 행동할지를 결정하는 **'지능형 오케스트레이션의 악보'** 역할을 수행합니다. 소스 문헌을 바탕으로 규명한 핵심 차이점 4가지는 다음과 같습니다.
 

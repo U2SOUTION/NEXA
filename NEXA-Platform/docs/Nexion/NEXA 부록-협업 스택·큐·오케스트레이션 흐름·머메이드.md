@@ -56,7 +56,7 @@ TipTap 에디터에서 저장된 데이터를 백엔드에서 AI가 읽기 좋�
 
 ### B.5 스키마 검증 및 데이터 계약: **Zod**
 
-N-MAP 패킷과 IR 데이터가 시스템 계층 간에 오갈 때 무결성을 보장하기 위해 사용합니다.
+Nexnap 패킷과 IR 데이터가 시스템 계층 간에 오갈 때 무결성을 보장하기 위해 사용합니다.
 
 - **역할:** `ucl_header`의 6대 토큰(SMALLINT)이 규격에 맞는지, `execution_bundle` 내부의 파라미터가 유효한지 런타임에 검증합니다.
 - **안전은 딱딱하게:** 잘못된 형식의 데이터가 유입되는 것을 입구(`IoT Stream Splitter`)에서부터 원천 차단하여 시스템 안정성을 높입니다.
@@ -225,7 +225,7 @@ graph TD
 
         Logic_Filters <--> DM
         DM -- "STUCK 상태 시" --> ASK{ASK 펄스 / 사용자 승인}
-        ASK -- "승인 시 (WILL)" --> EC[Execution Chain / N-MAP Bundle]
+        ASK -- "승인 시 (WILL)" --> EC[Execution Chain / Nexnap Bundle]
     end
 
     %% 3. 실행 및 샌드박스 레이어 (Execution)
@@ -288,7 +288,7 @@ graph TD
 
 3. **실행 레이어 (Execution):**
 
-   - **Execution Chain:** N-MAP 패킷 단위로 실행 사슬을 형성하며, **is_virtual** 플래그를 통해 실물 기기에 영향을 주지 않는 시뮬레이션을 분리합니다.
+   - **Execution Chain:** Nexnap 패킷 단위로 실행 사슬을 형성하며, **is_virtual** 플래그를 통해 실물 기기에 영향을 주지 않는 시뮬레이션을 분리합니다.
    - **Adapter Execution:** 논리 명령을 실제 기기 API로 번역하여 연주하며, 실패 시 에러 토큰을 피드백 루프로 환류합니다.
 
 4. **Knowledge OS 레이어:**
@@ -361,7 +361,7 @@ graph TD
    기획 문서를 작성할 때부터 Unified와 Yjs를 활용해 문장을 원자 단위(Atomic Unit)로 쪼개야 합니다.
 
 - Check: 문서의 각 섹션이나 문장에 고유한 의미 ID를 부여하세요.
-- Benefit: 나중에 AI가 이 문서를 읽을 때, 단순 텍스트가 아니라 "이것은 N-MAP(Execution Chain)의 입력 규약이다"라는 맥락(Context)을 즉시 파악하게 됩니다.
+- Benefit: 나중에 AI가 이 문서를 읽을 때, 단순 텍스트가 아니라 "이것은 Nexnap(Execution Chain)의 입력 규약이다"라는 맥락(Context)을 즉시 파악하게 됩니다.
 
 2. 지식화의 기초 자산: "Hocuspocus의 기록"
    기획 툴에서 협업하며 발생하는 모든 수정 이력(Update)을 Hocuspocus를 통해 Redis와 JSONB Vault에 쌓으세요.

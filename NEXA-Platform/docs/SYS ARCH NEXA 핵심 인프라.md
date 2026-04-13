@@ -46,7 +46,7 @@ flowchart TD
 포지션: 사람을 감지하고 전체 시스템에 인간 중심성을 주입하는 감각 레이어
 
 재사용처:
-  N-MAP → Empathy 가드레일
+  Nexnap → Empathy 가드레일
   코일 → ES·VI·PP 신호로 코일값 자동 조정
   NEXA NIXIE → 사용자 상태에 따른 렌더링 변화
   어댑터 → 응답 속도·밀도 조정
@@ -136,7 +136,7 @@ flowchart TD
 포지션: 넥슈와 에이전트의 인격을 정의하는 존재 언어
 
 재사용처:
-  에이전트 N-MAP → 어떤 성격으로 말할 것인가
+  에이전트 Nexnap → 어떤 성격으로 말할 것인가
   도메인 진입 → 도메인별 다른 인격 자동 적용
   Empathy 연동 → 사용자 상태에 따른 인격 조정
   코일 연동 → empathy=9이면 따뜻한 인격
@@ -156,7 +156,7 @@ flowchart TD
 | **Empathy Engine**   | 사람을 감지하는 감각   | 사람과 데이터를 구분 못함       |
 | **VOID Lifecycle**   | 데이터의 생애 언어     | 데이터가 살았는지 죽었는지 모름 |
 | **Capability ID**    | 권한의 자격 언어       | 누가 무엇을 할 수 있는지 모름   |
-| **NEXU Canvas**     | 상태를 표현하는 언어   | 모든 것이 텍스트로만 전달       |
+| **NEXU Canvas**      | 상태를 표현하는 언어   | 모든 것이 텍스트로만 전달       |
 | **Knowledge Graph**  | 연결의 지식 언어       | 데이터가 고립됨                 |
 | **Timeline Branch**  | 시간의 분기 언어       | 되돌리기·시뮬레이션 불가        |
 | **Persona Matrix**   | 존재의 인격 언어       | 모든 에이전트가 무색무취        |
@@ -223,7 +223,7 @@ flowchart LR
     end
 
     user <-->|"자연어·감각"| nexu
-    nexu <-->|"구조화된 N-MAP 패킷"| orch
+    nexu <-->|"구조화된 Nexnap 패킷"| orch
     nexu <-->|"직접 실행"| pc
     nexu <-->|"직접 제어"| iot
     orch --> agents

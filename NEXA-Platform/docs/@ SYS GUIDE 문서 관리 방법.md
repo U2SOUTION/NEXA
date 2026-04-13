@@ -89,7 +89,7 @@ _  파일명 앞   진행 중, 미완료. 탐색기 최상단에 위치
 | `NEXA NIXIE` | ARCH, CONCEPT                  | DESIGN, SPEC         |
 | `ARC`        | RFC                            | ARCH, DESIGN         |
 | `DDL`        | SCHEMA                         | REF 확정             |
-| `N-MAP`      | ARCH, SPEC, DESIGN             | ADR, GUIDE           |
+| `Nexnap`     | ARCH, SPEC, DESIGN             | ADR, GUIDE           |
 | `INF`        | GUIDE                          | ARCH                 |
 | `DEV`        | GUIDE                          | —                    |
 
@@ -104,7 +104,7 @@ SYS REF Context 작업 체크리스트 템플릿 A 서비스기능.md
   → AIS, NOD, BRD, ARC, TRC 등 UI + 백엔드 + 데이터가 함께 있는 Context
 
 SYS REF Context 작업 체크리스트 템플릿 B 기술인프라.md
-  → AUTH, DDL, INF, N-MAP, NEXU 등 기술 구조 중심 Context
+  → AUTH, DDL, INF, Nexnap, NEXU 등 기술 구조 중심 Context
 ```
 
 ### 새 Context 작업 시작 방법

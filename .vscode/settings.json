@@ -94,5 +94,13 @@
     // 8. 워크스페이스 키보드 단축키 활성화
     // ============================================
     // .vscode/keybindings.json 파일이 작동하도록 설정
-    "keybindings.workspace": true
+    "keybindings.workspace": true,
+
+    // ============================================
+    // 9. 마크다운 미리보기 (가로 꽉 채움)
+    // ============================================
+    // 0 = 내장 미리보기 maxWidth 제한 없음. 아래 CSS로 테마 기본 max-width도 덮음.
+    "markdown.preview.maxWidth": 0,
+    "markdown.styles": [".vscode/markdown-preview-fullwidth.css"],
+    "markdown-preview-enhanced.styles": [".vscode/markdown-preview-fullwidth.css"]
 }

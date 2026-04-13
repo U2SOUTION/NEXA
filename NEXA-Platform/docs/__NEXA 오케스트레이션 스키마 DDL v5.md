@@ -10,14 +10,14 @@
 
 ## 문서 구성
 
-| 구간      | 내용                                                                                |
-| --------- | ----------------------------------------------------------------------------------- |
-| §0        | 확장·`uuid_generate_v7()`                                                           |
-| §1 ~ §2   | 귀속 32개 + **§1-5 N-MAP** + **Self facet·Empathy** / 비귀속·Capability·코일          |
-| §3 ~ §6   | 인덱스 → RLS → FK 보강 → pgvector (본문 순서와 동일)                                |
+| 구간      | 내용                                                                                                       |
+| --------- | ---------------------------------------------------------------------------------------------------------- |
+| §0        | 확장·`uuid_generate_v7()`                                                                                  |
+| §1 ~ §2   | 귀속 32개 + **§1-5 Nexnap** + **Self facet·Empathy** / 비귀속·Capability·코일                              |
+| §3 ~ §6   | 인덱스 → RLS → FK 보강 → pgvector (본문 순서와 동일)                                                       |
 | §0A ~ §0D | Knowledge·Self·NIXIE(서사·**Shell·Jitter**)·**Empathy/Multi-Self** **보강**(마이그레이션·외부 스키마 연동) |
-| §7        | 운영 메모                                                                           |
-| 부록 A    | 문서 편집 시 체크리스트                                                             |
+| §7        | 운영 메모                                                                                                  |
+| 부록 A    | 문서 편집 시 체크리스트                                                                                    |
 
 **권장 실행 순서 (greenfield):** §0 → §1 → §2 → §5(FK) → §3 → §4 → §6 → (선택) §0A·§0B·§0C·§0D. §0C·§0D는 **idempotent**이며, 본문에 이미 컬럼·테이블이 있으면 `ALTER`·`CREATE IF NOT EXISTS`만 실질 적용된다.
 
@@ -53,7 +53,7 @@ END $$;
 
 ## 1) 프로젝트 귀속 테이블 DDL
 
-32개 핵심 귀속 테이블(§1-3에 `project_self_facet_runtime` 포함) + **[N-MAP-04]·[N-MAP-07]** 실행 트랙(§1-5). 실행 트랙은 단순 로그가 아니라 **과거·미래 유영 시뮬레이터**(가상 분기·스냅샷 롤백·잔여 적합도)의 데이터 기반이 된다.
+32개 핵심 귀속 테이블(§1-3에 `project_self_facet_runtime` 포함) + **[Nexnap-04]·[Nexnap-07]** 실행 트랙(§1-5). 실행 트랙은 단순 로그가 아니라 **과거·미래 유영 시뮬레이터**(가상 분기·스냅샷 롤백·잔여 적합도)의 데이터 기반이 된다.
 
 ### 1-1. 핵심 기반 (`projects`, `project_members`, `project_settings`)
 
@@ -153,7 +153,7 @@ SELECT create_hypertable('project_logs', 'created_at');
 COMMENT ON COLUMN project_logs.confidence_score IS '신뢰도(0~100 등 앱 정의). `project_settings.user_defined_threshold` 미만이면 NIXIE **Jitter** 후보 — 동일 행 `nixie_feedback`에 원인 메타데이터를 반드시 기록.';
 COMMENT ON COLUMN project_logs.source_shell_id IS '[Shell ID] 한 Soul(단일 지능)이 복수 Shell(장치·브라우저 탭 등)에 나타날 수 있음. **이 로그가 발생한 입력·관측 지점**의 `nixie_shells.shell_id`. 서사 유래(Traceability)의 시작점.';
 COMMENT ON COLUMN project_logs.target_shell_id IS '[Shell ID] **연주·출력·피드백이 전달된 대상** 쉘. `source_shell_id`와 쌍으로 Soul 단위 서사 흐름(발생지→수신지)을 추적.';
-COMMENT ON COLUMN project_logs.nixie_feedback IS 'NIXIE 비언어 피드백(Jitter)·족보 강결합 JSON. `confidence_score` < `user_defined_threshold`일 때 필수: `error_token`(N-MAP 정규화 토큰 또는 파싱 실패 지점), `parser_version`, 선택 `pipeline_id`/`ir_stage`. `user_defined_threshold_snapshot`(당시 적용 임계). 캔버스는 이 행과 1:1로 빛의 떨림 연출.';
+COMMENT ON COLUMN project_logs.nixie_feedback IS 'NIXIE 비언어 피드백(Jitter)·족보 강결합 JSON. `confidence_score` < `user_defined_threshold`일 때 필수: `error_token`(Nexnap 정규화 토큰 또는 파싱 실패 지점), `parser_version`, 선택 `pipeline_id`/`ir_stage`. `user_defined_threshold_snapshot`(당시 적용 임계). 캔버스는 이 행과 1:1로 빛의 떨림 연출.';
 
 CREATE TABLE project_resource_versions (
   version_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
@@ -431,16 +431,17 @@ CREATE TABLE project_releases (
 );
 ```
 
-### 1-5. N-MAP 실행 트랙 (`execution_chains`, `execution_steps`, `execution_logs`)
+### 1-5. Nexnap 실행 트랙 (`execution_chains`, `execution_steps`, `execution_logs`)
 
-**근거:** [NEXA-N-MAP-04] 실행 사슬 생명주기·VOID, [NEXA-N-MAP-07] 예외·`ADAPTER_PARTIAL_SUCCESS`·스냅샷 롤백.
+**근거:** [NEXA-Nexnap-04] 실행 사슬 생명주기·VOID, [NEXA-Nexnap-07] 예외·`ADAPTER_PARTIAL_SUCCESS`·스냅샷 롤백.
 
 - **가상 실행 분기:** `execution_steps.is_virtual` — Dry-run 시뮬레이션과 실제 실행을 플래그로 분리. `target_entity_type` ∈ `PHYSICAL` | `VIRTUAL` | `NEXU` 로 **실물(EFF) 미영향** 가상 분기와 실제 분기를 데이터 레벨에서 구분한다.
-- **상태 스냅샷:** `pre_state_snapshot` / `post_state_snapshot` — 스텝 경계의 직전·직후 상태 박제. 복잡한 취소 로직 없이 [N-MAP-07] **타임머신 롤백**에 사용한다.
-- **잔여 태스크 적합도:** `execution_chains.residual_fit_score` + `residual_fit_rationale` — 부분 성공 시 남은 단계 강행 여부 판단(N-MAP-07 §1.1, 80% 임계)의 **수치·근거**를 사슬 단위에 보관한다.
+- **상태 스냅샷:** `pre_state_snapshot` / `post_state_snapshot` — 스텝 경계의 직전·직후 상태 박제. 복잡한 취소 로직 없이 [Nexnap-07] **타임머신 롤백**에 사용한다.
+- **잔여 태스크 적합도:** `execution_chains.residual_fit_score` + `residual_fit_rationale` — 부분 성공 시 남은 단계 강행 여부 판단(Nexnap-07 §1.1, 80% 임계)의 **수치·근거**를 사슬 단위에 보관한다.
 
 ```sql
--- 실행 사슬(실시간 악보). project_orchestra ↔ project_logs 사이의 실행 계층
+-- 실행 사슬(실시간 맥박). project_orchestra ↔ project_logs 사이의 실행 계층
+--  UCL에 의해 연주된 지능의 실시간 상태를 포착한 '맥박'이자 '전송 봉투'. (표정/맥박/인터페이스)
 CREATE TABLE execution_chains (
   packet_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
   project_id UUID NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
@@ -468,7 +469,7 @@ CREATE TABLE execution_chains (
   residual_fit_rationale JSONB
 );
 
-COMMENT ON COLUMN execution_chains.residual_fit_score IS '[N-MAP-07 §1.1] ADAPTER_PARTIAL_SUCCESS 등 부분 성공 후 잔여 스텝이 what_intent 달성에 적합한지 0~100. NULL이면 미평가.';
+COMMENT ON COLUMN execution_chains.residual_fit_score IS '[Nexnap-07 §1.1] ADAPTER_PARTIAL_SUCCESS 등 부분 성공 후 잔여 스텝이 what_intent 달성에 적합한지 0~100. NULL이면 미평가.';
 COMMENT ON COLUMN execution_chains.residual_fit_rationale IS '잔여 적합도 산출 근거: 유사 사례 ref, 의존성 그래프 요약, RAG 스니펫, 가중치 등 JSON.';
 
 CREATE INDEX idx_exec_chains_project_state ON execution_chains(project_id, how_state);
@@ -500,10 +501,10 @@ CREATE TABLE execution_steps (
   UNIQUE (packet_id, step_sequence)
 );
 
-COMMENT ON COLUMN execution_steps.is_virtual IS 'true=Dry-run·시뮬레이션 분기. 실물 어댑터/EFF 미발동 [N-MAP-04].';
+COMMENT ON COLUMN execution_steps.is_virtual IS 'true=Dry-run·시뮬레이션 분기. 실물 어댑터/EFF 미발동 [Nexnap-04].';
 COMMENT ON COLUMN execution_steps.target_entity_type IS 'PHYSICAL=실장비, VIRTUAL=권한된 가상/샌드박스, NEXU=넥슈·UI·서사 계층.';
 COMMENT ON COLUMN execution_steps.pre_state_snapshot IS '스텝 직전 상태 박제(롤백 목표·분기 비교).';
-COMMENT ON COLUMN execution_steps.post_state_snapshot IS '스텝 직후 상태 박제. 타임머신 뒤로가기·즉시 롤백 [N-MAP-07 §3].';
+COMMENT ON COLUMN execution_steps.post_state_snapshot IS '스텝 직후 상태 박제. 타임머신 뒤로가기·즉시 롤백 [Nexnap-07 §3].';
 
 CREATE INDEX idx_exec_steps_packet_seq ON execution_steps(packet_id, step_sequence);
 CREATE INDEX idx_exec_steps_timeline ON execution_steps(timeline_branch_id);
@@ -1218,7 +1219,7 @@ ALTER TABLE project_logs ADD COLUMN IF NOT EXISTS nixie_feedback JSONB NOT NULL 
 COMMENT ON COLUMN project_logs.confidence_score IS '신뢰도(0~100 등 앱 정의). `project_settings.user_defined_threshold` 미만이면 NIXIE **Jitter** 후보 — 동일 행 `nixie_feedback`에 원인 메타데이터를 반드시 기록.';
 COMMENT ON COLUMN project_logs.source_shell_id IS '[Shell ID] 한 Soul(단일 지능)이 복수 Shell(장치·브라우저 탭 등)에 나타날 수 있음. **이 로그가 발생한 입력·관측 지점**의 `nixie_shells.shell_id`. 서사 유래(Traceability)의 시작점.';
 COMMENT ON COLUMN project_logs.target_shell_id IS '[Shell ID] **연주·출력·피드백이 전달된 대상** 쉘. `source_shell_id`와 쌍으로 Soul 단위 서사 흐름(발생지→수신지)을 추적. `why_chain`과 함께 데이터 유래 시각화.';
-COMMENT ON COLUMN project_logs.nixie_feedback IS 'NIXIE 비언어 피드백(Jitter)·족보 강결합 JSON. `confidence_score` < `user_defined_threshold`일 때 필수: `error_token`(N-MAP 정규화 토큰 또는 파싱 실패 지점), `parser_version`, 선택 `pipeline_id`/`ir_stage`. `user_defined_threshold_snapshot`(당시 적용 임계). 캔버스는 이 행과 1:1로 빛의 떨림 연출.';
+COMMENT ON COLUMN project_logs.nixie_feedback IS 'NIXIE 비언어 피드백(Jitter)·족보 강결합 JSON. `confidence_score` < `user_defined_threshold`일 때 필수: `error_token`(Nexnap 정규화 토큰 또는 파싱 실패 지점), `parser_version`, 선택 `pipeline_id`/`ir_stage`. `user_defined_threshold_snapshot`(당시 적용 임계). 캔버스는 이 행과 1:1로 빛의 떨림 연출.';
 
 DO $$
 BEGIN
@@ -1339,9 +1340,9 @@ CREATE TABLE IF NOT EXISTS project_self_facet_runtime (
 - `project_user_presence`는 UNLOGGED + 짧은 주기 정리 권장
 - `project_logs`의 `how_state=VOID(3)` 세분화는 `extra_data.void_stage` 사용
 - 토큰 매핑/임베딩 모델은 고정 운영(변경 시 리임베딩 계획 필요)
-- **N-MAP 실행 트랙:** `execution_steps.is_virtual=true` 인 스텝은 실물 어댑터/EFF를 호출하지 않는다. `target_entity_type` 으로 PHYSICAL/VIRTUAL/NEXU 를 강제하며, Dry-run과 본 실행은 동일 스키마에 **행 단위로** 분리한다.
-- **스냅샷/롤백:** `pre_state_snapshot`·`post_state_snapshot` 은 스텝 경계의 상태 박제. STUCK·복구 시 [N-MAP-07] 에 따라 이전 `post_state_snapshot` 적용으로 롤백한다.
-- **잔여 적합도:** `ADAPTER_PARTIAL_SUCCESS` 시 `execution_chains.residual_fit_score`·`residual_fit_rationale` 을 갱신하고, [N-MAP-07 §1.1] 80% 임계로 FLOW 유지 vs STUCK+ASK 를 분기한다.
+- **Nexnap 실행 트랙:** `execution_steps.is_virtual=true` 인 스텝은 실물 어댑터/EFF를 호출하지 않는다. `target_entity_type` 으로 PHYSICAL/VIRTUAL/NEXU 를 강제하며, Dry-run과 본 실행은 동일 스키마에 **행 단위로** 분리한다.
+- **스냅샷/롤백:** `pre_state_snapshot`·`post_state_snapshot` 은 스텝 경계의 상태 박제. STUCK·복구 시 [Nexnap-07] 에 따라 이전 `post_state_snapshot` 적용으로 롤백한다.
+- **잔여 적합도:** `ADAPTER_PARTIAL_SUCCESS` 시 `execution_chains.residual_fit_score`·`residual_fit_rationale` 을 갱신하고, [Nexnap-07 §1.1] 80% 임계로 FLOW 유지 vs STUCK+ASK 를 분기한다.
 - **Multi-faceted Self:** `active_facet_key`·`active_state_id` 변경 시 `coil_weights`를 갱신하고 `project_self_facet_runtime`에 UPSERT하여 NEXU·코일 밸런서와 동기화한다. `settings_data.current_coil_template_id`는 템플릿 참조, `coil_weights`는 **해석된 유효 값**이다.
 - **Empathy 제동:** 관측 VI·ES가 `project_settings.vi_threshold`·`es_threshold` 미만이면 Low-Entropy 모드(간결 출력·자율 완화)를 적용한다. NULL이면 플랫폼별 기본(Empathy 정책 테이블)을 사용한다.
 - **NIXIE 서사·Shell:** `project_logs.source_shell_id`는 로그 **발생지**, `target_shell_id`는 **연주·피드백 수신지**. 한 Soul이 여러 Shell에 분산될 때 서사 추적에 사용한다.

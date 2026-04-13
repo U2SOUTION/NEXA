@@ -76,7 +76,7 @@ server/
 | **실시간**           | Yjs + Hocuspocus                         | CRDT 기반 협업 편집                                                                                                    |
 | **작업 큐**          | BullMQ (Redis)                           | 우선순위 스케줄링, 자가 회복 재시도                                                                                    |
 | **파일 감시**        | Chokidar                                 | Doc Sync Crawler의 변경 감지 엔진                                                                                      |
-| **스키마 검증**      | Zod                                      | N-MAP 패킷·IR 데이터 형식 무결성                                                                                       |
+| **스키마 검증**      | Zod                                      | Nexnap 패킷·IR 데이터 형식 무결성                                                                                      |
 | **AI 양자화**        | TurboQuant (Google)                      | data-oblivious 벡터 양자화, 프라이버시 친화                                                                            |
 | **병렬 연산**        | OpenCL                                   | GPU/FPGA/CPU 병렬 벡터 검색 가속                                                                                       |
 | **에이전트**         | OpenClaw (MIT)                           | Adapter를 스킬로 구현, 로컬 우선 실행                                                                                  |

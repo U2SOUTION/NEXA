@@ -21,7 +21,7 @@
               </div>
             </q-expansion-item>
 
-            <q-expansion-item icon="flare" label="NIXIE 시뮬" caption="N-MAP 스냅샷 · 전역 닉시 반응 (체험)">
+            <q-expansion-item icon="flare" label="NIXIE 시뮬" caption="Nexnap 스냅샷 · 전역 닉시 반응 (체험)">
               <div class="nexion-accordion-content nexion-accordion-content--flush">
                 <NixieDevControls embedded />
               </div>

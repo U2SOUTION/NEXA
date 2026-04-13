@@ -1624,4 +1624,4 @@ STUCK 감지 시 (서버):
 
 _NEXA Platform · MQTT Infrastructure v0.2 · 내부 설계 문서_
 _최종 업데이트: 2026년 3월_
-_관련 문서: NEXA Master Design_v0.4.md · NEXU VISION 넥슈는 무엇이가 v0.2.md · N-MAP 09 REF Coil Registry v0.1.md_
+_관련 문서: NEXA Master Design_v0.4.md · NEXU VISION 넥슈는 무엇이가 v0.2.md · Nexnap 09 REF Coil Registry v0.1.md_

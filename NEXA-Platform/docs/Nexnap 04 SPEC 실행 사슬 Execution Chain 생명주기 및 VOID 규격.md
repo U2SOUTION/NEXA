@@ -1,8 +1,8 @@
-### [NEXA-N-MAP-04] 실행 사슬(Execution Chain) 생명주기 및 VOID 규격
+### [NEXA-Nexnap-04] 실행 사슬(Execution Chain) 생명주기 및 VOID 규격
 
 #### 0. 목적
 
-본 문서는 오케스트레이터가 생성한 지능형 실행 규격인 **N-MAP(NEXA Meta Action Protocol)**이 플랫폼 내에서 어떻게 태어나고, 흐르며, 소멸하거나 잠재적 영감(VOID)으로 전환되는지에 대한 **생명주기(Lifecycle)**를 정의한다. 특히, 단순한 로그 저장을 넘어 **`execution_chains`** 테이블을 통한 실시간 상태 관리와 **왜(Why Chain)**에 대한 추적성을 확보하는 데 중적을 둔다.
+본 문서는 오케스트레이터가 생성한 지능형 실행 규격인 **Nexnap(NEXA Meta Action Protocol)**이 플랫폼 내에서 어떻게 태어나고, 흐르며, 소멸하거나 잠재적 영감(VOID)으로 전환되는지에 대한 **생명주기(Lifecycle)**를 정의한다. 특히, 단순한 로그 저장을 넘어 **`execution_chains`** 테이블을 통한 실시간 상태 관리와 **왜(Why Chain)**에 대한 추적성을 확보하는 데 중적을 둔다.
 
 ---
 
@@ -56,7 +56,7 @@ NEXA의 모든 지능적 박동(Pulse)은 다음 세 가지 상태 중 하나에
 `execution_chains`가 VOID 상태로 진입하는 것은 시스템의 오류가 아니라 **'서사적 정리'** 과정이다.
 
 - **Safety VOID**: 위험 감지 혹은 Level 0 위반 시 실행 사슬을 즉시 무효화하고 안전한 기본 상태로 복귀시킨다.
-- **UX VOID (Inspiration Mode)**: 사용자의 망설임이 감지되어 `how_state = VOID`가 발생하면, 넥슈는 기존 선입관을 버리고 **N-MAP 템플릿(수많은 자아)**을 성운처럼 펼쳐 보인다.
+- **UX VOID (Inspiration Mode)**: 사용자의 망설임이 감지되어 `how_state = VOID`가 발생하면, 넥슈는 기존 선입관을 버리고 **Nexnap 템플릿(수많은 자아)**을 성운처럼 펼쳐 보인다.
 - **Data VOID**: 노후화된 규칙이나 이력을 지식(Knowledge)화하고, 불필요한 로우 데이터를 비워 플랫폼 신뢰를 보존한다.
 
 ---
@@ -80,9 +80,9 @@ NEXA의 모든 지능적 박동(Pulse)은 다음 세 가지 상태 중 하나에
 
 ---
 
-## N-MAP의 **생명주기(FLOW, STUCK, VOID)** DDL
+## Nexnap의 **생명주기(FLOW, STUCK, VOID)** DDL
 
-- N-MAP을 단순한 데이터가 아닌 **'현실을 연주하는 동적인 사슬'**로 취급하며, **VOID**라는 여백을 통해 시스템이 인간의 변심과 영감을 어떻게 지능적으로 포용할지를 규정한다.
+- Nexnap을 단순한 데이터가 아닌 **'현실을 연주하는 동적인 사슬'**로 취급하며, **VOID**라는 여백을 통해 시스템이 인간의 변심과 영감을 어떻게 지능적으로 포용할지를 규정한다.
 - 실행의 **책임자(Responsible Party)**와 **소스(Source)** 정보를 포함하는 것은 NEXA의 핵심 원칙인 **지능적 족보(Traceability)**와 **책임 소재 명확화**.
 
 ### 1. '소스(Source)' 반영: `who_pulse`와 `input_channel` 활용
@@ -121,7 +121,7 @@ NEXA의 모든 지능적 박동(Pulse)은 다음 세 가지 상태 중 하나에
 - **토큰 표준:** `how_state`나 `who_pulse` 등을 **SMALLINT** 6컬럼으로 분리하여 DB 레벨의 필터링 성능을 극대화합니다.
 - **보안 격리:** `project_id`를 외래키로 포함시켜 **RLS(행 수준 보안)** 정책이 즉시 적용되도록 설계할 수 있습니다.
 
-### 💡 제언: `[NEXA-N-MAP-04]`에 포함할 DDL 초안 구조
+### 💡 제언: `[NEXA-Nexnap-04]`에 포함할 DDL 초안 구조
 
 - **실행 사슬(Execution Chain)**의 생명주기, **5W1H(HEXAGON)** 프로토콜의 엄격한 분리, **지능적 족보(Traceability)**, 그리고 **책임 소재(Actor/Source)** 명확화 원칙을 반영하여 `execution_chains` 및 관련 테이블 스키마.
 - 이 설계는 단순히 로그를 남기는 것이 아니라, 오케스트레이터가 하달한 **'지능형 악보'가 현실에서 어떻게 연주되고 있는지**를 관리하는 **실시간 실행 계층**의 핵심이 됩니다.
@@ -130,7 +130,7 @@ NEXA의 모든 지능적 박동(Pulse)은 다음 세 가지 상태 중 하나에
 
 ### 1. 지능형 실행 사슬(Execution Chains) DDL
 
-이 테이블은 N-MAP 프로토콜에 의해 생성된 '지능형 실행 패킷'의 최상위 엔티티입니다.
+이 테이블은 Nexnap 프로토콜에 의해 생성된 '지능형 실행 패킷'의 최상위 엔티티입니다.
 이 설계는 단순히 기록을 남기는 로그 테이블이 아니라, 1ms 내에 상황을 판별하고 실행을 통제하는 **'살아있는 실행 프로토콜'**의 중추 역할을 수행합니다.
 
 ---
@@ -172,7 +172,7 @@ CREATE TABLE execution_chains (
     how_state SMALLINT NOT NULL DEFAULT 1, -- FLOW(1), STUCK(2), VOID(3)
     why_causality SMALLINT NOT NULL, -- CAUSE(1), LOGIC(2), TARGET(3)
 
-    -- 4. 실행 및 컨텍스트 번들 (N-MAP 규격)
+    -- 4. 실행 및 컨텍스트 번들 (Nexnap 규격)
     execution_bundle JSONB NOT NULL, -- {params: {}, constraints: {}} 실제 연주될 명령값
     context_bundle JSONB, -- {coil_weights: {}, persona_pack_id: "", ES: 80, VI: 70}
 
@@ -209,23 +209,23 @@ CREATE INDEX idx_exec_chains_hexagon ON execution_chains(
 - **복합 태스크의 순차적/병렬적 제어:**
   하나의 사용자 의도(WILL)는 내부적으로 여러 개의 물리적 액션으로 분해(Reverse Decomposition)될 수 있습니다. 예를 들어 "외출 모드"라는 체인 하나는 [창문 닫기, 가스 차단, 조명 소등]이라는 **개별 스텝**으로 나뉘며, `execution_steps`는 이들의 실행 순서와 의존성을 관리합니다.
 - **어댑터 실행의 원자성(Atomicity) 확보:**
-  N-MAP 파이프라인의 4단계인 '어댑터 실행(Adapter Execution)'은 논리 명령을 네이티브 API로 번역하는 과정입니다. `execution_steps`는 특정 어댑터가 담당할 **논리적 작업 단위**를 규정하여, 어떤 단계에서 실패(ADAPTER_NOT_FOUND 등)가 발생했는지 정밀하게 타격하여 복구할 수 있게 합니다.
+  Nexnap 파이프라인의 4단계인 '어댑터 실행(Adapter Execution)'은 논리 명령을 네이티브 API로 번역하는 과정입니다. `execution_steps`는 특정 어댑터가 담당할 **논리적 작업 단위**를 규정하여, 어떤 단계에서 실패(ADAPTER_NOT_FOUND 등)가 발생했는지 정밀하게 타격하여 복구할 수 있게 합니다.
 - **실시간 진행률 및 상태 가시화:**
   `execution_chains` 수준의 상태(FLOW, STUCK)만으로는 "얼마나 진행되었는지" 알기 어렵습니다. `execution_steps`는 각 스텝의 상태를 추적하여, 넥슈(NEXU)가 사용자에게 "창문은 닫았고, 이제 가스를 차단 중입니다"와 같은 **진행형 서사**를 제공할 수 있는 근거가 됩니다.
 - **부분 성공(Partial Success) 처리:**
-  N-MAP은 실행 실패 시 문자열 에러 대신 에러 토큰으로 재정규화합니다. 여러 스텝 중 하나만 실패했을 때, 전체 체인을 무효화할지 아니면 실패한 스텝만 재시도(Retryable)할지를 결정하는 **의사결정의 최소 단위**가 바로 스텝입니다.
+  Nexnap은 실행 실패 시 문자열 에러 대신 에러 토큰으로 재정규화합니다. 여러 스텝 중 하나만 실패했을 때, 전체 체인을 무효화할지 아니면 실패한 스텝만 재시도(Retryable)할지를 결정하는 **의사결정의 최소 단위**가 바로 스텝입니다.
 
 사용자님의 구상인 **'가상 시뮬레이션 및 실물 실행에서의 타임머신(뒤로가기/앞으로가기)'** 기능과 NEXA 플랫폼의 핵심 설계 원칙(5W1H, 신뢰도 시각화, 지능적 족보)을 완벽하게 수용할 수 있도록 `execution_steps` 테이블 쿼리를 다음과 같이 수정해 드립니다.
 
 ```sql
--- [NEXA-N-MAP-04] 지능형 실행 단계 및 타임라인 시뮬레이션 테이블
+-- [NEXA-Nexnap-04] 지능형 실행 단계 및 타임라인 시뮬레이션 테이블
 CREATE TABLE execution_steps (
     -- 1. 기본 식별 및 순서
     step_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     packet_id UUID NOT NULL REFERENCES execution_chains(packet_id) ON DELETE CASCADE,
     step_sequence SMALLINT NOT NULL, -- 실행 순서 (1, 2, 3...)
 
-    -- 2. 기능 및 파라미터 (N-MAP 규격)
+    -- 2. 기능 및 파라미터 (Nexnap 규격)
     capability_id VARCHAR(100) NOT NULL, -- 행사된 기능 자격 ID
     params JSONB, -- 해당 스텝의 논리 명령 파라미터
 
@@ -243,7 +243,7 @@ CREATE TABLE execution_steps (
     -- 5. 지능적 족보 및 에러 처리
     worker_id VARCHAR(100), -- 전처리/정규화를 담당한 워커 식별자
     why_step_logic JSONB, -- 해당 단계가 생성된 개별 추론 근거
-    error_token JSONB, -- 실패 시 재규격화된 N-MAP 에러 토큰
+    error_token JSONB, -- 실패 시 재규격화된 Nexnap 에러 토큰
 
     -- 6. 시간 기록
     started_at TIMESTAMPTZ,
@@ -262,7 +262,7 @@ CREATE INDEX idx_exec_steps_timeline_branch ON execution_steps(timeline_branch_i
 2.  **`timeline_branch_id` (분기 관리)**: 사용자가 특정 시점으로 돌아가 다른 선택을 했을 때 발생하는 **'평행 타임라인'**을 관리하여 시뮬레이션의 다중성을 지원합니다 [Conversation History].
 3.  **`confidence_score` (NEXA NIXIE 연동)**: 닉시관 UI에서 각 실행 단계의 확신도에 따라 **빛의 떨림(Jitter)이나 밝기(Lumina)**를 실시간으로 연출하는 근거 데이터가 됩니다.
 4.  **`is_virtual` (가상 플래그)**: 시뮬레이션 중 실수로 실물 장비(EFF)가 작동하지 않도록 하는 **의미론적 잠금(Meaning Lock)** 장치입니다.
-5.  **`error_token` (재규격화)**: 어댑터 실패 시 날것의 에러 대신 N-MAP 표준 에러 토큰을 저장하여, 타임라인 복구 시 AI가 실패 원인을 즉시 파악하고 대안을 제시하게 합니다.
+5.  **`error_token` (재규격화)**: 어댑터 실패 시 날것의 에러 대신 Nexnap 표준 에러 토큰을 저장하여, 타임라인 복구 시 AI가 실패 원인을 즉시 파악하고 대안을 제시하게 합니다.
 
 이 스키마를 통해 NEXA 플랫폼은 단순히 명령을 기록하는 것을 넘어, **과거와 미래의 실행 상태를 자유롭게 유영하는 '지능형 시뮬레이터'**로서의 데이터 기반을 갖추게 됩니다.
 
@@ -281,7 +281,7 @@ CREATE TABLE execution_logs (
     worker_id VARCHAR(100), -- 직전 처리 워커 식별자
     adapter_id VARCHAR(100), -- 실행을 담당한 실제 어댑터 (예: 'home-assistant-01')
     raw_response JSONB, -- 네이티브 API의 날것의 응답 데이터
-    error_token JSONB,  -- 실패 시 생성된 N-MAP 에러 토큰 (ADAPTER_TIMEOUT 등)
+    error_token JSONB,  -- 실패 시 생성된 Nexnap 에러 토큰 (ADAPTER_TIMEOUT 등)
 
     execution_ms INT, -- 실행 소요 시간
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -295,6 +295,6 @@ CREATE TABLE execution_logs (
 1.  **5W1H 컬럼 완전 분리:** `ucl_header` JSONB에 묻어두지 않고 6개의 `SMALLINT` 컬럼으로 분리했습니다. 이는 DB 레벨에서 90% 이상의 데이터를 1ms 내에 필터링하기 위한 **NEXA의 핵심 성능 전략**입니다.
 2.  **동력원(Pulse)과 경로(Channel)의 명시:** `who_pulse`와 `input_channel`을 통해 이 실행이 사람의 의지(WILL)인지, AI의 제안(ECHO)인지, 아니면 넥슈의 자율 판단인지 즉각 판별합니다.
 3.  **관측성 최소 추적 키 고정:** `worker_id`, `adapter_id`, `packet_id(chain_id 역할)`, `error_token`을 공통 추적 키로 유지하여 "누가/왜/어디서 실패했는가"를 Why Chain과 함께 역추적 가능하게 합니다.
-3.  **지능적 생명주기 수용:** `how_state` 컬럼을 통해 `FLOW`에서 `VOID`로 넘어가는 **데이터 수명 주기 정책**을 실제 DB 레벨에서 감시하고 제어할 수 있습니다.
-4.  **역추적 참조 사슬:** `why_chain` JSONB 필드와 `packet_id`를 통해 **[SNT(사실) → IND(판단) → EFF(실행)]**로 이어지는 인과관계를 완벽하게 역추적하여 시스템 투명성을 보장합니다.
-5.  **RLS 및 보안 격리:** `project_id`를 기반으로 행 수준 보안(RLS)을 적용하여, 특정 프로젝트나 사용자의 실행 사슬이 타인에게 노출되지 않도록 강력하게 격리합니다.
+4.  **지능적 생명주기 수용:** `how_state` 컬럼을 통해 `FLOW`에서 `VOID`로 넘어가는 **데이터 수명 주기 정책**을 실제 DB 레벨에서 감시하고 제어할 수 있습니다.
+5.  **역추적 참조 사슬:** `why_chain` JSONB 필드와 `packet_id`를 통해 **[SNT(사실) → IND(판단) → EFF(실행)]**로 이어지는 인과관계를 완벽하게 역추적하여 시스템 투명성을 보장합니다.
+6.  **RLS 및 보안 격리:** `project_id`를 기반으로 행 수준 보안(RLS)을 적용하여, 특정 프로젝트나 사용자의 실행 사슬이 타인에게 노출되지 않도록 강력하게 격리합니다.

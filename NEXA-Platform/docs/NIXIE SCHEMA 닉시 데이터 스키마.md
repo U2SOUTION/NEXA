@@ -134,7 +134,7 @@ NEXU 캔버스에 그려지는 **도트·노드**는 장식용 점이 아니다.
   - `input_channel = 'AI_INFERENCE'` (또는 `AI_SLM`)
   - `confidence_score`: SLM 내부 확신도(0~100)로 저장
   - `hexagon(5W1H)`: 입력 요약/상태 기반으로 who/when/where/what/how/why 토큰을 채움
-  - `payload`: 후보 N-MAP 헤더, 제안된 persona 표정 팩, 대안 프레이밍 등(전부 JSON)
+  - `payload`: 후보 Nexnap 헤더, 제안된 persona 표정 팩, 대안 프레이밍 등(전부 JSON)
   - `Traceability`: `why_chain`에 “어떤 입력 신호로부터 어떤 판단이 나왔는지”를 기록
 - 승인 대기(ASK) 규칙
   - `confidence_score < 95`이면 `pulse`를 ASK로 전환하거나(권장), 같은 레코드에 `extra_data.intent='ASK_PENDING'`로 표기해 **승인 대기 토큰**을 생성
@@ -152,7 +152,7 @@ NEXU 캔버스에 그려지는 **도트·노드**는 장식용 점이 아니다.
     - 선택된 Self facet (자아의 단면) ID / 슬라이더 값 / 선택 결과의 요약
     - `intent_tags` (예: INTENT 성격 태그)
   - `Traceability`:
-    - `why_chain`에 “사용자가 무엇을 선택했고 그 선택이 어떤 N-MAP/PERSONA/코일 매핑으로 이어질지”를 기록
+    - `why_chain`에 “사용자가 무엇을 선택했고 그 선택이 어떤 Nexnap/PERSONA/코일 매핑으로 이어질지”를 기록
 - 지식화(영구 보존) 포인트
   - UI 선택은 로그에 남는 것뿐 아니라, 유의미한 전환/결정일 경우 `project_knowledge.nature_tag = 'INTENT'`로 승격하여 장기 기억에 반영한다.
 
@@ -163,7 +163,7 @@ NEXU 캔버스에 그려지는 **도트·노드**는 장식용 점이 아니다.
   - `payload`에는 원본을 직접 저장하지 않고, 비식별화된 5W1H 텍스트(또는 요약) + 원본 파일의 `ref_id`를 함께 저장한다.
   - `input_channel`은 원천에 따라 `VOICE | VIDEO | TEXT` 중 하나(또는 `MULTIMODAL`)
 - VOID(비가시적 영감) 규칙
-  - 입력이 또렷하지 않거나 망설임/불확실성이 감지되면 `HEXAGON how_state = VOID`를 부여하고, 닉시가 **영감 모드(자아(N-MAP 템플릿) 파노라마 디스플레이)**로 전환하도록 한다.
+  - 입력이 또렷하지 않거나 망설임/불확실성이 감지되면 `HEXAGON how_state = VOID`를 부여하고, 닉시가 **영감 모드(자아(Nexnap 템플릿) 파노라마 디스플레이)**로 전환하도록 한다.
   - 동시에 `payload.void_signals`에 체류/롤백/미선택 패턴 같은 행동 신호 근거를 JSON으로 남긴다.
 - Traceability(Why Chain 역추적)
   - `ref_ids`(또는 `extra_data.ref_id_chain`)에 다음을 함께 저장해 인과를 역추적한다.
@@ -183,7 +183,7 @@ NEXU 캔버스에 그려지는 **도트·노드**는 장식용 점이 아니다.
 
 - `inputs`: 어떤 신호(텍스트/행동/디바이스/TICK)를 기반으로 했는지(각 노드는 ref_id 또는 event_id를 가진다)
 - `reasoning`: SLM/인디케이터가 어떤 내부 상태/규칙으로 판단했는지(모델/버전/프롬프트 요약 등은 extra_data.metadata에 둔다)
-- `effects`: 어떤 액션 또는 후보 N-MAP 헤더/Persona 팩/코일 매핑으로 이어졌는지
+- `effects`: 어떤 액션 또는 후보 Nexnap 헤더/Persona 팩/코일 매핑으로 이어졌는지
 
 > Why Chain의 필드 상세 구조는 추후 `[NEXA NIXIE-SCHEMA]` v1.1에서 확정할 수 있으나, 역추적 가능하도록 **참조 키(ref_id/event_id)들은 절대 문자열만으로 끝내지 말고 JSON에 남겨야** 한다.
 
@@ -210,7 +210,7 @@ NEXU 캔버스에 그려지는 **도트·노드**는 장식용 점이 아니다.
 - `confidence_score=62`
 - `extra_data` 예:
   {
-  "candidate_ucl_headers": ["N-MAP.ACTION.SAVE", "N-MAP.ACTION.DELETE"],
+  "candidate_ucl_headers": ["Nexnap.ACTION.SAVE", "Nexnap.ACTION.DELETE"],
   "ask_question": "저장/삭제 중 어떤 의도로 보셨나요?",
   "persona_pack_id": "persona.calm",
   "void_related": false

@@ -54,7 +54,7 @@ export type MorsePlaybackHooks = {
  * - dit(리듬) 변경은 타임라인 재구성이 필요해 UI 쪽에서 재생 재시작으로 처리.
  * - `playbackHooks`: 이벤트 시작(`onEventStart`)은 `setTimeout`으로 벽시계 정렬 — `stopMorsePlayback` 시 훅 타이머 전부 정리. 자연 종료는 `onComplete`, 중단은 `onStopped`.
  * `MORSE_MASTER_GAIN_MAX`: 슬라이더 100% 환산 시 선형 게인 상한. 1 초과는 의도적 과증폭·연출 여지(클리핑 가능).
- * N-MAP(entropy·confidence 등) → 게인/톤/dit 자동 매핑은 닉시 본편에서 별 레이어로 둘 예정 — 현재는 스냅샷 값 + 수동 컨트롤만.
+ * Nexnap(entropy·confidence 등) → 게인/톤/dit 자동 매핑은 닉시 본편에서 별 레이어로 둘 예정 — 현재는 스냅샷 값 + 수동 컨트롤만.
  */
 export const MORSE_MASTER_GAIN_MAX = 1.2
 
@@ -245,21 +245,24 @@ function scheduleFadeOutClose(ctx: AudioContext, afterClose?: () => void): void 
   master.gain.cancelScheduledValues(t)
   master.gain.setValueAtTime(cur, t)
   master.gain.linearRampToValueAtTime(0, t + MORSE_PLAY_FADE_OUT_SEC)
-  pendingFadeCloseTimer = window.setTimeout(() => {
-    pendingFadeCloseTimer = null
-    if (activeCtx !== ctx) {
+  pendingFadeCloseTimer = window.setTimeout(
+    () => {
+      pendingFadeCloseTimer = null
+      if (activeCtx !== ctx) {
+        afterClose?.()
+        return
+      }
+      clearActiveAudioNodes()
+      try {
+        void ctx.close()
+      } catch {
+        /* noop */
+      }
+      activeCtx = null
       afterClose?.()
-      return
-    }
-    clearActiveAudioNodes()
-    try {
-      void ctx.close()
-    } catch {
-      /* noop */
-    }
-    activeCtx = null
-    afterClose?.()
-  }, MORSE_PLAY_FADE_OUT_SEC * 1000 + 35)
+    },
+    MORSE_PLAY_FADE_OUT_SEC * 1000 + 35,
+  )
 }
 
 function stopMorsePlaybackImmediate(): void {
@@ -389,8 +392,7 @@ export function setMorseStereoPanValue(pan: number): void {
   if (!node || !ctx) return
   const t = ctx.currentTime
   const panParam = node.pan as AudioParam & { getValueAtTime?(time: number): number }
-  const current =
-    typeof panParam.getValueAtTime === 'function' ? panParam.getValueAtTime(t) : panParam.value
+  const current = typeof panParam.getValueAtTime === 'function' ? panParam.getValueAtTime(t) : panParam.value
   if (Math.abs(current - target) < 1e-5) {
     node.pan.cancelScheduledValues(t)
     node.pan.setValueAtTime(target, t)

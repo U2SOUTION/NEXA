@@ -39,10 +39,10 @@
 
 ---
 
-## N-MAP — N-MAP 엔진
+## Nexnap — Nexnap 엔진
 
-- [ ] `N-MAP ADR` 주요 결정 사항 기록
-- [ ] `N-MAP GUIDE` 사용 방법 작성
+- [ ] `Nexnap ADR` 주요 결정 사항 기록
+- [ ] `Nexnap GUIDE` 사용 방법 작성
 - [ ] SPEC 문서 간 중복 확인 및 통합
 
 ---

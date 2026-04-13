@@ -1,7 +1,6 @@
-### inguistic Routing: N-MAP 상황 파악 및 실행 전달 핵심 엔진
+### inguistic Routing: Nexnap 상황 파악 및 실행 전달 핵심 엔진
 
-Linguistic Routing 엔진은 N-MAP(지휘자 규격서)의 핵심 '두뇌'이자, "자연어를 기계가 실행 가능한 최적의 경로로 배정하는 지능형 스위치"라고 해석됩니다.
-질문자님이 설계하신 4단계 로직에 대입해 보면, 이 엔진의 역할은 다음과 같이 구체화됩니다.
+Linguistic Routing 엔진은 **UCL(지능형 실행 프로토콜)**의 핵심 '두뇌'이자, "자연어를 기계가 실행 가능한 최적의 경로로 배정하는 지능형 스위치" 이며 이 엔진의 역할은 다음과 같이 구체화됩니다.
 
 1. 언어적 의미의 좌표화 (Semantic Vectorizing)
 
@@ -22,7 +21,7 @@ Linguistic Routing 엔진은 N-MAP(지휘자 규격서)의 핵심 '두뇌'이자
 
 ---
 
-결론: 이 엔진은 N-MAP의 '교통관제탑'입니다.
+결론: 이 엔진은 Nexnap의 '교통관제탑'입니다.
 단순히 데이터를 전달하는 '파이프'가 아니라, 언어의 의도를 분석해서 가장 안전하고 정확한 목적지(어댑터)로 쏴주는 관제 시스템인 것이죠.
 질문자님의 관점에서 이 엔진이 가장 '똑똑하게' 처리해야 할 부분은 무엇인가요?
 
@@ -34,12 +33,12 @@ Linguistic Routing 엔진은 N-MAP(지휘자 규격서)의 핵심 '두뇌'이자
 
 #### 1. 개요 및 위치
 
-**"Linguistic Routing이 N-MAP 파서의 단계(상황 파악)와 (실행 어댑터 전달)를 잇는 핵심 엔진"**
+**"Linguistic Routing이 UCL 파서의 단계(상황 파악)와 (실행 어댑터 전달)를 잇는 핵심 엔진"**
 NEXA 오케스트레이터 내부에서 이 엔진이 어떻게 작동하는지 구체적인 설계안을 제시 합니다.
 
 이 설계의 핵심은 **영어 커널(English Kernel)** 전략을 유지하면서, 서로 다른 언어적 배경을 가진 데이터(사람의 말 vs 장치의 신호)를 하나의 **표준 악보(English IR)**로 통합하여 결함 없는 실행 사슬을 형성하는 데 있습니다.
 
-Linguistic Routing은 N-MAP 파이프라인의 **'Listen(경청)'** 단계에서 발생하여 **'Context Awareness(상황 파악)'**로 넘어가는 입구와, **'Decision Making(의사결정)'**이 완료된 후 **'Adapter Execution(실행)'**으로 넘어가는 출구를 동시에 관장하는 **지능형 가교(Bridge)**입니다.
+Linguistic Routing은 UCL 실행 파이프라인의 **'Listen(경청)'** 단계에서 발생하여 **'Context Awareness(상황 파악)'**로 넘어가는 입구와, **'Decision Making(의사결정)'**이 완료된 후 **'Adapter Execution(실행)'**으로 넘어가는 출구를 동시에 관장하는 **지능형 가교(Bridge)**입니다.
 
 #### 2. 진입 단계: 언어적 정규화 (Normalization Engine)
 
@@ -63,9 +62,9 @@ Linguistic Routing 엔진은 데이터의 **언어적 확신도**를 의사결�
 
 #### 4. 전달 단계: 불변의 실행 패킷(Immutable Execution Bundle) 생성
 
-의사결정이 끝나 실행 모드가 확정되면, Linguistic Routing은 이를 실행 어댑터가 즉시 연주할 수 있는 **최종 영문 N-MAP 악보**로 고정합니다.
+의사결정이 끝나 실행 모드가 확정되면, Linguistic Routing은 이를 실행 어댑터가 즉시 연주할 수 있는 **최종 영문 UCL 악보를 담은 Nexnap 패킷**으로 고정합니다.
 
-- **Immutable IR:** 실행 단계로 넘어가는 N-MAP 패킷의 `execution_bundle` 내부의 명령 파라미터(`params`)와 제약 조건(`constraints`)은 **영문으로 고정**됩니다. 이는 어댑터가 하드웨어 API로 명령을 번역할 때 언어적 모호성으로 인한 오작동을 방지하기 위함입니다.
+- **Immutable IR:** 실행 단계로 넘어가는 Nexnap 패킷의 `execution_bundle` 내부의 명령 파라미터(`params`)와 제약 조건(`constraints`)은 **영문으로 고정**됩니다. 이는 어댑터가 하드웨어 API로 명령을 번역할 때 언어적 모호성으로 인한 오작동을 방지하기 위함입니다.
 - **역방향 분해(Reverse Decomposition):** "외출 모드"와 같은 추상적 명령은 이 엔진을 거치며 [Close window, Lock door, Gas off]와 같은 **원자적 영문 실행 스텝(execution_steps)**으로 분해되어 어댑터에 전달됩니다.
 
 #### 5. 피드백 단계: 다국어 쉘(Multilingual Shell) 전환
@@ -91,7 +90,7 @@ NEXA 플랫폼은 유입되는 데이터의 **출처(input_channel)**와 **동�
 
 ### 1. 데이터 구분 및 판별 매커니즘
 
-제니스 서버의 앞단에 위치한 **IoT 스트림 스플리터(IoT Stream Splitter)**가 N-MAP 패킷의 헤더 정보를 읽어 데이터의 상태를 1ms 내에 판별합니다.
+제니스 서버의 앞단에 위치한 **IoT 스트림 스플리터(IoT Stream Splitter)**가 Nexnap 패킷의 헤더 정보를 읽어 데이터의 상태를 1ms 내에 판별합니다.
 
 - **구분 기준 1: `input_channel` (유입 경로)**
   - `UI_TEXT`, `UI_CARD`: 브라우저에서 직접 유입된 날것의 데이터로 간주합니다.
@@ -144,7 +143,7 @@ NEXA 플랫폼은 유입되는 데이터의 **출처(input_channel)**와 **동�
 
 Linguistic Routing(언어적 라우팅)은 사용자의 자연어 의도를 분석하여, 이를 실행할 수 있는 최적의 경로(기기, 서비스, 에이전트)로 자동 배정하는 기술적 프로세스
 
-이 Linguistic Routing이 N-MAP 파서의 단계(상황 파악)와 (실행 어댑터 전달)를 잇는 핵심 엔진
+이 Linguistic Routing이 UCL 파서의 단계(상황 파악)와 (실행 어댑터 전달)를 잇는 핵심 엔진
 
 **'Linguistic Routing'** 로직을 오케스트레이터의 어느 노드(예: IoT Stream Splitter)에 배치할지 구체화 해본다?
 
@@ -197,7 +196,7 @@ Linguistic Routing을 통과한 데이터는 **표준화된 영문 5W1H IR** 형
 
 ### 💡 요약: Linguistic Routing의 시스템적 위치
 
-Linguistic Routing은 **"날것의 멀티모달 신호"**를 오케스트레이터가 이해할 수 있는 **"정제된 영문 악보(N-MAP)"**로 정제하는 필터링 계층입니다. 이 로직이 오케스트레이터 앞단에 위치함으로써, NEXA는 하드웨어 사양에 따른 **지능 위계 분업**을 실현하고 서버의 토큰 효율성을 극대화할 수 있습니다.
+Linguistic Routing은 **"날것의 멀티모달 신호"**를 오케스트레이터가 이해할 수 있는 **"정제된 영문 악보(Nexnap)"**로 정제하는 필터링 계층입니다. 이 로직이 오케스트레이터 앞단에 위치함으로써, NEXA는 하드웨어 사양에 따른 **지능 위계 분업**을 실현하고 서버의 토큰 효율성을 극대화할 수 있습니다.
 
 > > > 다음 질문들-------------------------------------------------------------------------
 > > > 이 설계를 바탕으로 **번역 엔진에 사용할 구체적인 모델(예: NLLB-200-3.3B)**이나 **Redis 시맨틱 캐시의 인덱싱 규칙**을 세부 확정해 나가는 것이 다음 단계.

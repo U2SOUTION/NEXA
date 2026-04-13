@@ -1,5 +1,5 @@
 <!--
-  NIXIE 온라인 — 24×7 도트 HUD · N-MAP Pinia 구독 · GSAP 연출.
+  NIXIE 온라인 — 24×7 도트 HUD · Nexnap Pinia 구독 · GSAP 연출.
   시뮬 UI는 NixieDevControls.vue (우측 패널).
   명세: docs/Nexion/[NXN] [SPEC] 심플 닉시 GSAP 적용 UI 구현 v0.1.md
 -->
@@ -33,7 +33,7 @@
 import { NIXIE_HUD_MARQUEE } from '@system/nixie/nixieUiConfig'
 import { HUD_LUMINA_PER_EVENT, morsePerEventDotTier, opacityFromMinOpacity } from '@system/nixie/nixieHudLumina'
 import { getMorseTokenCharRange, mapHudTextToDots, mapHudTextToDotsCharRangeMask, normalizeDemoHudText, textFitsCompletelyInGrid, NIXIE_GRID_COLS as COLS, NIXIE_GRID_ROWS as ROWS } from '@system/nixie/nixieDotMap'
-import { useNmapSnapshotStore } from '@system/store/nmapSnapshotStore'
+import { useNexnapSnapshotStore } from '@system/store/nexnapSnapshotStore'
 import { storeToRefs } from 'pinia'
 import gsap from 'gsap'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -61,8 +61,8 @@ defineProps({
   },
 })
 
-const nmapStore = useNmapSnapshotStore()
-const { snapshot, nebulaPulse } = storeToRefs(nmapStore)
+const nexnapStore = useNexnapSnapshotStore()
+const { snapshot, nebulaPulse } = storeToRefs(nexnapStore)
 
 const rootEl = ref(null)
 const tiltRef = ref(null)
@@ -100,16 +100,16 @@ function syncHudMarqueeTimer() {
   }
   const full = normalizeDemoHudText(snapshot.value.demo_hud_text ?? '')
   if (!full.length || textFitsCompletelyInGrid(full)) {
-    nmapStore.tickDemoHudMarquee()
+    nexnapStore.tickDemoHudMarquee()
     return
   }
-  nmapStore.tickDemoHudMarquee()
+  nexnapStore.tickDemoHudMarquee()
   const raw = snapshot.value.hud_marquee_interval_ms ?? NIXIE_HUD_MARQUEE.intervalMs
   const n = Math.floor(Number(raw) || NIXIE_HUD_MARQUEE.intervalMs)
   const ms = Math.max(NIXIE_HUD_MARQUEE.intervalMsMin, Math.min(NIXIE_HUD_MARQUEE.intervalMsMax, n))
   hudMarqueeTimer = window.setInterval(() => {
     if (document.hidden) return
-    nmapStore.tickDemoHudMarquee()
+    nexnapStore.tickDemoHudMarquee()
   }, ms)
 }
 
@@ -284,7 +284,7 @@ function syncLumina() {
     if (!baseLitDots.length && !highlightLitDots.length) return
 
     const pulse = snapshot.value.who_pulse
-    const baseDur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
+    const baseDur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : pulse === 'TICK' ? 1.45 : 2.3
     const dur = clamp(baseDur * (1.45 - entropy * 0.75), 0.35, 2.8)
     const minOpacity = 0.36 + entropy * 0.35
     const maxOpacity = 0.55 + entropy * 0.37
@@ -423,7 +423,7 @@ function syncLumina() {
   }
 
   const pulse = snapshot.value.who_pulse
-  const baseDur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : 2.3
+  const baseDur = pulse === 'WILL' ? 1.1 : pulse === 'ECHO' ? 1.7 : pulse === 'TICK' ? 1.45 : 2.3
   const dur = clamp(baseDur * (1.45 - entropy * 0.75), 0.35, 2.8)
   const minOpacity = 0.16 + entropy * 0.22
   const maxOpacity = 0.48 + entropy * 0.44
@@ -467,6 +467,7 @@ function syncJitter() {
   let intensity = clamp(0.55 * instability + 0.45 * thStress, 0, 1)
   if (s.how_state === 'STUCK') intensity += 0.08
   if (s.who_pulse === 'ASK') intensity += 0.06
+  if (s.who_pulse === 'TICK') intensity += 0.04
   if (s.warn_token != null) intensity += 0.05
   intensity *= entropy
   intensity = clamp(intensity, 0, 1)

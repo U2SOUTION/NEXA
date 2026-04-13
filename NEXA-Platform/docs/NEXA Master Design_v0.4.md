@@ -3,6 +3,8 @@
 > **플랫폼 철학 (Principle Statement)**
 > "사람을 단순함에서 해방시켜, 더 넓은 의식과 더 온화한 삶으로 이어주는 겸허한 공간"
 
+**용어 정본(SSOT):** [`@ GLOSSARY NEXA-OS 용어집 .md`](@ GLOSSARY%20NEXA-OS%20용어집%20.md) — **Nexnap**은 ① **Nexnap Protocol**(의도→동작·스키마·전송)과 ② **동기화 스냅샷**(Pinia `nexnapSnapshotStore`, NIXIE 연료)의 이중 층을 **같은 브랜드명**으로 쓰며 문맥으로 구분한다. **NIXIE · NEXU · Nexion · Nexus** 4대 요소, **UCL**, 패킷 **`ucl_header`** 정의는 용어집과 이 문서를 맞춘다.
+
 ---
 
 ## 변경 이력
@@ -10,7 +12,7 @@
 | 버전     | 주요 변경 내용                                                                                                             |
 | -------- | -------------------------------------------------------------------------------------------------------------------------- |
 | v0.3     | 5코일 · Layer 0~2 구조 · Empathy 철학 레이어 확정                                                                          |
-| **v0.4** | **6코일 확정 (Compliance 추가) · Why 토큰 매핑 · 가중치 수식 · NEXU 캔버스 · ERA 승격 · Capability ID · Low-Entropy 모드** |
+| **v0.4** | **6코일 확정 (Compliance 추가) · Why 토큰 매핑 · 가중치 수식 · NEXU 캔버스 · ERA 승격 · Capability ID · Low-Entropy 모드** · 용어집 SSOT 정합 (Nexnap ① Protocol / ② 스냅샷, NIXIE·NEXU 역할, `ucl_header`) · **§10.4 Nexion Identity ID** (`nexa_identities`) |
 
 ---
 
@@ -19,13 +21,13 @@
 1. [NEXA 철학 레이어](#1-nexa-철학-레이어)
 2. [HEXAGON Protocol](#2-hexagon-protocol)
 3. [Sentinel / Indicator 구조](#3-sentinel--indicator-구조)
-4. [N-MAP 5단계 프로토콜](#4-n-map-5단계-프로토콜)
+4. [Nexnap 5단계 프로토콜](#4-nexnap-5단계-프로토콜)
 5. [코일 시스템](#5-코일-시스템)
 6. [충돌 해소 매트릭스](#6-충돌-해소-매트릭스)
 7. [Empathy 설계](#7-empathy-설계)
 8. [VOID 전환 수치화](#8-void-전환-수치화)
-9. [NEXA-NEXU 캔버스](#9-nexa-nexu-캔버스-v04-신규)
-10. [Capability ID 체계](#10-capability-id-체계)
+9. [NEXA 서사 캔버스 (NEXU · NIXIE)](#9-nexa-서사-캔버스-nexu--nixie)
+10. [Capability ID 체계](#10-capability-id-체계-v04-신규) · [10.4 Identity ID](#104-identity-id-nexion--영혼-원장)
 11. [PostgreSQL 스키마](#11-postgresql-스키마)
 12. [구현 로드맵](#12-구현-로드맵)
 13. [미완성 항목](#13-미완성-항목)
@@ -66,6 +68,8 @@ Empathy는 코일이 아닌 **모든 코일 판단의 전제 조건**이다.
 
 > AI 운영체제의 헌법. 모든 데이터 패킷의 헤더에 배치되어
 > 소형 AI가 복잡한 추론 없이 **1ms 내에** 데이터의 본질과 우선순위를 판단하게 하는 지능적 인덱스.
+
+JSON·DDL에서 **6축 정수 인덱스**를 담는 논리 필드명은 **`ucl_header`**로 통일한다(용어집·Nexnap Protocol 명세와 동일).
 
 ### 2.1 6대 추상 레이어
 
@@ -165,7 +169,9 @@ ERA    → 헌법   (시스템 생존과 직결된 절대 원칙 · 수정 불�
 
 ---
 
-## 4. N-MAP 5단계 프로토콜
+## 4. Nexnap 5단계 프로토콜
+
+본 절은 **UCL**이 구동하는 **Listen → … → Feedback** 실행·피드백 파이프라인을 **Nexnap Protocol** 관점에서 단계화한 것이다. **동기화 스냅샷**(맥박·Pinia `nexnapSnapshotStore`)은 아래 흐름의 **결과**가 표현 층에 실릴 때 **Nexnap** ② 층으로 포착된다.
 
 ### 4.1 전체 흐름
 
@@ -547,17 +553,19 @@ ERA 격상        → PURGE 대상 영구 제외, 시스템 헌법으로 고정
 
 ---
 
-## 9. NEXA-NEXU 캔버스 (v0.4 신규)
+## 9. NEXA 서사 캔버스 (NEXU · NIXIE)
 
 > HEXAGON × 6-COILS 기반 지능형 서사 시각화 캔버스.
 > 데이터와 상태를 숫자가 아닌 빛·떨림·공간으로 표현한다.
+
+**역할 분리 (용어집 §1):** **NIXIE**는 지능의 **얼굴·표정**(비언어 연주, **Nexnap** 스냅샷 구독). **NEXU**는 **Why Chain**을 공간에 펼쳐 **인과를 증명**하는 **서사적 지휘자·캔버스**다. 대립이 아니라 **같은 캔버스 위의 책임 분담**이다.
 
 **넥슈(NEXU Canvas)의 정체성:** 캔버스는 **데이터의 유래(Why Chain)**를 보여 주는 **지능형 지도**다. 화려한 배경·대시보드 장식이 목적이 아니라, **250만 광년의 물리적 거리**조차 **사용자와의 관계(인과·근거)**로 치환해 같은 공간에 놓는다. “멀리 있는 숫자”가 아니라 **나와 이어지는 유래**로 읽히게 하는 것이 철학적 원칙이다.  
 노드 선택 시 **[판단(IND) → 사실(SNT) → 기획 문서(Doc)]** 참조 사슬을 하이라이트하는 것은 부가 기능이 아니라 **Why Chain을 시각적으로 증명**하는 핵심 책임이다.
 
 ### 9.1 핵심 시각 언어
 
-아래 요소는 **UI 디자인 패키지**가 아니라, **6코일 상태·데이터 신뢰도·실행 사슬의 투영**으로 정의한다.
+아래 요소는 **UI 디자인 패키지**가 아니라, **6코일 상태·데이터 신뢰도·실행 사슬의 투영**으로 정의한다. **Lumina·Jitter·에러 표정**은 **NIXIE**가 **Nexnap** 맥박을 읽어 출력하는 층이고, **IND→SNT→Doc** 유래 하이라이트는 **NEXU**가 **Why Chain**을 증명하는 책임이다.
 
 | 요소             | 정의                                                                                                                | 코일·데이터 연결                                      |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -575,9 +583,9 @@ ERA 격상        → PURGE 대상 영구 제외, 시스템 헌법으로 고정
 | **WARM** | 일반 환경          | 하이브리드 연출               |
 | **HOT**  | 고사양·풀 퍼포먼스 | 풀 시뮬레이션 · 잔상 최대     |
 
-### 9.3 에러 → 넥슈 표정 매핑
+### 9.3 에러 → 넥시 표정 매핑
 
-| 에러 코드               | 넥슈 상태            | 캔버스 연출         |
+| 에러 코드               | 닉시 상태            | 캔버스 연출         |
 | ----------------------- | -------------------- | ------------------- |
 | ADAPTER_TIMEOUT         | 고개 갸우뚱          | 해당 도트 Jitter    |
 | ADAPTER_NOT_FOUND       | 고개 갸우뚱 + 흐릿함 | Dim 처리            |
@@ -632,6 +640,77 @@ registry 등록 → tier 할당 → 사용자 grant → 실행 검증 → 감사
 확장 Capability:   자동 스캔 (source: extension)
 ```
 
+### 10.4 Identity ID (Nexion · 영혼 원장)
+
+**Nexion 5대** 중 **② Identity**에 해당한다. 지능 자산·개체를 가리키는 **식별자 축**의 SSOT이며, 용어·서사와 혼동하지 않는다.
+
+| 구분 | 내용 |
+| --- | --- |
+| **원장** | PostgreSQL **`nexa_identities`** — **Identity ID**·족보(승계 체인)의 정본 |
+| **발급·일반** | **6자** 발급, AI 분류, `domain_tags` 등 메타, 족보 조회·허용된 메타 편집 |
+| **운영자 정제 (✦운영자✦)** | `superseded_by_id`·`replaced_by_id` → 참조 **Re-pointing** → `domain_tags` 재매핑 → (전제 충족 시) 구 행 DELETE. **ASK → WILL** 게이트. 세부 규칙·금지·스냅샷은 **Identity v3.1** SSOT |
+| **UI** | 정제 툴은 5대 타일 **밖의 별도 제품**이 아니라 **Identity 화면의 탭·권한**으로 분리 ([`[NXN] [UIUX] ② Nexion Identity — 영혼 ID·족보 관리 설계.md`](Nexion/%5BNXN%5D%20%5BUIUX%5D%20②%20Nexion%20Identity%20—%20영혼%20ID·족보%20관리%20설계.md)) |
+
+**다른 축과의 경계**
+
+| 축 | Identity ID와의 관계 |
+| --- | --- |
+| **⑤ Narrative** | 파일 서사·`anchor_id` 등은 Narrative; Identity는 **영혼·개체 식별자** 원장 |
+| **Glossary** | 용어 정의 행은 Glossary; Identity는 **개체 ID** |
+| **Capability (§10.1~10.3)** | “누가 정제 UI에 들어가는가”는 Capability·역할; Identity UI는 **권한 마스크**만 연동 |
+
+---
+
+## 닉시로 바라본 데이터 흐름
+
+이 흐름은 단순히 데이터를 처리하는 과정이 아니라, **'감각(Sentinel) → 사유(UCL) → 맥박(Nexnap 동기화 스냅샷) → 실행(Adapter) → 서사(NIXIE / NEXU 캔버스)'**로 이어지는 유기적인 지능 체계의 작동 방식을 보여줍니다.
+
+### **[정교화된 지능형 서사 흐름: 비전 분석 시나리오]**
+
+#### **1단계: 엣지 감각 및 비식별화 (Sentinel Layer)**
+
+- **원시 데이터 유입:** 카메라가 거실의 영상을 포착합니다.
+- **Micro Sentinel 작동:** 라즈베리 파이 등 엣지 단에서 **비식별화**를 수행합니다. 얼굴 등 개인정보를 삭제하고 '사용자(Who)', '위험 물체(What)', '이동 궤적(Where)' 등 객체와 행동 패턴만을 추출하여 **5W1H 사실(Fact)**로 정의합니다.
+- **TICK 펄스 발생:** 분석된 결과는 영문 아톰(Atom) 형태의 **5W1H IR(중간 표현)**로 요약되어 시스템에 주입됩니다.
+
+#### **2단계: 언어적 정규화 및 상황 파악 (UCL Listen & Awareness)**
+
+- **Linguistic Routing:** 유입된 데이터가 이미 영문 IR 형태이므로 무거운 번역 엔진을 거치지 않고 **바이패스(Bypass)** 경로를 탑니다.
+- **HEXAGON 인덱싱:** 데이터를 **6개의 정수 토큰(SMALLINT)**으로 규격화합니다. 이때 시스템은 현재 맥락과 무관한 데이터의 90%를 1ms 내에 미리 걸러내는 **Pruning(필터링)**을 수행합니다.
+
+#### **3단계: 가치 필터링 및 의사결정 (UCL Decision & 6-Coils)**
+
+- **6-Coils 가치 연산:** 시스템은 현재 설정된 가중치(예: Safety 9.0, Creative 2.0)라는 **'렌즈'**를 통해 상황을 들여다봅니다. 비전 분석 결과가 '넘어짐 사고'라면 안전 코일이 극대화되어 **Why(인과)** 레이어에 'LOGIC(안전 수칙)'을 부여합니다.
+- **Confidence Gate:** 판단의 **신뢰도 점수**를 계산합니다. 점수가 임계값(기본 95) 미만이라면 강제로 **STUCK** 상태를 선언하고 사용자에게 확인을 요청하는 **ASK 펄스**를 준비합니다.
+
+#### **4단계: 지능형 맥박 포착 (Nexnap — 동기화 스냅샷)**
+
+- **스냅샷 생성:** UCL에 의해 결정된 "구조 요청 및 경고 발령"이라는 논리를 실시간 상태인 **'지능의 맥박'**으로 한순간 낚아챕니다. (용어집의 **Nexnap ②** · 타입 `NexnapSnapshot`.)
+- **전역 동기화:** 낚아챈 데이터는 `nexnapSnapshotStore.ts`(Pinia)에 상주하며, 시스템이 현재 어떤 **표정(Pulse)**을 지어야 하는지 전역에 공유합니다.
+
+#### **5단계: 실행 사슬 및 어댑터 작동 (Execution & Adapter)**
+
+- **Execution Chain 형성:** UCL은 "사이렌 울림, 가족에게 알림" 등 원자적 실행 단계들로 구성된 **실행 사슬**을 생성합니다.
+- **Adapter Execution:** 논리 명령은 실제 기기가 이해하는 네이티브 API로 번역되어 물리적 행동(EFF)으로 나타납니다.
+- **지능적 족보 박제:** 이 모든 과정은 **Why Chain**으로 엮여 `project_knowledge`에 영구 보존됩니다.
+
+#### **6단계: 서사 시각화 및 피드백 (NIXIE & NEXU Canvas)**
+
+- **NIXIE Lumina 연출:** 닉시 HUD는 Nexnap의 맥박 데이터를 받아 도트를 **붉게(Reddish)** 변화시키고 긴박도에 맞는 발광 주기를 연주합니다.
+- **NEXU Canvas의 증명:** 사용자가 화면을 보면 **NEXU 캔버스(넥슈)** 위에서 **[판단(IND) → 사실(SNT) → 기획 문서(Doc)]**로 이어지는 유래를 시각적 점선 궤적으로 하이라이트하여 보여줍니다.
+- **Jitter 피드백:** 만약 비전 분석의 신뢰도가 낮았다면 캔버스 도트가 미세하게 떨리는 **Jitter**를 발생시켜 사용자에게 "확인이 필요함"을 비언어적으로 알립니다.
+
+---
+
+### **추가될 수 있는 정교한 요소들**
+
+1.  **지능형 인터럽트 (Intelligence Interrupt):** 만약 화재와 같은 극단적 긴급 상황(Urgency Level 5)이 감지되면, UCL의 복잡한 추론을 생략하고 엣지가 즉각 제어권을 가져가는 **Safety Reflex**가 작동할 수 있습니다.
+2.  **가상 시뮬레이션 (Dry-run):** 실제 행동을 하기 전 `is_virtual = true` 상태에서 대체 자원을 투입했을 때의 성공 확률을 미리 계산하는 **타임라인 분기** 실험이 포함될 수 있습니다.
+3.  **다중 자아(Self Facet) 연동:** 사용자가 "공부 중"인 자아 상태라면 비전 분석 결과가 경미할 때 알림을 뒤로 미루는 **에너지 쓰로틀링**이 발생할 수 있습니다.
+4.  **역사적 지식(ERA) 승격:** 이 사고 대응 패턴이 반복되어 사용자의 승인(WILL)을 계속 얻는다면, 이는 단순한 로그를 넘어 시스템의 불변하는 헌법인 **ERA** 단계로 격상되어 향후 유사 상황에서 더 빠르게 작동합니다.
+
+**요약하자면**, 정교한 흐름은 단순히 데이터가 흐르는 파이프가 아니라, **시스템이 상황을 왜 그렇게 판단했는지 증명(Traceability)**하고 **사용자의 상태에 공감(Empathy)**하며 **물리적 환경을 조율**해 나가는 하나의 **'서사적 연주'** 과정으로 표현됩니다.
+
 ---
 
 ## 11. PostgreSQL 스키마
@@ -648,7 +727,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;  -- TimescaleDB
 | 테이블                   | 엔진                  | 역할                                |
 | ------------------------ | --------------------- | ----------------------------------- |
 | users                    | PostgreSQL            | 사용자 계정·권한                    |
-| orchestrators            | PostgreSQL            | 오케스트레이터 정의·전체 N-MAP        |
+| orchestrators            | PostgreSQL            | 오케스트레이터 정의·**Nexnap Protocol** 범위·계약 |
 | agents                   | PostgreSQL            | 에이전트 정의·페르소나·모델         |
 | orchestrator_agents      | PostgreSQL            | 오케스트레이터 ↔ 에이전트 N:M 매핑 |
 | skills                   | PostgreSQL            | 스킬 명세·도구 정의                 |
@@ -663,8 +742,9 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;  -- TimescaleDB
 | balance_coil_templates   | PostgreSQL            | 도메인별·사용자별 가중치 프리셋     |
 | capability_definitions   | PostgreSQL            | Capability ID 메타데이터            |
 | capability_grant_history | PostgreSQL            | 발급·폐기 이력 감사                 |
+| nexa_identities          | PostgreSQL            | **Nexion Identity** — Identity ID(영혼 ID) 원장·족보 |
 | project_settings         | PostgreSQL            | 현재 적용 template_id · threshold   |
-| map_configs              | PostgreSQL            | N-MAP 고정 설정 (Level 0)             |
+| map_configs              | PostgreSQL            | **Nexnap Protocol** 고정 설정 (Level 0) |
 
 ### 11.3 주요 DDL
 
@@ -838,16 +918,16 @@ CREATE POLICY user_isolation ON empathy_signals
 
 ## 12. 구현 로드맵
 
-| 단계  | 목표             | 주요 작업                                                         |
-| ----- | ---------------- | ----------------------------------------------------------------- |
-| 1단계 | 기반 인프라      | PostgreSQL + pgvector + TimescaleDB · 스키마 생성 · Ollama 연동   |
-| 2단계 | N-MAP 고정 레이어  | 철학 레이어 · Level 0 규칙 · 오케스트레이터 N-MAP                   |
-| 3단계 | Smart RAG        | document_index · pgvector 검색 · 원본 JOIN                        |
-| 4단계 | 코일 시스템      | 6코일 가중치 엔진 · 도메인 코일 발동 · Compliance 검사            |
-| 5단계 | Empathy 엔진     | 센서 입력 · 신호 계산 · Low-Entropy 모드 · 패턴 학습              |
-| 6단계 | NEXU 캔버스      | Lumina · Jitter · Ambient Interface · Self facet (자아의 단면) UI |
-| 7단계 | 사용자 편집 개방 | Vue 페르소나·스킬·태스크·코일 편집 UI                             |
-| 8단계 | 고도화           | 도메인 동시 진입 처리 · Capability ID · ERA 승격                  |
+| 단계  | 목표               | 주요 작업                                                         |
+| ----- | ------------------ | ----------------------------------------------------------------- |
+| 1단계 | 기반 인프라        | PostgreSQL + pgvector + TimescaleDB · 스키마 생성 · Ollama 연동   |
+| 2단계 | Nexnap Protocol 고정 레이어 | 철학 레이어 · Level 0 규칙 · 오케스트레이터 **Nexnap Protocol** 계약 |
+| 3단계 | Smart RAG          | document_index · pgvector 검색 · 원본 JOIN                        |
+| 4단계 | 코일 시스템        | 6코일 가중치 엔진 · 도메인 코일 발동 · Compliance 검사            |
+| 5단계 | Empathy 엔진       | 센서 입력 · 신호 계산 · Low-Entropy 모드 · 패턴 학습              |
+| 6단계 | NEXU·NIXIE 캔버스  | NEXU(Why Chain 증명) · NIXIE(Lumina·Jitter·에러 표정) · Ambient Interface · Self facet (자아의 단면) UI |
+| 7단계 | 사용자 편집 개방   | Vue 페르소나·스킬·태스크·코일 편집 UI                             |
+| 8단계 | 고도화             | 도메인 동시 진입 처리 · Capability ID · ERA 승격                  |
 
 ---
 
@@ -860,11 +940,11 @@ CREATE POLICY user_isolation ON empathy_signals
 | Capability ID 전체 네임스페이스 | 🟡 중간  | nexa.\* 전체 트리 설계                  |
 | Layer 1 도메인 코일 추가 여부   | 🟡 중간  | IoT 별도 코일 필요 여부                 |
 | 코일 간 가중치 수치 확정        | 🟡 중간  | W_domain이 W_source를 얼마나 제한하는가 |
-| NEXU 캔버스 Vue 컴포넌트        | 🟡 중간  | Lumina·Jitter 실제 구현                 |
+| NEXU·NIXIE 캔버스 Vue 컴포넌트  | 🟡 중간  | Why Chain 뷰 · Lumina·Jitter 실제 구현  |
 | ERA 전환 구체적 조건            | 🟢 낮음  | 어떤 데이터가 ERA가 되는가              |
 | 기존 문서 v0.4 반영 업데이트    | 🟢 낮음  | 문서 3 등 기존 문서 동기화              |
 
 ---
 
 _NEXA Platform · Master Design Document v0.4 · 내부 설계 문서_
-_최종 업데이트: 2026년 3월_
+_최종 업데이트: 2026년 4월_

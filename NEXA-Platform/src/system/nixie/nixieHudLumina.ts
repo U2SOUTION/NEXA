@@ -2,7 +2,7 @@
  * NIXIE 온라인 HUD 도트 루미나 — 불투명도·티어 분류만 (GSAP/DOM 없음).
  *
  * 데이터 흐름 요약:
- * - `nmapSnapshotStore` · `morseTimeline` · `morseWebAudioCore` → 재생 프레임·강조 문자
+ * - `nexnapSnapshotStore` · `morseTimeline` · `morseWebAudioCore` → 재생 프레임·강조 문자
  * - `nixieDotMap` → 텍스트+스크롄 → 도트 마스크
  * - 이 모듈 → 마스크 조합으로 티어(tape / token / accent) + 권장 opacity
  * - `NixieOnlineCharacter.vue` → 클래스 부착 + gsap.set

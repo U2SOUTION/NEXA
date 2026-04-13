@@ -10,17 +10,31 @@ NEXA 플랫폼의 핵심 아키텍처인 **'영어 커널 - 다국어 쉘(Englis
 
 영문 IR은 멀티모달 입력이 엣지(Sentinel)를 거쳐 제니스(Zenith)로 들어올 때 거치는 **표준화된 데이터 악보**입니다. 모든 텍스트와 의도 데이터는 영문으로 변환되어 저장됩니다.
 
-#### 1.1 패킷 구조 (N-MAP IR Schema)
+#### 1.1 패킷 구조 (Nexnap IR Schema)
 
-N-MAP 패킷은 **HEXAGON 헤더(SMALLINT)**와 **영문 페이로드(JSONB)**의 결합으로 구성됩니다.
+**Nexnap**은 인디케이터·어댑터·오케스트레이터 사이에 전달되는 **전체 패킷의 규격(Envelope)**이다. 직렬화는 **JSONB**이며, 최상위 키는 [Nexnap 02 SPEC §2.6 «Nexnap 패킷 구조 엄격 명세»](Nexnap%2002%20SPEC%20실행%20프로토콜%20및%20파이프라인.md)의 `ucl_packet` 계약과 정합한다.
 
-| 레이어      | 필드명 (Key)   | IR 데이터 예시 (Value)                 | 설명                   |
-| :---------- | :------------- | :------------------------------------- | :--------------------- |
-| **Who**     | `who_pulse`    | `WILL`, `ECHO`, `TICK`, `ASK`          | 동력원 (Smallint 매핑) |
-| **What**    | `what_intent`  | `ACTION_OPEN`, `STATUS_CHECK`          | 의도 아톰 (영문 고정)  |
-| **How**     | `how_state`    | `FLOW`, `STUCK`, `VOID`                | 실행 상태              |
-| **Content** | `content_fact` | "User picked up the drill."            | 5W1H 사실 요약 (영문)  |
-| **Why**     | `why_chain`    | `{"reasoning": "Standard pattern #5"}` | 인과 사슬 (영문)       |
+- **`ucl_header` (논리 인덱스 필드):** HEXAGON 프로토콜에 따른 **6축·SMALLINT 토큰**을 담는 **단일 최상위 필드명**이다. 문서·스키마·DDL에서 패킷의 “헤더 인덱스”를 가리킬 때는 **`ucl_header`**로 통일한다. (개념적으로 HEXAGON 인덱스와 동일하나, **JSON 키는 `ucl_header`만 사용**한다.)
+- **영문·JSONB 본문:** `execution_bundle`, `context_bundle`, `content_fact`, `trace_bundle` 등은 **영어 커널(English Kernel)** 규칙을 따르는 페이로드·실행·맥락 데이터다.
+
+아래 **표 1.1a**는 **`ucl_header` 객체 안**의 HEXAGON 축·키 예시다. `where_scope`, `when_tempo`, `why_causality`, `authority_level`, `urgency_level` 등 **전체 키·타입**은 **Nexnap 02 SPEC §2.6**의 `ucl_header` 블록이 규범이다.
+
+**표 1.1a — `ucl_header` 내부 (논리 인덱스 · SMALLINT 중심)**
+
+| 레이어 (`ucl_header` 축) | 필드명 (Key)  | IR 데이터 예시 (Value)        | 설명                   |
+| :----------------------- | :------------ | :---------------------------- | :--------------------- |
+| **Who**                  | `who_pulse`   | `WILL`, `ECHO`, `TICK`, `ASK` | 동력원 (SMALLINT 매핑) |
+| **What**                 | `what_intent` | `ACTION_OPEN`, `STATUS_CHECK` | 의도 아톰 (토큰 매핑)  |
+| **How**                  | `how_state`   | `FLOW`, `STUCK`, `VOID`       | 실행 상태              |
+
+**표 1.1b — 동일 Nexnap Envelope 안의 영문 IR (`ucl_header` 밖)**
+
+| 역할        | 필드명 (Key)   | IR 데이터 예시 (Value)                 | 설명                  |
+| :---------- | :------------- | :------------------------------------- | :-------------------- |
+| **Content** | `content_fact` | "User picked up the drill."            | 5W1H 사실 요약 (영문) |
+| **Why**     | `why_chain`    | `{"reasoning": "Standard pattern #5"}` | 인과 사슬 (영문)      |
+
+> **참고:** `content_fact`·`why_chain`·`execution_bundle` 등은 **같은 Envelope**에 실리나 **`ucl_header` 객체 밖**의 키다. **정수 인덱스만 모은 객체는 항상 `ucl_header` 하나로 묶인다.**
 
 #### 1.2 아톰화 필터 (Nature Tag)
 
@@ -100,7 +114,7 @@ NEXA의 지능 위계에 따라 번역 모델의 체급을 다르게 배치할 �
 - **모델 경량화:** 라즈베리 파이와 같은 엣지 허브에서는 1B~3B급의 **SLM(Small LLM)**이나 최적화된 OPUS-MT 모델을 사용하여 지연 시간을 최소화해야 합니다.
 - **전략적 번역 범위 제한:** 모든 것을 실시간 번역하면 병목이 생길 수 있으므로, 고빈도 명령어는 미리 매핑된 **영문 토큰 ID**로 즉시 치환하고 복잡한 서사만 번역 모델을 거치게 설계해야 합니다.
 
-**결론적으로**, 마이크로 센티널 단에 **OPUS-MT**와 같은 경량 번역 모델을 배치하여 한국어 입력을 **영문 5W1H 사실(Fact)**로 변환하는 구조는 NEXA의 '지능적 분업' 원칙에 가장 충실한 구현 방식입니다. 이 구조가 갖춰지면 서버는 번역 부담 없이 영문 악보(N-MAP)를 해석하는 데에만 집중할 수 있습니다.
+**결론적으로**, 마이크로 센티널 단에 **OPUS-MT**와 같은 경량 번역 모델을 배치하여 한국어 입력을 **영문 5W1H 사실(Fact)**로 변환하는 구조는 NEXA의 '지능적 분업' 원칙에 가장 충실한 구현 방식입니다. 이 구조가 갖춰지면 서버는 번역 부담 없이 영문 악보(Nexnap)를 해석하는 데에만 집중할 수 있습니다.
 
 ---
 
@@ -115,12 +129,12 @@ NEXA 플랫폼의 핵심 아키텍처인 **'영어 커널 - 다국어 쉘(Englis
 #### 1. 개요 및 설계 원칙
 
 - **English Kernel:** 오케스트레이터 및 인디케이터 내부에서 처리되는 모든 데이터와 논리는 영어로 유지됩니다.
-- **HEXAGON Indexing:** 모든 패킷 헤더는 6개의 SMALLINT 정수 토큰으로 구성되어 1ms 내 초고속 필터링을 지원합니다.
+- **HEXAGON Indexing:** 패킷의 논리 인덱스는 **`ucl_header`** 필드에 모으며, 6축 SMALLINT 토큰으로 1ms 내 초고속 필터링을 지원합니다.
 - **Atomization:** 비정형 데이터는 5W1H 구조의 영문 텍스트로 요약되어 '아톰(Atom)' 단위로 저장됩니다.
 
 #### 2. 패킷 최상위 구조 (Top-level Schema)
 
-N-MAP 패킷은 JSONB 형식으로 구성되며, 시스템 전역에서 통용되는 표준 계약을 따릅니다.
+Nexnap **Envelope**는 JSONB로 직렬화되며, `ucl_header`·`content_fact` 등 아래 키를 포함한다. 실행·맥락 번들이 필요하면 [Nexnap 02 SPEC §2.6](Nexnap%2002%20SPEC%20실행%20프로토콜%20및%20파이프라인.md)의 `execution_bundle`·`context_bundle`을 추가한다.
 
 | 필드명 (Key)       | 데이터 타입       | 설명                                                |
 | :----------------- | :---------------- | :-------------------------------------------------- |

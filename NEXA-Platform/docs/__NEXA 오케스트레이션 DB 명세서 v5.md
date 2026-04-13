@@ -132,13 +132,13 @@ Self 공통 자산 연동:
 | 30  | `project_user_presence`     | 협업            | 현재 접속/활동 상태                                                                                                              | UNLOGGED             |
 | 31  | `project_yjs_updates`       | 동기화          | Yjs 증분 업데이트 로그                                                                                                           | BYTEA                |
 
-### 1.1a N-MAP 실행 트랙 (3개, [NEXA-N-MAP-04]·[NEXA-N-MAP-07])
+### 1.1a Nexnap 실행 트랙 (3개, [NEXA-Nexnap-04]·[NEXA-Nexnap-07])
 
 단순 로그가 아니라 **실행 시뮬레이터**(가상 분기·스냅샷 롤백·잔여 태스크 적합도)를 위한 귀속 테이블. 상세 DDL은 `__NEXA 오케스트레이션 스키마 DDL v5.md` §1-5.
 
 | No  | 테이블명           | 주요 역할                    | 핵심 컬럼·메모                                                                                                          |
 | :-- | :----------------- | :--------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
-| 32  | `execution_chains` | N-MAP 패킷 단위 실시간 사슬  | `residual_fit_score`, `residual_fit_rationale` — `ADAPTER_PARTIAL_SUCCESS` 후 남은 단계 강행 여부(N-MAP-07 §1.1)        |
+| 32  | `execution_chains` | Nexnap 패킷 단위 실시간 사슬 | `residual_fit_score`, `residual_fit_rationale` — `ADAPTER_PARTIAL_SUCCESS` 후 남은 단계 강행 여부(Nexnap-07 §1.1)       |
 | 33  | `execution_steps`  | 원자 스텝·Dry-run 분리       | `is_virtual`, `target_entity_type` (PHYSICAL/VIRTUAL/NEXU), `pre_state_snapshot`, `post_state_snapshot` — 롤백·타임머신 |
 | 34  | `execution_logs`   | 어댑터 응답·에러 토큰 시계열 | TimescaleDB 하이퍼테이블                                                                                                |
 
@@ -297,12 +297,12 @@ RLS 요약:
 
 ### 3.1 표준 시나리오
 
-| 단계 | 테이블/도메인                                                               | 설명                   |
-| :--- | :-------------------------------------------------------------------------- | :--------------------- |
-| 분석 | `project_knowledge`                                                         | 시방서/지식 RAG 검색   |
-| 제안 | `project_nodes`, `project_simulations`                                      | 로직 수정/시뮬레이션   |
-| 실행 | `project_scripts`, `project_devices`, `project_panels`, `project_orchestra` | N-MAP/태스크 기반 실행 |
-| 전시 | `project_resource_versions`, `project_releases`                             | 안정 버전 선정/공개    |
+| 단계 | 테이블/도메인                                                               | 설명                    |
+| :--- | :-------------------------------------------------------------------------- | :---------------------- |
+| 분석 | `project_knowledge`                                                         | 시방서/지식 RAG 검색    |
+| 제안 | `project_nodes`, `project_simulations`                                      | 로직 수정/시뮬레이션    |
+| 실행 | `project_scripts`, `project_devices`, `project_panels`, `project_orchestra` | Nexnap/태스크 기반 실행 |
+| 전시 | `project_resource_versions`, `project_releases`                             | 안정 버전 선정/공개     |
 
 ### 3.2 핵심 작업 시나리오
 

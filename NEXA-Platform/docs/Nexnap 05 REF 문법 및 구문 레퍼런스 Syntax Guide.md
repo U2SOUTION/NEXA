@@ -1,14 +1,15 @@
-### [NEXA-N-MAP-05] N-MAP 문법 및 구문 레퍼런스 (Syntax Guide)
+### [NEXA-Nexnap-05] Nexnap 문법 및 구문 레퍼런스 (Syntax Guide)
 
-본 문서는 개발자와 AI 에이전트가 NEXA 플랫폼의 '악보'인 N-MAP(NEXA Meta Action Protocol)을 직접 작성하기 위한 **DSL(Domain Specific Language) 표준 명세**입니다.
+본 문서는 개발자와 AI 에이전트가 NEXA 플랫폼의 '악보'인 NEXA 플랫폼의 **'악보'인 UCL(Unified Composition Language)**을 직접 작성하기 위한 DSL 표준 명세서\*\*입니다.
 
-- N-MAP은 인간의 의지(WILL)와 시스템의 판단(ECHO)을 실제 물리적 액션으로 번역하는 핵심 규격입니다.
+- Nexnap은 인간의 의지(WILL)와 시스템의 판단(ECHO)을 실제 물리적 액션으로 번역하는 핵심 규격입니다.
+- Nexnap은 이 악보에 따라 연주된 **'순간의 기록'**입니다.
 
 ---
 
-#### 1. N-MAP 패킷 기본 구조 (Top-level)
+#### 1. Nexnap 패킷 기본 구조 (Top-level)
 
-N-MAP 패킷은 JSONB 형식으로 구성되며, 인디케이터(Indicator)와 어댑터(Adapter) 간의 통신 계약을 정의합니다.
+Nexnap 패킷은 JSONB 형식으로 구성되며, 인디케이터(Indicator)와 어댑터(Adapter) 간의 통신 계약을 정의합니다.
 
 ```json
 {
@@ -85,7 +86,7 @@ Who(Pulse) 레이어와 결합하여 실행의 강제성과 권위 충돌을 조
 
 ---
 
-#### 5. N-MAP '악보' 작성 예시 (Syntax Example)
+#### 5. Nexnap '악보' 작성 예시 (Syntax Example)
 
 **시나리오: 사용자가 부재중일 때(DURATION) 창문을 닫으라는 시스템의 강력한 제안(ECHO-MUST)**
 

@@ -1,30 +1,30 @@
-## **[NEXA-N-MAP-07] 예외 처리 및 자가 회복 시나리오**
+## **[NEXA-Nexnap-07] 예외 처리 및 자가 회복 시나리오**
 
 본 문서는 특정 실행 사슬 내에서 발생하는 오류를 **지능적 서사(Narrative)**로 변환하여 시스템이 스스로 복구하거나 사용자에게 대안을 제안하는 **'생존 로직'**을 정의합니다.
 
-**연계:** [NEXA-N-MAP-03] §4.2 에러 토큰 재투입, [NEXA-N-MAP-04] 실행 사슬·`execution_steps` 스키마.
+**연계:** [NEXA-Nexnap-03] §4.2 에러 토큰 재투입, [NEXA-Nexnap-04] 실행 사슬·`execution_steps` 스키마.
 
-#### **1. N-MAP 에러 토큰 정규화 매핑**
+#### **1. Nexnap 에러 토큰 정규화 매핑**
 
 본 문서는 어댑터 실패를 중심으로 다루되, 워커 실패 토큰도 동일한 규격으로 재포장하여 의사결정 매트릭스에 재투입합니다.
 
-| `error_code`                | `how_state`     | `who_pulse`   | 비고                                                                                    |
-| --------------------------- | --------------- | ------------- | --------------------------------------------------------------------------------------- |
-| **ADAPTER_TIMEOUT**         | STUCK           | ASK           | 장치 응답 없음 → 사용자 확인 유도. `retryable=true`면 재시도 후 동일 오류 시 ASK 고정   |
-| **ADAPTER_NOT_FOUND**       | STUCK           | ASK           | 대체 어댑터 탐색 실패 시 사용자 선택 (N-MAP-03 §4.2)                                      |
-| **ADAPTER_AUTH_DENIED**     | STUCK           | ASK           | 권한 부족 → `why_causality=RULE_CONFLICT`, 상위 권한·`actor_type` 위임 안내             |
-| **ADAPTER_PARTIAL_SUCCESS** | FLOW 또는 STUCK | ASK(선택)     | 남은 스텝 진행 여부는 **잔여 태스크 Fit Score**(§1.1)로 판단. 확인 시 ASK (N-MAP-03 §4.2) |
-| **ADAPTER_FATAL**           | 차단 우선       | ECHO 또는 ASK | `why_causality=LEVEL0_GUARD`. Safety VOID 연동; 복구 불가 시 ASK                        |
+| `error_code`                | `how_state`     | `who_pulse`   | 비고                                                                                       |
+| --------------------------- | --------------- | ------------- | ------------------------------------------------------------------------------------------ |
+| **ADAPTER_TIMEOUT**         | STUCK           | ASK           | 장치 응답 없음 → 사용자 확인 유도. `retryable=true`면 재시도 후 동일 오류 시 ASK 고정      |
+| **ADAPTER_NOT_FOUND**       | STUCK           | ASK           | 대체 어댑터 탐색 실패 시 사용자 선택 (Nexnap-03 §4.2)                                      |
+| **ADAPTER_AUTH_DENIED**     | STUCK           | ASK           | 권한 부족 → `why_causality=RULE_CONFLICT`, 상위 권한·`actor_type` 위임 안내                |
+| **ADAPTER_PARTIAL_SUCCESS** | FLOW 또는 STUCK | ASK(선택)     | 남은 스텝 진행 여부는 **잔여 태스크 Fit Score**(§1.1)로 판단. 확인 시 ASK (Nexnap-03 §4.2) |
+| **ADAPTER_FATAL**           | 차단 우선       | ECHO 또는 ASK | `why_causality=LEVEL0_GUARD`. Safety VOID 연동; 복구 불가 시 ASK                           |
 
 #### **1.2 워커 실패 토큰(전처리/정규화 레이어)**
 
 워커 실패는 실행 계층 실패(ADAPTER 계열)와 분리하여 처리한다.
 
-| `error_code`         | `how_state` | `who_pulse` | 비고 |
-| -------------------- | ----------- | ----------- | ---- |
-| **PARSE_FAILED**     | STUCK       | ASK         | 입력 해석 실패. 재파싱 또는 대체 워커 라우팅 |
-| **IR_NORMALIZE_FAIL**| STUCK       | ASK         | 영문 IR 정규화 실패. 컨텍스트 보강 후 재시도 |
-| **ROUTING_CONFLICT** | STUCK       | ASK         | 다중 후보 충돌. 상위 의사결정(N-MAP-03)로 위임 |
+| `error_code`          | `how_state` | `who_pulse` | 비고                                            |
+| --------------------- | ----------- | ----------- | ----------------------------------------------- |
+| **PARSE_FAILED**      | STUCK       | ASK         | 입력 해석 실패. 재파싱 또는 대체 워커 라우팅    |
+| **IR_NORMALIZE_FAIL** | STUCK       | ASK         | 영문 IR 정규화 실패. 컨텍스트 보강 후 재시도    |
+| **ROUTING_CONFLICT**  | STUCK       | ASK         | 다중 후보 충돌. 상위 의사결정(Nexnap-03)로 위임 |
 
 - 워커 실패는 외부 장치 제어를 동반하지 않으므로, 우선순위는 "재해석/재라우팅"이다.
 - 어댑터 실패는 외부 실행 경계 이슈이므로, 우선순위는 "대체 어댑터/재시도/ASK"이다.
@@ -48,14 +48,14 @@
 1.  **재시도(Retry) 및 긴급도 분기:**
     - `retryable=true` AND `urgency_level < 4` 이면 1회 재시도하며, `execution_logs`에 지연 시간과 상태를 기록합니다.
     - `urgency_level >= 4` 이면 **재시도 없이 즉시** 상위 계층으로 에스컬레이션하거나(대안 결정을 위한 핸드오버) **Safety VOID**로 전이합니다.
-      - 에스컬레이션 기준 예시: `error_code`가 ADAPTER_TIMEOUT/NOT_FOUND/AUTH_DENIED 등 “복구 가능 후보”일 때는 상위 의사결정 계층(N-MAP-03)에 즉시 위임.
+      - 에스컬레이션 기준 예시: `error_code`가 ADAPTER_TIMEOUT/NOT_FOUND/AUTH_DENIED 등 “복구 가능 후보”일 때는 상위 의사결정 계층(Nexnap-03)에 즉시 위임.
       - Safety VOID 전이 기준 예시: `error_code=ADAPTER_FATAL` 또는 `safety_lock=true`처럼 “물리 안전이 걸린 경우”는 진행 사슬을 무효화하고 Safety VOID로 전환.
 2.  **ASK 전환:** 재시도 실패 시 `who_pulse`를 `ASK`(승인 대기)로 전환하고, 닉시 UI에서 **Jitter(떨림)** 연출을 통해 사용자 개입을 요청합니다.
 3.  **대안 실행:** 사용자가 승인(WILL)하면 동일 사슬 내에서 `Reverse Decomposition`을 통해 생성된 대안 스텝을 실행합니다.
 
 #### **2.0.1 `urgency_level` 위치(추출 규격)**
 
-`urgency_level`은 N-MAP 패킷의 `execution_bundle.constraints.urgency_level`(정수, 1~5)에서 값을 읽어 긴급도 분기 로직에 사용한다.
+`urgency_level`은 Nexnap 패킷의 `execution_bundle.constraints.urgency_level`(정수, 1~5)에서 값을 읽어 긴급도 분기 로직에 사용한다.
 
 #### **2.5 에러 코드별 넥슈(Rive) 애니메이션 상태 매핑**
 
@@ -89,10 +89,10 @@
 
 실행 사슬이 `STUCK`되어 복구가 불가능할 경우, 저장된 스냅샷을 이용해 과거 상태로 복원합니다.
 
-- **Snapshot 활용:** [N-MAP-04] `execution_steps.post_state_snapshot` 필드에 저장된 시스템 상태를 호출하여 복잡한 취소 로직 없이 즉시 이전 상태로 회복합니다.
+- **Snapshot 활용:** [Nexnap-04] `execution_steps.post_state_snapshot` 필드에 저장된 시스템 상태를 호출하여 복잡한 취소 로직 없이 즉시 이전 상태로 회복합니다.
 - **Safety VOID:** 위험이 감지되면 진행 중인 모든 사슬을 무효화하고 안전한 기본값으로 복귀시킵니다.
 
-### N-MAP 에러 대응 핵심 시나리오 (4대 케이스)
+### Nexnap 에러 대응 핵심 시나리오 (4대 케이스)
 
 에러 발생 시 시스템은 단순히 멈추지 않고, 에러를 **HEXAGON 토큰**으로 재포장하여 의사결정 매트릭스로 재투입합니다.
 
@@ -100,7 +100,7 @@
 
 - **상황:** 사용자가 외출 모드를 실행했으나, 거실 창문 모터가 응답하지 않음.
 - **에러 감지:** `ADAPTER_TIMEOUT` 발생.
-- **N-MAP 재구성:**
+- **Nexnap 재구성:**
   - `how_state = STUCK` (흐름 막힘), `who_pulse = ASK` (승인 대기).
   - `confidence_score` 하향 조정 (예: 100 → 60).
 - **대응 로직:**
@@ -114,7 +114,7 @@
 
 - **상황:** 에이전트가 데이터 요약을 위해 보안 폴더에 접근하려 했으나 `Capability ID` 권한이 부족함.
 - **에러 감지:** `ADAPTER_AUTH_DENIED`.
-- **N-MAP 재구성:**
+- **Nexnap 재구성:**
   - `why_causality = RULE_CONFLICT`, `who_pulse = ASK`.
 - **대응 로직:**
   1. **권한 제안:** AI가 `fit_score`를 계산하여 사용자에게 해당 폴더에 대한 임시 기능 자격(`User Capability`) 승인 요청 생성.
@@ -125,7 +125,7 @@
 
 - **상황:** 가스 차단 명령 중 센서에서 화재 패턴(`INCIDENT`)이 동시에 감지되어 명령이 충돌함.
 - **에러 감지:** `ADAPTER_FATAL` (Level 0 규칙 위반 후보).
-- **N-MAP 재구성:**
+- **Nexnap 재구성:**
   - `how_state = STUCK`, `why_causality = LEVEL0_GUARD`.
 - **대응 로직:**
   1. **즉시 차단:** 의사결정 매트릭스를 거치지 않고 **Safety Reflex(로컬 선조치)** 발동.
@@ -136,10 +136,10 @@
 
 - **상황:** 사용자가 "그거 좀 해줘"라고 말했으나, RAG 검색 결과 후보가 너무 많아 확신도가 낮음.
 - **에러 감지:** `confidence_score < user_defined_threshold` (사용자 설정 임계값 미달).
-- **N-MAP 재구성:**
+- **Nexnap 재구성:**
   - `how_state = VOID` (영감 모드 진입 신호).
 - **대응 로직:**
-  1. **Inspiration Mode:** 넥슈가 기존 맥락을 비우고(Context Flush) **자아 파노라마(N-MAP 템플릿)**를 Self facet (자아의 단면) 형태로 제시.
+  1. **Inspiration Mode:** 넥슈가 기존 맥락을 비우고(Context Flush) **자아 파노라마(Nexnap 템플릿)**를 Self facet (자아의 단면) 형태로 제시.
   2. **관찰:** 사용자가 Self facet (자아의 단면)를 넘겨보는 동안 닉시 도트의 미세한 떨림만 유지하며 대기.
 - **복구:** 사용자가 특정 Self facet (자아의 단면)를 클릭하는 순간 `Reverse Decomposition`을 통해 새로운 실행 사슬(FLOW) 생성.
 
@@ -152,7 +152,7 @@
 
 ## 문제 발생 시 동적 자원 차출 프로토콜
 
-[NEXA-N-MAP-08] 지능형 자원 합성 및 동적 생태계 확장 프로토콜 문서에서 이어 구체화한다.
+[NEXA-Nexnap-08] 지능형 자원 합성 및 동적 생태계 확장 프로토콜 문서에서 이어 구체화한다.
 
 문제 발생 시 주변의 가용 자원(카메라, 타 목적 디바이스 등)을 동적으로 동원하고 재구성하는 전략은 NEXA 플랫폼의 **'자가 회복(Self-healing)'**과 **'서사적 지휘'**의 핵심이다.
 
@@ -160,7 +160,7 @@
 
 ### 1. 자원 동원을 위한 DB 스키마 토대 (DDL 설계)
 
-후기 확장성을 고려하여 [N-MAP-04] `execution_chains`·`execution_steps`와 연동되는 **자원 차출 및 대체(Resource Substitution)** 관련 필드와 테이블 구조. (DDL 반영은 [NEXA-DDL-00/01]에서 별도 확정)
+후기 확장성을 고려하여 [Nexnap-04] `execution_chains`·`execution_steps`와 연동되는 **자원 차출 및 대체(Resource Substitution)** 관련 필드와 테이블 구조. (DDL 반영은 [NEXA-DDL-00/01]에서 별도 확정)
 
 - `capability_map` **고도화 (비귀속 테이블):** 특정 장치가 물리적 목적 외에 제공할 수 있는 '잠재적 역량'을 정의합니다.
   - 예: `nexa.edge.camera.security` 역량을 가진 디바이스가 `nexa.edge.camera.vision_analysis` 역량으로 일시 전환 가능함을 명시합니다.
@@ -170,14 +170,14 @@
   - `resource_sharing_policy`: (JSONB) 타 프로젝트 장치를 잠시 빌려올 때의 우선순위 및 복구 조건.
 - `project_network_topology` **(귀속 테이블 No. 21):** 장치 간의 물리적 거리(GPS)와 논리적 연결망을 저장하여, 문제 발생 지점 주변의 '가장 가까운 눈(카메라)'을 1ms 내에 필터링하는 기초가 됩니다.
 
-### 2. 문제 대응 및 재구성 시나리오 (N-MAP 로직)
+### 2. 문제 대응 및 재구성 시나리오 (Nexnap 로직)
 
 문제 발생 시 시스템은 다음과 같은 단계를 거쳐 자원을 재구성합니다.
 
 1. **에러 감지 및 분석 (ADAPTER_TIMEOUT 등):** 장치가 응답하지 않으면 `how_state = STUCK`으로 전이되고 에러 토큰이 생성됩니다.
 2. **주변 자원 스캔 (Where-Scope 필터링):** 헥사곤 프로토콜의 **Where(Scope)** 레이어를 기반으로 사고 지점(FIELD) 주변의 유휴 자원을 검색합니다.
 3. **가상 시뮬레이션 (**`is_virtual = true`**):** 실제 디바이스를 움직이기 전, `project_simulations` 테이블을 통해 대체 자원을 투입했을 때의 성공 확률과 리스크를 미리 계산합니다.
-4. **역방향 분해 및 재구성:** `Reverse Decomposition` 기법을 통해 기존의 실행 계획을 대체 장치에 맞는 새로운 N-MAP 패킷으로 재조립합니다.
+4. **역방향 분해 및 재구성:** `Reverse Decomposition` 기법을 통해 기존의 실행 계획을 대체 장치에 맞는 새로운 Nexnap 패킷으로 재조립합니다.
 
 ### 3. 논리 구성 패널 및 UI 연출 (NEXA NIXIE & NEXU)
 
@@ -197,5 +197,5 @@
 ### 💡 향후 과제
 
 - **추가 시나리오:** ADAPTER_NOT_FOUND(장치 미발견) 상세 시나리오 보강. ADAPTER_PARTIAL_SUCCESS는 §1.1 잔여 태스크 Fit Score로 판단 기준 정립 완료.
-- **롤백 정책:** 에러 발생 시 롤백(Rollback) 정책을 [N-MAP-04] VOID 전이·`post_state_snapshot` 규격과 맞춰 구체화
+- **롤백 정책:** 에러 발생 시 롤백(Rollback) 정책을 [Nexnap-04] VOID 전이·`post_state_snapshot` 규격과 맞춰 구체화
 - **타임머신 복구:** 과거 시점 복구 로직을 JSON 데이터 예시와 함께 문서화

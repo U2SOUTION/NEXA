@@ -11,7 +11,7 @@
 
 ```
 NEXA-Platform/docs/
-├── (루트)               # 전역 문서 — N-MAP, SYS, NIXIE, NEXU, _KNOWLEDGE, AIS 등
+├── (루트)               # 전역 문서 — Nexnap, SYS, NIXIE, NEXU, _KNOWLEDGE, AIS 등
 ├── NEXA Nexion/         # Nexion 도메인 — [NXN], [NEXA] 접두어 문서
 ├── database/            # DB 설계·DDL·가이드
 └── AI/                  # AI 사양서·COILS·지능 위계
@@ -26,7 +26,7 @@ NEXA-Platform/docs/
 
 | 접두어       | 성격                                   | 찾는 곳        |
 | :----------- | :------------------------------------- | :------------- |
-| `N-MAP`      | N-MAP 프로토콜 (정의·실행·문법·예외)   | 루트           |
+| `Nexnap`     | Nexnap 프로토콜 (정의·실행·문법·예외)  | 루트           |
 | `SYS`        | 시스템 인프라·아키텍처·가이드          | 루트           |
 | `NIXIE`      | 닉시 시각화 엔진 (설계·스키마·컨셉)    | 루트           |
 | `NEXU`       | 넥슈 캔버스·가이드 에이전트            | 루트           |
@@ -79,7 +79,7 @@ NEXA-Platform/docs/
 | :------------------------------- | :------------- | :---------------------------------- |
 | 지능형 지식 운영체제(NEXA-OS)    | `NEXA Nexion/` | NEXA-OS 전체 아키텍처 정의서 (SSOT) |
 | NEXA-OS 용어집                   | 루트           | 모든 NEXA 용어의 단일 정의원        |
-| N-MAP 정의 및 기초 아키텍처      | 루트           | N-MAP 프로토콜 기반 문서            |
+| Nexnap 정의 및 기초 아키텍처     | 루트           | Nexnap 프로토콜 기반 문서           |
 | 코일 밸런스 및 운영 규범(GOVERN) | `AI/`          | COILS 6축 가중치 정의               |
 | 지능 위계 및 하드웨어 사양서     | `AI/`          | 4단계 센티널/인디케이터 매핑        |
 
@@ -131,7 +131,7 @@ NEXA-Platform/docs/
 
 ## 4. 탐색 규칙 요약
 
-1. **개념(What)을 모르겠으면** → 용어집 (`N-MAP 00 NEXA-OS GLOSSARY`) 참조
+1. **개념(What)을 모르겠으면** → 용어집 (`Nexnap 00 NEXA-OS GLOSSARY`) 참조
 2. **파일을 찾으려면** → Context 접두어 + DocType 접두어로 파일명 검색
 3. **Nexion 관련이면** → `NEXA Nexion/` 폴더에서 `[NXN]` 접두어로 검색
 4. **DB 관련이면** → `database/` 폴더 또는 루트의 `_KNOWLEDGE DDL`, `__NEXA` 접두어 검색
