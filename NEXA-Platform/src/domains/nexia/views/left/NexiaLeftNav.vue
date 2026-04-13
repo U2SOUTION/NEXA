@@ -5,7 +5,7 @@
     <q-tabs v-model="leftMainTab" dense class="left-main-tabs" active-color="primary" indicator-color="primary" align="left">
       <q-tab name="project" label="프로젝트" icon="folder_special" />
       <q-tab name="chat" label="채팅" icon="chat" />
-      <q-tab name="note" label="노트" icon="sticky_note_2" />
+      <q-tab name="note" label="문서" icon="sticky_note_2" />
       <q-tab name="media" label="미디어" icon="photo_library" />
     </q-tabs>
 
@@ -89,13 +89,7 @@
           <div class="nexia-panel-padding">
             <q-btn flat dense no-caps class="full-width q-mb-sm" icon="add" label="새 프로젝트 만들기" @click="showAddProject = true" />
             <q-list dense class="project-list">
-              <q-item
-                v-for="p in filteredProjects"
-                :key="p.id"
-                clickable
-                :class="{ 'project-item-selected': selectedProjectId === p.id }"
-                @click="selectedProjectId = p.id"
-              >
+              <q-item v-for="p in filteredProjects" :key="p.id" clickable :class="{ 'project-item-selected': selectedProjectId === p.id }" @click="selectedProjectId = p.id">
                 <q-item-section avatar>
                   <q-icon name="folder" size="20px" :color="selectedProjectId === p.id ? 'primary' : 'grey-6'" />
                 </q-item-section>
@@ -241,7 +235,14 @@
               <div class="nexia-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayImages" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }" @click="onMediaItemClickSafe(f, 'images')" @contextmenu.prevent="openMediaContextMenuSafe($event, f)">
+                    <q-item
+                      v-for="f in displayImages"
+                      :key="f.id"
+                      clickable
+                      :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'images' && selectedMediaItem?.item?.id === f.id }"
+                      @click="onMediaItemClickSafe(f, 'images')"
+                      @contextmenu.prevent="openMediaContextMenuSafe($event, f)"
+                    >
                       <q-item-section v-if="f.url" avatar>
                         <img :src="getUploadDisplayUrl(f.file_path) || f.url" :alt="f.original_name" class="media-thumb media-thumb-img" loading="lazy" />
                       </q-item-section>
@@ -261,7 +262,14 @@
               <div class="nexia-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayAudio" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }" @click="onMediaItemClickSafe(f, 'audio')" @contextmenu.prevent="openMediaContextMenuSafe($event, f)">
+                    <q-item
+                      v-for="f in displayAudio"
+                      :key="f.id"
+                      clickable
+                      :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'audio' && selectedMediaItem?.item?.id === f.id }"
+                      @click="onMediaItemClickSafe(f, 'audio')"
+                      @contextmenu.prevent="openMediaContextMenuSafe($event, f)"
+                    >
                       <q-item-section avatar>
                         <div class="media-audio-thumb">
                           <q-icon name="music_note" size="28px" color="grey-6" />
@@ -282,7 +290,14 @@
               <div class="nexia-accordion-content">
                 <q-list dense class="q-mt-sm">
                   <transition-group name="media-move" tag="div" class="media-transition-group">
-                    <q-item v-for="f in displayVideos" :key="f.id" clickable :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }" @click="onMediaItemClickSafe(f, 'video')" @contextmenu.prevent="openMediaContextMenuSafe($event, f)">
+                    <q-item
+                      v-for="f in displayVideos"
+                      :key="f.id"
+                      clickable
+                      :class="{ 'text-grey-6': !f.url, 'media-item-selected': selectedMediaItem?.category === 'video' && selectedMediaItem?.item?.id === f.id }"
+                      @click="onMediaItemClickSafe(f, 'video')"
+                      @contextmenu.prevent="openMediaContextMenuSafe($event, f)"
+                    >
                       <q-item-section v-if="f.url" avatar>
                         <video :src="getUploadDisplayUrl(f.file_path) || f.url" preload="metadata" class="media-thumb media-thumb-video" muted playsinline />
                       </q-item-section>
@@ -458,12 +473,47 @@ const { requestInjectToEditor, requestOpenInImageEditor, requestOpenInAudioEdito
 
 // Phase 3: extToMonacoLanguage와 동기화 (웹·ESP32·모바일·설정)
 const CODE_EXTENSIONS = [
-  'js', 'mjs', 'cjs', 'ts', 'mts', 'cts', 'jsx', 'tsx',
-  'json', 'yaml', 'yml', 'xml', 'py', 'css', 'scss', 'html', 'htm', 'vue',
-  'md', 'sql', 'sh', 'bash', 'env', 'toml', 'ini', 'cfg', 'conf',
-  'c', 'h', 'cpp', 'cc', 'cxx', 'hpp', 'ino',
-  'kt', 'kts', 'swift', 'dart',
-  'dockerfile', 'makefile', 'mk',
+  'js',
+  'mjs',
+  'cjs',
+  'ts',
+  'mts',
+  'cts',
+  'jsx',
+  'tsx',
+  'json',
+  'yaml',
+  'yml',
+  'xml',
+  'py',
+  'css',
+  'scss',
+  'html',
+  'htm',
+  'vue',
+  'md',
+  'sql',
+  'sh',
+  'bash',
+  'env',
+  'toml',
+  'ini',
+  'cfg',
+  'conf',
+  'c',
+  'h',
+  'cpp',
+  'cc',
+  'cxx',
+  'hpp',
+  'ino',
+  'kt',
+  'kts',
+  'swift',
+  'dart',
+  'dockerfile',
+  'makefile',
+  'mk',
 ]
 function isCodeFile(file: NexiaAssetItem | { original_name?: string } | null) {
   if (!file?.original_name) return false
@@ -524,21 +574,21 @@ function openMediaContextMenu(evt: MouseEvent, f: NexiaAssetItem) {
   contextMenuVisible.value = true
 }
 
-/** 템플릿에서 display* union( NexiaAssetItem | MediaPlaceholder ) 전달 시 타입 좁히기 */
+/** 템플릿에서 display* union(NexiaAssetItem | MediaPlaceholder) 전달 시 — 플레이스홀더는 id가 string */
 function onDocumentClickSafe(f: DisplayFileItem) {
-  if (!('url' in f) || !f.url) return
+  if (!isNexiaAssetFile(f)) return
   onDocumentClick(f)
 }
 function onMediaItemClickSafe(f: DisplayFileItem, category: string) {
-  if (!('url' in f) || !f.url) return
+  if (!isNexiaAssetFile(f)) return
   onMediaItemClick(f, category as AssetCategory)
 }
 function openMediaContextMenuSafe(evt: MouseEvent, f: DisplayFileItem) {
-  if (!('url' in f) || !f.url) return
+  if (!isNexiaAssetFile(f)) return
   openMediaContextMenu(evt, f)
 }
 function requestAttachToChatSafe(f: DisplayFileItem) {
-  if (!('url' in f) || !f.url) return
+  if (!isNexiaAssetFile(f)) return
   requestAttachToChat(f)
 }
 
@@ -660,6 +710,11 @@ const { selectedMediaItem, selectMediaItem } = aiAssets
 /** 빈 리스트일 때 UI 확인용 플레이스홀더 (url 없음, :key용 id는 문자열). 템플릿에서 f.url 접근 시 undefined. */
 type MediaPlaceholder = { id: string; original_name: string; url?: undefined; file_path?: undefined }
 type DisplayFileItem = NexiaAssetItem | MediaPlaceholder
+
+function isNexiaAssetFile(f: DisplayFileItem): f is NexiaAssetItem {
+  return typeof f.id === 'number'
+}
+
 const galleryPlaceholders: MediaPlaceholder[] = [
   { id: 'ph-img-1', original_name: '(등록된 이미지 없음)' },
   { id: 'ph-img-2', original_name: '(업로드 또는 웹서버에서 선택)' },
@@ -767,10 +822,7 @@ const filteredProjects = computed(() => {
   if (unifiedSearch.searchTarget.value !== 'project') return projects.value
   const q = (unifiedSearch.searchQuery.value || '').trim().toLowerCase()
   if (!q) return projects.value
-  return projects.value.filter(
-    (p) =>
-      (p.name || '').toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q),
-  )
+  return projects.value.filter((p) => (p.name || '').toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q))
 })
 const fileFilters = unifiedSearch.fileFiltersRefs
 const fileExplorer = unifiedSearch.fileExplorer
@@ -1062,7 +1114,9 @@ function doEditSave() {
 
 const toolbarCtx = {
   leftMainTab,
-  handleProjectAdd: () => { showAddProject.value = true },
+  handleProjectAdd: () => {
+    showAddProject.value = true
+  },
   selectedProject,
   openEditProject,
   confirmDeleteProject,
@@ -1085,10 +1139,18 @@ const toolbarCtx = {
   canMoveChatDown,
   canMoveChannelUp,
   canMoveChannelDown,
-  moveChatUp: (cid: string | null, chatId: string | null) => { if (cid && chatId) moveChatUp(cid, chatId) },
-  moveChatDown: (cid: string | null, chatId: string | null) => { if (cid && chatId) moveChatDown(cid, chatId) },
-  moveChannelUp: (cid: string | null) => { if (cid) moveChannelUp(cid) },
-  moveChannelDown: (cid: string | null) => { if (cid) moveChannelDown(cid) },
+  moveChatUp: (cid: string | null, chatId: string | null) => {
+    if (cid && chatId) moveChatUp(cid, chatId)
+  },
+  moveChatDown: (cid: string | null, chatId: string | null) => {
+    if (cid && chatId) moveChatDown(cid, chatId)
+  },
+  moveChannelUp: (cid: string | null) => {
+    if (cid) moveChannelUp(cid)
+  },
+  moveChannelDown: (cid: string | null) => {
+    if (cid) moveChannelDown(cid)
+  },
   selectedMemo,
   handleNoteAdd,
   handleNoteEdit,

@@ -26,6 +26,7 @@
                       <li>첫 메시지가 대화 제목으로 저장됩니다</li>
                       <li>질문이나 요청을 자연스럽게 입력하세요</li>
                       <li v-if="supportsVision">이미지를 첨부해 분석을 요청할 수 있습니다</li>
+                      <li v-if="supportsAudio && speechSupported">음성 지원 모델: 입력창 마이크로 말하기 → 텍스트로 입력됩니다</li>
                     </ul>
                   </div>
                   <div class="example-prompts">
@@ -68,32 +69,37 @@
             </div>
             <input v-if="supportsVision" ref="fileInputRef" type="file" accept="image/png,image/jpeg,image/jpg" class="hidden" @change="handleFileSelect" />
             <div class="chat-input-row row items-end" @paste="handlePaste">
-              <q-input
-                v-model="inputText"
-                type="textarea"
-                outlined
-                dense
-                autogrow
-                :rows="1"
-                :placeholder="supportsVision ? '메시지 입력... (이미지 붙여넣기 가능, Enter 전송)' : '메시지 입력... (Enter 전송, Shift+Enter 새 줄)'"
-                class="chat-textarea col"
-                :style="{ '--chat-max-rows': Math.min(20, Math.max(2, chatInputMaxRows ?? 8)) }"
-                @keydown.enter.exact.prevent="sendMessage"
-              >
+              <q-input v-model="inputText" type="textarea" outlined dense autogrow :rows="1" :placeholder="chatInputPlaceholder" class="chat-textarea" :style="{ '--chat-max-rows': Math.min(20, Math.max(2, chatInputMaxRows ?? 8)) }" @keydown.enter.exact.prevent="sendMessage">
                 <template #append>
                   <q-btn v-if="supportsVision" round dense flat icon="image" title="이미지 첨부" @click="triggerFileSelect" />
+                  <q-btn
+                    v-if="supportsAudio"
+                    round
+                    dense
+                    class="chat-mic-btn"
+                    :class="{ 'chat-mic-btn--listening': speechListening }"
+                    :flat="!speechSupported"
+                    :outline="speechSupported && !speechListening"
+                    :unelevated="speechListening"
+                    :icon="speechListening ? 'stop_circle' : 'mic'"
+                    :color="speechListening ? 'negative' : speechSupported ? 'primary' : 'grey-7'"
+                    :disable="!speechSupported"
+                    :aria-pressed="speechListening ? 'true' : 'false'"
+                    :aria-label="speechMicTitle"
+                    :title="speechMicTitle"
+                    @click="onSpeechMicClick"
+                  />
                   <q-btn round dense flat icon="send" :disable="!canSend" @click="sendMessage" />
                 </template>
               </q-input>
-              <q-select v-model="selectedModel" :options="models" outlined dense hide-bottom-space option-value="name" option-label="name" emit-value map-options class="chat-model-select" :loading="isLoadingModels" @focus="loadModels">
+              <q-select v-model="selectedModel" :options="models" borderless dense hide-bottom-space hide-dropdown-icon option-value="name" option-label="name" emit-value map-options class="chat-model-select chat-model-select--bare" :loading="isLoadingModels" @focus="loadModels">
                 <template #selected>
-                  <span v-if="selectedModel" class="model-select-selected row items-center no-wrap">
-                    <span class="model-select-name">{{ formatModelDisplayName(selectedModel) }}</span>
-                    <span v-if="getCapabilityIcons(selectedModel).length" class="model-capability-icons q-ml-xs">
-                      <q-icon v-for="item in getCapabilityIcons(selectedModel)" :key="item.icon" :name="item.icon" size="16px" class="q-mr-xs" :title="item.title" />
-                    </span>
+                  <span v-if="selectedModel" class="model-select-trigger-icon row items-center justify-center">
+                    <q-icon name="smart_toy" size="30px" class="model-select-compact-icon" :title="selectedModelDetailTitle" />
                   </span>
-                  <span v-else class="model-select-placeholder">모델</span>
+                  <span v-else class="model-select-trigger-icon row items-center justify-center">
+                    <q-icon name="memory" size="30px" class="model-select-compact-icon" title="모델을 선택하세요" />
+                  </span>
                 </template>
                 <template #option="scope">
                   <q-item v-bind="scope.itemProps">
@@ -159,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, inject } from 'vue'
+import { ref, computed, watch, nextTick, inject, onMounted, onUnmounted } from 'vue'
 import { Notify } from 'quasar'
 import { parseMarkdown } from '@system/utils/markdown/index'
 import { copyTextToClipboard } from '@system/utils/clipboard'
@@ -173,6 +179,8 @@ import { extractOutlineFromMessages } from '../utils/chatOutline'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 import { useNexiaChannels } from '../composables/useNexiaChannels'
 import { useNexiaMemos } from '../composables/useNexiaMemos'
+import { useWebSpeechRecognition } from '../composables/useWebSpeechRecognition'
+import { parseVoiceClearPhraseList } from '../utils/voiceClearCommand'
 
 const aiInsertContent = inject('aiInsertContent', null)
 const { addMemo } = useNexiaMemos()
@@ -191,10 +199,74 @@ const {
   outlineEnabled,
   outlineDisplayMode,
   outlinePanelWidth,
+  voiceClearConversationPhrases,
+  voiceClearConversationDelayMs,
 } = useNexiaSettings()
 const { models, isLoadingModels, loadModels } = useNexiaModels()
 
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
+const supportsAudio = computed(() => (selectedModelCapabilities.value || []).includes('audio'))
+
+const { isListening: speechListening, isSupported: speechSupported, lastError: speechLastError, startDictation: startSpeechDictation, stop: stopSpeech } = useWebSpeechRecognition({
+  lang: 'ko-KR',
+  getVoiceClearOptions: () => ({
+    phrases: parseVoiceClearPhraseList(voiceClearConversationPhrases.value),
+    delayMs: voiceClearConversationDelayMs.value,
+  }),
+})
+
+const speechMicTitle = computed(() => {
+  if (!speechSupported.value) return '이 브라우저는 음성 입력(Web Speech)을 지원하지 않습니다'
+  if (speechListening.value) return '[녹음 중] 클릭하여 중지 · 입력이 있으면 바로 전송 · 음성으로 「취소」만 말하면 이 채팅 대화 전체 삭제(타이핑 제외) · Ctrl+왼쪽 Shift'
+  return '[대기] 음성 입력 시작 — 클릭 후 말하기 (마이크 권한 필요) · Ctrl+왼쪽 Shift'
+})
+
+function onSpeechMicClick() {
+  if (!supportsAudio.value) return
+  if (!speechSupported.value) {
+    Notify.create({ type: 'warning', message: '이 브라우저는 음성 입력(Web Speech API)을 지원하지 않습니다.' })
+    return
+  }
+  if (speechListening.value) {
+    stopSpeech(() => {
+      nextTick(() => trySendAfterMicStop())
+    })
+    return
+  }
+  startSpeechDictation(inputText, undefined, handleVoiceCancelConversation)
+}
+
+/** 마이크 토글 단축키 — Ctrl+왼쪽 Shift 나중에 전역 설정에 추가할 것(GlobalSettings.vue) */
+function onNexiaMicToggleShortcut(event) {
+  if (!event.ctrlKey || event.code !== 'ShiftLeft' || event.metaKey || event.altKey || event.repeat) return
+  if (!selectedChannelId.value) return
+  if (!supportsAudio.value || !speechSupported.value) return
+  event.preventDefault()
+  event.stopPropagation()
+  onSpeechMicClick()
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onNexiaMicToggleShortcut, true)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onNexiaMicToggleShortcut, true)
+})
+
+watch(speechLastError, (err) => {
+  if (!err || err === 'aborted') return
+  const messages = {
+    'not-allowed': '마이크 권한이 거부되었습니다. 브라우저 설정에서 마이크를 허용해 주세요.',
+    'service-not-allowed': '음성 인식 서비스를 사용할 수 없습니다.',
+    'audio-capture': '마이크에 접근할 수 없습니다.',
+    network: '네트워크 오류로 음성 인식에 실패했습니다.',
+    unsupported: '이 브라우저는 음성 입력을 지원하지 않습니다.',
+    start_failed: '음성 입력을 시작할 수 없습니다.',
+  }
+  const msg = messages[err] || `음성 인식 오류: ${err}`
+  Notify.create({ type: err === 'no-speech' ? 'info' : 'warning', message: msg })
+})
 
 const CAPABILITY_ICONS = {
   completion: { icon: 'chat_bubble', title: '채팅' },
@@ -207,6 +279,15 @@ function getCapabilityIcons(modelName) {
   const order = ['completion', 'vision', 'audio']
   return order.filter((k) => caps.includes(k)).map((k) => CAPABILITY_ICONS[k])
 }
+
+const selectedModelDetailTitle = computed(() => {
+  const m = selectedModel.value
+  if (!m) return '모델 선택'
+  const label = formatModelDisplayName(m)
+  const parts = getCapabilityIcons(m).map((x) => x.title)
+  return parts.length ? `${label} — ${parts.join(' · ')}` : label
+})
+
 const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat, setPendingTitleSuggestion, getPendingTitleSuggestion } = useNexiaChannels()
 
 const { showContextMenu, hideContextMenu, contextMenuState } = useContextMenu()
@@ -216,6 +297,34 @@ const contextMenuItems = computed(() => contextMenuState.items.value)
 
 const messages = ref([])
 const inputText = ref('')
+
+/** 음성 인식으로만 처리 — 타이핑한 '취소'는 일반 메시지로 전송됨 */
+function handleVoiceCancelConversation() {
+  const channelId = selectedChannelId.value
+  const chatId = selectedChatId.value
+  if (!channelId || !chatId) return
+  messages.value = []
+  updateChatMessages(channelId, chatId, [])
+  Notify.create({ type: 'info', message: '음성 명령으로 이 채팅의 대화가 모두 삭제되었습니다.' })
+}
+
+const baseInputPlaceholder = computed(() => {
+  const v = supportsVision.value
+  const a = supportsAudio.value && speechSupported.value
+  if (v && a) return '메시지 입력... (이미지 붙여넣기·마이크 음성 가능, Enter 전송)'
+  if (v) return '메시지 입력... (이미지 붙여넣기 가능, Enter 전송)'
+  if (a) return '메시지 입력... (마이크 음성 가능, Enter 전송)'
+  return '메시지 입력... (Enter 전송, Shift+Enter 새 줄)'
+})
+
+/** 음성 인식 중이고 아직 글자가 없을 때 — 실시간 텍스트가 나오면 일반 플레이스홀더 */
+const chatInputPlaceholder = computed(() => {
+  if (speechListening.value && !(inputText.value || '').trim()) {
+    return '듣는 중...'
+  }
+  return baseInputPlaceholder.value
+})
+
 const attachedImages = ref([])
 const isLoading = ref(false)
 const messagesRef = ref(null)
@@ -268,6 +377,13 @@ const canSend = computed(() => {
   if (supportsVision.value) return hasText || hasImages
   return hasText
 })
+
+/** 마이크 해제 시 글/이미지가 있으면 곧바로 전송 */
+function trySendAfterMicStop() {
+  if (isLoading.value) return
+  if (!canSend.value) return
+  void sendMessage()
+}
 
 function truncateTitle(text) {
   const t = (text || '').trim()
@@ -473,6 +589,10 @@ watch(
   { immediate: true },
 )
 
+watch(selectedChannelId, () => {
+  stopSpeech()
+})
+
 watch(
   () => pendingWebcamCapture.value,
   (dataUrl) => {
@@ -639,6 +759,8 @@ async function sendMessage() {
   }
 
   .chat-body {
+    container-type: inline-size;
+    container-name: chat-body;
     min-width: 0;
     min-height: 0;
   }
@@ -824,54 +946,112 @@ async function sendMessage() {
     }
   }
 
-  .chat-body {
-    container-type: inline-size;
-    container-name: chat-body;
+  /* 마이크: 대기=윤곽 primary / 수신 중=채움 negative·펄스 — flat 이미지·전송과 구분 */
+  .chat-mic-btn--listening {
+    animation: nexia-chat-mic-pulse 1.15s ease-in-out infinite;
+  }
+
+  @keyframes nexia-chat-mic-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--q-negative, var(--nexa-negative, #c62828)) 50%, transparent);
+    }
+    55% {
+      box-shadow: 0 0 0 8px transparent;
+    }
+  }
+
+  .chat-input {
+    min-width: 0;
   }
 
   .chat-input-row {
     flex-wrap: wrap;
     gap: 8px;
+    width: 100%;
+    min-width: 0;
   }
 
+  /* 입력 행 레이아웃만 — 필드 보더·높이는 nexa-system/_form.scss */
   .chat-textarea {
     flex: 1 1 0;
-    min-width: 120px;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
 
-    /* 모델 셀렉트가 다음 줄로 넘어갈 때 전체 폭 사용 */
     @container chat-body (max-width: 360px) {
       flex-basis: 100%;
     }
-  }
 
-  .chat-model-select {
-    flex: 0 0 150px;
-    min-width: 140px;
-    max-width: 200px;
+    --line-height: 24px;
 
-    /* 채팅창 폭이 360px 이하일 때 모델 셀렉트를 다음 줄로 */
-    @container chat-body (max-width: 360px) {
-      flex-basis: 100%;
-      max-width: none;
-    }
-
-    .model-select-selected,
-    .model-select-name,
-    .model-select-placeholder {
-      color: var(--nexa-text-primary);
-      opacity: 0.8;
+    :deep(textarea) {
+      max-height: calc(var(--line-height) * var(--chat-max-rows, 8));
     }
   }
 
-  .model-select-selected {
-    min-width: 0;
-    overflow: hidden;
+  /* 모델: 필드 박스 없이 아이콘만 — 클릭 시 옵션 메뉴는 #option 그대로 */
+  .chat-model-select--bare.chat-model-select {
+    flex: 0 0 auto;
+    width: 46px;
+    min-width: 42px;
+    max-width: 52px;
+
+    :deep(.q-field) {
+      padding: 0;
+      margin: 0;
+    }
+
+    :deep(.q-field__control) {
+      min-height: 42px;
+      height: auto;
+      padding: 0 4px;
+      background: transparent !important;
+    }
+
+    :deep(.q-field--borderless .q-field__control:before),
+    :deep(.q-field--borderless .q-field__control:after) {
+      display: none !important;
+    }
+
+    :deep(.q-field__native) {
+      min-height: 42px !important;
+      padding: 0 !important;
+    }
+
+    :deep(.q-field__append),
+    :deep(.q-select__dropdown-icon) {
+      display: none !important;
+      width: 0 !important;
+      min-width: 0 !important;
+      padding: 0 !important;
+    }
+
+    :deep(.q-field__marginal) {
+      height: auto !important;
+      min-height: 40px !important;
+    }
+
+    :deep(.q-spinner) {
+      margin: 0 auto;
+    }
   }
 
-  .model-select-name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .chat-model-select .model-select-trigger-icon {
+    min-height: 40px;
+    width: 100%;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--nexa-text-primary) 8%, transparent);
+    }
+  }
+
+  .chat-model-select .model-select-compact-icon {
+    color: var(--nexa-text-primary);
+    opacity: 0.88;
   }
 
   .model-capability-icons {
@@ -916,15 +1096,6 @@ async function sendMessage() {
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
-  }
-
-  .chat-textarea {
-    --line-height: 24px;
-
-    // deep 사용 이유: Quasar textarea 내부 요소에 max-height 적용
-    :deep(textarea) {
-      max-height: calc(var(--line-height) * var(--chat-max-rows, 8));
-    }
   }
 
   .hidden {

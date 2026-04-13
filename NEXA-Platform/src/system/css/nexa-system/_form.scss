@@ -45,30 +45,51 @@
 
 // Dense 입력폼/셀렉트 높이 최적화
 // 상하 패딩을 줄여 넥셋 내 세로 공간 점유를 완화
-.q-field--dense .q-field__control,
-.q-input.q-field--dense .q-field__control,
+// 주의: textarea(autogrow)에 동일 규칙을 적용하면 height:24px로 잘려 내용이 넘치고 인접 flex 형제와 겹침
+.q-field--dense:not(:has(textarea)) .q-field__control,
+.q-input.q-field--dense:not(:has(textarea)) .q-field__control {
+  min-height: 32px;
+  height: 32px;
+}
+
+// q-select: 표시 슬롯(모델명·아이콘 등) 높이가 단일 텍스트 입력보다 큼 — 고정 height 시 글자가 보더 밖으로 넘침
 .q-select.q-field--dense .q-field__control {
-  min-height: 24px;
-  height: 24px;
+  min-height: 32px;
+  height: auto;
 }
 
-// 드롭다운 화살표/append 영역의 수직 여백도 함께 축소
-.q-field--dense .q-field__append,
-.q-field--dense .q-field__prepend {
-  min-height: 24px;
+// textarea + dense: autogrow 높이 허용
+.q-field--dense:has(textarea) .q-field__control,
+.q-input.q-field--dense:has(textarea) .q-field__control {
+  height: auto !important;
+  min-height: 40px;
 }
 
-// 드롭다운 화살표/append 영역의 수직 여백도 함께 축소
+// 드롭다운 화살표/append 영역의 수직 여백도 함께 축소 (textarea 제외 — 다줄 입력 시 하단 정렬)
+.q-field--dense:not(:has(textarea)) .q-field__append,
+.q-field--dense:not(:has(textarea)) .q-field__prepend {
+  min-height: 32px;
+}
+
+.q-field--dense:has(textarea) .q-field__append,
+.q-field--dense:has(textarea) .q-field__prepend {
+  min-height: auto;
+  align-self: flex-end;
+}
+
+// q-select dense: 네이티브 영역·드롭다운 화살표는 컨트롤 높이에 맞춰 가변
 .q-select.q-field--dense .q-field__native,
 .q-select.q-field--dense .q-field__input {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  min-height: 20px;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  min-height: 32px;
+  line-height: 1.35;
 }
-// 드롭다운 화살표/append 영역의 수직 여백도 함께 축소
+
 .q-select.q-field--dense .q-field__marginal {
-  min-height: 24px;
-  height: 24px;
+  min-height: 32px;
+  height: auto;
+  align-self: center;
 }
 
 // Outlined 보더 스타일

@@ -21,6 +21,10 @@ interface NexiaSettingsData {
   outlineEnabled?: boolean
   outlineDisplayMode?: string
   outlinePanelWidth?: number
+  /** 음성 대화 삭제 트리거: 쉼표로 구분 (예: "취소,그만") */
+  voiceClearConversationPhrases?: string
+  /** 음성 대화 삭제 실행 전 대기(ms). 0이면 즉시 */
+  voiceClearConversationDelayMs?: number
   [key: string]: unknown
 }
 
@@ -87,6 +91,17 @@ const outlineDisplayMode = ref(saved.outlineDisplayMode ?? 'overlay')
 /** 목차 패널 폭 (px) */
 const outlinePanelWidth = ref(Math.max(100, Math.min(500, saved.outlinePanelWidth ?? 180)))
 
+/** 음성 "대화 비우기" 트리거 문구(쉼표 구분). 설정 UI에서 편집 예정 */
+const voiceClearConversationPhrases = ref(
+  typeof saved.voiceClearConversationPhrases === 'string' && saved.voiceClearConversationPhrases.trim()
+    ? saved.voiceClearConversationPhrases.trim()
+    : '취소',
+)
+/** 음성 명령 인식 후 실제 삭제까지 지연(ms). 0~10000 */
+const voiceClearConversationDelayMs = ref(
+  Math.max(0, Math.min(10000, Number(saved.voiceClearConversationDelayMs) || 0)),
+)
+
 const selectedModelCapabilities = computed(() => {
   const name = selectedModel.value
   return name ? modelCapabilities.value[name] || [] : []
@@ -114,6 +129,8 @@ watch(
     outlineEnabled,
     outlineDisplayMode,
     outlinePanelWidth,
+    voiceClearConversationPhrases,
+    voiceClearConversationDelayMs,
   ],
   () => {
     saveSettings({
@@ -133,6 +150,8 @@ watch(
       outlineEnabled: outlineEnabled.value,
       outlineDisplayMode: outlineDisplayMode.value,
       outlinePanelWidth: outlinePanelWidth.value,
+      voiceClearConversationPhrases: voiceClearConversationPhrases.value,
+      voiceClearConversationDelayMs: voiceClearConversationDelayMs.value,
     })
   },
   { deep: true },
@@ -175,5 +194,7 @@ export function useNexiaSettings() {
     outlineEnabled,
     outlineDisplayMode,
     outlinePanelWidth,
+    voiceClearConversationPhrases,
+    voiceClearConversationDelayMs,
   }
 }
