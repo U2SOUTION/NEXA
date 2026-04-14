@@ -7,13 +7,14 @@
 // 아코디언 wrapper (왼쪽/오른쪽 사이드바 공통)
 // 좌우 패딩 통일: q-scroll-area의 스크롤바가 오른쪽에 있어서
 // 시각적 균형을 위해 좌우 동일한 패딩 적용
-.accordion-wrapper {
-  padding: 0 4px;
-  margin-top: 2px; //아코디언간의 상하 간격
-  margin-bottom: 2px; //아코디언간의 상하 간격
-}
+// .accordion-wrapper {
+//   padding: 0 4px;
+//   margin-top: 2px; //아코디언간의 상하 간격
+//   margin-bottom: 2px; //아코디언간의 상하 간격
+// }
 
 .q-expansion-item {
+  margin-bottom: 6px; //아코디언간의 상하 간격
   border-radius: 4px;
   overflow: hidden;
   box-shadow: none; // 그림자 제거
@@ -22,11 +23,16 @@
     border-radius: 4px;
   }
 
+  // 아코디언이 펼쳐진 경우 헤더 배경 색상 다르게 적용
+  &.q-expansion-item--expanded {
+    background-color: var(--nexa-accordion-expanded-bg);
+    border: 1px solid var(--nexa-border-color-darker);
+  }
+
   .q-item {
     font-size: 0.86rem;
     font-weight: 500;
-    border-bottom: 1px solid var(--nexa-border-color-darker) !important; // 하단 구분선만 유지
-    background-color: var(--nexa-accordion-header-bg);
+    background-color: var(--nexa-accordion-header-bg); // 헤더 기본 배경 색
     border-radius: 0px;
     color: var(--nexa-text-primary);
     flex-wrap: nowrap;
@@ -146,7 +152,7 @@
     overflow: hidden;
 
     .q-item {
-      min-height: 36px; // 기본 48px에서 줄임
+      min-height: 26px; // 기본 48px에서 줄임
       padding: 0 12px;
       background-color: rgba(38, 38, 38, 0.5); // var(--nexa-accordion-header-bg)에 투명도 적용
       border-color: rgba(56, 56, 56, 0.5);

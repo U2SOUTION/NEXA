@@ -1,97 +1,4 @@
-# PNL RFC NEXA Market 기초 설계
-
-> NEXA 플랫폼의 자산 유통 마켓 — Panel과 Template을 아우르는 통합 마켓 설계안
-> 관련 문서: `PNL RFC NEXA Market Panel 개념 설계.md`
-> `PNL RFC NEXA Market Template 개념 설계.md`
-
----
-
-## NEXA Market 정의
-
-```
-NEXA Market이란?
-  NEXA 플랫폼에서 사용되는 자산을 등록, 유통, 관리하는 마켓
-  누구나 자산을 선택하고 사용할 수 있으며
-  누구나 자산을 제작하고 공유할 수 있는 공유 생태계
-  무료를 기본으로 하되 유료도 허용
-```
-
----
-
-## 마켓 자산 체계
-
-NEXA Market은 두 종류의 자산을 다룬다.
-
-```
-NEXA Market
-  ├── Panel      UI 컴포넌트 자산
-  │               화면에 배치되어 렌더링되는 것
-  │               사용자가 직접 보고 인터랙션
-  │
-  └── Template   구조 데이터 자산
-                  논리의 틀, 워크플로우 구조
-                  화면에 렌더링되지 않음
-                  작업 시작 시 선택하여 적용
-```
-
-### Panel vs Template 한눈에 비교
-
-| 구분          | Panel         | Template                  |
-| ------------- | ------------- | ------------------------- |
-| 본질          | UI 컴포넌트   | 구조 데이터               |
-| 렌더링        | 화면에 보임   | 화면에 보이지 않음        |
-| 사용 시점     | 화면 구성 시  | 작업 시작 시              |
-| 편집 도구     | 비주얼 에디터 | 문서 편집기               |
-| Capability ID | 필수          | 필수 (원본 + 복사본 각각) |
-| 유료/무료     | 가능          | 가능                      |
-
----
-
-## Capability ID 체계
-
-모든 마켓 자산은 Capability ID를 가진다.
-ID는 원본(마켓 등록)과 복사본(사용자 설치/복사) 두 층위로 관리된다.
-
-### ID 구조
-
-```
-원본 자산 (마켓 등록)
-  cap.{asset_type}.{category}.{name}.{version}
-
-복사본 자산 (사용자 설치/복사)
-  cap.{asset_type}.{category}.{name}.{version}.usr_{user_id}.{timestamp}
-```
-
-### 자산 유형별 예시
-
-```
-Panel 원본
-  cap.panel.display.sensor-chart.1.0
-  cap.panel.control.device-toggle.1.0
-  cap.panel.ai.chat-interface.2.0
-
-Template 원본
-  cap.template.project.iot-system.1.0
-  cap.template.node.device-control.1.0
-  cap.template.trace.automation.1.0
-
-복사본 (설치/복사 순간 자동 발급)
-  cap.panel.display.sensor-chart.1.0.usr_abc123.20260322
-  cap.template.project.iot-system.1.0.usr_abc123.20260322
-```
-
-### 두 층위 ID의 역할
-
-```
-원본 ID    마켓 접근 권한 기준 (Tier 확인)
-           버전 관리 기준
-           제작자 소유권 기준
-
-복사본 ID  사용자 실행 권한 기준
-           사용량 추적 기준
-           원본 업데이트와 무관하게 독립 관리
-           사용자가 공유 기여 시 새 원본 ID 발급 (Fork)
-```
+# NEXA Market 운영 전략
 
 ---
 
@@ -99,15 +6,15 @@ Template 원본
 
 ```
 Free Tier
-  Panel   기본 Display Panel, 기본 Control Panel
+  Nexet   기본 Display Nexet, 기본 Control Nexet
   Template  기본 Project Template, Doc Template
 
 Pro Tier
-  Panel   Monitor Panel, Media Panel
+  Nexet   Monitor Nexet, Media Nexet
   Template  Node Template, Trace Template
 
 Enterprise
-  Panel   AI Panel, Composite Panel, 커스텀 Panel
+  Nexet   AI Nexet, Composite Nexet, 커스텀 Nexet
   Template  AI 협업 발진 포함 Template, 커스텀 Template
 ```
 
@@ -130,7 +37,7 @@ Enterprise
 
 ```
 NEXA Market 접속
-  → Panel 또는 Template 탭 선택
+  → 자산 유형(Nexet / Template / 기타) 탭 또는 통합 검색
   → 검색 및 필터링
   → 미리보기 확인
   → 무료 설치 또는 유료 구매
@@ -191,8 +98,8 @@ Private   본인만 사용
 
 AI 추천
   사용자가 프로젝트 또는 작업 설명 입력
-  → AI가 적합한 Panel + Template 조합 추천
-  → Launch 버튼으로 즉시 발진
+  → AI가 맥락에 맞는 자산 조합 추천 (Nexet·Template·Workflow 등)
+  → Launch 또는 유형별 설치로 즉시 발진
 ```
 
 ---
@@ -206,28 +113,28 @@ NEXA Market은 특정 Context에 종속되지 않는다.
 
 ```
 BRD (NEXA Board)
-  Panel   윈도우 프리셋에 배치하는 주 사용처
-          디바이스 상태, 제어, 모니터링 Panel
+  Nexet   윈도우 프리셋에 배치하는 주 사용처
+          디바이스 상태, 제어, 모니터링 Nexet
 
 NOD (노드 편집기)
-  Panel   노드 로직 결과 시각화 Panel
+  Nexet   노드 로직 결과 시각화 Nexet
   Template  Node Template으로 IoT 로직 구조 빠르게 시작
 
 AIS (AI 워크스페이스)
-  Panel   AI 채팅, 프롬프트 빌더, 결과 뷰어 Panel
+  Nexet   AI 채팅, 프롬프트 빌더, 결과 뷰어 Nexet
   Template  AI 협업 발진 Template
             AI가 Template 선택 후 초기 문서 초안 자동 생성
 
 ARC (아카이브)
-  Panel   콘텐츠 관리, 검색, 뷰어 Panel
+  Nexet   콘텐츠 관리, 검색, 뷰어 Nexet
   Template  완성된 프로젝트 → Template으로 역추출 → 공유 기여
 
 TRC (트레이스)
-  Panel   자동화 로직 시각화, 실행 상태 Panel
+  Nexet   자동화 로직 시각화, 실행 상태 Nexet
   Template  Trace Template으로 자동화 시나리오 구조 제공
 
 PRT (포트폴리오)
-  Panel   결과물 전시 Panel, 갤러리, 뷰어
+  Nexet   결과물 전시 Nexet, 갤러리, 뷰어
   Template  포트폴리오 구성 Template
 ```
 
@@ -235,14 +142,14 @@ PRT (포트폴리오)
 
 ```
 INF (인프라)
-  Panel   디바이스 등록, 구성, 상태 모니터링 Panel
+  Nexet   디바이스 등록, 구성, 상태 모니터링 Nexet
   Template  디바이스 등록 절차 Template
 
 NET (네트워크 맵)
-  Panel   노드 연결 시각화, 트래픽 현황 Panel
+  Nexet   노드 연결 시각화, 트래픽 현황 Nexet
 
 ERP (업무 허브)
-  Panel   프로젝트 현황, 일정, 장비 관리 Panel
+  Nexet   프로젝트 현황, 일정, 장비 관리 Nexet
   Template  프로젝트 관리 Template, 업무 흐름 Template
 ```
 
@@ -250,22 +157,22 @@ ERP (업무 허브)
 
 ```
 ADM (관리자 센터)
-  Panel   회원 관리, 감사 로그 Panel
+  Nexet   회원 관리, 감사 로그 Nexet
   Template  운영 절차 Template
   마켓 자산 심사 및 승격 관리
   Capability ID 발급 및 권한 관리
   유료 자산 결제 및 정산 관리
 
 MYP (마이 페이지)
-  Panel   개인 대시보드, 멤버십 현황 Panel
+  Nexet   개인 대시보드, 멤버십 현황 Nexet
   Template  개인 작업 흐름 Template
 
 HLP (도움말)
-  Panel   FAQ, 검색, 온보딩 Panel
+  Nexet   FAQ, 검색, 온보딩 Nexet
   Template  온보딩 가이드 Template
 
 DEV (개발자 도구)
-  Panel   API 테스트, 로그 뷰어 Panel
+  Nexet   API 테스트, 로그 뷰어 Nexet
   Template  API 연동 Template, 개발 환경 설정 Template
 ```
 
@@ -273,12 +180,12 @@ DEV (개발자 도구)
 
 ```
 NEXU (넥슈 하드웨어)
-  Panel   넥슈 오버레이 UI (볼륨 제어, 상태 표시)
+  Nexet   넥슈 오버레이 UI (볼륨 제어, 상태 표시)
   Template  넥슈 하드웨어 설정 Template
             오디오 시나리오 Template
 
 NEXU Canvas (넥슈) · NEXA NIXIE (닉시)
-  Panel   NEXU Canvas 전용 시각화 Panel
+  Nexet   NEXU Canvas 전용 시각화 Nexet
           생성형 UI 컴포넌트
   Template  NEXA NIXIE 프로젝트 구조 Template
 ```
@@ -287,13 +194,13 @@ NEXU Canvas (넥슈) · NEXA NIXIE (닉시)
 
 ```
 AUTH (인증·권한)
-  Panel   로그인, 인증 상태 표시 Panel
+  Nexet   로그인, 인증 상태 표시 Nexet
 
 PRJ (프로젝트 공통)
   Template  프로젝트 격리 구조 Template
 
 Nexnap (Nexnap 엔진)
-  Panel   Nexnap 실행 상태, 파이프라인 모니터링 Panel
+  Nexet   Nexnap 실행 상태, 파이프라인 모니터링 Nexet
   Template  Nexnap 로직 구조 Template
 ```
 
@@ -303,13 +210,13 @@ Nexnap (Nexnap 엔진)
 
 ### 필수 제출 항목
 
-모든 자산(Panel, Template)은 마켓 등록 시 아래 항목을 반드시 포함해야 한다.
+모든 자산(Nexet, Template)은 마켓 등록 시 아래 항목을 반드시 포함해야 한다.
 
 ```
 기본 정보
   이름          명확하고 검색 가능한 이름
   설명          한 줄 요약 + 상세 설명
-  유형          Panel 또는 Template (세부 유형 포함)
+  유형          Nexet 또는 Template (세부 유형 포함)
   버전          v{major}.{minor} 형식
   제작자        Notion 계정 또는 익명
   태그          최소 2개, 최대 10개
@@ -320,7 +227,7 @@ Nexnap (Nexnap 엔진)
 사용법 문서
   목적          이 자산이 어떤 문제를 해결하는가
   사용 방법     단계별 사용 가이드
-  입력/출력     데이터 연결 방식 (Panel) 또는 적용 결과 (Template)
+  입력/출력     데이터 연결 방식 (Nexet) 또는 적용 결과 (Template)
   주의사항      의존성, 제약 조건, 알려진 이슈
 
 체험 수단       아래 체험 정책 참조 (필수)
@@ -332,7 +239,7 @@ Nexnap (Nexnap 엔진)
 ```
 스크린샷        최소 1장 이상
 변경 이력       버전별 변경 내용
-관련 자산       함께 사용하면 좋은 Panel 또는 Template
+관련 자산       함께 사용하면 좋은 Nexet 또는 Template
 FAQ             자주 묻는 질문
 ```
 
@@ -359,7 +266,7 @@ FAQ             자주 묻는 질문
     사용자가 자연스럽게 구매 필요성을 느끼도록 유도
     제작자 설정에 따라 Hard Gate / Soft Gate 선택 가능
 
-  Panel — Soft Gate (기본 권장)
+  Nexet — Soft Gate (기본 권장)
     기능 계속 작동
     하단 고정 Sticky Banner
       작고 비침해적인 구매 유도 바
@@ -367,7 +274,7 @@ FAQ             자주 묻는 질문
       사용자가 닫을 수 있으나 일정 주기로 재노출
     데이터 연결 유지 여부   미결 (별도 정책 필요)
 
-  Panel — Hard Gate (제작자 선택)
+  Nexet — Hard Gate (제작자 선택)
     Paywall Overlay 표시
       반투명 블러 처리 (Content Blur)
       구매 CTA 버튼 오버레이 노출
@@ -397,7 +304,7 @@ FAQ             자주 묻는 질문
 
 ```
 성격          실제 설치 없이 마켓 내에서 미리 체험
-Panel 데모    샘플 데이터로 렌더링된 인터랙티브 미리보기
+Nexet 데모    샘플 데이터로 렌더링된 인터랙티브 미리보기
 Template 데모 구조 및 체크리스트 전체 열람 가능
 제약          실제 NEXA 데이터 연결 불가
               설치 없이 화면에서만 동작
@@ -487,7 +394,7 @@ NEXA의 강점
   → 직접 써본 것이라 완성도가 높음
   → 오늘 만든 문서들이 Template 원본이 될 수 있음
 
-  직접 제작한 Panel
+  직접 제작한 Nexet
   → 넥슈 오디오 제어 UI
   → IoT 디바이스 모니터링
   → AI 워크스페이스 컴포넌트
@@ -501,7 +408,7 @@ NEXA의 강점
 
 ## 미결 사항
 
-- [ ] Panel 기술 스택 확정 (React 단독 vs Web Component 병행)
+- [ ] Nexet 기술 스택 확정 (React 단독 vs Web Component 병행)
 - [ ] Template 유형 목록 최종 확정
 - [ ] Capability ID 네이밍 컨벤션 확정
 - [ ] Tier별 자산 접근 권한 매트릭스 설계
@@ -509,11 +416,11 @@ NEXA의 강점
 - [ ] 유료 결제 및 라이선스 정책 설계
 - [ ] 무료→유료 전환 및 환불 정책 설계
 - [ ] Fork 시 원저작자 표기 및 수익 분배 정책
-- [ ] Panel 샌드박스 보안 실행 환경 설계
+- [ ] Nexet 샌드박스 보안 실행 환경 설계
 - [ ] AI 추천 엔진 설계 (AIS 연동)
 - [ ] 마켓 UI 설계 (BRD Context와 연동)
-- [ ] Trial 만료 시 Panel Soft Gate Sticky Banner UI 디자인
-- [ ] Trial 만료 시 Panel Hard Gate Paywall Overlay UI 디자인
+- [ ] Trial 만료 시 Nexet Soft Gate Sticky Banner UI 디자인
+- [ ] Trial 만료 시 Nexet Hard Gate Paywall Overlay UI 디자인
 - [ ] Trial 만료 시 Template Soft Gate Expiry Badge + Soft Modal UI 디자인
 - [ ] Trial 만료 시 Template Hard Gate Gating Modal UI 디자인
 - [ ] Soft Gate 재노출 주기 정책 결정
@@ -522,7 +429,7 @@ NEXA의 강점
 - [ ] 최소 정산 금액 기준 결정
 - [ ] 환불 정책 및 분쟁 처리 절차 설계
 - [ ] 가격대별 Soft Gate / Hard Gate 기본값 정책 확정
-- [ ] Trial 만료 후 Panel 데이터 연결 유지 여부 결정
+- [ ] Trial 만료 후 Nexet 데이터 연결 유지 여부 결정
 - [ ] Trial 만료 후 Template 파일 접근 가능 여부 결정
 - [ ] Trial 만료 후 데이터 보존 기간 정책
 - [ ] Demo 모드 샌드박스 환경 설계

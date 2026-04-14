@@ -42,7 +42,7 @@
             </template>
             <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
               <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]" :data-msg-idx="idx">
-                <div class="message-bubble" :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content }" @contextmenu.prevent="msg.role === 'assistant' && msg.content ? onMessageContextMenu($event, msg) : null">
+                <div class="message-bubble" :ref="(el) => setMessageBubbleEl(idx, el)" :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content?.trim() }">
                   <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
                     <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
                   </div>
@@ -50,6 +50,31 @@
                     <div v-if="msg.role === 'assistant'" class="markdown-content chat-markdown" v-html="parseMarkdown(msg.content, '', {})"></div>
                     <span v-else>{{ msg.content }}</span>
                   </template>
+                  <!-- AI 메시지에만 우클릭 메뉴 — 말풍선 ref 후 마운트·:target으로 앵커 고정 -->
+                  <q-menu v-if="msg.role === 'assistant' && msg.content?.trim() && messageBubbleEls[idx]" :target="messageBubbleEls[idx]" context-menu>
+                    <q-list dense style="min-width: 200px">
+                      <q-item clickable v-close-popup @click="onMsgCopy(msg.content)">
+                        <q-item-section avatar><q-icon name="content_copy" /></q-item-section>
+                        <q-item-section>복사</q-item-section>
+                        <q-item-section side><span class="text-caption text-grey-6">Ctrl+C</span></q-item-section>
+                      </q-item>
+                      <q-item clickable v-close-popup @click="onMsgAddMemo(msg.content)">
+                        <q-item-section avatar><q-icon name="sticky_note_2" /></q-item-section>
+                        <q-item-section>메모로 추가</q-item-section>
+                      </q-item>
+                      <template v-if="aiInsertContent">
+                        <q-separator />
+                        <q-item clickable v-close-popup @click="onMsgInsertNarrative(msg.content)">
+                          <q-item-section avatar><q-icon name="edit_note" /></q-item-section>
+                          <q-item-section>에디터에 삽입</q-item-section>
+                        </q-item>
+                        <q-item clickable v-close-popup @click="onMsgInsertLogic(msg.content)">
+                          <q-item-section avatar><q-icon name="code" /></q-item-section>
+                          <q-item-section>코드 에디터에 삽입</q-item-section>
+                        </q-item>
+                      </template>
+                    </q-list>
+                  </q-menu>
                 </div>
               </div>
               <div v-if="isLoading" class="message-row assistant">
@@ -160,17 +185,14 @@
       </div>
     </template>
 
-    <ContextMenu :visible="contextMenuVisible" :position="contextMenuPosition" :items="contextMenuItems" @item-click="handleContextMenuItemClick" @update:visible="handleContextMenuVisibilityChange" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, inject, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, inject, onMounted, onUnmounted, shallowReactive } from 'vue'
 import { Notify } from 'quasar'
 import { parseMarkdown } from '@system/utils/markdown/index'
 import { copyTextToClipboard } from '@system/utils/clipboard'
-import ContextMenu from '@system/components/ui/ContextMenu.vue'
-import { useContextMenu } from '@system/composables/useContextMenu'
 import { nexiaApi } from '../services/nexiaApi'
 import { useNexiaSettings } from '../composables/useNexiaSettings'
 import { useNexiaModels } from '../composables/useNexiaModels'
@@ -183,6 +205,13 @@ import { useWebSpeechRecognition } from '../composables/useWebSpeechRecognition'
 import { parseVoiceClearPhraseList } from '../utils/voiceClearCommand'
 
 const aiInsertContent = inject('aiInsertContent', null)
+
+/** 말풍선 DOM — QMenu `context-menu` 앵커를 `:target`으로 고정(닫힌 포털만 있을 때 $el.parentNode 추정 실패 대비) */
+const messageBubbleEls = shallowReactive({})
+function setMessageBubbleEl(idx, el) {
+  if (el) messageBubbleEls[idx] = el
+  else delete messageBubbleEls[idx]
+}
 const { addMemo } = useNexiaMemos()
 const {
   selectedModel,
@@ -207,7 +236,13 @@ const { models, isLoadingModels, loadModels } = useNexiaModels()
 const supportsVision = computed(() => (selectedModelCapabilities.value || []).includes('vision'))
 const supportsAudio = computed(() => (selectedModelCapabilities.value || []).includes('audio'))
 
-const { isListening: speechListening, isSupported: speechSupported, lastError: speechLastError, startDictation: startSpeechDictation, stop: stopSpeech } = useWebSpeechRecognition({
+const {
+  isListening: speechListening,
+  isSupported: speechSupported,
+  lastError: speechLastError,
+  startDictation: startSpeechDictation,
+  stop: stopSpeech,
+} = useWebSpeechRecognition({
   lang: 'ko-KR',
   getVoiceClearOptions: () => ({
     phrases: parseVoiceClearPhraseList(voiceClearConversationPhrases.value),
@@ -289,11 +324,6 @@ const selectedModelDetailTitle = computed(() => {
 })
 
 const { selectedChannelId, selectedChatId, selectedChat, getEffectiveInstruction, addChat, updateChatTitle, updateChatMessages, selectChat, setPendingTitleSuggestion, getPendingTitleSuggestion } = useNexiaChannels()
-
-const { showContextMenu, hideContextMenu, contextMenuState } = useContextMenu()
-const contextMenuVisible = computed(() => contextMenuState.visible.value)
-const contextMenuPosition = computed(() => contextMenuState.position.value)
-const contextMenuItems = computed(() => contextMenuState.items.value)
 
 const messages = ref([])
 const inputText = ref('')
@@ -503,81 +533,53 @@ watch(
   { deep: true },
 )
 
-function onMessageContextMenu(event, msg) {
-  const content = (msg.content || '').trim()
-  if (!content) return
-  const items = [
-    {
-      id: 'copy',
-      label: '복사',
-      icon: 'content_copy',
-      shortcut: 'Ctrl+C',
-      action: async () => {
-        try {
-          await copyTextToClipboard(content)
-          Notify.create({ message: '클립보드에 복사되었습니다.', icon: 'content_copy' })
-        } catch {
-          Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
-        }
-      },
-    },
-    {
-      id: 'add-to-memo',
-      label: '메모로 추가',
-      icon: 'sticky_note_2',
-      action: async () => {
-        try {
-          await addMemo(content, 'chat', selectedChannelId.value, selectedChatId.value)
-          Notify.create({ message: '메모에 추가되었습니다.', icon: 'sticky_note_2' })
-        } catch (e) {
-          Notify.create({ type: 'negative', message: e?.message || '메모 추가 실패' })
-        }
-      },
-    },
-    ...(aiInsertContent
-      ? [
-          {
-            id: 'insert-to-editor',
-            label: '에디터에 삽입',
-            icon: 'edit_note',
-            action: () => {
-              const html = parseMarkdown(content, '', {})
-              aiInsertContent.setCenterTab('narrative')
-              nextTick(() => {
-                aiInsertContent.pendingInsertContent.value = html
-              })
-              Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
-            },
-          },
-          {
-            id: 'insert-to-code',
-            label: '코드 에디터에 삽입',
-            icon: 'code',
-            action: () => {
-              aiInsertContent.setCenterTab('logic')
-              nextTick(() => {
-                aiInsertContent.pendingCodeInsertContent.value = content
-              })
-              Notify.create({ message: '코드 에디터에 삽입되었습니다.', icon: 'code' })
-            },
-          },
-        ]
-      : []),
-  ]
-  showContextMenu(event, items)
+function fillExample(text) {
+  inputText.value = text || ''
 }
 
-function handleContextMenuItemClick(item) {
-  if (typeof item.action === 'function') {
-    item.action()
+async function onMsgCopy(content) {
+  const text = (content || '').trim()
+  if (!text) return
+  try {
+    await copyTextToClipboard(text)
+    Notify.create({ message: '클립보드에 복사되었습니다.', icon: 'content_copy' })
+  } catch {
+    Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
   }
-  hideContextMenu()
 }
 
-function handleContextMenuVisibilityChange(visible) {
-  if (!visible) {
-    hideContextMenu()
+async function onMsgAddMemo(content) {
+  const text = (content || '').trim()
+  if (!text) return
+  try {
+    await addMemo(text, 'chat', selectedChannelId.value, selectedChatId.value)
+    Notify.create({ message: '메모에 추가되었습니다.', icon: 'sticky_note_2' })
+  } catch (e) {
+    Notify.create({ type: 'negative', message: e?.message || '메모 추가 실패' })
   }
+}
+
+function onMsgInsertNarrative(content) {
+  if (!aiInsertContent) return
+  const text = (content || '').trim()
+  if (!text) return
+  const html = parseMarkdown(text, '', {})
+  aiInsertContent.setCenterTab('narrative')
+  nextTick(() => {
+    aiInsertContent.pendingInsertContent.value = html
+  })
+  Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
+}
+
+function onMsgInsertLogic(content) {
+  if (!aiInsertContent) return
+  const text = (content || '').trim()
+  if (!text) return
+  aiInsertContent.setCenterTab('logic')
+  nextTick(() => {
+    aiInsertContent.pendingCodeInsertContent.value = text
+  })
+  Notify.create({ message: '코드 에디터에 삽입되었습니다.', icon: 'code' })
 }
 
 watch(
@@ -978,75 +980,6 @@ async function sendMessage() {
     min-width: 0;
     max-width: 100%;
     width: 100%;
-
-    @container chat-body (max-width: 360px) {
-      flex-basis: 100%;
-    }
-
-    --line-height: 24px;
-
-    :deep(textarea) {
-      max-height: calc(var(--line-height) * var(--chat-max-rows, 8));
-    }
-  }
-
-  /* 모델: 필드 박스 없이 아이콘만 — 클릭 시 옵션 메뉴는 #option 그대로 */
-  .chat-model-select--bare.chat-model-select {
-    flex: 0 0 auto;
-    width: 46px;
-    min-width: 42px;
-    max-width: 52px;
-
-    :deep(.q-field) {
-      padding: 0;
-      margin: 0;
-    }
-
-    :deep(.q-field__control) {
-      min-height: 42px;
-      height: auto;
-      padding: 0 4px;
-      background: transparent !important;
-    }
-
-    :deep(.q-field--borderless .q-field__control:before),
-    :deep(.q-field--borderless .q-field__control:after) {
-      display: none !important;
-    }
-
-    :deep(.q-field__native) {
-      min-height: 42px !important;
-      padding: 0 !important;
-    }
-
-    :deep(.q-field__append),
-    :deep(.q-select__dropdown-icon) {
-      display: none !important;
-      width: 0 !important;
-      min-width: 0 !important;
-      padding: 0 !important;
-    }
-
-    :deep(.q-field__marginal) {
-      height: auto !important;
-      min-height: 40px !important;
-    }
-
-    :deep(.q-spinner) {
-      margin: 0 auto;
-    }
-  }
-
-  .chat-model-select .model-select-trigger-icon {
-    min-height: 40px;
-    width: 100%;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background-color 0.15s ease;
-
-    &:hover {
-      background-color: color-mix(in srgb, var(--nexa-text-primary) 8%, transparent);
-    }
   }
 
   .chat-model-select .model-select-compact-icon {

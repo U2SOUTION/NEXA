@@ -26,7 +26,7 @@
                   <q-icon name="settings" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label>연결 설정</q-item-label>
+                  <q-item-label>NEXIA 연결 정보</q-item-label>
                 </q-item-section>
                 <q-item-section side>
                   <span class="text-caption" :class="connectionStatusClass">{{ connectionStatusDisplay }}</span>
@@ -35,9 +35,7 @@
               <div class="nexia-accordion-content">
                 <q-input v-model="ollamaBaseUrl" outlined dense label="Ollama URL" @update:model-value="scheduleConnectionCheck" />
               </div>
-            </q-expansion-item>
 
-            <q-expansion-item icon="psychology" label="모델" default-opened>
               <div class="nexia-accordion-content">
                 <q-select v-model="selectedModel" :options="models" label="모델 선택" outlined dense option-value="name" option-label="name" emit-value map-options hide-bottom-space :loading="isLoadingModels" @focus="loadModels">
                   <template #selected>
@@ -84,10 +82,6 @@
             <q-expansion-item icon="chat" label="채팅" default-opened>
               <div class="chat-settings nexia-accordion-content">
                 <div class="chat-setting-row q-mb-md">
-                  <div class="text-caption text-grey-7 q-mb-xs">채팅 모드</div>
-                  <q-option-group v-model="chatMode" :options="chatModeOptions" inline dense />
-                </div>
-                <div class="chat-setting-row q-mb-md">
                   <div class="text-caption text-grey-7 q-mb-xs">목차</div>
                   <q-toggle v-model="outlineEnabled" label="목차 표시" dense />
                   <q-option-group v-if="outlineEnabled" v-model="outlineDisplayMode" :options="outlineDisplayModeOptions" inline dense class="q-mt-sm" />
@@ -99,6 +93,21 @@
                     </div>
                   </div>
                 </div>
+
+                <div class="chat-setting-row q-mb-md">
+                  <div class="text-caption text-grey-7 q-mb-xs">채팅 모드</div>
+                  <q-option-group v-model="chatMode" :options="chatModeOptions" inline dense />
+                </div>
+                <div class="chat-setting-row q-mb-md">
+                  <div class="text-caption text-grey-7 q-mb-xs">음성 대화 삭제 명령어 (쉼표구분)</div>
+                  <q-input v-model="voiceClearConversationPhrases" outlined dense placeholder="취소, 그만" />
+                  <div class="text-caption text-grey-7 q-mb-xs q-mt-sm">음성 대화 삭제 딜레이 (ms)</div>
+                  <div class="row items-center no-wrap q-gutter-sm">
+                    <q-slider v-model="voiceClearConversationDelayMs" :min="0" :max="6000" :step="10" class="col" />
+                    <span class="text-caption text-grey-7" style="min-width: 4em">{{ voiceClearConversationDelayMs }}ms</span>
+                  </div>
+                </div>
+
                 <div class="chat-setting-row q-mb-md">
                   <div class="text-caption text-grey-7 q-mb-xs">입력창 최대 줄 수</div>
                   <div class="row items-center no-wrap q-gutter-sm">
@@ -148,7 +157,8 @@ import { useNexiaSettings } from '../../composables/useNexiaSettings'
 import { useNexiaChannels } from '../../composables/useNexiaChannels'
 import { useNexiaModels } from '../../composables/useNexiaModels'
 
-const { selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities, outlineEnabled, outlineDisplayMode, outlinePanelWidth } = useNexiaSettings()
+const { selectedModel, chatMode, chatInputMaxRows, chatFontSize, chatMessageMaxLength, titleSuggestionMinTurns, titleSuggestionMaxTurnsForContext, modelCapabilities, outlineEnabled, outlineDisplayMode, outlinePanelWidth, voiceClearConversationPhrases, voiceClearConversationDelayMs } =
+  useNexiaSettings()
 const { models, isLoadingModels, loadModels } = useNexiaModels()
 
 const chatModeOptions = [
@@ -269,11 +279,7 @@ async function checkConnection() {
   }
 
   .nexia-accordion-content {
-    padding: 2px 0px;
-  }
-
-  .chat-settings {
-    padding-left: 16px;
+    padding: 4px 0px;
   }
 
   .model-select-selected {

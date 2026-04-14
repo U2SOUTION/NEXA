@@ -92,15 +92,9 @@ const outlineDisplayMode = ref(saved.outlineDisplayMode ?? 'overlay')
 const outlinePanelWidth = ref(Math.max(100, Math.min(500, saved.outlinePanelWidth ?? 180)))
 
 /** 음성 "대화 비우기" 트리거 문구(쉼표 구분). 설정 UI에서 편집 예정 */
-const voiceClearConversationPhrases = ref(
-  typeof saved.voiceClearConversationPhrases === 'string' && saved.voiceClearConversationPhrases.trim()
-    ? saved.voiceClearConversationPhrases.trim()
-    : '취소',
-)
-/** 음성 명령 인식 후 실제 삭제까지 지연(ms). 0~10000 */
-const voiceClearConversationDelayMs = ref(
-  Math.max(0, Math.min(10000, Number(saved.voiceClearConversationDelayMs) || 0)),
-)
+const voiceClearConversationPhrases = ref(typeof saved.voiceClearConversationPhrases === 'string' && saved.voiceClearConversationPhrases.trim() ? saved.voiceClearConversationPhrases.trim() : '취소')
+/** 음성 명령 인식 후 실제 삭제까지 지연(ms). 0~1000 */
+const voiceClearConversationDelayMs = ref(Math.max(0, Math.min(100, Number(saved.voiceClearConversationDelayMs) || 0)))
 
 const selectedModelCapabilities = computed(() => {
   const name = selectedModel.value
@@ -164,10 +158,7 @@ export function requestAttachToChat(item: { url?: string; original_name?: string
     Notify.create({ type: 'warning', message: '이미지 첨부는 이미지 지원 모델을 선택한 후에 가능합니다.' })
     return
   }
-  pendingAttachmentsFromGallery.value = [
-    ...pendingAttachmentsFromGallery.value,
-    { url: item.url, original_name: item.original_name, file_path: item.file_path },
-  ]
+  pendingAttachmentsFromGallery.value = [...pendingAttachmentsFromGallery.value, { url: item.url, original_name: item.original_name, file_path: item.file_path }]
 }
 
 export function useNexiaSettings() {
