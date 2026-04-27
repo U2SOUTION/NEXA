@@ -141,10 +141,10 @@
     <!-- 구조: left | (center|right). 1번 splitter로 right를 함께 밀 수 있음 -->
     <q-splitter v-model="leftSplitModel" unit="%" :limits="leftVisible ? [SPLIT_LIMITS.minPct, SPLIT_LIMITS.maxPct] : [0, 0]" :horizontal="false" before-class="nexia-splitter-pane" after-class="nexia-splitter-pane" class="nexia-split-main col">
       <template #before>
-        <div v-show="leftVisible" class="nexia-split-area nexia-split-left column">
-          <draggable v-model="leftPanelIdsModel" :item-key="(pid) => pid" tag="div" class="nexia-area-tabs nexia-tabs-draggable row no-wrap items-center" @end="onLeftSortEnd">
+        <div ref="leftAreaRef" v-show="leftVisible" class="nexia-split-area nexia-split-left column">
+          <draggable v-model="leftPanelIdsModel" :item-key="(pid) => pid" tag="div" class="nexia-area-tabs nexia-tabs-draggable row no-wrap items-center" :class="{ 'nexia-area-tabs--compact': areaCompact.left }" @end="onLeftSortEnd">
             <template #item="{ element: pid }">
-              <div class="nexia-draggable-tab" :class="{ 'q-tab--active': leftPanelIds.indexOf(pid) === leftActiveIndex }" @click="leftActiveIndex = leftPanelIds.indexOf(pid)">
+              <div class="nexia-draggable-tab" role="tab" :class="{ 'q-tab--active': leftPanelIds.indexOf(pid) === leftActiveIndex }" :title="PANEL_LABELS[pid] ?? pid" :aria-label="PANEL_LABELS[pid] ?? pid" @click="leftActiveIndex = leftPanelIds.indexOf(pid)">
                 <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
                 <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
               </div>
@@ -160,10 +160,10 @@
       <template #after>
         <q-splitter v-model="centerSplitModel" unit="%" :limits="centerRightLimits" :horizontal="false" before-class="nexia-splitter-pane" after-class="nexia-splitter-pane" class="col">
           <template #before>
-            <div v-show="centerVisible" class="nexia-split-area nexia-split-center column">
-              <draggable v-model="centerPanelIdsModel" :item-key="(pid) => pid" tag="div" class="nexia-area-tabs nexia-tabs-draggable row no-wrap items-center" @end="onCenterSortEnd">
+            <div ref="centerAreaRef" v-show="centerVisible" class="nexia-split-area nexia-split-center column">
+              <draggable v-model="centerPanelIdsModel" :item-key="(pid) => pid" tag="div" class="nexia-area-tabs nexia-tabs-draggable row no-wrap items-center" :class="{ 'nexia-area-tabs--compact': areaCompact.center }" @end="onCenterSortEnd">
                 <template #item="{ element: pid }">
-                  <div class="nexia-draggable-tab" :class="{ 'q-tab--active': centerPanelIds.indexOf(pid) === centerActiveIndex }" @click="centerActiveIndex = centerPanelIds.indexOf(pid)">
+                  <div class="nexia-draggable-tab" role="tab" :class="{ 'q-tab--active': centerPanelIds.indexOf(pid) === centerActiveIndex }" :title="PANEL_LABELS[pid] ?? pid" :aria-label="PANEL_LABELS[pid] ?? pid" @click="centerActiveIndex = centerPanelIds.indexOf(pid)">
                     <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
                     <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
                   </div>
@@ -177,10 +177,10 @@
             </div>
           </template>
           <template #after>
-            <div v-show="rightVisible" class="nexia-split-area nexia-split-right column">
-              <draggable v-model="rightPanelIdsModel" :item-key="(pid) => pid" tag="div" class="nexia-area-tabs nexia-tabs-draggable row no-wrap items-center" @end="onRightSortEnd">
+            <div ref="rightAreaRef" v-show="rightVisible" class="nexia-split-area nexia-split-right column">
+              <draggable v-model="rightPanelIdsModel" :item-key="(pid) => pid" tag="div" class="nexia-area-tabs nexia-tabs-draggable row no-wrap items-center" :class="{ 'nexia-area-tabs--compact': areaCompact.right }" @end="onRightSortEnd">
                 <template #item="{ element: pid }">
-                  <div class="nexia-draggable-tab" :class="{ 'q-tab--active': rightPanelIds.indexOf(pid) === rightActiveIndex }" @click="rightActiveIndex = rightPanelIds.indexOf(pid)">
+                  <div class="nexia-draggable-tab" role="tab" :class="{ 'q-tab--active': rightPanelIds.indexOf(pid) === rightActiveIndex }" :title="PANEL_LABELS[pid] ?? pid" :aria-label="PANEL_LABELS[pid] ?? pid" @click="rightActiveIndex = rightPanelIds.indexOf(pid)">
                     <q-icon :name="PANEL_ICONS[pid] ?? 'extension'" size="xs" />
                     <span class="q-tab__label">{{ PANEL_LABELS[pid] ?? pid }}</span>
                   </div>
@@ -200,10 +200,58 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, watch, ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import draggable from 'vuedraggable'
 import { leftPanelIds, centerPanelIds, rightPanelIds, leftVisible, centerVisible, rightVisible, leftSize, centerSize, rightSize, leftActiveIndex, centerActiveIndex, rightActiveIndex, applyPreset, resetSplitSizes, SPLIT_LIMITS } from '../../composables/useNexiaSplitLayout'
 import { PANEL_LABELS, PANEL_ICONS, PANEL_COMPONENTS } from '../../config/nexiaPanelRegistry'
+
+/** 영역 가로폭(px)이 이 값 미만이면 해당 줄 탭은 라벨 숨김(아이콘만) */
+const TAB_STRIP_COMPACT_PX = { left: 220, center: 400, right: 220 }
+
+const leftAreaRef = ref(null)
+const centerAreaRef = ref(null)
+const rightAreaRef = ref(null)
+const areaCompact = reactive({ left: false, center: false, right: false })
+
+let tabStripResizeObserver = null
+
+function measureTabStripCompact(el, key) {
+  const visible = key === 'left' ? leftVisible.value : key === 'center' ? centerVisible.value : rightVisible.value
+  if (!el || !visible) return
+  const w = el.clientWidth
+  if (w <= 0) return
+  const threshold = TAB_STRIP_COMPACT_PX[key]
+  areaCompact[key] = w < threshold
+}
+
+function attachTabStripResizeObservers() {
+  tabStripResizeObserver?.disconnect()
+  tabStripResizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const t = entry.target
+      if (t === leftAreaRef.value) measureTabStripCompact(t, 'left')
+      else if (t === centerAreaRef.value) measureTabStripCompact(t, 'center')
+      else if (t === rightAreaRef.value) measureTabStripCompact(t, 'right')
+    }
+  })
+  if (leftAreaRef.value) tabStripResizeObserver.observe(leftAreaRef.value)
+  if (centerAreaRef.value) tabStripResizeObserver.observe(centerAreaRef.value)
+  if (rightAreaRef.value) tabStripResizeObserver.observe(rightAreaRef.value)
+}
+
+onMounted(() => {
+  nextTick(() => {
+    attachTabStripResizeObservers()
+    measureTabStripCompact(leftAreaRef.value, 'left')
+    measureTabStripCompact(centerAreaRef.value, 'center')
+    measureTabStripCompact(rightAreaRef.value, 'right')
+  })
+})
+
+onBeforeUnmount(() => {
+  tabStripResizeObserver?.disconnect()
+  tabStripResizeObserver = null
+})
 
 const leftPanelIdsModel = computed({
   get: () => leftPanelIds.value,
@@ -341,6 +389,17 @@ watch(remaining, (rem) => {
     rightSize.value = (rem * (100 - clamped)) / 100
   }
 })
+
+watch(
+  () => [leftVisible.value, centerVisible.value, rightVisible.value, leftSize.value, centerSize.value, rightSize.value],
+  () => {
+    nextTick(() => {
+      measureTabStripCompact(leftAreaRef.value, 'left')
+      measureTabStripCompact(centerAreaRef.value, 'center')
+      measureTabStripCompact(rightAreaRef.value, 'right')
+    })
+  },
+)
 </script>
 
 <style lang="scss" scoped>
@@ -454,6 +513,22 @@ watch(remaining, (rem) => {
 
 .nexia-tabs-draggable {
   gap: 0.25rem;
+}
+
+.nexia-area-tabs--compact.nexia-tabs-draggable {
+  gap: 0.12rem;
+  width: 100%;
+}
+
+/* 아이콘만 보여도 각 탭이 스플릿 탭 줄 가로를 균등하게 채움 */
+.nexia-area-tabs--compact .nexia-draggable-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.35rem 0.2rem;
+}
+
+.nexia-area-tabs--compact .nexia-draggable-tab .q-tab__label {
+  display: none;
 }
 
 .nexia-draggable-tab {
