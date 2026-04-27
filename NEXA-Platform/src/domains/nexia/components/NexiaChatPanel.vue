@@ -171,20 +171,20 @@
       >
         <q-menu v-model="chatMessagesCtxMenuVisible" anchor="top left" self="top left" class="nexia-chat-messages-context-menu">
           <q-list dense style="min-width: 200px">
-            <q-item clickable v-close-popup>
+            <q-item clickable v-close-popup :disable="!chatCtxMenuHasText" @click="onChatCtxCopy">
               <q-item-section avatar><q-icon name="content_copy" size="sm" /></q-item-section>
               <q-item-section>복사</q-item-section>
             </q-item>
-            <q-item clickable v-close-popup>
+            <q-item clickable v-close-popup :disable="!chatCtxMenuHasText" @click="onChatCtxAddMemo">
               <q-item-section avatar><q-icon name="sticky_note_2" size="sm" /></q-item-section>
               <q-item-section>메모에 추가</q-item-section>
             </q-item>
             <q-separator />
-            <q-item clickable v-close-popup>
+            <q-item clickable v-close-popup :disable="!chatCtxMenuHasText || !aiInsertContent" @click="onChatCtxInsertNarrative">
               <q-item-section avatar><q-icon name="edit_note" size="sm" /></q-item-section>
               <q-item-section>내러티브에 삽입</q-item-section>
             </q-item>
-            <q-item clickable v-close-popup>
+            <q-item clickable v-close-popup :disable="!chatCtxMenuHasText || !aiInsertContent" @click="onChatCtxInsertLogic">
               <q-item-section avatar><q-icon name="code" size="sm" /></q-item-section>
               <q-item-section>로직에 삽입</q-item-section>
             </q-item>
@@ -196,9 +196,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, inject, onMounted, onUnmounted } from 'vue'
 import { Notify } from 'quasar'
 import { parseMarkdown } from '@system/utils/markdown/index'
+import { copyTextToClipboard } from '@system/utils/clipboard'
 import { nexiaApi } from '../services/nexiaApi'
 import { useNexiaSettings } from '../composables/useNexiaSettings'
 import { useNexiaModels } from '../composables/useNexiaModels'
@@ -206,8 +207,12 @@ import { formatModelDisplayName } from '../utils/modelDisplayName'
 import { extractOutlineFromMessages } from '../utils/chatOutline'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 import { useNexiaChannels } from '../composables/useNexiaChannels'
+import { useNexiaMemos } from '../composables/useNexiaMemos'
 import { useWebSpeechRecognition } from '../composables/useWebSpeechRecognition'
 import { parseVoiceClearPhraseList } from '../utils/voiceClearCommand'
+
+const aiInsertContent = inject('aiInsertContent', null)
+const { addMemo } = useNexiaMemos()
 
 const {
   selectedModel,
@@ -351,6 +356,10 @@ const fileInputRef = ref(null)
 const chatMessagesCtxMenuVisible = ref(false)
 const chatMessagesCtxMenuX = ref(0)
 const chatMessagesCtxMenuY = ref(0)
+/** 우클릭 시점의 메시지 본문(마크다운 원문 또는 사용자 입력 텍스트) */
+const chatCtxTargetText = ref('')
+
+const chatCtxMenuHasText = computed(() => !!(chatCtxTargetText.value || '').trim())
 
 const chatCtxMenuAnchorStyle = computed(() => ({
   position: 'fixed',
@@ -362,12 +371,30 @@ const chatCtxMenuAnchorStyle = computed(() => ({
   zIndex: 7000,
 }))
 
+function resolveChatContextTargetFromEvent(ev) {
+  const root = messagesRef.value
+  const t = ev.target
+  if (!root || !(t instanceof Element) || !root.contains(t)) return null
+  const row = t.closest('[data-msg-idx]')
+  if (!row || !root.contains(row)) return null
+  const raw = row.getAttribute('data-msg-idx')
+  const idx = raw === null || raw === '' ? NaN : Number(raw)
+  if (!Number.isFinite(idx) || idx < 0 || idx >= messages.value.length) return null
+  const msg = messages.value[idx]
+  const text = (msg?.content ?? '').trim()
+  if (!text) return null
+  return text
+}
+
 /** document 캡처 + messagesRef.contains — 마크다운 등 내부 노드에서도 안정적으로 수신 */
 function onDocumentContextmenuChat(ev) {
   if (ev.type !== 'contextmenu') return
   const root = messagesRef.value
   const t = ev.target
   if (!root || !(t instanceof Node) || !root.contains(t)) return
+  const targetText = resolveChatContextTargetFromEvent(ev)
+  if (targetText === null) return
+  chatCtxTargetText.value = targetText
   chatMessagesCtxMenuX.value = ev.clientX ?? 0
   chatMessagesCtxMenuY.value = ev.clientY ?? 0
   ev.preventDefault()
@@ -375,6 +402,51 @@ function onDocumentContextmenuChat(ev) {
   void nextTick(() => {
     chatMessagesCtxMenuVisible.value = true
   })
+}
+
+async function onChatCtxCopy() {
+  const text = (chatCtxTargetText.value || '').trim()
+  if (!text) return
+  try {
+    await copyTextToClipboard(text)
+    Notify.create({ message: '클립보드에 복사되었습니다.', icon: 'content_copy' })
+  } catch {
+    Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
+  }
+}
+
+async function onChatCtxAddMemo() {
+  const text = (chatCtxTargetText.value || '').trim()
+  if (!text) return
+  try {
+    await addMemo(text, 'chat', selectedChannelId.value, selectedChatId.value)
+    Notify.create({ message: '메모에 추가되었습니다.', icon: 'sticky_note_2' })
+  } catch (e) {
+    Notify.create({ type: 'negative', message: e?.message || '메모 추가 실패' })
+  }
+}
+
+function onChatCtxInsertNarrative() {
+  if (!aiInsertContent) return
+  const text = (chatCtxTargetText.value || '').trim()
+  if (!text) return
+  const html = parseMarkdown(text, '', {})
+  aiInsertContent.setCenterTab('narrative')
+  nextTick(() => {
+    aiInsertContent.pendingInsertContent.value = html
+  })
+  Notify.create({ message: '내러티브 에디터에 삽입되었습니다.', icon: 'edit_note' })
+}
+
+function onChatCtxInsertLogic() {
+  if (!aiInsertContent) return
+  const text = (chatCtxTargetText.value || '').trim()
+  if (!text) return
+  aiInsertContent.setCenterTab('logic')
+  nextTick(() => {
+    aiInsertContent.pendingCodeInsertContent.value = text
+  })
+  Notify.create({ message: '로직 에디터에 삽입되었습니다.', icon: 'code' })
 }
 
 function attachChatMessagesContextmenuDocumentListener() {
@@ -586,6 +658,7 @@ watch(
 watch(selectedChannelId, () => {
   stopSpeech()
   chatMessagesCtxMenuVisible.value = false
+  chatCtxTargetText.value = ''
 })
 
 watch(
