@@ -42,7 +42,7 @@
             </template>
             <div v-else class="q-pa-md chat-messages-inner" :style="{ '--chat-font-size': `${chatFontSize ?? 16}px` }">
               <div v-for="(msg, idx) in messages" :key="idx" :class="['message-row', msg.role]" :data-msg-idx="idx">
-                <div class="message-bubble" :ref="(el) => setMessageBubbleEl(idx, el)" :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content?.trim() }">
+                <div class="message-bubble" :class="{ 'message-bubble--contextable': msg.role === 'assistant' && msg.content?.trim() }">
                   <div v-if="msg.images?.length" class="msg-images row q-gutter-xs q-mb-sm">
                     <img v-for="(img, i) in msg.images" :key="i" :src="typeof img === 'string' && img.startsWith('data:') ? img : `data:image/png;base64,${img}`" alt="" class="msg-image-thumb" />
                   </div>
@@ -50,31 +50,6 @@
                     <div v-if="msg.role === 'assistant'" class="markdown-content chat-markdown" v-html="parseMarkdown(msg.content, '', {})"></div>
                     <span v-else>{{ msg.content }}</span>
                   </template>
-                  <!-- AI 메시지에만 우클릭 메뉴 — 말풍선 ref 후 마운트·:target으로 앵커 고정 -->
-                  <q-menu v-if="msg.role === 'assistant' && msg.content?.trim() && messageBubbleEls[idx]" :target="messageBubbleEls[idx]" context-menu>
-                    <q-list dense style="min-width: 200px">
-                      <q-item clickable v-close-popup @click="onMsgCopy(msg.content)">
-                        <q-item-section avatar><q-icon name="content_copy" /></q-item-section>
-                        <q-item-section>복사</q-item-section>
-                        <q-item-section side><span class="text-caption text-grey-6">Ctrl+C</span></q-item-section>
-                      </q-item>
-                      <q-item clickable v-close-popup @click="onMsgAddMemo(msg.content)">
-                        <q-item-section avatar><q-icon name="sticky_note_2" /></q-item-section>
-                        <q-item-section>메모로 추가</q-item-section>
-                      </q-item>
-                      <template v-if="aiInsertContent">
-                        <q-separator />
-                        <q-item clickable v-close-popup @click="onMsgInsertNarrative(msg.content)">
-                          <q-item-section avatar><q-icon name="edit_note" /></q-item-section>
-                          <q-item-section>에디터에 삽입</q-item-section>
-                        </q-item>
-                        <q-item clickable v-close-popup @click="onMsgInsertLogic(msg.content)">
-                          <q-item-section avatar><q-icon name="code" /></q-item-section>
-                          <q-item-section>코드 에디터에 삽입</q-item-section>
-                        </q-item>
-                      </template>
-                    </q-list>
-                  </q-menu>
                 </div>
               </div>
               <div v-if="isLoading" class="message-row assistant">
@@ -85,6 +60,7 @@
               </div>
             </div>
           </div>
+
           <div class="chat-input q-pa-md flex-shrink">
             <div v-if="supportsVision && attachedImages.length > 0" class="attached-images row q-gutter-xs q-mb-sm">
               <div v-for="(img, i) in attachedImages" :key="i" class="attached-image-thumb">
@@ -185,14 +161,44 @@
       </div>
     </template>
 
+    <!-- split 레이아웃 transform 등으로 fixed 기준점이 틀어지지 않도록 body에 앵커 -->
+    <Teleport to="body">
+      <div
+        v-if="selectedChannelId"
+        class="chat-ctx-menu-anchor"
+        :style="chatCtxMenuAnchorStyle"
+        aria-hidden="true"
+      >
+        <q-menu v-model="chatMessagesCtxMenuVisible" anchor="top left" self="top left" class="nexia-chat-messages-context-menu">
+          <q-list dense style="min-width: 200px">
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="content_copy" size="sm" /></q-item-section>
+              <q-item-section>복사</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="sticky_note_2" size="sm" /></q-item-section>
+              <q-item-section>메모에 추가</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="edit_note" size="sm" /></q-item-section>
+              <q-item-section>내러티브에 삽입</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar><q-icon name="code" size="sm" /></q-item-section>
+              <q-item-section>로직에 삽입</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, inject, onMounted, onUnmounted, shallowReactive } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { Notify } from 'quasar'
 import { parseMarkdown } from '@system/utils/markdown/index'
-import { copyTextToClipboard } from '@system/utils/clipboard'
 import { nexiaApi } from '../services/nexiaApi'
 import { useNexiaSettings } from '../composables/useNexiaSettings'
 import { useNexiaModels } from '../composables/useNexiaModels'
@@ -200,19 +206,9 @@ import { formatModelDisplayName } from '../utils/modelDisplayName'
 import { extractOutlineFromMessages } from '../utils/chatOutline'
 import { getUploadDisplayUrl } from '@system/utils/apiBaseUrl'
 import { useNexiaChannels } from '../composables/useNexiaChannels'
-import { useNexiaMemos } from '../composables/useNexiaMemos'
 import { useWebSpeechRecognition } from '../composables/useWebSpeechRecognition'
 import { parseVoiceClearPhraseList } from '../utils/voiceClearCommand'
 
-const aiInsertContent = inject('aiInsertContent', null)
-
-/** 말풍선 DOM — QMenu `context-menu` 앵커를 `:target`으로 고정(닫힌 포털만 있을 때 $el.parentNode 추정 실패 대비) */
-const messageBubbleEls = shallowReactive({})
-function setMessageBubbleEl(idx, el) {
-  if (el) messageBubbleEls[idx] = el
-  else delete messageBubbleEls[idx]
-}
-const { addMemo } = useNexiaMemos()
 const {
   selectedModel,
   selectedModelCapabilities,
@@ -280,14 +276,6 @@ function onNexiaMicToggleShortcut(event) {
   event.stopPropagation()
   onSpeechMicClick()
 }
-
-onMounted(() => {
-  window.addEventListener('keydown', onNexiaMicToggleShortcut, true)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', onNexiaMicToggleShortcut, true)
-})
 
 watch(speechLastError, (err) => {
   if (!err || err === 'aborted') return
@@ -359,6 +347,55 @@ const attachedImages = ref([])
 const isLoading = ref(false)
 const messagesRef = ref(null)
 const fileInputRef = ref(null)
+
+const chatMessagesCtxMenuVisible = ref(false)
+const chatMessagesCtxMenuX = ref(0)
+const chatMessagesCtxMenuY = ref(0)
+
+const chatCtxMenuAnchorStyle = computed(() => ({
+  position: 'fixed',
+  left: `${chatMessagesCtxMenuX.value}px`,
+  top: `${chatMessagesCtxMenuY.value}px`,
+  width: '1px',
+  height: '1px',
+  pointerEvents: 'none',
+  zIndex: 7000,
+}))
+
+/** document 캡처 + messagesRef.contains — 마크다운 등 내부 노드에서도 안정적으로 수신 */
+function onDocumentContextmenuChat(ev) {
+  if (ev.type !== 'contextmenu') return
+  const root = messagesRef.value
+  const t = ev.target
+  if (!root || !(t instanceof Node) || !root.contains(t)) return
+  chatMessagesCtxMenuX.value = ev.clientX ?? 0
+  chatMessagesCtxMenuY.value = ev.clientY ?? 0
+  ev.preventDefault()
+  ev.stopPropagation()
+  void nextTick(() => {
+    chatMessagesCtxMenuVisible.value = true
+  })
+}
+
+function attachChatMessagesContextmenuDocumentListener() {
+  detachChatMessagesContextmenuDocumentListener()
+  document.addEventListener('contextmenu', onDocumentContextmenuChat, true)
+}
+
+function detachChatMessagesContextmenuDocumentListener() {
+  document.removeEventListener('contextmenu', onDocumentContextmenuChat, true)
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onNexiaMicToggleShortcut, true)
+  attachChatMessagesContextmenuDocumentListener()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onNexiaMicToggleShortcut, true)
+  detachChatMessagesContextmenuDocumentListener()
+})
+
 const outlineHover = ref(false)
 const outlinePinned = ref(false)
 
@@ -537,51 +574,6 @@ function fillExample(text) {
   inputText.value = text || ''
 }
 
-async function onMsgCopy(content) {
-  const text = (content || '').trim()
-  if (!text) return
-  try {
-    await copyTextToClipboard(text)
-    Notify.create({ message: '클립보드에 복사되었습니다.', icon: 'content_copy' })
-  } catch {
-    Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
-  }
-}
-
-async function onMsgAddMemo(content) {
-  const text = (content || '').trim()
-  if (!text) return
-  try {
-    await addMemo(text, 'chat', selectedChannelId.value, selectedChatId.value)
-    Notify.create({ message: '메모에 추가되었습니다.', icon: 'sticky_note_2' })
-  } catch (e) {
-    Notify.create({ type: 'negative', message: e?.message || '메모 추가 실패' })
-  }
-}
-
-function onMsgInsertNarrative(content) {
-  if (!aiInsertContent) return
-  const text = (content || '').trim()
-  if (!text) return
-  const html = parseMarkdown(text, '', {})
-  aiInsertContent.setCenterTab('narrative')
-  nextTick(() => {
-    aiInsertContent.pendingInsertContent.value = html
-  })
-  Notify.create({ message: '에디터에 삽입되었습니다.', icon: 'edit_note' })
-}
-
-function onMsgInsertLogic(content) {
-  if (!aiInsertContent) return
-  const text = (content || '').trim()
-  if (!text) return
-  aiInsertContent.setCenterTab('logic')
-  nextTick(() => {
-    aiInsertContent.pendingCodeInsertContent.value = text
-  })
-  Notify.create({ message: '코드 에디터에 삽입되었습니다.', icon: 'code' })
-}
-
 watch(
   [selectedChannelId, selectedChatId, selectedChat],
   () => {
@@ -593,6 +585,7 @@ watch(
 
 watch(selectedChannelId, () => {
   stopSpeech()
+  chatMessagesCtxMenuVisible.value = false
 })
 
 watch(
