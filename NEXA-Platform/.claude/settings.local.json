@@ -1,0 +1,10 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://openrouter.ai/api/v1",
+    "ANTHROPIC_API_KEY": "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",
+    "ANTHROPIC_MODEL": "qwen/qwen-2.5-coder-32b-instruct:free"
+  },
+  "permissions": {
+    "allow": ["WebFetch", "WebSearch"]
+  }
+}
