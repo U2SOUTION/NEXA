@@ -3,25 +3,24 @@
 ## 0. 문서 목적
 
 본 문서는 NEXIA 도메인의 상위 통합 인덱스다.  
-세부 정책은 하위 문서(`01~10`)를 단일 기준으로 참조한다.
+세부 정책은 하위 문서(`01~13` 및 외부 엔진 아키텍처 문서)를 단일 기준으로 참조한다.
 
 ---
 
 ## 1. 기준 체계
 
-- 기본 운영 프로파일: `8개 탭 체계`
+- 기본 운영 프로파일: `7개 탭 체계`
   - `0. Cockpit`: Chat UI 기반의 전 탭과 도메인을 지휘/승인/모니터링하는 통합 조종석.
   - `1. Ethos`: Tiptap 에디터 기반 목표, 가치, 규범, 페르소나를 정의하는 정책 설계 문서를 작성하는 탭.
   - `2. Synapse`: Rivet+Vue Flow 기반 관계 모델과 추론 워크플로우를 설계하는 로직 탭.
   - `3. Glos`: Monaco Editor 기반 설계된 로직을 코드와 실행 규약으로 명세화하는 탭.
-  - `4. Aionos`: RxJS, P5.js, Tone.js, FFT.js, Web Audio, MQTT 기반 신호/스트림을 시간 축으로 분석하고 처리하는 탭.
-  - `5. Physis`: ComfyUI, Media Pipeline 기반 시각·청각·미디어 결과물을 생성/발현하는 탭.
-  - `6. Sense`: Topology View, I/O/Health/권한 진단 중심의 분석 탭.
-  - `7. Navis`: 파일/네트워크 자산을 탐색하고 선택 대상을 Sense/Aionos로 릴레이하는 내비게이션 탭.
+  - `4. Physis`: ComfyUI, Media Pipeline 기반 시각·청각·미디어 결과물을 생성/발현하는 탭.
+  - `5. Sense`: Topology View, I/O/Health/권한 진단 중심의 분석 탭.
+  - `6. Navis`: 파일/네트워크 자산을 탐색하고 선택 대상을 Sense/Synapse로 릴레이하는 내비게이션 탭.
 - 구조 원칙: 탭 체계는 도메인/운영 단계에 따라 축소·확장 가능한 모듈 구조로 설계한다.
 - 표기 원칙:
-  - 기본값을 지칭할 때는 `8개 탭(기본 프로파일)`로 표기한다.
-  - `1~7`은 `전문 탭`으로 표기한다.
+  - 기본값을 지칭할 때는 `7개 탭(기본 프로파일)`로 표기한다.
+  - `1~6`은 `전문 탭`으로 표기한다.
 
 ---
 
@@ -91,7 +90,7 @@
 
 ### 2.5.2 Solo 채팅 리스트 구성 규칙
 
-- 기본 리스트는 `NEXIA 7개 전문 탭 채팅`으로 구성한다.
+- 기본 리스트는 `NEXIA 6개 전문 탭 채팅`으로 구성한다.
 - 여기에 `타 도메인 미니 채팅`을 동급으로 추가할 수 있다.
 - 단, 타 도메인 채팅은 해당 도메인에서 실제 대화를 시작한 이후에만 Solo 리스트에 노출한다.
 - Solo 리스트는 좌측에 항상 고정 노출하고, 클릭 시 즉시 Solo 모드로 전환한다.
@@ -107,7 +106,7 @@
 
 - Global Flow는 읽기 전용이며 직접 실행/수정 입력을 받지 않는다.
 - 표시 대상:
-  - NEXIA 7개 탭 Solo 흐름
+  - NEXIA 6개 전문 탭 Solo 흐름
   - 타 도메인에서 활성화된 미니 채팅 흐름
   - Crew 집계 이벤트/승인 이벤트/오류 이벤트
 - 목적은 "현재 전체 지능 흐름 가시화"이며, 실행은 Crew/Solo에서 수행한다.
@@ -157,28 +156,27 @@
 
 ---
 
-## 3. 기본 8개 탭 규정 테이블 (확장본)
+## 3. 기본 7개 탭 규정 테이블 (확장본)
 
 | 순서 | 탭 라벨            | 핵심 가치               | 하위 구성                           | 주요 도구(Tech Stack)                         | 데이터 성격                       | 상호작용(연계)                                | 운영 포인트                                |
 | ---- | ------------------ | ----------------------- | ----------------------------------- | --------------------------------------------- | --------------------------------- | --------------------------------------------- | ------------------------------------------ |
 | 0    | Cockpit(콕핏)      | 통합 지휘/커뮤니케이션  | Global Flow, NEXIA Crew, NEXIA Solo | Ollama, NIXIE, HEXAGON(5W1H), Nexnap Stream   | 텍스트, 이미지, 음성, 이벤트 로그 | 모든 탭과 도메인을 오케스트레이션             | 승인 게이트, 상태 가시성, 비상 정지 진입점 |
 | 1    | Ethos(에토스)      | 가치/규범/목표 정의     | 정책 문서, 페르소나, 시방서 템플릿  | Tiptap, 템플릿 엔진                           | 비정형 텍스트, 정책 규칙          | 전 탭의 의사결정 기준 제공                    | 가드레일 규칙 버전 관리, 정책 승인 이력    |
-| 2    | Synapse(시넵스)    | 사고/관계/추론 설계     | Graph(온톨로지), Logic(워크플로우)  | Rivet Core, Vue Flow, Yjs                     | 지식 그래프, 워크플로우 상태      | Sense/Aionos 입력을 분석해 Glos/Physis로 전달 | 로직 재사용(Subgraph), 충돌 없는 협업 편집 |
+| 2    | Synapse(시넵스)    | 사고/관계/추론 설계     | Graph(온톨로지), Logic(워크플로우)  | Rivet Core, Vue Flow, Yjs                     | 지식 그래프, 워크플로우 상태      | Sense 입력을 분석해 Glos/Physis로 전달 | 로직 재사용(Subgraph), 충돌 없는 협업 편집 |
 | 3    | Glos(글로스)       | 규범의 실행 명세화      | 코드 편집, 규칙 변환, 실행 스크립트 | Monaco Editor, Lint/Formatter 체인            | 정형 텍스트, 코드, 실행 규약      | Synapse 설계를 실행 가능한 산출물로 변환      | 코드 리뷰/버전 추적, 배포 전 검증          |
-| 4    | Aionos(아이오노스) | 에너지 흐름/시간축 처리 | Vibration, Radiance, 파형 이벤트    | RxJS, P5.js, Tone.js, FFT.js, Web Audio, MQTT | 스트림, 주파수, 시계열 로그       | Sense 신호를 시간축 분석해 Synapse로 공급     | 실시간 처리 지연 관리, 이상 탐지 트리거    |
-| 5    | Physis(피시스)     | 실체적 발현/미디어 생성 | 시각·청각 현상화, 결과물 제작       | ComfyUI, 미디어 파이프라인                    | 이미지, 영상, 오디오 소스         | Glos 규칙/명세를 실제 결과물로 발현           | 고비용 작업 큐잉, 결과물 품질 게이트       |
-| 6    | Sense(센스)        | 인프라/장치 분석        | Topology View, I/O 진단, 권한/헬스 제어 | ESPHome, Network Graph Engine, Diagnostics Pipeline | 장치 상태, I/O, 권한, 진단 로그 | Navis 선택 대상을 분석하고 Aionos/Synapse로 전달 | 정밀 진단, 권한 검사, 이상 탐지 |
-| 7    | Navis(나비스)      | 자산/노드 탐색          | File Explorer, Network Tree, Relay Trigger | IndexedDB, OPFS, File System Access API, S3(MinIO) 메타 연동, Tree UI Engine | 파일 자산 메타, 노드 인덱스, 선택 컨텍스트 | 선택된 객체 ID/컨텍스트를 Sense/Aionos로 즉시 릴레이 | 탐색 속도 최적화, 컨텍스트 정확도 |
+| 4    | Physis(피시스)     | 실체적 발현/미디어 생성 | 시각·청각 현상화, 결과물 제작       | ComfyUI, 미디어 파이프라인                    | 이미지, 영상, 오디오 소스         | Glos 규칙/명세를 실제 결과물로 발현           | 고비용 작업 큐잉, 결과물 품질 게이트       |
+| 5    | Sense(센스)        | 인프라/장치 분석        | Topology View, I/O 진단, 권한/헬스 제어 | ESPHome, Network Graph Engine, Diagnostics Pipeline | 장치 상태, I/O, 권한, 진단 로그 | Navis 선택 대상을 분석하고 Synapse로 전달 | 정밀 진단, 권한 검사, 이상 탐지 |
+| 6    | Navis(나비스)      | 자산/노드 탐색          | File Explorer, Network Tree, Relay Trigger | IndexedDB, OPFS, File System Access API, S3(MinIO) 메타 연동, Tree UI Engine | 파일 자산 메타, 노드 인덱스, 선택 컨텍스트 | 선택된 객체 ID/컨텍스트를 Sense/Synapse로 즉시 릴레이 | 탐색 속도 최적화, 컨텍스트 정확도 |
 
 ### 3.1 해석 규칙
 
-- `0 Cockpit`은 실행 허브이며, `1~7 전문 탭`은 기능 실행 유닛이다.
+- `0 Cockpit`은 실행 허브이며, `1~6 전문 탭`은 기능 실행 유닛이다.
 - 사용자 요청은 기본적으로 Cockpit에서 수신하고, 탭별 파이프라인으로 위임한다.
 - 고위험 작업(IoT 제어/대량 수정/배포)은 Cockpit 승인 단계를 통과해야 한다.
 - 기본 프로파일 외 탭 증감은 탭 레지스트리(`tabId`, `capability`, `owner`, `riskLevel`, `status`)에 등록 후 활성화한다.
 - 프로파일 예시:
   - Lite: 4~5개 탭
-  - Standard: 8개 탭(기본)
+  - Standard: 7개 탭(기본)
   - Extended: 8개 이상(도메인 특화 탭 포함)
 
 ---
@@ -218,6 +216,12 @@
   - PiP 생명주기, 메인-보조 제어권, 프라이버시 표시 정책
 - `10 멀티윈도우 vs Document PiP 선택 가이드 (Decision Matrix).md`
   - 선택 기준, 혼합 전략, 모드별 권장안
+- `11 NEXA Nexia 통합 레이아웃 구조 규격 (Integrated Layout Specification).md`
+  - Top/Left/Center/Right, Solo 리스트, Cockpit 레이어, 이벤트·SLO
+- `12 NEXIA 기술 스택 기준서 (Technology Stack Baseline).md`
+  - 코어·외부 엔진·탭별 스택, 파일 자산, 관측성·배포
+- `13 우주언어 프로토콜 개념 정리 (Cosmic Language Protocol Draft).md`
+  - 우주언어 매트릭스·패킷·프로파일 계층, 미확정 항목
 - `NEXIA 주요 외부 엔진들과 아키텍쳐.md`
   - 외부 엔진 계약, 데이터 흐름, ADR 요약
 
@@ -233,6 +237,6 @@
 
 ## 7. 변경 관리 규칙
 
-- 정책 변경은 반드시 해당 상세 문서(01~10)에 먼저 반영한다.
+- 정책 변경은 반드시 해당 상세 문서(01~13)에 먼저 반영한다.
 - `00` 문서는 인덱스/요약 역할만 수행하고 상세 규칙을 중복 기재하지 않는다.
 - 용어 변경 시 7개 탭 표기 일관성을 최우선으로 검증한다.

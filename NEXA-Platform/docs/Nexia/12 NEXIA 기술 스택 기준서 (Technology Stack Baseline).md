@@ -43,7 +43,7 @@
 
 ---
 
-## 12.5 탭별 권장 스택 매핑 (기본 프로파일: 8개 탭)
+## 12.5 탭별 권장 스택 매핑 (기본 프로파일: 7개 탭)
 
 | 탭        | 핵심 스택                                    |
 | --------- | -------------------------------------------- |
@@ -51,14 +51,13 @@
 | 1 Ethos   | Tiptap, Template Engine, Policy Subgraph     |
 | 2 Synapse | Rivet, Vue Flow, Yjs                         |
 | 3 Glos    | Monaco, Linter/Formatter, Git 연동           |
-| 4 Aionos  | RxJS, P5.js, Tone.js, FFT.js, MQTT           |
-| 5 Physis  | ComfyUI, Media Pipeline                      |
-| 6 Sense   | ESPHome, Network Graph Engine, Diagnostics Pipeline, Health Check |
-| 7 Navis   | File Explorer UI, Network Tree UI, IndexedDB, OPFS, File System Access API, S3(MinIO) 메타 연동 |
+| 4 Physis  | ComfyUI, Media Pipeline, P5.js, Tone.js, Web Audio API |
+| 5 Sense   | ESPHome, Network Graph Engine, Diagnostics Pipeline, Health Check |
+| 6 Navis   | File Explorer UI, Network Tree UI, IndexedDB, OPFS, File System Access API, S3(MinIO) 메타 연동 |
 
 ---
 
-## 12.6 Aionos 확장 스택 (신호/시계열 중심)
+## 12.6 신호/시계열 확장 스택 (Synapse/Physis 통합)
 
 | 구분     | 기본                   | 확장             |
 | -------- | ---------------------- | ---------------- |
@@ -67,6 +66,10 @@
 | 스트림   | RxJS                   | Kafka(고부하 시) |
 | 신호분석 | FFT.js                 | Math.js, ML 모델 |
 | 통신     | MQTT, WebRTC           | Socket 기반 중계 |
+
+- 배치 원칙:
+  - Synapse: 신호 해석/라우팅/이상탐지 로직 노드 담당
+  - Physis: 파형/음향/시각 출력 및 실시간 표현 담당
 
 ---
 
@@ -145,7 +148,7 @@
 ## 12.10 단계별 도입 권장
 
 - Phase 1: Vue/Quasar + Node + Rivet + Ollama + Yjs
-- Phase 2: Aionos/Physis/Sense 확장(ComfyUI, ESPHome, 스트림 고도화)
+- Phase 2: Synapse/Physis/Sense 확장(ComfyUI, ESPHome, 스트림 고도화)
 - Phase 3: Kafka/관측성/비밀관리/기능 플래그 기반 운영 고도화
 
 ---

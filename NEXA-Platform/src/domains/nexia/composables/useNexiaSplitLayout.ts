@@ -9,8 +9,11 @@ const LAYOUT_KEY = 'nexia-split-layout'
 /** 영역별 최소·최대 비율(%). 추후 환경설정으로 분리 예정 */
 export const SPLIT_LIMITS: { minPct: number; maxPct: number } = { minPct: 5, maxPct: 90 }
 
+/** 규정 순: 0 Cockpit(좌) → 중앙 1~5 Ethos, Synapse, Glos, Physis, Sense → 6 Navis(우) */
 const DEFAULT_LEFT = ['dialogue']
-const DEFAULT_CENTER = ['narrative', 'logic', 'media', 'sense', 'nexus']
+/** 중앙 영역: 1 Ethos → 2 Synapse → 3 Glos → 4 Physis → 5 Sense (패널 내부 ID) */
+const CANONICAL_CENTER_ORDER = ['narrative', 'nexus', 'logic', 'media', 'sense'] as const
+const DEFAULT_CENTER = [...CANONICAL_CENTER_ORDER]
 const DEFAULT_RIGHT = ['explorer']
 
 const DEFAULT_SIZES = { left: 22, center: 56, right: 22 }
@@ -34,17 +37,18 @@ function toNewPanelId(id: string): string {
   return LEGACY_ID_MAP[id] ?? id
 }
 
-/** 저장된 centerPanelIds (레거시 ID → 새 ID 마이그레이션, image/audio/video/vision/medium → media) */
+const CANONICAL_CENTER_SET = new Set<string>(CANONICAL_CENTER_ORDER)
+
+/** 저장된 centerPanelIds: 레거시 ID 치환 후 규정 순서로 정렬 */
 function migrateCenterPanelIds(saved: string[] | undefined): string[] {
   let list = Array.isArray(saved) ? saved.map(toNewPanelId) : [...DEFAULT_CENTER]
-  list = [...new Set(list)] // media 중복 제거
-  const newDefaults = DEFAULT_CENTER.filter((id) => !list.includes(id))
-  if (newDefaults.length) list = [...list, ...newDefaults]
-  const senseIdx = list.indexOf('sense')
-  if (senseIdx >= 0 && senseIdx < list.length - 1) {
-    list = [...list.filter((id) => id !== 'sense'), 'sense']
+  list = [...new Set(list)]
+  for (const id of CANONICAL_CENTER_ORDER) {
+    if (!list.includes(id)) list.push(id)
   }
-  return list
+  const ordered = CANONICAL_CENTER_ORDER.filter((id) => list.includes(id))
+  const extras = list.filter((id) => !CANONICAL_CENTER_SET.has(id))
+  return [...ordered, ...extras]
 }
 
 function loadLayout() {
@@ -182,7 +186,7 @@ export function applyPreset(preset: 'default' | 'code') {
     explorerViewMode.value = 'list'
   } else if (preset === 'code') {
     leftPanelIds.value = ['dialogue']
-    centerPanelIds.value = ['logic', 'narrative', 'media', 'sense', 'nexus']
+    centerPanelIds.value = [...DEFAULT_CENTER]
     rightPanelIds.value = ['explorer']
     leftVisible.value = true
     centerVisible.value = true
@@ -191,7 +195,7 @@ export function applyPreset(preset: 'default' | 'code') {
     centerSize.value = 50
     rightSize.value = 25
     leftActiveIndex.value = 0
-    centerActiveIndex.value = 0
+    centerActiveIndex.value = CANONICAL_CENTER_ORDER.indexOf('logic')
     rightActiveIndex.value = 0
     explorerTreeWidth.value = DEFAULT_EXPLORER_TREE_WIDTH
     explorerViewMode.value = 'list'

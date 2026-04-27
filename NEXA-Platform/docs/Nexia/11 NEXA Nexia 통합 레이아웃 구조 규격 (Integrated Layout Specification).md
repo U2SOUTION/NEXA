@@ -60,7 +60,7 @@
 
 - 좌측에는 `Solo 채팅 리스트`를 상시 고정 노출한다.
 - 기본 구성:
-  - NEXIA 7개 전문 탭 채팅(Ethos, Synapse, Glos, Aionos, Physis, Sense, Navis)
+  - NEXIA 6개 전문 탭 채팅(Ethos, Synapse, Glos, Physis, Sense, Navis)
 - 확장 구성:
   - 타 도메인 미니 채팅(사이드바/플로팅에서 생성된 채팅)을 동급 항목으로 추가
 - 노출 조건:
@@ -72,7 +72,7 @@
 ### 11.4.3 Center Main (Engine Workspace)
 
 - 기능:
-  - `0 Cockpit + 1~7 전문 탭` 실행
+  - `0 Cockpit + 1~6 전문 탭` 실행
   - 프로파일 기반 탭 증감(Lite/Standard/Extended)
 - 레이아웃 원칙:
   - 현재 활성 탭 1개, 백그라운드 실행 탭 상태 요약 제공
@@ -80,7 +80,7 @@
   - 멀티윈도우 모드에서 창 간 동일 문맥 유지
 - 탭 프로파일:
   - Lite: 핵심 탭만 표시(운영/모바일/경량)
-  - Standard: 기본 8개 탭
+  - Standard: 기본 7개 탭
   - Extended: 도메인 특화 탭 추가
 
 #### 11.4.3-a Cockpit 레이어 권한 규칙

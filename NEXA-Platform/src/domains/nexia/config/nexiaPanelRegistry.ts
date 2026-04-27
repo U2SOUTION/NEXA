@@ -1,7 +1,7 @@
 /**
  * AI 도메인 패널 ID → 컴포넌트 매핑.
- * 탭 네이밍: [NEXA-AI-03] §1.4 기준 (Dialogue, Narrative, Logic, Media, Sense, Nexus, Explorer)
- * Media: 이미지·음원·영상 통합, 하위 패널로 파일 타입별 분기.
+ * 주의: 내부 panelId는 하위 호환을 위해 유지하고, UI 라벨만 최신 탭 명칭으로 노출한다.
+ * Aionos는 별도 패널 분리 전까지 이번 매핑에서 제외한다.
  */
 import NexiaChatPanel from '../components/NexiaChatPanel.vue'
 import NexiaEditorPanel from '../components/NexiaEditorPanel.vue'
@@ -12,13 +12,13 @@ import NexiaUniversalViewerPanel from '../components/NexiaUniversalViewerPanel.v
 import NexiaNexusPanel from '../components/NexiaNexusPanel.vue'
 
 export const PANEL_LABELS: Record<string, string> = {
-  dialogue: 'Dialogue',
-  narrative: 'Narrative',
-  logic: 'Logic',
-  media: 'Media',
+  dialogue: 'Cockpit',
+  narrative: 'Ethos',
+  logic: 'Glos',
+  media: 'Physis',
   sense: 'Sense',
-  nexus: 'Nexus',
-  explorer: 'Explorer',
+  nexus: 'Synapse',
+  explorer: 'Navis',
 }
 
 export const PANEL_ICONS: Record<string, string> = {
