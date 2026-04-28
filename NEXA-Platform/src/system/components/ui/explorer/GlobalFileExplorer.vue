@@ -26,17 +26,32 @@
           placeholder="필터·검색 (추가 예정)"
         />
         <q-select
-          v-model="scopeDomain"
-          :options="domainOptions"
-          dense
-          outlined
+          :model-value="selectedNodeId"
+          :options="compactTreeNodeOptions"
+          option-value="value"
+          option-label="label"
           emit-value
           map-options
+          dense
+          outlined
           options-dense
-          class="explorer-compact-field scope-select"
-          label="범위"
-          @update:model-value="onScopeDomainChange"
-        />
+          class="explorer-compact-field explorer-compact-tree-select"
+          label="트리"
+          :loading="treeLoading"
+          :disable="!compactTreeNodeOptions.length"
+          @update:model-value="onCompactTreeNodeChange"
+        >
+          <template #option="scope">
+            <q-item v-bind="scope.itemProps" class="explorer-compact-tree-option" :style="compactTreeOptionItemStyle(scope.opt.depth)">
+              <q-item-section avatar>
+                <q-icon :name="scope.opt.icon || 'folder'" size="18px" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ scope.opt.label }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
       </template>
       <div v-else class="row items-center full-width">
         <q-space />
@@ -58,9 +73,6 @@
     <q-splitter v-model="splitterModel" unit="px" :limits="splitterLimits" class="col">
       <template #before>
         <div v-show="!isLayoutCompact" class="explorer-left column q-pa-sm">
-          <div class="scope-row q-mb-sm">
-            <q-select v-model="scopeDomain" :options="domainOptions" dense outlined emit-value map-options options-dense class="scope-select" @update:model-value="onScopeDomainChange" />
-          </div>
           <ExplorerTree :tree-nodes="filteredTreeNodes" :selected-node-id="selectedNodeId" :expanded-ids="expandedNodeIds" @select-node="selectNode" @update:expanded-ids="expandedNodeIds = $event" />
         </div>
       </template>
@@ -174,19 +186,8 @@ const listSectionStyle = computed(() => {
   }
 })
 
-const { treeNodes, items, listLoading, listError, selectedNodeId, hasMore, loadTree, selectNode, loadMore, sortBy, filterCategory, scopeDomain } = useGlobalFileExplorer()
-
-const domainOptions = computed(() => {
-  const options = [{ value: '', label: 'All' }]
-  if (!treeNodes.value?.length) return options
-  for (const n of treeNodes.value) {
-    if (n.domain) {
-      const cap = n.domain.charAt(0).toUpperCase() + n.domain.slice(1)
-      options.push({ value: n.domain, label: cap })
-    }
-  }
-  return options
-})
+const { treeNodes, items, listLoading, listError, selectedNodeId, hasMore, loadTree, selectNode, loadMore, sortBy, filterCategory, scopeDomain, treeLoading } =
+  useGlobalFileExplorer()
 
 function capLabel(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s
@@ -204,10 +205,49 @@ function injectCodeNodeUnderAi(nodes) {
   })
 }
 
-const filteredTreeNodes = computed(() => {
-  const base = scopeDomain.value ? treeNodes.value.filter((n) => n.domain === scopeDomain.value) : treeNodes.value || []
-  return injectCodeNodeUnderAi(base)
+/** API 트리 전체 + Code 가상 노드 (도메인은 트리·컴팩트 셀렉트로만 선택; 별도 범위 셀렉터 없음) */
+const filteredTreeNodes = computed(() => injectCodeNodeUnderAi(treeNodes.value || []))
+
+/** 왼쪽 트리와 동일한 `filteredTreeNodes`를 깊이·아이콘과 함께 평면화 (컴팩트 전용 셀렉트) */
+function findTreeNodeById(nodes, id) {
+  if (!nodes?.length || id == null || id === '') return null
+  for (const n of nodes) {
+    if (n.id === id) return n
+    const found = findTreeNodeById(n.children, id)
+    if (found) return found
+  }
+  return null
+}
+
+function flattenTreeForCompactSelect(nodes, depth, acc) {
+  if (!nodes?.length) return
+  for (const n of nodes) {
+    acc.push({
+      value: n.id,
+      label: n.label,
+      icon: n.icon || 'folder',
+      depth,
+    })
+    if (n.children?.length) flattenTreeForCompactSelect(n.children, depth + 1, acc)
+  }
+}
+
+const compactTreeNodeOptions = computed(() => {
+  const acc = []
+  flattenTreeForCompactSelect(filteredTreeNodes.value, 0, acc)
+  return acc
 })
+
+function compactTreeOptionItemStyle(depth) {
+  return { paddingLeft: `${8 + depth * 16}px` }
+}
+
+function onCompactTreeNodeChange(id) {
+  if (id == null || id === '') return
+  if (id === selectedNodeId.value) return
+  const node = findTreeNodeById(filteredTreeNodes.value, id)
+  if (node) selectNode(node)
+}
 
 /** 코드 파일 확장자 (extToMonacoLanguage와 동기화) */
 const CODE_EXTENSIONS = [
@@ -282,16 +322,6 @@ const displayedItems = computed(() => {
     return 0
   })
 })
-
-function onScopeDomainChange(val) {
-  if (val) {
-    const node = treeNodes.value.find((n) => n.domain === val)
-    if (node) selectNode(node)
-  } else {
-    const first = treeNodes.value[0]
-    if (first) selectNode(first)
-  }
-}
 
 watch(
   () => [treeNodes.value, selectedNodeId.value],
@@ -440,7 +470,7 @@ onBeforeUnmount(() => {
 .explorer-top-bar {
   border-bottom: 1px solid var(--nexa-border-color);
 }
-/* 컴팩트: 토글 아래 검색·범위를 각각 한 줄·가로 100% */
+/* 컴팩트: 토글 아래 검색·트리를 각각 한 줄·가로 100% */
 .explorer-compact-field {
   width: 100%;
   min-width: 0;
