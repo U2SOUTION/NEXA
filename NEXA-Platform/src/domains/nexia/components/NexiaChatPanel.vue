@@ -161,37 +161,18 @@
       </div>
     </template>
 
-    <!-- split 레이아웃 transform 등으로 fixed 기준점이 틀어지지 않도록 body에 앵커 -->
-    <Teleport to="body">
-      <div
-        v-if="selectedChannelId"
-        class="chat-ctx-menu-anchor"
-        :style="chatCtxMenuAnchorStyle"
-        aria-hidden="true"
-      >
-        <q-menu v-model="chatMessagesCtxMenuVisible" anchor="top left" self="top left" class="nexia-chat-messages-context-menu">
-          <q-list dense style="min-width: 200px">
-            <q-item clickable v-close-popup :disable="!chatCtxMenuHasText" @click="onChatCtxCopy">
-              <q-item-section avatar><q-icon name="content_copy" size="sm" /></q-item-section>
-              <q-item-section>복사</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup :disable="!chatCtxMenuHasText" @click="onChatCtxAddMemo">
-              <q-item-section avatar><q-icon name="sticky_note_2" size="sm" /></q-item-section>
-              <q-item-section>메모에 추가</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable v-close-popup :disable="!chatCtxMenuHasText || !aiInsertContent" @click="onChatCtxInsertNarrative">
-              <q-item-section avatar><q-icon name="edit_note" size="sm" /></q-item-section>
-              <q-item-section>내러티브에 삽입</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup :disable="!chatCtxMenuHasText || !aiInsertContent" @click="onChatCtxInsertLogic">
-              <q-item-section avatar><q-icon name="code" size="sm" /></q-item-section>
-              <q-item-section>로직에 삽입</q-item-section>
-            </q-item>
-          </q-list>
-        </q-menu>
-      </div>
-    </Teleport>
+    <NexiaChatMessageContextMenu
+      v-model="chatMessagesCtxMenuVisible"
+      :active="!!selectedChannelId"
+      :anchor-x="chatMessagesCtxMenuX"
+      :anchor-y="chatMessagesCtxMenuY"
+      :has-text="chatCtxMenuHasText"
+      :editor-available="!!aiInsertContent"
+      @copy="onChatCtxCopy"
+      @add-memo="onChatCtxAddMemo"
+      @insert-ethos="onChatCtxInsertNarrative"
+      @insert-glos="onChatCtxInsertLogic"
+    />
   </div>
 </template>
 
@@ -199,7 +180,7 @@
 import { ref, computed, watch, nextTick, inject, onMounted, onUnmounted } from 'vue'
 import { Notify } from 'quasar'
 import { parseMarkdown } from '@system/utils/markdown/index'
-import { copyTextToClipboard } from '@system/utils/clipboard'
+import { trySyncClipboardCopy } from '@system/utils/clipboard'
 import { nexiaApi } from '../services/nexiaApi'
 import { useNexiaSettings } from '../composables/useNexiaSettings'
 import { useNexiaModels } from '../composables/useNexiaModels'
@@ -210,6 +191,7 @@ import { useNexiaChannels } from '../composables/useNexiaChannels'
 import { useNexiaMemos } from '../composables/useNexiaMemos'
 import { useWebSpeechRecognition } from '../composables/useWebSpeechRecognition'
 import { parseVoiceClearPhraseList } from '../utils/voiceClearCommand'
+import NexiaChatMessageContextMenu from './NexiaChatMessageContextMenu.vue'
 
 const aiInsertContent = inject('aiInsertContent', null)
 const { addMemo } = useNexiaMemos()
@@ -361,16 +343,6 @@ const chatCtxTargetText = ref('')
 
 const chatCtxMenuHasText = computed(() => !!(chatCtxTargetText.value || '').trim())
 
-const chatCtxMenuAnchorStyle = computed(() => ({
-  position: 'fixed',
-  left: `${chatMessagesCtxMenuX.value}px`,
-  top: `${chatMessagesCtxMenuY.value}px`,
-  width: '1px',
-  height: '1px',
-  pointerEvents: 'none',
-  zIndex: 7000,
-}))
-
 function resolveChatContextTargetFromEvent(ev) {
   const root = messagesRef.value
   const t = ev.target
@@ -404,15 +376,38 @@ function onDocumentContextmenuChat(ev) {
   })
 }
 
-async function onChatCtxCopy() {
+/**
+ * 컨텍스트 메뉴 복사: await/writeText 제스처 끊김을 피하려고 동기 execCommand를 먼저 쓰고,
+ * 실패 시에만 Clipboard API를 then으로 이어 붙인다(메뉴는 writeText 완료 후 닫음).
+ */
+function onChatCtxCopy() {
   const text = (chatCtxTargetText.value || '').trim()
   if (!text) return
-  try {
-    await copyTextToClipboard(text)
+
+  if (trySyncClipboardCopy(text)) {
     Notify.create({ message: '클립보드에 복사되었습니다.', icon: 'content_copy' })
-  } catch {
-    Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
+    chatMessagesCtxMenuVisible.value = false
+    return
   }
+
+  const clip = navigator.clipboard
+  if (clip?.writeText) {
+    clip
+      .writeText(text)
+      .then(() => {
+        Notify.create({ message: '클립보드에 복사되었습니다.', icon: 'content_copy' })
+      })
+      .catch(() => {
+        Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
+      })
+      .finally(() => {
+        chatMessagesCtxMenuVisible.value = false
+      })
+    return
+  }
+
+  Notify.create({ type: 'negative', message: '복사에 실패했습니다.' })
+  chatMessagesCtxMenuVisible.value = false
 }
 
 async function onChatCtxAddMemo() {
@@ -435,7 +430,7 @@ function onChatCtxInsertNarrative() {
   nextTick(() => {
     aiInsertContent.pendingInsertContent.value = html
   })
-  Notify.create({ message: '내러티브 에디터에 삽입되었습니다.', icon: 'edit_note' })
+  Notify.create({ message: 'Ethos(에토스) 탭에 삽입되었습니다.', icon: 'edit_note' })
 }
 
 function onChatCtxInsertLogic() {
@@ -446,7 +441,7 @@ function onChatCtxInsertLogic() {
   nextTick(() => {
     aiInsertContent.pendingCodeInsertContent.value = text
   })
-  Notify.create({ message: '로직 에디터에 삽입되었습니다.', icon: 'code' })
+  Notify.create({ message: 'Glos(글로스) 탭에 삽입되었습니다.', icon: 'code' })
 }
 
 function attachChatMessagesContextmenuDocumentListener() {
