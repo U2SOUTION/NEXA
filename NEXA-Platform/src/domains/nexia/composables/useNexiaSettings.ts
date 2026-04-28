@@ -21,12 +21,21 @@ interface NexiaSettingsData {
   outlineEnabled?: boolean
   outlineDisplayMode?: string
   outlinePanelWidth?: number
+  /**
+   * Navis(탐색기) 패널: 이 가로 너비(px) 미만이면 트리+스플릿을 접고 컴팩트 네비로 전환.
+   * `nexia-settings` localStorage. 추후 설정 UI에서 사용자가 변경.
+   * 저장소에 없을 때 기본값은 `DEFAULT_NAVIS_COMPACT_MAX_WIDTH_PX`.
+   */
+  navisCompactMaxWidthPx?: number
   /** 음성 대화 삭제 트리거: 쉼표로 구분 (예: "취소,그만") */
   voiceClearConversationPhrases?: string
   /** 음성 대화 삭제 실행 전 대기(ms). 0이면 즉시 */
   voiceClearConversationDelayMs?: number
   [key: string]: unknown
 }
+
+/** `NexiaSettingsData.navisCompactMaxWidthPx` — localStorage에 없을 때만 사용 (200~2000로 클램프됨) */
+const DEFAULT_NAVIS_COMPACT_MAX_WIDTH_PX = 380
 
 function loadSettings(): NexiaSettingsData {
   try {
@@ -91,6 +100,9 @@ const outlineDisplayMode = ref(saved.outlineDisplayMode ?? 'overlay')
 /** 목차 패널 폭 (px) */
 const outlinePanelWidth = ref(Math.max(100, Math.min(500, saved.outlinePanelWidth ?? 180)))
 
+/** Navis: 패널 `clientWidth`가 이 값 미만이면 컴팩트 모드(트리 숨김 + 상단 바) */
+const navisCompactMaxWidthPx = ref(Math.max(200, Math.min(2000, Number(saved.navisCompactMaxWidthPx) || DEFAULT_NAVIS_COMPACT_MAX_WIDTH_PX)))
+
 /** 음성 "대화 비우기" 트리거 문구(쉼표 구분). 설정 UI에서 편집 예정 */
 const voiceClearConversationPhrases = ref(typeof saved.voiceClearConversationPhrases === 'string' && saved.voiceClearConversationPhrases.trim() ? saved.voiceClearConversationPhrases.trim() : '취소')
 /** 음성 명령 인식 후 실제 삭제까지 지연(ms). 0~1000 */
@@ -123,6 +135,7 @@ watch(
     outlineEnabled,
     outlineDisplayMode,
     outlinePanelWidth,
+    navisCompactMaxWidthPx,
     voiceClearConversationPhrases,
     voiceClearConversationDelayMs,
   ],
@@ -144,6 +157,7 @@ watch(
       outlineEnabled: outlineEnabled.value,
       outlineDisplayMode: outlineDisplayMode.value,
       outlinePanelWidth: outlinePanelWidth.value,
+      navisCompactMaxWidthPx: navisCompactMaxWidthPx.value,
       voiceClearConversationPhrases: voiceClearConversationPhrases.value,
       voiceClearConversationDelayMs: voiceClearConversationDelayMs.value,
     })
@@ -185,6 +199,7 @@ export function useNexiaSettings() {
     outlineEnabled,
     outlineDisplayMode,
     outlinePanelWidth,
+    navisCompactMaxWidthPx,
     voiceClearConversationPhrases,
     voiceClearConversationDelayMs,
   }

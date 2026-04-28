@@ -1,6 +1,16 @@
 <template>
   <div class="nexia-explorer-panel column" @contextmenu.prevent="onContextMenuTrigger">
-    <GlobalFileExplorer mode="embed" class="col nexia-explorer-embed" :tree-width="explorerTreeWidth" :view-mode="explorerViewMode" @update:tree-width="onExplorerTreeWidthUpdate" @update:view-mode="onExplorerViewModeUpdate" @select="onSelect" @contextmenu="onContextMenu" />
+    <GlobalFileExplorer
+      mode="embed"
+      class="col nexia-explorer-embed"
+      :tree-width="explorerTreeWidth"
+      :view-mode="explorerViewMode"
+      :compact-max-width-px="navisCompactMaxWidthPx"
+      @update:tree-width="onExplorerTreeWidthUpdate"
+      @update:view-mode="onExplorerViewModeUpdate"
+      @select="onSelect"
+      @contextmenu="onContextMenu"
+    />
     <div v-if="selectedFile" class="action-bar row items-center q-pa-sm q-gutter-sm flex-wrap">
       <span class="text-caption text-grey-7">선택: {{ selectedFile.original_name }}</span>
       <q-btn dense flat size="sm" label="미디어에 추가" icon="library_add" @click="addToMedia" :loading="addingToMedia" />
@@ -121,7 +131,7 @@ function getFileExt(file) {
 }
 
 const { addFileToMedia } = useNexiaAssets()
-const { requestAttachToChat } = useNexiaSettings()
+const { requestAttachToChat, navisCompactMaxWidthPx } = useNexiaSettings()
 const { requestOpenMediaTab } = useNexiaMediaTab()
 const addingToMedia = ref(false)
 const contextMenuVisible = ref(false)
