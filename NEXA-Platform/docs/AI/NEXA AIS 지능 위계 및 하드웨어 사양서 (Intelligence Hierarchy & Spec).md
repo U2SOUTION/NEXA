@@ -56,7 +56,7 @@
   - **CPU:** Intel Core i5/i7 또는 AMD Ryzen 5/7 이상 (x86 64비트 필수).
   - **RAM:** **32GB 이상** (중형 모델 상주 및 병렬 처리용).
   - **GPU:** **NVIDIA RTX 3060 (VRAM 12GB) 이상** (AI 추론 가속 필수).
-  - **AI 전문 서버:** ASUS Ascent GX10 (NVIDIA Blackwell 기반, 약 550만원).
+  - **AI 전문 서버:** ASUS Ascent GX10 (NVIDIA Blackwell 기반, 약 550만원) / [HP] ZGX Nano(NVIDIA DGX Spark기반 ), 900 만원.
 - **주요 지능:** 7B~70B LLM (Llama 3 등), 코일 벨런서 엔진, RAG 가속기, 고성능 PostgreSQL(pgvector).
 - **배치 환경:** Docker 및 Ollama 기반의 서버 환경.
 - **특성:** 플랫폼의 **'최종 두뇌'**입니다. 전체 이력을 분석하여 에너지 최적화 전략을 수립하거나, 복잡한 사용자 질문에 전문적인 답변을 생성합니다. 대규모 데이터를 학습(Fine-tuning)하고 NAS에 보관된 과거 지식을 호출하여 통찰력을 제공합니다.
