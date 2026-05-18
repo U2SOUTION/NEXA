@@ -1148,7 +1148,7 @@ ALTER TABLE project_devices ADD CONSTRAINT fk_project_devices_model_fw
 
 `project_assets`·`project_media` INSERT 시 할당량 검증(트리거)·사용량 집계(함수·머티리얼라이즈드 뷰)는 **별도 문서**에서 관리한다.
 
-→ SSOT: [`DDL 02 SPEC 저장소 할당량 Quota 검증.md`](./DDL%202%20SPEC%20저장소%20할당량%20Quota%20검증.md)
+→ SSOT: [`DDL 02 SPEC 저장소 할당량 Quota 검증.md`](<../Database/DDL 2 SPEC 저장소 할당량 Quota 검증.md>)
 
 ---
 

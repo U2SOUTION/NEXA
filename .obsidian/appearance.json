@@ -1,0 +1,7 @@
+{
+  "cssTheme": "Minimal",
+  "enabledCssSnippets": [
+    "my-custom-layout"
+  ],
+  "theme": "obsidian"
+}
