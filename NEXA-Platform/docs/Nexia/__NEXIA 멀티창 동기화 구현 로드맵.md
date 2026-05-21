@@ -1,5 +1,8 @@
 ## NEXIA 멀티창 동기화 구현 로드맵
 
+> **협업 SSOT:** `docs/AI/00_[AIS] Yjs·Hocuspocus 협업 SSOT.md`  
+> 본 로드맵 **Phase 1** = 동일 사용자 **멀티 탭·창**(SharedWorker). **멀티 유저·서버 영속** = **Hocuspocus** (AIS 02 §10.0과 동시 진행).
+
 ### Phase 0 — 기반 설계 확정 (시작 전 체크)
 
 □ Quasar 프로젝트 구조 확인

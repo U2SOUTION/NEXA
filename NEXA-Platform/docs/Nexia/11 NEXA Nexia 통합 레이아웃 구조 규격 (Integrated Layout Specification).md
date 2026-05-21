@@ -104,6 +104,7 @@
   - Multimodal Interface
   - Hexagon Semantic Toolkit
   - Cross-Tab Utility
+  - **Time Axis Panel** (시간·이력·타임라인 — 전 탭 Cross-Tab, `00` §3.2)
 - UX 원칙:
   - 아코디언 단위로 열림/닫힘 상태 기억
   - 탭별 추천 유틸리티 자동 강조

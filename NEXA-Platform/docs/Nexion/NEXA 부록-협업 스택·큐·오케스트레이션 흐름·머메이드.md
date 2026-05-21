@@ -22,6 +22,8 @@
 
 ## 부록 B. 백엔드 처리와 라이브러리
 
+> **SSOT:** `docs/AI/00_[AIS] Yjs·Hocuspocus 협업 SSOT.md` — 본 부록은 **흐름·머메이드 REF**. Hocuspocus·`project_yjs_updates` 확정과 충돌 시 SSOT 우선.
+
 **TipTap**과 **Monaco** 에디터, 그리고 **Yjs**를 활용한 실시간 협업 체계는 NEXA 플랫폼이 '단순한 도구'를 넘어 **'지능형 협업 운영체제'**로 도약하는 데 핵심적인 부분입니다. 특히 장기적으로 인간 사용자와 AI 에이전트가 동일한 문서 공간에서 협업하기 위해서는 백엔드의 역할이 매우 중요합니다.
 
 ### B.1 실시간 협업 및 Yjs 세션 관리: **Hocuspocus**

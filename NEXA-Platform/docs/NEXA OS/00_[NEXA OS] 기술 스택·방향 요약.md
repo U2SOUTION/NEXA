@@ -367,6 +367,7 @@ NEXA-Platform-next/           # 2단계: 독립 repo 루트가 됨
 | 구분 | NEXIA OS (본 요약) | Nexia 기준서 (`docs/Nexia/12 …`) |
 |------|-------------------|----------------------------------|
 | 초점 | **IoT 플랫폼 재구축**, LLM 협업, NestJS·Prisma | Cockpit, Rivet, Yjs, LangGraph, Quasar 등 **AI 협업 OS** |
+| Yjs 협업 (현 Platform) | — | SSOT: `docs/AI/00_[AIS] Yjs·Hocuspocus 협업 SSOT.md` (Yjs 최우선, Hocuspocus) |
 | 프론트 UI | Vue 3 + **Tailwind** (Quasar 없음) | Vue 3 + **Quasar** |
 | 백엔드 | **NestJS** | Node.js API (TS 권장) |
 

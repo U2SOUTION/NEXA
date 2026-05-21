@@ -1,3 +1,5 @@
+> **LEGACY (참고만):** 실시간 협업 SSOT는 `docs/AI/00_[AIS] Yjs·Hocuspocus 협업 SSOT.md` 및 `database/DDL … 명세 v5` (`project_yjs_updates`). 본 문서의 단일 `yjs_update` 컬럼 패턴은 **사용하지 않음**.
+
 ## PostgreSQL 데이터베이스 설계와 상세 데이터 흐름을 반영하여 업데이트된 [AI 협업 기반 차세대 기획서 에디터] 최종 기획안입니다.
 
 ## 📑 AI 협업 기반 차세대 기획서 에디터 기획안 (Ver 2.0)## 1. 개요 (Overview)

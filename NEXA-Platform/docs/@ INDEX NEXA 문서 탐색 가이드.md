@@ -107,7 +107,17 @@ NEXA-Platform/docs/
 | 오케스트레이션 DB 명세서 v5        | 루트 (`__NEXA` 접두어)     | 오케스트레이션 테이블 |
 | 오케스트레이션 스키마 DDL v5       | 루트 (`__NEXA` 접두어)     | 오케스트레이션 DDL    |
 
-### 3-D. 시각화 (NIXIE / NEXU)
+### 3-E. AI 협업 · Yjs (SSOT)
+
+| 문서 | 위치 | 역할 |
+| :--- | :--- | :--- |
+| **Yjs·Hocuspocus 협업 SSOT** | `AI/00_[AIS] …` | **실시간 협업 단일 진실원** — Yjs 최우선, Hocuspocus, DB 증분·스냅샷 |
+| AI 협업형 멀티 에디터 | `AI/AIS 02 ARCH …` | 워크스페이스·오케스트레이터·로드맵 §10 |
+| 멀티창 동기화 로드맵 | `Nexia/__NEXIA 멀티창 …` | SharedWorker + Yjs (클라이언트) |
+| 협업 스택 부록 | `Nexion/NEXA 부록-협업 스택…` | Hocuspocus·흐름도 (REF) |
+| ~~Ver 2.0 협업 제너레이터~~ | `Nexion/AI 와 Yjs …` | **LEGACY** — `yjs_update` 단일 컬럼, SSOT 미사용 |
+
+### 3-F. 시각화 (NIXIE / NEXU)
 
 | 문서                               | 접두어          | 역할                  |
 | :--------------------------------- | :-------------- | :-------------------- |
