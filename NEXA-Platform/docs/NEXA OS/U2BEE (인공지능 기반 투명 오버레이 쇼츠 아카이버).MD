@@ -23,12 +23,14 @@
 └───────────────────────────┘ └─────────────┬───────┘
 ┌───────────────────────────┐ │ (유사도 계산)
 │ 웹뷰 B: 투명 오버레이 UI │ ┌─────────────▼───────┐
-│ (자체 Next.js 프로그램)   │ │ 로컬 PostgreSQL DB │
+│ (자체 Next.js 프로그램) │ │ 로컬 PostgreSQL DB │
 └───────────────────────────┘ └─────────────────────┘
 
 ---
 
-## 3. 핵심 기능 요구사항 (Core Features)## ① 미니멀 투명 오버레이 쌍둥이 웹뷰 (Dual Webview)
+## 3. 핵심 기능 요구사항 (Core Features)
+
+## ① 미니멀 투명 오버레이 쌍둥이 웹뷰 (Dual Webview)
 
 - 프레임리스 디자인: 상단 타이틀 바 및 테두리를 완전 제거하여 화면 점유율 최소화.
 - Z-Order 레이어 적층: 웹뷰 A(유튜브 쇼츠)를 하단에 깔고, 그 위에 배경이 완벽히 투명한 웹뷰 B(자체 Next.js UI)를 유령처럼 겹쳐 올림.
@@ -52,6 +54,7 @@
 이 일환의 첫 단계로 **U2Bee(인공지능 기반 투명 오버레이 쇼츠 아카이버)** 엔진이 메인 서비스 도메인으로 통합 구성됩니다.
 
 ### 🛠️ 플랫폼 통합 기술 스택
+
 - **패키지 매니저**: pnpm (워크스페이스 모노레포 관리 최적화)
 - **프론트엔드 (Apps)**: Next.js (App Router, TypeScript) + Tailwind CSS + Shadcn UI + Zustand (상태 관리) + Yjs
 - **메인 백엔드 (Apps)**: NestJS (TypeScript) + Prisma ORM + PostgreSQL (pgvector 확장 모듈 내장)
@@ -60,7 +63,34 @@
 
 ---
 
-### 📂 NEXA-Platform 최종 모노레포 파일 구조
+### 📂 [NEXA-Platform] U2Bee 모노레포 폴더 구조
+
+nexa-platform/
+├── apps/
+│ │
+│ ├── 🐍 [통합 파이썬 엔진 - 단 하나만 존재]
+│ │ └── nexa-desktop/ # Python PyQt6 (U2BEE OS 통제 + IoT 엣지 통신 통합 앱)
+│ │
+│ ├── 🎬 [U2BEE 웹 구역]
+│ │ ├── u2bee-web/ # Next.js (투명 오버레이 UI 및 아카이브 대시보드)
+│ │ └── u2bee-api/ # NestJS (Ollama, Yjs, 쇼츠 백엔드)
+│ │
+│ └── 🌐 [IoT 웹 구역 (미래)]
+│ ├── iot-web/ # Next.js (IoT 대시보드 화면)
+│ └── iot-api/ # NestJS (MQTT 및 센서 데이터 백엔드)
+│
+├── shared/ (모노레포 공통 소스코드)
+│ ├── types/
+│ │ ├── u2bee/ # U2BEE 전용 타입 (쇼츠, 메모 규격)
+│ │ └── iot/ # IoT 전용 타입 (센서 데이터 규격)
+│ └── tsconfig/
+│
+├── package.json
+└── turbo.json
+
+---
+
+### 📂 NEXA-Platform 모노레포 파일 구조
 
 ```text
 nexa-platform/
@@ -107,7 +137,7 @@ nexa-platform/
 │   └── backend/                        # ⚙️ [NestJS] 통합 메인 백엔드 앱
 │       ├── src/
 │       │   ├── app.module.ts           # 🧠 백엔드 전체 모듈 총괄 관제탑
-│       │   ├── main.ts                 # NestJS 서버 구동 및 WebSocket 시작점
+│       │   ├── main.ts                 # NestJS 서버 및 WebSocket 시작점
 │       │   │
 │       │   ├── modules/                # 🧩 도메인 단위 독립 모듈
 │       │   │   ├── hocuspocus/         # 🔄 Yjs 실시간 충돌 문서 중계 모듈
@@ -156,74 +186,6 @@ nexa-platform/
 ├── tsconfig.json                       # 전역 엄격한 컴파일 규칙
 └── package.json                        # 루트 의존성 설정
 ```
-
----
-
-### 💡 모노레포 구조 설계의 핵심 이점
-1. **타입 안전성(Type-safety) 극대화**: `packages/shared`에서 정의한 DTO를 `apps/frontend`와 `apps/backend`가 완전 동기화하여 가져다 쓰므로, 프론트-백엔드 간 인터페이스 불일치 오류가 실시간으로 자동 차단됩니다.
-2. **AI 바이브 코딩 생산성 최적화**: 모노레포 내의 파일 경로와 DTO 구조가 정밀하게 정렬되어 있어 안티그래비티 등 AI 코딩 에이전트가 0.1초 만에 프로젝트 전체 맵을 파악하고 최적의 소스코드를 한 번에 생성합니다.
-3. **손쉬운 격리 및 NAS 배포**: 각 도메인이 모듈식으로 견고하게 격리되어 있어 로컬 개발이 완료된 후 개별 앱 단위 혹은 전체 컨테이너를 Docker 이미지로 가볍게 말아 사내 NAS 서버로 복사하여 배포하기 최적화되어 있습니다.�� ui/ # ✨ Shadcn UI 원자 컴포넌트 (AI가 자유롭게 가져다 쓰는 곳)
-│ │ │ ├── BaseButton.tsx
-│ │ │ ├── BaseCard.tsx
-│ │ │ └── BaseSelect.tsx
-│ │ └── layout/ # 🖼️ 화면의 거대한 고정 틀 (기존 frame/layout에서 이사)
-│ │ ├── AppHeader.tsx
-│ │ └── AppSidebar.tsx
-│ │
-│ ├── engines/ # ⚙️ [기능/도메인 방] 오직 데이터 흐름 및 컴포넌트 조립 전담
-│ │ ├── shorts/ # 유튜브 쇼츠 제어 및 우클릭 스킵 로직 (.tsx)
-│ │ ├── archive/ # 카테고리 태깅 및 별점/강도 슬라이더 인터랙션 로직
-│ │ └── yjs/ # 🔄 Yjs 로컬 데이터 동기화 및 바인딩 로직
-│ │
-│ ├── hooks/ # 커스텀 훅 (예: `useHocuspocus.ts` 실시간 연결 공유 훅)
-│ ├── lib/ # Shadcn 및 전역 유틸리티 함수 (`utils.ts`)
-│ └── types/ # 백엔드(NestJS)와 동기화할 프론트엔드 전역 타입 정의 폴더
-│
-├── tailwind.config.ts # 🎨 모든 일관성의 뿌리 (Tailwind 테마 및 아티스틱 컬러 규격 정의)
-├── tsconfig.json
-└── package.json
-
----
-
-### ⚙️ 2. Backend: backend/ (NestJS Framework)
-
-Express를 폐기하고 엔터프라이즈급 아키텍처로 진입함에 따라, 컨트롤러(라우팅)-서비스(비즈니스 로직)-모듈(조립) 구조를 철저히 지키며 실시간 동기화 인프라인 Hocuspocus를 독립 모듈로 내장했습니다.
-
-backend/
-├── src/
-│ ├── app.module.ts # 🧠 백엔드 전체 모듈을 총괄하는 중앙 관제탑
-│ ├── main.ts # NestJS 서버 및 WebSocket 구동 시작점
-│ │
-│ ├── modules/ # 기능별 독립 모듈 폴더 (AI가 모듈 단위로 편집하기 최적화)
-│ │ │
-│ │ ├── hocuspocus/ # 🔄 [실시간 중계 인프라] Yjs 호스트 및 Hocuspocus 서버 모듈
-│ │ │ ├── hocuspocus.server.ts # Node.js 기반 실시간 문서 충돌 제어 및 중계 코어
-│ │ │ └── hocuspocus.module.ts
-│ │ │
-│ │ ├── ai-agent/ # 🤖 [AI 서브에이전트] Ollama 임베딩 및 점수 기반 카테고리 진화 방
-│ │ │ ├── ai-agent.service.ts # bge-m3 임베딩 호출 및 0.7 임계값 조건문 판단 로직
-│ │ │ └── ai-agent.module.ts
-│ │ │
-│ │ ├── shorts/ # 📺 유튜브 쇼츠 메타데이터 파싱 및 블랙리스트 채널 제어 방
-│ │ │ ├── dto/
-│ │ │ │ └── skip-channel.dto.ts # 프론트엔드와 완벽하게 공유되는 데이터 타입 객체
-│ │ │ ├── shorts.controller.ts
-│ │ │ ├── shorts.service.ts # 인메모리(RAM) 블랙리스트 초고속 대조 로직
-│ │ │ └── shorts.module.ts
-│ │ │
-│ │ └── archive/ # 📚 지식 데이터 및 플레이박스 저장/조회 방
-│ │ ├── archive.controller.ts
-│ │ ├── archive.service.ts
-│ │ └── archive.module.ts
-│ │
-│ └── database/ # 🗄️ 포스트그레스(PostgreSQL) 연결 및 pgvector 확장 설정
-│ ├── prisma/ # 또는 TypeORM (데이터베이스 스키마 및 마이그레이션 관리)
-│ └── schema.prisma
-│
-├── tsconfig.json
-└── package.json
-
----
 
 ### 💡 AI 플랫폼 통제를 위한 최종 구조 설계 포인트
 
