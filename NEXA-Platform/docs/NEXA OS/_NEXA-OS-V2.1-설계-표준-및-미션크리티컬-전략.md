@@ -14,12 +14,13 @@ AI 에이전트(안티그래비티, 클로드 등)가 전 세계에서 가장 �
 
 **원칙**: 에디터는 Yjs와 **직접 양방향** · 일반 UI·IoT는 Yjs → Zustand **단방향만**.
 
-| 계층 | 대상 | 데이터 흐름 | React re-render |
-|------|------|-------------|-----------------|
-| **에디터** | Tiptap, Monaco, Rivet | **Yjs ↔ 에디터** (CRDT·Awareness 직접 바인딩) | 에디터 내부만 (Zustand 경유 **금지**) |
-| **일반 UI·IoT** | 차트, 위젯, Safety/Telemetry, 드로어·테마 | **Yjs → observe → Zustand** (단방향) | Zustand 구독 컴포넌트만 |
+| 계층            | 대상                                      | 데이터 흐름                                    | React re-render                       |
+| --------------- | ----------------------------------------- | ---------------------------------------------- | ------------------------------------- |
+| **에디터**      | Tiptap, Monaco, Rivet                     | **Yjs ↔ 에디터** (CRDT·Awareness 직접 바인딩) | 에디터 내부만 (Zustand 경유 **금지**) |
+| **일반 UI·IoT** | 차트, 위젯, Safety/Telemetry, 드로어·테마 | **Yjs → observe → Zustand** (단방향)           | Zustand 구독 컴포넌트만               |
 
 **금지 (무한 루프·충돌)**:
+
 - Zustand 변경 → `Y.Doc` 역쓰기 (일반 UI·IoT 경로)
 - Tiptap/Monaco/Rivet 상태를 Zustand에 미러링 후 다시 Yjs에 쓰기
 - `useYjsSync`를 에디터 본문 동기화에 사용
@@ -67,10 +68,10 @@ AI 에이전트(안티그래비티, 클로드 등)가 전 세계에서 가장 �
 
 **입력 채널 2종 (둘 다 처리해야 프리징 방지)**
 
-| 채널                    | 대표 경로                             | 처리 주체                       | 스토어                                 |
-| ----------------------- | ------------------------------------- | ------------------------------- | -------------------------------------- |
+| 채널                    | 대표 경로                                             | 처리 주체                              | 스토어                                 |
+| ----------------------- | ----------------------------------------------------- | -------------------------------------- | -------------------------------------- |
 | **A. Yjs / Hocuspocus** | IoT Safety/Telemetry **Y.Map** (에디터 CRDT **제외**) | `hooks/useYjsSync.ts` (단방향 observe) | `useSafetyStore` / `useTelemetryStore` |
-| **B. 일반 소켓 폭주**   | `engines/websocket.ts` → MQTT/WS 센서 | `workers/telemetryProcessor.ts` | `useTelemetryStore` (postMessage만)    |
+| **B. 일반 소켓 폭주**   | `engines/websocket.ts` → MQTT/WS 센서                 | `workers/telemetryProcessor.ts`        | `useTelemetryStore` (postMessage만)    |
 
 > ⚠️ **`useYjsSync`만** 있으면 채널 A만 커버 → 채널 B 폭주 시 **브라우저가 여전히 멈춤**.  
 > **`telemetryProcessor`만** 있으면 채널 B만 커버 → Yjs 경로 **Safety 알람 미배분**. **두 파일은 필수 쌍.**
@@ -109,16 +110,15 @@ AI 에이전트(안티그래비티, 클로드 등)가 전 세계에서 가장 �
 
 ## 📝 NEXA OS V2.1 모노레포 폴더 구조
 
-> **용도**: 위 **「NEXA OS V2.0」** 섹션과 나란히 비교하기 위한 정리본입니다.  
-> **As-Is 대응**: `MainLayout.vue` — **헤더 `GlobalNavbarLeft`(전역 메뉴)** + **좌·우 `q-drawer`(도메인별 left/right)** + `domainRegistry` 3슬롯을 Next.js + Zustand로 이식한 설계입니다.
+NEXA OS V2.1 모노레포는 **`apps/web`**(Next.js UI), **`apps/backend`**(NestJS API), **`apps/sync`**(Hocuspocus 독립 서버)의 3대 핵심 앱과 공통 기능을 공유하는 **`packages/shared`**로 구성되어, 각 앱의 **독립적인 배포 유연성**과 **강력한 타입 안전성(SSOT)**을 동시에 확보하는 구조입니다.
 
 ### 핵심 아키텍처 3원칙 (V2.1 SSOT)
 
-| # | 원칙 | 구현 |
-|---|------|------|
-| **①** | **Hocuspocus 독립 서버** | `apps/sync/` — 순수 Node.js + `@hocuspocus/server`. NestJS(`apps/backend`)와 **별도 프로세스·포트**. Nest에 Hocuspocus 모듈 **금지**. |
+| #     | 원칙                               | 구현                                                                                                                                  |
+| ----- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **①** | **Hocuspocus 독립 서버**           | `apps/sync/` — 순수 Node.js + `@hocuspocus/server`. NestJS(`apps/backend`)와 **별도 프로세스·포트**. Nest에 Hocuspocus 모듈 **금지**. |
 | **②** | **Yjs ↔ Zustand 단방향 (IoT/UI)** | Tiptap·Monaco·Rivet → Yjs **양방향 직결**. 차트·Safety/Telemetry → `useYjsSync` **observe → Zustand만**. Zustand→Yjs 역쓰기 **금지**. |
-| **③** | **모노레포 3앱 + shared** | `apps/web` · `apps/backend` · `apps/sync` + `packages/shared` — DTO·commands·JWT·Yjs 맵 키 **단일 타입**. 앱별 **독립 빌드·배포**. |
+| **③** | **모노레포 3앱 + shared**          | `apps/web` · `apps/backend` · `apps/sync` + `packages/shared` — DTO·commands·JWT·Yjs 맵 키 **단일 타입**. 앱별 **독립 빌드·배포**.    |
 
 ```text
 pnpm-workspace
@@ -132,20 +132,20 @@ pnpm-workspace
 
 ### 레이아웃 역할 분리 (4영역 · 웹 Footer 없음)
 
-| 영역                     | 역할                                    | 예시 (As-Is)                                          |
-| ------------------------ | --------------------------------------- | ----------------------------------------------------- |
-| **Header — 전역 내비**   | 도메인(메뉴) 전환 · 로고                | `GlobalNavbarLeft` + `mainMenuTabs`                   |
-| **Header — 우측**        | 드로어 토글 · 테마 · `headerActions`    | `GlobalNavbarRight`                                   |
-| **Left Drawer**          | 현재 도메인 서브 내비·트리              | `domainLayoutRegistry.left`                           |
-| **Content**              | 메인 작업 — **여기만 세로 스크롤**      | `domainLayoutRegistry.content`                        |
-| **Right Drawer**         | 넥셋·에이전트·속성                      | `domainLayoutRegistry.right`                          |
-| **하단 — 시스템 상태바** | 전역·도메인 상태 요약 (Footer **대체**) | V2.1: `SystemStatusBar` (As-Is: `q-footer` 단순 로고) |
+| 영역                     | 역할                                 | 구현                                    |
+| ------------------------ | ------------------------------------ | --------------------------------------- |
+| **Header — 전역 내비**   | 도메인(메뉴) 전환 · 로고             | `globalMenu.ts` + `GlobalMainMenu.tsx`  |
+| **Header — 우측**        | 드로어 토글 · 테마 · `headerActions` | `GlobalNavbarRight.tsx` + registry 슬롯 |
+| **Left Drawer**          | 현재 도메인 서브 내비·트리           | `domainLayoutRegistry.left`             |
+| **Content**              | 메인 작업 — **여기만 세로 스크롤**   | `domainLayoutRegistry.content`          |
+| **Right Drawer**         | 넥셋·에이전트·속성                   | `domainLayoutRegistry.right`            |
+| **하단 — 시스템 상태바** | 전역·도메인 상태 요약                | `SystemStatusBar` + `statusPanel`       |
 
 > 도메인 전환 시 **left / right / statusBar / statusPanel** 이 `domainLayoutRegistry`에서 함께 교체됩니다.
 
 ### 시스템 상태바 (웹 Footer 대체 · 가변 높이)
 
-**V2.1에는 `<footer>` / Quasar `q-footer` 스타일의 웹 풋터를 두지 않습니다.**  
+**웹 전역 `<footer>` 풋터를 두지 않습니다.**  
 이유: 본문+풋터 이중 스크롤, `100vh`·드로어·safe-area와의 충돌, IoT 대시보드에서 레이아웃 디버깅 비용 증가.
 
 대신 **`MainShellLayout` 하단 고정 「시스템 상태바」** — IDE·OS 상태바와 같은 패턴.
@@ -215,7 +215,7 @@ MainShellLayout
 ---
 
 ```yaml
-NEXA OS V2.1/                          # 모노레포 루트 (To-Be · 신규 개발 위치)
+NEXA OS V2.1/                          # 모노레포 루트
 │
 ├── .claude/
 ├── .continue/
@@ -259,7 +259,7 @@ NEXA OS V2.1/                          # 모노레포 루트 (To-Be · 신규 �
 │   │   │   │   ├── layouts/
 │   │   │   │   │   ├── MainShellLayout.tsx    # Header + L/R Drawer + Content + SystemStatusBar (Footer 없음)
 │   │   │   │   │   ├── AuthLayout.tsx
-│   │   │   │   │   └── U2BeeMinimalLayout.tsx # 확장·팝업 전용 (As-Is U2BeeLayout)
+│   │   │   │   │   └── U2BeeMinimalLayout.tsx # embed·Desktop 웹뷰 전용 (프레임리스)
 │   │   │   │   ├── drawers/
 │   │   │   │   │   ├── LeftDrawer.tsx         # 도메인 left 슬롯만 호스트 (서브 내비)
 │   │   │   │   │   ├── RightDrawer.tsx        # 도메인 right 슬롯 (push | overlay)
@@ -385,40 +385,8 @@ NEXA OS V2.1/                          # 모노레포 루트 (To-Be · 신규 �
 │   │   ├── package.json                 # packages/shared 의존
 │   │   └── tsconfig.json
 │   ├── mobile/
-│   ├── desktop/                         # ★ Python(PyQt6) — §apps/desktop 상세
-│   │   ├── pyproject.toml               # (또는 requirements.txt) — pnpm 워크스페이스 외부
-│   │   ├── README.md
-│   │   ├── .env.example                 # NEXA_BACKEND_URL, NEXA_WEB_URL
-│   │   ├── nexa_desktop/                # Python 패키지 (python -m nexa_desktop)
-│   │   │   ├── __main__.py
-│   │   │   ├── app.py                   # QApplication 진입
-│   │   │   ├── config/
-│   │   │   │   └── settings.py
-│   │   │   ├── bridge/                  # ① NestJS · ② 웹뷰(Next) IPC
-│   │   │   │   ├── nestjs_client.py     # REST/WS → apps/backend
-│   │   │   │   ├── auth.py              # JWT 저장·갱신
-│   │   │   │   ├── web_channel.py       # QWebChannel ↔ JS (nexaDesktop)
-│   │   │   │   └── dto/                 # OpenAPI 생성 pydantic (shared 미러)
-│   │   │   ├── webviews/
-│   │   │   │   ├── base_webview.py
-│   │   │   │   └── u2bee/
-│   │   │   │       ├── shell.py         # 듀얼 웹뷰 Z-order·프레임리스
-│   │   │   │       ├── youtube_view.py  # WebView A (youtube.com)
-│   │   │   │       └── overlay_view.py  # WebView B → /embed/u2bee/overlay
-│   │   │   ├── native/                  # ③ OS 통제 (PRD 핵심)
-│   │   │   │   ├── input_hook.py
-│   │   │   │   ├── scroll_injector.py
-│   │   │   │   └── blacklist_filter.py
-│   │   │   ├── products/
-│   │   │   │   ├── u2bee/runner.py
-│   │   │   │   └── screendraw/          # As-Is NEXA-Desktop/ScreenDraw 이전
-│   │   │   └── tray/
-│   │   │       └── tray_controller.py
-│   │   ├── assets/
-│   │   └── scripts/
-│   │       ├── dev.ps1                  # backend+web 기동 후 desktop 실행
-│   │       └── generate_client.py       # Nest OpenAPI → bridge/dto
-│   └── extension/                       # (선택) 동일 embed URL iframe — Desktop이 SSOT
+│   ├── desktop/                         # Python(PyQt6) — → `_NEXA-OS-apps-desktop-설계-명세.md`
+│   └── extension/                       # (선택) embed URL — Desktop이 U2BEE SSOT
 │
 ├── firmware/
 │   ├── esp32/
@@ -451,14 +419,14 @@ NEXA OS V2.1/                          # 모노레포 루트 (To-Be · 신규 �
 
 > **NestJS(`apps/backend`)에 `@hocuspocus/server`를 임베드하지 않습니다.** 저수준 Yjs WebSocket과 Nest HTTP/REST·DI·미들웨어가 한 프로세스에 섞이면 프로토콜·이벤트 루프 충돌과 CRDT 지연 위험이 있습니다.
 
-| 항목 | 규칙 |
-|------|------|
-| **런타임** | 순수 Node.js — `apps/sync/src/server.ts` |
-| **인증** | `onAuthenticate` → `apps/backend/modules/auth` REST로 JWT·ReadOnly 스코프 검증 |
-| **영속화** | `onStoreDocument` → Prisma/DB (backend와 DB URL 공유 가능, **프로세스는 분리**) |
-| **공유 타입** | `packages/shared` — `commands/`, `yjs/map-keys` |
-| **클라이언트** | `apps/web` — `@hocuspocus/provider` + `useHocuspocus.ts` → `ws://sync:1234` |
-| **배포** | `docker-compose` · K8s에서 **backend와 별도 서비스·스케일** |
+| 항목           | 규칙                                                                            |
+| -------------- | ------------------------------------------------------------------------------- |
+| **런타임**     | 순수 Node.js — `apps/sync/src/server.ts`                                        |
+| **인증**       | `onAuthenticate` → `apps/backend/modules/auth` REST로 JWT·ReadOnly 스코프 검증  |
+| **영속화**     | `onStoreDocument` → Prisma/DB (backend와 DB URL 공유 가능, **프로세스는 분리**) |
+| **공유 타입**  | `packages/shared` — `commands/`, `yjs/map-keys`                                 |
+| **클라이언트** | `apps/web` — `@hocuspocus/provider` + `useHocuspocus.ts` → `ws://sync:1234`     |
+| **배포**       | `docker-compose` · K8s에서 **backend와 별도 서비스·스케일**                     |
 
 ```text
 [Next.js] ──WS──► apps/sync (Hocuspocus :1234)
@@ -469,95 +437,11 @@ NEXA OS V2.1/                          # 모노레포 루트 (To-Be · 신규 �
 
 ---
 
-## **apps/desktop/** — Python 셸 · NestJS·웹뷰 연동 (SSOT)
+### `apps/desktop/` (Python · PyQt)
 
-> **역할 요약**: `apps/desktop/`는 **독립 Python 프로젝트**(`pyproject.toml` + `nexa_desktop/`). pnpm 워크스페이스에는 포함하지 않고, 모노레포 **형제 앱**으로만 둡니다.  
-> **UI SSOT는 `apps/web`** — U2BEE 화면은 PyQt에서 직접 그리지 않고 **QWebEngineView로 Next 라우트를 렌더**합니다.
+> **상세 SSOT**: [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-apps-desktop-설계-명세.md) — 폴더 트리 · 통신 3갈래 · U2BEE 분담 · IPC · 체크리스트
 
-#### 앱별 역할
-
-| 앱               | 역할                                                              |
-| ---------------- | ----------------------------------------------------------------- |
-| `apps/web`       | U2BEE **UI 소스**(Next) — `(embed)/u2bee/*`, `U2BeeMinimalLayout` |
-| `apps/backend`   | REST API·Prisma·블랙리스트·3등급 큐 — **비즈니스 SSOT** (Yjs/Hocuspocus **미포함**) |
-| `apps/sync`      | Hocuspocus **독립 프로세스** — Yjs CRDT WebSocket only                            |
-| `apps/desktop`   | **PyQt 셸** — OS 이벤트·듀얼 웹뷰·`bridge/nestjs_client`          |
-| `apps/extension` | (선택) 동일 embed URL — Desktop이 U2BEE 메인이면 점진 축소        |
-
-#### 통신 3갈래
-
-```text
-                    ┌─────────────────┐
-                    │  apps/backend   │  NestJS (REST / WS)
-                    └────────▲────────┘
-                             │ ① HTTP/WS (JWT) — nestjs_client.py
-              ┌──────────────┼──────────────┐
-              │              │              │
-     ┌────────┴────────┐     │     ┌────────┴────────┐
-     │ apps/desktop    │     │     │ apps/web        │
-     │ Python          │     │     │ (WebView B 내부) │
-     └────────┬────────┘     │     └────────▲────────┘
-              │ ② QWebChannel │     fetch / WS → backend
-              │  web_channel  │     http://127.0.0.1:3000/embed/u2bee/overlay
-              └───────────────┼──────────────┘
-                              │
-                    ┌─────────▼─────────┐
-                    │ QWebEngineView B  │  Next 오버레이 UI
-                    └───────────────────┘
-              ┌─────────────────────────┐
-              │ QWebEngineView A        │  YouTube (외부)
-              └─────────────────────────┘
-              Python native/ — ③ 휠·우클릭·타이머·블랙리스트 RAM 필터
-```
-
-| 채널                       | 경로                      | 담당                                                                                                                                                                                           |
-| -------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **① Python ↔ NestJS**     | `bridge/nestjs_client.py` | 블랙리스트 Pull, 3등급 Edge Pull(현장), Ollama 트리거, 헬스. DTO는 **`packages/shared` TS를 직접 import 불가** → Nest **OpenAPI** → `bridge/dto/` pydantic 생성 (`scripts/generate_client.py`) |
-| **② Python ↔ 웹뷰(Next)** | `bridge/web_channel.py`   | OS 제어·토큰·테마·Safety 알림. 비즈니스 API는 웹뷰 B가 Nest 호출 가능                                                                                                                          |
-| **③ OS 네이티브**          | `native/*`                | 휠 주입, 우클릭 스킵, 0.5초 전 전환, 채널 차단 메뉴 — **반드시 Python**                                                                                                                        |
-
-**Grade3**: Desktop이 외부망에서 장비에 MQTT Push하지 않음. 3등급은 **`edge-queue` Pull**만 (`nestjs_client` 경로 분리).
-
-#### U2BEE — Python vs Next 분담
-
-| 기능                       | 담당                                          |
-| -------------------------- | --------------------------------------------- |
-| 투명 메모·별점·아카이브 UI | **Next** — `(embed)/u2bee/overlay`, `archive` |
-| Tiptap / Yjs 아카이브      | 웹뷰 B → **NestJS** (기존 스택)               |
-| 유튜브 휠·0.5초 전 전환    | **Python** → WebView A                        |
-| 우클릭 스킵·채널 차단      | **Python** (`native/input_hook.py`)           |
-| 블랙리스트 Set             | 시작 시 ① Nest Pull → `blacklist_filter.py`   |
-| Ollama 임베딩              | Nest 또는 Python 로컬 (`ai/ollama/`)          |
-
-**WebView B 로드 URL (예)**
-
-```text
-개발: http://127.0.0.1:3000/embed/u2bee/overlay?mode=desktop
-프로덕션: NEXA_WEB_URL + 동일 경로 (?embed=1 — 헤더·드로어·상태바 숨김)
-```
-
-`apps/web`의 `U2BeeMinimalLayout` + `app/(embed)/u2bee/layout.tsx`가 **프레임리스·투명 배경**을 보장합니다. 브라우저 관제용 `/u2bee`(shell)와 **경로 분리**합니다.
-
-#### QWebChannel IPC (②) 최소 계약 (개념)
-
-| 방향        | 이벤트 예                                                         |
-| ----------- | ----------------------------------------------------------------- |
-| JS → Python | `overlayReady`, `requestSkip`, `openArchive`                      |
-| Python → JS | `theme`, `safetyAlert`, `commandTracker` 상태, `blacklistUpdated` |
-
-#### As-Is 이전
-
-| As-Is                                           | V2.1                                             |
-| ----------------------------------------------- | ------------------------------------------------ |
-| `NEXA-Desktop/ScreenDraw/`                      | `apps/desktop/nexa_desktop/products/screendraw/` |
-| `NEXA-Desktop/U2BEE V3/` (Chrome 확장 + iframe) | UI → `apps/web` embed · 셸 → `webviews/u2bee/`   |
-| `platform_communicator.py` → localhost API      | `bridge/nestjs_client.py` → `apps/backend`       |
-
-#### 로컬 개발 순서
-
-1. `apps/backend` + `apps/sync` + `apps/web` 기동
-2. `.env`: `NEXA_BACKEND_URL`, `NEXA_WEB_URL`
-3. `apps/desktop/scripts/dev.ps1` → `python -m nexa_desktop` (제품: `products/u2bee/runner.py`)
+| 한 줄 | PyQt 셸 — OS·듀얼 웹뷰·`bridge/nestjs_client`. UI는 `apps/web` embed URL 렌더. pnpm 워크스페이스 **외부**.
 
 ---
 
@@ -648,11 +532,11 @@ packages/shared/src/
 | 🟡 2 | **`guards/authGuard.ts`** (MFA 권장) | **`audit-log.interceptor.ts`** + `modules/control` | `commands` — MFA·감사 필수 플래그 |
 | 🔴 3 | Yjs/WS 제어 UI **없음**              | `modules/edge-queue` + **`edge-gateway/`**         | `commands` — Pull·폐쇄망만        |
 
-| 구분           | 필수 경로                                                       | 역할                                                           |
-| -------------- | --------------------------------------------------------------- | -------------------------------------------------------------- |
+| 구분           | 필수 경로                                                       | 역할                                                                      |
+| -------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | **공유**       | `packages/shared/src/commands/`                                 | 1·2·3등급 타입·보안 요구 **단일 정의** — web · backend · sync 동일 import |
-| **감사**       | `apps/backend/src/common/interceptors/audit-log.interceptor.ts` | 2등급 이상 제어 — **위변조 불가** 감사 로그                    |
-| **MFA 게이트** | `apps/web/src/guards/authGuard.ts`                              | 2등급 소프트 제어 전 MFA 팝업 강제 (권장)                      |
+| **감사**       | `apps/backend/src/common/interceptors/audit-log.interceptor.ts` | 2등급 이상 제어 — **위변조 불가** 감사 로그                               |
+| **MFA 게이트** | `apps/web/src/guards/authGuard.ts`                              | 2등급 소프트 제어 전 MFA 팝업 강제 (권장)                                 |
 
 ```ts
 // packages/shared/src/commands/command-grade.enum.ts (개념)
@@ -678,18 +562,18 @@ export enum CommandGrade {
 [edge-queue API] ◄── Pull ── [edge-gateway] ◄── MQTT / Modbus (폐쇄망·VPN)
 ```
 
-| 경로                               | 역할                                                      |
-| ---------------------------------- | --------------------------------------------------------- |
-| `modules/edge-queue/`              | 큐 적재·Edge **Pull** REST (외부에서 직접 장비 제어 불가) |
-| `modules/edge-queue/edge-gateway/` | 내부망 전용 MQTT·Modbus 어댑터                            |
+| 경로                               | 역할                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| `modules/edge-queue/`              | 큐 적재·Edge **Pull** REST (외부에서 직접 장비 제어 불가)                |
+| `modules/edge-queue/edge-gateway/` | 내부망 전용 MQTT·Modbus 어댑터                                           |
 | `hooks/useYjsSync.ts`              | **(채널 A)** Y.Map → Zustand **단방향** (에디터 CRDT는 Yjs binding 직접) |
-| `workers/telemetryProcessor.ts`    | **(채널 B)** WS·대량 센서 — Worker 버퍼 → Telemetry만     |
-| `engines/websocket.ts`             | WS 클라이언트 — **Worker에만** postMessage (쌍의 진입점)  |
-| `engines/socketEmitter.ts`         | 긴급 정지 — React re-render 우회 단선 송신                |
-| `engines/commandTracker.ts`        | 명령 **송신~완료** 추적 — 미완료·타임아웃 UI/재시도       |
-| `edge-queue/edge-persistence.ts`   | **엣지 자율** — 서버 장애 시에도 Pull·안전 장치 로직 유지 |
-| `packages/shared/time-sync.ts`     | Audit·명령 이벤트 **시각 정렬** (사고 재현)               |
-| `engines/healthWatchdog.ts`        | 과부하 시 Telemetry throttle · **Safety/제어 최우선**     |
+| `workers/telemetryProcessor.ts`    | **(채널 B)** WS·대량 센서 — Worker 버퍼 → Telemetry만                    |
+| `engines/websocket.ts`             | WS 클라이언트 — **Worker에만** postMessage (쌍의 진입점)                 |
+| `engines/socketEmitter.ts`         | 긴급 정지 — React re-render 우회 단선 송신                               |
+| `engines/commandTracker.ts`        | 명령 **송신~완료** 추적 — 미완료·타임아웃 UI/재시도                      |
+| `edge-queue/edge-persistence.ts`   | **엣지 자율** — 서버 장애 시에도 Pull·안전 장치 로직 유지                |
+| `packages/shared/time-sync.ts`     | Audit·명령 이벤트 **시각 정렬** (사고 재현)                              |
+| `engines/healthWatchdog.ts`        | 과부하 시 Telemetry throttle · **Safety/제어 최우선**                    |
 
 ---
 
@@ -736,7 +620,7 @@ export enum CommandGrade {
 
 | 구분         | 필수 파일/경로 (전체)                                           | 누락 시 발생하는 문제                                                                  | 문서 |
 | :----------- | :-------------------------------------------------------------- | :------------------------------------------------------------------------------------- | :--: |
-| **동기화**   | `apps/sync/src/server.ts` + `extensions/authenticate.ts`        | Hocuspocus가 Nest에 묶이면 **WS·REST 프로토콜 충돌** · CRDT 성능 저하              |  ✅  |
+| **동기화**   | `apps/sync/src/server.ts` + `extensions/authenticate.ts`        | Hocuspocus가 Nest에 묶이면 **WS·REST 프로토콜 충돌** · CRDT 성능 저하                  |  ✅  |
 | **레이아웃** | `apps/web/src/frame/registry/domainLayoutRegistry.ts`           | 도메인 전환 시 좌·우 드로어·메인 UI가 **유기적으로 바뀌지 않음** (한 도메인 UI에 고정) |  ✅  |
 | **보안**     | `apps/backend/src/common/interceptors/audit-log.interceptor.ts` | 2등급+ 제어 명령 **사후 추적 불가** (금융권 수준 감사 미달)                            |  ✅  |
 | **보안**     | `packages/shared/src/commands/`                                 | web · backend · sync **명령 타입 불일치**, 위변조·등급 오용 위험                       |  ✅  |
@@ -745,10 +629,10 @@ export enum CommandGrade {
 
 **IoT 실시간 필수 쌍** — 아래 **둘 다** 있어야 하며, `engines/websocket.ts`는 Worker 쪽만 호출:
 
-| 쌍    | 경로                                                     | 단독 사용 시                         |
-| ----- | -------------------------------------------------------- | ------------------------------------ |
+| 쌍    | 경로                                                     | 단독 사용 시                                        |
+| ----- | -------------------------------------------------------- | --------------------------------------------------- |
 | **A** | `hooks/useYjsSync.ts`                                    | Y.Map → Zustand **단방향** (에디터 CRDT는 Yjs 직결) |
-| **B** | `workers/telemetryProcessor.ts` + `engines/websocket.ts` | **Yjs 밖** MQTT/WS 센서 폭주 흡수    |
+| **B** | `workers/telemetryProcessor.ts` + `engines/websocket.ts` | **Yjs 밖** MQTT/WS 센서 폭주 흡수                   |
 
 | 검증              | 통과 조건                                 |
 | ----------------- | ----------------------------------------- |
@@ -771,14 +655,7 @@ export enum CommandGrade {
 | **IoT 3등급** | `apps/backend/src/modules/edge-queue/` + `edge-gateway/` | 3등급이 Yjs/외부망으로 새어 나갈 여지          |  ✅  |
 | **도메인**    | `domains/*/views/{left,content,right}/`                  | registry에 등록해도 **끼워 넣을 뷰 파일 없음** |  ✅  |
 
-**Desktop · U2BEE (To-Be · Python 셸)**
-
-| 구분      | 경로                                                        | 누락 시                                          | 문서 |
-| :-------- | :---------------------------------------------------------- | :----------------------------------------------- | :--: |
-| Nest 연동 | `apps/desktop/nexa_desktop/bridge/nestjs_client.py`         | 블랙리스트·인증·3등급 Pull **데스크톱에서 불가** |  ✅  |
-| 웹뷰 UI   | `apps/web/.../(embed)/u2bee/overlay` + `U2BeeMinimalLayout` | Desktop WebView B **로드할 Next UI 없음**        |  ✅  |
-| OS 통제   | `apps/desktop/nexa_desktop/native/`                         | PRD 휠·스킵·타이머 **웹만으로 불가**             |  ✅  |
-| IPC       | `bridge/web_channel.py`                                     | Python↔오버레이 **상태·스킵 연동 끊김**         |  ✅  |
+**Desktop · U2BEE** — 상세·체크리스트 → [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-apps-desktop-설계-명세.md) §8
 
 **신뢰성 보강 (권장 · §3대 수칙 이후)**
 
@@ -816,33 +693,7 @@ export enum CommandGrade {
 > - `telemetryProcessor` **만** → **Hocuspocus/Yjs** Safety 맵이 `useSafetyStore`로 **안 들어감**.
 > - `websocket.onmessage`에서 `useTelemetryStore.ingest()` 직접 호출 → Worker 우회 **안티패턴**.
 
-> **AI·코드 생성 시**: 위 표 **문서 ✅ = 설계 반영 완료**. 실제 repo에는 아직 파일이 없을 수 있음(To-Be).
-
-### As-Is (`NEXA-Platform`) → V2.1 `apps/web` 빠른 대조
-
-| As-Is (Vue/Quasar)                          | V2.1 (Next/React)                                           |
-| ------------------------------------------- | ----------------------------------------------------------- |
-| `MainLayout.vue` → `q-footer` (로고 푸터)   | **없음** → `frame/status/SystemStatusBar` (30px·가변)       |
-| `src/frame/layout/MainLayout.vue`           | `frame/layouts/MainShellLayout.tsx`                         |
-| `MainLayout.vue` → `mainMenuTabs`           | `frame/navigation/globalMenu.ts` + `GlobalMainMenu.tsx`     |
-| `GlobalNavbarLeft.vue`                      | `frame/header/GlobalMainMenu.tsx` (전역 도메인 탭)          |
-| `GlobalNavbarRight.vue`                     | `frame/header/GlobalNavbarRight.tsx` (드로어 토글·테마)     |
-| `domainRegistry.ts` → `left`                | `domains/*/views/left/*` (도메인 서브 내비)                 |
-| `domainRegistry.ts` → `right`               | `domains/*/views/right/*`                                   |
-| `domainRegistry.ts` → `headerActions`       | `domains/*/components/*HeaderActions`                       |
-| `src/frame/registry/domainRegistry.ts`      | `frame/registry/domainLayoutRegistry.ts`                    |
-| `src/system/settings` · drawer 폭/개폐      | `store/useLayoutStore.ts`                                   |
-| `src/domains/*/views/left/*LeftNav.vue`     | `domains/*/views/left/*`                                    |
-| `src/domains/*/views/right/*RightPanel.vue` | `domains/*/views/right/*`                                   |
-| `src/domains/*/views/content/*`             | `domains/*/views/content/*` 또는 `*Domain.tsx`              |
-| `src/engines/`                              | `engines/` + `socketEmitter.ts`                             |
-| `NEXA-Desktop/ScreenDraw` (PySide6)         | `apps/desktop/nexa_desktop/products/screendraw/`            |
-| `NEXA-Desktop/U2BEE V3` (확장·iframe)       | `apps/web/(embed)/u2bee/*` + `apps/desktop/webviews/u2bee/` |
-| `platform_communicator.py`                  | `bridge/nestjs_client.py`                                   |
-| (없음) Web Worker 텔레메트리                | `workers/telemetryProcessor.ts`                             |
-| (분산) Pinia 스토어                         | `useSafetyStore` / `useTelemetryStore`                      |
-| `server/` (Express)                         | `apps/backend/` + `apps/sync/` + `audit-log.interceptor`    |
-| —                                           | `guards/authGuard.ts`, `packages/shared/commands`           |
+> **AI·코드 생성 시**: 위 표 **문서 ✅ = 설계 SSOT 반영 완료**. 구현 repo에 파일이 없을 수 있음.
 
 ### 도메인 레이아웃 등록 예시 (개념)
 
@@ -961,124 +812,3 @@ postMessage({ type: 'batch', rows }) // → useTelemetryStore.ingestBatch
 - 규칙 6: 스토어 기반의 동적 레이아웃 제어 (Store-Driven Layout)
 
 ---
-
-## 📝 AI 에이전트 제출용 프롬프트 지시서 (복사하여 사용)
-
-> 아래 **「복사용 전체 프롬프트」** 블록을 통째로 에이전트에 붙여 넣으면 됩니다.  
-> 상세 폴더 트리는 본 문서 하단 **「NEXA OS V2.1」** 섹션을 SSOT로 참조하도록 명시되어 있습니다.
-
-### 복사용 전체 프롬프트
-
-```markdown
-## 프로젝트
-
-**이름**: 하이브리드 망 분리 구조의 실시간 IoT 관제 플랫폼 (NEXA OS)
-
-**목표**: TypeScript 모노레포 — Next.js + NestJS + **독립 Hocuspocus(`apps/sync`)** + 공유 DTO
-
-**작업 순서**: Implementation Plan을 먼저 제시한 뒤, 승인 없이도 1단계 골격 코드 생성 가능. 단, 폴더 구조는 아래 규격을 따를 것.
-
----
-
-## 1. 기술 스택
-
-| 계층           | 스택                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------- |
-| Frontend       | Next.js (App Router, TypeScript), Tailwind CSS, Shadcn UI                             |
-| Frontend State | Zustand + Yjs (`yjs`, `@hocuspocus/provider`) — **에디터↔Yjs 양방향, IoT/UI→Zustand 단방향** |
-| Backend        | NestJS (TypeScript) — REST only, **Hocuspocus 금지**                                  |
-| Realtime Sync  | `@hocuspocus/server` — **`apps/sync/` 독립 Node.js 프로세스** (Nest 내부 통합 금지)   |
-| 공유 타입      | `packages/shared` — web · backend · sync 공통 (DTO, commands, yjs/map-keys)           |
-| DB             | Prisma + PostgreSQL (pgvector 확장 자리)                                              |
-
----
-
-## 2. 모노레포 골격 (필수 경로)
-```
-
-apps/web/     # Next.js
-apps/backend/ # NestJS (REST · Prisma)
-apps/sync/    # Hocuspocus — 순수 Node.js (Yjs WebSocket)
-apps/desktop/ # Python(PyQt) — bridge/nestjs_client, U2BEE 웹뷰 (§apps/desktop)
-packages/shared/ # web · backend · sync 공통 타입
-database/     # schema.prisma, docker
-
-```
-
-`apps/web/src` 내부 레이어:
-
-- `app/` — 라우트만 (얇게)
-- `frame/` — 레이아웃 셸, 전역 메뉴, 드로어, domainLayoutRegistry
-- `domains/{domain}/views/{left,content,right}/` — 도메인 UI
-- `domains/{domain}/components/` — 도메인 전용 컴포넌트
-- `components/ui/` — Shadcn 원자 컴포넌트만 (도메인 무관)
-- `workers/telemetryProcessor.ts` — 일반 Telemetry Web Worker
-- `engines/` — websocket, **socketEmitter**, **commandTracker**, **healthWatchdog**
-- `packages/shared/src/time-sync.ts` — 감사·명령 타임스탬프 SSOT
-- `hooks/` — useHocuspocus, useYjsSync, useDomainLayout
-- `store/` — useSafetyStore, useTelemetryStore, useLayoutStore, useUiStore
-- `guards/authGuard.ts` — 2등급 MFA 등
-
----
-
-## 3. UI 레이아웃 (반드시 준수)
-
-1. **Header — 전역 내비**: `frame/navigation/globalMenu.ts` + `GlobalMainMenu` — Home / Nexia / Dashboard 등 **도메인 전환 탭**
-2. **Header — 우측**: 드로어 토글, 테마, `domainLayoutRegistry.headerActions` 슬롯
-3. **Left Drawer**: 전역 메뉴가 아님. **현재 도메인**의 서브 내비 (`domains/*/views/left/*LeftNav`)
-4. **Right Drawer**: **현재 도메인** 넥셋·속성 패널 (`domains/*/views/right/*RightPanel`)
-5. **Content**: `domains/*/views/content/*`
-6. `domainLayoutRegistry`: `domainKey → { left, content, right, headerActions, statusBar?, statusPanel? }`
-7. **시스템 상태바**: `SystemStatusBar` — 평상시 **30px**, 상세 **≥300px** (`useLayoutStore`, Footer 없음)
-
----
-
-## 4. 데이터·상태 역할 분리
-
-### Yjs vs Zustand (무한 루프 방지)
-
-| 계층 | 대상 | 흐름 |
-|------|------|------|
-| **에디터** | Tiptap, Monaco, Rivet | **Yjs ↔ 에디터** 양방향 직접 바인딩 (Zustand 금지) |
-| **일반 UI·IoT** | 차트, Safety/Telemetry, 드로어·테마 | **Yjs → observe → Zustand** 단방향만 |
-
-- **Yjs**: `Y.Doc` CRDT·Awareness. 일반 React UI 직접 렌더 금지.
-- **Zustand**: `ydoc.getMap(...).observe` → `ingest` → 선택적 re-render. **Zustand→Y.Doc 역쓰기 금지.**
-- **`useYjsSync`**: IoT `telemetry`/`safety` 맵만 — **에디터 CRDT에 사용 금지.**
-
-### IoT Mission-Critical (본 문서 §미션 크리티컬 참고)
-
-- 긴급·안전·제어: `useSafetyStore` + `engines/socketEmitter.ts` (렌더 우회)
-- **채널 B** 일반 텔레메트리: `engines/websocket.ts` → `workers/telemetryProcessor.ts` → `useTelemetryStore` → `useTransition`(200~500ms 버퍼) — **메인 스레드에서 WS onmessage 직접 처리 금지**
-- **채널 A** Y.Map: `hooks/useYjsSync.ts` → Safety / Telemetry 스토어 **단방향**
-
----
-
-## 5. 보안 — 제어 명령 3등급
-
-| 등급 | 예 | 구현 요구 |
-|------|-----|-----------|
-| 🟢 1등급 | 조회, Tiptap 편집, 레이아웃 | **`apps/sync`** `onAuthenticate` JWT + ReadOnly 스코프 |
-| 🟡 2등급 | 원격 재부팅, 알림 임계치 | `guards/authGuard` MFA + `audit-log.interceptor` |
-| 🔴 3등급 | 전원 차단, 밸브 | Yjs/외부 WS로 직접 하달 불가. Edge **Pull** 큐 API만 (`edge-queue` 모듈) |
-
-추가: **`apps/sync`** `onStoreDocument` XSS·스키마 검증 훅. JWT 검증은 `apps/backend/modules/auth` REST 호출.
-
----
-
-## 6. 산출물 (순서대로)
-
-1. 모노레포 폴더 트리 + `pnpm-workspace.yaml` (web · backend · sync · shared)
-2. `packages/shared` — `commands/`, `dtos/`, `yjs/map-keys` (등급·DTO·Y.Map 키 SSOT)
-3. `apps/sync` — Hocuspocus `server.ts`, `onAuthenticate`, `onStoreDocument` (Nest **미사용**)
-4. `apps/backend` — modules: `auth`, `devices`, `control`, `edge-queue`, `common/guards`, `common/interceptors`
-5. `apps/web` — `MainShellLayout`, `globalMenu`, `domainLayoutRegistry`, `LeftDrawer`/`RightDrawer`
-6. Worker + `useSafetyStore` / `useTelemetryStore` + `useYjsSync`(IoT 맵 단방향) + Tiptap Yjs binding 예시
-7. NestJS 1·2·3등급 Guard/Interceptor 분기 뼈대
-8. `apps/desktop` — `nexa_desktop` 골격, `bridge/nestjs_client`, `webviews/u2bee` (WebView B URL = `apps/web` embed)
-9. `apps/web` — `app/(embed)/u2bee/overlay` + `U2BeeMinimalLayout` (Desktop·Extension 공용)
-
-**타입**: web · backend · sync는 `packages/shared`만 import하여 DTO 공유. Desktop은 **OpenAPI 생성 pydantic**. 도메인 간 cross-import 금지. **Nest에 `@hocuspocus/server` 임베드 금지.**
-
-코딩 전 **Implementation Plan**을 먼저 출력하라.
-```
