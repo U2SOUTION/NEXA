@@ -176,7 +176,7 @@ export enum CommandGrade {
 
 ### B-5. Desktop · U2BEE
 
-상세·체크리스트 → [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-apps-desktop-설계-명세.md) §8
+상세·체크리스트 → [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md) §8
 
 ### B-6. 신뢰성 보강 (권장 · §3대 수칙 이후)
 
@@ -265,7 +265,7 @@ postMessage({ type: 'batch', rows }) // → useTelemetryStore.ingestBatch
 | 문서                                                                                                                   | 역할                                        |
 | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md)                 | **현행 SSOT** — §완성 체크리스트 (4축 통합) |
-| [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-apps-desktop-설계-명세.md)                                     | Desktop 상세                                |
+| [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md)                                      | Desktop 상세                                |
 | [`[Prompt 01] AI 에이전트 제출용 프롬프트 지시서.md`](./[Prompt%2001]%20AI%20에이전트%20제출용%20프롬프트%20지시서.md) | AI 생성 프롬프트                            |
 
 ---

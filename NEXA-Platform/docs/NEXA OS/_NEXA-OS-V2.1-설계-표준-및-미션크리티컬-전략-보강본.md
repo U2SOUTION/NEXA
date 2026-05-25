@@ -7,7 +7,7 @@ AI 에이전트(안티그래비티, 클로드 등)가 전 세계에서 가장 �
 - **실시간 동기화**: Yjs + Hocuspocus — **순수 Node.js 독립 프로세스** (`apps/sync/`). NestJS와 **프로세스·포트 분리** → 저수준 WebSocket(CRDT)과 Nest HTTP/REST **프로토콜 충돌 방지**, 고속 동기화 보장.
 - **메인 백엔드**: NestJS (TypeScript) — REST API·비즈니스 로직·Prisma·감사 로그. **Hocuspocus는 Nest 내부에 두지 않음.**
 - **모노레포**: `apps/web` · `apps/backend` · `apps/sync` + `packages/shared` — TypeScript **타입 SSOT**와 **앱별 독립 배포** 동시 확보.
-- **데이터 검증**: Zod — packages/shared 내 모든 DTO 및 명령(Grade 1·2·3) 스키마 정의. 프론트·백엔드·동기화 서버 간의 런타임 데이터 무결성 보장 (Type SSOT)
+- **데이터 검증**: Zod — `packages/shared` 내 모든 DTO·명령(Grade 1·2·3) **단일 SSOT**. **web · backend · sync**는 Zod `safeParse` · **U2BEE(`apps/desktop`)** 는 동일 스키마를 **OpenAPI → Pydantic v2**로 미러해 REST·브리지 경계에서 **런타임 무결성** 보장 (§Zod · §U2BEE Pydantic)
 
 ---
 
@@ -116,7 +116,7 @@ theme: {
 | `themePreset` ID    | 권장 도메인                    | 모드               | 특성                                                              |
 | ------------------- | ------------------------------ | ------------------ | ----------------------------------------------------------------- |
 | **`power-grid`**    | `dashboard` (전력·에너지 관제) | light · **고대비** | 밝은 배경 + 진한 그리드선 · Safety semantic **기본값 유지**       |
-| **`factory-night`** | `dashboard`, `ais`             | **dark**           | 야간 공장·저조도 · surface만 어둡게 · semantic **동일 luminance** |
+| **`factory-night`** | `dashboard`                    | **dark**           | 야간 공장·저조도 · surface만 어둡게 · semantic **동일 luminance** |
 | **`office-light`**  | `home`, `nexia`, `u2bee`       | light              | 사무실·일반 업무 · 낮은 자극 · 차트 `telemetry-muted` 활용        |
 | **`control-room`**  | `dashboard` (옵션)             | dark · 중간 대비   | 24h 관제실 · statusBar compact 강조                               |
 
@@ -147,6 +147,8 @@ export type DomainLayoutSlots = {
   headerActions?: ComponentLoader
   statusBar?: ComponentLoader
   statusPanel?: ComponentLoader
+  /** L/R 드로어 openPolicy — 상세: `_NEXA-OS-V2.1-도메인-레지스트리-명세.md` §2.1 */
+  drawerDefaults?: DomainDrawerDefaults
   /** 도메인 진입 시 적용할 산업 프리셋 (선택) */
   themePreset?: ThemePresetId
 }
@@ -496,7 +498,8 @@ pnpm-workspace
 ├── apps/web        → Next.js (UI)
 ├── apps/backend    → NestJS (REST · Prisma · audit · edge-queue)
 ├── apps/sync       → Hocuspocus (Yjs CRDT WebSocket only)
-└── packages/shared → schemas/ (Zod) · commands · yjs — web · backend · sync 공통 parse
+├── packages/shared → schemas/ (Zod) · commands · yjs — web · backend · sync 공통 parse
+└── v0/             → prompts · history · rules.md — v0.dev AI 생성 (배포 제외)
 ```
 
 > `docker-compose.yml`: §DevOps — **core** 4서비스 + **iot** 프로필(MQTT·엣지 시뮬). `sync` :1234 · `backend` :3001.
@@ -547,10 +550,10 @@ MainShellLayout
 | `frame/status/panels/StatusOpsPanel.tsx`    | §표준 — ConnectionBar · RuntimeGrid · CommandList       |
 | `frame/status/panels/MetricCard.tsx`        | FPS · Memory · Worker queue … 임계 semantic             |
 | `frame/views/common/DefaultStatusPanel.tsx` | statusPanel 미등록 시 StatusOpsPanel만                  |
-| `store/useLayoutStore.ts`                   | `statusBarExpanded`, `statusBarDetailHeight` (기본 300) |
+| `store/useLayoutStore.ts`                   | `leftOpen` · `rightOpen` · 드로어 폭 · `statusBarExpanded` · `statusBarDetailHeight` (기본 300) — **runtime SSOT** |
 | `store/useRuntimeMetricsStore.ts`           | healthWatchdog · Worker · latency 스냅샷                |
 | `engines/runtimeMetricsCollector.ts`        | 1s tick · PerformanceObserver · ping                    |
-| `domainLayoutRegistry`                      | `statusBar`, `statusPanel`, `themePreset` 슬롯 (선택)   |
+| `domainLayoutRegistry`                      | `drawerDefaults` · `statusBar` · `statusPanel` · `themePreset` — **정책 SSOT** ([`도메인-레지스트리-명세`](./_NEXA-OS-V2.1-도메인-레지스트리-명세.md) §2.1) |
 
 **스크롤 규칙**: `Content`만 `overflow-auto`. 상태바·상세창은 셸에 고정되어 **페이지 전체 이중 스크롤 방지**.
 
@@ -772,6 +775,17 @@ NEXA OS V2.1/                          # 모노레포 루트
 │   ├── schema.prisma
 │   └── docker/                        # Postgres, pgvector 등
 ├── docs/
+├── v0/                                # v0.dev · AI UI 생성 자산 (런타임·배포 제외)
+│   ├── rules.md                       # 시맨틱 계층(Semantic Layer) 수칙 — AI 학습용 전용 가이드
+│   ├── prompts/                       # 도메인별 초기·시스템 프롬프트
+│   │   ├── _system.md                 # 공통 시스템 프롬프트 (레이아웃·semantic·Zod 규칙)
+│   │   ├── nexia.md
+│   │   ├── u2bee.md
+│   │   ├── dashboard.md
+│   │   └── [domain].md                # domainKey 단위 — §도메인-레지스트리-명세
+│   └── history/                       # 생성 코드 스냅샷 · v0.dev 프로젝트 공유 URL
+│       ├── README.md                  # 기록 규칙 (날짜·도메인·URL·채택 여부)
+│       └── YYYY-MM/                   # 월별 — *.md(URL) · snapshots/ (paste·export)
 ├── scripts/                           # §DevOps — dev · openapi · generate_client
 │   ├── dev.ps1                        # 원클릭 (Windows)
 │   ├── dev.sh                         # 원클릭 (Unix)
@@ -868,7 +882,7 @@ NEXA OS V2.1/                          # 모노레포 루트
 │   │   │   │           ├── content/
 │   │   │   │           └── right/
 │   │   │   │
-│   │   │   ├── components/              # v0 · Shadcn — 도메인 무관 순수 UI
+│   │   │   ├── components/              # Shadcn — 도메인 무관 순수 UI (v0 채택분 → `v0/history` 참조)
 │   │   │   │   ├── ui/                  # button, sheet, dialog …
 │   │   │   │   └── dashboard/           # 공용 위젯 껍데기
 │   │   │   │
@@ -1007,6 +1021,26 @@ NEXA OS V2.1/                          # 모노레포 루트
             └── index.ts
 ```
 
+### `v0/` — v0.dev AI 생성 자산 (모노레포 루트)
+
+> **역할**: [v0.dev](https://v0.dev) 등 AI UI 생성 도구용 **프롬프트·규칙·이력** 저장소. **`apps/web/src`에 직접 merge되지 않음** — 채택된 조각만 Shadcn·도메인 `views/`로 이식.
+
+| 경로 | 용도 |
+| ---- | ---- |
+| **`v0/prompts/`** | 도메인별(**`nexia`** · **`u2bee`** · **`dashboard`** 등) **초기 프롬프트**·**시스템 프롬프트** SSOT. `_system.md` = 레이아웃 4영역 · `domainLayoutRegistry` · semantic CSS 공통 지시 |
+| **`v0/history/`** | v0.dev **생성 코드 스냅샷**(export paste) · **프로젝트 공유 URL** · 채택/폐기 메모 — 재현·회귀 비교용 |
+| **`v0/rules.md`** | NEXA **시맨틱 계층(Semantic Layer)** 수칙 — Safety semantic **고정** · surface/themePreset 분리 · Grade 1·2·3 UI 표현 — **AI 에이전트·v0에 우선 주입** |
+
+**워크플로 (권장)**
+
+```text
+v0/rules.md + v0/prompts/{domain}.md  →  v0.dev 세션
+       →  v0/history/ (URL · snapshot 기록)
+       →  검토 후 apps/web/src/components/ui · domains/*/views/ 수동 이식
+```
+
+**규칙**: `v0/history/`는 **참고 아카이브** — CI·pnpm workspace **미포함**. `prompts/` 변경 시 해당 도메인 PR에 **링크** 명시. `rules.md`는 본 문서 **§Theme · semantic · §StatusOpsPanel**과 **충돌 시 설계 SSOT 우선**.
+
 ### Zod — 스키마 SSOT · 앱별 검증 연동
 
 **원칙**: 스키마는 **`packages/shared/src/schemas/`에만** 정의. 각 앱에 **로컬 Zod duplicate 금지**.
@@ -1022,7 +1056,7 @@ NEXA OS V2.1/                          # 모노레포 루트
 | **Backend** | `command-grade.guard.ts`              | `CommandSchema.parse(body)` → `evaluateIngress`  |
 | **Sync**    | `extensions/yjs-schema-guard.ts`      | Yjs write — control/safety · Grade3 reject       |
 | **Sync**    | `extensions/persistence.ts`           | DB 저장 전 `safeParse`                           |
-| **Desktop** | `bridge/dto/`                         | Zod **미사용** — OpenAPI → pydantic (§DevOps)    |
+| **Desktop (U2BEE)** | `bridge/dto/` (생성) · `bridge/nestjs_client.py` | Zod **직접 import 불가** — §**U2BEE Pydantic** · OpenAPI → `model_validate` |
 
 ```text
 REST / WS / Y.Map / Worker msg
@@ -1040,6 +1074,76 @@ export const CommandSchema = z.discriminatedUnion('grade', [
 ])
 export type CommandPayload = z.infer<typeof CommandSchema>
 ```
+
+### U2BEE (`apps/desktop`) — `packages/shared` Zod → Pydantic 무결성
+
+> **목적**: U2BEE(PyQt · `apps/desktop`)는 TypeScript 런타임에 Zod를 실행할 수 없습니다. **`packages/shared/src/schemas/`의 Zod 정의가 유일한 의미 SSOT**이며, Python 측은 **동일 계약을 Pydantic v2로 미러**해 Nest REST·브리지 I/O에서 **parse 실패 = 데이터 거부**로 무결성을 맞춥니다.  
+> Desktop 상세 → [`_NEXA-OS-U2BEE-desktopApps-설계-명세.md`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md).
+
+#### 전파 체인 (Zod SSOT → Pydantic)
+
+```text
+packages/shared/src/schemas/          ★ Zod SSOT (commands · dtos · yjs payloads)
+        │
+        ├── z.infer<typeof Schema>    → web · backend · sync (pnpm import + safeParse)
+        │
+        └── Nest @Body ZodValidationPipe + Swagger decorators
+                    │
+                    ▼
+        scripts/export-openapi.ts
+                    │
+                    ▼
+        packages/shared/openapi/openapi.json    (CI diff · SSOT 아카이브)
+                    │
+                    ▼
+        apps/desktop/scripts/generate_client.py   (datamodel-code-generator)
+                    │
+                    ▼
+        apps/desktop/nexa_desktop/bridge/dto/     ★ Pydantic v2 (hand-edit 금지)
+                    │
+                    ▼
+        bridge/nestjs_client.py                   Model.model_validate(response.json())
+```
+
+| 단계 | SSOT | U2BEE(Python) 무결성 |
+| ---- | ---- | --------------------- |
+| **① 정의** | `shared/schemas/**` — `z.object` · discriminatedUnion(Grade) | Python에 **로컬 pydantic duplicate 금지** |
+| **② 계약 노출** | backend controller + shared 스키마 → OpenAPI `components/schemas` | `openapi.json`이 Zod와 **동일 필드·enum·required** 반영 |
+| **③ 생성** | `pnpm openapi:desktop` | `bridge/dto/models.py` **자동 생성만** |
+| **④ 소비** | web: `safeParse` · backend: `ZodValidationPipe` | **`nestjs_client`**: 응답·요청 body **`model_validate`** — `ValidationError` → 로그 + **재시도/중단** (silent `dict` cast **금지**) |
+
+#### U2BEE 검증 경계 (어디서 Pydantic을 쓰는가)
+
+| 경계 | 경로 | 규칙 |
+| ---- | ---- | ---- |
+| **Python ↔ Nest REST** | `bridge/nestjs_client.py` | Pull/Push DTO — 생성된 `bridge/dto` 모델로 **ingress·egress parse** (블랙리스트 Set · edge-queue · 헬스 · Ollama 트리거 등) |
+| **Grade 3 Edge Pull** | `nestjs_client` + `commands` 미러 | 외부망 MQTT Push **금지** — Pull 응답도 **동일 Command/DTO pydantic** |
+| **Python ↔ WebView (QWebChannel)** | `bridge/web_channel.py` | **비즈니스 DTO는 웹뷰 B → Nest** (web 측 Zod). Python→JS 이벤트(`safetyAlert` 등)는 **shared에 정의된 payload shape**를 pydantic 또는 `TypedDict`+validate로 **최소 계약** 유지 |
+| **OS native (`native/*`)** | RAM 필터·입력 훅 | pydantic 대상 **아님** — OS 이벤트만. **서버와 주고받는 JSON**만 DTO 적용 |
+
+#### 무결성 규칙 (U2BEE)
+
+1. **`packages/shared` Zod 변경** → `pnpm --filter @nexa/shared build` → **`pnpm openapi:desktop`** → `bridge/dto` diff **커밋** (생성물만 수동 편집 **금지**).
+2. **OpenAPI ↔ Zod 불일치** — CI에서 `openapi.json` hash·스냅샷 diff — drift 시 **PR 실패**.
+3. **parse 실패 정책** — `ValidationError`: 사용자-facing 기능은 **degraded** + audit 로그; Grade 2·3 명령은 **절대 unvalidated forward 금지**.
+4. **embed 웹(`apps/web` U2BEE overlay)** — REST는 web Zod · Desktop REST는 pydantic — **동일 openapi.json lineage**로 양쪽 의미 일치.
+
+```python
+# bridge/nestjs_client.py (개념 — ingress parse)
+from nexa_desktop.bridge.dto import BlacklistSnapshotDto  # generate_client.py 생성
+
+def fetch_blacklist(self) -> BlacklistSnapshotDto:
+    raw = self._get("/api/v1/u2bee/blacklist").json()
+    return BlacklistSnapshotDto.model_validate(raw)  # 실패 시 ValidationError — 무결성 gate
+```
+
+```ts
+// packages/shared — Zod가 항상 선행 (Python pydantic의 의미 원천)
+export const BlacklistSnapshotSchema = z.object({ /* … */ })
+export type BlacklistSnapshot = z.infer<typeof BlacklistSnapshotSchema>
+```
+
+> **한 줄**: U2BEE 무결성 = **`shared` Zod (정의 SSOT)** + **OpenAPI (계약 브릿지)** + **`bridge/dto` Pydantic (Python 런타임 gate)**.
 
 ### `apps/sync/` — Hocuspocus 독립 서버 (SSOT)
 
@@ -1063,9 +1167,10 @@ export type CommandPayload = z.infer<typeof CommandSchema>
 
 ---
 
-### `apps/desktop/` (Python · PyQt)
+### `apps/desktop/` (Python · PyQt · **U2BEE**)
 
-> **상세 SSOT**: [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-apps-desktop-설계-명세.md) — 폴더 트리 · 통신 3갈래 · U2BEE 분담 · IPC · 체크리스트
+> **상세 SSOT**: [`_NEXA-OS-U2BEE-desktopApps-설계-명세.md`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md) — 폴더 트리 · 통신 3갈래 · U2BEE 분담 · IPC · 체크리스트  
+> **DTO 무결성**: §**U2BEE Pydantic** — `packages/shared` Zod → OpenAPI → `bridge/dto/` · `nestjs_client.model_validate`
 
 | 한 줄 | PyQt 셸 — OS·듀얼 웹뷰·`bridge/nestjs_client`. UI는 `apps/web` embed URL 렌더. pnpm 워크스페이스 **외부**.
 
@@ -1074,7 +1179,7 @@ export type CommandPayload = z.infer<typeof CommandSchema>
 ## 🛠️ 개발자 경험(DX) 및 환경 구축 (DevOps)
 
 > **대상**: `apps/web` · `apps/backend` · `apps/sync` · `packages/shared`(pnpm) + **`apps/desktop`**(Python)을 **동시에** 다루는 개발자.  
-> Desktop 상세 → [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-apps-desktop-설계-명세.md).
+> Desktop 상세 → [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md).
 
 ### 런타임 4+1 (로컬)
 
@@ -1197,7 +1302,7 @@ pnpm install && pnpm --filter @nexa/shared build && pnpm dev
 
 ### 타입·DTO 전파 워크플로 (`packages/shared` → 각 앱)
 
-TypeScript 3앱은 **`packages/shared` 단일 SSOT**. Python Desktop은 **OpenAPI 미러** 경로를 씁니다.
+TypeScript 3앱은 **`packages/shared` 단일 SSOT**. **U2BEE(Python)** 는 Zod를 직접 실행하지 않고 **OpenAPI → Pydantic** 미러로 **동일 계약**을 유지합니다 (§**U2BEE Pydantic**).
 
 ```text
                     packages/shared/src/
@@ -1223,7 +1328,9 @@ TypeScript 3앱은 **`packages/shared` 단일 SSOT**. Python Desktop은 **OpenAP
 
 **규칙**: web/backend/sync **상호 import 금지** — 교차 타입·스키마는 `packages/shared`만. `schemas/`·`commands/` 변경 시 `pnpm test:security` 필수.
 
-#### 2) Nest OpenAPI → Python pydantic (`generate_client.py`)
+#### 2) Nest OpenAPI → U2BEE Pydantic (`generate_client.py`)
+
+> **정의 SSOT는 항상 Zod** (`packages/shared/src/schemas/`). OpenAPI·Pydantic은 **U2BEE 런타임 gate** — §**U2BEE Pydantic**.
 
 **경로**
 
@@ -1280,7 +1387,7 @@ def generate() -> None:
 | 변경                  | 필수 작업                                          |
 | --------------------- | -------------------------------------------------- |
 | `shared` DTO·commands | `pnpm --filter @nexa/shared build` → 3앱 typecheck |
-| backend API 스키마    | `pnpm openapi:desktop` → `bridge/dto` diff commit  |
+| backend API 스키마    | `shared` Zod 수정 → `pnpm openapi:desktop` → `bridge/dto` diff commit · U2BEE `model_validate` 경로 회귀 테스트 |
 | `yjs/map-keys`        | shared + sync + web **동시** PR                    |
 | MQTT topic            | mosquitto + `edge-gateway-sim` env                 |
 
@@ -1630,7 +1737,7 @@ jobs:
 | **⑤ 검증**       | `pnpm test:security` · `TELEMETRY-FLOOD-500` · `commands/test-fixtures/grade-route-matrix.ts` (§미션 크리티컬 설계 검증)                       | V-\* **FAIL** · Grade3 Yjs 유입 **미차단** · Flood 시 Safety >200ms                        |
 
 **레이아웃 연동**: `globalMenu` → `domainKey` → `MainShellLayout` → registry → L/R Drawer · Content(스크롤) · **SystemStatusBar** · **`themePreset`**.  
-**Desktop embed**: `(embed)/u2bee/*` + `U2BeeMinimalLayout` — [`desktop 설계 명세`](./_NEXA-OS-U2BEE-apps-desktop-설계-명세.md) §8.
+**Desktop embed**: `(embed)/u2bee/*` + `U2BeeMinimalLayout` — [`desktop 설계 명세`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md) §8.
 
 **보안 등급 (요약)**
 
@@ -1687,7 +1794,6 @@ export const globalMenuTabs = [
   { name: 'home', route: '/', label: 'Home', domainKey: 'home' },
   { name: 'nexia', route: '/nexia', label: 'Nexia', domainKey: 'nexia', nexaPrefix: true },
   { name: 'dashboard', route: '/dashboard', label: 'IoT', domainKey: 'dashboard' },
-  { name: 'ais', route: '/ais', label: 'AIS', domainKey: 'ais' },
   { name: 'u2bee', route: '/u2bee', label: 'U2BEE', domainKey: 'u2bee' },
 ] as const
 
@@ -1744,7 +1850,7 @@ export const domainLayoutRegistry = {
 | **2** | **Content 단일 스크롤**  | 메인 작업 영역**만** 세로 스크롤          | `Content` → `flex-1 overflow-auto` (헤더·상태바는 고정)                |
 | **3** | **드로어 내부 스크롤**   | L/R Drawer는 **자기 영역만** 스크롤       | 드로어 → `overflow-y-auto` (셸·Content에 영향 없음)                    |
 | **4** | **Footer 없음 · 상태바** | `<footer>` 대신 **`SystemStatusBar`**     | compact **~30px** · expanded **≥300px** (`useLayoutStore`)             |
-| **5** | **Store-Driven Layout**  | 드로어·상태바 크기/개폐는 **스토어 SSOT** | `useLayoutStore` — 폭·open·`statusBarExpanded`·`statusBarDetailHeight` |
+| **5** | **Store-Driven Layout**  | 드로어·상태바 크기/개폐는 **스토어 SSOT** | `useLayoutStore` — open·폭 · `statusBarExpanded` · `statusBarDetailHeight` · 정책은 registry **`drawerDefaults`** ([명세 §2.1](./_NEXA-OS-V2.1-도메인-레지스트리-명세.md)) |
 
 ```text
 MainShellLayout (viewport lock)
