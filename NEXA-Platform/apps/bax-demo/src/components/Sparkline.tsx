@@ -1,20 +1,39 @@
 /**
  * @file Sparkline.tsx
- * @role Comp D · OVERLAY CONTEXTUAL FG MUTABLE (V1 진동).
- *       Sentinel DOM 내부 하단 합성. G5 Circuit Open 시 즉시 unmount. G1·G4 제외.
- * @declaration priority=CONTEXTUAL urgency=NORMAL depth=FG layer=OVERLAY
- * @ssot docs/NEXA OS/BAX_미학적_인터페이스_UX_아키텍처_v0.9.md §3.2
+ * @role Comp D · OVERLAY CONTEXTUAL V1.
  */
 
-export const SPARKLINE_DECLARATION = {
-  id: 'sparkline',
-  priority: 'CONTEXTUAL',
-  urgency: 'NORMAL',
-  depth: 'FG',
-  mutability: 'MUTABLE',
-  layer: 'OVERLAY',
-} as const
+import type { ComponentVisual } from '../types/component'
 
-export function Sparkline() {
-  return null
+interface Props {
+  history: number[]
+  intensity: 0 | 1 | 2
+  visual?: ComponentVisual
+}
+
+export function Sparkline({ history, intensity }: Props) {
+  if (intensity === 0 || history.length < 2) return null
+
+  const w = 280
+  const h = 48
+  const min = Math.min(...history) - 2
+  const max = Math.max(...history) + 2
+  const range = max - min || 1
+
+  const points = history
+    .map((v, i) => {
+      const x = (i / (history.length - 1)) * w
+      const y = h - ((v - min) / range) * h
+      return `${x},${y}`
+    })
+    .join(' ')
+
+  const stroke = intensity === 1 ? 'rgba(120,200,255,0.35)' : 'rgba(120,200,255,0.75)'
+  const strokeWidth = intensity === 1 ? 1 : 1.5
+
+  return (
+    <svg className="bax-sparkline" data-bax-id="sparkline" viewBox={`0 0 ${w} ${h}`} width={w} height={h}>
+      <polyline fill="none" stroke={stroke} strokeWidth={strokeWidth} points={points} />
+    </svg>
+  )
 }

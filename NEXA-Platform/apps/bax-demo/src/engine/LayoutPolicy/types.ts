@@ -1,9 +1,9 @@
 /**
  * @file types.ts
- * @role LayoutPolicy 공유 타입 — BLOCK 컴포넌트 배치 결과 스키마.
- * @internal LayoutPolicy 서브모듈
+ * @role LayoutPolicy 공유 타입.
  */
 
+import type { ComponentDeclaration } from '../../types/component'
 import type { MaeContext } from '../MaeContext'
 
 export interface GridTemplate {
@@ -25,5 +25,5 @@ export interface ResolvedLayout {
 }
 
 export interface LayoutPolicy {
-  resolve(components: unknown[], ctx: MaeContext): ResolvedLayout
+  resolve(components: ComponentDeclaration[], ctx: MaeContext): ResolvedLayout
 }

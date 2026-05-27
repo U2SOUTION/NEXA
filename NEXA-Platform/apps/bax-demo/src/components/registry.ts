@@ -1,19 +1,49 @@
 /**
  * @file registry.ts
- * @role MVP ComponentDeclaration registry — MAE에 BLOCK/OVERLAY 4종 등록 SSOT.
- * @ssot docs/NEXA OS/BAX_미학적_인터페이스_UX_아키텍처_v0.9.md §1.3.2
+ * @role ComponentDeclaration registry — 시뮬레이션용 다중 타이포·그래프·카드.
  */
 
-import { ANCHOR_DECLARATION } from './Anchor'
-import { FRAME_DECLARATION } from './Frame'
-import { SENTINEL_DECLARATION } from './Sentinel'
-import { SPARKLINE_DECLARATION } from './Sparkline'
+import type { ComponentDeclaration } from '../types/component'
 
-export const MVP_COMPONENT_DECLARATIONS = [
-  ANCHOR_DECLARATION,
-  FRAME_DECLARATION,
-  SENTINEL_DECLARATION,
-  SPARKLINE_DECLARATION,
-] as const
+/** IoT 관제 데모 — 9종 (BLOCK 8 + OVERLAY 1) */
+export const MVP_COMPONENT_DECLARATIONS: ComponentDeclaration[] = [
+  // ── TEXTURE · 타이포 (좌측 축) ──
+  { id: 'anchor', priority: 'TEXTURE', urgency: 'NONE', depth: 'BG', mutability: 'IMMUTABLE', layer: 'BLOCK' },
+  { id: 'glyph-north', priority: 'TEXTURE', urgency: 'NONE', depth: 'MID', mutability: 'IMMUTABLE', layer: 'BLOCK' },
+  { id: 'glyph-east', priority: 'TEXTURE', urgency: 'NONE', depth: 'BG', mutability: 'IMMUTABLE', layer: 'BLOCK' },
+  { id: 'tagline', priority: 'TEXTURE', urgency: 'NONE', depth: 'BG', mutability: 'IMMUTABLE', layer: 'BLOCK' },
+
+  // ── ESSENTIAL · 핵심 관제 ──
+  {
+    id: 'sentinel',
+    priority: 'ESSENTIAL',
+    urgency: 'NORMAL',
+    depth: 'FG',
+    mutability: 'MUTABLE',
+    layer: 'BLOCK',
+    minWidth: 300,
+  },
+  {
+    id: 'gauge-humidity',
+    priority: 'ESSENTIAL',
+    urgency: 'NORMAL',
+    depth: 'FG',
+    mutability: 'MUTABLE',
+    layer: 'BLOCK',
+    minWidth: 180,
+  },
+
+  // ── CONTEXTUAL · 보조 그래프 ──
+  { id: 'gauge-pressure', priority: 'CONTEXTUAL', urgency: 'NORMAL', depth: 'MID', mutability: 'MUTABLE', layer: 'BLOCK' },
+  { id: 'bar-load', priority: 'CONTEXTUAL', urgency: 'NORMAL', depth: 'MID', mutability: 'MUTABLE', layer: 'BLOCK' },
+  { id: 'ring-status', priority: 'CONTEXTUAL', urgency: 'NORMAL', depth: 'FG', mutability: 'MUTABLE', layer: 'BLOCK' },
+
+  // ── OVERLAY ──
+  { id: 'sparkline-float', priority: 'CONTEXTUAL', urgency: 'NORMAL', depth: 'FG', mutability: 'MUTABLE', layer: 'OVERLAY' },
+]
 
 export type BaxComponentId = (typeof MVP_COMPONENT_DECLARATIONS)[number]['id']
+
+export const BLOCK_COMPONENT_IDS = MVP_COMPONENT_DECLARATIONS.filter((c) => c.layer === 'BLOCK').map(
+  (c) => c.id,
+)

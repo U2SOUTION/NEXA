@@ -1,21 +1,54 @@
 /**
  * @file Sentinel.tsx
- * @role Comp C · BLOCK ESSENTIAL FG MUTABLE minWidth=300.
- *       온도·상태 카드. urgency는 AlarmState에서만 수신. Safe-Zone G2 대상.
- * @declaration priority=ESSENTIAL urgency=NORMAL depth=FG layer=BLOCK minWidth=300
- * @ssot docs/NEXA OS/BAX_미학적_인터페이스_UX_아키텍처_v0.9.md §1.3.2
+ * @role Comp C · BLOCK ESSENTIAL.
  */
 
-export const SENTINEL_DECLARATION = {
-  id: 'sentinel',
-  priority: 'ESSENTIAL',
-  urgency: 'NORMAL',
-  depth: 'FG',
-  mutability: 'MUTABLE',
-  layer: 'BLOCK',
-  minWidth: 300,
-} as const
+import type { ComponentVisual, ComponentUrgency } from '../types/component'
+import { Sparkline } from './Sparkline'
 
-export function Sentinel() {
-  return null
+interface Props {
+  visual: ComponentVisual
+  temp: number
+  urgency: ComponentUrgency
+  alarmLevel: string
+  sparklineVisible: boolean
+  sparklineIntensity: 0 | 1 | 2
+  history: number[]
+  embedded?: boolean
+}
+
+export function Sentinel({
+  visual,
+  temp,
+  urgency,
+  alarmLevel,
+  sparklineVisible,
+  sparklineIntensity,
+  history,
+  embedded,
+}: Props) {
+  if (visual.hidden) return null
+
+  const isCritical = urgency === 'CRITICAL' || alarmLevel === 'CRITICAL'
+
+  return (
+    <div
+      className={`bax-sentinel ${isCritical ? 'bax-sentinel--critical' : ''}`}
+      style={{
+        ...(embedded ? {} : { gridArea: visual.gridArea, zIndex: visual.zIndex }),
+        opacity: visual.opacity,
+        minWidth: 300,
+        minHeight: 120,
+      }}
+    >
+      <div className="bax-sentinel__label">Sentinel · ESSENTIAL</div>
+      <div className="bax-sentinel__temp">{temp}°C</div>
+      <div className="bax-sentinel__meta">
+        urgency: <strong>{urgency}</strong> · alarm: {alarmLevel}
+      </div>
+      {sparklineVisible && (
+        <Sparkline history={history} intensity={sparklineIntensity} visual={visual} />
+      )}
+    </div>
+  )
 }

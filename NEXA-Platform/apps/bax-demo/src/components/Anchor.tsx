@@ -1,20 +1,36 @@
 /**
  * @file Anchor.tsx
- * @role Comp A · BLOCK TEXTURE BG IMMUTABLE.
- *       Giant 타이포·light_source shadow만 렌더. Grid/blur/z-index 하드코딩 금지.
- * @declaration priority=TEXTURE urgency=NONE depth=BG layer=BLOCK
- * @ssot docs/NEXA OS/BAX_미학적_인터페이스_UX_아키텍처_v0.9.md §1.3.2
+ * @role Comp A · BLOCK TEXTURE BG.
  */
 
-export const ANCHOR_DECLARATION = {
-  id: 'anchor',
-  priority: 'TEXTURE',
-  urgency: 'NONE',
-  depth: 'BG',
-  mutability: 'IMMUTABLE',
-  layer: 'BLOCK',
-} as const
+import type { ComponentVisual } from '../types/component'
 
-export function Anchor() {
-  return null
+interface Props {
+  visual: ComponentVisual
+  lightX: number
+  lightY: number
+  embedded?: boolean
+}
+
+export function Anchor({ visual, lightX, lightY, embedded }: Props) {
+  if (visual.hidden) return null
+
+  const angle = Math.atan2(lightY - 50, lightX - 50) * (180 / Math.PI)
+  const shadowX = Math.cos((angle * Math.PI) / 180) * 24
+  const shadowY = Math.sin((angle * Math.PI) / 180) * 24
+
+  return (
+    <div
+      className="bax-anchor"
+      style={{
+        ...(embedded ? {} : { gridArea: visual.gridArea, zIndex: visual.zIndex }),
+        opacity: visual.opacity,
+        filter: visual.blurPx ? `blur(${visual.blurPx}px)` : undefined,
+        textShadow: `${shadowX}px ${shadowY}px 48px rgba(120, 200, 255, 0.15)`,
+      }}
+    >
+      <span className="bax-anchor__word">BAX</span>
+      <span className="bax-anchor__sub">Breathing AI Experience</span>
+    </div>
+  )
 }

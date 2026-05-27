@@ -1,10 +1,11 @@
 /**
  * @file types.ts
- * @role DepthProfile 공유 타입 — depth+alarmLevel+mode+scale → blur/opacity/zIndex.
- * @internal DepthProfile 서브모듈
+ * @role DepthProfile 공유 타입.
  */
 
-import type { AlarmLevel } from '../alarmState'
+import type { BaxOperationMode } from '../baxModePresets'
+import type { ComponentDepth, ComponentUrgency } from '../../types/component'
+import type { AestheticTuningSettings } from '../../settings/useAestheticSettingsStore'
 
 export interface VisualValues {
   blurPx: number
@@ -14,9 +15,10 @@ export interface VisualValues {
 
 export interface DepthProfile {
   resolve(
-    depth: 'FG' | 'MID' | 'BG',
-    alarmLevel: AlarmLevel,
-    mode: string,
+    depth: ComponentDepth,
+    urgency: ComponentUrgency,
+    mode: BaxOperationMode,
     scale: number,
+    tuning: AestheticTuningSettings['depthProfileTuning'],
   ): VisualValues
 }
