@@ -41,7 +41,7 @@ globalMenu → domainKey → MainShellLayout → registry
 | ---- | ------------------------------------ | -------------------------------------------------- | --------------------------------- |
 | 🟢 1 | `useHocuspocus` ReadOnly             | **`apps/sync`** (Hocuspocus) + `backend/auth` JWT  | `commands` — 조회·문서 편집       |
 | 🟡 2 | **`guards/authGuard.ts`** (MFA 권장) | **`audit-log.interceptor.ts`** + `modules/control` | `commands` — MFA·감사 필수 플래그 |
-| 🔴 3 | Yjs/WS 제어 UI **없음**              | `modules/edge-queue` + **`edge-gateway/`**         | `commands` — Pull·폐쇄망만        |
+| 🔴 3 | Yjs/WS 제어 UI **없음**              | `modules/edge-queue` + **`edge-gateway/`** · **`edge-pull-sse`** | `commands` — Edge Pull/SSE·폐쇄망만 |
 
 | 구분           | 필수 경로                                                       | 역할                                                                      |
 | -------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -70,12 +70,12 @@ export enum CommandGrade {
                               └──► apps/backend/auth (JWT 검증)
                          ✗ Grade3 Push 차단 · Nest 내부 Hocuspocus 금지
 
-[edge-queue API] ◄── Pull ── [edge-gateway] ◄── MQTT / Modbus (폐쇄망·VPN)
+[edge-queue API] ◄── edge-pull-sse (EventSource) · GET pull (fallback) ── [edge-gateway] ◄── MQTT / Modbus (폐쇄망·VPN)
 ```
 
 | 경로                               | 역할                                                                     |
 | ---------------------------------- | ------------------------------------------------------------------------ |
-| `modules/edge-queue/`              | 큐 적재·Edge **Pull** REST (외부에서 직접 장비 제어 불가)                |
+| `modules/edge-queue/`              | 큐 적재 · Edge **`edge-pull-sse`** + GET pull fallback (외부에서 직접 장비 제어 불가) |
 | `modules/edge-queue/edge-gateway/` | 내부망 전용 MQTT·Modbus 어댑터                                           |
 | `hooks/useYjsSync.ts`              | **(채널 A)** Y.Map → Zustand **단방향** (에디터 CRDT는 Yjs binding 직접) |
 | `workers/telemetryProcessor.ts`    | **(채널 B)** WS·대량 센서 — Worker 버퍼 → Telemetry만                    |
@@ -216,7 +216,7 @@ export enum CommandGrade {
 - `telemetryProcessor` **만** → **Hocuspocus/Yjs** Safety 맵이 `useSafetyStore`로 **안 들어감**.
 - `websocket.onmessage`에서 `useTelemetryStore.ingest()` 직접 호출 → Worker 우회 **안티패턴**.
 
-> Grade3 하드 제어는 **Yjs·WS Push 모두 금지** — `edge-queue` Pull + `packages/shared/commands`.
+> Grade3 하드 제어는 **Yjs·WS Push·브라우저 executable SSE** 금지 — `edge-queue` **`edge-pull-sse`** + `packages/shared/commands`. Web IoT sync 폴백 SSE → [`보강본`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md) §**SSE**.
 
 ---
 

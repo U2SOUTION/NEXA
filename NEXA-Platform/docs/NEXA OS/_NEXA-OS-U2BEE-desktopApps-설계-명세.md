@@ -165,7 +165,7 @@ apps/desktop/
 | **② Python ↔ 웹뷰(Next)** | `bridge/web_channel.py`   | OS 제어·토큰·테마·Safety 알림. 비즈니스 API는 웹뷰 B가 Nest 호출 가능   |
 | **③ OS 네이티브**          | `native/*`                | 휠 주입, 우클릭 스킵, 0.5초 전 전환, 채널 차단 메뉴 — **반드시 Python** |
 
-**Grade3**: Desktop이 외부망에서 장비에 MQTT Push하지 않음. 3등급은 **`edge-queue` Pull**만 (`nestjs_client` 경로 분리).
+| **Grade3**: Desktop이 외부망에서 장비에 MQTT Push하지 않음. 3등급은 **`edge-queue` `edge-pull-sse`** 우선 · GET pull fallback (`nestjs_client` · httpx-sse).
 
 ---
 

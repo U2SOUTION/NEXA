@@ -1,11 +1,11 @@
 # NEXA OS — 도메인 구조
 
-| 항목                        | 내용                                                                                                                     |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **역할**                    | NEXA Platform **`src/domains/`** 전체 도메인 목록·레지스트리·폴더 규약 SSOT                                              |
-| **레지스트리 (As-Is)**      | `NEXA-Platform/src/frame/registry/domainRegistry.ts`                                                                     |
+| 항목                        | 내용                                                                                                                              |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **역할**                    | NEXA Platform **`src/domains/`** 전체 도메인 목록·레지스트리·폴더 규약 SSOT                                                       |
+| **레지스트리 (As-Is)**      | `NEXA-Platform/src/frame/registry/domainRegistry.ts`                                                                              |
 | **레지스트리 (V2.1 To-Be)** | `apps/web/src/frame/registry/domainLayoutRegistry.ts` — 슬롯 + **`drawerDefaults`** · `statusBar` · `statusPanel` · `themePreset` |
-| **상위 설계**               | [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md)     |
+| **상위 설계**               | [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md)              |
 
 ---
 
@@ -45,15 +45,15 @@ domainRegistry[domainKey]
 
 `domainRegistry.ts` (As-Is) / `domainLayoutRegistry.ts` (V2.1) 공통 개념:
 
-| 슬롯                                | 필수           | 설명                                                               |
-| ----------------------------------- | -------------- | ------------------------------------------------------------------ |
-| **`left`**                          | ✅             | Left Drawer — 도메인 **서브 내비**·트리·채널 목록 (전역 메뉴 아님) |
-| **`content`**                       | ✅             | 메인 작업 영역 — **유일한 main 세로 스크롤** 내부                  |
-| **`right`**                         | ✅             | Right Drawer — `domains/*/views/right/*` · As-Is `null` → **`DefaultRightPanel`** fallback · **V2.1** 도메인별 전용 패널 필수 (보강본 §1677) |
-| **`headerActions`**                 | 선택           | Header 우측 — 도메인 전용 액션 버튼                                |
-| **`drawerDefaults`**                | ✅ (V2.1)      | L/R 드로어 **openPolicy**·`autoOpen`·`emptyMessage` — §2.1 · runtime은 **`useLayoutStore`** |
-| **`statusBar`** / **`statusPanel`** | V2.1           | 하단 시스템 상태바 도메인 슬롯                                     |
-| **`themePreset`**                   | V2.1           | `power-grid` · `office-light` 등 산업 프리셋                       |
+| 슬롯                                | 필수      | 설명                                                                                                                                         |
+| ----------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`left`**                          | ✅        | Left Drawer — 도메인 **서브 내비**·트리·채널 목록 (전역 메뉴 아님)                                                                           |
+| **`content`**                       | ✅        | 메인 작업 영역 — **유일한 main 세로 스크롤** 내부                                                                                            |
+| **`right`**                         | ✅        | Right Drawer — `domains/*/views/right/*` · As-Is `null` → **`DefaultRightPanel`** fallback · **V2.1** 도메인별 전용 패널 필수 (보강본 §1677) |
+| **`headerActions`**                 | 선택      | Header 우측 — 도메인 전용 액션 버튼                                                                                                          |
+| **`drawerDefaults`**                | ✅ (V2.1) | L/R 드로어 **openPolicy**·`autoOpen`·`emptyMessage` — §2.1 · runtime은 **`useLayoutStore`**                                                  |
+| **`statusBar`** / **`statusPanel`** | V2.1      | 하단 시스템 상태바 도메인 슬롯                                                                                                               |
+| **`themePreset`**                   | V2.1      | `power-grid` · `office-light` 등 산업 프리셋                                                                                                 |
 
 **`right` fallback (As-Is)**: registry `right: null` → `getRightSidebarComponent()`가 `@frame/views/common/DefaultRightPanel.vue` 로드 (우측 드로어 **표시됨**).
 
@@ -70,16 +70,16 @@ domainRegistry[domainKey]
 
 ```ts
 type DrawerOpenPolicy =
-  | 'required'      // UX상 사실상 필수 — remember로 영구 closed 불가 · 재진입 시 open
-  | 'recommended'   // registry defaultOpen 따름 · remember ON이면 사용자 마지막 상태
-  | 'optional'      // 기본 closed(또는 defaultOpen:false) · remember ON이면 사용자 존중
-  | 'hidden'        // 해당 side 슬롯 없음 (right: null 등)
+  | 'required' // UX상 사실상 필수 — remember로 영구 closed 불가 · 재진입 시 open
+  | 'recommended' // registry defaultOpen 따름 · remember ON이면 사용자 마지막 상태
+  | 'optional' // 기본 closed(또는 defaultOpen:false) · remember ON이면 사용자 존중
+  | 'hidden' // 해당 side 슬롯 없음 (right: null 등)
 
 type DrawerSidePolicy = {
   openPolicy: DrawerOpenPolicy
-  defaultOpen?: boolean       // recommended/optional일 때 registry 기본 (미지정: rec→true, opt→false)
-  autoOpen?: boolean          // content 준비 후 1회 자동 open
-  emptyMessage?: string       // 패널 비었을 때 안내 (dev right 등)
+  defaultOpen?: boolean // recommended/optional일 때 registry 기본 (미지정: rec→true, opt→false)
+  autoOpen?: boolean // content 준비 후 1회 자동 open
+  emptyMessage?: string // 패널 비었을 때 안내 (dev right 등)
 }
 
 type DomainDrawerDefaults = {
@@ -90,10 +90,10 @@ type DomainDrawerDefaults = {
 
 #### 사용자 설정 — 전역 `drawerMemoryMode`
 
-| 모드 | UI 라벨 (예) | 도메인 전환 시 |
-| ---- | ------------ | -------------- |
-| **`remember`** | 마지막 상태 기억 | `domainKey + side`별 저장값 우선 (`recommended`/`optional`) |
-| **`reset-to-default`** | 항상 도메인 기본값 | registry `drawerDefaults`만 적용 |
+| 모드                   | UI 라벨 (예)       | 도메인 전환 시                                              |
+| ---------------------- | ------------------ | ----------------------------------------------------------- |
+| **`remember`**         | 마지막 상태 기억   | `domainKey + side`별 저장값 우선 (`recommended`/`optional`) |
+| **`reset-to-default`** | 항상 도메인 기본값 | registry `drawerDefaults`만 적용                            |
 
 - **저장**: `userSettingsStore` 또는 V2.1 **`useLayoutStore`** + `localStorage`
 - **키 예**: `layout.drawer.memoryMode` · `layout.drawer.byDomain.{domainKey}.{left|right}.open`
@@ -126,14 +126,14 @@ onDomainChange(domainKey):
 
 #### §3 `drawerDefaults` 열 — 약어 · `openPolicy` × `drawerMemoryMode`
 
-| 약어 | `openPolicy` | 설명 | `reset-to-default` | `remember` | 비고 |
-| ---- | ------------ | ---- | ------------------ | ---------- | ---- |
-| **req** | `required` | **필수 open** — 패널 없으면 UX 깨짐 | 항상 open | **재진입 시 open** (세션 중 닫기 허용 · **영구 closed 저장 불가**) | `dev` right (`R:req†`) |
-| **rec** | `recommended` | **권장 open** — registry `defaultOpen` 기본 true | registry default | 사용자 **마지막** open/closed | §3 **L** 전부 · **R** 12키 |
-| **opt** | `optional` | **선택** — registry `defaultOpen` 기본 false · 닫힌 채 시작 OK | registry default (보통 closed) | 사용자 **마지막** 상태 | 랜딩·카탈로그·보조 패널 · **R** 6키 |
-| **hid** | `hidden` | **해당 side 없음** — 슬롯 미등록 · 정책 **skip** | — | — | |
-| **†** | (수식) | **`autoOpen`** — content 준비 후 1회 자동 open · **`emptyMessage`** — 패널 비었을 때 안내 | 상위 `openPolicy` 따름 | 상위 `openPolicy` 따름 | `req`와 병기 (`R:req†`) |
-| **opt→rec** | `optional` → `recommended` | As-Is fallback only · **전용 RightPanel 신규 후** `rec`로 승격 | `rec`와 동일 | `rec`와 동일 | `nexeed` · `network` |
+| 약어        | `openPolicy`               | 설명                                                                                      | `reset-to-default`             | `remember`                                                         | 비고                                |
+| ----------- | -------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------ | ----------------------------------- |
+| **req**     | `required`                 | **필수 open** — 패널 없으면 UX 깨짐                                                       | 항상 open                      | **재진입 시 open** (세션 중 닫기 허용 · **영구 closed 저장 불가**) | `dev` right (`R:req†`)              |
+| **rec**     | `recommended`              | **권장 open** — registry `defaultOpen` 기본 true                                          | registry default               | 사용자 **마지막** open/closed                                      | §3 **L** 전부 · **R** 12키          |
+| **opt**     | `optional`                 | **선택** — registry `defaultOpen` 기본 false · 닫힌 채 시작 OK                            | registry default (보통 closed) | 사용자 **마지막** 상태                                             | 랜딩·카탈로그·보조 패널 · **R** 6키 |
+| **hid**     | `hidden`                   | **해당 side 없음** — 슬롯 미등록 · 정책 **skip**                                          | —                              | —                                                                  |                                     |
+| **†**       | (수식)                     | **`autoOpen`** — content 준비 후 1회 자동 open · **`emptyMessage`** — 패널 비었을 때 안내 | 상위 `openPolicy` 따름         | 상위 `openPolicy` 따름                                             | `req`와 병기 (`R:req†`)             |
+| **opt→rec** | `optional` → `recommended` | As-Is fallback only · **전용 RightPanel 신규 후** `rec`로 승격                            | `rec`와 동일                   | `rec`와 동일                                                       | `nexeed` · `network`                |
 
 > **`required` + `remember`**: 제품 최소 UX 우선 — 닫아도 **다른 도메인 갔다 오면** 다시 open · 1회 안내: “이 도메인은 패널이 필요합니다”.
 
@@ -141,11 +141,11 @@ onDomainChange(domainKey):
 
 #### Runtime SSOT — `useLayoutStore` (V2.1)
 
-| 담당 | 내용 |
-| ---- | ---- |
-| **registry** | `drawerDefaults` — 도메인별 **정책** (열어야 하는가) |
+| 담당                 | 내용                                                                |
+| -------------------- | ------------------------------------------------------------------- |
+| **registry**         | `drawerDefaults` — 도메인별 **정책** (열어야 하는가)                |
 | **`useLayoutStore`** | `leftOpen` · `rightOpen` · 폭 · `statusBarExpanded` — **현재 상태** |
-| **사용자 설정** | `drawerMemoryMode` + `byDomain` persisted state |
+| **사용자 설정**      | `drawerMemoryMode` + `byDomain` persisted state                     |
 
 보강본 **Store-Driven Layout** (§5대 원칙 ⑤)과 동일 축 — [`_NEXA-OS-V2.1-설계-표준-…-보강본.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md) `useLayoutStore` 참조.
 
@@ -159,28 +159,28 @@ onDomainChange(domainKey):
 > **`erp-parts`**: left/right = **`erp/`** 슬롯 재사용 · `parts/views/right/PartsManagementRightPanel.vue`는 As-Is registry **미연결**.  
 > **store (Pinia)**: **도메인** = `domains/{folder}/store/` · **전역** = `@system/store/*` · `—` = Pinia 미사용.
 
-| 그룹  | `domainKey`    | 폴더         | 역할                                                  | left                              | content                              | right                                                                                    | headerActions                        | store (Pinia)                                                                                                                                 | drawerDefaults (L/R)                          | 하위·특징                                               | 백엔드                                         | V2.1                                                                                    |
-| ----- | -------------- | ------------ | ----------------------------------------------------- | --------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------- |
-| **A** | `home`         | `home/`      | 플랫폼 **진입·랜딩** — NexaBlock·바로가기             | `views/left/HomeLeftNav.vue`      | `views/content/HomeView.vue`         | As-Is **`DefaultRightPanel`** (registry `null`) · → `views/right/HomeRightPanel.tsx`   | —                                    | **전역** `boardMenuStore` · `dashboardLayoutStore`                                                                                            | L:rec · R:opt                                 | NexaBlock · 보드 바로가기                               | — (프론트 only)                                | `themePreset: office-light` · TSX 이식 · globalMenu `/`                                 |
-| **A** | `settings`     | `settings/`  | 계정·환경·플랫폼 옵션                                 | `views/left/SettingsSidebar.vue`  | `views/content/SettingsContent.vue`  | As-Is **`DefaultRightPanel`** · → `views/right/SettingsRightPanel.tsx`                 | —                                    | **도메인** `settingsStore` · **전역** `userSettingsStore`                                                                                     | L:rec · R:opt                                 | `NexionFlowSettings` · 탭 SSOT · **drawerMemoryMode UI** | — (프론트 only)                                | `themePreset: office-light` (권장) · 점진 이식                                          |
-| **A** | `my`           | `my/`        | 마이페이지·프로필·개인 workspace                      | `views/left/MyLeftNav.vue`        | `views/content/MyView.vue`           | As-Is **`DefaultRightPanel`** · → `views/right/MyRightPanel.tsx`                       | —                                    | **전역** `authStore` · `projectStore`                                                                                                         | L:rec · R:opt                                 | 프로필 · 디바이스 · 프로젝트 탭                         | **전역** `auth` · `server/domains/projects/`   | Nest `modules/auth` · `projects` · `themePreset: office-light`                          |
-| **A** | `help`         | `help/`      | 가이드·FAQ·온보딩                                     | `views/left/HelpLeftNav.vue`      | `views/content/HelpView.vue`         | As-Is **`DefaultRightPanel`** · → `views/right/HelpRightPanel.tsx`                     | —                                    | —                                                                                                                                             | L:rec · R:opt                                 | 정적 가이드 · FAQ                                       | — (프론트 only)                                | 정적 콘텐츠 · SEO(App Router) · `office-light`                                          |
-| **B** | `nexia`        | `nexia/`     | **AI** — Ollama 채팅·에디터·음성                      | `views/left/NexiaLeftNav.vue`     | `NexiaDomain.vue`                    | `views/right/NexiaRightPanel.vue` (+ `right/agent/*`)                                    | — (V2.1 → `NexiaHeaderActions`)      | — (`useNexiaInsertRequest` 등 composable)                                                                                                     | L:rec · R:rec                                 | `composables/*` · Agent 패널 · Yjs·Tiptap 연동 예정     | `server/domains/ai/`                           | **1순위** · `statusBar` · `statusPanel` · `headerActions` · `themePreset: office-light` · sync |
-| **B** | `nexion`       | `nexion/`    | **지식 데스크** — Vue Flow 캔버스                     | `views/left/NexionLeftNav.vue`    | `NexionDomain.vue`                   | `views/right/NexionRightPanel.vue`                                                       | —                                    | **도메인** `nexionFlowStore` · **전역** `userSettingsStore`                                                                                   | L:rec · R:rec                                 | `modules/core/` · `useNexionCanvas` · Vue Flow          | — (프론트 only)                                | TSX 이식 · (선택) Yjs binding · `office-light`                                          |
-| **B** | `nexage`       | `nexage/`    | **넥사보드** — Panel·대시·`/nexage/admin`             | `views/left/NexageLeftNav.vue`    | `NexageDomain.vue`                   | `views/right/NexageRightPanel.vue`                                                       | `components/NexageHeaderActions.vue` | **전역** `dashboardLayoutStore` · `boardMenuStore` · `boardEditorStore`                                                                       | L:rec · R:rec                                 | `NexaDashboardRenderer` · `views/admin/`                | — (프론트 only)                                | 대시·패널 엔진 이식 · `office-light`                                                    |
-| **B** | `nexet`        | `nexet/`     | **넥셋** — 디바이스/프로젝트/부품 넥셋 카탈로그       | `views/left/NexetLeftNav.vue`     | `NexetDomain.vue`                    | `views/right/NexetRightPanel.vue`                                                        | —                                    | **전역** `dashboardLayoutStore`                                                                                                               | L:rec · R:rec                                 | `components/side-panel/*`                               | — (프론트 only)                                | 넥셋 카탈로그 TSX · `office-light`                                                      |
-| **B** | `nexel`        | `nexel/`     | **넥셀** — 노드 자동화·NodeCanvas                     | `views/left/NexelLeftNav.vue`     | `NexelDomain.vue`                    | `views/right/NexelRightPanel.vue`                                                        | —                                    | **전역** `nexaNodeStore`                                                                                                                      | L:rec · R:rec                                 | NodeCanvas · Mock/Live 엔진                             | — (프론트 only)                                | `@nexa/shared` device schema · `office-light`                                           |
-| **B** | `nexeed`       | `nexeed/`    | **넥씨드** — 데이터 흐름·Trace 분석                   | `views/left/NexeedLeftNav.vue`    | `NexeedDomain.vue`                   | As-Is **`DefaultRightPanel`** · → `views/right/NexeedRightPanel.tsx`                   | —                                    | —                                                                                                                                             | L:rec · R:opt→rec                             | Trace·데이터 흐름 UI                                    | — (프론트 only)                                | Telemetry 연동 · RightPanel 신규 후 R:rec                                                 |
-| **C** | `infra`        | `infra/`     | **장치·IoT 관제** — my-devices                        | `views/left/InfraSidebar.vue`     | `views/content/InfraContent.vue`     | `views/right/InfraRightPanel.vue`                                                        | —                                    | **도메인** `infraStore`                                                                                                                       | L:rec · R:rec                                 | `my-devices/` · DeviceDetails                           | `server/domains/devices/`                      | → **`dashboard`** · `statusBar` · `statusPanel` · `themePreset: power-grid` \| `factory-night` |
-| **C** | `network`      | `network/`   | WiFi·CAN·Socket·MQTT                                  | `views/NetworkLeftNav.vue`        | `NetworkDomain.vue`                  | As-Is **`DefaultRightPanel`** · → `views/right/NetworkRightPanel.tsx`                  | —                                    | —                                                                                                                                             | L:rec · R:opt→rec                             | 네트워크 프로토콜 UI                                    | — (프론트 only)                                | `dashboard`/`iot` · RightPanel 신규 후 R:rec                                            |
-| **C** | `solutions`    | `solutions/` | Industrial/Living/Media/Art 솔루션 카탈로그           | `views/SolutionsLeftNav.vue`      | `SolutionsDomain.vue`                | As-Is **`DefaultRightPanel`** · → `views/right/SolutionsRightPanel.tsx`                | —                                    | —                                                                                                                                             | L:rec · R:opt                                 | 솔루션 카탈로그·데모                                    | — (프론트 only)                                | 마케팅·카탈로그 · `office-light`                                                        |
-| **D** | `nexa-erp`     | `erp/`       | ERP 메인·업무 흐름                                    | `views/left/ErpLeftNav.vue`       | `ErpDomain.vue`                      | `views/right/ErpRightPanel.vue`                                                          | —                                    | **도메인** `erpStore`                                                                                                                         | L:rec · R:rec                                 | ERP 내비·업무 흐름                                      | — (프론트 only)                                | Nest ERP 모듈 분리 검토 · `office-light`                                                |
-| **D** | `erp-parts`    | `parts/`     | ERP **부품** — 분류·재고 (content만 parts)            | `erp/` 재사용                     | `PartsManagementDomain.vue`          | registry **`erp/ErpRightPanel`** · 미연결 `parts/views/right/PartsManagementRightPanel.vue` | —                                    | **전역** `partsDataStore` · `partsManagementStore` · `userSettingsStore` · `modalSystemStore`                                                 | L:rec · R:rec                                 | ERP 셸 + parts 본문 · 대형 parts UI                     | `server/domains/parts/`                        | Nest `parts` · `@nexa/shared` Zod · `office-light`                                      |
-| **D** | `portfolio`    | `portfolio/` | 프로젝트 **성과·결과물 전시**                         | `views/left/PortfolioLeftNav.vue` | `PortfolioDomain.vue`                | As-Is **`DefaultRightPanel`** · → `views/right/PortfolioRightPanel.tsx`                | —                                    | — (CRUD는 **`my`** · **전역** `projectStore`)                                                                                                 | L:rec · R:opt                                 | `project_releases` 전시                                 | **전역** `server/domains/projects/`            | projects API 연동 · `office-light`                                                      |
-| **E** | `nexa-archive` | `archive/`   | Tiptap·Hub·**Sentinel**                               | `views/left/ArchiveLeftNav.vue`   | `ArchiveDomain.vue`                  | `views/right/ArchiveRightPanel.vue`                                                      | —                                    | **도메인** `archiveSearchStore` · **전역** `partsDataStore` (임시 업로드)                                                                     | L:rec · R:rec                                 | `archive-sentinel/` · Tiptap · Hub                      | `server/domains/archive/`                      | U2BEE embed · sync Yjs · `(embed)/u2bee/archive` · `office-light`                       |
-| **E** | `extension`    | `extension/` | U2BEE 등 **플러그인 UI**                              | `views/ExtensionLeftNav.vue`      | `views/content/ExtensionContent.vue` | As-Is **`DefaultRightPanel`** · → **`u2bee`** `U2BeeRightPanel.tsx`                     | —                                    | —                                                                                                                                             | L:rec · R:opt                                 | `components/u2bee/*`                                    | — (프론트 only)                                | → **`u2bee`** shell · `headerActions` · `themePreset: office-light` · Desktop embed     |
-| **F** | `dev`          | `dev/`       | 문서·DB·테마·코드 분석·가이드                         | `views/DevLeftNav.vue`            | `DevDomain.vue`                      | `views/DevRightPanel.vue`                                                                | —                                    | **전역** `documentManagerStore` · `devGuideStore` · `userSettingsStore`                                                                       | L:rec · **R:req†**                            | `document-manager/` · `dev-tools/*` · `modules/`        | `server/domains/dev/`                          | 문서·스키마 SSOT · `office-light`                                                       |
-| **F** | `nexa-admin`   | `admin/`     | **슈퍼 관리자** — 멤버·AI 리소스                      | `views/left/AdminLeftNav.vue`     | `AdminDomain.vue`                    | `views/right/AdminRightPanel.vue`                                                        | —                                    | **도메인** `adminStore` · **전역** `authStore`                                                                                                | L:rec · R:rec                                 | `AdminMembers` · 비밀번호 변경                          | **전역** `auth` (JWT·멤버)                     | Nest `modules/auth` · Grade·audit 연동 · `office-light`                                 |
+| 그룹  | `domainKey`    | 폴더         | 역할                                                    | left                              | content                              | right                                                                                       | headerActions                        | store (Pinia)                                                                                 | drawerDefaults (L/R) | 하위·특징                                                   | 백엔드                                       | V2.1                                                                                                                    |
+| ----- | -------------- | ------------ | ------------------------------------------------------- | --------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------- | -------------------- | ----------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **A** | `home`         | `home/`      | 플랫폼 **진입·랜딩** — NexaBlock·바로가기               | `views/left/HomeLeftNav.vue`      | `views/content/HomeView.vue`         | As-Is **`DefaultRightPanel`** (registry `null`) · → `views/right/HomeRightPanel.tsx`        | —                                    | **전역** `boardMenuStore` · `dashboardLayoutStore`                                            | L:rec · R:opt        | NexaBlock · 보드 바로가기                                   | — (프론트 only)                              | `themePreset: office-light` · TSX 이식 · globalMenu `/`                                                                 |
+| **A** | `settings`     | `settings/`  | 계정·환경·플랫폼 옵션                                   | `views/left/SettingsSidebar.vue`  | `views/content/SettingsContent.vue`  | As-Is **`DefaultRightPanel`** · → `views/right/SettingsRightPanel.tsx`                      | —                                    | **도메인** `settingsStore` · **전역** `userSettingsStore`                                     | L:rec · R:opt        | `NexionFlowSettings` · 탭 SSOT · **drawerMemoryMode UI**    | — (프론트 only)                              | `themePreset: office-light` (권장) · 점진 이식                                                                          |
+| **A** | `my`           | `my/`        | 마이페이지·프로필·개인 workspace                        | `views/left/MyLeftNav.vue`        | `views/content/MyView.vue`           | As-Is **`DefaultRightPanel`** · → `views/right/MyRightPanel.tsx`                            | —                                    | **전역** `authStore` · `projectStore`                                                         | L:rec · R:opt        | 프로필 · 디바이스 · 프로젝트 탭                             | **전역** `auth` · `server/domains/projects/` | Nest `modules/auth` · `projects` · `themePreset: office-light`                                                          |
+| **A** | `help`         | `help/`      | 가이드·FAQ·온보딩                                       | `views/left/HelpLeftNav.vue`      | `views/content/HelpView.vue`         | As-Is **`DefaultRightPanel`** · → `views/right/HelpRightPanel.tsx`                          | —                                    | —                                                                                             | L:rec · R:opt        | 정적 가이드 · FAQ                                           | — (프론트 only)                              | 정적 콘텐츠 · SEO(App Router) · `office-light`                                                                          |
+| **B** | `nexia`        | `nexia/`     | **AI** — Ollama 채팅·에디터·음성                        | `views/left/NexiaLeftNav.vue`     | `NexiaDomain.vue`                    | `views/right/NexiaRightPanel.vue` (+ `right/agent/*`)                                       | — (V2.1 → `NexiaHeaderActions`)      | — (`useNexiaInsertRequest` 등 composable)                                                     | L:rec · R:rec        | `composables/*` · Agent 패널 · Yjs·Tiptap 연동 예정         | `server/domains/ai/`                         | **1순위** · `statusBar` · `statusPanel` · `headerActions` · `themePreset: office-light` · sync                          |
+| **B** | `nexion`       | `nexion/`    | **지식 데스크** — Vue Flow 캔버스                       | `views/left/NexionLeftNav.vue`    | `NexionDomain.vue`                   | `views/right/NexionRightPanel.vue`                                                          | —                                    | **도메인** `nexionFlowStore` · **전역** `userSettingsStore`                                   | L:rec · R:rec        | `modules/core/` · `useNexionCanvas` · Vue Flow              | — (프론트 only)                              | TSX 이식 · (선택) Yjs binding · `office-light`                                                                          |
+| **B** | `nexage`       | `nexage/`    | **넥사보드** — Panel·대시·IoT·Telemetry·`/nexage/admin` | `views/left/NexageLeftNav.vue`    | `NexageDomain.vue`                   | `views/right/NexageRightPanel.vue`                                                          | `components/NexageHeaderActions.vue` | **전역** `dashboardLayoutStore` · `boardMenuStore` · `boardEditorStore`                       | L:rec · R:rec        | `NexaDashboardRenderer` · `views/admin/` · `views/status/*` | — (프론트 only)                              | **`statusBar`** · **`statusPanel`** · `infra` IoT 흡수 · `themePreset: office-light` \| `power-grid` \| `factory-night` |
+| **B** | `nexet`        | `nexet/`     | **넥셋** — 디바이스/프로젝트/부품 넥셋 카탈로그         | `views/left/NexetLeftNav.vue`     | `NexetDomain.vue`                    | `views/right/NexetRightPanel.vue`                                                           | —                                    | **전역** `dashboardLayoutStore`                                                               | L:rec · R:rec        | `components/side-panel/*`                                   | — (프론트 only)                              | 넥셋 카탈로그 TSX · `office-light`                                                                                      |
+| **B** | `nexel`        | `nexel/`     | **넥셀** — 노드 자동화·NodeCanvas                       | `views/left/NexelLeftNav.vue`     | `NexelDomain.vue`                    | `views/right/NexelRightPanel.vue`                                                           | —                                    | **전역** `nexaNodeStore`                                                                      | L:rec · R:rec        | NodeCanvas · Mock/Live 엔진                                 | — (프론트 only)                              | `@nexa/shared` device schema · `office-light`                                                                           |
+| **B** | `nexeed`       | `nexeed/`    | **넥씨드** — 데이터 흐름·Trace 분석                     | `views/left/NexeedLeftNav.vue`    | `NexeedDomain.vue`                   | As-Is **`DefaultRightPanel`** · → `views/right/NexeedRightPanel.tsx`                        | —                                    | —                                                                                             | L:rec · R:opt→rec    | Trace·데이터 흐름 UI                                        | — (프론트 only)                              | Telemetry 연동 · RightPanel 신규 후 R:rec                                                                               |
+| **C** | `infra`        | `infra/`     | **장치·IoT 관제** — my-devices                          | `views/left/InfraSidebar.vue`     | `views/content/InfraContent.vue`     | `views/right/InfraRightPanel.vue`                                                           | —                                    | **도메인** `infraStore`                                                                       | L:rec · R:rec        | `my-devices/` · DeviceDetails                               | `server/domains/devices/`                    | → **`nexage`** · `statusBar` · `statusPanel` · `themePreset: power-grid` \| `factory-night`                             |
+| **C** | `network`      | `network/`   | WiFi·CAN·Socket·MQTT                                    | `views/NetworkLeftNav.vue`        | `NetworkDomain.vue`                  | As-Is **`DefaultRightPanel`** · → `views/right/NetworkRightPanel.tsx`                       | —                                    | —                                                                                             | L:rec · R:opt→rec    | 네트워크 프로토콜 UI                                        | — (프론트 only)                              | **`nexage`**/`iot` · RightPanel 신규 후 R:rec                                                                           |
+| **C** | `solutions`    | `solutions/` | Industrial/Living/Media/Art 솔루션 카탈로그             | `views/SolutionsLeftNav.vue`      | `SolutionsDomain.vue`                | As-Is **`DefaultRightPanel`** · → `views/right/SolutionsRightPanel.tsx`                     | —                                    | —                                                                                             | L:rec · R:opt        | 솔루션 카탈로그·데모                                        | — (프론트 only)                              | 마케팅·카탈로그 · `office-light`                                                                                        |
+| **D** | `nexa-erp`     | `erp/`       | ERP 메인·업무 흐름                                      | `views/left/ErpLeftNav.vue`       | `ErpDomain.vue`                      | `views/right/ErpRightPanel.vue`                                                             | —                                    | **도메인** `erpStore`                                                                         | L:rec · R:rec        | ERP 내비·업무 흐름                                          | — (프론트 only)                              | Nest ERP 모듈 분리 검토 · `office-light`                                                                                |
+| **D** | `erp-parts`    | `parts/`     | ERP **부품** — 분류·재고 (content만 parts)              | `erp/` 재사용                     | `PartsManagementDomain.vue`          | registry **`erp/ErpRightPanel`** · 미연결 `parts/views/right/PartsManagementRightPanel.vue` | —                                    | **전역** `partsDataStore` · `partsManagementStore` · `userSettingsStore` · `modalSystemStore` | L:rec · R:rec        | ERP 셸 + parts 본문 · 대형 parts UI                         | `server/domains/parts/`                      | Nest `parts` · `@nexa/shared` Zod · `office-light`                                                                      |
+| **D** | `portfolio`    | `portfolio/` | 프로젝트 **성과·결과물 전시**                           | `views/left/PortfolioLeftNav.vue` | `PortfolioDomain.vue`                | As-Is **`DefaultRightPanel`** · → `views/right/PortfolioRightPanel.tsx`                     | —                                    | — (CRUD는 **`my`** · **전역** `projectStore`)                                                 | L:rec · R:opt        | `project_releases` 전시                                     | **전역** `server/domains/projects/`          | projects API 연동 · `office-light`                                                                                      |
+| **E** | `nexa-archive` | `archive/`   | Tiptap·Hub·**Sentinel**                                 | `views/left/ArchiveLeftNav.vue`   | `ArchiveDomain.vue`                  | `views/right/ArchiveRightPanel.vue`                                                         | —                                    | **도메인** `archiveSearchStore` · **전역** `partsDataStore` (임시 업로드)                     | L:rec · R:rec        | `archive-sentinel/` · Tiptap · Hub                          | `server/domains/archive/`                    | U2BEE embed · sync Yjs · `(embed)/u2bee/archive` · `office-light`                                                       |
+| **E** | `extension`    | `extension/` | U2BEE 등 **플러그인 UI**                                | `views/ExtensionLeftNav.vue`      | `views/content/ExtensionContent.vue` | As-Is **`DefaultRightPanel`** · → **`u2bee`** `U2BeeRightPanel.tsx`                         | —                                    | —                                                                                             | L:rec · R:opt        | `components/u2bee/*`                                        | — (프론트 only)                              | → **`u2bee`** shell · `headerActions` · `themePreset: office-light` · Desktop embed                                     |
+| **F** | `dev`          | `dev/`       | 문서·DB·테마·코드 분석·가이드                           | `views/DevLeftNav.vue`            | `DevDomain.vue`                      | `views/DevRightPanel.vue`                                                                   | —                                    | **전역** `documentManagerStore` · `devGuideStore` · `userSettingsStore`                       | L:rec · **R:req†**   | `document-manager/` · `dev-tools/*` · `modules/`            | `server/domains/dev/`                        | 문서·스키마 SSOT · `office-light`                                                                                       |
+| **F** | `nexa-admin`   | `admin/`     | **슈퍼 관리자** — 멤버·AI 리소스                        | `views/left/AdminLeftNav.vue`     | `AdminDomain.vue`                    | `views/right/AdminRightPanel.vue`                                                           | —                                    | **도메인** `adminStore` · **전역** `authStore`                                                | L:rec · R:rec        | `AdminMembers` · 비밀번호 변경                              | **전역** `auth` (JWT·멤버)                   | Nest `modules/auth` · Grade·audit 연동 · `office-light`                                                                 |
 
 **그룹 범례**: **A** 진입·공통 · **B** NEXA 제품군 · **C** IoT·네트워크 · **D** ERP·전시 · **E** 아카이브·확장 · **F** 개발·관리
 
@@ -210,28 +210,28 @@ domains/<name>/
 └── …
 ```
 
-| 규칙             | 내용                                                                                           |
-| ---------------- | ---------------------------------------------------------------------------------------------- |
-| **네이밍**       | registry `domainKey` ≠ 폴더명일 수 있음 — 예: `nexa-archive` → `archive/`, `nexa-erp` → `erp/` |
-| **서브도메인**   | `erp-parts` — left/right는 부모 ERP, content는 `parts/`                                        |
+| 규칙             | 내용                                                                                                                                            |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **네이밍**       | registry `domainKey` ≠ 폴더명일 수 있음 — 예: `nexa-archive` → `archive/`, `nexa-erp` → `erp/`                                                  |
+| **서브도메인**   | `erp-parts` — left/right는 부모 ERP, content는 `parts/`                                                                                         |
 | **store 배치**   | **도메인** = `domains/{folder}/store/*.ts` (또는 `modules/**/stores/`) · **전역** = `src/system/store/` — §3 표 **도메인** / **전역** 표기 준수 |
-| **cross-import** | `domains/a` → `domains/b` **금지** — 공통은 `system/` · `engines/`                             |
-| **드로어 정책**  | V2.1 **`drawerDefaults`** (L/R) — §2.1 · runtime **`useLayoutStore`** |
-| **V2.1 이식**    | `*Domain.vue` → `views/content/*Content.tsx` — **슬롯 경로만** registry에 등록                 |
+| **cross-import** | `domains/a` → `domains/b` **금지** — 공통은 `system/` · `engines/`                                                                              |
+| **드로어 정책**  | V2.1 **`drawerDefaults`** (L/R) — §2.1 · runtime **`useLayoutStore`**                                                                           |
+| **V2.1 이식**    | `*Domain.vue` → `views/content/*Content.tsx` — **슬롯 경로만** registry에 등록                                                                  |
 
 ---
 
 ## 5. 백엔드 `server/domains/` ↔ 프론트 대응
 
-| server/domains | 프론트 `domainKey` / 폴더   | API 예                  |
-| -------------- | --------------------------- | ----------------------- |
-| `devices/`     | `infra/`                    | `/api/devices`          |
-| `parts/`       | `erp-parts` · `parts/`      | `/api/part-classes`     |
-| `projects/`    | `my` · `portfolio`          | projects 라우트         |
-| `archive/`     | `nexa-archive` · `archive/` | archive 라우트          |
-| `ai/`          | `nexia/`                    | ai 라우트               |
-| `dev/`         | `dev/`                      | 문서·스키마·파일 에디터 |
-| `routes/auth`  | `my` · `nexa-admin` · `frame/views/auth` | JWT 로그인·등록·멤버 |
+| server/domains | 프론트 `domainKey` / 폴더                | API 예                  |
+| -------------- | ---------------------------------------- | ----------------------- |
+| `devices/`     | `infra/`                                 | `/api/devices`          |
+| `parts/`       | `erp-parts` · `parts/`                   | `/api/part-classes`     |
+| `projects/`    | `my` · `portfolio`                       | projects 라우트         |
+| `archive/`     | `nexa-archive` · `archive/`              | archive 라우트          |
+| `ai/`          | `nexia/`                                 | ai 라우트               |
+| `dev/`         | `dev/`                                   | 문서·스키마·파일 에디터 |
+| `routes/auth`  | `my` · `nexa-admin` · `frame/views/auth` | JWT 로그인·등록·멤버    |
 
 > As-Is 백엔드는 **Express** (`server/`). V2.1은 **NestJS** `apps/backend/src/modules/` — **auth** · **devices** · **iot** · **control** · **edge-queue** (보강본 §Monorepo).
 
@@ -241,28 +241,29 @@ domains/<name>/
 
 As-Is `domainRegistry` 슬롯에 아래를 **추가**한다. **전체 20개 도메인**은 §3 통합 표와 **동일 키**로 점진 등록.
 
-| 추가 슬롯          | 용도                                            |
-| ------------------ | ----------------------------------------------- |
+| 추가 슬롯            | 용도                                                      |
+| -------------------- | --------------------------------------------------------- |
 | **`drawerDefaults`** | L/R **`openPolicy`** · `autoOpen` · `emptyMessage` — §2.1 |
-| `statusBar`        | 도메인 전용 30px 한 줄 (IoT·관제)               |
-| `statusPanel`      | StatusOpsPanel **아래** 도메인 상세             |
-| `themePreset`      | `power-grid` · `factory-night` · `office-light` |
+| `statusBar`          | 도메인 전용 30px 한 줄 (IoT·관제)                         |
+| `statusPanel`        | StatusOpsPanel **아래** 도메인 상세                       |
+| `themePreset`        | `power-grid` · `factory-night` · `office-light`           |
 
 **V2.1 신규·통합 도메인 (As-Is 표 외)**
 
-| `domainKey` | 설명          | As-Is 대응                 | `themePreset` (보강본)     |
-| ----------- | ------------- | -------------------------- | -------------------------- |
-| `dashboard` | IoT 통합 관제 | `infra` + Telemetry/Safety | `power-grid` · `factory-night` · `control-room` |
-| `u2bee`     | U2BEE shell   | `extension` + `archive`    | `office-light`             |
+| `domainKey` | 설명        | As-Is 대응              | `themePreset` (보강본) |
+| ----------- | ----------- | ----------------------- | ---------------------- |
+| `u2bee`     | U2BEE shell | `extension` + `archive` | `office-light`         |
+
+> IoT·Telemetry·Safety 통합 관제는 별도 `domainKey` 없이 As-Is **`nexage`**에 `statusBar` · `statusPanel` · `power-grid`/`factory-night`/`control-room`으로 확장한다 (`infra` 연계).
 
 **`themePreset` 권장 매핑 (보강본 §Theme)**
 
-| `themePreset`     | 권장 `domainKey`                          |
-| ----------------- | ----------------------------------------- |
-| `office-light`    | `home` · `nexia` · `u2bee` · 대부분 업무 도메인 |
-| `power-grid`      | `dashboard` (전력·에너지)                 |
-| `factory-night`   | `dashboard` (야간·저조도)                 |
-| `control-room`    | `dashboard` (24h 관제 옵션)               |
+| `themePreset`   | 권장 `domainKey`                                |
+| --------------- | ----------------------------------------------- |
+| `office-light`  | `home` · `nexia` · `u2bee` · 대부분 업무 도메인 |
+| `power-grid`    | `nexage` (전력·에너지·IoT)                      |
+| `factory-night` | `nexage` (야간·저조도)                          |
+| `control-room`  | `nexage` (24h 관제 옵션)                        |
 
 ```ts
 // V2.1 등록 예 (nexia — 슬롯 + drawerDefaults + 확장)
@@ -323,15 +324,144 @@ dev: {
 
 **`src/system/`**
 
-| 하위               | 용도                                      |
-| ------------------ | ----------------------------------------- |
-| `boot/`            | pinia, notify, errorTracking              |
+| 하위               | 용도                                                                                               |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| `boot/`            | pinia, notify, errorTracking                                                                       |
 | `store/`           | **전역 Pinia** — authStore, projectStore, **`userSettingsStore.drawer`** (memoryMode · byDomain) … |
-| `components/ui/`   | Explorer, Table, Viewer                   |
-| `schemas/`         | Zod·도메인 타입                           |
-| `css/nexa-system/` | 디자인 토큰 SCSS                          |
-| `nixie/`           | NIXIE HUD·웨이브폼                        |
+| `components/ui/`   | Explorer, Table, Viewer                                                                            |
+| `schemas/`         | Zod·도메인 타입                                                                                    |
+| `css/nexa-system/` | 디자인 토큰 SCSS                                                                                   |
+| `nixie/`           | NIXIE HUD·웨이브폼                                                                                 |
 
 ---
+
+## 9. M2P 및 BAX 시스템의 핵심 설계 React 컴포넌트 예제
+
+M2P 및 BAX 시스템의 핵심 설계 원칙인 **3축 메타데이터(Depth × Mutability × Priority)**와 **3×3 매트릭스 주소 체계**를 반영한 React 컴포넌트 예제
+
+> 이 코드는 NEXA OS V2.1의 기술 스택인 Next.js, Tailwind CSS, 그리고 Framer Motion을 기반으로 합니다.
+
+### 1. 컴포넌트 속성 인터페이스 정의
+
+모든 BAX 컴포넌트는 시스템이 위치와 시각 효과를 결정할 수 있도록 다음 메타데이터를 가져야 합니다.
+
+```typescript
+// packages/shared/src/types/bax.ts (또는 컴포넌트 상단)
+export type Depth = 'BG' | 'MID' | 'FG'
+export type Mutability = 'IMMUTABLE' | 'MUTABLE'
+export type Priority = 'ESSENTIAL' | 'CONTEXTUAL' | 'TEXTURE'
+export type MatrixID = 'BG-L' | 'BG-C' | 'BG-R' | 'MID-L' | 'MID-C' | 'MID-R' | 'FG-L' | 'FG-C' | 'FG-R'
+
+interface BaxComponentProps {
+  matrixId: MatrixID
+  depth: Depth
+  mutability: Mutability
+  priority: Priority
+  children: React.ReactNode
+}
+```
+
+### 2. 핵심 컴포넌트 예제: Comp C (IoT Card)
+
+**Comp C**는 근경(FG)에 위치하며, 가변적(MUTABLE)이고 본질적인(ESSENTIAL) 정보를 담습니다. 가독성 확보를 위한 **Safe-Zone(min-w 300px)**과 **V1 진동(Sparkline)**이 적용된 예시입니다.
+
+```tsx
+import { motion } from 'framer-motion'
+import { useBaxStore } from '@/store/useBaxStore' // 상태 관리 스토어 가정
+
+export const IoTCard = ({ matrixId, data }: { matrixId: MatrixID; data: any }) => {
+  const { circuitState } = useBaxStore() // 회로 차단기 상태 구독
+
+  return (
+    <motion.div
+      // 300ms Easing 적용
+      layout
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      // Matrix ID에 따른 그리드 위치 및 시각 속성 매핑
+      className={`
+        bax-component safe-zone
+        depth-fg mutability-mutable priority-essential
+        min-w-[300px] min-h-[120px] p-6 rounded-2xl
+        bg-background/80 backdrop-blur-md shadow-xl
+        ${matrixId === 'FG-C' ? 'scale-110 border-2 border-primary' : 'scale-100'}
+      `}
+    >
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-mono opacity-50">{matrixId}</span>
+        <h3 className="text-2xl font-bold">온도 센서</h3>
+        <p className="text-4xl font-black text-status-ok">{data.value}°C</p>
+      </div>
+
+      {/* V1 진동: Sparkline (Circuit Open 시 차단) */}
+      {circuitState === 'closed' && (
+        <div className="mt-4 h-8 w-full opacity-30">
+          <SparklineV1 data={data.history} />
+        </div>
+      )}
+    </motion.div>
+  )
+}
+```
+
+### 3. 미학적 컴포넌트 예제: Comp A (Giant Typography)
+
+**Comp A**는 원경(BG)에서 레이아웃의 무게중심을 잡는 불변(IMMUTABLE)의 질감(TEXTURE) 컴포넌트입니다.
+
+```tsx
+export const GiantBackground = ({ matrixId, text }: { matrixId: MatrixID; text: string }) => {
+  return (
+    <div
+      className="
+        depth-bg mutability-immutable priority-texture
+        pointer-events-none select-none
+        fixed flex items-center justify-center
+        w-full h-full overflow-hidden
+      "
+      style={{
+        // Matrix ID(BG-L 등)에 따른 고유 블러 및 투명도 적용
+        filter: 'blur(40px)',
+        opacity: 0.05,
+      }}
+    >
+      <h1 className="text-[15vw] font-black leading-none uppercase">{text}</h1>
+    </div>
+  )
+}
+```
+
+### 4. VirtualCanvas에서의 조립 (레이아웃 엔진)
+
+3×3 그리드 시스템 내에서 CSS Variables를 통해 **적정여백율(OVR)**과 **호흡(Breathing)** 효과를 컨트롤합니다.
+
+```tsx
+// apps/bax-demo/src/components/VirtualCanvas.tsx
+export const VirtualCanvas = () => {
+  const { voidRatio, focusBlur } = useBaxStore();
+
+  return (
+    <div
+      className="virtual-canvas grid grid-cols-3 grid-rows-3 h-screen w-screen"
+      style={{
+        // BAX 엔진 상태를 CSS 변수로 전달
+        '--bax-void-ratio': `${voidRatio}%`,
+        '--bax-focus-blur': `${focusBlur}px`,
+        padding: `calc(var(--bax-void-ratio) / 5)` // 여백을 통한 호흡 구현
+      } as React.CSSProperties}
+    >
+      {/* 컴포넌트들이 지정된 matrixId에 맞춰 배치됨 */}
+      <GiantBackground matrixId="BG-L" text="NEXA" />
+      <div className="col-start-3 row-start-3 flex items-center justify-center">
+        <IoTCard matrixId="FG-R" data={{ value: 72, history: [...] }} />
+      </div>
+    </div>
+  );
+};
+```
+
+### 구현 시 주의사항
+
+1.  **G2 가드레일 (Safe-Zone 우선)**: 브라우저 크기가 작아져서 `void_ratio`와 `Safe-Zone(300px)`이 충돌할 경우, 여백율을 포기하더라도 정보 가독성을 위해 `Safe-Zone`을 우선해야 합니다.
+2.  **G5 가드레일 (진동 차단)**: 시스템 부하(`circuitState !== 'closed'`) 발생 시, Sparkline과 같은 모든 **Vibration 계층(V1~V3)**은 즉시 렌더링을 중단(0 frame)해야 합니다.
+3.  **300ms Easing**: 모든 상태 변화(`matrix_id` 이동, `blur` 변경 등)는 시각적 피로도를 낮추기 위해 반드시 **300ms 이하의 부드러운 전환**을 거쳐야 합니다.
 
 _최종 갱신: §2.1 **`drawerDefaults`** 드로어 정책 · §3 20키 L/R `openPolicy`._

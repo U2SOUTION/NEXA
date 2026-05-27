@@ -1,0 +1,12 @@
+{
+  "name": "bax-demo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "@role BAX MVP 실험 앱 — Vite+React. MAE·ATS·M2P 통합 데모 (SSOT v0.9 §6)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  }
+}
