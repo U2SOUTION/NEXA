@@ -4,6 +4,8 @@
  */
 
 import type { ComponentVisual, ComponentUrgency } from '../types/component'
+import { blockClass, blockHandlers, blockStyle } from '../canvas/blockRoot'
+import { BlockBadges } from './BlockBadges'
 
 interface Props {
   id: string
@@ -14,7 +16,7 @@ interface Props {
   max: number
   urgency?: ComponentUrgency
   accent?: string
-  embedded?: boolean
+  onFocus: (id: string) => void
 }
 
 export function GaugeCard({
@@ -26,7 +28,7 @@ export function GaugeCard({
   max,
   urgency = 'NORMAL',
   accent = 'var(--bax-accent)',
-  embedded,
+  onFocus,
 }: Props) {
   if (visual.hidden) return null
 
@@ -35,18 +37,13 @@ export function GaugeCard({
 
   return (
     <div
-      className={`bax-gauge ${isCritical ? 'bax-gauge--critical' : ''}`}
-      style={{
-        ...(embedded ? {} : { gridArea: visual.gridArea, zIndex: visual.zIndex }),
-        opacity: visual.opacity,
-        filter: visual.blurPx ? `blur(${visual.blurPx}px)` : undefined,
-        minWidth: id === 'gauge-humidity' ? 180 : undefined,
-      }}
+      className={blockClass(visual, `bax-gauge${isCritical ? ' bax-gauge--critical' : ''}`)}
+      style={blockStyle(visual, { minWidth: id === 'gauge-humidity' ? 180 : undefined })}
+      {...blockHandlers(id, onFocus)}
     >
-      <div className="bax-gauge__head">
-        <span className="bax-gauge__label">{label}</span>
-        <span className="bax-gauge__urgency">{urgency}</span>
-      </div>
+      <BlockBadges visual={visual} />
+      <span className="bax-gauge__label">{label}</span>
+      <span className="bax-gauge__urgency">{urgency}</span>
       <div className="bax-gauge__value">
         {value}
         <small>{unit}</small>

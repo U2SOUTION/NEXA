@@ -4,29 +4,29 @@
  */
 
 import type { ComponentVisual } from '../types/component'
+import { blockClass, blockHandlers, blockStyle } from '../canvas/blockRoot'
+import { BlockBadges } from './BlockBadges'
 
 interface Props {
   id: string
   visual: ComponentVisual
   values: number[]
   label?: string
-  embedded?: boolean
+  onFocus: (id: string) => void
 }
 
-export function BarChart({ visual, values, label = 'System Load', embedded }: Props) {
+export function BarChart({ id, visual, values, label = 'System Load', onFocus }: Props) {
   if (visual.hidden) return null
 
   const max = Math.max(...values, 1)
 
   return (
     <div
-      className="bax-bars"
-      style={{
-        ...(embedded ? {} : { gridArea: visual.gridArea, zIndex: visual.zIndex }),
-        opacity: visual.opacity,
-        filter: visual.blurPx ? `blur(${visual.blurPx}px)` : undefined,
-      }}
+      className={blockClass(visual, 'bax-bars')}
+      style={blockStyle(visual)}
+      {...blockHandlers(id, onFocus)}
     >
+      <BlockBadges visual={visual} />
       <div className="bax-bars__label">{label}</div>
       <div className="bax-bars__chart">
         {values.map((v, i) => (

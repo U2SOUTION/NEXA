@@ -4,9 +4,12 @@
  */
 
 import type { ComponentVisual, ComponentUrgency } from '../types/component'
+import { blockClass, blockHandlers, blockStyle } from '../canvas/blockRoot'
+import { BlockBadges } from './BlockBadges'
 import { Sparkline } from './Sparkline'
 
 interface Props {
+  id: string
   visual: ComponentVisual
   temp: number
   urgency: ComponentUrgency
@@ -14,10 +17,11 @@ interface Props {
   sparklineVisible: boolean
   sparklineIntensity: 0 | 1 | 2
   history: number[]
-  embedded?: boolean
+  onFocus: (id: string) => void
 }
 
 export function Sentinel({
+  id,
   visual,
   temp,
   urgency,
@@ -25,7 +29,7 @@ export function Sentinel({
   sparklineVisible,
   sparklineIntensity,
   history,
-  embedded,
+  onFocus,
 }: Props) {
   if (visual.hidden) return null
 
@@ -33,14 +37,11 @@ export function Sentinel({
 
   return (
     <div
-      className={`bax-sentinel ${isCritical ? 'bax-sentinel--critical' : ''}`}
-      style={{
-        ...(embedded ? {} : { gridArea: visual.gridArea, zIndex: visual.zIndex }),
-        opacity: visual.opacity,
-        minWidth: 300,
-        minHeight: 120,
-      }}
+      className={blockClass(visual, `bax-sentinel${isCritical ? ' bax-sentinel--critical' : ''}`)}
+      style={blockStyle(visual, { minWidth: 300, minHeight: 120 })}
+      {...blockHandlers(id, onFocus)}
     >
+      <BlockBadges visual={visual} />
       <div className="bax-sentinel__label">Sentinel · ESSENTIAL</div>
       <div className="bax-sentinel__temp">{temp}°C</div>
       <div className="bax-sentinel__meta">

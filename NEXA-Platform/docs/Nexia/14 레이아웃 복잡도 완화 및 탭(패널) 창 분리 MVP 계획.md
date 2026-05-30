@@ -34,12 +34,12 @@
 | 라우팅 | **Vue Router** | detach 전용 라우트 1~N개 또는 query 기반 단일 라우트 |
 | 팝아웃 | **`window.open(url, '_blank', 'popup=1,width=...,height=...')`** | 브라우저 팝업 정책·사용자 허용 고려 |
 | 상태 | **Pinia** (또는 기존 `useNexiaSplitLayout` 확장) | “분리됨” 플래그만 먼저 |
-| 동기 (선택) | **`BroadcastChannel`** | 같은 origin 창 간 경량 이벤트; 상세는 `08 멀티윈도우 아키텍처 규격` |
+| 동기 (선택) | **`BroadcastChannel`** | 같은 origin 창 간 경량 이벤트; 상세는 `08 멀티윈도우 · Document PiP 통합 규격` |
 | 이후 확장 | **Yjs / SharedWorker** | 08 문서 로드맵 — MVP에 필수 아님 |
 
 ## 5. 기존 문서와의 관계
 
-- **`08 멀티윈도우 아키텍처 규격`**: 최종 형(창 매니저, Sync Bus 명명, 제어권)의 **상위 표준**이다.
+- **`08 멀티윈도우 · Document PiP 통합 규격 및 선택 가이드`**: 최종 형(창 매니저, Sync Bus 명명, 제어권, MW/PiP 선택)의 **상위 표준**이다.
 - **본 문서(14)**: 그 전에 할 **최소 실험·MVP 순서**를 적어 두었다. 08의 SharedWorker/Yjs는 **팝아웃 MVP 이후**에 맞춰 올리면 된다.
 
 ## 6. 하지 않기로 두는 것 (MVP 동안)

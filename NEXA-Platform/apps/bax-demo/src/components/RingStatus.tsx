@@ -4,15 +4,17 @@
  */
 
 import type { ComponentVisual } from '../types/component'
+import { blockClass, blockHandlers, blockStyle } from '../canvas/blockRoot'
+import { BlockBadges } from './BlockBadges'
 
 interface Props {
   id: string
   visual: ComponentVisual
   segments: number[]
-  embedded?: boolean
+  onFocus: (id: string) => void
 }
 
-export function RingStatus({ visual, segments, embedded }: Props) {
+export function RingStatus({ id, visual, segments, onFocus }: Props) {
   if (visual.hidden) return null
 
   const size = 120
@@ -49,13 +51,11 @@ export function RingStatus({ visual, segments, embedded }: Props) {
 
   return (
     <div
-      className="bax-ring"
-      style={{
-        ...(embedded ? {} : { gridArea: visual.gridArea, zIndex: visual.zIndex }),
-        opacity: visual.opacity,
-        filter: visual.blurPx ? `blur(${visual.blurPx}px)` : undefined,
-      }}
+      className={blockClass(visual, 'bax-ring')}
+      style={blockStyle(visual)}
+      {...blockHandlers(id, onFocus)}
     >
+      <BlockBadges visual={visual} />
       <div className="bax-ring__label">Node Health</div>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--bax-border)" strokeWidth={stroke} />

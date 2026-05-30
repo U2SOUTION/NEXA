@@ -66,10 +66,9 @@ body {
   }
 }
 
-.bax-viewport {
-  padding: 0.5rem;
+.bax-main > .bax-canvas {
+  margin: 0.5rem;
   overflow: auto;
-  background: radial-gradient(ellipse at 30% 20%, #152030 0%, var(--bax-bg) 60%);
 }
 
 .bax-canvas {
@@ -83,13 +82,60 @@ body {
   box-sizing: border-box;
 }
 
+.bax-block {
+  position: relative;
+  cursor: pointer;
+  border-radius: 10px;
+  outline: none;
+  transition:
+    box-shadow 300ms ease-out,
+    outline-color 200ms ease-out;
+}
+
+.bax-block:hover {
+  box-shadow: 0 0 0 1px rgba(120, 200, 255, 0.35);
+}
+
+.bax-block--main {
+  box-shadow: 0 0 0 2px rgba(120, 200, 255, 0.55);
+}
+
+.bax-block--alarm {
+  box-shadow: 0 0 0 2px var(--bax-critical), 0 0 24px rgba(255, 107, 74, 0.2);
+}
+
+.bax-block__badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  font-family: var(--bax-mono);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.bax-block__badge--main {
+  background: rgba(120, 200, 255, 0.2);
+  color: var(--bax-accent);
+}
+
+.bax-block__badge--alarm {
+  background: rgba(255, 107, 74, 0.25);
+  color: var(--bax-critical);
+  top: 6px;
+  left: 6px;
+  right: auto;
+}
+
 .bax-anchor {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
   padding: 2rem;
-  pointer-events: none;
   user-select: none;
 }
 
@@ -112,7 +158,6 @@ body {
 .bax-sentinel {
   position: relative;
   padding: 1.5rem;
-  margin: 1rem;
   background: rgba(18, 24, 32, 0.85);
   border: 1px solid var(--bax-border);
   border-radius: 10px;
@@ -278,22 +323,18 @@ body {
   font-family: var(--bax-mono);
 }
 
-.bax-viewport__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  padding: 0 0 0.5rem;
-  font-size: 0.65rem;
-  font-family: var(--bax-mono);
-  color: var(--bax-muted);
-}
-
 .bax-glyph {
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0.75rem 1rem;
-  pointer-events: none;
+}
+
+.bax-glyph__lines {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
 }
 
 .bax-glyph--hero .bax-glyph__primary {
@@ -315,15 +356,21 @@ body {
 
 .bax-glyph__secondary {
   font-size: 0.65rem;
-  letter-spacing: 0.15em;
+  letter-spacing: normal;
   text-transform: uppercase;
   color: var(--bax-muted);
   margin-top: 0.25rem;
 }
 
+.bax-glyph__secondary [data-glyph-char] {
+  flex: 0 0 auto;
+}
+
 .bax-gauge {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
   padding: 1rem;
-  margin: 0.35rem;
   background: rgba(18, 24, 32, 0.75);
   border: 1px solid var(--bax-border);
   border-radius: 8px;
@@ -334,9 +381,7 @@ body {
   border-color: var(--bax-critical);
 }
 
-.bax-gauge__head {
-  display: flex;
-  justify-content: space-between;
+.bax-gauge__label {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -346,9 +391,11 @@ body {
 .bax-gauge__urgency {
   font-family: var(--bax-mono);
   font-size: 0.6rem;
+  color: var(--bax-muted);
 }
 
 .bax-gauge__value {
+  grid-column: 1 / -1;
   font-size: 1.75rem;
   font-weight: 300;
   margin: 0.35rem 0;
@@ -362,6 +409,7 @@ body {
 }
 
 .bax-gauge__track {
+  grid-column: 1 / -1;
   height: 4px;
   background: var(--bax-border);
   border-radius: 2px;
@@ -410,7 +458,6 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  margin: 0.35rem;
 }
 
 .bax-ring__label {
@@ -439,54 +486,6 @@ body {
   letter-spacing: 0.15em;
   color: var(--bax-muted);
   margin-bottom: 0.25rem;
-}
-
-.bax-focus-shell {
-  position: relative;
-  cursor: pointer;
-  border-radius: 10px;
-  outline: none;
-  transition:
-    box-shadow 300ms ease-out,
-    outline-color 200ms ease-out;
-}
-
-.bax-focus-shell:hover {
-  box-shadow: 0 0 0 1px rgba(120, 200, 255, 0.35);
-}
-
-.bax-focus-shell--main {
-  box-shadow: 0 0 0 2px rgba(120, 200, 255, 0.55);
-}
-
-.bax-focus-shell--alarm {
-  box-shadow: 0 0 0 2px var(--bax-critical), 0 0 24px rgba(255, 107, 74, 0.2);
-}
-
-.bax-focus-shell__badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  font-size: 0.55rem;
-  letter-spacing: 0.12em;
-  padding: 0.15rem 0.35rem;
-  border-radius: 3px;
-  font-family: var(--bax-mono);
-  z-index: 5;
-  pointer-events: none;
-}
-
-.bax-focus-shell__badge--main {
-  background: rgba(120, 200, 255, 0.2);
-  color: var(--bax-accent);
-}
-
-.bax-focus-shell__badge--alarm {
-  background: rgba(255, 107, 74, 0.25);
-  color: var(--bax-critical);
-  top: 6px;
-  left: 6px;
-  right: auto;
 }
 
 .bax-focus-chips {

@@ -210,5 +210,5 @@
 
 - `00 인공지능 NEXIA 구조와 기술 스택과 운영방침.md`
 - `04 사용자 경험(UX)의 포용성 및 확장 (Inclusivity & UX Expansion).md`
-- `08 멀티윈도우 아키텍처 규격 (Multi-Window Architecture Specification).md`
-- `09 Document PiP 운영 규격 (Document Picture-in-Picture Operations Spec).md`
+- `08 멀티윈도우 · Document PiP 통합 규격 및 선택 가이드 (Multi-Window & PiP Specification).md`
+- `08 멀티윈도우 · Document PiP 통합 규격 및 선택 가이드 (Multi-Window & PiP Specification).md`

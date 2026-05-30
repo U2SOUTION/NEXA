@@ -4,15 +4,18 @@
  */
 
 import type { ComponentVisual } from '../types/component'
+import { blockClass, blockHandlers, blockStyle } from '../canvas/blockRoot'
+import { BlockBadges } from './BlockBadges'
 
 interface Props {
+  id: string
   visual: ComponentVisual
   lightX: number
   lightY: number
-  embedded?: boolean
+  onFocus: (id: string) => void
 }
 
-export function Anchor({ visual, lightX, lightY, embedded }: Props) {
+export function Anchor({ id, visual, lightX, lightY, onFocus }: Props) {
   if (visual.hidden) return null
 
   const angle = Math.atan2(lightY - 50, lightX - 50) * (180 / Math.PI)
@@ -21,14 +24,13 @@ export function Anchor({ visual, lightX, lightY, embedded }: Props) {
 
   return (
     <div
-      className="bax-anchor"
-      style={{
-        ...(embedded ? {} : { gridArea: visual.gridArea, zIndex: visual.zIndex }),
-        opacity: visual.opacity,
-        filter: visual.blurPx ? `blur(${visual.blurPx}px)` : undefined,
+      className={blockClass(visual, 'bax-anchor')}
+      style={blockStyle(visual, {
         textShadow: `${shadowX}px ${shadowY}px 48px rgba(120, 200, 255, 0.15)`,
-      }}
+      })}
+      {...blockHandlers(id, onFocus)}
     >
+      <BlockBadges visual={visual} />
       <span className="bax-anchor__word">BAX</span>
       <span className="bax-anchor__sub">Breathing AI Experience</span>
     </div>
