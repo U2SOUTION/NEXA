@@ -7,7 +7,8 @@ flowchart TD
     subgraph DEV["🖥️ 개발 환경 (Windows)"]
         RD["Rivet Desktop\n(프롬프트 설계 / 테스트)"]
         NJ["Node.js 서버\n(파일시스템 작업)"]
-        RD -->|"External Call"| NJ
+        RD -->|"MCP FileSystem (To-Be)"| FS["로컬 모노레포"]
+        RD -.->|"레거시"| NJ["Node 임시 서버"]
     end
 
     subgraph WEBAPP["🌐 웹앱 (독립 산출물)"]
@@ -39,7 +40,7 @@ Next.js  (프론트엔드)
 NestJS   (백엔드) ← 여기 안에 Rivet Core + 파일시스템 작업 모두 포함
 ```
 
-개발환경의 별도 Node.js 서버는 **Desktop Rivet 전용 임시 서버**였고, 웹앱에서는 **NestJS가 그 역할을 흡수**합니다.
+Desktop Rivet은 **MCP Discovery / MCP Tool Call**(FileSystem)으로 로컬 I/O를 처리하는 것을 To-Be로 합니다(`Desktop Rivet 캔버스(Graph) 설계.md` §MCP). 별도 Node.js 서버(External Call)는 **레거시 스케치**이며, 웹앱에서는 **NestJS가 파일시스템 역할을 흡수**합니다.
 
 ---
 
