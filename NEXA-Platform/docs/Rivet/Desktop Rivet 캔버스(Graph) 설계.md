@@ -23,25 +23,25 @@ docs/
 
 ### 모노레포 플랫폼 구축을 위한 표준 Subroutine(서브 캔버스(Graph)) 정의서
 
-| 번호 | 서브루틴(캔버스(Graph)) 명칭 | 주요 역할 (Hermes 3 페르소나 및 임무)                                                                                                                                                                                                                                                                                                                                                         | 입력 데이터 (Input)                                                                | 출력 데이터 (Output)                                                                                                       |
-| ---- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 번호 | 서브루틴(캔버스(Graph)) 명칭 | 주요 역할 (Hermes 3 페르소나 및 임무)                                                                                                                                                                                                                                                                                                               | 입력 데이터 (Input)                                                                   | 출력 데이터 (Output)                                                                                               |
+| ---- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Main | Main Orchestrator            | [지휘·게이트·분기] **LLM 없음** — `run_id` · **Aux-Inv → 00~07 → J → MCP_GITHUB** · **Aux-Log** 각 Subgraph 직후 · **Aux-Human** `CP-00`·`CP-03`·`CP-J` · **07-pre** 전 **04~06 미실행** · **Join**·**07-final** · **`CP-J` 승인 → J → MCP_GITHUB** · Git 실패 시 J 성공은 유지 가능(`partial_success`) · 실패 라우팅 Zod→**03** · 파생물→**04~06** | 트리거 · `docs/`·Normex·루트 · Aux·handoff · Human 플래그 · (선택) Git 브랜치·PR 정책 | `run_id` · `pipeline_result` · `written_paths[]` · `git_commit_sha` · `pr_url`(선택) · `step_log[]` · `last_error` |
-| 00   | Sub_Doc_Refiner_and_Placer   | [문서 정제·배치] inbox 날것을 Normex에 맞게 **`docs/refined/`** 저장 · inbox 원본 **`docs/trash/inbox/…`** 미러 · **Refined Manifest** JSON 산출 (인벤토리 스캔은 **Aux-Inv** 담당)                                                                                                                                                                                                           | **Aux-Inv** `inbox_inventory.json` · inbox 대상 · refined/specs 맥락 · 파일명 규약 | `docs/refined/**` · **refined_manifest.json** — 01번 입력                                                                  |
-| 01   | Sub_Doc_Chunker              | 대량의 MD 기획서를 도메인(유저, 인증, 상품 등)별로 분류하고 처리 가능한 크기로 쪼갬                                                                                                                                                                                                                                                                                                           | **`docs/refined/`** 파일 목록 및 경로                                              | 도메인별 분류된 문서 청크 배열 (Array)                                                                                     |
-| 02   | Sub_Conflict_Analyzer        | [충돌 분석] 기획서 간의 데이터 항목 누락, 웹-PC 간의 로직 모순, 타입 불일치를 찾아내 리포트 작성                                                                                                                                                                                                                                                                                              | 분할된 문서 청크                                                                   | 모순점 및 데이터 필드가 정리된 충돌 리포트 (Text)                                                                          |
-| 03   | Sub_Zod_Schema_Generator     | [최상위 표준 수립] Zod SSOT **초안** 작성 · **디스크 반영은 `CP-J` 승인 후 J**                                                                                                                                                                                                                                                                                                                | 병합된 최종 충돌 리포트 · (참고) `docs/specs/` 맥락                                | Zod·specs 가이드 **버퍼** — J 시 `packages/shared` · `docs/specs/`                                                         |
-| 04   | Sub_Prisma_Schema_Converter  | [DB 연동] 사전 검증 통과 Zod를 기반으로 DB에 반영할 Prisma 데이터 모델 구조 생성 (04·05·06 **병렬** 중 하나)                                                                                                                                                                                                                                                                                  | 03번 Zod · **07번 사전 검증 통과** 게이트                                          | Prisma 스키마 코드 블록 (schema.prisma 추가용)                                                                             |
-| 05   | Sub_Pydantic_Converter       | [PC 프로그램 연동] 사전 검증 통과 Zod를 Pydantic 모델로 변환 (04·05·06 **병렬** 중 하나)                                                                                                                                                                                                                                                                                                      | 03번 Zod · **07번 사전 검증 통과** 게이트                                          | Python Pydantic 모델 코드 (schemas.py 형태)                                                                                |
-| 06   | Sub_NestJS_DTO_Generator     | [백엔드 연동] 사전 검증 통과 Zod를 NestJS API DTO(Class)로 가공 (04·05·06 **병렬** 중 하나)                                                                                                                                                                                                                                                                                                   | 03번 Zod · **07번 사전 검증 통과** 게이트                                          | nestjs-zod 기반 백엔드 DTO 코드                                                                                            |
-| 07   | Sub_Syntax_Validator         | [사전·최종 검증] **① 사전**: 03번 Zod만 정적 검사(통과 시에만 04~06 게이트 오픈) · **② 최종**: 04~06 병렬 산출물 전체(TS·Python·Prisma) 문법·타입 유실 검사 및 셀프 피드백                                                                                                                                                                                                                    | ① 03번 Zod 스키마 · ② 04~06 생성 코드 전체                                         | 검증 통과 여부 및 오류 수정 제안 (Boolean / Text)                                                                          |
+| 00   | Sub_Doc_Refiner_and_Placer   | [문서 정제·배치] inbox 날것을 Normex에 맞게 **`docs/refined/`** 저장 · inbox 원본 **`docs/trash/inbox/…`** 미러 · **Refined Manifest** JSON 산출 (인벤토리 스캔은 **Aux-Inv** 담당)                                                                                                                                                                 | **Aux-Inv** `inbox_inventory.json` · inbox 대상 · refined/specs 맥락 · 파일명 규약    | `docs/refined/**` · **refined_manifest.json** — 01번 입력                                                          |
+| 01   | Sub_Doc_Chunker              | 대량의 MD 기획서를 도메인(유저, 인증, 상품 등)별로 분류하고 처리 가능한 크기로 쪼갬                                                                                                                                                                                                                                                                 | **`docs/refined/`** 파일 목록 및 경로                                                 | 도메인별 분류된 문서 청크 배열 (Array)                                                                             |
+| 02   | Sub_Conflict_Analyzer        | [충돌 분석] 기획서 간의 데이터 항목 누락, 웹-PC 간의 로직 모순, 타입 불일치를 찾아내 리포트 작성                                                                                                                                                                                                                                                    | 분할된 문서 청크                                                                      | 모순점 및 데이터 필드가 정리된 충돌 리포트 (Text)                                                                  |
+| 03   | Sub_Zod_Schema_Generator     | [최상위 표준 수립] Zod SSOT **초안** 작성 · **디스크 반영은 `CP-J` 승인 후 J**                                                                                                                                                                                                                                                                      | 병합된 최종 충돌 리포트 · (참고) `docs/specs/` 맥락                                   | Zod·specs 가이드 **버퍼** — J 시 `packages/shared` · `docs/specs/`                                                 |
+| 04   | Sub_Prisma_Schema_Converter  | [DB 연동] 사전 검증 통과 Zod를 기반으로 DB에 반영할 Prisma 데이터 모델 구조 생성 (04·05·06 **병렬** 중 하나)                                                                                                                                                                                                                                        | 03번 Zod · **07번 사전 검증 통과** 게이트                                             | Prisma 스키마 코드 블록 (schema.prisma 추가용)                                                                     |
+| 05   | Sub_Pydantic_Converter       | [PC 프로그램 연동] 사전 검증 통과 Zod를 Pydantic 모델로 변환 (04·05·06 **병렬** 중 하나)                                                                                                                                                                                                                                                            | 03번 Zod · **07번 사전 검증 통과** 게이트                                             | Python Pydantic 모델 코드 (schemas.py 형태)                                                                        |
+| 06   | Sub_NestJS_DTO_Generator     | [백엔드 연동] 사전 검증 통과 Zod를 NestJS API DTO(Class)로 가공 (04·05·06 **병렬** 중 하나)                                                                                                                                                                                                                                                         | 03번 Zod · **07번 사전 검증 통과** 게이트                                             | nestjs-zod 기반 백엔드 DTO 코드                                                                                    |
+| 07   | Sub_Syntax_Validator         | [사전·최종 검증] **① 사전**: 03번 Zod만 정적 검사(통과 시에만 04~06 게이트 오픈) · **② 최종**: 04~06 병렬 산출물 전체(TS·Python·Prisma) 문법·타입 유실 검사 및 셀프 피드백                                                                                                                                                                          | ① 03번 Zod 스키마 · ② 04~06 생성 코드 전체                                            | 검증 통과 여부 및 오류 수정 제안 (Boolean / Text)                                                                  |
 
 #### 보조 Graph (Aux) — 00~07 번호와 분리
 
-| Aux ID        | Graph 명칭                  | LLM  | 주요 역할                                                                                                   | Input                                                         | Output                                              |
-| ------------- | --------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------- |
-| **Aux-Log**   | Sub_Pipeline_Logger         | 없음 | 각 Subgraph 실행 **직후** 1행 append · 성공/실패·`duration_ms`·오류·`retry_count` · 04~06은 `branch` 구분   | `run_id` · `step_id` · handoff 메타 · 결과                    | `docs/.rivet/runs/{run_id}/pipeline.log.jsonl` — **MCP FS `write_file`** |
+| Aux ID        | Graph 명칭                  | LLM  | 주요 역할                                                                                                   | Input                                                         | Output                                                                       |
+| ------------- | --------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Aux-Log**   | Sub_Pipeline_Logger         | 없음 | 각 Subgraph 실행 **직후** 1행 append · 성공/실패·`duration_ms`·오류·`retry_count` · 04~06은 `branch` 구분   | `run_id` · `step_id` · handoff 메타 · 결과                    | `docs/.rivet/runs/{run_id}/pipeline.log.jsonl` — **MCP FS `write_file`**     |
 | **Aux-Inv**   | Sub_Inbox_Inventory_Scanner | 없음 | **00 전** `docs/inbox/**` 읽기 전용 스캔(경로·크기·mtime·해시·신규 플래그) · 비어 있으면 Main이 **aborted** | `docs/inbox/**`                                               | `inbox_inventory.json` — **MCP FS `list_directory`** (+ 필요 시 `read_file`) |
-| **Aux-Human** | Sub_Human_Checkpoint        | 없음 | `checkpoint_id`별 **일시 정지·승인/거절** · REFACTOR는 **CP-00**에서 필수 확인                              | 요약 diff·Manifest·Zod 버퍼·07-final 리포트 · `checkpoint_id` | `approved` / `rejected` · 코멘트(선택)              |
+| **Aux-Human** | Sub_Human_Checkpoint        | 없음 | `checkpoint_id`별 **일시 정지·승인/거절** · REFACTOR는 **CP-00**에서 필수 확인                              | 요약 diff·Manifest·Zod 버퍼·07-final 리포트 · `checkpoint_id` | `approved` / `rejected` · 코멘트(선택)                                       |
 
 **인벤토리 2종 (혼동 방지)**
 
@@ -54,9 +54,9 @@ docs/
 
 Rivet에 **MCP Discovery** · **MCP Tool Call** · **MCP Get Prompt** 가 있으면, Desktop 개발 환경의 **로컬 파일·디렉터리 작업**은 NestJS External Call **없이** 구현 가능합니다.
 
-| 환경 | 파일 I/O | 비고 |
-| ---- | -------- | ---- |
-| **Desktop Rivet (Windows)** | **MCP FileSystem** + Tool Call | 모노레포 루트를 MCP `roots`에 고정 |
+| 환경                                | 파일 I/O                          | 비고                                                                    |
+| ----------------------------------- | --------------------------------- | ----------------------------------------------------------------------- |
+| **Desktop Rivet (Windows)**         | **MCP FileSystem** + Tool Call    | 모노레포 루트를 MCP `roots`에 고정                                      |
 | **운영 웹앱 (NestJS + Rivet Core)** | **NestJS 서비스** (API·Path 검증) | 브라우저·Rivet Core가 디스크 직접 접근 **금지** — `Rivet 파이프라인.md` |
 
 **완전 대체가 되는 범위**
@@ -74,11 +74,11 @@ Rivet에 **MCP Discovery** · **MCP Tool Call** · **MCP Get Prompt** 가 있으
 
 **MCP 노드 역할 (Main 1회 + 단계별 Tool Call)**
 
-| Rivet 노드 | 용도 |
-| ---------- | ---- |
-| **MCP Discovery** | **FileSystem** + **GitHub** MCP 등록(시작 1회, 또는 JOUT 직전 GitHub만 추가 Discovery) · FS roots = 모노레포 루트 |
-| **MCP Tool Call** | FS: `list_directory` · `read_file` · `write_file` · GitHub: `create_branch` · `commit` · `push` · (선택) `create_pull_request` |
-| **MCP Get Prompt** | (선택) Normex·경로 규약 등 **고정 지시문** 템플릿 — 00·03 Chat **앞**에 주입 |
+| Rivet 노드         | 용도                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| **MCP Discovery**  | **FileSystem** + **GitHub** MCP 등록(시작 1회, 또는 JOUT 직전 GitHub만 추가 Discovery) · FS roots = 모노레포 루트              |
+| **MCP Tool Call**  | FS: `list_directory` · `read_file` · `write_file` · GitHub: `create_branch` · `commit` · `push` · (선택) `create_pull_request` |
+| **MCP Get Prompt** | (선택) Normex·경로 규약 등 **고정 지시문** 템플릿 — 00·03 Chat **앞**에 주입                                                   |
 
 **보안 (Desktop도 필수)**
 
@@ -88,22 +88,22 @@ Rivet에 **MCP Discovery** · **MCP Tool Call** · **MCP Get Prompt** 가 있으
 
 #### FileSystem MCP — 파이프라인 단계별 사용처
 
-| 단계 | MCP Tool (예) | 경로·대상 | R/W | 비고 |
-| ---- | ------------- | --------- | --- | ---- |
-| **Main 시작** | Discovery | 모노레포 루트 | — | 세션당 1회 · 이후 Tool Call 공통 |
-| **Aux-Log** | `write_file` | `docs/.rivet/runs/{run_id}/pipeline.log.jsonl` | W | NDJSON 1행 append · run_start/run_end/step |
-| **Aux-Inv** | `list_directory` | `docs/inbox/**` | R | 빈 배열 → `aborted` · inventory JSON은 Context 또는 `write_file`로 run 폴더 저장 |
-| **00 입력** | `list_directory` · `read_file` | `inbox/` · `refined/` · `specs/` (맥락) | R | §1 `directory_structure` · Hermes 입력 재료 |
-| **00 출력** | `write_file` | `docs/refined/**` · `docs/trash/inbox/…` | W | **J 이전** 문서 이동·정제본 저장 · `refined_manifest.json` |
-| **01** | `read_file` | `docs/refined/**` | R | 청크 입력 |
-| **02** | — | (01 handoff 메모리) | — | FS 없음 |
-| **03 입력** | `read_file` | `docs/specs/**` (가이드·맥락) | R | Zod는 **버퍼** 우선 |
-| **03 출력** | — | (버퍼) | — | 디스크 Zod는 **CP-J → J** |
-| **07-pre / 07-final** | `read_file` | (선택) 스테이징·기존 `packages/shared` | R | 정적 검사 입력이 디스크일 때만 |
-| **04~06** | `read_file` | Zod SSOT (Context 또는 shared) | R | 산출은 버퍼 → Join |
-| **CP-00 / CP-03 / CP-J** | `read_file` | Manifest · Zod·파생물 **요약 파일** | R | User Input에 diff·요약 표시 |
-| **J (JOUT)** | `write_file` | §J 표 전 경로 | W | **temp → 최종** · `written_paths[]` |
-| **MCP_GITHUB** | GitHub MCP Tool Call | `written_paths[]` · working tree | W(Git) | **JOUT 직후** · §MCP_GITHUB · 롤백·revert는 여전히 **Git 이력** SSOT |
+| 단계                       | MCP Tool (예)                  | 경로·대상                                      | R/W    | 비고                                                                             |
+| -------------------------- | ------------------------------ | ---------------------------------------------- | ------ | -------------------------------------------------------------------------------- |
+| **Main 시작**              | Discovery                      | 모노레포 루트                                  | —      | 세션당 1회 · 이후 Tool Call 공통                                                 |
+| **Aux-Log**                | `write_file`                   | `docs/.rivet/runs/{run_id}/pipeline.log.jsonl` | W      | NDJSON 1행 append · run_start/run_end/step                                       |
+| **Aux-Inv**                | `list_directory`               | `docs/inbox/**`                                | R      | 빈 배열 → `aborted` · inventory JSON은 Context 또는 `write_file`로 run 폴더 저장 |
+| **00 입력 Refiner**        | `list_directory` · `read_file` | `inbox/` · `refined/` · `specs/` (맥락)        | R      | §1 `directory_structure` · Hermes 입력 재료                                      |
+| **00 출력 Refiner**        | `write_file`                   | `docs/refined/**` · `docs/trash/inbox/…`       | W      | **J 이전** 문서 이동·정제본 저장 · `refined_manifest.json`                       |
+| **01 Chunker**             | `read_file`                    | `docs/refined/**`                              | R      | 청크 입력                                                                        |
+| **02 Conflict**            | —                              | (01 handoff 메모리)                            | —      | FS 없음                                                                          |
+| **03 입력 Zod**            | `read_file`                    | `docs/specs/**` (가이드·맥락)                  | R      | Zod는 **버퍼** 우선                                                              |
+| **03 출력 Zod**            | —                              | (버퍼)                                         | —      | 디스크 Zod는 **CP-J → J**                                                        |
+| **07-pre / 07-final 검증** | `read_file`                    | (선택) 스테이징·기존 `packages/shared`         | R      | 정적 검사 입력이 디스크일 때만                                                   |
+| **04~06 병렬**             | `read_file`                    | Zod SSOT (Context 또는 shared)                 | R      | Prisma · Pydantic · Nest DTO · 산출은 버퍼 → Join                                |
+| **CP-00 / CP-03 / CP-J**   | `read_file`                    | Manifest · Zod·파생물 **요약 파일**            | R      | User Input에 diff·요약 표시                                                      |
+| **J (JOUT)**               | `write_file`                   | §J 표 전 경로                                  | W      | **temp → 최종** · `written_paths[]`                                              |
+| **MCP_GITHUB**             | GitHub MCP Tool Call           | `written_paths[]` · working tree               | W(Git) | **JOUT 직후** · §MCP_GITHUB · 롤백·revert는 여전히 **Git 이력** SSOT             |
 
 > **00** 만 `docs/` 에 **선행 쓰기** — 코드·스키마 실경로 쓰기는 **J** · 원격 반영은 **MCP_GITHUB**.
 
@@ -113,10 +113,10 @@ Rivet에 **MCP Discovery** · **MCP Tool Call** · **MCP Get Prompt** 가 있으
 
 0.  **Main**이 `run_id`(UUID)를 발급하고 **Aux-Log**에 `run_start`를 기록합니다.
 1.  **Aux-Inv**가 `docs/inbox/**` 를 스캔합니다. **비어 있으면** `pipeline_result: aborted` 로 종료합니다.
-2.  **00번**이 inbox를 정제·`docs/refined/` 배치·trash 미러 후 **Refined Manifest** JSON을 만듭니다.
+2.  **00번 inbox** 를 정제·`docs/refined/` 배치·trash 미러 후 **Refined Manifest** JSON을 만듭니다.
 3.  **Aux-Human `CP-00`** — refined 배치·`action_type`(REFACTOR 포함) 확인 · **거절** 시 벨트 중단(`awaiting_confirm`).
-4.  **01·02번**이 청크·충돌 리포트를 만듭니다.
-5.  **03번**이 Zod SSOT **초안**(버퍼·아직 J 미반영)을 생성합니다.
+4.  **01·02번 Chunker/Conflict**이 청크·충돌 리포트를 만듭니다.
+5.  **03번 Zod SSOT**이 **초안**(버퍼·아직 J 미반영)을 생성합니다.
 6.  **Aux-Human `CP-03`** — Zod SSOT 검토 · **거절** 시 03 재실행.
 7.  **07-pre** — Zod 정적 검사 · 실패 시 03 루프.
 8.  **04·05·06** 병렬 · **Join** 후 **07-final** · 실패 시 Zod→03 · 파생물→04~06 재진입.
@@ -171,46 +171,46 @@ Rivet 그래프 **밖**(모노레포 실경로)에 검증된 산출물을 씁니
 
 로컬 디스크 반영(**JOUT**) 다음, **GitHub MCP**로 변경을 VCS·원격에 올립니다. Rivet **MCP Discovery**에 GitHub 서버가 등록되어 있어야 합니다.
 
-| 항목 | 내용 |
-| ---- | ---- |
-| **입력** | `run_id` · `written_paths[]` · 커밋 메시지 템플릿(예: `rivet({run_id}): pipeline SSOT update`) · (선택) 대상 브랜치·base |
-| **Tool Call (예)** | 변경 파일 스테이징 → `create_commit` / `push` → (선택) `create_pull_request` |
-| **출력** | `git_commit_sha` · `branch` · (선택) `pr_url` — Main·`pipeline.log.jsonl`·`step_log[]`에 기록 |
-| **실패** | JOUT은 이미 완료 — Main은 `pipeline_result: partial_success` + `git_error` · **수동** `git commit` / 에디터 Git으로 보완 |
-| **롤백** | Rivet undo 없음 · **revert**는 `git revert` / PR close — §롤백 |
+| 항목               | 내용                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| **입력**           | `run_id` · `written_paths[]` · 커밋 메시지 템플릿(예: `rivet({run_id}): pipeline SSOT update`) · (선택) 대상 브랜치·base |
+| **Tool Call (예)** | 변경 파일 스테이징 → `create_commit` / `push` → (선택) `create_pull_request`                                             |
+| **출력**           | `git_commit_sha` · `branch` · (선택) `pr_url` — Main·`pipeline.log.jsonl`·`step_log[]`에 기록                            |
+| **실패**           | JOUT은 이미 완료 — Main은 `pipeline_result: partial_success` + `git_error` · **수동** `git commit` / 에디터 Git으로 보완 |
+| **롤백**           | Rivet undo 없음 · **revert**는 `git revert` / PR close — §롤백                                                           |
 
 **Main 설정 (권장)**
 
-| 플래그 | 동작 |
-| ------ | ---- |
-| `github.enabled=true` (기본) | JOUT 성공 후 **MCP_GITHUB** 실행 |
-| `github.enabled=false` | JOUT 후 **run_end** — 커밋은 기획자가 에디터 Git에서 수동 |
-| `github.pr=optional` | push만 또는 PR 자동 생성 |
+| 플래그                       | 동작                                                      |
+| ---------------------------- | --------------------------------------------------------- |
+| `github.enabled=true` (기본) | JOUT 성공 후 **MCP_GITHUB** 실행                          |
+| `github.enabled=false`       | JOUT 후 **run_end** — 커밋은 기획자가 에디터 Git에서 수동 |
+| `github.pr=optional`         | push만 또는 PR 자동 생성                                  |
 
 > **CP-J**가 디스크 쓰기 승인 · **MCP_GITHUB**는 그 다음 **이력 고정** 단계(자동 커밋 정책에 따라 생략 가능).
 
 ### 롤백 정책
 
-| 구분              | 정책                                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- |
-| **파이프라인**    | Rivet Graph에 **undo / rollback 서브루틴 없음** — 실패·거절 시 **재실행·수동 수정**만                         |
-| **되돌리기 SSOT** | **Git** — 에디터 또는 `git` CLI · **MCP_GITHUB** 이전에는 uncommitted 변경만 · 이후에는 **commit SHA** 기준 `revert` |
-| **JOUT 이후**     | `written_paths[]` 미커밋 변경 → `git restore` · **MCP_GITHUB** 커밋 후 → `git revert` / PR revert              |
-| **MCP_GITHUB 실패** | 로컬 파일은 JOUT 상태 유지 — 수동 커밋 또는 재실행 · 파이프라인 undo 없음                                      |
-| **문서(docs/)**   | inbox/refined/trash 이동은 00에서 이미 발생 — 문서 되돌리기도 **Git** 또는 trash에서 수동 복구                |
+| 구분                | 정책                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **파이프라인**      | Rivet Graph에 **undo / rollback 서브루틴 없음** — 실패·거절 시 **재실행·수동 수정**만                                |
+| **되돌리기 SSOT**   | **Git** — 에디터 또는 `git` CLI · **MCP_GITHUB** 이전에는 uncommitted 변경만 · 이후에는 **commit SHA** 기준 `revert` |
+| **JOUT 이후**       | `written_paths[]` 미커밋 변경 → `git restore` · **MCP_GITHUB** 커밋 후 → `git revert` / PR revert                    |
+| **MCP_GITHUB 실패** | 로컬 파일은 JOUT 상태 유지 — 수동 커밋 또는 재실행 · 파이프라인 undo 없음                                            |
+| **문서(docs/)**     | inbox/refined/trash 이동은 00에서 이미 발생 — 문서 되돌리기도 **Git** 또는 trash에서 수동 복구                       |
 
 ### Aux-Log — `pipeline.log.jsonl` 행 스키마 (요약)
 
-| 필드            | 설명                                                                             |
-| --------------- | -------------------------------------------------------------------------------- |
-| `run_id`        | Main 시작 시 UUID                                                                |
-| `step_id`       | … · `J` · **`MCP_GITHUB`** · `run_end` |
-| `git_commit_sha`| `MCP_GITHUB` 성공 시 (선택 필드) |
-| `status`        | `success` / `fail` / `skipped`                                                   |
-| `duration_ms`   | Subgraph wall time                                                               |
-| `branch`        | 병렬 시 `prisma` / `pydantic` / `nest` (해당 시만)                               |
-| `error_message` | 실패 시                                                                          |
-| `retry_count`   | 루프 회차                                                                        |
+| 필드             | 설명                                               |
+| ---------------- | -------------------------------------------------- |
+| `run_id`         | Main 시작 시 UUID                                  |
+| `step_id`        | … · `J` · **`MCP_GITHUB`** · `run_end`             |
+| `git_commit_sha` | `MCP_GITHUB` 성공 시 (선택 필드)                   |
+| `status`         | `success` / `fail` / `skipped`                     |
+| `duration_ms`    | Subgraph wall time                                 |
+| `branch`         | 병렬 시 `prisma` / `pydantic` / `nest` (해당 시만) |
+| `error_message`  | 실패 시                                            |
+| `retry_count`    | 루프 회차                                          |
 
 로그 기록 실패는 **비즈니스 실패로 간주하지 않음** (best-effort).
 
@@ -231,16 +231,24 @@ flowchart TD
     CP3 -->|거절| D
     CP3 --> E["07-pre"]
     E -->|실패| D
-    E -->|통과| F["04 Prisma"]
-    E -->|통과| G["05 Pydantic"]
-    E -->|통과| H["06 Nest DTO"]
-    F --> Join["04·05·06 병렬 완료"]
-    G --> Join
-    H --> Join
+    subgraph PAR["04·05·06 병렬 변환"]
+        direction LR
+        F["04 Prisma"]
+        G["05 Pydantic"]
+        H["06 Nest DTO"]
+        F --> Join["Join"]
+        G --> Join
+        H --> Join
+    end
+    E -->|통과| F
+    E -->|통과| G
+    E -->|통과| H
     D -.->|SSOT| I["07-final"]
     Join --> I
     I -->|Zod 오류| D
-    I -->|04~06 오류| F & G & H
+    I -->|04~06 오류| F
+    I -->|04~06 오류| G
+    I -->|04~06 오류| H
     I -->|통과| CPJ["Aux-Human CP-J"]
     CPJ -->|거절| WAITJ["awaiting_confirm"]
     CPJ -->|승인| JOUT["JOUT MCP write_file · §J"]
@@ -248,9 +256,18 @@ flowchart TD
     GH -->|실패| PART["partial_success · git_error"]
     GH -->|성공| L1["Aux-Log run_end · success"]
     PART --> L1
+
+    classDef defaultNode fill:#b4b4b4,stroke:#b4b4b4,color:#212121,stroke-width:1px
+    class M,L0,ABORT,WAIT0,WAITJ,Join,PART,L1 defaultNode
+    classDef outputNode fill:#99cccc,stroke:#99cccc,color:#212121,stroke-width:2px
+    class INV,A,B,C,D,E,I,F,G,H,JOUT,GH outputNode
+    classDef auxHuman fill:#FFB74D,stroke:#FFB74D,color:#212121,stroke-width:2px
+    class CP0,CP3,CPJ auxHuman
+    classDef parGroup fill:#ECEFF1,stroke:#ECEFF1,color:#212121,stroke-width:2px
+    class PAR parGroup
 ```
 
-> 각 사각 노드 **직후** Main이 **Aux-Log** append (다이어그램 생략). REFACTOR는 **00 → CP-00** 에서 구조 개편 제안서와 함께 확인.
+> 각 사각 노드 **직후** Main이 **Aux-Log** append (다이어그램 생략). **그레이** = 제어·대기·종료(`Main`·`run_start/end`·`aborted`·`Join` 등) · **청록색** = **산출물** (`Inv`·`00`~`06`·`07-pre/final`·`JOUT`·`MCP_GITHUB`) · **회색 박스** = **PAR** · **주황** = **Aux-Human**. REFACTOR는 **00 → CP-00** 에서 확인.
 
 ---
 
@@ -319,15 +336,15 @@ Hermes 3가 이 작업을 완벽하게 수행하려면, 단순히 날것의 문�
 
 ### Rivet 물리 배치 (권장 · 하이브리드)
 
-| 논리 단위 | Rivet 구현 | 비고 |
-| --------- | ---------- | ---- |
-| **Main** | `Main.rivet` 1탭 | Subgraph 호출·If/Match·`run_id` Context |
-| **00~07** | 서브그래프 **8탭** (07은 Main에서 **07-pre / 07-final** 2회 호출) | Hermes Chat·Prompt |
-| **Aux-Log** | Main · **MCP Tool Call** (`write_file`) × N | log append |
-| **Aux-Inv** | Main · **MCP Tool Call** (`list_directory`) | inbox 스캔 |
-| **Aux-Human** | Subgraph **1탭** | `checkpoint_id` · CP 표시용 **MCP read** 선택 |
-| **J / JOUT** | Main · **MCP FS** `write_file` | §J · CP-J 승인 후 |
-| **MCP_GITHUB** | Main · **MCP GitHub** Tool Call | JOUT 직후 · `github.enabled` |
+| 논리 단위      | Rivet 구현                                                        | 비고                                          |
+| -------------- | ----------------------------------------------------------------- | --------------------------------------------- |
+| **Main**       | `Main.rivet` 1탭                                                  | Subgraph 호출·If/Match·`run_id` Context       |
+| **00~07**      | 서브그래프 **8탭** (07은 Main에서 **07-pre / 07-final** 2회 호출) | Hermes Chat·Prompt                            |
+| **Aux-Log**    | Main · **MCP Tool Call** (`write_file`) × N                       | log append                                    |
+| **Aux-Inv**    | Main · **MCP Tool Call** (`list_directory`)                       | inbox 스캔                                    |
+| **Aux-Human**  | Subgraph **1탭**                                                  | `checkpoint_id` · CP 표시용 **MCP read** 선택 |
+| **J / JOUT**   | Main · **MCP FS** `write_file`                                    | §J · CP-J 승인 후                             |
+| **MCP_GITHUB** | Main · **MCP GitHub** Tool Call                                   | JOUT 직후 · `github.enabled`                  |
 
 **Main 시작 노드:** **MCP Discovery** (FileSystem + GitHub) — FS·Git Tool Call 위주.
 
@@ -339,13 +356,13 @@ Hermes 3가 이 작업을 완벽하게 수행하려면, 단순히 날것의 문�
 
 **범위:** `run_start` → Aux-Inv → (비어 있으면 `aborted`)
 
-| 항목 | Rivet 구현 힌트 | 완료 기준 |
-| ---- | --------------- | --------- |
-| `run_id` | Graph Input 또는 Code로 UUID 생성 → **Context**에 보관 | `pipeline.log.jsonl` 첫 행에 동일 ID |
-| Aux-Log `run_start` / step append | Subgraph 직후 **MCP Tool Call** `write_file` → `docs/.rivet/runs/{run_id}/` | 실패해도 Main 계속(best-effort) |
-| Aux-Inv | **MCP Tool Call** `list_directory` on `docs/inbox` | `inbox_inventory.json` handoff |
-| MCP Discovery | Main 최상단 **1노드** · FS MCP · roots=모노레포 | 이후 모든 FS Tool Call 전제 |
-| inbox 비음 | **If/Match** → `pipeline_result: aborted` · 그래프 종료 | 00 미호출 |
+| 항목                              | Rivet 구현 힌트                                                             | 완료 기준                            |
+| --------------------------------- | --------------------------------------------------------------------------- | ------------------------------------ |
+| `run_id`                          | Graph Input 또는 Code로 UUID 생성 → **Context**에 보관                      | `pipeline.log.jsonl` 첫 행에 동일 ID |
+| Aux-Log `run_start` / step append | Subgraph 직후 **MCP Tool Call** `write_file` → `docs/.rivet/runs/{run_id}/` | 실패해도 Main 계속(best-effort)      |
+| Aux-Inv                           | **MCP Tool Call** `list_directory` on `docs/inbox`                          | `inbox_inventory.json` handoff       |
+| MCP Discovery                     | Main 최상단 **1노드** · FS MCP · roots=모노레포                             | 이후 모든 FS Tool Call 전제          |
+| inbox 비음                        | **If/Match** → `pipeline_result: aborted` · 그래프 종료                     | 00 미호출                            |
 
 > 로그는 1단계만이 아니라 **전 구간 횡단** — 1단계에서 append 패턴을 먼저 고정합니다.
 
@@ -355,11 +372,11 @@ Hermes 3가 이 작업을 완벽하게 수행하려면, 단순히 날것의 문�
 
 **범위:** §작동 시나리오의 Human 게이트 3곳
 
-| CP | Rivet 구현 힌트 | 승인 | 거절 (설계서 기준) |
-| -- | --------------- | ---- | ------------------ |
-| **CP-00** | **User Input** (Buttons: 승인/거절) · REFACTOR 시 제안서 텍스트 표시 | → 01 | `awaiting_confirm` · **Git**으로 refined/trash 정리 |
-| **CP-03** | 동일 Subgraph · `checkpoint_id=CP-03` · Zod 버퍼 diff | → 07-pre | → **03** Subgraph 재호출 |
-| **CP-J** | `checkpoint_id=CP-J` · 07-final 요약 | → **J** | `awaiting_confirm` · **디스크 미기록** |
+| CP        | Rivet 구현 힌트                                                      | 승인     | 거절 (설계서 기준)                                  |
+| --------- | -------------------------------------------------------------------- | -------- | --------------------------------------------------- |
+| **CP-00** | **User Input** (Buttons: 승인/거절) · REFACTOR 시 제안서 텍스트 표시 | → 01     | `awaiting_confirm` · **Git**으로 refined/trash 정리 |
+| **CP-03** | 동일 Subgraph · `checkpoint_id=CP-03` · Zod 버퍼 diff                | → 07-pre | → **03** Subgraph 재호출                            |
+| **CP-J**  | `checkpoint_id=CP-J` · 07-final 요약                                 | → **J**  | `awaiting_confirm` · **디스크 미기록**              |
 
 - **User Input** = Suspend · Rivet 재개 시 승인/거절 전달.
 - **거절 ≠ Rivet undo** — CP-00/CP-J 거절은 **루프보다 대기** · 코드 되돌리기는 **에디터 Git**(§롤백).
@@ -373,12 +390,12 @@ Hermes 3가 이 작업을 완벽하게 수행하려면, 단순히 날것의 문�
 
 **범위:** 00 → CP-00 → 01 → 02 → 03 → CP-03
 
-| 서브 | Rivet 구현 힌트 | 완료 기준 |
-| ---- | --------------- | --------- |
-| **00** | Chat + Prompt · **MCP read** inbox/refined/specs · **MCP write** refined·trash·manifest | `refined_manifest.json` · `action_type` |
-| **01** | Chat · **MCP read** `docs/refined/**` | 02 입력 배열 |
-| **02** | Chat · 충돌 리포트 | 03 입력 |
-| **03** | Chat · **MCP read** `docs/specs` 맥락 · JSON/Zod **초안** | 버퍼만 · **디스크는 CP-J 후 J(MCP write)** |
+| 서브   | Rivet 구현 힌트                                                                         | 완료 기준                                  |
+| ------ | --------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **00** | Chat + Prompt · **MCP read** inbox/refined/specs · **MCP write** refined·trash·manifest | `refined_manifest.json` · `action_type`    |
+| **01** | Chat · **MCP read** `docs/refined/**`                                                   | 02 입력 배열                               |
+| **02** | Chat · 충돌 리포트                                                                      | 03 입력                                    |
+| **03** | Chat · **MCP read** `docs/specs` 맥락 · JSON/Zod **초안**                               | 버퍼만 · **디스크는 CP-J 후 J(MCP write)** |
 
 > 2단계 로드맵에 **02 Conflict** 가 빠져 있던 부분을 여기에 포함합니다.
 
@@ -388,12 +405,12 @@ Hermes 3가 이 작업을 완벽하게 수행하려면, 단순히 날것의 문�
 
 **범위:** CP-03 이후 ~ CP-J 이전
 
-| 항목 | Rivet 구현 힌트 | 완료 기준 |
-| ---- | --------------- | --------- |
-| **07-pre** | Sub_07 1회차 · Code/Chat으로 Zod 정적 검사 | 실패 → **03** · 통과 시에만 04~06 |
-| **04~06** | 07-pre True에서 **3출력** → Prisma / Pydantic / Nest 각 Subgraph(Chat) | `branch`별 Log 행 |
-| **Join** | 3입력이 모두 도착할 때까지 대기 → Object/Array로 묶음 | **하나라도 끝나기 전 07-final 금지** |
-| **07-final** | Sub_07 2회차 · Zod + Join 결과 | Zod 오류→**03** · 04~06만→`F & G & H` 재진입 |
+| 항목         | Rivet 구현 힌트                                                        | 완료 기준                                    |
+| ------------ | ---------------------------------------------------------------------- | -------------------------------------------- |
+| **07-pre**   | Sub_07 1회차 · Code/Chat으로 Zod 정적 검사                             | 실패 → **03** · 통과 시에만 04~06            |
+| **04~06**    | 07-pre True에서 **3출력** → Prisma / Pydantic / Nest 각 Subgraph(Chat) | `branch`별 Log 행                            |
+| **Join**     | 3입력이 모두 도착할 때까지 대기 → Object/Array로 묶음                  | **하나라도 끝나기 전 07-final 금지**         |
+| **07-final** | Sub_07 2회차 · Zod + Join 결과                                         | Zod 오류→**03** · 04~06만→`F & G & H` 재진입 |
 
 **완료 기준:** mermaid의 Join·`D -.-> SSOT -> 07-final`·오류 루프 재현.
 
@@ -401,12 +418,12 @@ Hermes 3가 이 작업을 완벽하게 수행하려면, 단순히 날것의 문�
 
 ### 5단계 — CP-J · JOUT · MCP_GITHUB · run_end
 
-| 항목 | Rivet 구현 힌트 | 완료 기준 |
-| ---- | --------------- | --------- |
-| **CP-J** | 2단계 Human Subgraph | 승인 시에만 JOUT |
-| **JOUT** | **MCP FS** `write_file` · §J · temp→rename | `written_paths[]` |
+| 항목           | Rivet 구현 힌트                                                              | 완료 기준                                    |
+| -------------- | ---------------------------------------------------------------------------- | -------------------------------------------- |
+| **CP-J**       | 2단계 Human Subgraph                                                         | 승인 시에만 JOUT                             |
+| **JOUT**       | **MCP FS** `write_file` · §J · temp→rename                                   | `written_paths[]`                            |
 | **MCP_GITHUB** | **MCP Discovery**(GitHub) + Tool Call · `written_paths` 스테이징·commit·push | `git_commit_sha` · 로그 `step_id=MCP_GITHUB` |
-| **run_end** | Aux-Log append · `success` / `partial_success` | J·Git·경로 기록 |
+| **run_end**    | Aux-Log append · `success` / `partial_success`                               | J·Git·경로 기록                              |
 
 ---
 
@@ -422,10 +439,10 @@ Hermes 3가 이 작업을 완벽하게 수행하려면, 단순히 날것의 문�
 
 ### 단계 ↔ 설계서 대응
 
-| 로드맵 | Main mermaid / 시나리오 |
-| ------ | ------------------------- |
-| 1단계 | M → L0 → INV → (ABORT) |
-| 2단계 | CP0 · CP3 · CPJ |
-| 3단계 | A → B → C → D |
-| 4단계 | E → F,G,H → Join → I |
-| 5단계 | CPJ → JOUT → MCP_GITHUB → L1 |
+| 로드맵 | Main mermaid / 시나리오      |
+| ------ | ---------------------------- |
+| 1단계  | M → L0 → INV → (ABORT)       |
+| 2단계  | CP0 · CP3 · CPJ              |
+| 3단계  | A → B → C → D                |
+| 4단계  | E → F,G,H → Join → I         |
+| 5단계  | CPJ → JOUT → MCP_GITHUB → L1 |
