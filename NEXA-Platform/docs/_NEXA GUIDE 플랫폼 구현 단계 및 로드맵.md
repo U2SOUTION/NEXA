@@ -1,7 +1,9 @@
 # NEXA GUIDE 플랫폼 구현 단계 및 로드맵
 
-**범위:** NEXA 플랫폼 전체(Knowledge OS, UI 셸, 오케스트레이션 DB, AI·도메인 협업).  
+**범위:** **NEXA 플랫폼** 전체(Knowledge OS, UI 셸, 오케스트레이션 DB, AI·도메인 협업) — 세상에 **배포·서비스**되는 제품.  
 **성격:** `_KNOWLEDGE` 문서에 한정되지 않는 **상위 구현 순서** 가이드다.
+
+**기술 스택 (To-Be SSOT):** 통합 프론트 **`apps/web` = Next.js** · 백엔드 **NestJS** · 협업 **`apps/sync`** · Rivet **Desktop/Embedded** · 상세 [`M.O.S.E.S. 정리`](<./NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>)
 
 **관련 문서:**
 

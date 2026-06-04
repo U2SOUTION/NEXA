@@ -1,8 +1,10 @@
 ## 🛠️ 1. 최종 결정 기술 스택 (React 중심 풀스택)
 
+> **용어 SSOT:** Rivet **Desktop/Embedded** · **Nexion/NEXIA React Flow** · As-Is Quasar/Vue — [`M.O.S.E.S. 정리`](<./M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
+
 AI 에이전트(안티그래비티, 클로드 등)가 전 세계에서 가장 버그 없이 정교하게 코드를 짜내는 글로벌 표준 TypeScript 생태계로 확정했습니다.
 
-- **프론트엔드**: Next.js (App Router, TypeScript) - 강력한 SEO, 뛰어난 로딩 속도, AI 생성 툴(v0.dev 등)과의 압도적인 궁합.
+- **프론트엔드**: **Next.js** (App Router, TypeScript) — 통합 셸 SSOT는 **「React」가 아니라 Next.js** - 강력한 SEO, 뛰어난 로딩 속도, AI 생성 툴(v0.dev 등)과의 압도적인 궁합.
 - **스타일링**: Tailwind CSS + Shadcn UI - AI가 원자 단위로 코드를 읽고 조작하기 가장 쉬운 Utility-first 스타일 채택. 화면 최적화 극대화.
 - **실시간 동기화**: Yjs + Hocuspocus — **순수 Node.js 독립 프로세스** (`apps/sync/`). NestJS와 **프로세스·포트 분리** → 저수준 WebSocket(CRDT)과 Nest HTTP/REST **프로토콜 충돌 방지**, 고속 동기화 보장.
 - **메인 백엔드**: NestJS (TypeScript) — REST API·**SSE(`@Sse`)**·비즈니스 로직·Prisma·감사 로그. **Hocuspocus는 Nest 내부에 두지 않음.**
@@ -114,11 +116,11 @@ theme: {
 
 **경로**: `system/styles/presets/{preset-id}.css` · `system/styles/presets/index.ts`
 
-| `themePreset` ID    | 권장 도메인                    | 모드               | 특성                                                              |
-| ------------------- | ------------------------------ | ------------------ | ----------------------------------------------------------------- |
+| `themePreset` ID    | 권장 도메인                     | 모드               | 특성                                                              |
+| ------------------- | ------------------------------- | ------------------ | ----------------------------------------------------------------- |
 | **`power-grid`**    | `nexage` (전력·에너지·IoT 관제) | light · **고대비** | 밝은 배경 + 진한 그리드선 · Safety semantic **기본값 유지**       |
 | **`factory-night`** | `nexage`                        | **dark**           | 야간 공장·저조도 · surface만 어둡게 · semantic **동일 luminance** |
-| **`office-light`**  | `home`, `nexia`, `u2bee`       | light              | 사무실·일반 업무 · 낮은 자극 · 차트 `telemetry-muted` 활용        |
+| **`office-light`**  | `home`, `nexia`, `u2bee`        | light              | 사무실·일반 업무 · 낮은 자극 · 차트 `telemetry-muted` 활용        |
 | **`control-room`**  | `nexage` (옵션)                 | dark · 중간 대비   | 24h 관제실 · statusBar compact 강조                               |
 
 ```css
@@ -288,20 +290,20 @@ system/styles/
 
 ### 프로토콜 역할 분담
 
-| 채널 | 용도 | SSE |
-| ---- | ---- | --- |
-| `apps/sync` WS | Yjs CRDT · Awareness · 협업 | ✗ |
-| 채널 B WS/MQTT | 대량 Telemetry → `telemetryProcessor` | ✗ |
-| Nest REST | CRUD · 🟡2 명령 송신 · edge-queue **적재** · ACK POST | 요청-응답 |
-| **Nest SSE** | IoT 스냅샷 push · command **상태** · **Grade3 Edge 수신** | ✓ |
+| 채널           | 용도                                                      | SSE       |
+| -------------- | --------------------------------------------------------- | --------- |
+| `apps/sync` WS | Yjs CRDT · Awareness · 협업                               | ✗         |
+| 채널 B WS/MQTT | 대량 Telemetry → `telemetryProcessor`                     | ✗         |
+| Nest REST      | CRUD · 🟡2 명령 송신 · edge-queue **적재** · ACK POST     | 요청-응답 |
+| **Nest SSE**   | IoT 스냅샷 push · command **상태** · **Grade3 Edge 수신** | ✓         |
 
 ### SSE **사용** (권장)
 
-| # | 소비자 | 엔드포인트 | `event` 타입 | ingest |
-| - | ------ | ---------- | ------------ | ------ |
-| 1 | **Web** (`SYNC_OFFLINE`) | `GET /api/v1/iot/stream` | `safety-snapshot` · `telemetry-snapshot` · `heartbeat` · `ops-degraded` | `useSafetyStore` · `useTelemetryStore` · `useConnectionStore` |
-| 2 | **Web** (StatusOpsPanel) | 동일 스트림 또는 `GET /api/v1/commands/stream` | `command-update` (🟢1·🟡2 ACK/timeout — **실행 payload만**, Grade3 ✗) | `commandTracker` |
-| 3 | **edge-gateway** (Grade3) | `GET /api/v1/edge-queue/stream` | `command-ready` · `heartbeat` | Edge 로컬 큐 → MQTT/Modbus |
+| #   | 소비자                    | 엔드포인트                                     | `event` 타입                                                            | ingest                                                        |
+| --- | ------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 1   | **Web** (`SYNC_OFFLINE`)  | `GET /api/v1/iot/stream`                       | `safety-snapshot` · `telemetry-snapshot` · `heartbeat` · `ops-degraded` | `useSafetyStore` · `useTelemetryStore` · `useConnectionStore` |
+| 2   | **Web** (StatusOpsPanel)  | 동일 스트림 또는 `GET /api/v1/commands/stream` | `command-update` (🟢1·🟡2 ACK/timeout — **실행 payload만**, Grade3 ✗)   | `commandTracker`                                              |
+| 3   | **edge-gateway** (Grade3) | `GET /api/v1/edge-queue/stream`                | `command-ready` · `heartbeat`                                           | Edge 로컬 큐 → MQTT/Modbus                                    |
 
 **Web IoT 폴백 Strategy** (`useYjsSync` · `syncFallback.ts`):
 
@@ -351,13 +353,13 @@ SYNC_OFFLINE  → EventSource(iot/stream) 우선
 
 ### 운영 등급 (Degraded Mode) — SSOT
 
-| 등급            | 코드                     | 트리거 (요약)                      | UI·데이터                                                  | Safety·제어                                 |
-| --------------- | ------------------------ | ---------------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
-| **정상**        | `NORMAL`                 | sync·backend·Worker 정상           | CRDT 실시간 + 차트 풀                                      | 전 경로                                     |
+| 등급            | 코드                     | 트리거 (요약)                      | UI·데이터                                                  | Safety·제어                                     |
+| --------------- | ------------------------ | ---------------------------------- | ---------------------------------------------------------- | ----------------------------------------------- |
+| **정상**        | `NORMAL`                 | sync·backend·Worker 정상           | CRDT 실시간 + 차트 풀                                      | 전 경로                                         |
 | **동기화 격리** | `SYNC_OFFLINE`           | `apps/sync` WS 끊김 ≥3s            | **로컬 편집 전용** + IoT **SSE 우선** (실패 시 REST 폴링)  | 채널 A SSE/폴링 · B 유지 · `socketEmitter` 유지 |
-| **관제 경량**   | `TELEMETRY_CIRCUIT_OPEN` | 채널 B 폭주 · Worker/FPS 임계 초과 | **안전 데이터 전용 텍스트 모드** — 차트·애니 **전면 차단** | Safety·상태바·명령 **만**                   |
-| **백엔드 제한** | `API_DEGRADED`           | Nest REST 5xx/타임아웃             | 마지막 Safety 스냅샷 **읽기 전용**                         | 🟡2·🔴3 **신규 제어 UI 비활성**             |
-| **현장 자율**   | `EDGE_AUTONOMOUS`        | 클라우드+sync 장기 불능            | 웹 UI **경고 배너** (현장 Edge SSOT)                       | Grade3 → `edge-persistence` (기존)          |
+| **관제 경량**   | `TELEMETRY_CIRCUIT_OPEN` | 채널 B 폭주 · Worker/FPS 임계 초과 | **안전 데이터 전용 텍스트 모드** — 차트·애니 **전면 차단** | Safety·상태바·명령 **만**                       |
+| **백엔드 제한** | `API_DEGRADED`           | Nest REST 5xx/타임아웃             | 마지막 Safety 스냅샷 **읽기 전용**                         | 🟡2·🔴3 **신규 제어 UI 비활성**                 |
+| **현장 자율**   | `EDGE_AUTONOMOUS`        | 클라우드+sync 장기 불능            | 웹 UI **경고 배너** (현장 Edge SSOT)                       | Grade3 → `edge-persistence` (기존)              |
 
 ```text
 useConnectionStore.degradedMode  ← healthWatchdog · useHocuspocus · api-client
@@ -421,13 +423,13 @@ Yjs observe가 끊기면 Safety/Telemetry Y.Map 스냅샷을 **Nest SSE** 로 �
   → REST 스냅샷 1회 diff 후 SSE/폴링 종료
 ```
 
-| API (backend) | 역할 |
-| ------------- | ---- |
-| `GET /api/v1/iot/stream` | **SSE** — safety · telemetry · heartbeat · ops-degraded (multiplex) |
-| `GET /api/v1/iot/safety-snapshot` | REST — 초기 1회 · SSE fallback · `packages/shared` DTO |
-| `GET /api/v1/iot/telemetry-snapshot` | REST — 집계·다운샘플 · fallback |
-| `GET /api/v1/commands/stream` | **SSE** (선택) — `command-update` → `commandTracker` |
-| `GET /api/v1/sync/health` | sync 프로세스 헬스 (선택 — ops용) |
+| API (backend)                        | 역할                                                                |
+| ------------------------------------ | ------------------------------------------------------------------- |
+| `GET /api/v1/iot/stream`             | **SSE** — safety · telemetry · heartbeat · ops-degraded (multiplex) |
+| `GET /api/v1/iot/safety-snapshot`    | REST — 초기 1회 · SSE fallback · `packages/shared` DTO              |
+| `GET /api/v1/iot/telemetry-snapshot` | REST — 집계·다운샘플 · fallback                                     |
+| `GET /api/v1/commands/stream`        | **SSE** (선택) — `command-update` → `commandTracker`                |
+| `GET /api/v1/sync/health`            | sync 프로세스 헬스 (선택 — ops용)                                   |
 
 > **의견**: SSE/폴링은 **채널 A 보조 수단**이지 CRDT 대체가 아닙니다. sync 복구 후 반드시 observe로 **되돌립니다**. 에디터 본문은 대상 **아님** (로컬 Y.Doc만).
 
@@ -505,12 +507,12 @@ store/useConnectionStore.ts  # degradedMode · syncStatus SSOT
 
 ### 4. 백엔드 REST 장애 (`API_DEGRADED`)
 
-| 구분              | 동작                                                                                    |
-| ----------------- | --------------------------------------------------------------------------------------- |
-| **Safety 스냅샷** | `sessionStorage` 마지막 성공 응답 캐시 (TTL **60s**) — stale 배지                       |
-| **제어**          | 🟡2·🔴3 UI **disabled** · `socketEmitter`도 backend pre-check 실패 시 차단              |
+| 구분              | 동작                                                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Safety 스냅샷** | `sessionStorage` 마지막 성공 응답 캐시 (TTL **60s**) — stale 배지                                                      |
+| **제어**          | 🟡2·🔴3 UI **disabled** · `socketEmitter`도 backend pre-check 실패 시 차단                                             |
 | **SSE/폴링**      | `syncFallback` SSE **disconnect** · REST 폴링 **exponential backoff** · sync만 살아 있어도 backend 없으면 Safety stale |
-| **복구**          | 연속 2회 2xx (HEAD `/health` 또는 SSE `heartbeat`) → `API_DEGRADED` 해제                                                  |
+| **복구**          | 연속 2회 2xx (HEAD `/health` 또는 SSE `heartbeat`) → `API_DEGRADED` 해제                                               |
 
 ---
 
@@ -609,6 +611,17 @@ pnpm-workspace
 
 > `docker-compose.yml`: §DevOps — **core** 4서비스 + **iot** 프로필(MQTT·엣지 시뮬). `sync` :1234 · `backend` :3001.
 
+### docs/ 생애주기 (Desktop Rivet · Sub_00~07)
+
+| 경로 | 역할 | Rivet 서브루틴 |
+|------|------|----------------|
+| **`docs/inbox/`** | **(필수)** 날것 입력 — 미정제 메모·PRD 초안·채팅 덤프 | → **00** `Sub_Doc_Refiner_and_Placer` |
+| **`docs/refined/`** | 1차 정제 기획 문서 (Normex·용어집 반영) | **01** Chunker · **02** Conflict |
+| **`docs/specs/`** | 확정 명세·아키텍처·Zod 가이드·도메인 SSOT (`Nexia/`, `NEXA OS/`, `rules/` …) | **03**~**07** · Generate 입력 |
+| **`docs/trash/`** | 정제 완료된 **inbox** 원본 — `trash/inbox/…` 로 **경로 미러** 보관 | 00 완료 후 이동 |
+
+> **레거시:** `docs/` 루트에 남아 있는 `Nexia/`, `Nexion/` 등 도메인 폴더는 **수동 이전 전**까지 유지 가능 — To-Be 목적지는 **`docs/specs/`** 하위. 파일 이전은 저장소 작업으로 별도 수행.
+
 ### 레이아웃 역할 분리 (4영역 · 웹 Footer 없음)
 
 | 영역                     | 역할                                 | 구현                                    |
@@ -648,16 +661,16 @@ MainShellLayout
 └── (웹 Footer 없음)
 ```
 
-| 파일                                        | 역할                                                    |
-| ------------------------------------------- | ------------------------------------------------------- |
-| `frame/status/SystemStatusBar.tsx`          | Strip + expand · StatusPanelHost                        |
-| `frame/status/StatusPanelHost.tsx`          | StatusOpsPanel + registry.statusPanel stack             |
-| `frame/status/panels/StatusOpsPanel.tsx`    | §표준 — ConnectionBar · RuntimeGrid · CommandList       |
-| `frame/status/panels/MetricCard.tsx`        | FPS · Memory · Worker queue … 임계 semantic             |
-| `frame/views/common/DefaultStatusPanel.tsx` | statusPanel 미등록 시 StatusOpsPanel만                  |
-| `store/useLayoutStore.ts`                   | `leftOpen` · `rightOpen` · 드로어 폭 · `statusBarExpanded` · `statusBarDetailHeight` (기본 300) — **runtime SSOT** |
-| `store/useRuntimeMetricsStore.ts`           | healthWatchdog · Worker · latency 스냅샷                |
-| `engines/runtimeMetricsCollector.ts`        | 1s tick · PerformanceObserver · ping                    |
+| 파일                                        | 역할                                                                                                                                                        |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frame/status/SystemStatusBar.tsx`          | Strip + expand · StatusPanelHost                                                                                                                            |
+| `frame/status/StatusPanelHost.tsx`          | StatusOpsPanel + registry.statusPanel stack                                                                                                                 |
+| `frame/status/panels/StatusOpsPanel.tsx`    | §표준 — ConnectionBar · RuntimeGrid · CommandList                                                                                                           |
+| `frame/status/panels/MetricCard.tsx`        | FPS · Memory · Worker queue … 임계 semantic                                                                                                                 |
+| `frame/views/common/DefaultStatusPanel.tsx` | statusPanel 미등록 시 StatusOpsPanel만                                                                                                                      |
+| `store/useLayoutStore.ts`                   | `leftOpen` · `rightOpen` · 드로어 폭 · `statusBarExpanded` · `statusBarDetailHeight` (기본 300) — **runtime SSOT**                                          |
+| `store/useRuntimeMetricsStore.ts`           | healthWatchdog · Worker · latency 스냅샷                                                                                                                    |
+| `engines/runtimeMetricsCollector.ts`        | 1s tick · PerformanceObserver · ping                                                                                                                        |
 | `domainLayoutRegistry`                      | `drawerDefaults` · `statusBar` · `statusPanel` · `themePreset` — **정책 SSOT** ([`도메인-레지스트리-명세`](./_NEXA-OS-V2.1-도메인-레지스트리-명세.md) §2.1) |
 
 **스크롤 규칙**: `Content`만 `overflow-auto`. 상태바·상세창은 셸에 고정되어 **페이지 전체 이중 스크롤 방지**.
@@ -701,16 +714,16 @@ useHocuspocus / api-client ─┘         │
 
 **좌→우 고정 슬롯** (overflow 시 `…` · hover tooltip). semantic 색만 사용.
 
-| 슬롯         | 표시 예                           | 색 / 아이콘                                | 설명 |
-| ------------ | --------------------------------- | ------------------------------------------ | ---- |
-| **Degraded** | `NORMAL` 숨김 · `SYNC_OFFLINE` 등 | `--status-degraded` 배지                   | §복구 운영 등급 — `NORMAL`이면 슬롯 숨김, 장애·과부하 시 한 줄 배지 |
-| **Sync**     | `sync` · **42ms**                 | OK `--status-ok` / 끊김 `--status-offline` | `apps/sync` WS 연결·RTT — Expanded ConnectionBar SYNC 요약 |
-| **REST**     | `api` · **18ms**                  | 동일                                       | Nest HEAD `/health` RTT — backend·SSE 스트림 가용성 요약 |
+| 슬롯         | 표시 예                           | 색 / 아이콘                                | 설명                                                                  |
+| ------------ | --------------------------------- | ------------------------------------------ | --------------------------------------------------------------------- |
+| **Degraded** | `NORMAL` 숨김 · `SYNC_OFFLINE` 등 | `--status-degraded` 배지                   | §복구 운영 등급 — `NORMAL`이면 슬롯 숨김, 장애·과부하 시 한 줄 배지   |
+| **Sync**     | `sync` · **42ms**                 | OK `--status-ok` / 끊김 `--status-offline` | `apps/sync` WS 연결·RTT — Expanded ConnectionBar SYNC 요약            |
+| **REST**     | `api` · **18ms**                  | 동일                                       | Nest HEAD `/health` RTT — backend·SSE 스트림 가용성 요약              |
 | **Safety**   | `⚠ 2` · 최상위 1건 요약          | `--safety-critical` / `--safety-warning`   | 미처리 Safety 알람 건수·최상위 1건 — 클릭 시 Expanded Safety lag 연계 |
-| **Command**  | `cmd` · pending **1**             | `--command-pending`                        | `commandTracker` 대기 중 명령 수 — SSE `command-update`와 동기 |
-| **FPS**      | **58** (compact 숫자만)           | <24 `--status-degraded`                    | 메인 스레드 FPS p50 — Circuit·Long task 악화 시 조기 경고 |
-| **Domain**   | `registry.statusBar` 1줄 (선택)   | surface                                    | 현재 도메인 전용 1줄 (nexage IoT · nexia room 등) |
-| **Expand**   | `[▲]` / `[▼]`                     | `useLayoutStore.statusBarExpanded`         | StatusOpsPanel + `statusPanel` 펼침/접기 토글 |
+| **Command**  | `cmd` · pending **1**             | `--command-pending`                        | `commandTracker` 대기 중 명령 수 — SSE `command-update`와 동기        |
+| **FPS**      | **58** (compact 숫자만)           | <24 `--status-degraded`                    | 메인 스레드 FPS p50 — Circuit·Long task 악화 시 조기 경고             |
+| **Domain**   | `registry.statusBar` 1줄 (선택)   | surface                                    | 현재 도메인 전용 1줄 (nexage IoT · nexia room 등)                     |
+| **Expand**   | `[▲]` / `[▼]`                     | `useLayoutStore.statusBarExpanded`         | StatusOpsPanel + `statusPanel` 펼침/접기 토글                         |
 
 ```text
 │ [SYNC_OFFLINE] sync — · api 22ms · Safety ⚠1 · cmd ⏳1 · FPS 58 · IoT ■ · [▲] │
@@ -736,25 +749,25 @@ useHocuspocus / api-client ─┘         │
 
 ##### A. ConnectionBar (연결 · 지연)
 
-| Chip        | 라벨   | 값                                                     | 임계 (색)                                               | 설명 |
-| ----------- | ------ | ------------------------------------------------------ | ------------------------------------------------------- | ---- |
-| **Sync WS** | `SYNC` | `{latencyMs}ms` · `{connected\|reconnecting\|offline}` | >200ms `--status-degraded` · offline `--status-offline` | `apps/sync` Yjs CRDT 동기화 연결 상태·왕복 지연 |
+| Chip        | 라벨   | 값                                                     | 임계 (색)                                               | 설명                                                                     |
+| ----------- | ------ | ------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **Sync WS** | `SYNC` | `{latencyMs}ms` · `{connected\|reconnecting\|offline}` | >200ms `--status-degraded` · offline `--status-offline` | `apps/sync` Yjs CRDT 동기화 연결 상태·왕복 지연                          |
 | **REST**    | `API`  | `{restLatencyMs}ms`                                    | >500ms degraded · 5xx `--status-offline`                | Nest backend 헬스(HEAD `/health`) RTT — CRUD·SSE 스트림 가용성 대리 지표 |
-| **MQTT**    | `MQTT` | `{connected}` · `{msgPerSec}/s` (iot)                  | 끊김 offline                                            | 채널 B IoT 브로커 연결·초당 유입량 (iot 프로필) |
-| **Mode**    | `MODE` | `degradedMode`                                         | semantic 배지                                           | §복구 운영 등급 — `NORMAL` · `SYNC_OFFLINE` · `API_DEGRADED` 등 |
+| **MQTT**    | `MQTT` | `{connected}` · `{msgPerSec}/s` (iot)                  | 끊김 offline                                            | 채널 B IoT 브로커 연결·초당 유입량 (iot 프로필)                          |
+| **Mode**    | `MODE` | `degradedMode`                                         | semantic 배지                                           | §복구 운영 등급 — `NORMAL` · `SYNC_OFFLINE` · `API_DEGRADED` 등          |
 
 ##### B. RuntimeGrid — 메트릭 카드 (8칸 · `grid-cols-4` × 2행)
 
-| ID                        | UI 라벨          | 값 형식                     | 수집                | Warn            | Critical            | 설명 |
-| ------------------------- | ---------------- | --------------------------- | ------------------- | --------------- | ------------------- | ---- |
-| **`metric-fps`**          | **FPS**          | `{p50}` (소) / p10 `{p10}`  | healthWatchdog      | p50 < **24**    | p10 < **15**        | 메인 스레드 렌더 프레임률 — UI 멈춤·Circuit 진입 선행 신호 |
-| **`metric-longtask`**     | **Long tasks**   | `{sumMs}ms` / 10s           | PerformanceObserver | > **200ms**     | > **500ms**         | 50ms+ 동기 작업 누적 — 차트·레이아웃이 Safety ingest를 밀 때 상승 |
-| **`metric-heap`**         | **Memory**       | `{heapUsedMb}` MB           | memory API          | > **512** MB    | > **768** MB        | JS 힙 사용량 (Chrome 등) — Telemetry 버퍼·장시간 세션 누수 감시 |
-| **`metric-main-busy`**    | **Main busy**    | `{busyPercent}%`            | 1−(idle/1s) 근사    | > **60%**       | > **85%**           | 1초 구간 메인 스레드 바쁨 비율 — Worker 분리 효과 역검증 |
-| **`metric-sync-rtt`**     | **Sync RTT**     | `{syncLatencyMs} ms`        | Hocuspocus ping     | > **200**       | > **1000**          | ConnectionBar SYNC와 동일 소스 — Expanded에서 추세 확인용 |
-| **`metric-worker-queue`** | **Worker queue** | `{depth}` · `{msgPerSec}/s` | telemetryProcessor  | depth > **100** | > **500** (Circuit) | 채널 B Telemetry Worker 대기 큐·처리율 — OPEN 임계와 연동 |
+| ID                        | UI 라벨          | 값 형식                     | 수집                | Warn            | Critical            | 설명                                                               |
+| ------------------------- | ---------------- | --------------------------- | ------------------- | --------------- | ------------------- | ------------------------------------------------------------------ |
+| **`metric-fps`**          | **FPS**          | `{p50}` (소) / p10 `{p10}`  | healthWatchdog      | p50 < **24**    | p10 < **15**        | 메인 스레드 렌더 프레임률 — UI 멈춤·Circuit 진입 선행 신호         |
+| **`metric-longtask`**     | **Long tasks**   | `{sumMs}ms` / 10s           | PerformanceObserver | > **200ms**     | > **500ms**         | 50ms+ 동기 작업 누적 — 차트·레이아웃이 Safety ingest를 밀 때 상승  |
+| **`metric-heap`**         | **Memory**       | `{heapUsedMb}` MB           | memory API          | > **512** MB    | > **768** MB        | JS 힙 사용량 (Chrome 등) — Telemetry 버퍼·장시간 세션 누수 감시    |
+| **`metric-main-busy`**    | **Main busy**    | `{busyPercent}%`            | 1−(idle/1s) 근사    | > **60%**       | > **85%**           | 1초 구간 메인 스레드 바쁨 비율 — Worker 분리 효과 역검증           |
+| **`metric-sync-rtt`**     | **Sync RTT**     | `{syncLatencyMs} ms`        | Hocuspocus ping     | > **200**       | > **1000**          | ConnectionBar SYNC와 동일 소스 — Expanded에서 추세 확인용          |
+| **`metric-worker-queue`** | **Worker queue** | `{depth}` · `{msgPerSec}/s` | telemetryProcessor  | depth > **100** | > **500** (Circuit) | 채널 B Telemetry Worker 대기 큐·처리율 — OPEN 임계와 연동          |
 | **`metric-worker-drop`**  | **Worker drops** | `{workerDropped}` Σ         | Worker              | > **0**         | > **100**/min       | 버퍼 overflow로 **버린** 메시지 누적 — Safety 경로 drop **0** 목표 |
-| **`metric-safety-lag`**   | **Safety lag**   | `{safetyIngestMs} ms`       | useSafetyStore      | > **200**       | > **500**           | 마지막 Safety 반영까지 지연 — 미션 크리티컬 **최우선** KPI |
+| **`metric-safety-lag`**   | **Safety lag**   | `{safetyIngestMs} ms`       | useSafetyStore      | > **200**       | > **500**           | 마지막 Safety 반영까지 지연 — 미션 크리티컬 **최우선** KPI         |
 
 **카드 UI 규격** (Shadcn + semantic)
 
@@ -879,7 +892,11 @@ NEXA OS V2.1/                          # 모노레포 루트
 ├── database/
 │   ├── schema.prisma
 │   └── docker/                        # Postgres, pgvector 등
-├── docs/
+├── docs/                              # 기획·명세 SSOT — Desktop Rivet 문서 파이프라인 (§docs-lifecycle)
+│   ├── inbox/                         # (필수) 날것 메모·아이디어·채팅 덤프 — 00번 입력
+│   ├── refined/                       # Desktop Rivet(Hermes) 1차 정제 기획서 — 01~02번 입력
+│   ├── specs/                         # 확정 기술 명세·Zod·OpenAPI·도메인 SSOT — 03~07번·구현 참조
+│   └── trash/                         # 처리 완료 inbox — inbox/ 와 동일 상대 경로로 이동·보관
 ├── v0/                                # v0.dev · AI UI 생성 자산 (런타임·배포 제외)
 │   ├── rules.md                       # 시맨틱 계층(Semantic Layer) 수칙 — AI 학습용 전용 가이드
 │   ├── prompts/                       # 도메인별 초기·시스템 프롬프트
@@ -1136,11 +1153,11 @@ NEXA OS V2.1/                          # 모노레포 루트
 
 > **역할**: [v0.dev](https://v0.dev) 등 AI UI 생성 도구용 **프롬프트·규칙·이력** 저장소. **`apps/web/src`에 직접 merge되지 않음** — 채택된 조각만 Shadcn·도메인 `views/`로 이식.
 
-| 경로 | 용도 |
-| ---- | ---- |
+| 경로              | 용도                                                                                                                                                                              |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`v0/prompts/`** | 도메인별(**`nexia`** · **`nexage`** · **`u2bee`** 등) **초기 프롬프트**·**시스템 프롬프트** SSOT. `_system.md` = 레이아웃 4영역 · `domainLayoutRegistry` · semantic CSS 공통 지시 |
-| **`v0/history/`** | v0.dev **생성 코드 스냅샷**(export paste) · **프로젝트 공유 URL** · 채택/폐기 메모 — 재현·회귀 비교용 |
-| **`v0/rules.md`** | NEXA **시맨틱 계층(Semantic Layer)** 수칙 — Safety semantic **고정** · surface/themePreset 분리 · Grade 1·2·3 UI 표현 — **AI 에이전트·v0에 우선 주입** |
+| **`v0/history/`** | v0.dev **생성 코드 스냅샷**(export paste) · **프로젝트 공유 URL** · 채택/폐기 메모 — 재현·회귀 비교용                                                                             |
+| **`v0/rules.md`** | NEXA **시맨틱 계층(Semantic Layer)** 수칙 — Safety semantic **고정** · surface/themePreset 분리 · Grade 1·2·3 UI 표현 — **AI 에이전트·v0에 우선 주입**                            |
 
 **워크플로 (권장)**
 
@@ -1156,18 +1173,18 @@ v0/rules.md + v0/prompts/{domain}.md  →  v0.dev 세션
 
 **원칙**: 스키마는 **`packages/shared/src/schemas/`에만** 정의. 각 앱에 **로컬 Zod duplicate 금지**.
 
-| 계층        | 경로                                  | Zod 사용                                         |
-| ----------- | ------------------------------------- | ------------------------------------------------ |
-| **SSOT**    | `shared/schemas/**`                   | `z.object` → `export type T = z.infer<typeof S>` |
-| **Web**     | `lib/validation/parseApiResponse.ts`  | REST `safeParse` → store ingest **전**           |
-| **Web**     | `lib/validation/parseSseEvent.ts`     | SSE `data:` → shared Zod → store · commandTracker |
-| **Web**     | `workers/telemetryProcessor.ts`       | Worker msg `TelemetrySchema.safeParse`           |
-| **Web**     | `hooks/useYjsSync.ts`                 | Y.Map → `SafetyMapSchema` / `TelemetryMapSchema` |
-| **Web**     | forms                                 | `@hookform/resolvers/zod` + shared 스키마        |
-| **Backend** | `common/pipes/zod-validation.pipe.ts` | `@Body()` — class-validator 대신 shared          |
-| **Backend** | `command-grade.guard.ts`              | `CommandSchema.parse(body)` → `evaluateIngress`  |
-| **Sync**    | `extensions/yjs-schema-guard.ts`      | Yjs write — control/safety · Grade3 reject       |
-| **Sync**    | `extensions/persistence.ts`           | DB 저장 전 `safeParse`                           |
+| 계층                | 경로                                             | Zod 사용                                                                    |
+| ------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| **SSOT**            | `shared/schemas/**`                              | `z.object` → `export type T = z.infer<typeof S>`                            |
+| **Web**             | `lib/validation/parseApiResponse.ts`             | REST `safeParse` → store ingest **전**                                      |
+| **Web**             | `lib/validation/parseSseEvent.ts`                | SSE `data:` → shared Zod → store · commandTracker                           |
+| **Web**             | `workers/telemetryProcessor.ts`                  | Worker msg `TelemetrySchema.safeParse`                                      |
+| **Web**             | `hooks/useYjsSync.ts`                            | Y.Map → `SafetyMapSchema` / `TelemetryMapSchema`                            |
+| **Web**             | forms                                            | `@hookform/resolvers/zod` + shared 스키마                                   |
+| **Backend**         | `common/pipes/zod-validation.pipe.ts`            | `@Body()` — class-validator 대신 shared                                     |
+| **Backend**         | `command-grade.guard.ts`                         | `CommandSchema.parse(body)` → `evaluateIngress`                             |
+| **Sync**            | `extensions/yjs-schema-guard.ts`                 | Yjs write — control/safety · Grade3 reject                                  |
+| **Sync**            | `extensions/persistence.ts`                      | DB 저장 전 `safeParse`                                                      |
 | **Desktop (U2BEE)** | `bridge/dto/` (생성) · `bridge/nestjs_client.py` | Zod **직접 import 불가** — §**U2BEE Pydantic** · OpenAPI → `model_validate` |
 
 ```text
@@ -1217,21 +1234,21 @@ packages/shared/src/schemas/          ★ Zod SSOT (commands · dtos · yjs payl
         bridge/nestjs_client.py                   Model.model_validate(response.json())
 ```
 
-| 단계 | SSOT | U2BEE(Python) 무결성 |
-| ---- | ---- | --------------------- |
-| **① 정의** | `shared/schemas/**` — `z.object` · discriminatedUnion(Grade) | Python에 **로컬 pydantic duplicate 금지** |
-| **② 계약 노출** | backend controller + shared 스키마 → OpenAPI `components/schemas` | `openapi.json`이 Zod와 **동일 필드·enum·required** 반영 |
-| **③ 생성** | `pnpm openapi:desktop` | `bridge/dto/models.py` **자동 생성만** |
-| **④ 소비** | web: `safeParse` · backend: `ZodValidationPipe` | **`nestjs_client`**: 응답·요청 body **`model_validate`** — `ValidationError` → 로그 + **재시도/중단** (silent `dict` cast **금지**) |
+| 단계            | SSOT                                                              | U2BEE(Python) 무결성                                                                                                                |
+| --------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **① 정의**      | `shared/schemas/**` — `z.object` · discriminatedUnion(Grade)      | Python에 **로컬 pydantic duplicate 금지**                                                                                           |
+| **② 계약 노출** | backend controller + shared 스키마 → OpenAPI `components/schemas` | `openapi.json`이 Zod와 **동일 필드·enum·required** 반영                                                                             |
+| **③ 생성**      | `pnpm openapi:desktop`                                            | `bridge/dto/models.py` **자동 생성만**                                                                                              |
+| **④ 소비**      | web: `safeParse` · backend: `ZodValidationPipe`                   | **`nestjs_client`**: 응답·요청 body **`model_validate`** — `ValidationError` → 로그 + **재시도/중단** (silent `dict` cast **금지**) |
 
 #### U2BEE 검증 경계 (어디서 Pydantic을 쓰는가)
 
-| 경계 | 경로 | 규칙 |
-| ---- | ---- | ---- |
-| **Python ↔ Nest REST/SSE** | `bridge/nestjs_client.py` | Pull/Push DTO · **edge-queue/stream** (httpx-sse) — 생성 `bridge/dto` · `model_validate` |
-| **Grade 3 Edge Pull** | `nestjs_client` + `commands` 미러 | 외부망 MQTT Push **금지** — **`edge-pull-sse`** 우선 · GET pull fallback · Pull 응답 **동일 Command/DTO pydantic** |
-| **Python ↔ WebView (QWebChannel)** | `bridge/web_channel.py` | **비즈니스 DTO는 웹뷰 B → Nest** (web 측 Zod). Python→JS 이벤트(`safetyAlert` 등)는 **shared에 정의된 payload shape**를 pydantic 또는 `TypedDict`+validate로 **최소 계약** 유지 |
-| **OS native (`native/*`)** | RAM 필터·입력 훅 | pydantic 대상 **아님** — OS 이벤트만. **서버와 주고받는 JSON**만 DTO 적용 |
+| 경계                                | 경로                              | 규칙                                                                                                                                                                            |
+| ----------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Python ↔ Nest REST/SSE**         | `bridge/nestjs_client.py`         | Pull/Push DTO · **edge-queue/stream** (httpx-sse) — 생성 `bridge/dto` · `model_validate`                                                                                        |
+| **Grade 3 Edge Pull**               | `nestjs_client` + `commands` 미러 | 외부망 MQTT Push **금지** — **`edge-pull-sse`** 우선 · GET pull fallback · Pull 응답 **동일 Command/DTO pydantic**                                                              |
+| **Python ↔ WebView (QWebChannel)** | `bridge/web_channel.py`           | **비즈니스 DTO는 웹뷰 B → Nest** (web 측 Zod). Python→JS 이벤트(`safetyAlert` 등)는 **shared에 정의된 payload shape**를 pydantic 또는 `TypedDict`+validate로 **최소 계약** 유지 |
+| **OS native (`native/*`)**          | RAM 필터·입력 훅                  | pydantic 대상 **아님** — OS 이벤트만. **서버와 주고받는 JSON**만 DTO 적용                                                                                                       |
 
 #### 무결성 규칙 (U2BEE)
 
@@ -1251,7 +1268,9 @@ def fetch_blacklist(self) -> BlacklistSnapshotDto:
 
 ```ts
 // packages/shared — Zod가 항상 선행 (Python pydantic의 의미 원천)
-export const BlacklistSnapshotSchema = z.object({ /* … */ })
+export const BlacklistSnapshotSchema = z.object({
+  /* … */
+})
 export type BlacklistSnapshot = z.infer<typeof BlacklistSnapshotSchema>
 ```
 
@@ -1497,12 +1516,12 @@ def generate() -> None:
 
 #### 3) 변경 체크리스트 (개발자용)
 
-| 변경                  | 필수 작업                                          |
-| --------------------- | -------------------------------------------------- |
-| `shared` DTO·commands | `pnpm --filter @nexa/shared build` → 3앱 typecheck |
+| 변경                  | 필수 작업                                                                                                       |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `shared` DTO·commands | `pnpm --filter @nexa/shared build` → 3앱 typecheck                                                              |
 | backend API 스키마    | `shared` Zod 수정 → `pnpm openapi:desktop` → `bridge/dto` diff commit · U2BEE `model_validate` 경로 회귀 테스트 |
-| `yjs/map-keys`        | shared + sync + web **동시** PR                    |
-| MQTT topic            | mosquitto + `edge-gateway-sim` env                 |
+| `yjs/map-keys`        | shared + sync + web **동시** PR                                                                                 |
+| MQTT topic            | mosquitto + `edge-gateway-sim` env                                                                              |
 
 #### 4) Desktop + TS 동시 개발 순서
 
@@ -1566,25 +1585,25 @@ packages/shared/src/
 └── time-sync.ts
 ```
 
-| 경로                                       | 설계 근거                                                                           |
-| ------------------------------------------ | ----------------------------------------------------------------------------------- |
-| **`workers/`**                             | 대량 Telemetry가 와도 **메인 스레드 분리** — §3대 수칙 ① Web Worker                 |
-| **`useSafetyStore` / `useTelemetryStore`** | 화재·고장 알람이 차트 데이터에 밀리지 않도록 **상태 분리** — ② useTransition과 연동 |
-| **`engines/socketEmitter.ts`**             | [긴급 정지] 클릭이 React re-render에 갇히지 않게 **즉시 송신** — ③ 제어 단선        |
-| **`guards/authGuard.ts`**                  | 2등급(소프트 제어) **MFA** 프론트 게이트                                            |
-| **`audit-log.interceptor.ts`**             | 2등급 이상 NestJS **감사 로그** (금융권 수준 추적)                                  |
-| **`packages/shared/schemas`**              | Zod **런타임 parse** — web · backend · sync 경계 검증                               |
-| **`packages/shared/commands`**             | 1·2·3등급 명령 — schemas에서 z.infer                                                |
-| **`packages/shared/yjs/`**                 | Y.Map 키·room 이름 — web·sync **동일 상수**                                         |
-| **`packages/shared/time-sync.ts`**         | Audit·commandTracker **공통 시각** — 사고 선후 분석                                 |
-| **`engines/commandTracker.ts`**            | 명령 **송신~완료** 피드백 — socketEmitter와 쌍                                      |
-| **`engines/healthWatchdog.ts`**            | Circuit Breaker · 과부하 시 Telemetry 차단 · Safety 텍스트 모드 (§복구)             |
+| 경로                                       | 설계 근거                                                                             |
+| ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| **`workers/`**                             | 대량 Telemetry가 와도 **메인 스레드 분리** — §3대 수칙 ① Web Worker                   |
+| **`useSafetyStore` / `useTelemetryStore`** | 화재·고장 알람이 차트 데이터에 밀리지 않도록 **상태 분리** — ② useTransition과 연동   |
+| **`engines/socketEmitter.ts`**             | [긴급 정지] 클릭이 React re-render에 갇히지 않게 **즉시 송신** — ③ 제어 단선          |
+| **`guards/authGuard.ts`**                  | 2등급(소프트 제어) **MFA** 프론트 게이트                                              |
+| **`audit-log.interceptor.ts`**             | 2등급 이상 NestJS **감사 로그** (금융권 수준 추적)                                    |
+| **`packages/shared/schemas`**              | Zod **런타임 parse** — web · backend · sync 경계 검증                                 |
+| **`packages/shared/commands`**             | 1·2·3등급 명령 — schemas에서 z.infer                                                  |
+| **`packages/shared/yjs/`**                 | Y.Map 키·room 이름 — web·sync **동일 상수**                                           |
+| **`packages/shared/time-sync.ts`**         | Audit·commandTracker **공통 시각** — 사고 선후 분석                                   |
+| **`engines/commandTracker.ts`**            | 명령 **송신~완료** 피드백 — socketEmitter와 쌍                                        |
+| **`engines/healthWatchdog.ts`**            | Circuit Breaker · 과부하 시 Telemetry 차단 · Safety 텍스트 모드 (§복구)               |
 | **`engines/syncFallback.ts`**              | sync 장애 시 **SSE 우선** · REST 폴링 fallback · `useYjsSync` Strategy (§SSE · §복구) |
 | **`lib/validation/parseSseEvent.ts`**      | SSE `data:` → shared Zod — REST snapshot과 **동일 DTO**                               |
-| **`store/useConnectionStore.ts`**          | `degradedMode` SSOT · SystemStatusBar 연동                                          |
-| **`modules/iot/`**                         | `@Sse /iot/stream` · snapshot REST fallback                                         |
-| **`modules/edge-queue/`**                  | `@Sse /edge-queue/stream` · GET pull fallback · **edge-pull-sse**                   |
-| **`edge-persistence.ts`**                  | 서버 장애 시 **현장 큐·안전 정책** 로컬 유지                                        |
+| **`store/useConnectionStore.ts`**          | `degradedMode` SSOT · SystemStatusBar 연동                                            |
+| **`modules/iot/`**                         | `@Sse /iot/stream` · snapshot REST fallback                                           |
+| **`modules/edge-queue/`**                  | `@Sse /edge-queue/stream` · GET pull fallback · **edge-pull-sse**                     |
+| **`edge-persistence.ts`**                  | 서버 장애 시 **현장 큐·안전 정책** 로컬 유지                                          |
 
 > `useDeviceStore`는 범용 IoT 버퍼가 필요할 때만 추가. 기본은 Safety / Telemetry 이원화.
 
@@ -1726,13 +1745,7 @@ packages/shared/src/commands/
 // packages/shared/src/commands/test-fixtures/grade-route-matrix.ts
 import { CommandGrade } from '../command-grade.enum'
 
-export type IngressPath =
-  | 'yjs-external'
-  | 'rest-external'
-  | 'rest-internal-vpn'
-  | 'edge-pull'
-  | 'edge-pull-sse'
-  | 'sse-browser-external'
+export type IngressPath = 'yjs-external' | 'rest-external' | 'rest-internal-vpn' | 'edge-pull' | 'edge-pull-sse' | 'sse-browser-external'
 
 export type GradeExpectation = 'allow' | 'deny' | 'deny-no-ui'
 
@@ -1763,14 +1776,14 @@ export const GRADE_ROUTE_MATRIX: Record<CommandGrade, Partial<Record<IngressPath
 
 #### 레이어별 자동화 테스트
 
-| 레이어          | 파일                                                            | 검증 내용                                                                                            |
-| --------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **L1 Contract** | `commands/__tests__/command-grade.contract.spec.ts`             | `security-requirements.ts`가 matrix와 **일치** · Grade3 + `yjs-external` → `deny`                    |
-| **Backend**     | `common/guards/command-grade.guard.spec.ts`                     | `POST /control` + Grade3 + `X-Forwarded-For`(외부) → **403** · Audit **미기록**(거부 선행)           |
+| 레이어          | 파일                                                            | 검증 내용                                                                                               |
+| --------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **L1 Contract** | `commands/__tests__/command-grade.contract.spec.ts`             | `security-requirements.ts`가 matrix와 **일치** · Grade3 + `yjs-external` → `deny`                       |
+| **Backend**     | `common/guards/command-grade.guard.spec.ts`                     | `POST /control` + Grade3 + `X-Forwarded-For`(외부) → **403** · Audit **미기록**(거부 선행)              |
 | **Backend**     | `modules/edge-queue/__tests__/edge-stream.spec.ts`              | Edge credential + `command-ready` SSE → **allow** · 브라우저 EventSource + executable Grade3 → **deny** |
-| **Sync**        | `apps/sync/src/extensions/__tests__/yjs-command-filter.spec.ts` | Y.Map `control` 키에 Grade3 write → **transaction reject** · persistence **skip**                    |
-| **Web**         | `guards/__tests__/command-emission.spec.ts`                     | `socketEmitter`·`useYjsSync` 역쓰기 경로에 Grade3 payload → **throw / blocked** · 제어 UI **미노출** |
-| **Web**         | `engines/__tests__/sync-fallback-sse.spec.ts`                   | sync kill → `SYNC_OFFLINE` · `iot/stream` SSE ingest · SSE fail → REST poll fallback                 |
+| **Sync**        | `apps/sync/src/extensions/__tests__/yjs-command-filter.spec.ts` | Y.Map `control` 키에 Grade3 write → **transaction reject** · persistence **skip**                       |
+| **Web**         | `guards/__tests__/command-emission.spec.ts`                     | `socketEmitter`·`useYjsSync` 역쓰기 경로에 Grade3 payload → **throw / blocked** · 제어 UI **미노출**    |
+| **Web**         | `engines/__tests__/sync-fallback-sse.spec.ts`                   | sync kill → `SYNC_OFFLINE` · `iot/stream` SSE ingest · SSE fail → REST poll fallback                    |
 
 ```ts
 // packages/shared/src/commands/__tests__/command-grade.contract.spec.ts
@@ -1842,14 +1855,14 @@ jobs:
 
 정적 4축(①~④)에 더해, **⑤ 검증**이 green이어야 “미션 크리티컬 구현 완료”로 간주합니다.
 
-| 검증 ID             | 스펙                     | 합격                                                         |
-| ------------------- | ------------------------ | ------------------------------------------------------------ |
-| **V-LOAD-500**      | §TELEMETRY-FLOOD-500     | Flood FPS p10 ≥ 15 · Safety ≤ 200ms · Recovery Circuit CLOSE |
-| **V-SEC-G3-YJS**    | Grade3 + `yjs-external`  | sync filter **deny** · web emit **blocked**                  |
-| **V-SEC-G3-REST**   | Grade3 + `rest-external` | `command-grade.guard` **403**                                |
-| **V-SEC-G3-SSE**    | Grade3 + `sse-browser-external` | executable payload **deny** · status-only **allow**     |
-| **V-SEC-G3-EDGE**   | Grade3 + `edge-pull` · `edge-pull-sse` | edge-queue **allow** (대조군)                        |
-| **V-SYNC-FALLBACK** | sync kill + SSE / REST fallback | `SYNC_OFFLINE` · Safety ingest · SSE fail → poll (§SSE · §복구) |
+| 검증 ID             | 스펙                                   | 합격                                                            |
+| ------------------- | -------------------------------------- | --------------------------------------------------------------- |
+| **V-LOAD-500**      | §TELEMETRY-FLOOD-500                   | Flood FPS p10 ≥ 15 · Safety ≤ 200ms · Recovery Circuit CLOSE    |
+| **V-SEC-G3-YJS**    | Grade3 + `yjs-external`                | sync filter **deny** · web emit **blocked**                     |
+| **V-SEC-G3-REST**   | Grade3 + `rest-external`               | `command-grade.guard` **403**                                   |
+| **V-SEC-G3-SSE**    | Grade3 + `sse-browser-external`        | executable payload **deny** · status-only **allow**             |
+| **V-SEC-G3-EDGE**   | Grade3 + `edge-pull` · `edge-pull-sse` | edge-queue **allow** (대조군)                                   |
+| **V-SYNC-FALLBACK** | sync kill + SSE / REST fallback        | `SYNC_OFFLINE` · Safety ingest · SSE fail → poll (§SSE · §복구) |
 
 ---
 
@@ -1865,7 +1878,7 @@ jobs:
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | **① 레이아웃**   | `domainLayoutRegistry` · `globalMenu` · `SystemStatusBar` + **`StatusOpsPanel`** (+ `statusPanel`) · `useRuntimeMetricsStore` · `semantic.css` | 슬롯 불일치 · Expanded **메트릭 표준** 미준수 · Safety semantic 임의 색                    |
 | **② 보안**       | `packages/shared/src/commands/` · `backend/.../audit-log.interceptor.ts`                                                                       | 등급·명령 타입 불일치 · 2등급+ **감사 추적 불가**                                          |
-| **③ IoT·동기화** | `apps/sync` + `useYjsSync` + Worker A/B 쌍 + `socketEmitter` + **`syncFallback`** (SSE) + **`parseSseEvent`** + **`useConnectionStore`** | Nest 내부 Hocuspocus · A/B 단독 · sync 장애 시 **Safety 미수신** · 폭주 시 **Safety 밀림** |
+| **③ IoT·동기화** | `apps/sync` + `useYjsSync` + Worker A/B 쌍 + `socketEmitter` + **`syncFallback`** (SSE) + **`parseSseEvent`** + **`useConnectionStore`**       | Nest 내부 Hocuspocus · A/B 단독 · sync 장애 시 **Safety 미수신** · 폭주 시 **Safety 밀림** |
 | **④ 도메인**     | `domains/*/views/{left,content,right}/` (+ `status/` 권장)                                                                                     | registry만 있고 **뷰 파일 없음**                                                           |
 | **⑤ 검증**       | `pnpm test:security` · `TELEMETRY-FLOOD-500` · `commands/test-fixtures/grade-route-matrix.ts` (§미션 크리티컬 설계 검증)                       | V-\* **FAIL** · Grade3 Yjs 유입 **미차단** · Flood 시 Safety >200ms                        |
 
@@ -1874,10 +1887,10 @@ jobs:
 
 **보안 등급 (요약)**
 
-| 등급 | 프론트                         | 백엔드·sync                             | SSOT             |
-| ---- | ------------------------------ | --------------------------------------- | ---------------- |
-| 🟢 1 | `useHocuspocus` ReadOnly       | `apps/sync` + `backend/auth` JWT        | `commands`       |
-| 🟡 2 | `authGuard` (권장→필수화 검토) | `audit-log` + `control`                 | `commands` + MFA |
+| 등급 | 프론트                         | 백엔드·sync                                                            | SSOT             |
+| ---- | ------------------------------ | ---------------------------------------------------------------------- | ---------------- |
+| 🟢 1 | `useHocuspocus` ReadOnly       | `apps/sync` + `backend/auth` JWT                                       | `commands`       |
+| 🟡 2 | `authGuard` (권장→필수화 검토) | `audit-log` + `control`                                                | `commands` + MFA |
 | 🔴 3 | Yjs/WS 제어 UI **없음**        | `edge-queue` + `edge-gateway` **`edge-pull-sse`** (REST pull fallback) | `commands`       |
 
 **IoT 채널 필수 쌍** — **A+B 동시** (§미션 크리티컬 표 참고)
@@ -1908,11 +1921,11 @@ jobs:
 | `guards/authGuard.ts`                         | 2등급 MFA UI 없음                                                  |
 | `modules/edge-queue/` + `edge-gateway/`       | 3등급 외부망 유출                                                  |
 | `engines/commandTracker.ts`                   | 명령 완료 미확인 · timeout/blocked 미처리                          |
-| `engines/syncFallback.ts`                     | sync 장애 시 Safety **SSE 공백** · REST fallback 누락               |
-| `lib/validation/parseSseEvent.ts`             | SSE payload Zod 미검증                                           |
+| `engines/syncFallback.ts`                     | sync 장애 시 Safety **SSE 공백** · REST fallback 누락              |
+| `lib/validation/parseSseEvent.ts`             | SSE payload Zod 미검증                                             |
 | `store/useConnectionStore.ts`                 | degradedMode·배너 **미표시**                                       |
-| `modules/iot/` (stream + snapshot)            | SSE · REST 폴백 **엔드포인트 없음**                              |
-| `modules/edge-queue/` (`/stream` + pull)      | Grade3 **edge-pull-sse** 미구현                                  |
+| `modules/iot/` (stream + snapshot)            | SSE · REST 폴백 **엔드포인트 없음**                                |
+| `modules/edge-queue/` (`/stream` + pull)      | Grade3 **edge-pull-sse** 미구현                                    |
 | `edge-queue/edge-persistence.ts`              | 서버 장애 시 현장 안전 중단                                        |
 | `packages/shared/time-sync.ts`                | Audit 선후 왜곡                                                    |
 | `engines/healthWatchdog.ts`                   | Circuit Breaker 미동작 → Safety 밀림                               |
@@ -1985,12 +1998,12 @@ export const domainLayoutRegistry = {
 
 `MainShellLayout` 기준 — **이중 스크롤·레이아웃 붕괴 방지**.
 
-| #     | 원칙                     | 한 줄                                     | 구현                                                                   |
-| ----- | ------------------------ | ----------------------------------------- | ---------------------------------------------------------------------- |
-| **1** | **뷰포트 고정**          | 창 전체(`body`) 세로 스크롤 **금지**      | `MainShellLayout` = `100vh` 고정 · `flex` + `min-h-0`                  |
-| **2** | **Content 단일 스크롤**  | 메인 작업 영역**만** 세로 스크롤          | `Content` → `flex-1 overflow-auto` (헤더·상태바는 고정)                |
-| **3** | **드로어 내부 스크롤**   | L/R Drawer는 **자기 영역만** 스크롤       | 드로어 → `overflow-y-auto` (셸·Content에 영향 없음)                    |
-| **4** | **Footer 없음 · 상태바** | `<footer>` 대신 **`SystemStatusBar`**     | compact **~30px** · expanded **≥300px** (`useLayoutStore`)             |
+| #     | 원칙                     | 한 줄                                     | 구현                                                                                                                                                                       |
+| ----- | ------------------------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | **뷰포트 고정**          | 창 전체(`body`) 세로 스크롤 **금지**      | `MainShellLayout` = `100vh` 고정 · `flex` + `min-h-0`                                                                                                                      |
+| **2** | **Content 단일 스크롤**  | 메인 작업 영역**만** 세로 스크롤          | `Content` → `flex-1 overflow-auto` (헤더·상태바는 고정)                                                                                                                    |
+| **3** | **드로어 내부 스크롤**   | L/R Drawer는 **자기 영역만** 스크롤       | 드로어 → `overflow-y-auto` (셸·Content에 영향 없음)                                                                                                                        |
+| **4** | **Footer 없음 · 상태바** | `<footer>` 대신 **`SystemStatusBar`**     | compact **~30px** · expanded **≥300px** (`useLayoutStore`)                                                                                                                 |
 | **5** | **Store-Driven Layout**  | 드로어·상태바 크기/개폐는 **스토어 SSOT** | `useLayoutStore` — open·폭 · `statusBarExpanded` · `statusBarDetailHeight` · 정책은 registry **`drawerDefaults`** ([명세 §2.1](./_NEXA-OS-V2.1-도메인-레지스트리-명세.md)) |
 
 ```text

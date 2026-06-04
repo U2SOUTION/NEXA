@@ -1,7 +1,20 @@
 # NEXA 기술 스택 및 외부 의존성 (Stack & Dependencies)
 
 > **목적**: 실제 설치 의존성(`package.json`)과 기획 문서에서 거론된 스택을 한곳에 정리하고, **사용 방향·주의·혼동 방지**를 명시한다.  
-> **상세 SSOT**: 설치 방식·도메인별 배치·장문 표는 `docs/` 루트 **기술 스택 통합 가이드** (`@ GLOSSARY` 계열, 정확한 파일명은 문서 인덱스에서 확인)를 우선한다. 본 파일은 **룰(행동 제약)** 중심이다.
+> **상세 SSOT**: [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) · [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md`](../NEXA%20OS/_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md). 본 파일은 **룰(행동 제약)** 중심이다.
+
+---
+
+## 0. To-Be vs As-Is (문서·코드 읽기)
+
+| 구분 | To-Be (SSOT) | As-Is (현재 `NEXA-Platform/`) |
+|------|----------------|-------------------------------|
+| **통합 웹** | **`apps/web` = Next.js** (App Router) | Quasar + Vue 3 · `src/domains/*` |
+| **백엔드** | **`apps/backend` = NestJS** | `server/` Express (이전) |
+| **협업 WS** | **`apps/sync` = Hocuspocus** | — |
+| **Nexion 캔버스** | **React Flow** (`@xyflow/react`) | `@vue-flow/core` |
+| **Rivet** | **Desktop Rivet** / **Embedded Rivet** | 동일 개념, 구 문서는 혼용 |
+| **docs/** | `inbox/` · `refined/` · `specs/` · `trash/` | 루트 `Nexia/` 등 레거시 — To-Be는 `specs/` 하위 |
 
 ---
 
@@ -9,8 +22,9 @@
 
 | 기술           | 출처                  | NEXA에서의 방향             | 주의                                                      |
 | :------------- | :-------------------- | :-------------------------- | :-------------------------------------------------------- |
-| **Vue 3**      | `package.json`        | SPA UI 기반                 | Composition API 권장                                      |
-| **Quasar 2**   | `package.json`        | UI·레이아웃·Quasar 컴포넌트 | 테마 색상은 `--nexa-*`만 (`coding-style.md`)              |
+| **Next.js** (To-Be) | `apps/web` (도입 예정) | **플랫폼 통합 셸 SSOT**     | App Router · `frame/`·`domains/` — **「프론트=React」만 쓰지 않음** |
+| **Vue 3** (As-Is)   | `package.json`        | 레거시 SPA UI               | To-Be 이전까지 유지                                       |
+| **Quasar 2** (As-Is)| `package.json`        | 레거시 UI·레이아웃          | 테마 `--nexa-*` (`coding-style.md`)                       |
 | **TypeScript** | 양쪽 `package.json`   | 프론트·서버 공통            | `any` 금지 (`coding-style.md`, `testing.md`)              |
 | **Vite**       | `@quasar/app-vite`    | 빌드·HMR                    | 직접 설정 변경 시 Quasar 호환성 확인                      |
 | **Node.js**    | `engines`             | ^18~^28                     | 팀 기준 버전 통일                                         |
@@ -36,7 +50,7 @@
 | :---------------- | :-------------------------------------------------------------- | :---------------------- | :------------------------------------ |
 | **상태**          | `pinia`                                                         | 전역·도메인 스토어      | `system/`·`domains/` 스토어 패턴 유지 |
 | **검증**          | `zod`                                                           | 런타임 스키마·타입 추론 | `testing.md`, 서버 Zod와 버전 분리    |
-| **플로우·그래프** | `@vue-flow/core`, `dagre`                                       | Nexion 등 노드·엣지 UI  | 운영 규약은 문서 인덱스 Nexion UIUX   |
+| **플로우·그래프** | To-Be: `@xyflow/react` · As-Is: `@vue-flow/core`, `dagre`       | Nexion·NEXIA 그래프 UI  | To-Be = **Nexion/NEXIA React Flow**   |
 | **에디터**        | `@tiptap/*`, `codemirror`, `monaco-editor`                      | 리치 텍스트·코드 편집   | 번들 크기·lazy load 고려              |
 | **시각화**        | `d3`, `mermaid`                                                 | 차트·다이어그램         | DOM/CSS 규칙은 `coding-style.md` 준수 |
 | **문서·보내기**   | `jspdf`, `xlsx`, `mammoth`                                      | PDF·엑셀·워드           | 사용자 데이터 취급 시 보안·용량       |

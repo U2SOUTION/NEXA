@@ -100,7 +100,17 @@ src/css/
 
 ## 4. 문서 위치
 
-- **기획·아키텍처 문서**: `NEXA-Platform/docs/` (현재 SSOT)
-- **하위 구조**: `docs/NEXA Nexion/` (Nexion 도메인), `docs/database/` (DB), `docs/AI/` (AI 사양)
-- **문서 네이밍**: `docs/` 루트 **`@` 접두 GLOSSARY 네이밍 규약** 문서 참조(정확한 파일명은 문서 인덱스에서 확인)
-- **규칙 문서**: `docs/rules/` (본 파일 포함)
+**To-Be (`docs/` 생애주기 — Desktop Rivet):**
+
+```text
+NEXA-Platform/docs/
+├── inbox/      # (필수) 날것 메모·아이디어
+├── refined/    # 1차 AI 정제 기획
+├── specs/      # 확정 명세·도메인 SSOT (이전 목적지)
+└── trash/      # 처리된 inbox (inbox/ 와 경로 미러)
+```
+
+- **파이프라인:** `inbox` → (00) → `refined` → (01~02) → `specs` → (03~07) · 상세 `docs/NEXA OS/Desktop Rivet 캔버스 설계.md`
+- **레거시:** 루트의 `Nexia/`, `Nexion/`, `database/`, `AI/` 등은 **수동 이전 전**까지 존재 가능 — To-Be는 **`docs/specs/`** 하위
+- **문서 네이밍:** `docs/specs/` 또는 루트 **`@` 접두 GLOSSARY 네이밍 규약** (문서 인덱스 참조)
+- **규칙 문서:** To-Be `docs/specs/rules/` · 현재 `docs/rules/` (본 파일)

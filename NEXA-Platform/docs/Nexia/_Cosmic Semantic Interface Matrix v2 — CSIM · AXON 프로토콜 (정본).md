@@ -317,7 +317,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 ```
 
 - **표준 G / Domain M:** NC **본문**은 `programRef` 대상 저장소에만 존재 — §12.3.2
-- **Ethos:** Fetch **전** CONTO 판정 · Execute **전** MUST(M200 등) + Cockpit — §12.3.3 · §17
+- **Ethos:** Fetch **전** CONTO 판정 · Execute **전** MUST(M200 등) + Omnix — §12.3.3 · §17
 
 ### 8.5 예시 — 공장 압력 이상
 
@@ -452,12 +452,12 @@ contentHash 검증      →  Profile G/M whitelist
 
 **Domain M-code 예 (Draft — 번호는 Profile별 확정):**
 
-| 코드 | 의미 (예)                                |
-| ---- | ---------------------------------------- |
-| M150 | CONTO sync / 후보고 트리거               |
-| M160 | ENVIRON 스냅샷 요청                      |
-| M170 | KORE segment 로그 시작/종료              |
-| M200 | Ethos **MUST** 게이트 — Cockpit ACK 대기 |
+| 코드 | 의미 (예)                              |
+| ---- | -------------------------------------- |
+| M150 | CONTO sync / 후보고 트리거             |
+| M160 | ENVIRON 스냅샷 요청                    |
+| M170 | KORE segment 로그 시작/종료            |
+| M200 | Ethos **MUST** 게이트 — Omnix ACK 대기 |
 
 #### 12.3.3 Fetch · Verify · Execute (Normative)
 
@@ -469,7 +469,7 @@ contentHash 검증      →  Profile G/M whitelist
 | **4. Execute** | ACTON-GM      | 컨트롤러 전송 · S-커브·버퍼 · ENVIRON 필터                                    |
 | **5. Record**  | KORE          | `revisionId` · FACT · 감사 로그                                               |
 
-**실패 시:** Hash 불일치 · Profile 위반 · Ethos 미통과 → **실행 차단** · FACT `STUCK` · Cockpit 알림 — [`06 예외`](<./06 예외 상황 처리 (Exception Handling).md>)
+**실패 시:** Hash 불일치 · Profile 위반 · Ethos 미통과 → **실행 차단** · FACT `STUCK` · Omnix 알림 — [`06 예외`](<./06 예외 상황 처리 (Exception Handling).md>)
 
 **말단·저전력:** `programRef` 없이 **Header+Body만** — 게이트웨이가 캐시된 NC를 이미 보유한 경우에만 로컬 실행(캐시 키 = `contentHash`).
 
@@ -516,7 +516,7 @@ contentHash 검증      →  Profile G/M whitelist
 1. **FACT** — 전류·각도·장력 등
 2. **Inverse CSIM** — STUCK · Me/You 등 상태 코드
 3. **ECHO** — AI 피드백 토큰
-4. **MOMENT→ERA** — 디지털 트윈·Cockpit 갱신
+4. **MOMENT→ERA** — 디지털 트윈·Omnix 갱신
 
 ---
 
@@ -569,17 +569,17 @@ contentHash 검증      →  Profile G/M whitelist
 
 ---
 
-## 17. NEXIA 플랫폼 연동
+## 17. NEXA 플랫폼 · NEXIA 도메인 연동
 
-| NEXIA         | CSIM/AXON                                                        |
-| ------------- | ---------------------------------------------------------------- |
-| **0 Cockpit** | 멀티모달 입출력 · 승인 · `GlobalFlow/Crew/Solo` ↔ 채널 컨텍스트 |
-| **1 Ethos / Normex** | HEXAGON Who · MUST/SHOULD · 실행 차단 · **Norm(규범)** — 2차 `tabId`: Normex — [`00 …`](./00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md) §3 |
-| **2 Synapse** | CONTO · Rivet · 해석 그래프                                      |
-| **3 Glos**    | 규칙·코드화 · 패킷 스키마                                        |
-| **4 Aionos**  | 파형 · VCD · serial 타임라인                                     |
-| **5 Physis**  | 3D 트윈 · 시각화                                                 |
-| **6 Sense / Twinex** | ESP32·ESPHome·말단 입력 · **디지털 트윈** (2차 `tabId`: Twinex) — [`00 …`](./00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md) §3 |
+| `tabId`    | CSIM/AXON                                                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Omnix**  | 멀티모달 입출력 · 승인 · `GlobalFlow/Crew/Solo` ↔ 채널 컨텍스트                                                                     |
+| **Normex** | HEXAGON Who · MUST/SHOULD · 실행 차단 · **Norm(규범)** — [`00 …`](./00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md) §3 |
+| **Logex**  | CONTO · Rivet · 해석 그래프                                                                                                          |
+| **Scribx** | 규칙·코드화 · 패킷 스키마                                                                                                            |
+| **Vivex**  | 3D·미디어 시각화 · ComfyUI 파이프라인                                                                                                |
+| **Twinex** | ESP32·ESPHome·말단 입력 · **디지털 트윈** · `.nxproj` — [`00 …`](./00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md) §3  |
+| **Navex**  | 자산·노드 탐색 · 릴레이 컨텍스트                                                                                                     |
 
 **Sync (참고):** 멀티윈도우 `nexia.window.sync.v1` · PiP `nexia.pip.sync.v1` — [`08 …`](<./08 멀티윈도우 · Document PiP 통합 규격 및 선택 가이드 (Multi-Window & PiP Specification).md>)
 
@@ -619,7 +619,7 @@ contentHash 검증      →  Profile G/M whitelist
 3. **Step 3:** ACTON-GM Domain Profile · M-code 표 · G subset · **programRef Fetch Runbook**
 4. **Step 4:** Light/Sound/Vibration 렌더 테이블
 5. **Step 5:** 예외·복원·보안 — [`06 예외 상황 처리`](<./06 예외 상황 처리 (Exception Handling).md>)
-6. **Step 6:** Cockpit 파일럿 · Sense/ACTON · CNC/SkyTen 연동
+6. **Step 6:** Omnix 파일럿 · Twinex/ACTON · CNC/SkyTen 연동
 
 ---
 
@@ -658,11 +658,11 @@ contentHash 검증      →  Profile G/M whitelist
 
 ## 22. 연계 문서
 
-| 문서                                                                                                                  | 내용                                 |
-| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| [\_프로토콜.md](./_프로토콜.md)                                                                                       | gRPC/WS · Ethos · HEXAGON 인터페이스 |
+| 문서                                                                                          | 내용                                 |
+| --------------------------------------------------------------------------------------------- | ------------------------------------ |
+| [\_프로토콜.md](./_프로토콜.md)                                                               | gRPC/WS · Ethos · HEXAGON 인터페이스 |
 | [07 음성 인풋…](<./07 음성 인풋 자동화 및 확장 로직 (Voice Input Automation & Expansion).md>) | STT/TTS · PiP                        |
-| [AI CIRCUIT 제너레이터](<./AI CIRCUIT 제너레읰터.md>)                            | ESP32 말단 · Wokwi                   |
+| [AI CIRCUIT 제너레이터](<./AI CIRCUIT 제너레읰터.md>)                                         | ESP32 말단 · Wokwi                   |
 
 ---
 

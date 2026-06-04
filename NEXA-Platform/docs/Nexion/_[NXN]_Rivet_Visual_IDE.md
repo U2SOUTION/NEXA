@@ -1,5 +1,7 @@
 # Rivet 은 무엇인가?
 
+> **SSOT:** **Desktop Rivet**(설계) / **Embedded Rivet**(`rivet-node` @ NestJS). 플랫폼 셸 = **Next.js** (`apps/web`). Nexion 캔버스 To-Be = **React Flow** (본문 Vue Flow = As-Is). — [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
+
 "Rivet은 복잡한 AI 로직(에이전트)을 레고 블록처럼 시각적으로 설계하고, 이를 실제 서비스에 즉시 주입할 수 있게 해주는 'AI 오케스트레이션 IDE 및 런타임'입니다."
 
 ## 1. 시각적 개발 환경 (Visual IDE)
@@ -46,16 +48,21 @@ Rivet은 단순히 그림만 그리는 툴이 아닙니다. 여기서 만든 그
 
 ---
 
-## 2. UI(Vue Flow)와 엔진(Rivet)의 역할 분리
+## 2. UI(React Flow · Nexion)와 엔진(Embedded Rivet)의 역할 분리
 
-작성자님의 아키텍처는 "뇌는 Rivet이, 몸(껍데기)은 Vue Flow가 담당"하는 구조입니다.
+**To-Be:** 실행 = **Embedded Rivet** · 지식·관계 시각화 = **Nexion React Flow** @ **Next.js** (`apps/web`).
 
-- Rivet (Core Engine):
-- 논리 담당: "A 노드 다음에 B 노드가 실행된다", "Ollama에게 이 프롬프트를 보낸다" 같은 실제 데이터 처리를 수행합니다.
-  - 비가시적: 사용자의 눈에는 보이지 않는 서버 측(또는 백그라운드) 로직 엔진입니다.
-- Vue Flow (Interface):
-- 가시화 담당: 사용자가 웹브라우저에서 노드를 옮기고 라인을 긋는 시각적 경험을 제공합니다.
-  - 매핑: 사용자가 Vue Flow에서 라인을 연결하면, 그 정보가 Rivet 엔진에 전달되어 "데이터가 이렇게 흐르도록 설정됨"을 인지하게 합니다.
+| 구분                  | 역할                                          |
+| --------------------- | --------------------------------------------- |
+| **Desktop Rivet**     | PC GUI · 그래프 **설계** · Export JSON (SSOT) |
+| **Embedded Rivet**    | NestJS · 스펙 **실행** · handoff·API 응답     |
+| **Nexion React Flow** | `domainKey: nexion` — ER·N-PATH **시각 편집** |
+| **Web Rivet Editor**  | Nexia — 설계 계열 (Yjs), 서버 실행 없음       |
+
+> (As-Is) 아래 초안의 **Vue Flow** = 레거시 `@vue-flow/core`.
+
+- ~~Rivet (Core Engine)~~ → **Embedded Rivet** (서버 Run-time)
+- ~~Vue Flow (Interface)~~ → **Nexion React Flow** 또는 **NEXIA React Flow** (도메인별)
 
 ---
 

@@ -1,17 +1,21 @@
 # NEXA OS — 도메인 구조
 
-| 항목                        | 내용                                                                                                                              |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **역할**                    | NEXA Platform **`src/domains/`** 전체 도메인 목록·레지스트리·폴더 규약 SSOT                                                       |
-| **레지스트리 (As-Is)**      | `NEXA-Platform/src/frame/registry/domainRegistry.ts`                                                                              |
+| 항목 | 내용 |
+| ---- | ---- |
+
+| **역할** | NEXA Platform **`src/domains/`** 전체 도메인 목록·레지스트리·폴더 규약 SSOT |
+| **레지스트리 (As-Is)** | `NEXA-Platform/src/frame/registry/domainRegistry.ts` |
 | **레지스트리 (V2.1 To-Be)** | `apps/web/src/frame/registry/domainLayoutRegistry.ts` — 슬롯 + **`drawerDefaults`** · `statusBar` · `statusPanel` · `themePreset` |
-| **상위 설계**               | [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md)              |
+| **상위 설계** | [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md) |
 
 ---
 
 ## 1. 도메인이란
 
-**도메인(Domain)** 은 Header **전역 메뉴**에서 선택하는 **하나의 제품·업무 영역**입니다.
+**도메인(Domain)** 은 **NEXA 플랫폼** Header **전역 메뉴**에서 선택하는 **하나의 제품·업무 영역**입니다.
+
+- **`nexia`:** 플랫폼 **핵심 지능** — 7탭·Omnix·고위험 승인·IoT 조율 SSOT (`docs/Nexia/`).
+- **그 외 `domainKey`:** 각자 UI·업무 로직을 갖고, AI·규범·실행 payload는 **NEXIA·NEXA OS Grade**와 **연결** — [`정체성 SSOT`](../_NEXA-플랫폼·메타-OS·NEXIA·도메인%20—%20정체성%20SSOT.md) §3.
 
 - UI 코드: `src/domains/{folder}/`
 - 레이아웃 조립: `frame/registry/domainRegistry.ts` — **lazy import**로 left / content / right / headerActions 슬롯 주입
@@ -166,7 +170,7 @@ onDomainChange(domainKey):
 | **A** | `my`           | `my/`        | 마이페이지·프로필·개인 workspace                        | `views/left/MyLeftNav.vue`        | `views/content/MyView.vue`           | As-Is **`DefaultRightPanel`** · → `views/right/MyRightPanel.tsx`                            | —                                    | **전역** `authStore` · `projectStore`                                                         | L:rec · R:opt        | 프로필 · 디바이스 · 프로젝트 탭                             | **전역** `auth` · `server/domains/projects/` | Nest `modules/auth` · `projects` · `themePreset: office-light`                                                          |
 | **A** | `help`         | `help/`      | 가이드·FAQ·온보딩                                       | `views/left/HelpLeftNav.vue`      | `views/content/HelpView.vue`         | As-Is **`DefaultRightPanel`** · → `views/right/HelpRightPanel.tsx`                          | —                                    | —                                                                                             | L:rec · R:opt        | 정적 가이드 · FAQ                                           | — (프론트 only)                              | 정적 콘텐츠 · SEO(App Router) · `office-light`                                                                          |
 | **B** | `nexia`        | `nexia/`     | **AI** — Ollama 채팅·에디터·음성                        | `views/left/NexiaLeftNav.vue`     | `NexiaDomain.vue`                    | `views/right/NexiaRightPanel.vue` (+ `right/agent/*`)                                       | — (V2.1 → `NexiaHeaderActions`)      | — (`useNexiaInsertRequest` 등 composable)                                                     | L:rec · R:rec        | `composables/*` · Agent 패널 · Yjs·Tiptap 연동 예정         | `server/domains/ai/`                         | **1순위** · `statusBar` · `statusPanel` · `headerActions` · `themePreset: office-light` · sync                          |
-| **B** | `nexion`       | `nexion/`    | **지식 데스크** — Vue Flow 캔버스                       | `views/left/NexionLeftNav.vue`    | `NexionDomain.vue`                   | `views/right/NexionRightPanel.vue`                                                          | —                                    | **도메인** `nexionFlowStore` · **전역** `userSettingsStore`                                   | L:rec · R:rec        | `modules/core/` · `useNexionCanvas` · Vue Flow              | — (프론트 only)                              | TSX 이식 · (선택) Yjs binding · `office-light`                                                                          |
+| **B** | `nexion`       | `nexion/`    | **지식 데스크** — **Nexion React Flow** 캔버스 (To-Be)    | `views/left/NexionLeftNav.vue`    | `NexionDomain.vue`                   | `views/right/NexionRightPanel.vue`                                                          | —                                    | **도메인** `nexionFlowStore` · **전역** `userSettingsStore`                                   | L:rec · R:rec        | `modules/core/` · `useNexionCanvas` · **React Flow** (As-Is: Vue Flow) | — (프론트 only)                              | `apps/web` Next.js · TSX 이식 · Yjs · `office-light`                                                                    |
 | **B** | `nexage`       | `nexage/`    | **넥사보드** — Panel·대시·IoT·Telemetry·`/nexage/admin` | `views/left/NexageLeftNav.vue`    | `NexageDomain.vue`                   | `views/right/NexageRightPanel.vue`                                                          | `components/NexageHeaderActions.vue` | **전역** `dashboardLayoutStore` · `boardMenuStore` · `boardEditorStore`                       | L:rec · R:rec        | `NexaDashboardRenderer` · `views/admin/` · `views/status/*` | — (프론트 only)                              | **`statusBar`** · **`statusPanel`** · `infra` IoT 흡수 · `themePreset: office-light` \| `power-grid` \| `factory-night` |
 | **B** | `nexet`        | `nexet/`     | **넥셋** — 디바이스/프로젝트/부품 넥셋 카탈로그         | `views/left/NexetLeftNav.vue`     | `NexetDomain.vue`                    | `views/right/NexetRightPanel.vue`                                                           | —                                    | **전역** `dashboardLayoutStore`                                                               | L:rec · R:rec        | `components/side-panel/*`                                   | — (프론트 only)                              | 넥셋 카탈로그 TSX · `office-light`                                                                                      |
 | **B** | `nexel`        | `nexel/`     | **넥셀** — 노드 자동화·NodeCanvas                       | `views/left/NexelLeftNav.vue`     | `NexelDomain.vue`                    | `views/right/NexelRightPanel.vue`                                                           | —                                    | **전역** `nexaNodeStore`                                                                      | L:rec · R:rec        | NodeCanvas · Mock/Live 엔진                                 | — (프론트 only)                              | `@nexa/shared` device schema · `office-light`                                                                           |

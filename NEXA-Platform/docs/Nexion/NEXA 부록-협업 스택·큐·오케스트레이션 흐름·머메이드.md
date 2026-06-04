@@ -1,5 +1,7 @@
 # 부록
 
+> **스택 To-Be:** **Next.js** (`apps/web`) · **Nexion React Flow** · **Desktop/Embedded Rivet**. 아래 **Vue Flow** = As-Is. — [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>)
+
 - **부록:** Nexion 구현과 **같이 보면 좋은** 협업 스택·큐·오케스트레이션 흐름·머메이드 등 **참고 자료**를 삭제 없이 모아 두었다. 플랫폼 전체 아키텍처의 상세는 `docs/__NEXA 오케스트레이션 스키마 DDL v5.md` 등과 대조한다.
 
 ---

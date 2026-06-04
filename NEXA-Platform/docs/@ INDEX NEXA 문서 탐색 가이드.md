@@ -11,11 +11,12 @@
 
 ```
 NEXA-Platform/docs/
-├── (루트)               # 전역 문서 — Nexnap, SYS, NIXIE, NEXU, _KNOWLEDGE, AIS 등
-├── NEXA Nexion/         # Nexion 도메인 — [NXN], [NEXA] 접두어 문서
-├── database/            # DB 설계·DDL·가이드
-└── AI/                  # AI 사양서·COILS·지능 위계
-    └── UI/              # AI 관련 UX 문서
+├── inbox/               # (필수) 날것 — Desktop Rivet 00 입력
+├── refined/             # 1차 정제 기획 — 01~02
+├── specs/               # 확정 명세 SSOT — 03~07 · 구현 참조 (To-Be)
+├── trash/               # 처리된 inbox (inbox/ 경로 미러)
+├── NEXA OS/             # V2.1 · M.O.S.E.S. · 레지스트리 (메타)
+├── (루트 레거시)        # Nexia/, Nexion/, database/, AI/ … → specs/ 로 수동 이전 예정
 ```
 
 ---
@@ -77,7 +78,10 @@ NEXA-Platform/docs/
 
 | 문서                             | 위치           | 역할                                |
 | :------------------------------- | :------------- | :---------------------------------- |
-| 지능형 지식 운영체제(NEXA-OS)    | `NEXA Nexion/` | NEXA-OS 전체 아키텍처 정의서 (SSOT) |
+| **M.O.S.E.S. 정리**              | `NEXA OS/`     | Meta-Build · **Next.js** · Desktop/Embedded Rivet · React Flow **용어 SSOT** |
+| V2.1 설계 표준·미션크리티컬 보강본 | `NEXA OS/`     | **Next.js** · NestJS · Yjs · 모노레포 To-Be |
+| 도메인 레지스트리 명세           | `NEXA OS/`     | `domainKey` · 슬롯 · TSX 이식 |
+| 지능형 지식 운영체제(NEXA-OS)    | `Nexion/`      | NEXA-OS 철학·개념 (Nexion 폴더) |
 | NEXA-OS 용어집                   | 루트           | 모든 NEXA 용어의 단일 정의원        |
 | Nexnap 정의 및 기초 아키텍처     | 루트           | Nexnap 프로토콜 기반 문서           |
 | 코일 밸런스 및 운영 규범(GOVERN) | `AI/`          | COILS 6축 가중치 정의               |
@@ -87,7 +91,7 @@ NEXA-Platform/docs/
 
 | 문서                                      | 접두어         | 역할                         |
 | :---------------------------------------- | :------------- | :--------------------------- |
-| 인터페이스 레이아웃 및 Vue Flow 운영 규약 | `[NXN] [UIUX]` | UI/UX 레이아웃·시각 규약     |
+| 인터페이스 레이아웃 및 Vue Flow 운영 규약 | `[NXN] [UIUX]` | UI/UX — To-Be **Nexion React Flow** @ Next.js (파일명 레거시) |
 | API 및 통신 규약                          | `[NXN] [API]`  | REST API 엔드포인트·페이로드 |
 | 기능과 작업 순서                          | `[NXN] [PRD]`  | 기능 목록·구현 Phase         |
 | 독립형 인덱스 및 자산 관리 스키마         | `[NXN] [SCHM]` | DB 테이블·필드 정의          |
@@ -96,6 +100,15 @@ NEXA-Platform/docs/
 | 개발 순서와 체크 리스트                   | `[NXN]`        | 구현 체크리스트              |
 | 기획 문서 파일구성                        | `[NXN]`        | Nexion 문서 구조 안내        |
 | 지식 OS 관리 및 N-PATH(지도) 설계 철학    | `[NXN] [CNCP]` | 설계 철학·SSOT 경계          |
+
+### 3-B2. Nexia 도메인 (`nexia`)
+
+| 문서 | 역할 |
+| :--- | :--- |
+| `00 인공지능 NEXIA 구조…` | 7탭 · **Next.js** · Desktop/Embedded Rivet |
+| `NEXIA 주요 외부 엔진…` | Ollama · ComfyUI · **Vite+React** 제너레이터 |
+| `Rivet Engine 노드 분석` | **Embedded Rivet** 노드 카탈로그 |
+| `AI * 제너레이터` · 파이프라인 | 탭별 Wasm · **NEXIA React Flow** (Circuit 등) |
 
 ### 3-C. DB / 스키마
 
