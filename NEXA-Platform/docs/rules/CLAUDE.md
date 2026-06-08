@@ -62,7 +62,7 @@
 
 - **Nexion**: 개발자의 "사고의 칠판" — Why Chain·N-PATH·Late Anchoring을 관리하는 관제 데스크
 - **3패널 레이아웃**: 왼쪽(탐색·목록) + 중앙(**Nexion React Flow** 캔버스, To-Be) + 오른쪽(속성 편집)
-- **플랫폼 셸 To-Be:** `apps/web` = **Next.js** — [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>)
+- **플랫폼 셸 To-Be:** `apps/web` = **Next.js** — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>)
 - **Store**: `src/domains/nexion/modules/core/stores/nexionFlowStore.ts`
 
 ---

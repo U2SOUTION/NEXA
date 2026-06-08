@@ -1,6 +1,6 @@
 # 13. Cosmic Semantic Interface Matrix (CSIM) · AXON 프로토콜 (정본)
 
-**한 줄:** 인간·AI·기계의 의도를 **의미 매트릭스(APEX)** 로 압축하고, **HEXAGON(5W1H)** 으로 정규화하며, **CONTO/KORE** 로 해석·학습해 **ACTON** 으로 물리 실행하는 **우주언어(Cosmic Language)** 프로토콜
+**한 줄:** 인간·AI·기계의 의도를 **의미 매트릭스(APEX)** 로 압축하고, **HEXAGON(5W1H)** 으로 정규화하며, **NEXAON/KORE** 로 해석·학습해 **ACTON** 으로 물리 실행하는 **우주언어(Cosmic Language)** 프로토콜
 
 > **G/M 없이도** PWM·MQTT·빛·진동 등 실행 가능하며, CNC·로봇 등 **엑추에이터의 구체 궤적·장비 명령**이 필요한 도메인만 **ACTON-GM(G/M)** 으로 KORE **`programRef`** 를 Fetch·검증·실행한다.
 
@@ -66,7 +66,7 @@ Attachment  →  Tag · acton.motion(programRef) · 도메인 M-code 프로파�
 
 ```
 Sign / Body  →  사실 + 방향성만 (온톨로지 모름)
-CONTO        →  해석 · 판단 · 0/1 결정 (세포를 앎)
+NEXAON        →  해석 · 판단 · 0/1 결정 (세포를 앎)
 ```
 
 ### 2.4 원칙 4 — 순환 정교화
@@ -74,7 +74,7 @@ CONTO        →  해석 · 판단 · 0/1 결정 (세포를 앎)
 ```
 불완전한 씨드 → AI 해석 → 오류(신호)
       ↓
-실측 충돌 → CONTO 보정 → 정확도 ↑
+실측 충돌 → NEXAON 보정 → 정확도 ↑
       ↓
 KORE 저장 → 재사용 → 순환
 ```
@@ -92,7 +92,7 @@ KORE 저장 → 재사용 → 순환
 | **CSIM**           | Cosmic Semantic Interface Matrix          | 의미 **번역 엔진** — 모호한 의지 ↔ 물리량                                            |
 | **APEX Matrix**    | Adaptive Perception and Expression Matrix | 시맨틱 **인터페이스** — 직관→인포→패킷                                                |
 | **HEXAGON**        | Six-Axis Tokenized Interaction Standard   | **5W1H** 전송·문법 — Where/When/Who/What/How/Why                                      |
-| **CONTO**          | Collaborative Ontology Network            | Human ↔ AI **온톨로지·해석**                                                         |
+| **NEXAON**          | NEXA Ontology            | Human ↔ AI **온톨로지·해석**                                                         |
 | **KORE**           | Knowledge Origin and Retrieval Engine     | 지식 **저장·재사용** (원본+벡터)                                                      |
 | **ACTON Synapse**  | Active Transition & Operation             | 디지털→**물리 실행** · S-커브·토크·버퍼 — G/M **불필요** 경로 포함                    |
 | **ACTON-GM**       | ACTON **G/M Execution Bridge**            | **엑추에이터 구체 명령** — 축·궤적·스핀들 G/M · KORE **`programRef`** Fetch·검증·실행 |
@@ -102,7 +102,7 @@ KORE 저장 → 재사용 → 순환
 **신호 흐름 (요약):**
 
 ```
-APEX → HEXAGON → CONTO → KORE → CONTO → HEXAGON → APEX
+APEX → HEXAGON → NEXAON → KORE → NEXAON → HEXAGON → APEX
                               ↓
                    ACTON (+ ACTON-GM: G/M)
                               ↓
@@ -134,11 +134,11 @@ APEX → HEXAGON → CONTO → KORE → CONTO → HEXAGON → APEX
 ```
 패킷 (짧음)     programRef ──→  KORE/Asset (G/M 본문)
      │                              │
-     └─ Body 의미 ──→ CONTO ──→ Fetch · Hash 검증 · Ethos · 실행
+     └─ Body 의미 ──→ NEXAON ──→ Fetch · Hash 검증 · Ethos · 실행
 ```
 
 - **표준 G-code** — ISO/관례 — 저장소 NC 내부 · Domain Profile **허용 subset** — §12.3.2
-- **Domain M-code** — CONTO·KORE·ENVIRON·Ethos — Profile **M-code 레지스트리** — §12.3.2
+- **Domain M-code** — NEXAON·KORE·ENVIRON·Ethos — Profile **M-code 레지스트리** — §12.3.2
 - **실시간 스트림** — APEX Tag가 아닌 **ACTON job 채널** (패킷 밖) — §12.3.4
 
 ---
@@ -152,7 +152,7 @@ APEX → HEXAGON → CONTO → KORE → CONTO → HEXAGON → APEX
 | L1  | **APEX Matrix**      | 인간 입력 → 3×3(또는 단계별 2×2) 패킷 · 3상(+/-/0) · Delta     | 인간 ↔ 시스템    |
 | L2  | **HEXAGON Protocol** | 5W1H **6축 정수 토큰** — 정규화 문법                           | 기계 ↔ 알고리즘  |
 | L3  | **Coil Balancer**    | 페르소나 파라미터 **Zero-sum(합=100)** — AI 추론 가이드        | 인간 ↔ AI        |
-| L4  | **CONTO Network**    | APEX+HEXAGON **해석** · 엣지 자체처리·후보고 · 중앙 고차원     | 알고리즘 ↔ AI    |
+| L4  | **NEXAON Network**    | APEX+HEXAGON **해석** · 엣지 자체처리·후보고 · 중앙 고차원     | 알고리즘 ↔ AI    |
 | L5  | **KORE Engine**      | Seed·로그·벡터 **이중 저장** · 준공·개인화                     | 플랫폼 ↔ 전 구간 |
 | L6  | **ACTON Synapse**    | 범용 **물리 실행** · S-커브·토크·버퍼 — **ACTON-GM**은 L6 선택 | 시스템 ↔ 물리    |
 | L7  | **ENVIRON Shield**   | 바람·지형·EMI·사용자 복지 — **Jitter 차단**                    | 환경 ↔ 시스템    |
@@ -168,7 +168,7 @@ L6 ACTON Synapse
 **설계 의도**
 
 1. **HEXAGON 전진 배치** — 원시 신호를 조기에 5W1H로 정규화 → 무결성 선확보
-2. **CONTO 이원화** — 엣지 **실시간** + 중앙 **고차원 추론**
+2. **NEXAON 이원화** — 엣지 **실시간** + 중앙 **고차원 추론**
 3. **ACTON / ENVIRON 분리** — 내부 근육·신경 vs 외부 위협·복지
 4. **ACTON-GM ⊂ L6** — 7-레이어 유지 · G/M은 **Attachment급** 선택 브리지 — §4.1
 
@@ -317,7 +317,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 ```
 
 - **표준 G / Domain M:** NC **본문**은 `programRef` 대상 저장소에만 존재 — §12.3.2
-- **Ethos:** Fetch **전** CONTO 판정 · Execute **전** MUST(M200 등) + Omnix — §12.3.3 · §17
+- **Ethos:** Fetch **전** NEXAON 판정 · Execute **전** MUST(M200 등) + Omnix — §12.3.3 · §17
 
 ### 8.5 예시 — 공장 압력 이상
 
@@ -368,7 +368,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 | 11    | 예비 / Error                        |
 
 - **9셀 × 2bit = 18bit Body** (ESP32 말단에 적합)
-- **0**은 “데이터 없음”이 아니라 CONTO에 **맥락 힌트**
+- **0**은 “데이터 없음”이 아니라 NEXAON에 **맥락 힌트**
 - 근육: (+) 수축 · (-) antagonist · (0) 이완 — 생체·산업 공통
 
 **제어 vs 추론 분리**
@@ -376,7 +376,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 | 계층        | 지연                    | 내용                                                 |
 | ----------- | ----------------------- | ---------------------------------------------------- |
 | Header+Body | **결정론 · 1ms 미만급** | LLM 불필요 · 실시간 제어                             |
-| Tag         | **비동기**              | LLM·CONTO 보정 · **acton.motion(programRef)** · 로그 |
+| Tag         | **비동기**              | LLM·NEXAON 보정 · **acton.motion(programRef)** · 로그 |
 | KORE        | **배치**                | 순환 학습                                            |
 
 ---
@@ -401,13 +401,13 @@ APEX Body  →  3×3   (완전 의미 구조)
 
 ---
 
-## 12. CONTO · KORE
+## 12. NEXAON · KORE
 
-### 12.1 CONTO
+### 12.1 NEXAON
 
 - Sign/Body **해석** · 0/1 실행 판정
 - 엣지: **자체 처리·후보고** · 중앙: 고차원·온톨로지 갱신
-- **세포(말단)는 CONTO를 모름** — §2.3
+- **세포(말단)는 NEXAON을 모름** — §2.3
 
 ### 12.2 KORE
 
@@ -427,10 +427,10 @@ APEX Body  →  3×3   (완전 의미 구조)
 | **APEX Body**               | 의도·맥락            | 18bit 3상 — Target/Intensity/Horizon 등        |
 | **APEX Tag `acton.motion`** | 선택 Attachment      | **`programRef` + `contentHash`** — G/M 본문 ❌ |
 | **KORE / Asset**            | NC **SoT**           | CAM·포스트·생성 NC **원본 저장**               |
-| **ACTON-GM (런타임)**       | Fetch·Verify·Execute | CONTO/Ethos 통과 후 **다운로드→검증→전송**     |
+| **ACTON-GM (런타임)**       | Fetch·Verify·Execute | NEXAON/Ethos 통과 후 **다운로드→검증→전송**     |
 
 ```
-Header + Body (의미)  →  CONTO 해석 · Ethos
+Header + Body (의미)  →  NEXAON 해석 · Ethos
         ↓
 Tag.programRef        →  ACTON-GM Fetch (TLS)
         ↓
@@ -446,7 +446,7 @@ contentHash 검증      →  Profile G/M whitelist
 | 구분         | 범위                                    | 등록                                                 |
 | ------------ | --------------------------------------- | ---------------------------------------------------- |
 | **표준 G**   | G0/G1/G2/G3, G4, G90/G91, G28, F/S/T 등 | **ISO/관례** — Domain Profile이 **허용 subset** 선언 |
-| **Domain M** | M100~M199 (예) CONTO·KORE·ENVIRON       | **Domain Profile 표** — Core 축 변경 ❌              |
+| **Domain M** | M100~M199 (예) NEXAON·KORE·ENVIRON       | **Domain Profile 표** — Core 축 변경 ❌              |
 | **금지**     | Body를 ASCII G-code로 **대체**          | **비규범**                                           |
 | **금지**     | Tag에 G/M **`block` 인라인**            | **비규범** — §8.4.1                                  |
 
@@ -454,7 +454,7 @@ contentHash 검증      →  Profile G/M whitelist
 
 | 코드 | 의미 (예)                              |
 | ---- | -------------------------------------- |
-| M150 | CONTO sync / 후보고 트리거             |
+| M150 | NEXAON sync / 후보고 트리거             |
 | M160 | ENVIRON 스냅샷 요청                    |
 | M170 | KORE segment 로그 시작/종료            |
 | M200 | Ethos **MUST** 게이트 — Omnix ACK 대기 |
@@ -463,7 +463,7 @@ contentHash 검증      →  Profile G/M whitelist
 
 | 단계           | 주체          | 동작                                                                          |
 | -------------- | ------------- | ----------------------------------------------------------------------------- |
-| **1. Approve** | CONTO · Ethos | Body+`programRef` 해석 · Domain·Ontology · MUST 게이트                        |
+| **1. Approve** | NEXAON · Ethos | Body+`programRef` 해석 · Domain·Ontology · MUST 게이트                        |
 | **2. Fetch**   | ACTON-GM      | `programRef` → KORE/Asset **TLS** 다운로드                                    |
 | **3. Verify**  | ACTON-GM      | `contentHash` 일치 · `sizeBytes` · Profile **G/M subset** · M-code 레지스트리 |
 | **4. Execute** | ACTON-GM      | 컨트롤러 전송 · S-커브·버퍼 · ENVIRON 필터                                    |
@@ -575,7 +575,7 @@ contentHash 검증      →  Profile G/M whitelist
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | **Omnix**  | 멀티모달 입출력 · 승인 · `GlobalFlow/Crew/Solo` ↔ 채널 컨텍스트                                                                     |
 | **Normex** | HEXAGON Who · MUST/SHOULD · 실행 차단 · **Norm(규범)** — [`00 …`](./00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md) §3 |
-| **Logex**  | CONTO · Rivet · 해석 그래프                                                                                                          |
+| **Logex**  | NEXAON · Rivet · 해석 그래프                                                                                                          |
 | **Scribx** | 규칙·코드화 · 패킷 스키마                                                                                                            |
 | **Vivex**  | 3D·미디어 시각화 · ComfyUI 파이프라인                                                                                                |
 | **Twinex** | ESP32·ESPHome·말단 입력 · **디지털 트윈** · `.nxproj` — [`00 …`](./00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md) §3  |
@@ -588,7 +588,7 @@ contentHash 검증      →  Profile G/M whitelist
 ## 18. LLM 시맨틱 가드레일
 
 - LLM 명령은 CSIM **판정·범위** 통과 필수 — 미통과 → **실행 차단·재추론**
-- **실시간 루프:** Header+Body **비LLM** · Tag·고차원만 LLM/CONTO
+- **실시간 루프:** Header+Body **비LLM** · Tag·고차원만 LLM/NEXAON
 - Hallucination: Ontology ID · Domain · Confidence · 실측 **KORE 충돌**로 보정
 
 ---

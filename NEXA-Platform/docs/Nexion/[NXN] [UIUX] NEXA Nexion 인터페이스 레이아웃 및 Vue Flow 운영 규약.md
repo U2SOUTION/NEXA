@@ -1,6 +1,6 @@
 # [NXN] [UIUX] NEXA Nexion 인터페이스 레이아웃 및 Vue Flow 운영 규약
 
-> **To-Be SSOT:** 캔버스 = **Nexion React Flow** (`@xyflow/react`) @ **`apps/web` Next.js**. 본 파일 제목·본문의 **Vue Flow** = **As-Is(레거시)** `@vue-flow/core`. Rivet·플랫폼 용어: [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
+> **To-Be SSOT:** 캔버스 = **Nexion React Flow** (`@xyflow/react`) @ **`apps/web` Next.js**. 본 파일 제목·본문의 **Vue Flow** = **As-Is(레거시)** `@vue-flow/core`. Rivet·플랫폼 용어: [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
 
 | 항목                      | 내용                                                                                                                                                                                                                                                         |
 | :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

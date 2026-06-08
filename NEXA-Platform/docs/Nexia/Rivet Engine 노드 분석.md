@@ -1,4 +1,4 @@
-> **Rivet 구분 SSOT:** **Desktop Rivet** = PC GUI · 설계 · Export (`.rivet-project` / JSON). **Embedded Rivet** = `@ironclad/rivet-node` @ NestJS · 추론·파생. — [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
+> **Rivet 구분 SSOT:** **Desktop Rivet** = PC GUI · 설계 · Export (`.rivet-project` / JSON). **Embedded Rivet** = `@ironclad/rivet-node` @ NestJS · 추론·파생. — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
 
 Rivet(리벳)은 Ironclad에서 개발한 오픈소스 비주얼 프로그래밍 환경으로, 복잡한 LLM 체인을 시각적으로 설계하고 바로 실행해 볼 수 있는 강력한 도구입니다.
 **Embedded Rivet**(`rivet-node`)을 NestJS에 심어 Run-time 실행할 계획이라면, 그래프의 흐름을 제어하는 핵심 노드들을 정확히 이해하는 것이 중요합니다. 입문 및 심화 단계에서 꼭 알아야 할 대표 노드들을 기능별로 정리해 드립니다.

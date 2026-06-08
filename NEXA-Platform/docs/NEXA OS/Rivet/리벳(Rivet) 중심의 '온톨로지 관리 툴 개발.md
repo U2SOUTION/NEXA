@@ -1,6 +1,6 @@
 # Rivet 중심 온톨로지 관리 툴 — 1단계 설계 (NEXA 스택 정본)
 
-> **한 줄:** **인간–AI 협업 온톨로지 뷰어(CONTO)** 는 Yjs 실시간 초안 + **React Flow** 관계 시각화 + **rivet-core**(프롬프트·그래프 구조) → **`apps/agent-graph`**(LLM·Streaming) 위임 파이프라인으로 동작하며, **최종 SSOT는 AI JSON이 아니라 `docs/specs/` MD · wikilink · 04/14 MOC** 이다.  
+> **한 줄:** **인간–AI 협업 온톨로지 뷰어(NEXAON)** 는 Yjs 실시간 초안 + **React Flow** 관계 시각화 + **rivet-core**(프롬프트·그래프 구조) → **`apps/agent-graph`**(LLM·Streaming) 위임 파이프라인으로 동작하며, **최종 SSOT는 AI JSON이 아니라 `docs/specs/` MD · wikilink · 04/14 MOC** 이다.  
 > **층위:** RAG → **OG-RAG**(2차 관계도) → **OAG**(05 Planning) → AIP — [`RAG · OAG · AIP`](./RAG%20·%20OAG%20·%20AIP%20—%20지능%20층위와%20오케스트레이션.md)
 
 | 문서                                                                                                                         | 역할                                                                     |
@@ -9,7 +9,7 @@
 | [`Desktop Rivet 캔버스 설계 v1.0`](<./Desktop%20Rivet%20캔버스(Graph)%20설계%20v1.0.md>)                                     | 배치 온톨로지 — **Sub_03~05** · Obsidian MOC 규약                        |
 | [`NEXA RAG 아키텍처`](./NEXA%20RAG%20아키텍처%20—%20Rivet·PostgreSQL·Ollama.md)                                              | 운영 검색 — **RAG_Retrieve** · OG-RAG §7                                 |
 | [`Yjs·Hocuspocus 협업 SSOT`](../AI/00_[AIS]%20Yjs·Hocuspocus%20협업%20SSOT.md)                                               | Y.Doc 영속화 · Hocuspocus Hook                                           |
-| [`CSIM · AXON (정본)`](<../Nexia/_Cosmic%20Semantic%20Interface%20Matrix%20v2%20—%20CSIM%20·%20AXON%20프로토콜%20(정본).md>) | **CONTO** — Human↔AI 온톨로지 해석                                      |
+| [`CSIM · AXON (정본)`](<../Nexia/_Cosmic%20Semantic%20Interface%20Matrix%20v2%20—%20CSIM%20·%20AXON%20프로토콜%20(정본).md>) | **NEXAON** — Human↔AI 온톨로지 해석                                      |
 
 ---
 
@@ -149,7 +149,7 @@ RAG와 온톨로지의 차이를 이미 감 잡으셨다니, 그라운딩의 관
 
 | 1단계 **한다**                               | 1단계 **안 한다**                |
 | -------------------------------------------- | -------------------------------- |
-| CONTO 뷰어 · 관계 편집 · 충돌 표시           | Sub_06~13 코드·Zod·Git 자동 반영 |
+| NEXAON 뷰어 · 관계 편집 · 충돌 표시           | Sub_06~13 코드·Zod·Git 자동 반영 |
 | Yjs 초안 동기화 · Human **CP-02**            | 미검증 JSON을 DB SSOT로 저장     |
 | Desktop **03~05** 배치 + 웹 **RAG_Retrieve** | Claude/클라우드 LLM 기본 경로    |
 | Obsidian 호환 MOC (`docs/.rivet/conflicts/`) | Neo4j 단독 그래프 DB             |
@@ -162,7 +162,7 @@ RAG와 온톨로지의 차이를 이미 감 잡으셨다니, 그라운딩의 관
 | -------------------- | ------------------------------- | ------------------------------------------ |
 | **온톨로지 (운영)**  | 도메인 개념·관계·계획 구조      | `docs/specs/**` · `planning_manifest.json` |
 | **OG-RAG**           | 벡터·청크 위 **2차 관계도**     | 04/14 MOC · wikilink · `ref_ids`           |
-| **CONTO**            | Human↔AI **해석·검수** UI/세션 | Yjs 초안 + CP 승인 이력                    |
+| **NEXAON**            | Human↔AI **해석·검수** UI/세션 | Yjs 초안 + CP 승인 이력                    |
 | **AI 온톨로지 JSON** | Extract Object **초안**         | **독** — Git·specs 승격 전 금지            |
 
 ```text
@@ -177,7 +177,7 @@ RAG와 온톨로지의 차이를 이미 감 잡으셨다니, 그라운딩의 관
 
 | 주제              | 정책                                                                                                    |
 | ----------------- | ------------------------------------------------------------------------------------------------------- |
-| **UI 코드**       | 개발·배포 모두 **`domains/nexia/modules/conto/`** · 진입 **Logex** 탭 — `domainKey` 별도 분리 **안 함** |
+| **UI 코드**       | 개발·배포 모두 **`domains/nexia/modules/nexaon/`** · 진입 **Logex** 탭 — `domainKey` 별도 분리 **안 함** |
 | **보안**          | 경로가 아니라 **RBAC · CP-02 · Grade** (`NEXIA 01`)                                                     |
 | **Git**           | 모노레포 **하나** · 배포(Docker/CI)는 **Platform 런타임 + 생산물**만                                    |
 | **docs**          | `inbox`/설계서 → **비배포** · **`specs/` + `conflicts/`** → prod 이미지 **포함**(1단계 기본)            |
@@ -204,7 +204,7 @@ RAG와 온톨로지의 차이를 이미 감 잡으셨다니, 그라운딩의 관
 | 계층                   | 채택 스택                                                    | NEXA 패키지/경로                           |
 | ---------------------- | ------------------------------------------------------------ | ------------------------------------------ |
 | **UI**                 | **Next.js** (App Router) + Tailwind                          | `apps/web`                                 |
-| **그래프 뷰**          | **React Flow** (`@xyflow/react`) + Dagre 레이아웃            | NEXIA **Logex** 탭 · CONTO 서브모드        |
+| **그래프 뷰**          | **React Flow** (`@xyflow/react`) + Dagre 레이아웃            | NEXIA **Logex** 탭 · NEXAON 서브모드        |
 | **문서 편집**          | **TipTap** + `y-prosemirror`                                 | specs 미리보기·주석                        |
 | **실시간 협업**        | **Yjs** + **Hocuspocus**                                     | `apps/sync` (collab-server)                |
 | **API·오케스트레이션** | **NestJS**                                                   | `apps/backend`                             |
@@ -223,10 +223,10 @@ RAG와 온톨로지의 차이를 이미 감 잡으셨다니, 그라운딩의 관
 
 |              | **Desktop Rivet**                                        | **Web rivet-core**                      |
 | ------------ | -------------------------------------------------------- | --------------------------------------- |
-| **역할**     | `inbox` → `specs/` **배치** (파일·Export)                | CONTO **실시간** · RAG · Embed job      |
+| **역할**     | `inbox` → `specs/` **배치** (파일·Export)                | NEXAON **실시간** · RAG · Embed job      |
 | **DB**       | **접속 없음**(기본) — 산출은 `docs/`                     | **`DATABASE_URL`** → dev 또는 prod      |
 | **파일 I/O** | MCP FileSystem                                           | NestJS API (브라우저 디스크 직접 X)     |
-| **그래프**   | `Sub_03_Chunker` · `Sub_04_Conflict` · `Sub_05_Planning` | `CONTO_*` · `RAG_Retrieve` — **래퍼·템플릿만** (Chat 노드 **없음**) |
+| **그래프**   | `Sub_03_Chunker` · `Sub_04_Conflict` · `Sub_05_Planning` | `NEXAON_*` · `RAG_Retrieve` — **래퍼·템플릿만** (Chat 노드 **없음**) |
 | **산출**     | `.rivet/conflicts/` MOC · `docs/specs/**`                | citations · Yjs 그래프 패치 제안        |
 
 ```text
@@ -234,7 +234,7 @@ Desktop 01~05  ──▶  docs/specs/  +  .rivet/conflicts/  +  Export graphs
        │                      │              │
        │                      │              └──▶ (job) Embed → nexa_dev | nexa_prod
        ▼                      ▼
-Web nexia/Logex/CONTO ── Yjs ── rivet-core ── HTTP ── apps/agent-graph ──┬── Ollama (Chat·Stream)
+Web nexia/Logex/NEXAON ── Yjs ── rivet-core ── HTTP ── apps/agent-graph ──┬── Ollama (Chat·Stream)
                               │                      │                    └── embedder (in-process · /v1/embed)
                               │                      └── Streaming SSE ──▶ Nest ──▶ UI
                               └── Get Prompt · specs (템플릿만) ── project_knowledge (env별 DB)
@@ -245,7 +245,7 @@ Web nexia/Logex/CONTO ── Yjs ── rivet-core ── HTTP ── apps/agent
 | | **Desktop Rivet** | **rivet-core (NestJS)** | **agent-graph (Python)** |
 | --- | --- | --- | --- |
 | **역할** | 배치 `docs/` · Export | **Run 호스트** · CP · SSE **중계** · **프롬프트·토폴로지 해석** | **LangGraph** · **LLM·Streaming SSOT** · rdflib 등 |
-| **그래프** | Sub_03~05 `.rivet` | `CONTO_*` · `RAG_Retrieve` — **`Get Prompt` + `LangGraph_*` 래퍼** | `graphs/conto_extract` 등 **StateGraph + Ollama** |
+| **그래프** | Sub_03~05 `.rivet` | `NEXAON_*` · `RAG_Retrieve` — **`Get Prompt` + `LangGraph_*` 래퍼** | `graphs/nexaon_extract` 등 **StateGraph + Ollama** |
 | **UI에 보이는 것** | Desktop Studio | **Rivet Run 타임라인** · Graph I/O | (운영 UI **직접 노출 X**) · LangGraph Studio=**개발용** |
 | **DB** | 없음(기본) | PostgreSQL · Prisma | **직접 X**(기본) — Nest/specs 경유 |
 | **Ollama** | (로컬 Studio · **dev** 기본) | **호출 금지** | **dev** Chat·Stream 백엔드 |
@@ -257,10 +257,10 @@ Web nexia/Logex/CONTO ── Yjs ── rivet-core ── HTTP ── apps/agent
 rivet-core        =  Export 토폴로지 해석 · Get Prompt 템플릿 조립 · LangGraph_* 위임 · Run 로그
 agent-graph       =  LangGraph · **LLM inference adapter** (Ollama|vLLM) · embedder · Python 노드
 Rivet Custom Node =  HTTP/SSE 어댑터 — Graph I/O 계약만 (연산 없음)
-React Flow CONTO  =  온톨로지 초안 그래프 (Yjs) — LangGraph 내부 그래프와 1:1 아님
+React Flow NEXAON  =  온톨로지 초안 그래프 (Yjs) — LangGraph 내부 그래프와 1:1 아님
 ```
 
-> 사용자 채팅·CONTO 편집 → NestJS → **rivet-core.run** → `Get Prompt` · **`LangGraph_*` 래퍼** → **agent-graph** (LLM·Streaming) → Zod JSON → Diff UI · Yjs merge.
+> 사용자 채팅·NEXAON 편집 → NestJS → **rivet-core.run** → `Get Prompt` · **`LangGraph_*` 래퍼** → **agent-graph** (LLM·Streaming) → Zod JSON → Diff UI · Yjs merge.
 
 ### 2.2.2 LLM · Streaming 단일화 (Non-Negotiable)
 
@@ -269,14 +269,14 @@ React Flow CONTO  =  온톨로지 초안 그래프 (Yjs) — LangGraph 내부 �
 | **rivet-core** | Export **노드 배선** 해석 · `Get Prompt` / Normex **템플릿 조립** · Graph Inputs→Outputs **계약** · `LangGraph_*` **HTTP/SSE 위임** · Run 타임라인 | **Ollama Chat/Embed 노드** · **임베딩 직접** · 토큰 생성 |
 | **agent-graph** | **Chat/Completion** (추론 어댑터) · **SSE Streaming** · **`embedder`** · `/v1/embed` · JSON Extract · RAG · rdflib·Neo4j | Yjs/specs **직접 쓰기** · **추론 백엔드 직접** (Nest/rivet) · **Ollama Embed API** |
 | **NestJS** | 인증 · `rivet-core.run` · agent-graph **프록시** · `/v1/embed` · Streaming **SSE 중계** · CP-02 | Ollama · vLLM · **임베딩 직접** |
-| **브라우저** | CONTO UI · Run 타임라인 **구독** | Ollama · agent-graph **직접** |
+| **브라우저** | NEXAON UI · Run 타임라인 **구독** | Ollama · agent-graph **직접** |
 
 ```text
 [Streaming 경로 — 추론 백엔드는 env로 교체]
   {Ollama | vLLM | …} ──token──▶ agent-graph (LangGraph · inference adapter)
        ──SSE──▶ FastAPI /v1/runs/{id}/stream
-       ──SSE──▶ NestJS conto.controller (relay)
-       ──SSE──▶ Next.js useContoRivetRun (TipTap · Run 패널)
+       ──SSE──▶ NestJS nexaon.controller (relay)
+       ──SSE──▶ Next.js useNexaonRivetRun (TipTap · Run 패널)
 ```
 
 ### 2.2.3 임베딩 — in-process 분리 (Ollama Embed ✗)
@@ -328,7 +328,7 @@ React Flow CONTO  =  온톨로지 초안 그래프 (Yjs) — LangGraph 내부 �
 ```
 
 **교체 시 유지할 것:** 모델명·`temperature`·JSON Extract 프롬프트 · SSE 이벤트 스키마 · **embedder는 별도**(vLLM과 **독립**).  
-**교체 시 재검증:** 동일 `ContoRunOutput` Zod · Streaming 지연 · SHACL/Query Rewrite 루프.
+**교체 시 재검증:** 동일 `NexaonRunOutput` Zod · Streaming 지연 · SHACL/Query Rewrite 루프.
 
 > **1단계 기본값:** 로컬 **Ollama** · prod **vLLM** — §0 「Claude/클라우드 LLM **기본 경로 ✗**」와 **양립**(자체 호스팅 vLLM).
 
@@ -382,7 +382,7 @@ flowchart LR
 
 > **동형(isomorphic):** 메타에서 만드는 **모듈 경계·Rivet Contract·Zod** 와 제품 런타임이 **같은 경로 규칙**을 쓴다. Platform **전체 복제**는 하지 않는다.
 
-#### 2.3.2 Git 트리 (범례: ◆공유 · ▲배포 · ■메타·비배포 · ★CONTO)
+#### 2.3.2 Git 트리 (범례: ◆공유 · ▲배포 · ■메타·비배포 · ★NEXAON)
 
 ```text
 NEXA/                                         # Git 루트 (단일)
@@ -390,11 +390,11 @@ NEXA/                                         # Git 루트 (단일)
 ├── packages/                                 ◆ 공유 — Development·Platform 공통
 │   └── shared/
 │       └── src/
-│           ├── schemas/conto/                # ontology-node · conflict-report · citation …
+│           ├── schemas/nexaon/                # ontology-node · conflict-report · citation …
 │           ├── schemas/agent-graph/          # ◆ RunRequest/Response · graph I/O (OpenAPI↔Zod)
-│           ├── schemas/conto/shacl-event.ts  # ◆ SSE shacl_violation · node/edge highlight
-│           ├── yjs/map-keys/conto.keys.ts
-│           └── commands/conto-cp02.command.ts
+│           ├── schemas/nexaon/shacl-event.ts  # ◆ SSE shacl_violation · node/edge highlight
+│           ├── yjs/map-keys/nexaon.keys.ts
+│           └── commands/nexaon-cp02.command.ts
 │
 ├── NEXA-Platform/                            ▲ 제품 루트 — CI·Docker context
 │   ├── pnpm-workspace.yaml
@@ -403,27 +403,27 @@ NEXA/                                         # Git 루트 (단일)
 │   │   ├── web/                              # Next.js · domainKey: nexia
 │   │   │   └── src/
 │   │   │       ├── domains/nexia/
-│   │   │       │   ├── tabs/logex/           # ★ CONTO 진입 — NEXIA Logex 탭
-│   │   │       │   │   └── ContoEntry.tsx    # Logex → 온톨로지 서브모드
-│   │   │       │   └── modules/conto/        ★ UI·상태 (도메인 분리 X, 모듈만)
+│   │   │       │   ├── tabs/logex/           # ★ NEXAON 진입 — NEXIA Logex 탭
+│   │   │       │   │   └── NexaonEntry.tsx    # Logex → 온톨로지 서브모드
+│   │   │       │   └── modules/nexaon/        ★ UI·상태 (도메인 분리 X, 모듈만)
 │   │   │       │       ├── views/            # GraphCanvas · SpecsPreview · RunTimeline
 │   │   │       │       ├── panels/           # ExplorerTree · Cp02Panel
-│   │   │       │       └── hooks/            # useContoYjs · useContoRivetRun · useContoWikilink
+│   │   │       │       └── hooks/            # useNexaonYjs · useNexaonRivetRun · useNexaonWikilink
 │   │   │       ├── engines/                  # react-flow · tiptap · hocuspocus
-│   │   │       └── system/api/contoClient.ts
+│   │   │       └── system/api/nexaonClient.ts
 │   │   │
 │   │   ├── backend/                          # NestJS
 │   │   │   ├── prisma/
 │   │   │   └── src/modules/
 │   │   │       ├── rivet/                    # graphs/*.json · custom nodes
-│   │   │       │   ├── graphs/               # CONTO_* · RAG_Retrieve Export
+│   │   │       │   ├── graphs/               # NEXAON_* · RAG_Retrieve Export
 │   │   │       │   └── nodes/
 │   │   │       │       └── langgraph-bridge/ # ★ Rivet→agent-graph 래퍼 · SSE 중계 (LLM 없음)
 │   │   │       ├── agent-graph/              # HTTP 클라이언트 · run_id · **Streaming SSE 중계**
-│   │   │       ├── conto/                    # Yjs↔Rivet 브릿지 · CP-02 · React Flow→Neo4j 미러
+│   │   │       ├── nexaon/                    # Yjs↔Rivet 브릿지 · CP-02 · React Flow→Neo4j 미러
 │   │   │       ├── ontology/                 # ★ Neo4j driver · Cypher read/write · 실시간 미러
 │   │   │       │   ├── neo4j.service.ts      # neo4j-driver (Prisma **아님**)
-│   │   │       │   └── conto-graph.sync.ts   # Yjs draft delta → MERGE/DELETE
+│   │   │       │   └── nexaon-graph.sync.ts   # Yjs draft delta → MERGE/DELETE
 │   │   │       ├── specs/                    # DOCS_VAULT_ROOT → specs 읽기
 │   │   │       ├── knowledge/                # pgvector · Embed job
 │   │   │       └── jobs/
@@ -436,9 +436,9 @@ NEXA/                                         # Git 루트 (단일)
 │   │   │       ├── api/routes/stream.py      # GET /v1/runs/{run_id}/stream (SSE)
 │   │   │       ├── api/routes/embed.py       # POST /v1/embed → embedder (Ollama **미사용**)
 │   │   │       ├── graphs/                   # ★ LangGraph StateGraph 정의
-│   │   │       │   ├── conto_extract.py      # CONTO_Ingest 대응
-│   │   │       │   ├── conto_refine.py       # CONTO_Refine 대응
-│   │   │       │   ├── conto_export.py       # SHACL gate · TTL export (PASS만)
+│   │   │       │   ├── nexaon_extract.py      # NEXAON_Ingest 대응
+│   │   │       │   ├── nexaon_refine.py       # NEXAON_Refine 대응
+│   │   │       │   ├── nexaon_export.py       # SHACL gate · TTL export (PASS만)
 │   │   │       │   └── rag_ground.py         # OG-RAG 확장 (선택)
 │   │   │       ├── nodes/                    # ★ Python 커스텀 노드 (로직 SSOT)
 │   │   │       │   ├── chunk_normalize.py
@@ -460,9 +460,9 @@ NEXA/                                         # Git 루트 (단일)
 │   │       └── src/rooms/ontologyRoomName.ts
 │   │
 │   ├── projects/{projectId}/logic/           ▲ Rivet Export Contract
-│   │       ├── conto-ingest.rivet-project
-│   │       ├── conto-refine.rivet-project
-│   │       ├── conto-export.rivet-project    # LangGraph_ContoExport · SHACL gate
+│   │       ├── nexaon-ingest.rivet-project
+│   │       ├── nexaon-refine.rivet-project
+│   │       ├── nexaon-export.rivet-project    # LangGraph_NexaonExport · SHACL gate
 │   │       ├── rag-retrieve.rivet-project
 │   │       └── embed-pipeline.rivet-project
 │   │
@@ -474,7 +474,7 @@ NEXA/                                         # Git 루트 (단일)
 │       ├── trash/          ■ 비배포
 │       ├── NEXA OS/        ■ 비배포 — 설계·아키텍처 (본 문서 등)
 │       ├── Rivet/          ■ 비배포 — (레거시 경로 · specs로 이전 중)
-│       ├── specs/          △ 배포 — OAG 정본 (Get Prompt · CONTO 트리)
+│       ├── specs/          △ 배포 — OAG 정본 (Get Prompt · NEXAON 트리)
 │       │   ├── project-core/
 │       │   ├── requirements/
 │       │   └── planning_manifest.json
@@ -486,13 +486,13 @@ NEXA/                                         # Git 루트 (단일)
 ├── rivet-desktop/          ■ 메타 — Sub_01~14 .rivet (Git 추적)
 ├── NEXA-Desktop/           ■ 메타 — Ironclad Rivet 설치형 · MCP FS
 ├── DEV/                    ■ 메타 — 내부 스크립트
-└── NEXA-Edge/              ▲(별 이미지) — HEXAGON·ACTON만 · CONTO·벡터 없음
+└── NEXA-Edge/              ▲(별 이미지) — HEXAGON·ACTON만 · NEXAON·벡터 없음
 ```
 
-**CONTO UI 위치 (도메인 정책)**
+**NEXAON UI 위치 (도메인 정책)**
 
-- **코드:** `domains/nexia/modules/conto/` — `domainKey: nexia` 유지 (개발·운영 **동일 코드**).
-- **UX 진입:** NEXIA **Logex** 탭 → 「온톨로지 / CONTO」서브모드.
+- **코드:** `domains/nexia/modules/nexaon/` — `domainKey: nexia` 유지 (개발·운영 **동일 코드**).
+- **UX 진입:** NEXIA **Logex** 탭 → 「온톨로지 / NEXAON」서브모드.
 - **보안:** 별도 `domainKey` 분리가 아니라 **RBAC · CP-02 · Grade** (`NEXIA 01`).
 
 #### 2.3.3 `docs/` 배포 매트릭스
@@ -548,15 +548,15 @@ rivet-desktop/**
 | `docs/inbox` · `refined`        | 배치 입력          | RAG 코퍼스 (메타)   |
 | `docs/specs/**`                 | 정본 MD · wikilink | OAG                 |
 | `docs/.rivet/conflicts/`        | 04 MOC             | OG-RAG              |
-| `packages/shared/.../conto/`    | Zod 계약           | 게이트              |
-| `backend/modules/conto/` | Yjs↔Rivet · **Neo4j 세션 미러 트리거** | CONTO |
+| `packages/shared/.../nexaon/`    | Zod 계약           | 게이트              |
+| `backend/modules/nexaon/` | Yjs↔Rivet · **Neo4j 세션 미러 트리거** | NEXAON |
 | `backend/modules/ontology/` | Neo4j **read/write** · `neo4j-driver` | OG-RAG · 실시간 피드백 |
-| `domains/nexia/.../conto/`      | CONTO UI           | CONTO               |
-| `domains/nexia/tabs/logex/`     | 진입·탭 셸         | CONTO (UX)          |
+| `domains/nexia/.../nexaon/`      | NEXAON UI           | NEXAON               |
+| `domains/nexia/tabs/logex/`     | 진입·탭 셸         | NEXAON (UX)          |
 | `backend/modules/rivet/graphs/` | Export **토폴로지** · Get Prompt · **LangGraph 래퍼** (LLM **없음**) | AIP (오케스트레이션) |
 | `apps/agent-graph/`             | LangGraph · **LLM adapter** · **embedder** · Streaming | AIP (추론·LLM SSOT) |
 | `packages/shared/.../agent-graph/` | Run I/O **Zod ↔ OpenAPI**   | 게이트              |
-| `apps/sync/`                    | Yjs                | CONTO 초안          |
+| `apps/sync/`                    | Yjs                | NEXAON 초안          |
 | `rivet-desktop/Sub_03~05`       | Desktop 설계       | OG-RAG → OAG (메타) |
 
 #### 2.3.6 Import 경계 (B2)
@@ -566,10 +566,10 @@ rivet-desktop/**
 | `apps/web` → `@shared`                               | `apps/web` → `@prisma/client`  |
 | `apps/backend` → `@shared` · `rivet-node`            | `apps/sync` → NestJS import    |
 | `apps/backend/modules/agent-graph` → agent-graph HTTP only | `apps/agent-graph` → Prisma 직접 **금지**(기본) |
-| `domains/nexia/modules/conto` → `engines/react-flow` | `engines/` → `domains/` 역참조 |
-| `domains/conto` → `tabs/logex` (탭 셸만)             | 브라우저 → Ollama · agent-graph **직접** |
+| `domains/nexia/modules/nexaon` → `engines/react-flow` | `engines/` → `domains/` 역참조 |
+| `domains/nexaon` → `tabs/logex` (탭 셸만)             | 브라우저 → Ollama · agent-graph **직접** |
 | `apps/backend/modules/ontology` → neo4j-driver read/write | Neo4j를 **Prisma로** 접근 |
-| `conto` → `ontology` (세션 미러 upsert)                | 브라우저 → Neo4j **직접** |
+| `nexaon` → `ontology` (세션 미러 upsert)                | 브라우저 → Neo4j **직접** |
 | rivet-core Export 그래프에 **Chat/Embed 노드**         | rivet-core → Ollama · **임베딩 직접** |
 | Nest · rivet → **Ollama `/api/embed`**                 | 웹 Embed = **`/v1/embed` → embedder** 만 |
 
@@ -577,10 +577,10 @@ rivet-desktop/**
 
 | As-Is                          | To-Be                               | 비고              |
 | ------------------------------ | ----------------------------------- | ----------------- |
-| `src/domains/nexia/` (Vue)     | `apps/web/.../nexia/modules/conto/` | React Flow        |
-| `src/domains/dev/` (문서 도구) | 메타 — **CONTO 제품 UI와 분리**     | dev = 내부 도구만 |
+| `src/domains/nexia/` (Vue)     | `apps/web/.../nexia/modules/nexaon/` | React Flow        |
+| `src/domains/dev/` (문서 도구) | 메타 — **NEXAON 제품 UI와 분리**     | dev = 내부 도구만 |
 | `server/` (Express)            | `apps/backend/`                     | NestJS            |
-| `src/system/schemas/`          | `packages/shared/schemas/conto/`    | Zod SSOT          |
+| `src/system/schemas/`          | `packages/shared/schemas/nexaon/`    | Zod SSOT          |
 | `docs/Nexia/` 등 루트          | `docs/specs/`                       | 수동 이전         |
 
 #### 2.3.8 환경 변수 (`.env.example` 키만)
@@ -612,8 +612,8 @@ rivet-desktop/**
 
 | 그래프 | 보이는 UI | 내용 |
 | ------ | --------- | ---- |
-| **CONTO React Flow** | Logex · 온톨로지 탭 | `ontology:draft` nodes/edges — **인간·승인 대상** |
-| **Rivet Run 타임라인** | CONTO 하단 · Run 패널 | rivet-core **스텝** — `Get Prompt` · `LangGraph_*` **래퍼 1칸 = agent-graph 1 Run** |
+| **NEXAON React Flow** | Logex · 온톨로지 탭 | `ontology:draft` nodes/edges — **인간·승인 대상** |
+| **Rivet Run 타임라인** | NEXAON 하단 · Run 패널 | rivet-core **스텝** — `Get Prompt` · `LangGraph_*` **래퍼 1칸 = agent-graph 1 Run** |
 | **LangGraph (Python)** | **LangGraph Studio** (개발만) | StateGraph + **Ollama 노드** — **운영 LLM SSOT** |
 
 **구현 분리:**
@@ -629,17 +629,17 @@ rivet-desktop/**
 **1 Run 흐름:**
 
 ```text
-CONTO UI  →  NestJS conto.service
-  →  rivet-core.run(CONTO_Ingest)
+NEXAON UI  →  NestJS nexaon.service
+  →  rivet-core.run(NEXAON_Ingest)
        →  [Rivet] Get Prompt (specs 템플릿만)
-       →  [Rivet] LangGraph_ContoExtract  (래퍼 — LLM 없음)
-            →  POST agent-graph/v1/runs/conto_extract  { input: ContoRunInput, prompt_bundle }
+       →  [Rivet] LangGraph_NexaonExtract  (래퍼 — LLM 없음)
+            →  POST agent-graph/v1/runs/nexaon_extract  { input: NexaonRunInput, prompt_bundle }
             →  GET  .../runs/{run_id}/stream  (SSE — Nest가 UI로 relay)
             →  Python LangGraph: chunk → Ollama → relation_extract
             →  rdflib → **SHACL validate** → PASS | BAD
             →  BAD: **Query Rewrite** 루프 (≤N) + SSE `shacl_violation` → Nest → React Flow
             →  PASS: ttl_export (버퍼) → Nest CP-02 job만 디스크
-            →  { output: ContoRunOutput, citations[], shacl: PASS|BAD }  (@shared Zod)
+            →  { output: NexaonRunOutput, citations[], shacl: PASS|BAD }  (@shared Zod)
        →  Graph Outputs  →  Diff UI  →  Yjs merge (승인 후)
 ```
 
@@ -647,15 +647,15 @@ CONTO UI  →  NestJS conto.service
 
 | Rivet Export 그래프 | rivet-core 노드 (LLM 없음) | agent-graph `graph_id` | Python graphs |
 | ------------------- | -------------------------- | ---------------------- | ------------- |
-| `CONTO_Ingest` | `Get Prompt` → `LangGraph_ContoExtract` → `Code`(normalize) | `conto_extract` | `graphs/conto_extract.py` |
-| `CONTO_Refine` | `Get Prompt` → `LangGraph_ContoRefine` → `Match`(Zod shape) | `conto_refine` | `graphs/conto_refine.py` |
-| `CONTO_Export` (CP-02 전) | `LangGraph_ContoExport` | `conto_export` | `graphs/conto_export.py` — **SHACL gate** |
+| `NEXAON_Ingest` | `Get Prompt` → `LangGraph_NexaonExtract` → `Code`(normalize) | `nexaon_extract` | `graphs/nexaon_extract.py` |
+| `NEXAON_Refine` | `Get Prompt` → `LangGraph_NexaonRefine` → `Match`(Zod shape) | `nexaon_refine` | `graphs/nexaon_refine.py` |
+| `NEXAON_Export` (CP-02 전) | `LangGraph_NexaonExport` | `nexaon_export` | `graphs/nexaon_export.py` — **SHACL gate** |
 | `RAG_Retrieve` | Vector/ref_ids prep → `LangGraph_RagGround` | `rag_ground` | `graphs/rag_ground.py` |
 
 **주의 (Non-Negotiable):**
 
 - rivet-core Export에 **Ironclad `Chat`/`Embed` 노드 사용 금지** — 위임만.
-- agent-graph가 **Yjs·specs 디스크에 직접 쓰지 않음** — CP-02는 Nest/conto만.
+- agent-graph가 **Yjs·specs 디스크에 직접 쓰지 않음** — CP-02는 Nest/nexaon만.
 - **브라우저 → agent-graph · Ollama 직접 호출 금지** — Nest SSE 중계.
 - **SHACL BAD → `.ttl` export 금지** — PASS 또는 **사람 Diff 승인 후**만 export (§3.3).
 - **Neo4j/RDF SSOT 아님** — 정본은 `specs` + wikilink; Python RDF는 **export·검증 sidecar**만.
@@ -667,7 +667,7 @@ CONTO UI  →  NestJS conto.service
 ```mermaid
 flowchart TB
   subgraph ui [Next.js apps/web]
-    RF[React Flow CONTO 뷰어]
+    RF[React Flow NEXAON 뷰어]
     TT[TipTap + y-prosemirror]
     RF --- TT
   end
@@ -757,7 +757,7 @@ flowchart TB
 
 | 저장소 | 역할 | SSOT |
 | ------ | ---- | ---- |
-| **Git `specs/` + wikilink** | OAG · CONTO 정본 | **○** |
+| **Git `specs/` + wikilink** | OAG · NEXAON 정본 | **○** |
 | **PostgreSQL** | Yjs · pgvector · jobs · HEXAGON 6컬럼 | 운영 **○** (벡터 가속) |
 | **OWL / RDF / TTL** | **SHACL PASS** 후 직렬화 · CP-02 경유 디스크 | △ (export 산출) · **BAD 시 export ✗** |
 | **Neo4j** | **세션 미러**(Nest write) · batch ingest(Python) · SPARQL/Cypher · OG-RAG | **✗** — 정본=`specs` · 미러=`draft` scope |
@@ -772,7 +772,7 @@ Rivet Studio에는 **Yjs 노드가 없다.** NestJS가 브릿지를 담당한다
 
 | 이벤트                | 트리거                      | NestJS 동작                                              |
 | --------------------- | --------------------------- | -------------------------------------------------------- |
-| 인간이 노드/엣지·**부품 선택** | Y.Map `ontology:draft` 변경 | ① Yjs 즉시 반영 ② debounce **`ontology`→Neo4j MERGE/DELETE** (실시간 미러) ③ `rivet-core.run(CONTO_Refine)` → agent-graph |
+| 인간이 노드/엣지·**부품 선택** | Y.Map `ontology:draft` 변경 | ① Yjs 즉시 반영 ② debounce **`ontology`→Neo4j MERGE/DELETE** (실시간 미러) ③ `rivet-core.run(NEXAON_Refine)` → agent-graph |
 | SHACL **BAD** (회로·온톨로지 모순) | agent-graph Run · export 직전 | **Query Rewrite** 루프 (≤N) · SSE `shacl_violation` → RF 하이라이트 · **`.ttl` export 중단** |
 | AI 분석 완료          | agent-graph Run 완료 · SHACL PASS | rivet Graph Outputs → **Diff 레이어** → 사용자 승인 → Yjs merge        |
 | CP-02 승인            | Aux-Human `approved`        | specs 쓰기 job · (선택) TTL export → Neo4j **정본 sync**               |
@@ -780,7 +780,7 @@ Rivet Studio에는 **Yjs 노드가 없다.** NestJS가 브릿지를 담당한다
 
 ```typescript
 // 의사코드 — 브릿지 계약 (구현 SSOT는 Nest 모듈)
-interface ContoRunInput {
+interface NexaonRunInput {
   projectId: string
   yjsSnapshot: Uint8Array // 또는 직렬화된 nodes[]/edges[]
   promptBundle: string // rivet Get Prompt 산출 — agent-graph LLM 입력
@@ -804,9 +804,9 @@ interface ContoRunInput {
 ```text
 [실시간 피드백 루프]
   RF 부품 선택 → Yjs draft (SSOT) ─┐
-                    REST/debounce  → conto.service → ontology.neo4j MERGE
+                    REST/debounce  → nexaon.service → ontology.neo4j MERGE
                     ← read ────────  제약·연결·OG-RAG 하이라이트 (UI)
-  CONTO_Refine Run → agent-graph → Cypher read + LLM → Diff UI
+  NEXAON_Refine Run → agent-graph → Cypher read + LLM → Diff UI
 
 [정본 동기화 — CP-02 후]
   specs MD → export TTL → agent-graph ingest → Neo4j promoted graph
@@ -836,7 +836,7 @@ relation_extract → in-memory RDF graph
 | **SSE 경고** | agent-graph → Nest → UI | **✗** — `severity` 메타만 |
 | **ttl_export** | agent-graph → Nest job | **△** — SHACL **PASS** + CP-02 후 |
 
-**SSE 이벤트 (Zod `@shared/schemas/conto/shacl-event`):**
+**SSE 이벤트 (Zod `@shared/schemas/nexaon/shacl-event`):**
 
 ```typescript
 type ShaclStreamEvent =
@@ -853,13 +853,13 @@ type ShaclStreamEvent =
 
 | 겹              | 저장소                                | 수명               | 용도                                 |
 | --------------- | ------------------------------------- | ------------------ | ------------------------------------ |
-| **① 세션 초안** | Yjs `Y.Map` / `Y.Array`               | 실시간 · 롤백 가능 | CONTO 편집 중 관계도 — **SSOT**      |
+| **① 세션 초안** | Yjs `Y.Map` / `Y.Array`               | 실시간 · 롤백 가능 | NEXAON 편집 중 관계도 — **SSOT**      |
 | **①b 세션 미러** | Neo4j `:Draft*` (scoped by `session_id`) | Run·세션 TTL   | OG-RAG **실시간** · 제약 검증 · UI 피드백 — **SSOT ✗** |
 | **② 기계 중간** | `conflict_report.json` · Extract 버퍼 | Run 단위           | 04 Report Generator · Rivet 노드 I/O |
 | **③ 정본**      | `docs/specs/*.md` · wikilink · Git    | 영구               | OAG · RAG 인용 · 감사                |
 | **③b 정본 그래프** | Neo4j `:Spec*` (CP-02 sync)          | 영구               | specs export **미러** — SSOT=`specs` |
 
-### 4.1 Yjs CONTO 스키마 (권장)
+### 4.1 Yjs NEXAON 스키마 (권장)
 
 Hocuspocus 룸: `{project_id}:ontology:{resource_id}`
 
@@ -889,7 +889,7 @@ Y.Doc
 | **스키마**    | Prisma **동일**                  | 동일                             |
 | **쓰기 주체** | 로컬·CI · `Embed_Pipeline`(검증) | Deploy 후 job · rivet-core · Yjs |
 | **Desktop**   | **직접 쓰기 없음**(기본)         | **접근 없음**                    |
-| **데이터**    | 테스트 ingest · CONTO 실험       | 사용자 · 운영 코퍼스             |
+| **데이터**    | 테스트 ingest · NEXAON 실험       | 사용자 · 운영 코퍼스             |
 
 공통 테이블: `project_knowledge` · `project_yjs_updates` · `project_jobs` · `ref_ids`(키).  
 pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
@@ -904,8 +904,8 @@ pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
 
 | 그래프 ID          | 층         | rivet-core 노드 흐름 (To-Be)                                                                                       | agent-graph `graph_id` | 출력                              |
 | ------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------- | --------------------------------- |
-| **`CONTO_Ingest`** | OG-RAG     | `Graph Inputs` → `Get Prompt` → **`LangGraph_ContoExtract`** → `Code`(edge normalize) → `Graph Outputs`            | `conto_extract`        | `draft_nodes[]` · `draft_edges[]` |
-| **`CONTO_Refine`** | OG-RAG     | `Graph Inputs` → `Get Prompt` → **`LangGraph_ContoRefine`** → `Match`(Zod shape only) → `Graph Outputs`            | `conto_refine`         | 수정 제안 · conflict 플래그       |
+| **`NEXAON_Ingest`** | OG-RAG     | `Graph Inputs` → `Get Prompt` → **`LangGraph_NexaonExtract`** → `Code`(edge normalize) → `Graph Outputs`            | `nexaon_extract`        | `draft_nodes[]` · `draft_edges[]` |
+| **`NEXAON_Refine`** | OG-RAG     | `Graph Inputs` → `Get Prompt` → **`LangGraph_NexaonRefine`** → `Match`(Zod shape only) → `Graph Outputs`            | `nexaon_refine`         | 수정 제안 · conflict 플래그       |
 | **`RAG_Retrieve`** | RAG+OG-RAG | Vector/ref_ids prep → **`LangGraph_RagGround`** → `Graph Outputs`                                                  | `rag_ground`           | `citations[]` · 답변 (stream)     |
 
 **rivet-core 노드 (템플릿·구조만)**
@@ -926,7 +926,7 @@ pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
 
 | Sub             | 온톨로지 툴 연동                                              |
 | --------------- | ------------------------------------------------------------- |
-| **03 Chunker**  | CONTO Ingest와 **동일 청크 규칙** 공유 (스키마 호환 필수)     |
+| **03 Chunker**  | NEXAON Ingest와 **동일 청크 규칙** 공유 (스키마 호환 필수)     |
 | **04 Conflict** | 웹 뷰어가 읽는 **Obsidian MOC** · `conflict_report.json` 생산 |
 | **05 Planning** | CP-02 후 **specs MD** 정본 · wikilink 유지                    |
 
@@ -952,9 +952,9 @@ pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
 
 ---
 
-## 6. UI — CONTO 뷰어 (Next.js)
+## 6. UI — NEXAON 뷰어 (Next.js)
 
-**위치:** `domains/nexia/modules/conto/` · Logex 탭 진입 · dev/prod **동일 코드** · 접근은 **RBAC·Grade** (`NEXIA 01`).
+**위치:** `domains/nexia/modules/nexaon/` · Logex 탭 진입 · dev/prod **동일 코드** · 접근은 **RBAC·Grade** (`NEXIA 01`).
 
 ### 6.1 화면 구성
 
@@ -967,7 +967,7 @@ pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
 
 ### 6.2 인터랙션 규칙
 
-1. **드래그·연결·부품 선택** → Yjs 즉시 반영 → debounce Nest **Neo4j draft sync** → Rivet `CONTO_Refine`
+1. **드래그·연결·부품 선택** → Yjs 즉시 반영 → debounce Nest **Neo4j draft sync** → Rivet `NEXAON_Refine`
 2. **노드 클릭** → `vault_path` 있으면 TipTap으로 specs 본문 로드
 3. **충돌 엣지** (04 · SHACL) — `contradicts` / `shacl_violation` 빨간색 · MOC 허브로 점프
 4. **승인 버튼** → Aux-Human CP-02 → 성공 시 specs 쓰기 job (Desktop 05와 동일 경로 규약)
@@ -1014,7 +1014,7 @@ pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
 
 ## 8. 개발 순서 (권장 스프린트)
 
-### Sprint A — 협업 골격 (코딩 없이 CONTO만)
+### Sprint A — 협업 골격 (코딩 없이 NEXAON만)
 
 1. Hocuspocus + `project_yjs_updates` 영속 ([`Yjs SSOT`](../AI/00_[AIS]%20Yjs·Hocuspocus%20협업%20SSOT.md))
 2. Next.js React Flow ↔ Yjs `ontology:draft` 바인딩
@@ -1022,7 +1022,7 @@ pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
 
 ### Sprint B — Rivet 브릿지 · agent-graph LLM
 
-4. `CONTO_Ingest` Export — **`LangGraph_*` 래퍼** · rivet **Chat 노드 제거** · agent-graph `conto_extract` 등록
+4. `NEXAON_Ingest` Export — **`LangGraph_*` 래퍼** · rivet **Chat 노드 제거** · agent-graph `nexaon_extract` 등록
 5. Yjs 변경 → debounce `rivet-core.run` → agent-graph Run · **SSE Diff UI**
 6. CP-02 승인 플로우 (Aux-Human 동일 계약)
 
@@ -1050,30 +1050,30 @@ pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
 | Ollama **`/api/embed`** (웹·Nest) | **금지** — **`embedder` in-process** (§2.2.3)        |
 | AI JSON을 DB SSOT로 저장       | **독** — specs MD + Git만 정본                       |
 | MD 파일만으로 실시간 공동 편집 | Yjs CRDT + Hocuspocus; MD는 **승인 후 export**       |
-| Vector Top-K만으로 CONTO 종료  | **OG-RAG** — MOC·wikilink·citations 필수             |
+| Vector Top-K만으로 NEXAON 종료  | **OG-RAG** — MOC·wikilink·citations 필수             |
 | 온톨로지 JSON → ACTON 직결     | **HEXAGON·Rule** 경유 — IoT는 벡터·JSONB 모름        |
 | SQLite·y-leveldb 단독 영속     | **PostgreSQL** DDL v5 스키마                         |
 | Neo4j **단독 SSOT**            | **거부** — wikilink + specs + Yjs draft; Neo4j = **미러·쿼리층** (Nest write 허용 §3.2) |
 | SHACL BAD `.ttl` export        | **금지** — Query Rewrite + SSE → Diff/CP-02 (§3.3)   |
-| Neo4j Write **없이** CONTO 실시간 피드백 | **거부** — React Flow 선택 시 Nest `ontology` **MERGE** 필수 |
+| Neo4j Write **없이** NEXAON 실시간 피드백 | **거부** — React Flow 선택 시 Nest `ontology` **MERGE** 필수 |
 
 ---
 
 ## 10. 체크리스트 (1단계 완료 정의)
 
-- [ ] Yjs CONTO 세션 multi-user 동기화 (Hocuspocus)
+- [ ] Yjs NEXAON 세션 multi-user 동기화 (Hocuspocus)
 - [ ] React Flow 편집이 `ontology:draft`에 반영되고 타임라인 롤백 가능
 - [ ] React Flow **부품·엣지 선택** → Yjs + Nest **Neo4j draft MERGE** 실시간 피드백
 - [ ] CP-02 후 specs → Neo4j **promoted sync** (draft 정리)
-- [ ] Rivet `CONTO_Ingest` / `CONTO_Refine` Run 로그·`run_id` 추적 — **Chat 노드 없음** · agent-graph 위임
+- [ ] Rivet `NEXAON_Ingest` / `NEXAON_Refine` Run 로그·`run_id` 추적 — **Chat 노드 없음** · agent-graph 위임
 - [ ] SHACL **BAD** 시 `.ttl` export **중단** · SSE `shacl_violation` → React Flow 하이라이트
 - [ ] Query Rewrite 루프 **max N** · 최종 BAD → Diff UI만 (Yjs 자동 merge ✗)
-- [ ] CONTO Run 패널 **SSE Streaming** — agent-graph → Nest → UI
+- [ ] NEXAON Run 패널 **SSE Streaming** — agent-graph → Nest → UI
 - [ ] Desktop 04 MOC와 웹 그래프 **동일 wikilink** 로 연결
 - [ ] CP-02 없이 `docs/specs/` 디스크 쓰기 **불가**
 - [ ] `Embed_Pipeline` → `/v1/embed` → **embedder** (Ollama Embed **미사용**) · 768차원 검증
 - [ ] RAG 질의 시 citations + specs 경로 표시 (Vector 단독 종료 없음)
-- [ ] IoT/ACTON 그래프와 CONTO 그래프 **분리**
+- [ ] IoT/ACTON 그래프와 NEXAON 그래프 **분리**
 - [ ] `nexa_dev` / `nexa_prod` **스키마 동일** · Embed job env로 **한 DB만** ingest
 - [ ] `nexa_prod` **`LLM_BACKEND=vllm`** · agent-graph ↔ vLLM 연동 · Nest/rivet **무변경** 확인
 - [ ] Desktop Rivet **DB 미접속**(기본) · specs Export → (선택) dev 검증 → prod
@@ -1092,7 +1092,7 @@ pgvector = 검색 가속 · **진실 = Git + specs + ref_ids**.
 
 ---
 
-**결론:** NEXA 온톨로지 관리 툴은 「JSON 뷰어」가 아니라 **CONTO + OG-RAG + specs SSOT** 파이프라인이다. **Yjs**는 실시간 협업 초안, **Rivet**은 분석·검증 흐름 고정, **React Flow**는 인간이 관계를 고치는 조종석, **`docs/specs/` + wikilink** 가 유일한 장기 기억이다. **Desktop**은 파일·Export 공장, **Embed job**만 env별 DB에 반영하며, **UI는 nexia/Logex 한 경로**로 dev·prod를 맞춘다.
+**결론:** NEXA 온톨로지 관리 툴은 「JSON 뷰어」가 아니라 **NEXAON + OG-RAG + specs SSOT** 파이프라인이다. **Yjs**는 실시간 협업 초안, **Rivet**은 분석·검증 흐름 고정, **React Flow**는 인간이 관계를 고치는 조종석, **`docs/specs/` + wikilink** 가 유일한 장기 기억이다. **Desktop**은 파일·Export 공장, **Embed job**만 env별 DB에 반영하며, **UI는 nexia/Logex 한 경로**로 dev·prod를 맞춘다.
 
 ---
 

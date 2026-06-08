@@ -1,6 +1,6 @@
 # M.O.S.E.S. 기술 이행 표준 (Normex & Standard)
 
-**Technical Implementation Standard** — 스택별 **How(구현 정답지)**. **What(스펙·게이트)** 는 [`M.O.S.E.S. v2.0`](<./M.O.S.E.S.(Meta-Operating%20System%20for%20Engineering%20&%20Synthesis)%20v2.0.md>) · [`Desktop Rivet 캔버스 설계`](<../Rivet/Desktop Rivet 캔버스 설계.md>).
+**Technical Implementation Standard** — 스택별 **How(구현 정답지)**. **What(스펙·게이트)** 는 [`M.O.S.E.S. v2.0`](<../M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) · [`Desktop Rivet 캔버스 설계`](<../../Rivet/Desktop Rivet 캔버스 설계.md>).
 
 ---
 

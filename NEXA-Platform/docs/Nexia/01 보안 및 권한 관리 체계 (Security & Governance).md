@@ -147,7 +147,7 @@ NEXA OS **하이브리드 망 분리** 원칙을 NEXIA에 적용한다. **위험
 
 **ACTON-GM (`programRef`):**
 
-- Fetch **전** CONTO/Normex · Execute **전** MUST(M200 등) + Omnix ACK
+- Fetch **전** NEXAON/Normex · Execute **전** MUST(M200 등) + Omnix ACK
 - `contentHash` 불일치 · Profile 위반 → **실행 차단** · audit `STUCK`
 
 ---

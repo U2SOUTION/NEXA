@@ -6,7 +6,7 @@
 | ----------- | --------------------------------- | --------------------------------------------------------------------- |
 | **RAG**     | Retrieval-Augmented Generation    | 코퍼스에서 **근거 청크를 검색**해 생성에 넣는다                         |
 | **OG-RAG**  | **Ontology-Grounded RAG**         | 벡터 결과로 **관계도·2차 온톨로지**를 잡고 검색·인용을 **땅에 박는다** |
-| **OAG**     | **Ontology-Augmented Generation** | 관계·도메인 **구조로 생성을 보강** — specs·Planning·CONTO             |
+| **OAG**     | **Ontology-Augmented Generation** | 관계·도메인 **구조로 생성을 보강** — specs·Planning·NEXAON             |
 | **AIP**     | AI Orchestration (Platform)       | 구조화된 의도를 **그래프·에이전트·도구**로 **실행·감사**한다          |
 
 > **용어 주의:** LLM이 지켜야 할 **룰·템플릿**(Normex · Zod · Prompt Shell)은 **OAG가 아니다** — OAG·AIP **입구 게이트**이다. (§4.1)
@@ -22,7 +22,7 @@
 | [`벡터 데이터 처리 및 아키텍처`](./벡터%20데이터%20처리%20및%20아키텍처.md)                                                  | 임베딩 · JSONB·환각 원칙 · HEXAGON 경계                         |
 | [`Rivet 파이프라인`](../Rivet/Rivet%20파이프라인.md)                                                                         | rivet-core · Desktop · 일방통행 `docs/`                         |
 | [`Desktop Rivet 캔버스 설계 v1.0`](<../Rivet/Desktop%20Rivet%20캔버스(Graph)%20설계%20v1.0.md>)                              | OAG·AIP에 해당하는 **Sub_01~14** · Rivet 노드                   |
-| [`CSIM · AXON (정본)`](<../Nexia/_Cosmic%20Semantic%20Interface%20Matrix%20v2%20—%20CSIM%20·%20AXON%20프로토콜%20(정본).md>) | CONTO · HEXAGON · ACTON                                         |
+| [`CSIM · AXON (정본)`](<../Nexia/_Cosmic%20Semantic%20Interface%20Matrix%20v2%20—%20CSIM%20·%20AXON%20프로토콜%20(정본).md>) | NEXAON · HEXAGON · ACTON                                         |
 | [`NEXIA 00`](../Nexia/00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md)                                          | LangGraph · Omnix 3단계                                         |
 
 ---
@@ -36,7 +36,7 @@
     ↓
 [OG-RAG]  관계·엔티티는?          — wikilink · MOC · ref_ids · 2차 관계도
     ↓
-[OAG]     어떤 구조로 생성할까?    — 04·05 · CONTO · specs MD (검증 후)
+[OAG]     어떤 구조로 생성할까?    — 04·05 · NEXAON · specs MD (검증 후)
     ↓        ↑ Normex · Zod · Prompt Shell = 룰·템플릿 (게이트, OAG 아님)
 [AIP]     누가 어떻게 실행할까?    — rivet-core · agent-graph · MCP · CP
     ├─ 백오피스: RAG~OAG 허용
@@ -47,7 +47,7 @@
 | ---------- | -------------- | ---------------------------------------------- | -------------------------------- |
 | **RAG**    | 관련 청크는?   | pgvector · `content_fact` · specs 인용         | 벡터 Top-K만으로 답 종료 금지    |
 | **OG-RAG** | 관계·연결은?   | **2차 관계도** — 04/14 MOC · wikilink · `ref_ids` | AI가 만든 그래프만 SSOT 금지     |
-| **OAG**    | 구조·계획은?   | **05 specs** · planning_manifest · CONTO       | 미검증 온톨로지 JSON = 독         |
+| **OAG**    | 구조·계획은?   | **05 specs** · planning_manifest · NEXAON       | 미검증 온톨로지 JSON = 독         |
 | **AIP**    | 실행·순서는?   | Rivet JSON · Run 로그 · Git                    | RAG/OG-RAG→ACTON 직결 금지       |
 
 > **RAG · OG-RAG · OAG · AIP** 는 대체 관계가 아니다. **OG-RAG**는 RAG **안의 하위 기법**이면서 OAG **입력**이 된다.
@@ -100,7 +100,7 @@
 
 | 항목        | NEXA                                                                       |
 | ----------- | -------------------------------------------------------------------------- |
-| **AXON**    | **CONTO** — Human↔AI 온톨로지 해석 (백오피스)                             |
+| **AXON**    | **NEXAON** — Human↔AI 온톨로지 해석 (백오피스)                             |
 | **Desktop** | **03** Chunker → **04** Conflict(Obsidian MOC) → **05** Planning(`specs/`) |
 | **검증**    | Normex · CP-02/06 · 04·14 MOC · specs + Git                                |
 | **Rivet**   | Get Prompt · **`LangGraph_*`** · Extract (agent-graph) · **04/14 Report Generator** |
@@ -123,7 +123,7 @@ LLM이 데이터를 다룰 때 **엄격히 지켜야 할 룰·템플릿**은 **O
 | 구분 | 역할 | NEXA |
 | ---- | ---- | ---- |
 | **룰·템플릿** | 형식·금지·MUST — **입구 게이트** | **Normex** · `constraints.md` · **Prompt Shell** · **Zod** · MCP Get Prompt |
-| **OAG** | 관계·구조로 **생성 보강** | **05 Planning** · CONTO · specs 트리 |
+| **OAG** | 관계·구조로 **생성 보강** | **05 Planning** · NEXAON · specs 트리 |
 | **OG-RAG** | 검색 결과 **관계 grounding** | 04·14 MOC · wikilink |
 
 ```text
@@ -155,7 +155,7 @@ Normex / Zod / Template  →  (게이트)  →  OG-RAG  →  OAG  →  AIP
 
 - **AIP 그래프 설계·감사 = Rivet Export** — [`Rivet 파이프라인`](../Rivet/Rivet%20파이프라인.md).
 - **AIP 연산·LLM = agent-graph** — rivet Export에 **Chat/Embed 노드 금지**.
-- **LangGraph Studio** = 개발용 — 운영 UI는 CONTO Run 타임라인 + SSE.
+- **LangGraph Studio** = 개발용 — 운영 UI는 NEXAON Run 타임라인 + SSE.
 
 ### 5.2 AIP 그래프 갈래 (Rivet)
 
@@ -183,7 +183,7 @@ Normex / Zod / Template  →  (게이트)  →  OG-RAG  →  OAG  →  AIP
 | ---------- | -------------- | --------------------------------- | ------------------------------------------- |
 | **RAG**    | 무엇을 읽나    | pgvector · specs 청크             | Chunk · Vector · **`LangGraph_RagGround`** (rivet 위임) |
 | **OG-RAG** | 관계는 무엇인가 | 04/14 MOC · wikilink · `ref_ids`  | Retrieve 확장 · Get Prompt · 04 Report Gen    |
-| **OAG**    | 어떻게 구조화  | 05 specs · CONTO                  | 05 Sub · agent-graph Extract · Planning            |
+| **OAG**    | 어떻게 구조화  | 05 specs · NEXAON                  | 05 Sub · agent-graph Extract · Planning            |
 | **AIP**    | 어떻게 실행    | Main · MCP · Zod · Git · ACTON    | rivet-core(토폴로지) · **agent-graph**(LLM) · CP |
 | **게이트** | 룰·템플릿      | Normex · Zod · Prompt Shell       | CP-02/06/12 · Validator (OAG **아님**)      |
 
@@ -202,8 +202,8 @@ flowchart TB
 
   subgraph oag [OAG - Ontology-Augmented Generation]
     C05[05 Planning specs]
-    CONTO[CONTO]
-    MOC --> C05 --> CONTO
+    NEXAON[NEXAON]
+    MOC --> C05 --> NEXAON
   end
 
   subgraph gate [룰·템플릿 게이트]
@@ -215,7 +215,7 @@ flowchart TB
     AG[agent-graph · LLM·Stream]
     OL[(LLM · Ollama or vLLM)]
     ACT[ACTON / IoT]
-    CONTO --> RC
+    NEXAON --> RC
     RC -->|LangGraph_*| AG
     AG --> OL
     NX -.-> MOC
@@ -257,4 +257,4 @@ flowchart TB
 | 벡터 · JSONB · HEXAGON | [`벡터 데이터 처리 및 아키텍처`](./벡터%20데이터%20처리%20및%20아키텍처.md)                                                  |
 | Rivet · rivet-core     | [`Rivet 파이프라인`](../Rivet/Rivet%20파이프라인.md)                                                                         |
 | Sub · Rivet 노드       | [`Desktop Rivet 캔버스 설계 v1.0`](<../Rivet/Desktop%20Rivet%20캔버스(Graph)%20설계%20v1.0.md>)                              |
-| CONTO · ACTON          | [`CSIM · AXON (정본)`](<../Nexia/_Cosmic%20Semantic%20Interface%20Matrix%20v2%20—%20CSIM%20·%20AXON%20프로토콜%20(정본).md>) |
+| NEXAON · ACTON          | [`CSIM · AXON (정본)`](<../Nexia/_Cosmic%20Semantic%20Interface%20Matrix%20v2%20—%20CSIM%20·%20AXON%20프로토콜%20(정본).md>) |

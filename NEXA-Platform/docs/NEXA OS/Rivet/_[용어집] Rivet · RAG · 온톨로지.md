@@ -26,7 +26,7 @@
 | **Normex (이행 표준)**    | [`M.O.S.E.S. 기술 이행 표준`](<./M.O.S.E.S. 기술 이행 표준 (Normex & Standard).md>) — MUST/SHOULD **How(구현 정답지)**. 위반 시 Merge·런타임 차단 |
 | **Prompt Shell**          | Rivet·LLM **입구 템플릿** — 형식·금지·MUST. **OAG 아님** (게이트)                                                                                 |
 | **CP (Human Checkpoint)** | 파이프라인 **인간 승인** 지점 — **Aux-Human** 서브그래프                                                                                          |
-| **CP-02**                 | **`docs/specs/`** 디스크 반영·기획 승인 (CONTO·05 직전/직후)                                                                                      |
+| **CP-02**                 | **`docs/specs/`** 디스크 반영·기획 승인 (NEXAON·05 직전/직후)                                                                                      |
 | **CP-06**                 | **Zod Contract** 승인                                                                                                                             |
 | **CP-12**                 | **JOUT** — 검증된 코드·스키마 **디스크 쓰기** 최종 승인                                                                                           |
 | **JOUT (Sub_12)**         | Sub_12_FileSystem_Write — atomic write · `written_paths[]`                                                                                        |
@@ -36,12 +36,21 @@
 | 용어             | 풀네임 / 역할                                                                                  |
 | ---------------- | ---------------------------------------------------------------------------------------------- |
 | **NEXA HEXAGON** | 5W1H **6축 정수 토큰** — 백오피스(지식·RAG) ↔ 피지컬 AI(IoT·ACTON) **경계 프로토콜**          |
-| **CONTO**        | **Collaborative Ontology Network** — Human↔AI **온톨로지 해석·검수** (웹 CONTO 뷰어·Yjs 초안) |
-| **KORE**         | **Knowledge Origin and Retrieval Engine** — 지식 **저장·검색·순환 정교화** (원본 + pgvector)   |
+| **NEXAON**       | **NEXA Ontology** — Human↔AI **온톨로지 해석·검수** (웹 NEXAON 뷰어·Yjs 초안) |
+| **KORE**         | **Knowledge Origin and Retrieval Engine** — 백오피스 **지식(데이터) 허브** (origin · retention · retrieval). **원시 + 가공** (로그·FACT·Seed·벡터·Asset·승인 기록) 적재 · 순환 정교화 · `programRef` 본문(KORE/Asset). **≠** 온톨로지 SSOT · **≠** RAG(검색). 구현: `project_knowledge` · pgvector 등 |
 | **ACTON**        | **Active Transition & Operation** — 디지털 의도 → **물리 실행** (Rule·Reflex·엣지)             |
 | **ACTON-GM**     | ACTON **G/M 브릿지** — 엑추에이터 구체 명령 · KORE `programRef`                                |
 
 > IoT 제어는 **HEXAGON·Rule·ACTON** 만 — 벡터·JSONB 온톨로지·RAG **직결 금지**.
+
+```text
+[NEXAON → KORE → RAG]
+  NEXAON  Human↔AI 해석·검수 (프로세스)
+  KORE    지식(데이터) 허브 — 적재·보관·재사용 (원시 + 가공)
+  RAG     KORE/pgvector 위 검색·인용 (허브 ≠ 검색 엔진)
+```
+
+> **KORE 범위:** 백오피스에서 **다시 꺼내 쓰도록** DB·Asset·로그에 남기는 지식. **포함 ✗:** `docs/specs/` Git SSOT · Yjs 세션 초안(CP 전) · IoT 실시간 패킷.
 
 ### 1.4 Rivet · Desktop 파이프라인
 
@@ -63,7 +72,7 @@
 | ---------- | --------------------------------- | ---------------------------------------------------------- |
 | **RAG**    | Retrieval-Augmented Generation    | 코퍼스에서 **근거 청크** 검색 후 생성                      |
 | **OG-RAG** | **Ontology-Grounded RAG**         | 벡터 위 **2차 관계도**(MOC·wikilink·`ref_ids`)로 grounding |
-| **OAG**    | **Ontology-Augmented Generation** | 구조·계획으로 **생성 보강** — 05 specs · CONTO             |
+| **OAG**    | **Ontology-Augmented Generation** | 구조·계획으로 **생성 보강** — 05 specs · NEXAON             |
 | **AIP**    | AI Orchestration (Platform)       | **rivet-core** + **LangGraph** — 실행·감사                 |
 
 ```text
@@ -73,7 +82,7 @@ RAG → OG-RAG → OAG → AIP
 
 | 용어                   | 정의                                                                                |
 | ---------------------- | ----------------------------------------------------------------------------------- |
-| **코퍼스 (Corpus)**    | RAG 검색 대상 — **설계:** `docs/specs/` · **운영:** `project_knowledge`(pgvector)   |
+| **코퍼스 (Corpus)**    | RAG 검색 대상 — **설계:** `docs/specs/` · **운영:** `project_knowledge`(pgvector, **KORE 허브**)   |
 | **MOC**                | Map of Content — Obsidian **허브 노트** (`conflict-report` · `health-report`)       |
 | **wikilink**           | `[[specs/...]]` — Vault 상대경로 · Graph 엣지 SSOT                                  |
 | **`ref_ids`**          | 청크→specs·log **역추적** JSONB 키 (본문 아님)                                      |
@@ -116,7 +125,7 @@ RAG → OG-RAG → OAG → AIP
 | **LangGraph**            | AIP **에이전트 라우팅** — Omnix·탭 위임 (플랫폼 뼈대 **교체 아님**)                            |
 | **Hermes 3**             | Desktop Sub **Chat 페르소나·모델 후보** 중 하나 — **플랫폼 LLM SSOT 단일 모델 아님**           |
 | **Obsidian**             | Vault=`docs/` — **Graph View**로 MOC·wikilink 시각화 (04·14 산출)                              |
-| **React Flow**           | `@xyflow/react` — NEXIA·CONTO **웹 그래프 UI** (To-Be)                                         |
+| **React Flow**           | `@xyflow/react` — NEXIA·NEXAON **웹 그래프 UI** (To-Be)                                         |
 | **Dagre**                | 그래프 **자동 레이아웃** — AI는 토폴로지만, x,y는 프론트                                       |
 | **TipTap**               | 리치 텍스트 · `y-prosemirror` — Normex·specs 미리보기                                          |
 | **BullMQ**               | Redis 작업 큐 — Embed_Pipeline · ingest · Chokidar 후처리                                      |
@@ -128,7 +137,7 @@ RAG → OG-RAG → OAG → AIP
 | --------------------------------- | ---------- | --------------------------- |
 | `Embed_Pipeline`                  | RAG        | 청크 임베딩 → pgvector      |
 | `RAG_Retrieve`                    | RAG+OG-RAG | 검색 · ref_ids · citations  |
-| `CONTO_Ingest` / `CONTO_Refine`   | OG-RAG     | Yjs 초안 · 관계 분석 (가칭) |
+| `NEXAON_Ingest` / `NEXAON_Refine`   | OG-RAG     | Yjs 초안 · 관계 분석 (가칭) |
 | `HEXAGON_Route` / `ACTON_Execute` | AIP        | IoT — **Vector Store 없음** |
 
 ---
@@ -141,7 +150,10 @@ RAG → OG-RAG → OAG → AIP
 | OG-RAG = GraphRAG       | NEXA OG-RAG = **wikilink + 04/14 MOC + ref_ids**             |
 | Rivet Core = Desktop    | **Desktop**=설계 · **Embedded Rivet**=웹 실행                |
 | AI JSON = 온톨로지 SSOT | 정본 = **`docs/specs/` MD + Git**                            |
-| pgvector = 진실         | pgvector = **가속** · 진실 = specs + ref_ids                 |
+| pgvector = 진실         | pgvector = **KORE 가속 저장** · 진실 = specs + ref_ids                 |
+| KORE = RAG·벡터 검색      | KORE = **허브(적재·보관)** · **RAG** = 허브 위 검색·인용                 |
+| KORE = 온톨로지           | 온톨로지 SSOT = **`docs/specs/` + wikilink** · KORE = **적재·재사용**    |
+| KORE = NEXAON 산출만      | NEXAON·Embed·ACTON FACT 등 **여러 경로**로 허브에 유입                   |
 | Hermes = 유일 LLM       | Chat 후보 중 하나 · 임베딩 SSOT = **nomic-embed-text**       |
 | 01 Sub = 「스캔」만     | **01=Inbox 인벤토리** · 02=정제 · 03=청크 …                  |
 | Yjs = Hocuspocus        | Yjs=CRDT 라이브러리 · Hocuspocus=**WS 서버**                 |
@@ -156,6 +168,6 @@ RAG → OG-RAG → OAG → AIP
 | 지능 층위   | [`RAG · OAG · AIP`](<./RAG · OAG · AIP — 지능 층위와 오케스트레이션.md>)         |
 | RAG 구현    | [`NEXA RAG 아키텍처`](<./NEXA RAG 아키텍처 — Rivet·PostgreSQL·Ollama.md>)        |
 | Desktop Sub | [`Desktop Rivet 캔버스 설계 v1.0`](<./Desktop Rivet 캔버스(Graph) 설계 v1.0.md>) |
-| CONTO 툴    | [`온톨로지 관리 툴`](<./리벳(Rivet) 중심의 '온톨로지 관리 툴 개발.md>)           |
+| NEXAON 툴    | [`온톨로지 관리 툴`](<./리벳(Rivet) 중심의 '온톨로지 관리 툴 개발.md>)           |
 | Yjs         | [`Yjs·Hocuspocus SSOT`](<../../AI/00_[AIS] Yjs·Hocuspocus 협업 SSOT.md>)         |
 | NEXIA 탭    | [`NEXIA 00`](<../../Nexia/00 인공지능 NEXIA 구조와 기술 스택과 운영방침.md>)     |

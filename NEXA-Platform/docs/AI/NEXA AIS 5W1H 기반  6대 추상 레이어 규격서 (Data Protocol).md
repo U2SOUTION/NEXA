@@ -541,14 +541,14 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 ## 부록 H) 온톨로지 코퍼스 · RDF — HEXAGON의 역할 (추가 · 2026-06)
 
 > **범위:** 본 절은 **기존 HEXAGON 정의·토큰·이름을 변경하지 않는다.**  
-> 온톨로지(CONTO · OG-RAG · `docs/specs/`)용 **코퍼스**를 구성할 때 HEXAGON이 **질적으로** 어떻게 쓰이는지, **RDF 트리플**로 옮기기 **쉬운지/빠진 것**은 무엇인지 정리한다.  
+> 온톨로지(NEXAON · OG-RAG · `docs/specs/`)용 **코퍼스**를 구성할 때 HEXAGON이 **질적으로** 어떻게 쓰이는지, **RDF 트리플**로 옮기기 **쉬운지/빠진 것**은 무엇인지 정리한다.  
 > **HEXAGON 네이밍·6축 구조 개편**은 별도 논의(§H.6) 후 정본 반영.
 
 **관련 SSOT (교차 참조만 — 본 문서 수정 없음):**
 
 | 주제 | 문서 |
 | ---- | ---- |
-| CONTO · relation enum | `docs/NEXA OS/Rivet/리벳(Rivet) 중심의 '온톨로지 관리 툴 개발.md` §4.1 |
+| NEXAON · relation enum | `docs/NEXA OS/Rivet/리벳(Rivet) 중심의 '온톨로지 관리 툴 개발.md` §4.1 |
 | 04 Conflict edge `type` | `docs/NEXA OS/Rivet/Desktop Rivet 캔버스(Graph) 설계 v1.0.md` §Obsidian |
 | AXON L2 · 경계 | `docs/Nexia/_Cosmic Semantic Interface Matrix v2 — CSIM · AXON 프로토콜 (정본).md` §11 |
 | OG-RAG ≠ GraphRAG | `docs/NEXA OS/Rivet/_[용어집] Rivet · RAG · 온톨로지.md` |
@@ -559,7 +559,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | ---- | ---------- |
 | HEXAGON = 온톨로지 문법·데이터 본문? | **아니오** — 패킷·로그·청크 **헤더 분류·필터·신뢰·수명** |
 | 온톨로지 코퍼스에 질적으로 유용? | **예** — Sentinel/Indicator · FACT/LINK/RULE · Pulse · VOID |
-| HEXAGON만으로 RDF가 쉽게 나옴? | **절반** — **맥락·프로비넌스·라우팅**은 쉬움 · **트리플 본문**은 CONTO/specs 필요 |
+| HEXAGON만으로 RDF가 쉽게 나옴? | **절반** — **맥락·프로비넌스·라우팅**은 쉬움 · **트리플 본문**은 NEXAON/specs 필요 |
 | NEXA 정본이 RDF인가? | **아니오** — Git + `specs/` MD + wikilink · RDF는 **선택 export 어댑터** |
 
 ### H.2 코퍼스 파이프라인에서의 위치
@@ -572,11 +572,11 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
   (Where…Why · Pulse · VOID)
         │
         ├── What=FACT   → RAG 1차 · Sentinel 적재
-        ├── What=LINK   → CONTO Extract · 04/14 MOC 후보
+        ├── What=LINK   → NEXAON Extract · 04/14 MOC 후보
         └── What=RULE   → Normex · GOVERN · specs 규범
         │
         ▼
-  CONTO edges · wikilink · ref_ids   ← 관계·정본 SSOT (온톨로지 툴)
+  NEXAON edges · wikilink · ref_ids   ← 관계·정본 SSOT (온톨로지 툴)
         │
         ▼
   (선택) RDF/Turtle/JSON-LD export  ← 비-SSOT 어댑터
@@ -589,7 +589,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | **Sentinel** | FIELD · MOMENT · FACT · TICK | 원문·센서·inbox 청크 **적재** |
 | **Indicator** | LINK · RULE · Why · WILL/ECHO/ASK | **관계·규범·인과** 추출·승인 대상 |
 
-말단은 LINK/RULE/Why를 **생산하지 않고**, 중앙·CONTO가 **온톨로지 코퍼스의 2차 층**을 만든다 — AXON 「세포는 두뇌(온톨로지)를 모름」과 동형.
+말단은 LINK/RULE/Why를 **생산하지 않고**, 중앙·NEXAON이 **온톨로지 코퍼스의 2차 층**을 만든다 — AXON 「세포는 두뇌(온톨로지)를 모름」과 동형.
 
 ### H.3 RDF 매핑 — 쉬운 것 · 어려운 것
 
@@ -611,12 +611,12 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | RDF 요구 | HEXAGON | NEXA에서 채우는 층 |
 | -------- | ------- | ------------------ |
 | **Subject IRI** | 없음 | `vault_path` · Capability ID · `anchor_id` |
-| **Predicate IRI** | 없음 | CONTO `relation` · 04 `type` enum |
+| **Predicate IRI** | 없음 | NEXAON `relation` · 04 `type` enum |
 | **Object** (literal/URI) | 없음 | specs MD · `conflict_report.json` |
 | **class / subClassOf** | 없음 | glossary · Zod SSOT |
-| **1청크 → N triple** | 6토큰 1세트/레코드 | CONTO `edges[]` · wikilink |
+| **1청크 → N triple** | 6토큰 1세트/레코드 | NEXAON `edges[]` · wikilink |
 
-### H.4 Draft — HEXAGON · CONTO → RDF 매핑표 (논의용)
+### H.4 Draft — HEXAGON · NEXAON → RDF 매핑표 (논의용)
 
 > **Prefix (예시):** `@prefix nexa: <https://nexa.local/vocab#> .`  
 > **Entity IRI (예시):** `nexa:doc/{vault_path_hash}` 또는 `nexa:capability/{id}` — **별도 SSOT 확정 전 Draft**
@@ -633,7 +633,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | `how_state` | `nexa:howState` | `FLOW` \| `STUCK` \| `VOID` |
 | `why_*` | `nexa:whyRole` | `CAUSE` \| `LOGIC` \| `TARGET` |
 
-#### H.4.2 CONTO · 04 edge → triple (본문 SSOT)
+#### H.4.2 NEXAON · 04 edge → triple (본문 SSOT)
 
 | NEXA relation / 04 `type` | Draft predicate | Subject → Object |
 | --------------------------- | --------------- | ------------------ |
@@ -652,7 +652,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 
 1. **Named graph** = `{project_id}` + HEXAGON Where/When  
 2. **Entity** = specs 노드 · glossary 용어 (IRI 규칙 확정 후)  
-3. **Triple** = CONTO/04 edges (표 H.4.2)  
+3. **Triple** = NEXAON/04 edges (표 H.4.2)  
 4. **Annotation** = HEXAGON 6토큰 + Pulse + `ref_ids` → PROV  
 5. **Draft vs 정본** = CP-02 미승인은 `nexa:assertionStatus draft` (승인 후 `approved`)
 
@@ -663,7 +663,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | 1 | **What 토큰 표 정합** | 본 문서 FACT/LINK/RULE vs CSIM §11 FACT/WILL/ECHO | 코퍼스용 / 패킷용 **이원 표** 또는 Derived→Core 환원 규칙 |
 | 2 | **Entity IRI 규칙** | 미정 | `vault_path` · Capability ID · N-PATH `path_id` 중 SSOT 1개 |
 | 3 | **Predicate vocabulary IRI** | enum만 존재 | H.4.2를 `packages/shared` 또는 glossary에 고정 |
-| 4 | **LINK → extract schema** | What=LINK만으로 triple 미생성 | CONTO_Ingest 출력 JSON ↔ H.4.2 1:1 계약 |
+| 4 | **LINK → extract schema** | What=LINK만으로 triple 미생성 | NEXAON_Ingest 출력 JSON ↔ H.4.2 1:1 계약 |
 | 5 | **RULE vs Normex vs ERA** | RULE 단일 토큰 | `extra_data.normex_ref` · Where=DOMAIN 조합 |
 | 6 | **Subject/Object (§2 Sentinel Fact)** | 서사만 | RDF export 시 **optional** 필드명·매핑 |
 | 7 | **why_chain ↔ Why 축** | DDL JSONB vs CAUSE/LOGIC/TARGET | `reasoning` 노드 ↔ `nexa:whyRole` |
@@ -680,7 +680,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | **What 축** | FACT, LINK, RULE | CSIM WILL/ECHO와 **통합 vs Derived** · 코퍼스 TAG `LINK` 유지 여부 |
 | **Why 처리 순서** | 표 O · 순서 Where…How에서 Why 생략 | **6번째 필수 축** vs Indicator 전용 — DB 6컬럼과 UI 순서 정합 |
 | **5대 vs 6대** | 문서 내 혼용 | **6축(5W1H+How)** 로 표기 통일 |
-| **ontology(문법) 표현** | 편집본 A) 「문법(ontology)」 | **「분류 문법」** vs **「온톨로지」** — CONTO와 용어 충돌 완화 |
+| **ontology(문법) 표현** | 편집본 A) 「문법(ontology)」 | **「분류 문법」** vs **「온톨로지」** — NEXAON와 용어 충돌 완화 |
 | **LINK 의미 확장** | 관계류 레코드 라벨 | **「RDF 후보」** 를 Derived 토큰으로 명시할지 |
 | **Core 증설** | G) Core 증설 금지 | PRIORITY · CRITIC/GAP (§50~70 대화) — **Derived only** 로 흡수 가능 여부 |
 
@@ -690,19 +690,19 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 
 ```text
 코퍼스 ingest → HEXAGON 태깅 (§H.2)
-  → What=LINK|RULE → CONTO / Desktop 04~05
+  → What=LINK|RULE → NEXAON / Desktop 04~05
   → 정본: specs + wikilink (+ Yjs 초안)
-  → (선택) RDF: CONTO edges + ref_ids + HEXAGON을 annotation (§H.4)
+  → (선택) RDF: NEXAON edges + ref_ids + HEXAGON을 annotation (§H.4)
 ```
 
-> **못 박기 (Draft):** HEXAGON은 **온톨로지 코퍼스의 질적·라우팅 층**이다. **트리플 SSOT는 CONTO + specs**에 두고, RDF는 **export 어댑터**로만 다룬다 — NEXA Rivet/OG-RAG SSOT와 동일 방향.
+> **못 박기 (Draft):** HEXAGON은 **온톨로지 코퍼스의 질적·라우팅 층**이다. **트리플 SSOT는 NEXAON + specs**에 두고, RDF는 **export 어댑터**로만 다룬다 — NEXA Rivet/OG-RAG SSOT와 동일 방향.
 
 ---
 
 ## 부록 I) 6축 유지 · 옆(sidecar) 보강 — 학습용 요약 (추가 · 2026-06)
 
 > **결론 (Draft):** RDF·OWL 관점에서도 **7·8번째 “축”을 Core에 추가하지 않는다.**  
-> **HEXAGON 6축 + 이름 HEXAGON 유지** · RDF/OWL에 필요한 나머지는 **옆 필드(sidecar)** · **CONTO 그래프** · **specs/glossary** 로 보강한다.  
+> **HEXAGON 6축 + 이름 HEXAGON 유지** · RDF/OWL에 필요한 나머지는 **옆 필드(sidecar)** · **NEXAON 그래프** · **specs/glossary** 로 보강한다.  
 > 본 절은 **표로만** 읽을 수 있게 정리했다. 정본 변경 없음.
 
 ### I.1 한눈에 — 3겹만 기억
@@ -711,7 +711,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | -- | ---- | ---- | ----------- |
 | **①** | **HEXAGON 6축** | 우편 **색깔 라벨** (긴급·현장·규칙…) | 청크·로그 **한 건**의 맥락·분류 |
 | **②** | **Sidecar (옆 보강)** | 우편 **송장 번호·언어·승인 도장** | ①에 안 들어가지만 RDF/운영에 필요한 **부가 정보** |
-| **③** | **CONTO + specs** | **관계도 + 정본 문서** | **누가–무엇–누구** 관계 · MD · wikilink (온톨로지 SSOT) |
+| **③** | **NEXAON + specs** | **관계도 + 정본 문서** | **누가–무엇–누구** 관계 · MD · wikilink (온톨로지 SSOT) |
 
 ```text
         [① HEXAGON 6토큰]  ← DB SMALLINT 6컬럼 (고정)
@@ -719,7 +719,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
         [② Sidecar]        ← JSONB / metadata / ref_ids (늘어도 ① 안 깨짐)
                  │
                  ▼
-        [③ CONTO · specs]  ← 그래프 · wikilink (RDF triple 본문에 가까움)
+        [③ NEXAON · specs]  ← 그래프 · wikilink (RDF triple 본문에 가까움)
 ```
 
 ### I.2 왜 축을 늘리지 않나 (짧게)
@@ -728,7 +728,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | ----------------- | ----------------- |
 | DDL·펌웨어·Embed **전부** 고침 | **6컬럼 그대로** |
 | 「HEXAGON=육각」 이름과 어긋남 | **HEXAGON 이름 유지** |
-| OWL **클래스·속성 정의**는 여전히 **별도** 필요 | glossary · CONTO가 **TBox/Abox** 담당 |
+| OWL **클래스·속성 정의**는 여전히 **별도** 필요 | glossary · NEXAON이 **TBox/Abox** 담당 |
 | §G Core 증설 금지와 충돌 | §G와 **일치** (Core 6 + Derived/sidecar) |
 
 ### I.3 6축 — 각 축이 하는 일 (Core, 변경 없음)
@@ -756,7 +756,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | `revision` / `git_sha` | 버전은 ERA와 **다름** | Git · `.rivet/runs` | ontology version |
 | `ref_ids[]` | 여러 출처 **배열** | `project_knowledge` JSONB | PROV `wasDerivedFrom` |
 | `why_chain` | 인과 **그래프** — Why 토큰 1개로 부족 | `project_logs` JSONB | PROV activity |
-| `relation` (CONTO) | predicate는 **트리플 중간** | Yjs edges · 04 JSON | **Predicate** IRI |
+| `relation` (NEXAON) | predicate는 **트리플 중간** | Yjs edges · 04 JSON | **Predicate** IRI |
 | `skos`/glossary link | **클래스** 정의는 이벤트 축 아님 | `specs/project-core/glossary` | **OWL TBox** |
 
 ### I.5 “한 청크”가 저장될 때 — 예시 1행
@@ -772,12 +772,12 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | `vault_path` | `specs/requirements/api.md` | ② Sidecar |
 | `assertion_status` | draft | ② |
 | `ref_ids` | `["run-abc", "chunk-12"]` | ② |
-| CONTO edge | `A --depends_on--> B` | ③ CONTO |
+| NEXAON edge | `A --depends_on--> B` | ③ NEXAON |
 | wikilink in MD | `[[specs/project-core/glossary]]` | ③ specs |
 
-### I.6 RDF · OWL — 6축 vs Sidecar vs CONTO (학습용)
+### I.6 RDF · OWL — 6축 vs Sidecar vs NEXAON (학습용)
 
-| 관심사 | 6축만으로 | + Sidecar | + CONTO/specs |
+| 관심사 | 6축만으로 | + Sidecar | + NEXAON/specs |
 | ------ | --------- | --------- | ------------- |
 | “이 청크 급한가?” | ○ Who+Where | ○ | — |
 | “관계 추출할까?” | ○ What=LINK | ○ | ○ edges |
@@ -790,11 +790,11 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 
 ### I.7 처리 순서 — 표로 (코퍼스 → 온톨로지)
 
-| 단계 | 입력 | ① 6축 | ② Sidecar | ③ CONTO/specs |
+| 단계 | 입력 | ① 6축 | ② Sidecar | ③ NEXAON/specs |
 | ---- | ---- | ----- | --------- | ------------- |
 | 1 ingest | inbox/refined MD | (아직 없음) | path | — |
 | 2 tag | 청크 | FACT/LINK/RULE 태깅 | ref_ids | — |
-| 3 route | What=LINK | 유지 | graph_id | CONTO_Ingest |
+| 3 route | What=LINK | 유지 | graph_id | NEXAON_Ingest |
 | 4 extract | AI 초안 | 유지 | assertion=draft | edges[] |
 | 5 approve | CP-02 | 유지 | assertion=approved | specs MD 쓰기 |
 | 6 (선택) RDF | export job | → annotation | → prov/context | → triples |
@@ -817,10 +817,10 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | ---- | ---------- |
 | **Core 축 개수** | **6 유지** (축 1~2개 추가 **하지 않음**) |
 | **프로토콜 이름** | **HEXAGON 유지** (6축과 일치) |
-| **RDF/OWL 보강** | **Sidecar + CONTO + glossary** (부록 I.4 표) |
+| **RDF/OWL 보강** | **Sidecar + NEXAON + glossary** (부록 I.4 표) |
 | **정본** | Git + `specs/` + wikilink (RDF export는 선택) |
 
-> RDF·OWL을 공부 중이라면: **HEXAGON = 우편 라벨**, **Sidecar = 송장**, **CONTO/specs = 실제 편지 내용·관계도** 로 보면 §I.1~I.6 표만으로도 전체 그림이 맞춰진다.
+> RDF·OWL을 공부 중이라면: **HEXAGON = 우편 라벨**, **Sidecar = 송장**, **NEXAON/specs = 실제 편지 내용·관계도** 로 보면 §I.1~I.6 표만으로도 전체 그림이 맞춰진다.
 
 ---
 
@@ -832,19 +832,19 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | **Core 축** | Where · When · Who · What · How · Why — **6개 고정, 축 추가 없음** |
 | **보강 방식** | **동일 레코드**의 **다른 속성(sidecar)** — `metadata` · `extra_data` · `ref_ids` · `why_chain` · `vault_path` 등 |
 | **Derived 토큰** | **새 축 아님** — 6축 중 하나에 **귀속** |
-| **3겹 구조** | ① HEXAGON 6축 → ② Sidecar → ③ CONTO + `specs/` + wikilink |
+| **3겹 구조** | ① HEXAGON 6축 → ② Sidecar → ③ NEXAON + `specs/` + wikilink |
 | **HEXAGON 역할** | 코퍼스·로그 **분류·필터·라우팅** (온톨로지 본문·RDF triple 아님) |
 | **Sidecar 역할** | Entity·graph·승인·출처·언어·버전·신뢰도 등 **6축 밖 메타** |
-| **CONTO/specs 역할** | 관계·정본 **SSOT** (RDF Abox · OWL TBox에 가까운 층) |
+| **NEXAON/specs 역할** | 관계·정본 **SSOT** (RDF Abox · OWL TBox에 가까운 층) |
 | **RDF export** | **선택 어댑터** — 정본은 Git + `specs/` + wikilink |
-| **What=LINK** | 관계 **추출·CONTO 라우팅** 표시 (triple 본문 아님) |
-| **Sentinel / Indicator** | 말단 FACT·TICK → 중앙 LINK·RULE·Why · CONTO |
+| **What=LINK** | 관계 **추출·NEXAON 라우팅** 표시 (triple 본문 아님) |
+| **Sentinel / Indicator** | 말단 FACT·TICK → 중앙 LINK·RULE·Why · NEXAON |
 
 ```text
 [한 레코드]
   HEXAGON 6토큰 (고정)
   + sidecar 속성 (보강)
-  → (연결) CONTO edges · specs MD · wikilink
+  → (연결) NEXAON edges · specs MD · wikilink
   → (선택) RDF/Turtle export
 ```
 

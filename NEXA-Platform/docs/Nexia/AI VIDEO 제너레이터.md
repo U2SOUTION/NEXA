@@ -1,6 +1,6 @@
 # AI VIDEO 제너레이터 — Tiptap · Rivet · ComfyUI / Remotion·MoviePy (기획 정리본)
 
-> **스택:** 셸 **Next.js** · **Embedded Rivet** 정제 · **NEXIA React Flow** (Synapse). — [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
+> **스택:** 셸 **Next.js** · **Embedded Rivet** 정제 · **NEXIA React Flow** (Synapse). — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
 
 **한 줄:** 자연어 → **플랫폼 Ollama**가 **기획서·대본·타임라인**을 만들고 → **Tiptap**에서 사람이 다듬고 → **Embedded Rivet**이 정제한 뒤 → **모드 1(시네마)** 또는 **모드 2(초고속)** 로 최종 MP4.
 

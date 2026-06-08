@@ -4,7 +4,7 @@
 MVP 개발 **단일 SSOT** — **v0.9**
 
 > **문서 유형**: B — MVP 개발 SSOT (Functional Requirements · API · Semantic Layout 중심)  
-> **요약본**: [`BAX_미학적_인터페이스_UX_아키텍처_요약_v0.8.md`](./BAX_미학적_인터페이스_UX_아키텍처_요약_v0.8.md) (v0.9 동기화)  
+> **요약본**: [`BAX_미학적_인터페이스_UX_아키텍처_요약_v0.8.md`](../BAX_미학적_인터페이스_UX_아키텍처_요약_v0.8.md) (v0.9 동기화)  
 > **상태**: Draft · **관련**: NEXA OS V2.1 · **실험 앱**: `apps/bax-demo`  
 > **선행 문서**: v0.8 UX SSOT · `BAX_문제 해소.md` — **본 문서에 흡수 완료. 구현 시 v0.9만 참조.**
 

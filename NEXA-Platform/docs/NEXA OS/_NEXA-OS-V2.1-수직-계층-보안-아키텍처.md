@@ -108,7 +108,7 @@ NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · 
 
 | 항목                        | 내용                                                                     |
 | --------------------------- | ------------------------------------------------------------------------ |
-| **ACTON-GM · `programRef`** | Fetch 전 CONTO/Normex · Execute 전 MUST + Omnix ACK · `contentHash` 검증 |
+| **ACTON-GM · `programRef`** | Fetch 전 NEXAON/Normex · Execute 전 MUST + Omnix ACK · `contentHash` 검증 |
 | **단선 제어**               | 긴급 정지(E-Stop) — React 렌더 **경유 없이** 직접 emit/API/SSE Safety    |
 | **Twinex sim→live**         | 시뮬 모드 **실 디바이스 write deny**                                     |
 | **현장 Circuit Breaker**    | 과부하·개방·STUCK — **물리/엣지** 경량·차단 모드 (IoT·OTA Runbook)       |

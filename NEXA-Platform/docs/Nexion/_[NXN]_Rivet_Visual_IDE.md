@@ -1,6 +1,6 @@
 # Rivet 은 무엇인가?
 
-> **SSOT:** **Desktop Rivet**(설계) / **Embedded Rivet**(`rivet-node` @ NestJS). 플랫폼 셸 = **Next.js** (`apps/web`). Nexion 캔버스 To-Be = **React Flow** (본문 Vue Flow = As-Is). — [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
+> **SSOT:** **Desktop Rivet**(설계) / **Embedded Rivet**(`rivet-node` @ NestJS). 플랫폼 셸 = **Next.js** (`apps/web`). Nexion 캔버스 To-Be = **React Flow** (본문 Vue Flow = As-Is). — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
 
 "Rivet은 복잡한 AI 로직(에이전트)을 레고 블록처럼 시각적으로 설계하고, 이를 실제 서비스에 즉시 주입할 수 있게 해주는 'AI 오케스트레이션 IDE 및 런타임'입니다."
 

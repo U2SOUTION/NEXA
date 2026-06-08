@@ -1,6 +1,6 @@
 # 00. 인공지능 NEXIA 구조와 기술 스택과 운영방침
 
-> **스택 SSOT (To-Be):** **`apps/web` = Next.js** (App Router). **Rivet** = **Desktop Rivet**(설계·Export) / **Embedded Rivet**(`rivet-node` @ NestJS). **Logex** 그래프 UI = **NEXIA React Flow**; **Nexion** 지식 데스크 = **Nexion React Flow** (`@xyflow/react`). — [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
+> **스택 SSOT (To-Be):** **`apps/web` = Next.js** (App Router). **Rivet** = **Desktop Rivet**(설계·Export) / **Embedded Rivet**(`rivet-node` @ NestJS). **Logex** 그래프 UI = **NEXIA React Flow**; **Nexion** 지식 데스크 = **Nexion React Flow** (`@xyflow/react`). — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
 
 **한 줄:** NEXIA는 **NEXA 플랫폼**의 **핵심 지능 도메인**(`domainKey: nexia`)으로, **7탭 `-ex` `tabId`(SSOT)** · **Omnix 허브**로 인간·AI·장치·자산을 조율하고 **다른 도메인·모드와 연결**되어 작동한다.
 

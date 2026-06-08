@@ -1,6 +1,6 @@
 # NEXIA 주요 외부 엔진들과 아키텍쳐 (정리본)
 
-> **스택 SSOT (To-Be):** [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) — **`apps/web` = Next.js** · **Desktop / Embedded Rivet** · **Vite+React** 제너레이터는 Next **embed**. 아래 **Vue/Quasar** 표기는 **As-Is(레거시)**.
+> **스택 SSOT (To-Be):** [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) — **`apps/web` = Next.js** · **Desktop / Embedded Rivet** · **Vite+React** 제너레이터는 Next **embed**. 아래 **Vue/Quasar** 표기는 **As-Is(레거시)**.
 
 - **정체성:** **NEXA 플랫폼** 내 **NEXIA 도메인**(`nexia`) 엔진 연동 — [`정체성 SSOT`](../_NEXA-플랫폼·메타-OS·NEXIA·도메인%20—%20정체성%20SSOT.md)
 

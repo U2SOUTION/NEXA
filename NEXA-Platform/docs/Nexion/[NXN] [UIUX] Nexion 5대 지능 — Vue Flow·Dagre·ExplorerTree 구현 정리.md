@@ -1,6 +1,6 @@
 # [NXN] [UIUX] Nexion 5대 지능 — Vue Flow·Dagre·ExplorerTree 구현 정리
 
-> **To-Be:** **Nexion React Flow** + Dagre + ExplorerTree @ **Next.js**. 제목·본문 **Vue Flow** = As-Is. — [`M.O.S.E.S. 정리`](<../NEXA OS/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>)
+> **To-Be:** **Nexion React Flow** + Dagre + ExplorerTree @ **Next.js**. 제목·본문 **Vue Flow** = As-Is. — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>)
 
 **본 문서의 범위** : **동일 3패널 골격** 안에서 **Vue Flow + Dagre + ExplorerTree** 로 **5대를 어떻게 붙일지** — 좌·중·우 역할, 캔버스 노드 의미, **NEXA NIXIE(닉시)** 와의 **연출·데이터 연결**, 전형적 워크플로를 **구현 관점**에서 한 장에 정리한다.
 

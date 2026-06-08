@@ -48,7 +48,7 @@
 
 | AI 물결 키워드   | NEXA에서의 현대적 계승                               | 구현·문서                                                                                                                                                                                                       |
 | ---------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Rules**        | **Normex** · Zod · MUST/SHOULD 실행 차단             | [`M.O.S.E.S. 기술 이행 표준`](<./M.O.S.E.S.%20기술%20이행%20표준%20(Normex%20&%20Standard).md>)                                                                                                                 |
+| **Rules**        | **Normex** · Zod · MUST/SHOULD 실행 차단             | [`M.O.S.E.S. 기술 이행 표준`](<./Rivet/M.O.S.E.S. 기술 이행 표준 (Normex & Standard).md>)                                                                                                                       |
 | **Ontology**     | `docs/specs/` 트리 · wikilink · Obsidian MOC (04·14) | [`Desktop Rivet 캔버스 설계 v1.0`](<../Rivet/Desktop%20Rivet%20캔버스(Graph)%20설계%20v1.0.md>)                                                                                                                 |
 | **Semantic Web** | 5W1H HEXAGON · nature_tag · capability_id            | [`DDL v5`](../Database/DDL%200%20SCHEMA%20NEXA%20Platform%20DB%20설계%20명세%20v5.md) · [RAG 페르소나 전략서](<../AI/NEXA%20AIS%20RAG%20및%20페르소나%20아카이브%20전략서%20(RAG%20&%20Persona%20Strategy).md>) |
 
@@ -62,7 +62,7 @@ NEXA는 **순수 기호 AI 시대로 회귀하지 않는다.** 다만 **뉴로-�
 | --------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | **Transformer / LLM** | **Ollama** (로컬) · NestJS 경유만 · Desktop Rivet Chat 노드                               | 브라우저→Ollama 직접 · 클라우드 SSOT 의존 기본값 |
 | **RAG**               | `docs/specs/` 코퍼스 + **PostgreSQL `project_knowledge`** (pgvector) · Rivet Vector Store | 벡터 DB만 블랙박스 메모리                        |
-| **OG-RAG** (NEXA)     | 벡터 위 **2차 관계도** — 04/14 MOC · wikilink · `ref_ids` (GraphRAG와 별개)                 | Vector Store → Chat **단독 종료**                |
+| **OG-RAG** (NEXA)     | 벡터 위 **2차 관계도** — 04/14 MOC · wikilink · `ref_ids` (GraphRAG와 별개)               | Vector Store → Chat **단독 종료**                |
 | **Diffusion**         | ComfyUI 등 **외부 엔진** · 오케스트레이터 경유 (NEXIA 미디어 파이프라인)                  | UI에서 엔진 직접 노출                            |
 | **GNN**               | Nexion·Logex **관계 그래프 UI** (Vue/React Flow) — 지식·워크플로 **시각화**               | (연구·확장 여지)                                 |
 
@@ -119,7 +119,7 @@ flowchart LR
 검증·운영    — NEXA 플랫폼 · NestJS · PostgreSQL 운영 데이터
 ```
 
-— [`M.O.S.E.S. v2.0`](<./M.O.S.E.S.(Meta-Operating%20System%20for%20Engineering%20&%20Synthesis)%20v2.0.md>) §1.
+— [`M.O.S.E.S. v2.0`](<./Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §1.
 
 ---
 
@@ -150,12 +150,12 @@ NEXA 플랫폼 / NEXIA — 추론 · RAG · 승인(Omnix) · Rivet 실행
 
 ## NEXA 플랫폼 — 단계 통합 요약표
 
-| AI 단계        | NEXA에서의 한 줄             | 핵심 자산                           |
-| -------------- | ---------------------------- | ----------------------------------- |
-| 1~2 + 시맨틱   | **규범·온톨로지의 뿌리**     | Normex · specs · HEXAGON            |
-| **3 생성형**   | **지금 돌아가는 서비스**     | Ollama · **RAG** · Yjs · Diffusion 연동 |
+| AI 단계        | NEXA에서의 한 줄             | 핵심 자산                                        |
+| -------------- | ---------------------------- | ------------------------------------------------ |
+| 1~2 + 시맨틱   | **규범·온톨로지의 뿌리**     | Normex · specs · HEXAGON                         |
+| **3 생성형**   | **지금 돌아가는 서비스**     | Ollama · **RAG** · Yjs · Diffusion 연동          |
 | **4 에이전틱** | **그래프로 고정된 에이전트** | **OAG** · **AIP**(Rivet·LangGraph) · MCP · Omnix |
-| **5 피지컬**   | **현장·기기로의 연장**       | ESP32 · Sentinel · Safety Reflex    |
+| **5 피지컬**   | **현장·기기로의 연장**       | ESP32 · Sentinel · Safety Reflex                 |
 
 ---
 
@@ -176,9 +176,9 @@ NEXA 플랫폼 / NEXIA — 추론 · RAG · 승인(Omnix) · Rivet 실행
 | 주제                       | 문서                                                                                                                         |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | 정체성·3층 구조            | [`정체성 SSOT`](../_NEXA-플랫폼·메타-OS·NEXIA·도메인%20—%20정체성%20SSOT.md)                                                 |
-| 메타 빌드·책임 분리        | [`M.O.S.E.S. v2.0`](<./M.O.S.E.S.(Meta-Operating%20System%20for%20Engineering%20&%20Synthesis)%20v2.0.md>)                   |
+| 메타 빌드·책임 분리        | [`M.O.S.E.S. v2.0`](<./Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>)                         |
 | Rivet·일방통행·에이전트 선 | [`Rivet 파이프라인`](../Rivet/Rivet%20파이프라인.md)                                                                         |
-| RAG·OG-RAG·OAG·AIP 층위    | [`RAG · OAG · AIP — 지능 층위와 오케스트레이션`](./RAG%20·%20OAG%20·%20AIP%20—%20지능%20층위와%20오케스트레이션.md)            |
+| RAG·OG-RAG·OAG·AIP 층위    | [`RAG · OAG · AIP — 지능 층위와 오케스트레이션`](./RAG%20·%20OAG%20·%20AIP%20—%20지능%20층위와%20오케스트레이션.md)          |
 | RAG·코퍼스·PostgreSQL      | [`NEXA RAG 아키텍처`](../Rivet/NEXA%20RAG%20아키텍처%20—%20Rivet·PostgreSQL·Ollama.md)                                       |
 | NEXIA 7탭·스택             | [`NEXIA 00`](../Nexia/00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md)                                          |
 | 아톰·5W1H·피지컬 AI 철학   | [`RAG & Persona Strategy`](<../AI/NEXA%20AIS%20RAG%20및%20페르소나%20아카이브%20전략서%20(RAG%20&%20Persona%20Strategy).md>) |
