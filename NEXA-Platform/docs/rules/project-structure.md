@@ -110,7 +110,7 @@ NEXA-Platform/docs/
 └── trash/      # 처리된 inbox (inbox/ 와 경로 미러)
 ```
 
-- **파이프라인:** `inbox` → (00) → `refined` → (01~02) → `specs` → (03~07) · 상세 `docs/NEXA OS/Desktop Rivet 캔버스 설계.md`
+- **파이프라인:** `inbox` → (01) → `refined` → (02~05) → `specs` → (06~13) · 상세 `docs/Rivet/Desktop Rivet 캔버스(Graph) 설계.md`
 - **레거시:** 루트의 `Nexia/`, `Nexion/`, `database/`, `AI/` 등은 **수동 이전 전**까지 존재 가능 — To-Be는 **`docs/specs/`** 하위
 - **문서 네이밍:** `docs/specs/` 또는 루트 **`@` 접두 GLOSSARY 네이밍 규약** (문서 인덱스 참조)
 - **규칙 문서:** To-Be `docs/specs/rules/` · 현재 `docs/rules/` (본 파일)

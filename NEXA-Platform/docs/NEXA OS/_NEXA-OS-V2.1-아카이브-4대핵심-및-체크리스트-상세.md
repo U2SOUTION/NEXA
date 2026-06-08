@@ -37,10 +37,10 @@ globalMenu → domainKey → MainShellLayout → registry
 
 ### A-2. ② 보안 등급 (Grade 1·2·3) 인프라
 
-| 등급 | 프론트                               | 백엔드 / 동기화                                    | 공유 SSOT                         |
-| ---- | ------------------------------------ | -------------------------------------------------- | --------------------------------- |
-| 🟢 1 | `useHocuspocus` ReadOnly             | **`apps/sync`** (Hocuspocus) + `backend/auth` JWT  | `commands` — 조회·문서 편집       |
-| 🟡 2 | **`guards/authGuard.ts`** (MFA 권장) | **`audit-log.interceptor.ts`** + `modules/control` | `commands` — MFA·감사 필수 플래그 |
+| 등급 | 프론트                               | 백엔드 / 동기화                                                  | 공유 SSOT                           |
+| ---- | ------------------------------------ | ---------------------------------------------------------------- | ----------------------------------- |
+| 🟢 1 | `useHocuspocus` ReadOnly             | **`apps/sync`** (Hocuspocus) + `backend/auth` JWT                | `commands` — 조회·문서 편집         |
+| 🟡 2 | **`guards/authGuard.ts`** (MFA 권장) | **`audit-log.interceptor.ts`** + `modules/control`               | `commands` — MFA·감사 필수 플래그   |
 | 🔴 3 | Yjs/WS 제어 UI **없음**              | `modules/edge-queue` + **`edge-gateway/`** · **`edge-pull-sse`** | `commands` — Edge Pull/SSE·폐쇄망만 |
 
 | 구분           | 필수 경로                                                       | 역할                                                                      |
@@ -73,18 +73,18 @@ export enum CommandGrade {
 [edge-queue API] ◄── edge-pull-sse (EventSource) · GET pull (fallback) ── [edge-gateway] ◄── MQTT / Modbus (폐쇄망·VPN)
 ```
 
-| 경로                               | 역할                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------ |
+| 경로                               | 역할                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------- |
 | `modules/edge-queue/`              | 큐 적재 · Edge **`edge-pull-sse`** + GET pull fallback (외부에서 직접 장비 제어 불가) |
-| `modules/edge-queue/edge-gateway/` | 내부망 전용 MQTT·Modbus 어댑터                                           |
-| `hooks/useYjsSync.ts`              | **(채널 A)** Y.Map → Zustand **단방향** (에디터 CRDT는 Yjs binding 직접) |
-| `workers/telemetryProcessor.ts`    | **(채널 B)** WS·대량 센서 — Worker 버퍼 → Telemetry만                    |
-| `engines/websocket.ts`             | WS 클라이언트 — **Worker에만** postMessage (쌍의 진입점)                 |
-| `engines/socketEmitter.ts`         | 긴급 정지 — React re-render 우회 단선 송신                               |
-| `engines/commandTracker.ts`        | 명령 **송신~완료** 추적 — 미완료·타임아웃 UI/재시도                      |
-| `edge-queue/edge-persistence.ts`   | **엣지 자율** — 서버 장애 시에도 Pull·안전 장치 로직 유지                |
-| `packages/shared/time-sync.ts`     | Audit·명령 이벤트 **시각 정렬** (사고 재현)                              |
-| `engines/healthWatchdog.ts`        | 과부하 시 Telemetry throttle · **Safety/제어 최우선**                    |
+| `modules/edge-queue/edge-gateway/` | 내부망 전용 MQTT·Modbus 어댑터                                                        |
+| `hooks/useYjsSync.ts`              | **(채널 A)** Y.Map → Zustand **단방향** (에디터 CRDT는 Yjs binding 직접)              |
+| `workers/telemetryProcessor.ts`    | **(채널 B)** WS·대량 센서 — Worker 버퍼 → Telemetry만                                 |
+| `engines/websocket.ts`             | WS 클라이언트 — **Worker에만** postMessage (쌍의 진입점)                              |
+| `engines/socketEmitter.ts`         | 긴급 정지 — React re-render 우회 단선 송신                                            |
+| `engines/commandTracker.ts`        | 명령 **송신~완료** 추적 — 미완료·타임아웃 UI/재시도                                   |
+| `edge-queue/edge-persistence.ts`   | **엣지 자율** — 서버 장애 시에도 Pull·안전 장치 로직 유지                             |
+| `packages/shared/time-sync.ts`     | Audit·명령 이벤트 **시각 정렬** (사고 재현)                                           |
+| `engines/healthWatchdog.ts`        | 과부하 시 Telemetry throttle · **Safety/제어 최우선**                                 |
 
 ---
 
@@ -262,11 +262,11 @@ postMessage({ type: 'batch', rows }) // → useTelemetryStore.ingestBatch
 
 ## 관련 문서
 
-| 문서                                                                                                                   | 역할                                        |
-| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md)                 | **현행 SSOT** — §완성 체크리스트 (4축 통합) |
-| [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md)                                      | Desktop 상세                                |
-| [`[Prompt 01] AI 에이전트 제출용 프롬프트 지시서.md`](./[Prompt%2001]%20AI%20에이전트%20제출용%20프롬프트%20지시서.md) | AI 생성 프롬프트                            |
+| 문서                                                                                                         | 역할                                        |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md)       | **현행 SSOT** — §완성 체크리스트 (4축 통합) |
+| [`_NEXA-OS-apps-desktop-설계-명세.md`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md)                            | Desktop 상세                                |
+| [`[Prompt 01] AI 에이전트 제출용 프롬프트 지시서.md`](<./[Prompt 01] AI 에이전트 제출용 프롬프트 지시서.md>) | AI 생성 프롬프트                            |
 
 ---
 

@@ -3,10 +3,10 @@
 **한 줄:** **NEXA 플랫폼** 런타임에서 NEXIA(`nexia`)·U2BEE·현장 Edge를 **NEXA → 도메인 → 엣지 → 로컬 → 물리** 5계층으로 쌓고, **Grade×Ingress 단일 경로**와 **Zod SSOT**로 측면 우회 없이 미션 크리티컬 IoT를 거버넌스한다.
 
 - **역할:** **Informative** — 수직 방어 심층(Defense in Depth) **개념 지도·온보딩**
-- **구현 Normative SSOT:** [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md) — `commands/` · Ingress×Grade · `edge-queue` · CI
+- **구현 Normative SSOT:** [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md`](./_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md) — `commands/` · Ingress×Grade · `edge-queue` · CI
 - **NEXIA 적용:** [`01 보안 및 권한`](<../Nexia/01%20보안%20및%20권한%20관리%20체계%20(Security%20%26%20Governance).md>) · [`00 NEXIA 구조`](../Nexia/00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md)
 - **로컬 셸:** [`_NEXA-OS-U2BEE-desktopApps-설계-명세.md`](./_NEXA-OS-U2BEE-desktopApps-설계-명세.md)
-- **Mission-Safe UI:** [`BAX_미학적_인터페이스_UX_아키텍처_v0.9.md`](./BAX_미학적_인터페이스_UX_아키텍처_v0.9.md) — MAE G1–G5
+- **Mission-Safe UI:** [`BAX_미학적_인터페이스_UX_아키텍처_v0.9.md`](./UI/BAX_미학적_인터페이스_UX_아키텍처_v0.9.md) — MAE G1–G5
 
 ---
 

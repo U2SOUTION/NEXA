@@ -1,13 +1,13 @@
 ## 🛠️ 1. 최종 결정 기술 스택 (React 중심 풀스택)
 
-> **용어 SSOT:** Rivet **Desktop/Embedded** · **Nexion/NEXIA React Flow** · As-Is Quasar/Vue — [`M.O.S.E.S. 정리`](<./M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
+> **용어 SSOT:** Rivet **Desktop/Embedded** · **Nexion/NEXIA React Flow** · As-Is Quasar/Vue — [`M.O.S.E.S. 정리`](<./Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
 
 AI 에이전트(안티그래비티, 클로드 등)가 전 세계에서 가장 버그 없이 정교하게 코드를 짜내는 글로벌 표준 TypeScript 생태계로 확정했습니다.
 
 - **프론트엔드**: **Next.js** (App Router, TypeScript) — 통합 셸 SSOT는 **「React」가 아니라 Next.js** - 강력한 SEO, 뛰어난 로딩 속도, AI 생성 툴(v0.dev 등)과의 압도적인 궁합.
 - **스타일링**: Tailwind CSS + Shadcn UI - AI가 원자 단위로 코드를 읽고 조작하기 가장 쉬운 Utility-first 스타일 채택. 화면 최적화 극대화.
 - **실시간 동기화**: Yjs + Hocuspocus — **순수 Node.js 독립 프로세스** (`apps/sync/`). NestJS와 **프로세스·포트 분리** → 저수준 WebSocket(CRDT)과 Nest HTTP/REST **프로토콜 충돌 방지**, 고속 동기화 보장.
-- **메인 백엔드**: NestJS (TypeScript) — REST API·**SSE(`@Sse`)**·비즈니스 로직·Prisma·감사 로그. **Hocuspocus는 Nest 내부에 두지 않음.**
+- **메인 백엔드**: **NestJS** (TypeScript) — REST API·**SSE(`@Sse`)**·비즈니스 로직·Prisma·감사 로그. **Hocuspocus는 Nest 내부에 두지 않음.**
 - **실시간 push (단방향)**: Nest **`@Sse()`** — IoT sync 폴백 · 명령 상태 · Grade3 Edge 수신. `apps/sync` Yjs WS와 **프로토콜·포트 분리** (§**SSE** · §복구)
 - **모노레포**: `apps/web` · `apps/backend` · `apps/sync` + `packages/shared` — TypeScript **타입 SSOT**와 **앱별 독립 배포** 동시 확보.
 - **데이터 검증**: Zod — `packages/shared` 내 모든 DTO·명령(Grade 1·2·3) **단일 SSOT**. **web · backend · sync**는 Zod `safeParse` · **U2BEE(`apps/desktop`)** 는 동일 스키마를 **OpenAPI → Pydantic v2**로 미러해 REST·브리지 경계에서 **런타임 무결성** 보장 (§Zod · §U2BEE Pydantic)
@@ -613,12 +613,12 @@ pnpm-workspace
 
 ### docs/ 생애주기 (Desktop Rivet · Sub_00~07)
 
-| 경로 | 역할 | Rivet 서브루틴 |
-|------|------|----------------|
-| **`docs/inbox/`** | **(필수)** 날것 입력 — 미정제 메모·PRD 초안·채팅 덤프 | → **00** `Sub_Doc_Refiner_and_Placer` |
-| **`docs/refined/`** | 1차 정제 기획 문서 (Normex·용어집 반영) | **01** Chunker · **02** Conflict |
-| **`docs/specs/`** | 확정 명세·아키텍처·Zod 가이드·도메인 SSOT (`Nexia/`, `NEXA OS/`, `rules/` …) | **03**~**07** · Generate 입력 |
-| **`docs/trash/`** | 정제 완료된 **inbox** 원본 — `trash/inbox/…` 로 **경로 미러** 보관 | 00 완료 후 이동 |
+| 경로                | 역할                                                                         | Rivet 서브루틴                        |
+| ------------------- | ---------------------------------------------------------------------------- | ------------------------------------- |
+| **`docs/inbox/`**   | **(필수)** 날것 입력 — 미정제 메모·PRD 초안·채팅 덤프                        | → **00** `Sub_Doc_Refiner_and_Placer` |
+| **`docs/refined/`** | 1차 정제 기획 문서 (Normex·용어집 반영)                                      | **01** Chunker · **02** Conflict      |
+| **`docs/specs/`**   | 확정 명세·아키텍처·Zod 가이드·도메인 SSOT (`Nexia/`, `NEXA OS/`, `rules/` …) | **03**~**07** · Generate 입력         |
+| **`docs/trash/`**   | 정제 완료된 **inbox** 원본 — `trash/inbox/…` 로 **경로 미러** 보관           | 00 완료 후 이동                       |
 
 > **레거시:** `docs/` 루트에 남아 있는 `Nexia/`, `Nexion/` 등 도메인 폴더는 **수동 이전 전**까지 유지 가능 — To-Be 목적지는 **`docs/specs/`** 하위. 파일 이전은 저장소 작업으로 별도 수행.
 
@@ -1937,7 +1937,7 @@ jobs:
 **신규 도메인**: `views/{left,content,right}` → registry `statusBar`/`statusPanel`/`themePreset` → `globalMenu`에 `domainKey`.
 
 > **AI·코드 생성**: 본 체크리스트 = SSOT. **⑤ 검증(V-\*)** green 없이 merge 금지 (§미션 크리티컬 설계 검증). repo에 미구현 파일 있을 수 있음.  
-> **삭제된 상세본(4대 핵심·항목별 체크리스트·IoT 코드 패턴)** → [`_NEXA-OS-V2.1-아카이브-4대핵심-및-체크리스트-상세.md`](./_NEXA-OS-V2.1-아카이브-4대핵심-및-체크리스트-상세.md) (학습용)
+> **삭제된 상세본(4대 핵심·항목별 체크리스트·IoT 코드 패턴)** → [`_NEXA-OS-V2.1-아카이브-4대핵심-및-체크리스트-상세.md`](./Rivet/_NEXA-OS-V2.1-아카이브-4대핵심-및-체크리스트-상세.md) (학습용)
 
 ### 도메인 레이아웃 등록 예시 (개념)
 

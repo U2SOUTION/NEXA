@@ -4,7 +4,7 @@
 
 - **정체성:** **NEXA 플랫폼** 런타임 보안 중 **NEXIA 도메인**(`nexia`)·7탭·IoT 연동 규범
 - **Normative:** NEXIA 도메인 셸·7탭·IoT 연동의 **보안·인가·감사** 단일 기준 (플랫폼 전역 구현은 NEXA OS V2.1)
-- **구현 SSOT:** [`NEXA OS V2.1 설계 표준 · 미션 크리티컬 전략`](../NEXA%20OS/_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략-보강본.md) — `commands/` · `audit-log` · `edge-queue` · CI `test:security`
+- **구현 SSOT:** [`NEXA OS V2.1 설계 표준 · 미션 크리티컬 전략`](<../NEXA OS/_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md>) — `commands/` · `audit-log` · `edge-queue` · CI `test:security`
 
 ---
 
