@@ -357,19 +357,19 @@ Rivet **Graph Outputs `citations[]`** 와 UI 인용 칩을 동일 스키마로 �
 
 ## 10. 피지컬 AI(IoT) vs 백오피스 지식 — NEXA HEXAGON 프로토콜
 
-> **한 줄:** **NEXA HEXAGON**은 모호한 의도를 **5W1H 6축 정수 토큰**으로 정규화해, **백오피스**(NEXAON/KORE·온톨로지·RAG)와 **피지컬 AI**(IoT·ACTON·Rule-based 고정 스키마)가 **서로 다른 데이터**를 쓰면서도 맞물리게 하는 AXON의 **기계 간 공통 문법·경계 프로토콜**이다.
+> **한 줄:** **NEXA HEXAGON**은 모호한 의도를 **5W1H 6축 정수 토큰**으로 정규화해, **백오피스**(NEXAON/NEXAVULT·온톨로지·RAG)와 **피지컬 AI**(IoT·ACTON·Rule-based 고정 스키마)가 **서로 다른 데이터**를 쓰면서도 맞물리게 하는 AXON의 **기계 간 공통 문법·경계 프로토콜**이다.
 
 NEXA는 **두 평면을 절대 섞지 않는다.** 이 분리를 구현하는 **공식 프로토콜**이 **NEXA HEXAGON 프로토콜**(5W1H 6축 정수 토큰 · AXON 스택 L2)이다.
 
 | 평면 | 스키마·저장 | AI 온톨로지 · JSONB | Rivet 그래프 |
 | ---- | ----------- | ------------------- | ------------ |
 | **피지컬 AI 제어 (IoT·엣지)** | **규칙 기반(Rule-based)** · **딱딱한 고정 스키마** — HEXAGON SMALLINT 6컬럼 · APEX 패킷 · Zod 검증 · ACTON/`programRef` | **사용 금지** — 말단·제어 루프에 넣지 않음 | **ACTON·Reflex·Normex** 서브그래프 — Vector Store **없음** |
-| **백오피스 지식 관리 (허브)** | `project_knowledge` · pgvector · `docs/specs/` · NEXAON/KORE | **보조** `metadata`/`extra_data` JSONB · AI 온톨로지는 **초안·학습용** | **RAG_Retrieve** · Embed_Pipeline · Desktop 01~05 |
+| **백오피스 지식 관리 (허브)** | `project_knowledge` · pgvector · `docs/specs/` · NEXAON/NEXAVULT | **보조** `metadata`/`extra_data` JSONB · AI 온톨로지는 **초안·학습용** | **RAG_Retrieve** · Embed_Pipeline · Desktop 01~05 |
 
 ```text
 [ 백오피스 — 지식·RAG ]
   AI 온톨로지(초안) · JSONB 메타 · pgvector · specs MD
-        ↑↓ NEXAON · KORE (해석·저장·순환 정교화)
+        ↑↓ NEXAON · NEXAVULT (해석·저장·순환 정교화)
               │
        HEXAGON (5W1H 정수 토큰)  ←── NEXA HEXAGON 프로토콜 (경계)
               │
@@ -386,20 +386,20 @@ NEXA는 **두 평면을 절대 섞지 않는다.** 이 분리를 구현하는 **
 | --------- | ---- | ---------------------- |
 | **HEXAGON (L2)** | 5W1H **정수 토큰** · 기계 간 공통 포맷 · Zod 스키마 검증 | DDL `project_*` SMALLINT 6컬럼과 **동일 골격** |
 | **NEXAON** | Human↔AI **온톨로지 해석** — 백오피스 | agent-graph · rivet Get Prompt · 충돌 검토 **여기** |
-| **KORE** | 지식 저장·벡터·재사용 — 백오피스 | `project_knowledge` · Embed 파이프라인 **여기** |
+| **NEXAVULT** | **NEXA Knowledge Vault** — 백오피스 **지식(데이터) 허브** · 벡터·재사용 | `project_knowledge` · Embed 파이프라인 **여기** |
 | **ACTON** | 디지털→**물리 실행** — 피지컬 | Rule·Ethos·`programRef` — **RAG 검색 없음** |
 
 신호 흐름 (CSIM 정본):
 
 ```text
-APEX → HEXAGON → NEXAON → KORE  (백오피스: 온톨로지·지식·RAG)
+APEX → HEXAGON → NEXAON → NEXAVULT  (백오피스: 온톨로지·지식·RAG)
               ↘
                HEXAGON → ACTON → 물리 (IoT: 고정 스키마만)
 ```
 
 > **세포는 두뇌를 모름** (AXON §2.3): ESP32·센티널은 **HEXAGON·FACT·Reflex** 만 보내고, **JSONB 온톨로지·pgvector를 읽지 않는다.**
 
-상세: [`CSIM · AXON 프로토콜 (정본)`](../Nexia/_Cosmic%20Semantic%20Interface%20Matrix%20v2%20—%20CSIM%20·%20AXON%20프로토콜%20(정본).md) §11 HEXAGON · §12 NEXAON/KORE · §13 Intent to Act.
+상세: [`CSIM · AXON 프로토콜 (정본)`](../Nexia/_Cosmic%20Semantic%20Interface%20Matrix%20v2%20—%20CSIM%20·%20AXON%20프로토콜%20(정본).md) §11 HEXAGON · §12 NEXAON/NEXAVULT · §13 Intent to Act.
 
 ### 10.2 왜 AI 온톨로지·JSONB는 백오피스만인가
 
@@ -418,7 +418,7 @@ APEX → HEXAGON → NEXAON → KORE  (백오피스: 온톨로지·지식·RAG)
 
 | 그래프 (권장 명) | 런타임 | 포함 노드 | **포함하지 않음** |
 | ---------------- | ------ | --------- | ----------------- |
-| **`RAG_Retrieve`** · **`Embed_Pipeline`** | NestJS · Desktop 배치 | Vector Store · **LangGraph_*** · specs · KORE upsert | ACTON · GPIO · 펌웨어 write |
+| **`RAG_Retrieve`** · **`Embed_Pipeline`** | NestJS · Desktop 배치 | Vector Store · **LangGraph_*** · specs · NEXAVULT upsert | ACTON · GPIO · 펌웨어 write |
 | **`HEXAGON_Route`** · **`ACTON_Execute`** | NestJS · 엣지 게이트웨이 | Linguistic Routing · HEXAGON encode · Zod · Ethos · ACTON-GM | Vector Store · Extract JSON→온톨로지 SSOT |
 
 **금지:** 하나의 Rivet 그래프에서 `Vector Store → LangGraph_* → ACTON` **직결** (RAG 답변이 곧바로 물리 실행).
@@ -440,7 +440,7 @@ APEX → HEXAGON → NEXAON → KORE  (백오피스: 온톨로지·지식·RAG)
 - [ ] IoT/ACTON 그래프에 **Vector Store·RAG LangGraph 종단**이 없는가
 - [ ] 백오피스 RAG 그래프가 **ACTON·펌웨어 write** 로 **직결되지 않는가**
 - [ ] 제어 경로가 **HEXAGON SMALLINT / APEX / Zod / Rule** 고정 스키마인가
-- [ ] AI 온톨로지 산출이 **NEXAON·KORE·specs** 에만 머무는가 (JSONB 본문 적재 X)
+- [ ] AI 온톨로지 산출이 **NEXAON·NEXAVULT·specs** 에만 머무는가 (JSONB 본문 적재 X)
 - [ ] Ethos·Normex·Omnix 승인 후에만 HEXAGON→ACTON 인가
 
 ---

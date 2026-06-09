@@ -1,8 +1,8 @@
 # 13. Cosmic Semantic Interface Matrix (CSIM) · AXON 프로토콜 (정본)
 
-**한 줄:** 인간·AI·기계의 의도를 **의미 매트릭스(APEX)** 로 압축하고, **HEXAGON(5W1H)** 으로 정규화하며, **NEXAON/KORE** 로 해석·학습해 **ACTON** 으로 물리 실행하는 **우주언어(Cosmic Language)** 프로토콜
+**한 줄:** 인간·AI·기계의 의도를 **의미 매트릭스(APEX)** 로 압축하고, **HEXAGON(5W1H)** 으로 정규화하며, **NEXAON/NEXAVULT** 로 해석·학습해 **ACTON** 으로 물리 실행하는 **우주언어(Cosmic Language)** 프로토콜
 
-> **G/M 없이도** PWM·MQTT·빛·진동 등 실행 가능하며, CNC·로봇 등 **엑추에이터의 구체 궤적·장비 명령**이 필요한 도메인만 **ACTON-GM(G/M)** 으로 KORE **`programRef`** 를 Fetch·검증·실행한다.
+> **G/M 없이도** PWM·MQTT·빛·진동 등 실행 가능하며, CNC·로봇 등 **엑추에이터의 구체 궤적·장비 명령**이 필요한 도메인만 **ACTON-GM(G/M)** 으로 NEXAVULT **`programRef`** 를 Fetch·검증·실행한다.
 
 - **Normative (규범):** 구현·리뷰·Ethos 가드레일의 **단일 기준**
 
@@ -19,7 +19,7 @@
 | Body 인코딩   | **3×3 × 2-bit/셀 = 18-bit** (+/-,0) — §10                                       |
 | 4×4 매트릭스  | **부록 A — Draft, 비규범**                                                      |
 | AXON 레이어   | **7-레이어** — **ACTON-GM ⊂ L6** — §4 · §4.1                                    |
-| G/M 실행      | **ACTON-GM** — 패킷은 **`programRef`만** · G/M 본문은 KORE/Asset — §3.1 · §12.3 |
+| G/M 실행      | **ACTON-GM** — 패킷은 **`programRef`만** · G/M 본문은 NEXAVULT/Asset — §3.1 · §12.3 |
 
 ---
 
@@ -48,7 +48,7 @@
 ```
 Base        →  단독 완결 (Header + Body)
 Attachment  →  Tag · acton.motion(programRef) · 도메인 M-code 프로파일
-              →  G/M **본문은 패킷 밖** — KORE/Asset 저장 후 참조만 전송
+              →  G/M **본문은 패킷 밖** — NEXAVULT/Asset 저장 후 참조만 전송
 ```
 
 ### 2.2 원칙 2 — 구조 결정 기준 (매트릭스 크기)
@@ -76,7 +76,7 @@ NEXAON        →  해석 · 판단 · 0/1 결정 (세포를 앎)
       ↓
 실측 충돌 → NEXAON 보정 → 정확도 ↑
       ↓
-KORE 저장 → 재사용 → 순환
+NEXAVULT 저장 → 재사용 → 순환
 ```
 
 ### 2.5 AXON 한 줄 정의
@@ -93,16 +93,16 @@ KORE 저장 → 재사용 → 순환
 | **APEX Matrix**    | Adaptive Perception and Expression Matrix | 시맨틱 **인터페이스** — 직관→인포→패킷                                                |
 | **HEXAGON**        | Six-Axis Tokenized Interaction Standard   | **5W1H** 전송·문법 — Where/When/Who/What/How/Why                                      |
 | **NEXAON**          | NEXA Ontology            | Human ↔ AI **온톨로지·해석**                                                         |
-| **KORE**           | Knowledge Origin and Retrieval Engine     | 지식 **저장·재사용** (원본+벡터)                                                      |
+| **NEXAVULT**           | NEXA Knowledge Vault     | 지식 **저장·재사용** (원본+벡터)                                                      |
 | **ACTON Synapse**  | Active Transition & Operation             | 디지털→**물리 실행** · S-커브·토크·버퍼 — G/M **불필요** 경로 포함                    |
-| **ACTON-GM**       | ACTON **G/M Execution Bridge**            | **엑추에이터 구체 명령** — 축·궤적·스핀들 G/M · KORE **`programRef`** Fetch·검증·실행 |
+| **ACTON-GM**       | ACTON **G/M Execution Bridge**            | **엑추에이터 구체 명령** — 축·궤적·스핀들 G/M · NEXAVULT **`programRef`** Fetch·검증·실행 |
 | **acton.motion**   | ACTON Motion Tag                          | APEX **Attachment** — `programRef` + 무결성 메타 — §8.4.1                             |
 | **ENVIRON Shield** | Environmental Sensing & Response          | **외부** 환경·복지·EMI — 제어 진입 전 필터                                            |
 
 **신호 흐름 (요약):**
 
 ```
-APEX → HEXAGON → NEXAON → KORE → NEXAON → HEXAGON → APEX
+APEX → HEXAGON → NEXAON → NEXAVULT → NEXAON → HEXAGON → APEX
                               ↓
                    ACTON (+ ACTON-GM: G/M)
                               ↓
@@ -129,16 +129,16 @@ APEX → HEXAGON → NEXAON → KORE → NEXAON → HEXAGON → APEX
 | **Body**               | ✅        | 의미·의도 — Target↑ · Intensity↑ · Horizon=Now        |
 | **Tag `acton.motion`** | ✅ (선택) | `programRef` · `contentHash` · `profile` — **참조만** |
 | **ACTON-GM (런타임)**  | ❌        | Fetch → Verify → Execute — §12.3.3                    |
-| **KORE / Asset**       | ❌        | NC 원본 · CAM·포스트·S-커브 **SoT**                   |
+| **NEXAVULT / Asset**       | ❌        | NC 원본 · CAM·포스트·S-커브 **SoT**                   |
 
 ```
-패킷 (짧음)     programRef ──→  KORE/Asset (G/M 본문)
+패킷 (짧음)     programRef ──→  NEXAVULT/Asset (G/M 본문)
      │                              │
      └─ Body 의미 ──→ NEXAON ──→ Fetch · Hash 검증 · Ethos · 실행
 ```
 
 - **표준 G-code** — ISO/관례 — 저장소 NC 내부 · Domain Profile **허용 subset** — §12.3.2
-- **Domain M-code** — NEXAON·KORE·ENVIRON·Ethos — Profile **M-code 레지스트리** — §12.3.2
+- **Domain M-code** — NEXAON·NEXAVULT·ENVIRON·Ethos — Profile **M-code 레지스트리** — §12.3.2
 - **실시간 스트림** — APEX Tag가 아닌 **ACTON job 채널** (패킷 밖) — §12.3.4
 
 ---
@@ -153,7 +153,7 @@ APEX → HEXAGON → NEXAON → KORE → NEXAON → HEXAGON → APEX
 | L2  | **HEXAGON Protocol** | 5W1H **6축 정수 토큰** — 정규화 문법                           | 기계 ↔ 알고리즘  |
 | L3  | **Coil Balancer**    | 페르소나 파라미터 **Zero-sum(합=100)** — AI 추론 가이드        | 인간 ↔ AI        |
 | L4  | **NEXAON Network**    | APEX+HEXAGON **해석** · 엣지 자체처리·후보고 · 중앙 고차원     | 알고리즘 ↔ AI    |
-| L5  | **KORE Engine**      | Seed·로그·벡터 **이중 저장** · 준공·개인화                     | 플랫폼 ↔ 전 구간 |
+| L5  | **NEXAVULT**      | Seed·로그·벡터 **이중 저장** · 준공·개인화                     | 플랫폼 ↔ 전 구간 |
 | L6  | **ACTON Synapse**    | 범용 **물리 실행** · S-커브·토크·버퍼 — **ACTON-GM**은 L6 선택 | 시스템 ↔ 물리    |
 | L7  | **ENVIRON Shield**   | 바람·지형·EMI·사용자 복지 — **Jitter 차단**                    | 환경 ↔ 시스템    |
 
@@ -162,7 +162,7 @@ APEX → HEXAGON → NEXAON → KORE → NEXAON → HEXAGON → APEX
 ```
 L6 ACTON Synapse
 ├── (기본) 범용 실행 ── PWM · MQTT · 빛·진동 …
-└── (선택) ACTON-GM  (CNC · 로봇 · SkyTen 등 Domain Profile) ── programRef → KORE/Asset → G/M → 컨트롤러
+└── (선택) ACTON-GM  (CNC · 로봇 · SkyTen 등 Domain Profile) ── programRef → NEXAVULT/Asset → G/M → 컨트롤러
 ```
 
 **설계 의도**
@@ -253,7 +253,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 
 | 필드        | 역할                                      |
 | ----------- | ----------------------------------------- |
-| Ontology ID | KORE 시방·매핑 규칙                       |
+| Ontology ID | NEXAVULT 시방·매핑 규칙                       |
 | Domain      | 추론 범위 고정 (Factory / Space …)        |
 | Version     | 패킷 규격                                 |
 | Confidence  | 0~1 — 씨드 vs 보정 가중                   |
@@ -286,7 +286,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 | ---- | -------------------- |
 | 일반 | Header + Body        |
 | 정밀 | + Tag                |
-| KORE | Body→벡터 · Tag→원본 |
+| NEXAVULT | Body→벡터 · Tag→원본 |
 
 #### 8.4.1 Tag — `acton.motion` (ACTON-GM)
 
@@ -298,7 +298,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 | `programRef`  | ✅   | NC 위치 — `kore://job/{id}` · `asset://programs/{id}` 등 |
 | `contentHash` | ✅   | SHA-256 (hex) — 다운로드 후 **일치 검증**                |
 | `profile`     | ✅   | Domain Profile id — G/M subset · M-code 레지스트리       |
-| `revisionId`  | 권장 | KORE revision · **중복 실행·감사**                       |
+| `revisionId`  | 권장 | NEXAVULT revision · **중복 실행·감사**                       |
 | `sizeBytes`   | 권장 | 사전 용량 검사 · 말단 버퍼 할당                          |
 
 **금지 (Normative):** Tag에 G/M 문자열 **`block` 인라인** — RF·재전송·감사·Ethos 검증 모두 불리.
@@ -377,7 +377,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 | ----------- | ----------------------- | ---------------------------------------------------- |
 | Header+Body | **결정론 · 1ms 미만급** | LLM 불필요 · 실시간 제어                             |
 | Tag         | **비동기**              | LLM·NEXAON 보정 · **acton.motion(programRef)** · 로그 |
-| KORE        | **배치**                | 순환 학습                                            |
+| NEXAVULT        | **배치**                | 순환 학습                                            |
 
 ---
 
@@ -401,7 +401,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 
 ---
 
-## 12. NEXAON · KORE
+## 12. NEXAON · NEXAVULT
 
 ### 12.1 NEXAON
 
@@ -409,8 +409,9 @@ APEX Body  →  3×3   (완전 의미 구조)
 - 엣지: **자체 처리·후보고** · 중앙: 고차원·온톨로지 갱신
 - **세포(말단)는 NEXAON을 모름** — §2.3
 
-### 12.2 KORE
+### 12.2 NEXAVULT (*NEXA Knowledge Vault*)
 
+- 백오피스 **지식(데이터) 허브** — 적재 · 보관 · 재사용 (원시 + 가공)
 - Body → **벡터** · Tag → **원본** 이중 보존
 - Seed·오류·실측 충돌 → **순환 정교화** — §2.4
 - Ontology ID ↔ 시방서 매핑 — Header 연동
@@ -418,7 +419,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 ### 12.3 ACTON-GM — G-code · M-code (Normative)
 
 **ACTON-GM**은 ACTON Synapse(L6)의 **실행 어휘(lexicon)** 이다.  
-**의미(Body)** · **패킷(Tag=참조)** · **실행 본문(KORE/Asset)** 을 분리한다.
+**의미(Body)** · **패킷(Tag=참조)** · **실행 본문(NEXAVULT/Asset)** 을 분리한다.
 
 #### 12.3.1 역할 분담
 
@@ -426,7 +427,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 | --------------------------- | -------------------- | ---------------------------------------------- |
 | **APEX Body**               | 의도·맥락            | 18bit 3상 — Target/Intensity/Horizon 등        |
 | **APEX Tag `acton.motion`** | 선택 Attachment      | **`programRef` + `contentHash`** — G/M 본문 ❌ |
-| **KORE / Asset**            | NC **SoT**           | CAM·포스트·생성 NC **원본 저장**               |
+| **NEXAVULT / Asset**            | NC **SoT**           | CAM·포스트·생성 NC **원본 저장**               |
 | **ACTON-GM (런타임)**       | Fetch·Verify·Execute | NEXAON/Ethos 통과 후 **다운로드→검증→전송**     |
 
 ```
@@ -438,7 +439,7 @@ contentHash 검증      →  Profile G/M whitelist
         ↓
    컨트롤러 (Marlin/GRBL/LinuxCNC/SkyTen 등)
         ↓
-   FACT → KORE (실행 이력)
+   FACT → NEXAVULT (실행 이력)
 ```
 
 #### 12.3.2 표준 G-code · Domain M-code
@@ -446,7 +447,7 @@ contentHash 검증      →  Profile G/M whitelist
 | 구분         | 범위                                    | 등록                                                 |
 | ------------ | --------------------------------------- | ---------------------------------------------------- |
 | **표준 G**   | G0/G1/G2/G3, G4, G90/G91, G28, F/S/T 등 | **ISO/관례** — Domain Profile이 **허용 subset** 선언 |
-| **Domain M** | M100~M199 (예) NEXAON·KORE·ENVIRON       | **Domain Profile 표** — Core 축 변경 ❌              |
+| **Domain M** | M100~M199 (예) NEXAON·NEXAVULT·ENVIRON       | **Domain Profile 표** — Core 축 변경 ❌              |
 | **금지**     | Body를 ASCII G-code로 **대체**          | **비규범**                                           |
 | **금지**     | Tag에 G/M **`block` 인라인**            | **비규범** — §8.4.1                                  |
 
@@ -456,7 +457,7 @@ contentHash 검증      →  Profile G/M whitelist
 | ---- | -------------------------------------- |
 | M150 | NEXAON sync / 후보고 트리거             |
 | M160 | ENVIRON 스냅샷 요청                    |
-| M170 | KORE segment 로그 시작/종료            |
+| M170 | NEXAVULT segment 로그 시작/종료            |
 | M200 | Ethos **MUST** 게이트 — Omnix ACK 대기 |
 
 #### 12.3.3 Fetch · Verify · Execute (Normative)
@@ -464,10 +465,10 @@ contentHash 검증      →  Profile G/M whitelist
 | 단계           | 주체          | 동작                                                                          |
 | -------------- | ------------- | ----------------------------------------------------------------------------- |
 | **1. Approve** | NEXAON · Ethos | Body+`programRef` 해석 · Domain·Ontology · MUST 게이트                        |
-| **2. Fetch**   | ACTON-GM      | `programRef` → KORE/Asset **TLS** 다운로드                                    |
+| **2. Fetch**   | ACTON-GM      | `programRef` → NEXAVULT/Asset **TLS** 다운로드                                    |
 | **3. Verify**  | ACTON-GM      | `contentHash` 일치 · `sizeBytes` · Profile **G/M subset** · M-code 레지스트리 |
 | **4. Execute** | ACTON-GM      | 컨트롤러 전송 · S-커브·버퍼 · ENVIRON 필터                                    |
-| **5. Record**  | KORE          | `revisionId` · FACT · 감사 로그                                               |
+| **5. Record**  | NEXAVULT          | `revisionId` · FACT · 감사 로그                                               |
 
 **실패 시:** Hash 불일치 · Profile 위반 · Ethos 미통과 → **실행 차단** · FACT `STUCK` · Omnix 알림 — [`06 예외`](<./06 예외 상황 처리 (Exception Handling).md>)
 
@@ -504,7 +505,7 @@ contentHash 검증      →  Profile G/M whitelist
 1. **WILL** — 자연어·제스처·웨어러블
 2. **CSIM 매핑** — 매트릭스 투영
 3. **HEXAGON 검증** — 스키마·Ethos
-4. **ACTON-GM** — NC를 KORE/Asset에 기록 · 패킷에는 `programRef` · Fetch·Verify·Execute
+4. **ACTON-GM** — NC를 NEXAVULT/Asset에 기록 · 패킷에는 `programRef` · Fetch·Verify·Execute
 5. **물리 출력** — 컨트롤러 · PWM · MQTT 등
 
 ### 13.2 현장 — Execution & Bridge
@@ -589,7 +590,7 @@ contentHash 검증      →  Profile G/M whitelist
 
 - LLM 명령은 CSIM **판정·범위** 통과 필수 — 미통과 → **실행 차단·재추론**
 - **실시간 루프:** Header+Body **비LLM** · Tag·고차원만 LLM/NEXAON
-- Hallucination: Ontology ID · Domain · Confidence · 실측 **KORE 충돌**로 보정
+- Hallucination: Ontology ID · Domain · Confidence · 실측 **NEXAVULT 충돌**로 보정
 
 ---
 

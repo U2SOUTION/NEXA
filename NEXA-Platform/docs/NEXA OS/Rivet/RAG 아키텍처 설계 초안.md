@@ -157,7 +157,7 @@ NEXA에서 RAG는 **한 곳의 벡터 DB**가 아니라, `docs/` 파이프라인
 - **현재** `project_chats` — 대화 맥락
 - **미래·도구** `project_orchestra` — Tool Calling
 - `project_agent_sessions` (UNLOGGED, TTL) vs 장기 아톰
-- CSIM **KORE** (Knowledge Origin and Retrieval Engine)와의 이름·역할 대조
+- CSIM **NEXAVULT** (NEXA Knowledge Vault)와의 이름·역할 대조
 
 ---
 

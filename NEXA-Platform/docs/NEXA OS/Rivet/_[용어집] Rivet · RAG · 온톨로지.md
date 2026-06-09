@@ -37,20 +37,20 @@
 | ---------------- | ---------------------------------------------------------------------------------------------- |
 | **NEXA HEXAGON** | 5W1H **6축 정수 토큰** — 백오피스(지식·RAG) ↔ 피지컬 AI(IoT·ACTON) **경계 프로토콜**          |
 | **NEXAON**       | **NEXA Ontology** — Human↔AI **온톨로지 해석·검수** (웹 NEXAON 뷰어·Yjs 초안) |
-| **KORE**         | **Knowledge Origin and Retrieval Engine** — 백오피스 **지식(데이터) 허브** (origin · retention · retrieval). **원시 + 가공** (로그·FACT·Seed·벡터·Asset·승인 기록) 적재 · 순환 정교화 · `programRef` 본문(KORE/Asset). **≠** 온톨로지 SSOT · **≠** RAG(검색). 구현: `project_knowledge` · pgvector 등 |
+| **NEXAVULT**     | **NEXA Knowledge Vault** — 백오피스 **지식(데이터) 허브** (적재 · 보관 · 재사용). **원시 + 가공** (로그·FACT·Seed·벡터·Asset·승인 기록) · 순환 정교화 · `programRef` 본문(NEXAVULT/Asset). **≠** 온톨로지 SSOT · **≠** RAG(검색). 구현: `project_knowledge` · pgvector 등 |
 | **ACTON**        | **Active Transition & Operation** — 디지털 의도 → **물리 실행** (Rule·Reflex·엣지)             |
-| **ACTON-GM**     | ACTON **G/M 브릿지** — 엑추에이터 구체 명령 · KORE `programRef`                                |
+| **ACTON-GM**     | ACTON **G/M 브릿지** — 엑추에이터 구체 명령 · NEXAVULT `programRef`                                |
 
 > IoT 제어는 **HEXAGON·Rule·ACTON** 만 — 벡터·JSONB 온톨로지·RAG **직결 금지**.
 
 ```text
-[NEXAON → KORE → RAG]
-  NEXAON  Human↔AI 해석·검수 (프로세스)
-  KORE    지식(데이터) 허브 — 적재·보관·재사용 (원시 + 가공)
-  RAG     KORE/pgvector 위 검색·인용 (허브 ≠ 검색 엔진)
+[NEXAON → NEXAVULT → RAG]
+  NEXAON    Human↔AI 해석·검수 (프로세스)
+  NEXAVULT  지식(데이터) 허브 — 적재·보관·재사용 (원시 + 가공)
+  RAG       NEXAVULT/pgvector 위 검색·인용 (허브 ≠ 검색)
 ```
 
-> **KORE 범위:** 백오피스에서 **다시 꺼내 쓰도록** DB·Asset·로그에 남기는 지식. **포함 ✗:** `docs/specs/` Git SSOT · Yjs 세션 초안(CP 전) · IoT 실시간 패킷.
+> **NEXAVULT 범위:** 백오피스에서 **다시 꺼내 쓰도록** DB·Asset·로그에 남기는 지식. **포함 ✗:** `docs/specs/` Git SSOT · Yjs 세션 초안(CP 전) · IoT 실시간 패킷.
 
 ### 1.4 Rivet · Desktop 파이프라인
 
@@ -82,7 +82,7 @@ RAG → OG-RAG → OAG → AIP
 
 | 용어                   | 정의                                                                                |
 | ---------------------- | ----------------------------------------------------------------------------------- |
-| **코퍼스 (Corpus)**    | RAG 검색 대상 — **설계:** `docs/specs/` · **운영:** `project_knowledge`(pgvector, **KORE 허브**)   |
+| **코퍼스 (Corpus)**    | RAG 검색 대상 — **설계:** `docs/specs/` · **운영:** `project_knowledge`(pgvector, **NEXAVULT 허브**)   |
 | **MOC**                | Map of Content — Obsidian **허브 노트** (`conflict-report` · `health-report`)       |
 | **wikilink**           | `[[specs/...]]` — Vault 상대경로 · Graph 엣지 SSOT                                  |
 | **`ref_ids`**          | 청크→specs·log **역추적** JSONB 키 (본문 아님)                                      |
@@ -150,10 +150,11 @@ RAG → OG-RAG → OAG → AIP
 | OG-RAG = GraphRAG       | NEXA OG-RAG = **wikilink + 04/14 MOC + ref_ids**             |
 | Rivet Core = Desktop    | **Desktop**=설계 · **Embedded Rivet**=웹 실행                |
 | AI JSON = 온톨로지 SSOT | 정본 = **`docs/specs/` MD + Git**                            |
-| pgvector = 진실         | pgvector = **KORE 가속 저장** · 진실 = specs + ref_ids                 |
-| KORE = RAG·벡터 검색      | KORE = **허브(적재·보관)** · **RAG** = 허브 위 검색·인용                 |
-| KORE = 온톨로지           | 온톨로지 SSOT = **`docs/specs/` + wikilink** · KORE = **적재·재사용**    |
-| KORE = NEXAON 산출만      | NEXAON·Embed·ACTON FACT 등 **여러 경로**로 허브에 유입                   |
+| pgvector = 진실         | pgvector = **NEXAVULT 가속 저장** · 진실 = specs + ref_ids                 |
+| NEXAVULT = RAG·벡터 검색  | NEXAVULT = **허브(적재·보관)** · **RAG** = 허브 위 검색·인용                 |
+| NEXAVULT = 온톨로지       | 온톨로지 SSOT = **`docs/specs/` + wikilink** · NEXAVULT = **적재·재사용**    |
+| NEXAVULT = NEXAON 산출만  | NEXAON·Embed·ACTON FACT 등 **여러 경로**로 허브에 유입                   |
+| KORE (구 명칭)            | **NEXAVULT** (*NEXA Knowledge Vault*) — 2026-06 이후 **폐기**                |
 | Hermes = 유일 LLM       | Chat 후보 중 하나 · 임베딩 SSOT = **nomic-embed-text**       |
 | 01 Sub = 「스캔」만     | **01=Inbox 인벤토리** · 02=정제 · 03=청크 …                  |
 | Yjs = Hocuspocus        | Yjs=CRDT 라이브러리 · Hocuspocus=**WS 서버**                 |
