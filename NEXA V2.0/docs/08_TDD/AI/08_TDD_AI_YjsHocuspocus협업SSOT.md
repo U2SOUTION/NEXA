@@ -148,4 +148,3 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/crdt", "std/hocuspo
 | :--- | :--- |
 | 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
 | TS 스키마 | [TS 타입 · 스키마 전략 (TDD-037)](./08_TDD_AI_TS타입스키마전략.md) |
-| 룰·프롬프트 PRD | [룰·프롬프트 통합 관리 (PRD-006)](../../05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |

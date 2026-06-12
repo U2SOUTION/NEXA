@@ -100,15 +100,10 @@ SECTIONS: dict[str, str] = {
 | 구현 PRD | [NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 (PRD-004)](../../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |
 | ESP32 등록 TDD | [CELL · ESP32 베이스라인 디바이스 등록 (TDD-024)](./08_TDD_NEXIA_CELL_ESP32베이스라인디바이스등록.md) |
 | NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../08_TDD_NEXIA_구조기술스택운영방침.md) |""",
-    "05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md": """| 관계 | 문서 |
-| :--- | :--- |
-| 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
-| 구현 TDD | [협업형 멀티에디터 플랫폼 (TDD-042)](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
-| Tiptap UI | [Tiptap 엔진 도메인 옵션 (UIX-001)](../../07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md) |
-| GOVERN 규범 | [코일 밸런스 · GOVERN 운영 규범 (TDD-041)](../../08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |""",
     "07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md": """| 관계 | 문서 |
 | :--- | :--- |
-| 구현 PRD | [룰·프롬프트 통합 관리 (PRD-006)](../05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |
+| 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
+| 룰 · GOVERN | [코일 밸런스 · GOVERN (TDD-041)](../08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |
 | AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |""",
     "08_TDD/AI/08_TDD_AI_5W1H_6대추상레이어규격.md": """| 관계 | 문서 |
 | :--- | :--- |
@@ -128,8 +123,7 @@ SECTIONS: dict[str, str] = {
     "08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
-| TS 스키마 | [TS 타입 · 스키마 전략 (TDD-037)](./08_TDD_AI_TS타입스키마전략.md) |
-| 룰·프롬프트 PRD | [룰·프롬프트 통합 관리 (PRD-006)](../../05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |""",
+| TS 스키마 | [TS 타입 · 스키마 전략 (TDD-037)](./08_TDD_AI_TS타입스키마전략.md) |""",
     "08_TDD/AI/08_TDD_AI_안전대책선조치로직.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
@@ -143,7 +137,6 @@ SECTIONS: dict[str, str] = {
     "08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
-| 룰·프롬프트 PRD | [룰·프롬프트 통합 관리 (PRD-006)](../../05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |
 | 데이터 수명 | [데이터 성격 · 수명 주기 (TDD-034)](./08_TDD_AI_데이터성격수명주기.md) |""",
     "08_TDD/AI/08_TDD_AI_TS타입스키마전략.md": """| 관계 | 문서 |
 | :--- | :--- |
@@ -233,7 +226,7 @@ SECTIONS: dict[str, str] = {
     "05_PRD/NEXIA/05_PRD_NEXIA_지식그래프NexusGraph.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
-| 룰·프롬프트 PRD | [룰·프롬프트 통합 관리 (PRD-006)](./05_PRD_NEXIA_룰프롬프트통합관리.md) |
+| 룰 · GOVERN | [코일 밸런스 · GOVERN (TDD-041)](../../08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |
 | AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |""",
     "05_PRD/NEXIA/05_PRD_NEXIA_탐색기미디어탭동기화.md": """| 관계 | 문서 |
 | :--- | :--- |

@@ -7,7 +7,7 @@ category: "05_PRD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-12
+updated: 2026-06-13
 parent_doc: BRD-001
 terms_standard: ["react-flow", "yjs", "sse", "shacl", "msw", "web-serial"]
 terms_nexa: ["nexia", "MainShell", "NexiaContent", "GraphCanvas", "ExplorerTree", "domainKey", "NexaonShell", "useLayoutStore", "RunPanel", "Navex", "Global-Navex", "GlobalFileExplorer", "tabId"]
@@ -185,6 +185,8 @@ type NexaonNodeData = {
 
 ### 3.9 Navex · Global Navex (자산 탐색)
 
+> **범위 SSOT:** [`TDD-056` §5.7](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [`PRD-014`](../05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md) · [`TDD-065`](../08_TDD/NEXIA/08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md) — **플랫폼 전역** · **기본 UX = 지능형 탐색**.
+
 > **문제:** L1 탭만 쓰면 자산 탐색은 **Navex 탭 클릭 시에만** 노출된다.
 > **해결:** 동일 엔진을 **Navex(탭)** 와 **Global Navex(Right Drawer 플러그인)** 두 표면으로 제공. — [`UIX-004`](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) §4.5 · [`UIX-002`](../07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) §1.3
 
@@ -192,10 +194,26 @@ type NexaonNodeData = {
 
 | ID      | 기능                                      | P   | 수용 기준                                      |
 | ------- | ----------------------------------------- | --- | ---------------------------------------------- |
-| F-NV-01 | 인프라·프로젝트 트리 (`GlobalFileExplorer`) | P1  | DB + 문서 폴더 병합 (PRD-008)                  |
-| F-NV-02 | 선택 컨텍스트 → `activeTabId` 릴레이       | P1  | Logex·Scribx·Twinex·Vivex 수신                 |
-| F-NV-03 | 서브패널 `[explorer][preview]`            | P1  | `subPaneId` 다중 창 (UIX-004 §5)               |
-| F-NV-04 | `.nx*` 산출물 인덱싱 표시                 | P2  | TDD-056 §5.7                                   |
+| F-NV-01 | InfraTree · **전 domain** 파일 트리 (`GlobalFileExplorer`) | P0  | DB + docs 병합 · domain 미지정 = 전 도메인 (PRD-008) |
+| F-NV-02 | facet 필터 · **검색** (origin · category · internal/external) | P0  | [`UIX-002` §1.4](../07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) · [`TDD-065` §5](../08_TDD/NEXIA/08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md) |
+| F-NV-03 | 선택 컨텍스트 → `activeTabId` 릴레이       | P0  | Logex·Scribx·Twinex·Vivex 수신                 |
+| F-NV-04 | code · config · edge-ingest **미리보기**  | P0  | yaml/json/py 등 텍스트 · edge log/config       |
+| F-NV-05 | 서브패널 `[explorer][preview]`            | P1  | `subPaneId` 다중 창 (UIX-004 §5)               |
+| F-NV-06 | `.nx*` · nexet **설치본** 인덱싱          | P1  | TDD-056 §5.7 · market-remote P2                |
+
+#### 지능형 탐색 (`Intelligent-Explorer`) — [`PRD-014`](../05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md) · **Navex Search Engine**
+
+| ID       | 기능                                           | P   | 수용 기준                                                |
+| -------- | ---------------------------------------------- | --- | -------------------------------------------------------- |
+| F-IX-01  | `navexExploreMode` intelligent/infra           | P0  | 기본 **intelligent** · persist                           |
+| F-IX-02  | **Hybrid Search** L0–L3 + RRF                   | P0  | lexical + semantic + structured + relational           |
+| F-IX-03  | **Zero-query** 개인화 feed                      | P0  | 사용자별 L0 · 전역 인기 **✗**                            |
+| F-IX-04  | **Personalization Profile** + trace events      | P0  | Taste · Focus · Negative · opt-out                       |
+| F-IX-05  | `matchReason` explain chips                     | P0  | lexical \| semantic \| related \| personal               |
+| F-IX-06  | Relational / similar pivot                      | P0  | `related` · `similar` API                                |
+| F-IX-07  | NL query understanding                          | P1  | agent-graph intent parse                                 |
+| F-IX-08  | cross-encoder rerank · Attention (personalized) | P1  | agent-graph · BAX void                                   |
+| F-IX-09  | Infra-Explorer mode                           | P0  | UIX-002 parity                                           |
 
 #### Global Navex (Right Drawer 탐색 플러그인)
 

@@ -264,7 +264,7 @@ AI 에는 **JSON Schema**(zod-to-json-schema 등으로 변환) 또는 Zod 스키
 
 | 문서 | 설명 |
 |------|------|
-| [05_PRD_NEXIA_룰프롬프트통합관리](./05_PRD_NEXIA_룰프롬프트통합관리.md) | Rule Manager, 스코프별 룰 할당. 메타포 추출 시 `metadata_extract` Consumer, `image.machine`/`image.philosophy` 등 스코프 연동 (§4.1) |
+| [코일 밸런스 · GOVERN (TDD-041)](../../08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) | Rule Manager · 스코프별 룰·프롬프트. 메타포 추출 시 `metadata_extract` Consumer, `image.machine`/`image.philosophy` 등 스코프 연동 (§4.1) |
 | `docs/AI_드롭존_첨부_기능_플랜.md` | files 테이블, source_metadata §4.4.5, **file_embeddings** (벡터 BLOB, model_id, dimension) §4.4.2 |
 | `database/init_postgres.sql` | files.source_metadata JSONB |
 | `apps/backend/src/modules/nexia/nexia.service.ts` | Vercel AI SDK, generateText, Ollama provider |

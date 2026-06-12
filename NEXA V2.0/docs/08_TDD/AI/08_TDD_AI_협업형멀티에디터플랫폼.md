@@ -6,7 +6,7 @@ domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-10
-implements_doc: PRD-006
+implements_doc: PRD-001
 terms_standard: ["yjs", "crdt", "zod", "tiptap", "monaco", "sse", "langgraph"]
 terms_nexa: ["NEXIA", "agent-graph", "Omnix", "GOVERN", "apps-sync", "project_yjs_updates"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/crdt", "std/zod", "std/tiptap", "std/monaco", "std/sse", "std/langgraph", "nexa/NEXIA", "nexa/agent-graph", "nexa/Omnix", "nexa/GOVERN", "nexa/apps-sync", "nexa/project_yjs_updates"]
@@ -1201,7 +1201,7 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 구현 PRD | [룰·프롬프트 통합 관리 (PRD-006)](../../05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |
+| 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |
 | Yjs 협업 SSOT | [Yjs · Hocuspocus 협업 SSOT (TDD-038)](./08_TDD_AI_YjsHocuspocus협업SSOT.md) |
 | 5W1H 레이어 | [5W1H · 6 대 추상 레이어 규격 (TDD-033)](./08_TDD_AI_5W1H_6대추상레이어규격.md) |

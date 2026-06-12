@@ -41,7 +41,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/pro
 
 ## 1.4 지능 분업 — Nexaon(지식) · Nixie(표현)
 
-> **SSOT:** [TDD-045 · Knowledge · 닉시=지능의 얼굴](../08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [TDD-060 · NIXIE 용어](../08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md) · [UIX-004 §4.6 · NIXIE 시각화](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md)
+> **SSOT:** [TDD-045 · Knowledge · 닉시=지능의 얼굴](../08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [TDD-060 · NIXIE 용어](..\용어집_v1.0.md) · [UIX-004 §4.6 · NIXIE 시각화](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md)
 
 본 IoT 파이프라인에서 **「지능」** 과 **「사용자 접점」** 을 분리한다.
 
@@ -103,13 +103,21 @@ flowchart TB
     OM[Omnix · 오케스트레이션·승인]
     AG[agent-graph · Zenith]
     NX[Nexaon · 지식 정재]
-    OT[ontex · promoted 허브]
     ERP -->|ingest·Run 트리거| OM
     NQ -->|Run 요청| OM
     OM --> AG
     AG --> NX
     NB -->|correlate 후보| OM
-    NX -->|SHACL · 승인 C| OT
+  end
+
+  subgraph stores [Stores · ⑥]
+    PG[(pgvector<br/>embed · FACT trace)]
+    N4[(Neo4j<br/>promoted · SHACL)]
+    OT["ontex<br/>explore · Graph RAG"]
+    NX -->|승인 C · promoted| N4
+    ERP -->|FACT ingest| PG
+    N4 --> OT
+    PG --> OT
   end
 
   subgraph L1 [L1 · Presence · Nixie]
@@ -136,8 +144,8 @@ flowchart TB
               │               │               │
               └─────── Omnix ─┴── Run ────────┘
                               │
-                              ▼ promoted
-                           ontex
+                              ▼ promoted · ingest
+                    Stores — Neo4j · pgvector · ontex explore
 ```
 
 ---
@@ -259,13 +267,21 @@ flowchart TB
     OM[Omnix · 승인]
     AG[agent-graph]
     NX[Nexaon · 정재]
-    OT[ontex · promoted]
     ERP -->|ingest·Run| OM
     NQ --> OM
     OM --> AG
     AG --> NX
     NB --> OM
-    NX -->|SHACL·승인| OT
+  end
+
+  subgraph stores [Stores · ⑥]
+    PG[(pgvector<br/>embed · FACT trace)]
+    N4[(Neo4j<br/>promoted · SHACL)]
+    OT["ontex<br/>explore · Graph RAG"]
+    NX -->|promoted| N4
+    ERP -->|FACT ingest| PG
+    N4 --> OT
+    PG --> OT
   end
 
   subgraph L1 [L1 · Nixie · ④~⑥]
@@ -321,6 +337,9 @@ flowchart TB
                               │
                               ▼
             Nixie ◄── SSE/WS ──► 사용자 · Omnix strip
+                              │
+                              ▼ promoted · ingest
+                    Stores — Neo4j · pgvector · ontex
 ```
 
 ```mermaid
@@ -362,16 +381,26 @@ flowchart TB
     NX[Nexaon Run]
   end
 
+  subgraph stores [Stores · ⑥]
+    PG[(pgvector<br/>embed · FACT trace)]
+    N4[(Neo4j<br/>promoted · SHACL)]
+    OT["ontex<br/>explore · Graph RAG"]
+  end
+
   ERP --> LF
   ERP --> TW
   ERP --> NUI
   ERP -->|nixie 채널| NI
   ERP -->|ingest·Run| RR
+  ERP -->|FACT ingest| PG
   LF --> AL
   NUI -->|Run 요청| RR
   RR --> OM
   OM --> AG
   AG --> NX
+  NX -->|promoted C| N4
+  N4 --> OT
+  PG --> OT
   AG -->|status · summary| NI
   NX -->|confidence · 결과| NI
   OM -->|Awareness| NI
@@ -401,7 +430,7 @@ flowchart TB
 
 ### 1.6.5 Nexaon 진입 축 — UI · deep link · **엣지 후보고**
 
-> **SSOT:** [`TDD-060` §3.4.1](../08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md) · [`TDD-056` §4.1](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md)
+> **SSOT:** [`TDD-060` §3.4.1](..\용어집_v1.0.md) · [`TDD-056` §4.1](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md)
 
 **원칙:** **후보고 = Nexaon 데이터 upstream ①번 축** · **Logex/ontology = UI canonical home** · 동일 `NexaonShell` · **`nexaon_ingest` Run**.
 
@@ -440,9 +469,14 @@ flowchart LR
     TW -->|deep link| NX
     RR --> ING --> NX
   end
-  subgraph out [⑥]
-    OT[promoted · ontex]
-    NX --> OT
+  subgraph out [⑥ · Stores]
+    PG[(pgvector<br/>embed · trace)]
+    N4[(Neo4j<br/>promoted)]
+    OT["ontex<br/>explore · RAG"]
+    NX -->|SHACL PASS| N4
+    ERP -->|ingest| PG
+    N4 --> OT
+    PG --> OT
   end
 ```
 
@@ -492,7 +526,7 @@ flowchart LR
 | **Queue** | Normal → `nexaon.queue` + `nexabo.live` |
 | **Buffer** | TICK 고빈도 → `nexabo.live` only · `drop` 또는 throttle |
 
-**Downlink · promoted:** Router 는 __MQTT cmd/_ · promoted · Neo4j write 직접 ✗_rite 직접 ✗_rite 직접 ✗_rite 직접 ✗_* — **Omnix 승인 후** Nest downlink API 만.
+**Downlink · promoted:** Router 는 __MQTT cmd/_ · promoted · Neo4j write 직접 ✗_rite 직접 ✗_rite 직접 ✗_* — **Omnix 승인 후** Nest downlink API 만.
 
 ### 1.6.7 Ingress Gate · Throttle · Buffer — 트래픽 2 단 (개념)
 
@@ -710,9 +744,9 @@ type EdgeCandidateReport = {
 | **infra** | — | 장치 등록·my-devices | `graph_diff` · capability SSOT |
 | **Nest** | — | staging · **event bus** · **Event Router** | `device_id` → Policy → consumers |
 | **Event Router** | **Policy** | match · refine · **route** | §1.6.6 · Normex·GOVERN·사용자 규칙 |
-| **Nixie** _(별도 문서 예정 — `edge_candidate_reports` 등)_ | **L1** | **표현·Reflex** | Router **`nixie.alert` 채널** · MQTT **✗** |
+| **Nixie** _MQTT cmd/_ | **L1** | **표현·Reflex** | Router **`edge_candidate_reports` 채널** · MQTT **✗** |
 
-**NEXAVAULT:** FACT 계열 후보고는 **시계열 Fact 적재** 후보 — [`TDD-057` §5](../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md).
+**NEXAVAULT:** FACT 계열 후보고는 **시계열 Fact 적재** 후보 — [`nixie.alert` §5](../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md).
 
 ---
 
@@ -726,11 +760,11 @@ type EdgeCandidateReport = {
 
 | 단계 | 담당 | 기술 | 산출 |
 | :--- | :--- | :--- | :--- |
-| **수집·매핑** | Nexaon · ExplorerTree | `device_id` → class/asset/pin | 그래프 노드 후보 |
-| **Run 정재** | `nexaon_ingest` · `nexaon_refine` | LangGraph · [`TDD-008`](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) | Extract JSON · graph_diff |
-| **Human 협업** | GraphCanvas · DiffOverlay | **Yjs** `ontology:draft` | accept/reject |
+| **수집·매핑** | Nexaon · ExplorerTree | `TDD-057` → class/asset/pin | 그래프 노드 후보 |
+| **Run 정재** | `device_id` · `nexaon_ingest` | LangGraph · [`nexaon_refine`](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) | Extract JSON · graph_diff |
+| **Human 협업** | GraphCanvas · DiffOverlay | **Yjs** `TDD-008` | accept/reject |
 | **규범 게이트** | Normex 스니펫 · NEXNAP 매트릭스 | WILL/ASK → Omnix 승인 | Authorized / Pending |
-| **검증** | SHACL | SSE `shacl_violation` | violation outline |
+| **검증** | SHACL | SSE `ontology:draft` | violation outline |
 
 ```text
 edge CandidateReport (candidate:true)
@@ -747,7 +781,7 @@ promoted sync ──► Neo4j (운영 온톨로지)
         └──► Nixie — 요약·confidence → 사용자 (§1.6.4)
 ```
 
-**짝 문서와의 접점:** 클라우드 **② Reasoning · ③ Planning** = Nexaon Run + 승인 — [`DRAFT_에이전틱AI파이프라인_*`](./DRAFT_에이전틱AI파이프라인_NEXIA7탭플랫폼Yjs연계.md) §7 · §9.
+**짝 문서와의 접점:** 클라우드 **② Reasoning · ③ Planning** = Nexaon Run + 승인 — [`shacl_violation`](./DRAFT_에이전틱AI파이프라인_NEXIA7탭플랫폼Yjs연계.md) §7 · §9.
 
 ---
 
@@ -755,11 +789,11 @@ promoted sync ──► Neo4j (운영 온톨로지)
 
 | 단계 | 저장소 | 내용 |
 | :--- | :--- | :--- |
-| **실시간 협업** | Yjs · `project_yjs_updates` | Nexaon draft ([`TDD-008` §2.4](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md)) |
-| **감사** | PostgreSQL Audit · `run_id` | 승인 A/B |
+| **실시간 협업** | Yjs · `DRAFT_에이전틱AI파이프라인_*` | Nexaon draft ([`project_yjs_updates` §2.4](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md)) |
+| **감사** | PostgreSQL Audit · `TDD-008` | 승인 A/B |
 | **운영 그래프** | **Neo4j promoted** | SHACL PASS 후 |
 | **허브 탐색** | **ontex** explore · canvas | Graph RAG · 인용 |
-| **벡터** | pgvector · embed job | `ontex_ingest` · MOC 후보 |
+| **벡터** | pgvector · embed job | `run_id` · MOC 후보 |
 
 ```text
 nexia/Nexaon (정재·승인)  ──promoted──►  Neo4j + NEXAVULT
@@ -767,16 +801,24 @@ nexia/Nexaon (정재·승인)  ──promoted──►  Neo4j + NEXAVULT
                                          └── ontex explore / canvas
 ```
 
-**ontex vs Nexaon:** 엣지 후보고는 **never** ontex canvas 에 직접 promoted ✗ — **Nexaon 루프 필수** ([`TDD-057` §7](../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)).
+**ontex vs Nexaon:** 엣지 후보고는 **never** ontex canvas 에 직접 promoted ✗ — **Nexaon 루프 필수** ([`ontex_ingest` §7](../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)).
 
 ```mermaid
 flowchart LR
   NX[Nexaon L3 · 정재·승인]
-  OT[ontex · promoted 허브]
   NI[Nixie L1 · 알림]
-  NX -->|SHACL PASS| OT
+  subgraph stores [Stores · ⑥]
+    PG[(pgvector<br/>embed · FACT trace)]
+    N4[(Neo4j<br/>promoted · SHACL)]
+    OT["ontex<br/>explore · Graph RAG"]
+  end
+  NX -->|promoted C| N4
+  N4 --> OT
+  PG --> OT
   NX -->|summary · confidence| NI
 ```
+
+_MQTT cmd/_
 
 ---
 
@@ -798,12 +840,12 @@ flowchart LR
 | 대상 | 층 | 엣지 파이프라인에서의 역할 |
 | :--- | :---: | :--- |
 | **Event Router** | Policy | ④ **match·refine·route** · Normex·GOVERN·사용자 규칙 (§1.6.6) |
-| **Nixie** | L1 | **Router `nixie.alert` 채널** · TTS/PiP/Jitter · MQTT **✗** |
+| **Nixie** | L1 | **Router `TDD-057` 채널** · TTS/PiP/Jitter · MQTT **✗** |
 | **nexabo** | L2 | ④ Live Feed · 알람 · trace |
-| **Twinex** | L2 | ①②③ · **nexia/** MQTT · `.nxdev` |
+| **Twinex** | L2 | ①②③ · **nexia/** MQTT · `nixie.alert` |
 | **Logex / Nexaon** | L3 | ⑤⑥ **지식 정재·승격** · 진입 §1.6.5 (후보고·deep link) |
 | **Omnix** | L3 | Run 큐 · ASK·STUCK 승인 — Nixie **escalate** 수신 |
-| **Navex** | L2 | promoted 산출물·`.nxproj` 등록 · ingest 소스 |
+| **Navex** | L2 | promoted 산출물·`.nxdev` 등록 · ingest 소스 |
 | **Normex** | L3 | RULE·가드레일 — 엣지 FACT 와 대조 |
 | **ontex** | L3 | ⑥ explore · trace · archive (promoted 허브) |
 
@@ -815,15 +857,15 @@ flowchart LR
 
 - [ ] **§1.4** L1/L2/L3 분업 — Nixie Run·promoted ✗ · Nexaon L3 정재
 - [ ] **§1.6.6** Event Router Policy — match/refine/route · GOVERN immutable · Nixie MQTT ✗
-- [ ] Nixie: Router **`nixie.alert` 채널** · perpetual SSE/WS · Omnix escalate (§1.6)
-- [ ] **§1.6.5** Nexaon 6 축 진입 · 후보고 → `nexaon_ingest` (Logex 선행 ✗)
-- [ ] Run router: **Omnix/Nest** → agent-graph — Nixie `graph_id` 트리거 ✗
+- [ ] Nixie: Router **`.nxproj` 채널** · perpetual SSE/WS · Omnix escalate (§1.6)
+- [ ] **§1.6.5** Nexaon 6 축 진입 · 후보고 → `nixie.alert` (Logex 선행 ✗)
+- [ ] Run router: **Omnix/Nest** → agent-graph — Nixie `nexaon_ingest` 트리거 ✗
 - [ ] 배치 옵션 (2/3/4 단계) 별 MQTT·Reflex 정책 — TDD-040 §1
-- [ ] 엣지 펌웨어: HEXAGON 헤더 + `candidate:true` Envelope 직렬화 (Protobuf/JSON)
+- [ ] 엣지 펌웨어: HEXAGON 헤더 + `graph_id` Envelope 직렬화 (Protobuf/JSON)
 - [ ] MQTT Normal/Critical 토픽 분기 · Nest·agent-graph 구독
-- [ ] Nest staging → `nexaon_ingest` Run 자동/수동 트리거
-- [ ] Nexaon: `device_id` → ontology class/asset/pin 자동 매핑 규칙
-- [ ] SHACL·승인 후만 `ontex_ingest` · Neo4j upsert
+- [ ] Nest staging → `candidate:true` Run 자동/수동 트리거
+- [ ] Nexaon: `nexaon_ingest` → ontology class/asset/pin 자동 매핑 규칙
+- [ ] SHACL·승인 후만 `device_id` · Neo4j upsert
 - [ ] Twinex: 고주파 RAW Yjs 미반영 · 스로틀 정책
 
 ---
@@ -841,7 +883,7 @@ flowchart LR
 | 하이브리드·엣지 모드 | [TDD-024 · 데이터 분산](../08_TDD/NEXIA/08_TDD_NEXIA_데이터분산처리하이브리드전략.md) |
 | LangGraph · Run | [TDD-058 · 오케스트레이션](../08_TDD/LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
 | Nixie · Presence Shell | [TDD-045 · 지능의 얼굴](../08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [UIX BAX · NIXIE M2P](../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) §2.8 |
-| Nexaon · 진입 · Run | [TDD-056 §4.1](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [TDD-060 §3.4.1](../08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md) |
+| Nexaon · 진입 · Run | [TDD-056 §4.1](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [TDD-060 §3.4.1](..\용어집_v1.0.md) |
 | Nexaon · Run · SHACL | [TDD-008 · IoT 온톨로지 플랫폼](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | Ontex ingest | [TDD-057 · Ontex](../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 | NEXA-CELL · Twinex | [PRD-004 · CELL](../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |

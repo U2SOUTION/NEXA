@@ -1,21 +1,24 @@
 ---
+implements_doc: 
+see_also: []
 doc_id: TDD-004
 title: "NEXA OS · 수직 계층 보안 아키텍처"
 category: "08_TDD"
 domain: NEXAOS
 status: published
 created: 2026-06-10
-updated: 2026-06-10
+updated: 2026-06-12
 parent_doc: TDD-001
 terms_standard: ["zod", "rbac", "mqtt"]
 terms_nexa: ["Grade", "Ingress", "edge-queue", "commands", "U2BEE"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/zod", "std/rbac", "std/mqtt", "nexa/Grade", "nexa/Ingress", "nexa/edge-queue", "nexa/commands", "nexa/U2BEE"]
 ---
+
 # NEXA OS · 수직 계층 보안 아키텍처
 
-**한 줄:** **NEXA 플랫폼** 런타임에서 NEXIA(`nexia`)·U2BEE·현장 Edge를 **NEXA → 도메인 → 엣지 → 로컬 → 물리** 5계층으로 쌓고, **Grade×Ingress 단일 경로**와 **Zod SSOT**로 측면 우회 없이 미션 크리티컬 IoT를 거버넌스한다.
+**한 줄:** **NEXA 플랫폼** 런타임에서 NEXIA(`nexia`)·U2BEE·현장 Edge 를 **NEXA → 도메인 → 엣지 → 로컬 → 물리** 5 계층으로 쌓고, **Grade×Ingress 단일 경로**와 **Zod SSOT**로 측면 우회 없이 미션 크리티컬 IoT 를 거버넌스한다.
 
-- **역할:** **Informative** — 수직 방어 심층(Defense in Depth) **개념 지도·온보딩**
+- **역할:** **Informative** — 수직 방어 심층 (Defense in Depth) **개념 지도·온보딩**
 - **구현 Normative SSOT:** [`08_TDD_NEXAOS_설계표준_미션크리티컬전략`](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) — `commands/` · Ingress×Grade · `edge-queue` · CI
 - **NEXIA 적용:** [`01 보안 및 권한`](<../Nexia/01%20보안%20및%20권한%20관리%20체계%20(Security%20%26%20Governance).md>) · [`00 NEXIA 구조`](../Nexia/00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md)
 - **로컬 셸:** [`05_PRD_U2BEE_데스크톱앱설계명세`](../../05_PRD/05_PRD_U2BEE_데스크톱앱설계명세.md)
@@ -29,7 +32,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/zod", "std/rbac", "std/mqtt",
 
 | 포함                                | 제외 (별도 SSOT)                                                                               |
 | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 5계층 역할·연계                     | Grade·Ingress 필드 정의 — V2.1 `commands/`                                                     |
+| 5 계층 역할·연계                     | Grade·Ingress 필드 정의 — V2.1 `commands/`                                                     |
 | 단일 명령·감사 경로 원칙            | RBAC·탭별 `tabId` — Nexia `01`                                                                 |
 | V2.1·NEXIA 매핑 표                  | CSIM·ACTON-GM 패킷 — Nexia `13`                                                                |
 | Mission-Safe UI vs 물리 Safety 구분 | 도메인 레지스트리 필드 — [`도메인-레지스트리-명세`](./08_TDD_NEXAOS_도메인레지스트리명세.md) |
@@ -46,7 +49,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/zod", "std/rbac", "std/mqtt",
    Grade·Zod        RBAC·Normex    edge-pull-sse    U2BEE·WebView    ACTON·E-Stop
 ```
 
-- **가로(탭·도메인) 이동**은 허용되나, **제어·감사·실행 payload**는 반드시 **위에서 아래로** 선언된 등급·Ingress·검증을 거친다.
+- **가로 (탭·도메인) 이동**은 허용되나, **제어·감사·실행 payload**는 반드시 **위에서 아래로** 선언된 등급·Ingress·검증을 거친다.
 - 하위 계층이 상위 정책을 **느슨하게 해석하는 lateral bypass** — 설계상 **금지**.
 
 ### 2.2 단일 명령·감사 경로
@@ -54,10 +57,10 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/zod", "std/rbac", "std/mqtt",
 | 축         | 규칙                                                                                        |
 | ---------- | ------------------------------------------------------------------------------------------- |
 | **명령**   | 모든 제어는 `Grade` 선언 + **Ingress×Grade** 매트릭스 통과 — 구현: `grade-route-matrix.ts`  |
-| **G3**     | 브라우저·외부 Yjs/WS/SSE로 **executable payload 수신 불가** — `edge-queue` **enqueue만**    |
+| **G3**     | 브라우저·외부 Yjs/WS/SSE 로 **executable payload 수신 불가** — `edge-queue` **enqueue 만**    |
 | **전달**   | 현장 **edge-gateway** 가 **outbound** `edge-pull-sse`(우선) 또는 GET pull                   |
 | **감사**   | `requestId` · `traceId` · `commandId` · `time-sync` — **append-only**, 계층 간 동일 추적 키 |
-| **스키마** | `packages/shared` Zod — web · backend · sync **단일 SSOT**; U2BEE는 OpenAPI→Pydantic 미러   |
+| **스키마** | `packages/shared` Zod — web · backend · sync **단일 SSOT**; U2BEE 는 OpenAPI→Pydantic 미러   |
 
 ### 2.3 검증 가능성
 
@@ -66,28 +69,28 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/zod", "std/rbac", "std/mqtt",
 
 ---
 
-## 3. 5계층 모델
+## 3. 5 계층 모델
 
 ### 3.1 NEXA 계층 — 시스템 전역 거버넌스 (Governance)
 
-시스템 전체의 **명령 자격(Grade)** · **망 분리** · **스키마·감사 SSOT**를 정의한다.
+시스템 전체의 **명령 자격 (Grade)** · **망 분리** · **스키마·감사 SSOT**를 정의한다.
 
 | 항목                   | 내용                                                                   |
 | ---------------------- | ---------------------------------------------------------------------- |
-| **Grade 1·2·3**        | G1 조회 · G2 소프트 제어(MFA) · G3 하드 제어(현장 폐쇄망)              |
+| **Grade 1·2·3**        | G1 조회 · G2 소프트 제어 (MFA) · G3 하드 제어 (현장 폐쇄망)              |
 | **하이브리드 망 분리** | 등급별 인터넷·VPN·폐쇄망 범위 — G3 **외부 브라우저 실행 payload 차단** |
 | **Zod SSOT**           | DTO·명령·SSE 이벤트 — `safeParse` / `parseSseEvent`                    |
-| **전역 감사**          | `audit-log.interceptor` · 2등급+ 필수 · 180일+ 보존                    |
+| **전역 감사**          | `audit-log.interceptor` · 2 등급 + 필수 · 180 일 + 보존                    |
 
 ### 3.2 도메인 계층 — 탭·정책·인가 (Policy)
 
-NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · Navex)와 **도메인 레지스트리**에서 **누가·어디서·무엇을** 할 수 있는지 정한다.
+NEXIA **7 탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · Navex) 와 **도메인 레지스트리**에서 **누가·어디서·무엇을** 할 수 있는지 정한다.
 
 | 항목                  | 내용                                                                        |
 | --------------------- | --------------------------------------------------------------------------- |
 | **RBAC**              | Owner / Admin / Editor / Viewer — 탭·`.nx*`·Grade 상한                      |
 | **Normex 선행**       | 규범·HEXAGON MUST 미통과 시 Logex/Scribx/Twinex **실행 차단**               |
-| **Omnix 3단계**       | Omnix(승인·라우팅) → Normex(검증) → 탭 서브 에이전트(실행)                  |
+| **Omnix 3 단계**       | Omnix(승인·라우팅) → Normex(검증) → 탭 서브 에이전트 (실행)                  |
 | **도메인 레지스트리** | Drawer·StatusBar·`themePreset` — **운영 가시성** 조율 (물리 제어 SSOT 아님) |
 | **인증**              | OIDC/OAuth2 · JWT · Hocuspocus `onAuthenticate` · G2+ MFA                   |
 
@@ -102,7 +105,7 @@ NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · 
 | **edge-pull-sse**            | Edge **outbound** EventSource — 클라우드→Edge **직접 Push 금지** |
 | **EDGE_AUTONOMOUS**          | 클라우드 단절 시 **로컬 큐·edge-persistence**로 안전 정책 유지   |
 | **mTLS / short-lived token** | Edge↔backend 장치 위조 방지                                     |
-| **Grade3 전용**              | 브라우저 UI는 queued/acked **상태만** — executable 수신 **deny** |
+| **Grade3 전용**              | 브라우저 UI 는 queued/acked **상태만** — executable 수신 **deny** |
 
 ### 3.4 로컬 계층 — 인터페이스·브릿지 (Local / Interface)
 
@@ -111,9 +114,9 @@ NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · 
 | 항목                  | 내용                                                                                                                  |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | **Pydantic 미러**     | Zod↔OpenAPI↔Pydantic v2 — REST·브리지 **최종 검수**                                                                 |
-| **듀얼 WebView 격리** | 외부 콘텐츠(WebView A) ↔ 제어 UI(WebView B) **레이어 분리**                                                          |
+| **듀얼 WebView 격리** | 외부 콘텐츠 (WebView A) ↔ 제어 UI(WebView B) **레이어 분리**                                                          |
 | **QWebChannel IPC**   | Python↔WebView **최소 계약** — 권한 밖 OS 제어 차단                                                                  |
-| **Mission-Safe UI**   | `--safety-critical` 등 **Semantic 토큰 고정** — 사용자 테마가 Safety 색·시인성 **덮어쓰기 불가** (V2.1 §테마 3계층 ①) |
+| **Mission-Safe UI**   | `--safety-critical` 등 **Semantic 토큰 고정** — 사용자 테마가 Safety 색·시인성 **덮어쓰기 불가** (V2.1 §테마 3 계층 ①) |
 
 ### 3.5 물리 계층 — SW/HW Safety (Physical / Controller)
 
@@ -122,7 +125,7 @@ NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · 
 | 항목                        | 내용                                                                     |
 | --------------------------- | ------------------------------------------------------------------------ |
 | **ACTON-GM · `programRef`** | Fetch 전 NEXAON/Normex · Execute 전 MUST + Omnix ACK · `contentHash` 검증 |
-| **단선 제어**               | 긴급 정지(E-Stop) — React 렌더 **경유 없이** 직접 emit/API/SSE Safety    |
+| **단선 제어**               | 긴급 정지 (E-Stop) — React 렌더 **경유 없이** 직접 emit/API/SSE Safety    |
 | **Twinex sim→live**         | 시뮬 모드 **실 디바이스 write deny**                                     |
 | **현장 Circuit Breaker**    | 과부하·개방·STUCK — **물리/엣지** 경량·차단 모드 (IoT·OTA Runbook)       |
 
@@ -132,7 +135,7 @@ NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · 
 
 **MAE(Matrix Aesthetic Engine) G1–G5**는 **브라우저·VirtualCanvas 미학·UX 가드레일**이다. §3.5 **물리 Safety**와 **동일 계층이 아니다**.
 
-| 코드  | 역할                                 | 물리 Safety와 관계                                    |
+| 코드  | 역할                                 | 물리 Safety 와 관계                                    |
 | ----- | ------------------------------------ | ----------------------------------------------------- |
 | G1–G4 | 텍스트 면적·가독성·배치·진동 밀도    | Safety **시인성** 보조 — `--safety-*` 토큰과 **병행** |
 | G5    | Circuit Open → V1/V2 진동 **UI OFF** | **UI 부하·혼란** 억제 — ESPHome **E-Stop 대체 아님**  |
@@ -146,7 +149,7 @@ NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · 
 | 본 문서 계층 | V2.1 SSOT (주요)                                        | NEXIA (주요)                          |
 | ------------ | ------------------------------------------------------- | ------------------------------------- |
 | 3.1 NEXA     | `packages/shared/commands/` · `audit-log` · `time-sync` | Grade·Ingress 요약 — `01` §3–§4       |
-| 3.2 도메인   | `domainLayoutRegistry` · `authGuard`                    | 7탭 RBAC · Normex — `01` §6 · `00` §3 |
+| 3.2 도메인   | `domainLayoutRegistry` · `authGuard`                    | 7 탭 RBAC · Normex — `01` §6 · `00` §3 |
 | 3.3 엣지     | `modules/edge-queue/` · `edge-pull-sse`                 | Twinex G3 · ACTON — `01` §10          |
 | 3.4 로컬     | U2BEE Pydantic · WebView                                | 멀티윈도우 세션 — Nexia `08`          |
 | 3.5 물리     | Safety ingest · commandTracker                          | Twinex · `06` 예외 · CSIM `13`        |
@@ -171,12 +174,12 @@ NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · 
 
 - **측면 우회 차단:** 탭·도메인·UI 편의 기능이 **G3 executable** 경로를 열지 못함
 - **장애 격리:** sync/UI 프리즈와 무관하게 **Safety·Edge·E-Stop** 우선
-- **감사 연속성:** 동일 `traceId`로 NEXA→Edge→ACK **종단 추적**
+- **감사 연속성:** 동일 `traceId` 로 NEXA→Edge→ACK **종단 추적**
 - **계약 일관성:** Zod/Pydantic 미러로 **계층 경계에서 깨진 payload 조기 차단**
 
 ---
 
-_상태: Informative — NEXA OS V2.1 수직 5계층 + Mission-Safe UI(MAE) 분리 · V2.1·Nexia `01` 연동._
+_상태: Informative — NEXA OS V2.1 수직 5 계층 + Mission-Safe UI(MAE) 분리 · V2.1·Nexia `01` 연동._
 ---
 
 ## 관련 문서

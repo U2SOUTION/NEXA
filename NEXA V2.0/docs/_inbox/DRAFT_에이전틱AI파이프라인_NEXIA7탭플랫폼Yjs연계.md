@@ -170,7 +170,7 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 
 ### 7.5 IoT 엣지 upstream · Event Router · Nixie — 4 단계 연계
 
-> **SSOT:** [짝 문서 · IoT 파이프라인](./DRAFT_IoT엣지데이터파이프라인_HEXAGON선처리_Nexaon지식화연계.md) §1.4 · §1.6 · §1.6.6 · [TDD-060 §3.4.1](../08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md)
+> **SSOT:** [짝 문서 · IoT 파이프라인](./DRAFT_IoT엣지데이터파이프라인_HEXAGON선처리_Nexaon지식화연계.md) §1.4 · §1.6 · §1.6.6 · [TDD-060 §3.4.1](..\용어집_v1.0.md)
 
 본 절은 **클라우드 4 단계 에이전트 파이프라인**과 **IoT 엣지 상류 (Sentinel · 후보고)** · **Nixie(L1)** · **Event Router Policy** 의 접점을 정의한다.
 
@@ -553,7 +553,7 @@ flowchart LR
   end
 ```
 
-**Normative:** LLM Run·Yjs merge·promoted = **Nexaon/agent-graph** · fan-out = **Event Router** · Nixie = **체감 Shell** ([TDD-060 · NIXIE](../08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md) §3.4.1).
+**Normative:** LLM Run·Yjs merge·promoted = **Nexaon/agent-graph** · fan-out = **Event Router** · Nixie = **체감 Shell** ([TDD-060 · NIXIE](..\용어집_v1.0.md) §3.4.1).
 
 ### 9.3 4 단계 파이프라인 × Yjs
 
@@ -821,7 +821,7 @@ MQTT → Broker → IG → Nest validate · staging → bus
 | **Twinex / NEXA-CELL** | 펌웨어·트윈 `tabId` | ③④ Generate · Push · **§7.6** |
 | **ontology** (일반) | 개념·RDF/OWL/SHACL | 전 단계 cross-cutting |
 
-— [`TDD-056` §2.3](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [`TDD-060` 용어집 §3.3](../08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md)
+— [`TDD-056` §2.3](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [`TDD-060` 용어집 §3.3](..\용어집_v1.0.md)
 
 ### 8.5 구 UI 라벨 (사용 금지)
 
@@ -847,4 +847,4 @@ Cockpit→**Omnix** · Ethos→**Normex** · Synapse→**Logex** · Glos→**Scr
 | MQTT OTA downlink            | [TDD · MQTT 토픽](../08_TDD/NEXIA/08_TDD_NEXIA_MQTT토픽데이터라우팅.md) §4                      |
 | AIS 레거시 매핑                   | [08_TDD/AI/README](../08_TDD/AI/README.md)                                            |
 | AI 멀티에디터                     | [TDD-042 · 협업형 멀티에디터](../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md)                          |
-| 용어집                          | [TDD-060](../08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md)                                 |
+| 용어집                          | [TDD-060](..\용어집_v1.0.md)                                 |

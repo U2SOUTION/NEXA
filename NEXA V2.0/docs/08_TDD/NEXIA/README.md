@@ -20,6 +20,7 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 | 문서 | 설명 |
 | :--- | :--- |
 | [08_TDD_NEXIA_드롭존첨부파일구조.md](./08_TDD_NEXIA_드롭존첨부파일구조.md) | 전역 files API · NexiaLeftNav (구 `08_TDD/AI`) |
+| [08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md](./08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md) | **Navex** 탐색·검색 REST · facet Zod (TDD-065) |
 
 ## 도메인 규격
 
@@ -43,6 +44,17 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 ## NEXA-CELL (Twinex · 엣지)
 
 [Cells/README](./Cells/README.md) — ESPHome YAML · Lambda · ESP32 등록 (구 `/nexa-node` 통합)
+
+## NIXIE · L1 Presence Shell
+
+[Nixie/README](./Nixie/README.md) — **4 Shell 채널** (Web · Desktop · Mobile · Physical) · [`TDD-060` §3.6.2](..\..\용어집_v1.0.md)
+
+| doc_id | 문서 |
+| :---: | :--- |
+| TDD-061 | [Web Shell](./Nixie/08_TDD_NIXIE_WebShell_v1.0.md) |
+| TDD-062 | [Desktop Shell](./Nixie/08_TDD_NIXIE_DesktopShell_v1.0.md) |
+| TDD-063 | [Mobile Shell](./Nixie/08_TDD_NIXIE_MobileShell_v1.0.md) |
+| TDD-064 | [Physical Shell](./Nixie/08_TDD_NIXIE_PhysicalShell_v1.0.md) |
 
 ## 제너레이터
 

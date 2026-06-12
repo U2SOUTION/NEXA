@@ -16,7 +16,7 @@ terms_nexa: []
 # doc_id 레지스트리 (불변 식별자 SSOT)
 
 > **규칙 SSOT:** [개발문서 생태계와 관리 체계.md](./개발문서%20생태계와%20관리%20체계.md) · Frontmatter 스키마
-> **갱신일:** 2026-06-12 · **확정 문서 84 건** · `_inbox`·README·메타 문서 제외
+> **갱신일:** 2026-06-13 · **확정 문서 83 건** · `_inbox`·README·메타 문서 제외
 
 <!-- REL_SYNC_SUMMARY_START -->
 > **관련 문서 링크 현황** (자동 갱신 `2026-06-11`) — 완료 **77/77** (100%) · **완료** 77
@@ -66,7 +66,7 @@ terms_nexa: []
 
 ---
 
-## 05_PRD (13)
+## 05_PRD (12)
 
 | doc_id | title | domain | parent_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
@@ -75,7 +75,6 @@ terms_nexa: []
 | PRD-003 | ASK VOID 처리 설계 (RFC) | NEXIA | BRD-001 | rfc | ASK, VOID, VOID-BOX, Omnix, DEFERRED | 완료 | 1/1 · 3 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_ASKVOID처리설계.md](./05_PRD/NEXIA/05_PRD_NEXIA_ASKVOID처리설계.md) |
 | PRD-004 | NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 | NEXIA | BRD-001 | esphome, react-flow, web-serial, ota, docker | NEXA-CELL, Twinex, Lambda, ESP32 | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md](./05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |
 | PRD-005 | 드롭존 및 첨부 기능 플랜 | NEXIA | BRD-001 | file-upload, multipart, rest, mqtt | FileDropZone, FileBrowserModal, NexiaLeftNav, files, useNexiaAssets | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_드롭존첨부기능플랜.md](./05_PRD/NEXIA/05_PRD_NEXIA_드롭존첨부기능플랜.md) |
-| PRD-006 | 룰·프롬프트 통합 관리 | NEXIA | BRD-001 | langgraph, sse | useNexiaChannels, Nexus-Map, GOVERN, systemInstruction | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md](./05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |
 | PRD-007 | 음성·미디어 파이프라인 (7 탭) | NEXIA | BRD-001 | whisper, stt, sse | Vivex, Scribx, agent-graph, transcribe | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md](./05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) |
 | PRD-008 | 웹 탐색기 ↔ 문서 폴더 연동 | NEXIA | BRD-001 | rest | GlobalFileExplorer, NexiaExplorerPanel, file_references, nexa-docs | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md](./05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md) |
 | PRD-009 | 워크스페이스 단축키 및 레이아웃 | NEXIA | BRD-001 | zustand, keyboard-shortcuts | useNexiaSplitLayout, useGlobalShortcuts, Focus-Stack, NexiaSplitLayout, Nexus-Map | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스단축키레이아웃.md](./05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스단축키레이아웃.md) |
@@ -83,6 +82,7 @@ terms_nexa: []
 | PRD-011 | 지식 그래프 및 관계 추론 (Nexus Graph) | NEXIA | BRD-001 | knowledge-graph, rag | Nexus-Graph, Nexus-Map, node, edge | 완료 | 1/1 · 3 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_지식그래프NexusGraph.md](./05_PRD/NEXIA/05_PRD_NEXIA_지식그래프NexusGraph.md) |
 | PRD-012 | 탐색기 ↔ 미디어 탭 동기화 | NEXIA | BRD-001 | rest | useNexiaAssets, useGlobalFileExplorer, file_references, NexiaLeftNav | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_탐색기미디어탭동기화.md](./05_PRD/NEXIA/05_PRD_NEXIA_탐색기미디어탭동기화.md) |
 | PRD-013 | files.source_metadata 추출 기획 | NEXIA | BRD-001 | ollama, zod, pgvector, ann, json-mode | source_metadata, agent-graph, file_embeddings, files | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_파일메타데이터AI추출.md](./05_PRD/NEXIA/05_PRD_NEXIA_파일메타데이터AI추출.md) |
+| PRD-014 | Navex · 이중 탐색 모드 · 지능형 탐색 v1.0 | NEXIA | BRD-001 | knowledge-graph, rag, pgvector, ann | Navex, Intelligent-Explorer, Infra-Explorer, Navex-Search-Engine, Personalization-Profile, Relational-File-View, Global-Asset-Index, file_embeddings | 완료 | 1/1 · 8 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md](./05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md) |
 
 ---
 
@@ -90,7 +90,7 @@ terms_nexa: []
 
 | doc_id | title | domain | implements_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
-| UIX-001 | Tiptap 엔진 도메인 옵션 | NEXIA | PRD-006 | tiptap, yjs | TiptapEditor, toolbarOrder, uploadHandler, engines-tiptap | 완료 | 1/1 · 2 링크 | [07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md](./07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md) |
+| UIX-001 | Tiptap 엔진 도메인 옵션 | NEXIA | PRD-001 | tiptap, yjs | TiptapEditor, toolbarOrder, uploadHandler, engines-tiptap | 완료 | 1/1 · 2 링크 | [07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md](./07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md) |
 | UIX-002 | 탐색기 UI 전략 | NEXIA | PRD-008 | next-js, rest | GlobalFileExplorer, NexiaExplorerPanel, useGlobalFileExplorer, explorer | 완료 | 1/1 · 3 링크 | [07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md](./07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) |
 | UIX-003 | BAX 미학적 인터페이스 UX 아키텍처 | NEXIA | BRD-001 | websocket, sse | BAX, MAE, ATS, M2P, ASR, RuleGuard, VirtualCanvas, LayoutPolicy | 완료 | 1/1 · 3 링크 | [07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md](./07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
 | UIX-004 | NEXIA MainShell · 레이아웃 v1.0 | NEXIA | PRD-001 | next-js, react, zustand, tailwind-css | nexia, MainShell, domainLayoutRegistry, useLayoutStore, SystemStatusBar, NexiaContent, NexaonShell, drawerDefaults, tabId | 완료 | 1/1 · 5 링크 | [07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md](./07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
@@ -107,7 +107,7 @@ terms_nexa: []
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
 | TDD-001 | NEXA OS 설계 표준 · 미션 크리티컬 전략 | NEXAOS | BRD-001 | next-js, nestjs, yjs, hocuspocus, zod, crdt, sse, websocket, zustand, tailwind-css | NEXAOS, domainLayoutRegistry, useLayoutStore, useYjsSync, apps-sync, M.O.S.E.S., Rivet | 완료 | 1/1 · 4 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | TDD-002 | NEXA OS · 도메인 구조 (레지스트리) | NEXAOS | TDD-001 | react, typescript, zustand | domainKey, domainLayoutRegistry, nexia, MainShell, drawerDefaults, tabId, themePreset, useLayoutStore | 완료 | 1/1 · 4 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
-| TDD-060 | NEXA V2.0 용어집 | NEXAOS | TDD-001 | — | glossary, terms_standard, terms_nexa, domainKey, tabId | — | — | [08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md) |
+| TDD-060 | NEXA V2.0 용어집 | NEXAOS | TDD-001 | — | glossary, terms_standard, terms_nexa, domainKey, tabId | — | — | [용어집_v1.0.md](./용어집_v1.0.md) |
 | TDD-003 | NEXA OS 플랫폼 기술 스택 | NEXAOS | TDD-001 | next-js, yjs, react-flow, tiptap, monaco, nestjs, pgvector, neo4j, vllm | agent-graph, rivet-core, packages-shared, embedder | 완료 | 1/1 · 3 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md) |
 | TDD-004 | NEXA OS · 수직 계층 보안 아키텍처 | NEXAOS | TDD-001 | zod, rbac, mqtt | Grade, Ingress, edge-queue, commands, U2BEE | 완료 | 1/1 · 3 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_수직계층보안아키텍처.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_수직계층보안아키텍처.md) |
 | TDD-005 | 4 대 핵심 · 체크리스트 상세 (아카이브) | NEXAOS | TDD-001 | yjs, hocuspocus, zod, nestjs | NEXAOS, apps-sync, packages-shared, mission-critical | 완료 | 1/1 · 2 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_4대핵심_체크리스트상세.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_4대핵심_체크리스트상세.md) |
@@ -145,6 +145,16 @@ terms_nexa: []
 | TDD-056 | NEXIA · 7 탭 범위 확정 v1.0 | NEXIA | TDD-010 | PRD-001 | react-flow, yjs, tiptap, monaco, langgraph, sse | nexia, tabId, Omnix, Normex, Logex, Scribx, Vivex, Twinex, Navex, NexaonShell, ontology, ontex | 완료 | 2/2 · 6 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | TDD-057 | Ontex · 기술 스택 운영 방침 v1.0 | Ontex | TDD-002 | — | langgraph, pgvector, neo4j, rdf, json-ld, shacl, react-flow, yjs, zod | ontex, Nexion, subRoute, Graph-RAG, NEXAVULT, canvas, explore, trace, archive | 완료 | 1/1 · 6 링크 | [08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md](./08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 
+## 08_TDD — NEXIA / Nixie (4)
+
+| doc_id | title | domain | parent_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
+| :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
+| TDD-065 | Navex · 탐색 API · Facet 계약 v1.0 | NEXIA | TDD-056 | PRD-008 | rest, zod, typescript | Navex, GlobalFileExplorer, useGlobalFileExplorer, Global-Asset-Index, asset-origin, navexCategory | 완료 | 1/1 · 6 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md) |
+| TDD-061 | NIXIE · Web Shell v1.0 | NEXIA | TDD-010 | next-js, document-pip, webrtc, vad, sse, websocket | NIXIE, Nixie, NixieWebShell, PiP, Presence-Shell, Omnix, Envelope | 완료 | 1/1 · 5 링크 | [08_TDD/NEXIA/Nixie/08_TDD_NIXIE_WebShell_v1.0.md](./08_TDD/NEXIA/Nixie/08_TDD_NIXIE_WebShell_v1.0.md) |
+| TDD-062 | NIXIE · Desktop Shell v1.0 | NEXIA | TDD-010 | python, websocket, sse, webrtc, vad | NIXIE, Nixie, NixieDesktopShell, M2P, Presence-Shell, Envelope | 완료 | 1/1 · 4 링크 | [08_TDD/NEXIA/Nixie/08_TDD_NIXIE_DesktopShell_v1.0.md](./08_TDD/NEXIA/Nixie/08_TDD_NIXIE_DesktopShell_v1.0.md) |
+| TDD-063 | NIXIE · Mobile Shell v1.0 | NEXIA | TDD-010 | websocket, sse, push-notifications, webrtc, vad | NIXIE, Nixie, NixieMobileShell, Presence-Shell, Envelope, Omnix | 완료 | 1/1 · 4 링크 | [08_TDD/NEXIA/Nixie/08_TDD_NIXIE_MobileShell_v1.0.md](./08_TDD/NEXIA/Nixie/08_TDD_NIXIE_MobileShell_v1.0.md) |
+| TDD-064 | NIXIE · Physical Shell v1.0 | NEXIA | TDD-010 | esphome, esp32, raspberry-pi, mqtt, websocket, ota | NIXIE, Nixie, NixiePhysicalShell, M2P, NEXA-CELL, Presence-Shell, Zenith-Indicator | 완료 | 1/1 · 5 링크 | [08_TDD/NEXIA/Nixie/08_TDD_NIXIE_PhysicalShell_v1.0.md](./08_TDD/NEXIA/Nixie/08_TDD_NIXIE_PhysicalShell_v1.0.md) |
+
 ## 08_TDD — NEXIA / Cells (2)
 
 | doc_id | title | domain | implements_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
@@ -177,7 +187,7 @@ terms_nexa: []
 | TDD-039 | 안전 대책 · 선조치 로직 | NEXIA | TDD-042 | published | mqtt, esp32 | Sentinel, Reflex, Bypass, Nano-Sentinel, Zenith-Indicator | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_안전대책선조치로직.md](./08_TDD/AI/08_TDD_AI_안전대책선조치로직.md) |
 | TDD-040 | 지능 위계 · 하드웨어 사양 | NEXIA | TDD-042 | published | esp32, jetson, raspberry-pi | Nano-Sentinel, Kinetic-Controller, Zenith-Indicator, COLD, HOT | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md](./08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) |
 | TDD-041 | 코일 밸런스 · GOVERN 운영 규범 | NEXIA | TDD-042 | published | json | GOVERN, COILS-Balancer, Safety, Compliance, Capability-ID | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md](./08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |
-| TDD-042 | 협업형 멀티에디터 플랫폼 | NEXIA | PRD-006 | published | yjs, crdt, zod, tiptap, monaco, sse, langgraph | NEXIA, agent-graph, Omnix, GOVERN, apps-sync, project_yjs_updates | 완료 | 1/1 · 4 링크 | [08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md](./08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| TDD-042 | 협업형 멀티에디터 플랫폼 | NEXIA | PRD-001 | published | yjs, crdt, zod, tiptap, monaco, sse, langgraph | NEXIA, agent-graph, Omnix, GOVERN, apps-sync, project_yjs_updates | 완료 | 1/1 · 4 링크 | [08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md](./08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
 
 > **TDD-035:** 정본은 **TDD-013**. frontmatter `status: archived` 권장.
 
@@ -243,4 +253,12 @@ terms_nexa: []
 
 | 상태 | 비고 |
 | :--- | :--- |
-| **비어 있음** (2026-06-11) | 중복 3 건 삭제 — 정본 TDD-014 · TDD-019 · TDD-031. 상세는 [`_inbox/README.md`](./_inbox/README.md) |
+| DRAFT 2 + 메모 1 | `DRAFT_IoT엣지…` · `DRAFT_에이전틱…` · `AI 모델 현황…` — [`_inbox/README.md`](./_inbox/README.md) |
+
+---
+
+## 폐기 · 삭제 doc_id (번호 재사용 금지)
+
+| doc_id | title | domain | 처리 | 대체 SSOT | 비고 |
+| :----- | :----- | :----- | :----- | :----- | :----- |
+| **PRD-006** | 룰·프롬프트 통합 관리 | NEXIA | **삭제** (2026-06-13) | **TDD-041** GOVERN · **PRD-001** MVP UI | 의도적 폐기 — 구 NEXA-AI-05 초안 |

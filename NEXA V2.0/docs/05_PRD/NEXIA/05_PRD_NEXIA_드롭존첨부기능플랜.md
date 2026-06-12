@@ -1,16 +1,19 @@
 ---
+implements_doc: 
+see_also: []
 doc_id: PRD-005
 title: "드롭존 및 첨부 기능 플랜"
 category: "05_PRD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-10
+updated: 2026-06-13
 parent_doc: BRD-001
 terms_standard: ["file-upload", "multipart", "rest", "mqtt"]
 terms_nexa: ["FileDropZone", "FileBrowserModal", "NexiaLeftNav", "files", "useNexiaAssets"]
 tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/file-upload", "std/multipart", "std/rest", "std/mqtt", "nexa/FileDropZone", "nexa/FileBrowserModal", "nexa/NexiaLeftNav", "nexa/files", "nexa/useNexiaAssets"]
 ---
+
 # NEXIA · 드롭존 및 첨부 기능 플랜
 
 > **TDD:** [`08_TDD_NEXIA_드롭존첨부파일구조`](../../08_TDD/NEXIA/08_TDD_NEXIA_드롭존첨부파일구조.md)
@@ -37,14 +40,14 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/file-upload", "std/multipart",
 
 ## 배경 및 목표 (Background & Goals)
 
-노트 탭(문서)과 미디어 탭(갤러리/사운드/영상)에서 파일을 배치할 수 있도록, **My PC**(드롭·첨부)와 **Web Server**(서버 파일 브라우저) 두 소스를 지원한다. 업로더 UI는 시스템 전역 컴포넌트로 분리하여 NexiaLeftNav 비대화를 방지하고, archive·parts 등 다른 도메인에서도 재사용 가능하게 한다.
+노트 탭 (문서) 과 미디어 탭 (갤러리/사운드/영상) 에서 파일을 배치할 수 있도록, **My PC**(드롭·첨부) 와 **Web Server**(서버 파일 브라우저) 두 소스를 지원한다. 업로더 UI 는 시스템 전역 컴포넌트로 분리하여 NexiaLeftNav 비대화를 방지하고, archive·parts 등 다른 도메인에서도 재사용 가능하게 한다.
 
 ### 전역 설계 원칙 (Domain-Agnostic Design)
 
-- **목표**: 파일 업로드·사용·관리 기능은 **모든 도메인(nexia, archive, parts 등)에서 재사용** 가능하도록 설계한다.
+- **목표**: 파일 업로드·사용·관리 기능은 **모든 도메인 (nexia, archive, parts 등) 에서 재사용** 가능하도록 설계한다.
 - **네이밍**: DB 테이블명, API 경로, 서버 함수명 등은 **도메인에 한정하지 않는다** (예: `ai_files` 대신 `files`).
 - **초기 검증**: 실제 구현은 **NEXIA 도메인에서 먼저 검증**한다. 라우트 마운트 위치 등은 실용적으로 nexia 도메인에 두되, 설계·코드 구조는 전역 재사용을 전제로 한다.
-- **AI 연동**: 앞으로 모든 도메인에 AI가 연동된다. 파일 자동 테깅은 전용 AI 모델로 처리 (섹션 13).
+- **AI 연동**: 앞으로 모든 도메인에 AI 가 연동된다. 파일 자동 테깅은 전용 AI 모델로 처리 (섹션 13).
 
 ---
 
@@ -57,7 +60,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/file-upload", "std/multipart",
 | **시스템 컴포넌트** | FileDropZone, FileBrowserModal props·UX, AGENTS.md                             | 섹션 0, 2, 3          |
 | **DB**              | files, file_references, AI 테이블, edge_device, content_hash, 중복·동시 업로드 | 섹션 4                |
 | **서버 API**        | POST /files/upload, GET /files/list, 경로·도메인 검증                          | 섹션 6                |
-| **보안**            | 확장자+MIME+magic number, 크기 제한, 경로 순회 방지                            | 섹션 10               |
+| **보안**            | 확장자 +MIME+magic number, 크기 제한, 경로 순회 방지                            | 섹션 10               |
 | **NEXIA 도메인**       | useNexiaAssets, category 분류, 에디터·미디어 연동, 채팅 클립보드                  | 섹션 7, 8, 11, 12     |
 | **AI 테깅·검증**    | 태깅 AI, 사람 검증·재처리, file_action_log                                     | 섹션 4.4.3, 4.4.4, 13 |
 | **인프라·운영**     | AI 워커, 큐, 엣지 빈도·인증, 스토리지 I/O                                      | 섹션 14               |
@@ -67,7 +70,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/file-upload", "std/multipart",
 
 ## 0. 시스템 전역 업로더 분리 (우선)
 
-NexiaLeftNav.tsx 비대화 방지 및 도메인 간 재사용을 위해, 업로더 관련 UI를 **시스템 레벨**로 분리한다.
+NexiaLeftNav.tsx 비대화 방지 및 도메인 간 재사용을 위해, 업로더 관련 UI 를 **시스템 레벨**로 분리한다.
 
 **신규 파일** (system 계층):
 
@@ -81,7 +84,7 @@ NexiaLeftNav.tsx 비대화 방지 및 도메인 간 재사용을 위해, 업로�
 - `FileDropZone`: `uploadUrl`, `listUrl` (API 경로), `accept` (파일 타입), `label` (표시 문구)
 - `FileBrowserModal`: `listUrl` (목록 API base), `visible`, `@select`, `@close`
 
-**참고**: AGENTS.md의 system No-Touch Zone은 "명시적 지시 없이" 수정 금지. 사용자 지시로 신규 추가하는 경우 허용.
+**참고**: AGENTS.md 의 system No-Touch Zone 은 " 명시적 지시 없이 " 수정 금지. 사용자 지시로 신규 추가하는 경우 허용.
 
 ---
 
@@ -118,8 +121,8 @@ flowchart TB
 **UI 구조**:
 
 - 상단: My PC / Web Server 토글 (q-btn-toggle)
-- **My PC**: 드롭 존 + "파일 선택" 버튼
-- **Web Server**: "찾아보기" 버튼 → FileBrowserModal 열기
+- **My PC**: 드롭 존 + " 파일 선택 " 버튼
+- **Web Server**: " 찾아보기 " 버튼 → FileBrowserModal 열기
 
 **Props**: `uploadUrl`, `listUrl`, `accept`, `label`, `multiple`
 
@@ -133,7 +136,7 @@ flowchart TB
 
 **UI** (DB 연결 웹 탐색기 UX):
 
-- virtual_path 기반 브레드크럼, 폴더/파일 리스트, "추가" / "취소"
+- virtual_path 기반 브레드크럼, 폴더/파일 리스트, " 추가 " / " 취소 "
 
 **Props**: `listUrl`, `modelValue` (visible), `accept` (필터용)
 
@@ -143,7 +146,7 @@ flowchart TB
 
 ## 4. DB 설계 (필수)
 
-파일 메타데이터를 DB로 관리하여 검색·필터·웹 탐색기 확장을 지원한다. **테이블명·필드명은 도메인 중립**으로 설계한다.
+파일 메타데이터를 DB 로 관리하여 검색·필터·웹 탐색기 확장을 지원한다. **테이블명·필드명은 도메인 중립**으로 설계한다.
 
 ### 4.0 테이블 요약
 
@@ -159,9 +162,9 @@ flowchart TB
 
 ### 4.1 핵심 원칙: 교차 도메인 중복 제거
 
-- **도메인이 다르더라도 파일 중복은 피한다**. content_hash로 동일 파일 판별.
+- **도메인이 다르더라도 파일 중복은 피한다**. content_hash 로 동일 파일 판별.
 - **물리 파일 이동 없이 DB 업데이트만**으로 다른 도메인에서 사용 가능하게 한다.
-- **참조 기반 관리**: `file_references`로 도메인별 사용 추적. 참조 0이면 고아 → 정리.
+- **참조 기반 관리**: `file_references` 로 도메인별 사용 추적. 참조 0 이면 고아 → 정리.
 
 ### 4.2 테이블: files
 
@@ -221,7 +224,7 @@ CREATE TABLE file_references (
 
 ### 4.3.1 테이블: edge_device
 
-엣지/IOT 기기 등록. `source='edge'` 업로드 시 `edge_sid`로 참조하며, 등록된 기기만 업로드 허용(화이트리스트). 섹션 14.4 엣지 인증 전략과 연동.
+엣지/IOT 기기 등록. `source='edge'` 업로드 시 `edge_sid` 로 참조하며, 등록된 기기만 업로드 허용 (화이트리스트). 섹션 14.4 엣지 인증 전략과 연동.
 
 ```sql
 CREATE TABLE edge_device (
@@ -262,7 +265,7 @@ CREATE TABLE edge_device (
 );
 ```
 
-**files.edge_sid** → `edge_device.id` (FOREIGN KEY는 엣지 확장 시 추가. 초기에는 논리적 참조만)
+**files.edge_sid** → `edge_device.id` (FOREIGN KEY 는 엣지 확장 시 추가. 초기에는 논리적 참조만)
 
 **별도 테이블 (확장 시)**: `edge_device_mqtt_config` (broker, 토픽, credential 등), `edge_device_config` (버전별 설정 이력, 롤백)
 
@@ -274,7 +277,7 @@ CREATE TABLE edge_device (
 | node_tag               | 노드 태그. 위치와 별개, 그룹·식별용                  |
 | api_key_hash           | API Key SHA256 해시. 평문 저장 금지                  |
 | api_key_expires_at     | API Key 만료 시각. NULL=무기한. 만료 시 인증 거부    |
-| status                 | active만 업로드 허용. disabled/revoked 시 거부       |
+| status                 | active 만 업로드 허용. disabled/revoked 시 거부       |
 | last_seen_at           | 모니터링·비활성 기기 탐지                            |
 | mqtt_client_id         | MQTT 클라이언트 ID. 브로커 식별용                    |
 | mqtt_is_connected      | MQTT 연결 상태 (0=미연결, 1=연결됨). 상태 파악용     |
@@ -297,19 +300,19 @@ CREATE TABLE edge_device (
 | file_references        | file_id, domain                                                                 | 해당 도메인에서 이 파일 사용. 여러 도메인이 동일 file_id 참조 가능            |
 | files, file_references | project_id                                                                      | 프로젝트 식별. IOT/엣지 비전 시나리오에서 필수 (특별 프로젝트·엣지 단위 필터) |
 | files                  | source                                                                          | 출처 (edge, manual, api 등). 어디서 온 파일인지                               |
-| files                  | edge_sid                                                                        | 등록 기기 테이블(edge_device) PK 참조. 엣지/비전 기기 식별                    |
-| files                  | source_metadata                                                                 | source별 추가 컨텍스트 (JSON, 선택). 섹션 4.4.5                               |
+| files                  | edge_sid                                                                        | 등록 기기 테이블 (edge_device) PK 참조. 엣지/비전 기기 식별                    |
+| files                  | source_metadata                                                                 | source 별 추가 컨텍스트 (JSON, 선택). 섹션 4.4.5                               |
 | files                  | ai_workflow_*                                                                   | AI 처리 파이프라인 진행 상태 추적 (섹션 4.4.1)                                |
 | files                  | ai_review_*                                                                     | 사람 검증 상태·검증자·검증 시각 (섹션 4.4.3)                                  |
 | file_ai_metadata       | extracted_text, keywords, summary                                               | AI 텍스트 추출·키워드·요약 결과 (섹션 4.4.2)                                  |
-| file_tags              | tag, score, source                                                              | AI/사람 태그, source로 출처 구분 (섹션 4.4.2, 4.4.3)                          |
+| file_tags              | tag, score, source                                                              | AI/사람 태그, source 로 출처 구분 (섹션 4.4.2, 4.4.3)                          |
 | file_embeddings        | model_id, dimension, vector                                                     | 벡터 임베딩. BLOB 용량 주의, 부담 시 벡터 DB 이전 (섹션 4.4.2)                |
 | file_action_log        | action, actor, actor_id, details                                                | AI·사람 행동 이력, 감사·추적용 (섹션 4.4.4)                                   |
 | edge_device            | device_id, mqtt_client_id, hardware_info, remote_config, config_version, ota_*  | 엣지 기기 등록·MQTT·웹 로직·OTA. files.edge_sid 참조 (섹션 4.3.1)             |
 
 ### 4.4.1 AI 워크플로우 추적 필드
 
-업로드 후 AI 파이프라인(텍스트 추출 → 키워드 분석 → 벡터 임베딩 → 분류) 진행 상태를 추적한다.
+업로드 후 AI 파이프라인 (텍스트 추출 → 키워드 분석 → 벡터 임베딩 → 분류) 진행 상태를 추적한다.
 
 | 필드                   | 타입        | 용도                                                     |
 | ---------------------- | ----------- | -------------------------------------------------------- |
@@ -334,7 +337,7 @@ CREATE TABLE edge_device (
 
 ### 4.4.2 AI 분석 결과 저장 테이블
 
-AI 파이프라인 처리 결과(텍스트, 키워드, 태그, 임베딩)를 저장하는 테이블이다.
+AI 파이프라인 처리 결과 (텍스트, 키워드, 태그, 임베딩) 를 저장하는 테이블이다.
 
 #### file_ai_metadata
 
@@ -389,10 +392,10 @@ CREATE TABLE file_embeddings (
 
 **vector BLOB 용량 및 사용 전략**:
 
-- `vector`는 float32 배열 (차원당 4바이트). 예: dimension 1536 → 약 6KB/파일
-- 파일 수가 늘면 DB 크기가 빠르게 증가 (1만 파일 ≈ 60MB, 10만 파일 ≈ 600MB)
-- **임시·소규모**: 초기 검증, 파일 수 적을 때는 BLOB으로 충분
-- **부담이 되면**: pgvector, Milvus, Pinecone 등 별도 벡터 DB로 이전 검토
+- `vector` 는 float32 배열 (차원당 4 바이트). 예: dimension 1536 → 약 6KB/파일
+- 파일 수가 늘면 DB 크기가 빠르게 증가 (1 만 파일 ≈ 60MB, 10 만 파일 ≈ 600MB)
+- **임시·소규모**: 초기 검증, 파일 수 적을 때는 BLOB 으로 충분
+- **부담이 되면**: pgvector, Milvus, Pinecone 등 별도 벡터 DB 로 이전 검토
 
 | 구분      | BLOB (현재)            | 벡터 DB 이전 검토 시점                 |
 | --------- | ---------------------- | -------------------------------------- |
@@ -430,14 +433,14 @@ AI 처리 완료 후 사람이 검토·승인하거나 재처리를 요청하는
 
 | 값        | 설명                       |
 | --------- | -------------------------- |
-| ai        | AI가 생성한 태그           |
+| ai        | AI 가 생성한 태그           |
 | human     | 사람이 직접 추가한 태그    |
 | corrected | AI 태그를 사람이 수정한 것 |
 
 #### 검증 플로우
 
 1. **AI 완료** → `ai_workflow_status='completed'`, `ai_review_status='pending_review'`
-2. **사람 검토** → UI에서 태그·키워드·요약 확인
+2. **사람 검토** → UI 에서 태그·키워드·요약 확인
 3. **승인** → `PATCH /files/:id/verify` → `ai_review_status='verified'`, `ai_reviewed_at`, `ai_reviewed_by` 설정
 4. **태그 수정** → `PATCH /file_tags` 또는 `POST /file_tags` (추가) → `source='human'` 또는 `'corrected'`
 5. **재처리 요청** → `POST /files/:id/reprocess` → `ai_review_status='needs_reprocess'`, `ai_workflow_status='pending'`, `ai_workflow_step=0` → 기존 AI 결과 삭제 후 파이프라인 재시작
@@ -446,9 +449,9 @@ AI 처리 완료 후 사람이 검토·승인하거나 재처리를 요청하는
 
 | 항목        | 정책                                                                           |
 | ----------- | ------------------------------------------------------------------------------ |
-| 트리거      | API `POST /files/:id/reprocess`, UI "재분석" 버튼                              |
+| 트리거      | API `POST /files/:id/reprocess`, UI " 재분석 " 버튼                              |
 | 기존 데이터 | file_ai_metadata, file_tags(source='ai'), file_embeddings 해당 file_id 행 삭제 |
-| 보존        | file_tags(source='human','corrected')는 유지 (선택: 옵션으로 전체 삭제 가능)   |
+| 보존        | file_tags(source='human','corrected') 는 유지 (선택: 옵션으로 전체 삭제 가능)   |
 | 상태 전이   | ai_workflow_status='pending', ai_workflow_step=0, ai_review_status=NULL        |
 | 실패 재시도 | 기존과 동일 (`ai_workflow_status='failed'` 대상 재시도)                        |
 
@@ -469,7 +472,7 @@ AI 관여는 편의와 가능성을 높이지만 위험이 항상 따른다. **�
 
 - AI 오류·편향·실패 시 원인 추적
 - 사람 검증·수정·재처리 요청 이력 보존
-- "누가, 언제, 무엇을" 했는지 감사(audit) 가능
+- " 누가, 언제, 무엇을 " 했는지 감사 (audit) 가능
 
 #### file_action_log
 
@@ -511,13 +514,13 @@ CREATE TABLE file_action_log (
 
 ### 4.4.5 source_metadata (JSON)
 
-`source`와 `edge_sid`로 표현하기 어려운 **source별 추가 컨텍스트**를 JSON으로 저장한다. NULL 허용, 필요 시에만 채운다.
+`source` 와 `edge_sid` 로 표현하기 어려운 **source 별 추가 컨텍스트**를 JSON 으로 저장한다. NULL 허용, 필요 시에만 채운다.
 
 **역할 분리**:
 
 - `source`: 출처 유형 (edge, manual, api, crawler)
 - `edge_sid`: 엣지 기기 FK (정규화된 참조)
-- `source_metadata`: source별 부가 정보 (확장용)
+- `source_metadata`: source 별 부가 정보 (확장용)
 
 **예시**:
 
@@ -528,33 +531,33 @@ CREATE TABLE file_action_log (
 | crawler | `{"source_url": "https://...", "crawl_id": "..."}`             |
 | manual  | `{}` 또는 NULL                                                 |
 
-**정책**: source별 사용 키를 문서화. 애플리케이션에서 구조 검증. 인덱스는 제한적이므로 필터용으로는 부적합.
+**정책**: source 별 사용 키를 문서화. 애플리케이션에서 구조 검증. 인덱스는 제한적이므로 필터용으로는 부적합.
 
 ### 4.5 file_path vs virtual_path
 
-- **file_path**: 물리 저장 경로. 최초 업로드 시 `uploads/{domain}/{category}/`에 저장. 변경하지 않음
-- **virtual_path**: UI·재분류용. files 또는 file_references에 둘 수 있음
-- **웹 탐색기 기준**: DB 연결 웹 탐색기(FileBrowserModal)가 primary
-- **웹 탐색기 소프트 재분류**: virtual_path만 변경, 물리 파일 이동 없음
+- **file_path**: 물리 저장 경로. 최초 업로드 시 `uploads/{domain}/{category}/` 에 저장. 변경하지 않음
+- **virtual_path**: UI·재분류용. files 또는 file_references 에 둘 수 있음
+- **웹 탐색기 기준**: DB 연결 웹 탐색기 (FileBrowserModal) 가 primary
+- **웹 탐색기 소프트 재분류**: virtual_path 만 변경, 물리 파일 이동 없음
 
 ### 4.6 교차 도메인 중복 처리 (참조만 추가)
 
 1. **업로드 요청** (domain=archive, 파일 F)
 2. content_hash 계산 (실패 시 업로드 실패 반환)
-3. **기존 파일 존재** (files에 content_hash 일치): 물리 저장 없음. `file_references`에 (file_id, domain=archive) INSERT. 반환
-4. **없음**: `uploads/archive/{category}/`에 저장 → files INSERT → file_references INSERT
+3. **기존 파일 존재** (files 에 content_hash 일치): 물리 저장 없음. `file_references` 에 (file_id, domain=archive) INSERT. 반환
+4. **없음**: `uploads/archive/{category}/` 에 저장 → files INSERT → file_references INSERT
 
 **목록 조회**: `GET /files/list?domain=archive` → files JOIN file_references WHERE domain=archive
 
 ### 4.7 고아 파일 정리
 
-- **고아**: `file_references`에 참조가 없는 files 레코드
-- **정기 작업**: 참조 0인 파일 탐지 → 물리 파일 삭제 → files 레코드 삭제
-- **삭제 플로우**: 도메인에서 "파일 제거" 시 file_references만 삭제. 참조 0이 되면 물리 삭제 후 files 삭제
+- **고아**: `file_references` 에 참조가 없는 files 레코드
+- **정기 작업**: 참조 0 인 파일 탐지 → 물리 파일 삭제 → files 레코드 삭제
+- **삭제 플로우**: 도메인에서 " 파일 제거 " 시 file_references 만 삭제. 참조 0 이 되면 물리 삭제 후 files 삭제
 
 ### 4.8 웹 탐색기 확장 시
 
-- **소프트 재분류**: virtual_path만 변경
+- **소프트 재분류**: virtual_path 만 변경
 - **실제 경로 변경**: 정리·마이그레이션 시 별도 기능
 
 ### 4.9 동시 업로드 대응 전략
@@ -565,13 +568,13 @@ CREATE TABLE file_action_log (
 
 | 시나리오                  | 대응                                                     |
 | ------------------------- | -------------------------------------------------------- |
-| **서로 다른 파일**        | file_path를 날짜시간+약식UUID로 생성 → 경로 충돌 없음    |
+| **서로 다른 파일**        | file_path 를 날짜시간 + 약식 UUID 로 생성 → 경로 충돌 없음    |
 | **동일 파일 동시 업로드** | content_hash UNIQUE 제약 + ER_DUP_ENTRY 시 복구          |
 | **file_references 중복**  | UNIQUE(file_id, domain) → ER_DUP_ENTRY 시 기존 file 반환 |
 
 #### 4.9.2 content_hash 동시 INSERT 레이스
 
-```
+```json
 사용자 A, B가 동시에 같은 파일 업로드
   → 둘 다 content_hash = X, SELECT 결과 없음
   → 둘 다 물리 저장 + files INSERT 시도
@@ -581,27 +584,27 @@ CREATE TABLE file_action_log (
 **처리 플로우**:
 
 1. content_hash 계산 → SELECT 기존 파일
-2. **존재**: file_references만 추가 (INSERT IGNORE 또는 ON DUPLICATE), 반환
-3. **없음**: 날짜시간+약식UUID 경로 생성 → 물리 저장 → files INSERT
+2. **존재**: file_references 만 추가 (INSERT IGNORE 또는 ON DUPLICATE), 반환
+3. **없음**: 날짜시간 + 약식 UUID 경로 생성 → 물리 저장 → files INSERT
 4. **ER_DUP_ENTRY (content_hash)**: 방금 저장한 물리 파일 삭제 → SELECT 기존 파일 → file_references 추가 → 반환
 
 #### 4.9.3 구현 요건
 
 - `files` 테이블: `content_hash VARCHAR(64) NOT NULL`, `UNIQUE KEY uk_content_hash (content_hash)` (해시 계산 실패 시 업로드 실패)
-- file_path: **날짜시간+약식UUID** (5.4 권장 준수)
-- 트랜잭션: hash 조회 → 저장 → INSERT를 하나의 트랜잭션으로 처리
-- file_references INSERT: `INSERT IGNORE` 또는 `ON DUPLICATE KEY UPDATE`로 (file_id, domain) 중복 시 무시
+- file_path: **날짜시간 + 약식 UUID** (5.4 권장 준수)
+- 트랜잭션: hash 조회 → 저장 → INSERT 를 하나의 트랜잭션으로 처리
+- file_references INSERT: `INSERT IGNORE` 또는 `ON DUPLICATE KEY UPDATE` 로 (file_id, domain) 중복 시 무시
 
 #### 4.9.4 참고
 
-- parts 도메인: `SELECT FOR UPDATE` + `file_upload_count`로 순차 번호 충돌 방지 (`docs/database/file_upload_logic_final.md`)
+- parts 도메인: `SELECT FOR UPDATE` + `file_upload_count` 로 순차 번호 충돌 방지 (`docs/database/file_upload_logic_final.md`)
 - files 도메인: sequence 대신 content_hash 기반이므로 UNIQUE + 복구 플로우 적용
 
 #### 4.9.5 UNIQUE KEY uk_path (file_path)
 
 **목적**: 물리 경로 1:1 보장, DB↔파일시스템 일치, 중복 저장 방지.
 
-**복구 로직**: content_hash 레이스 시 A, B 각자 날짜시간+약식UUID로 다른 file_path 생성 → uk_path 충돌 없음. 실패는 uk_content_hash에서만 발생. **주의**: partsCreateSafeFilename 사용 시 동일 경로 덮어쓰기 가능 → **날짜시간+약식UUID** 권장.
+**복구 로직**: content_hash 레이스 시 A, B 각자 날짜시간 + 약식 UUID 로 다른 file_path 생성 → uk_path 충돌 없음. 실패는 uk_content_hash 에서만 발생. **주의**: partsCreateSafeFilename 사용 시 동일 경로 덮어쓰기 가능 → **날짜시간 + 약식 UUID** 권장.
 
 ---
 
@@ -609,7 +612,7 @@ CREATE TABLE file_action_log (
 
 ### 5.1 물리 구조 (최초 업로드 시 도메인별 + 타입별)
 
-```
+```json
 uploads/
 ├── ai/                      ← 최초 업로드 도메인별 (오리지널리티 유지)
 │   ├── documents/
@@ -623,17 +626,17 @@ uploads/
     └── ...
 ```
 
-- **최초 업로드**: `uploads/{domain}/{category}/` 또는 `uploads/{domain}/{category}/{YYYY-MM-DD}/`에 저장 (섹션 5.2)
-- **교차 도메인 재사용**: 물리 파일 추가 없음. file_references에만 (file_id, domain) 추가
+- **최초 업로드**: `uploads/{domain}/{category}/` 또는 `uploads/{domain}/{category}/{YYYY-MM-DD}/` 에 저장 (섹션 5.2)
+- **교차 도메인 재사용**: 물리 파일 추가 없음. file_references 에만 (file_id, domain) 추가
 - **common/ 폴더 없음**: 파일 이동 없이 참조만 관리
 
 ### 5.2 날짜 분리 (엣지 대량 업로드 대비)
 
-카테고리별 단일 폴더(`uploads/{domain}/{category}/`)에 파일이 몰리면, **엣지 대량 업로드 시** 디렉터리당 파일 수가 급증하여 I/O·조회 성능 저하가 발생할 수 있다.
+카테고리별 단일 폴더 (`uploads/{domain}/{category}/`) 에 파일이 몰리면, **엣지 대량 업로드 시** 디렉터리당 파일 수가 급증하여 I/O·조회 성능 저하가 발생할 수 있다.
 
 **권장**: 날짜 단위 서브폴더 추가
 
-```
+```json
 uploads/{domain}/{category}/{YYYY-MM-DD}/{YYYYMMDDHHmmss}_{shortUuid}.ext
 ```
 
@@ -642,13 +645,13 @@ uploads/{domain}/{category}/{YYYY-MM-DD}/{YYYYMMDDHHmmss}_{shortUuid}.ext
 | 일별 | `uploads/nexia/images/2025-02-24/20250224143022_a1b2c3d4.jpg` | 엣지 대량 업로드, 일 단위 관리 |
 | 월별 | `uploads/nexia/images/2025-02/20250224143022_a1b2c3d4.jpg`    | 업로드 빈도 낮을 때            |
 
-**결정 시점**: 엣지 업로드 빈도 확정 시 (섹션 14.3). 초기에는 `{domain}/{category}/`만 사용해도 되며, 대량 업로드가 예상되면 `{YYYY-MM-DD}` 또는 `{YYYY-MM}` 추가.
+**결정 시점**: 엣지 업로드 빈도 확정 시 (섹션 14.3). 초기에는 `{domain}/{category}/` 만 사용해도 되며, 대량 업로드가 예상되면 `{YYYY-MM-DD}` 또는 `{YYYY-MM}` 추가.
 
-**DB 영향**: `file_path`에 날짜 경로 포함. `created_at`으로 날짜 추출 가능하나, 경로 자체가 날짜를 담음.
+**DB 영향**: `file_path` 에 날짜 경로 포함. `created_at` 으로 날짜 추출 가능하나, 경로 자체가 날짜를 담음.
 
 ### 5.3 분류 규칙
 
-- `server/config/fileTypes.js`의 category 활용
+- `server/config/fileTypes.js` 의 category 활용
 - document → documents/, image → images/, audio → audio/, video → video/
 - 업로드 시 MIME/확장자로 자동 판별
 
@@ -660,64 +663,64 @@ uploads/{domain}/{category}/{YYYY-MM-DD}/{YYYYMMDDHHmmss}_{shortUuid}.ext
 
 ### 원칙
 
-- **original_name**: DB에 원본 그대로 저장. 한글·특수문자 유지. UI 표시용
+- **original_name**: DB 에 원본 그대로 저장. 한글·특수문자 유지. UI 표시용
 - **file_path**: 디스크 저장 경로. 파일시스템 호환 필수
 
-### 저장 파일명: 날짜시간+약식UUID
+### 저장 파일명: 날짜시간 + 약식 UUID
 
 **권장 형식**: `{YYYYMMDDHHmmss}_{shortUuid}.{ext}`
 
 | 구성           | 설명                        | 예시           |
 | -------------- | --------------------------- | -------------- |
 | YYYYMMDDHHmmss | 업로드 시각 (UTC 또는 로컬) | 20250224143022 |
-| shortUuid      | UUID 앞 8자 또는 nanoid 등  | a1b2c3d4       |
+| shortUuid      | UUID 앞 8 자 또는 nanoid 등  | a1b2c3d4       |
 | ext            | 확장자                      | pdf            |
 
 **예시**: `20250224143022_a1b2c3d4.pdf`
 
-**장점**: 시간순 정렬, 디버깅 시 시각 추정 가능, 동일 초 내 중복 시 shortUuid로 구분.
+**장점**: 시간순 정렬, 디버깅 시 시각 추정 가능, 동일 초 내 중복 시 shortUuid 로 구분.
 
-**참고**: YYYYMMDDHHmmss는 서버 로컬 또는 UTC (프로젝트 정책). 고빈도 업로드 시 shortUuid 12자 또는 nanoid로 충돌 확률 감소.
+**참고**: YYYYMMDDHHmmss 는 서버 로컬 또는 UTC (프로젝트 정책). 고빈도 업로드 시 shortUuid 12 자 또는 nanoid 로 충돌 확률 감소.
 
 ### 향후 경로 확장 가능성
 
 도메인·소스별 세분화 시:
 
-```
+```json
 uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 ```
 
-예: `uploads/nexia/documents/2025-02/20250224143022_a1b2c3d4.pdf` — 카테고리·월별·시간날짜+약식UUID
+예: `uploads/nexia/documents/2025-02/20250224143022_a1b2c3d4.pdf` — 카테고리·월별·시간날짜 + 약식 UUID
 
 ### 한글·인코딩 처리
 
-- multer/FormData 수신 시: parts와 동일하게 `brokenKoreanPattern`(latin1→utf8) 복구 적용
-- 저장 파일명: Windows(260자), Linux(255바이트) 제한 준수
-- **권장**: 날짜시간+약식UUID로 통일. original_name은 DB에 별도 저장
+- multer/FormData 수신 시: parts 와 동일하게 `brokenKoreanPattern`(latin1→utf8) 복구 적용
+- 저장 파일명: Windows(260 자), Linux(255 바이트) 제한 준수
+- **권장**: 날짜시간 + 약식 UUID 로 통일. original_name 은 DB 에 별도 저장
 
 ### 참고
 
-- `partsCreateSafeFilename`: sequence=1이면 원본 그대로, 2+면 `baseName_0001.ext`. 한글/특수문자 검증 없음
-- 기존 UUID+확장자 대비: 시간 정보 포함으로 정렬·관리 용이
+- `partsCreateSafeFilename`: sequence=1 이면 원본 그대로, 2+ 면 `baseName_0001.ext`. 한글/특수문자 검증 없음
+- 기존 UUID+ 확장자 대비: 시간 정보 포함으로 정렬·관리 용이
 
 ---
 
 ## 6. 서버 API
 
-**설계**: 전역 files API. 도메인은 요청 파라미터(domain)로 전달한다.
+**설계**: 전역 files API. 도메인은 요청 파라미터 (domain) 로 전달한다.
 
 | 메서드 | 경로          | 설명                                                               |
 | ------ | ------------- | ------------------------------------------------------------------ |
 | POST   | /files/upload | PC 파일 업로드 → 저장 → files 테이블 INSERT (domain 파라미터 필수) |
 | GET    | /files/list   | DB 조회 (domain, category, path 필터)                              |
 
-**초기 구현**: 전역 files 라우트 모듈이 없다면 `apps/backend/src/modules/nexia/nexia.routes.ts`에 마운트하되, **핸들러·서비스 함수명은 도메인 중립** (예: `uploadFile`, `listFiles`). 이후 archive, parts 등에서 재사용 시 전역 모듈로 분리.
+**초기 구현**: 전역 files 라우트 모듈이 없다면 `apps/backend/src/modules/nexia/nexia.routes.ts` 에 마운트하되, **핸들러·서비스 함수명은 도메인 중립** (예: `uploadFile`, `listFiles`). 이후 archive, parts 등에서 재사용 시 전역 모듈로 분리.
 
 **업로드 플로우**:
 
 1. 파일 수신 → content_hash 계산
-2. content_hash로 files 조회
-3. **존재**: file_references에 (file_id, domain) 추가만. 물리 저장 없음
+2. content_hash 로 files 조회
+3. **존재**: file_references 에 (file_id, domain) 추가만. 물리 저장 없음
 4. **없음**: `uploads/{domain}/{category}/` 저장 → files INSERT → file_references INSERT
 
 **목록 API**: files JOIN file_references WHERE domain=? 로 DB 조회. 응답에 id, file_path, original_name, category 등 포함.
@@ -747,11 +750,11 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 **useNexiaAssets composable** (NEXIA 도메인 전용, 초기 검증): `apps/web/src/domains/nexia/hooks/useNexiaAssets.ts`
 
-- 전역 files API를 `domain='nexia'`로 호출
+- 전역 files API 를 `domain='nexia'` 로 호출
 - `documents`, `images`, `audio`, `videos` ref (category 필드로 분류)
 - `addAsset(item)` - PC 업로드 또는 서버 파일 참조 추가
-- `removeAsset(id)` - 해당 도메인에서 file_references 삭제. 참조 0이면 물리 삭제 후 files 삭제
-- 다른 도메인(archive, parts)은 동일 패턴으로 `useArchiveAssets`, `usePartsAssets` 등 구현 가능
+- `removeAsset(id)` - 해당 도메인에서 file_references 삭제. 참조 0 이면 물리 삭제 후 files 삭제
+- 다른 도메인 (archive, parts) 은 동일 패턴으로 `useArchiveAssets`, `usePartsAssets` 등 구현 가능
 
 ---
 
@@ -759,7 +762,7 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 **문서 아코디언** (NexiaLeftNav.tsx 문서 영역):
 
-- "준비 중" 대신 FileDropZone 삽입
+- " 준비 중 " 대신 FileDropZone 삽입
 - uploadUrl, listUrl (전역 /files/ API), domain='nexia' 전달
 - 추가된 문서 목록 표시 (q-list, 클릭 시 에디터에 로드)
 
@@ -786,7 +789,7 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 | 순서 | 단계          | 세부 작업                                                             |
 | ---- | ------------- | --------------------------------------------------------------------- |
-| 0.1  | **검토·결정** | AI 워커 단일/다중, 큐(Redis vs DB), 엣지 빈도·인증, 스토리지 I/O 대비 |
+| 0.1  | **검토·결정** | AI 워커 단일/다중, 큐 (Redis vs DB), 엣지 빈도·인증, 스토리지 I/O 대비 |
 
 ### Phase 1: 기본 인프라
 
@@ -801,7 +804,7 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 | 2.2  |               | magic number 검증 (file-type 또는 magic-bytes.js)                                              |
 | 2.3  |               | 파일 저장 경로 생성 `uploads/{domain}/{category}/` (날짜 분리 옵션: 5.2)                       |
 | 2.4  |               | fileTypes.js 기반 category·타입 판별                                                           |
-| 3.1  | **서버 API**  | POST /files/upload: multer, 확장자+MIME+magic number 검증, content_hash 계산(필수)·중복 검사   |
+| 3.1  | **서버 API**  | POST /files/upload: multer, 확장자 +MIME+magic number 검증, content_hash 계산 (필수)·중복 검사   |
 | 3.2  |               | GET /files/list: files JOIN file_references, domain/category 필터                              |
 | 3.3  |               | DELETE /files/:id 또는 도메인별 참조 제거 API                                                  |
 | 3.4  |               | PATCH /files/:id/verify, POST /files/:id/reprocess (사람 검증·재처리)                          |
@@ -833,13 +836,13 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 | 순서 | 단계                  | 세부 작업                                                                  |
 | ---- | --------------------- | -------------------------------------------------------------------------- |
-| 9.1  | **고아 정리**         | 참조 0인 files 탐지 쿼리                                                   |
+| 9.1  | **고아 정리**         | 참조 0 인 files 탐지 쿼리                                                   |
 | 9.2  |                       | 물리 파일 삭제 + files 레코드 삭제                                         |
 | 9.3  |                       | 정기 실행 (cron/스케줄러) 또는 수동 트리거                                 |
 | 10.1 | **에디터·채팅**       | uploadHandler → files API 연동                                             |
 | 10.2 |                       | 채팅 클립보드 이미지 → 서버 업로드 후 URL                                  |
 | 11.1 | **Phase 2 (AI 테깅)** | file_ai_metadata, file_tags, file_embeddings 연동, 전용 태깅 AI 파이프라인 |
-| 11.2 | **사람 검증·재처리**  | verify/reprocess API, 태그 수정 UI, "재분석" 버튼                          |
+| 11.2 | **사람 검증·재처리**  | verify/reprocess API, 태그 수정 UI, " 재분석 " 버튼                          |
 | 11.3 | **로그·히스토리**     | file_action_log, AI·사람 행동 기록                                         |
 
 ---
@@ -851,9 +854,9 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 | 검증       | 설명                                 | 한계                    |
 | ---------- | ------------------------------------ | ----------------------- |
 | **확장자** | 파일명에서 추출 (.pdf, .jpg 등)      | 사용자가 임의 변경 가능 |
-| **MIME**   | Content-Type 헤더 또는 multer가 제공 | 클라이언트가 조작 가능  |
+| **MIME**   | Content-Type 헤더 또는 multer 가 제공 | 클라이언트가 조작 가능  |
 
-→ 확장자와 MIME만으로는 **악성 파일 스푸핑**에 취약 (예: malware.exe → document.pdf로 변경 후 업로드)
+→ 확장자와 MIME 만으로는 **악성 파일 스푸핑**에 취약 (예: malware.exe → document.pdf 로 변경 후 업로드)
 
 ### 10.2 파일 내용 기반 검증 (Magic Number)
 
@@ -868,22 +871,22 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 **필요성**:
 
-- 확장자·MIME는 사용자 제어 가능 → 스푸핑 용이
-- magic number는 바이너리 구조 일부 → 위조 어려움
-- **권장**: 업로드 허용 전 확장자/MIME와 magic number가 일치하는지 검사
+- 확장자·MIME 는 사용자 제어 가능 → 스푸핑 용이
+- magic number 는 바이너리 구조 일부 → 위조 어려움
+- **권장**: 업로드 허용 전 확장자/MIME 와 magic number 가 일치하는지 검사
 
 **구현**:
 
 - 라이브러리: `file-type` (ESM), `magic-bytes.js` (브라우저·Node 지원)
-- 파일 버퍼 앞 8KB만 읽어 시그니처 검사 (대용량 파일에도 효율적)
-- 검사 순서: 1) 확장자 화이트리스트 2) magic number로 실제 타입 확인 3) fileTypes.js 허용 타입과 일치 시만 통과
+- 파일 버퍼 앞 8KB 만 읽어 시그니처 검사 (대용량 파일에도 효율적)
+- 검사 순서: 1) 확장자 화이트리스트 2) magic number 로 실제 타입 확인 3) fileTypes.js 허용 타입과 일치 시만 통과
 
 ### 10.3 검증 플로우 (권장)
 
 1. **확장자**: fileTypes.js 화이트리스트에 있는지 확인
 2. **Magic Number**: 버퍼 선두로 실제 포맷 판별
 3. **일치 검사**: 확장자와 magic number 결과가 허용 조합인지 확인 (예: .pdf + PDF 시그니처)
-4. **MIME**: 판별된 타입의 MIME가 fileTypes.js와 일치하는지 확인
+4. **MIME**: 판별된 타입의 MIME 가 fileTypes.js 와 일치하는지 확인
 5. **크기**: 타입별 maxSize 이내인지 확인
 
 ### 10.4 기타
@@ -900,12 +903,12 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 - **BaseTiptapEditor**: `uploadHandler(file, context)` 사용. `context.source === 'clipboard'` 시 클립보드 이미지
 - **플로우**: 파일 선택/드롭/붙여넣기 → uploadHandler 호출 → 서버 업로드 → URL 반환 → 에디터에 삽입
-- **연동**: uploadHandler가 전역 files API(`uploadFile`, domain 파라미터) 호출하도록 설정
+- **연동**: uploadHandler 가 전역 files API(`uploadFile`, domain 파라미터) 호출하도록 설정
 
 ### 11.2 클립보드 이미지 붙여넣기
 
 - **에디터**: `convertClipboardImageToFile` → File 객체 생성 (`image.png` 등) → uploadHandler → 서버 저장
-- **채팅(NexiaChatPanel)**: 현재 dataUrl(base64) 인라인 사용. **대안**: 업로드 후 서버 URL 사용 (기본 권장)
+- **채팅 (NexiaChatPanel)**: 현재 dataUrl(base64) 인라인 사용. **대안**: 업로드 후 서버 URL 사용 (기본 권장)
 
 ### 11.3 대안 정리
 
@@ -922,30 +925,30 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 ### 12.1 채팅 클립보드 이미지
 
 - **현재**: `handlePaste` → dataUrl → `attachedImages` → 메시지와 함께 전송 (인라인 base64)
-- **권장**: 붙여넣기 시 즉시 `/files/upload` 호출 (domain=nexia, category=images) → 반환된 URL을 메시지에 포함
+- **권장**: 붙여넣기 시 즉시 `/files/upload` 호출 (domain=nexia, category=images) → 반환된 URL 을 메시지에 포함
 - **효과**: 메시지 크기 감소, 파일 재사용 가능, files 테이블에 기록
 
 ### 12.2 채팅/대화 삭제 시 파일 정책
 
 - **기본**: 대화 삭제 시 **파일은 유지**. 다른 대화·노트에서 참조 가능성 고려
-- **선택 삭제**: 대화 삭제 UI에 "사용된 파일도 삭제" 옵션 제공. 선택 시 해당 대화에서 참조한 파일만 삭제 (또는 참조 카운트 기반)
-- **구현 시**: `file_references` 또는 `usage_count` 테이블/필드로 참조 추적 후, 참조 0일 때만 물리 삭제
+- **선택 삭제**: 대화 삭제 UI 에 " 사용된 파일도 삭제 " 옵션 제공. 선택 시 해당 대화에서 참조한 파일만 삭제 (또는 참조 카운트 기반)
+- **구현 시**: `file_references` 또는 `usage_count` 테이블/필드로 참조 추적 후, 참조 0 일 때만 물리 삭제
 
 ---
 
 ## 13. AI 자동 테깅 (선택 기능)
 
-모든 도메인에 AI가 연동되는 전제 하에, **파일 자동 테깅만** AI가 담당한다. 저장 파일명 생성에는 AI를 사용하지 않는다.
+모든 도메인에 AI 가 연동되는 전제 하에, **파일 자동 테깅만** AI 가 담당한다. 저장 파일명 생성에는 AI 를 사용하지 않는다.
 
 ### 13.1 방향
 
 - **AI 역할**: 자동 테깅만. 파일명·경로 생성은 규칙 기반 유지
-- **탐색 기준**: DB 연결 웹 탐색기(FileBrowserModal)가 primary. Windows 탐색기 아님
+- **탐색 기준**: DB 연결 웹 탐색기 (FileBrowserModal) 가 primary. Windows 탐색기 아님
 - **모델**: **전용 태깅 AI** 할당. 정확도·속도 우선. 사용자 선택 AI 대신 전용 모델 사용
 
 ### 13.2 전용 태깅 AI
 
-- 사용자 대화용 AI와 분리된 전용 모델
+- 사용자 대화용 AI 와 분리된 전용 모델
 - 백그라운드 배치 처리에 적합
 - 태깅 전용 프롬프트·출력 형식으로 일관성 확보
 
@@ -961,9 +964,9 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 ### 13.4 사용자 설정 옵션
 
 - 태깅 활성화 on/off
-- 태그 수량 상한 (예: 3~20개)
+- 태그 수량 상한 (예: 3~20 개)
 - 태그 언어 (한국어/영어/혼용)
-- 재태깅 트리거: UI "재분석" 버튼 → `POST /files/:id/reprocess` (섹션 4.4.3)
+- 재태깅 트리거: UI " 재분석 " 버튼 → `POST /files/:id/reprocess` (섹션 4.4.3)
 
 ### 13.5 사람 검증·재처리
 
@@ -995,8 +998,8 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 | 옵션        | 장점                                                                     | 단점                         | 권장                    |
 | ----------- | ------------------------------------------------------------------------ | ---------------------------- | ----------------------- |
-| **DB 기반** | 별도 인프라 없음, 트랜잭션 일관성, `ai_workflow_status='pending'`로 조회 | DB 부하, 폴링 오버헤드       | 초기·Redis 미사용 시    |
-| **Redis**   | 빠른 푸시/팝, pub/sub, 부하 분리                                         | Redis 운영 필요, DB와 이중화 | 처리량·실시간성 중요 시 |
+| **DB 기반** | 별도 인프라 없음, 트랜잭션 일관성, `ai_workflow_status='pending'` 로 조회 | DB 부하, 폴링 오버헤드       | 초기·Redis 미사용 시    |
+| **Redis**   | 빠른 푸시/팝, pub/sub, 부하 분리                                         | Redis 운영 필요, DB 와 이중화 | 처리량·실시간성 중요 시 |
 
 **결정 시점**: AI 워커 다중화 시 큐 필요. DB 기반이면 `files` 테이블 `WHERE ai_workflow_status='pending'` 폴링. Redis 도입 시 Bull/BullMQ 등 검토.
 
@@ -1008,40 +1011,40 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 | 주기 배치       | 중간 (분당~시간당) | rate limit, 배치 API, **날짜 분리 경로** (섹션 5.2)           |
 | 실시간 스트리밍 | 높음 (초당 다수)   | 전용 엣지 게이트웨이, 버퍼링, 비동기 처리, **날짜 분리 필수** |
 
-**결정 시점**: 엣지 시나리오 확정 시. `source='edge'`, `edge_sid` 활용하여 엣지별 제한·모니터링. 대량 업로드 시 날짜 분리(5.2) 적용.
+**결정 시점**: 엣지 시나리오 확정 시. `source='edge'`, `edge_sid` 활용하여 엣지별 제한·모니터링. 대량 업로드 시 날짜 분리 (5.2) 적용.
 
 ### 14.4 엣지 인증 전략
 
 | 옵션                   | 설명                                                         | 적용 시점         |
 | ---------------------- | ------------------------------------------------------------ | ----------------- |
-| **API Key**            | 엣지 기기별 고유 키, `edge_sid`와 매핑                       | 단순 시나리오     |
+| **API Key**            | 엣지 기기별 고유 키, `edge_sid` 와 매핑                       | 단순 시나리오     |
 | **JWT/토큰**           | 엣지 등록 시 발급, 만료·갱신                                 | 인증 강화 필요 시 |
 | **mTLS**               | 클라이언트 인증서                                            | 보안 요구 높을 때 |
 | **edge_device 테이블** | 등록된 엣지만 업로드 허용, 화이트리스트 (스키마: 섹션 4.3.1) | IOT/엣지 확장 시  |
 
-**결정 시점**: 엣지 업로드 API 노출 전. `edge_sid`가 NULL이 아닐 때 `edge_device` 존재·status='active' 검증 등.
+**결정 시점**: 엣지 업로드 API 노출 전. `edge_sid` 가 NULL 이 아닐 때 `edge_device` 존재·status='active' 검증 등.
 
 ### 14.4.1 엣지 MQTT 업로드 플로우
 
-MQTT가 기본 통신일 때, 엣지→서버 파일 업로드 시퀀스:
+MQTT 가 기본 통신일 때, 엣지→서버 파일 업로드 시퀀스:
 
 1. **엣지**: MQTT 연결 → `mqtt_is_connected=1`, `mqtt_last_connected_at` 갱신
 2. **엣지**: 파일 캡처/생성 → base64 또는 바이너리 페이로드
-3. **엣지**: MQTT publish → `files/upload/{edge_sid}` 토픽 (또는 `files/upload` + payload에 edge_sid)
+3. **엣지**: MQTT publish → `files/upload/{edge_sid}` 토픽 (또는 `files/upload` + payload 에 edge_sid)
 4. **서버**: MQTT subscribe → 페이로드 수신 → content_hash 계산 → files INSERT (source='edge', edge_sid)
 5. **서버**: MQTT publish → `files/upload/ack/{edge_sid}` (성공: file_id, 실패: 에러 코드)
 6. **엣지**: ack 수신 → `last_seen_at` 갱신 (서버에서 edge_device UPDATE)
 
 **페이로드 예시** (JSON): `{ "edge_sid": 1, "domain": "ai", "category": "images", "original_name": "cam.jpg", "data": "base64..." }`
 
-**대안**: MQTT로 메타만 전송, 실제 파일은 HTTP multipart로 별도 업로드 (대용량 시).
+**대안**: MQTT 로 메타만 전송, 실제 파일은 HTTP multipart 로 별도 업로드 (대용량 시).
 
 ### 14.5 스토리지 I/O 병목 대비
 
 | 대응             | 설명                                                                                      |
 | ---------------- | ----------------------------------------------------------------------------------------- |
 | **비동기 처리**  | 업로드 → DB INSERT 즉시 반환, AI 파이프라인은 백그라운드                                  |
-| **디스크 분리**  | `uploads/`를 DB와 다른 볼륨에 두어 I/O 경합 완화                                          |
+| **디스크 분리**  | `uploads/` 를 DB 와 다른 볼륨에 두어 I/O 경합 완화                                          |
 | **날짜 분리**    | `uploads/{domain}/{category}/{YYYY-MM-DD}/` (섹션 5.2). 엣지 대량 업로드 시 디렉터리 분산 |
 | **쓰기 버퍼**    | 대량 업로드 시 메모리 버퍼 후 배치 쓰기 (주의: 장애 시 유실)                              |
 | **SSD/NVMe**     | 스토리지 성능 확보                                                                        |

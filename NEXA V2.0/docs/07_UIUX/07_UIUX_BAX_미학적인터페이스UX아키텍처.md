@@ -7,7 +7,7 @@ category: "07_UIUX"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-11
+updated: 2026-06-13
 implements_doc: BRD-001
 terms_standard: ["websocket", "sse"]
 terms_nexa: ["BAX", "MAE", "ATS", "M2P", "ASR", "RuleGuard", "VirtualCanvas", "LayoutPolicy"]
@@ -42,13 +42,24 @@ MVP 개발 **단일 SSOT**
 | **ATS**            | Aesthetic Tuning Settings | **영속** 사용자 미학 조율 (ASR·Depth·Vibration)   |
 | **M2P**            | Matrix-to-Peripheral      | **실시간 의지** 입력 (Peripheral·NIXIE·WS·Serial) |
 | **ASR**            | Aesthetic Space Ratio     | `void_ratio` **하한** — `asr_base` (적정여백율)   |
-| **VirtualCanvas**  | —                         | 위상·농담·진동 단일 페이지 캔버스                 |
+| **VirtualCanvas**  | —                         | BAX **레이아웃** 호스트 (Grid+OVERLAY) — **NEXU Canvas ✗** |
 | **LayoutPolicy**   | —                         | 도메인별 교체 가능 배치 전략                      |
 | **DepthProfile**   | —                         | `depth` → blur·opacity · `urgency` → z-index      |
 | **AlarmState**     | —                         | RuleGuard 소유 경보 상태 머신 · urgency lock SSOT |
 | **RuleGuard**      | Rule-based Guard Engine   | Phase 1 · **모드 무관** Safety                    |
 | **AestheticTuner** | AI Aesthetic Fine-tuner   | Phase 2 · `intelligent` 전용                      |
 | **NIXIE Agent**    | —                         | M2P 채널 센서 융합 입력 (MVP: 가상 시뮬)          |
+
+### NEXU Canvas 와의 경계 (Normative)
+
+| | **NEXU Canvas** | **BAX** (`VirtualCanvas`) |
+| :--- | :--- | :--- |
+| **역할** | 온톨로지·Knowledge **데이터 페브릭** · Why Chain · **예술적** 시맨틱 뷰 | **미적 레이아웃** · void · Grid · 배치·호흡 |
+| **질문** | 무엇이 · 왜 연결되는가 | 어디에 · 어떤 밀도·여백으로 |
+| **mount** | **`domainKey: home`** 풀 뷰 (또는 전용 도메인) | **전 `domainKey`** |
+| **혼용** | BAX LayoutPolicy **소유 ✗** | Why Chain·페브릭 **지도 ✗** |
+
+**NIXIE**는 Canvas·BAX **포함** **L1 Express** — Canvas/BAX **대체 ✗** ([`TDD-060` §3.6.3](..\용어집_v1.0.md) · [`TDD-045` §6.1](../08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md)).
 
 ---
 

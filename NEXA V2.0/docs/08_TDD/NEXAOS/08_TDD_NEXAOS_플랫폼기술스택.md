@@ -1,16 +1,20 @@
 ---
+implements_doc: 
+see_also: []
 doc_id: TDD-003
 title: "NEXA OS 플랫폼 기술 스택"
 category: "08_TDD"
 domain: NEXAOS
 status: published
 created: 2026-06-10
-updated: 2026-06-10
+updated: 2026-06-12
 parent_doc: TDD-001
 terms_standard: ["next-js", "yjs", "react-flow", "tiptap", "monaco", "nestjs", "pgvector", "neo4j", "vllm"]
 terms_nexa: ["agent-graph", "rivet-core", "packages-shared", "embedder"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/react-flow", "std/tiptap", "std/monaco", "std/nestjs", "std/pgvector", "std/neo4j", "std/vllm", "nexa/agent-graph", "nexa/rivet-core", "nexa/packages-shared", "nexa/embedder"]
 ---
+
+# 08\_TDD\_NEXAOS\_ 플랫폼기술스택
 > **SSOT (2026-06):** **Chat·Streaming** = agent-graph **LLM adapter** (dev: Ollama · **prod: vLLM**) · **Embed** = `embedder` in-process. rivet-core = 템플릿·위임만.
 
 ---
@@ -20,10 +24,10 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/rea
 | 역할            | 기존/확정 스택  | 추가 추천 스택                                | 도입 목적 및 상세 기능                                                                                                                          |
 | --------------- | --------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | 기본 프레임워크 | Next.js         | -                                             | 플랫폼의 전체 웹 인터페이스 구성 및 SSR(서버 사이드 렌더링) 처리                                                                                |
-| 실시간 협업     | Yjs             | -                                             | 여러 사용자가 동시에 동일한 캔버스, 문서, 코드를 편집할 수 있는 충돌 방지(CRDT) 엔진                                                            |
+| 실시간 협업     | Yjs             | -                                             | 여러 사용자가 동시에 동일한 캔버스, 문서, 코드를 편집할 수 있는 충돌 방지 (CRDT) 엔진                                                            |
 | 비주얼 노드 UI  | 커스텀 리벳노드 | React Flow                                    | 웹 화면에 리벳 노드를 시각적으로 배치하고 선을 이을 수 있는 2D 캔버스 UI 라이브러리 (리벳의 데이터 구조 렌더링용)                               |
-| 문서 에디터     | 팁텝 (Tiptap)   | @tiptap/react @tiptap/extension-collaboration | AI가 온톨로지를 기반으로 초안을 작성하고, 사람과 AI가 실시간으로 함께 기획을 구체화하는 웹 부치 텍스트(Rich-text) 에디터 (Yjs와 공식 연동 가능) |
-| 스크립트 에디터 | -               | @monaco-editor/react                          | AI가 기획서를 바탕으로 변환해 준 회로도 스크립트를 화면에 띄우고, 사용자가 직접 코딩·수정할 수 있는 웹 전용 코드 에디터 (Yjs와 결합 가능)       |
+| 문서 에디터     | 팁텝 (Tiptap)   | @tiptap/react @tiptap/extension-collaboration | AI 가 온톨로지를 기반으로 초안을 작성하고, 사람과 AI 가 실시간으로 함께 기획을 구체화하는 웹 부치 텍스트 (Rich-text) 에디터 (Yjs 와 공식 연동 가능) |
+| 스크립트 에디터 | -               | @monaco-editor/react                          | AI 가 기획서를 바탕으로 변환해 준 회로도 스크립트를 화면에 띄우고, 사용자가 직접 코딩·수정할 수 있는 웹 전용 코드 에디터 (Yjs 와 결합 가능)       |
 
 ---
 
@@ -36,17 +40,17 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/rea
 
 ---
 
-## 💡 팁텝(Tiptap)이 추가되면서 얻는 압도적인 시너지 효과
+## 💡 팁텝 (Tiptap) 이 추가되면서 얻는 압도적인 시너지 효과
 
-1.  Yjs와의 완벽한 궁합 (Hocuspocus/Tiptap Collaboration):
-    Tiptap은 오픈소스 진영에서 Yjs 기반 실시간 동시 편집 기능을 가장 완벽하게 지원하는 에디터 중 하나입니다. 구글 닥스(Google Docs)처럼 여러 명의 사용자와 AI가 한 문서 안에서 꼬임 없이 실시간으로 기획서를 다듬을 수 있습니다.
-2.  AI의 문서 주입 가시화 (Streaming):
-    Ollama 토큰 생성은 **agent-graph LLM adapter**(dev Ollama · prod vLLM)에서만 수행하고, NestJS가 **SSE를 중계**한다. Tiptap 마크다운 파싱으로 AI가 문단·제목·불릿을 **실시간 스트리밍**하며 채우는 UX를 연출한다. rivet-core Run 타임라인은 **위임 스텝**만 표시한다.
-3.  기획서(Tiptap) ➔ 코드(Monaco)로의 매끄러운 전환:
-    사람과 AI가 Tiptap에서 기획을 확정하면, rivet-core가 **Get Prompt 템플릿**을 조립하고 **LangGraph\_\* 래퍼**로 **agent-graph**에 위임한다. LangGraph가 문서·온톨로지를 분석해 모나코용 스크립트를 생성한다.
+1. Yjs 와의 완벽한 궁합 (Hocuspocus/Tiptap Collaboration):
+    Tiptap 은 오픈소스 진영에서 Yjs 기반 실시간 동시 편집 기능을 가장 완벽하게 지원하는 에디터 중 하나입니다. 구글 닥스 (Google Docs) 처럼 여러 명의 사용자와 AI 가 한 문서 안에서 꼬임 없이 실시간으로 기획서를 다듬을 수 있습니다.
+2. AI 의 문서 주입 가시화 (Streaming):
+    Ollama 토큰 생성은 **agent-graph LLM adapter**(dev Ollama · prod vLLM) 에서만 수행하고, NestJS 가 **SSE 를 중계**한다. Tiptap 마크다운 파싱으로 AI 가 문단·제목·불릿을 **실시간 스트리밍**하며 채우는 UX 를 연출한다. rivet-core Run 타임라인은 **위임 스텝**만 표시한다.
+3. 기획서 (Tiptap) ➔ 코드 (Monaco) 로의 매끄러운 전환:
+    사람과 AI 가 Tiptap 에서 기획을 확정하면, rivet-core 가 **Get Prompt 템플릿**을 조립하고 **LangGraph\_\* 래퍼**로 **agent-graph**에 위임한다. LangGraph 가 문서·온톨로지를 분석해 모나코용 스크립트를 생성한다.
 
-이제 프론트엔드의 3대 핵심 컴포넌트인 [React Flow(노드) / Tiptap(문서) / Monaco(코드)]가 모두 정의되었습니다.
-가장 먼저 이 세 컴포넌트가 Yjs를 공유하면서 동시 편집 환경을 구축하는 웹소켓(NestJS Gateway) 연동부터 개발 프로토타입을 시작해보시는 것이 어떨까요? 이 영역의 구체적인 구현 방식이 궁금하시다면 더 안내해 드릴 수 있습니다.
+이제 프론트엔드의 3 대 핵심 컴포넌트인 [React Flow(노드) / Tiptap(문서) / Monaco(코드)] 가 모두 정의되었습니다.
+가장 먼저 이 세 컴포넌트가 Yjs 를 공유하면서 동시 편집 환경을 구축하는 웹소켓 (NestJS Gateway) 연동부터 개발 프로토타입을 시작해보시는 것이 어떨까요? 이 영역의 구체적인 구현 방식이 궁금하시다면 더 안내해 드릴 수 있습니다.
 
 ---
 
@@ -56,21 +60,21 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/rea
 | ------------------------ | -------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | 메인 애플리케이션 백엔드 | NestJS                                 | -                              | 인증 · Yjs · CP-02 · rivet Run · **agent-graph SSE 중계** — Ollama **직접 호출 없음**                        |
 | 노드 실행 런타임         | 리벳 라이브러리 (@ironclad/rivet-core) | -                              | Export **노드 배선·Get Prompt 템플릿** 해석 · **`LangGraph_*` 위임** · Run 타임라인 — **LLM·Streaming 없음** |
-| 실시간 통신 (Streaming)  | NestJS SSE relay                       | -                              | agent-graph `/v1/runs/{id}/stream` → Nest → TipTap/Run 패널. **토큰 생성은 agent-graph만**                   |
+| 실시간 통신 (Streaming)  | NestJS SSE relay                       | -                              | agent-graph `/v1/runs/{id}/stream` → Nest → TipTap/Run 패널. **토큰 생성은 agent-graph 만**                   |
 | LLM · 추론 (AIP)         | **apps/agent-graph** LLM adapter       | Ollama (dev) · **vLLM (prod)** | Chat · Extract · RAG · **SSE** · `LLM_BACKEND` env                                                           |
 | **임베딩**               | **apps/agent-graph** `embedder`        | sentence-transformers / ONNX   | **`nomic-embed-text` in-process** · `/v1/embed` · **Ollama Embed ✗**                                         |
 | 데이터베이스 (관계형)    | PostgreSQL (기본 탑재)                 | -                              | Yjs · project_knowledge(pgvector) · jobs · Prisma                                                            |
-| 데이터베이스 (온톨로지)  | Neo4j (그래프 DB)                      | OWL/RDF/TTL export             | specs에서 **동기화**된 트리플 적재 · SPARQL/Cypher — **SSOT 아님** (wikilink·specs 정본)                     |
-| 로컬 LLM 가동            | Ollama (dev) · **vLLM (prod)**         | -                              | **agent-graph adapter만** — Nest · rivet · 브라우저 **금지**                                                 |
+| 데이터베이스 (온톨로지)  | Neo4j (그래프 DB)                      | OWL/RDF/TTL export             | specs 에서 **동기화**된 트리플 적재 · SPARQL/Cypher — **SSOT 아님** (wikilink·specs 정본)                     |
+| 로컬 LLM 가동            | Ollama (dev) · **vLLM (prod)**         | -                              | **agent-graph adapter 만** — Nest · rivet · 브라우저 **금지**                                                 |
 
 ---
 
 ## 💡 아키텍처 핵심 요약
 
-1.  사용자가 Next.js + React Flow + Tiptap에서 편집하면 Yjs(Hocuspocus)로 실시간 공유된다.
-2.  NestJS가 `rivet-core.run`을 호출한다 — rivet은 **템플릿·토폴로지**만 해석하고 **`LangGraph_*` 래퍼**로 **agent-graph**에 연산을 위임한다.
-3.  **agent-graph**가 **LLM adapter**(dev Ollama · prod vLLM)와 **`embedder`**로 연산을 분리한다. NestJS가 SSE·`/v1/embed`를 중계한다.
-4.  `Embed_Pipeline` → **`/v1/embed` → embedder** → pgvector (Ollama Embed **미사용**).
+1. 사용자가 Next.js + React Flow + Tiptap 에서 편집하면 Yjs(Hocuspocus) 로 실시간 공유된다.
+2. NestJS 가 `rivet-core.run` 을 호출한다 — rivet 은 **템플릿·토폴로지**만 해석하고 **`LangGraph_*` 래퍼**로 **agent-graph**에 연산을 위임한다.
+3. **agent-graph**가 **LLM adapter**(dev Ollama · prod vLLM) 와 **`embedder`**로 연산을 분리한다. NestJS 가 SSE·`/v1/embed` 를 중계한다.
+4. `Embed_Pipeline` → **`/v1/embed` → embedder** → pgvector (Ollama Embed **미사용**).
 
 ```text
 UI → NestJS → rivet-core → agent-graph ──┬── LLM adapter → Ollama (dev) | vLLM (prod)
@@ -81,9 +85,9 @@ UI → NestJS → rivet-core → agent-graph ──┬── LLM adapter → Oll
 
 ---
 
-## 랭그래프의 독립된 파이썬(Python) 서버(FastAPI 등)로 분리 구축 장단점
+## 랭그래프의 독립된 파이썬 (Python) 서버 (FastAPI 등) 로 분리 구축 장단점
 
-랭그래프(LangGraph)를 NestJS 내부(LangGraph.js)에 내장하지 않고, 독립된 파이썬(Python) 서버(FastAPI 등)로 분리하여 마이크로서비스로 운영할 때의 장단점을 명확히 정리
+랭그래프 (LangGraph) 를 NestJS 내부 (LangGraph.js) 에 내장하지 않고, 독립된 파이썬 (Python) 서버 (FastAPI 등) 로 분리하여 마이크로서비스로 운영할 때의 장단점을 명확히 정리
 
 ---
 
@@ -91,18 +95,18 @@ UI → NestJS → rivet-core → agent-graph ──┬── LLM adapter → Oll
 
 #### 1. 강력한 파이썬 온톨로지 및 AI 데이터 생태계 100% 활용
 
-- 이유: 시맨틱 웹 및 온톨로지 제어용 핵심 라이브러리(rdflib, Owlready2, SPARQLWrapper)는 파이썬 진영이 압도적으로 발전되어 있습니다.
-- 효과: 여러 온톨로지 언어를 동시에 가동하고 추론(Reasoning) 엔진을 얹어야 하는 본 프로젝트의 특성상, 자바스크립트(Node.js) 환경보다 개발 공수가 수배 이상 줄어들고 안정성이 높습니다.
+- 이유: 시맨틱 웹 및 온톨로지 제어용 핵심 라이브러리 (rdflib, Owlready2, SPARQLWrapper) 는 파이썬 진영이 압도적으로 발전되어 있습니다.
+- 효과: 여러 온톨로지 언어를 동시에 가동하고 추론 (Reasoning) 엔진을 얹어야 하는 본 프로젝트의 특성상, 자바스크립트 (Node.js) 환경보다 개발 공수가 수배 이상 줄어들고 안정성이 높습니다.
 
 #### 2. AI 상태 관리와 백엔드 비즈니스 로직의 결합도 분리 (Decoupling)
 
-- 이유: 랭그래프는 복잡한 AI 에이전트의 '상태(State)'를 추적하고 루프를 제어합니다. 반면 NestJS는 사용자 인증, 권한 관리, 웹소켓 통신을 담당합니다.
-- 효과: 무거운 AI 추론 연산이 수행되는 동안에도 메인 웹 서버(NestJS)는 영향을 받지 않으므로, 일반 사용자들이 팁텝 문서를 편집하거나 채팅을 할 때 화면이 버벅이는 현상(블로킹)을 원천 차단할 수 있습니다.
+- 이유: 랭그래프는 복잡한 AI 에이전트의 ' 상태 (State)' 를 추적하고 루프를 제어합니다. 반면 NestJS 는 사용자 인증, 권한 관리, 웹소켓 통신을 담당합니다.
+- 효과: 무거운 AI 추론 연산이 수행되는 동안에도 메인 웹 서버 (NestJS) 는 영향을 받지 않으므로, 일반 사용자들이 팁텝 문서를 편집하거나 채팅을 할 때 화면이 버벅이는 현상 (블로킹) 을 원천 차단할 수 있습니다.
 
-#### 3. 확장성(Scalability) 및 리소스 최적화
+#### 3. 확장성 (Scalability) 및 리소스 최적화
 
-- 이유: 올라마(Ollama) 연산과 랭그래프의 지식 그래프 조회는 메모리와 CPU/GPU 소모가 매우 큽니다.
-- 효과: 서비스 규모가 커지면 NestJS 서버는 저사양으로 여러 대 늘리고(스케일 아웃), 랭그래프 서버만 고사양 AI 인프라(GPU/고메모리 서버)에 별도로 얹어 독립적으로 확장할 수 있어 인프라 비용이 최적화됩니다.
+- 이유: 올라마 (Ollama) 연산과 랭그래프의 지식 그래프 조회는 메모리와 CPU/GPU 소모가 매우 큽니다.
+- 효과: 서비스 규모가 커지면 NestJS 서버는 저사양으로 여러 대 늘리고 (스케일 아웃), 랭그래프 서버만 고사양 AI 인프라 (GPU/고메모리 서버) 에 별도로 얹어 독립적으로 확장할 수 있어 인프라 비용이 최적화됩니다.
 
 ---
 
@@ -111,25 +115,25 @@ UI → NestJS → rivet-core → agent-graph ──┬── LLM adapter → Oll
 #### 1. 인프라 및 배포 복잡도 증가
 
 - 이유: 관리해야 할 서버가 하나 더 늘어납니다 (NestJS 서버 + Python FastAPI 서버).
-- 효과: 로컬 개발 환경 구성부터 CI/CD 파이프라인(배포), 도커(Docker) 컨테이너 관리, 서버 간 네트워크 보안 설정 등의 인프라 공수가 늘어납니다.
+- 효과: 로컬 개발 환경 구성부터 CI/CD 파이프라인 (배포), 도커 (Docker) 컨테이너 관리, 서버 간 네트워크 보안 설정 등의 인프라 공수가 늘어납니다.
 
 #### 2. 서버 간 통신 및 Streaming (설계 반영)
 
 - **구조:** 사용자 ↔ NestJS ↔ rivet-core(위임) ↔ **agent-graph** ↔ Ollama
-- **Streaming SSOT:** agent-graph FastAPI SSE → Nest **relay** → nexia UI. rivet-core는 **토큰 생성하지 않음**.
-- **통신:** Run 시작 = HTTP POST `/v1/runs/{graph_id}` · 스트림 = GET `/v1/runs/{run_id}/stream` (Nest 경유). gRPC는 선택.
+- **Streaming SSOT:** agent-graph FastAPI SSE → Nest **relay** → nexia UI. rivet-core 는 **토큰 생성하지 않음**.
+- **통신:** Run 시작 = HTTP POST `/v1/runs/{graph_id}` · 스트림 = GET `/v1/runs/{run_id}/stream` (Nest 경유). gRPC 는 선택.
 
-#### 3. 복잡한 분산 상태(State) 동기화 문제
+#### 3. 복잡한 분산 상태 (State) 동기화 문제
 
-- 이유: PostgreSQL(NestJS가 메인 제어)의 데이터와 Neo4j(파이썬 랭그래프가 메인 제어)의 온톨로지 데이터가 완벽하게 일치해야 합니다.
-- 효과: 두 서버가 서로 다른 DB를 찌르거나 트랜잭션을 일으킬 때, 한쪽에서 에러가 나면 데이터가 꼬이는 분산 트랜잭션 예외 처리를 코드 수준에서 매우 정교하게 짜야 합니다.
+- 이유: PostgreSQL(NestJS 가 메인 제어) 의 데이터와 Neo4j(파이썬 랭그래프가 메인 제어) 의 온톨로지 데이터가 완벽하게 일치해야 합니다.
+- 효과: 두 서버가 서로 다른 DB 를 찌르거나 트랜잭션을 일으킬 때, 한쪽에서 에러가 나면 데이터가 꼬이는 분산 트랜잭션 예외 처리를 코드 수준에서 매우 정교하게 짜야 합니다.
 
 ---
 
 ### 💡 요약 및 아키텍처 제언
 
-- 이 프로젝트에서 분리는 '필수'에 가깝습니다: 단점(배포 복잡도, 통신 비용)이 존재함에도 불구하고, "다중 온톨로지 언어 가동 및 추론"이라는 명확한 목표가 있기 때문에 파이썬 생태계를 버리고 NestJS 내부에 억지로 구현하는 것은 장기적으로 더 큰 기술 부채가 됩니다.
-- 통신 문제 해결 팁: **agent-graph SSE + Nest relay**를 SSOT로 고정한다. rivet-core에 Chat 노드를 두지 않으면 Streaming 경로가 단일화된다. Redis Pub/Sub은 IoT 상태·다중 구독 보조용.
+- 이 프로젝트에서 분리는 ' 필수 ' 에 가깝습니다: 단점 (배포 복잡도, 통신 비용) 이 존재함에도 불구하고, " 다중 온톨로지 언어 가동 및 추론 " 이라는 명확한 목표가 있기 때문에 파이썬 생태계를 버리고 NestJS 내부에 억지로 구현하는 것은 장기적으로 더 큰 기술 부채가 됩니다.
+- 통신 문제 해결 팁: **agent-graph SSE + Nest relay**를 SSOT 로 고정한다. rivet-core 에 Chat 노드를 두지 않으면 Streaming 경로가 단일화된다. Redis Pub/Sub 은 IoT 상태·다중 구독 보조용.
 ---
 
 ## 관련 문서

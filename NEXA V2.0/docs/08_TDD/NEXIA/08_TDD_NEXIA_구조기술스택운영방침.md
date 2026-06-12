@@ -1,23 +1,26 @@
 ---
+implements_doc: 
+see_also: []
 doc_id: TDD-010
 title: "NEXIA 구조 · 기술 스택 운영 방침"
 category: "08_TDD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-10
+updated: 2026-06-12
 parent_doc: BRD-001
 terms_standard: ["next-js", "yjs", "hocuspocus", "langgraph", "ollama", "esphome", "comfyui"]
 terms_nexa: ["Omnix", "Normex", "Logex", "Scribx", "Vivex", "Twinex", "Navex", "Global-Navex", "tabId", "NEXA-CELL", "Nexion", "GlobalFileExplorer"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocuspocus", "std/langgraph", "std/ollama", "std/esphome", "std/comfyui", "nexa/Omnix", "nexa/Normex", "nexa/Logex", "nexa/Scribx", "nexa/Vivex", "nexa/Twinex", "nexa/Navex", "nexa/Global-Navex", "nexa/tabId", "nexa/NEXA-CELL", "nexa/Nexion", "nexa/GlobalFileExplorer"]
 ---
+
 # NEXIA · 구조와 기술 스택·운영방침
 
 > **스택 SSOT (To-Be):** **`apps/web` = Next.js** (App Router). **Rivet** = **Desktop Rivet**(설계·Export) / **Embedded Rivet**(`rivet-node` @ NestJS). **Logex** 그래프 UI = **NEXIA React Flow**; **Nexion** 지식 데스크 = **Nexion React Flow** (`@xyflow/react`). — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
 
-**한 줄:** NEXIA는 **NEXA 플랫폼**의 **핵심 지능 도메인**(`domainKey: nexia`)으로, **7탭 `-ex` `tabId`(SSOT)** · **Omnix 허브**로 인간·AI·장치·자산을 조율하고 **다른 도메인·모드와 연결**되어 작동한다.
+**한 줄:** NEXIA 는 **NEXA 플랫폼**의 **핵심 지능 도메인**(`domainKey: nexia`) 으로, **7 탭 `-ex` `tabId`(SSOT)** · **Omnix 허브**로 인간·AI·장치·자산을 조율하고 **다른 도메인·모드와 연결**되어 작동한다.
 
-**플랫폼 확장 방향:** NEXA 전체는 **산업 → 아트 → 일상** 순으로 발전한다. NEXIA는 그 여정의 **지능·규범·실행 허브**로, 산업 현장 검증 → 아트·미디어 표현 → 일상 스마트 라이프로 이어지는 온톨로지·파이프라인을 조율한다. — [`01_BRD_NEXA_사업마스터플랜`](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md)
+**플랫폼 확장 방향:** NEXA 전체는 **산업 → 아트 → 일상** 순으로 발전한다. NEXIA 는 그 여정의 **지능·규범·실행 허브**로, 산업 현장 검증 → 아트·미디어 표현 → 일상 스마트 라이프로 이어지는 온톨로지·파이프라인을 조율한다. — [`01_BRD_NEXA_사업마스터플랜`](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md)
 
 - **Normative:** 본 문서 — **nexia 도메인** 탭 규정·연계·운영 원칙의 **진입점**
 - **탭 SSOT:** 코드·문서·레지스트리·`.nx*`·Envelope — **Omnix · Normex · Logex · Scribx · Vivex · Twinex · Navex** (`tabId`). 구 UI 라벨은 **부록 B** 참고용만.
@@ -26,13 +29,13 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocu
 
 ## 1. 목적과 범위
 
-본 문서는 **NEXA 플랫폼** 내 **NEXIA 도메인**(`nexia`) 셸의 구조·7탭 규정·기술 스택·운영 원칙을 정의한다. 플랫폼 전역·타 도메인 경계는 [`08_TDD_NEXAOS_도메인레지스트리명세`](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md)를 따른다.
+본 문서는 **NEXA 플랫폼** 내 **NEXIA 도메인**(`nexia`) 셸의 구조·7 탭 규정·기술 스택·운영 원칙을 정의한다. 플랫폼 전역·타 도메인 경계는 [`08_TDD_NEXAOS_도메인레지스트리명세`](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) 를 따른다.
 
 | 포함                            | 제외 (별도 문서)                                                                                                                                                                                                                     |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 7탭 `tabId` SSOT · Yjs · `.nx*` | 탭별 **In/Out·MVP 범위** — [`08_TDD_NEXIA_7탭범위확정_v1.0`](./08_TDD_NEXIA_7탭범위확정_v1.0.md) (TDD-056) |
+| 7 탭 `tabId` SSOT · Yjs · `.nx*` | 탭별 **In/Out·MVP 범위** — [`08_TDD_NEXIA_7탭범위확정_v1.0`](./08_TDD_NEXIA_7탭범위확정_v1.0.md) (TDD-056) |
 | 탭 규정·파이프라인 상세 | 제너레이터 파이프라인 — [`AI 협력 제네레이터`](./Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
-| Omnix 3단계 · 탭 파이프라인     | RBAC·감사 상세 — §5 · [`08_TDD_NEXIA_보안및권한관리체계`](./08_TDD_NEXIA_보안및권한관리체계.md) |
+| Omnix 3 단계 · 탭 파이프라인     | RBAC·감사 상세 — §5 · [`08_TDD_NEXIA_보안및권한관리체계`](./08_TDD_NEXIA_보안및권한관리체계.md) |
 | 레이아웃·시간축 전제            | 멀티윈도우·PiP — §7 · [`08_TDD_NEXIA_멀티윈도우DocumentPiP`](./08_TDD_NEXIA_멀티윈도우DocumentPiP.md) |
 | 개선 과제·우선순위 — §9         | CSIM 패킷·ACTON-GM — [`CSIM · AXON`](../../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |
 
@@ -52,14 +55,14 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocu
 ### 2.2 핵심 원칙
 
 - 단일 오케스트레이션: 모든 엔진 호출은 백엔드 오케스트레이터를 경유한다.
-- 상태 일관성: 협업 상태는 Yjs를 중심으로 관리한다.
-- 로직 자산화: **Desktop Rivet** Export 그래프·Subgraph를 버전 관리하고 **Embedded Rivet**이 실행한다.
+- 상태 일관성: 협업 상태는 Yjs 를 중심으로 관리한다.
+- 로직 자산화: **Desktop Rivet** Export 그래프·Subgraph 를 버전 관리하고 **Embedded Rivet**이 실행한다.
 - 승인 우선: 고위험 작업은 Omnix 승인 단계를 강제한다.
 
 ### 2.3 핵심 철학 (Core Philosophy)
 
-- 지식 OS 지향: 단순 기능 모음이 아니라, 인지-분석-규범-실행이 순환하는 운영체계로 설계한다.
-- 인간 중심 조종권: AI는 대체자가 아니라 보조자이며, 최종 결정권은 항상 사용자에게 있다.
+- 지식 OS 지향: 단순 기능 모음이 아니라, 인지 - 분석 - 규범 - 실행이 순환하는 운영체계로 설계한다.
+- 인간 중심 조종권: AI 는 대체자가 아니라 보조자이며, 최종 결정권은 항상 사용자에게 있다.
 - 투명한 지능: 시스템의 판단/실행 경로는 기록 가능하고 검증 가능해야 한다.
 - 맥락 연속성: 사용자는 탭/창/디바이스를 이동해도 작업 흐름이 끊기지 않아야 한다.
 - 가변 구조: 탭 수와 기능 구성은 고정이 아니라 목적과 운영 단계에 맞게 증감 가능해야 한다.
@@ -69,16 +72,16 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocu
 ### 사용자 기준 기본 흐름
 
 1. 사용자는 **Omnix**에서 요청을 입력한다.
-2. 시스템은 요청 성격(정책/로직/코드/신호/미디어/인프라)을 분류한다.
+2. 시스템은 요청 성격 (정책/로직/코드/신호/미디어/인프라) 을 분류한다.
 3. 적절한 전문 탭으로 작업을 위임하고 진행 상태를 실시간으로 보여준다.
-4. 결과는 다시 Omnix로 집계되어 확인/승인/수정 루프로 이어진다.
+4. 결과는 다시 Omnix 로 집계되어 확인/승인/수정 루프로 이어진다.
 
 ### UI 구성별 체감 동작
 
-- Top Bar: "지금 어디서 무엇이 돌아가는지"를 한눈에 파악하게 한다.
-- Left Drawer: "무엇을 불러와 이어 작업할지"를 빠르게 찾게 한다.
-- Center Main: "실제 생산/실행"이 일어나는 집중 영역으로 유지한다.
-- Right Drawer: "어떻게 조정/최적화할지"를 맥락 기반으로 제시한다. **시간·이력·타임라인 UI**는 전 탭 공통으로 이 영역의 **Time Axis Panel**에 모은다(§3.6).
+- Top Bar: " 지금 어디서 무엇이 돌아가는지 " 를 한눈에 파악하게 한다.
+- Left Drawer: " 무엇을 불러와 이어 작업할지 " 를 빠르게 찾게 한다.
+- Center Main: " 실제 생산/실행 " 이 일어나는 집중 영역으로 유지한다.
+- Right Drawer: " 어떻게 조정/최적화할지 " 를 맥락 기반으로 제시한다. **시간·이력·타임라인 UI**는 전 탭 공통으로 이 영역의 **Time Axis Panel**에 모은다 (§3.6).
 
 ### 상호작용 원칙
 
@@ -95,33 +98,33 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocu
 | AI 위치     | 단일 챗봇 기능      | 탭별 전문 지능 + Omnix 오케스트레이션         |
 | 작업 흐름   | 화면 단위 단절      | 탭/창/세션 간 맥락 연속성 유지                |
 | 실행 통제   | 자동 실행 비중 높음 | 고위험 실행은 승인 게이트 필수                |
-| 확장 방식   | 기능 추가 중심      | 탭 프로파일(Lite/Standard/Extended) 기반 확장 |
+| 확장 방식   | 기능 추가 중심      | 탭 프로파일 (Lite/Standard/Extended) 기반 확장 |
 | 운영 가시성 | 결과 중심 표시      | 상태/근거/이력까지 추적 가능한 운영형 UI      |
 
-요약하면, NEXIA는 "기능을 소비하는 UI"가 아니라 "지능을 조율하고 통제하는 UI/UX"를 목표로 한다.
-또한 Omnix는 NIXIE를 통해 지능 상태를 실시간으로 시각화하는 "살아있는 조종석"으로 동작한다.
+요약하면, NEXIA 는 " 기능을 소비하는 UI" 가 아니라 " 지능을 조율하고 통제하는 UI/UX" 를 목표로 한다.
+또한 Omnix 는 NIXIE 를 통해 지능 상태를 실시간으로 시각화하는 " 살아있는 조종석 " 으로 동작한다.
 
 ---
 
-## 3. 기본 7개 탭 규정
+## 3. 기본 7 개 탭 규정
 
 ### 3.1 탭 규정 (`tabId` SSOT)
 
-> **Normative:** 아래 **`-ex` `tabId`** 만 코드·문서·레지스트리·`.nx*`·Envelope·연동에 사용한다.  
-> 초기 UI 라벨(Cockpit/Ethos 등)은 **부록 B** 참고용이며 SSOT가 **아니다**.
+> **Normative:** 아래 **`-ex` `tabId`** 만 코드·문서·레지스트리·`.nx*`·Envelope·연동에 사용한다.
+> 초기 UI 라벨 (Cockpit/Ethos 등) 은 **부록 B** 참고용이며 SSOT 가 **아니다**.
 
-| #   | `tabId`    | 역할                                      | 기술 스택                                                                                 | 데이터 성격                                                                              | 상호작용(연계)                                                                                               | 운영 포인트                                                                                       |
+| #   | `tabId`    | 역할                                      | 기술 스택                                                                                 | 데이터 성격                                                                              | 상호작용 (연계)                                                                                               | 운영 포인트                                                                                       |
 | --- | ---------- | ----------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
 | 1   | **Omnix**  | 소통·허브·오케스트레이션                  | Ollama, NIXIE, HEXAGON(5W1H), Nexnap Stream, Yjs                                          | 텍스트, 이미지, 음성, 이벤트 로그, 멀티유저 세션                                         | 모든 탭의 진입점·오케스트레이터, 승인 게이트 중계                                                            | 승인 게이트, 상태 가시성, 비상 정지 진입점, 멀티유저 세션 관리                                    |
-| 2   | **Normex** | **Norm(규범)** · 정책 · 인터랙티브 시방서 | Tiptap, Tiptap 커스텀 노드 확장, 템플릿 엔진, Yjs                                         | 비정형 텍스트, 정책 규칙, 규범 문서, 인터랙티브 블록, 버전 이력                          | 전 탭의 의사결정 기준 제공, Omnix를 통해 승인 이력 공유, 문서 내 블록이 Logex·Scribx·Twinex와 직접 연동      | 가드레일 규칙 버전 관리, 정책 승인 이력, 공동 편집 충돌 방지, 블록 실행 권한 관리                 |
-| 3   | **Logex**  | 추론·관계·워크플로우 로직 생성물          | **Embedded Rivet**, **NEXIA React Flow**, Yjs                                             | 지식 그래프, 워크플로우 상태, 노드 관계 데이터                                           | Navex 선택 컨텍스트를 입력받아 Scribx·Vivex로 로직 전달                                                      | Subgraph 재사용 · **Web Rivet Editor**·Desktop Export SSOT                                        |
-| 4   | **Scribx** | 코드·명세·실행 스크립트 생성물            | Monaco Editor, Lint/Formatter 체인, Yjs                                                   | 정형 텍스트, 코드, 실행 규약, 린트 결과                                                  | Logex 로직을 실행 가능한 코드·명세로 변환, Omnix로 배포 승인 요청                                            | 코드 리뷰·버전 추적, 배포 전 검증, 공동 편집                                                      |
-| 5   | **Vivex**  | 미디어·시각·청각 생성물                   | ComfyUI, 미디어 파이프라인, Yjs(파라미터 동기화)                                          | 이미지, 영상, 오디오, 파라미터 설정값                                                    | Scribx 규칙·명세를 실제 미디어 결과물로 발현, Omnix로 결과 공유                                              | 고비용 작업 큐잉, 결과물 품질 게이트, 파라미터 동기화                                             |
-| 6   | **Twinex** | 디지털 트윈 · 엣지·진단 인터페이스        | Three.js / Babylon.js, ESPHome, MQTT, WebSocket, Network Graph Engine, Yjs Awareness, Yjs | 디바이스 실시간 상태, 트윈 객체 데이터, 공간 토폴로지, 사용자 의도·시선, 시뮬레이션 결과 | Navex `.nxproj` `.nxdev` `.nxgrp` 선택 시 트윈 뷰 활성, Logex로 진단·시뮬레이션 결과 전달, Omnix로 이상 알림 | 트윈↔실제 디바이스 동기화, 시뮬레이션 격리 환경, 사용자 의도 공유(Awareness), 디바이스 권한 검사 |
-| 7   | **Navex**  | 파일·자산·노드 탐색                       | IndexedDB, OPFS, File System Access API, S3(MinIO), Tree UI Engine, Yjs                   | 파일 자산 메타, 노드 인덱스, 선택 컨텍스트, 멀티유저 탐색 상태                           | 선택된 객체 ID·컨텍스트를 Logex·Twinex로 즉시 릴레이, Omnix로 선택 상태 공유                                 | 탐색 속도 최적화, 컨텍스트 정확도, 멀티유저 선택 충돌 방지                                        |
+| 2   | **Normex** | **Norm(규범)** · 정책 · 인터랙티브 시방서 | Tiptap, Tiptap 커스텀 노드 확장, 템플릿 엔진, Yjs                                         | 비정형 텍스트, 정책 규칙, 규범 문서, 인터랙티브 블록, 버전 이력                          | 전 탭의 의사결정 기준 제공, Omnix 를 통해 승인 이력 공유, 문서 내 블록이 Logex·Scribx·Twinex 와 직접 연동      | 가드레일 규칙 버전 관리, 정책 승인 이력, 공동 편집 충돌 방지, 블록 실행 권한 관리                 |
+| 3   | **Logex**  | 추론·관계·워크플로우 로직 생성물          | **Embedded Rivet**, **NEXIA React Flow**, Yjs                                             | 지식 그래프, 워크플로우 상태, 노드 관계 데이터                                           | Navex 선택 컨텍스트를 입력받아 Scribx·Vivex 로 로직 전달                                                      | Subgraph 재사용 · **Web Rivet Editor**·Desktop Export SSOT                                        |
+| 4   | **Scribx** | 코드·명세·실행 스크립트 생성물            | Monaco Editor, Lint/Formatter 체인, Yjs                                                   | 정형 텍스트, 코드, 실행 규약, 린트 결과                                                  | Logex 로직을 실행 가능한 코드·명세로 변환, Omnix 로 배포 승인 요청                                            | 코드 리뷰·버전 추적, 배포 전 검증, 공동 편집                                                      |
+| 5   | **Vivex**  | 미디어·시각·청각 생성물                   | ComfyUI, 미디어 파이프라인, Yjs(파라미터 동기화)                                          | 이미지, 영상, 오디오, 파라미터 설정값                                                    | Scribx 규칙·명세를 실제 미디어 결과물로 발현, Omnix 로 결과 공유                                              | 고비용 작업 큐잉, 결과물 품질 게이트, 파라미터 동기화                                             |
+| 6   | **Twinex** | 디지털 트윈 · 엣지·진단 인터페이스        | Three.js / Babylon.js, ESPHome, MQTT, WebSocket, Network Graph Engine, Yjs Awareness, Yjs | 디바이스 실시간 상태, 트윈 객체 데이터, 공간 토폴로지, 사용자 의도·시선, 시뮬레이션 결과 | Navex `.nxproj` `.nxdev` `.nxgrp` 선택 시 트윈 뷰 활성, Logex 로 진단·시뮬레이션 결과 전달, Omnix 로 이상 알림 | 트윈↔실제 디바이스 동기화, 시뮬레이션 격리 환경, 사용자 의도 공유 (Awareness), 디바이스 권한 검사 |
+| 7   | **Navex**  | 파일·자산·노드 탐색                       | IndexedDB, OPFS, File System Access API, S3(MinIO), Tree UI Engine, Yjs                   | 파일 자산 메타, 노드 인덱스, 선택 컨텍스트, 멀티유저 탐색 상태                           | 선택된 객체 ID·컨텍스트를 Logex·Twinex 로 즉시 릴레이, Omnix 로 선택 상태 공유                                 | 탐색 속도 최적화, 컨텍스트 정확도, 멀티유저 선택 충돌 방지                                        |
 
-> **Normex** — **Norm(규범) + `-ex`** · 정책·가드레일·인터랙티브 시방서.  
-> **Twinex** — 디지털 트윈·3D·프로젝트(`.nxproj`) 중심 장치·진단·엣지 인터페이스.
+> **Normex** — **Norm(규범) + `-ex`** · 정책·가드레일·인터랙티브 시방서.
+> **Twinex** — 디지털 트윈·3D·프로젝트 (`.nxproj`) 중심 장치·진단·엣지 인터페이스.
 
 #### 3.1.1 Navex · Global Navex (배치)
 
@@ -131,7 +134,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocu
 | Right Drawer 플러그인 | **Global Navex** | `GlobalNavexPlugin` · `NexiaRightPanel` | P1 · `navexPlacement: 'right-drawer-plugin'` |
 
 - **엔진 SSOT:** `GlobalFileExplorer` · `useGlobalFileExplorer` — 두 표면 **공유**.
-- **반응형:** Global Navex 는 **viewport ≥1280px** 만 · 미만 시 **L1 탭(`navex`) 강제**.
+- **반응형:** Global Navex 는 **viewport ≥1280px** 만 · 미만 시 **L1 탭 (`navex`) 강제**.
 - **릴레이:** 선택 컨텍스트 → Logex·Scribx·Vivex·Twinex — [`UIX-004`](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) §4.5 · [`PRD-001`](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) §3.9.
 
 ### 3.2 Yjs 협업
@@ -143,12 +146,12 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocu
 | Logex  | 그래프·워크플로우 협업 편집                       |
 | Scribx | 코드 공동 편집                                    |
 | Vivex  | 파라미터·설정값 동기화                            |
-| Twinex | 사용자 의도·시선 공유(Awareness) + 진단 로그 협업 |
+| Twinex | 사용자 의도·시선 공유 (Awareness) + 진단 로그 협업 |
 | Navex  | 파일 트리·선택 컨텍스트 동기화                    |
 
-**Yjs 협업 강도 — Solo 없음, Duo가 최소 단위**
+**Yjs 협업 강도 — Solo 없음, Duo 가 최소 단위**
 
-Ollama LLM을 협업 인격체로 대우, 항상 참여자로 포함:
+Ollama LLM 을 협업 인격체로 대우, 항상 참여자로 포함:
 
 | 강도          | 참여자       | 설명                              |
 | ------------- | ------------ | --------------------------------- |
@@ -183,9 +186,11 @@ awareness: {
 | 6   | **Twinex** | `.nxproj`, `.nxgrp`, `.nxdev`, `.nxdiag` | `.yaml`, `.cfg`, `.log`, `.gltf`, `.glb` |
 | 7   | **Navex**  | 확장자 생성 없음                         | 전체 확장자 인덱싱                       |
 
+> **Navex 탐색 SSOT:** 플랫폼 **전 `domainKey`** · DB 등록 파일 + docs + edge ingest. P0 **category** — `nx-*` · documents · **code** · **config** · media · edge-ingest. API — [`TDD-065`](./08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md). Left Drawer **Project Explorer** 와 **역할 분리** — [`TDD-056` §5.7](./08_TDD_NEXIA_7탭범위확정_v1.0.md) · [`TDD-060` §3.6.4](..\..\용어집_v1.0.md).
+
 > `.nxproj`·`.nxgrp` — 트윈·프로젝트 · `.nxdev` — 디바이스 바인딩 · `.nxdiag` — 진단·시뮬 산출물 (탭명과 무관한 **기능 확장자**)
 
-`nx` prefix로 시스템 고유 파일임을 명시하고, 외부 범용 확장자도 수용.
+`nx` prefix 로 시스템 고유 파일임을 명시하고, 외부 범용 확장자도 수용.
 
 **뷰 상태 × 파일 권한**
 
@@ -193,10 +198,10 @@ awareness: {
 
 | 뷰 소유권        | 상태   | 설명                                     |
 | ---------------- | ------ | ---------------------------------------- |
-| `owner: "omnix"` | 진행중 | Omnix에서 현재 생성·스트리밍 중인 결과물 |
-| `owner: "navex"` | 구성됨 | Navex에서 선택된 이미 저장된 자산        |
+| `owner: "omnix"` | 진행중 | Omnix 에서 현재 생성·스트리밍 중인 결과물 |
+| `owner: "navex"` | 구성됨 | Navex 에서 선택된 이미 저장된 자산        |
 
-두 뷰는 UI상 완전 분리, 절대 침범 불가.
+두 뷰는 UI 상 완전 분리, 절대 침범 불가.
 
 > 파일 레이어 — 무엇을 할 수 있는가
 
@@ -216,7 +221,7 @@ asset: {
 }
 ```
 
-### 3.4 파이프라인 · Omnix 3단계
+### 3.4 파이프라인 · Omnix 3 단계
 
 **탭 파이프라인**
 
@@ -281,9 +286,9 @@ flowchart TB
     style Pipeline fill:#e6e6e6,stroke:#999,color:#aaa
 ```
 
-**Omnix 범위 제어 — 3단계 분리**
+**Omnix 범위 제어 — 3 단계 분리**
 
-```
+```json
 Omnix (마스터 에이전트 + 승인 게이트)
 └──→ Normex (규범 검증 레이어)
      └──→ 탭별 서브 에이전트 (도메인 실행)
@@ -309,15 +314,15 @@ tabRegistry: {
 
 ### 3.5 해석 규칙
 
-- **Omnix**(`tabId: omnix`)는 실행 허브이며, `2~7`은 전문 탭(기능 실행 유닛)이다.
+- **Omnix**(`tabId: omnix`) 는 실행 허브이며, `2~7` 은 전문 탭 (기능 실행 유닛) 이다.
 - **Standard 7 `tabId`:** Omnix · Normex · Logex · Scribx · Vivex · Twinex · Navex — §3.1.
-- 사용자 요청은 기본적으로 Omnix에서 수신하고, 탭별 파이프라인으로 위임한다.
-- 고위험 작업(IoT 제어/대량 수정/배포/**Twinex** 디바이스·트윈 제어)은 Omnix 승인 단계를 통과해야 한다.
-- 기본 프로파일 외 탭 증감은 탭 레지스트리(`tabId`, `capability`, `owner`, `riskLevel`, `status`)에 등록 후 활성화한다.
+- 사용자 요청은 기본적으로 Omnix 에서 수신하고, 탭별 파이프라인으로 위임한다.
+- 고위험 작업 (IoT 제어/대량 수정/배포/**Twinex** 디바이스·트윈 제어) 은 Omnix 승인 단계를 통과해야 한다.
+- 기본 프로파일 외 탭 증감은 탭 레지스트리 (`tabId`, `capability`, `owner`, `riskLevel`, `status`) 에 등록 후 활성화한다.
 - 프로파일 예시:
-  - Lite: 4~5개 탭
-  - Standard: 7개 탭(기본)
-  - Extended: 8개 이상(도메인 특화 탭 포함)
+  - Lite: 4~5 개 탭
+  - Standard: 7 개 탭 (기본)
+  - Extended: 8 개 이상 (도메인 특화 탭 포함)
 
 ### 3.6 시간 전제 (전 탭 공통)
 
@@ -325,32 +330,32 @@ tabRegistry: {
 
 | 구분            | 내용                                                                    | 적용 범위                                                                                                     |
 | --------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **운영 시간**   | 생성·수정 시각, 버전, 승인·감사 이력, 세션·이벤트 순서, Yjs 동기화 시점 | **모든 탭·모든 산출물** — UI에 노출하지 않아도 저장·추적·복원은 기본                                          |
-| **도메인 시간** | 시계열·스트림·주파수·에너지 흐름, 파형·타임라인 분석                    | **데이터가 시간축을 본질 속성으로 가질 때만** — 우측 드로어 Time Axis Panel에서 `capability`에 따라 깊이 확장 |
+| **운영 시간**   | 생성·수정 시각, 버전, 승인·감사 이력, 세션·이벤트 순서, Yjs 동기화 시점 | **모든 탭·모든 산출물** — UI 에 노출하지 않아도 저장·추적·복원은 기본                                          |
+| **도메인 시간** | 시계열·스트림·주파수·에너지 흐름, 파형·타임라인 분석                    | **데이터가 시간축을 본질 속성으로 가질 때만** — 우측 드로어 Time Axis Panel 에서 `capability` 에 따라 깊이 확장 |
 
-- **전 탭 공통**: 맥락 연속성(§2.3)·감사·추적(§4)·협업 상태(Yjs)는 운영 시간을 항상 전제한다.
-- **UI 배치 (Right Drawer)**: 타임라인·버전·히스토리·스트림·파형 뷰는 **Center Main 탭 본문에 고정하지 않는다**. Cross-Tab 유틸리티인 **Time Axis Panel**(시간·이력 패널)을 우측 드로어에 두고, `activeTabId`·선택 객체·세션 맥락에 맞춰 내용을 바꾼다. Time Axis·아코디언·Pin 규칙은 [`UIX-004` nexia MainShell §4.7](../../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · 플랫폼 셸 [`UIX-006`](../../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) §5.4를 따른다.
+- **전 탭 공통**: 맥락 연속성 (§2.3)·감사·추적 (§4)·협업 상태 (Yjs) 는 운영 시간을 항상 전제한다.
+- **UI 배치 (Right Drawer)**: 타임라인·버전·히스토리·스트림·파형 뷰는 **Center Main 탭 본문에 고정하지 않는다**. Cross-Tab 유틸리티인 **Time Axis Panel**(시간·이력 패널) 을 우측 드로어에 두고, `activeTabId`·선택 객체·세션 맥락에 맞춰 내용을 바꾼다. Time Axis·아코디언·Pin 규칙은 [`UIX-004` nexia MainShell §4.7](../../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · 플랫폼 셸 [`UIX-006`](../../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) §5.4 를 따른다.
 - **패널 표시 계층** (기본 → 확장):
   - **항상**: 운영 시간 — 최근 변경·버전·승인/감사 스냅샷, 세션 이벤트 요약
-  - **맥락 연동**: 활성 탭별 — Normex 정책·코드(Scribx) 이력, Logex 실행·스냅샷, Vivex 렌더 큐, Twinex·Navex 진단·선택 시점
-  - **capability ON 시**: 도메인 시간 — 시계열·스트림·주파수·파형(예: `timeSeries`, `streamView`, `spectralAnalysis`)
-- **Omnix Global Flow와의 구분**: Global Flow는 **대화·지휘 이벤트의 시간 순서**(관찰·조종). Time Axis Panel은 **작업 산출물·장치·자산의 시간축**(이력·분석). 둘은 보완 관계이며 UI를 중복 배치하지 않는다.
-- **팝아웃**: 고밀도 스트림·장시간 타임라인만 멀티윈도우/팝아웃으로 분리 가능(§7 · [`08`](<./08%20멀티윈도우%20%C2%B7%20Document%20PiP%20%ED%86%B5%ED%95%A9%20%EA%B7%9C%EA%B2%A9%20%EB%B0%8F%20%EC%84%A0%ED%83%9D%20%EA%B0%80%EC%9D%B4%EB%93%9C%20(Multi-Window%20%26%20PiP%20Specification).md>) · [`14`](<./14%20레이아웃%20복잡도%20완화%20및%20탭(패널)%20창%20분리%20MVP%20계획.md>)). 기본 진입점은 우측 드로어다.
-- **역할 분리(기본 7탭, 순서 `1~7`)**:
+  - **맥락 연동**: 활성 탭별 — Normex 정책·코드 (Scribx) 이력, Logex 실행·스냅샷, Vivex 렌더 큐, Twinex·Navex 진단·선택 시점
+  - **capability ON 시**: 도메인 시간 — 시계열·스트림·주파수·파형 (예: `timeSeries`, `streamView`, `spectralAnalysis`)
+- **Omnix Global Flow 와의 구분**: Global Flow 는 **대화·지휘 이벤트의 시간 순서**(관찰·조종). Time Axis Panel 은 **작업 산출물·장치·자산의 시간축**(이력·분석). 둘은 보완 관계이며 UI 를 중복 배치하지 않는다.
+- **팝아웃**: 고밀도 스트림·장시간 타임라인만 멀티윈도우/팝아웃으로 분리 가능 (§7 · [`08`](<./08%20멀티윈도우%20%C2%B7%20Document%20PiP%20%ED%86%B5%ED%95%A9%20%EA%B7%9C%EA%B2%A9%20%EB%B0%8F%20%EC%84%A0%ED%83%9D%20%EA%B0%80%EC%9D%B4%EB%93%9C%20(Multi-Window%20%26%20PiP%20Specification).md>) · [`14`](<./14%20레이아웃%20복잡도%20완화%20및%20탭(패널)%20창%20분리%20MVP%20계획.md>)). 기본 진입점은 우측 드로어다.
+- **역할 분리 (기본 7 탭, 순서 `1~7`)**:
   - `1` **Omnix**: 대화·실행·승인 **이벤트의 시간 순서** 가시화
   - `2` **Normex** · `4` **Scribx**: 정책·코드 **버전·승인 이력**
   - `3` **Logex**: 그래프·워크플로 **실행 순서·스냅샷**
   - `5` **Vivex**: 렌더·미디어 **큐·구간 타임라인**(필요 시)
   - `6` **Twinex**: 장치·트윈 **스냅샷·진단** 데이터 공급; 연속 신호·스트림 표시는 Time Axis Panel + `capability`
-  - `7` **Navex**: 탐색·선택 **컨텍스트 시점** 메타 공급; Time Axis Panel에 선택·릴레이 이력 표시
-- **capability 표기**: 탭 레지스트리에 `timeSeries`, `streamView`, `spectralAnalysis` 등으로 등록한다. Standard에서는 도메인 시간 뷰 기본 접힘·요약만, Extended 또는 작업 맥락에서 패널 확장.
+  - `7` **Navex**: 탐색·선택 **컨텍스트 시점** 메타 공급; Time Axis Panel 에 선택·릴레이 이력 표시
+- **capability 표기**: 탭 레지스트리에 `timeSeries`, `streamView`, `spectralAnalysis` 등으로 등록한다. Standard 에서는 도메인 시간 뷰 기본 접힘·요약만, Extended 또는 작업 맥락에서 패널 확장.
 - **파이프라인**: Navex · Twinex(수집·진단·트윈) → [도메인 시간 가공: Time Axis Panel·워크플로우 노드] → Logex(의미·관계) → Scribx · Vivex — 시간 가공은 **전용 탭이 아닌 우측 패널·파이프라인 단계**로 표현한다.
 
 ---
 
 ## 4. 감사 · 추적 (전 탭 공통)
 
-모든 탭·릴레이·승인 이벤트는 **운영 시간(§3.6)** 을 남긴다. UI에 노출하지 않아도 저장·복원 가능해야 한다.
+모든 탭·릴레이·승인 이벤트는 **운영 시간 (§3.6)** 을 남긴다. UI 에 노출하지 않아도 저장·복원 가능해야 한다.
 
 | 필드                    | 용도                                                                                                      |
 | ----------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -364,13 +369,13 @@ tabRegistry: {
 
 ## 5. 보안 · 권한
 
-탭별·`.nx*`·Twinex 디바이스 제어·Normex 블록 실행 권한은 [`01 보안 및 권한 관리 체계`](<./08_TDD_NEXIA_보안및권한관리체계.md>)가 **Normative**이다. §9.1 RBAC 공백은 해당 문서에서 닫는다.
+탭별·`.nx*`·Twinex 디바이스 제어·Normex 블록 실행 권한은 [`01 보안 및 권한 관리 체계`](<./08_TDD_NEXIA_보안및권한관리체계.md>) 가 **Normative**이다. §9.1 RBAC 공백은 해당 문서에서 닫는다.
 
 ---
 
 ## 6. 예외 · 복원 · 오프라인
 
-MQTT/Yjs 단절·Twinex 시뮬 격리·파이프라인 중단 시 동작은 [`06 예외 상황 처리`](<./06%20예외%20상황%20처리%20(Exception%20Handling).md>) 및 §9.2·§9.8을 참조한다. Navex(IndexedDB·OPFS)는 **오프라인 우선 캐시** 후보다.
+MQTT/Yjs 단절·Twinex 시뮬 격리·파이프라인 중단 시 동작은 [`06 예외 상황 처리`](<./06%20예외%20상황%20처리%20(Exception%20Handling).md>) 및 §9.2·§9.8 을 참조한다. Navex(IndexedDB·OPFS) 는 **오프라인 우선 캐시** 후보다.
 
 ---
 
@@ -390,7 +395,7 @@ MQTT/Yjs 단절·Twinex 시뮬 격리·파이프라인 중단 시 동작은 [`06
 | gRPC/WS · HEXAGON · Normex 가드레일 | [`NEXNAP 인터페이스 규약`](./08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) |
 | Ollama · ComfyUI · ESPHome · API    | [`08_TDD_NEXIA_외부엔진및아키텍처`](./08_TDD_NEXIA_외부엔진및아키텍처.md) |
 
-말단(Twinex) ↔ 게이트웨이 신호는 CSIM **Header+Body** 우선 · G/M은 **`programRef`** (§13).
+말단 (Twinex) ↔ 게이트웨이 신호는 CSIM **Header+Body** 우선 · G/M 은 **`programRef`** (§13).
 
 ---
 
@@ -402,7 +407,7 @@ MQTT/Yjs 단절·Twinex 시뮬 격리·파이프라인 중단 시 동작은 [`06
 
 | 미정의 항목                      | 영향                                              |
 | -------------------------------- | ------------------------------------------------- |
-| 사용자 역할(Role) 정의           | 누가 어떤 탭에 접근 가능한지 불명확               |
+| 사용자 역할 (Role) 정의           | 누가 어떤 탭에 접근 가능한지 불명확               |
 | 탭별 권한 분리                   | Twinex 디바이스 제어를 아무나 할 수 있는 구조     |
 | `.nx*` 파일 읽기·편집 권한       | `readonly` 플래그만 있고 역할 기반 접근 제어 없음 |
 | Normex 인터랙티브 블록 실행 권한 | 누구나 자동화 규칙·트리거 실행 가능한 위험        |
@@ -421,7 +426,7 @@ IoT 플랫폼임에도 네트워크 단절 상황에 대한 정의가 없습니�
 | 엣지 디바이스 오프라인        | 미정의    |
 | IndexedDB·OPFS 로컬 캐시 전략 | 미정의    |
 
-Navex가 IndexedDB·OPFS를 보유하고 있으니 오프라인 우선 전략이 가능한데 활용 방향이 없습니다.
+Navex 가 IndexedDB·OPFS 를 보유하고 있으니 오프라인 우선 전략이 가능한데 활용 방향이 없습니다.
 
 ---
 
@@ -432,19 +437,19 @@ Navex가 IndexedDB·OPFS를 보유하고 있으니 오프라인 우선 전략이
 | 소통 vs 오케스트레이션 혼재 | 채팅 인터페이스인지 자동화 파이프라인인지 경계 불명확        |
 | 승인 게이트 기준 미정의     | 무엇을 승인하고 무엇을 자동 통과시키는지 규칙 없음           |
 | 비상 정지 범위 미정의       | 비상 정지 시 어느 탭까지 중단되는지 불명확                   |
-| AI(Ollama) 개입 범위        | AI가 어디까지 자율 판단하고 어디서 사람 승인을 받는지 미정의 |
+| AI(Ollama) 개입 범위        | AI 가 어디까지 자율 판단하고 어디서 사람 승인을 받는지 미정의 |
 
 ---
 
 ### 9.4 데이터 동기화 충돌 전략 미정의
 
-Yjs가 전 탭에 관통하지만 충돌 시나리오가 없습니다.
+Yjs 가 전 탭에 관통하지만 충돌 시나리오가 없습니다.
 
 | 충돌 시나리오                                          | 현재 대응                       |
 | ------------------------------------------------------ | ------------------------------- |
-| 동시 편집 충돌                                         | Yjs CRDT에 위임, 별도 전략 없음 |
+| 동시 편집 충돌                                         | Yjs CRDT 에 위임, 별도 전략 없음 |
 | Omnix 생성물과 Navex 선택 자산이 같은 파일일 때        | 미정의                          |
-| `.nxflow` 를 Logex와 Scribx가 동시 참조할 때           | 미정의                          |
+| `.nxflow` 를 Logex 와 Scribx 가 동시 참조할 때           | 미정의                          |
 | 디지털 트윈 시뮬레이션 중 실제 디바이스 데이터 수신 시 | 미정의                          |
 
 ---
@@ -470,7 +475,7 @@ Yjs가 전 탭에 관통하지만 충돌 시나리오가 없습니다.
 | 블록 실행 주체                    | 블록이 브라우저에서 실행되는가, 서버에서 실행되는가 |
 | 블록 실행 실패 처리               | 자동화 규칙 블록 실행 실패 시 롤백 전략 없음        |
 | 블록과 Logex·Twinex 연동 프로토콜 | 어떤 인터페이스로 연동되는지 미정의                 |
-| 문서 버전과 블록 버전 분리        | 문서는 v2인데 블록 로직이 v1일 때 처리 방법 없음    |
+| 문서 버전과 블록 버전 분리        | 문서는 v2 인데 블록 로직이 v1 일 때 처리 방법 없음    |
 
 ---
 
@@ -486,7 +491,7 @@ Yjs가 전 탭에 관통하지만 충돌 시나리오가 없습니다.
 
 ### 9.8 탭 간 트랜잭션 롤백 전략 없음
 
-```
+```json
 Logex → Scribx → Vivex 파이프라인 중
 Scribx 단계에서 실패하면?
 ```
@@ -502,7 +507,7 @@ Scribx 단계에서 실패하면?
 | 미정의 항목        | 내용                                                |
 | ------------------ | --------------------------------------------------- |
 | 악성 파일 검증     | 외부 `.nxflow` 파일이 악의적 워크플로우를 포함할 때 |
-| 스키마 버전 불일치 | 구버전 `.nxpol` 파일을 신버전 Normex가 열 때        |
+| 스키마 버전 불일치 | 구버전 `.nxpol` 파일을 신버전 Normex 가 열 때        |
 | 파일 무결성 검증   | 백업 복원 시 파일 손상 여부 확인 방법 없음          |
 
 ---
@@ -521,9 +526,9 @@ Scribx 단계에서 실패하면?
 
 ## 부록 B. 구 UI 라벨 (참고용 · 비규범)
 
-> 초기 UI 네이밍·아이디어 스케치. **신규 문서·코드·`tabId`에 사용하지 않는다.** SSOT는 §3.1 `-ex` `tabId`. 전체 용어집: [`TDD-060` NEXA V2.0 용어집](../NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md) 부록 A.
+> 초기 UI 네이밍·아이디어 스케치. **신규 문서·코드·`tabId` 에 사용하지 않는다.** SSOT 는 §3.1 `-ex` `tabId`. 전체 용어집: [`TDD-060` NEXA V2.0 용어집](..\..\용어집_v1.0.md) 부록 A.
 
-**구 7탭 라벨 (참고)**
+**구 7 탭 라벨 (참고)**
 
 | 순서 | 구 UI 라벨      | 현재 `tabId` (SSOT) |
 | ---- | --------------- | ------------------- |
@@ -537,7 +542,7 @@ Scribx 단계에서 실패하면?
 
 ---
 
-_상태: 7탭 SSOT — Omnix/Normex/Logex/Scribx/Vivex/Twinex/Navex · §1~§9 정리._
+_상태: 7 탭 SSOT — Omnix/Normex/Logex/Scribx/Vivex/Twinex/Navex · §1~§9 정리._
 
 ---
 
@@ -548,6 +553,6 @@ _상태: 7탭 SSOT — Omnix/Normex/Logex/Scribx/Vivex/Twinex/Navex · §1~§9 �
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
 | OS SSOT | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](../AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
-| 7탭 범위 | [NEXIA · 7탭 범위 확정 v1.0 (TDD-056)](./08_TDD_NEXIA_7탭범위확정_v1.0.md) |
+| 7 탭 범위 | [NEXIA · 7탭 범위 확정 v1.0 (TDD-056)](./08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | 오케스트레이션 | [LangGraph · 오케스트레이션 설계 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
 | 하위 TDD | [드롭존 · 첨부 파일 구조 (TDD-013)](./08_TDD_NEXIA_드롭존첨부파일구조.md) |

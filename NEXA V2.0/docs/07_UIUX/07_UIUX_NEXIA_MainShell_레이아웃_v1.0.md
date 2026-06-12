@@ -139,7 +139,7 @@ apps/web/src/domains/nexia/
 /nexia/logex/ontology/{projectId}
 ```
 
-> **Deep link · 엣지 후보고:** Twinex·nexabo·Omnix·Navex 및 Nest **`nexaon_ingest`** 는 **동일 NexaonShell** 로 진입 — Logex 탭 **선행 ✗** (데이터 축). SSOT [`TDD-056` §4.1](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [`TDD-060` §3.4.1](../08_TDD/NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md).
+> **Deep link · 엣지 후보고:** Twinex·nexabo·Omnix·Navex 및 Nest **`nexaon_ingest`** 는 **동일 NexaonShell** 로 진입 — Logex 탭 **선행 ✗** (데이터 축). SSOT [`TDD-056` §4.1](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [`TDD-060` §3.4.1](..\용어집_v1.0.md).
 
 ### 3.4 Content 분할 · 병합 · 분리 (3층 모델)
 

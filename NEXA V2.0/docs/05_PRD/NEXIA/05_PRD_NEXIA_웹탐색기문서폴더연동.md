@@ -5,11 +5,11 @@ category: "05_PRD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-12
+updated: 2026-06-10
 parent_doc: BRD-001
-see_also: [UIX-002, UIX-004, PRD-001]
+see_also: [UIX-002, UIX-004, PRD-001, TDD-056, TDD-060]
 terms_standard: ["rest"]
-terms_nexa: ["GlobalFileExplorer", "NexiaExplorerPanel", "file_references", "nexa-docs", "Navex", "Global-Navex"]
+terms_nexa: ["GlobalFileExplorer", "NexiaExplorerPanel", "file_references", "nexa-docs", "Navex", "Global-Navex", "Global-Asset-Index", "asset-origin", "navexCategory"]
 tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/rest", "nexa/GlobalFileExplorer", "nexa/NexiaExplorerPanel", "nexa/file_references", "nexa/nexa-docs", "nexa/Navex", "nexa/Global-Navex"]
 ---
 # NEXIA · 웹 탐색기 ↔ 문서 폴더 연동
@@ -18,6 +18,8 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/rest", "nexa/GlobalFileExplore
 
 AI 채널에서 접근 가능한 **문서 폴더**(NEXA-Documentation, NEXA-Platform/docs)를 **웹 탐색기**에서 직접 선택·활용할 수 있도록 하고, DB에 아직 반영되지 않은 문서를 **DB 반영**으로 등록할 수 있는 요건과 설계를 정리한다.  
 이 탐색기를 완성하면 **인프라(탐색기)는 단순하고 견고하게, 활용(AI 협업·Nexus Map)은 지능적이고 유연하게** 동작할 수 있는 기반이 마련된다.
+
+> **Navex 범위 (Normative):** 본 PRD의 `GlobalFileExplorer` / `NexiaExplorerPanel` 은 **Navex · Global Navex** 표면에서 동작한다. 탐색 대상은 **`domainKey=nexia` 산출만 ✗** — **전 `domainKey`** 에서 **생성·업로드·DB 등록**(`files` / `file_references`)된 자산. P0 category — `.nx*` · documents · **code** · **config** · media · **edge-ingest**. API facet — [`TDD-065` §4~5](../../08_TDD/NEXIA/08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md). 상세 — [`TDD-056` §5.7](../../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [`TDD-060` §3.6.4](..\..\용어집_v1.0.md).
 
 ---
 

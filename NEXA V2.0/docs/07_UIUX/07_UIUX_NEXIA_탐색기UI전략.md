@@ -7,11 +7,11 @@ category: "07_UIUX"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-12
+updated: 2026-06-10
 implements_doc: PRD-008
-see_also: [UIX-004, PRD-001, TDD-056]
+see_also: [UIX-004, PRD-001, PRD-014, TDD-056, TDD-060, TDD-065]
 terms_standard: ["next-js", "rest"]
-terms_nexa: ["GlobalFileExplorer", "NexiaExplorerPanel", "useGlobalFileExplorer", "explorer", "Navex", "Global-Navex", "tabId"]
+terms_nexa: ["GlobalFileExplorer", "NexiaExplorerPanel", "useGlobalFileExplorer", "explorer", "Navex", "Global-Navex", "tabId", "Global-Asset-Index", "InfraTree", "asset-origin", "navexCategory", "Project-Explorer", "Intelligent-Explorer", "Infra-Explorer", "Relational-File-View"]
 tags: ["doc/cat/07-uiux", "doc/domain/nexia", "std/next-js", "std/rest", "nexa/GlobalFileExplorer", "nexa/NexiaExplorerPanel", "nexa/useGlobalFileExplorer", "nexa/explorer", "nexa/Navex", "nexa/Global-Navex", "nexa/tabId"]
 ---
 
@@ -21,6 +21,8 @@ tags: ["doc/cat/07-uiux", "doc/domain/nexia", "std/next-js", "std/rest", "nexa/G
 > **연계:** [`05_PRD_NEXIA_웹탐색기문서폴더연동`](../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md) · [`08_TDD_AI_협업형멀티에디터플랫폼`](../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md)
 
 웹 탐색기 ↔ 문서 폴더 연동과 AI 워크스페이스를 통합하는 **탐색기 UI 전략** 정리 문서이다.
+
+> **이중 모드:** **`Infra-Explorer`** = 본 문서 (InfraTree·facet). **`Intelligent-Explorer`** = **[`PRD-014`](../05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md)** — **Navex Search Engine** (hybrid + **Personalization Profile**) · 검색바 Hero · **기본 모드**.
 
 ---
 
@@ -64,6 +66,56 @@ tags: ["doc/cat/07-uiux", "doc/domain/nexia", "std/next-js", "std/rest", "nexa/G
 | 4 | 컴포넌트: `GlobalNavexPlugin.tsx` → `NexiaExplorerPanel` 래퍼 · `NexiaRightPanel` 상단 또는 `[Explore]` 세그먼트 |
 
 **레거시 AI 플랫폼 기획서 참고** (구 `explorer` 우측 고정) — nexia 에서는 **Global Navex** 로 치환·명칭 정리.
+
+### 1.4 Navex 탐색 범위 · 필터 · 검색 (Normative)
+
+> SSOT 상세: [`TDD-056` §5.7](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [`TDD-065`](../08_TDD/NEXIA/08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md) · 용어: [`TDD-060` §3.6.4](..\용어집_v1.0.md)
+
+**Global Asset Index** — Navex / Global Navex 공통:
+
+| 원칙 | UI |
+| :--- | :--- |
+| **전 `domainKey`** DB 등록 파일 | InfraTree + 목록 · domain 필터 기본 **전체** |
+| **code · config P0** | yaml/json/py/ts 등 — 텍스트 미리보기 |
+| **edge ingest P0** | `origin=edge` · device 노드 |
+| **internal / external** | [`PRD-008` §4.0](../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md) |
+| **검색 우선** | 범위 넓을 때 트리 depth 최소화 — **검색바 + facet + 프리셋** |
+
+**필터 축 (`useGlobalFileExplorer`):**
+
+| 키 | 값 |
+| :--- | :--- |
+| `origin` | upload · edge · docs · generated · web · memo · market |
+| `domainKey` | registry 16 · 미지정 = 전체 |
+| `navexCategory` | nx-* · documents · code · config · media · edge-ingest · firmware |
+| `registration` | all · internal · external |
+| `projectId` | optional |
+| `tabAffinity` | optional — 릴레이 대상 힌트 |
+
+**UI 프리셋 (초기):** `전체` · `NEXIA 산출` · `Code & Config` · `Edge` · `Docs` · `Market(설치됨)`.
+
+**InfraTree 기본:** `origin` → `domainKey` → (edge) `device` — [`InfraTree`](..\용어집_v1.0.md) SSOT.
+
+**성능:** 목록 `@tanstack/react-virtual` + **서버 페이지네이션** · 검색 debounce.
+
+### 1.5 Project Explorer vs Navex (역할 분리)
+
+| | **Project Explorer** (Left Drawer) | **Navex** (`tabId=navex` · Global Navex) |
+| :--- | :--- | :--- |
+| **질문** | 지금 이 **프로젝트** 작업물은? | 플랫폼 **전체**에서 어디에 있나? |
+| **스코프** | `project_id` (+ `folder_id`) **고정** | **고정 없음** — facet으로만 좁힘 |
+| **UI** | 얕은 트리 · 채널·메모·미디어 | InfraTree · 검색 · 릴레이 |
+| **데이터** | 동일 `files` SSOT | 동일 `files` SSOT |
+
+[`PRD-010`](../05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스웹서치자원전략.md) §3.6 프로젝트 탐색기 패널 — **Navex 탭 본문과 병치 ✗** (Left Drawer 전용).
+
+### 1.6 Infra vs Intelligent (역할)
+
+| | **Infra-Explorer** (본 문서) | **Intelligent-Explorer** |
+| :--- | :--- | :--- |
+| **SSOT** | UIX-002 · TDD-065 | [`PRD-014`](../05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md) |
+| **주 UI** | InfraTree · facet 목록 | 검색 · Signal 타일 · Relational File View |
+| **기본 모드** | ✗ | **✓** (`navexExploreMode`) |
 
 ---
 
@@ -175,7 +227,7 @@ tags: ["doc/cat/07-uiux", "doc/domain/nexia", "std/next-js", "std/rest", "nexa/G
 - **문서 폴더 노드 병합** 후 트리에는 “DB 도메인 + 문서 폴더”가 함께 오므로, **어떤 축으로 트리를 볼지**가 중요해짐.
 - 현재는 **출처 (도메인) → 경로 (path)** 한 가지 구조만 있음. 사용자 요구:
   - **현재 방식 유지**: 출처 기반 + (목록에서) 파일 타입별 필터.
-  - **추가 요구**: **폴더 단위 트리 모드** — 레거시 탐색기처럼 **폴더 계층**으로만 탐색할 수 있는 모드.
+  - **추가 요구**: **폴더 단위 트리 모드** — Infra-Explorer처럼 **폴더 계층**으로만 탐색할 수 있는 모드.
     → **DB 기준 출력**(업로드 도메인·경로) 과 **신규 파일 디렉터리**(문서 폴더) 기준 탐색을 모두 지원하려면, “출처/타입 중심 뷰”와 “폴더 구조 중심 뷰”를 전환할 수 있어야 함.
 
 #### 3.6.3 트리 뷰 모드 정리 (제안)
