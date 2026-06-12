@@ -6,7 +6,7 @@ domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-10
-implements_doc: TDD-042
+implements_doc: PRD-001
 terms_standard: ["mqtt", "esp32"]
 terms_nexa: ["Sentinel", "Reflex", "Bypass", "Nano-Sentinel", "Zenith-Indicator"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esp32", "nexa/Sentinel", "nexa/Reflex", "nexa/Bypass", "nexa/Nano-Sentinel", "nexa/Zenith-Indicator"]
@@ -149,6 +149,6 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esp32", "nexa/Sent
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 지능 위계 | [지능 위계 · 하드웨어 사양 (TDD-040)](./08_TDD_AI_지능위계및하드웨어사양.md) |
 | GOVERN 규범 | [코일 밸런스 · GOVERN 운영 규범 (TDD-041)](./08_TDD_AI_코일밸런스운영규범GOVERN.md) |

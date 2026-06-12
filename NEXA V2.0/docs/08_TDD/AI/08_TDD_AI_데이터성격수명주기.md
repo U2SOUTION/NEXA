@@ -8,7 +8,7 @@ domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-11
-implements_doc: TDD-042
+implements_doc: PRD-001
 terms_standard: ["postgresql"]
 terms_nexa: ["Nature-Tag", "ROUTINE", "INTENT", "GOVERN", "Atom", "ARCHIVE"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/postgresql", "nexa/Nature-Tag", "nexa/ROUTINE", "nexa/INTENT", "nexa/GOVERN", "nexa/Atom", "nexa/ARCHIVE"]
@@ -197,6 +197,6 @@ ID 기반 완전 분리와 프로토콜 규격이 탄탄하면 거대 단일 DB 
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 5W1H 레이어 | [5W1H · 6 대 추상 레이어 규격 (TDD-033)](./08_TDD_AI_5W1H_6대추상레이어규격.md) |
 | GOVERN 규범 | [코일 밸런스 · GOVERN 운영 규범 (TDD-041)](./08_TDD_AI_코일밸런스운영규범GOVERN.md) |

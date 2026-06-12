@@ -31,8 +31,7 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 | [08_TDD_NEXIA_예외상황처리.md](./08_TDD_NEXIA_예외상황처리.md) | 예외 처리 |
 | [08_TDD_NEXIA_음성인풋자동화및확장.md](./08_TDD_NEXIA_음성인풋자동화및확장.md) | 음성 인풋 규격 |
 | [08_TDD_NEXIA_음성인풋브라우저레이어.md](./08_TDD_NEXIA_음성인풋브라우저레이어.md) | 브라우저 STT/VAD 레이어 |
-| [08_TDD_NEXIA_멀티윈도우DocumentPiP.md](./08_TDD_NEXIA_멀티윈도우DocumentPiP.md) | 멀티윈도우·PiP |
-| [08_TDD_NEXIA_멀티창동기화구현로드맵.md](./08_TDD_NEXIA_멀티창동기화구현로드맵.md) | 멀티창 Yjs 동기화 |
+| [08_TDD_NEXIA_멀티윈도우DocumentPiP.md](./08_TDD_NEXIA_멀티윈도우DocumentPiP.md) | 멀티윈도우·PiP (TDD-014) |
 
 ## IoT · 데이터 라우팅
 
@@ -56,14 +55,21 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 | TDD-063 | [Mobile Shell](./Nixie/08_TDD_NIXIE_MobileShell_v1.0.md) |
 | TDD-064 | [Physical Shell](./Nixie/08_TDD_NIXIE_PhysicalShell_v1.0.md) |
 
-## 제너레이터
+## 제너레이터 (Phase 2+ · archived)
 
-[Generators/README](./Generators/README.md) — AI 3D·Sound·Video·Circuit·Wasm 파이프라인
+[Generators/README](./Generators/README.md) — AI 3D·Sound·Video·Circuit·Wasm — **MVP 7탭 P0 밖**
+
+## archived (2026-06-13 · SSOT ✗)
+
+| doc_id | 문서 | 대체 SSOT |
+| :---: | :--- | :--- |
+| TDD-015 | [멀티창 동기화 로드맵](./08_TDD_NEXIA_멀티창동기화구현로드맵.md) | **TDD-014** · **TDD-038** |
+| MVP-001 | [레이아웃 · 팝아웃 MVP](../../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) | **UIX-004** |
 
 ## 연계 (다른 분류)
 
 | 분류 | 문서 |
 | :--- | :--- |
-| UIUX | [07_UIUX_NEXA_통합레이아웃구조규격](../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) · [07_UIUX_NEXIA_MainShell_레이아웃_v1.0](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [07_UIUX_NEXIA_컴포넌트트리뼈대](../../07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) |
-| MVP | [03_MVP_NEXIA_레이아웃팝아웃MVP](../../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
+| UIUX | [07_UIUX_NEXIA_MainShell_레이아웃_v1.0](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [07_UIUX_NEXIA_컴포넌트트리뼈대](../../07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) |
+| AI | [Yjs SSOT (TDD-038)](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
 | Cosmic | [CSIM · AXON](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |

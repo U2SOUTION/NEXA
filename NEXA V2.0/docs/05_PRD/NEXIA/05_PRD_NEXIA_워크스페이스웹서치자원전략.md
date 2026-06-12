@@ -557,5 +557,5 @@ interface UseProjectsReturn {
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
-| AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| AI 워크스페이스 | [Yjs · Hocuspocus SSOT (TDD-038)](../../08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
 | 워크스페이스 레이아웃 | [워크스페이스 단축키 및 레이아웃 (PRD-009)](./05_PRD_NEXIA_워크스페이스단축키레이아웃.md) |

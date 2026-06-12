@@ -3,7 +3,7 @@ doc_id: TDD-031
 title: "AI VIDEO 제너레이터"
 category: "08_TDD"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-10
 parent_doc: TDD-028
@@ -12,6 +12,10 @@ terms_nexa: ["AIVIDEO", "Rivet", "Vivex", "Generators"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/comfyui", "std/remotion", "std/tiptap", "nexa/AIVIDEO", "nexa/Rivet", "nexa/Vivex", "nexa/Generators"]
 ---
 # AI VIDEO 제너레이터 — Tiptap · Rivet · ComfyUI / Remotion·MoviePy (기획 정리본)
+
+> **⛔ archived (2026-06-13):** **Phase 2+** Generator · MVP 7탭 P0 밖 · **SSOT ✗**
+> **대체:** [TDD-010](../08_TDD_NEXIA_구조기술스택운영방침.md) · [AI협력 파이프라인 (archived)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md)
+
 
 > **스택:** 셸 **Next.js** · **Embedded Rivet** 정제 · **NEXIA React Flow** (Synapse). — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
 

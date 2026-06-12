@@ -6,7 +6,7 @@ domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-10
-implements_doc: TDD-042
+implements_doc: PRD-001
 terms_standard: ["esp32", "jetson", "raspberry-pi"]
 terms_nexa: ["Nano-Sentinel", "Kinetic-Controller", "Zenith-Indicator", "COLD", "HOT"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/raspberry-pi", "nexa/Nano-Sentinel", "nexa/Kinetic-Controller", "nexa/Zenith-Indicator", "nexa/COLD", "nexa/HOT"]
@@ -236,6 +236,6 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 안전 대책 | [안전 대책 · 선조치 로직 (TDD-039)](./08_TDD_AI_안전대책선조치로직.md) |
 | NEXA-CELL PRD | [NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 (PRD-004)](../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |

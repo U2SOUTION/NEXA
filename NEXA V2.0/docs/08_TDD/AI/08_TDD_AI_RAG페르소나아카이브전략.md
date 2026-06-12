@@ -6,7 +6,7 @@ domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-10
-implements_doc: TDD-042
+implements_doc: PRD-001
 terms_standard: ["rag", "pgvector", "embeddings"]
 terms_nexa: ["Persona-Archive", "Atom", "5W1H", "Nature-Tag", "INTENT"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/rag", "std/pgvector", "std/embeddings", "nexa/Persona-Archive", "nexa/Atom", "nexa/5W1H", "nexa/Nature-Tag", "nexa/INTENT"]
@@ -78,6 +78,6 @@ NEXA는 현장 중심 지능형 협업과 '언어 너머의 뜻'을 읽는 한�
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 5W1H 레이어 | [5W1H · 6 대 추상 레이어 규격 (TDD-033)](./08_TDD_AI_5W1H_6대추상레이어규격.md) |
 | Yjs 협업 | [Yjs · Hocuspocus 협업 SSOT (TDD-038)](./08_TDD_AI_YjsHocuspocus협업SSOT.md) |

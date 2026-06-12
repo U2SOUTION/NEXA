@@ -5,16 +5,20 @@ doc_id: UIX-006
 title: "NEXA 통합 레이아웃 구조 규격"
 category: "07_UIUX"
 domain: NEXA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-11
-implements_doc: MVP-001
+implements_doc: UIX-004
 terms_standard: ["zustand", "next-js", "app-router"]
 terms_nexa: ["MainShell", "domainLayoutRegistry", "useLayoutStore", "SystemStatusBar", "domainKey", "AppHeader", "Left-Drawer", "Right-Drawer", "drawerDefaults"]
 tags: ["doc/cat/07-uiux", "doc/domain/nexa", "std/zustand", "std/next-js", "std/app-router", "nexa/MainShell", "nexa/domainLayoutRegistry", "nexa/useLayoutStore", "nexa/SystemStatusBar", "nexa/domainKey", "nexa/AppHeader", "nexa/Left-Drawer", "nexa/Right-Drawer", "nexa/drawerDefaults"]
 ---
 
 # NEXA · 통합 레이아웃 구조 규격
+
+> **⛔ archived (2026-06-13):** `implements_doc: MVP-001` 기준 구 규격 · **SSOT ✗**
+> **대체:** [UIX-004](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [TDD-002 도메인 레지스트리](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md)
+
 
 > **범위:** NEXA 플랫폼 **전 도메인** (`domainKey`) 공통 **MainShell** 셸 — AppHeader · L/R Drawer · Content · SystemStatusBar.
 > **도메인별 UI:** `nexia` → [`UIX-004` NEXIA MainShell](./07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md). `erp` · `ontex` 등은 각 도메인 UIX/TDD.

@@ -6,7 +6,7 @@ doc_id: MVP-001
 title: "NEXIA 레이아웃 · 팝아웃 MVP"
 category: "03_MVP"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-11
 terms_standard: ["next-js", "zustand", "broadcast-channel", "app-router"]
@@ -15,6 +15,10 @@ tags: ["doc/cat/03-mvp", "doc/domain/nexia", "std/next-js", "std/zustand", "std/
 ---
 
 # NEXIA · 레이아웃 팝아웃 MVP 계획
+
+> **⛔ archived (2026-06-13):** `NexiaSplitLayout` 시대 MVP · **SSOT ✗**
+> **대체:** [UIX-004 NEXIA MainShell](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [TDD-014 Document PiP](../08_TDD/NEXIA/08_TDD_NEXIA_멀티윈도우DocumentPiP.md)
+
 
 ## 1. 지금 맞닥뜨린 문제 (한 줄)
 

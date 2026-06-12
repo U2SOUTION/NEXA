@@ -3,7 +3,7 @@ doc_id: TDD-026
 title: "AI 3D 제너레이터"
 category: "08_TDD"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-10
 parent_doc: TDD-010
@@ -12,6 +12,10 @@ terms_nexa: ["AI3D", "CadQuery", "R3F", "OCP-wasm"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/pyodide", "std/webassembly", "std/three-js", "std/monaco", "std/ollama", "nexa/AI3D", "nexa/CadQuery", "nexa/R3F", "nexa/OCP-wasm"]
 ---
 # React + Monaco + Pyodide + OCP.wasm + Three.js(R3F) + Ollama(C3Dv0) 중심 정리
+
+> **⛔ archived (2026-06-13):** **Phase 2+** Generator · MVP 7탭 P0 밖 · **SSOT ✗**
+> **대체:** [TDD-010](../08_TDD_NEXIA_구조기술스택운영방침.md) · [AI협력 파이프라인 (archived)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md)
+
 
 **브라우저:** 자연어 입력 → **NEXA 플랫폼 API**가 CadQuery(Python) 코드 생성 → Monaco 편집 → **Pyodide+OCP.wasm** 연산 → R3F로 3D/2D 표시 → STEP/DXF.
 

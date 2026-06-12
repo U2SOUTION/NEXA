@@ -552,7 +552,7 @@ _상태: 7 탭 SSOT — Omnix/Normex/Logex/Scribx/Vivex/Twinex/Navex · §1~§9 
 | :--- | :--- |
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
 | OS SSOT | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
-| AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](../AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| AI 워크스페이스 | [Yjs · Hocuspocus SSOT (TDD-038)](../../08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
 | 7 탭 범위 | [NEXIA · 7탭 범위 확정 v1.0 (TDD-056)](./08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | 오케스트레이션 | [LangGraph · 오케스트레이션 설계 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
 | 하위 TDD | [드롭존 · 첨부 파일 구조 (TDD-013)](./08_TDD_NEXIA_드롭존첨부파일구조.md) |

@@ -7,7 +7,6 @@ AI 워크스페이스·협업·지능 위계·GOVERN·데이터 프로토콜. �
 | 문서 | 역할 |
 | :--- | :--- |
 | [08_TDD_AI_YjsHocuspocus협업SSOT](./08_TDD_AI_YjsHocuspocus협업SSOT.md) | **CRDT SSOT** — Yjs · `apps/sync` |
-| [08_TDD_AI_협업형멀티에디터플랫폼](./08_TDD_AI_협업형멀티에디터플랫폼.md) | 워크스페이스·오케스트레이터·Nexus Map (초안 shadcn/ui, 현행 매핑 표기) |
 | [08_TDD_AI_TS타입스키마전략](./08_TDD_AI_TS타입스키마전략.md) | Zod · `packages/shared` 계약 |
 | [08_TDD_AI_코일밸런스운영규범GOVERN](./08_TDD_AI_코일밸런스운영규범GOVERN.md) | COILS · 안전·지능 가중치 |
 
@@ -36,6 +35,12 @@ AI 워크스페이스·협업·지능 위계·GOVERN·데이터 프로토콜. �
 | GOVERN V2 | TDD-041 | [코일 밸런스 · GOVERN](./08_TDD_AI_코일밸런스운영규범GOVERN.md) |
 | NEXA-SYNC Command Center | ADM-001 | [09_Admin_NEXA_SYNC커맨드센터](../../09_Admin/09_Admin_NEXA_SYNC커맨드센터.md) |
 
+## archived (2026-06-13 · SSOT ✗)
+
+| doc_id | 문서 | 대체 SSOT |
+| :---: | :--- | :--- |
+| TDD-042 | [협업형 멀티에디터 플랫폼](./08_TDD_AI_협업형멀티에디터플랫폼.md) | [PRD-001](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) · **TDD-038** · **TDD-041** |
+
 ## `_inbox` 파이프라인 초안 (연계)
 
 | 문서 | 역할 |
@@ -50,4 +55,4 @@ AI 워크스페이스·협업·지능 위계·GOVERN·데이터 프로토콜. �
 | PRD | [05_PRD/NEXIA/README](../../05_PRD/NEXIA/README.md) — 워크스페이스 PRD |
 | UIUX | [07_UIUX_NEXIA_탐색기UI전략](../../07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) · [07_UIUX_NEXIA_Tiptap엔진도메인옵션](../../07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md) |
 | Admin | [09_Admin_NEXA_SYNC커맨드센터](../../09_Admin/09_Admin_NEXA_SYNC커맨드센터.md) |
-| NEXIA | [멀티창 Yjs](../NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md) |
+| NEXIA | [멀티윈도우 PiP (TDD-014)](../NEXIA/08_TDD_NEXIA_멀티윈도우DocumentPiP.md) · **TDD-038** Yjs |

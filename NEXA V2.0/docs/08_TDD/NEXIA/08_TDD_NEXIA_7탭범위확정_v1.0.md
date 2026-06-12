@@ -165,7 +165,7 @@ Logex 는 **두 층**으로 확정한다.
 | **엔진** | `apps/agent-graph` (Chat·Stream·SSE) · Nest 프록시 · Yjs 채팅 룸 |
 | **산출물** | `.nxchat` → Navex 등록 |
 | **Left / Right** | 요청 큐·최근 Run ● / Agent · Time Axis ● |
-| **연계 PRD/TDD** | PRD-003(ASK/VOID) · TDD-041(GOVERN) · TDD-042 |
+| **연계 PRD/TDD** | PRD-003(ASK/VOID) · TDD-041(GOVERN) · PRD-001 · TDD-038 |
 
 ### 5.2 Normex (`normex`)
 

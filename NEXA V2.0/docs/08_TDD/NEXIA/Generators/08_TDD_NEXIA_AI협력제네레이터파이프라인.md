@@ -3,7 +3,7 @@ doc_id: TDD-028
 title: "AI 협력 제너레이터 파이프라인"
 category: "08_TDD"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-10
 parent_doc: TDD-010
@@ -12,6 +12,10 @@ terms_nexa: ["Generators", "Omnix", "agent-graph", "Rivet"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/langgraph", "std/comfyui", "std/ollama", "nexa/Generators", "nexa/Omnix", "nexa/agent-graph", "nexa/Rivet"]
 ---
 # AI 협력 제네레이터 — 공통 아키텍처 파이프라인 (v2)
+
+> **⛔ archived (2026-06-13):** **Phase 2+** Generators · MVP 7탭 P0 밖 · **SSOT ✗**
+> **대체:** [TDD-010 NEXIA 스택](../08_TDD_NEXIA_구조기술스택운영방침.md) · [PRD-001](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md)
+
 
 **한 줄:** 모든 Nexia 제너레이터는 **① 기획(Ollama@플랫폼) → ② Rivet 정제 → ③ 도메인 SoT(Monaco 또는 Tiptap) → ④ 클라이언트 Wasm/뷰어 → ⑤ Worker(선택)** 를 공유한다. **세부 스택·API·JSON 계약은 각 제너레이터 문서가 우선**한다.
 

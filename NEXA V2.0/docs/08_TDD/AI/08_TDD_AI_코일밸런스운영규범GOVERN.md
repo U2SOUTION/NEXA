@@ -8,7 +8,7 @@ domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-13
-implements_doc: TDD-042
+implements_doc: PRD-001
 terms_standard: ["json"]
 terms_nexa: ["GOVERN", "COILS-Balancer", "Safety", "Compliance", "Capability-ID"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/json", "nexa/GOVERN", "nexa/COILS-Balancer", "nexa/Safety", "nexa/Compliance", "nexa/Capability-ID"]
@@ -501,5 +501,5 @@ NEXA 라우터 전체를 보면서 각 영역에서 필요할 수 있는 모든 
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 데이터 수명 | [데이터 성격 · 수명 주기 (TDD-034)](./08_TDD_AI_데이터성격수명주기.md) |

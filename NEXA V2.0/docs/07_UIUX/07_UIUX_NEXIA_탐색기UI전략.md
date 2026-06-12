@@ -18,7 +18,7 @@ tags: ["doc/cat/07-uiux", "doc/domain/nexia", "std/next-js", "std/rest", "nexa/G
 # NEXIA · 탐색기 UI 전략
 
 > **스택:** nexia **`apps/web` (Next.js/React)** · 컴포넌트 경로 `*.tsx` · UI **shadcn/ui**.
-> **연계:** [`05_PRD_NEXIA_웹탐색기문서폴더연동`](../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md) · [`08_TDD_AI_협업형멀티에디터플랫폼`](../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md)
+> **연계:** [`05_PRD_NEXIA_웹탐색기문서폴더연동`](../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md) · [`PRD-001 NEXIA UI 기능 명세`](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md)
 
 웹 탐색기 ↔ 문서 폴더 연동과 AI 워크스페이스를 통합하는 **탐색기 UI 전략** 정리 문서이다.
 
@@ -425,7 +425,7 @@ listItem (목록 항목) = {
 | 문서 | 경로 |
 |------|------|
 | 웹 탐색기 ↔ 문서 폴더 연동 | [05_PRD_NEXIA_웹탐색기문서폴더연동](../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md) |
-| AI 협업형 멀티 에디터 플랫폼 | [08_TDD_AI_협업형멀티에디터플랫폼](../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| AI 협업 · UI | [PRD-001 NEXIA UI 기능 명세](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 탐색기 ↔ 미디어 탭 동기화 | [05_PRD_NEXIA_탐색기미디어탭동기화](../05_PRD/NEXIA/05_PRD_NEXIA_탐색기미디어탭동기화.md) |
 
 ---

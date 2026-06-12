@@ -3,7 +3,7 @@ doc_id: TDD-042
 title: "협업형 멀티에디터 플랫폼"
 category: "08_TDD"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-10
 implements_doc: PRD-001
@@ -12,6 +12,10 @@ terms_nexa: ["NEXIA", "agent-graph", "Omnix", "GOVERN", "apps-sync", "project_yj
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/crdt", "std/zod", "std/tiptap", "std/monaco", "std/sse", "std/langgraph", "nexa/NEXIA", "nexa/agent-graph", "nexa/Omnix", "nexa/GOVERN", "nexa/apps-sync", "nexa/project_yjs_updates"]
 ---
 # AI · 협업형 멀티 에디터 플랫폼
+
+> **⛔ archived (2026-06-13):** 구 **shadcn/Vercel AI SDK** 워크스페이스 초안 · **SSOT ✗**
+> **대체:** [PRD-001](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) · [TDD-038 Yjs SSOT](./08_TDD_AI_YjsHocuspocus협업SSOT.md) · [TDD-041 GOVERN](./08_TDD_AI_코일밸런스운영규범GOVERN.md) · [LangGraph 모노레포](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)
+
 
 > **스택 SSOT (LangGraph, 2026-06):** [`08_TDD_LangGraph_모노레포폴더구조`](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) · [`08_TDD_AI_YjsHocuspocus협업SSOT`](./08_TDD_AI_YjsHocuspocus협업SSOT.md)  
 > 구 **Vue/Quasar/Pinia** 초안을 **Next.js · Zustand · agent-graph** 기준으로 갱신함. **스택 매핑:**

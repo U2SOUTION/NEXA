@@ -20,7 +20,7 @@ NEXA 플랫폼의 데이터 무결성과 지능적 의사결정 품질을 높이
 신뢰도 점수 (Confidence Score / Fit Score) 의 저장 위치, 부여 로직, 운영 활용 방식을 정의한다.
 
 
-> **연계:** [`08_TDD_NEXIA_멀티창동기화구현로드맵`](../NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md)
+> **연계:** [`08_TDD_AI_YjsHocuspocus협업SSOT`](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md)
 
 ---
 

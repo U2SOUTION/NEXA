@@ -19,7 +19,7 @@ NEXIA 도메인(`nexia`) 제품 요건. TDD SSOT는 [08_TDD/NEXIA](../../08_TDD/
 | [05_PRD_NEXIA_지식그래프NexusGraph](./05_PRD_NEXIA_지식그래프NexusGraph.md) | Nexus Graph · 관계 추론 PRD |
 | [05_PRD_NEXIA_ASKVOID처리설계](./05_PRD_NEXIA_ASKVOID처리설계.md) | ASK / VOID 처리 RFC |
 
-**TDD:** [08_TDD_NEXIA_드롭존첨부파일구조](../../08_TDD/NEXIA/08_TDD_NEXIA_드롭존첨부파일구조.md) · [08_TDD_AI_협업형멀티에디터플랫폼](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) (플랫폼 공통)
+**TDD:** [08_TDD_NEXIA_드롭존첨부파일구조](../../08_TDD/NEXIA/08_TDD_NEXIA_드롭존첨부파일구조.md) · [Yjs SSOT (TDD-038)](../../08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md)
 
 ## NEXA-CELL (Twinex · 엣지·펌웨어)
 

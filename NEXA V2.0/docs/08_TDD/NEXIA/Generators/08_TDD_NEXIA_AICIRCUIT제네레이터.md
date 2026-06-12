@@ -3,7 +3,7 @@ doc_id: TDD-029
 title: "AI CIRCUIT 제너레이터"
 category: "08_TDD"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-10
 parent_doc: TDD-028
@@ -12,6 +12,10 @@ terms_nexa: ["AICIRCUIT", "SCHEMATIC", "SIM", "Twinex"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/wokwi", "std/monaco", "std/esp32", "nexa/AICIRCUIT", "nexa/SCHEMATIC", "nexa/SIM", "nexa/Twinex"]
 ---
 # AI CIRCUIT 제너레이터 — Monaco(ESP32 펌웨어) · Ollama · Pyodide · 회로도 뷰어 (기획 정리본)
+
+> **⛔ archived (2026-06-13):** **Phase 2+** Generator · MVP 7탭 P0 밖 · **SSOT ✗**
+> **대체:** [TDD-010](../08_TDD_NEXIA_구조기술스택운영방침.md) · [AI협력 파이프라인 (archived)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md)
+
 
 **한 줄:** Monaco **ESP32 펌웨어** SoT → **이원화** — **① SCHEMATIC** 트랙(브라우저 BOM·React Flow 회로도) · **② SIMULATION** 트랙(플랫폼 **Wokwi CLI/API** 시뮬·시리얼·검증) — 공통 `ExtractSnapshot` · 분리 산출(`CircuitInsight` vs `WokwiInsight`).
 

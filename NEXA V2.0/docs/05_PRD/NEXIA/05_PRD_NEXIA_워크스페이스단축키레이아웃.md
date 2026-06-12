@@ -325,6 +325,6 @@ Ctrl+Shift+T   방금 닫은 탭/패널 다시 열기 (Recently Closed Stack, §
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
-| MVP | [NEXIA 레이아웃 · 팝아웃 MVP (MVP-001)](../../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
+| MVP | [NEXIA MainShell (UIX-004)](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | 레이아웃 규격 | [NEXA 통합 레이아웃 구조 규격 (UIX-006)](../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |
-| AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| AI 워크스페이스 | [Yjs · Hocuspocus SSOT (TDD-038)](../../08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |

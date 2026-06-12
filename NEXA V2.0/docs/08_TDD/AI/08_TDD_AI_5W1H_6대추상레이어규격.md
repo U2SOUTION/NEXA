@@ -8,7 +8,7 @@ domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-11
-implements_doc: TDD-042
+implements_doc: PRD-001
 terms_standard: ["embedding", "tensor", "pgvector"]
 terms_nexa: ["5W1H", "HEXAGON", "6-Layer", "Nature-Tag", "Atom", "Scope"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/embedding", "std/tensor", "std/pgvector", "nexa/5W1H", "nexa/HEXAGON", "nexa/6-Layer", "nexa/Nature-Tag", "nexa/Atom", "nexa/Scope"]
@@ -873,7 +873,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 데이터 수명 | [데이터 성격 · 수명 주기 (TDD-034)](./08_TDD_AI_데이터성격수명주기.md) |
 | RAG 전략 | [RAG · 페르소나 아카이브 전략 (TDD-036)](./08_TDD_AI_RAG페르소나아카이브전략.md) |
 | 파이프라인 초안 | [IoT 엣지 DRAFT](../../_inbox/DRAFT_IoT엣지데이터파이프라인_HEXAGON선처리_Nexaon지식화연계.md) |

@@ -5,7 +5,7 @@ doc_id: TDD-030
 title: "AI SOUND 제너레이터"
 category: "08_TDD"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-11
 parent_doc: TDD-028
@@ -15,6 +15,10 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/pyodide", "std/tone-js", "std/
 ---
 
 # React + Monaco + Pyodide + Pippi/SCAMP + Tone.js + Ollama(플랫폼) 중심 정리
+
+> **⛔ archived (2026-06-13):** **Phase 2+** Generator · MVP 7탭 P0 밖 · **SSOT ✗**
+> **대체:** [TDD-010](../08_TDD_NEXIA_구조기술스택운영방침.md) · [AI협력 파이프라인 (archived)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md)
+
 
 **브라우저:** 자연어 → **NEXA 플랫폼 API**가 Pippi/SCAMP(Python) 코드 생성 → Monaco 편집 → **Pyodide**로 WAV/MIDI 등 **자산 굽기** → **Tone.js**로 재생·실시간 변조 → (선택) Wavesurfer / paper.js / P5.js.
 

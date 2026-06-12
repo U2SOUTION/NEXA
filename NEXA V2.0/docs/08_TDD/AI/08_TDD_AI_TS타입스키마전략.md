@@ -151,7 +151,7 @@ Ollama 연동 시 발생하는 에러(모델 로드 실패, 타임아웃 등)를
 | 문서 | 내용 |
 |------|------|
 | **[NEXA-PLATFORM-TS-01]** | TS 마이그레이션·스키마 통합·에러 코드·Zod 패턴. AI 도메인은 본 문서에서 상세 정의. |
-| [협업형 멀티 에디터](./08_TDD_AI_협업형멀티에디터플랫폼.md) | 오케스트레이터·Focus Stack |
+| [PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) | 오케스트레이터·Focus Stack |
 | [음성·미디어 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) | 비동기 큐·재시도 |
 ---
 
@@ -161,4 +161,4 @@ Ollama 연동 시 발생하는 에러(모델 로드 실패, 타임아웃 등)를
 | :--- | :--- |
 | 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | Yjs 협업 | [Yjs · Hocuspocus 협업 SSOT (TDD-038)](./08_TDD_AI_YjsHocuspocus협업SSOT.md) |
-| AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| AI 워크스페이스 | [Yjs · Hocuspocus SSOT (TDD-038)](./08_TDD_AI_YjsHocuspocus협업SSOT.md) |

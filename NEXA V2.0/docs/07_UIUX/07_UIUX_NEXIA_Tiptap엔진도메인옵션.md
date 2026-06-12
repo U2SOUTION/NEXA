@@ -112,4 +112,4 @@ tags: ["doc/cat/07-uiux", "doc/domain/nexia", "std/tiptap", "std/yjs", "nexa/Tip
 | :--- | :--- |
 | 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 룰 · GOVERN | [코일 밸런스 · GOVERN (TDD-041)](../08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |
-| AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| AI 워크스페이스 | [Yjs · Hocuspocus SSOT (TDD-038)](../../08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |

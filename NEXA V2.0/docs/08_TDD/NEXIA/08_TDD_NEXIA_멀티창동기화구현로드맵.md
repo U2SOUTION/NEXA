@@ -3,7 +3,7 @@ doc_id: TDD-015
 title: "멀티창 동기화 구현 로드맵"
 category: "08_TDD"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-10
 parent_doc: MVP-001
@@ -13,8 +13,11 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/broadcast-channel",
 ---
 ## NEXIA 멀티창 동기화 구현 로드맵
 
+> **⛔ archived (2026-06-13):** `NexiaSplitLayout` · shadcn 초안 로드맵 · **SSOT ✗**
+> **대체:** [TDD-014 Document PiP](./08_TDD_NEXIA_멀티윈도우DocumentPiP.md) · [TDD-038 Yjs SSOT](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md)
+
 > **협업 SSOT:** [08_TDD_AI_YjsHocuspocus협업SSOT](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md)  
-> 본 로드맵 **Phase 1** = 동일 사용자 **멀티 탭·창**(SharedWorker). **멀티 유저·서버 영속** = **`apps/sync` Hocuspocus** ([협업형 멀티 에디터](../AI/08_TDD_AI_협업형멀티에디터플랫폼.md) §10.0과 동시 진행).  
+> 본 로드맵 **Phase 1** = 동일 사용자 **멀티 탭·창**(SharedWorker). **멀티 유저·서버 영속** = **`apps/sync` Hocuspocus** ([TDD-038 Yjs SSOT](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) §10.0과 동시 진행).  
 > **스택:** 현행 `apps/web` (Next.js). 본문 shadcn/ui/Vite 표기는 **레거시** 참고용.
 
 ### Phase 0 — 기반 설계 확정 (시작 전 체크)

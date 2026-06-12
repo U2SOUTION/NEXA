@@ -58,11 +58,9 @@ terms_nexa: []
 
 ---
 
-## 03_MVP (1)
+## 03_MVP (0 active)
 
-| doc_id | title | domain | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
-| :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
-| MVP-001 | NEXIA 레이아웃 · 팝아웃 MVP | NEXIA | next-js, zustand, broadcast-channel, app-router | NEXIA, NexiaSplitLayout, nexiaPanelRegistry, useNexiaSplitLayout, panelId, detach | 완료 | 4 링크 | [03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md](./03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
+> **MVP-001 archived (2026-06-13)** — [archived doc_id](#archived-doc_id-2026-06-13--ssot-)
 
 ---
 
@@ -95,7 +93,7 @@ terms_nexa: []
 | UIX-003 | BAX 미학적 인터페이스 UX 아키텍처 | NEXIA | BRD-001 | websocket, sse | BAX, MAE, ATS, M2P, ASR, RuleGuard, VirtualCanvas, LayoutPolicy | 완료 | 1/1 · 3 링크 | [07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md](./07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
 | UIX-004 | NEXIA MainShell · 레이아웃 v1.0 | NEXIA | PRD-001 | next-js, react, zustand, tailwind-css | nexia, MainShell, domainLayoutRegistry, useLayoutStore, SystemStatusBar, NexiaContent, NexaonShell, drawerDefaults, tabId | 완료 | 1/1 · 5 링크 | [07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md](./07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | UIX-005 | NEXIA v0 UI 프롬프트셋 v1.0 | NEXIA | PRD-001 | next-js, shadcn-ui, react-flow | nexia, v0, UI-L0, nexia-shell, nexaon-graph-workspace, NexaonShell | 완료 | 1/1 · 3 링크 | [07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md](./07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) |
-| UIX-006 | NEXA 통합 레이아웃 구조 규격 | NEXA | MVP-001 | zustand, next-js, app-router | MainShell, domainLayoutRegistry, useLayoutStore, SystemStatusBar, domainKey, AppHeader, Left-Drawer, Right-Drawer, drawerDefaults | 완료 | 1/1 · 4 링크 | [07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md](./07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |
+| UIX-006 | NEXA 통합 레이아웃 구조 규격 | NEXA | UIX-004 | zustand, next-js, app-router | MainShell, domainLayoutRegistry, useLayoutStore, SystemStatusBar, domainKey, AppHeader, Left-Drawer, Right-Drawer, drawerDefaults | **archived** | 1/1 · 4 링크 | [07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md](./07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |
 | UIX-007 | 그리드 알고리즘 · 동적 타이포그래피 UI | NEXIA | UIX-003 | css-grid, typography | MAE, BAX, VirtualCanvas, DynamicGrid | 완료 | 1/1 · 2 링크 | [07_UIUX/07_UIUX_그리드알고리즘_동적타이포그래피UI.md](./07_UIUX/07_UIUX_그리드알고리즘_동적타이포그래피UI.md) |
 | UIX-008 | NEXIA · 컴포넌트 트리 뼈대 | NEXIA | PRD-001 | react, next-js, zustand, tailwind-css, react-flow | MainShell, NexiaContent, NexiaTabBar, tabId, NexaonShell, GraphCanvas, ExplorerTree, drawerDefaults | 미완 | 0/1 | [07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md](./07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) |
 
@@ -123,7 +121,7 @@ terms_nexa: []
 | TDD-009 | IoT·온톨로지·AI 협력 플랫폼 핵심 기술 스택 | LangGraph | TDD-008 | langgraph, neo4j, sparql, cypher, graphql, grpc, ros-2, mqtt | nexia, ontex, ontology, digital-twin | 완료 | 1/1 · 3 링크 | [08_TDD/LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md](./08_TDD/LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) |
 | TDD-058 | LangGraph · 오케스트레이션 설계 v1.0 | LangGraph | TDD-008 | langgraph, sse, fastapi, zod, state-graph | agent-graph, graph_id, run_id, Omnix, tabId, domainKey, orchestration, mint_surface | 완료 | 1/1 · 6 링크 | [08_TDD/LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md](./08_TDD/LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
 
-## 08_TDD — NEXIA (15)
+## 08_TDD — NEXIA (14)
 
 | doc_id | title | domain | parent_doc | implements_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
@@ -131,8 +129,7 @@ terms_nexa: []
 | TDD-011 | 데이터 분산 처리 · 하이브리드 전략 | NEXIA | TDD-010 | — | webgpu, mqtt, ollama, docker | BROWSER_EDGE, LOCAL_ONPREM, CLOUD_DEFAULT, ai_execution_mode | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_데이터분산처리하이브리드전략.md](./08_TDD/NEXIA/08_TDD_NEXIA_데이터분산처리하이브리드전략.md) |
 | TDD-012 | 데이터 생애주기 · 형상 관리 | NEXIA | TDD-010 | — | git, postgresql | Rivet, Logex, versioning, lifecycle | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_데이터생애주기및형상관리.md](./08_TDD/NEXIA/08_TDD_NEXIA_데이터생애주기및형상관리.md) |
 | TDD-013 | 드롭존 · 첨부 파일 구조 | NEXIA | TDD-010 | PRD-005 | file-upload, multipart, rest | NEXIA, FileDropZone, NexiaLeftNav, files | 완료 | 2/2 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_드롭존첨부파일구조.md](./08_TDD/NEXIA/08_TDD_NEXIA_드롭존첨부파일구조.md) |
-| TDD-014 | 멀티윈도우 · Document PiP | NEXIA | MVP-001 | — | document-pip, broadcast-channel, yjs | Multi-Window, PiP, Sync-Bus, panelId | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_멀티윈도우DocumentPiP.md](./08_TDD/NEXIA/08_TDD_NEXIA_멀티윈도우DocumentPiP.md) |
-| TDD-015 | 멀티창 동기화 구현 로드맵 | NEXIA | MVP-001 | — | yjs, broadcast-channel, shared-worker | Multi-Window, Sync-Bus, detach, NexiaSplitLayout | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md](./08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md) |
+| TDD-014 | 멀티윈도우 · Document PiP | NEXIA | UIX-004 | — | document-pip, broadcast-channel, yjs | Multi-Window, PiP, Sync-Bus, panelId | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_멀티윈도우DocumentPiP.md](./08_TDD/NEXIA/08_TDD_NEXIA_멀티윈도우DocumentPiP.md) |
 | TDD-016 | 보안 및 권한 관리 체계 | NEXIA | TDD-010 | — | rbac, zod, jwt | Grade, Normex, Omnix, audit-log, edge-queue | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_보안및권한관리체계.md](./08_TDD/NEXIA/08_TDD_NEXIA_보안및권한관리체계.md) |
 | TDD-017 | 에코시스템 및 협업 규칙 | NEXIA | TDD-010 | — | yjs, langgraph | Omnix, Twinex, Normex, ecosystem | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_에코시스템및협업규칙.md](./08_TDD/NEXIA/08_TDD_NEXIA_에코시스템및협업규칙.md) |
 | TDD-018 | 예외 상황 처리 | NEXIA | TDD-010 | — | sse | Omnix, ASK, VOID, exception-handler | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_예외상황처리.md](./08_TDD/NEXIA/08_TDD_NEXIA_예외상황처리.md) |
@@ -162,32 +159,34 @@ terms_nexa: []
 | TDD-024 | CELL · ESP32 베이스라인 디바이스 등록 | NEXIA | PRD-004 | esphome, ota, esp32, mqtt | NEXA-CELL, Twinex, edge-device, react-flow | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_ESP32베이스라인디바이스등록.md](./08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_ESP32베이스라인디바이스등록.md) |
 | TDD-025 | CELL · Lambda 템플릿 · Jetson 연동 API | NEXIA | PRD-004 | esphome, jetson, docker, rest | NEXA-CELL, Lambda, Jetson, Twinex | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API.md](./08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API.md) |
 
-## 08_TDD — NEXIA / Generators (7)
+## 08_TDD — NEXIA / Generators (7 · archived)
 
-| doc_id | title | domain | parent_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
-| :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
-| TDD-026 | AI 3D 제너레이터 | NEXIA | TDD-010 | pyodide, webassembly, three-js, monaco, ollama | AI3D, CadQuery, R3F, OCP-wasm | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI3D제네레이터.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI3D제네레이터.md) |
-| TDD-027 | AI 3D · Blender 백엔드 연동 | NEXIA | TDD-026 | blender, python, docker | AI3D, Blender-backend, STEP, DXF | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI3DBlender백엔드연동.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI3DBlender백엔드연동.md) |
-| TDD-028 | AI 협력 제너레이터 파이프라인 | NEXIA | TDD-010 | langgraph, comfyui, ollama | Generators, Omnix, agent-graph, Rivet | 완료 | 1/1 · 4 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
-| TDD-029 | AI CIRCUIT 제너레이터 | NEXIA | TDD-028 | wokwi, monaco, esp32 | AICIRCUIT, SCHEMATIC, SIM, Twinex | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AICIRCUIT제네레이터.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AICIRCUIT제네레이터.md) |
-| TDD-030 | AI SOUND 제너레이터 | NEXIA | TDD-028 | pyodide, tone-js, webassembly | AISOUND, SCAMP, Pippi, Vivex | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AISOUND제네레이터.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AISOUND제네레이터.md) |
-| TDD-031 | AI VIDEO 제너레이터 | NEXIA | TDD-028 | comfyui, remotion, tiptap | AIVIDEO, Rivet, Vivex, Generators | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AIVIDEO제네레이터.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AIVIDEO제네레이터.md) |
-| TDD-032 | WebAssembly 개요 | NEXIA | TDD-028 | webassembly, pyodide | OCP-wasm, Wasm, Generators | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_WebAssembly개요.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_WebAssembly개요.md) |
+> **Phase 2+** — MVP 7탭 P0 밖. [Generators/README](./08_TDD/NEXIA/Generators/README.md)
+
+| doc_id | title | domain | parent_doc | status | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
+| :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
+| TDD-026 | AI 3D 제너레이터 | NEXIA | TDD-010 | **archived** | pyodide, webassembly, three-js, monaco, ollama | AI3D, CadQuery, R3F, OCP-wasm | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI3D제네레이터.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI3D제네레이터.md) |
+| TDD-027 | AI 3D · Blender 백엔드 연동 | NEXIA | TDD-026 | **archived** | blender, python, docker | AI3D, Blender-backend, STEP, DXF | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI3DBlender백엔드연동.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI3DBlender백엔드연동.md) |
+| TDD-028 | AI 협력 제너레이터 파이프라인 | NEXIA | TDD-010 | **archived** | langgraph, comfyui, ollama | Generators, Omnix, agent-graph, Rivet | 완료 | 1/1 · 4 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
+| TDD-029 | AI CIRCUIT 제너레이터 | NEXIA | TDD-028 | **archived** | wokwi, monaco, esp32 | AICIRCUIT, SCHEMATIC, SIM, Twinex | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AICIRCUIT제네레이터.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AICIRCUIT제네레이터.md) |
+| TDD-030 | AI SOUND 제너레이터 | NEXIA | TDD-028 | **archived** | pyodide, tone-js, webassembly | AISOUND, SCAMP, Pippi, Vivex | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AISOUND제네레이터.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AISOUND제네레이터.md) |
+| TDD-031 | AI VIDEO 제너레이터 | NEXIA | TDD-028 | **archived** | comfyui, remotion, tiptap | AIVIDEO, Rivet, Vivex, Generators | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_AIVIDEO제네레이터.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_AIVIDEO제네레이터.md) |
+| TDD-032 | WebAssembly 개요 | NEXIA | TDD-028 | **archived** | webassembly, pyodide | OCP-wasm, Wasm, Generators | 완료 | 1/1 · 2 링크 | [08_TDD/NEXIA/Generators/08_TDD_NEXIA_WebAssembly개요.md](./08_TDD/NEXIA/Generators/08_TDD_NEXIA_WebAssembly개요.md) |
 
 ## 08_TDD — AI (10)
 
 | doc_id | title | domain | implements_doc | status | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
-| TDD-033 | 5W1H · 6 대 추상 레이어 규격 | NEXIA | TDD-042 | published | embedding, tensor, pgvector | 5W1H, HEXAGON, 6-Layer, Nature-Tag, Atom, Scope | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_5W1H_6대추상레이어규격.md](./08_TDD/AI/08_TDD_AI_5W1H_6대추상레이어규격.md) |
-| TDD-034 | 데이터 성격 · 수명 주기 | NEXIA | TDD-042 | published | postgresql | Nature-Tag, ROUTINE, INTENT, GOVERN, Atom, ARCHIVE | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_데이터성격수명주기.md](./08_TDD/AI/08_TDD_AI_데이터성격수명주기.md) |
+| TDD-033 | 5W1H · 6 대 추상 레이어 규격 | NEXIA | PRD-001 | published | embedding, tensor, pgvector | 5W1H, HEXAGON, 6-Layer, Nature-Tag, Atom, Scope | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_5W1H_6대추상레이어규격.md](./08_TDD/AI/08_TDD_AI_5W1H_6대추상레이어규격.md) |
+| TDD-034 | 데이터 성격 · 수명 주기 | NEXIA | PRD-001 | published | postgresql | Nature-Tag, ROUTINE, INTENT, GOVERN, Atom, ARCHIVE | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_데이터성격수명주기.md](./08_TDD/AI/08_TDD_AI_데이터성격수명주기.md) |
 | TDD-035 | 드롭존·첨부 파일 구조 (이관 안내) | NEXIA | PRD-005 | **archived** | file-upload, multipart, rest | FileDropZone, NexiaLeftNav, files | 완료 | 1/1 · 2 링크 | [08_TDD/AI/08_TDD_AI_드롭존첨부파일구조.md](./08_TDD/AI/08_TDD_AI_드롭존첨부파일구조.md) |
-| TDD-036 | RAG · 페르소나 아카이브 전략 | NEXIA | TDD-042 | published | rag, pgvector, embeddings | Persona-Archive, Atom, 5W1H, Nature-Tag, INTENT | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_RAG페르소나아카이브전략.md](./08_TDD/AI/08_TDD_AI_RAG페르소나아카이브전략.md) |
+| TDD-036 | RAG · 페르소나 아카이브 전략 | NEXIA | PRD-001 | published | rag, pgvector, embeddings | Persona-Archive, Atom, 5W1H, Nature-Tag, INTENT | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_RAG페르소나아카이브전략.md](./08_TDD/AI/08_TDD_AI_RAG페르소나아카이브전략.md) |
 | TDD-037 | TS 타입 · 스키마 전략 | NEXIA | TDD-001 | published | zod, typescript | packages-shared, agent-graph, ApiErrorCode | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_TS타입스키마전략.md](./08_TDD/AI/08_TDD_AI_TS타입스키마전략.md) |
-| TDD-038 | Yjs · Hocuspocus 협업 SSOT | NEXIA | TDD-042 | published | yjs, crdt, hocuspocus, websocket, postgresql | apps-sync, project_yjs_updates, yjs_state, SharedWorker | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md](./08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
-| TDD-039 | 안전 대책 · 선조치 로직 | NEXIA | TDD-042 | published | mqtt, esp32 | Sentinel, Reflex, Bypass, Nano-Sentinel, Zenith-Indicator | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_안전대책선조치로직.md](./08_TDD/AI/08_TDD_AI_안전대책선조치로직.md) |
-| TDD-040 | 지능 위계 · 하드웨어 사양 | NEXIA | TDD-042 | published | esp32, jetson, raspberry-pi | Nano-Sentinel, Kinetic-Controller, Zenith-Indicator, COLD, HOT | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md](./08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) |
-| TDD-041 | 코일 밸런스 · GOVERN 운영 규범 | NEXIA | TDD-042 | published | json | GOVERN, COILS-Balancer, Safety, Compliance, Capability-ID | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md](./08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |
-| TDD-042 | 협업형 멀티에디터 플랫폼 | NEXIA | PRD-001 | published | yjs, crdt, zod, tiptap, monaco, sse, langgraph | NEXIA, agent-graph, Omnix, GOVERN, apps-sync, project_yjs_updates | 완료 | 1/1 · 4 링크 | [08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md](./08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| TDD-038 | Yjs · Hocuspocus 협업 SSOT | NEXIA | PRD-001 | published | yjs, crdt, hocuspocus, websocket, postgresql | apps-sync, project_yjs_updates, yjs_state, SharedWorker | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md](./08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
+| TDD-039 | 안전 대책 · 선조치 로직 | NEXIA | PRD-001 | published | mqtt, esp32 | Sentinel, Reflex, Bypass, Nano-Sentinel, Zenith-Indicator | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_안전대책선조치로직.md](./08_TDD/AI/08_TDD_AI_안전대책선조치로직.md) |
+| TDD-040 | 지능 위계 · 하드웨어 사양 | NEXIA | PRD-001 | published | esp32, jetson, raspberry-pi | Nano-Sentinel, Kinetic-Controller, Zenith-Indicator, COLD, HOT | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md](./08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) |
+| TDD-041 | 코일 밸런스 · GOVERN 운영 규범 | NEXIA | PRD-001 | published | json | GOVERN, COILS-Balancer, Safety, Compliance, Capability-ID | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md](./08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |
+| TDD-042 | 협업형 멀티에디터 플랫폼 | NEXIA | PRD-001 | **archived** | yjs, crdt, zod, tiptap, monaco, sse, langgraph | NEXIA, agent-graph, Omnix, GOVERN, apps-sync, project_yjs_updates | 완료 | 1/1 · 4 링크 | [08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md](./08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
 
 > **TDD-035:** 정본은 **TDD-013**. frontmatter `status: archived` 권장.
 
@@ -243,7 +242,8 @@ terms_nexa: []
 | **TDD-057** | Ontex 도메인 기술 SSOT |
 | **PRD-005** ↔ **TDD-013** | 드롭존 클러스터 |
 | **PRD-004** ↔ **TDD-024** · **TDD-025** | NEXA-CELL 클러스터 |
-| **TDD-042** | AI 협업 워크스페이스 허브 (다수 AI TDD 의 `implements_doc`) |
+| **PRD-001** | NEXIA MVP UI · AI TDD-033~041 의 `implements_doc` |
+| **TDD-038** | Yjs · Hocuspocus 협업 SSOT |
 
 ---
 
@@ -254,6 +254,20 @@ terms_nexa: []
 | 상태 | 비고 |
 | :--- | :--- |
 | DRAFT 2 + 메모 1 | `DRAFT_IoT엣지…` · `DRAFT_에이전틱…` · `AI 모델 현황…` — [`_inbox/README.md`](./_inbox/README.md) |
+
+---
+
+## archived doc_id (2026-06-13 · SSOT ✗)
+
+번호 유지 · 파일 삭제 없음 · `status: archived` + 대체 SSOT 링크.
+
+| doc_id | title | domain | 대체 SSOT | 파일 경로 |
+| :----- | :----- | :----- | :----- | :----- |
+| **MVP-001** | NEXIA 레이아웃 · 팝아웃 MVP | NEXIA | **UIX-004** · **TDD-014** | [03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md](./03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
+| **UIX-006** | NEXA 통합 레이아웃 구조 규격 | NEXA | **UIX-004** · **TDD-002** | [07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md](./07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |
+| **TDD-015** | 멀티창 동기화 구현 로드맵 | NEXIA | **TDD-014** · **TDD-038** | [08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md](./08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md) |
+| **TDD-042** | 협업형 멀티에디터 플랫폼 | NEXIA | **PRD-001** · **TDD-038** · **TDD-041** | [08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md](./08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| **TDD-026~032** | Generators 7종 | NEXIA | **TDD-010** · **PRD-001** | [08_TDD/NEXIA/Generators/README.md](./08_TDD/NEXIA/Generators/README.md) |
 
 ---
 

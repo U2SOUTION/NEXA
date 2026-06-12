@@ -3,7 +3,7 @@ doc_id: TDD-032
 title: "WebAssembly 개요"
 category: "08_TDD"
 domain: NEXIA
-status: published
+status: archived
 created: 2026-06-10
 updated: 2026-06-10
 parent_doc: TDD-028
@@ -12,6 +12,10 @@ terms_nexa: ["OCP-wasm", "Wasm", "Generators"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/webassembly", "std/pyodide", "nexa/OCP-wasm", "nexa/Wasm", "nexa/Generators"]
 ---
 # WebAssembly는 무엇인가?
+
+> **⛔ archived (2026-06-13):** **Phase 2+** Generator · MVP 7탭 P0 밖 · **SSOT ✗**
+> **대체:** [TDD-010](../08_TDD_NEXIA_구조기술스택운영방침.md) · [AI협력 파이프라인 (archived)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md)
+
 
 브라우저 안에서 **데스크톱급 연산(C/C++/Rust 등)** 을 돌리게 해 주는 기술입니다.  
 NEXA Nexia에서 CAD·엔지니어링·IoT 데이터 처리를 **서버 없이** 웹에서 돌리려면 Wasm(와 그 위에 올라가는 **Pyodide**)을 이해하는 것이 출발점입니다.

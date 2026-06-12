@@ -6,7 +6,7 @@ domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-10
-parent_doc: MVP-001
+parent_doc: UIX-004
 terms_standard: ["document-pip", "broadcast-channel", "yjs"]
 terms_nexa: ["Multi-Window", "PiP", "Sync-Bus", "panelId"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/document-pip", "std/broadcast-channel", "std/yjs", "nexa/Multi-Window", "nexa/PiP", "nexa/Sync-Bus", "nexa/panelId"]
@@ -281,6 +281,6 @@ PiP는 메인 창을 **대체하지 않고** `보조 제어 / 상태 가시성`�
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 MVP | [NEXIA 레이아웃 · 팝아웃 MVP (MVP-001)](../../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
-| 동기화 로드맵 | [멀티창 동기화 구현 로드맵 (TDD-015)](./08_TDD_NEXIA_멀티창동기화구현로드맵.md) |
+| 상위 MVP | [NEXIA MainShell (UIX-004)](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
+| Yjs · 협업 SSOT | [Yjs · Hocuspocus SSOT (TDD-038)](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
 | 레이아웃 규격 | [NEXA 통합 레이아웃 구조 규격 (UIX-006)](../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |

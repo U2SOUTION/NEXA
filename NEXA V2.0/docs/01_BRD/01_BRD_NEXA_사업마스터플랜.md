@@ -347,5 +347,5 @@ _사업 단계 · IP · GTM · SEO/GEO · Rivet·Protocol TODO 를 단일 SSOT �
 | :--- | :--- |
 | OS 기술 SSOT | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | NEXIA 도메인 SSOT | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |
-| AI 워크스페이스 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| AI 워크스페이스 허브 | [Yjs · Hocuspocus SSOT (TDD-038)](../../08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
 | 제품 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |

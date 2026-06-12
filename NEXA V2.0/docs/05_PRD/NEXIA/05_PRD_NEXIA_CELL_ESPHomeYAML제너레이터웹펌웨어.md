@@ -33,7 +33,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/esphome", "std/react-flow", "s
   2. **고급 로직**: YAML만으로 표현하기 어려운 로직은 **Lambda 코드 작성기**로 작성 후 ESPHome 빌드 파이프라인에 포함한다.
   3. **빌드·수신**: 생성된 YAML(+ Lambda 코드)을 **ESPHome 빌드 서비스**에 전달하고 **바이너리**를 받는다.
   4. **배포**: 받은 바이너리를 **웹 브라우저에서** 개발 디바이스에 **USB(직렬)** 또는 **OTA**로 업로드한다.
-- **AI 협업**: [08_TDD_AI_협업형멀티에디터플랫폼](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) AI 협업형 멀티 에디터 플랫폼과 연동하여, 노드 추천·YAML/Lambda 스니펫 생성·오류 해석·자동완성 등을 지원한다.
+- **AI 협업**: [PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) AI 협업형 멀티 에디터 플랫폼과 연동하여, 노드 추천·YAML/Lambda 스니펫 생성·오류 해석·자동완성 등을 지원한다.
 - **대상·확장 방향**: 초보자부터 **전문적인 시스템 구축자(Professional Integrators)**까지 만족시키기 위해, **여러 대의 ESP32**와 **Jetson Orin Nano, Google Coral**과 같은 고성능 **에지 컴퓨팅(Edge AI)** 장치를 결합한 **하이브리드 시스템** 구축을 중요한 방향으로 둔다. 이를 위해 에지 장치와 ESP32 간 데이터 파이프라인을 설계할 수 있는 전용 노드 타입을 지원한다.
 
 ### 0.2 목표
@@ -295,7 +295,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/esphome", "std/react-flow", "s
 
 ### 2.9 시스템 토폴로지 뷰 (Nexus Map 확장) — 전문 구축자
 
-- 전문 구축자(Professional Integrators)를 위해 **개별 기기가 아닌 전체 시스템의 위상(Topology)** 및 **계층 구조** 설계를 염두에 둔다. [08_TDD_AI_협업형멀티에디터플랫폼](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) §8.6 **Nexus Map**과 연동하여, **시스템 토폴로지 뷰**를 제공한다.
+- 전문 구축자(Professional Integrators)를 위해 **개별 기기가 아닌 전체 시스템의 위상(Topology)** 및 **계층 구조** 설계를 염두에 둔다. [PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) §8.6 **Nexus Map**과 연동하여, **시스템 토폴로지 뷰**를 제공한다.
 
 #### 계층형 뷰 (Hierarchical Topology)
 
@@ -318,7 +318,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/esphome", "std/react-flow", "s
 | **기능** | Nexus Map과 연동. **중앙의 Jetson Orin Nano**(또는 Coral 등 에지 서버)를 중심으로 **수십 대의 ESP32**가 어떻게 배치되고 **데이터가 흐르는지** 시각화. 노드 = 장치(ESP32·Jetson·Coral), 엣지 = 데이터/제어 경로. |
 | **데이터 소스** | nexia/Twinex의 **그룹 노드·디바이스 목록·연결 관계**와 Nexus Map의 **실물 노드**(§8.6)를 매핑. 동일한 관계망 데이터를 "로직 캔버스(nexia/Twinex)"와 "시스템 위상 뷰(Nexus)" 양쪽에서 공유·표시. |
 | **전문가 기능** | 각 장치의 **CPU/메모리 점유율**, **네트워크 지연시간(Latency)** 를 **실시간**으로 수집하여, 엣지(연결선) 위 **애니메이션**으로 모니터링. **RSSI·Data Rate**도 엣지 또는 툴팁에 표시. §2.8 확장. 장치별 상태는 노드 배지 또는 툴팁으로 표시. |
-| **구현 방향** | NEXIA 워크스페이스(Omnix) Nexus 탭(nexus) 또는 nexia/Twinex 전용 "시스템 위상" 모드에서 동일 그래프 렌더. 장치 메트릭·연결 품질(RSSI, Latency, Data Rate)은 ESP32/에지 서버의 **API·에이전트** 또는 기존 모니터링 경로에서 수집. [08_TDD_AI_협업형멀티에디터플랫폼](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) §8.6 노드 종류(실물/논리)·레이어·연결 규칙과 호환되도록 노드 타입·엣지 스키마 확장. |
+| **구현 방향** | NEXIA 워크스페이스(Omnix) Nexus 탭(nexus) 또는 nexia/Twinex 전용 "시스템 위상" 모드에서 동일 그래프 렌더. 장치 메트릭·연결 품질(RSSI, Latency, Data Rate)은 ESP32/에지 서버의 **API·에이전트** 또는 기존 모니터링 경로에서 수집. [PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) §8.6 노드 종류(실물/논리)·레이어·연결 규칙과 호환되도록 노드 타입·엣지 스키마 확장. |
 
 ### 2.10 배치 배포(Batch Deployment) 및 버전 관리 — 전문 구축자
 
@@ -418,7 +418,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/esphome", "std/react-flow", "s
 
 ## 6. AI 협업 연동
 
-### 6.1 연동 포인트 ([08_TDD_AI_협업형멀티에디터플랫폼](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) 기준)
+### 6.1 연동 포인트 ([PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) 기준)
 
 - **오케스트레이터(`apps/agent-graph` 오케스트레이터)**: nexia/Twinex에서 "이 구성을 YAML로 바꿔줘", "이 노드에 맞는 Lambda 예시 만들어줘" 등 **요청**을 채팅 또는 패널에서 보내면, 오케스트레이터가 **컨텍스트**(현재 노드 그래프, 선택된 노드, 기존 YAML 스니펫)를 담아 **모델 호출** → **YAML/Lambda 스니펫** 또는 **수정 제안** 반영.
 - **패널·Focus Stack**: nexia/Twinex에서 **YAML 제너레이터 캔버스**, **Lambda 작성기 패널**을 열어 두면, AI가 "현재 열린 패널" 컨텍스트로 **지칭**("방금 수정한 Lambda", "두 번째 노드")을 해석할 수 있도록 연동.
@@ -488,7 +488,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/esphome", "std/react-flow", "s
 
 #### 구현 시 고려사항
 
-- **NEXIA 워크스페이스(Omnix) 측**: 오케스트레이터 또는 코드 패널에서 "nexia/Twinex 프로젝트용 YAML/Lambda가 수정됨"을 알릴 **이벤트 발행** 또는 **store commit** API 확정. [08_TDD_AI_협업형멀티에디터플랫폼](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md)의 도메인 인터콤·공유 스토어 규격에 맞춰 페이로드 형식 정의.
+- **NEXIA 워크스페이스(Omnix) 측**: 오케스트레이터 또는 코드 패널에서 "nexia/Twinex 프로젝트용 YAML/Lambda가 수정됨"을 알릴 **이벤트 발행** 또는 **store commit** API 확정. [PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md)의 도메인 인터콤·공유 스토어 규격에 맞춰 페이로드 형식 정의.
 - **nexia/Twinex 측**: 인터콤 구독 또는 스토어 watch로 "외부 YAML/Lambda 갱신" 수신 → Lambda는 스토어 반영, YAML은 역파싱 또는 임포트 플로우 실행. 역파싱기는 별도 모듈로 두고, ESPHome YAML 서브셋부터 단계적 지원.
 
 ---
@@ -520,7 +520,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/esphome", "std/react-flow", "s
 | **Lambda 편집** | Monaco Editor 또는 동일 수준 코드 에디터. **ESPHome Lambda(C++ 스타일)** 문법/스키마. 전문가용 **저수준 제어** 가능.  |
 | **빌드**        | 백엔드 또는 별도 서비스: **ESPHome CLI**(Docker 등) 실행, 바이너리 아티팩트 반환.                                    |
 | **배포(웹)**    | **OTA**: HTTP로 디바이스에 바이너리 전송. **USB**: Web Serial API 기반. **ESP Web Tools** 라이브러리 활용 권장(개발 시간 단축). esptool은 추후 고도화 시 검토. |
-| **AI 연동**     | [08_TDD_AI_협업형멀티에디터플랫폼](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) 오케스트레이터·채팅·패널·Focus Stack. nexia/Twinex 컨텍스트(노드 그래프, YAML, Lambda) 주입.               |
+| **AI 연동**     | [PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) 오케스트레이터·채팅·패널·Focus Stack. nexia/Twinex 컨텍스트(노드 그래프, YAML, Lambda) 주입.               |
 
 ---
 
@@ -537,7 +537,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/esphome", "std/react-flow", "s
 
 ## 10. 참고 문서
 
-- **[08_TDD_AI_협업형멀티에디터플랫폼](../../08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) AI 협업형 멀티 에디터 플랫폼 구축**: 오케스트레이터, 패널, Focus Stack, **Nexus Map(§8.6)** — 실물/논리 노드·레이어·연결 규칙. 시스템 토폴로지 뷰(§2.9)는 Nexus Map과 연동. IoT 협업(§5.8).
+- **[PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) AI 협업형 멀티 에디터 플랫폼 구축**: 오케스트레이터, 패널, Focus Stack, **Nexus Map(§8.6)** — 실물/논리 노드·레이어·연결 규칙. 시스템 토폴로지 뷰(§2.9)는 Nexus Map과 연동. IoT 협업(§5.8).
 - **[08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API](../../08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API.md)(../../08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API.md) CELL Lambda 템플릿 및 Jetson 연동 API 규격**(별도 기획): 고성능 연산 장치 통합·하드웨어 수준 정밀 제어를 위한 **CELL별 C++ Lambda 템플릿**과 **Jetson 연동용 API 규격**을 구체적으로 문서화. 본 문서(CELL-01)는 전체 아키텍처·노드 카테고리·배포 흐름을 담당하고, CELL-02는 구현 시 참조할 상세 스펙을 담당.
 - **ESPHome 공식 문서**: YAML 스키마, 컴포넌트, Lambda(C++) 문법.
 - **Web Serial API**: 브라우저 시리얼 접근. **ESP Web Tools** 라이브러리로 개발 시간 단축.
