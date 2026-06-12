@@ -1,3 +1,16 @@
+---
+doc_id: TDD-029
+title: "AI CIRCUIT 제너레이터"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-028
+terms_standard: ["wokwi", "monaco", "esp32"]
+terms_nexa: ["AICIRCUIT", "SCHEMATIC", "SIM", "Twinex"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/wokwi", "std/monaco", "std/esp32", "nexa/AICIRCUIT", "nexa/SCHEMATIC", "nexa/SIM", "nexa/Twinex"]
+---
 # AI CIRCUIT 제너레이터 — Monaco(ESP32 펌웨어) · Ollama · Pyodide · 회로도 뷰어 (기획 정리본)
 
 **한 줄:** Monaco **ESP32 펌웨어** SoT → **이원화** — **① SCHEMATIC** 트랙(브라우저 BOM·React Flow 회로도) · **② SIMULATION** 트랙(플랫폼 **Wokwi CLI/API** 시뮬·시리얼·검증) — 공통 `ExtractSnapshot` · 분리 산출(`CircuitInsight` vs `WokwiInsight`).
@@ -614,3 +627,11 @@ POST .../circuit/kicad/jobs/{id}/artifacts
 ---
 
 *상태: v2 — SCHEMATIC/SIM 이원화 · Wokwi Worker(`wokwi-cli`) · `WokwiInsight` · 탭1/2/3 · KiCad Phase 2.*
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [AI 협력 제너레이터 파이프라인 (TDD-028)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
+| NEXA-CELL PRD | [NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 (PRD-004)](../../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |

@@ -1,13 +1,26 @@
+---
+doc_id: TDD-042
+title: "협업형 멀티에디터 플랫폼"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: PRD-006
+terms_standard: ["yjs", "crdt", "zod", "tiptap", "monaco", "sse", "langgraph"]
+terms_nexa: ["NEXIA", "agent-graph", "Omnix", "GOVERN", "apps-sync", "project_yjs_updates"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/crdt", "std/zod", "std/tiptap", "std/monaco", "std/sse", "std/langgraph", "nexa/NEXIA", "nexa/agent-graph", "nexa/Omnix", "nexa/GOVERN", "nexa/apps-sync", "nexa/project_yjs_updates"]
+---
 # AI · 협업형 멀티 에디터 플랫폼
 
-> **스택 SSOT (NEXAON, 2026-06):** [`08_TDD_NEXAON_모노레포폴더구조`](../NEXAON/08_TDD_NEXAON_모노레포폴더구조_v1.0.md) · [`08_TDD_AI_YjsHocuspocus협업SSOT`](./08_TDD_AI_YjsHocuspocus협업SSOT.md)  
-> 본 문서 초안은 **Quasar/Vue3/Pinia/Vercel AI SDK** 기준으로 작성됨. **현행 구현 매핑:**
+> **스택 SSOT (LangGraph, 2026-06):** [`08_TDD_LangGraph_모노레포폴더구조`](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) · [`08_TDD_AI_YjsHocuspocus협업SSOT`](./08_TDD_AI_YjsHocuspocus협업SSOT.md)  
+> 구 **Vue/Quasar/Pinia** 초안을 **Next.js · Zustand · agent-graph** 기준으로 갱신함. **스택 매핑:**
 >
-> | 초안 (레거시) | 현행 (NEXAON) |
+> | 초안 (레거시) | 현행 (nexia) |
 > | :--- | :--- |
-> | Quasar · Pinia | **Next.js** · **Zustand** / `useLayoutStore` |
+> | Next.js · Zustand | **Next.js** · **Zustand** / `useLayoutStore` |
 > | Vercel AI SDK (브라우저→Ollama) | **Nest 프록시** → **`apps/agent-graph`** (LangGraph · SSE) |
-> | Vue SFC (`*.vue`) | **React** · TipTap · Monaco · React Flow |
+> | React TSX (`*.tsx`) | **React** · TipTap · Monaco · React Flow |
 > | Node.js 단일 백엔드 | **NestJS** (`apps/backend`) + **Hocuspocus** (`apps/sync`) |
 
 ## 지능형 문서 정화 및 다단계 삭제 시스템 아키텍처
@@ -23,7 +36,7 @@
 
 > **실행 SSOT:** [`08_TDD_AI_YjsHocuspocus협업SSOT`](./08_TDD_AI_YjsHocuspocus협업SSOT.md) — Yjs **최우선 안정화**, 협업 서버 **`apps/sync`**, DB **`project_yjs_updates`**.
 
-모든 개발의 최우선 순위는 Yjs(실시간 동시 편집 CRDT 프레임워크)의 완전한 독립적 구현 및 안정화입니다. AI 엔진·Pinia 레이아웃 고도화는 **Yjs + Hocuspocus 기반이 동작한 뒤** 그 위에 올린다.
+모든 개발의 최우선 순위는 Yjs(실시간 동시 편집 CRDT 프레임워크)의 완전한 독립적 구현 및 안정화입니다. AI 엔진·Zustand 레이아웃 고도화는 **Yjs + Hocuspocus 기반이 동작한 뒤** 그 위에 올린다.
 
 - 최우선 구현 원칙: 복잡한 커서 충돌 방지 및 실시간 화면 동기화는 애플리케이션 최하단 인프라 레이어인 Yjs가 전담하여 커버합니다.
 - 컨텍스트의 단일화 (Single Source of Truth): Yjs 데이터 모델(Y.Doc)은 화면의 상태인 동시에 AI가 읽고 분석할 가장 정밀하고 오염되지 않은 '장기 기억 컨텍스트'의 핵심 기둥이 됩니다.
@@ -73,7 +86,7 @@ Yjs로 튼튼하고 안전한 다인용 고속도로를 먼저 깔아둔 뒤, �
 
 ---
 
-NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터 플랫폼**의 기획 기초를 정리한 문서이다. **이벤트(mitt) - 상태(Pinia) - 검증(Zod) - 영속성(PersistedState)**이라는 현대적인 웹 앱의 4대 요소를 모두 갖추고 있으며, 특히 **Focus Stack** 개념은 단순한 에디터를 넘어 **지능형 워크스페이스**로 가는 핵심 차별점이다.
+NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터 플랫폼**의 기획 기초를 정리한 문서이다. **이벤트(mitt) - 상태(Zustand) - 검증(Zod) - 영속성(PersistedState)**이라는 현대적인 웹 앱의 4대 요소를 모두 갖추고 있으며, 특히 **Focus Stack** 개념은 단순한 에디터를 넘어 **지능형 워크스페이스**로 가는 핵심 차별점이다.
 
 ---
 
@@ -116,7 +129,7 @@ NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터
 
 ## 1. 주요 용어 및 UI 구조 정의
 
-> 기존 Quasar의 **탭(q-tab)** 개념과 혼동을 피하기 위해 다음과 같이 명칭을 정의한다. 문서 내 모든 기술 용어는 이 정의를 따른다.
+> 기존 shadcn/ui의 **탭(TabsTrigger)** 개념과 혼동을 피하기 위해 다음과 같이 명칭을 정의한다. 문서 내 모든 기술 용어는 이 정의를 따른다.
 
 ### 1.1 핵심 용어
 
@@ -124,11 +137,11 @@ NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터
 
 | 용어             | 영문              | 정의                                                                                                                                                                                                                                                        |
 | ---------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **워크스페이스** | Workspace         | 각 도메인에서 사용되는 **추상적 작업공간**(UI 개념). 여러 편집 도구와 AI 채팅이 배치되는 컨테이너. **DB 테이블 없음**. 현재 AI 도메인의 content 영역(AiContent → AiSplitLayout)이 이에 해당. [NEXA-STACK-01] §8.0                                           |
+| **워크스페이스** | Workspace         | 각 도메인에서 사용되는 **추상적 작업공간**(UI 개념). 여러 편집 도구와 AI 채팅이 배치되는 컨테이너. **DB 테이블 없음**. 현재 AI 도메인의 content 영역(NexiaContent → NexiaSplitLayout)이 이에 해당. [NEXA-STACK-01] §8.0                                           |
 | **프로젝트**     | Project           | **최상위 작업단위**. 생성·불러오기·저장·분류의 기준. **DB 테이블 유지** (`projects`). 전 도메인 공통. 채팅·노트·파일·웹자료가 `project_id`로 소속. [NEXA-STACK-01] §8.0, [NEXA-AI-09]                                                                       |
 | **탭**           | Tab               | 에디터 유형을 구분하는 단위. `editor`, `code`, `image`, `audio`, `video`, `viewer`, `chat`, `explorer` 등이 각각 **탭**에 해당한다. 채팅·탐색기도 스플릿 영역을 넘나들 수 있는 탭으로 간주한다. 한 탭에서 여러 파일(또는 대화·폴더 등)을 동시에 열 수 있다. |
 | **패널**         | Panel             | **탭 내에서 열린 파일 1개당 1개의 패널**. 실제 파일이 로드되어 편집되는 독립적인 단위 창. 예: 코드 탭에서 file1.ts, file2.ts를 열면 패널 2개. 패널 인스턴스는 **UUID 또는 ULID**로 고유 식별하여 탭·세션·다중 오픈 시 **ID 충돌**을 방지한다.               |
-| **배치 관리**    | Layout Management | Quasar의 **QSplitter**와 **Pinia**를 사용하여 탭·패널의 **레이아웃 상태**(위치, 비율, 표시/숨김, 열린 패널 목록, **Z-index·Focus Stack**)를 관리하는 체계. Focus Stack은 AI 지칭("방금 수정한 그 코드" 등) 정확도 향상에 활용.                              |
+| **배치 관리**    | Layout Management | shadcn/ui의 **QSplitter**와 **Zustand**를 사용하여 탭·패널의 **레이아웃 상태**(위치, 비율, 표시/숨김, 열린 패널 목록, **Z-index·Focus Stack**)를 관리하는 체계. Focus Stack은 AI 지칭("방금 수정한 그 코드" 등) 정확도 향상에 활용.                              |
 
 ### 1.2 계층 구조
 
@@ -145,13 +158,13 @@ NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터
 
 ### 1.3 용어 구분 (혼동 방지)
 
-| 구분                    | Quasar/기존 용어      | 본 문서 용어                | 비고                                                                              |
+| 구분                    | shadcn/ui/기존 용어      | 본 문서 용어                | 비고                                                                              |
 | ----------------------- | --------------------- | --------------------------- | --------------------------------------------------------------------------------- |
 | 최상위 작업단위(데이터) | —                     | **프로젝트(Project)**       | 생성·불러오기·저장 단위. DB 테이블 유지                                           |
 | 최상위 컨테이너(UI)     | Tab, Drawer           | **워크스페이스(Workspace)** | 탭·패널을 담는 UI 영역. 추상적 작업공간                                           |
-| 에디터 유형             | q-tab, Tab            | **탭**                      | editor, code, image, audio, video, viewer, chat, explorer (스플릿 넘나들 수 있음) |
+| 에디터 유형             | TabsTrigger, Tab            | **탭**                      | editor, code, image, audio, video, viewer, chat, explorer (스플릿 넘나들 수 있음) |
 | 파일 인스턴스           | —                     | **패널**                    | 탭 내에서 열린 파일 1개 = 패널 1개                                                |
-| UI 전환                 | q-tabs / q-tab-panels | 탭 전환 / 패널 전환         | 탭: 에디터 유형 선택, 패널: 열린 파일 간 전환                                     |
+| UI 전환                 | Tabs / TabsContents | 탭 전환 / 패널 전환         | 탭: 에디터 유형 선택, 패널: 열린 파일 간 전환                                     |
 
 ### 1.4 탭 네이밍 정책 (Label · ID · 도구 · 설계 의도)
 
@@ -169,13 +182,13 @@ NEXA AI 도메인 현재 구조를 분석하고, **AI 협업형 멀티 에디터
 
 | 탭 Label  | 탭 ID (정식) | 레거시 ID                        | 에디터/도구                                                                                                                                            |
 | --------- | ------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Dialogue  | dialogue     | chat                             | AiChatPanel                                                                                                                                            |
-| Narrative | narrative    | editor                           | AiEditorPanel (Tiptap)                                                                                                                                 |
-| Logic     | logic        | code                             | AiCodeEditorPanel (Monaco)                                                                                                                             |
-| Media     | media        | (구) image, audio, video, vision | **AiMediaPanel**: 단일 탭, 내부 하위 패널(이미지·음원·영상)로 파일 타입별 분기. 하위에 AiImageEditorPanel, AiAudioEditorPanel, AiVideoEditorPanel 사용 |
-| Sense     | sense        | viewer                           | AiUniversalViewerPanel                                                                                                                                 |
+| Dialogue  | dialogue     | chat                             | NexiaChatPanel                                                                                                                                            |
+| Narrative | narrative    | editor                           | NexiaEditorPanel (Tiptap)                                                                                                                                 |
+| Logic     | logic        | code                             | NexiaCodeEditorPanel (Monaco)                                                                                                                             |
+| Media     | media        | (구) image, audio, video, vision | **AiMediaPanel**: 단일 탭, 내부 하위 패널(이미지·음원·영상)로 파일 타입별 분기. 하위에 NexiaImageEditorPanel, NexiaAudioEditorPanel, NexiaVideoEditorPanel 사용 |
+| Sense     | sense        | viewer                           | NexiaUniversalViewerPanel                                                                                                                                 |
 | Nexus     | nexus        | nexus                            | **AiNexusPanel**: Graph/Map (8.6). 현재 플레이스홀더, 추후 노드·엣지 시각화 구현                                                                       |
-| Explorer  | explorer     | explorer                         | AiExplorerPanel                                                                                                                                        |
+| Explorer  | explorer     | explorer                         | NexiaExplorerPanel                                                                                                                                        |
 
 ### 1.6 Sense 탭 상세 정의 (멀티 뷰어)
 
@@ -185,7 +198,7 @@ Sense 탭(정식 ID: `sense`, 레거시 ID: `viewer`)은 **문서·코드·이�
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **읽기 전용**   | 편집 기능 없음. `EditorPanel` 규격의 `readonly: true` 고정. 저장·Dirty 처리 불필요                                                                                                                                                                           |
 | **시뮬레이션**  | 각 에디터 유형(editor/code/image/audio/video)의 **렌더 결과를 시뮬레이션**하여 표시. 실제 에디터 컴포넌트를 읽기 모드로 재사용하거나, 전용 뷰 컴포넌트로 표시                                                                                                |
-| **전환 방법**   | 파일 확장자 또는 MIME 타입으로 **자동 감지** → 해당 뷰(문서/코드/이미지/오디오/영상) 렌더. 또는 사용자가 수동으로 뷰 유형 선택(드롭다운 등). 1단계에서는 자동 감지 우선. **매핑 예**: .md→문서, .ts/.vue→코드, .png/.jpg→이미지, .mp3/.wav→오디오, .mp4→영상 |
+| **전환 방법**   | 파일 확장자 또는 MIME 타입으로 **자동 감지** → 해당 뷰(문서/코드/이미지/오디오/영상) 렌더. 또는 사용자가 수동으로 뷰 유형 선택(드롭다운 등). 1단계에서는 자동 감지 우선. **매핑 예**: .md→문서, .ts/.tsx→코드, .png/.jpg→이미지, .mp3/.wav→오디오, .mp4→영상 |
 | **미지원 포맷** | 지원하지 않는 확장자/MIME일 경우 **"미지원 형식" 안내** 표시. 다운로드 링크 제공. 필요 시 "해당 에디터 탭에서 열기" 버튼으로 editor/code/image 등 전환 유도                                                                                                  |
 
 **멀티 뷰어의 복잡성**: 유형별 렌더 규칙·전환 UX·에러 처리 등이 조합되어 복잡해질 수 있음. 1단계에서는 **지원 포맷을 문서·코드·이미지·오디오·영상으로 제한**하고, 단순화하여 구축하는 것을 권장한다.
@@ -210,27 +223,27 @@ Sense 탭(정식 ID: `sense`, 레거시 ID: `viewer`)은 **문서·코드·이�
 ### 2.1 디렉터리 구조
 
 ```
-src/domains/ai/
-├── AiDomain.vue                    # AI 도메인 진입점 (router-view 래퍼)
+apps/web/src/domains/ai/
+├── NexiaShell.tsx                    # AI 도메인 진입점 (App Router `{children}` 래퍼)
 ├── config/
 │   ├── aiAgentTabRegistry.ts       # 에이전트 탭 정의 (스킬/테스크/업무카드)
 │   └── aiPanelRegistry.ts          # 탭 ID(editor/code/...) ↔ 컴포넌트 매핑
 ├── components/
-│   ├── AiChatPanel.vue             # AI 채팅 패널
-│   ├── AiEditorPanel.vue           # 리치 텍스트 에디터 (Tiptap)
-│   ├── AiCodeEditorPanel.vue       # Monaco 코드 에디터
-│   ├── AiImageEditorPanel.vue      # 이미지 편집 패널
-│   ├── AiAudioEditorPanel.vue      # 오디오 편집 패널
-│   ├── AiVideoEditorPanel.vue      # 비디오 편집 패널
-│   ├── AiExplorerPanel.vue         # 파일 탐색기 패널
-│   └── AiUniversalViewerPanel.vue  # 범용 파일 뷰어
-├── composables/
+│   ├── NexiaChatPanel.tsx             # AI 채팅 패널
+│   ├── NexiaEditorPanel.tsx           # 리치 텍스트 에디터 (Tiptap)
+│   ├── NexiaCodeEditorPanel.tsx       # Monaco 코드 에디터
+│   ├── NexiaImageEditorPanel.tsx      # 이미지 편집 패널
+│   ├── NexiaAudioEditorPanel.tsx      # 오디오 편집 패널
+│   ├── NexiaVideoEditorPanel.tsx      # 비디오 편집 패널
+│   ├── NexiaExplorerPanel.tsx         # 파일 탐색기 패널
+│   └── NexiaUniversalViewerPanel.tsx  # 범용 파일 뷰어
+├── hooks/
 │   ├── useAiChannels.ts            # 채널/채팅 CRUD + 선택 상태
 │   ├── useAiMemos.ts               # 메모 CRUD (ai_user_memos API)
 │   ├── useAiAssets.ts              # 파일 자산 (documents/images/audio/video)
 │   ├── useAiModels.ts              # Ollama 모델 목록/능력
 │   ├── useAiSettings.ts            # 설정 (모델, 목차, 폰트 등)
-│   ├── useAiSplitLayout.ts         # 3영역 스플릿 레이아웃 상태
+│   ├── useNexiaSplitLayout.ts         # 3영역 스플릿 레이아웃 상태
 │   ├── useAiUnifiedSearch.ts       # 통합 검색(채널/메모/미디어/파일)
 │   ├── useAiInsertRequest.ts       # 에디터 삽입 요청 이벤트
 │   ├── useAiExplorerSelection.ts   # 탐색기 → 채팅/에디터 주입
@@ -243,23 +256,23 @@ src/domains/ai/
 │   └── modelDisplayName.ts         # 모델 표시명 포맷팅
 └── views/
     ├── content/
-    │   ├── AiContent.vue           # 메인 콘텐츠 (AiSplitLayout 래퍼)
-    │   └── AiSplitLayout.vue       # 3영역 드래그 스플릿 레이아웃
+    │   ├── NexiaContent.tsx           # 메인 콘텐츠 (NexiaSplitLayout 래퍼)
+    │   └── NexiaSplitLayout.tsx       # 3영역 드래그 스플릿 레이아웃
     ├── left/
-    │   └── AiLeftNav.vue           # 좌측 네비게이션 (채널/노트/미디어)
+    │   └── NexiaLeftNav.tsx           # 좌측 네비게이션 (채널/노트/미디어)
     └── right/
-        ├── AiRightPanel.vue        # 우측 패널 (에이전트/설정)
+        ├── NexiaRightPanel.tsx        # 우측 패널 (에이전트/설정)
         └── agent/
-            ├── AiAgentSkillPanel.vue    # 스킬 (준비 중)
-            ├── AiAgentTaskPanel.vue     # 테스크 (준비 중)
-            └── AiAgentWorkcardPanel.vue # 업무카드 (준비 중)
+            ├── NexiaAgentSkillPanel.tsx    # 스킬 (준비 중)
+            ├── NexiaAgentTaskPanel.tsx     # 테스크 (준비 중)
+            └── NexiaAgentWorkcardPanel.tsx # 업무카드 (준비 중)
 ```
 
 ### 2.2 프레임 레이아웃 (domainRegistry)
 
 ```
 ┌────────────────┬─────────────────────────────────────────────────┬────────────────┐
-│  [AiLeftNav]   │              [ AiContent → AiSplitLayout ]       │ [AiRightPanel] │
+│  [NexiaLeftNav]   │              [ NexiaContent → NexiaSplitLayout ]       │ [NexiaRightPanel] │
 │  채널/노트/    │  ┌─────────────┬──────────────────┬────────────┐ │  에이전트/     │
 │  미디어 탭     │  │ Left        │ Center           │ Right      │ │  설정 탭       │
 │                │  │ chat        │ editor/code/     │ explorer   │ │                │
@@ -268,14 +281,14 @@ src/domains/ai/
 └────────────────┴──┴─────────────┴──────────────────┴────────────┴┴────────────────┘
 ```
 
-- **left**: `AiLeftNav.vue` — 채널·노트·미디어 탭
-- **content**: `AiDomain.vue` → `router-view` → `AiContent.vue` → `AiSplitLayout.vue`
-- **right**: `AiRightPanel.vue` — 에이전트·설정 탭
+- **left**: `NexiaLeftNav.tsx` — 채널·노트·미디어 탭
+- **content**: `NexiaShell.tsx` → `App Router `{children}`` → `NexiaContent.tsx` → `NexiaSplitLayout.tsx`
+- **right**: `NexiaRightPanel.tsx` — 에이전트·설정 탭
 
-### 2.3 콘텐츠 레이아웃 (워크스페이스 = AiSplitLayout)
+### 2.3 콘텐츠 레이아웃 (워크스페이스 = NexiaSplitLayout)
 
 - `q-splitter` 기반 **3열 구조** (배치 관리의 핵심)
-- 영역별 `vuedraggable` **탭** + `q-tab-panels`로 **탭 전환** (에디터 유형 선택)
+- 영역별 `@dnd-kit/core` **탭** + `TabsContent`로 **탭 전환** (에디터 유형 선택)
 - 각 탭 내에서는 열린 파일(패널) 간 전환
 - `aiPanelRegistry`의 ID는 **탭 ID**에 해당 (editor, code, image 등)
 
@@ -299,7 +312,7 @@ Tiptap, Monaco, 이미지·오디오·영상 에디터 등 **모든 에디터 �
 
 | Prop         | 타입             | 필수 | 용도                                                                                |
 | ------------ | ---------------- | ---- | ----------------------------------------------------------------------------------- |
-| `panelId`    | `string`         | O    | 패널 고유 ID (UUID/ULID). Pinia·Focus Stack·동기화 브릿지 식별용                    |
+| `panelId`    | `string`         | O    | 패널 고유 ID (UUID/ULID). Zustand·Focus Stack·동기화 브릿지 식별용                    |
 | `filePath`   | `string \| null` | O    | 파일 경로. null이면 미저장 새 파일                                                  |
 | `tabId`      | `string`         | O    | `editor` \| `code` \| `image` \| `audio` \| `video` \| `viewer`                     |
 | `modelValue` | `T`              | O    | 에디터 내용. Tiptap: JSON, Monaco: string, 미디어: Blob/메타데이터 등 에디터별 형식 |
@@ -322,7 +335,7 @@ Tiptap, Monaco, 이미지·오디오·영상 에디터 등 **모든 에디터 �
 
 #### 진행 상태 표시 (QLinearProgress) — EditorPanel 공통 규격
 
-모든 EditorPanel 규격 패널은 **진행 상태**를 패널 상단에 표시한다. Quasar `QLinearProgress` 사용. `loading` Prop으로 제어.
+모든 EditorPanel 규격 패널은 **진행 상태**를 패널 상단에 표시한다. shadcn/ui `QLinearProgress` 사용. `loading` Prop으로 제어.
 
 | 조건                | 표시                                              | 비고                                                |
 | ------------------- | ------------------------------------------------- | --------------------------------------------------- |
@@ -352,14 +365,14 @@ AI가 단순 텍스트 삽입기가 아닌 **동료**로 느껴지도록 하는 
 
 | 탭 ID    | 컴포넌트               | 설명                                                                                        |
 | -------- | ---------------------- | ------------------------------------------------------------------------------------------- |
-| chat     | AiChatPanel            | AI 채팅 대화·입력, 목차, 이미지 첨부                                                        |
-| editor   | AiEditorPanel          | 문서 탭. Tiptap. 탭 내 여러 파일 → 패널 N개                                                 |
-| code     | AiCodeEditorPanel      | 코드 탭. Monaco. 탭 내 여러 파일 → 패널 N개                                                 |
-| image    | AiImageEditorPanel     | 이미지 탭. 패널당 이미지 1개                                                                |
-| audio    | AiAudioEditorPanel     | 오디오 탭. 패널당 오디오 1개                                                                |
-| video    | AiVideoEditorPanel     | 영상 탭. 패널당 영상 1개                                                                    |
-| viewer   | AiUniversalViewerPanel | **멀티 뷰어** 탭. 문서·코드·이미지·오디오·영상 등 모든 에디터 유형에 대응. 패널당 파일 1개. |
-| explorer | AiExplorerPanel        | 파일 탐색기 (선택 파일 → 채팅/탭·패널로 주입)                                               |
+| chat     | NexiaChatPanel            | AI 채팅 대화·입력, 목차, 이미지 첨부                                                        |
+| editor   | NexiaEditorPanel          | 문서 탭. Tiptap. 탭 내 여러 파일 → 패널 N개                                                 |
+| code     | NexiaCodeEditorPanel      | 코드 탭. Monaco. 탭 내 여러 파일 → 패널 N개                                                 |
+| image    | NexiaImageEditorPanel     | 이미지 탭. 패널당 이미지 1개                                                                |
+| audio    | NexiaAudioEditorPanel     | 오디오 탭. 패널당 오디오 1개                                                                |
+| video    | NexiaVideoEditorPanel     | 영상 탭. 패널당 영상 1개                                                                    |
+| viewer   | NexiaUniversalViewerPanel | **멀티 뷰어** 탭. 문서·코드·이미지·오디오·영상 등 모든 에디터 유형에 대응. 패널당 파일 1개. |
+| explorer | NexiaExplorerPanel        | 파일 탐색기 (선택 파일 → 채팅/탭·패널로 주입)                                               |
 | nexus    | (전용 컴포넌트)        | **Nexus Map**. 문서·장비 관계 노드/선 시각화·편집. **탭 표시명 "Nexus"**. 8.6 참조          |
 
 ---
@@ -368,24 +381,24 @@ AI가 단순 텍스트 삽입기가 아닌 **동료**로 느껴지도록 하는 
 
 | Composable             | 역할                                                                                   | 연동 컴포넌트                                |
 | ---------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------- |
-| useAiChannels          | 채널·채팅 CRUD, 선택, Instruction                                                      | AiLeftNav, AiChatPanel, AiRightPanel         |
-| useAiSplitLayout       | 3영역 탭·패널/비율, 표시/숨김, localStorage                                            | AiSplitLayout, AiContent, AiExplorerPanel    |
-| useAiInsertRequest     | 에디터 삽입 요청 콜백                                                                  | AiContent(구독), AiLeftNav(메모 등 호출)     |
-| useAiExplorerSelection | 탐색기 파일 → 채팅/에디터/미디어 주입                                                  | AiContent(구독), AiExplorerPanel(호출)       |
-| useAiUnifiedSearch     | 채널/노트/미디어/파일 통합 검색                                                        | AiLeftNav, useAiChannels                     |
-| useAiAssets            | domain=ai 파일 CRUD, 미디어 카테고리                                                   | AiLeftNav, AiExplorerPanel                   |
-| useAiMemos             | 메모 API (ai_user_memos)                                                               | AiLeftNav                                    |
-| useAiModels            | Ollama 모델 목록/능력                                                                  | AiChatPanel, AiRightPanel                    |
-| useAiSettings          | 채팅·UI 설정, requestAttachToChat                                                      | AiChatPanel, AiRightPanel, AiExplorerPanel   |
-| useAiMediaTab          | 미디어 탭·아코디언 열기 요청                                                           | AiLeftNav(구독), AiExplorerPanel(호출)       |
-| useAiLeftToolbar       | 좌측 패널 탭별 툴바 버튼                                                               | AiLeftNav                                    |
-| **useAiOrchestrator**  | **오케스트레이터**: 입력 분석·모델 라우팅·컨텍스트 구성·호출·검증·결과 반영 (5.7 참조) | AiChatPanel, 에디터 패널, 2단계 AI 협업 핵심 |
+| useAiChannels          | 채널·채팅 CRUD, 선택, Instruction                                                      | NexiaLeftNav, NexiaChatPanel, NexiaRightPanel         |
+| useNexiaSplitLayout       | 3영역 탭·패널/비율, 표시/숨김, localStorage                                            | NexiaSplitLayout, NexiaContent, NexiaExplorerPanel    |
+| useAiInsertRequest     | 에디터 삽입 요청 콜백                                                                  | NexiaContent(구독), NexiaLeftNav(메모 등 호출)     |
+| useAiExplorerSelection | 탐색기 파일 → 채팅/에디터/미디어 주입                                                  | NexiaContent(구독), NexiaExplorerPanel(호출)       |
+| useAiUnifiedSearch     | 채널/노트/미디어/파일 통합 검색                                                        | NexiaLeftNav, useAiChannels                     |
+| useAiAssets            | domain=ai 파일 CRUD, 미디어 카테고리                                                   | NexiaLeftNav, NexiaExplorerPanel                   |
+| useAiMemos             | 메모 API (ai_user_memos)                                                               | NexiaLeftNav                                    |
+| useAiModels            | Ollama 모델 목록/능력                                                                  | NexiaChatPanel, NexiaRightPanel                    |
+| useAiSettings          | 채팅·UI 설정, requestAttachToChat                                                      | NexiaChatPanel, NexiaRightPanel, NexiaExplorerPanel   |
+| useAiMediaTab          | 미디어 탭·아코디언 열기 요청                                                           | NexiaLeftNav(구독), NexiaExplorerPanel(호출)       |
+| useAiLeftToolbar       | 좌측 패널 탭별 툴바 버튼                                                               | NexiaLeftNav                                    |
+| **useAiOrchestrator**  | **오케스트레이터**: 입력 분석·모델 라우팅·컨텍스트 구성·호출·검증·결과 반영 (5.7 참조) | NexiaChatPanel, 에디터 패널, 2단계 AI 협업 핵심 |
 
 ### 4.1 이벤트 버스 (mitt) 활용
 
 형제·원거리 컴포넌트 간 **요청·트리거** 전달에 **mitt**를 사용한다. 기존 콜백(useAiInsertRequest 등)을 mitt 기반으로 전환·보완하여 결합도를 낮춘다.
 
-| mitt 용도                        | Pinia 용도                               |
+| mitt 용도                        | Zustand 용도                               |
 | -------------------------------- | ---------------------------------------- |
 | 요청·트리거·알림 (일회성 이벤트) | 지속 상태 (탭·패널·Focus Stack·레이아웃) |
 
@@ -393,10 +406,10 @@ AI가 단순 텍스트 삽입기가 아닌 **동료**로 느껴지도록 하는 
 
 | 이벤트                   | 발신               | 수신                        | 페이로드                                                                  |
 | ------------------------ | ------------------ | --------------------------- | ------------------------------------------------------------------------- |
-| `ai:insert-request`      | AiLeftNav(메모 등) | AiContent                   | `{ target, content }`                                                     |
-| `ai:inject-to-chat`      | AiExplorerPanel    | AiContent                   | `{ file }`                                                                |
-| `ai:inject-to-editor`    | AiExplorerPanel    | AiContent                   | `{ file, target? }`                                                       |
-| `ai:open-media-tab`      | AiExplorerPanel    | AiLeftNav                   | `{ category }`                                                            |
+| `ai:insert-request`      | NexiaLeftNav(메모 등) | NexiaContent                   | `{ target, content }`                                                     |
+| `ai:inject-to-chat`      | NexiaExplorerPanel    | NexiaContent                   | `{ file }`                                                                |
+| `ai:inject-to-editor`    | NexiaExplorerPanel    | NexiaContent                   | `{ file, target? }`                                                       |
+| `ai:open-media-tab`      | NexiaExplorerPanel    | NexiaLeftNav                   | `{ category }`                                                            |
 | `ai:editor-content-sync` | 동일 filePath 패널 | 동일 filePath의 다른 패널들 | `{ filePath, panelId, content, tabId? }` (에디터 동기화 브릿지, 5.5 참조) |
 | `ai:error`               | 에러 발생 컴포넌트 | 전역 핸들러·로깅            | `{ code?, message?, source? }` (오류 수집용, 6.1 참조)                    |
 
@@ -409,9 +422,9 @@ AI가 단순 텍스트 삽입기가 아닌 **동료**로 느껴지도록 하는 
 ### 5.1 에디터 삽입 (메모 등 → 에디터)
 
 ```
-AiLeftNav (메모 우클릭/클릭) / 외부
+NexiaLeftNav (메모 우클릭/클릭) / 외부
   → mitt.emit('ai:insert-request', { target: 'editor', content })  // 또는 useAiInsertRequest
-  → AiContent (mitt.on('ai:insert-request'))
+  → NexiaContent (mitt.on('ai:insert-request'))
   → showPanel('editor') + pendingInsertContent
   → 문서 탭 내 새 패널 또는 활성 패널에 삽입
 ```
@@ -419,19 +432,19 @@ AiLeftNav (메모 우클릭/클릭) / 외부
 ### 5.2 탐색기 → 채팅/에디터
 
 ```
-AiExplorerPanel (파일 선택 후 버튼)
+NexiaExplorerPanel (파일 선택 후 버튼)
   → mitt.emit('ai:inject-to-chat' | 'ai:inject-to-editor', { file })  // 또는 useAiExplorerSelection
-  → AiContent (mitt.on) → 해당 탭 표시 + 새 패널로 파일 열기 또는 삽입
-  → AiEditorPanel / AiChatPanel → 삽입
+  → NexiaContent (mitt.on) → 해당 탭 표시 + 새 패널로 파일 열기 또는 삽입
+  → NexiaEditorPanel / NexiaChatPanel → 삽입
 ```
 
 ### 5.3 탭·패널 전환
 
 ```
-탭 전환: useAiSplitLayout.showPanel(tabId)  // 현재 코드의 panelId = 본 문서의 탭 ID
+탭 전환: useNexiaSplitLayout.showPanel(tabId)  // 현재 코드의 panelId = 본 문서의 탭 ID
   → getAreaAndIndexForPanel(tabId)
   → leftVisible/centerVisible/rightVisible + leftActiveIndex 등 설정
-  → AiSplitLayout 탭 전환 (에디터 유형 선택)
+  → NexiaSplitLayout 탭 전환 (에디터 유형 선택)
 
 패널 전환: 각 탭 내에서 열린 패널 목록 중 활성 패널 인덱스 변경 (1단계 이후 구현)
 ```
@@ -441,13 +454,13 @@ AiExplorerPanel (파일 선택 후 버튼)
 #### 패널 열기 (Open)
 
 - 탐색기·메모·채팅 등에서 파일 선택 → `ai:inject-to-editor` / `ai:insert-request` → 해당 탭에 **새 패널** 생성 또는 **활성 패널**에 삽입 (5.1, 5.2 참조)
-- 패널 생성 시 **UUID/ULID**로 고유 ID 부여, Pinia store의 `열린 패널 목록`에 추가
+- 패널 생성 시 **UUID/ULID**로 고유 ID 부여, Zustand store의 `열린 패널 목록`에 추가
 
 #### 패널 닫기 (Close)
 
 - 사용자가 패널 탭의 닫기 버튼(×) 클릭 시 **닫기 요청** 발생
 - **Dirty 여부 확인** (아래 참조). Dirty면 저장 확인 다이얼로그 표시 후 진행
-- 패널을 Pinia store의 `열린 패널 목록`에서 제거, Focus Stack에서 해당 ID 제거
+- 패널을 Zustand store의 `열린 패널 목록`에서 제거, Focus Stack에서 해당 ID 제거
 - 해당 탭에 남은 패널이 있으면 **가장 최근 포커스 패널**을 활성화; 없으면 해당 탭 비활성 또는 기본 탭 전환
 
 #### Dirty(변경사항) 처리
@@ -481,7 +494,7 @@ AiExplorerPanel (파일 선택 후 버튼)
 
 | 단계              | 동작                                                                                                                                                 |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1. 등록**       | 패널이 `filePath`로 파일을 열면 브릿지에 `(filePath, panelId)` 쌍 등록. Pinia store 또는 별도 레지스트리로 관리                                      |
+| **1. 등록**       | 패널이 `filePath`로 파일을 열면 브릿지에 `(filePath, panelId)` 쌍 등록. Zustand store 또는 별도 레지스트리로 관리                                      |
 | **2. 구독**       | 동일 `filePath`를 가진 패널이 2개 이상이면, 각 패널은 mitt 이벤트 `ai:editor-content-sync` 를 구독                                                   |
 | **3. 발행**       | 패널 A에서 편집 완료(예: debounce 300ms 후)·저장·포커스 아웃 시 `mitt.emit('ai:editor-content-sync', { filePath, panelId, content, source })`        |
 | **4. 수신·반영**  | `filePath`가 같은 **다른 패널**들(B, C…)만 수신. 발신 패널(panelId)은 제외. 수신 패널은 `content`로 로컬 에디터 내용을 **전체 교체** (setContent 등) |
@@ -564,8 +577,8 @@ AiExplorerPanel (파일 선택 후 버튼)
 
 #### 컨텍스트 관리 (Context Management)
 
-- **전략**: 오케스트레이터가 **단일 진입점**으로 컨텍스트를 조립. Pinia의 Focus Stack·열린 패널 목록·패널 JSON 스냅샷·**Nexus Map(관계망)**(8.6 참조)을 읽어, **활성/최근 패널 우선**으로 텍스트·메타를 수집. 토큰 제한이 있으면 **focusStack 순서·selectionRange** 기준으로 잘라냄. **관계망 데이터**를 함께 참고하여 문서 간 의존·연관을 반영한다.
-- **관련 기술**: **Pinia**(Focus Stack·레이아웃·관계망), **패널 JSON**(layout·panels·focusStack·selectionRange), **벡터 임베딩·유사도 검색**(참조 풀 내 JSON 효율적 검색), **Zod**(입출력·컨텍스트 스키마), **Vercel AI SDK**(메시지·스트리밍). 컨텍스트 직렬화는 **JSON**으로 통일.
+- **전략**: 오케스트레이터가 **단일 진입점**으로 컨텍스트를 조립. Zustand의 Focus Stack·열린 패널 목록·패널 JSON 스냅샷·**Nexus Map(관계망)**(8.6 참조)을 읽어, **활성/최근 패널 우선**으로 텍스트·메타를 수집. 토큰 제한이 있으면 **focusStack 순서·selectionRange** 기준으로 잘라냄. **관계망 데이터**를 함께 참고하여 문서 간 의존·연관을 반영한다.
+- **관련 기술**: **Zustand**(Focus Stack·레이아웃·관계망), **패널 JSON**(layout·panels·focusStack·selectionRange), **벡터 임베딩·유사도 검색**(참조 풀 내 JSON 효율적 검색), **Zod**(입출력·컨텍스트 스키마), **Vercel AI SDK**(메시지·스트리밍). 컨텍스트 직렬화는 **JSON**으로 통일.
 - **확장**: 페르소나·스킬·테스크(9.2.6)가 정해지면, 오케스트레이터가 해당 systemPrompt·promptTemplate을 컨텍스트에 병합.
 
 #### 컨텍스트 우선순위·신선도 (Freshness)
@@ -596,12 +609,12 @@ IoT·엣지 AI에서 오는 데이터를 **역할별로 구분**하여 패널이
 
 #### 2. 실시간성 부하 관리
 
-IoT 수치가 **초당 수십 번** 업데이트될 경우, 모든 값을 Pinia·Yjs에 그대로 반영하면 **성능 저하**가 발생할 수 있다.
+IoT 수치가 **초당 수십 번** 업데이트될 경우, 모든 값을 Zustand·Yjs에 그대로 반영하면 **성능 저하**가 발생할 수 있다.
 
 | 방안                             | 설명                                                                                                                                          |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | **이벤트 스로틀링 (Throttling)** | 수신 이벤트를 **시간 간격**으로 제한. 예: 최대 N회/초만 store·UI 반영. 나머지는 버리거나 별도 버퍼에만 유지                                   |
-| **중요 변화 시에만 커밋**        | **델타가 임계치를 넘을 때만** Pinia/Yjs에 반영. 미세한 변동은 누적했다가 의미 있는 변화만 커밋. 시나리오별 임계치(절대값·백분율) 정의 필요    |
+| **중요 변화 시에만 커밋**        | **델타가 임계치를 넘을 때만** Zustand/Yjs에 반영. 미세한 변동은 누적했다가 의미 있는 변화만 커밋. 시나리오별 임계치(절대값·백분율) 정의 필요    |
 | **시나리오 기반 정교화**         | 장비 종류·샘플링 주기·용도(모니터링 vs 알람 vs 로그)에 따라 스로틀 주기·임계치·버퍼 정책을 나누어 설계. 별도 시나리오 문서에서 심화 검토 권장 |
 
 위 정책은 **시나리오를 바탕으로 더 깊이 검토**할 예정이다. 1단계·2단계에서는 필요 시 “IoT 데이터 수신 시 스로틀·중요 변화만 반영” 정도만 가이드로 두고, Yjs·실시간 동기화(10.3) 단계에서 IoT 스트림과의 결합 방식을 구체화한다.
@@ -643,7 +656,7 @@ IoT 수치가 **초당 수십 번** 업데이트될 경우, 모든 값을 Pinia�
 | **저장 실패**             | Dirty 상태 유지, 토스트로 실패 안내. 재시도·다른 이름으로 저장 옵션 제공                                                                                                         |
 | **AI 스트리밍 취소**      | 사용자가 스트리밍 중 취소 시 **AbortController** 등으로 요청 중단. 받은 내용까지 유지 또는 폐기 정책 결정                                                                        |
 
-**공통**: Quasar `Notify` 또는 공통 토스트/배너 컴포넌트로 일관된 UX. 에러는 mitt `ai:error` 또는 전역 핸들러로 수집·로그 기록 검토.
+**공통**: shadcn/ui `Notify` 또는 공통 토스트/배너 컴포넌트로 일관된 UX. 에러는 mitt `ai:error` 또는 전역 핸들러로 수집·로그 기록 검토.
 
 ---
 
@@ -651,13 +664,13 @@ IoT 수치가 **초당 수십 번** 업데이트될 경우, 모든 값을 Pinia�
 
 | 항목                                                                      | 저장소       | 키/위치       | 비고                                                                                                              |
 | ------------------------------------------------------------------------- | ------------ | ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 스플릿 비율, 영역 표시/숨김, 탭 구성·열린 패널 목록·활성 패널·Focus Stack | localStorage | Pinia store별 | 1단계: **Pinia** 전환. **pinia-plugin-persistedstate**로 store를 localStorage에 자동 영속화하여 기본 Pinia를 보조 |
+| 스플릿 비율, 영역 표시/숨김, 탭 구성·열린 패널 목록·활성 패널·Focus Stack | localStorage | Zustand store별 | 1단계: **Zustand** 전환. **pinia-plugin-persistedstate**로 store를 localStorage에 자동 영속화하여 기본 Zustand를 보조 |
 | 채널·채팅 선택, Instruction                                               | (기존 정책)  | useAiChannels | —                                                                                                                 |
 | 모델·목차·폰트 등                                                         | (기존 정책)  | useAiSettings | —                                                                                                                 |
 
-### 7.1 하이드레이션(Hydration) 전략 및 로딩 상태 (Pinia Persisted State)
+### 7.1 하이드레이션(Hydration) 전략 및 로딩 상태 (Zustand Persisted State)
 
-- **하이드레이션**: 앱 초기화 시 localStorage에서 Pinia store를 복원하는 시점에 **비동기 로딩** 발생. 하이드레이션 완료 전까지 레이아웃·탭·패널 UI는 **스켈레톤 또는 기본값**으로 표시하고, 완료 후 실제 상태로 교체한다.
+- **하이드레이션**: 앱 초기화 시 localStorage에서 Zustand store를 복원하는 시점에 **비동기 로딩** 발생. 하이드레이션 완료 전까지 레이아웃·탭·패널 UI는 **스켈레톤 또는 기본값**으로 표시하고, 완료 후 실제 상태로 교체한다.
 - **로딩 상태**: `isHydrated`(또는 유사) 플래그를 store에 두어 하이드레이션 완료 여부를 추적. 하이드레이션 전에는 의존 컴포넌트가 **로딩 UI**를 보여주고, 완료 후 렌더링한다.
 - **충돌 방지**: 여러 탭에서 동시 접근 시 localStorage 읽기·쓰기 **레이스 컨디션** 가능. 필요한 경우 `storageEvent` 수신으로 다른 탭의 변경을 반영하거나, 단일 탭 전제로 1단계를 진행한다.
 
@@ -697,14 +710,14 @@ IoT 수치가 **초당 수십 번** 업데이트될 경우, 모든 값을 Pinia�
 - `aiAgentTabRegistry`의 `AI_AGENT_TABS`에 항목 추가
 - skill, task, workcard 외 추가 탭 정의 가능
 
-### 8.3 리스트 가상화 (vue-virtual-scroller)
+### 8.3 리스트 가상화 (@tanstack/react-virtual)
 
-- **탐색기**: 파일·폴더 목록에 **vue-virtual-scroller** 적용으로 대량 항목 렌더링 성능 개선
-- **채널 리스트**: AiLeftNav의 채널·채팅 목록에 **vue-virtual-scroller** 적용
+- **탐색기**: 파일·폴더 목록에 **@tanstack/react-virtual** 적용으로 대량 항목 렌더링 성능 개선
+- **채널 리스트**: NexiaLeftNav의 채널·채팅 목록에 **@tanstack/react-virtual** 적용
 
 ### 8.4 미구현·준비 중
 
-- 에이전트 패널: AiAgentSkillPanel, AiAgentTaskPanel, AiAgentWorkcardPanel (placeholder)
+- 에이전트 패널: NexiaAgentSkillPanel, NexiaAgentTaskPanel, NexiaAgentWorkcardPanel (placeholder)
 - 파일 메뉴(새 채팅, 새 문서, 열기, 저장 등) 일부 플레이스홀더
 - 편집 메뉴(실행 취소, 복사, 붙여넣기 등) 일부 플레이스홀더
 
@@ -732,7 +745,7 @@ Focus Stack을 확장하여, **패널을 닫아도 AI가 참조할 수 있는** 
 | **할당(Assign)**               | **특정 파일**에 대해 **어떤 모델·페르소나·스킬**이 다루는지 AI가 **자동 제안**하고, 사용자가 **조정** 가능. 할당이 바뀌면 **테스크(Task)** 가 자동 추출·수정되도록 연동. Nexus 상에서 페르소나/스킬 노드를 파일(문서) 노드에 연결하는 UX로 "할당" 표현                                                                                                               |
 | **레이어(Layer)**              | **데이터 레이어**: 문서와 IoT 장비 간 참조·데이터 흐름. **지능 레이어**: 페르소나·스킬·테스크 간 논리적 연결. 사용자가 레이어별 켜기/끄기, 또는 **특정 노드 클릭 시 연관 지능망만 하이라이트**하여 복잡도 완화. Task는 지능 레이어에 두며, 문서·장비와의 연결로 Data–지능 경계 역할(위 내용 기준)                                                                    |
 | **탐색기와 Nexus 캔버스 분리** | **탐색기(Explorer)** 와 **Nexus 캔버스**는 UI·D&D 영역을 **명확히 분리**. 탐색기에서 파일을 Nexus로 가져오는 동작은 "드롭 존" 등으로 경계를 두어, 혼선 감소·확장성 확보. Nexus 캔버스 내부 D&D(노드 이동·라인 연결)는 전용 그래프 라이브러리 등으로 구현                                                                                                             |
-| **데이터 영속성**              | 노드 위치·연결 선(edges) 정보는 **JSON**으로 통일. **ai_workspace_layout** 테이블 또는 Pinia store에 저장. **pinia-plugin-persistedstate**로 유지                                                                                                                                                                                                                    |
+| **데이터 영속성**              | 노드 위치·연결 선(edges) 정보는 **JSON**으로 통일. **ai_workspace_layout** 테이블 또는 Zustand store에 저장. **pinia-plugin-persistedstate**로 유지                                                                                                                                                                                                                    |
 | **오케스트레이터 연동**        | 컨텍스트 구성(5.7 ④) 시 Focus Stack·패널 JSON뿐 아니라 **관계망(Nexus Map) 데이터**·**할당 정보**를 함께 읽어 들임. AI는 문서 간 **의존·연관**과 **담당 페르소나/스킬**을 반영한 상태에서 답변 가능                                                                                                                                                                  |
 
 트리 구조(장비 계층·문서 논리 트리), 데이터 흐름 시각화(Yjs Awareness 확장) 등은 별도 기획에서 심화한다.
@@ -780,7 +793,7 @@ Focus Stack을 확장하여, **패널을 닫아도 AI가 참조할 수 있는** 
 
 ## 9. DB 설계
 
-> **범위**: AI 도메인 한정. localStorage → 서버 이전을 위한 테이블 설계. 1단계는 Pinia + pinia-plugin-persistedstate로 localStorage 기반 완성, 서버 이전은 2단계 또는 별도 Phase로 진행.
+> **범위**: AI 도메인 한정. localStorage → 서버 이전을 위한 테이블 설계. 1단계는 Zustand + pinia-plugin-persistedstate로 localStorage 기반 완성, 서버 이전은 2단계 또는 별도 Phase로 진행.
 
 ### 9.1 기존 테이블 (참조)
 
@@ -985,8 +998,8 @@ CREATE TABLE ai_user_settings (
 
 | Phase          | 테이블                                                                         | 비고                                                    |
 | -------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| **1단계**      | —                                                                              | Pinia + pinia-plugin-persistedstate로 localStorage 기반 |
-| **2단계**      | ai_channels, ai_chats, ai_chat_messages, ai_workspace_layout, ai_user_settings | useAiChannels·useAiSplitLayout·useAiSettings → API 전환 |
+| **1단계**      | —                                                                              | Zustand + pinia-plugin-persistedstate로 localStorage 기반 |
+| **2단계**      | ai_channels, ai_chats, ai_chat_messages, ai_workspace_layout, ai_user_settings | useAiChannels·useNexiaSplitLayout·useAiSettings → API 전환 |
 | **2단계**      | ai_personas, ai_skills, ai_tasks                                               | 페르소나·스킬·테스크 시스템                             |
 | **별도 Phase** | ai_workspace_snapshots, ai_panel_change_log(선택)                              | Snapshot·시점 관리(Time-Travel). **8.7 참조**           |
 
@@ -1012,17 +1025,17 @@ CREATE TABLE ai_user_settings (
 
 ### 10.1 1단계: 탭·패널 독립화 및 레이아웃 시스템 구축
 
-> **전제:** §10.0 Yjs·Hocuspocus POC 통과. 에디터 내용은 **Yjs shared type에 바인딩**하고, Pinia는 레이아웃·포커스·메타만 담당.
+> **전제:** §10.0 Yjs·Hocuspocus POC 통과. 에디터 내용은 **Yjs shared type에 바인딩**하고, Zustand는 레이아웃·포커스·메타만 담당.
 
 | 항목                       | 내용                                                                                                                                                                                                                        |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **추상화**                 | 모든 에디터를 **EditorPanel** 규격(3.1 Props/Events)으로 규격화. **탭**별로 **여러 패널(파일 인스턴스)** 동시 오픈 구조 지원                                                                                                |
-| **상태 관리**              | **Pinia**를 사용하여 탭 구성, **열린 패널 목록**(탭별), 활성 패널 ID, 스플릿 뷰 위치 정보 저장. **패널 Z-index·Focus Stack** 정보도 함께 관리. **pinia-plugin-persistedstate**로 store 영속화 구현 (localStorage 자동 저장) |
-| **UI 완성도**              | Quasar 레이아웃 내에서 에디터가 깨지지 않고 **리사이징(Resize)**되는지, 탭·패널 간 파일 로드 및 저장이 단일 사용자 환경에서 완벽한지 검증                                                                                   |
-| **리스트 가상화**          | **vue-virtual-scroller**를 탐색기(파일 목록)·채널 리스트(AiLeftNav)에 적용하여 긴 목록 렌더링 성능 향상                                                                                                                     |
-| **패널 데이터 구조(JSON)** | AI가 패널을 **이해**하고 **조작**하기 위해 1단계에서 미리 준비. Pinia 상태를 **JSON 스냅샷**으로 변환하여 2단계 컨텍스트 주입·편집 제안에 활용. AI 협업을 위한 **패널 스냅샷** 세분화                                       |
+| **상태 관리**              | **Zustand**를 사용하여 탭 구성, **열린 패널 목록**(탭별), 활성 패널 ID, 스플릿 뷰 위치 정보 저장. **패널 Z-index·Focus Stack** 정보도 함께 관리. **pinia-plugin-persistedstate**로 store 영속화 구현 (localStorage 자동 저장) |
+| **UI 완성도**              | shadcn/ui 레이아웃 내에서 에디터가 깨지지 않고 **리사이징(Resize)**되는지, 탭·패널 간 파일 로드 및 저장이 단일 사용자 환경에서 완벽한지 검증                                                                                   |
+| **리스트 가상화**          | **@tanstack/react-virtual**을 탐색기(파일 목록)·채널 리스트(NexiaLeftNav)에 적용하여 긴 목록 렌더링 성능 향상                                                                                                                     |
+| **패널 데이터 구조(JSON)** | AI가 패널을 **이해**하고 **조작**하기 위해 1단계에서 미리 준비. Zustand 상태를 **JSON 스냅샷**으로 변환하여 2단계 컨텍스트 주입·편집 제안에 활용. AI 협업을 위한 **패널 스냅샷** 세분화                                       |
 
-**권장 구현 순서**: ① EditorPanel 규격(3.1) + **Yjs 바인딩** → ② Pinia 레이아웃·열린 패널 목록 → ③ 패널 생명주기(5.4) → ④ (선택) 브릿지(5.5)는 Yjs 미연결 파일만. **검증**: EditorPanel 준수, Yjs 동기화, 열기/닫기/Dirty, Hocuspocus 재접속 복구.
+**권장 구현 순서**: ① EditorPanel 규격(3.1) + **Yjs 바인딩** → ② Zustand 레이아웃·열린 패널 목록 → ③ 패널 생명주기(5.4) → ④ (선택) 브릿지(5.5)는 Yjs 미연결 파일만. **검증**: EditorPanel 준수, Yjs 동기화, 열기/닫기/Dirty, Hocuspocus 재접속 복구.
 
 **1단계에서 준비할 패널용 JSON 구조 (예시)**
 
@@ -1075,7 +1088,7 @@ CREATE TABLE ai_user_settings (
 | 항목                  | 내용                                                                                                                                   |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | **실시간·AI 연동**    | **Vercel AI SDK** 출력을 **Y.Text / Awareness** 경유로 반영. Tiptap·Monaco 바인딩 정교화                                               |
-| **상태 관리**         | **Pinia**(레이아웃·포커스) + **Yjs**(문서 본문 SSOT) 역할 분리 고정                                                                     |
+| **상태 관리**         | **Zustand**(레이아웃·포커스) + **Yjs**(문서 본문 SSOT) 역할 분리 고정                                                                     |
 | **Awareness(인식)**   | 사용자·AI 커서·점유 상태를 패널에 표시                                                                                                 |
 | **서버 영속성**       | **Hocuspocus** Hook → `project_yjs_updates` + `yjs_state`. (보조) Redis 배치 — DDL v5                                                  |
 | **IoT 협업**          | **제3의 협업자** — 이원화(팩트 vs 인사이트)·스로틀·Device-only Region. **5.8 참조**                                                    |
@@ -1094,30 +1107,30 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 
 ## 11. 기술 스택 요약
 
-### 11.0 현행 (NEXAON) — 구현 기준
+### 11.0 현행 (nexia) — 구현 기준
 
 | 영역 | 기술 |
 | :--- | :--- |
 | **Frontend** | **Next.js** (`apps/web`) · Zustand / layout store |
-| **Editor** | **TipTap** · **Monaco** · **React Flow** (NEXIA/NEXAON) |
+| **Editor** | **TipTap** · **Monaco** · **React Flow** (nexia / Nexaon) |
 | **AI / LLM** | **`apps/agent-graph`** (LangGraph · FastAPI) — Chat · Extract · RAG · **SSE** |
 | **협업** | **Yjs** + **`apps/sync` Hocuspocus** — [`08_TDD_AI_YjsHocuspocus협업SSOT`](./08_TDD_AI_YjsHocuspocus협업SSOT.md) |
 | **Backend** | **NestJS** (`apps/backend`) — 인증 · 프록시 · DB |
 | **계약** | **`packages/shared` Zod** |
 
-### 11.1 초안 (레거시 Quasar) — 본문 참조용
+### 11.1 초안 (레거시 shadcn/ui) — 본문 참조용
 
 | 영역                           | 기술                                                                                                                                                                                                                                                                                           |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Frontend**                   | Vue 3, Quasar, Pinia *(→ Next.js·Zustand)*                                                                                                                                                                                                                                             |
+| **Frontend**                   | Next.js (React), shadcn/ui, Zustand *(→ Next.js·Zustand)*                                                                                                                                                                                                                                             |
 | **Editor**                     | Tiptap (Rich Text), Monaco (Code), Custom Media Editors                                                                                                                                                                                                                                        |
 | **AI**                         | Vercel AI SDK *(→ agent-graph SSE)*                                                                                                                                                                                                                                                          |
 | **오케스트레이터**             | **useAiOrchestrator**: 입력 분석·규칙/모델 기반 라우팅·컨텍스트 구성(Focus Stack+패널 JSON)·모델 호출·Zod 검증·**시뮬레이션 검증(코드)**·결과 반영. **멀티 에이전트·멀티모달** 대응 (5.7 참조)                                                                                                 |
 | **AI 안전성 (Safety Sandbox)** | 코드는 가상 장비에서 검증 후 반영. 장비 제어 수치는 **인간 최종 승인** 후 반영. **system_instruction 계층**(디폴트→설정·Nexus Map 오버라이드)·**오버라이드 시 검증·안전 레이어**. **5.7 참조**                                                                                                 |
-| **컨텍스트 관리**              | Pinia(Focus Stack)·패널 JSON·selectionRange·**Nexus Map(관계망)**·**벡터 임베딩·유사도 검색**(참조 풀 JSON 효율적 검색)·Zod·JSON 직렬화. 오케스트레이터가 단일 진입점으로 조립. **신선도(Freshness)**·컨텍스트 가중치(실시간 경고 우선). **장비 로그 통합** 스킬(5.7·5.8 참조). **8.6 참조**   |
+| **컨텍스트 관리**              | Zustand(Focus Stack)·패널 JSON·selectionRange·**Nexus Map(관계망)**·**벡터 임베딩·유사도 검색**(참조 풀 JSON 효율적 검색)·Zod·JSON 직렬화. 오케스트레이터가 단일 진입점으로 조립. **신선도(Freshness)**·컨텍스트 가중치(실시간 경고 우선). **장비 로그 통합** 스킬(5.7·5.8 참조). **8.6 참조**   |
 | **데이터**                     | **JSON** 통일 (패널·레이아웃·AI 입출력·페르소나·스킬·테스크). **Zod**로 AI 응답(JSON) 스키마 검증                                                                                                                                                                                              |
 | **Real-time**                  | **Yjs + Hocuspocus** (**0단계 최우선**, [`08_TDD_AI_YjsHocuspocus협업SSOT`](./08_TDD_AI_YjsHocuspocus협업SSOT.md)). SharedWorker(멀티탭). **10.3** 권한·IoT 고도화                                                                                         |
-| **상태 관리**                  | Pinia + **pinia-plugin-persistedstate**(store 영속화 보조). **mitt**는 요청·트리거(이벤트), Pinia는 지속 상태                                                                                                                                                                                  |
+| **상태 관리**                  | Zustand + **pinia-plugin-persistedstate**(store 영속화 보조). **mitt**는 요청·트리거(이벤트), Zustand는 지속 상태                                                                                                                                                                                  |
 | **오프라인·로컬 가용성**       | 클라우드 AI 끊김 시 로컬 모델 즉시 전환. 네트워크 복구 후 Yjs 서버 병합(하이드레이션 상세). **7.2 참조**                                                                                                                                                                                       |
 | **Backend**                    | Node.js                                                                                                                                                                                                                                                                                        |
 | **에디터 동기화 브릿지**       | **Yjs 미연결 POC 한정** 임시(mitt LWW). **기본은 Yjs shared type**. **5.5 참조**                                                                                                       |
@@ -1133,7 +1146,7 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 
 > **역할**: 10장 로드맵은 단계별 **구현 범위**, 본 절은 **별도 문서·관련 기획** 링크 위주. 세부 순서·우선순위는 별도 정리.
 
-**관련 문서**: [NEXAON 모노레포](../NEXAON/08_TDD_NEXAON_모노레포폴더구조_v1.0.md), [웹서치·프로젝트 PRD](../../05_PRD/AI/05_PRD_AI_워크스페이스웹서치자원전략.md), [웹 탐색기 PRD](../../05_PRD/AI/05_PRD_AI_웹탐색기문서폴더연동.md), [탐색기 미디어 동기화](../../05_PRD/AI/05_PRD_AI_탐색기미디어탭동기화.md), [단축키·레이아웃](../../05_PRD/AI/05_PRD_AI_워크스페이스단축키레이아웃.md)
+**관련 문서**: [LangGraph 모노레포](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md), [웹서치·프로젝트 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스웹서치자원전략.md), [웹 탐색기 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md), [탐색기 미디어 동기화](../../05_PRD/NEXIA/05_PRD_NEXIA_탐색기미디어탭동기화.md), [단축키·레이아웃](../../05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스단축키레이아웃.md)
 
 1. **메모 → 문서 승격**: ai_user_memos → files 정식 저장 (ai_user_memos-기획.md)
 2. **탐색기·미디어 탭 동기화**: 좌측 미디어 탭과 탐색기 연동 (탐색기-미디어탭-동기화-기획.md)
@@ -1148,7 +1161,7 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 11. **에디터 패널 전역 엔진화**: 안정화 후 에디터 패널을 전역 엔진으로 격상, **모든 도메인에서 재사용 가능**하도록 구성
 12. **드래그 앤 드롭**: 탭·패널 순서 사용자 재배치
 13. **mitt 이벤트 버스 전환**: useAiInsertRequest·useAiExplorerSelection·useAiMediaTab 콜백을 mitt 기반으로 전환
-14. **pinia-plugin-persistedstate 적용**: Pinia store를 localStorage에 자동 영속화하여 기존 수동 저장 로직을 대체·보조
+14. **pinia-plugin-persistedstate 적용**: Zustand store를 localStorage에 자동 영속화하여 기존 수동 저장 로직을 대체·보조
 15. **localStorage → 서버 이전**: ai_channels, ai_chats, ai_chat_messages, ai_workspace_layout, ai_user_settings 테이블 적용 (9. DB 설계)
 16. **문서 관리 필터 (디렉토리별 1depth 서브폴더)**: 현재 디렉토리 필터(nexa-docs / platform-docs) 선택 시, 해당 디렉토리 내 **1차 하위 폴더(Platform, 공통, Desktop 등)** 기준 필터 버튼 추가 표시. 구현 난이도 낮음. 실제 사용성 검토 후 필요 시 추가.
 
@@ -1160,11 +1173,11 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 
 | 항목                    | 내용                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **용어**                | [NEXA-STACK-01] §8.0 기준: **Workspace**(도메인별 추상적 작업공간, UI 개념·DB 없음), **Project**(최상위 작업단위, DB 테이블 유지). **탭**(Dialogue/Narrative/Logic/Media/Sense/Nexus/Explorer, §1.4·§1.5), **패널**(탭 내 파일 1개 = 패널 1개), 배치 관리(QSplitter+Pinia). **탐색기**: 파일탐색기·프로젝트탐색기 구분(§1.7). **Sense** 탭은 읽기 전용 멀티 뷰어(1.6). **Nexus** 탭 = Nexus Map(8.6) |
+| **용어**                | [NEXA-STACK-01] §8.0 기준: **Workspace**(도메인별 추상적 작업공간, UI 개념·DB 없음), **Project**(최상위 작업단위, DB 테이블 유지). **탭**(Dialogue/Narrative/Logic/Media/Sense/Nexus/Explorer, §1.4·§1.5), **패널**(탭 내 파일 1개 = 패널 1개), 배치 관리(QSplitter+Zustand). **탐색기**: 파일탐색기·프로젝트탐색기 구분(§1.7). **Sense** 탭은 읽기 전용 멀티 뷰어(1.6). **Nexus** 탭 = Nexus Map(8.6) |
 | **레이아웃**            | 프레임(left/content/right) + 워크스페이스 내 3영역 스플릿                                                                                                                                                                                                                                                                                                                                            |
 | **이벤트 전달**         | **mitt** 이벤트 버스 (`ai:insert-request`, `ai:inject-to-chat` 등). 기존 useAiInsertRequest·useAiExplorerSelection·useAiMediaTab 콜백을 mitt로 전환·보완                                                                                                                                                                                                                                             |
-| **상태 공유**           | useAiChannels, useAiSplitLayout, useAiSettings 모듈 레벨 ref → **1단계에서 Pinia 전환 검토**                                                                                                                                                                                                                                                                                                         |
-| **설정 지속성**         | **pinia-plugin-persistedstate**로 Pinia store를 localStorage에 영속화. 기존 useAiSplitLayout·useAiChannels·useAiSettings는 Pinia 전환 시 통합                                                                                                                                                                                                                                                        |
+| **상태 공유**           | useAiChannels, useNexiaSplitLayout, useAiSettings 모듈 레벨 ref → **1단계에서 Zustand 전환 검토**                                                                                                                                                                                                                                                                                                         |
+| **설정 지속성**         | **pinia-plugin-persistedstate**로 Zustand store를 localStorage에 영속화. 기존 useNexiaSplitLayout·useAiChannels·useAiSettings는 Zustand 전환 시 통합                                                                                                                                                                                                                                                        |
 | **오프라인·로컬**       | 클라우드 끊김 시 로컬 모델 전환. 네트워크 복구 후 Yjs 병합(하이드레이션 상세). **7.2 참조**                                                                                                                                                                                                                                                                                                          |
 | **창 분리·멀티 윈도우** | 탭·패널 분리 가능. UUID 전역 상태·Global Focus Stack·창 복원 하이드레이션 준비. **7.3 참조**                                                                                                                                                                                                                                                                                                         |
 | **로드맵**              | **0단계 Yjs·Hocuspocus** → 1단계 탭·패널(Yjs 바인딩) → 2단계 AI(**오케스트레이터**) → 3단계 권한·IoT 고도화                                                                                                                                                                                                                                                                              |
@@ -1173,11 +1186,22 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 | **IoT 협업**            | 제3의 협업자. 데이터 이원화(팩트 vs 엣지 AI 인사이트)·스로틀·중요 변화 시 커밋. **5.8 참조**                                                                                                                                                                                                                                                                                                         |
 | **오류/예외**           | Zod 검증 실패→원문 표시·재시도. Ollama 끊김→배너·재시도. 파일 로드 실패→에러 UI·재시도. **6.1 참조**                                                                                                                                                                                                                                                                                                 |
 | **DB**                  | ai_user_memos(존재), ai_channels·ai_chats·ai_chat_messages·ai_workspace_layout·ai_user_settings (2단계 또는 별도 Phase)                                                                                                                                                                                                                                                                              |
-| **기술**                | **Yjs**, **Hocuspocus**, Vercel AI SDK, **mitt**, **Zod**, Pinia(레이아웃·메타)                                                                                                                                                                                                                                                                                               |
+| **기술**                | **Yjs**, **Hocuspocus**, Vercel AI SDK, **mitt**, **Zod**, Zustand(레이아웃·메타)                                                                                                                                                                                                                                                                                               |
 | **장기**                | 에디터 패널 → 전역 엔진 격상, 모든 도메인 재사용 / JSON 통일·페르소나·스킬·테스크 시스템                                                                                                                                                                                                                                                                                                             |
 | **Yjs 권한(준비)**      | 노드별 잠금(Awareness 확장)·장비 전용 영역(Read-only Human, Write-only Device). **10.3 참조**                                                                                                                                                                                                                                                                                                        |
 | **AI 존재감 UX**        | 고스트 텍스트·거터 상태 아이콘(읽는 중/분석 중). **8.5 참조**                                                                                                                                                                                                                                                                                                                                        |
 | **Nexus Map**           | 실물/논리 노드·레이어(Data/지능)·할당(파일↔페르소나/스킬, AI 제안·사람 조정·테스크 자동 반영)·Zod 연결 검증·탐색기·Nexus 캔버스 분리. **8.6 참조**                                                                                                                                                                                                                                                  |
 | **Snapshot·시점 관리**  | 인과관계 추적(시계열 변경 이력)·워크스페이스 스냅샷 저장·AI 과거·현재 비교 분석. **8.7 참조**                                                                                                                                                                                                                                                                                                        |
 
-본 기획은 **이벤트(mitt) - 상태(Pinia) - 검증(Zod) - 영속성(PersistedState)**이라는 현대적인 웹 앱의 4대 요소를 모두 갖추고 있으며, 특히 **Focus Stack**은 단순한 에디터를 넘어 **지능형 워크스페이스**로 가는 핵심 차별점이다. 이 기획서는 현재 AI 도메인 구조를 기반으로 하며, 협업형 멀티 에디터 플랫폼의 기초 아키텍처와 **용어 정의**를 확정한다. 세부 기능·API·UI 상세는 별도 기획 문서에서 상황에 따라 분리·심화한다.
+본 기획은 **이벤트(mitt) - 상태(Zustand) - 검증(Zod) - 영속성(PersistedState)**이라는 현대적인 웹 앱의 4대 요소를 모두 갖추고 있으며, 특히 **Focus Stack**은 단순한 에디터를 넘어 **지능형 워크스페이스**로 가는 핵심 차별점이다. 이 기획서는 현재 AI 도메인 구조를 기반으로 하며, 협업형 멀티 에디터 플랫폼의 기초 아키텍처와 **용어 정의**를 확정한다. 세부 기능·API·UI 상세는 별도 기획 문서에서 상황에 따라 분리·심화한다.
+
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 구현 PRD | [룰·프롬프트 통합 관리 (PRD-006)](../../05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |
+| NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |
+| Yjs 협업 SSOT | [Yjs · Hocuspocus 협업 SSOT (TDD-038)](./08_TDD_AI_YjsHocuspocus협업SSOT.md) |
+| 5W1H 레이어 | [5W1H · 6 대 추상 레이어 규격 (TDD-033)](./08_TDD_AI_5W1H_6대추상레이어규격.md) |

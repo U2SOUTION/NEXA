@@ -15,7 +15,7 @@ You are generating UI for **NEXA Platform** — an industrial IoT + ontology col
 - Icons: **lucide-react**
 - Accessibility: buttons need `aria-label`, focus rings visible
 
-## Visual identity (nexia / NEXAON)
+## Visual identity (nexia / Nexaon)
 
 - Preset: **office-light** — clean, low-glare, engineering tool (Palantir-like density, not consumer chat)
 - Density: compact toolbar (~40px), tree rows ~28px, status strip ~30px

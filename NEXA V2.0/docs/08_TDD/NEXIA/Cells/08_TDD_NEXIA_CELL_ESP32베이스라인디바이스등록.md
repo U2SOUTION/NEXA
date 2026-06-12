@@ -1,3 +1,16 @@
+---
+doc_id: TDD-024
+title: "CELL · ESP32 베이스라인 디바이스 등록"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: PRD-004
+terms_standard: ["esphome", "ota", "esp32", "mqtt"]
+terms_nexa: ["NEXA-CELL", "Twinex", "edge-device", "react-flow"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esphome", "std/ota", "std/esp32", "std/mqtt", "nexa/NEXA-CELL", "nexa/Twinex", "nexa/edge-device", "nexa/react-flow"]
+---
 # NEXIA · NEXA-CELL · ESP32 베이스라인 펌웨어 및 디바이스 등록
 
 > **도메인 통합 (2026-06):** 구 `/nexa-node` 별도 도메인 **폐기** → **`domainKey: nexia`** · **Twinex** 탭 (`tabId: twinex`). 그래프 UI = **React Flow** (`@xyflow/react`). LLM = **Nest → `apps/agent-graph`**. 스택 SSOT: [`08_TDD_NEXIA_구조기술스택운영방침`](../../08_TDD_NEXIA_구조기술스택운영방침.md)
@@ -435,3 +448,12 @@
 | **NEXA-Documentation/공통/01-기획/NEXA-CELL ESP32 연동 (본 문서군)** | 펌웨어 3계층, JSON 통신, 장비 등록, 동적 포트 매핑. |
 | **NEXA-Documentation/공통/01-기획/NEXA_시스템_장기_로드맵_및_단계별_보안_구현_전략** | OTA 보안, 코드 서명, 단계별 로드맵. |
 | **NEXA-Documentation/Platform/01-기획/NEXA-주요_기능_요구사항** | §5 디바이스 등록, devices_iot·devices_firmware. |
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 구현 PRD | [NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 (PRD-004)](../../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |
+| Lambda · Jetson TDD | [CELL · Lambda 템플릿 · Jetson 연동 API (TDD-025)](./08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API.md) |
+| NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../08_TDD_NEXIA_구조기술스택운영방침.md) |

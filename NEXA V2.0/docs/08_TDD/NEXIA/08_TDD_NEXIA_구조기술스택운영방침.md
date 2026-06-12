@@ -1,8 +1,23 @@
+---
+doc_id: TDD-010
+title: "NEXIA 구조 · 기술 스택 운영 방침"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: BRD-001
+terms_standard: ["next-js", "yjs", "hocuspocus", "langgraph", "ollama", "esphome", "comfyui"]
+terms_nexa: ["Omnix", "Normex", "Logex", "Scribx", "Vivex", "Twinex", "Navex", "Global-Navex", "tabId", "NEXA-CELL", "Nexion", "GlobalFileExplorer"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocuspocus", "std/langgraph", "std/ollama", "std/esphome", "std/comfyui", "nexa/Omnix", "nexa/Normex", "nexa/Logex", "nexa/Scribx", "nexa/Vivex", "nexa/Twinex", "nexa/Navex", "nexa/Global-Navex", "nexa/tabId", "nexa/NEXA-CELL", "nexa/Nexion", "nexa/GlobalFileExplorer"]
+---
 # NEXIA · 구조와 기술 스택·운영방침
 
 > **스택 SSOT (To-Be):** **`apps/web` = Next.js** (App Router). **Rivet** = **Desktop Rivet**(설계·Export) / **Embedded Rivet**(`rivet-node` @ NestJS). **Logex** 그래프 UI = **NEXIA React Flow**; **Nexion** 지식 데스크 = **Nexion React Flow** (`@xyflow/react`). — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
 
 **한 줄:** NEXIA는 **NEXA 플랫폼**의 **핵심 지능 도메인**(`domainKey: nexia`)으로, **7탭 `-ex` `tabId`(SSOT)** · **Omnix 허브**로 인간·AI·장치·자산을 조율하고 **다른 도메인·모드와 연결**되어 작동한다.
+
+**플랫폼 확장 방향:** NEXA 전체는 **산업 → 아트 → 일상** 순으로 발전한다. NEXIA는 그 여정의 **지능·규범·실행 허브**로, 산업 현장 검증 → 아트·미디어 표현 → 일상 스마트 라이프로 이어지는 온톨로지·파이프라인을 조율한다. — [`01_BRD_NEXA_사업마스터플랜`](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md)
 
 - **Normative:** 본 문서 — **nexia 도메인** 탭 규정·연계·운영 원칙의 **진입점**
 - **탭 SSOT:** 코드·문서·레지스트리·`.nx*`·Envelope — **Omnix · Normex · Logex · Scribx · Vivex · Twinex · Navex** (`tabId`). 구 UI 라벨은 **부록 B** 참고용만.
@@ -15,7 +30,8 @@
 
 | 포함                            | 제외 (별도 문서)                                                                                                                                                                                                                     |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 7탭 `tabId` SSOT · Yjs · `.nx*` | 제너레이터 파이프라인 상세 — [`AI 협력 제네레이터`](./Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
+| 7탭 `tabId` SSOT · Yjs · `.nx*` | 탭별 **In/Out·MVP 범위** — [`08_TDD_NEXIA_7탭범위확정_v1.0`](./08_TDD_NEXIA_7탭범위확정_v1.0.md) (TDD-056) |
+| 탭 규정·파이프라인 상세 | 제너레이터 파이프라인 — [`AI 협력 제네레이터`](./Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
 | Omnix 3단계 · 탭 파이프라인     | RBAC·감사 상세 — §5 · [`08_TDD_NEXIA_보안및권한관리체계`](./08_TDD_NEXIA_보안및권한관리체계.md) |
 | 레이아웃·시간축 전제            | 멀티윈도우·PiP — §7 · [`08_TDD_NEXIA_멀티윈도우DocumentPiP`](./08_TDD_NEXIA_멀티윈도우DocumentPiP.md) |
 | 개선 과제·우선순위 — §9         | CSIM 패킷·ACTON-GM — [`CSIM · AXON`](../../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |
@@ -106,6 +122,17 @@
 
 > **Normex** — **Norm(규범) + `-ex`** · 정책·가드레일·인터랙티브 시방서.  
 > **Twinex** — 디지털 트윈·3D·프로젝트(`.nxproj`) 중심 장치·진단·엣지 인터페이스.
+
+#### 3.1.1 Navex · Global Navex (배치)
+
+| 표면 | 명칭 | 마운트 | 기본 |
+| :--- | :--- | :--- | :--- |
+| 탭 | **Navex** | `TabWorkspace` · `tabId=navex` | P0 |
+| Right Drawer 플러그인 | **Global Navex** | `GlobalNavexPlugin` · `NexiaRightPanel` | P1 · `navexPlacement: 'right-drawer-plugin'` |
+
+- **엔진 SSOT:** `GlobalFileExplorer` · `useGlobalFileExplorer` — 두 표면 **공유**.
+- **반응형:** Global Navex 는 **viewport ≥1280px** 만 · 미만 시 **L1 탭(`navex`) 강제**.
+- **릴레이:** 선택 컨텍스트 → Logex·Scribx·Vivex·Twinex — [`UIX-004`](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) §4.5 · [`PRD-001`](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) §3.9.
 
 ### 3.2 Yjs 협업
 
@@ -302,7 +329,7 @@ tabRegistry: {
 | **도메인 시간** | 시계열·스트림·주파수·에너지 흐름, 파형·타임라인 분석                    | **데이터가 시간축을 본질 속성으로 가질 때만** — 우측 드로어 Time Axis Panel에서 `capability`에 따라 깊이 확장 |
 
 - **전 탭 공통**: 맥락 연속성(§2.3)·감사·추적(§4)·협업 상태(Yjs)는 운영 시간을 항상 전제한다.
-- **UI 배치 (Right Drawer)**: 타임라인·버전·히스토리·스트림·파형 뷰는 **Center Main 탭 본문에 고정하지 않는다**. Cross-Tab 유틸리티인 **Time Axis Panel**(시간·이력 패널)을 우측 드로어에 두고, `activeTabId`·선택 객체·세션 맥락에 맞춰 내용을 바꾼다. 레이아웃·아코디언·Pin 규칙은 [`07_UIUX_NEXIA_통합레이아웃구조규격`](../../../07_UIUX/07_UIUX_NEXIA_통합레이아웃구조규격.md) §11.4.4를 따른다.
+- **UI 배치 (Right Drawer)**: 타임라인·버전·히스토리·스트림·파형 뷰는 **Center Main 탭 본문에 고정하지 않는다**. Cross-Tab 유틸리티인 **Time Axis Panel**(시간·이력 패널)을 우측 드로어에 두고, `activeTabId`·선택 객체·세션 맥락에 맞춰 내용을 바꾼다. Time Axis·아코디언·Pin 규칙은 [`UIX-004` nexia MainShell §4.7](../../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · 플랫폼 셸 [`UIX-006`](../../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) §5.4를 따른다.
 - **패널 표시 계층** (기본 → 확장):
   - **항상**: 운영 시간 — 최근 변경·버전·승인/감사 스냅샷, 세션 이벤트 요약
   - **맥락 연동**: 활성 탭별 — Normex 정책·코드(Scribx) 이력, Logex 실행·스냅샷, Vivex 렌더 큐, Twinex·Navex 진단·선택 시점
@@ -349,7 +376,7 @@ MQTT/Yjs 단절·Twinex 시뮬 격리·파이프라인 중단 시 동작은 [`06
 
 ## 7. 레이아웃 · 멀티윈도우
 
-- **통합 레이아웃·Time Axis Panel·탭 셸:** [`07_UIUX_NEXIA_통합레이아웃구조규격`](../../../07_UIUX/07_UIUX_NEXIA_통합레이아웃구조규격.md) §11.4.4
+- **레이아웃·Time Axis·nexia 셸:** [`UIX-004` §4.7](../../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [`UIX-006`](../../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md)
 - **멀티윈도우 · Document PiP:** [`08 …`](<./08%20멀티윈도우%20%C2%B7%20Document%20PiP%20%ED%86%B5%ED%95%A9%20%EA%B7%9C%EA%B2%A9%20%EB%B0%8F%20%EC%84%A0%ED%83%9D%20%EA%B0%80%EC%9D%B4%EB%93%9C%20(Multi-Window%20%26%20PiP%20Specification).md>)
 - **탭 창 분리 MVP:** [`14 레이아웃 복잡도 완화 …`](<./14%20레이아웃%20복잡도%20완화%20및%20탭(패널)%20창%20분리%20MVP%20계획.md>)
 
@@ -494,7 +521,7 @@ Scribx 단계에서 실패하면?
 
 ## 부록 B. 구 UI 라벨 (참고용 · 비규범)
 
-> 초기 UI 네이밍·아이디어 스케치. **신규 문서·코드·`tabId`에 사용하지 않는다.** SSOT는 §3.1 `-ex` `tabId`.
+> 초기 UI 네이밍·아이디어 스케치. **신규 문서·코드·`tabId`에 사용하지 않는다.** SSOT는 §3.1 `-ex` `tabId`. 전체 용어집: [`TDD-060` NEXA V2.0 용어집](../NEXAOS/08_TDD_NEXAOS_용어집_v1.0.md) 부록 A.
 
 **구 7탭 라벨 (참고)**
 
@@ -511,3 +538,16 @@ Scribx 단계에서 실패하면?
 ---
 
 _상태: 7탭 SSOT — Omnix/Normex/Logex/Scribx/Vivex/Twinex/Navex · §1~§9 정리._
+
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
+| OS SSOT | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](../AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 7탭 범위 | [NEXIA · 7탭 범위 확정 v1.0 (TDD-056)](./08_TDD_NEXIA_7탭범위확정_v1.0.md) |
+| 오케스트레이션 | [LangGraph · 오케스트레이션 설계 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
+| 하위 TDD | [드롭존 · 첨부 파일 구조 (TDD-013)](./08_TDD_NEXIA_드롭존첨부파일구조.md) |

@@ -2,14 +2,24 @@
 
 NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. 플랫폼 전역은 [NEXAOS](../NEXAOS/) SSOT.
 
+**NEXA 확장 방향:** **산업 → 아트 → 일상** — [`01_BRD_NEXA_사업마스터플랜`](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md)
+
 ## 핵심 (진입점)
 
 | 문서 | 역할 |
 | :--- | :--- |
 | [08_TDD_NEXIA_구조기술스택운영방침.md](./08_TDD_NEXIA_구조기술스택운영방침.md) | **Normative 진입점** — 7탭·스택·운영 |
+| [08_TDD_NEXIA_7탭범위확정_v1.0.md](./08_TDD_NEXIA_7탭범위확정_v1.0.md) | **7탭 In/Out · MVP Phase · Nexaon 경계** 확정 (TDD-056) |
+| [08_TDD_NEXIA_구현파일구조뼈대.md](./08_TDD_NEXIA_구현파일구조뼈대.md) | **구현 파일 트리 뼈대** — `domains/nexia/` · 백엔드 · shared |
 | [08_TDD_NEXIA_외부엔진및아키텍처.md](./08_TDD_NEXIA_외부엔진및아키텍처.md) | Ollama·ComfyUI·ESPHome·API |
 | [08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md](./08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) | 탭 릴레이·HEXAGON·Ethos (구 `_프로토콜`) |
 | [08_TDD_NEXIA_보안및권한관리체계.md](./08_TDD_NEXIA_보안및권한관리체계.md) | Grade·RBAC·Normex·감사 |
+
+## 워크스페이스 · 파일
+
+| 문서 | 설명 |
+| :--- | :--- |
+| [08_TDD_NEXIA_드롭존첨부파일구조.md](./08_TDD_NEXIA_드롭존첨부파일구조.md) | 전역 files API · NexiaLeftNav (구 `08_TDD/AI`) |
 
 ## 도메인 규격
 
@@ -42,6 +52,6 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 
 | 분류 | 문서 |
 | :--- | :--- |
-| UIUX | [07_UIUX_NEXIA_통합레이아웃구조규격](../../07_UIUX/07_UIUX_NEXIA_통합레이아웃구조규격.md) |
+| UIUX | [07_UIUX_NEXA_통합레이아웃구조규격](../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) · [07_UIUX_NEXIA_MainShell_레이아웃_v1.0](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [07_UIUX_NEXIA_컴포넌트트리뼈대](../../07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) |
 | MVP | [03_MVP_NEXIA_레이아웃팝아웃MVP](../../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
 | Cosmic | [CSIM · AXON](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |

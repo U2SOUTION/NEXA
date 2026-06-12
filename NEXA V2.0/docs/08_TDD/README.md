@@ -2,6 +2,8 @@
 
 **목적**: 아키텍처, DB, API, 보안, CI/CD.
 
+**플랫폼 방향:** NEXA는 **산업 → 아트 → 일상** 순으로 발전 — BRD [`01_BRD_NEXA_사업마스터플랜`](../01_BRD/01_BRD_NEXA_사업마스터플랜.md) SSOT.
+
 **파일명**: `08_TDD_<도메인>_<주제>.md` (11대 `08_` 접두 유지)
 
 **폴더 구조**: 문서가 15건 이상·도메인이 5개 이상이면 **주제별 하위 폴더**로 분리한다. 11대 분류 번호 `08_TDD`는 그대로 두고, 그 아래에 도메인 폴더를 둔다.
@@ -10,12 +12,13 @@
 08_TDD/
   README.md
   NEXAOS/      # 플랫폼 셸·모노레포·보안 SSOT
-  NEXAON/      # LangGraph·IoT·에이전트 플랫폼
+  LangGraph/   # LangGraph·agent-graph·IoT·온톨로지 스택
   NEXIA/       # NEXIA 도메인 전용
   Cosmic/      # CSIM·AXON·Cosmic Language
   Knowledge/   # Knowledge OS
   Identity/    # Identity·Capability·신뢰도
   AI/          # AI 워크스페이스·Yjs·GOVERN·데이터 프로토콜
+  Ontex/       # Ontex · 온톨로지·Graph RAG·지식 허브
 ```
 
 **연계**: `04_Decision`(Why) · `../prompts/` 비판 검토 후 확정
@@ -27,12 +30,13 @@
 | 폴더 | 설명 | README |
 | :--- | :--- | :--- |
 | [NEXAOS](./NEXAOS/) | NEXA OS 설계 표준·도메인 레지스트리·플랫폼 스택 | [NEXAOS/README](./NEXAOS/README.md) |
-| [NEXAON](./NEXAON/) | NEXAON 모노레포·LangGraph·IoT 스택 | [NEXAON/README](./NEXAON/README.md) |
+| [LangGraph](./LangGraph/) | LangGraph 모노레포·agent-graph·IoT 스택 | [LangGraph/README](./LangGraph/README.md) |
 | [NEXIA](./NEXIA/) | NEXIA 도메인 보안·권한 | [NEXIA/README](./NEXIA/README.md) |
 | [Cosmic](./Cosmic/) | CSIM·AXON·Cosmic Language | [Cosmic/README](./Cosmic/README.md) |
 | [Knowledge](./Knowledge/) | Knowledge OS API·라우팅·로드맵 | [Knowledge/README](./Knowledge/README.md) |
 | [Identity](./Identity/) | Identity ID·Capability·신뢰도 | [Identity/README](./Identity/README.md) |
 | [AI](./AI/) | Yjs·협업 워크스페이스·GOVERN·RAG | [AI/README](./AI/README.md) |
+| [Ontex](./Ontex/) | Ontex · Graph RAG · subRoute · Nexion | [Ontex/README](./Ontex/README.md) |
 
 ---
 
@@ -43,18 +47,26 @@
 | 문서 | 설명 |
 | :--- | :--- |
 | [설계표준_미션크리티컬전략](./NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) | NEXA OS 설계 표준 (SSOT) |
-| [도메인레지스트리명세](./NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) | 도메인 레지스트리 |
+| [도메인레지스트리명세](./NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) | 도메인 레지스트리 (TDD-002) |
+| [도메인마스터맵](./NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) | 도메인 관계 맵 (TDD-059) |
 | [수직계층보안아키텍처](./NEXAOS/08_TDD_NEXAOS_수직계층보안아키텍처.md) | 수직 계층 보안 |
 | [플랫폼기술스택](./NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md) | 플랫폼 기술 스택 |
 | [4대핵심_체크리스트상세](./NEXAOS/08_TDD_NEXAOS_4대핵심_체크리스트상세.md) | 아카이브 상세 |
 
-### NEXAON
+### LangGraph
 
 | 문서 | 설명 |
 | :--- | :--- |
-| [모노레포폴더구조](./NEXAON/08_TDD_NEXAON_모노레포폴더구조_v1.0.md) | NEXAON 모노레포 |
-| [LangGraph 플랫폼](./NEXAON/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) | LangGraph 아키텍처 |
-| [IoT 핵심기술스택](./NEXAON/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) | IoT·온톨로지·AI 스택 |
+| [모노레포폴더구조](./LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) | LangGraph 모노레포 |
+| [LangGraph 플랫폼](./LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) | LangGraph 아키텍처 |
+| [IoT 핵심기술스택](./LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) | IoT·온톨로지·AI 스택 |
+| [오케스트레이션설계](./LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) | 플랫폼 오케스트레이션 · graph_id (TDD-058) |
+
+### Ontex
+
+| 문서 | 설명 |
+| :--- | :--- |
+| [기술스택운영방침](./Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) | Ontex Normative 진입점 (TDD-057) |
 
 ### NEXIA · Cosmic · Knowledge · Identity · AI
 

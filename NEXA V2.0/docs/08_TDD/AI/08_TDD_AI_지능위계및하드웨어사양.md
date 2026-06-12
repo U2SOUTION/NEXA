@@ -1,4 +1,19 @@
+---
+doc_id: TDD-040
+title: "지능 위계 · 하드웨어 사양"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: TDD-042
+terms_standard: ["esp32", "jetson", "raspberry-pi"]
+terms_nexa: ["Nano-Sentinel", "Kinetic-Controller", "Zenith-Indicator", "COLD", "HOT"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/raspberry-pi", "nexa/Nano-Sentinel", "nexa/Kinetic-Controller", "nexa/Zenith-Indicator", "nexa/COLD", "nexa/HOT"]
+---
 # AI · 지능 위계 및 하드웨어 사양
+
+> **레거시 출처:** 「NEXA AIS Intelligence Hierarchy & Spec」→ **본 문서(TDD-040)가 정본**.
 
 센티널(반사 신경)과 인디케이터(전략적 뇌)가 각자의 역할에 최적화된 하드웨어에서 구동되도록 설계하여, 연산 부하를 분산하고 실시간 반응성을 확보하는 **지능 위계·하드웨어 사양서**이다.
 
@@ -215,3 +230,12 @@
 - **클라우드 협력형:** 경로 최적화·LLM·RAG는 클라우드; 단절 시 동작 제한.
 - **트렌드:** 엣지 지능 상향 평준화 — SLM 탑재, 월드 모델(압축된 공간·물리 법칙) 내장.
 - **NEXA(ESP32) 시사점:** 모든 데이터를 엣지에 둘 수 없으나 "자주 발생하는 상황에 대한 해답"은 내장. 근육(모터 제어)=엣지 즉시, 철학/전략=플랫폼+RAG, 비상 전략 세트=엣지 수시 캐싱. [즉각-생각] 분리는 Fast-Slow 파이프라인과 일치하며, NVIDIA ISAAC 등에서 표준으로 제시되는 아키텍처와 부합한다.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 안전 대책 | [안전 대책 · 선조치 로직 (TDD-039)](./08_TDD_AI_안전대책선조치로직.md) |
+| NEXA-CELL PRD | [NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 (PRD-004)](../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |

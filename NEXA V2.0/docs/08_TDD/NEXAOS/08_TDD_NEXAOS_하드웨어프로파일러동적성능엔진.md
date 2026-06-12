@@ -1,3 +1,16 @@
+---
+doc_id: TDD-006
+title: "하드웨어 프로파일러 · 동적 성능 엔진"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-001
+terms_standard: ["webgl", "performance-api"]
+terms_nexa: ["NEXA-SYNC", "Coil-Balance", "Hardware-Profiler", "NIXIE"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/webgl", "std/performance-api", "nexa/NEXA-SYNC", "nexa/Coil-Balance", "nexa/Hardware-Profiler", "nexa/NIXIE"]
+---
 NEXA 플랫폼의 진입점에서 실행될 **'정적 자원 파악 코드'**와 이후 시스템 전역에서 구동될 **'동적 성능 모니터링 코드'** 전략.
 
 이 코드는 **6개의 코일** 가중치와 **닉시관 스타일의 캔버스 연출**을 테스트 후
@@ -263,3 +276,12 @@ NEXA의 설계 원칙 중 가장 중요한 것은 **사용자의 직접 설정�
 
 - **기능 우선·직접 설정 우선**은 문서 전체에서 잘 관통되어 있으며, UI 가이드라인과도 일치한다. 이 원칙을 **코드에서 단일 플래그/설정 소스**로 명확히 두고, my/는 "설명서" 역할에 집중하면 사용자 납득과 전문 도구로서의 정체성이 함께 살아난다.
 - 프로파일·FPS·사용자 선택을 **플랫폼 스키마(project_settings)·코일·오케스트레이터**와 개념적으로만이라도 연동해 두면, 나중에 "시방서 RULE + 장비 컨트롤러"와 "클라이언트 연출·AI 분배"를 하나의 정책으로 말할 수 있어 확장 시 유리하다.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| Admin | [NEXA SYNC 커맨드 센터 (ADM-001)](../../09_Admin/09_Admin_NEXA_SYNC커맨드센터.md) |
+| 지능 위계 | [지능 위계 · 하드웨어 사양 (TDD-040)](../AI/08_TDD_AI_지능위계및하드웨어사양.md) |

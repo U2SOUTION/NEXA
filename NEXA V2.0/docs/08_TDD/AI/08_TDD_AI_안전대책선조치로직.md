@@ -1,4 +1,19 @@
+---
+doc_id: TDD-039
+title: "안전 대책 · 선조치 로직"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: TDD-042
+terms_standard: ["mqtt", "esp32"]
+terms_nexa: ["Sentinel", "Reflex", "Bypass", "Nano-Sentinel", "Zenith-Indicator"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esp32", "nexa/Sentinel", "nexa/Reflex", "nexa/Bypass", "nexa/Nano-Sentinel", "nexa/Zenith-Indicator"]
+---
 # AI · 안전 대책 및 선조치 로직 (Safety Reflex & Bypass)
+
+> **레거시 출처:** 「NEXA AIS Safety Reflex & Bypass」→ **본 문서(TDD-039)가 정본**.
 
 인디케이터 추론의 **잠재적 오류(할루시네이션)**가 물리적 사고로 이어지지 않도록, 센티널 **반사 신경**의 즉각 개입 범위를 규정하는 보수적 운영 지침이다.
 
@@ -128,3 +143,12 @@
   |                         |       |                 |               |     |
   |                         |       |                 | fffffffffffff |     |
   |                         |       | fffffffffffffff |               |     |
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 지능 위계 | [지능 위계 · 하드웨어 사양 (TDD-040)](./08_TDD_AI_지능위계및하드웨어사양.md) |
+| GOVERN 규범 | [코일 밸런스 · GOVERN 운영 규범 (TDD-041)](./08_TDD_AI_코일밸런스운영규범GOVERN.md) |

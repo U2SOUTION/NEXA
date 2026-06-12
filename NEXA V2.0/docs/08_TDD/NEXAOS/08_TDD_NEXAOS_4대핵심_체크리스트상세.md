@@ -1,3 +1,16 @@
+---
+doc_id: TDD-005
+title: "4대 핵심 · 체크리스트 상세 (아카이브)"
+category: "08_TDD"
+domain: NEXAOS
+status: archived
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-001
+terms_standard: ["yjs", "hocuspocus", "zod", "nestjs"]
+terms_nexa: ["NEXAOS", "apps-sync", "packages-shared", "mission-critical"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/yjs", "std/hocuspocus", "std/zod", "std/nestjs", "nexa/NEXAOS", "nexa/apps-sync", "nexa/packages-shared", "nexa/mission-critical"]
+---
 # NEXA OS V2.1 — 아카이브: 4대 핵심 · 체크리스트 상세 (학습용)
 
 > **용도**: [`08_TDD_NEXAOS_설계표준_미션크리티컬전략`](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) 문서 다이어트 시 **통합·삭제된 상세본**입니다.  

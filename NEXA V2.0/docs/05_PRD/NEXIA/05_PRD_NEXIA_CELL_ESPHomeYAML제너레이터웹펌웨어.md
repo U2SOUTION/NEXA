@@ -1,3 +1,16 @@
+---
+doc_id: PRD-004
+title: "NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어"
+category: "05_PRD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: BRD-001
+terms_standard: ["esphome", "react-flow", "web-serial", "ota", "docker"]
+terms_nexa: ["NEXA-CELL", "Twinex", "Lambda", "ESP32"]
+tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/esphome", "std/react-flow", "std/web-serial", "std/ota", "std/docker", "nexa/NEXA-CELL", "nexa/Twinex", "nexa/Lambda", "nexa/ESP32"]
+---
 # NEXIA · NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어
 
 > **도메인 통합 (2026-06):** 구 `/nexa-node` 별도 도메인 **폐기** → **`domainKey: nexia`** · **Twinex** 탭. 그래프 = **React Flow** (`@xyflow/react`). 스택: [`08_TDD_NEXIA_구조기술스택운영방침`](../../08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md)
@@ -62,7 +75,7 @@
 - **기존 캔버스/스토어**를 **ESPHome YAML 제너레이터**용으로 확장하거나, **nexia/Twinex 내부에 전용 뷰/모드**를 둔다.
   - 예: 좌측 네비에서 "자동화 캔버스" | "ESPHome YAML" | "Lambda 로직" 등 탭 또는 서브메뉴로 구분.
 - **노드 타입**을 ESPHome 컴포넌트에 맞게 정의(센서, 스위치, LED, WiFi, API, MQTT, 등)하고, **노드–노드 연결(라인)** 이 YAML의 **의존/바인딩** 관계로 매핑되도록 설계.
-- **Lambda 코드 작성기**는 nexia/Twinex 내 **패널 또는 모달**로 제공. (AI 도메인과 유사하게 Monaco 또는 코드 전용 에디터 임베드.)
+- **Lambda 코드 작성기**는 nexia/Twinex 내 **패널 또는 모달**로 제공. (NEXIA 도메인과 유사하게 Monaco 또는 코드 전용 에디터 임베드.)
 
 ---
 
@@ -247,7 +260,7 @@
 ### 2.6 기술 선택
 
 - **React Flow (`@xyflow/react`)**: 노드·링크 시각화, 드래그, 줌, 패닝. 기존 `TwinexCellCanvas`가 D3 기반이면 재사용 또는 확장.
-- **대안**: Vue Flow, Rete.js 등 **노드 기반 에디터** 라이브러리로 대체 가능. 요구사항은 **노드 타입 정의 + 라인 + 속성 폼 → YAML 직렬화**.
+- **대안**: React Flow, Rete.js 등 **노드 기반 에디터** 라이브러리로 대체 가능. 요구사항은 **노드 타입 정의 + 라인 + 속성 폼 → YAML 직렬화**.
 - **YAML 생성**: 노드/링크를 **중간 JSON**으로 옮긴 뒤, **ESPHome YAML 스키마**에 맞는 문자열을 생성하는 **코드 제너레이터** 함수. (템플릿 또는 AST 스타일.)
 
 ### 2.7 그룹 노드 및 다중 디바이스 뷰
@@ -448,21 +461,21 @@
 
 ### 6.3 구현 방향
 
-- nexia/Twinex는 **도메인 인터콤**으로 `automation`을 이미 보고하므로, **AI 도메인·오케스트레이터**가 "현재 활성 도메인/탭"으로 nexia/Twinex를 인식할 수 있게 함.
+- nexia/Twinex는 **도메인 인터콤**으로 `automation`을 이미 보고하므로, **NEXIA 도메인·오케스트레이터**가 "현재 활성 도메인/탭"으로 nexia/Twinex를 인식할 수 있게 함.
 - **컨텍스트 주입**: 노드 그래프(JSON), 현재 선택 노드, YAML(현재 생성본), Lambda 코드 조각을 **오케스트레이터**에 전달할 수 있는 **API·이벤트** 설계. (보안·토큰 길이 주의.)
 
-### 6.4 AI 도메인에서의 소스 수정 → nexia/Twinex 반영 (역방향 동기화)
+### 6.4 NEXIA 도메인에서의 소스 수정 → nexia/Twinex 반영 (역방향 동기화)
 
-- **배경**: nexia/Twinex에서 생성한 YAML/Lambda는 빌드 후 **바이너리**가 되며, AI 도메인(채팅·코드 패널)에서는 이 **소스(YAML/Lambda)**를 보거나 AI가 생성·수정한 스니펫을 사용자가 **직접 편집**할 수 있다. 그 편집 결과가 **nexia/Twinex 도메인에 반영**되어야 캔버스·스토어·다음 빌드가 일치한다.
-- **목표**: AI 도메인에서 수정된 **YAML** 또는 **Lambda**가 nexia/Twinex의 스토어(및 필요 시 캔버스)에 반영되도록 하는 **역방향 동기화** 로직을 정의한다.
+- **배경**: nexia/Twinex에서 생성한 YAML/Lambda는 빌드 후 **바이너리**가 되며, NEXIA 도메인(채팅·코드 패널)에서는 이 **소스(YAML/Lambda)**를 보거나 AI가 생성·수정한 스니펫을 사용자가 **직접 편집**할 수 있다. 그 편집 결과가 **nexia/Twinex 도메인에 반영**되어야 캔버스·스토어·다음 빌드가 일치한다.
+- **목표**: NEXIA 도메인에서 수정된 **YAML** 또는 **Lambda**가 nexia/Twinex의 스토어(및 필요 시 캔버스)에 반영되도록 하는 **역방향 동기화** 로직을 정의한다.
 
 #### 필요한 로직 요약
 
 | 구분 | 내용 |
 |------|------|
 | **공유 상태·이벤트** | ai와 nexia/Twinex가 같은 **프로젝트/문서**의 "현재 YAML", "현재 Lambda(노드별·글로벌)"를 공유. AI에서 수정 시 **인터콤 이벤트** 또는 **플랫폼 스토어**로 전파(예: `nexia/Twinex:yaml-updated`, `nexia/Twinex:lambda-updated`, payload에 projectId, yaml 문자열 또는 lambda 문자열·nodeId). |
-| **Lambda 수정 반영** | AI 도메인에서 Lambda 스니펫 적용 시 → 이벤트/스토어로 **nodeId별 또는 글로벌 Lambda** 전달. nexia/Twinex는 수신 시 **스토어만 갱신**(해당 노드의 lambda 필드 또는 글로벌 Lambda). 캔버스 구조는 변경 없음. |
-| **YAML 수정 반영** | AI 도메인에서 YAML 전체(또는 블록) 수정 시 → **옵션 A**: 수신한 YAML을 **역파싱(YAML → 그래프)**하여 노드·엣지·속성을 복원하고 캔버스·스토어를 갱신. **옵션 B**: 수신 YAML을 "임포트 소스"로만 저장하고 다음 빌드에 사용, 캔버스는 "소스와 불일치"로 표시 후 사용자가 "캔버스에 반영(역파싱)" 또는 "YAML을 주 소스로 사용" 중 선택. |
+| **Lambda 수정 반영** | NEXIA 도메인에서 Lambda 스니펫 적용 시 → 이벤트/스토어로 **nodeId별 또는 글로벌 Lambda** 전달. nexia/Twinex는 수신 시 **스토어만 갱신**(해당 노드의 lambda 필드 또는 글로벌 Lambda). 캔버스 구조는 변경 없음. |
+| **YAML 수정 반영** | NEXIA 도메인에서 YAML 전체(또는 블록) 수정 시 → **옵션 A**: 수신한 YAML을 **역파싱(YAML → 그래프)**하여 노드·엣지·속성을 복원하고 캔버스·스토어를 갱신. **옵션 B**: 수신 YAML을 "임포트 소스"로만 저장하고 다음 빌드에 사용, 캔버스는 "소스와 불일치"로 표시 후 사용자가 "캔버스에 반영(역파싱)" 또는 "YAML을 주 소스로 사용" 중 선택. |
 | **역파싱(YAML→그래프)** | 옵션 A를 채택할 경우, ESPHome YAML 파서를 두어 `sensor:`, `on_value_range:` 등 **지원 블록**을 노드·엣지·속성 중간 표현으로 변환. 제너레이터의 역함수. 지원 범위는 구현 단계별로 확대(초기에는 자주 쓰는 컴포넌트만). |
 | **충돌·정책** | 동시에 nexia/Twinex 캔버스와 AI 쪽에서 수정했을 때: **마지막 쓰기 우선**, 또는 **버전/타임스탬프**로 "어느 쪽을 기준으로 할지" 사용자 선택. nexia/Twinex가 "외부에서 YAML이 갱신됨" 시 사용자에게 "캔버스 덮어쓰기 / 유지(빌드만 YAML 사용)" 등 알림 권장. |
 
@@ -528,7 +541,7 @@
 - **[08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API](../../08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API.md)(../../08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API.md) CELL Lambda 템플릿 및 Jetson 연동 API 규격**(별도 기획): 고성능 연산 장치 통합·하드웨어 수준 정밀 제어를 위한 **CELL별 C++ Lambda 템플릿**과 **Jetson 연동용 API 규격**을 구체적으로 문서화. 본 문서(CELL-01)는 전체 아키텍처·노드 카테고리·배포 흐름을 담당하고, CELL-02는 구현 시 참조할 상세 스펙을 담당.
 - **ESPHome 공식 문서**: YAML 스키마, 컴포넌트, Lambda(C++) 문법.
 - **Web Serial API**: 브라우저 시리얼 접근. **ESP Web Tools** 라이브러리로 개발 시간 단축.
-- **현재 코드**: `src/domains/node/`, `src/engines/diagram/TwinexCellCanvas.vue`, `src/system/store/nexaNodeStore.ts`.
+- **현재 코드**: `apps/web/src/domains/nexia/tabs/twinex/`, `apps/web/src/engines/diagram/TwinexCellCanvas.tsx`, `apps/web/src/components/store/useTwinexCellStore`.
 
 ### 10.1 문서 검토 요약 (하이브리드 아키텍처 기준)
 
@@ -536,3 +549,13 @@
 - **초보자 경로**: §2 노드 카테고리·소켓·색상 코딩 → 노드 배치·라인 연결 → YAML 자동 생성. §6.2 캔버스 동작 기반 AI로 스니펫 제안. 복잡한 노드(에지·FSM·하트비트 등)는 점진적 노출 또는 "고급" 메뉴로 분리 가능.
 - **전문가 경로**: §2.2.1 에지 AI·스트리밍·전처리 노드, §2.2.3 Coral/Jetson 활용(브리지·피드백 루프), §2.2.2 FSM·안전 이중화, §2.9 시스템 토폴로지 뷰, §2.10 배치 배포·버전 관리, §3 **C++ Lambda 저수준 제어**가 모두 열려 있음.
 - 구현 시 **UI/메뉴 계층**(기본 뷰 vs 고급 뷰, 노드 팔레트 필터)으로 초보자와 전문가 경로를 나누되, 단일 캔버스·단일 스토어로 하이브리드 아키텍처를 유지하는 구성을 권장한다.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
+| NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../../08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |
+| ESP32 등록 TDD | [CELL · ESP32 베이스라인 디바이스 등록 (TDD-024)](../../08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_ESP32베이스라인디바이스등록.md) |
+| Lambda · Jetson TDD | [CELL · Lambda 템플릿 · Jetson 연동 API (TDD-025)](../../08_TDD/NEXIA/Cells/08_TDD_NEXIA_CELL_Lambda템플릿Jetson연동API.md) |

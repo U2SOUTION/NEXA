@@ -1,6 +1,22 @@
+---
+implements_doc: 
+see_also: []
+doc_id: TDD-019
+title: "외부 엔진 및 아키텍처"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-11
+parent_doc: TDD-010
+terms_standard: ["ollama", "comfyui", "esphome", "rivet", "webassembly"]
+terms_nexa: ["Logex", "Scribx", "Vivex", "Twinex", "Generators", "agent-graph"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ollama", "std/comfyui", "std/esphome", "std/rivet", "std/webassembly", "nexa/Logex", "nexa/Scribx", "nexa/Vivex", "nexa/Twinex", "nexa/Generators", "nexa/agent-graph"]
+---
+
 # NEXIA · 외부 엔진과 아키텍처
 
-> **스택 SSOT (To-Be):** [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) — **`apps/web` = Next.js** · **Desktop / Embedded Rivet** · **Vite+React** 제너레이터는 Next **embed**. 아래 **Vue/Quasar** 표기는 **As-Is(레거시)**.
+> **스택 SSOT (To-Be):** [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) — **`apps/web` = Next.js (React)** · **Desktop / Embedded Rivet** · **Vite+React** 제너레이터는 Next **embed**.
 
 - **정체성:** **NEXA 플랫폼** 내 **NEXIA 도메인**(`nexia`) 엔진 연동 — [`정체성 SSOT`](../_NEXA-플랫폼·메타-OS·NEXIA·도메인%20—%20정체성%20SSOT.md)
 
@@ -14,9 +30,9 @@
   - [`AI 3D 제네레이터.md`](./Generators/08_TDD_NEXIA_AI3D제네레이터.md) — CadQuery / Pyodide / R3F
   - [`AI 3D Blender 백엔드 연동.md`](./Generators/08_TDD_NEXIA_AI3DBlender백엔드연동.md) — 웹 SoT · Blender 검수·시뮬
   - [`AI SOUND 제너레이터.md`](./Generators/08_TDD_NEXIA_AISOUND제네레이터.md) — Pippi·SCAMP / Pyodide / **Tone.js**
-  - [`AI VIDEO 제너레이터.md`](./Generators/08_TDD_NEXIA_AIVIDEO제네레이터.md) — Tiptap·Rivet → 모드1 ComfyUI · 모드2 Remotion/MoviePy
+  - [`AI VIDEO 제너레이터.md`](./Generators/08_TDD_NEXIA_AIVIDEO제네레이터.md) — Tiptap·Rivet → 모드 1 ComfyUI · 모드 2 Remotion/MoviePy
   - [`AI CIRCUIT 제너레이터.md`](./Generators/08_TDD_NEXIA_AICIRCUIT제네레이터.md) — Monaco(ESP32) · SCHEMATIC/SIM 이원화 · **Wokwi CLI**
-  - [`AI 협력 제네레이터 아키텍처 파이프라인.md`](./Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) — **4단계 공통 파이프라인** · Tiptap/Monaco 분기
+  - [`AI 협력 제네레이터 아키텍처 파이프라인.md`](./Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) — **4 단계 공통 파이프라인** · Tiptap/Monaco 분기
   - [`WebAssembly 는 무엇인가.md`](./WebAssembly%20는%20무엇인가.md) — Wasm·Pyodide 배경
 
 ---
@@ -24,7 +40,7 @@
 ## 1. 아키텍처 원칙
 
 - **단일 오케스트레이션:** 모든 **LLM·ComfyUI·ESPHome** 호출은 **플랫폼 백엔드 오케스트레이터**를 경유한다. (브라우저 → Ollama 직접 호출 금지)
-- **연산 분리 (§11):** **무거운 도메인 연산(CAD·오디오 DSP 굽기)** 은 사용자 브라우저 **Pyodide(Wasm)**; **추론·코드 생성** 은 **플랫폼 Ollama** (+ 선택 클라우드).
+- **연산 분리 (§11):** **무거운 도메인 연산 (CAD·오디오 DSP 굽기)** 은 사용자 브라우저 **Pyodide(Wasm)**; **추론·코드 생성** 은 **플랫폼 Ollama** (+ 선택 클라우드).
 - **실시간층 (사운드):** 센서·슬라이더 고주파는 **Tone.js**; Wasm(Pippi) **재굽기는 이벤트·버튼 단위**.
 - **상태 일관성:** UI/협업 상태는 **Yjs** 단일 소스.
 - **로직 자산화:** **Desktop Rivet** `.rivet-project` / export JSON + Subgraph 버전 관리 → **Embedded Rivet** 실행.
@@ -36,7 +52,7 @@
 
 | 엔진                    | 역할                                  | 연동 위치                 | 연동 방식                       | 장애 시 대체           |
 | ----------------------- | ------------------------------------- | ------------------------- | ------------------------------- | ---------------------- |
-| **Ollama**              | 텍스트·코드 생성(CAD/음악/정책)       | **플랫폼 서버** (GX10 등) | HTTP REST (내부망)              | 경량 모델·클라우드 LLM |
+| **Ollama**              | 텍스트·코드 생성 (CAD/음악/정책)       | **플랫폼 서버** (GX10 등) | HTTP REST (내부망)              | 경량 모델·클라우드 LLM |
 | ComfyUI                 | 이미지/비주얼 생성                    | 플랫폼/GPU 노드           | HTTP JSON Workflow              | 큐·재시도              |
 | ESPHome                 | IoT 제어/센서                         | MCU·MQTT 브로커           | MQTT, API                       | 장치 격리·수동 제어    |
 | **Pyodide+OCP**         | CadQuery 3D 연산                      | **사용자 브라우저**       | Wasm (정적 번들)                | — (CAD 서버 API 선택)  |
@@ -45,7 +61,7 @@
 | **Wokwi CLI**           | ESP32 **펌웨어 시뮬** · lint · serial | **플랫폼 Worker**         | `wokwi-cli` + `WOKWI_CLI_TOKEN` | — (SIM 트랙)           |
 | **R3F / P5 / paper.js** | 3D·영상·시퀀서 UI                     | 브라우저                  | JS 라이브러리                   | —                      |
 
-> **Ollama는 최종 사용자 PC에 설치하지 않는다.** Nexia 제너레이터 UI는 `/api/v1/cad/generate`, `/api/v1/sound/generate` 만 호출한다.
+> **Ollama 는 최종 사용자 PC 에 설치하지 않는다.** Nexia 제너레이터 UI 는 `/api/v1/cad/generate`, `/api/v1/sound/generate` 만 호출한다.
 
 ### 2.1 내부 통합 레이어
 
@@ -55,8 +71,8 @@
 | Logic Design     | **Desktop Rivet**                 | 그래프 설계 · Export JSON                    |
 | Logic Runtime    | **Embedded Rivet** (`rivet-node`) | 추론 그래프 실행/재사용                      |
 | Collaboration    | Yjs + Hocuspocus                  | 실시간 동시성/충돌 없는 상태 공유            |
-| UI Shell (To-Be) | **Next.js** (`apps/web`)          | Omnix 및 7탭 셸                              |
-| UI Shell (As-Is) | Vue 3 + Quasar                    | `NEXA-Platform/src` 레거시                   |
+| UI Shell (To-Be) | **Next.js** (`apps/web`)          | Omnix 및 7 탭 셸                              |
+| UI Shell (As-Is) | Next.js (React) + Tailwind/shadcn                    | `NEXA-Platform/src` 레거시                   |
 | Creative UI (앱) | **Vite + React** + Monaco         | 3D/사운드 등 **제너레이터** — Next **embed** |
 
 ### 2.2 플랫폼 API 게이트웨이 (권장 엔드포인트)
@@ -64,42 +80,42 @@
 | API                                        | 출력                         | LLM (플랫폼)                                                | 클라이언트 연산                      |
 | ------------------------------------------ | ---------------------------- | ----------------------------------------------------------- | ------------------------------------ |
 | `POST /api/v1/cad/generate`                | CadQuery Python              | **C3Dv0** (`joshuaokolo/C3Dv0`) + 오케스트                  | Pyodide+OCP → R3F                    |
-| `POST /api/v1/sound/generate`              | Pippi/SCAMP Python           | **음악·DSP 전용 모델** (C3Dv0와 **분리 라우팅**) + 오케스트 | Pyodide → WAV/MIDI → **Tone.js**     |
-| `POST /api/v1/circuit/generate`            | ESP32 C/C++ 펌웨어           | **임베디드·회로 모델** (C3Dv0와 분리) + 오케스트            | JS Extract + Pyodide → BOM/netlist   |
+| `POST /api/v1/sound/generate`              | Pippi/SCAMP Python           | **음악·DSP 전용 모델** (C3Dv0 와 **분리 라우팅**) + 오케스트 | Pyodide → WAV/MIDI → **Tone.js**     |
+| `POST /api/v1/circuit/generate`            | ESP32 C/C++ 펌웨어           | **임베디드·회로 모델** (C3Dv0 와 분리) + 오케스트            | JS Extract + Pyodide → BOM/netlist   |
 | `POST /api/v1/circuit/analyze`             | BOM hints · warnings         | 동일 + ExtractSnapshot                                      | 클라이언트 Pyodide merge (SCHEMATIC) |
 | `POST /api/v1/circuit/wokwi/project/build` | `diagram.json` · zip         | WokwiProjectBuilder                                         | —                                    |
 | `POST /api/v1/circuit/wokwi/jobs`          | `WokwiInsight`               | —                                                           | **Wokwi Worker** (SIM)               |
 | `/circuit/kicad/jobs`                      | `.kicad_sch` · DRC (Phase 2) | —                                                           | KiCad Worker                         |
 | `/video/project/draft`                     | 기획·대본·timeline           | Ollama@플랫폼                                               | Tiptap(Yjs)                          |
 | `/video/project/refine`                    | Rivet 정제·모드 분기         | Rivet                                                       | CINEMATIC/FAST                       |
-| `/video/jobs`                              | ComfyUI (모드1)              | template merge                                              | GPU                                  |
-| `/video/fast/render`                       | Remotion (모드2)             | props                                                       | CPU                                  |
+| `/video/jobs`                              | ComfyUI (모드 1)              | template merge                                              | GPU                                  |
+| `/video/fast/render`                       | Remotion (모드 2)             | props                                                       | CPU                                  |
 | `/video/fast/manim/render`                 | TECH_ANIM                    | Manim                                                       | CPU                                  |
 | `/video/fast/r3f/export`                   | TECH_ANIM                    | R3F frames                                                  | CPU                                  |
-| `/video/edit/*`                            | MoviePy (모드2 대안)         | Python                                                      | CPU                                  |
+| `/video/edit/*`                            | MoviePy (모드 2 대안)         | Python                                                      | CPU                                  |
 
-**오케스트 공통 (MVP):** UI는 한국어 유지 → 서버에서 **번역·치수 보존·System Prompt 조립** → Ollama 호출. (선택) `draftPromptEn` 확인 UI. 상세: 3D §3.1 · Sound §6.
+**오케스트 공통 (MVP):** UI 는 한국어 유지 → 서버에서 **번역·치수 보존·System Prompt 조립** → Ollama 호출. (선택) `draftPromptEn` 확인 UI. 상세: 3D §3.1 · Sound §6.
 
-**응답 계약 (권장):** `{ "code": "<python>", "draftPromptEn?": "...", "tabId": "...", "modelId": "..." }` — Monaco만 소비, 원문 프롬프트는 감사 로그.
+**응답 계약 (권장):** `{ "code": "<python>", "draftPromptEn?": "...", "tabId": "...", "modelId": "..." }` — Monaco 만 소비, 원문 프롬프트는 감사 로그.
 
 ---
 
 ## 3. 데이터 흐름 표준
 
-### 3.0 Omnix · 7탭 (플랫폼)
+### 3.0 Omnix · 7 탭 (플랫폼)
 
-1. 사용자 입력은 Omnix에서 수신한다.
-2. Orchestrator가 요청을 분류한다(추론/비주얼/IoT/복합/제너레이터).
-3. 필요 시 Rivet 그래프를 실행하고 **플랫폼** Ollama·ComfyUI·ESPHome을 호출한다.
+1. 사용자 입력은 Omnix 에서 수신한다.
+2. Orchestrator 가 요청을 분류한다 (추론/비주얼/IoT/복합/제너레이터).
+3. 필요 시 Rivet 그래프를 실행하고 **플랫폼** Ollama·ComfyUI·ESPHome 을 호출한다.
 4. 결과는 Yjs 상태와 서버 저장소에 기록한다.
-5. UI는 7개 탭 맥락에 맞게 표시하고 감사 로그를 남긴다.
+5. UI 는 7 개 탭 맥락에 맞게 표시하고 감사 로그를 남긴다.
 
 ### 3.0.1 제너레이터 앱 (3D / Sound) — 브라우저
 
 1. React UI → **플랫폼 API** (코드 생성, §2.2).
-2. Monaco에 Python 바인딩 → 사용자 편집.
+2. Monaco 에 Python 바인딩 → 사용자 편집.
 3. **Pyodide(Wasm)** 로 CadQuery / Pippi·SCAMP **굽기** (서버 DSP VM 없음).
-4. **R3F** 또는 **Tone.js** (+ P5/paper.js)로 표시·실시간 변조.
+4. **R3F** 또는 **Tone.js** (+ P5/paper.js) 로 표시·실시간 변조.
 5. export: STEP/DXF/WAV/MID — 상세는 §10.
 
 ### 3.1 메시지 Envelope (권장)
@@ -110,7 +126,7 @@
 
 ---
 
-## 4. 7탭 매핑 (`tabId` SSOT)
+## 4. 7 탭 매핑 (`tabId` SSOT)
 
 | #   | `tabId`    | 외부 엔진 의존            | 주요 출력                                                                                                                 |
 | --- | ---------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -124,7 +140,7 @@
 
 ---
 
-## 5. 비기능 요구사항(NFR) 기준
+## 5. 비기능 요구사항 (NFR) 기준
 
 | 항목               | 기준                  |
 | ------------------ | --------------------- |
@@ -132,8 +148,8 @@
 | 엔진 호출 타임아웃 | 기본 10s, 최대 30s    |
 | 상태 전파 지연     | 평균 50ms 이하        |
 | 가용성 목표        | 월 99.9% 이상         |
-| 감사 로그 보존     | 180일 이상            |
-| 복구 목표          | RPO 1시간 / RTO 4시간 |
+| 감사 로그 보존     | 180 일 이상            |
+| 복구 목표          | RPO 1 시간 / RTO 4 시간 |
 
 ---
 
@@ -142,8 +158,8 @@
 - 모든 엔진 호출은 서비스 계정 + 권한 스코프로 제한한다.
 - 민감 데이터는 전송/저장 시 암호화하며, 프롬프트 입력 전 마스킹한다.
 - **제너레이터:** 3D 메시·로컬 Pyodide 결과는 기본 **브라우저 유지**; **자연어·생성 코드**는 플랫폼 LLM 경유 (§11).
-- 외부 엔진 응답은 정책 검증(금칙어/규정 위반/신뢰도 임계치)을 통과해야 반영한다.
-- 고위험 작업(IoT 제어, 대량 수정)은 Omnix 승인 단계를 강제한다.
+- 외부 엔진 응답은 정책 검증 (금칙어/규정 위반/신뢰도 임계치) 을 통과해야 반영한다.
+- 고위험 작업 (IoT 제어, 대량 수정) 은 Omnix 승인 단계를 강제한다.
 
 ---
 
@@ -151,9 +167,9 @@
 
 ### 7.1 엔진 장애
 
-- 1단계: 실패 엔진 격리, 재시도 정책 적용.
-- 2단계: 대체 경로 실행(경량 모델/큐 적재/수동 승인).
-- 3단계: 장애 이벤트를 SEV 등급으로 기록하고 복구 보고.
+- 1 단계: 실패 엔진 격리, 재시도 정책 적용.
+- 2 단계: 대체 경로 실행 (경량 모델/큐 적재/수동 승인).
+- 3 단계: 장애 이벤트를 SEV 등급으로 기록하고 복구 보고.
 
 ### 7.2 데이터 불일치
 
@@ -167,13 +183,13 @@
 
 - **Phase 1 (MVP):** 플랫폼 Ollama + Rivet + LangGraph + Omnix/Logex/Scribx; **3D 제너레이터** (Pyodide+OCP+R3F, `/cad/generate`); **Sound** (Tone.js 우선 → Pippi 굽기).
 - **Phase 2:** ComfyUI/ESPHome·Twinex; 사운드 **paper.js+SCAMP**; 오케스트 다중 모델·클라우드 폴백; P5 전시 모드.
-- **Phase 3:** 정책 자동화, 비용·쿼터(§11), 멀티 테넌시.
+- **Phase 3:** 정책 자동화, 비용·쿼터 (§11), 멀티 테넌시.
 
 ---
 
-## 9. 결정사항(ADR 요약)
+## 9. 결정사항 (ADR 요약)
 
-- 채택: **Desktop/Embedded Rivet** + LangGraph + Yjs + **Next.js** (`apps/web`). (As-Is: Vue/Quasar)
+- 채택: **Desktop/Embedded Rivet** + LangGraph + Yjs + **Next.js** (`apps/web`). (As-Is: Next.js/React)
 - 채택: **Ollama @ 플랫폼 서버** — 사용자 로컬 Ollama 비요구.
 - 채택: **Wasm(Pyodide) = CAD·오디오 DSP 굽기 @ 클라이언트**; **Tone.js = 사운드 실시간**.
 - 채택: 외부 엔진 API 계약·느슨한 결합.
@@ -188,7 +204,7 @@
 
 ### 10.1 공통 파이프 (플랫폼 LLM + 클라이언트 Wasm)
 
-```
+```json
 3D/Sound/Circuit: React+Monaco → API → Ollama → Python/C++ → Pyodide/Extract → R3F/Tone/회로도
 Circuit SIM:     firmware → /wokwi/project/build → wokwi-cli job → WokwiInsight
 
@@ -215,7 +231,7 @@ Video:  자연어 → /project/draft → Tiptap → Rivet(refine)
 - **P5.js:** 영상 픽셀 연출; **Tone `Analyser`** → P5 연동 (미디어 아트).
 - **ESPHome 센서:** Yjs 또는 React state → **Tone 파라미터** + (저주기) P5.
 
-### 10.3 Rivet · Yjs와의 접점
+### 10.3 Rivet · Yjs 와의 접점
 
 | Yjs 키 (예)              | 소비자              |
 | ------------------------ | ------------------- |
@@ -224,22 +240,22 @@ Video:  자연어 → /project/draft → Tiptap → Rivet(refine)
 | `p5_params` (Y.Map)      | P5.js               |
 | `workflow` (Y.Map)       | Rivet JSON (백엔드) |
 
-Rivet은 **플랫폼**에서 “어떤 API·모델·탭으로 라우팅할지” 결정; 제너레이터 **실행**은 브라우저.
+Rivet 은 **플랫폼**에서 “어떤 API·모델·탭으로 라우팅할지” 결정; 제너레이터 **실행**은 브라우저.
 
 ### 10.4 MVP vs Phase 2 (제너레이터)
 
 | 구분      | MVP ([A])                                  | Phase 2 ([B])                                |
 | --------- | ------------------------------------------ | -------------------------------------------- |
 | 오케스트  | 탭 분기·번역·프롬프트 템플릿 (얇은 레이어) | 다중 에이전트·모델 라우터·클라우드 폴백·감사 |
-| 3D 탭2    | 2D 전개도 **선행**, 3D 자동 언폴딩 비목표  | 동일 원칙 유지, 보정 UX 강화                 |
-| Sound 탭2 | AI SCAMP + paper.js **시각화** 병행        | paper↔SCAMP 완전 자동 번역                  |
+| 3D 탭 2    | 2D 전개도 **선행**, 3D 자동 언폴딩 비목표  | 동일 원칙 유지, 보정 UX 강화                 |
+| Sound 탭 2 | AI SCAMP + paper.js **시각화** 병행        | paper↔SCAMP 완전 자동 번역                  |
 | 전시      | Tone.js + (선택) P5                        | P5·ESPHome·Yjs 통합 전시 모드                |
 
 ---
 
-## 11. 비용·데이터 3축 (플랫폼 전체)
+## 11. 비용·데이터 3 축 (플랫폼 전체)
 
-3D·Sound 공통. **「서버 0원」은 축 A에만 해당.**
+3D·Sound 공통. **「서버 0 원」은 축 A 에만 해당.**
 
 | 축                         | 포함                                         | 비용                                |
 | -------------------------- | -------------------------------------------- | ----------------------------------- |
@@ -248,7 +264,7 @@ Rivet은 **플랫폼**에서 “어떤 API·모델·탭으로 라우팅할지”
 | **C. 전송·미디어**         | Wasm CDN, ComfyUI, 영상 원본, API·DB         | 트래픽·스토리지                     |
 
 - ✅ _「도메인 연산·뷰어·실시간 오디오는 브라우저. AI 코드·오케스트는 NEXA 플랫폼.»_
-- ❌ _「플랫폼·LLM까지 전부 0원»_
+- ❌ _「플랫폼·LLM 까지 전부 0 원»_
 
 ---
 
@@ -256,16 +272,16 @@ Rivet은 **플랫폼**에서 “어떤 API·모델·탭으로 라우팅할지”
 
 | 문서                                                                                             | 내용                                           |
 | ------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
-| [AI 3D 제네레이터.md](./Generators/08_TDD_NEXIA_AI3D제네레이터.md)                                                 | C3Dv0, CadQuery, R3F, 탭1/2, §7.1 비용         |
+| [AI 3D 제네레이터.md](./Generators/08_TDD_NEXIA_AI3D제네레이터.md)                                                 | C3Dv0, CadQuery, R3F, 탭 1/2, §7.1 비용         |
 | [AI SOUND 제너레이터.md](./Generators/08_TDD_NEXIA_AISOUND제네레이터.md)                                           | Pippi, SCAMP, **Tone.js**, 전시 모드           |
-| [AI VIDEO 제너레이터.md](./Generators/08_TDD_NEXIA_AIVIDEO제네레이터.md)                                           | ComfyUI, P5, Tone, 탭1/2, §9 비용              |
+| [AI VIDEO 제너레이터.md](./Generators/08_TDD_NEXIA_AIVIDEO제네레이터.md)                                           | ComfyUI, P5, Tone, 탭 1/2, §9 비용              |
 | [AI CIRCUIT 제너레이터.md](./Generators/08_TDD_NEXIA_AICIRCUIT제네레이터.md)                                       | ESP32 Monaco, SCHEMATIC/SIM, Wokwi, KiCad      |
 | [AI 협력 제네레이터 아키텍처 파이프라인.md](./Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) | ①~⑤ 공통 단계, Insight 릴레이, 복합 시나리오   |
-| [WebAssembly 는 무엇인가.md](./WebAssembly%20는%20무엇인가.md)                                   | Wasm·Pyodide 개념·예제 20선                    |
+| [WebAssembly 는 무엇인가.md](./WebAssembly%20는%20무엇인가.md)                                   | Wasm·Pyodide 개념·예제 20 선                    |
 | [Nexia 음성 인풋 자동화 및 확장 로직.md](./Nexia%20음성%20인풋%20자동화%20및%20확장%20로직.md)   | 음성 → Omnix/오케스트 입력                     |
-| [NEXNAP 인터페이스 규약](./08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md)                                                                  | 7탭 릴레이·Normex 가드레일·gRPC/WS (플랫폼 셸) |
+| [NEXNAP 인터페이스 규약](./08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md)                                                                  | 7 탭 릴레이·Normex 가드레일·gRPC/WS (플랫폼 셸) |
 
-**상호 참조:** 3D·Sound 문서는 본 문서 §1·§2·§10·§11을 **플랫폼 상위 뷰**로 링크한다.
+**상호 참조:** 3D·Sound 문서는 본 문서 §1·§2·§10·§11 을 **플랫폼 상위 뷰**로 링크한다.
 
 ---
 
@@ -275,8 +291,8 @@ Rivet은 **플랫폼**에서 “어떤 API·모델·탭으로 라우팅할지”
 
 | 계층                 | 기술                                   | 역할                    |
 | -------------------- | -------------------------------------- | ----------------------- |
-| Presentation (To-Be) | **Next.js**                            | Omnix·7탭 (`apps/web`)  |
-| Presentation (As-Is) | Vue 3 + Quasar                         | 레거시 `src/`           |
+| Presentation (To-Be) | **Next.js**                            | Omnix·7 탭 (`apps/web`)  |
+| Presentation (As-Is) | Next.js (React) + Tailwind/shadcn                         | 레거시 `src/`           |
 | Collaboration        | Yjs                                    | 실시간 동기화           |
 | Orchestration        | LangGraph.js                           | 워크플로·State          |
 | Logic Design         | **Desktop Rivet**                      | 추론 그래프 설계        |
@@ -292,21 +308,21 @@ Rivet은 **플랫폼**에서 “어떤 API·모델·탭으로 라우팅할지”
 | 플랫폼   | ComfyUI                | 시각 생성        |
 | 플랫폼   | ESPHome                | 신경계·센서      |
 | 플랫폼   | Rivet+LangGraph        | 척추·전략실      |
-| 브라우저 | Pyodide+CadQuery/Pippi | 현장 연산(Wasm)  |
+| 브라우저 | Pyodide+CadQuery/Pippi | 현장 연산 (Wasm)  |
 | 브라우저 | R3F / Tone.js / P5     | 눈·귀·픽셀       |
 
 ### A.3 산업 ↔ 아트 (Yjs 데이터 버스)
 
 - ESPHome 센서 → Yjs → P5(시각)·**Tone.js**(청각)·Monaco(로직 파라미터).
-- Rivet: 임계치 알람(산업)과 연출 강도(아트)를 **동일 워크플로**에서 분기 가능.
-- Qwen 등 대형 모델(플랫폼): 추상적 맥락 명령 → 다중 엔진 파라미터 배분.
+- Rivet: 임계치 알람 (산업) 과 연출 강도 (아트) 를 **동일 워크플로**에서 분기 가능.
+- Qwen 등 대형 모델 (플랫폼): 추상적 맥락 명령 → 다중 엔진 파라미터 배분.
 
 ### A.4 Rivet JSON · AI 수정
 
 - `.rivet-project` = JSON → Yjs `workflow` 동기화 가능.
 - AI 직접 JSON 전체 수정은 fragile → **노드 템플릿 + 파라미터 조립** 권장.
 
-### A.5 멀티 캔버스 레이아웃 (Next.js · As-Is Quasar)
+### A.5 멀티 캔버스 레이아웃 (Next.js · As-Is shadcn/ui)
 
 - Splitter: 채팅 | Monaco / **Web Rivet Editor** | P5 + Tone 시각화.
 - 엔지니어 모드 vs 아티스트 모드 vs 통합 관제 — 동일 Yjs Doc.
@@ -316,21 +332,30 @@ Rivet은 **플랫폼**에서 “어떤 API·모델·탭으로 라우팅할지”
 | 단계  | 초점                                         |
 | ----- | -------------------------------------------- |
 | 1~2   | 로컬/플랫폼 에이전트 기초, Git·텔레그램 관제 |
-| 3~3.5 | DB, Vue 대시보드, API 래핑                   |
+| 3~3.5 | DB, Next.js 대시보드, API 래핑                   |
 | 4~5   | GCP 상주, MQTT·ESP32                         |
 
 (상세 설치 대화는 제거 — 구현 시 Runbook·별도 ops 문서로 분리.)
 
 ### A.7 비전 (한 줄)
 
-NEXA는 산업 데이터와 예술적 영감을 실시간으로 교차시켜, 기술이 인간을 이해하고 인간이 기술을 감각하게 하는 **공생적 창의 생태계**를 지향한다.
+NEXA 는 산업 데이터와 예술적 영감을 실시간으로 교차시켜, 기술이 인간을 이해하고 인간이 기술을 감각하게 하는 **공생적 창의 생태계**를 지향한다.
 
 ### A.8 첫 통합 실험 (권장)
 
-1. Rivet 또는 API가 가상 센서 값(0~100) 생성.
+1. Rivet 또는 API 가 가상 센서 값 (0~100) 생성.
 2. Yjs → Monaco 변수 / **Tone.js** `frequency` / P5 원 크기.
-3. 플랫폼 Ollama가 맥락 해석 후 파라미터 배분 (§10.3).
+3. 플랫폼 Ollama 가 맥락 해석 후 파라미터 배분 (§10.3).
 
 ---
 
-_문서 버전: §0~§12 + 부록 A. 구버전 대화형 초안(로컬 Ollama·OpenClaw 중심)은 제거됨._
+_문서 버전: §0~§12 + 부록 A. 구버전 대화형 초안 (로컬 Ollama·OpenClaw 중심) 은 제거됨._
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
+| 제너레이터 허브 | [AI 협력 제너레이터 파이프라인 (TDD-028)](./Generators/08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
+| 하이브리드 전략 | [데이터 분산 처리 · 하이브리드 전략 (TDD-011)](./08_TDD_NEXIA_데이터분산처리하이브리드전략.md) |

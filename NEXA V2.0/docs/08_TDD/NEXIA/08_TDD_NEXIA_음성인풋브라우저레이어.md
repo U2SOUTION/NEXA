@@ -1,3 +1,17 @@
+---
+doc_id: TDD-020
+title: "음성 인풋 · 브라우저 레이어"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-010
+implements_doc: PRD-007
+terms_standard: ["whisper", "webrtc", "vad"]
+terms_nexa: ["Vivex", "Scribx", "transcribe", "Cockpit"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/whisper", "std/webrtc", "std/vad", "nexa/Vivex", "nexa/Scribx", "nexa/transcribe", "nexa/Cockpit"]
+---
 # Nexia 음성 인풋 자동화 및 확장 로직
 
 **역할:** Cockpit·7탭 채팅에 **음성 → 텍스트 → (제어어 분기) → 플랫폼 LLM** 경로를 붙이는 **브라우저 음성 레이어**. LLM은 음성을 직접 듣지 않는 **비멀티모달** 전제.
@@ -94,7 +108,7 @@ triggerSend()
 - **Processing** 중 그래프는 **평평(Zero-line)** 또는 비활성 색 — “지금 서버로 안 감”을 시각적으로 보장.
 - 아이콘: Listening(펄스) · Muted · Thinking(스피너).
 
-전역 상태 예 (Pinia/Yjs 연동 가능):
+전역 상태 예 (Zustand/Yjs 연동 가능):
 
 ```ts
 const voiceState = {
@@ -166,7 +180,7 @@ const voiceState = {
 - **BroadcastChannel** `ai_channel`: `MASTER_SWITCH`, STT 텍스트 중계.
 - **Ollama/채팅 API 호출:** **메인 탭 한 곳**만 (PiP는 중계). 중복 전송 방지.
 - **STT 엔진:** 논리적으로 **하나**만 실행.
-- 상태: Pinia + `postMessage` / BroadcastChannel (PiP는 별도 `window`).
+- 상태: Zustand + `postMessage` / BroadcastChannel (PiP는 별도 `window`).
 
 ```ts
 const bc = new BroadcastChannel('ai_channel')
@@ -185,7 +199,7 @@ bc.postMessage({ type: 'MASTER_SWITCH', target: 'PIP' })
 
 | 레이어 | 형태 | 음성·UI | LLM |
 |--------|------|---------|-----|
-| **1. 브라우저** | Vue/Quasar + PiP | Web Speech·VAD·P5 | **플랫폼 API** |
+| **1. 브라우저** | Next.js/React + PiP | Web Speech·VAD·P5 | **플랫폼 API** |
 | **2. PC 앱** | Electron / PyQt Always-on-top | OS급 마이크 점유·Watchdog | 동일 API (세션 공유) |
 | **3. 실물 스피커** | RPi / Jetson + 디스플레이 | AEC·전용 마이크 | 플랫폼 또는 엣지 캐시 |
 
@@ -243,3 +257,12 @@ bc.postMessage({ type: 'MASTER_SWITCH', target: 'PIP' })
 ---
 
 *구버전: 대화형 조언문·로컬 Ollama·PiP→Ollama 직접 통신 서술은 제거·플랫폼 오케스트 기준으로 통합.*
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
+| 구현 PRD | [음성·미디어 파이프라인 7탭 (PRD-007)](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) |
+| 음성 자동화 TDD | [음성 인풋 자동화 및 확장 (TDD-021)](./08_TDD_NEXIA_음성인풋자동화및확장.md) |

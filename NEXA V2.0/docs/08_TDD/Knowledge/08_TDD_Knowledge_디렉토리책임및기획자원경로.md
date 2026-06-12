@@ -1,6 +1,19 @@
+---
+doc_id: TDD-045
+title: "디렉토리 책임 · 기획 자원 경로"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-001
+terms_standard: ["next-js", "typescript"]
+terms_nexa: ["Knowledge-OS", "nexa_knowledge_vectors", "project_knowledge", "views"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/typescript", "nexa/Knowledge-OS", "nexa/nexa_knowledge_vectors", "nexa/project_knowledge", "nexa/views"]
+---
 # Knowledge · 디렉토리 책임 및 기획 자원 경로
 
-본 문서는 NEXA Knowledge OS 자산을 위한 디렉토리 책임과 `views/` 하위 Vue 파일 **예상 구조(기획안)** 를 정의한다.
+본 문서는 NEXA Knowledge OS 자산을 위한 디렉토리 책임과 `views/` 하위 React(TSX) 파일 **예상 구조(기획안)** 를 정의한다.
 
 > 네임스페이스 원칙: `nexa_knowledge_*`는 플랫폼 공통 Knowledge OS 계층이며,
 > `project_knowledge`는 해당 계층 위에서 생성되는 프로젝트 단위 지식 분기다.
@@ -127,10 +140,10 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `_KNOWLEDGE RULE` §3 | 승인 대기 큐 등은 `domains/admin` 책임으로 이미 규정됨.                                                                                                                                                  |
 | 민감도               | `nexa_knowledge_kernel_events`, `nexa_knowledge_audit_logs` 연계는 **관리자·보안** 조회 전제(SPEC·ARCH). 일반 `help` 노출과 분리.                                                                        |
-| 도메인 일관성        | `KnowledgeChangeQueueView`·`AdminAudit.vue`와 **동일 라우팅·탭 패턴**으로 묶으면 운영이 단순해짐.                                                                                                        |
+| 도메인 일관성        | `KnowledgeChangeQueueView`·`AdminAudit.tsx`와 **동일 라우팅·탭 패턴**으로 묶으면 운영이 단순해짐.                                                                                                        |
 | `help/views`         | **탐색·설명·족보 읽기**(예: `KnowledgeExplorerView`, `TraceabilityView`, `DependencyMapView`)는 사용자/가이드 성격이므로 `help`에 유지. **경로 편집·티어 스윕·드라이버 등록**은 쓰기·정책이므로 `admin`. |
 
-**ARCH §1-C / SPEC §2.9~** 와의 대응: 아래 §4 트리·§5 매핑에 **전용 섹션 Vue**를 추가했다. 구현 순서는 `_NEXA GUIDE 플랫폼 구현 단계 및 로드맵.md`와 `_KNOWLEDGE GUIDE`를 따른다.
+**ARCH §1-C / SPEC §2.9~** 와의 대응: 아래 §4 트리·§5 매핑에 **전용 섹션 UI(TSX)**를 추가했다. 구현 순서는 `_NEXA GUIDE 플랫폼 구현 단계 및 로드맵.md`와 `_KNOWLEDGE GUIDE`를 따른다.
 
 ---
 
@@ -148,78 +161,78 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 아래는 **현재 플렛폼 파일구조 패턴을 따르면서** Knowledge OS 자산에 필요한 화면을 확장한 제안 구조다.
 
 ```text
-src/domains/
+apps/web/src/domains/
 ├── admin/
 │   └── views/
-│       ├── AdminChangePassword.vue              # 계정 보안 설정
+│       ├── AdminChangePassword.tsx              # 계정 보안 설정
 │       ├── left/
-│       │   └── AdminLeftNav.vue                 # 관리자 좌측 네비게이션
+│       │   └── AdminLeftNav.tsx                 # 관리자 좌측 네비게이션
 │       ├── right/
-│       │   └── AdminRightPanel.vue              # 컨텍스트 패널(도움말/검증결과)
+│       │   └── AdminRightPanel.tsx              # 컨텍스트 패널(도움말/검증결과)
 │       └── content/
-│           ├── AdminContent.vue                 # 중앙 컨테이너(탭/섹션 라우팅)
+│           ├── AdminContent.tsx                 # 중앙 컨테이너(탭/섹션 라우팅)
 │           └── sections/
-│               ├── AdminOverview.vue            # 관리자 요약 대시보드
-│               ├── AdminMembers.vue             # 멤버/권한 관리
-│               ├── AdminSystem.vue              # 시스템 정책/기본 설정
-│               ├── AdminAudit.vue               # 감사 로그 조회
-│               ├── AdminEdgeOta.vue             # 배포/OTA 관리
-│               ├── AdminTierAccess.vue          # Tier/Capability 접근 정책
-│               ├── AdminUiTheme.vue             # UI 테마/표현 설정
-│               ├── AdminApiLimits.vue           # API 제한/쿼터 관리
-│               ├── AdminAiResources.vue         # AI 리소스/모델 관리
-│               ├── KnowledgeDefinitionsView.vue      # 용어 정의 CRUD (term_key, ko_label, definitions)
-│               ├── KnowledgeTokensView.vue           # 5W1H 토큰 매핑 관리
-│               ├── KnowledgeReferencesView.vue       # 문서/Capability 연결 관리
-│               ├── KnowledgeVectorsView.vue          # 임베딩 상태/재생성 관리
-│               ├── KnowledgeChangeQueueView.vue      # 불변 토큰 변경 승인 큐
-│               ├── KnowledgeDocSyncView.vue          # 문서 동기화 상태/재실행
-│               ├── KnowledgeDistributionView.vue     # Nano/Micro/Kinetic/Zenith 배포 프로파일 관리
-│               ├── KnowledgeResidencyView.vue        # VOID 티어·스왑 힌트 (`nexa_knowledge_residency`, SPEC §2.9)
-│               ├── KnowledgeContextPagingView.vue        # Context Paging (`nexa_knowledge_context_paging_sets`, §2.10)
-│               ├── KnowledgeCapabilityDriversView.vue    # 드라이버 매니페스트 (`nexa_knowledge_capability_drivers`, §2.11)
-│               ├── KnowledgeTraceabilityPathsView.vue    # 논리 경로·앵커 (`nexa_knowledge_traceability_paths`, §2.12)
-│               ├── KnowledgeKernelEventsView.vue         # 커널 감사 (`nexa_knowledge_kernel_events`, §2.13) — 관리자 전용
-│               ├── KnowledgeHealthSignalsView.vue        # 헬스·Jitter 집계 (`nexa_knowledge_health_signals`, §2.14)
-│               └── KnowledgeResponsePoliciesView.vue     # ES/VI·출력·엔트로피 보강 (`nexa_knowledge_response_policies`, §2.7+§2.15)
+│               ├── AdminOverview.tsx            # 관리자 요약 대시보드
+│               ├── AdminMembers.tsx             # 멤버/권한 관리
+│               ├── AdminSystem.tsx              # 시스템 정책/기본 설정
+│               ├── AdminAudit.tsx               # 감사 로그 조회
+│               ├── AdminEdgeOta.tsx             # 배포/OTA 관리
+│               ├── AdminTierAccess.tsx          # Tier/Capability 접근 정책
+│               ├── AdminUiTheme.tsx             # UI 테마/표현 설정
+│               ├── AdminApiLimits.tsx           # API 제한/쿼터 관리
+│               ├── AdminAiResources.tsx         # AI 리소스/모델 관리
+│               ├── KnowledgeDefinitionsView.tsx      # 용어 정의 CRUD (term_key, ko_label, definitions)
+│               ├── KnowledgeTokensView.tsx           # 5W1H 토큰 매핑 관리
+│               ├── KnowledgeReferencesView.tsx       # 문서/Capability 연결 관리
+│               ├── KnowledgeVectorsView.tsx          # 임베딩 상태/재생성 관리
+│               ├── KnowledgeChangeQueueView.tsx      # 불변 토큰 변경 승인 큐
+│               ├── KnowledgeDocSyncView.tsx          # 문서 동기화 상태/재실행
+│               ├── KnowledgeDistributionView.tsx     # Nano/Micro/Kinetic/Zenith 배포 프로파일 관리
+│               ├── KnowledgeResidencyView.tsx        # VOID 티어·스왑 힌트 (`nexa_knowledge_residency`, SPEC §2.9)
+│               ├── KnowledgeContextPagingView.tsx        # Context Paging (`nexa_knowledge_context_paging_sets`, §2.10)
+│               ├── KnowledgeCapabilityDriversView.tsx    # 드라이버 매니페스트 (`nexa_knowledge_capability_drivers`, §2.11)
+│               ├── KnowledgeTraceabilityPathsView.tsx    # 논리 경로·앵커 (`nexa_knowledge_traceability_paths`, §2.12)
+│               ├── KnowledgeKernelEventsView.tsx         # 커널 감사 (`nexa_knowledge_kernel_events`, §2.13) — 관리자 전용
+│               ├── KnowledgeHealthSignalsView.tsx        # 헬스·Jitter 집계 (`nexa_knowledge_health_signals`, §2.14)
+│               └── KnowledgeResponsePoliciesView.tsx     # ES/VI·출력·엔트로피 보강 (`nexa_knowledge_response_policies`, §2.7+§2.15)
 │
 └── help/
     └── views/
         ├── left/
-        │   └── HelpLeftNav.vue                  # 도움말 네비게이션
+        │   └── HelpLeftNav.tsx                  # 도움말 네비게이션
         ├── right/
-        │   └── HelpRightPanel.vue               # 도움 페이지 보조 패널
+        │   └── HelpRightPanel.tsx               # 도움 페이지 보조 패널
         └── content/
-            ├── HelpView.vue                     # 기본 도움말 홈
-            ├── KnowledgeExplorerView.vue        # 사용자용 용어 탐색/검색
-            ├── DependencyMapView.vue            # Doc-Term-Capability 관계 시각화
-            ├── TraceabilityView.vue             # 족보·실행 역추적 읽기 전용(SNT→IND→EFF)
-            └── RoutingExplainView.vue           # 라우팅 결과 설명(왜 이 capability인지)
+            ├── HelpView.tsx                     # 기본 도움말 홈
+            ├── KnowledgeExplorerView.tsx        # 사용자용 용어 탐색/검색
+            ├── DependencyMapView.tsx            # Doc-Term-Capability 관계 시각화
+            ├── TraceabilityView.tsx             # 족보·실행 역추적 읽기 전용(SNT→IND→EFF)
+            └── RoutingExplainView.tsx           # 라우팅 결과 설명(왜 이 capability인지)
 ```
 
 ---
 
 ## 5) 화면-테이블 매핑 가이드
 
-- `KnowledgeDefinitionsView.vue` -> `nexa_knowledge_definitions`
-- `KnowledgeTokensView.vue` -> `nexa_term_tokens`
-- `KnowledgeReferencesView.vue` -> `nexa_knowledge_references`
-- `KnowledgeReferencesView.vue` -> `nexa_knowledge_reference_assets` (문서 참조 자산 연결)
-- `KnowledgeReferencesView.vue` -> `nexa_knowledge_ref_rules` (규칙셋 조회/적용 상태)
-- `KnowledgeVectorsView.vue` -> `nexa_knowledge_vectors`
-- `KnowledgeChangeQueueView.vue` -> `nexa_knowledge_change_requests`
-- `KnowledgeDocSyncView.vue` -> `nexa_knowledge_doc_sync_state`
-- `KnowledgeDistributionView.vue` -> `nexa_knowledge_distribution_profiles`
-- `KnowledgeResidencyView.vue` -> `nexa_knowledge_residency`
-- `KnowledgeContextPagingView.vue` -> `nexa_knowledge_context_paging_sets`
-- `KnowledgeCapabilityDriversView.vue` -> `nexa_knowledge_capability_drivers`
-- `KnowledgeTraceabilityPathsView.vue` -> `nexa_knowledge_traceability_paths`
-- `KnowledgeKernelEventsView.vue` -> `nexa_knowledge_kernel_events`
-- `KnowledgeHealthSignalsView.vue` -> `nexa_knowledge_health_signals`
-- `KnowledgeResponsePoliciesView.vue` -> `nexa_knowledge_response_policies` (ES/VI·`output_mode`·보강 컬럼 §2.15)
-- `AdminAudit.vue` -> `nexa_knowledge_audit_logs`
+- `KnowledgeDefinitionsView.tsx` -> `nexa_knowledge_definitions`
+- `KnowledgeTokensView.tsx` -> `nexa_term_tokens`
+- `KnowledgeReferencesView.tsx` -> `nexa_knowledge_references`
+- `KnowledgeReferencesView.tsx` -> `nexa_knowledge_reference_assets` (문서 참조 자산 연결)
+- `KnowledgeReferencesView.tsx` -> `nexa_knowledge_ref_rules` (규칙셋 조회/적용 상태)
+- `KnowledgeVectorsView.tsx` -> `nexa_knowledge_vectors`
+- `KnowledgeChangeQueueView.tsx` -> `nexa_knowledge_change_requests`
+- `KnowledgeDocSyncView.tsx` -> `nexa_knowledge_doc_sync_state`
+- `KnowledgeDistributionView.tsx` -> `nexa_knowledge_distribution_profiles`
+- `KnowledgeResidencyView.tsx` -> `nexa_knowledge_residency`
+- `KnowledgeContextPagingView.tsx` -> `nexa_knowledge_context_paging_sets`
+- `KnowledgeCapabilityDriversView.tsx` -> `nexa_knowledge_capability_drivers`
+- `KnowledgeTraceabilityPathsView.tsx` -> `nexa_knowledge_traceability_paths`
+- `KnowledgeKernelEventsView.tsx` -> `nexa_knowledge_kernel_events`
+- `KnowledgeHealthSignalsView.tsx` -> `nexa_knowledge_health_signals`
+- `KnowledgeResponsePoliciesView.tsx` -> `nexa_knowledge_response_policies` (ES/VI·`output_mode`·보강 컬럼 §2.15)
+- `AdminAudit.tsx` -> `nexa_knowledge_audit_logs`
 
-**OS 보강 화면과 ARCH §1-C:** 인터럽트·페이징·드라이버·N-PATH 경로·헬스·쓰로틀은 **스키마(SPEC §2.9~)** 가 있고, **실제 티어 이동·프롬프트 조립**은 `engines`·잡에서 수행한다. 위 Vue는 **운영자가 상태를 보고 고치는 창구**에 해당한다.
+**OS 보강 화면과 ARCH §1-C:** 인터럽트·페이징·드라이버·N-PATH 경로·헬스·쓰로틀은 **스키마(SPEC §2.9~)** 가 있고, **실제 티어 이동·프롬프트 조립**은 `engines`·잡에서 수행한다. 위 UI(TSX)는 **운영자가 상태를 보고 고치는 창구**에 해당한다.
 
 ---
 
@@ -277,7 +290,7 @@ src/domains/
 - **OS 보강(SPEC §2.9~)** 전용 섹션을 `admin`에 두고, `kernel_events`·감사 연계 화면은 **일반 API에 노출하지 않음**
 - `help/views/content`에 탐색/설명/족보 **읽기 전용** 화면 분리 (`TraceabilityView` 등과 `admin`의 경로 편집 뷰 역할 구분)
 - 화면명과 API/테이블 책임이 1:1로 대응
-- 기존 `AdminContent.vue` 탭/라우팅과 충돌 없이 통합
+- 기존 `AdminContent.tsx` 탭/라우팅과 충돌 없이 통합
 - `DependencyMapView`가 문서-용어-기능 연결을 시각화
 - `KnowledgeTraceabilityPathsView`(admin)와 캔버스·`TraceabilityView`(help)의 **편집 vs 읽기** 경계가 문서/권한과 일치
 
@@ -286,8 +299,8 @@ src/domains/
 ## 7) 요약
 
 요청하신 방향대로, `views/` 하위는 **현재 구조 복사**가 아니라  
-**용어 관리 자산을 위한 예상 Vue 파일 구조(주석 포함)** 로 제시했다.  
-**ARCH §1-C / SPEC §2.9~** OS 보강에 대응하는 **admin 전용** Vue를 §4·§5에 추가했고, `admin` vs `help` 역할은 **§2-A**에서 정리했다.  
+**용어 관리 자산을 위한 예상 React(TSX) 파일 구조(주석 포함)** 로 제시했다.  
+**ARCH §1-C / SPEC §2.9~** OS 보강에 대응하는 **admin 전용** UI(TSX)를 §4·§5에 추가했고, `admin` vs `help` 역할은 **§2-A**에서 정리했다.  
 구현 시 본 구조를 기반으로 우선순위 섹션부터 단계적으로 반영한다.
 
 # 부록) KNOWLEDGE REF — 디렉토리 및 기획 자원 구조
@@ -338,49 +351,49 @@ src/
 └── domains/
     ├── admin/                  # 관리자 도메인
     │   └── views/
-    │       ├── AdminChangePassword.vue
+    │       ├── AdminChangePassword.tsx
     │       ├── left/
-    │       │   └── AdminLeftNav.vue
+    │       │   └── AdminLeftNav.tsx
     │       ├── right/
-    │       │   └── AdminRightPanel.vue
+    │       │   └── AdminRightPanel.tsx
     │       └── content/
-    │           ├── AdminContent.vue
+    │           ├── AdminContent.tsx
     │           └── sections/
-    │               ├── AdminOverview.vue
-    │               ├── AdminMembers.vue
-    │               ├── AdminSystem.vue
-    │               ├── AdminAudit.vue
-    │               ├── AdminEdgeOta.vue
-    │               ├── AdminTierAccess.vue
-    │               ├── AdminUiTheme.vue
-    │               ├── AdminApiLimits.vue
-    │               ├── AdminAiResources.vue
-    │               ├── KnowledgeDefinitionsView.vue
-    │               ├── KnowledgeTokensView.vue
-    │               ├── KnowledgeReferencesView.vue
-    │               ├── KnowledgeVectorsView.vue
-    │               ├── KnowledgeChangeQueueView.vue
-    │               ├── KnowledgeDocSyncView.vue
-    │               ├── KnowledgeDistributionView.vue
-    │               ├── KnowledgeResidencyView.vue
-    │               ├── KnowledgeContextPagingView.vue
-    │               ├── KnowledgeCapabilityDriversView.vue
-    │               ├── KnowledgeTraceabilityPathsView.vue
-    │               ├── KnowledgeKernelEventsView.vue
-    │               ├── KnowledgeHealthSignalsView.vue
-    │               └── KnowledgeResponsePoliciesView.vue
+    │               ├── AdminOverview.tsx
+    │               ├── AdminMembers.tsx
+    │               ├── AdminSystem.tsx
+    │               ├── AdminAudit.tsx
+    │               ├── AdminEdgeOta.tsx
+    │               ├── AdminTierAccess.tsx
+    │               ├── AdminUiTheme.tsx
+    │               ├── AdminApiLimits.tsx
+    │               ├── AdminAiResources.tsx
+    │               ├── KnowledgeDefinitionsView.tsx
+    │               ├── KnowledgeTokensView.tsx
+    │               ├── KnowledgeReferencesView.tsx
+    │               ├── KnowledgeVectorsView.tsx
+    │               ├── KnowledgeChangeQueueView.tsx
+    │               ├── KnowledgeDocSyncView.tsx
+    │               ├── KnowledgeDistributionView.tsx
+    │               ├── KnowledgeResidencyView.tsx
+    │               ├── KnowledgeContextPagingView.tsx
+    │               ├── KnowledgeCapabilityDriversView.tsx
+    │               ├── KnowledgeTraceabilityPathsView.tsx
+    │               ├── KnowledgeKernelEventsView.tsx
+    │               ├── KnowledgeHealthSignalsView.tsx
+    │               └── KnowledgeResponsePoliciesView.tsx
     └── help/                  # 사용자/관리자 공용 도움말 도메인
         └── views/
             ├── left/
-            │   └── HelpLeftNav.vue
+            │   └── HelpLeftNav.tsx
             ├── right/
-            │   └── HelpRightPanel.vue
+            │   └── HelpRightPanel.tsx
             └── content/
-                ├── HelpView.vue
-                ├── KnowledgeExplorerView.vue
-                ├── DependencyMapView.vue
-                ├── TraceabilityView.vue
-                └── RoutingExplainView.vue
+                ├── HelpView.tsx
+                ├── KnowledgeExplorerView.tsx
+                ├── DependencyMapView.tsx
+                ├── TraceabilityView.tsx
+                └── RoutingExplainView.tsx
 ```
 
 ### 책임 규칙
@@ -410,7 +423,7 @@ src/
 - Crawler는 원본 문서 저장소를 스캔하여 `doc_ref_path`, `anchor_id`, `source_hash`를 갱신한다.
 - 파일명 규칙 파서는 `context_code`, `doctype_code`, `version_label`, `prefix_flag`를 함께 추출한다.
 - DB(`nexa_knowledge_references`)에는 원본 문서 상대 경로와 코드 기반 분류 메타데이터를 함께 저장한다.
-- `DependencyMap.vue`는 `Doc -> Term -> Capability` 관계를 시각화한다.
+- `DependencyMap.tsx`는 `Doc -> Term -> Capability` 관계를 시각화한다.
 
 ---
 
@@ -424,7 +437,7 @@ src/
 
 - `Input -> English IR -> SNT/IND/EFF`
 
-**논리 경로 인덱스:** `nexa_knowledge_traceability_paths`는 **Inode식** `logical_path` ↔ **`anchor_id`** 매핑으로, NEXU 캔버스·API가 **경로 문자열**로 족보를 열 때 사용한다. **편집·동기화**는 `admin`의 `KnowledgeTraceabilityPathsView.vue`, **읽기·탐색**은 `help`의 `TraceabilityView.vue` 등과 역할을 나눈다.
+**논리 경로 인덱스:** `nexa_knowledge_traceability_paths`는 **Inode식** `logical_path` ↔ **`anchor_id`** 매핑으로, NEXU 캔버스·API가 **경로 문자열**로 족보를 열 때 사용한다. **편집·동기화**는 `admin`의 `KnowledgeTraceabilityPathsView.tsx`, **읽기·탐색**은 `help`의 `TraceabilityView.tsx` 등과 역할을 나눈다.
 
 실행 원칙:
 
@@ -482,79 +495,79 @@ src/
 ├── engines/                     # [엔진] 전역 재사용 가능 지능/시각화 엔진 (Strict)
 │   ├── map-parser/              # 5W1H 영문 IR 변환 및 실행 사슬 엔진
 │   ├── nixie-visualizer/        # NEXU 캔버스(닉시·NEXA NIXIE) 렌더·믹서 노드 (Three.js/D3)
-│   └── flow-visualizer/         # Vue Flow 기반 공용 관계도/의존성 맵 엔진
+│   └── flow-visualizer/         # React Flow 기반 공용 관계도/의존성 맵 엔진
 │
 ├── system/                      # [표준] 전역 표준 및 지능 자산 (Single Source of Truth)
 │   ├── assets/
 │   │   ├── glossary/            # 지능 자산(Glossary) 원천 정의 및 토큰 매핑
 │   │   └── coils/               # 6-Coils 가중치 및 GOVERN 규범 템플릿
 │   ├── schemas/                 # [필수] 전역 DDL 및 JSONB 스키마 (도메인 내 생성 금지)
-│   └── composables/             # Empathy 감지(ES/VI), 6-Coils 조율 로직
+│   └── hooks/             # Empathy 감지(ES/VI), 6-Coils 조율 로직
 │
 └── domains/                     # [도메인] 독립 프로젝트 및 사용자 인터페이스 (3단 레이아웃)
     ├── ai/                      # AI 워크스페이스 (Chat, Generator, Media)
     ├── node/                    # 노드 편집기 (IoT 로직, 시뮬레이션)
     ├── admin/                   # [관리] 시스템 표준 통제 및 승인 도메인
     │   └── views/
-    │       ├── AdminChangePassword.vue
+    │       ├── AdminChangePassword.tsx
     │       ├── left/
-    │       │   └── AdminLeftNav.vue
+    │       │   └── AdminLeftNav.tsx
     │       ├── right/
-    │       │   └── AdminRightPanel.vue
+    │       │   └── AdminRightPanel.tsx
     │       └── content/
-    │           ├── AdminContent.vue
+    │           ├── AdminContent.tsx
     │           └── sections/
-    │               ├── AdminOverview.vue
-    │               ├── AdminMembers.vue
-    │               ├── AdminSystem.vue
-    │               ├── AdminAudit.vue
-    │               ├── AdminEdgeOta.vue
-    │               ├── AdminTierAccess.vue
-    │               ├── AdminUiTheme.vue
-    │               ├── AdminApiLimits.vue
-    │               ├── AdminAiResources.vue
-    │               ├── KnowledgeDefinitionsView.vue
-    │               ├── KnowledgeTokensView.vue
-    │               ├── KnowledgeReferencesView.vue
-    │               ├── KnowledgeVectorsView.vue
-    │               ├── KnowledgeChangeQueueView.vue
-    │               ├── KnowledgeDocSyncView.vue
-    │               ├── KnowledgeDistributionView.vue
-    │               ├── KnowledgeResidencyView.vue
-    │               ├── KnowledgeContextPagingView.vue
-    │               ├── KnowledgeCapabilityDriversView.vue
-    │               ├── KnowledgeTraceabilityPathsView.vue
-    │               ├── KnowledgeKernelEventsView.vue
-    │               ├── KnowledgeHealthSignalsView.vue
-    │               └── KnowledgeResponsePoliciesView.vue
+    │               ├── AdminOverview.tsx
+    │               ├── AdminMembers.tsx
+    │               ├── AdminSystem.tsx
+    │               ├── AdminAudit.tsx
+    │               ├── AdminEdgeOta.tsx
+    │               ├── AdminTierAccess.tsx
+    │               ├── AdminUiTheme.tsx
+    │               ├── AdminApiLimits.tsx
+    │               ├── AdminAiResources.tsx
+    │               ├── KnowledgeDefinitionsView.tsx
+    │               ├── KnowledgeTokensView.tsx
+    │               ├── KnowledgeReferencesView.tsx
+    │               ├── KnowledgeVectorsView.tsx
+    │               ├── KnowledgeChangeQueueView.tsx
+    │               ├── KnowledgeDocSyncView.tsx
+    │               ├── KnowledgeDistributionView.tsx
+    │               ├── KnowledgeResidencyView.tsx
+    │               ├── KnowledgeContextPagingView.tsx
+    │               ├── KnowledgeCapabilityDriversView.tsx
+    │               ├── KnowledgeTraceabilityPathsView.tsx
+    │               ├── KnowledgeKernelEventsView.tsx
+    │               ├── KnowledgeHealthSignalsView.tsx
+    │               └── KnowledgeResponsePoliciesView.tsx
     │
     └── help/                    # [도움말/이해] 지능 가이드 및 문서 탐색
         └── views/
             ├── left/
-            │   └── HelpLeftNav.vue
+            │   └── HelpLeftNav.tsx
             ├── right/
-            │   └── HelpRightPanel.vue
+            │   └── HelpRightPanel.tsx
             └── content/
-                ├── HelpView.vue
-                ├── KnowledgeExplorerView.vue
-                ├── DependencyMapView.vue
-                ├── TraceabilityView.vue
-                └── RoutingExplainView.vue
+                ├── HelpView.tsx
+                ├── KnowledgeExplorerView.tsx
+                ├── DependencyMapView.tsx
+                ├── TraceabilityView.tsx
+                └── RoutingExplainView.tsx
 ```
 
 ---
 
 ### 1. 전역 재사용 및 통합 전략의 핵심 포인트
 
-#### ① 기획 문서의 '지능 자산화' (`src/docs/` ↔ `src/system/assets/`)
+#### ① 기획 문서의 '지능 자산화' (`src/docs/` ↔ `apps/web/src/components/assets/`)
 
 - **원본 보존:** `src/docs/`에는 사람이 읽는 **표준 네이밍 규칙(DocType Context)**에 따른 문서를 보관합니다.
-- **지능적 연결:** `system/assets/knowledge/`의 데이터는 `src/docs/` 내의 특정 문서를 참조(Reference)하며, 이를 `hlp/DependencyMap.vue`에서 **Vue Flow**로 시각화하여 "이 기능이 어떤 기획에서 유래했는지"를 추적(Traceability)할 수 있게 합니다.
+- **지능적 연결:** `system/assets/knowledge/`의 데이터는 `src/docs/` 내의 특정 문서를 참조(Reference)하며, 이를 `hlp/DependencyMap.tsx`에서 **React Flow**로 시각화하여 "이 기능이 어떤 기획에서 유래했는지"를 추적(Traceability)할 수 있게 합니다.
 
 #### ② `hlp/` 도메인을 통한 투명성 확보 (사용자/관리자 공용)
 
 - 사용자님께서 제안하신 대로, 관리자 전용이었던 `Glossary`와 `DependencyMap`을 `hlp/` (Help) 도메인으로 꺼내어 일반 사용자도 시스템의 논리를 학습할 수 있게 배치했습니다.
-- **MD 파서 연동:** `DocBrowser.vue`는 `src/docs/`의 원본 MD 파일을 실시간으로 파싱하여 보여줌으로써, 개발 문서와 실제 시스템 동작 사이의 간극을 줄입니다.
+- **MD 파서 연동:** `DocBrowser.tsx`는 `src/docs/`의 원본 MD 파일을 실시간으로 파싱하여 보여줌으로써, 개발 문서와 실제 시스템 동작 사이의 간극을 줄입니다.
 
 #### ③ 엔진 레이어 분리 (`engines/`)
 
@@ -572,7 +585,7 @@ src/
 
 ## Linguistic Routing(언어적 라우팅)
 
-**"Linguistic Routing(언어적 라우팅)이 상황 파악과 실행 전달을 잇는 핵심 엔진"**이라는 설계를 바탕으로, **Vue Flow 및 NEXU 캔버스**에서 이를 시각화하고 지능 자산으로 관리하기 위한 **노드 연결 로직**.
+**"Linguistic Routing(언어적 라우팅)이 상황 파악과 실행 전달을 잇는 핵심 엔진"**이라는 설계를 바탕으로, **React Flow 및 NEXU 캔버스**에서 이를 시각화하고 지능 자산으로 관리하기 위한 **노드 연결 로직**.
 
 이 로직은 단순히 선을 잇는 것을 넘어, **[기획 문서(Doc) → 용어(Term) → 기능 자격(Capability) → 실시간 실행(Traceability)]**로 이어지는 NEXA의 지능적 사슬을 완성하는 데 목적이 있습니다.
 
@@ -609,11 +622,11 @@ src/
 
 ---
 
-### 3. Vue Flow 기반 시각화 연출 로직
+### 3. React Flow 기반 시각화 연출 로직
 
 #### 3.1 줌 레벨에 따른 폭발과 함몰 (Fractal Zoom)
 
-NEXU 캔버스의 원칙을 Vue Flow 노드에 적용합니다.
+NEXU 캔버스의 원칙을 React Flow 노드에 적용합니다.
 
 - **함몰(Implosion):** 줌 아웃 시 하위 기능 노드들이 마침표(.)를 기준으로 상위 도메인 노드 하나로 응축됩니다.
 - **폭발(Explosion):** 줌 인 시 상위 개념 노드가 깨지며 내부의 **5W1H 참조 사슬(SNT-IND-EFF)**이 사방으로 분화되어 나타납니다.
@@ -640,3 +653,12 @@ NEXU 캔버스의 원칙을 Vue Flow 노드에 적용합니다.
 이 노드 연결 로직을 구현할 때, 사용자가 특정 **실행 결과(EFF)** 노드를 클릭하면 역방향으로 **[판단(IND) → 사실(SNT) → 기획 문서(Doc)]**까지 한 줄로 하이라이트되는 **'족보 추적 모드'**를 제공.
 
 이 설계대로라면 사용자는 시스템을 블랙박스로 느끼지 않고, 자신의 의지가 어떤 문서의 논리를 거쳐 현실에서 연주되는지 직관적으로 이해하게 될 것입니다.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| 구축 로드맵 | [시스템 구축 순서 및 로드맵 (TDD-046)](./08_TDD_Knowledge_시스템구축순서및로드맵.md) |
+| 지식 운영 | [지식 운영 체제 · API 운영 정책 (TDD-048)](./08_TDD_Knowledge_지식운영체제_API운영정책.md) |

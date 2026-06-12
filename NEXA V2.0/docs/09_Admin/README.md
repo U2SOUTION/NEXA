@@ -12,4 +12,4 @@
 
 | 문서 | 설명 |
 | :--- | :--- |
-| [09_Admin_NEXA_SYNC커맨드센터.md](./09_Admin_NEXA_SYNC커맨드센터.md) | NEXA-SYNC 운영·모니터링 커맨드 센터 |
+| [09_Admin_NEXA_SYNC커맨드센터.md](./09_Admin_NEXA_SYNC커맨드센터.md) | NEXA-SYNC 운영·모니터링 (`ADM-001`) · **nexabo** Live Feed |

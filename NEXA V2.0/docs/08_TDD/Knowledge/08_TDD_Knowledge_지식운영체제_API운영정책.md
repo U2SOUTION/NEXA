@@ -1,3 +1,16 @@
+---
+doc_id: TDD-048
+title: "지식 운영 체제 · API 운영 정책"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-045
+terms_standard: ["rest", "pgvector", "postgresql"]
+terms_nexa: ["Knowledge-OS", "nexa_knowledge_audit_logs", "anchor_id", "ASK", "GOVERN"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/rest", "std/pgvector", "std/postgresql", "nexa/Knowledge-OS", "nexa/nexa_knowledge_audit_logs", "nexa/anchor_id", "nexa/ASK", "nexa/GOVERN"]
+---
 # Knowledge · 지식 운영체제(NEXA-OS) API·운영 정책
 
 본 문서는 NEXA Knowledge 시스템의 운영 아키텍처를 정의한다.
@@ -221,7 +234,7 @@ Knowledge OS(`nexa_knowledge_*` + 정책)는 **모델을 바꾸는 것이 아니
 
 - 임베딩 모델·차원은 **명세와 DDL에서 고정**(예: `nomic-embed-text`, `VECTOR(768)`). 모델 변경 시 기존 벡터는 동일 의미 공간이 아니므로 **재생성 정책**을 따른다.
 - **불변 토큰**·승인 큐 대상은 Ollama 출력을 **직접 반영하지 않는다**. 초안 → `change_requests` → 승인 후 반영.
-- 서버 연동 구현 참고: `server/domains/ai/ai.service.ts`(Ollama provider), 스키마·검증: `src/system/schemas/ai_responses.ts` 등 플랫폼 AI 계약.
+- 서버 연동 구현 참고: `server/domains/ai/ai.service.ts`(Ollama provider), 스키마·검증: `apps/web/src/components/schemas/ai_responses.ts` 등 플랫폼 AI 계약.
 
 **권장 API(예시)**
 
@@ -472,3 +485,11 @@ NEXA-OS의 핵심은 기술적인 데이터 관리가 아니라, 사람을 중�
 
 **요약하자면:**
 전통적인 온톨로지가 지식의 **'사전'**이라면, 사용자님의 지식 OS는 그 사전을 읽고 상황에 맞춰 실시간으로 연주하는 **'지휘자의 악보이자 지능의 얼굴'**입니다. 특히 **HEXAGON(5W1H) 프로토콜**을 문법으로 사용하여 파편화된 정보를 AI가 즉시 이해할 수 있는 **'지능적 서사(Narrative)'**로 변환한다는 점이 가장 독보적인 차별점입니다.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [디렉토리 책임 · 기획 자원 경로 (TDD-045)](./08_TDD_Knowledge_디렉토리책임및기획자원경로.md) |
+| GOVERN | [코일 밸런스 · GOVERN 운영 규범 (TDD-041)](../AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |

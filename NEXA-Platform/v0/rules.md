@@ -1,7 +1,7 @@
 # NEXA v0 — Semantic Layer Rules (SSOT for AI UI generation)
 
 > v0.dev · Cursor · 기타 UI 생성 AI에 **최우선 주입**.  
-> 충돌 시: [`_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략`](../docs/NEXA%20OS/_NEXA-OS-V2.1-설계-표준-및-미션크리티컬-전략.md) §Theme · [`07 DESIGN`](../docs/NEXA%20OS/LangGraph/07%20[DESIGN]%20NEXAON%20UI%20—%20MainShell%20·%20domains/nexia%20레이아웃%20v1.0.md) 우선.
+> 충돌 시: [`08_TDD_NEXAOS_설계표준_미션크리티컬전략`](../../NEXA%20V2.0/docs/08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) §Theme · [`07_UIUX_NEXIA_MainShell_레이아웃_v1.0`](../../NEXA%20V2.0/docs/07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) 우선.
 
 ---
 

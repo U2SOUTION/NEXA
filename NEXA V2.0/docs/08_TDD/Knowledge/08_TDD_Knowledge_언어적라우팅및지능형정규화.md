@@ -1,3 +1,16 @@
+---
+doc_id: TDD-047
+title: "언어적 라우팅 · 지능형 정규화"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-045
+terms_standard: ["embeddings", "nlp", "pgvector"]
+terms_nexa: ["Language-Routing", "normalization", "nexa_knowledge_vectors"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/embeddings", "std/nlp", "std/pgvector", "nexa/Language-Routing", "nexa/normalization", "nexa/nexa_knowledge_vectors"]
+---
 # Knowledge · 언어적 라우팅 및 지능형 정규화
 
 본 문서는 NEXA Knowledge OS와 Linguistic Routing의 연동 계약을 정의한다.
@@ -111,3 +124,11 @@
 - 중의성 미해소: 상위 3개 의미 후보 제시
 - capability 미연결: REJECTED + 관리자 보강 큐 등록
 - 불변 토큰 변경 요구 포함 요청: 실행 금지 + 승인 요청 이벤트 생성
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [디렉토리 책임 · 기획 자원 경로 (TDD-045)](./08_TDD_Knowledge_디렉토리책임및기획자원경로.md) |
+| RAG 전략 | [RAG · 페르소나 아카이브 전략 (TDD-036)](../AI/08_TDD_AI_RAG페르소나아카이브전략.md) |

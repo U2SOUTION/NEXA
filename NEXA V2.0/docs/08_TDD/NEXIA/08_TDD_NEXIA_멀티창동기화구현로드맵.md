@@ -1,15 +1,28 @@
+---
+doc_id: TDD-015
+title: "멀티창 동기화 구현 로드맵"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: MVP-001
+terms_standard: ["yjs", "broadcast-channel", "shared-worker"]
+terms_nexa: ["Multi-Window", "Sync-Bus", "detach", "NexiaSplitLayout"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/broadcast-channel", "std/shared-worker", "nexa/Multi-Window", "nexa/Sync-Bus", "nexa/detach", "nexa/NexiaSplitLayout"]
+---
 ## NEXIA 멀티창 동기화 구현 로드맵
 
 > **협업 SSOT:** [08_TDD_AI_YjsHocuspocus협업SSOT](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md)  
 > 본 로드맵 **Phase 1** = 동일 사용자 **멀티 탭·창**(SharedWorker). **멀티 유저·서버 영속** = **`apps/sync` Hocuspocus** ([협업형 멀티 에디터](../AI/08_TDD_AI_협업형멀티에디터플랫폼.md) §10.0과 동시 진행).  
-> **스택:** 현행 `apps/web` (Next.js). 본문 Quasar/Vite 표기는 **레거시** 참고용.
+> **스택:** 현행 `apps/web` (Next.js). 본문 shadcn/ui/Vite 표기는 **레거시** 참고용.
 
 ### Phase 0 — 기반 설계 확정 (시작 전 체크)
 
-□ Quasar 프로젝트 구조 확인
+□ shadcn/ui 프로젝트 구조 확인
 □ system/workers/ 디렉토리 존재 여부
 □ Vite 기준 SharedWorker 빌드 설정 가능 여부
-□ 현재 Pinia store 구조 파악
+□ 현재 Zustand store 구조 파악
 
 □ 브라우저 호환성 확인
 □ Document PIP API → Chrome 116+ 전용
@@ -33,7 +46,7 @@
 
 ```
 system/
-├── composables/
+├── hooks/
 │   ├── useSyncBus.js       ← 통신 추상화
 │   ├── useYjsProvider.js   ← Yjs 연결
 │   └── usePIP.js           ← PIP 관리
@@ -52,7 +65,7 @@ system/
 □ Yjs 업데이트 릴레이
 
 □ Yjs Provider 구현
-□ src/composables/useYjsProvider.js 생성
+□ src/hooks/useYjsProvider.js 생성
 □ SharedWorker ↔ Yjs Doc 연결
 □ awareness (커서/사용자 상태) 설정
 □ 연결 상태 모니터링
@@ -69,7 +82,7 @@ system/
 □ physis:queue (Y.Array)
 
 □ useSyncBus 추상화 레이어
-□ src/composables/useSyncBus.js 생성
+□ src/hooks/useSyncBus.js 생성
 □ send(type, payload) 인터페이스
 □ on(type, handler) 인터페이스
 □ off(type, handler) 인터페이스
@@ -84,19 +97,19 @@ system/
 ### Phase 2 — Cockpit PIP 구현
 
 □ Document PIP API 기반 구성
-□ src/composables/usePIP.js 생성
+□ src/hooks/usePIP.js 생성
 □ requestWindow() 호출 및 에러 핸들링
-□ PIP 창에 Vue 앱 마운트 로직
+□ PIP 창에 React 앱 마운트 로직
 □ PIP 창 닫힘 감지 및 정리
 
 □ PIP 전용 레이아웃
-□ src/layouts/PIPLayout.vue 생성
+□ src/layouts/PIPLayout.tsx 생성
 □ 최소 UI (타이틀바 + 닫기 버튼)
 □ 반응형 (PIP 창 크기 변화 대응)
 □ 다크모드 동기화
 
 □ Cockpit 미니뷰 컴포넌트
-□ src/components/pip/CockpitPIP.vue 생성
+□ src/components/pip/CockpitPIP.tsx 생성
 □ Ollama 스트리밍 텍스트 표시
 □ Global Flow 미니 뷰
 □ 주요 이벤트 알림
@@ -149,10 +162,10 @@ system/
 
 ---
 
-### Phase 5 — Synapse (Vue Flow / Rivet) Yjs 바인딩
+### Phase 5 — Synapse (React Flow / Rivet) Yjs 바인딩
 
 □ 노드/엣지 Yjs 연동
-□ Y.Array ↔ Vue Flow nodes/edges 바인딩
+□ Y.Array ↔ React Flow nodes/edges 바인딩
 □ 노드 추가/삭제/이동 동기화
 □ 엣지 연결/해제 동기화
 
@@ -188,7 +201,7 @@ system/
 
 □ 라우터 설정
 □ /popout/:tabId 라우트 추가
-□ PopoutLayout.vue (미니멀 레이아웃)
+□ PopoutLayout.tsx (미니멀 레이아웃)
 □ 각 탭별 팝아웃 뷰 컴포넌트
 
 □ 팝아웃 실행
@@ -234,3 +247,12 @@ system/
 □ Yjs DevTools 연동
 □ 창 간 동기화 상태 디버그 패널
 □ 각 Phase 완료 후 스냅샷 태깅
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 MVP | [NEXIA 레이아웃 · 팝아웃 MVP (MVP-001)](../../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
+| 멀티윈도우 TDD | [멀티윈도우 · Document PiP (TDD-014)](./08_TDD_NEXIA_멀티윈도우DocumentPiP.md) |
+| 레이아웃 규격 | [NEXA 통합 레이아웃 구조 규격 (UIX-006)](../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |

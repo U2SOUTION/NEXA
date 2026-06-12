@@ -1,3 +1,16 @@
+---
+doc_id: TDD-031
+title: "AI VIDEO 제너레이터"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-028
+terms_standard: ["comfyui", "remotion", "tiptap"]
+terms_nexa: ["AIVIDEO", "Rivet", "Vivex", "Generators"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/comfyui", "std/remotion", "std/tiptap", "nexa/AIVIDEO", "nexa/Rivet", "nexa/Vivex", "nexa/Generators"]
+---
 # AI VIDEO 제너레이터 — Tiptap · Rivet · ComfyUI / Remotion·MoviePy (기획 정리본)
 
 > **스택:** 셸 **Next.js** · **Embedded Rivet** 정제 · **NEXIA React Flow** (Synapse). — [`M.O.S.E.S. 정리`](<../NEXA OS/Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5
@@ -322,7 +335,7 @@ POST /video/fast/render  TechAnim3D + captions
 | ------------ | --------------------------------------------------------------------------------------------------------------------- |
 | 주 엔진      | **Remotion** — React 컴포넌트 = 매 프레임 UI                                                                          |
 | 데이터       | Rivet `MapAssets` ← API/CSV/JSON · (실시간) Yjs `metrics` 스냅샷                                                      |
-| 컴포넌트     | Recharts · D3 · 커스텀 SVG · Quasar 스타일 카드 **복제본**(Physis와 동일 토큰)                                        |
+| 컴포넌트     | Recharts · D3 · 커스텀 SVG · shadcn/ui 스타일 카드 **복제본**(Physis와 동일 토큰)                                        |
 | “인터랙티브” | 편집기 안 슬라이더는 **Remotion `useCurrentFrame()`** 으로 재매핑 — 센서 고주파는 **P5+Tone**(§7), MP4 렌더는 버튼 시 |
 
 **파이프:**
@@ -623,3 +636,11 @@ EDU_SCREEN     → GenerateMoviePy → /edit/render
 ---
 
 _상태: v5 — 모드2 **fastProfile**: TECH_ANIM(Manim·R3F+Remotion) · DATA_VIZ(Remotion) · EDU_SCREEN(MoviePy) · NEWS_SHORT._
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [AI 협력 제너레이터 파이프라인 (TDD-028)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
+| 음성 PRD | [음성·미디어 파이프라인 7탭 (PRD-007)](../../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) |

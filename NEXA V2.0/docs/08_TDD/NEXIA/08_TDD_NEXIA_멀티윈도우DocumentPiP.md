@@ -1,3 +1,16 @@
+---
+doc_id: TDD-014
+title: "멀티윈도우 · Document PiP"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: MVP-001
+terms_standard: ["document-pip", "broadcast-channel", "yjs"]
+terms_nexa: ["Multi-Window", "PiP", "Sync-Bus", "panelId"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/document-pip", "std/broadcast-channel", "std/yjs", "nexa/Multi-Window", "nexa/PiP", "nexa/Sync-Bus", "nexa/panelId"]
+---
 # 멀티윈도우 · Document PiP 통합 규격 및 선택 가이드
 
 **한 줄:** NEXIA 탭·워크플로를 **멀티윈도우(병렬 생산성)** 와 **Document PiP(상시 보조)** 중에서 선택·혼합한다. 본 문서는 **선택 매트릭스**, **멀티윈도우 아키텍처**, **PiP 운영 규격**을 한곳에 정의한다.
@@ -11,7 +24,7 @@
 - NEXIA 탭 프로파일(기본 7개 포함)을 **멀티 모니터·멀티 창** 환경에서 안정 운영하기 위한 **아키텍처·운영 기준**을 정의한다.
 - 기능 설계 시 **멀티윈도우 vs Document PiP** 선택 **매트릭스·체크리스트**를 제공한다.
 - Document PiP의 **상태·동기화·UI·생명주기·장애** 운영 규격을 포함한다.
-- STT/TTS 엔진 동작·음성 루프 상세는 [`07 음성 인풋…`](./07%20음성%20인풋%20자동화%20및%20확장%20로직%20(Voice%20Input%20Automation%20%26%20Expansion).md) · UI 포용성은 `04`가 우선한다.
+- STT/TTS 엔진 동작·음성 루프 상세는 [`08_TDD_NEXIA_음성인풋자동화및확장`](./08_TDD_NEXIA_음성인풋자동화및확장.md) · UI 포용성은 `04`가 우선한다.
 
 ---
 
@@ -119,7 +132,7 @@ PiP는 메인 창을 **대체하지 않고** `보조 제어 / 상태 가시성`�
 | Sync Bus | `BroadcastChannel` | 창 간 이벤트 전파 |
 | Shared Runtime | `SharedWorker` | 공통 실행 컨텍스트 |
 | Collaboration State | `Yjs` | 문서·그래프 실시간 동기화 |
-| UI State | `Pinia` | 탭·드로어·선택 상태 |
+| UI State | `Zustand` | 탭·드로어·선택 상태 |
 
 **PiP와의 관계:** MW 채널 `nexia.window.sync.v1` · PiP 채널 `nexia.pip.sync.v1` (§7.4) — **채널 분리**, 제어권은 §8에서 통합.
 
@@ -253,12 +266,21 @@ PiP는 메인 창을 **대체하지 않고** `보조 제어 / 상태 가시성`�
 
 | 문서 | 역할 |
 |------|------|
-| [07 음성 인풋 자동화 및 확장 로직](./07%20음성%20인풋%20자동화%20및%20확장%20로직%20(Voice%20Input%20Automation%20%26%20Expansion).md) | STT/TTS · PiP 제어권 연동 |
-| [07_UIUX_NEXIA_통합레이아웃구조규격](../../../07_UIUX/07_UIUX_NEXIA_통합레이아웃구조규격.md) | 셸·패널·레이어·이벤트 |
-| [14 레이아웃 복잡도 완화 및 탭(패널) 창 분리 MVP 계획](./14%20레이아웃%20복잡도%20완화%20및%20탭(패널)%20창%20분리%20MVP%20계획.md) | MW MVP · 본 문서 이후 확장 |
+| [08_TDD_NEXIA_음성인풋자동화및확장](./08_TDD_NEXIA_음성인풋자동화및확장.md) | STT/TTS · PiP 제어권 연동 |
+| [07_UIUX_NEXA_통합레이아웃구조규격](../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) | 플랫폼 MainShell · [`UIX-004`](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) nexia |
+| [03_MVP_NEXIA_레이아웃팝아웃MVP](../../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) | MW MVP · 본 문서 이후 확장 |
 | `04 사용자 경험(UX)의 포용성 및 확장` | PiP UI 표현 |
 | `02 인프라` · `03 데이터 생애주기` · `06 예외 상황 처리` | 인프라·형상·예외 |
 
 ---
 
 *상태: v2 통합본 — MW + PiP 선택 + PiP 운영 · 구 `08`/`09`/`10` 대체.*
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 MVP | [NEXIA 레이아웃 · 팝아웃 MVP (MVP-001)](../../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
+| 동기화 로드맵 | [멀티창 동기화 구현 로드맵 (TDD-015)](./08_TDD_NEXIA_멀티창동기화구현로드맵.md) |
+| 레이아웃 규격 | [NEXA 통합 레이아웃 구조 규격 (UIX-006)](../../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |

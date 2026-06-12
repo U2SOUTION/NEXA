@@ -1,3 +1,17 @@
+---
+doc_id: TDD-021
+title: "음성 인풋 자동화 및 확장"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-010
+implements_doc: PRD-007
+terms_standard: ["whisper", "tts", "sse"]
+terms_nexa: ["Vivex", "STT", "TTS", "agent-graph"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/whisper", "std/tts", "std/sse", "nexa/Vivex", "nexa/STT", "nexa/TTS", "nexa/agent-graph"]
+---
 # NEXIA · 음성 인풋 자동화 및 확장 (Voice Input Automation)
 
 ## 7.1 목적과 범위
@@ -109,3 +123,12 @@ PiP 창 생명주기/운영 제어는 `09` 문서에서 관리한다.
 - `06 예외 상황 처리 (Exception Handling).md`
 - `08 멀티윈도우 · Document PiP 통합 규격 및 선택 가이드 (Multi-Window & PiP Specification).md`
 - [`08_TDD_NEXIA_외부엔진및아키텍처`](./08_TDD_NEXIA_외부엔진및아키텍처.md)
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
+| 구현 PRD | [음성·미디어 파이프라인 7탭 (PRD-007)](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) |
+| 음성 브라우저 TDD | [음성 인풋 · 브라우저 레이어 (TDD-020)](./08_TDD_NEXIA_음성인풋브라우저레이어.md) |

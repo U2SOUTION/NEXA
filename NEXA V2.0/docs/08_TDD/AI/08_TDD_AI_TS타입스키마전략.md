@@ -1,6 +1,19 @@
+---
+doc_id: TDD-037
+title: "TS 타입 · 스키마 전략"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: TDD-001
+terms_standard: ["zod", "typescript"]
+terms_nexa: ["packages-shared", "agent-graph", "ApiErrorCode"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/zod", "std/typescript", "nexa/packages-shared", "nexa/agent-graph", "nexa/ApiErrorCode"]
+---
 # AI · TS·타입·스키마 전략
 
-> **스택 SSOT:** Zod 계약은 **`packages/shared`** · API는 **Nest `apps/backend`** · LLM 호출은 **`apps/agent-graph`**. 아래 `server/domains/ai`·`src/system/schemas` 경로는 **레거시(Quasar)** 참고용.
+> **스택 SSOT:** Zod 계약은 **`packages/shared`** · API는 **Nest `apps/backend`** · LLM 호출은 **`apps/agent-graph`**. 아래 `server/domains/ai`·`apps/web/src/components/schemas` 경로는 **레거시(shadcn/ui)** 참고용.
 
 **목적**: LLM과 협업 시 **Zod 스키마·타입·에러 코드**를 일관 적용하여 AI 응답 검증·프롬프트 가이드·에러 처리를 타입 안전하게 수행하기 위한 **도메인 전략서**이다.
 
@@ -19,7 +32,7 @@ AI 협업 기능을 개발하기 **전에** 아래를 먼저 완료한다.
 | 선행 항목 | 문서 | 내용 |
 |----------|------|------|
 | **비즈니스 에러 코드 공유** | [NEXA-PLATFORM-TS-01] §2.5 | `ApiErrorCode`·`Record<ApiErrorCode, string>` 메시지 맵 정의. AI 관련 에러(`AI_MODEL_LOAD_FAILED`, `AI_TIMEOUT`, `AI_SERVICE_UNAVAILABLE`) 포함. |
-| **API 스키마 통합** | [NEXA-PLATFORM-TS-01] §2.1 | `src/system/schemas/`(auth, devices, projects, errors) 통합. tsconfig paths 정교 설정. |
+| **API 스키마 통합** | [NEXA-PLATFORM-TS-01] §2.1 | `apps/web/src/components/schemas/`(auth, devices, projects, errors) 통합. tsconfig paths 정교 설정. |
 
 ---
 
@@ -29,11 +42,11 @@ AI(LLM, 예: Ollama)가 반환해야 할 **JSON 구조**를 Zod 스키마로 정
 
 | 항목 | 내용 |
 |------|------|
-| **정의 위치** | `src/system/schemas/ai_responses.ts` |
+| **정의 위치** | `apps/web/src/components/schemas/ai_responses.ts` |
 | **흐름** | (1) 스키마 정의 → (2) 스키마 구조를 프롬프트에 반영 → (3) AI raw 출력을 `aiResponseSchema.parse(json)`로 검증 → (4) `z.infer` 타입으로 처리. |
 
 ```ts
-// 예: src/system/schemas/ai_responses.ts
+// 예: apps/web/src/components/schemas/ai_responses.ts
 import { z } from 'zod'
 
 export const summaryResponseSchema = z.object({
@@ -119,14 +132,14 @@ Ollama 연동 시 발생하는 에러(모델 로드 실패, 타임아웃 등)를
 | `AI_TIMEOUT` | 응답 타임아웃 |
 | `AI_SERVICE_UNAVAILABLE` | AI 서비스 불가 |
 
-- `src/system/schemas/errors.ts`에 추가. 동일한 `Record<ApiErrorCode, string>` 메시지 맵으로 i18n·토스트 처리.
+- `apps/web/src/components/schemas/errors.ts`에 추가. 동일한 `Record<ApiErrorCode, string>` 메시지 맵으로 i18n·토스트 처리.
 
 ---
 
 ## 7. 체크리스트
 
 - [x] §1 선행 완료: 비즈니스 에러 코드 공유·API 스키마 통합
-- [x] `src/system/schemas/ai_responses.ts` 정의. `summaryResponseSchema`, `extractionResponseSchema`, `chatMessageResponseSchema`
+- [x] `apps/web/src/components/schemas/ai_responses.ts` 정의. `summaryResponseSchema`, `extractionResponseSchema`, `chatMessageResponseSchema`
 - [x] `server/domains/ai/utils/zodToPromptSchema.ts` — Zod → JSON Schema 변환 (`toJsonSchemaForPrompt`, `toPromptSchemaString`). 패키지 의존 없이 단순 구현
 - [x] `server/domains/ai/ai.types.ts` — `ProjectContext`, `DeviceContext`, `AiJobStatus` 정의
 - [x] `ApiErrorCode`에 AI 관련 코드 추가 (errors.ts). 메시지 맵 (errorMessages.ts)에 대응 문구 추가
@@ -139,4 +152,13 @@ Ollama 연동 시 발생하는 에러(모델 로드 실패, 타임아웃 등)를
 |------|------|
 | **[NEXA-PLATFORM-TS-01]** | TS 마이그레이션·스키마 통합·에러 코드·Zod 패턴. AI 도메인은 본 문서에서 상세 정의. |
 | [협업형 멀티 에디터](./08_TDD_AI_협업형멀티에디터플랫폼.md) | 오케스트레이터·Focus Stack |
-| [음성·미디어 PRD](../../05_PRD/AI/05_PRD_AI_음성미디어파이프라인7탭.md) | 비동기 큐·재시도 |
+| [음성·미디어 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) | 비동기 큐·재시도 |
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| Yjs 협업 | [Yjs · Hocuspocus 협업 SSOT (TDD-038)](./08_TDD_AI_YjsHocuspocus협업SSOT.md) |
+| AI 워크스페이스 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |

@@ -1,3 +1,16 @@
+---
+doc_id: TDD-025
+title: "CELL · Lambda 템플릿 · Jetson 연동 API"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: PRD-004
+terms_standard: ["esphome", "jetson", "docker", "rest"]
+terms_nexa: ["NEXA-CELL", "Lambda", "Jetson", "Twinex"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esphome", "std/jetson", "std/docker", "std/rest", "nexa/NEXA-CELL", "nexa/Lambda", "nexa/Jetson", "nexa/Twinex"]
+---
 # NEXIA · NEXA-CELL · Lambda 템플릿 및 Jetson 연동 API
 
 > **도메인 통합 (2026-06):** 구 `/nexa-node` 별도 도메인 **폐기** → **`domainKey: nexia`** · **Twinex** 탭 (`tabId: twinex`). 그래프 UI = **React Flow** (`@xyflow/react`). LLM = **Nest → `apps/agent-graph`**. 스택 SSOT: [`08_TDD_NEXIA_구조기술스택운영방침`](../../08_TDD_NEXIA_구조기술스택운영방침.md)
@@ -263,3 +276,12 @@ void loop() {
 - **ESP32 SFR**: `WRITE_PERI_REG`/`READ_PERI_REG` — ESP-IDF 레지스터 접근.
 - **gRPC / Protocol Buffers**: 언어 중립 RPC·직렬화.
 - **WebSocket**: RFC 6455, ESP32 WebSocket 클라이언트 예제.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 구현 PRD | [NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 (PRD-004)](../../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |
+| ESP32 등록 TDD | [CELL · ESP32 베이스라인 디바이스 등록 (TDD-024)](./08_TDD_NEXIA_CELL_ESP32베이스라인디바이스등록.md) |
+| NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../08_TDD_NEXIA_구조기술스택운영방침.md) |

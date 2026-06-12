@@ -1,3 +1,16 @@
+---
+doc_id: TDD-043
+title: "CSIM · AXON 프로토콜 정본"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-001
+terms_standard: ["mqtt", "protobuf", "pwm"]
+terms_nexa: ["CSIM", "AXON", "APEX", "HEXAGON", "ACTON", "NEXAVULT"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/mqtt", "std/protobuf", "std/pwm", "nexa/CSIM", "nexa/AXON", "nexa/APEX", "nexa/HEXAGON", "nexa/ACTON", "nexa/NEXAVULT"]
+---
 # CSIM · AXON 프로토콜 (정본)
 
 **한 줄:** 인간·AI·기계의 의도를 **의미 매트릭스(APEX)** 로 압축하고, **HEXAGON(5W1H)** 으로 정규화하며, **NEXAON/NEXAVULT** 로 해석·학습해 **ACTON** 으로 물리 실행하는 **우주언어(Cosmic Language)** 프로토콜
@@ -668,3 +681,12 @@ contentHash 검증      →  Profile G/M whitelist
 ---
 
 _상태: Normative — CSIM · AXON 7L · APEX v0.16 · ACTON-GM programRef · Body≠G-code._
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| Cosmic Language | [Cosmic Language · 전역 데이터 아키텍처 (TDD-044)](./08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
+| NEXNAP | [NEXNAP 시스템 인터페이스 표준 규약 (TDD-023)](../NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) |

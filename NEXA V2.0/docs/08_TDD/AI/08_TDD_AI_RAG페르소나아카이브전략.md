@@ -1,4 +1,19 @@
+---
+doc_id: TDD-036
+title: "RAG · 페르소나 아카이브 전략"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: TDD-042
+terms_standard: ["rag", "pgvector", "embeddings"]
+terms_nexa: ["Persona-Archive", "Atom", "5W1H", "Nature-Tag", "INTENT"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/rag", "std/pgvector", "std/embeddings", "nexa/Persona-Archive", "nexa/Atom", "nexa/5W1H", "nexa/Nature-Tag", "nexa/INTENT"]
+---
 # AI · RAG 및 페르소나 아카이브 전략
+
+> **레거시 출처:** 「NEXA AIS RAG … (Persona Strategy)」→ **본 문서(TDD-036)가 정본**.
 
 사용자와 동기화되는 **장기 기억** 설계 — RAG·페르소나 아카이브·지능적 서사 단위(Atom) 보존 전략.
 
@@ -57,3 +72,12 @@ NEXA는 현장 중심 지능형 협업과 '언어 너머의 뜻'을 읽는 한�
 
 **5.6 NEXA-SYNC (브랜드·목적·방향)**  
 의도와 실행의 지능적 동기화·한몸(One Body) 유대감을 나타내는 브랜드로, 편안함·쉬움을 전달한다. **목적:** 공감형 지능—RAG로 INTENT 호출·숨은 의도 파악, 일상의 지능적 서사화(ART & Life), 6코일·선호 학습으로 성장형 동반자. **방향:** 5W1H·4대 레이어로 반응 극대화·오작동 감소, 하드 도메인은 Reflex 우선·소프트 도메인은 인디케이터 창의 개입, English Kernel–Multilingual Shell, QUERY·WILL→GOVERN 생성·Sentinel 전파의 Feedback Loop. 개인화된 편안함과 예술적 통찰을 제공하는 살아있는 지능 유기체로 완성한다.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 5W1H 레이어 | [5W1H · 6 대 추상 레이어 규격 (TDD-033)](./08_TDD_AI_5W1H_6대추상레이어규격.md) |
+| Yjs 협업 | [Yjs · Hocuspocus 협업 SSOT (TDD-038)](./08_TDD_AI_YjsHocuspocus협업SSOT.md) |

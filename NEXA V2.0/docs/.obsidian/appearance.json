@@ -1,0 +1,10 @@
+{
+  "cssTheme": "Minimal",
+  "accentColor": "",
+  "theme": "obsidian",
+  "baseFontSize": 19,
+  "baseFontSizeAction": false,
+  "enabledCssSnippets": [
+    "style"
+  ]
+}

@@ -1,3 +1,16 @@
+---
+doc_id: TDD-016
+title: "보안 및 권한 관리 체계"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-010
+terms_standard: ["rbac", "zod", "jwt"]
+terms_nexa: ["Grade", "Normex", "Omnix", "audit-log", "edge-queue"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/rbac", "std/zod", "std/jwt", "nexa/Grade", "nexa/Normex", "nexa/Omnix", "nexa/audit-log", "nexa/edge-queue"]
+---
 # NEXIA · 보안 및 권한 관리 체계 (Security & Governance)
 
 **한 줄:** NEXIA는 **명령 등급(Grade 1~3)** · **망 분리** · **RBAC** · **Normex 가드레일**로 조종·협업·IoT 제어를 **미션 크리티컬** 수준까지 거버넌스한다.
@@ -247,3 +260,12 @@ NEXA OS **하이브리드 망 분리** 원칙을 NEXIA에 적용한다. **위험
 ---
 
 _상태: Normative — Grade 1~3 · RBAC · NEXIA 7탭 · NEXA OS commands/audit 연동._
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
+| OS 보안 | [NEXA OS · 수직 계층 보안 아키텍처 (TDD-004)](../NEXAOS/08_TDD_NEXAOS_수직계층보안아키텍처.md) |
+| GOVERN | [코일 밸런스 · GOVERN 운영 규범 (TDD-041)](../AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |

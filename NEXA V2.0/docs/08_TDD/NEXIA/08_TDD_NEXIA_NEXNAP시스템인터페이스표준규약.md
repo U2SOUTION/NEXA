@@ -1,3 +1,16 @@
+---
+doc_id: TDD-023
+title: "NEXNAP 시스템 인터페이스 표준 규약"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-010
+terms_standard: ["mqtt", "protobuf"]
+terms_nexa: ["NEXNAP", "ACTON", "AXON", "CSIM", "Envelope"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/protobuf", "nexa/NEXNAP", "nexa/ACTON", "nexa/AXON", "nexa/CSIM", "nexa/Envelope"]
+---
 # NEXNAP · 시스템 인터페이스 표준 규약
 
 HEXAGON Protocol(5W1H 토큰)과 의미 매트릭스를 탭 간 릴레이·AI 협업의 **기술적 인터페이스 규약**으로 고정한다. (`_프로토콜.md` 후속 SSOT)
@@ -59,3 +72,12 @@ HEXAGON Protocol(5W1H 토큰)과 의미 매트릭스를 탭 간 릴레이·AI �
 질문자님이 클로드 Max(혹은 Pro)를 구독하신 후, 위 전략 문서를 그대로 클로드에게 붙여넣으시면 됩니다. 그러면 클로드는 "아, 이 프로젝트는 철학적인 토큰들이 기술적인 권한 제어와 연결되는 구조구나"라고 즉시 이해하고 개발을 시작할 것입니다.
 이 전략 문서를 기반으로 가장 먼저 구현할 '통신 엔진'의 코드 초안을 뽑아볼까요? 아니면 맥미니(M4 Pro)에서 이 프로토콜을 테스트하기 위한 환경 설정부터 알아볼까요?
 질문자님의 직감이 이제 강력한 기술 규격이 되었습니다. 바로 시작하시겠습니까?
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
+| CSIM · AXON | [CSIM · AXON 프로토콜 정본 (TDD-043)](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |
+| MQTT 라우팅 | [MQTT 토픽 · 데이터 라우팅 (TDD-022)](./08_TDD_NEXIA_MQTT토픽데이터라우팅.md) |

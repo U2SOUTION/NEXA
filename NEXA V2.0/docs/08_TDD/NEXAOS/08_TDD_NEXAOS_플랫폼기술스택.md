@@ -1,3 +1,16 @@
+---
+doc_id: TDD-003
+title: "NEXA OS 플랫폼 기술 스택"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-001
+terms_standard: ["next-js", "yjs", "react-flow", "tiptap", "monaco", "nestjs", "pgvector", "neo4j", "vllm"]
+terms_nexa: ["agent-graph", "rivet-core", "packages-shared", "embedder"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/react-flow", "std/tiptap", "std/monaco", "std/nestjs", "std/pgvector", "std/neo4j", "std/vllm", "nexa/agent-graph", "nexa/rivet-core", "nexa/packages-shared", "nexa/embedder"]
+---
 > **SSOT (2026-06):** **Chat·Streaming** = agent-graph **LLM adapter** (dev: Ollama · **prod: vLLM**) · **Embed** = `embedder` in-process. rivet-core = 템플릿·위임만.
 
 ---
@@ -103,7 +116,7 @@ UI → NestJS → rivet-core → agent-graph ──┬── LLM adapter → Oll
 #### 2. 서버 간 통신 및 Streaming (설계 반영)
 
 - **구조:** 사용자 ↔ NestJS ↔ rivet-core(위임) ↔ **agent-graph** ↔ Ollama
-- **Streaming SSOT:** agent-graph FastAPI SSE → Nest **relay** → NEXAON UI. rivet-core는 **토큰 생성하지 않음**.
+- **Streaming SSOT:** agent-graph FastAPI SSE → Nest **relay** → nexia UI. rivet-core는 **토큰 생성하지 않음**.
 - **통신:** Run 시작 = HTTP POST `/v1/runs/{graph_id}` · 스트림 = GET `/v1/runs/{run_id}/stream` (Nest 경유). gRPC는 선택.
 
 #### 3. 복잡한 분산 상태(State) 동기화 문제
@@ -117,3 +130,12 @@ UI → NestJS → rivet-core → agent-graph ──┬── LLM adapter → Oll
 
 - 이 프로젝트에서 분리는 '필수'에 가깝습니다: 단점(배포 복잡도, 통신 비용)이 존재함에도 불구하고, "다중 온톨로지 언어 가동 및 추론"이라는 명확한 목표가 있기 때문에 파이썬 생태계를 버리고 NestJS 내부에 억지로 구현하는 것은 장기적으로 더 큰 기술 부채가 됩니다.
 - 통신 문제 해결 팁: **agent-graph SSE + Nest relay**를 SSOT로 고정한다. rivet-core에 Chat 노드를 두지 않으면 Streaming 경로가 단일화된다. Redis Pub/Sub은 IoT 상태·다중 구독 보조용.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| TS 스키마 | [TS 타입 · 스키마 전략 (TDD-037)](../AI/08_TDD_AI_TS타입스키마전략.md) |

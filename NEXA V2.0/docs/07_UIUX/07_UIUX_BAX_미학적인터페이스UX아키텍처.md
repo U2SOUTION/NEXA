@@ -1,18 +1,34 @@
+---
+parent_doc: 
+see_also: []
+doc_id: UIX-003
+title: "BAX 미학적 인터페이스 UX 아키텍처"
+category: "07_UIUX"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-11
+implements_doc: BRD-001
+terms_standard: ["websocket", "sse"]
+terms_nexa: ["BAX", "MAE", "ATS", "M2P", "ASR", "RuleGuard", "VirtualCanvas", "LayoutPolicy"]
+tags: ["doc/cat/07-uiux", "doc/domain/nexia", "std/websocket", "std/sse", "nexa/BAX", "nexa/MAE", "nexa/ATS", "nexa/M2P", "nexa/ASR", "nexa/RuleGuard", "nexa/VirtualCanvas", "nexa/LayoutPolicy"]
+---
+
 # BAX (Breathing AI Experience)
 
-**미학적 인터페이스 · 사용자경험 아키텍처 정의서**  
+**미학적 인터페이스 · 사용자경험 아키텍처 정의서**
 MVP 개발 **단일 SSOT**
 
-> **문서 유형**: B — MVP 개발 SSOT (Functional Requirements · API · Semantic Layout 중심)  
-> **상태**: Draft · **관련**: NEXA OS · [`08_TDD_NEXAOS_설계표준_미션크리티컬전략`](../08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) · **실험 앱**: `apps/bax-demo`  
+> **문서 유형**: B — MVP 개발 SSOT (Functional Requirements · API · Semantic Layout 중심)
+> **상태**: Draft · **관련**: NEXA OS · [`08_TDD_NEXAOS_설계표준_미션크리티컬전략`](../08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) · **실험 앱**: `apps/bax-demo`
 > **선행 문서**: v0.8 UX SSOT · `BAX_문제 해소.md` — **본 문서에 흡수 완료. 구현 시 본 문서만 참조.**
 
 > **변경 요약** (v0.8 UX SSOT + `BAX_문제 해소.md` 통합 · 단일 SSOT 완성):
-> **용어** — **ASR** · `asr_base` · `resolveAsrBase` · `asrOverride` · **ATS** 유지  
-> **C1** — `depth`↔`urgency` 역할 분리 · **C2** — `void_ratio` 단일 SSOT · M2P v2  
-> **C3** — `layer: OVERLAY` · **C4** — RuleGuard **모드 무관**  
-> **G1–G4** — `MaeContext` · `AlarmState` · blur 공식 · DefaultLayoutPolicy · overflow  
-> **R1–R4** — urgency 전이 · CONTEXTUAL 검증 · SingleColumnFallback · NIXIE M2P  
+> **용어** — **ASR** · `asr_base` · `resolveAsrBase` · `asrOverride` · **ATS** 유지
+> **C1** — `depth`↔`urgency` 역할 분리 · **C2** — `void_ratio` 단일 SSOT · M2P v2
+> **C3** — `layer: OVERLAY` · **C4** — RuleGuard **모드 무관**
+> **G1–G4** — `MaeContext` · `AlarmState` · blur 공식 · DefaultLayoutPolicy · overflow
+> **R1–R4** — urgency 전이 · CONTEXTUAL 검증 · SingleColumnFallback · NIXIE M2P
 > **본판** — FR AC · UI · Safe-Zone · **§1.3 컴포넌트 개발 가이드** · 부록 전체
 
 ---
@@ -42,7 +58,7 @@ MVP 개발 **단일 SSOT**
 
 ### 시스템 계층
 
-```
+```json
 BAX  Breathing AI Experience
  ├── ATS  Aesthetic Tuning Settings   ← 영속 (ASR·Depth·Vibration)
  ├── M2P  Matrix-to-Peripheral       ← 실시간 의지 (v2 패킷 · NIXIE)
@@ -53,7 +69,7 @@ BAX  Breathing AI Experience
        └── DepthProfile     ← 시각값 (+ ATS 튜닝)
 ```
 
-### 입력 3계층
+### 입력 3 계층
 
 | 계층     | 역할                                            | 지속성     | MVP UI         |
 | -------- | ----------------------------------------------- | ---------- | -------------- |
@@ -65,7 +81,7 @@ BAX  Breathing AI Experience
 
 ### 데이터 흐름
 
-```
+```json
 Input (ATS · M2P · NIXIE · 센서)
   → Context Merge (bax_mode + ATS + M2P)
   → [모든 모드] RuleGuard → AlarmState → urgency
@@ -79,12 +95,12 @@ Input (ATS · M2P · NIXIE · 센서)
 
 ## MVP 범위
 
-**검증 질문**: 의미 속성만 선언하면 MAE가 Grid·시각값을 결정하고 VirtualCanvas가 **≤300ms** easing으로 호흡하는가?
+**검증 질문**: 의미 속성만 선언하면 MAE 가 Grid·시각값을 결정하고 VirtualCanvas 가 **≤300ms** easing 으로 호흡하는가?
 
 | In scope                              | Out of scope                    |
 | ------------------------------------- | ------------------------------- |
-| Anchor·Frame·Sentinel·Sparkline (4종) | 다페이지 · nexage 강제          |
-| ATS + M2P 2패널 · LayoutPolicy 1종    | 다중 Policy · ATS 클라우드 sync |
+| Anchor·Frame·Sentinel·Sparkline (4 종) | 다페이지 · nexage 강제          |
+| ATS + M2P 2 패널 · LayoutPolicy 1 종    | 다중 Policy · ATS 클라우드 sync |
 | RuleGuard(모드 무관) + AestheticTuner | SSE · Grade3 · 다중 IoT         |
 | M2P v2 · NIXIE 가상 시뮬              | 실물 NIXIE · M2P HW             |
 | Sparkline(V1) · Circuit Gate          | V3 Audio · WCAG 인증            |
@@ -95,9 +111,9 @@ Input (ATS · M2P · NIXIE · 센서)
 
 ### AXON 원칙 3
 
-컴포넌트(세포)는 **의미 속성만** 선언. MAE(두뇌)가 배치·blur·opacity·z-index를 결정한다.
+컴포넌트 (세포) 는 **의미 속성만** 선언. MAE(두뇌) 가 배치·blur·opacity·z-index 를 결정한다.
 
-### 핵심 3원소
+### 핵심 3 원소
 
 | 원소     | SSOT                    | 역할                  |
 | -------- | ----------------------- | --------------------- |
@@ -115,7 +131,7 @@ Input (ATS · M2P · NIXIE · 센서)
 | MID | 모드·scale 가변 | 모드 가변    |
 | BG  | 높음            | 낮음         |
 
-> urgency는 blur·opacity에 **영향 없음**.
+> urgency 는 blur·opacity 에 **영향 없음**.
 
 #### ② urgency (가변) — z-index·배치 (C1)
 
@@ -126,7 +142,7 @@ Input (ATS · M2P · NIXIE · 센서)
 | NORMAL   | 기본         | 0         |
 | NONE     | 최소         | −2        |
 
-> **AlarmState를 통해서만** CRITICAL/HIGH로 상승. M2P·AestheticTuner·`bax_mode`로 urgency 상승 **불가**.
+> **AlarmState 를 통해서만** CRITICAL/HIGH 로 상승. M2P·AestheticTuner·`bax_mode` 로 urgency 상승 **불가**.
 
 #### ③ priority · ④ mutability · ⑤ layer · ⑥ minWidth
 
@@ -148,7 +164,7 @@ Input (ATS · M2P · NIXIE · 센서)
 | --- | --------------------------------------------------------------------------------- |
 | G1  | BLOCK TEXTURE 면적 ≤20%. OVERLAY 제외                                             |
 | G2  | `void_ratio ≥ asr_base` + Sentinel minWidth — **Safe-Zone > ASR** (`asrOverride`) |
-| G3  | tick당 MUTABLE 재배치 ≤1                                                          |
+| G3  | tick 당 MUTABLE 재배치 ≤1                                                          |
 | G4  | BLOCK 동일 셀 → z-index · spillover. OVERLAY 제외                                 |
 | G5  | Circuit Open → V1/V2 OFF. RuleGuard·AlarmState 유지                               |
 
@@ -156,31 +172,31 @@ Input (ATS · M2P · NIXIE · 센서)
 
 ### 1.3 컴포넌트 개발 가이드
 
-**"세포(컴포넌트)는 두뇌(MAE 엔진)를 몰라야 한다"**
+**" 세포 (컴포넌트) 는 두뇌 (MAE 엔진) 를 몰라야 한다 "**
 
-컴포넌트 TSX는 **의미 속성 선언 + 콘텐츠 렌더**만 담당한다. Grid·blur·z-index·urgency 변경은 **MAE 파이프라인**이 처리한다.
+컴포넌트 TSX 는 **의미 속성 선언 + 콘텐츠 렌더**만 담당한다. Grid·blur·z-index·urgency 변경은 **MAE 파이프라인**이 처리한다.
 
 #### 1.3.1 `ComponentDeclaration` 필드 · 기본값
 
 | 필드         | 타입     | 필수   | **기본값** (미지정 시) | 허용값                                                         | MAE 사용                        | 개발 시 챙길 것                                         |
 | ------------ | -------- | ------ | ---------------------- | -------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------- |
-| `id`         | `string` | ✅     | — (필수)               | 고유 kebab-case · MVP: `anchor` `frame` `sentinel` `sparkline` | 배치·CSS hook                   | VirtualCanvas registry에 등록                           |
+| `id`         | `string` | ✅     | — (필수)               | 고유 kebab-case · MVP: `anchor` `frame` `sentinel` `sparkline` | 배치·CSS hook                   | VirtualCanvas registry 에 등록                           |
 | `priority`   | enum     | ✅     | **`CONTEXTUAL`**       | `ESSENTIAL` · `CONTEXTUAL` · `TEXTURE`                         | LayoutPolicy 우선순위 · G1 면적 | 정보 핵심 → ESSENTIAL · 장식 → TEXTURE                  |
-| `urgency`    | enum     | ✅     | **`NORMAL`**           | `CRITICAL` · `HIGH` · `NORMAL` · `NONE`                        | z-index · LayoutPolicy          | **컴포넌트에서 set 금지** · RuleGuard→AlarmState만 갱신 |
+| `urgency`    | enum     | ✅     | **`NORMAL`**           | `CRITICAL` · `HIGH` · `NORMAL` · `NONE`                        | z-index · LayoutPolicy          | **컴포넌트에서 set 금지** · RuleGuard→AlarmState 만 갱신 |
 | `depth`      | enum     | ✅     | **`MID`**              | `FG` · `MID` · `BG`                                            | blur · opacity (C1)             | 선언 후 **변경 금지** (불변)                            |
 | `mutability` | enum     | ✅     | **`MUTABLE`**          | `IMMUTABLE` · `MUTABLE`                                        | G3 재배치 허용                  | 장식·틀 → IMMUTABLE                                     |
 | `layer`      | enum     | ✅     | **`BLOCK`**            | `BLOCK` · `OVERLAY`                                            | Grid 참여 여부 (C3)             | 격자·데코 오버레이 → **OVERLAY**                        |
-| `minWidth`   | `number` | 조건부 | **`undefined`**        | px · ESSENTIAL만                                               | G2 Safe-Zone · track 역산       | ESSENTIAL + 가독성 필수 시만 · OVERLAY **설정 금지**    |
+| `minWidth`   | `number` | 조건부 | **`undefined`**        | px · ESSENTIAL 만                                               | G2 Safe-Zone · track 역산       | ESSENTIAL + 가독성 필수 시만 · OVERLAY **설정 금지**    |
 
-**priority별 urgency 권장 초기값**:
+**priority 별 urgency 권장 초기값**:
 
 | `priority`   | 권장 초기 `urgency` | 비고                                         |
 | ------------ | ------------------- | -------------------------------------------- |
 | `ESSENTIAL`  | `NORMAL`            | AlarmState 연동 대상 (`sentinel`)            |
-| `CONTEXTUAL` | `NORMAL`            | Layout 재배치 없음 · z-index만 (`sparkline`) |
+| `CONTEXTUAL` | `NORMAL`            | Layout 재배치 없음 · z-index 만 (`sparkline`) |
 | `TEXTURE`    | **`NONE`**          | 배경·장식 (`anchor` · `frame`)               |
 
-#### 1.3.2 MVP 4컴포넌트 등록 SSOT
+#### 1.3.2 MVP 4 컴포넌트 등록 SSOT
 
 | `id`        | `priority` | 초기 `urgency` | `depth` | `mutability` | `layer` | `minWidth` | 등록 예시                                  |
 | ----------- | ---------- | -------------- | ------- | ------------ | ------- | ---------- | ------------------------------------------ |
@@ -203,17 +219,17 @@ export const MVP_COMPONENT_DECLARATIONS: ComponentDeclaration[] = [
 
 | 변수 / 설정            | 초기값                       | 비고                          |
 | ---------------------- | ---------------------------- | ----------------------------- |
-| `bax_mode`             | **`contextual`**             | DevController에서 전환        |
-| `void_ratio`           | **`bax_mode` preset과 동일** | 아래 표 · M2P/AI는 delta만    |
+| `bax_mode`             | **`contextual`**             | DevController 에서 전환        |
+| `void_ratio`           | **`bax_mode` preset 과 동일** | 아래 표 · M2P/AI 는 delta 만    |
 | `focus_blur_scale`     | **`0.7`**                    | 0=선명 · 1=최대 blur (MID/BG) |
 | `viewport_band`        | **`xl`**                     | ResizeObserver 갱신           |
 | `circuit_state`        | **`closed`**                 | G5 테스트 시 `open`           |
-| `canvas_scale`         | **`1.0`**                    | band별 §2.10                  |
+| `canvas_scale`         | **`1.0`**                    | band 별 §2.10                  |
 | `hybrid_phase`         | **`idle`**                   | urgent / fine_tune            |
 | `active_layout_policy` | **`default`**                | `DefaultLayoutPolicy`         |
 | `alarmState.level`     | **`NONE`**                   | RuleGuard 소유                |
 
-**`bax_mode`별 `void_ratio` · `asr_base` 초기값**:
+**`bax_mode` 별 `void_ratio` · `asr_base` 초기값**:
 
 | `bax_mode`      | `asr_base` | 권장 초기 `void_ratio` |
 | --------------- | ---------- | ---------------------- |
@@ -242,31 +258,31 @@ export const DEFAULT_AESTHETIC_TUNING: AestheticTuningSettings = {
 | ✅ 허용 (컴포넌트 내부)                       | ❌ 금지 (MAE/RuleGuard 영역)                        |
 | --------------------------------------------- | --------------------------------------------------- |
 | `ComponentDeclaration` export · registry 등록 | `grid-area` · `gridTemplate` 하드코딩               |
-| MAE가 주입한 `--bax-*` CSS 변수 **소비**      | `blur` · `opacity` · `z-index` 직접 계산            |
+| MAE 가 주입한 `--bax-*` CSS 변수 **소비**      | `blur` · `opacity` · `z-index` 직접 계산            |
 | 콘텐츠·데이터 표시 (온도·라벨 등)             | `urgency` · `alarmState` **직접 변경**              |
-| OVERLAY: `position:absolute` **수신** props   | M2P `void_ratio_delta`를 컴포넌트 state에 영속 저장 |
+| OVERLAY: `position:absolute` **수신** props   | M2P `void_ratio_delta` 를 컴포넌트 state 에 영속 저장 |
 | `data-bax-id={id}` DOM hook                   | `margin_ratio` · M2P v1 필드                        |
-| Circuit/G5에 따른 V1 unmount **수신**         | LayoutPolicy 로직 복제                              |
+| Circuit/G5 에 따른 V1 unmount **수신**         | LayoutPolicy 로직 복제                              |
 
 #### 1.3.5 컴포넌트별 주의 · 적용 가드레일
 
 | 컴포넌트           | 주의사항                                           | 적용 가드레일                                                  |
 | ------------------ | -------------------------------------------------- | -------------------------------------------------------------- |
-| **Anchor**         | Giant 타이포·shadow만 · 배치 코드 없음             | G1 TEXTURE 면적 ≤20% · sm 시 **숨김 우선**                     |
+| **Anchor**         | Giant 타이포·shadow 만 · 배치 코드 없음             | G1 TEXTURE 면적 ≤20% · sm 시 **숨김 우선**                     |
 | **Frame**          | **데모 전용** 6px 격자 · 실운영 배포 금지          | **G1·G2·G4 제외** (OVERLAY) · md opacity 50% · sm **unmount**  |
-| **Sentinel**       | `minWidth`는 **선언만** — CSS width 직접 고정 금지 | **G2 Safe-Zone** 300/280/240px · AlarmState urgency **수신만** |
+| **Sentinel**       | `minWidth` 는 **선언만** — CSS width 직접 고정 금지 | **G2 Safe-Zone** 300/280/240px · AlarmState urgency **수신만** |
 | **Sparkline**      | Sentinel 자식 OVERLAY · 독립 Grid 셀 금지          | **G5** Circuit Open → 즉시 unmount · **G1·G4 제외**            |
 | **신규 ESSENTIAL** | `minWidth` 없으면 Safe-Zone 미보장                 | G2 협의 · DefaultLayoutPolicy track 역산                       |
-| **신규 OVERLAY**   | BLOCK으로 두면 G1 면적·Grid 충돌                   | 반드시 `layer: OVERLAY`                                        |
+| **신규 OVERLAY**   | BLOCK 으로 두면 G1 면적·Grid 충돌                   | 반드시 `layer: OVERLAY`                                        |
 
 #### 1.3.6 개발 체크리스트 (PR 전)
 
-- [ ] `ComponentDeclaration`만 선언 · 좌표·blur·z-index 코드 없음
+- [ ] `ComponentDeclaration` 만 선언 · 좌표·blur·z-index 코드 없음
 - [ ] `urgency` 변경 경로 없음 (AlarmState 외)
 - [ ] OVERLAY → G1·G4 테스트 제외 확인
 - [ ] ESSENTIAL → `minWidth` 또는 Safe-Zone 문서화
-- [ ] IMMUTABLE → tick당 self-layout 변경 없음
-- [ ] 진동(V1/V2) → `vibrationGate` 경유 · Circuit Open 시 OFF
+- [ ] IMMUTABLE → tick 당 self-layout 변경 없음
+- [ ] 진동 (V1/V2) → `vibrationGate` 경유 · Circuit Open 시 OFF
 - [ ] registry 등록 · VirtualCanvas mount 확인
 
   > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >
@@ -313,7 +329,7 @@ function resolveAsrBase(mode: BaxOperationMode, band: ViewportBand, ats: Aesthet
 }
 ```
 
-> ATS는 **baseline**. M2P `void_ratio_delta`는 순간 호흡. clamp 하한 = `resolveAsrBase(...)` (Safe-Zone 충돌 시 `asrOverride`로 일시 하회).
+> ATS 는 **baseline**. M2P `void_ratio_delta` 는 순간 호흡. clamp 하한 = `resolveAsrBase(...)` (Safe-Zone 충돌 시 `asrOverride` 로 일시 하회).
 
 ### 1.5.3 Depth Profile Tuning
 
@@ -383,7 +399,7 @@ interface MaeContext {
 
 ### 2.2 AlarmState (G2 · R1)
 
-`AlarmState`는 RuleGuard가 단독 소유·관리. AestheticTuner는 **읽기만** 가능.
+`AlarmState` 는 RuleGuard 가 단독 소유·관리. AestheticTuner 는 **읽기만** 가능.
 
 ```ts
 type AlarmLevel = 'NONE' | 'HIGH' | 'CRITICAL'
@@ -399,7 +415,7 @@ interface AlarmState {
 
 #### urgency 상태 전이도
 
-```
+```json
                     임계 초과 감지
         ┌───────────────────────────────────┐
         ▼                                   │
@@ -421,7 +437,7 @@ interface AlarmState {
 | 운영자 명시 해제                       | CRITICAL/HIGH → NORMAL | Operator UI | 즉시 lock 해제                                              |
 | HIGH 5min (센서 미복귀)                | HIGH → NORMAL          | RuleGuard   | 배치 복귀 · 기록 보존                                       |
 
-> **안전 원칙**: urgency는 AlarmState를 통해서만 CRITICAL/HIGH. M2P·슬라이더·`bax_mode`로 상승 불가.
+> **안전 원칙**: urgency 는 AlarmState 를 통해서만 CRITICAL/HIGH. M2P·슬라이더·`bax_mode` 로 상승 불가.
 
 ### 2.3 LayoutPolicy
 
@@ -449,13 +465,13 @@ interface GridTemplate {
 }
 ```
 
-- 입력: **`layer: BLOCK`만** · OVERLAY는 VirtualCanvas가 별도 합성
+- 입력: **`layer: BLOCK` 만** · OVERLAY 는 VirtualCanvas 가 별도 합성
 - CRITICAL: ESSENTIAL 최대 면적 · sm: `SingleColumnFallback` (R3)
 - `minWidth` → Grid track 역산 (G2)
 
 **MVP DefaultLayoutPolicy 동작 규칙**:
 
-```
+```json
 우선순위:
 1. AlarmState.level === 'CRITICAL' → ESSENTIAL·MUTABLE 최대 면적 셀
 2. priority ESSENTIAL + minWidth → track 역산 배치
@@ -470,7 +486,7 @@ Grid overflow (R3):
 
 | 도메인 (예)    | Policy                | Grid 구성                          |
 | -------------- | --------------------- | ---------------------------------- |
-| IoT 관제 (MVP) | `DefaultLayoutPolicy` | 2열: TEXTURE 배경 + ESSENTIAL 전면 |
+| IoT 관제 (MVP) | `DefaultLayoutPolicy` | 2 열: TEXTURE 배경 + ESSENTIAL 전면 |
 
 ### 2.4 DepthProfile (C1 · G3)
 
@@ -493,7 +509,7 @@ interface VisualValues {
 
 **역할 경계 (C1)**:
 
-- `blurPx`·`opacity` → **`depth`만** · urgency 무관
+- `blurPx`·`opacity` → **`depth` 만** · urgency 무관
 - `zIndex` → depth base + urgency 가중치 (AlarmState.level → 컴포넌트 urgency 동기)
 - FG: blur=0 · opacity=1.0 **고정** (mode·scale 무관)
 
@@ -530,16 +546,16 @@ function applyScale(basePx: number, depth: string, scale: number): number {
 
 ### 2.5 RuleGuard (C4)
 
-**모든 `bax_mode` · 매 센서 tick** 실행. AestheticTuner는 `intelligent`만.
+**모든 `bax_mode` · 매 센서 tick** 실행. AestheticTuner 는 `intelligent` 만.
 
-```
+```json
 RuleGuard.evaluate(sensor, alarmState)
   → CRITICAL: LayoutPolicy 재실행 · focus_blur_scale → 1.0 · phase urgent
   → NORMAL 복귀: 배치 복귀 · phase urgent
 intelligent → AestheticTuner (void_ratio_delta · focus_blur_scale only)
 ```
 
-> `meditation`에서도 임계 초과 시 Sentinel CRITICAL · LayoutPolicy 재배치. **Safety > 여백**.
+> `meditation` 에서도 임계 초과 시 Sentinel CRITICAL · LayoutPolicy 재배치. **Safety > 여백**.
 
 ### 2.6 상태 변수 SSOT
 
@@ -555,12 +571,12 @@ intelligent → AestheticTuner (void_ratio_delta · focus_blur_scale only)
 | `alarmState`       | AlarmState | §2.2                  | RuleGuard 소유                                        |
 | ~~`margin_ratio`~~ | —          | **폐기**              | M2P v2 `void_ratio_delta`                             |
 
-**CSS**: `:root` — `--bax-void-ratio`, `--bax-canvas-scale`, `--bax-focus-blur-scale`  
+**CSS**: `:root` — `--bax-void-ratio`, `--bax-canvas-scale`, `--bax-focus-blur-scale`
 Grid: VirtualCanvas `style.gridTemplateColumns/Rows` 직접 주입.
 
 ### 2.7 MAE 파이프라인
 
-```
+```json
 Context Merge → RuleGuard (all modes)
   → syncUrgencyFromAlarm
   → vibrationGate(G5 + ATS.vibrationProfile)
@@ -606,7 +622,7 @@ void_ratio = clamp(void_ratio + delta, resolveAsrBase(...), 100)
 | `contextual`    | **48**     | FG/MID 대비                                  |
 | `intelligent`   | **60**     | AestheticTuner · fail → dense_monitor values |
 
-> 모드 전환 = DepthProfile·ASR만. AlarmState·RuleGuard는 **모드 무관**.
+> 모드 전환 = DepthProfile·ASR 만. AlarmState·RuleGuard 는 **모드 무관**.
 
 ### 2.10 반응형 ASR · Safe-Zone
 
@@ -618,7 +634,7 @@ const ASR_ABSOLUTE_MIN = 20 // 전 band 절대 하한 (Safe-Zone asrOverride 시
 
 | band | 조건       | ASR             | Layout                            |
 | ---- | ---------- | --------------- | --------------------------------- |
-| xl   | ≥1280px    | preset + ATS    | 기본 2열                          |
+| xl   | ≥1280px    | preset + ATS    | 기본 2 열                          |
 | md   | 768–1279px | −2 (min 65)     | Frame OVERLAY opacity 50%         |
 | sm   | <768px     | −5 (min **20**) | Frame 숨김 · SingleColumnFallback |
 
@@ -627,7 +643,7 @@ const ASR_ABSOLUTE_MIN = 20 // 전 band 절대 하한 (Safe-Zone asrOverride 시
 1. `asr_base = resolveAsrBase(...)`
 2. `void_ratio = clamp(proposed, asr_base, 100)` — Safe-Zone 충돌 시 asrOverride
 3. `sm` → TEXTURE 우선 숨김
-4. 정보 면적 > 가용 30% → MID blur +1단계 (G1)
+4. 정보 면적 > 가용 30% → MID blur +1 단계 (G1)
 5. `applySafeZone` — Sentinel minWidth 강제
 
 **VirtualCanvas Topology**:
@@ -677,7 +693,7 @@ function applySafeZone(layout: ResolvedLayout, ctx: MaeContext): ResolvedLayout 
 
 **G5 — vibrationGate**:
 
-```
+```json
 circuitState === 'open' OR mainFps p50 < 24 (3s window)
   → sparkline unmount · micro class removed · Sentinel 텍스트만
   → RuleGuard · AlarmState 유지
@@ -702,7 +718,7 @@ OVERLAY 제외.
 
 **Adjacent Spillover**:
 
-```
+```json
 ESSENTIAL 충돌 시:
 1. LayoutPolicy.resolve() 재호출
 2. 빈 영역 우선 · FG depth 유지
@@ -710,7 +726,7 @@ ESSENTIAL 충돌 시:
 4. 후보 없음 → z-index stack + minWidth Safe-Zone
 ```
 
-### 2.13 하이브리드 2단계
+### 2.13 하이브리드 2 단계
 
 | Phase       | 주체           | 허용                                    | 금지               |
 | ----------- | -------------- | --------------------------------------- | ------------------ |
@@ -722,7 +738,7 @@ ESSENTIAL 충돌 시:
 
 ## 3. MVP 화면 · Dev Controller
 
-단일 페이지. **이동·라우팅 없음.**  
+단일 페이지. **이동·라우팅 없음.**
 컴포넌트 선언·기본값·가드레일 → **§1.3** 참조.
 
 | ID     | 이름          | 의미 속성                                               | 배치 (MAE)                     | UI 스펙                                       |
@@ -734,7 +750,7 @@ ESSENTIAL 충돌 시:
 
 > Sentinel CRITICAL: 컴포넌트 코드 변경 없이 AlarmState → LayoutPolicy → 배치 연쇄.
 
-### 3.1 Dev Controller (우하단 · 2패널)
+### 3.1 Dev Controller (우하단 · 2 패널)
 
 | 패널        | MVP 컨트롤                                                                                                             |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -748,11 +764,11 @@ ESSENTIAL 충돌 시:
 | S2  | 미드 포커스   | `focus_blur_scale` | M2P  |
 | S3  | 라이트 앵글   | `light_source_x/y` | M2P  |
 
-> `bax_mode`는 `useBaxStore` · ATS는 `useAestheticSettingsStore` — **Store 분리**.
+> `bax_mode` 는 `useBaxStore` · ATS 는 `useAestheticSettingsStore` — **Store 분리**.
 
 ### 3.2 CONTEXTUAL 검증 시나리오 (R2)
 
-MVP에서 Sparkline으로 CONTEXTUAL·Vibration·Circuit Gate를 검증한다.
+MVP 에서 Sparkline 으로 CONTEXTUAL·Vibration·Circuit Gate 를 검증한다.
 
 | 단계 | 조건                                     | 기대 결과                                        | FR         |
 | ---- | ---------------------------------------- | ------------------------------------------------ | ---------- |
@@ -768,19 +784,19 @@ MVP에서 Sparkline으로 CONTEXTUAL·Vibration·Circuit Gate를 검증한다.
 
 | ID        | 요구사항             | Acceptance Criteria                                                                                |
 | --------- | -------------------- | -------------------------------------------------------------------------------------------------- |
-| **FR-01** | 의미 기반 동적 Grid  | 4컴포넌트 의미 속성만 선언 → MAE가 Grid·배치 결정 · 9칸 좌표·`matrix_id` 없음                      |
+| **FR-01** | 의미 기반 동적 Grid  | 4 컴포넌트 의미 속성만 선언 → MAE 가 Grid·배치 결정 · 9 칸 좌표·`matrix_id` 없음                      |
 | **FR-02** | 호흡형 blur/void     | `meditation` void 85–90 · `void_ratio ≥ asr_base` clamp · MID blur↑ · 전환 **≤300ms**              |
 | **FR-03** | urgency 기반 재배치  | AlarmState NORMAL→CRITICAL → LayoutPolicy 재실행 · CRITICAL 시 `focus_blur_scale=1.0` · **≤300ms** |
 | **FR-04** | 가드레일 G1–G5       | ASR · Safe-Zone 300px · BLOCK Layout 점유 · Entropy 1/tick · Vibration Gate                        |
 | **FR-05** | M2P v2 수신          | S1–S3 = M2P 패킷 동일 · WS/Serial ingest · `void_ratio_delta` ASR clamp                            |
-| **FR-06** | 하이브리드 2단계     | Phase 1 RuleGuard 즉시 · Phase 2 void/blur만 · AlarmState urgency lock                             |
+| **FR-06** | 하이브리드 2 단계     | Phase 1 RuleGuard 즉시 · Phase 2 void/blur 만 · AlarmState urgency lock                             |
 | **FR-07** | Fallback             | AestheticTuner fail/timeout → Phase 1 유지 · RuleGuard SSOT                                        |
-| **FR-08** | BAX 운영 모드        | 4모드 · DepthProfile·ASR 변경 · **meditation에서도** CRITICAL Safety                               |
+| **FR-08** | BAX 운영 모드        | 4 모드 · DepthProfile·ASR 변경 · **meditation 에서도** CRITICAL Safety                               |
 | **FR-09** | 반응형 ASR/Topology  | ResizeObserver · xl/md ASR≥65 · sm ASR≥20 · Safe-Zone · SingleColumnFallback · asrOverride         |
 | **FR-10** | Layout 점유/분산     | BLOCK 동일 셀 z-index · spillover 1/tick · §2.12                                                   |
 | **FR-11** | 진동 + Circuit       | Sparkline/micro on · Circuit OPEN → V1/V2 OFF · Sentinel 텍스트 유지                               |
 | **FR-12** | LayoutPolicy 교체    | 런타임 Policy 교체 · 컴포넌트 선언 변경 없이 Grid 재구성                                           |
-| **FR-13** | AlarmState 상태 머신 | CRITICAL/HIGH/NORMAL 전이 5종 · TTL 30s · 운영자 해제 · §2.2                                       |
+| **FR-13** | AlarmState 상태 머신 | CRITICAL/HIGH/NORMAL 전이 5 종 · TTL 30s · 운영자 해제 · §2.2                                       |
 | **FR-14** | OVERLAY 렌더링       | Frame·Sparkline Grid 비점유 · G1·G4 제외 확인                                                      |
 | **FR-15** | ATS ASR 선호         | `asrPreferenceOffset` +0~+15 · `resolveAsrBase` · localStorage 영속                                |
 | **FR-16** | ATS Depth tuning     | preset soft/balanced/sharp · `applyDepthTuning`                                                    |
@@ -792,7 +808,7 @@ MVP에서 Sparkline으로 CONTEXTUAL·Vibration·Circuit Gate를 검증한다.
 | ---------- | -------------- | ------------------------------------------------------------------------------------------ |
 | **NFR-01** | FPS            | 전환 중 p50 ≥ **24**                                                                       |
 | **NFR-02** | AestheticTuner | timeout **3s** → fallback (FR-07)                                                          |
-| **NFR-03** | 오프라인       | AestheticTuner 없이 규칙+모드+ATS 100%                                                     |
+| **NFR-03** | 오프라인       | AestheticTuner 없이 규칙 + 모드 +ATS 100%                                                     |
 | **NFR-04** | 반응형         | band 변경 · Sentinel ≥ Safe-Zone · **xl/md void≥65** · **sm void≥20** · 또는 `asrOverride` |
 | **NFR-05** | Circuit        | OPEN 시 V1/V2 **0 frame** 추가 · FPS 회복 후 ATS 재적용                                    |
 | **NFR-06** | Safety 응답    | RuleGuard 임계 → 화면 반영 **≤300ms** (모든 bax_mode)                                      |
@@ -807,13 +823,13 @@ MVP에서 Sparkline으로 CONTEXTUAL·Vibration·Circuit Gate를 검증한다.
 | 계층                | Phase     | 책임                                                    |
 | ------------------- | --------- | ------------------------------------------------------- |
 | **RuleGuard**       | urgent    | AlarmState · urgency · LayoutPolicy (모드 무관)         |
-| **AestheticTuner**  | fine_tune | `void_ratio_delta` · `focus_blur_scale` (intelligent만) |
+| **AestheticTuner**  | fine_tune | `void_ratio_delta` · `focus_blur_scale` (intelligent 만) |
 | **guardrails**      | both      | G1–G5 · Phase 2 structural strip                        |
 | **layoutOccupancy** | both      | BLOCK spillover                                         |
 
 ### 5.2 API
 
-```
+```json
 POST http://localhost:11434/api/generate
 Content-Type: application/json
 { "model": "llama3", "format": "json", "stream": false, "prompt": "..." }
@@ -843,11 +859,11 @@ Content-Type: application/json
 }
 ```
 
-> `urgency`, `layout_policy`, `grid_template` 포함 시 MAE가 **strip**.
+> `urgency`, `layout_policy`, `grid_template` 포함 시 MAE 가 **strip**.
 
 **Prompt (fine_tune)**:
 
-```
+```json
 Phase fine_tune ONLY.
 AlarmState is LOCKED by RuleGuard. urgency cannot be changed.
 Layout decisions are LOCKED.
@@ -873,12 +889,12 @@ Input: sensor={value}°C · void_ratio={current} · asr_base={floor} · mode={ba
 | 항목   | MVP                                  | 비고                    |
 | ------ | ------------------------------------ | ----------------------- |
 | App    | `apps/bax-demo` (Vite + React)       | monorepo 독립           |
-| Style  | Tailwind + CSS variables + 동적 Grid | MAE가 gridTemplate 주입 |
+| Style  | Tailwind + CSS variables + 동적 Grid | MAE 가 gridTemplate 주입 |
 | Motion | Framer Motion 또는 GSAP              | **300ms** SSOT          |
 | AI     | Ollama local                         | 클라우드 API 금지       |
 | HW     | Web Serial (선택)                    | Arduino → M2P v2        |
 
-```
+```json
 apps/bax-demo/
 ├── package.json                          # @role BAX MVP 실험 앱 루트 — Vite+React · MAE·ATS·M2P 통합 데모
 ├── src/
@@ -932,7 +948,7 @@ apps/bax-demo/
 │       └── M2pSimPanel.tsx               # @role M2P S1–S3 슬라이더 (비영속)
 ```
 
-> 각 소스 파일 상단에 `@file` · `@role` · `@ssot` JSDoc 주석이 붙어 있다. `@guardrail`은 guardrails/ 하위 파일에 추가.
+> 각 소스 파일 상단에 `@file` · `@role` · `@ssot` JSDoc 주석이 붙어 있다. `@guardrail` 은 guardrails/ 하위 파일에 추가.
 
 ---
 
@@ -954,9 +970,9 @@ apps/bax-demo/
 
 | 항목                    | 평가 | 메모                        |
 | ----------------------- | ---- | --------------------------- |
-| 의미 선언 체계          | 🟢   | 4컴포넌트 · 인터페이스 확정 |
+| 의미 선언 체계          | 🟢   | 4 컴포넌트 · 인터페이스 확정 |
 | 동적 CSS Grid + OVERLAY | 🟢   | 표준 CSS                    |
-| AlarmState              | 🟢   | 전이 5종 명확               |
+| AlarmState              | 🟢   | 전이 5 종 명확               |
 | DefaultLayoutPolicy     | 🟢   | 부록 D 의사코드             |
 | M2P v1→v2               | 🟡   | delta 필드 마이그레이션     |
 | 6px Frame               | 🔴   | 데모 전용                   |
@@ -966,8 +982,8 @@ apps/bax-demo/
 
 - [ ] FR-01–17 PASS
 - [ ] NFR-01–07 PASS
-- [ ] AlarmState 전이 5종 PASS (§2.2)
-- [ ] R2 Sparkline 시나리오 5단계 PASS (§3.2)
+- [ ] AlarmState 전이 5 종 PASS (§2.2)
+- [ ] R2 Sparkline 시나리오 5 단계 PASS (§3.2)
 - [ ] AestheticTuner off → FR-07 fallback
 - [ ] LayoutPolicy 교체 · 컴포넌트 선언 무변경
 - [ ] Frame·Sparkline OVERLAY · G1/G4 제외 (FR-14)
@@ -1217,8 +1233,17 @@ class DefaultLayoutPolicy implements LayoutPolicy {
 | --------------- | -------------------------------------------------------------------------------------- |
 | 0.8 (UX)        | ATS · ASR · M2P/Settings 분리                                                          |
 | 0.8 (문제 해소) | C1–C4 · G1–G4 · R1–R4 · M2P v2 · AlarmState · OVERLAY                                  |
-| **0.9**         | **단일 SSOT 완성** — 용어(v0.8) + 기술(문제 해소) + FR AC · UI · Safe-Zone · 부록 전체 |
+| **0.9**         | **단일 SSOT 완성** — 용어 (v0.8) + 기술 (문제 해소) + FR AC · UI · Safe-Zone · 부록 전체 |
 
 ---
 
 _BAX MVP 개발 단일 SSOT v0.9 — AXON 미학 UX 레이어_
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 구현 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
+| 그리드 UI | [그리드 알고리즘 · 동적 타이포그래피 UI (UIX-007)](./07_UIUX_그리드알고리즘_동적타이포그래피UI.md) |
+| NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |

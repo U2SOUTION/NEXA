@@ -1,3 +1,16 @@
+---
+doc_id: TDD-004
+title: "NEXA OS · 수직 계층 보안 아키텍처"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-001
+terms_standard: ["zod", "rbac", "mqtt"]
+terms_nexa: ["Grade", "Ingress", "edge-queue", "commands", "U2BEE"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/zod", "std/rbac", "std/mqtt", "nexa/Grade", "nexa/Ingress", "nexa/edge-queue", "nexa/commands", "nexa/U2BEE"]
+---
 # NEXA OS · 수직 계층 보안 아키텍처
 
 **한 줄:** **NEXA 플랫폼** 런타임에서 NEXIA(`nexia`)·U2BEE·현장 Edge를 **NEXA → 도메인 → 엣지 → 로컬 → 물리** 5계층으로 쌓고, **Grade×Ingress 단일 경로**와 **Zod SSOT**로 측면 우회 없이 미션 크리티컬 IoT를 거버넌스한다.
@@ -164,3 +177,12 @@ NEXIA **7탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex · 
 ---
 
 _상태: Informative — NEXA OS V2.1 수직 5계층 + Mission-Safe UI(MAE) 분리 · V2.1·Nexia `01` 연동._
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| Capability ID | [Capability ID 체계 · Tier 접근 권한 (TDD-050)](../Identity/08_TDD_NEXA_CapabilityID체계_발급및Tier접근권한.md) |
+| Identity | [Identity ID 발급 및 처리 설계 (TDD-052)](../Identity/08_TDD_NEXA_IdentityID발급및처리설계.md) |

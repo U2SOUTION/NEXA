@@ -1,3 +1,16 @@
+---
+doc_id: TDD-032
+title: "WebAssembly 개요"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-028
+terms_standard: ["webassembly", "pyodide"]
+terms_nexa: ["OCP-wasm", "Wasm", "Generators"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/webassembly", "std/pyodide", "nexa/OCP-wasm", "nexa/Wasm", "nexa/Generators"]
+---
 # WebAssembly는 무엇인가?
 
 브라우저 안에서 **데스크톱급 연산(C/C++/Rust 등)** 을 돌리게 해 주는 기술입니다.  
@@ -342,3 +355,11 @@ IoT 로그 전처리(§7-5), 공장 CAM(§6-8), AI CAD(§7-1)는 NEXA 플랫폼 
 - [OpenCascade.js (Reddit)](https://www.reddit.com/r/WebAssemblyDev/comments/1ta8tes/opencascadejs_a_port_of_the_opencascade_cad/)
 - [Load 3D CAD into Three.js (Medium)](https://cadexchanger.medium.com/how-to-load-3d-cad-data-into-three-js-5308b0338afb)
 - [py2wasm (Wasmer)](https://wasmer.io/posts/py2wasm-a-python-to-wasm-compiler)
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [AI 협력 제너레이터 파이프라인 (TDD-028)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
+| AI 3D | [AI 3D 제너레이터 (TDD-026)](./08_TDD_NEXIA_AI3D제네레이터.md) |

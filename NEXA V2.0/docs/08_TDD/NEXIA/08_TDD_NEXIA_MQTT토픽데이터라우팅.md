@@ -1,3 +1,16 @@
+---
+doc_id: TDD-022
+title: "MQTT 토픽 · 데이터 라우팅"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-009
+terms_standard: ["mqtt", "websocket", "socket-io"]
+terms_nexa: ["MQTT-Broker", "agent-graph", "NEXA-CELL", "edge-device"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/websocket", "std/socket-io", "nexa/MQTT-Broker", "nexa/agent-graph", "nexa/NEXA-CELL", "nexa/edge-device"]
+---
 # NEXIA · MQTT 토픽 및 데이터 라우팅
 
 > **스택 SSOT (To-Be):** `apps/backend`(Nest) · `apps/web`(Next.js) · `apps/agent-graph`(LLM·추론) · MQTT Broker. 브라우저→Ollama 직접 호출 금지.
@@ -109,3 +122,12 @@ myiot/[Location/Factory]/[Device_ID]/cmd/ota
 - agent-graph AI 임무 정의 (센서 로그→자연어 경고, NL IoT 제어 등)
 - Ollama 응답 지연 대비 MQTT 응답 토픽 패턴
 - `packages/ai-prompts` 프롬프트 템플릿 SSOT
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [IoT·온톨로지·AI 협력 플랫폼 핵심 기술 스택 (TDD-009)](../LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) |
+| NEXA-CELL | [CELL · ESP32 베이스라인 디바이스 등록 (TDD-024)](./Cells/08_TDD_NEXIA_CELL_ESP32베이스라인디바이스등록.md) |
+| NEXNAP 규약 | [NEXNAP 시스템 인터페이스 표준 규약 (TDD-023)](./08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) |

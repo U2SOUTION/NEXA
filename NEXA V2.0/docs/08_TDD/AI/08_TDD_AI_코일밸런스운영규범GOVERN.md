@@ -1,5 +1,19 @@
+---
+doc_id: TDD-041
+title: "코일 밸런스 · GOVERN 운영 규범"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: TDD-042
+terms_standard: ["json"]
+terms_nexa: ["GOVERN", "COILS-Balancer", "Safety", "Compliance", "Capability-ID"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/json", "nexa/GOVERN", "nexa/COILS-Balancer", "nexa/Safety", "nexa/Compliance", "nexa/Capability-ID"]
+---
 # AI · 코일 밸런스 및 운영 규범 (GOVERN)
 
+> **레거시 출처:** 「NEXA AIS GOVERN V2」(V1은 §5.1 흡수) → **본 문서(TDD-041)가 정본**.  
 > **정본:** V2 (확장본). V1 초안의 Summary·인터랙션 JSON 시나리오는 **§5.1**에 흡수됨.
 
 ## 0. 설계 원칙: "안전은 딱딱하게, 지능은 유연하게"
@@ -478,3 +492,12 @@ NEXA 라우터 전체를 보면서 각 영역에서 필요할 수 있는 모든 
 ---
 
 현재 Source Layer 6코일을 제외하고 Domain + Project Layer 후보가 38개.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| 룰·프롬프트 PRD | [룰·프롬프트 통합 관리 (PRD-006)](../../05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |
+| 데이터 수명 | [데이터 성격 · 수명 주기 (TDD-034)](./08_TDD_AI_데이터성격수명주기.md) |

@@ -20,7 +20,7 @@ Build the **NEXIA domain content shell** inside an existing MainShell (drawers a
 
 - Renders TabBar at top (sticky within Content)
 - Below: placeholder panel per tab (single line + icon)
-- **logex** tab shows extra sub-mode toggle: `Logic` | `Ontology (NEXAON)` — Ontology selected shows badge "NEXAON"
+- **logex** tab shows extra sub-mode toggle: `Logic` | `Ontology (Nexaon)` — Ontology selected shows badge "Nexaon"
 
 ### NexiaLeftNav (left drawer content)
 

@@ -1,3 +1,16 @@
+---
+doc_id: TDD-046
+title: "시스템 구축 순서 및 로드맵"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-045
+terms_standard: ["postgresql", "pgvector"]
+terms_nexa: ["Knowledge-OS", "nexa_knowledge", "roadmap"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/postgresql", "std/pgvector", "nexa/Knowledge-OS", "nexa/nexa_knowledge", "nexa/roadmap"]
+---
 # Knowledge · 시스템 구축 순서 및 로드맵
 
 본 문서는 NEXA Knowledge OS 구축을 실제 작업 순서로 실행하기 위한 가이드다.  
@@ -326,3 +339,11 @@
 - **핵심 기능 데모:** 4단계 종료 (라우팅 결과 + KO 요약까지 확인)
 - **운영 시나리오 데모:** 5단계 종료 (문서 동기화 + 의존성 맵)
 - **최종 데모:** 6~7단계 종료 (배포 프로파일 + 운영 튜닝 반영)
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [디렉토리 책임 · 기획 자원 경로 (TDD-045)](./08_TDD_Knowledge_디렉토리책임및기획자원경로.md) |
+| 오케스트레이션 | [지식 층위 · 오케스트레이션 (TDD-049)](./08_TDD_Knowledge_지식층위와오케스트레이션.md) |

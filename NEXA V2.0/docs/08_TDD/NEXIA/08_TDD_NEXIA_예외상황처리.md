@@ -1,3 +1,16 @@
+---
+doc_id: TDD-018
+title: "예외 상황 처리"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-010
+terms_standard: ["sse"]
+terms_nexa: ["Omnix", "ASK", "VOID", "exception-handler"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/sse", "nexa/Omnix", "nexa/ASK", "nexa/VOID", "nexa/exception-handler"]
+---
 ### 6. 예외 상황 처리 (Exception Handling)
 
 ## 6.1 목적과 범위
@@ -44,3 +57,12 @@
 - MTTR 평균 4시간 이하.
 - 장애 재발률(동일 원인) 분기 10% 이하.
 - SEV1 대응 SLA 준수율 100% 목표.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
+| ASK VOID PRD | [ASK VOID 처리 설계 (PRD-003)](../../05_PRD/NEXIA/05_PRD_NEXIA_ASKVOID처리설계.md) |
+| GOVERN | [코일 밸런스 · GOVERN 운영 규범 (TDD-041)](../AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |

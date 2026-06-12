@@ -1,3 +1,16 @@
+---
+doc_id: TDD-044
+title: "Cosmic Language · 전역 데이터 아키텍처"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-043
+terms_standard: ["ontology", "3d-mapping"]
+terms_nexa: ["Cosmic-Language", "CLA", "APEX", "NEXAVULT", "Self-Verification"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/ontology", "std/3d-mapping", "nexa/Cosmic-Language", "nexa/CLA", "nexa/APEX", "nexa/NEXAVULT", "nexa/Self-Verification"]
+---
 # Cosmic Language Architecture: 전역 데이터 아키텍처
 
 ## 정의 및 철학
@@ -141,7 +154,7 @@ CLA 페이로드는 Zod 검증 후 동일하게 실을 수 있고, 실제 채택
 
 협업은 플랫폼 핵심 기능으로 간주하되, 본 규격의 **MQTT·WS·DDS 등 전송 채널**(§4.1)과 역할을 혼동하지 않는 편이 좋습니다.
 
-- **역할 분리:** **CLA 페이로드 + Zod**는 교환되는 메시지의 진실 근원에 가깝고, 브라우저 **Vue 상태 관리**(Pinia, Vuex 등)는 화면·세션 표현 로컬 상태에 가깝습니다. 협업으로 합의된 초안은 **별도 검증·권한·버전**(Who/Why 등 HEXAGON 맥락 포함) 후에 명령·설정 명으로 하위망으로 내려가는 패턴을 권합니다.
+- **역할 분리:** **CLA 페이로드 + Zod**는 교환되는 메시지의 진실 근원에 가깝고, 브라우저 **React 상태(Zustand)**(Zustand, Zustand 등)는 화면·세션 표현 로컬 상태에 가깝습니다. 협업으로 합의된 초안은 **별도 검증·권한·버전**(Who/Why 등 HEXAGON 맥락 포함) 후에 명령·설정 명으로 하위망으로 내려가는 패턴을 권합니다.
 - **Yjs:** 문서형·구조형 상태에 널리 쓰이는 **CRDT** 라이브러리. 브라우저 간 동시 편집·오프라인 후 병합·awareness 등에 활용할 수 있습니다.
 - **다른 CRDT:** **Automerge**(JSON 친화)·**Ink & Switch** 계열 패턴 참고. 도메인에 맞는 문서 단위 선택이 필요합니다.
 - **OT(Operational Transform):** 전통적인 동시 편집 분기 중 하나로, 레거시 호환 또는 특정 에디터 엔진과 맞물릴 때 키워드로 조사합니다.
@@ -152,7 +165,7 @@ CLA 페이로드는 Zod 검증 후 동일하게 실을 수 있고, 실제 채택
 - **감사·규약:** 변경 이력·승인·역할(**RBAC/ABAC**), 이벤트 소싱 또는 **Kafka** 등 감사 스트림은 “누가 무엇을 확정했는가”와 물리 실행 사이 신뢰를 보강합니다.
 - **사람–사람·사람–에이전트 협업:** 채널로 **매트릭스 프로토콜(Matrix)** 같은 연합형 메시지, 또는 **Human-in-the-loop** 명령 대기열(§4.1의 AMQP 계열과도 연결)을 함께 설계 검토할 수 있습니다.
 
-**정리:** 협업 스택(Yjs·Vue 스토어·실시간 브리지)은 **UI·합의·초안** 층에 두고, 현장 실행용 **CLA 메시지 경로**(검증·VOID·안전 장치)는 본문 §2–§4의 규칙과 맞추는 것이 안전합니다.
+**정리:** 협업 스택(Yjs·Zustand 스토어·실시간 브리지)은 **UI·합의·초안** 층에 두고, 현장 실행용 **CLA 메시지 경로**(검증·VOID·안전 장치)는 본문 §2–§4의 규칙과 맞추는 것이 안전합니다.
 
 ############################################################
 운영 시나리오 예시
@@ -409,3 +422,11 @@ review:
 
 현재 문서는 NEXA Platform OS의 "아이디어 메모" 단계를 넘어, **상위 표준(Constitution) 문서**로 전환 가능한 수준입니다.  
 즉시 구현을 강제하기보다는, 이 문서를 기준으로 모듈별 실행 규격을 파생시키는 방식이 가장 안전하고 확장성 높은 접근입니다.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [CSIM · AXON 프로토콜 정본 (TDD-043)](./08_TDD_CSIM_AXON프로토콜_정본.md) |
+| 5W1H 레이어 | [5W1H · 6 대 추상 레이어 규격 (TDD-033)](../AI/08_TDD_AI_5W1H_6대추상레이어규격.md) |

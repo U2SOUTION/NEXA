@@ -1,3 +1,16 @@
+---
+doc_id: TDD-038
+title: "Yjs · Hocuspocus 협업 SSOT"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+implements_doc: TDD-042
+terms_standard: ["yjs", "crdt", "hocuspocus", "websocket", "postgresql"]
+terms_nexa: ["apps-sync", "project_yjs_updates", "yjs_state", "SharedWorker"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/crdt", "std/hocuspocus", "std/websocket", "std/postgresql", "nexa/apps-sync", "nexa/project_yjs_updates", "nexa/yjs_state", "nexa/SharedWorker"]
+---
 # AI · Yjs·Hocuspocus 협업 SSOT
 
 | 항목 | 내용 |
@@ -5,7 +18,7 @@
 | 역할 | NEXA 플랫폼 **실시간 협업(CRDT)** 의 단일 진실원 |
 | 확정 (2026-05) | **Yjs 도입·안정화가 최우선** · 협업 서버는 **`apps/sync` Hocuspocus** |
 | 관련 구현 | [`08_TDD_AI_협업형멀티에디터플랫폼`](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
-| 모노레포 SSOT | [`08_TDD_NEXAON_모노레포폴더구조`](../NEXAON/08_TDD_NEXAON_모노레포폴더구조_v1.0.md) — `apps/sync` · `packages/shared` |
+| 모노레포 SSOT | [`08_TDD_LangGraph_모노레포폴더구조`](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) — `apps/sync` · `packages/shared` |
 | DB | `project_yjs_updates` + `yjs_state` 스냅샷 (Prisma/PostgreSQL) |
 
 ---
@@ -25,7 +38,7 @@
 ## 2. 계층 구조 (한 눈에)
 
 ```text
-[ Tiptap y-prosemirror | Monaco y-monaco | Vue Flow 등 ]
+[ Tiptap y-prosemirror | Monaco y-monaco | React Flow 등 ]
               ↕ Shared Types (Y.Text / Y.XmlFragment / Y.Array …)
 [ Yjs Y.Doc — 클라이언트 ]
               ↕ WebSocket (y-protocol)
@@ -127,3 +140,12 @@
 ---
 
 *갱신 시 [협업형 멀티 에디터](./08_TDD_AI_협업형멀티에디터플랫폼.md) §10·[08_TDD README](../README.md) AI 섹션 링크를 함께 확인한다.*
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 허브 | [협업형 멀티에디터 플랫폼 (TDD-042)](./08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| TS 스키마 | [TS 타입 · 스키마 전략 (TDD-037)](./08_TDD_AI_TS타입스키마전략.md) |
+| 룰·프롬프트 PRD | [룰·프롬프트 통합 관리 (PRD-006)](../../05_PRD/NEXIA/05_PRD_NEXIA_룰프롬프트통합관리.md) |

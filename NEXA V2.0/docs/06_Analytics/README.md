@@ -1,6 +1,21 @@
+---
+doc_id: 
+title: ""
+category: ""
+domain: 
+status: draft
+created: 2026-06-10
+updated: 2026-06-11
+parent_doc: 
+implements_doc: 
+see_also: []
+terms_standard: []
+terms_nexa: []
+---
+
 # 06_Analytics — 데이터 분석 (Analytics Spec)
 
-**목적**: KPI를 이벤트·속성·퍼널로 기술.
+**목적**: KPI 를 이벤트·속성·퍼널로 기술.
 
 **파일명 예시**: `06_Analytics_유저행동추적_v1.0.md`
 

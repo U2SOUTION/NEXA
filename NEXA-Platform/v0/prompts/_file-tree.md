@@ -1,8 +1,8 @@
-# v0 File Tree SSOT — apps/web (NEXAON UI)
+# v0 File Tree SSOT — apps/web (nexia UI)
 
 Paste with `_system.md`. Generated components **must use these paths** in comments and export structure.
 
-> SSOT: `docs/NEXA OS/LangGraph/01 [ARCH] 온톨로지 플랫폼 모노레포 폴더 구조.md` · `07 [DESIGN] NEXAON UI 레이아웃 v1.0.md`
+> SSOT: `NEXA V2.0/docs/08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md` · `NEXA V2.0/docs/07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md`
 
 ---
 
@@ -83,7 +83,7 @@ apps/web/src/domains/nexia/
 └── store/useNexiaTabStore.ts     # activeTabId · logexSubMode
 ```
 
-**Rule:** `domainKey` stays **`nexia`** — NEXAON is **module**, not a separate domain.
+**Rule:** `domainKey` stays **`nexia`** — **Nexaon** (`modules/nexaon/`) is **module**, not a separate domain.
 
 ---
 
@@ -101,7 +101,7 @@ apps/web/src/domains/nexia/modules/nexaon/
 │   ├── DiffOverlay.tsx
 │   └── EsphomeDeploy.tsx
 ├── panels/
-│   ├── ExplorerTree.tsx          # used inside NexiaLeftNav when NEXAON
+│   ├── ExplorerTree.tsx          # used inside NexiaLeftNav when Nexaon (ontology)
 │   ├── NodePropertiesPanel.tsx
 │   ├── RunChatPanel.tsx
 │   ├── ApprovalGatePanel.tsx

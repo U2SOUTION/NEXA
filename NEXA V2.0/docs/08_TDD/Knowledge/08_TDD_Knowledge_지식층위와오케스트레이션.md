@@ -1,3 +1,16 @@
+---
+doc_id: TDD-049
+title: "지식 층위 · 오케스트레이션"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-045
+terms_standard: ["langgraph", "pgvector"]
+terms_nexa: ["Knowledge-OS", "orchestration", "project_knowledge", "nexa_knowledge"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/langgraph", "std/pgvector", "nexa/Knowledge-OS", "nexa/orchestration", "nexa/project_knowledge", "nexa/nexa_knowledge"]
+---
 # Knowledge · 지식의 층위와 오케스트레이션
 
 NEXA 플랫폼의 지식 체계는 정보 저장을 넘어, 시스템의 **사유 방식**과 **실행 원칙**을 규정하는 **지능형 지식 운영체제(Knowledge OS)** 로 설계된다.
@@ -237,3 +250,11 @@ NEXA 플랫폼의 지식 체계는 정보 저장을 넘어, 시스템의 **사�
 
 - `worker_id`, `adapter_id`, `chain_id`, `error_token`을 최소 필수 추적 키로 고정합니다.
 - 각 실행 단위는 `Why Chain`과 함께 기록하여, "누가/왜/어디서 실패했는가"를 한 번에 역추적 가능하게 만듭니다.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [디렉토리 책임 · 기획 자원 경로 (TDD-045)](./08_TDD_Knowledge_디렉토리책임및기획자원경로.md) |
+| LangGraph | [LangGraph · 인간-LLM 협업형 IoT 온톨로지 플랫폼 (TDD-008)](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |

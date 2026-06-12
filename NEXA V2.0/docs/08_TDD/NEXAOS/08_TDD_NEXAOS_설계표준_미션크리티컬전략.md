@@ -1,6 +1,19 @@
+---
+doc_id: TDD-001
+title: "NEXA OS 설계 표준 · 미션 크리티컬 전략"
+category: "08_TDD"
+domain: NEXAOS
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: BRD-001
+terms_standard: ["next-js", "nestjs", "yjs", "hocuspocus", "zod", "crdt", "sse", "websocket", "zustand", "tailwind-css"]
+terms_nexa: ["NEXAOS", "domainLayoutRegistry", "useLayoutStore", "useYjsSync", "apps-sync", "M.O.S.E.S.", "Rivet"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/nestjs", "std/yjs", "std/hocuspocus", "std/zod", "std/crdt", "std/sse", "std/websocket", "std/zustand", "std/tailwind-css", "nexa/NEXAOS", "nexa/domainLayoutRegistry", "nexa/useLayoutStore", "nexa/useYjsSync", "nexa/apps-sync", "nexa/M.O.S.E.S.", "nexa/Rivet"]
+---
 ## 🛠️ 1. 최종 결정 기술 스택 (React 중심 풀스택)
 
-> **용어 SSOT:** Rivet **Desktop/Embedded** · **Nexion/NEXIA React Flow** · As-Is Quasar/Vue — [`M.O.S.E.S. 정리`](<./Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
+> **용어 SSOT:** Rivet **Desktop/Embedded** · **Nexion/NEXIA React Flow** · As-Is Next.js/React — [`M.O.S.E.S. 정리`](<./Rivet/M.O.S.E.S.(Meta-Operating System for Engineering & Synthesis) v2.0.md>) §3.5 · §7.0
 
 AI 에이전트(안티그래비티, 클로드 등)가 전 세계에서 가장 버그 없이 정교하게 코드를 짜내는 글로벌 표준 TypeScript 생태계로 확정했습니다.
 
@@ -62,7 +75,7 @@ useUiStore.themeMode (light/dark)  →  Shadcn .dark 클래스
 
 ### CSS 변수 체계 (Tailwind 연동)
 
-**경로**: `apps/web/src/system/styles/tokens/` · `tailwind.config.ts` · `globals.css`
+**경로**: `apps/web/src/components/styles/tokens/` · `tailwind.config.ts` · `globals.css`
 
 #### 시맨틱 토큰 (① — 미션 크리티컬 · 변경 금지)
 
@@ -976,7 +989,7 @@ NEXA OS V2.1/                          # 모노레포 루트
 │   │   │   ├── domains/                 # views/{left,content,right} 필수 · status/ 권장
 │   │   │   │   ├── nexia/
 │   │   │   │   │   ├── components/              # headerActions 등 도메인 전용
-│   │   │   │   │   ├── composables/
+│   │   │   │   │   ├── hooks/
 │   │   │   │   │   └── views/
 │   │   │   │   │       ├── left/
 │   │   │   │   │       │   └── NexiaLeftNav.tsx       # 서브 내비·트리
@@ -2017,3 +2030,12 @@ MainShellLayout (viewport lock)
 ```
 
 ---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
+| 하위 TDD | [NEXA OS · 도메인 구조 레지스트리 (TDD-002)](./08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| LangGraph 모노레포 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |

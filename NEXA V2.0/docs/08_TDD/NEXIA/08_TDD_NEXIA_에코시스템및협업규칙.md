@@ -1,3 +1,16 @@
+---
+doc_id: TDD-017
+title: "에코시스템 및 협업 규칙"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-010
+terms_standard: ["yjs", "langgraph"]
+terms_nexa: ["Omnix", "Twinex", "Normex", "ecosystem"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/langgraph", "nexa/Omnix", "nexa/Twinex", "nexa/Normex", "nexa/ecosystem"]
+---
 ### 5. 에코시스템 및 협업 세부 규칙 (Ecosystem & Collaboration Details)
 
 ## 5.1 목적과 범위
@@ -47,3 +60,12 @@
 - 협업 충돌 자동 해결률 90% 이상.
 - 승인 절차 위반 0건.
 - 플러그인 장애 전파율 0% 목표.
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
+| Yjs 협업 | [Yjs · Hocuspocus 협업 SSOT (TDD-038)](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
+| NEXA-CELL | [NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 (PRD-004)](../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |

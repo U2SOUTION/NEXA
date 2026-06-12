@@ -1,4 +1,4 @@
-# v0 Task — NEXAON Graph Workspace (React Flow)
+# v0 Task — Nexaon Graph Workspace (React Flow)
 
 **Phase:** UI-L2 ~ UI-L4  
 **Port target:** `apps/web/src/domains/nexia/modules/nexaon/` + `engines/react-flow/` — see `_file-tree.md`
@@ -7,7 +7,7 @@
 
 ## Prompt (copy to v0)
 
-Build **NexaonShell** — the ontology digital twin workspace (Logex → NEXAON sub-mode).
+Build **NexaonShell** — the ontology digital twin workspace (Logex → ontology sub-mode).
 
 ### Layout (inside Content area, full height, no body scroll)
 

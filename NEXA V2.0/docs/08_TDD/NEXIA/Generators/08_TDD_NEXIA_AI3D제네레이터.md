@@ -1,3 +1,16 @@
+---
+doc_id: TDD-026
+title: "AI 3D 제너레이터"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-010
+terms_standard: ["pyodide", "webassembly", "three-js", "monaco", "ollama"]
+terms_nexa: ["AI3D", "CadQuery", "R3F", "OCP-wasm"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/pyodide", "std/webassembly", "std/three-js", "std/monaco", "std/ollama", "nexa/AI3D", "nexa/CadQuery", "nexa/R3F", "nexa/OCP-wasm"]
+---
 # React + Monaco + Pyodide + OCP.wasm + Three.js(R3F) + Ollama(C3Dv0) 중심 정리
 
 **브라우저:** 자연어 입력 → **NEXA 플랫폼 API**가 CadQuery(Python) 코드 생성 → Monaco 편집 → **Pyodide+OCP.wasm** 연산 → R3F로 3D/2D 표시 → STEP/DXF.
@@ -405,3 +418,12 @@ C3Dv0는 **플랫폼 서버의 Ollama**에서 동작합니다. 한국어 이해�
 | **탭 2 철학** | §4.1 |
 | **오프라인 모드** | API 없이 Monaco+Pyodide |
 | **비용 3축** | §7.1 A/B/C 모니터링 |
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../08_TDD_NEXIA_구조기술스택운영방침.md) |
+| Blender 연동 | [AI 3D · Blender 백엔드 연동 (TDD-027)](./08_TDD_NEXIA_AI3DBlender백엔드연동.md) |
+| Wasm 개요 | [WebAssembly 개요 (TDD-032)](./08_TDD_NEXIA_WebAssembly개요.md) |

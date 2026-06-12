@@ -1,3 +1,16 @@
+---
+doc_id: TDD-027
+title: "AI 3D · Blender 백엔드 연동"
+category: "08_TDD"
+domain: NEXIA
+status: published
+created: 2026-06-10
+updated: 2026-06-10
+parent_doc: TDD-026
+terms_standard: ["blender", "python", "docker"]
+terms_nexa: ["AI3D", "Blender-backend", "STEP", "DXF"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/blender", "std/python", "std/docker", "nexa/AI3D", "nexa/Blender-backend", "nexa/STEP", "nexa/DXF"]
+---
 # AI 3D — 웹(CadQuery) 원천 · Blender 백엔드 검수·시뮬레이션 (라인 시나리오)
 
 **한 줄:** **원천(SoT) = 웹 CadQuery**. Blender는 **메시 형상을 수정하지 않고** STEP을 읽어 **허용 영역**(§2.1) — **A** 조립·리깅(X,Y,Z·회전) · **B** 물리(질량·힌지·모터) · **C** 시각화(조명·카메라·재질, 렌더만) — 만 다룬 뒤 **JSON**으로 DB에 올린다.
@@ -675,3 +688,11 @@ revision saved
 ---
 
 *상태: v2.1 — 형상 수정 금지 · **허용=A조립·리깅 B물리 C시각화(렌더만)** · JSON ①②③(+visualization).*
+---
+
+## 관련 문서
+
+| 관계 | 문서 |
+| :--- | :--- |
+| 상위 TDD | [AI 3D 제너레이터 (TDD-026)](./08_TDD_NEXIA_AI3D제네레이터.md) |
+| 제너레이터 허브 | [AI 협력 제너레이터 파이프라인 (TDD-028)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
