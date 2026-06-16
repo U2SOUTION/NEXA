@@ -70,7 +70,7 @@ nexia (domainKey)
 | **Hot Path** | **✗** — DIEA Normex·Logex → `erp` |
 | **Fast · Reflex** | **✗** — Kineton ML0 ACTON |
 
-상세 엣지→플랫폼 단계: [TDD-068 §5–7](../08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · 확장 다이어그램 = [_inbox/Nexaon.md](../../_inbox/Nexaon.md) §4.1 _(참고)_.
+상세 엣지→플랫폼 단계: [TDD-068 §5–7](../08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · 전역 흐름 = [Global Architecture §Why-Chain](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md).
 
 ---
 
@@ -161,6 +161,23 @@ nexia (domainKey)
 
 ---
 
+## 9. 엔진 부담 분리 (Cold Path)
+
+> **SSOT:** 전역 표 = [Global Architecture §경로 분기](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md)
+
+| 엔진 | Nexaon 관점 담당 | 상위·동급이 **안 받는 것** |
+| :--- | :--- | :--- |
+| `HEXAGON` | Envelope · Zod | — _(ML0·게이트 완료)_ |
+| `CSIM` | T1–T3 **정렬 토큰** | Run · promoted **소유 ✗** |
+| `DIEA` | Facet 산출 | promoted 직접 쓰기 |
+| `Normex` | Ethos · RULE | Run 단독 종결 |
+| **`Nexaon`** | Run · SHACL · T3R | Nixie payload · Hot Path |
+| `Ontex` | promoted 수신 | 초안·미검증 ingest |
+
+**확장 핸드오프 (⑥–⑧):** Facet 산출 → `Nexaon` Run → Omnix·`Normex` 승인 → SHACL PASS → §7 promoted 순서.
+
+---
+
 ## 관련 문서
 
 | 관계 | 문서 |
@@ -172,4 +189,4 @@ nexia (domainKey)
 | **Axon · Cosmic** | [TDD-043](../../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044](../../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
 | **물리 집행** | [TDD-072](../Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) |
 | **용어 · ML3** | [TDD-070 §3.2.1](../../용어집_NEXA전용_v2.0.md) |
-| **참고 다이어그램** | [_inbox/Nexaon.md](../../_inbox/Nexaon.md) _(archive 예정)_ |
+| **전역 아키텍처** | [Global Architecture Standard](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) |

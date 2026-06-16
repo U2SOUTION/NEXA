@@ -83,7 +83,9 @@ NEXA 플랫폼·제품·코드에서만 쓰는 식별자·모듈·정책.
 | :--- | :--- | :--- |
 | `Galthon` | **Galthon** (갈톤) | **NEXA** 시스템 전체 **신뢰성** 담보 **독립 감시 주체** — Why-Chain · trace · Ethos·SHACL **횡단 관측** · **흐름 개입 ✗** · 6대 핵심 축 **✗** |
 
-> **경계:** **`Galthon`** ≠ 브랜드 **NEXA** · ≠ `Menton` · ≠ `Nexaon` Run — **감시탑(Watchtower)** 메타 역할만. SSOT: [Global Architecture Standard](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md).
+> **경계:** **`Galthon`** ≠ 브랜드 **NEXA** · ≠ `Menton` · ≠ `Nexaon` Run — **감시탑(Watchtower)** 메타 역할만. SSOT: [Global Architecture Standard §Galthon](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md).
+
+**관측 질문 유형** _(흐름 비참여 · trace만)_: Envelope 폐기 · uplink 거부 · Run 보류 · 승인 거절 · promoted 불가 · explore 불가 — 엔진별 근거 표는 Global Architecture §Galthon.
 
 ### 3.2 `domainKey` (제품·업무 영역)
 
@@ -102,7 +104,7 @@ NEXA 플랫폼·제품·코드에서만 쓰는 식별자·모듈·정책.
 
 #### 3.2.0 피지컬 티어 · 세 축 · Hub-and-Spoke
 
-> **한 줄:** **피지컬 티어 (PT-0~3)** = 배치 축 · **ML** = 논리 계층 · **Core Engine Stack** = 기능 엔진. **PT-3 허브** + **PT-0~2·Nixie 샤드**. SSOT: [TDD-040 §0](08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) · [Core Engine Stack §0.4](_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md).
+> **한 줄:** **피지컬 티어 (PT-0~3)** = 배치 축 · **ML** = 논리 계층 · **Core Engine Stack** = 기능 엔진. **PT-3 허브** + **PT-0~2·Nixie 샤드**. SSOT: [TDD-040 §0](08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) · [Global Architecture §Hub-and-Spoke](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md).
 
 **NEXA 통합 아키텍처 위계 (Physical-Centric Hierarchy)**
 
@@ -160,7 +162,7 @@ NEXA 플랫폼·제품·코드에서만 쓰는 식별자·모듈·정책.
 
 #### 3.2.2 Cosmic Layer · CSIM 개념 Tier (T1–T3)
 
-> **한 줄:** **WILL/FACT 의미 번역** 축 — **Cosmic Layer** · 구현 **`CSIM`** · Tier 지칭 시 **T1–T3**. SSOT: [`TDD-043` §13.0.1](08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [`TDD-044` §2.3](08_TDD/Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) · [Core Engine Stack §3 CSIM](_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md).
+> **한 줄:** **WILL/FACT 의미 번역** 축 — **Cosmic Layer** · 구현 **`CSIM`** · Tier 지칭 시 **T1–T3**. SSOT: [`TDD-043` §13.0.1](08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [`TDD-044` §2.3 · §2.6](08_TDD/Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) · [Global Architecture §Cold Path](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md).
 
 | Tier | 단계 (EN) | Normative 정의 |
 | :---: | :--- | :--- |
@@ -700,7 +702,7 @@ Navex 는 **생성 확장자 없음** — **전 `domainKey`** · 전체 인덱�
 | 문서 생태계·`terms_*` 규칙 | [개발문서 생태계와 관리 체계](<개발문서 생태계와 관리 체계.md>) |
 | doc_id SSOT | [doc_id 레지스트리](doc_id_레지스트리.md) |
 | 도메인 구조 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
-| **피지컬 티어 · Hub-and-Spoke** | [TDD-040 §0.1](08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) · [Core Engine Stack §0.4](_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md) · [§3.2.0](#320-피지컬-티어--세-축--hub-and-spoke) |
+| **피지컬 티어 · Hub-and-Spoke** | [TDD-040 §0.1](08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) · [Global Architecture §Hub-and-Spoke](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) · [§3.2.0](#320-피지컬-티어--세-축--hub-and-spoke) |
 | **Cosmic Layer · Axon Layer** | [TDD-043](08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044](08_TDD/Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) · [§3.2.2](#322-cosmic-layer--csim-개념-tier-t1t3) · [§3.2.3](#323-axon--cosmic-language-프로토콜) |
 | nexia DIEA·스택 | [NEXIA 구조·기술스택 (TDD-010)](08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |
 | 플랫폼 레이아웃 | [NEXA 통합 레이아웃 (UIX-006)](07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |

@@ -544,7 +544,7 @@ contentHash 검증      →  Profile G/M whitelist
 | **하향** | **Action** · HEXAGON · ACTON | **ACTON** · Hot Path |
 | **플랫폼 (ML3)** | semantic chunk · Run **입력** 정렬 | **Nexaon** _(CSIM T3 기능 · Run 소유)_ |
 
-**운영 배치**(ML0 T1 · Ingress T2 · Nexaon T3) — [Core Engine Stack](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md) §3 CSIM · [Nexaon §4.1](../../_inbox/Nexaon.md).
+**운영 배치**(ML0 T1 · Ingress T2 · Nexaon T3) — [Global Architecture §Cold Path](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) · [TDD-044 §2.6](./08_TDD_CosmicLanguage_전역데이터아키텍처.md) · [TDD-073 §4.1](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md).
 
 **개념 Tier (문서·Stack 공통):** **T1 공용어화** → **T2 맥락 동기화** → **T3 구체화**. _(구 표: 추상화→맥락화→구체화 — 동일 의미.)_
 
@@ -718,10 +718,25 @@ contentHash 검증      →  Profile G/M whitelist
 _상태: Normative — CSIM · Axon · AXON-AL1–AL7 · APEX v0.16 · ACTON-GM programRef · Body≠G-code._
 ---
 
+## 부록 C — Core Engine 배치 (`HEXAGON` × PT)
+
+> **이관:** Core Engine Stack (archived 2026-06-13) §0.2 · §3. **개념 허브** = [Global Architecture](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md).
+
+| 기술 | Core Engine | Menton 층 | PT |
+| :--- | :--- | :--- | :---: |
+| **`Axon`** | `HEXAGON` | ML0 Reflex | PT-0 ~ PT-3 Gate |
+| **`Cosmic`** | `CSIM` | ML0 T1 · Gate T2 · ML3 T3 | PT-0 ~ PT-3 |
+| **Hot Path** | `ACTON` | ML0 Reflex | PT-0 ~ PT-2 |
+
+**Hub-and-Spoke:** PT-3 = Cold Path 허브 · PT-0~2 = 경량 샤드 — 말단도 **동일 `Axon` · HEXAGON 규격** ([TDD-040 §0.1](../AI/08_TDD_AI_지능위계및하드웨어사양.md)).
+
+---
+
 ## 관련 문서
 
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | Cosmic | [Cosmic · 전역 데이터 아키텍처 (TDD-044)](./08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
+| 전역 아키텍처 | [Global Architecture Standard](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) |
 | NEXNAP | [NEXNAP 시스템 인터페이스 표준 규약 (TDD-023)](../NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) |

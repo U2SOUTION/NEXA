@@ -132,6 +132,16 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 | NEXNAP Envelope | [TDD-023](../08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) | uplink/downlink **공통 문법** |
 | Twinex | TDD-024 · `.nxdev` | `device_id` · 디지털 트윈 정합 |
 
+### 6.1 경로 분기 (Cold / Hot / Fast)
+
+> **SSOT:** [Global Architecture §경로 분기](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md)
+
+| Path | 경로 | `Ontex` |
+| :--- | :--- | :--- |
+| **Cold · Distillation** | `stateBus` → `DIEA` → `Nexaon` → `Ontex` | **필수** |
+| **Hot** | `DIEA` Normex·Logex → `erp` | **우회** |
+| **Fast · Reflex** | ML0 `ACTON` → **Kineton** | **우회** · 후보고만 상행 |
+
 ---
 
 ## 7. Human Interface

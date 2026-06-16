@@ -92,6 +92,20 @@ Cosmic 체계 안에서 데이터가 스스로를 증명한다는 것은 다음 
 - **의미 지도(Semantic Map):** CSIM/HEXAGON 관점의 사건 관계와 인과(Why)를 연결한 의미 그래프 지도입니다.
 - 기본 운영은 추상/의미 지도로 수행하고, 근거 확인이 필요할 때 물리 지도로 드릴다운하는 방식을 권장합니다.
 
+### 2.6 CSIM 운영 배치 (피지컬 티어 × Tier)
+
+> **SSOT:** Tier 정의 = §2.3 · 배치 축 = [TDD-040 §0](../AI/08_TDD_AI_지능위계및하드웨어사양.md) · 파이프라인 = [Global Architecture §Cold Path](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md)
+
+| 배치 | Tier | 역할 | PT |
+| :--- | :---: | :--- | :---: |
+| **ML0 말단** | **T1** | Matrix 공용어화 · raw uplink **✗** | PT-0 ~ PT-2 |
+| **Ingress · Gate** | **T2** | 맥락·Ethos 정렬 · `stateBus` | PT-3 _(허브)_ |
+| **Nexaon Run 입력** | **T3R** | semantic chunk · Run 정렬 _(Run 소유 ✗)_ | PT-3 |
+| **Nixie 표현** | **T3N** | Narrative · ECHO | PT-0 ~ PT-3 _(표현)_ |
+| **ACTON 하향** | **T3A** | Action · HEXAGON | PT-0 ~ PT-2 _(Hot)_ |
+
+**경계:** `CSIM` = **번역·정렬만** — promoted · Run 종결 · Hot Path 집행 **소유 ✗** ([TDD-073](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) · [TDD-072](../NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md)).
+
 ## 3. 전역적 데이터 흐름 (Data Life-Cycle)
 
 1. **Generation (생성):** 인간의 의지(WILL)나 환경 변화(FACT) 발생.

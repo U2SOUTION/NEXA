@@ -30,7 +30,7 @@
 
 ## 각 기술별 SSOT 인벤토리 (Phase 0 · **확정** 2026-06-13)
 
-> **워크플로우:** ~~Phase 0~~ ✓ · ~~**Phase 1** 기존 TDD·draft 흡수·경계 정리~~ ✓ → **Phase 2** Core Engine Stack 분산 이관·archive → **Phase 3** 본 섹션 축소
+> **워크플로우:** ~~Phase 0~~ ✓ · ~~Phase 1~~ ✓ · ~~**Phase 2** CES 이관·archive~~ ✓ → **Phase 3** 본 섹션 축소
 >
 > **상태:** ✅ SSOT 존재·published · ⚠️ 분산·draft·예약 · ❌ SSOT 공백  
 > **doc_id 예약:** [TDD-072](../doc_id_레지스트리.md#예약-global-architecture-phase-0--2026-06-13) (Kineton) · [TDD-073](../doc_id_레지스트리.md#예약-global-architecture-phase-0--2026-06-13) (Nexaon)
@@ -59,8 +59,8 @@
 | **TDD-040** | 피지컬 티어 PT-0~3 · **어디서** 연산 | ML _(배치)_ | **유지** — Menton **층 ≠ 배치** |
 | **TDD-070** | 용어·ML0–ML3 · Galthon §3.1.1 | ML · GL | **유지** — Menton/Galthon **허브** |
 | **TDD-023** | NEXNAP · Envelope 인터페이스 | AL · KL | **유지** — 072에서 참조 |
-| [_inbox/Nexaon.md_](<./Nexaon.md>) | NL 개념·관계 **draft** | NL | **TDD-073** 흡수 후 archive _(Phase 2)_ |
-| [_inbox/CES_](<./NEXA_핵심엔진_(Core_Engine_Stack).md>) | 7기술 **중복 허브** | 전체 | Phase 2 **이관 후 archive** |
+| [_inbox/CES_](<./NEXA_핵심엔진_(Core_Engine_Stack).md>) | 7기술 중복 허브 | 전체 | **archived** 2026-06-13 → 본 문서·기술별 SSOT |
+| [_inbox/Nexaon.md_](<./Nexaon.md>) | NL 참고 다이어그램 | NL | **archived** 2026-06-13 → **TDD-073** |
 
 > **약어:** CES = [NEXA_핵심엔진_(Core_Engine_Stack)](<./NEXA_핵심엔진_(Core_Engine_Stack).md>)
 
@@ -83,21 +83,21 @@
 | :---: | :--------------------- | :------------------------------- | :--------------: |
 | **0** | 인벤토리·SSOT ID·doc_id 예약 | SSOT 확정표 · 이관 매핑 · 분담 결정         | **✓ 2026-06-13** |
 | **1** | 기존 TDD·draft 흡수·경계 정리  | TDD-072·073 초안 · 043/044/057 역인용 | **✓ 2026-06-13** |
-| **2** | CES → 기술별 SSOT 이관      | CES 관련문서 열 **전 기술 제거** 가능        |        대기        |
+| **2** | CES → 기술별 SSOT 이관      | CES 관련문서 열 **전 기술 제거** 가능        | **✓ 2026-06-13** |
 | **3** | 본 섹션 축소                | SSOT 링크 표만 유지                    |        대기        |
 
 ### 작성·병합 우선순위 (Phase 1+)
 
 1. **Kineton (TDD-072)** — SSOT 공백 ❌ · doc_id 예약 완료
-2. **Nexaon (TDD-073)** — `Nexaon.md` 승격 ⚠️ · doc_id 예약 완료
+2. ~~**Nexaon (TDD-073)** — `Nexaon.md` 승격~~ ✓ draft 발급 · inbox archived
 3. **Menton** — TDD-070 §3.2.1 ↔ TDD-040 역할 분담 명문화 ⚠️
 4. **Axon · Cosmic · Ontex** — TDD-043·044·057 보강·역인용 ✅
 5. **Galthon** — TDD-070 §3.1.1 + 본 문서 유지 ⚠️
-6. **CES** — Phase 2 완료 후 **archive**
+6. ~~**CES** — Phase 2 완료 후 **archive**~~ ✓ 2026-06-13
 
 ### 문서 정리 결정 (Phase 0 확정)
 
-1. **CES** — **archive 대상** (Phase 2). 7기술 중복 허브 → 위 **이관 매핑** 따름.
+1. ~~**CES** — **archive 대상** (Phase 2). 7기술 중복 허브 → 위 **이관 매핑** 따름.~~ ✓ archived
 2. **TDD-043 / TDD-044** — **병합 ✗.** 044 = 043 `parent_doc`. AL/CL 경계 유지.
 3. **TDD-068** — doc_id와 파일 **동일 문서**. 표기 `TDD-068` 통일 · 병합 ✗.
 4. **TDD-070 · Galthon** — Menton §3.2.1 · Galthon §3.1.1 **분리 유지**. 전용 Galthon TDD = Phase 1 **후순위**.
@@ -200,7 +200,62 @@ flowchart TD
 | **Ontex** | `Ontex` · `NEXAVULT` | 허브·탐색 | PT-3 |
 | **Kineton** | `ACTON` · ROS 2 Bridge | ML0 Reflex _(Hot Path)_ | PT-0 ~ PT-2 |
 
+### Cold Path 파이프라인 (v0 스냅샷)
 
+> **구성 원칙:** Core Engine Stack 멤버 **개수 고정 ✗** — 엔진 추가·분할 시 [용어집](../용어집_NEXA전용_v2.0.md) 선행 갱신.
+
+```text
+HEXAGON (Grammar)   → 5W1H · Envelope · Zod
+    ↓
+CSIM (Semantic)     → Matrix 양방향 번역 · T1/T2/T3
+    ↓
+DIEA (Context)      → 7 Facet · stateBus · 산출
+    ↓
+Normex (Ethos)      → RULE · MUST/SHOULD · NEXNAP
+    ↓
+Nexaon (Logic)      → ingest · Run · 승인 · SHACL
+    ↓
+Ontex (Foundation)  → promoted · Graph RAG · archive
+```
+
+| 순서 | 엔진 | 역할 (한 줄) | SSOT |
+| :---: | :--- | :--- | :--- |
+| Grammar | `HEXAGON` | raw → 5W1H Envelope | [TDD-043 §11](../08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |
+| Semantic | `CSIM` | WILL/FACT ↔ Matrix | [TDD-043 §13](../08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044 §2](../08_TDD/Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
+| Context | `DIEA` | Facet 작업면·맥락 | [TDD-056](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
+| Ethos | `Normex` | RULE · Ethos 게이트 | [TDD-056 §5.2](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
+| Logic | `Nexaon` | 정재·Run·promoted 전 | [TDD-073](../08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
+| Foundation | `Ontex` | promoted 고착 | [TDD-057](../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
+
+### 단계별 핸드오프 (ML0 → promoted)
+
+| 단계 | 구간 | 담당 |
+| :---: | :--- | :--- |
+| ①-a | ML0 말단 → Envelope | `HEXAGON` ([TDD-068 §3](../08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)) |
+| ①-b | T1 Matrix · raw uplink **✗** | `CSIM` |
+| ③ | 게이트 · Ethos · `stateBus` | `CSIM` T2 · `Normex` |
+| ⑤–⑥ | Facet · 정재 Run | `DIEA` · `Nexaon` |
+| ⑦–⑧ | 승인 · SHACL | `Omnix` · `Normex` · `Nexaon` |
+| ⑨–⑪ | Neo4j · pgvector · `Ontex` | [TDD-073 §7](../08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
+
+### 경로 분기 · 엔진 부담 분리
+
+| Path | 경로 | DB·Ontex |
+| :--- | :--- | :--- |
+| **Cold · Distillation** | `stateBus` → `DIEA` → `Nexaon` → `Ontex` | **필수** · never raw write |
+| **Hot Path** | `DIEA` Normex·Logex → `erp` | **우회** |
+| **Fast · Reflex** | ML0 `ACTON` → `Kineton` | **우회** · 후보고만 상행 |
+
+| 엔진 | 담당 | 상위가 안 받는 것 |
+| :--- | :--- | :--- |
+| `HEXAGON` | Envelope · Zod | — _(ML0·게이트 완료)_ |
+| `CSIM` | T1–T3 번역·정렬 | Run·promoted **소유 ✗** |
+| `DIEA` | Facet 맥락·산출 | promoted 직접 쓰기 |
+| `Normex` | Ethos · RULE | Run 단독 종결 |
+| `Nexaon` | Run · SHACL · T3R | Nixie payload · Hot Path |
+| `Ontex` | promoted · RAG | 초안·미검증 ingest |
+
+**Hub-and-Spoke:** PT-3 = Cold Path **통합 허브** · PT-0~2·`Nixie` = 경량 샤드 + Local Reflex — [TDD-040 §0.1](../08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) · [용어집 §3.2.0](../용어집_NEXA전용_v2.0.md)
 
 
 
@@ -288,6 +343,16 @@ flowchart TD
     - **무결성 감시:** `HEXAGON` Envelope · Ethos 게이트 · SHACL diff **정합성** 횡단 점검.
     - **What-if 시뮬레이션:** 조건 변경 시 판단 변화 **추적** — 데이터 **변조·우회 ✗**.
 - **관측 대상:** `Axon` · `Cosmic` · `Menton` · `Nexaon` · `Ontex` · `Kineton` — **흐름 개입 ✗**
+
+| 질문 유형 | 관측 근거 (엔진) | `Galthon` 역할 |
+| :--- | :--- | :--- |
+| 왜 Envelope 폐기? | `HEXAGON` + Zod | trace · 기록 |
+| 왜 uplink 거부? | `CSIM` T2 · `Normex` Ethos | trace · 기록 |
+| 왜 Run 보류? | `DIEA` · `Nexaon` | trace · 기록 |
+| 왜 승인 거절? | `Normex` · Omnix | trace · 기록 |
+| 왜 promoted ✗? | `Nexaon` · SHACL | trace · 기록 |
+| 왜 explore 불가? | `Ontex` 미존재 | trace · 기록 |
+
 - **경계:** 브랜드 **NEXA** ≠ `Galthon` — **NEXA** = 사업·플랫폼 · **`Galthon`** = **신뢰 감시** **독립주체** _(6대 핵심 축 ✗ · 기술 ID `GL` · [용어집 §3.1.1](../용어집_NEXA전용_v2.0.md))_.
 
 

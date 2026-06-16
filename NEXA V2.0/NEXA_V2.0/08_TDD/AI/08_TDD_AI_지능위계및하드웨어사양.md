@@ -14,7 +14,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 
 > **레거시 출처:** 「NEXA AIS Intelligence Hierarchy & Spec」→ **본 문서(TDD-040)가 정본**.
 >
-> **문서 중심축:** **피지컬 티어 (Physical Placement Tier)** — 하드웨어 배치·연산 자원 할당의 **절대 기준**. **지능 위계** = 각 티어의 **주체 명칭** (Nano/Micro/Kinetic/Zenith). **ML0–ML3** · **Core Engine Stack** 과 **1:1 ✗** — [Core Engine Stack §0](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md). **배치:** **PT-3 허브** + **PT-0~2·Nixie 샤드** ([§0.1](#01-hub-and-spoke-배치-원칙-normative)).
+> **문서 중심축:** **피지컬 티어 (Physical Placement Tier)** — 하드웨어 배치·연산 자원 할당의 **절대 기준**. **지능 위계** = 각 티어의 **주체 명칭** (Nano/Micro/Kinetic/Zenith). **ML0–ML3** · **Core Engine Stack** 과 **1:1 ✗** — [Global Architecture §배치](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md). **배치:** **PT-3 허브** + **PT-0~2·Nixie 샤드** ([§0.1](#01-hub-and-spoke-배치-원칙-normative)).
 
 센티널(반사 신경)과 인디케이터(전략적 뇌)가 **피지컬 티어**별로 최적화된 하드웨어에서 구동되도록 설계한다. **PT-3 (Zenith)** 에 Core Engine **통합·기억**이 집결하고, **PT-0~2** 에 **Local Reflex** 가 분산되는 **Hub-and-Spoke** 구조로 연산 부하를 분산하고 실시간 반응성을 확보하는 **피지컬 티어 · 하드웨어 사양서**이다.
 
@@ -26,7 +26,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 | :--- | :--- | :--- | :---: | :--- |
 | **① 피지컬 티어** | 피지컬 티어 · Physical Placement Tier | **어디서** 연산하나 | **4** (PT-0~3) | **본 문서 (TDD-040)** |
 | **② 논리 계층** | **Menton** (Intelligence Stack) | **소프트웨어상** 어떤 역할 층인가 | **4** (ML0–ML3) | [용어집 §3.2.0~3.2.1](../../용어집_NEXA전용_v2.0.md) · [TDD-068 §1.4](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
-| **③ 핵심 엔진** | Core Engine Stack · 핵심엔진 스택 | **무엇이** 기능을 수행하나 | **6** _(가변)_ | [Core Engine Stack](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md) |
+| **③ 핵심 엔진** | Core Engine Stack · 핵심엔진 스택 | **무엇이** 기능을 수행하나 | **6** _(가변)_ | [Global Architecture](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) |
 
 > **금지 혼동:** `지능 계층` **deprecated** → **피지컬 티어**. **6엔진** (HEXAGON→Ontex) **≠** **4피지컬 티어** **≠** **4 Menton 층과 1:1 ✗**. **Nixie** = ML1 Presence — Micro Sentinel **동일시 ✗**.
 
@@ -45,7 +45,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 | **경로** | **Cold Path** 종착 · **Slow Reasoning** | **Fast Path** · ACTON — Ontex **우회** |
 | **오해 방지** | 6엔진 **바이너리 전부 PT-3 only ✗** | 엣지 = **완전체 복제 ✗** · **동일 `Axon` · `HEXAGON` 규격의 말단 샤드 ✓** |
 
-상세 엔진·Menton 층 매핑: [Core Engine Stack §0.2~0.4](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md).
+상세 엔진·Menton 층 매핑: [Global Architecture §배치·엔진](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md).
 
 #### 1. 피지컬 티어별 역할 및 배치 전략
 
@@ -264,7 +264,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 
 | 관계 | 문서 |
 | :--- | :--- |
-| **3축 · 엔진** | [NEXA 핵심엔진 (Core Engine Stack)](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md) |
+| **3축 · 엔진** | [Global Architecture Standard](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) |
 | **Menton · IoT 파이프** | [TDD-068 · IoT 엣지 파이프라인](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
 | 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 안전 대책 | [안전 대책 · 선조치 로직 (TDD-039)](./08_TDD_AI_안전대책선조치로직.md) |
