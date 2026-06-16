@@ -20,6 +20,8 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/mqtt", "std/protobuf", "std/p
 - **Normative (규범):** 구현·리뷰·Ethos 가드레일의 **단일 기준**
 
 > 연동: [`NEXNAP 인터페이스 규약`](../NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) · [`멀티윈도우 · PiP`](../NEXIA/08_TDD_NEXIA_멀티윈도우DocumentPiP.md) · [`NEXIA 외부 엔진`](../NEXIA/08_TDD_NEXIA_외부엔진및아키텍처.md)
+>
+> **6대 레이어 분담:** **`Axon`** 본 문서 · **`Cosmic`** [TDD-044](./08_TDD_CosmicLanguage_전역데이터아키텍처.md) · **`Kineton`** 집행·ROS 2 [TDD-072](../NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) · 개념 허브 [Global Architecture](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md)
 
 ---
 

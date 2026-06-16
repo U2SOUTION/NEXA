@@ -10,7 +10,7 @@ updated: 2026-06-13
 parent_doc: TDD-001
 see_also: [TDD-040, TDD-043, TDD-044, TDD-069, TDD-071, TDD-010, TDD-045, TDD-056, TDD-065, TDD-061, TDD-062, TDD-063, TDD-064, UIX-004, PRD-014]
 terms_standard: []
-terms_nexa: [glossary, terms_nexa, domainKey, tabId, DIEA, Nexaon, NIXIE, Navex, NISE, ML0, ML1, ML2, ML3, Menton, Menton-Layer, ML, Physical-Tier, Physical-Centric-Hierarchy, Core-Engine-Stack, Hub-and-Spoke, Cosmic-Layer, AXON, AXON-Stack-Layer, CSIM, APEX, HEXAGON, ACTON, NEXAVULT, ENVIRON-Shield, Galthon]
+terms_nexa: [glossary, terms_nexa, domainKey, tabId, DIEA, Nexaon, NIXIE, Navex, NISE, ML0, ML1, ML2, ML3, Menton, Menton-Layer, ML, Physical-Tier, Physical-Centric-Hierarchy, Core-Engine-Stack, Hub-and-Spoke, Cosmic-Layer, AXON, AXON-Stack-Layer, CSIM, APEX, HEXAGON, ACTON, NEXAVULT, ENVIRON-Shield, Galthon, Kineton]
 tags: [doc/cat/08-tdd, doc/domain/nexaos, nexa/glossary, nexa/terms_nexa, nexa/domainKey, nexa/tabId, nexa/DIEA]
 ---
 
@@ -110,7 +110,7 @@ NEXA 플랫폼·제품·코드에서만 쓰는 식별자·모듈·정책.
 | :--- | :--- | :--- | :---: | :--- |
 | **① 피지컬 티어** | 피지컬 티어 · Physical Placement Tier | **어디서** 연산하나 | **4** (PT-0~3) | [TDD-040](08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) |
 | **② 논리 계층** | Menton Layer (Intelligence Stack) | **소프트웨어상** 역할 층 | **4** (ML0–ML3) | **§3.2.1** · [TDD-068 §1.4](08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
-| **③ 핵심 엔진** | Core Engine Stack | **무엇이** 기능 수행 | **6** _(가변)_ | [Core Engine Stack](_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md) |
+| **③ 핵심 엔진** | Core Engine Stack | **무엇이** 기능 수행 | **6** _(가변)_ | [Global Architecture](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) · KL [TDD-072](08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) · NL [TDD-073](08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
 
 | 피지컬 티어 | HW | **지능 위계** (주체) | 비고 |
 | :---: | :---: | :--- | :--- |
@@ -127,7 +127,9 @@ NEXA 플랫폼·제품·코드에서만 쓰는 식별자·모듈·정책.
 
 #### 3.2.1 Menton Intelligence Stack (ML0–ML3)
 
-> **한 줄:** **지능·표현 4층** — Edge → Presence → Domain → Strategic. **Menton Layer (Intelligence Stack)** — 브랜드 **NEXA** 와 **동일시 ✗**. 기술 ID: **`ML`** (축) · **`ML0`–`ML3`** (층). SSOT: [TDD-068 §1.4](08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md).
+> **한 줄:** **지능·표현 4층** — Edge → Presence → Domain → Strategic. **Menton Layer (Intelligence Stack)** — 브랜드 **NEXA** 와 **동일시 ✗**. 기술 ID: **`ML`** (축) · **`ML0`–`ML3`** (층).
+>
+> **분담 (Phase 1):** **본 절** = ML0–ML3 **논리 역할** · **배치(어디서)** = [TDD-040](08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) PT-0~3 · **오케스트레이터** = [TDD-073](08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) · SSOT 맥락: [Global Architecture](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md)
 
 | ML | 별칭 | 주체 | 역할 | LangGraph Agent? |
 | :--- | :--- | :--- | :--- | :---: |
@@ -135,6 +137,8 @@ NEXA 플랫폼·제품·코드에서만 쓰는 식별자·모듈·정책.
 | **ML1** | Presence | **Nixie (NIXIE)** · 4 Shell 채널 | 지능 **결과·알람·상태 Express** · Reflex triage · PiP/TTS | ✗ |
 | **ML2** | Tactical · Domain | **nexabo/** · **nexia/** (Twinex · Nexaon UI) | 관제 · 트윈 · 정재 **작업면** | — |
 | **ML3** | Strategic | **Nexaon** · **`apps/agent-graph`** · **Omnix** | ingest → Run · SHACL · 승인 · **promoted** | ✓ |
+
+> **ML3 Normative:** [TDD-073](08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) · 엣지 연계 [TDD-068 §1.4](08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)
 
 **혼동 방지 (Normative)** — 본 **ML*** 체계와 **별도** 번호 체계:
 

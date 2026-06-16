@@ -14,6 +14,8 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/ontology", "std/3d-mapping", 
 # Cosmic · 전역 데이터 아키텍처
 
 > **표기 (Normative):** 신규·개정 SSOT 본문 = **Cosmic** · Tier 지칭 시 **`T1`–`T3`** · 구현 **`CSIM`**. bare **`CL`** · **`CLA`** **deprecated** — [용어집 §3.2.2](../../용어집_NEXA전용_v2.0.md).
+>
+> **6대 레이어 분담:** **`Cosmic`** 본 문서 · 프로토콜·`Axon` [TDD-043](./08_TDD_CSIM_AXON프로토콜_정본.md) `parent_doc` · **`Kineton`** [TDD-072](../NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) · [Global Architecture](../../_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md)
 
 ## 정의 및 철학
 

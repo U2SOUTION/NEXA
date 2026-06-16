@@ -53,7 +53,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/ontex", "std/langgraph", "std/pgvector", "s
 | :--- | :--- |
 | **Ontex** | UI `domainKey` · `domains/ontex/` |
 | **Nexion** | `subRoute: canvas` **UI 표시명** — 구 `nexion` 흡수 |
-| **Nexaon** | nexia Logex **ontology 서브모듈** — Ontex 와 **분리** |
+| **Nexaon** | nexia Logex **ontology 서브모듈** — Ontex 와 **분리** — SSOT [TDD-073](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
 | **NEXAVULT** | pgvector·FACT **지식 데이터 허브** (온톨로지 SSOT 아님) |
 
 ---

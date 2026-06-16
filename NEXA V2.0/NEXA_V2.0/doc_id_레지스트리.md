@@ -39,7 +39,7 @@ terms_nexa: []
 | `MVP-` | **002** | |
 | `PRD-` | **014** | |
 | `UIX-` | **009** | |
-| `TDD-` | **071** | **072·073 예약** — [Global Architecture Phase 0](#예약-global-architecture-phase-0--2026-06-13) |
+| `TDD-` | **074** | TDD-072·073 발급 (2026-06-13) |
 | `ADM-` | **002** | |
 | `LEG-` | **001** | 미사용 |
 | `DEC-` | **001** | 미사용 |
@@ -143,6 +143,8 @@ terms_nexa: []
 | TDD-056 | NEXIA · 7 탭 범위 확정 v1.0 | NEXIA | TDD-010 | PRD-001 | react-flow, yjs, tiptap, monaco, langgraph, sse | nexia, tabId, Omnix, Normex, Logex, Scribx, Vivex, Twinex, Navex, NexaonShell, ontology, Ontex | 완료 | 2/2 · 6 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | TDD-067 | 에이전틱 AI 파이프라인 · 7탭 · 플랫폼·Yjs 연계 v1.0 | NEXIA | TDD-056 | — | langgraph, rag, mcp, agentic-ai, yjs, crdt, hocuspocus, mqtt | nexia, Ontex, Omnix, Nexaon, Navex, Nixie, agent-graph, apps-sync, tabId, Graph-RAG | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) |
 | TDD-068 | IoT 엣지 데이터 파이프라인 · HEXAGON · Nexaon 연계 v1.0 | NEXIA | TDD-022 | — | mqtt, esphome, protobuf, shacl, langgraph | HEXAGON, NEXNAP, Envelope, ACTON, NEXA-CELL, Twinex, Nexaon, EventRouter, Nixie | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
+| TDD-072 | Kineton · Physical Bridge · ACTON · ROS 2 v1.0 | NEXIA | TDD-043 | — | ros-2, mqtt, pwm, protobuf | Kineton, ACTON, HEXAGON, AXON, Hot-Path, Physical-Tier | 미완 | 0/1 | [08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md](./08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) |
+| TDD-073 | Nexaon · Distillation 오케스트레이터 v1.0 | NEXIA | TDD-008 | — | langgraph, yjs, react-flow, shacl, sse | Nexaon, NexaonShell, nexia, DIEA, promoted, ML3 | 미완 | 0/1 | [08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md](./08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
 | TDD-057 | Ontex · 기술 스택 운영 방침 v1.0 | Ontex | TDD-071 | — | langgraph, pgvector, neo4j, rdf, json-ld, shacl, react-flow, yjs, zod | Ontex, Nexion, subRoute, Graph-RAG, NEXAVULT, canvas, explore, trace, archive | 완료 | 1/1 · 6 링크 | [08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md](./08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 
 ## 08_TDD — NEXIA / Nixie (4)
@@ -243,24 +245,12 @@ terms_nexa: []
 | **TDD-010** | NEXIA 도메인 기술 SSOT |
 | **TDD-056** | nexia 7 탭 범위 확정 (In/Out · MVP) |
 | **TDD-057** | Ontex 도메인 기술 SSOT |
-| **TDD-072** | Kineton · Physical Bridge _(예약 · [Phase 0](#예약-global-architecture-phase-0--2026-06-13))_ |
-| **TDD-073** | Nexaon · Distillation 오케스트레이터 _(예약 · [Phase 0](#예약-global-architecture-phase-0--2026-06-13))_ |
+| **TDD-072** | Kineton · Physical Bridge · ACTON · ROS 2 |
+| **TDD-073** | Nexaon · Distillation 오케스트레이터 |
 | **PRD-005** ↔ **TDD-013** | 드롭존 클러스터 |
 | **PRD-004** ↔ **TDD-024** · **TDD-025** | NEXA-CELL 클러스터 |
 | **PRD-001** | NEXIA MVP UI · AI TDD-033~041 의 `implements_doc` |
 | **TDD-038** | Yjs · Hocuspocus 협업 SSOT |
-
----
-
-## 예약 (Global Architecture Phase 0 · 2026-06-13)
-
-> **SSOT:** [_inbox/Draft-NEXA 전역 아키텍처 표준](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) §각 기술별 SSOT 인벤토리  
-> **규칙:** Phase 1 문서 초안 착수 시 **본 번호로 발급** · 다른 용도 **재사용 ✗**
-
-| doc_id | title (예정) | domain | 기술 ID | parent_doc (예정) | 상태 | 예정 경로 |
-| :----- | :----- | :----- | :---: | :----- | :--- | :----- |
-| **TDD-072** | Kineton · Physical Bridge · ACTON · ROS 2 v1.0 | NEXIA | **KL** | TDD-043 | **reserved** | `08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md` |
-| **TDD-073** | Nexaon · Distillation 오케스트레이터 v1.0 | NEXIA | **NL** | TDD-008 | **reserved** | `08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md` |
 
 ---
 

@@ -8,7 +8,7 @@ created: 2026-06-12
 updated: 2026-06-13
 parent_doc: TDD-022
 implements_doc: 
-see_also: [TDD-033, TDD-023, TDD-022, TDD-057, TDD-008, TDD-056, TDD-039, TDD-040, TDD-034, TDD-041, TDD-067, TDD-066]
+see_also: [TDD-033, TDD-023, TDD-022, TDD-057, TDD-008, TDD-056, TDD-039, TDD-040, TDD-034, TDD-041, TDD-067, TDD-066, TDD-072, TDD-073]
 terms_standard: ["mqtt", "esphome", "protobuf", "shacl", "langgraph"]
 terms_nexa: ["HEXAGON", "5W1H", "NEXNAP", "Envelope", "ACTON", "NEXA-CELL", "Twinex", "Nexaon", "NEXAVULT", "edge-device", "Nano-Sentinel", "Micro-Sentinel", "Kinetic-Controller", "Zenith-Indicator", "COLD", "WARM", "HOT", "nexabo", "Ontex", "Nixie", "Omnix", "EventRouter"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/protobuf", "std/shacl", "std/langgraph", "nexa/HEXAGON", "nexa/5W1H", "nexa/NEXNAP", "nexa/Envelope", "nexa/ACTON", "nexa/NEXA-CELL", "nexa/Twinex", "nexa/Nexaon", "nexa/NEXAVULT", "nexa/edge-device", "nexa/Nano-Sentinel", "nexa/Micro-Sentinel", "nexa/Kinetic-Controller", "nexa/Zenith-Indicator", "nexa/COLD", "nexa/WARM", "nexa/HOT", "nexa/nexabo", "nexa/ontex", "nexa/Nixie", "nexa/Omnix", "nexa/EventRouter"]
@@ -21,6 +21,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/pro
 > **NEXA AIS:** 6 종 **08_TDD/AI 정본 승격 완료** — [08_TDD/AI/README](../AI/README.md) · TDD-033~041
 > **지능 위계 SSOT:** [TDD-040 · 지능 위계 · 하드웨어](../AI/08_TDD_AI_지능위계및하드웨어사양.md) — 본 문서 §1.5
 > **지능 분업:** §1.4 — **Nexaon(ML3)** · **Event Router** · **Nixie(ML1)** = 표현 · **Menton Intelligence Stack** — [TDD-070 §3.2.1](../../용어집_NEXA전용_v2.0.md)
+> **6대 레이어 SSOT:** 엣지·uplink = **본 문서** · Nexaon 오케스트레이터 = [TDD-073](./Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) · 물리 집행 = [TDD-072](./Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md)
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 doc_id:
-title: "Nexaon — Distillation 오케스트레이터"
+title: "Nexaon — Distillation 오케스트레이터 (참고 · archive 예정)"
 category: ""
 domain: NEXIA
 status: draft
@@ -20,9 +20,7 @@ tags: []
 >
 > **Menton** (Intelligence Stack) — [TDD-070 §3.2.1](../용어집_NEXA전용_v2.0.md) · **≠** CPU cache · **≠** NISE-L* · **≠** `Axon`
 
-**초안 성격:** Obsidian 개념 노트 · 용어·관계 정리. Normative SSOT 는 아래 **관련 문서** 를 따른다.
->
-> **Phase 0 (2026-06-13):** formal SSOT = **TDD-073** _(예약)_ · [doc_id 레지스트리](../doc_id_레지스트리.md#예약-global-architecture-phase-0--2026-06-13). 엣지 연계 = **TDD-068** §6.
+**초안 성격:** Obsidian 개념 노트 · 용어·관계 정리. **Normative SSOT = [TDD-073](../08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md)** — 본 문서는 **참고 다이어그램** _(Phase 2 archive 예정)_.
 
 ---
 

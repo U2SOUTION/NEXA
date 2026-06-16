@@ -14,9 +14,9 @@
 | Axon (엑숀)            | **AL** | Axon (통신/문법)            | 데이터의 옷 (규격)  | `HEXAGON`이 5W1H 문법으로 데이터 포장.             | TDD-043    |
 | Cosmic (코믹)          | **CL** | Cosmic (의미/번역)          | 데이터의 언어 (통역) | `CSIM`이 2×2 매트릭스(추상화)를 거쳐 맥락 동기화 단계로 번역. | TDD-044    |
 | **Menton** (맨톤)      | **ML** | Menton (지능/사고)          | 사고의 깊이 (판단)  | 지능 엔진이 전략적 가치 판단.                        | TDD-070    |
-| Nexaon (넥사온)         | **NL** | Nexaon (전략/집행)          | 두뇌 (최종 결정)   | 인간과 AI가 협업하여 지식으로 승인.                    | TDD-073 _(예약)_ |
+| Nexaon (넥사온)         | **NL** | Nexaon (전략/집행)          | 두뇌 (최종 결정)   | 인간과 AI가 협업하여 지식으로 승인.                    | TDD-073    |
 | Ontex (온텍스)          | **OL** | Ontex (영구/기억)           | 성전 (영구 기억)   | 최종 승인본을 온톨로지에 영구 저장.                     | TDD-057    |
-| Kineton (키네톤)        | **KL** | Physical Bridge (물리 가교) | 근육 (실제 동작)   | 시스템의 추상적 의도를 `ROS 2` 메시지로 구체화 및 집행.      | TDD-072 _(예약)_ |
+| Kineton (키네톤)        | **KL** | Physical Bridge (물리 가교) | 근육 (실제 동작)   | 시스템의 추상적 의도를 `ROS 2` 메시지로 구체화 및 집행.      | TDD-072    |
 
 
 ## Galthon — 감시탑 (Trust Watch · 독립주체)
@@ -30,7 +30,7 @@
 
 ## 각 기술별 SSOT 인벤토리 (Phase 0 · **확정** 2026-06-13)
 
-> **워크플로우:** ~~**Phase 0** 인벤토리 확정~~ ✓ → **Phase 1** 기존 문서 흡수·경계 정리 → **Phase 2** Core Engine Stack 분산 이관·archive → **Phase 3** 본 섹션 축소·SSOT 링크만 유지.
+> **워크플로우:** ~~Phase 0~~ ✓ · ~~**Phase 1** 기존 TDD·draft 흡수·경계 정리~~ ✓ → **Phase 2** Core Engine Stack 분산 이관·archive → **Phase 3** 본 섹션 축소
 >
 > **상태:** ✅ SSOT 존재·published · ⚠️ 분산·draft·예약 · ❌ SSOT 공백  
 > **doc_id 예약:** [TDD-072](../doc_id_레지스트리.md#예약-global-architecture-phase-0--2026-06-13) (Kineton) · [TDD-073](../doc_id_레지스트리.md#예약-global-architecture-phase-0--2026-06-13) (Nexaon)
@@ -42,9 +42,9 @@
 | **Axon** | AL | **TDD-043** | ✅ | 역인용·중복 제거 |
 | **Cosmic** | CL | **TDD-044** _(parent: 043)_ | ✅ | 역인용·중복 제거 |
 | **Menton** | ML | **TDD-070** §3.2.1 + **TDD-040** §배치 | ⚠️ | 070↔040 분담 명문화 |
-| **Nexaon** | NL | **TDD-073** _(예약)_ ← [_inbox/Nexaon.md_](<./Nexaon.md>) | ⚠️ | draft 승격 |
+| **Nexaon** | NL | **TDD-073** | ⚠️ draft | — |
 | **Ontex** | OL | **TDD-057** | ✅ | 링크 정리 |
-| **Kineton** | KL | **TDD-072** _(예약)_ | ❌ | 초안 작성 |
+| **Kineton** | KL | **TDD-072** | ⚠️ draft | — |
 | **Galthon** | GL | **TDD-070** §3.1.1 + 본 문서 §Galthon | ⚠️ | 유지·강화 |
 
 ### 산재 문서·역할 분담
@@ -59,7 +59,7 @@
 | **TDD-040** | 피지컬 티어 PT-0~3 · **어디서** 연산 | ML _(배치)_ | **유지** — Menton **층 ≠ 배치** |
 | **TDD-070** | 용어·ML0–ML3 · Galthon §3.1.1 | ML · GL | **유지** — Menton/Galthon **허브** |
 | **TDD-023** | NEXNAP · Envelope 인터페이스 | AL · KL | **유지** — 072에서 참조 |
-| [_inbox/Nexaon.md_](<./Nexaon.md>) | NL 개념·관계 **draft** | NL | Phase 1 → **TDD-073** 흡수 후 archive |
+| [_inbox/Nexaon.md_](<./Nexaon.md>) | NL 개념·관계 **draft** | NL | **TDD-073** 흡수 후 archive _(Phase 2)_ |
 | [_inbox/CES_](<./NEXA_핵심엔진_(Core_Engine_Stack).md>) | 7기술 **중복 허브** | 전체 | Phase 2 **이관 후 archive** |
 
 > **약어:** CES = [NEXA_핵심엔진_(Core_Engine_Stack)](<./NEXA_핵심엔진_(Core_Engine_Stack).md>)
@@ -79,12 +79,12 @@
 
 ### Phase별 작업 체크리스트
 
-| Phase | 작업 | 완료 조건 | 상태 |
-| :---: | :--- | :--- | :---: |
-| **0** | 인벤토리·SSOT ID·doc_id 예약 | SSOT 확정표 · 이관 매핑 · 분담 결정 | **✓ 2026-06-13** |
-| **1** | 기존 TDD·draft 흡수·경계 정리 | TDD-072·073 초안 · 043/044/057 중복 ✗ | 대기 |
-| **2** | CES → 기술별 SSOT 이관 | CES 관련문서 열 **전 기술 제거** 가능 | 대기 |
-| **3** | 본 섹션 축소 | SSOT 링크 표만 유지 | 대기 |
+| Phase | 작업                     | 완료 조건                            |        상태        |
+| :---: | :--------------------- | :------------------------------- | :--------------: |
+| **0** | 인벤토리·SSOT ID·doc_id 예약 | SSOT 확정표 · 이관 매핑 · 분담 결정         | **✓ 2026-06-13** |
+| **1** | 기존 TDD·draft 흡수·경계 정리  | TDD-072·073 초안 · 043/044/057 역인용 | **✓ 2026-06-13** |
+| **2** | CES → 기술별 SSOT 이관      | CES 관련문서 열 **전 기술 제거** 가능        |        대기        |
+| **3** | 본 섹션 축소                | SSOT 링크 표만 유지                    |        대기        |
 
 ### 작성·병합 우선순위 (Phase 1+)
 
@@ -101,7 +101,7 @@
 2. **TDD-043 / TDD-044** — **병합 ✗.** 044 = 043 `parent_doc`. AL/CL 경계 유지.
 3. **TDD-068** — doc_id와 파일 **동일 문서**. 표기 `TDD-068` 통일 · 병합 ✗.
 4. **TDD-070 · Galthon** — Menton §3.2.1 · Galthon §3.1.1 **분리 유지**. 전용 Galthon TDD = Phase 1 **후순위**.
-5. **TDD-072 / TDD-073** — [doc_id 레지스트리](../doc_id_레지스트리.md) **예약** · Phase 1 착수 시 frontmatter 발급.
+5. **TDD-072 / TDD-073** — [초안 발급](../08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) · [초안 발급](../08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) `status: draft` — Phase 2 CES 이관·`published` 승격.
 
 
 
@@ -374,4 +374,4 @@ flowchart TD
 
 ---
 
-_관련 SSOT:_ [용어집 TDD-070](../용어집_NEXA전용_v2.0.md) · [Core Engine Stack](<./NEXA_핵심엔진_(Core_Engine_Stack).md>) · [TDD-043](../08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044](../08_TDD/Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) · [TDD-068](../08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)
+_관련 SSOT:_ [용어집 TDD-070](../용어집_NEXA전용_v2.0.md) · [TDD-072](../08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) · [TDD-073](../08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) · [TDD-043](../08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044](../08_TDD/Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) · [TDD-057](../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) · [TDD-068](../08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)

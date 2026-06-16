@@ -40,6 +40,8 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 | [08_TDD_NEXIA_MQTT토픽데이터라우팅.md](./08_TDD_NEXIA_MQTT토픽데이터라우팅.md) | MQTT 토픽·와일드카드·OTA |
 | [08_TDD_NEXIA_데이터분산처리하이브리드전략.md](./08_TDD_NEXIA_데이터분산처리하이브리드전략.md) | 3모드 AI 실행·`ai_execution_mode` |
 | [08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) | **TDD-068** — 엣지 uplink · HEXAGON · Nexaon |
+| [Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md](./Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) | **TDD-073** — Nexaon 오케스트레이터 · ingest · Run · promoted |
+| [Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md](./Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) | **TDD-072** — Kineton · Hot Path · ACTON · ROS 2 |
 | [08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md](./08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) | **TDD-067** — 4단계 에이전트 · 7탭 · Yjs · downlink |
 
 ## NEXA-CELL (Twinex · 엣지)
