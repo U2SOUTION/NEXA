@@ -1,6 +1,6 @@
 # 08_TDD / LangGraph
 
-LangGraph·agent-graph·IoT·온톨로지 **기술 스택** TDD. UI `domainKey`는 **`nexia`** · 온톨로지 지식 도메인은 **`ontex`** — [`TDD-002` 도메인 레지스트리](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md).
+LangGraph·agent-graph·IoT·온톨로지 **기술 스택** TDD. UI `domainKey`는 **`nexia`** · 온톨로지 지식 도메인은 **`ontex`** — [`TDD-071` 도메인 구조 통합](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md).
 
 | 문서 | 역할 |
 | :--- | :--- |

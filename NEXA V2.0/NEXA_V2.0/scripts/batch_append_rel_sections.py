@@ -23,7 +23,7 @@ SECTIONS: dict[str, str] = {
 | 구현 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | v0 프롬프트셋 | [NEXIA v0 UI 프롬프트셋 v1.0 (UIX-005)](./07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) |
 | OS SSOT | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
-| 도메인 레지스트리 | [NEXA OS · 도메인 구조 레지스트리 (TDD-002)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| 도메인 구조 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 | 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |""",
     "07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
@@ -171,28 +171,21 @@ SECTIONS: dict[str, str] = {
 | 구현 PRD | [음성·미디어 파이프라인 7탭 (PRD-007)](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) |
 | 음성 브라우저 TDD | [음성 인풋 · 브라우저 레이어 (TDD-020)](./08_TDD_NEXIA_음성인풋브라우저레이어.md) |""",
     # --- batch 2: 나머지 허브 하위 ---
-    "08_TDD/NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md": """| 관계 | 문서 |
+    "08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
-| 상위 SSOT | [NEXA OS · 도메인 구조 레지스트리 (TDD-002)](./08_TDD_NEXAOS_도메인레지스트리명세.md) |
-| OS Normative | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| 상위 Normative | [NEXA OS 설계 표준 · 미션 크리티컬 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | nexia 7탭 | [NEXIA · 7탭 범위 확정 (TDD-056)](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | Ontex | [Ontex · 기술 스택 (TDD-057)](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
-| 오케스트레이션 | [LangGraph · 오케스트레이션 설계 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |""",
-    "08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md": """| 관계 | 문서 |
-| :--- | :--- |
-| 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
-| 도메인 맵 | [NEXA OS · 도메인 마스터 맵 v1.0 (TDD-059)](./08_TDD_NEXAOS_도메인마스터맵_v1.0.md) |
-| Ontex SSOT | [Ontex · 기술 스택 운영 방침 v1.0 (TDD-057)](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
-| UI 레이아웃 | [NEXIA MainShell · 레이아웃 v1.0 (UIX-004)](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
-| 제품 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |""",
+| 오케스트레이션 | [LangGraph · 오케스트레이션 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
+| UI 레이아웃 | [NEXIA MainShell (UIX-004)](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
+| **대체 (삭제됨)** | TDD-002 · TDD-059 → **본 문서 (TDD-071)** |""",
     "08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
-| 상위 SSOT | [NEXA OS · 도메인 구조 (TDD-002)](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| 상위 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 | nexia 경계 | [NEXIA · 7탭 범위 확정 (TDD-056)](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | LangGraph | [LangGraph · IoT 온톨로지 플랫폼 (TDD-008)](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | 오케스트레이션 | [LangGraph · 오케스트레이션 설계 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
-| 지식 층위 | [Knowledge · 지식 층위 · 오케스트레이션 (TDD-049)](../Knowledge/08_TDD_Knowledge_지식층위와오케스트레이션.md) |
-| 도메인 맵 | [NEXA OS · 도메인 마스터 맵 (TDD-059)](../NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) |""",
+| 지식 층위 | [Knowledge · 지식 층위 · 오케스트레이션 (TDD-049)](../Knowledge/08_TDD_Knowledge_지식층위와오케스트레이션.md) |""",
     "08_TDD/NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |

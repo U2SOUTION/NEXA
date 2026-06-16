@@ -425,33 +425,15 @@ AI가 단순 텍스트 삽입기가 아닌 **동료**로 느껴지도록 하는 
 
 ### 5.1 에디터 삽입 (메모 등 → 에디터)
 
-```
-NexiaLeftNav (메모 우클릭/클릭) / 외부
-  → mitt.emit('ai:insert-request', { target: 'editor', content })  // 또는 useAiInsertRequest
-  → NexiaContent (mitt.on('ai:insert-request'))
-  → showPanel('editor') + pendingInsertContent
-  → 문서 탭 내 새 패널 또는 활성 패널에 삽입
-```
+ P3 
 
 ### 5.2 탐색기 → 채팅/에디터
 
-```
-NexiaExplorerPanel (파일 선택 후 버튼)
-  → mitt.emit('ai:inject-to-chat' | 'ai:inject-to-editor', { file })  // 또는 useAiExplorerSelection
-  → NexiaContent (mitt.on) → 해당 탭 표시 + 새 패널로 파일 열기 또는 삽입
-  → NexiaEditorPanel / NexiaChatPanel → 삽입
-```
+ P4 
 
 ### 5.3 탭·패널 전환
 
-```
-탭 전환: useNexiaSplitLayout.showPanel(tabId)  // 현재 코드의 panelId = 본 문서의 탭 ID
-  → getAreaAndIndexForPanel(tabId)
-  → leftVisible/centerVisible/rightVisible + leftActiveIndex 등 설정
-  → NexiaSplitLayout 탭 전환 (에디터 유형 선택)
-
-패널 전환: 각 탭 내에서 열린 패널 목록 중 활성 패널 인덱스 변경 (1단계 이후 구현)
-```
+ P5 
 
 ### 5.4 패널 생명주기 (Lifecycle)
 
@@ -539,18 +521,7 @@ NexiaExplorerPanel (파일 선택 후 버튼)
 
 #### 흐름 개요
 
-```
-사용자 입력
-    ↓
-[오케스트레이터]  ← 핵심 중간 단계 (useAiOrchestrator)
-    ↓         ↓         ↓
-코드 모델   문서 모델   이미지 모델
-(CodeLlama) (Llama3)   (LLaVA)
-    ↓         ↓         ↓
-        결과 취합·통합
-            ↓
-        사용자에게 전달
-```
+ P6 
 
 #### 라우팅
 
@@ -811,18 +782,7 @@ Focus Stack을 확장하여, **패널을 닫아도 AI가 참조할 수 있는** 
 
 #### 9.2.1 ai_channels — 채널
 
-```sql
-CREATE TABLE ai_channels (
-  id VARCHAR(100) PRIMARY KEY,
-  user_id VARCHAR(100) DEFAULT 'developer',
-  name VARCHAR(255) NOT NULL,
-  sort_order INT DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_user (user_id),
-  INDEX idx_sort (sort_order)
-);
-```
+ P7 
 
 | 필드       | 설명                               |
 | ---------- | ---------------------------------- |
@@ -832,19 +792,7 @@ CREATE TABLE ai_channels (
 
 #### 9.2.2 ai_chats — 채널별 채팅
 
-```sql
-CREATE TABLE ai_chats (
-  id VARCHAR(100) PRIMARY KEY,
-  channel_id VARCHAR(100) NOT NULL,
-  title VARCHAR(255) NULL,
-  system_instruction TEXT NULL,
-  sort_order INT DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_channel (channel_id),
-  FOREIGN KEY (channel_id) REFERENCES ai_channels(id) ON DELETE CASCADE
-);
-```
+ P8 
 
 | 필드               | 설명                                                                                                                                                       |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -854,18 +802,7 @@ CREATE TABLE ai_chats (
 
 #### 9.2.3 ai_chat_messages — 채팅 메시지
 
-```sql
-CREATE TABLE ai_chat_messages (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  chat_id VARCHAR(100) NOT NULL,
-  role VARCHAR(50) NOT NULL,
-  content TEXT NOT NULL,
-  sort_order INT DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_chat (chat_id),
-  FOREIGN KEY (chat_id) REFERENCES ai_chats(id) ON DELETE CASCADE
-);
-```
+ P9 
 
 | 필드    | 설명        |
 | ------- | ----------- | --------- | ------ |
@@ -874,30 +811,7 @@ CREATE TABLE ai_chat_messages (
 
 #### 9.2.4 ai_workspace_layout — 워크스페이스 레이아웃
 
-```sql
-CREATE TABLE ai_workspace_layout (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id VARCHAR(100) DEFAULT 'developer',
-  layout_name VARCHAR(100) DEFAULT 'default',
-  left_panel_ids JSON NULL,
-  center_panel_ids JSON NULL,
-  right_panel_ids JSON NULL,
-  left_visible TINYINT(1) DEFAULT 1,
-  center_visible TINYINT(1) DEFAULT 1,
-  right_visible TINYINT(1) DEFAULT 1,
-  left_size INT DEFAULT 28,
-  center_size INT DEFAULT 44,
-  right_size INT DEFAULT 28,
-  left_active_index INT DEFAULT 0,
-  center_active_index INT DEFAULT 0,
-  right_active_index INT DEFAULT 0,
-  focus_stack JSON NULL,
-  last_focused_panel_id VARCHAR(64) NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_user_layout (user_id, layout_name)
-);
-```
+ P10 
 
 | 필드                        | 설명                                                                             |
 | --------------------------- | -------------------------------------------------------------------------------- |
@@ -907,19 +821,7 @@ CREATE TABLE ai_workspace_layout (
 
 #### 9.2.5 ai_user_settings — AI 사용자 설정
 
-```sql
-CREATE TABLE ai_user_settings (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id VARCHAR(100) DEFAULT 'developer',
-  model_name VARCHAR(255) NULL,
-  show_outline TINYINT(1) DEFAULT 1,
-  font_size INT NULL,
-  settings_json JSON NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_user (user_id)
-);
-```
+ P11 
 
 | 필드          | 설명             |
 | ------------- | ---------------- |
@@ -936,46 +838,7 @@ CREATE TABLE ai_user_settings (
 
 **페르소나·스킬·테스크 JSON 데이터 구조 (뼈대)** — 2단계 구현·DB 설계 시 이 구조를 기준으로 함. Zod로 검증.
 
-```json
-{
-  "personas": [
-    {
-      "id": "persona-01",
-      "name": "코드 리뷰어",
-      "description": "코드 품질 검토 및 리팩터링 제안",
-      "systemPrompt": "You are a senior code reviewer...",
-      "avatar": null
-    }
-  ],
-  "skills": [
-    {
-      "id": "skill-01",
-      "name": "요약",
-      "description": "텍스트 요약",
-      "promptTemplate": "Summarize the following: {{content}}",
-      "inputSchema": {},
-      "outputSchema": {}
-    },
-    {
-      "id": "skill-iot-log",
-      "name": "장비 로그 끌어오기",
-      "description": "백그라운드 IoT 로그를 데스크로 끌어와 분석. 5.8 장비 로그 통합 참조",
-      "promptTemplate": "Analyze the following device logs: {{logs}}",
-      "inputSchema": {},
-      "outputSchema": {}
-    }
-  ],
-  "tasks": [
-    {
-      "id": "task-01",
-      "name": "리팩터링 요청",
-      "description": "선택 코드 리팩터링 제안",
-      "skillIds": ["skill-01", "skill-02"],
-      "personaId": "persona-01"
-    }
-  ]
-}
-```
+ P12 
 
 | 필드                        | 용도                                        |
 | --------------------------- | ------------------------------------------- |
@@ -1043,23 +906,7 @@ CREATE TABLE ai_user_settings (
 
 **1단계에서 준비할 패널용 JSON 구조 (예시)**
 
-```json
-{
-  "layout": { "leftPanelIds": [], "centerPanelIds": [], "rightPanelIds": [], "activePanelId": "" },
-  "panels": [
-    {
-      "id": "01HXYZ...",
-      "tabId": "code",
-      "filePath": "/path/to/file.ts",
-      "label": "file.ts",
-      "focusOrder": 0,
-      "dirty": false,
-      "selectionRange": { "startLine": 10, "startColumn": 0, "endLine": 12, "endColumn": 5 }
-    }
-  ],
-  "focusStack": []
-}
-```
+ P13 
 
 | 필드                      | 용도                                                                                                                                                                                  |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

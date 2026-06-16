@@ -1,26 +1,29 @@
 ---
+implements_doc: 
+see_also: []
 doc_id: PRD-012
 title: "탐색기 ↔ 미디어 탭 동기화"
 category: "05_PRD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-10
+updated: 2026-06-14
 parent_doc: BRD-001
 terms_standard: ["rest"]
 terms_nexa: ["useNexiaAssets", "useGlobalFileExplorer", "file_references", "NexiaLeftNav"]
 tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/rest", "nexa/useNexiaAssets", "nexa/useGlobalFileExplorer", "nexa/file_references", "nexa/NexiaLeftNav"]
 ---
+
 # NEXIA · 탐색기 ↔ 미디어 탭 동기화
 
-탐색기(우측 패널)와 왼쪽 드로어 미디어 탭 간 **파일 리스트 동기화 및 양방향 연동**을 위한 기획 문서다.
+탐색기 (우측 패널) 와 왼쪽 드로어 미디어 탭 간 **파일 리스트 동기화 및 양방향 연동**을 위한 기획 문서다.
 
 ---
 
 ## 0. 적용 범위 (의도)
 
 - **탐색기**: 서버 전체 파일을 도메인·경로·검색 기준으로 조회 (useGlobalFileExplorer, GET /files/explorer)
-- **미디어 탭**: NEXIA 도메인에서 사용하는 미디어만 카테고리별(갤러리/사운드/영상/문서)로 표시 (useNexiaAssets, GET /files/list?domain=nexia)
+- **미디어 탭**: NEXIA 도메인에서 사용하는 미디어만 카테고리별 (갤러리/사운드/영상/문서) 로 표시 (useNexiaAssets, GET /files/list?domain=nexia)
 - **목표**: 왼쪽 업로드 → 양쪽에 반영, 탐색기에서 선택한 파일 → 미디어 탭에 추가 가능
 
 ---
@@ -43,7 +46,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/rest", "nexa/useNexiaAssets", 
 |------|------|------|
 | 왼쪽 미디어 업로드 | POST /files/upload (domain=nexia) | file 생성 + file_reference(ai) 삽입 → 미디어 리스트에 표시, 탐색기에도 표시 |
 | 미디어에서 제거 | DELETE /files/:id/reference?domain=nexia | file_reference(ai) 삭제 → 미디어 리스트에서 사라짐, 탐색기에는 다른 도메인 참조가 있으면 계속 표시 |
-| 탐색기에서 보이는 파일 | GET /files/explorer | 모든 file_references에 포함된 파일 (nexia, archive, parts 등) |
+| 탐색기에서 보이는 파일 | GET /files/explorer | 모든 file_references 에 포함된 파일 (nexia, archive, parts 등) |
 
 ### 1.3 요구사항 정리
 
@@ -60,7 +63,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/rest", "nexa/useNexiaAssets", 
 
 ### 2.1 왼쪽 미디어 탭 업로드 → 양쪽 반영
 
-```
+```json
 [FileDropZone] POST /files/upload (domain=nexia)
        ↓
 [서버] files INSERT + file_references INSERT (file_id, domain='nexia')
@@ -70,14 +73,14 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/rest", "nexa/useNexiaAssets", 
 [useGlobalFileExplorer] 탐색기: domain 미지정 시 전 도메인 조회 → 새 파일 포함
 ```
 
-**현재 상태**: POST /files/upload는 이미 file_reference(ai)를 삽입함.  
-**필요 조치**:  
-1. 왼쪽 업로드 직후 useNexiaAssets.loadCategory() 호출 → **이미 구현됨**  
+**현재 상태**: POST /files/upload 는 이미 file_reference(ai) 를 삽입함.
+**필요 조치**:
+1. 왼쪽 업로드 직후 useNexiaAssets.loadCategory() 호출 → **이미 구현됨**
 2. 탐색기 쪽: 업로드 발생 시 탐색기 `refreshList()` 호출 — **이벤트/훅 연동 필요**
 
 ### 2.2 탐색기 → 미디어 탭 추가
 
-```
+```json
 [NexiaExplorerPanel] 파일 선택 → "미디어에 추가" 버튼 클릭
        ↓
 [새 API] POST /api/files/:id/reference (domain=nexia)
@@ -87,7 +90,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/rest", "nexa/useNexiaAssets", 
 [useNexiaAssets] loadCategory(해당 category) 호출 → 미디어 리스트 갱신
 ```
 
-**현재 상태**: file_reference 추가 API **없음** (DELETE만 존재)  
+**현재 상태**: file_reference 추가 API **없음** (DELETE 만 존재)
 **필요 조치**: POST /files/:id/reference 신규 추가
 
 ---
@@ -128,11 +131,11 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/rest", "nexa/useNexiaAssets", 
 | **영상** | 비디오 아이템 리스트 (썸네일 또는 아이콘 + 파일명) |
 | **문서** | 문서 아이템 리스트 (아이콘 + 파일명) |
 
-*현재 NexiaLeftNav.tsx는 Collapsible (shadcn)으로 갤러리/사운드/영상 구분. 기존 구조 유지 가능.*
+*현재 NexiaLeftNav.tsx 는 Collapsible (shadcn) 으로 갤러리/사운드/영상 구분. 기존 구조 유지 가능.*
 
 ### 4.2 탐색기 액션 바
 
-NexiaExplorerPanel.tsx의 action-bar에 **"미디어에 추가"** 버튼 추가:
+NexiaExplorerPanel.tsx 의 action-bar 에 **" 미디어에 추가 "** 버튼 추가:
 
 | 버튼 | 설명 |
 |------|------|
@@ -144,7 +147,7 @@ NexiaExplorerPanel.tsx의 action-bar에 **"미디어에 추가"** 버튼 추가:
 | **미디어에 추가** | 선택 파일을 AI 미디어 리스트에 추가 (file_reference 추가) |
 
 - 미디어에 추가 시:
-  - 이미 nexia 도메인에 참조가 있으면 → "이미 미디어에 있습니다" 토스트
+  - 이미 nexia 도메인에 참조가 있으면 → " 이미 미디어에 있습니다 " 토스트
   - 성공 시 → useNexiaAssets.loadCategory() 호출 + 토스트
 
 ---
@@ -156,25 +159,25 @@ NexiaExplorerPanel.tsx의 action-bar에 **"미디어에 추가"** 버튼 추가:
 | 함수 | 역할 |
 |------|------|
 | `addAsset(payload)` | 기존 — PC 업로드 / 서버 선택 시 미디어 추가 |
-| **addFileToMedia(file)** | 신규 — file_id + category로 기존 파일을 미디어에 추가 (POST /files/:id/reference 호출 후 loadCategory) |
+| **addFileToMedia(file)** | 신규 — file_id + category 로 기존 파일을 미디어에 추가 (POST /files/:id/reference 호출 후 loadCategory) |
 
 ### 5.2 업로드 → 탐색기 갱신
 
-방법 A: **이벤트 버스**  
-- FileDropZone 또는 handleMediaAdd에서 `upload-complete` 이벤트 발생  
-- useGlobalFileExplorer에서 리스닝 → loadItems(false) 호출  
+방법 A: **이벤트 버스**
+- FileDropZone 또는 handleMediaAdd 에서 `upload-complete` 이벤트 발생
+- useGlobalFileExplorer 에서 리스닝 → loadItems(false) 호출
 
-방법 B: **shared state / composable**  
-- useNexiaAssets.uploadFile 성공 시, useGlobalFileExplorer.refreshList() 호출 (의존성 주입 또는 provide/inject)  
+방법 B: **shared state / composable**
+- useNexiaAssets.uploadFile 성공 시, useGlobalFileExplorer.refreshList() 호출 (의존성 주입 또는 provide/inject)
 
-방법 C: **탐색기 주기적 새로고침**  
-- 사용자가 새로고침 버튼 클릭 시에만 — 최소 구현  
+방법 C: **탐색기 주기적 새로고침**
+- 사용자가 새로고침 버튼 클릭 시에만 — 최소 구현
 
-**권장**: 1단계에서는 방법 C(수동 새로고침)로 충족. 이후 방법 A/B로 자동 갱신 확장.
+**권장**: 1 단계에서는 방법 C(수동 새로고침) 로 충족. 이후 방법 A/B 로 자동 갱신 확장.
 
 ### 5.3 탐색기 → 미디어 추가 플로우
 
-```
+```json
 NexiaExplorerPanel.tsx
   - "미디어에 추가" 클릭
   - useNexiaAssets.addFileToMedia(selectedFile) 호출
@@ -218,7 +221,7 @@ router.post('/files/:id/reference', async (req, res) => {
 |-------|------|
 | **1** | POST /files/:id/reference API 추가 |
 | **2** | useNexiaAssets.addFileToMedia() 구현 |
-| **3** | NexiaExplorerPanel에 "미디어에 추가" 버튼 추가 |
+| **3** | NexiaExplorerPanel 에 " 미디어에 추가 " 버튼 추가 |
 | **4** | 왼쪽 업로드 시 탐색기 갱신 (이벤트 또는 수동 새로고침 안내) |
 | **5** | 이미 미디어에 있는 파일인 경우 UX 처리 (토스트, 버튼 비활성화 등) |
 
@@ -229,10 +232,11 @@ router.post('/files/:id/reference', async (req, res) => {
 | 항목 | 내용 |
 |------|------|
 | **탐색기** | 서버 전체 파일 (file_references 기준) 표시 |
-| **미디어 탭** | domain=nexia인 파일만 카테고리별(갤러리/사운드/영상/문서) 표시 |
+| **미디어 탭** | domain=nexia 인 파일만 카테고리별 (갤러리/사운드/영상/문서) 표시 |
 | **왼쪽 업로드** | file + file_reference(ai) 생성 → 미디어·탐색기 둘 다 반영 |
-| **탐색기 → 미디어** | POST /files/:id/reference (신규 API)로 file_reference(ai) 추가 |
+| **탐색기 → 미디어** | POST /files/:id/reference (신규 API) 로 file_reference(ai) 추가 |
 | **참조** | files.routes.js, useNexiaAssets.ts, useGlobalFileExplorer.ts, NexiaLeftNav.tsx, NexiaExplorerPanel.tsx |
+
 ---
 
 ## 관련 문서

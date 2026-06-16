@@ -7,7 +7,7 @@ category: "05_PRD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-13
+updated: 2026-06-14
 parent_doc: BRD-001
 terms_standard: ["file-upload", "multipart", "rest", "mqtt"]
 terms_nexa: ["FileDropZone", "FileBrowserModal", "NexiaLeftNav", "files", "useNexiaAssets"]
@@ -793,22 +793,22 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 ### Phase 1: 기본 인프라
 
-| 순서 | 단계          | 세부 작업                                                                                      |
-| ---- | ------------- | ---------------------------------------------------------------------------------------------- |
-| 1.1  | **DB 스키마** | `files` 테이블 생성 (ai_workflow_*, ai_review_*, source_metadata 포함)                          |
-| 1.2  |               | `file_references` 테이블 생성 (file_id, domain, project_id, virtual_path)                      |
-| 1.2a |               | `edge_device` 테이블 생성 (엣지 확장 시, 섹션 4.3.1)                                           |
-| 1.3  |               | `file_ai_metadata`, `file_tags`(source 포함), `file_embeddings`, `file_action_log` 테이블 생성 |
-| 1.4  |               | UNIQUE(content_hash), 인덱스 확인 (domain, project_id, edge_sid, ai_workflow, ai_review)       |
-| 2.1  | **서버 유틸** | content_hash(SHA256) 계산 함수                                                                 |
-| 2.2  |               | magic number 검증 (file-type 또는 magic-bytes.js)                                              |
-| 2.3  |               | 파일 저장 경로 생성 `uploads/{domain}/{category}/` (날짜 분리 옵션: 5.2)                       |
-| 2.4  |               | fileTypes.js 기반 category·타입 판별                                                           |
-| 3.1  | **서버 API**  | POST /files/upload: multer, 확장자 +MIME+magic number 검증, content_hash 계산 (필수)·중복 검사   |
-| 3.2  |               | GET /files/list: files JOIN file_references, domain/category 필터                              |
-| 3.3  |               | DELETE /files/:id 또는 도메인별 참조 제거 API                                                  |
-| 3.4  |               | PATCH /files/:id/verify, POST /files/:id/reprocess (사람 검증·재처리)                          |
-| 3.5  |               | PATCH /file_tags/:id, POST /file_tags (태그 수정·추가, source 구분)                            |
+| 순서   | 단계         | 세부 작업                                                                                   |
+| ---- | ---------- | --------------------------------------------------------------------------------------- |
+| 1.1  | **DB 스키마** | `files` 테이블 생성 (ai_workflow_*, ai_review_*, source_metadata 포함)                         |
+| 1.2  |            | `file_references` 테이블 생성 (file_id, domain, project_id, virtual_path)                    |
+| 1.2a |            | `edge_device` 테이블 생성 (엣지 확장 시, 섹션 4.3.1)                                                |
+| 1.3  |            | `file_ai_metadata`, `file_tags`(source 포함), `file_embeddings`, `file_action_log` 테이블 생성 |
+| 1.4  |            | UNIQUE(content_hash), 인덱스 확인 (domain, project_id, edge_sid, ai_workflow, ai_review)     |
+| 2.1  | **서버 유틸**  | content_hash(SHA256) 계산 함수                                                              |
+| 2.2  |            | magic number 검증 (file-type 또는 magic-bytes.js)                                           |
+| 2.3  |            | 파일 저장 경로 생성 `uploads/{domain}/{category}/` (날짜 분리 옵션: 5.2)                              |
+| 2.4  |            | fileTypes.js 기반 category·타입 판별                                                          |
+| 3.1  | **서버 API** | POST /files/upload: multer, 확장자 +MIME+magic number 검증, content_hash 계산 (필수)·중복 검사       |
+| 3.2  |            | GET /files/list: files JOIN file_references, domain/category 필터                         |
+| 3.3  |            | DELETE /files/:id 또는 도메인별 참조 제거 API                                                     |
+| 3.4  |            | PATCH /files/:id/verify, POST /files/:id/reprocess (사람 검증·재처리)                          |
+| 3.5  |            | PATCH /file_tags/:id, POST /file_tags (태그 수정·추가, source 구분)                             |
 
 ### Phase 2: 시스템 컴포넌트
 
@@ -987,10 +987,10 @@ uploads/{domain}/{category}/{YYYY-MM}/{YYYYMMDDHHmmss}_{shortUuid}.{ext}
 
 ### 14.1 AI 워커: 단일 vs 다중
 
-| 옵션     | 장점                                   | 단점                           | 권장            |
-| -------- | -------------------------------------- | ------------------------------ | --------------- |
-| **단일** | 구현 단순, 상태 관리 용이, 디버깅 쉬움 | 처리량 제한, 단일 장애점       | 초기·소규모     |
-| **다중** | 처리량 확장, 병렬 처리                 | 동시성·락 관리, 분산 추적 필요 | 파일 수 많을 때 |
+| 옵션     | 장점                      | 단점                 | 권장        |
+| ------ | ----------------------- | ------------------ | --------- |
+| **단일** | 구현 단순, 상태 관리 용이, 디버깅 쉬움 | 처리량 제한, 단일 장애점     | 초기·소규모    |
+| **다중** | 처리량 확장, 병렬 처리           | 동시성·락 관리, 분산 추적 필요 | 파일 수 많을 때 |
 
 **결정 시점**: Phase 2 (AI 테깅) 구현 시. 초기에는 단일 워커로 검증 후, 대기 건수·지연이 부담되면 다중 전환 검토.
 

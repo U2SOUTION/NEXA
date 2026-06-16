@@ -8,16 +8,16 @@ created: 2026-06-12
 updated: 2026-06-13
 parent_doc: TDD-056
 implements_doc: 
-see_also: [TDD-056, TDD-057, TDD-058, TDD-010, TDD-059, TDD-038, TDD-008, TDD-033, TDD-023, TDD-022, TDD-034, TDD-036, TDD-039, TDD-040, TDD-041, TDD-045, TDD-070, TDD-066, TDD-068]
+see_also: [TDD-056, TDD-057, TDD-058, TDD-010, TDD-071, TDD-038, TDD-008, TDD-033, TDD-023, TDD-022, TDD-034, TDD-036, TDD-039, TDD-040, TDD-041, TDD-045, TDD-070, TDD-066, TDD-068]
 terms_standard: ["langgraph", "rag", "mcp", "agentic-ai", "ontology", "shacl", "yjs", "crdt", "hocuspocus", "mqtt", "esphome", "ota", "web-serial"]
-terms_nexa: ["nexia", "ontex", "Omnix", "Normex", "Logex", "Nexaon", "Navex", "Nixie", "nexabo", "EventRouter", "NEXA-CELL", "Twinex", "ACTON", "GOVERN", "tabId", "domainKey", "Graph-RAG", "agent-graph", "apps-sync", "DiffOverlay", "ontology-draft"]
+terms_nexa: ["nexia", "Ontex", "Omnix", "Normex", "Logex", "Nexaon", "Navex", "Nixie", "nexabo", "EventRouter", "NEXA-CELL", "Twinex", "ACTON", "GOVERN", "tabId", "domainKey", "Graph-RAG", "agent-graph", "apps-sync", "DiffOverlay", "ontology-draft"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/langgraph", "std/rag", "std/mcp", "std/agentic-ai", "std/ontology", "std/shacl", "std/yjs", "std/crdt", "std/hocuspocus", "std/mqtt", "nexa/nexia", "nexa/ontex", "nexa/Omnix", "nexa/Normex", "nexa/Logex", "nexa/Nexaon", "nexa/Navex", "nexa/Nixie", "nexa/nexabo", "nexa/EventRouter", "nexa/tabId", "nexa/domainKey", "nexa/Graph-RAG", "nexa/agent-graph", "nexa/apps-sync", "nexa/DiffOverlay", "nexa/ontology-draft"]
 ---
 
 # 에이전틱 AI 파이프라인 · NEXIA 7 탭 · 플랫폼·Yjs 연계 v1.0
 
-> **doc_id:** TDD-067 · **상태:** published — 4 단계 파이프라인 · **nexia 7 탭** · **ontex** · **Yjs Human·LLM** · NEXA OS 연계.
-> **짝 문서 (엣지 상류·하향):** [TDD-068 · IoT 엣지…](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) — uplink · **downlink** · HEXAGON · **Event Router** · **Nexaon(L3) · Nixie(L1)** · §7.5 · **§7.6**
+> **doc_id:** TDD-067 · **상태:** published — 4 단계 파이프라인 · **nexia 7 탭** · **Ontex** · **Yjs Human·LLM** · NEXA OS 연계.
+> **짝 문서 (엣지 상류·하향):** [TDD-068 · IoT 엣지…](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) — uplink · **downlink** · HEXAGON · **Event Router** · **Nexaon(ML3) · Nixie(ML1)** · §7.5 · **§7.6**
 > **NEXA AIS:** 6 종 **정본 승격 완료** — [08_TDD/AI/README](../AI/README.md) · TDD-033~041
 
 ---
@@ -79,7 +79,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/langgraph", "std/rag", "std/mc
 
 | 파이프라인 단계 | NEXA 역할 (한 줄) | 주 담당 | 보조·소비 |
 | :--- | :--- | :--- | :--- |
-| **① Gathering** | 질문 확장 · Hybrid RAG · 원천 정보 수집 | **ontex** `explore` · `rag_retrieve` | **Navex** · **Nexaon** ExplorerTree · **Omnix** User Query · **엣지 후보고** _(짝 문서 §7.5)_ |
+| **① Gathering** | 질문 확장 · Hybrid RAG · 원천 정보 수집 | **Ontex** `explore` · `rag_retrieve` | **Navex** · **Nexaon** ExplorerTree · **Omnix** User Query · **엣지 후보고** _(짝 문서 §7.5)_ |
 | **② Reasoning** | 추론 · 검증 · 맥락 선택 · SHACL/완전성 | **Logex / Nexaon** · `agent-graph` | **Normex** 가드레일 · Yjs `ontology:draft` |
 | **③ Planning** | 도구·MCP·실행 계획 · 탭 위임 | **Omnix** · `nexia_tab_route` / `delegate` | **Logex** `.nxflow` · **Twinex** · **Scribx** |
 | **④ Writing** | 최종 산출물·보고서·`.nx*` 생성 | **Normex** · **Scribx** · **Vivex** | **Omnix** 답변 스트림 · **Navex** 등록 |
@@ -101,7 +101,7 @@ User Query (Omnix)              엣지 후보고 (Sentinel · MQTT)
     │
     └──► Navex 등록 ──► ontex ingest (장기 허브)
 
-Nixie (L1): Router nixie.alert + Run SSE ──► TTS · Jitter (표현만)
+Nixie (ML1): Router nixie.alert + Run SSE ──► TTS · Jitter (표현만)
 
 Downlink (§7.6): ③ Planning ──► esphome_compose · 빌드 ──► USB/OTA ──► 엣지
       ▲                                              │
@@ -124,7 +124,7 @@ Downlink (§7.6): ③ Planning ──► esphome_compose · 빌드 ──► USB
 | **Nixie** _(frame)_ | ◐ **엣지 FACT** · Router `nixie.alert` 알림 | — | — | ◐ TTS·요약 **표현** | _(`.nx*` ✗)_ |
 | **nexabo** _(domainKey)_ | ● Live Feed · **엣지 후보고** 미러 | ◐ 알람 correlate UI | ◐ Event Router 규칙 편집 | — | 관제 trace |
 
-**Nixie** — `tabId` **✗** · MainShell **L1 Presence** · IoT uplink **MQTT 직결 ✗** — [`짝 문서 §1.6`](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · **§7.5**
+**Nixie** — `tabId` **✗** · MainShell **ML1 Presence** · IoT uplink **MQTT 직결 ✗** — [`짝 문서 §1.6`](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · **§7.5**
 
 **Nexaon(ontology)** — 별도 `tabId` 가 아니라 **`logex` + `logexSubMode: ontology`** (`modules/nexaon/`). ② Reasoning · ③ Planning · ④ Writing 의 **IoT 온톨로지** 핵심면.
 
@@ -134,7 +134,7 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 
 | 파이프라인 | `graph_id` (예) | `domainKey` | UI 소비 |
 | :--- | :--- | :--- | :--- |
-| ① Gathering | `rag_retrieve` · `ontex_ingest` | ontex · nexia | ontex **explore** · Navex |
+| ① Gathering | `rag_retrieve` · `ontex_ingest` | Ontex · nexia | Ontex **explore** · Navex |
 | ① Gathering _(IoT)_ | _(Router)_ → `nexaon_ingest` 큐 | nexia · nexabo | **엣지 후보고** · Twinex · §7.5 |
 | ①→② | `nexia_intent_classify` | nexia | Omnix |
 | ② Reasoning | `nexaon_ingest` · `nexaon_refine` | nexia (Nexaon) | RunPanel · GraphCanvas |
@@ -153,7 +153,7 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 | ① 실시간 | Yjs CRDT · `project_yjs_updates` | ② Reasoning 중 Human·AI 공편집 |
 | ② Draft | PostgreSQL JSONB | ②→③ LangGraph Extract 초안 |
 | ③ Audit | PostgreSQL · `run_id` | ③ Planning 후 승인 A/B |
-| ④ Promoted | **Neo4j** | ④ Writing 완료 · SHACL PASS → **ontex** explore/canvas |
+| ④ Promoted | **Neo4j** | ④ Writing 완료 · SHACL PASS → **Ontex** explore/canvas |
 
 ```text
 [Nexaon ② Reasoning]  Yjs ontology:draft
@@ -171,19 +171,19 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 
 > **SSOT:** [짝 문서 · IoT 파이프라인](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) §1.4 · §1.6 · §1.6.6 · [TDD-070 §3.4.1](../../용어집_NEXA전용_v2.0.md)
 
-본 절은 **클라우드 4 단계 에이전트 파이프라인**과 **IoT 엣지 상류 (Sentinel · 후보고)** · **Nixie(L1)** · **Event Router Policy** 의 접점을 정의한다.
+본 절은 **클라우드 4 단계 에이전트 파이프라인**과 **IoT 엣지 상류 (Sentinel · 후보고)** · **Nixie(ML1)** · **Event Router Policy** 의 접점을 정의한다.
 
 **원칙**
 
 | 주체 | 4 단계 파이프라인에서 | 금지 |
 | :--- | :--- | :--- |
-| **Sentinel (L0)** | ① Gathering **입력 원천** — FACT·후보고 uplink | 플랫폼 Run · Yjs **✗** |
+| **Sentinel (ML0)** | ① Gathering **입력 원천** — FACT·후보고 uplink | 플랫폼 Run · Yjs **✗** |
 | **Event Router** | staging → **match·refine·route** (Normex·GOVERN·사용자 규칙) | MQTT downlink · promoted **직접 ✗** |
 | **Throttle · Buffer** | bus **→ Router** — Envelope 큐·집계 | 라우팅·Run **소유 ✗** · **§8.2.1 ②** |
 | **Ingress Gate** | **Broker → validate** — burst 진입 차단 | 장기 버퍼·Router **✗** · **§8.2.1 ①** |
-| **Nexaon / agent-graph (L3)** | ② Reasoning · ③ Planning · ④ Writing (IoT 온톨로지) | — |
-| **Nixie (L1)** | Router **`nixie.alert`** · Run SSE · Awareness **표현** | Run·Router·MQTT **소유 ✗** |
-| **Omnix (L3)** | ③ Planning · 승인 · `nexia_tab_delegate` | — |
+| **Nexaon / agent-graph (ML3)** | ② Reasoning · ③ Planning · ④ Writing (IoT 온톨로지) | — |
+| **Nixie (ML1)** | Router **`nixie.alert`** · Run SSE · Awareness **표현** | Run·Router·MQTT **소유 ✗** |
+| **Omnix (ML3)** | ③ Planning · 승인 · `nexia_tab_delegate` | — |
 
 #### 7.5.1 엣지 6 단계 ↔ Agentic 4 Phase
 
@@ -194,12 +194,12 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 | ④a **Ingress Gate** | **① Gathering** (ingress) | Nest · Broker 직후 | burst **진입 차단** · **§8.2.1 ①** |
 | ④b **Throttle · Buffer** | **① Gathering** (전처리) | Nest · bus→Router | Envelope **큐** · **§8.2.1 ②** |
 | ⑤ Nexaon 정재 · Run | **② Reasoning** · **③ Planning** | Nexaon · agent-graph · Omnix | 진행 **상태 표현** |
-| ⑥ promoted → ontex | **① Gathering+** · **④ Writing** (허브) | ontex · Neo4j | 요약·Jitter |
+| ⑥ promoted → Ontex | **① Gathering+** · **④ Writing** (허브) | Ontex · Neo4j | 요약·Jitter |
 
 #### 7.5.2 End-to-End (엣지 · 4 Phase · Nixie)
 
 ```text
-[L0 Sentinel] 후보고 (candidate:true)
+[ML0 Sentinel] 후보고 (candidate:true)
       │ MQTT
 [Broker]
       │
@@ -219,7 +219,7 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
       ├──────── nexia.twinex ───────► Twinex → ②/③ 컨텍스트
       ├──────── nexaon.queue/ingest ► ② Reasoning (nexaon_ingest)
       ├──────── agent-graph.critical ► ② Reasoning (Zenith 1차)
-      └──────── nixie.alert ──────────► Nixie L1 (TTS · Jitter) — MQTT ✗
+      └──────── nixie.alert ──────────► Nixie ML1 (TTS · Jitter) — MQTT ✗
                 │
                 ▼ Omnix · Run
          ② Reasoning → ③ Planning → ④ Writing
@@ -230,7 +230,7 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 
 ```mermaid
 flowchart TB
-  subgraph L0 [L0 · IoT 엣지 · 짝 문서 ①~③]
+  subgraph ML0 [ML0 · IoT 엣지 · 짝 문서 ①~③]
     S[Sentinel · HEXAGON]
     CR[후보고 Envelope]
     S --> CR
@@ -266,7 +266,7 @@ flowchart TB
     OT --> NV
   end
 
-  subgraph L1 [Nixie · L1 · 표현]
+  subgraph ML1 [Nixie · ML1 · 표현]
     NI[Nixie Shell]
     USER((사용자))
     ERP -->|nixie.alert SSE| NI
@@ -276,7 +276,7 @@ flowchart TB
     NI --> USER
   end
 
-  L0 -.->|Reflex ACTON| S
+  ML0 -.->|Reflex ACTON| S
 ```
 
 #### 7.5.3 User Query vs 엣지 후보고 (합류)
@@ -287,7 +287,7 @@ flowchart TB
 | **엣지 후보고** | MQTT → Nest → **Event Router** | `nexaon.queue` / `nexaon.ingest` → ② _(Logex UI 선행 ✗)_ |
 | **Navex 선택** | `navex` · Global Navex | Run **컨텍스트** → ①② |
 
-두 입력은 **Omnix · agent-graph** 에서 **동일 Nexaon room · ontex RAG** 로 합류할 수 있다 — Yjs·promoted 경계는 **§9** · 짝 문서 §6.
+두 입력은 **Omnix · agent-graph** 에서 **동일 Nexaon room · Ontex RAG** 로 합류할 수 있다 — Yjs·promoted 경계는 **§9** · 짝 문서 §6.
 
 #### 7.5.4 Nixie × 4 Phase (Normative)
 
@@ -315,13 +315,13 @@ flowchart TB
 | **Uplink** _(§7.5)_ | Sentinel → MQTT → Nest → Event Router | ① Gathering → ②③④ | nexabo · Nexaon · Nixie(표현) |
 | **Generate** | Twinex/Logex → YAML·Lambda → `.bin` | ③ Planning → ④ Writing | **Twinex** · `esphome_compose` |
 | **Push** | USB(Web Serial) · OTA(MQTT `cmd/ota`) | ③ Planning _(고위험)_ | Twinex · Nest `esphome/` |
-| **Control** | `cmd/*` · GOVERN · Reflex ACTON | ③ Planning _(승인)_ · L0 즉시 | Omnix · Nest · **Sentinel** |
+| **Control** | `cmd/*` · GOVERN · Reflex ACTON | ③ Planning _(승인)_ · ML0 즉시 | Omnix · Nest · **Sentinel** |
 | **Feedback** | `…/status` · OTA ACK · 배포 trace | ① Gathering _(재유입)_ | Event Router → Twinex · nexabo |
 
 ```text
                     ┌─── Generate ─── esphome_compose · Docker build ───┐
                     │                                                  ▼
-[Human/Omnix] ──③④──► Twinex (.nxproj) ──Push──► [USB | OTA MQTT] ──► [L0 Device]
+[Human/Omnix] ──③④──► Twinex (.nxproj) ──Push──► [USB | OTA MQTT] ──► [ML0 Device]
        ▲                    ▲                           │                  │
        │                    │                           │                  │ ACTON Reflex
        │                    └──── Feedback (status/FACT) ◄─────────────────┘
@@ -379,10 +379,10 @@ Omnix 승인 → Nest downlink API → publish
 
 | 계층 | 주체 | 지연 | Agentic Phase | Event Router |
 | :--- | :--- | :--- | :--- | :--- |
-| **L0 Reflex** | Sentinel **ACTON** | ms | _(플랫폼 **이전**)_ | uplink **후보고 병행** |
-| **L0~L1 GOVERN** | Nest → MQTT 파라미터 | 주기 | ③ Planning → ④ (규범 `.nxpol`) | **match** 후 downlink 큐 |
-| **L2 명령** | `cmd/*` (OTA·릴레이·setpoint) | s | ③ **Omnix 승인** 필수 | Router **직접 cmd ✗** |
-| **L2 UI** | Twinex 디바이스 패널 | 스로틀 | ②③ 컨텍스트 | MQTT **고주파 Yjs ✗** — §9.6 |
+| **ML0 Reflex** | Sentinel **ACTON** | ms | _(플랫폼 **이전**)_ | uplink **후보고 병행** |
+| **ML0~ML1 GOVERN** | Nest → MQTT 파라미터 | 주기 | ③ Planning → ④ (규범 `.nxpol`) | **match** 후 downlink 큐 |
+| **ML2 명령** | `cmd/*` (OTA·릴레이·setpoint) | s | ③ **Omnix 승인** 필수 | Router **직접 cmd ✗** |
+| **ML2 UI** | Twinex 디바이스 패널 | 스로틀 | ②③ 컨텍스트 | MQTT **고주파 Yjs ✗** — §9.6 |
 
 **제어 vs uplink 분리 (Normative)**
 
@@ -426,7 +426,7 @@ flowchart TB
     OM --> OTA
   end
 
-  subgraph L0 [L0 · Device]
+  subgraph ML0 [ML0 · Device]
     DEV[ESP32 · Sentinel]
     USB --> DEV
     OTA --> DEV
@@ -514,34 +514,34 @@ awareness: {
 
 NIXIE·StatusBar 는 Awareness `status` 와 동기화 — [`UIX-004` §4.6](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md).
 
-### 9.2.1 Nexaon(L3) · Nixie(L1) · Event Router — 지능 vs 표현
+### 9.2.1 Nexaon(ML3) · Nixie(ML1) · Event Router — 지능 vs 표현
 
 > **엣지·IoT · 4 Phase · downlink:** **§7.5** · **§7.6** · [짝 문서 §1.4 · §1.6.3 · §1.6.6](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · [TDD-045 §5](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md)
 
 | 주체 | 층 | 본 파이프라인 (4 단계) 에서 |
 | :--- | :---: | :--- |
 | **Event Router** | Nest Policy | ① Gathering **fan-out** — match·refine·route (Normex·GOVERN·사용자) |
-| **Nexaon** · **agent-graph** | L3 | ② Reasoning · ③ Planning · ④ Writing — Run · `graph_diff` · SHACL · promoted |
-| **Omnix** | L3 | Run 큐 · 승인 · 탭 위임 |
-| **Nixie (NIXIE)** | L1 | Run·Router·MQTT **소유 ✗** — `nixie.alert` · SSE · Awareness · Jitter/Lumina |
+| **Nexaon** · **agent-graph** | ML3 | ② Reasoning · ③ Planning · ④ Writing — Run · `graph_diff` · SHACL · promoted |
+| **Omnix** | ML3 | Run 큐 · 승인 · 탭 위임 |
+| **Nixie (NIXIE)** | ML1 | Run·Router·MQTT **소유 ✗** — `nixie.alert` · SSE · Awareness · Jitter/Lumina |
 
 ```mermaid
 flowchart LR
-  subgraph edge [L0 · IoT]
+  subgraph edge [ML0 · IoT]
     CR[후보고]
   end
   subgraph router [Event Router]
     ERP[Policy]
     CR -->|MQTT·Nest| ERP
   end
-  subgraph L3 [L3 · Strategic]
+  subgraph ML3 [ML3 · Strategic]
     OM[Omnix]
     AG[agent-graph]
     NX[Nexaon]
     ERP -->|nexaon.ingest| OM
     OM --> AG --> NX
   end
-  subgraph L1 [L1 · Presence]
+  subgraph ML1 [ML1 · Presence]
     NI[Nixie]
     USER((사용자))
     ERP -->|nixie.alert| NI
@@ -558,7 +558,7 @@ flowchart LR
 
 | 파이프라인 | Human (Yjs) | LLM (Run/SSE) | 연결점 |
 | :--- | :--- | :--- | :--- |
-| **① Gathering** | Navex **선택·트리** 상태 Yjs(선택) · ontex 는 **읽기** | `rag_retrieve` · Sub-Query 생성 | Run **입력** = Yjs 스냅샷 + Navex selection |
+| **① Gathering** | Navex **선택·트리** 상태 Yjs(선택) · Ontex 는 **읽기** | `rag_retrieve` · Sub-Query 생성 | Run **입력** = Yjs 스냅샷 + Navex selection |
 | **② Reasoning** | **Nexaon** `ontology:draft` 공편집 · Normex 규범 Y.Text | `nexaon_ingest/refine` · SHACL | `graph_diff` → **DiffOverlay** (Yjs **미반영**) |
 | **③ Planning** | Logex `.nxflow` · Twinex Awareness(의도·시선) | `nexia_tab_delegate` · MCP 계획 | 승인 interrupt — Omnix 배너 |
 | **④ Writing** | Normex Tiptap · Scribx Monaco · Vivex params | `token` 스트림 → Tiptap **y-prosemirror** | 스트림은 **Y.Text insert** 경유 (직접 DOM ✗) |
@@ -570,7 +570,7 @@ flowchart LR
 | Hocuspocus room | `project:{projectId}:ontology:draft` |
 | Yjs Map key | `ontology:draft` |
 | 바인딩 | React Flow GraphCanvas ↔ Yjs `Y.Array` / Map |
-| ontex `canvas` room | `ontex:canvas:{graphId}` — **Nexaon draft 와 분리** · 승격 API 로만 동기화 |
+| Ontex `canvas` room | `Ontex:canvas:{graphId}` — **Nexaon draft 와 분리** · 승격 API 로만 동기화 |
 
 ### 9.4 7 탭별 Yjs 적용 (Human · LLM 공동)
 
@@ -661,12 +661,12 @@ sequenceDiagram
 | 층 | `domainKey` | 4 단계 파이프라인에서의 역할 |
 | :--- | :--- | :--- |
 | **실행·생산** | **nexia** (7 탭) | ②③④ **주 무대** — 편집·Run·`.nx*` 산출 |
-| **지식·온톨로지 허브** | **ontex** | ① **Gathering** SSOT — Hybrid RAG · ingest · promoted 그래프 |
-| **관제·유통·ERP** | **nexabo** · **nexet** · **erp** | ① Gathering **데이터 소스** · **Event Router** 규칙 UI → ontex ingest |
+| **지식·온톨로지 허브** | **Ontex** | ① **Gathering** SSOT — Hybrid RAG · ingest · promoted 그래프 |
+| **관제·유통·ERP** | **nexabo** · **nexet** · **erp** | ① Gathering **데이터 소스** · **Event Router** 규칙 UI → Ontex ingest |
 | **Nest · 수신** | **Ingress Gate** · **Throttle·Buffer** | **§8.2.1** 2 단 — IG(Broker→ST) · TB(bus→Router) |
 | **Presence (frame)** | **Nixie** _(MainShell)_ | ①~④ **표현·알림** · 배포 UX — Run·Router **✗** · **§7.5 · §7.6** |
 
-상세 맵: [`TDD-059` 도메인 마스터 맵](../NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) · 레지스트리: [`TDD-002`](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md)
+상세 맵: [`TDD-071` 도메인 구조 통합](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md)
 
 ### 8.2 전체 구조도 (개념)
 
@@ -676,10 +676,10 @@ sequenceDiagram
 flowchart TB
   subgraph shell [NEXA OS · MainShell]
     MS[domainLayoutRegistry]
-    NI["Nixie L1 · frame<br/>표현 전용 셸 · Run·라우터 소유 ✗"]
+    NI["Nixie ML1 · frame<br/>표현 전용 셸 · Run·라우터 소유 ✗"]
   end
 
-  subgraph edge [L0 · IoT 엣지 · §7.5 · §7.6]
+  subgraph edge [ML0 · IoT 엣지 · §7.5 · §7.6]
     CR[Sentinel 후보고]
     DEV[Device · ACTON]
     CR --> DEV
@@ -703,7 +703,7 @@ flowchart TB
   subgraph nexia [domainKey · nexia · 7 tabId]
     OX[omnix]
     NX[normex · logex · scribx · vivex · twinex · navex]
-    NA["Nexaon · ontology<br/>L3 지능 · Run·SHACL · 승격"]
+    NA["Nexaon · ontology<br/>ML3 지능 · Run·SHACL · 승격"]
     OX --> NX
     NX --> NA
   end
@@ -811,9 +811,9 @@ MQTT → Broker → IG → Nest validate · staging → bus
 | :--- | :--- | :--- |
 | **nexia** | UI `domainKey` · 7 탭 | 실행·생산 셸 |
 | **Nexaon** | Logex `ontology` 모듈 | ②③④ IoT 온톨로지 |
-| **ontex** | 지식 허브 `domainKey` | ① + promoted 탐색 |
-| **Nexion** | ontex `canvas` **표시명** | 장기 그래프 UI |
-| **Nixie** | MainShell **L1 Presence** | ①~④ **표현** · MQTT **✗** · **§7.5** |
+| **Ontex** | 지식 허브 `domainKey` | ① + promoted 탐색 |
+| **Nexion** | Ontex `canvas` **표시명** | 장기 그래프 UI |
+| **Nixie** | MainShell **ML1 Presence** | ①~④ **표현** · MQTT **✗** · **§7.5** |
 | **Event Router** | Nest **Policy** 모듈 | ① Gathering fan-out · ingest 트리거 · **downlink ✗** |
 | **Ingress Gate** | Nest **Broker 직후** | burst **진입 차단** · **§8.2.1 ①** |
 | **Throttle · Buffer** | **bus → Router** | Envelope **큐·집계** · **§8.2.1 ②** |
@@ -836,8 +836,8 @@ Cockpit→**Omnix** · Ethos→**Normex** · Synapse→**Logex** · Glos→**Scr
 | nexia 스택·파이프라인               | [TDD-010 · 구조·기술스택](./08_TDD_NEXIA_구조기술스택운영방침.md)                       |
 | LangGraph 오케스트레이션            | [TDD-058](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md)                     |
 | Nexaon·저장 4 단계               | [TDD-008](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md)            |
-| Ontex·Graph RAG              | [TDD-057](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)                              |
-| 도메인 전체 맵                     | [TDD-059](../NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md)                             |
+| Ontex·Graph RAG              | [TDD-057](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)                              |
+| 도메인 전체 맵                     | [TDD-071](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md)                             |
 | nexia UI                     | [UIX-004 MainShell](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md)                  |
 | Yjs · Hocuspocus             | [TDD-038 · Yjs 협업 SSOT](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md)                |
 | **짝 문서 (엣지·Nixie·downlink)** | [TDD-068 · IoT 엣지… §1.6.7 · §7.5 · §7.6 상호](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |

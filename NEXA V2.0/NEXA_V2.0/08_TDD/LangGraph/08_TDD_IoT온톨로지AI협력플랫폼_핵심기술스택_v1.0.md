@@ -10,7 +10,7 @@ created: 2026-06-10
 updated: 2026-06-14
 parent_doc: TDD-008
 terms_standard: ["langgraph", "neo4j", "sparql", "cypher", "graphql", "grpc", "ros-2", "mqtt"]
-terms_nexa: ["nexia", "ontex", "ontology", "digital-twin"]
+terms_nexa: ["nexia", "Ontex", "ontology", "digital-twin"]
 tags: ["doc/cat/08-tdd", "doc/domain/langgraph", "std/langgraph", "std/neo4j", "std/sparql", "std/cypher", "std/graphql", "std/grpc", "std/ros-2", "std/mqtt", "nexa/nexia", "nexa/ontex", "nexa/ontology", "nexa/digital-twin"]
 ---
 
@@ -42,12 +42,12 @@ tags: ["doc/cat/08-tdd", "doc/domain/langgraph", "std/langgraph", "std/neo4j", "
 
 ## 1. 4 레이어 개요
 
-| 레이어 | 핵심 기술 | 역할 |
-| :----- | :-------- | :--- |
-| **지식 표현 & 추론** | Neo4j, RDF/OWL, SPARQL, rdflib | 데이터 간 의미·관계 정의, 산업/아트 융합 지식 그래프 추론 |
-| **AI 협력 & 에이전트** | LangGraph, LangChain, Milvus/Chroma | 에이전트 협업, 그래프 탐색, 비정형 데이터 하이브리드 검색 |
-| **IoT 백엔드** | EMQX, InfluxDB, FastAPI/Go | 대량 기기 실시간 수집, 시계열 고속 저장 |
-| **인터랙션 & 프론트** | Flutter, Next.js, Three.js(R3F) | 산업 대시보드, 3D 디지털 트윈·미디어아트, 크로스플랫폼 클라이언트 |
+| 레이어              | 핵심 기술                               | 역할                                     |
+| :--------------- | :---------------------------------- | :------------------------------------- |
+| **지식 표현 & 추론**   | Neo4j, RDF/OWL, SPARQL, rdflib      | 데이터 간 의미·관계 정의, 산업/아트 융합 지식 그래프 추론     |
+| **AI 협력 & 에이전트** | LangGraph, LangChain, Milvus/Chroma | 에이전트 협업, 그래프 탐색, 비정형 데이터 하이브리드 검색      |
+| **IoT 백엔드**      | EMQX, InfluxDB, FastAPI/Go          | 대량 기기 실시간 수집, 시계열 고속 저장                |
+| **인터랙션 & 프론트**   | Flutter, Next.js, Three.js(R3F)     | 산업 대시보드, 3D 디지털 트윈·미디어아트, 크로스플랫폼 클라이언트 |
 
 **연동 예시**
 

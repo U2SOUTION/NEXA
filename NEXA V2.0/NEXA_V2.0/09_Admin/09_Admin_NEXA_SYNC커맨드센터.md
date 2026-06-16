@@ -1,6 +1,6 @@
 ---
 implements_doc: 
-see_also: [TDD-033, TDD-034, TDD-036, TDD-039, TDD-041, TDD-056, TDD-059]
+see_also: [TDD-033, TDD-034, TDD-036, TDD-039, TDD-041, TDD-056, TDD-071]
 doc_id: ADM-001
 title: NEXA SYNC 커맨드 센터
 category: 09_Admin
@@ -33,7 +33,7 @@ NEXA-SYNC 구현 과정의 **지능적 서사**를 운영·모니터링하기 �
 
 > **연계 TDD:** [GOVERN (TDD-041)](../08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) · [5W1H · HEXAGON (TDD-033)](../08_TDD/AI/08_TDD_AI_5W1H_6대추상레이어규격.md) · [데이터 수명 (TDD-034)](../08_TDD/AI/08_TDD_AI_데이터성격수명주기.md) · [안전 Reflex (TDD-039)](../08_TDD/AI/08_TDD_AI_안전대책선조치로직.md)
 
-**V2.0 UI 배치:** 관제·Live Feed = **`nexabo`** · 승인 strip = **Omnix** · RULE·GOVERN 편집 = **Normex** · 추적 그래프 = **ontex** trace (후보).
+**V2.0 UI 배치:** 관제·Live Feed = **`nexabo`** · 승인 strip = **Omnix** · RULE·GOVERN 편집 = **Normex** · 추적 그래프 = **Ontex** trace (후보).
 
 ---
 
@@ -43,7 +43,7 @@ NEXA-SYNC 구현 과정의 **지능적 서사**를 운영·모니터링하기 �
 | :--- | :--- | :--- |
 | 1 서사 모니터링 | 팩트 스트림 | **nexabo** · MQTT 후보고 수신 ([TDD-068 · IoT §4](../08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)) |
 | 1 | 인디케이터 인사이트 | **Omnix** · `apps/agent-graph` · COILS (TDD-041) |
-| 1 | 추적 지도 | **ontex** trace · EFF→IND→SNT ID 체인 |
+| 1 | 추적 지도 | **Ontex** trace · EFF→IND→SNT ID 체인 |
 | 2 거버넌스 | 코일 콘솔 | TDD-041 · Omnix 시뮬레이션 |
 | 2 | GOVERN | **Normex** · 승인 후 GOVERN 태그 |
 | 2 | Safety Reflex | TDD-039 · Twinex · 엣지 ACTON |
@@ -114,5 +114,5 @@ NEXA-SYNC는 **편안함·쉬움**을 위해 백엔드에 복잡 로직을 두�
 | GOVERN | [TDD-041](../08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |
 | 엣지·후보고 | [TDD-068 · IoT 파이프라인](../08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
 | 에이전트 파이프라인 | [TDD-067 · 에이전틱 파이프라인](../08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) |
-| 도메인 맵 | [TDD-059](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) · **nexabo** |
+| 도메인 구조 | [TDD-071](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) · **nexabo** |
 | 레거시 stub | `NEXA-Platform/docs/AI/tmp_NEXA-SYNC …` (삭제 예정) |

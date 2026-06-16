@@ -5,7 +5,7 @@ category: "08_TDD"
 domain: NEXAOS
 status: published
 created: 2026-06-10
-updated: 2026-06-10
+updated: 2026-06-13
 parent_doc: TDD-001
 terms_standard: ["mqtt", "protobuf", "pwm"]
 terms_nexa: ["CSIM", "AXON", "APEX", "HEXAGON", "ACTON", "NEXAVULT"]
@@ -31,7 +31,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/mqtt", "std/protobuf", "std/p
 | 패킷 헤더     | **APEX v0.16 — 64-bit** — §9                                                        |
 | Body 인코딩   | **3×3 × 2-bit/셀 = 18-bit** (+/-,0) — §10                                           |
 | 4×4 매트릭스  | **부록 A — Draft, 비규범**                                                          |
-| AXON 레이어   | **7-레이어** — **ACTON-GM ⊂ L6** — §4 · §4.1                                        |
+| Axon | **7-레이어** — 층 지칭 **`AXON-AL1`…`AXON-AL7`** — **ACTON-GM ⊂ AXON-AL6** — §4 · §4.1 |
 | G/M 실행      | **ACTON-GM** — 패킷은 **`programRef`만** · G/M 본문은 NEXAVULT/Asset — §3.1 · §12.3 |
 
 ---
@@ -100,17 +100,17 @@ NEXAVULT 저장 → 재사용 → 순환
 
 ## 3. 용어 · 구성요소
 
-| 이름               | 풀네임                                    | 역할                                                                                      |
-| ------------------ | ----------------------------------------- | ----------------------------------------------------------------------------------------- |
-| **CSIM**           | Cosmic Semantic Interface Matrix          | 의미 **번역 엔진** — 모호한 의지 ↔ 물리량                                                 |
-| **APEX Matrix**    | Adaptive Perception and Expression Matrix | 시맨틱 **인터페이스** — 직관→인포→패킷                                                    |
-| **HEXAGON**        | Six-Axis Tokenized Interaction Standard   | **5W1H** 전송·문법 — Where/When/Who/What/How/Why                                          |
-| **NEXAON**         | NEXA Ontology                             | Human ↔ AI **온톨로지·해석**                                                              |
-| **NEXAVULT**       | NEXA Knowledge Vault                      | 지식 **저장·재사용** (원본+벡터)                                                          |
-| **ACTON Synapse**  | Active Transition & Operation             | 디지털→**물리 실행** · S-커브·토크·버퍼 — G/M **불필요** 경로 포함                        |
+| 이름                 | 풀네임                                       | 역할                                                                     |
+| ------------------ | ----------------------------------------- | ---------------------------------------------------------------------- |
+| **CSIM**           | Cosmic Semantic Interface Matrix          | **양방향 의미 번역** — WILL/FACT ↔ Matrix · Inverse CSIM · **판단·Run ✗** (§13.0 · NEXAON) |
+| **APEX Matrix**    | Adaptive Perception and Expression Matrix | 시맨틱 **인터페이스** — 직관→인포→패킷                                               |
+| **HEXAGON**        | Six-Axis Tokenized Interaction Standard   | **5W1H** 전송·문법 — Where/When/Who/What/How/Why                           |
+| **NEXAON**         | NEXA Ontology                             | Human ↔ AI **온톨로지·해석**                                                 |
+| **NEXAVULT**       | NEXA Knowledge Vault                      | 지식 **저장·재사용** (원본+벡터)                                                  |
+| **ACTON Synapse**  | Active Transition & Operation             | 디지털→**물리 실행** · S-커브·토크·버퍼 — G/M **불필요** 경로 포함                         |
 | **ACTON-GM**       | ACTON **G/M Execution Bridge**            | **엑추에이터 구체 명령** — 축·궤적·스핀들 G/M · NEXAVULT **`programRef`** Fetch·검증·실행 |
-| **acton.motion**   | ACTON Motion Tag                          | APEX **Attachment** — `programRef` + 무결성 메타 — §8.4.1                                 |
-| **ENVIRON Shield** | Environmental Sensing & Response          | **외부** 환경·복지·EMI — 제어 진입 전 필터                                                |
+| **acton.motion**   | ACTON Motion Tag                          | APEX **Attachment** — `programRef` + 무결성 메타 — §8.4.1                   |
+| **ENVIRON Shield** | Environmental Sensing & Response          | **외부** 환경·복지·EMI — 제어 진입 전 필터                                          |
 
 **신호 흐름 (요약):**
 
@@ -156,24 +156,26 @@ APEX → HEXAGON → NEXAON → NEXAVULT → NEXAON → HEXAGON → APEX
 
 ---
 
-## 4. AXON 7-레이어 아키텍처 (Normative)
+## 4. Axon 7층 아키텍처 (Normative)
 
-플랫폼 **NEXA OS** 정체·Identity/Capability ID는 [`08_TDD_NEXAOS_도메인레지스트리명세`](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) 참조. 본 절은 **신호·의미 스택**만 규정.
+플랫폼 **NEXA OS** 정체·Identity/Capability ID는 [`08_TDD_NEXAOS_도메인구조통합_v1.0`](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) (TDD-071) 참조. 본 절은 **신호·의미 스택**만 규정.
 
-| #   | 구성요소             | 역할                                                           | 소통             |
-| --- | -------------------- | -------------------------------------------------------------- | ---------------- |
-| L1  | **APEX Matrix**      | 인간 입력 → 3×3(또는 단계별 2×2) 패킷 · 3상(+/-/0) · Delta     | 인간 ↔ 시스템    |
-| L2  | **HEXAGON Protocol** | 5W1H **6축 정수 토큰** — 정규화 문법                           | 기계 ↔ 알고리즘  |
-| L3  | **Coil Balancer**    | 페르소나 파라미터 **Zero-sum(합=100)** — AI 추론 가이드        | 인간 ↔ AI        |
-| L4  | **NEXAON Network**   | APEX+HEXAGON **해석** · 엣지 자체처리·후보고 · 중앙 고차원     | 알고리즘 ↔ AI    |
-| L5  | **NEXAVULT**         | Seed·로그·벡터 **이중 저장** · 준공·개인화                     | 플랫폼 ↔ 전 구간 |
-| L6  | **ACTON Synapse**    | 범용 **물리 실행** · S-커브·토크·버퍼 — **ACTON-GM**은 L6 선택 | 시스템 ↔ 물리    |
-| L7  | **ENVIRON Shield**   | 바람·지형·EMI·사용자 복지 — **Jitter 차단**                    | 환경 ↔ 시스템    |
+> **층 ID (Normative):** 특정 층 지칭 시 **`AXON-AL1`** … **`AXON-AL7`** only. 신규·개정 SSOT 본문 = **`Axon`**. bare `L1`–`L7` · **`AL`** (축 ID) · `AXON-L*` · `AXON-S*` · `AXON-SL*` **deprecated** — **ML** = **Menton** (층 ML0–ML3) — **번호 체계 별개**. **ML*** · **NISE-L*** · **TDD-071 L*** · Matrix 축 **L1/L2** ([§6](#6-22-semantic-matrix)) 와 **동일 표기 금지**. 요약: [용어집 §3.2.3](../../용어집_NEXA전용_v2.0.md).
+
+| AXON-AL | 구성요소 | 역할 | 소통 |
+| :---: | :--- | :--- | :--- |
+| **AL1** | **APEX Matrix** | 인간 입력 → 3×3(또는 단계별 2×2) 패킷 · 3상(+/-/0) · Delta | 인간 ↔ 시스템 |
+| **AL2** | **HEXAGON Protocol** | 5W1H **6축 정수 토큰** — 정규화 문법 | 기계 ↔ 알고리즘 |
+| **AL3** | **Coil Balancer** | 페르소나 파라미터 **Zero-sum(합=100)** — AI 추론 가이드 | 인간 ↔ AI |
+| **AL4** | **NEXAON Network** | APEX+HEXAGON **해석** · 엣지 자체처리·후보고 · 중앙 고차원 | 알고리즘 ↔ AI |
+| **AL5** | **NEXAVULT** | Seed·로그·벡터 **이중 저장** · 준공·개인화 | 플랫폼 ↔ 전 구간 |
+| **AL6** | **ACTON Synapse** | 범용 **물리 실행** · S-커브·토크·버퍼 — **ACTON-GM**은 **AXON-AL6** 선택 | 시스템 ↔ 물리 |
+| **AL7** | **ENVIRON Shield** | 바람·지형·EMI·사용자 복지 — **Jitter 차단** | 환경 ↔ 시스템 |
 
 **ACTON Synapse** 상세 구조:
 
 ```
-L6 ACTON Synapse
+AXON-AL6 ACTON Synapse
 ├── (기본) 범용 실행 ── PWM · MQTT · 빛·진동 …
 └── (선택) ACTON-GM  (CNC · 로봇 · SkyTen 등 Domain Profile) ── programRef → NEXAVULT/Asset → G/M → 컨트롤러
 ```
@@ -183,7 +185,7 @@ L6 ACTON Synapse
 1. **HEXAGON 전진 배치** — 원시 신호를 조기에 5W1H로 정규화 → 무결성 선확보
 2. **NEXAON 이원화** — 엣지 **실시간** + 중앙 **고차원 추론**
 3. **ACTON / ENVIRON 분리** — 내부 근육·신경 vs 외부 위협·복지
-4. **ACTON-GM ⊂ L6** — 7-레이어 유지 · G/M은 **Attachment급** 선택 브리지 — §4.1
+4. **ACTON-GM ⊂ AXON-AL6** — 7-레이어 유지 · G/M은 **Attachment급** 선택 브리지 — §4.1
 
 **LeRobot 등 E2E 학습:** AXON **구조 변경 없이**, ACTON 단계 **선택 라이브러리**. 학습 데이터 = `[영상 + HEXAGON 토큰 + ACTON 피드백]` 로깅 권장 — 부록 B.
 
@@ -431,7 +433,7 @@ APEX Body  →  3×3   (완전 의미 구조)
 
 ### 12.3 ACTON-GM — G-code · M-code (Normative)
 
-**ACTON-GM**은 ACTON Synapse(L6)의 **실행 어휘(lexicon)** 이다.  
+**ACTON-GM**은 ACTON Synapse(**AXON-AL6**)의 **실행 어휘(lexicon)** 이다.  
 **의미(Body)** · **패킷(Tag=참조)** · **실행 본문(NEXAVULT/Asset)** 을 분리한다.
 
 #### 12.3.1 역할 분담
@@ -512,6 +514,37 @@ contentHash 검증      →  Profile G/M whitelist
 ---
 
 ## 13. 3단계 번역 프로세스 (CSIM)
+
+### 13.0 CSIM 역할 경계 (Normative)
+
+| CSIM **담당** | CSIM **비담당** (NEXAON · Nexaon 등) |
+| :--- | :--- |
+| WILL ↔ FACT **Matrix 투영** · **Inverse CSIM** · 경량 **2×2/3×3** 포맷 | **0/1 판단** · Run · SHACL · promoted 승격 |
+| **전후 맥락** · Domain · HEXAGON 과 결합한 **의미 토큰** 생성 | 온톨로지 **최종 해석** · `graph_diff` 종결 |
+| LLM · Nexaon · Nixie 가 읽는 **정렬된 입력층** (레지스터 raw 차단) | **사고·추론의 주체** — §2.3 세포/두뇌 분리 |
+
+- **압축·경량 패킷**은 **전송 수단**이지 CSIM의 **목적 자체 ✗**.
+- **맥락**(온톨로지 · Domain Profile · `stateBus` · 플랫폼 DIEA 산출)이 전제되면 Matrix 는 **단순해도** 의미는 유지된다 — §1.
+
+#### 13.0.1 개념 Tier (Normative)
+
+| Tier | 단계 (EN) | Normative 정의 |
+| :---: | :--- | :--- |
+| **T1** | **Abstraction** · **공용어화** | 세상의 거친 **WILL/FACT** 신호를 **Matrix** **시스템 공용어**로 **양방향** 1차 번역 — **입력 전용 ✗** |
+| **T2** | **Contextualization** · **맥락 동기화** | 번역된 Matrix 좌표에 **Domain · HEXAGON · `stateBus`** 맥락을 입혀 **오해 없는 의미**로 정렬 — **Ethos · Zod**(Normex) **게이트 병행** |
+| **T3** | **Concretization** · **구체화** | 정렬된 의미를 **Narrative**(ECHO · 인간 표현)와 **Action**(HEXAGON · ACTON)으로 **번역** — **판단 · Run · promoted ✗** (NEXAON · Nixie · ACTON) |
+
+**T3 방향 분기 (Normative):**
+
+| 방향 | T3 산출 (우선) | 소비 주체 |
+| :--- | :--- | :--- |
+| **상향** | **Narrative** · ECHO · 상태 토큰 | **Nixie**(ML1) · 관제 UI |
+| **하향** | **Action** · HEXAGON · ACTON | **ACTON** · Hot Path |
+| **플랫폼 (ML3)** | semantic chunk · Run **입력** 정렬 | **Nexaon** _(CSIM T3 기능 · Run 소유)_ |
+
+**운영 배치**(ML0 T1 · Ingress T2 · Nexaon T3) — [Core Engine Stack](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md) §3 CSIM · [Nexaon §4.1](../../_inbox/Nexaon.md).
+
+**개념 Tier (문서·Stack 공통):** **T1 공용어화** → **T2 맥락 동기화** → **T3 구체화**. _(구 표: 추상화→맥락화→구체화 — 동일 의미.)_
 
 ### 13.1 하향 — Intent to Act
 
@@ -680,7 +713,7 @@ contentHash 검증      →  Profile G/M whitelist
 
 ---
 
-_상태: Normative — CSIM · AXON 7L · APEX v0.16 · ACTON-GM programRef · Body≠G-code._
+_상태: Normative — CSIM · Axon · AXON-AL1–AL7 · APEX v0.16 · ACTON-GM programRef · Body≠G-code._
 ---
 
 ## 관련 문서
@@ -688,5 +721,5 @@ _상태: Normative — CSIM · AXON 7L · APEX v0.16 · ACTON-GM programRef · B
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
-| Cosmic Language | [Cosmic Language · 전역 데이터 아키텍처 (TDD-044)](./08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
+| Cosmic | [Cosmic · 전역 데이터 아키텍처 (TDD-044)](./08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
 | NEXNAP | [NEXNAP 시스템 인터페이스 표준 규약 (TDD-023)](../NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) |

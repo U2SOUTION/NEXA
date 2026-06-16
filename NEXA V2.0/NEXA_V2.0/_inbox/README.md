@@ -114,7 +114,7 @@ _inbox/DRAFT_IoT기술스택정리.md
 
 | `_inbox` 초안 | 정본 (`doc_id`) | 처리 |
 | :--- | :--- | :--- |
-| `NEXA_OS_MASTER_MAP.md` | [TDD-059](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) | **승격** → `08_TDD/NEXAOS/` · TDD-002 보조 Concept Map |
+| `NEXA_OS_MASTER_MAP.md` | [TDD-071](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) | **승격 완료** → TDD-071 통합본 |
 
 ### 2026-06-10 (이전)
 

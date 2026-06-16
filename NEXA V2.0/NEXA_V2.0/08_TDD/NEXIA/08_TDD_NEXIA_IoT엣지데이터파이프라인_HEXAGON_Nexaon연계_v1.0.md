@@ -10,7 +10,7 @@ parent_doc: TDD-022
 implements_doc: 
 see_also: [TDD-033, TDD-023, TDD-022, TDD-057, TDD-008, TDD-056, TDD-039, TDD-040, TDD-034, TDD-041, TDD-067, TDD-066]
 terms_standard: ["mqtt", "esphome", "protobuf", "shacl", "langgraph"]
-terms_nexa: ["HEXAGON", "5W1H", "NEXNAP", "Envelope", "ACTON", "NEXA-CELL", "Twinex", "Nexaon", "NEXAVULT", "edge-device", "Nano-Sentinel", "Micro-Sentinel", "Kinetic-Controller", "Zenith-Indicator", "COLD", "WARM", "HOT", "nexabo", "ontex", "Nixie", "Omnix", "EventRouter"]
+terms_nexa: ["HEXAGON", "5W1H", "NEXNAP", "Envelope", "ACTON", "NEXA-CELL", "Twinex", "Nexaon", "NEXAVULT", "edge-device", "Nano-Sentinel", "Micro-Sentinel", "Kinetic-Controller", "Zenith-Indicator", "COLD", "WARM", "HOT", "nexabo", "Ontex", "Nixie", "Omnix", "EventRouter"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/protobuf", "std/shacl", "std/langgraph", "nexa/HEXAGON", "nexa/5W1H", "nexa/NEXNAP", "nexa/Envelope", "nexa/ACTON", "nexa/NEXA-CELL", "nexa/Twinex", "nexa/Nexaon", "nexa/NEXAVULT", "nexa/edge-device", "nexa/Nano-Sentinel", "nexa/Micro-Sentinel", "nexa/Kinetic-Controller", "nexa/Zenith-Indicator", "nexa/COLD", "nexa/WARM", "nexa/HOT", "nexa/nexabo", "nexa/ontex", "nexa/Nixie", "nexa/Omnix", "nexa/EventRouter"]
 ---
 
@@ -20,7 +20,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/pro
 > **짝 문서:** [TDD-067 · 에이전틱…](./08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) — Human·LLM · 7 탭 · Yjs · **§7.5 uplink** · **§7.6 downlink(펌웨어·USB/OTA·제어·피드백)**
 > **NEXA AIS:** 6 종 **08_TDD/AI 정본 승격 완료** — [08_TDD/AI/README](../AI/README.md) · TDD-033~041
 > **지능 위계 SSOT:** [TDD-040 · 지능 위계 · 하드웨어](../AI/08_TDD_AI_지능위계및하드웨어사양.md) — 본 문서 §1.5
-> **지능 분업:** §1.4 — **Nexaon(L3)** · **Event Router** · **Nixie(L1)** = 표현
+> **지능 분업:** §1.4 — **Nexaon(ML3)** · **Event Router** · **Nixie(ML1)** = 표현 · **Menton Intelligence Stack** — [TDD-070 §3.2.1](../../용어집_NEXA전용_v2.0.md)
 
 ---
 
@@ -30,8 +30,8 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/pro
 | :--- | :--- |
 | 엣지 **데이터 발생** · HEXAGON **선처리** · **후보고** uplink | nexia 7 탭 **에이전트 4 단계** 상세 (짝 문서) |
 | Nest · nexabo **수신·관제** · **IG·TB 2 단** (§1.6.7) | 펌웨어 C++ 구현 상세 (NEXA-CELL PRD) |
-| **Nexaon 정재** · SHACL · Yjs draft · **Nixie 표현** · **Event Router** (§1.6.6) | ontex **explore/canvas** UI (TDD-057) |
-| **promoted** → ontex 지식 허브 | ERP·nexet 비즈니스 트랜잭션 |
+| **Nexaon 정재** · SHACL · Yjs draft · **Nixie 표현** · **Event Router** (§1.6.6) | Ontex **explore/canvas** UI (TDD-057) |
+| **promoted** → Ontex 지식 허브 | ERP·nexet 비즈니스 트랜잭션 |
 
 **분업 원칙 (BRD-002 Physical AI):** 엣지 = **Fact·Reflex·후보고** · 플랫폼 = **규범·추론·지식·승인**.
 **지능 위계 (TDD-040):** **Sentinel**(COLD/WARM) → (선택) **Kinetic** → **Zenith Indicator**(HOT) — 계층마다 연산·지연·HEXAGON 깊이가 다름.
@@ -40,16 +40,16 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/pro
 
 ## 1.4 지능 분업 — Nexaon(지식) · Nixie(표현)
 
-> **SSOT:** [TDD-045 · Knowledge · 닉시=지능의 얼굴](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [TDD-070 · NIXIE 용어](../../용어집_NEXA전용_v2.0.md) · [UIX-004 §4.6 · NIXIE 시각화](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md)
+> **SSOT:** [TDD-045 · Knowledge · 닉시=지능의 얼굴](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [TDD-070 §3.2.1 · ML0–ML3](../../용어집_NEXA전용_v2.0.md) · [UIX-004 §4.6 · NIXIE 시각화](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md)
 
-본 IoT 파이프라인에서 **「지능」** 과 **「사용자 접점」** 을 분리한다.
+본 IoT 파이프라인에서 **「지능」** 과 **「사용자 접점」** 을 분리한다. **Menton** (Intelligence Stack) — **≠** CPU cache L* · **≠** NISE-L* · **≠** `Axon`.
 
-| 층 | 주체 | 역할 | LangGraph Agent? |
-| :--- | :--- | :--- | :---: |
-| **L3 Strategic** | **Nexaon** · **`apps/agent-graph`** · **Omnix** | 후보고 → Human↔LLM **정재** · Run · SHACL · 승인 · **promoted** | ✓ (agent-graph) |
-| **L2 Domain** | **nexabo/** · **nexia/** (Twinex · Nexaon UI) | 관제 · 트윈 · 정재 **작업면** | — |
-| **L1 Presence** | **Nixie (NIXIE)** | 지능 결과·알람·상태를 **표현** · PiP/TTS · **Reflex triage** | ✗ (Shell) |
-| **L0 Edge** | **Sentinel** | Fact · Reflex · 후보고 uplink | — |
+| ML | 별칭 | 주체 | 역할 | LangGraph Agent? |
+| :--- | :--- | :--- | :--- | :---: |
+| **ML3** | Strategic | **Nexaon** · **`apps/agent-graph`** · **Omnix** | 후보고 → Human↔LLM **정재** · Run · SHACL · 승인 · **promoted** | ✓ (agent-graph) |
+| **ML2** | Domain | **nexabo/** · **nexia/** (Twinex · Nexaon UI) | 관제 · 트윈 · 정재 **작업면** | — |
+| **ML1** | Presence | **Nixie (NIXIE)** | 지능 결과·알람·상태를 **표현** · PiP/TTS · **Reflex triage** | ✗ (Shell) |
+| **ML0** | Edge | **Sentinel** | Fact · Reflex · 후보고 uplink | — |
 
 **한 줄 정의**
 
@@ -58,7 +58,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/pro
 
 **Nixie Reflex vs Nexaon Strategic (Normative)**
 
-| 구분 | Nixie (L1) | Nexaon / agent-graph (L3) |
+| 구분 | Nixie (ML1) | Nexaon / agent-graph (ML3) |
 | :--- | :--- | :--- |
 | bus 구독 · 알람 TTS | ✓ _(Router 가 `nixie` 채널로 보낸 것만)_ | — |
 | HEXAGON **경량** 분류 (규칙 · 선택 sLLM) | ✓ _(표현·말할지/조용할지)_ | — |
@@ -72,7 +72,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/mqtt", "std/esphome", "std/pro
 
 ```mermaid
 flowchart TB
-  subgraph L0 [L0 · 엣지 · Sentinel]
+  subgraph ML0 [ML0 · 엣지 · Sentinel]
     S[① 센서·액추에이터]
     H[② HEXAGON 선처리]
     CR[③ 후보고 Envelope]
@@ -89,7 +89,7 @@ flowchart TB
     CR --> BR --> IG --> ST --> BUS --> TB --> ERP
   end
 
-  subgraph L2 [L2 · Domain Surface]
+  subgraph ML2 [ML2 · Domain Surface]
     NB[nexabo/ · Live Feed · 알람]
     TW[nexia/ · Twinex]
     NQ[Nexaon queue · UI]
@@ -98,7 +98,7 @@ flowchart TB
     ERP --> NQ
   end
 
-  subgraph L3 [L3 · Strategic Intelligence]
+  subgraph ML3 [ML3 · Strategic Intelligence]
     OM[Omnix · 오케스트레이션·승인]
     AG[agent-graph · Zenith]
     NX[Nexaon · 지식 정재]
@@ -119,7 +119,7 @@ flowchart TB
     PG --> OT
   end
 
-  subgraph L1 [L1 · Presence · Nixie]
+  subgraph ML1 [ML1 · Presence · Nixie]
     NI[Nixie · 얼굴·체감·Reflex]
     USER((사용자))
     ERP -->|nixie 채널 · SSE/WS| NI
@@ -130,7 +130,7 @@ flowchart TB
     NI -->|ASK · STUCK escalate| OM
   end
 
-  L0 -.->|Reflex ACTON| S
+  ML0 -.->|Reflex ACTON| S
 ```
 
 ```text
@@ -138,7 +138,7 @@ flowchart TB
                               │
               ┌───────────────┼───────────────┬──────────────┐
               ▼               ▼               ▼              ▼
-         nexabo/          Nexaon 큐       Nixie (L1)    agent-graph
+         nexabo/          Nexaon 큐       Nixie (ML1)    agent-graph
          Twinex            · ingest         · TTS        (Run)
               │               │               │
               └─────── Omnix ─┴── Run ────────┘
@@ -226,7 +226,7 @@ flowchart LR
 [④ 수신]  Broker ──► **Ingress Gate** ──► validate · staging ──► bus ──► **Throttle · Buffer** ──► **Event Router** ──► nexabo/ · nexia/ · …
       │
       ▼
-[⑤ 정재]  **Nexaon**(L3) — Run · graph_diff · Human·LLM · Yjs ontology:draft
+[⑤ 정재]  **Nexaon**(ML3) — Run · graph_diff · Human·LLM · Yjs ontology:draft
       │         (트리거: Omnix · Nest 큐 — Nixie Run 소유 ✗)
       ▼ SHACL · 승인 A/B/C
 [⑥ 지식화]  promoted → Neo4j · NEXAVULT · ontex ingest · pgvector
@@ -253,7 +253,7 @@ flowchart TB
     C --> BR --> IG --> ST --> BUS --> TB --> ERP
   end
 
-  subgraph L2 [L2 · domainKey · ④]
+  subgraph ML2 [ML2 · domainKey · ④]
     NB[nexabo/]
     TX[nexia/ Twinex]
     NQ[Nexaon queue]
@@ -262,7 +262,7 @@ flowchart TB
     ERP --> NQ
   end
 
-  subgraph L3 [L3 · Strategic · ⑤⑥]
+  subgraph ML3 [ML3 · Strategic · ⑤⑥]
     OM[Omnix · 승인]
     AG[agent-graph]
     NX[Nexaon · 정재]
@@ -283,7 +283,7 @@ flowchart TB
     PG --> OT
   end
 
-  subgraph L1 [L1 · Nixie · ④~⑥]
+  subgraph ML1 [ML1 · Nixie · ④~⑥]
     NI[Nixie · Presence]
     ERP -->|nixie SSE/WS| NI
     AG -->|status·summary| NI
@@ -297,19 +297,19 @@ flowchart TB
 
 ## 1.6 엣지↔플랫폼 소통 · nexabo/ · nexia/ · **Nixie**
 
-> **역할:** 엣지 후보고는 **도메인 UI**(`nexabo/` · `nexia/`) 와 **지능 루프**(Nexaon · agent-graph) 로 흐르고, **Nixie** 는 그 **결과·알람·상태** 를 MainShell 에 **항상 -on** 으로 **표현**한다. Reflex triage 는 L1 에서만.
+> **역할:** 엣지 후보고는 **도메인 UI**(`nexabo/` · `nexia/`) 와 **지능 루프**(Nexaon · agent-graph) 로 흐르고, **Nixie** 는 그 **결과·알람·상태** 를 MainShell 에 **항상 -on** 으로 **표현**한다. Reflex triage 는 ML1 에서만.
 > **SSOT:** §1.4 · [TDD-058 · 오케스트레이션](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) · [UIX BAX · NIXIE M2P](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) §2.8 · [TDD-045 · 지능의 얼굴](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md)
 
 ### 1.6.1 역할 분리 — Nixie · Nexaon · Omnix · Zenith
 
 | 주체 | 층 | 상시 대기 | 역할 |
 | :--- | :--- | :---: | :--- |
-| **Nixie** | **L1 Presence** · MainShell frame (domainKey **무관**) | **✓** | bus **구독** · Reflex **triage** · TTS·PiP·Jitter · **표현** — Run·promoted **✗** |
-| **Nexaon** | **L3 Strategic** · nexia Logex ontology | UI 탭 | 후보고 → **지식 정재** · Run · `graph_diff` · SHACL · promoted **전 단계** |
-| **nexabo/** | **L2 Domain** · IoT 관제 | UI 탭 | Fact Stream · 알람 · Telemetry ([ADM-001](../09_Admin/09_Admin_NEXA_SYNC커맨드센터.md)) |
-| **nexia/** | **L2 Domain** · 7 탭 | UI 탭 | Twinex · Nexaon UI · **Omnix** |
-| **Omnix** | **L3** · nexia L1 | 탭 활성 시 강화 | Run **큐잉** · Human 승인 strip · 탭 위임 · Nixie **escalate** 수신 |
-| **Zenith** | **L3** · `apps/agent-graph` (HOT) | Run 단위 | LLM 추론 · Nexaon graph 실행 · RAG |
+| **Nixie** | **ML1 Presence** · MainShell frame (domainKey **무관**) | **✓** | bus **구독** · Reflex **triage** · TTS·PiP·Jitter · **표현** — Run·promoted **✗** |
+| **Nexaon** | **ML3 Strategic** · nexia Logex ontology | UI 탭 | 후보고 → **지식 정재** · Run · `graph_diff` · SHACL · promoted **전 단계** |
+| **nexabo/** | **ML2 Domain** · IoT 관제 | UI 탭 | Fact Stream · 알람 · Telemetry ([ADM-001](../09_Admin/09_Admin_NEXA_SYNC커맨드센터.md)) |
+| **nexia/** | **ML2 Domain** · 7 탭 | UI 탭 | Twinex · Nexaon UI · **Omnix** |
+| **Omnix** | **ML3** · nexia 탭 | 탭 활성 시 강화 | Run **큐잉** · Human 승인 strip · 탭 위임 · Nixie **escalate** 수신 |
+| **Zenith** | **ML3** · `apps/agent-graph` (HOT) | Run 단위 | LLM 추론 · Nexaon graph 실행 · RAG |
 | **Event Router** | **Nest · Policy** | 상시 | staging 이벤트 **match · 정제 · fan-out** (§1.6.6) |
 | **Ingress Gate** | **Nest · Broker 직후** | 상시 _(선택)_ | raw burst **진입 차단** — validate **앞** (§1.6.7 ①) |
 | **Throttle · Buffer** | **event bus → Router** | 상시 | Envelope **큐·집계** — Router **앞** (§1.6.7 ②) |
@@ -357,24 +357,24 @@ flowchart TB
     CR --> MQTT --> IG --> ST --> BUS --> TB --> ERP
   end
 
-  subgraph L1 [L1 · Nixie · Presence]
+  subgraph ML1 [ML1 · Nixie · Presence]
     NI[Nixie Shell]
     WS[WebSocket / SSE]
     NI --- WS
   end
 
-  subgraph L2a [L2 · nexabo/]
+  subgraph ML2a [ML2 · nexabo/]
     LF[Fact Stream · Live Feed]
     AL[알람 · trace]
   end
 
-  subgraph L2b [L2 · nexia/]
+  subgraph ML2b [ML2 · nexia/]
     TW[Twinex · .nxdev]
     NUI[Nexaon UI · queue]
     OM[Omnix · 승인 strip]
   end
 
-  subgraph L3 [L3 · Strategic]
+  subgraph ML3 [ML3 · Strategic]
     RR[Omnix · Run router]
     AG[agent-graph]
     NX[Nexaon Run]
@@ -406,7 +406,7 @@ flowchart TB
   NI -->|ASK · STUCK| OM
 ```
 
-### 1.6.3 Nixie 처리 루프 (L1 · Normative)
+### 1.6.3 Nixie 처리 루프 (ML1 · Normative)
 
 | 단계 | Nixie 동작 | domainKey | 위임 대상 |
 | :--- | :--- | :--- | :--- |
@@ -421,11 +421,11 @@ flowchart TB
 
 ### 1.6.4 파이프라인 6 단계 ↔ Nixie · Nexaon
 
-| 본 문서 § | nexabo/ | nexia/ · Nexaon | Nixie (L1) |
+| 본 문서 § | nexabo/ | nexia/ · Nexaon | Nixie (ML1) |
 | :--- | :--- | :--- | :--- |
 | ④ 수신 | Live Feed · staging mirror | Twinex 상태 · 큐 적재 | **Router `nixie` 채널 · TTS triage** |
 | ⑤ 정재 | (선택) alarm correlate UI | **Nexaon Run · graph_diff** | Run **트리거 ✗** · 진행 **상태 표현** |
-| ⑥ 지식화 | trace → ontex | **promoted** (Nexaon) | **요약·알림·confidence → Jitter** |
+| ⑥ 지식화 | trace → Ontex | **promoted** (Nexaon) | **요약·알림·confidence → Jitter** |
 
 ### 1.6.5 Nexaon 진입 축 — UI · deep link · **엣지 후보고**
 
@@ -444,7 +444,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  subgraph edge [L0 · 엣지]
+  subgraph edge [ML0 · 엣지]
     CR[후보고 Envelope]
   end
   subgraph nest [Nest · ④]
@@ -453,13 +453,13 @@ flowchart LR
     ERP[Event Router Policy]
     CR --> ST --> TB --> ERP
   end
-  subgraph surfaces [L2 · surface]
+  subgraph surfaces [ML2 · surface]
     NB[nexabo]
     TW[Twinex]
     ERP --> NB
     ERP --> TW
   end
-  subgraph nexaon [L3 · Nexaon]
+  subgraph nexaon [ML3 · Nexaon]
     RR[Omnix · router]
     ING[nexaon_ingest]
     NX[NexaonShell · 정재]
@@ -504,7 +504,7 @@ flowchart LR
 | `nexia.twinex` | Twinex · `.nxdev` | Yjs 고주파 ✗ |
 | `nexaon.queue` | Nexaon ingest 큐 | §1.6.5 ① |
 | `nexaon.ingest` | Omnix/router → `nexaon_ingest` | Auto ingest |
-| `nixie.alert` | Nixie SSE/WS · TTS | L1 표현만 |
+| `nixie.alert` | Nixie SSE/WS · TTS | ML1 표현만 |
 | `agent-graph.critical` | Zenith 1 차 Run | critical MQTT 대응 |
 | `drop` / `buffer` | — | 고빈도 · 정책 VOID |
 
@@ -736,20 +736,20 @@ type EdgeCandidateReport = {
 
 | `graph_id` | 층 | 역할 | 후보고 소비 |
 | :--- | :--- | :--- | :--- |
-| **nexabo** | L2 | 관제·Telemetry·알람 | Live Feed · 5W1H 필터 UI |
-| **nexia** · Twinex | L2 | 디지털 트윈·`domainKey` | MQTT 상태 · 진단 → Logex |
-| **nexia** · Nexaon | L3 | **지식 정재** 작업면 | Run · `.nxdev` · SHACL |
-| **nexia** · Omnix | L3 | 오케스트레이션·승인 | Run 큐 · Nixie escalate 수신 |
+| **nexabo** | ML2 | 관제·Telemetry·알람 | Live Feed · 5W1H 필터 UI |
+| **nexia** · Twinex | ML2 | 디지털 트윈·`domainKey` | MQTT 상태 · 진단 → Logex |
+| **nexia** · Nexaon | ML3 | **지식 정재** 작업면 | Run · `.nxdev` · SHACL |
+| **nexia** · Omnix | ML3 | 오케스트레이션·승인 | Run 큐 · Nixie escalate 수신 |
 | **infra** | — | 장치 등록·my-devices | `graph_diff` · capability SSOT |
 | **Nest** | — | staging · **event bus** · **Event Router** | `device_id` → Policy → consumers |
 | **Event Router** | **Policy** | match · refine · **route** | §1.6.6 · Normex·GOVERN·사용자 규칙 |
-| **Nixie** _MQTT cmd/_ | **L1** | **표현·Reflex** | Router **`edge_candidate_reports` 채널** · MQTT **✗** |
+| **Nixie** _MQTT cmd/_ | **ML1** | **표현·Reflex** | Router **`edge_candidate_reports` 채널** · MQTT **✗** |
 
-**NEXAVAULT:** FACT 계열 후보고는 **시계열 Fact 적재** 후보 — [`nixie.alert` §5](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md).
+**NEXAVAULT:** FACT 계열 후보고는 **시계열 Fact 적재** 후보 — [`nixie.alert` §5](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md).
 
 ---
 
-## 6. ⑤ Nexaon 정재 (Human · LLM) — L3 지능 루프
+## 6. ⑤ Nexaon 정재 (Human · LLM) — ML3 지능 루프
 
 > **지능 위계:** Zenith(추론·Run) + **Nexaon**(Human·LLM 협업) — 엣지 Sentinel 이 올린 FACT/Why **후보**를 **검증·승격**.
 > **Nixie 와의 경계:** 정재·Run·SHACL 은 **본 절 (Nexaon)** 에서만 — Nixie 는 진행 상태·결과를 **표현** (§1.4).
@@ -784,14 +784,14 @@ promoted sync ──► Neo4j (운영 온톨로지)
 
 ---
 
-## 7. ⑥ 지식화 (promoted → ontex)
+## 7. ⑥ 지식화 (promoted → Ontex)
 
 | 단계 | 저장소 | 내용 |
 | :--- | :--- | :--- |
 | **실시간 협업** | Yjs · [TDD-067 · 에이전틱 파이프라인](./08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) | Nexaon draft ([`project_yjs_updates` §2.4](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md)) |
 | **감사** | PostgreSQL Audit · `TDD-008` | 승인 A/B |
 | **운영 그래프** | **Neo4j promoted** | SHACL PASS 후 |
-| **허브 탐색** | **ontex** explore · canvas | Graph RAG · 인용 |
+| **허브 탐색** | **Ontex** explore · canvas | Graph RAG · 인용 |
 | **벡터** | pgvector · embed job | `run_id` · MOC 후보 |
 
 ```text
@@ -800,12 +800,12 @@ nexia/Nexaon (정재·승인)  ──promoted──►  Neo4j + NEXAVULT
                                          └── ontex explore / canvas
 ```
 
-**ontex vs Nexaon:** 엣지 후보고는 **never** ontex canvas 에 직접 promoted ✗ — **Nexaon 루프 필수** ([`ontex_ingest` §7](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)).
+**Ontex vs Nexaon:** 엣지 후보고는 **never** Ontex canvas 에 직접 promoted ✗ — **Nexaon 루프 필수** ([`ontex_ingest` §7](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)).
 
 ```mermaid
 flowchart LR
-  NX[Nexaon L3 · 정재·승인]
-  NI[Nixie L1 · 알림]
+  NX[Nexaon ML3 · 정재·승인]
+  NI[Nixie ML1 · 알림]
   subgraph stores [Stores · ⑥]
     PG[(pgvector<br/>embed · FACT trace)]
     N4[(Neo4j<br/>promoted · SHACL)]
@@ -823,14 +823,14 @@ _MQTT cmd/_
 
 ## 8. 단계 대응표 — 지능 위계 · 엣지 vs 클라우드 (짝 문서)
 
-| 엣지·플랫폼 단계 | 지능 위계 (TDD-040) | L1/L3 | 클라우드 4 단계 (짝 문서) | 비고 |
+| 엣지·플랫폼 단계 | 지능 위계 (TDD-040) | ML1/ML3 | 클라우드 4 단계 (짝 문서) | 비고 |
 | :--- | :--- | :--- | :--- | :--- |
 | ① 발생 | Nano · Micro · Kinetic | — | — (upstream) | Physical AI · COLD/WARM |
 | ② HEXAGON 선처리 | Nano · Micro (± Kinetic) | — | ① Gathering (일부) | 엣지 1 차 압축 |
 | ③ 후보고 uplink | Sentinel → MQTT | — | ① Gathering | FACT → RAG **후보** |
-| ④ nexabo·Twinex | Nest · **Event Router** | **Policy** · Nixie L1 · L2 UI | ① Gathering · Twinex | match·route · §1.6.6 |
-| ⑤ Nexaon 정재 | Zenith · **Nexaon L3** | Nixie **표현만** | ② Reasoning · ③ Planning | Run · SHACL · 승인 |
-| ⑥ ontex 지식化 | Zenith · Nexaon | Nixie **알림** | ④ Writing (장기) | promoted · 그래프 |
+| ④ nexabo·Twinex | Nest · **Event Router** | **Policy** · Nixie ML1 · ML2 UI | ① Gathering · Twinex | match·route · §1.6.6 |
+| ⑤ Nexaon 정재 | Zenith · **Nexaon ML3** | Nixie **표현만** | ② Reasoning · ③ Planning | Run · SHACL · 승인 |
+| ⑥ Ontex 지식化 | Zenith · Nexaon | Nixie **알림** | ④ Writing (장기) | promoted · 그래프 |
 
 ---
 
@@ -839,14 +839,14 @@ _MQTT cmd/_
 | 대상 | 층 | 엣지 파이프라인에서의 역할 |
 | :--- | :---: | :--- |
 | **Event Router** | Policy | ④ **match·refine·route** · Normex·GOVERN·사용자 규칙 (§1.6.6) |
-| **Nixie** | L1 | **Router `TDD-057` 채널** · TTS/PiP/Jitter · MQTT **✗** |
-| **nexabo** | L2 | ④ Live Feed · 알람 · trace |
-| **Twinex** | L2 | ①②③ · **nexia/** MQTT · `nixie.alert` |
-| **Logex / Nexaon** | L3 | ⑤⑥ **지식 정재·승격** · 진입 §1.6.5 (후보고·deep link) |
-| **Omnix** | L3 | Run 큐 · ASK·STUCK 승인 — Nixie **escalate** 수신 |
-| **Navex** | L2 | promoted 산출물·`.nxdev` 등록 · ingest 소스 |
-| **Normex** | L3 | RULE·가드레일 — 엣지 FACT 와 대조 |
-| **ontex** | L3 | ⑥ explore · trace · archive (promoted 허브) |
+| **Nixie** | ML1 | **Router `TDD-057` 채널** · TTS/PiP/Jitter · MQTT **✗** |
+| **nexabo** | ML2 | ④ Live Feed · 알람 · trace |
+| **Twinex** | ML2 | ①②③ · **nexia/** MQTT · `nixie.alert` |
+| **Logex / Nexaon** | ML3 | ⑤⑥ **지식 정재·승격** · 진입 §1.6.5 (후보고·deep link) |
+| **Omnix** | ML3 | Run 큐 · ASK·STUCK 승인 — Nixie **escalate** 수신 |
+| **Navex** | ML2 | promoted 산출물·`.nxdev` 등록 · ingest 소스 |
+| **Normex** | ML3 | RULE·가드레일 — 엣지 FACT 와 대조 |
+| **Ontex** | ML3 | ⑥ explore · trace · archive (promoted 허브) |
 
 > **nexabo** 상세 UI: [ADM-001 · NEXA-SYNC 커맨드 센터](../09_Admin/09_Admin_NEXA_SYNC커맨드센터.md)
 
@@ -854,7 +854,7 @@ _MQTT cmd/_
 
 ## 10. 구현 체크리스트 (초안)
 
-- [ ] **§1.4** L1/L2/L3 분업 — Nixie Run·promoted ✗ · Nexaon L3 정재
+- [ ] **§1.4** ML1/ML2/ML3 분업 — Nixie Run·promoted ✗ · Nexaon ML3 정재
 - [ ] **§1.6.6** Event Router Policy — match/refine/route · GOVERN immutable · Nixie MQTT ✗
 - [ ] Nixie: Router **`.nxproj` 채널** · perpetual SSE/WS · Omnix escalate (§1.6)
 - [ ] **§1.6.5** Nexaon 6 축 진입 · 후보고 → `nixie.alert` (Logex 선행 ✗)
@@ -884,7 +884,7 @@ _MQTT cmd/_
 | Nixie · Presence Shell | [TDD-045 · 지능의 얼굴](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [UIX BAX · NIXIE M2P](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) §2.8 |
 | Nexaon · 진입 · Run | [TDD-056 §4.1](./08_TDD_NEXIA_7탭범위확정_v1.0.md) · [TDD-070 §3.4.1](../../용어집_NEXA전용_v2.0.md) |
 | Nexaon · Run · SHACL | [TDD-008 · IoT 온톨로지 플랫폼](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
-| Ontex ingest | [TDD-057 · Ontex](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
+| Ontex ingest | [TDD-057 · Ontex](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 | NEXA-CELL · Twinex | [PRD-004 · CELL](../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |
 | Physical AI 방향 | [BRD-002 · AI 혁신 포지셔닝](../01_BRD/01_BRD_AI혁신의물결_NEXA포지셔닝.md) |
 | AIS 레거시 매핑 | [08_TDD/AI/README](../AI/README.md) |

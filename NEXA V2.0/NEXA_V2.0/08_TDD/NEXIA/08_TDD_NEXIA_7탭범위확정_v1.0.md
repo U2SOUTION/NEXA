@@ -8,9 +8,9 @@ created: 2026-06-12
 updated: 2026-06-13
 parent_doc: TDD-010
 implements_doc: PRD-001
-see_also: [UIX-004, UIX-008, UIX-002, PRD-008, PRD-014, TDD-002, TDD-070]
+see_also: [UIX-004, UIX-008, UIX-002, PRD-008, PRD-014, TDD-071, TDD-070]
 terms_standard: ["react-flow", "yjs", "tiptap", "monaco", "langgraph", "sse"]
-terms_nexa: ["nexia", "tabId", "Omnix", "Normex", "Logex", "Scribx", "Vivex", "Twinex", "Navex", "Global-Navex", "NexaonShell", "ontology", "NEXA-CELL", "ontex", "GlobalFileExplorer", "Global-Asset-Index", "InfraTree", "asset-origin", "navexCategory", "Project-Explorer"]
+terms_nexa: ["nexia", "tabId", "Omnix", "Normex", "Logex", "Scribx", "Vivex", "Twinex", "Navex", "Global-Navex", "NexaonShell", "ontology", "NEXA-CELL", "Ontex", "GlobalFileExplorer", "Global-Asset-Index", "InfraTree", "asset-origin", "navexCategory", "Project-Explorer"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/tiptap", "std/monaco", "std/langgraph", "std/sse", "nexa/nexia", "nexa/tabId", "nexa/Omnix", "nexa/Normex", "nexa/Logex", "nexa/Scribx", "nexa/Vivex", "nexa/Twinex", "nexa/Navex", "nexa/Global-Navex", "nexa/NexaonShell", "nexa/ontology", "nexa/NEXA-CELL", "nexa/ontex", "nexa/GlobalFileExplorer"]
 ---
 
@@ -30,7 +30,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/t
 | **정의** | 7 탭 각각 **무엇을 담당하고 무엇을 담지 않는지** — 구현·기획 분쟁 시 **최종 판단표** |
 | **상위 Normative** | [`TDD-010`](./08_TDD_NEXIA_구조기술스택운영방침.md) §3 — `tabId`·기술·`.nx*`·파이프라인 |
 | **본 문서가 추가로 고정하는 것** | 탭별 **In/Out** · **MVP(P0~P2)** · **타 `domainKey` 경계** · **Logex↔Nexaon** 분리 |
-| **제외** | Ontex `subRoute` 상세 · ERP·nexabo 전체 — [`TDD-002`](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| **제외** | Ontex `subRoute` 상세 · ERP·nexabo 전체 — [`TDD-071`](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 
 ---
 
@@ -48,7 +48,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/t
 
 | 대상 | 소유 `domainKey` | 비고 |
 | :--- | :--- | :--- |
-| 장기 온톨로지·Graph RAG·아카이브 허브 | **ontex** | Nexion 캔버스 = `ontex/canvas` · nexia Logex/Nexaon 은 **초안·Run** |
+| 장기 온톨로지·Graph RAG·아카이브 허브 | **Ontex** | Nexion 캔버스 = `ontex/canvas` · nexia Logex/Nexaon 은 **초안·Run** |
 | IoT 관제·Telemetry 대시보드 | **nexabo** | Twinex 는 **디바이스·트윈 작업면**만 |
 | SW·HW 마켓 유통 | **nexet** | 설치·라이선스·Capability |
 | ERP·부품·재고 | **erp** | Normex 규범 **참조**만 |
@@ -60,7 +60,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/t
 | :--- | :--- |
 | **nexia** | UI `domainKey` · 7 탭 플랫폼 셸 |
 | **Nexaon** | Logex `ontology` **서브모드** 모듈 (`modules/nexaon/`) — 별도 `tabId` **아님** |
-| **Nexion** | **ontex** `canvas` subRoute **표시명** — nexia 와 분리 |
+| **Nexion** | **Ontex** `canvas` subRoute **표시명** — nexia 와 분리 |
 | **NEXAON** | AXON 프로토콜 계층 용어 — UI 도메인명 **아님** |
 
 ---
@@ -80,7 +80,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/t
 |  7  | `navex`  | Navex   | 파일·자산·노드 탐색         | `/nexia/navex`            |
 
 **설정 SSOT:** `domains/nexia/config/nexiaTabs.ts`
-**금지:** 8 번째 탭을 nexia 에 추가하려면 **본 문서 + TDD-010 + TDD-002** 개정 절차를 거친다. (Extended 프로파일은 **기능 확장**이지 `tabId` 추가가 아님 — §8)
+**금지:** 8 번째 탭을 nexia 에 추가하려면 **본 문서 + TDD-010 + TDD-071** 개정 절차를 거친다. (Extended 프로파일은 **기능 확장**이지 `tabId` 추가가 아님 — §8)
 
 ---
 
@@ -161,7 +161,7 @@ Logex 는 **두 층**으로 확정한다.
 | :--- | :--- |
 | **역할** | 모든 탭의 **진입·라우팅·승인 게이트** · HEXAGON(5W1H) 분류 · 대화 허브 |
 | **범위 내** | 멀티모달 채팅 (텍스트·이미지·음성→텍스트) ● · 의도 분류·탭 위임 ◐ · Run/승인 요청 중계 ● · Global Flow(대화 이벤트 시간순) ◐ · NIXIE 상태 표시 ○ · **Discover intent** → **`navex_search` tool** (NISE) ◐ P0 |
-| **범위 외** | 탭 본문 편집 (각 전문 탭) · **자산 hybrid ranking** (**NISE** · [`PRD-014` §2.3.1](../../05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md)) · Graph RAG 검색 (**ontex**) · ERP 트랜잭션 |
+| **범위 외** | 탭 본문 편집 (각 전문 탭) · **자산 hybrid ranking** (**NISE** · [`PRD-014` §2.3.1](../../05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md)) · Graph RAG 검색 (**Ontex**) · ERP 트랜잭션 |
 | **엔진** | `apps/agent-graph` (Chat·Stream·SSE) · Nest 프록시 · Yjs 채팅 룸 |
 | **산출물** | `.nxchat` → Navex 등록 |
 | **Left / Right** | 요청 큐·최근 Run ● / Agent · Time Axis ● |
@@ -173,7 +173,7 @@ Logex 는 **두 층**으로 확정한다.
 | :--- | :--- |
 | **역할** | **Norm(규범)** · 정책·가드레일·인터랙티브 시방서 |
 | **범위 내** | Tiptap 협업 편집 ● · 용어집·MOC 트리 ● · Normex 블록 (링크·트리거) ◐ · 버전·승인 이력 ◐ · wikilink ↔ Logex/Nexaon SpecsPreview 연동 ◐ |
-| **범위 외** | 온톨로지 그래프 편집 (**Nexaon**) · 코드 실행 (**Scribx**) · 장기 아카이브 UI(**ontex/archive**) |
+| **범위 외** | 온톨로지 그래프 편집 (**Nexaon**) · 코드 실행 (**Scribx**) · 장기 아카이브 UI(**Ontex/archive**) |
 | **엔진** | TipTap + Yjs · `@engines/tiptap` |
 | **산출물** | `.nxpol` |
 | **Left / Right** | TermTree · MOC ● / SpecInspector ● |
@@ -185,7 +185,7 @@ Logex 는 **두 층**으로 확정한다.
 | :--- | :--- |
 | **역할** | 추론·관계·워크플로우 **로직 생성물** |
 | **범위 내** | **Nexaon(ontology)** 전체 ●(MVP 핵심) · Logex FlowView(일반 워크플로) ○ · LangGraph subgraph 시각화 ○ · `.nxflow` 저장 ● · Navex 컨텍스트 수신 ● |
-| **범위 외** | Nexion 지식 데스크 전체 (**ontex/canvas**) · IoT 관제 패널 (**nexabo**) |
+| **범위 외** | Nexion 지식 데스크 전체 (**Ontex/canvas**) · IoT 관제 패널 (**nexabo**) |
 | **엔진** | React Flow · Yjs · (Logex) `.nxflow` · (Nexaon) LangGraph SSE |
 | **산출물** | `.nxflow` · (Nexaon) `ontology:draft` |
 | **Left / Right** | ProjectList / **ExplorerTree**(ontology) ● / FlowProps 또는 **NexaonRightTabs** ● |
@@ -233,7 +233,7 @@ Logex 는 **두 층**으로 확정한다.
 | :--------------- | :------------------------------------------------------------------------------------------------------------------ |
 | **역할**           | **플랫폼 전역 Global Asset Index** · 전 탭·전 `domainKey` 자산 **탐색·검색** · 선택 컨텍스트 **릴레이**                                              |
 | **범위 내**         | InfraTree ● · **전 `domainKey` DB 등록 파일** ● · code/config(yaml·json 등) P0 ● · **edge ingest** ● · docs internal/external ● · `.nx*` ● · 필터·검색 ● · GlobalFileExplorer ● · OPFS/IndexedDB ○ · **nexet 설치본** ○ P1 |
-| **범위 외**         | Graph RAG 전용 UI(**ontex/explore**) · ERP **마스터 편집** · MQTT **실시간 스트림**(파일 아님) · **Left Drawer 프로젝트 탐색** UI(별도 SSOT)              |
+| **범위 외**         | Graph RAG 전용 UI(**Ontex/explore**) · ERP **마스터 편집** · MQTT **실시간 스트림**(파일 아님) · **Left Drawer 프로젝트 탐색** UI(별도 SSOT)              |
 | **엔진**           | GlobalFileExplorer · facet 필터 · 서버 검색/페이지네이션 · InfraTree · IndexedDB · OPFS · (선택) S3/MinIO                                          |
 | **산출물**          | 확장자 생성 없음 — **전체 인덱싱**                                                                                              |
 | **Left / Right** | InfraTree ● / ConnectionLog ◐                                                                                       |
@@ -285,7 +285,7 @@ P0 수준: **탐색·목록·텍스트/미디어 미리보기**. 실행·플래�
 | 필터 축 | 값 예 |
 | :--- | :--- |
 | **origin** | upload · edge · docs · market … |
-| **domainKey** | nexia · erp · parts · ontex … |
+| **domainKey** | nexia · erp · parts · Ontex … |
 | **category** | §5.7.2 |
 | **registration** | internal · external ([`PRD-008` §4.0](../../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md)) |
 | **projectId** | (선택) Project Explorer 연동 |
@@ -380,7 +380,7 @@ flowchart LR
 
 | 금지 | 이유 |
 | :--- | :--- |
-| nexia 탭이 **ontex 전용 Graph RAG UI**를 풀기능으로 중복 구현 | `domainKey` 분리 |
+| nexia 탭이 **Ontex 전용 Graph RAG UI**를 풀기능으로 중복 구현 | `domainKey` 분리 |
 | Navex 가 **ERP 부품 마스터**를 직접 편집 | `erp` 소유 |
 | Omnix 가 탭 본문을 **대체 편집** | 전문 탭 역할 침범 |
 | Nexaon 없이 Logex 에서 **SHACL·Neo4j promoted** 직접 쓰기 | 승인·게이트 우회 |
@@ -398,7 +398,7 @@ flowchart LR
 | **Standard** | **7 전부** | 본 문서 확정 범위 |
 | **Extended** | 7 + **기능 플래그** | 탭 추가가 아니라 탭 **내부 capability** 확장 (`timeSeries`, `streamView` 등) |
 
-**8 번째 `tabId` 추가** 시: BRD 영향 검토 → TDD-002 registry → 본 문서 개정 → `nexiaTabs.ts` migration.
+**8 번째 `tabId` 추가** 시: BRD 영향 검토 → TDD-071 registry → 본 문서 개정 → `nexiaTabs.ts` migration.
 
 ---
 
@@ -431,7 +431,6 @@ flowchart LR
 | 구현 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | UI 레이아웃 | [NEXIA MainShell · 레이아웃 v1.0 (UIX-004)](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | 컴포넌트 트리 | [NEXIA · 컴포넌트 트리 뼈대 (UIX-008)](../07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) |
-| 도메인 레지스트리 | [NEXA OS · 도메인 구조 (TDD-002)](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| 도메인 구조 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 | 구현 파일 | [NEXIA · 구현 파일 구조 뼈대 (TDD-055)](./08_TDD_NEXIA_구현파일구조뼈대.md) |
 | 오케스트레이션 | [LangGraph · 오케스트레이션 설계 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
-| 도메인 맵 | [NEXA OS · 도메인 마스터 맵 (TDD-059)](../NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) |

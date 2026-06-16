@@ -35,7 +35,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/zod", "std/rbac", "std/mqtt",
 | 5 계층 역할·연계                     | Grade·Ingress 필드 정의 — V2.1 `commands/`                                                     |
 | 단일 명령·감사 경로 원칙            | RBAC·탭별 `tabId` — Nexia `01`                                                                 |
 | V2.1·NEXIA 매핑 표                  | CSIM·ACTON-GM 패킷 — Nexia `13`                                                                |
-| Mission-Safe UI vs 물리 Safety 구분 | 도메인 레지스트리 필드 — [`도메인-레지스트리-명세`](./08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| Mission-Safe UI vs 물리 Safety 구분 | 도메인 레지스트리 필드 — [`도메인구조통합_v1.0`](./08_TDD_NEXAOS_도메인구조통합_v1.0.md) (TDD-071) |
 
 ---
 

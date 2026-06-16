@@ -21,7 +21,7 @@ tags: ["doc/cat/07-uiux", "doc/domain/nexia", "std/next-js", "std/react", "std/z
 > **플랫폼 셸 (전 도메인):** [`UIX-006` NEXA 통합 레이아웃](./07_UIUX_NEXA_통합레이아웃구조규격.md).
 > **명칭:** UI 도메인은 **`nexia`** (`domains/nexia/`). **Nexaon**(`modules/nexaon/`) 은 Logex 탭 **`ontology` 서브모드** 작업면 모듈명 — 별도 `domainKey` 아님. (구 프로젝트명 NEXAON 과 혼동 금지)
 > **기능 상세:** [`05_PRD NEXIA UI 기능 명세`](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md)
-> **상위:** [`TDD-002` 도메인 레지스트리](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) · [`08_TDD LangGraph 플랫폼`](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) · [`08_TDD 모노레포 폴더 구조`](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)
+> **상위:** [`TDD-071` 도메인 구조 통합](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) · [`08_TDD LangGraph 플랫폼`](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) · [`08_TDD 모노레포 폴더 구조`](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)
 
 ---
 
@@ -695,5 +695,5 @@ flowchart LR
 | 플랫폼 레이아웃   | [NEXA 통합 레이아웃 구조 규격 (UIX-006)](./07_UIUX_NEXA_통합레이아웃구조규격.md)                                |
 | v0 프롬프트셋     | [NEXIA v0 UI 프롬프트셋 v1.0 (UIX-005)](./07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md)                                 |
 | OS SSOT           | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
-| 도메인 레지스트리 | [NEXA OS · 도메인 구조 레지스트리 (TDD-002)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md)            |
+| 도메인 구조 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md)            |
 | 모노레포 구조     | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)    |

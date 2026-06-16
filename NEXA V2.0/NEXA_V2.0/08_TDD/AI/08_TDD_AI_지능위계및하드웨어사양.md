@@ -1,36 +1,64 @@
 ---
 doc_id: TDD-040
-title: "지능 위계 · 하드웨어 사양"
+title: "피지컬 티어 · 지능 위계 · 하드웨어 사양"
 category: "08_TDD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-10
-implements_doc: PRD-001
+updated: 2026-06-13
 terms_standard: ["esp32", "jetson", "raspberry-pi"]
-terms_nexa: ["Nano-Sentinel", "Kinetic-Controller", "Zenith-Indicator", "COLD", "HOT"]
-tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/raspberry-pi", "nexa/Nano-Sentinel", "nexa/Kinetic-Controller", "nexa/Zenith-Indicator", "nexa/COLD", "nexa/HOT"]
+terms_nexa: ["Physical-Tier", "Nano-Sentinel", "Micro-Sentinel", "Kinetic-Controller", "Zenith-Indicator", "COLD", "WARM", "HOT"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/raspberry-pi", "nexa/Physical-Tier", "nexa/Nano-Sentinel", "nexa/Micro-Sentinel", "nexa/Kinetic-Controller", "nexa/Zenith-Indicator", "nexa/COLD", "nexa/WARM", "nexa/HOT"]
 ---
-# AI · 지능 위계 및 하드웨어 사양
+# AI · 피지컬 티어 · 지능 위계 · 하드웨어 사양
 
 > **레거시 출처:** 「NEXA AIS Intelligence Hierarchy & Spec」→ **본 문서(TDD-040)가 정본**.
+>
+> **문서 중심축:** **피지컬 티어 (Physical Placement Tier)** — 하드웨어 배치·연산 자원 할당의 **절대 기준**. **지능 위계** = 각 티어의 **주체 명칭** (Nano/Micro/Kinetic/Zenith). **ML0–ML3** · **Core Engine Stack** 과 **1:1 ✗** — [Core Engine Stack §0](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md). **배치:** **PT-3 허브** + **PT-0~2·Nixie 샤드** ([§0.1](#01-hub-and-spoke-배치-원칙-normative)).
 
-센티널(반사 신경)과 인디케이터(전략적 뇌)가 각자의 역할에 최적화된 하드웨어에서 구동되도록 설계하여, 연산 부하를 분산하고 실시간 반응성을 확보하는 **지능 위계·하드웨어 사양서**이다.
+센티널(반사 신경)과 인디케이터(전략적 뇌)가 **피지컬 티어**별로 최적화된 하드웨어에서 구동되도록 설계한다. **PT-3 (Zenith)** 에 Core Engine **통합·기억**이 집결하고, **PT-0~2** 에 **Local Reflex** 가 분산되는 **Hub-and-Spoke** 구조로 연산 부하를 분산하고 실시간 반응성을 확보하는 **피지컬 티어 · 하드웨어 사양서**이다.
 
 ---
 
-#### 1. 지능 계층별 역할 및 배치 전략
+#### 0. NEXA 통합 아키텍처 — 세 축 (혼동 방지)
+
+| 축 | 호칭 (한·영) | 질문 | 개수 | SSOT |
+| :--- | :--- | :--- | :---: | :--- |
+| **① 피지컬 티어** | 피지컬 티어 · Physical Placement Tier | **어디서** 연산하나 | **4** (PT-0~3) | **본 문서 (TDD-040)** |
+| **② 논리 계층** | **Menton** (Intelligence Stack) | **소프트웨어상** 어떤 역할 층인가 | **4** (ML0–ML3) | [용어집 §3.2.0~3.2.1](../../용어집_NEXA전용_v2.0.md) · [TDD-068 §1.4](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
+| **③ 핵심 엔진** | Core Engine Stack · 핵심엔진 스택 | **무엇이** 기능을 수행하나 | **6** _(가변)_ | [Core Engine Stack](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md) |
+
+> **금지 혼동:** `지능 계층` **deprecated** → **피지컬 티어**. **6엔진** (HEXAGON→Ontex) **≠** **4피지컬 티어** **≠** **4 Menton 층과 1:1 ✗**. **Nixie** = ML1 Presence — Micro Sentinel **동일시 ✗**.
+
+#### 0.1 Hub-and-Spoke 배치 원칙 (Normative)
+
+> **한 줄:** **PT-3 (Zenith)** = Cold Path **통합 허브** · **PT-0~2·브라우저** = **경량 실장(lite embodiment)** + **Local Reflex**.
+
+**PT-3 (Zenith Indicator)** 에서 Core Engine Stack **통합 허브**—**CSIM T2/T3R** · **DIEA** · **Normex** · **Nexaon** · **Ontex**—가 **풀스택 웹 플랫폼(Full-Stack Web Platform)** (`nexia` · Nest · `agent-graph` · MainShell)으로 집결되어 **전역 최적화(Global Optimization)** 와 **장기 지식 고착(Long-term Memory)** 을 담당한다.
+
+**PT-0~2** 및 **Nixie**(브라우저·Desktop·Mobile·Physical Shell)에는 해당 티어·Menton 층에 맞는 **경량 실장**—**HEXAGON** / **CSIM T1** · Sentinel·SLM·YOLO · **CSIM T3N** 표현—이 분산되어 **네트워크 우회 Local Reflex** 와 **실시간 UI 상호작용**을 보장한다.
+
+| 구분 | PT-3 허브 | PT-0~2 · ML1 샤드 |
+| :--- | :--- | :--- |
+| **역할** | Distillation · Run · promoted · RAG · 코일·전략 | Fact·Reflex · 비식별 게이트 · 현장 JSON 제어 · ECHO 표현 |
+| **엔진** | DIEA · Normex · Nexaon · Ontex · Gateway CSIM T2 | 말단 **HEXAGON** · **CSIM T1** · (선택) Micro/Kinetic SLM |
+| **경로** | **Cold Path** 종착 · **Slow Reasoning** | **Fast Path** · ACTON — Ontex **우회** |
+| **오해 방지** | 6엔진 **바이너리 전부 PT-3 only ✗** | 엣지 = **완전체 복제 ✗** · **동일 `Axon` · `HEXAGON` 규격의 말단 샤드 ✓** |
+
+상세 엔진·Menton 층 매핑: [Core Engine Stack §0.2~0.4](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md).
+
+#### 1. 피지컬 티어별 역할 및 배치 전략
 
 **명명 규칙:** 하위 하드웨어·지능에는 **Sentinel**을 공통으로 붙이고(나노 센티널, 마이크로 센티널), 중간 제어 계층에는 **Kinetic Controller**, 상위 고성능·맥락 해석 계층에는 **Zenith Indicator**로 통일한다. [NEXA-STACK-01] §8.2와 동일.
 
-넥사 시스템은 데이터를 생성하고 해석하는 주체를 **반사·인식 계층(Sentinel)**, **현장 판단·제어 계층(Kinetic Controller)**, **전략 계층(Zenith Indicator)**으로 구분하여 연산 효율을 극대화한다.
+넥사 시스템은 **피지컬 티어**마다 데이터를 생성·해석하는 **지능 위계 주체**를 두어 연산 효율을 극대화한다 — **반사·인식(Sentinel)** · **현장 판단·제어(Kinetic)** · **전략(Zenith Indicator)**.
 
-| 체급 (공식 명칭)                                       | 역할        | 핵심 임무                                                   | 배치 환경                 | 파이프라인           | HW 프로필 |
-| ------------------------------------------------------ | ----------- | ----------------------------------------------------------- | ------------------------- | -------------------- | --------- |
-| **나노 센티널** (Nano Sentinel)                        | 반사 신경   | 로우 데이터 감시, 노이즈 제거, 5W1H 단편 사실(Fact) 추출    | 현장 최전방 (ESP32 등)    | Listen               | **COLD**  |
-| **마이크로 센티널** (Micro Sentinel) _(생략 가능)_     | 인식 지능   | 객체 탐지 및 사건(Event) 식별, 데이터 비식별화              | 엣지 허브 (라즈베리 파이) | Awareness            | **WARM**  |
-| **키네틱 컨트롤러** (Kinetic Controller) _(생략 가능)_ | 현장 지휘관 | 복합 상황 판단, 장치 제어 명령 생성, 상위 에스컬레이션 결정 | 엣지 AI (Jetson Orin 등)  | Decision             | **WARM**  |
-| **제니스 인디케이터** (Zenith Indicator)               | 전략적 뇌   | 맥락(Why) 해석, 코일 벨런서 기반 전략 수립, 사용자 조언     | 중앙 서버 (NAS/AI 서버)   | Execution · Feedback | **HOT**   |
+| 피지컬 티어 | 지능 위계 (주체) | 역할 | 핵심 임무 | 배치 환경 | 파이프라인 | HW 프로필 |
+| :---: | :--- | :--- | :--- | :--- | :--- | :---: |
+| **PT-0** | **나노 센티널** (Nano Sentinel) | 반사 신경 | 로우 데이터 감시, 노이즈 제거, 5W1H 단편 사실(Fact) 추출 | 현장 최전방 (ESP32 등) | Listen | **COLD** |
+| **PT-1** | **마이크로 센티널** (Micro Sentinel) _(생략 가능)_ | 인식 지능 | 객체 탐지·사건(Event) 식별, 데이터 비식별화 | 엣지 허브 (라즈베리 파이) | Awareness | **WARM** |
+| **PT-2** | **키네틱 컨트롤러** (Kinetic Controller) _(생략 가능)_ | 현장 지휘관 | 복합 상황 판단, 장치 제어 명령(JSON), 상위 에스컬레이션 결정 | 엣지 AI (Jetson Orin 등) | Decision | **WARM** |
+| **PT-3** | **제니스 인디케이터** (Zenith Indicator) | 전략적 뇌 | 맥락(Why) 해석, 코일 벨런서 전략, 사용자 조언 · **풀스택 플랫폼 허브** · Nexaon·DIEA | 중앙 서버 (NAS/AI 서버) | Execution · Feedback | **HOT** |
 
 > **배치 구성 옵션:**
 >
@@ -72,7 +100,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
   - **AI 전문 서버:** ASUS Ascent GX10 (NVIDIA Blackwell 기반, 약 550만원) / [HP] ZGX Nano(NVIDIA DGX Spark기반 ), 900 만원.
 - **주요 지능:** 7B~70B LLM (Llama 3 등), 코일 벨런서 엔진, RAG 가속기, 고성능 PostgreSQL(pgvector).
 - **배치 환경:** Docker 및 Ollama 기반의 서버 환경.
-- **특성:** 플랫폼의 **'최종 두뇌'**입니다. 전체 이력을 분석하여 에너지 최적화 전략을 수립하거나, 복잡한 사용자 질문에 전문적인 답변을 생성합니다. 대규모 데이터를 학습(Fine-tuning)하고 NAS에 보관된 과거 지식을 호출하여 통찰력을 제공합니다.
+- **특성:** 플랫폼의 **'최종 두뇌'**이자 **Hub-and-Spoke 허브(PT-3)**이다. Core Engine Stack 통합·**전역 최적화**·**장기 지식 고착(Ontex·RAG)** 의 주 무대. 전체 이력을 분석하여 에너지 최적화 전략을 수립하거나, 복잡한 사용자 질문에 전문적인 답변을 생성한다. 대규모 데이터를 학습(Fine-tuning)하고 NAS에 보관된 과거 지식을 호출하여 통찰력을 제공한다.
 
 ---
 
@@ -236,6 +264,8 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 
 | 관계 | 문서 |
 | :--- | :--- |
+| **3축 · 엔진** | [NEXA 핵심엔진 (Core Engine Stack)](../../_inbox/NEXA_핵심엔진_(Core_Engine_Stack).md) |
+| **Menton · IoT 파이프** | [TDD-068 · IoT 엣지 파이프라인](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
 | 구현 PRD | [NEXIA UI 기능 명세 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | 안전 대책 | [안전 대책 · 선조치 로직 (TDD-039)](./08_TDD_AI_안전대책선조치로직.md) |
 | NEXA-CELL PRD | [NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 (PRD-004)](../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |

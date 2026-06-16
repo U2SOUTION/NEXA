@@ -163,7 +163,7 @@ export type DomainLayoutSlots = {
   headerActions?: ComponentLoader
   statusBar?: ComponentLoader
   statusPanel?: ComponentLoader
-  /** L/R 드로어 openPolicy — 상세: `08_TDD_NEXAOS_도메인레지스트리명세.md` §2.1 */
+  /** L/R 드로어 openPolicy — 상세: `08_TDD_NEXAOS_도메인구조통합_v1.0.md` §6.1 */
   drawerDefaults?: DomainDrawerDefaults
   /** 도메인 진입 시 적용할 산업 프리셋 (선택) */
   themePreset?: ThemePresetId
@@ -684,7 +684,7 @@ MainShellLayout
 | `store/useLayoutStore.ts`                   | `leftOpen` · `rightOpen` · 드로어 폭 · `statusBarExpanded` · `statusBarDetailHeight` (기본 300) — **runtime SSOT**                                          |
 | `store/useRuntimeMetricsStore.ts`           | healthWatchdog · Worker · latency 스냅샷                                                                                                                    |
 | `engines/runtimeMetricsCollector.ts`        | 1s tick · PerformanceObserver · ping                                                                                                                        |
-| `domainLayoutRegistry`                      | `drawerDefaults` · `statusBar` · `statusPanel` · `themePreset` — **정책 SSOT** ([`도메인-레지스트리-명세`](./08_TDD_NEXAOS_도메인레지스트리명세.md) §2.1) |
+| `domainLayoutRegistry`                      | `drawerDefaults` · `statusBar` · `statusPanel` · `themePreset` — **정책 SSOT** ([`도메인구조통합_v1.0`](./08_TDD_NEXAOS_도메인구조통합_v1.0.md) §6.1) |
 
 **스크롤 규칙**: `Content`만 `overflow-auto`. 상태바·상세창은 셸에 고정되어 **페이지 전체 이중 스크롤 방지**.
 
@@ -2017,7 +2017,7 @@ export const domainLayoutRegistry = {
 | **2** | **Content 단일 스크롤**  | 메인 작업 영역**만** 세로 스크롤          | `Content` → `flex-1 overflow-auto` (헤더·상태바는 고정)                                                                                                                    |
 | **3** | **드로어 내부 스크롤**   | L/R Drawer는 **자기 영역만** 스크롤       | 드로어 → `overflow-y-auto` (셸·Content에 영향 없음)                                                                                                                        |
 | **4** | **Footer 없음 · 상태바** | `<footer>` 대신 **`SystemStatusBar`**     | compact **~30px** · expanded **≥300px** (`useLayoutStore`)                                                                                                                 |
-| **5** | **Store-Driven Layout**  | 드로어·상태바 크기/개폐는 **스토어 SSOT** | `useLayoutStore` — open·폭 · `statusBarExpanded` · `statusBarDetailHeight` · 정책은 registry **`drawerDefaults`** ([명세 §2.1](./08_TDD_NEXAOS_도메인레지스트리명세.md)) |
+| **5** | **Store-Driven Layout**  | 드로어·상태바 크기/개폐는 **스토어 SSOT** | `useLayoutStore` — open·폭 · `statusBarExpanded` · `statusBarDetailHeight` · 정책은 registry **`drawerDefaults`** ([명세 §6.1](./08_TDD_NEXAOS_도메인구조통합_v1.0.md)) |
 
 ```text
 MainShellLayout (viewport lock)
@@ -2036,6 +2036,6 @@ MainShellLayout (viewport lock)
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
-| 하위 TDD | [NEXA OS · 도메인 구조 레지스트리 (TDD-002)](./08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| 하위 TDD | [NEXA OS · 도메인 구조 통합 (TDD-071)](./08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 | LangGraph 모노레포 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
 | NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |

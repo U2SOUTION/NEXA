@@ -46,7 +46,7 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/knowledge-graph", "std/rag", "
 | :--- | :--- | :--- |
 | `settings.nexia.navexExploreMode` | `'intelligent'` \| `'infra'` | **`intelligent`** |
 
-**경계:** Omnix · ontex/explore · Nexus Map — 본문·검색 **침범 ✗** ([§2.3](#23-도메인-경계-혼동-방지) · [§2.3.1](#231-omnix--nise--ontex--역할-분리-normative)).
+**경계:** Omnix · Ontex/explore · Nexus Map — 본문·검색 **침범 ✗** ([§2.3](#23-도메인-경계-혼동-방지) · [§2.3.1](#231-omnix--nise--Ontex--역할-분리-normative)).
 
 ### 2.3 도메인 경계 (혼동 방지)
 
@@ -54,21 +54,21 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/knowledge-graph", "std/rag", "
 | :--- | :--- |
 | **Omnix** | 대화·**의도 분류·탭 위임·승인** — 자산 ranking **소유 ✗** |
 | **Navex Search (NISE)** | **발견·ranking·개인화** · 파일·자산 |
-| **ontex / explore** | promoted · Graph RAG **전용** |
+| **Ontex / explore** | promoted · Graph RAG **전용** |
 | **Nexus Map** | 메타포·인과 **편집·서사** |
 | **Nexaon ExplorerTree** | 온톨로지 **편집** |
 
-#### 2.3.1 Omnix · NISE · ontex — 역할 분리 (Normative)
+#### 2.3.1 Omnix · NISE · Ontex — 역할 분리 (Normative)
 
-> **한 줄:** **Omnix** = 「무엇을 **할지**」 조율 · **NISE** = 「**무엇이** 있는지」 DB 발견 · **ontex/explore** = 「**승격된 지식**」 Graph RAG.
+> **한 줄:** **Omnix** = 「무엇을 **할지**」 조율 · **NISE** = 「**무엇이** 있는지」 DB 발견 · **Ontex/explore** = 「**승격된 지식**」 Graph RAG.
 
-| 구분 | **Omnix** (`tabId=omnix`) | **NISE** (`Navex-Search-Engine`) | **ontex / explore** |
+| 구분 | **Omnix** (`tabId=omnix`) | **NISE** (`Navex-Search-Engine`) | **Ontex / explore** |
 | :--- | :--- | :--- | :--- |
 | **핵심 질문** | 무엇을 **해야** 하지? 어디로 **위임**? | **어떤 파일·자산**이 관련? | **승격된** 지식·관계는? |
 | **출력** | `.nxchat` · Run · 승인 strip · 탭 handoff | ranked **ExplorerItem[]** · `matchReason` · zero-query feed | subgraph · citation · MOC · wikilink RAG |
-| **데이터** | 대화·Envelope · Run 큐 | `files` · `file_embeddings` · `source_metadata` · graph edges · trace | **promoted** 온톨로지 · Neo4j · ontex 인덱스 |
+| **데이터** | 대화·Envelope · Run 큐 | `files` · `file_embeddings` · `source_metadata` · graph edges · trace | **promoted** 온톨로지 · Neo4j · Ontex 인덱스 |
 | **엔진** | `apps/agent-graph` · HEXAGON 분류 · 승인 게이트 | hybrid L0–L5 · RRF · **Personalization rerank** | Graph RAG · pgvector · MOC ([`TDD-Ontex`](../../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)) |
-| **UI** | 채팅 · Global Flow · 요청 큐 | Navex **검색 Hero** · 타일 · Relational pivot | ontex **explore 전용** — Navex 풀 UI **✗** |
+| **UI** | 채팅 · Global Flow · 요청 큐 | Navex **검색 Hero** · 타일 · Relational pivot | Ontex **explore 전용** — Navex 풀 UI **✗** |
 | **개인화** | Intent **입력** (대화·위임 → profile feed) | **Personalization Profile** SSOT — ranking·zero-query | (P2) 팀·MOC 컨텍스트 |
 | **Latency** | 멀티턴·추론 (초~) | retrieval p95 **< 800ms** (P0) | 탐색·인용 (중~) |
 | **LLM** | 계획·분류·도구 체인·승인 | P0 **결정론 retrieval** · P1 query parse · cross-encoder rerank | RAG synthesis · subgraph |
@@ -100,7 +100,7 @@ Omnix 는 **자체 DB full-text·벡터 검색 ✗** — **발견 intent** 시 N
 | **Discover** · 「~ 찾아줘」 · 「관련 파일」 | **tool** `navex_search` 호출 → 채팅에 요약·카드 | `POST /api/v1/navex/search` |
 | **Discover (deep)** · 「Navex 에서 계속」 | Navex 탭 **deep link** (`q` · facet prefill) | 동일 + UI handoff |
 | **Execute** · 「코드 수정해줘」 | Logex/Scribx **위임** — NISE 는 **컨텍스트 파일** 선 supplying 만 | (선택) `related` · seed `fileId` |
-| **Knowledge** · 「온톨로지 관계」 · promoted | **ontex/explore** 또는 Nexaon Run — NISE **대체 ✗** | deep link only |
+| **Knowledge** · 「온톨로지 관계」 · promoted | **Ontex/explore** 또는 Nexaon Run — NISE **대체 ✗** | deep link only |
 | **Approve / Run** | Omnix strip · agent-graph — ranking **✗** | — |
 
 **tool 계약 (P0):**
@@ -122,14 +122,14 @@ Omnix 는 **자체 DB full-text·벡터 검색 ✗** — **발견 intent** 시 N
 | Navex 검색창에 「온도 센서 yaml」 | **NISE** primary · 타일·explain | Omnix 채팅으로만 우회 **✗** (primary) |
 | Omnix 「온도 센서 yaml 찾아줘」 | `navex_search` tool → 결과 카드 | Omnix LLM 이 **환각 파일명** 생성 **✗** |
 | Omnix 「이 정책 Logex 로」 | **Execute** → Logex 위임 | NISE 가 워크플로 **생성 ✗** |
-| 「승격된 클래스 A 와 B 관계」 | **ontex/explore** · Nexaon | NISE 가 promoted subgraph **대체 ✗** |
+| 「승격된 클래스 A 와 B 관계」 | **Ontex/explore** · Nexaon | NISE 가 promoted subgraph **대체 ✗** |
 | 빈 Navex 진입 | **zero-query** (개인화 feed) | Omnix 대화 **기본 화면 ✗** |
 
 **체감 흐름 (Normative):**
 
 1. **일상 발견** — Navex 검색 → NISE → relay
 2. **목표 지향** — Omnix 대화 → 분류 → (발견) NISE tool / (실행) 탭 / (승인) strip
-3. **지식 추론** — ontex · Nexaon Run — NISE·Omnix UI **분리**
+3. **지식 추론** — Ontex · Nexaon Run — NISE·Omnix UI **분리**
 
 ---
 
@@ -371,7 +371,7 @@ flowchart LR
 
 - **키워드 -only** 를 intelligent **주력 ✗**
 - 전 사용자 **동일** zero-query
-- ontex Graph RAG **UI 복제**
+- Ontex Graph RAG **UI 복제**
 - **Omnix 대화**가 NISE **primary 발견**을 **대체** (채팅 = 보조·위임 · Navex 검색 = SSOT)
 - Omnix LLM 이 **파일명·경로 환각** (발견 시 **NISE tool 필수**)
 - 개인화 **강제** (opt-out 필수)
@@ -385,7 +385,7 @@ flowchart LR
 | :--- | :--- |
 | **Omnix 경계** | [`PRD-014` §2.3.1](./05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md) · [`TDD-010` §2.4](../../08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) · [`TDD-056` §5.1](../../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | API · facet | [`TDD-065`](../../08_TDD/NEXIA/08_TDD_NEXIA_Navex탐색APIFacet계약_v1.0.md) |
-| ontex Graph RAG | [`TDD-Ontex`](../../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
+| Ontex Graph RAG | [`TDD-Ontex`](../../08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 | 임베딩 · 메타 | [`PRD-013`](./05_PRD_NEXIA_파일메타데이터AI추출.md) |
 | 그래프 | [`PRD-011`](./05_PRD_NEXIA_지식그래프NexusGraph.md) |
 | Infra UX | [`UIX-002`](../../07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) |

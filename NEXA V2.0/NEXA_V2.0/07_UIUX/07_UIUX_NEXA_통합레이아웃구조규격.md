@@ -1,6 +1,6 @@
 ---
 parent_doc: 
-see_also: [TDD-001, TDD-002, UIX-004, TDD-014]
+see_also: [TDD-001, TDD-071, UIX-004, TDD-014]
 doc_id: UIX-006
 title: "NEXA 통합 레이아웃 구조 규격"
 category: "07_UIUX"
@@ -17,7 +17,7 @@ tags: ["doc/cat/07-uiux", "doc/domain/nexa", "std/zustand", "std/next-js", "std/
 # NEXA · 통합 레이아웃 구조 규격
 
 > **⛔ archived (2026-06-13):** `implements_doc: MVP-001` 기준 구 규격 · **SSOT ✗**
-> **대체:** [UIX-004](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [TDD-002 도메인 레지스트리](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md)
+> **대체:** [UIX-004](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [TDD-071 도메인 구조 통합](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md)
 
 
 > **범위:** NEXA 플랫폼 **전 도메인** (`domainKey`) 공통 **MainShell** 셸 — AppHeader · L/R Drawer · Content · SystemStatusBar.
@@ -234,7 +234,7 @@ type DomainLayoutEntry = {
 | 관계 | 문서 |
 | :--- | :--- |
 | nexia 도메인 셸 | [NEXIA MainShell · 레이아웃 v1.0 (UIX-004)](./07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
-| 도메인 레지스트리 | [NEXA OS · 도메인 구조 (TDD-002)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| 도메인 구조 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 | OS 설계 표준 | [NEXA OS 설계 표준 (TDD-001)](../08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | 팝아웃 MVP | [NEXIA 레이아웃 · 팝아웃 MVP (MVP-001)](../03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
 | PiP · 멀티윈도우 | [멀티윈도우 · Document PiP (TDD-014)](../08_TDD/NEXIA/08_TDD_NEXIA_멀티윈도우DocumentPiP.md) |

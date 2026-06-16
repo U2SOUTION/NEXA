@@ -39,7 +39,7 @@ terms_nexa: []
 | `MVP-` | **002** | |
 | `PRD-` | **014** | |
 | `UIX-` | **009** | |
-| `TDD-` | **071** | |
+| `TDD-` | **071** | **072·073 예약** — [Global Architecture Phase 0](#예약-global-architecture-phase-0--2026-06-13) |
 | `ADM-` | **002** | |
 | `LEG-` | **001** | 미사용 |
 | `DEC-` | **001** | 미사용 |
@@ -99,12 +99,12 @@ terms_nexa: []
 
 ---
 
-## 08_TDD — NEXAOS (10)
+## 08_TDD — NEXAOS (9)
 
 | doc_id | title | domain | parent_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
 | TDD-001 | NEXA OS 설계 표준 · 미션 크리티컬 전략 | NEXAOS | BRD-001 | next-js, nestjs, yjs, hocuspocus, zod, crdt, sse, websocket, zustand, tailwind-css | NEXAOS, domainLayoutRegistry, useLayoutStore, useYjsSync, apps-sync, M.O.S.E.S., Rivet | 완료 | 1/1 · 4 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
-| TDD-002 | NEXA OS · 도메인 구조 (레지스트리) | NEXAOS | TDD-001 | react, typescript, zustand | domainKey, domainLayoutRegistry, nexia, MainShell, drawerDefaults, tabId, themePreset, useLayoutStore | 완료 | 1/1 · 4 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| TDD-071 | NEXA OS · 도메인 구조 통합 v1.0 | NEXAOS | TDD-001 | react, typescript, zustand, mermaid, langgraph, yjs | domainKey, domainLayoutRegistry, nexia, MainShell, drawerDefaults, tabId, themePreset, useLayoutStore, Ontex, erp, nexabo, nexet, subRoute, Nexion | 완료 | 1/1 · 6 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 | TDD-060 | NEXA V2.0 용어집 (v1.0 분리 안내) | NEXAOS | TDD-001 | — | glossary | — | — | [용어집_v1.0.md](./용어집_v1.0.md) |
 | TDD-069 | NEXA V2.0 범용 용어집 | NEXAOS | TDD-001 | — | glossary, terms_standard | — | — | [용어집_범용_v2.0.md](./용어집_범용_v2.0.md) |
 | TDD-070 | NEXA V2.0 전용 용어집 | NEXAOS | TDD-001 | — | glossary, terms_nexa, domainKey, tabId | — | — | [용어집_NEXA전용_v2.0.md](./용어집_NEXA전용_v2.0.md) |
@@ -112,7 +112,6 @@ terms_nexa: []
 | TDD-004 | NEXA OS · 수직 계층 보안 아키텍처 | NEXAOS | TDD-001 | zod, rbac, mqtt | Grade, Ingress, edge-queue, commands, U2BEE | 완료 | 1/1 · 3 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_수직계층보안아키텍처.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_수직계층보안아키텍처.md) |
 | TDD-005 | 4 대 핵심 · 체크리스트 상세 (아카이브) | NEXAOS | TDD-001 | yjs, hocuspocus, zod, nestjs | NEXAOS, apps-sync, packages-shared, mission-critical | 완료 | 1/1 · 2 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_4대핵심_체크리스트상세.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_4대핵심_체크리스트상세.md) |
 | TDD-006 | 하드웨어 프로파일러 · 동적 성능 엔진 | NEXAOS | TDD-001 | webgl, performance-api | NEXA-SYNC, Coil-Balance, Hardware-Profiler, NIXIE | 완료 | 1/1 · 3 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_하드웨어프로파일러동적성능엔진.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_하드웨어프로파일러동적성능엔진.md) |
-| TDD-059 | NEXA OS · 도메인 마스터 맵 v1.0 | NEXAOS | TDD-002 | mermaid, langgraph, yjs | domainKey, nexia, ontex, erp, nexabo, nexet, subRoute, tabId, Nexion | 완료 | 1/1 · 6 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) |
 
 ## 08_TDD — LangGraph (4)
 
@@ -120,7 +119,7 @@ terms_nexa: []
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
 | TDD-007 | LangGraph 모노레포 폴더 구조 v1.0 | LangGraph | TDD-001 | langgraph, react-flow, yjs, hocuspocus, nestjs, next-js, zod, neo4j, fastapi, sse, shacl, esphome | nexia, agent-graph, NexaonShell, GraphCanvas, ExplorerTree, packages-shared, approval-gate, ontology-draft | 완료 | 1/1 · 4 링크 | [08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md](./08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
 | TDD-008 | LangGraph · 인간 -LLM 협업형 IoT 온톨로지 플랫폼 | LangGraph | BRD-001 | langgraph, react-flow, yjs, hocuspocus, neo4j, shacl, esphome, sse | nexia, agent-graph, ontology-draft, approval-gate, GraphCanvas | 완료 | 1/1 · 4 링크 | [08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md](./08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
-| TDD-009 | IoT·온톨로지·AI 협력 플랫폼 핵심 기술 스택 | LangGraph | TDD-008 | langgraph, neo4j, sparql, cypher, graphql, grpc, ros-2, mqtt | nexia, ontex, ontology, digital-twin | 완료 | 1/1 · 3 링크 | [08_TDD/LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md](./08_TDD/LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) |
+| TDD-009 | IoT·온톨로지·AI 협력 플랫폼 핵심 기술 스택 | LangGraph | TDD-008 | langgraph, neo4j, sparql, cypher, graphql, grpc, ros-2, mqtt | nexia, Ontex, ontology, digital-twin | 완료 | 1/1 · 3 링크 | [08_TDD/LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md](./08_TDD/LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) |
 | TDD-058 | LangGraph · 오케스트레이션 설계 v1.0 | LangGraph | TDD-008 | langgraph, sse, fastapi, zod, state-graph | agent-graph, graph_id, run_id, Omnix, tabId, domainKey, orchestration, mint_surface | 완료 | 1/1 · 6 링크 | [08_TDD/LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md](./08_TDD/LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
 
 ## 08_TDD — NEXIA (16)
@@ -141,10 +140,10 @@ terms_nexa: []
 | TDD-022 | MQTT 토픽 · 데이터 라우팅 | NEXIA | TDD-009 | — | mqtt, websocket, socket-io | MQTT-Broker, agent-graph, NEXA-CELL, edge-device | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_MQTT토픽데이터라우팅.md](./08_TDD/NEXIA/08_TDD_NEXIA_MQTT토픽데이터라우팅.md) |
 | TDD-023 | NEXNAP 시스템 인터페이스 표준 규약 | NEXIA | TDD-010 | — | mqtt, protobuf | NEXNAP, ACTON, AXON, CSIM, Envelope | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md](./08_TDD/NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) |
 | TDD-055 | NEXIA · 구현 파일 구조 뼈대 | NEXIA | TDD-010 | — | next-js, nestjs, zustand, yjs, langgraph, zod | nexia, domainKey, tabId, domainLayoutRegistry, Omnix, Normex, Logex, NexaonShell, NEXA-CELL | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_구현파일구조뼈대.md](./08_TDD/NEXIA/08_TDD_NEXIA_구현파일구조뼈대.md) |
-| TDD-056 | NEXIA · 7 탭 범위 확정 v1.0 | NEXIA | TDD-010 | PRD-001 | react-flow, yjs, tiptap, monaco, langgraph, sse | nexia, tabId, Omnix, Normex, Logex, Scribx, Vivex, Twinex, Navex, NexaonShell, ontology, ontex | 완료 | 2/2 · 6 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
-| TDD-067 | 에이전틱 AI 파이프라인 · 7탭 · 플랫폼·Yjs 연계 v1.0 | NEXIA | TDD-056 | — | langgraph, rag, mcp, agentic-ai, yjs, crdt, hocuspocus, mqtt | nexia, ontex, Omnix, Nexaon, Navex, Nixie, agent-graph, apps-sync, tabId, Graph-RAG | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) |
+| TDD-056 | NEXIA · 7 탭 범위 확정 v1.0 | NEXIA | TDD-010 | PRD-001 | react-flow, yjs, tiptap, monaco, langgraph, sse | nexia, tabId, Omnix, Normex, Logex, Scribx, Vivex, Twinex, Navex, NexaonShell, ontology, Ontex | 완료 | 2/2 · 6 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
+| TDD-067 | 에이전틱 AI 파이프라인 · 7탭 · 플랫폼·Yjs 연계 v1.0 | NEXIA | TDD-056 | — | langgraph, rag, mcp, agentic-ai, yjs, crdt, hocuspocus, mqtt | nexia, Ontex, Omnix, Nexaon, Navex, Nixie, agent-graph, apps-sync, tabId, Graph-RAG | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) |
 | TDD-068 | IoT 엣지 데이터 파이프라인 · HEXAGON · Nexaon 연계 v1.0 | NEXIA | TDD-022 | — | mqtt, esphome, protobuf, shacl, langgraph | HEXAGON, NEXNAP, Envelope, ACTON, NEXA-CELL, Twinex, Nexaon, EventRouter, Nixie | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
-| TDD-057 | Ontex · 기술 스택 운영 방침 v1.0 | Ontex | TDD-002 | — | langgraph, pgvector, neo4j, rdf, json-ld, shacl, react-flow, yjs, zod | ontex, Nexion, subRoute, Graph-RAG, NEXAVULT, canvas, explore, trace, archive | 완료 | 1/1 · 6 링크 | [08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md](./08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
+| TDD-057 | Ontex · 기술 스택 운영 방침 v1.0 | Ontex | TDD-071 | — | langgraph, pgvector, neo4j, rdf, json-ld, shacl, react-flow, yjs, zod | Ontex, Nexion, subRoute, Graph-RAG, NEXAVULT, canvas, explore, trace, archive | 완료 | 1/1 · 6 링크 | [08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md](./08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 
 ## 08_TDD — NEXIA / Nixie (4)
 
@@ -188,7 +187,7 @@ terms_nexa: []
 | TDD-037 | TS 타입 · 스키마 전략 | NEXIA | TDD-001 | published | zod, typescript | packages-shared, agent-graph, ApiErrorCode | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_TS타입스키마전략.md](./08_TDD/AI/08_TDD_AI_TS타입스키마전략.md) |
 | TDD-038 | Yjs · Hocuspocus 협업 SSOT | NEXIA | PRD-001 | published | yjs, crdt, hocuspocus, websocket, postgresql | apps-sync, project_yjs_updates, yjs_state, SharedWorker | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md](./08_TDD/AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) |
 | TDD-039 | 안전 대책 · 선조치 로직 | NEXIA | PRD-001 | published | mqtt, esp32 | Sentinel, Reflex, Bypass, Nano-Sentinel, Zenith-Indicator | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_안전대책선조치로직.md](./08_TDD/AI/08_TDD_AI_안전대책선조치로직.md) |
-| TDD-040 | 지능 위계 · 하드웨어 사양 | NEXIA | PRD-001 | published | esp32, jetson, raspberry-pi | Nano-Sentinel, Kinetic-Controller, Zenith-Indicator, COLD, HOT | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md](./08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) |
+| TDD-040 | 피지컬 티어 · 지능 위계 · 하드웨어 사양 | NEXIA | PRD-001 | published | esp32, jetson, raspberry-pi | Physical-Tier, Nano-Sentinel, Kinetic-Controller, Zenith-Indicator, COLD, WARM, HOT | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md](./08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) |
 | TDD-041 | 코일 밸런스 · GOVERN 운영 규범 | NEXIA | PRD-001 | published | json | GOVERN, COILS-Balancer, Safety, Compliance, Capability-ID | 완료 | 1/1 · 3 링크 | [08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md](./08_TDD/AI/08_TDD_AI_코일밸런스운영규범GOVERN.md) |
 | TDD-042 | 협업형 멀티에디터 플랫폼 | NEXIA | PRD-001 | **archived** | yjs, crdt, zod, tiptap, monaco, sse, langgraph | NEXIA, agent-graph, Omnix, GOVERN, apps-sync, project_yjs_updates | 완료 | 1/1 · 4 링크 | [08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md](./08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
 | TDD-066 | AI 모델 · 런타임 · 엔진 배치 v1.0 | NEXIA | TDD-040 | published | llm, vlm, ollama, vllm, whisper, stt, tts, rag, langgraph, react-flow, comfyui, esphome | Zenith-Indicator, Nano-Sentinel, agent-graph, apps-sync, GraphCanvas, GOVERN | 미완 | 0/1 | [08_TDD/AI/08_TDD_AI_모델·런타임·엔진배치_v1.0.md](./08_TDD/AI/08_TDD_AI_모델·런타임·엔진배치_v1.0.md) |
@@ -237,18 +236,31 @@ terms_nexa: []
 | :----- | :--- |
 | **BRD-001** | 사업 SSOT · 대부분 PRD·TDD·UIX 의 `parent_doc` |
 | **TDD-001** | NEXA OS 기술 SSOT |
-| **TDD-002** | 도메인 레지스트리 (Normative) |
-| **TDD-059** | 도메인 마스터 맵 (Concept Map · TDD-002 보조) |
+| **TDD-071** | 도메인 구조 통합 (레지스트리 + Concept Map · **TDD-002/TDD-059 대체**) |
 | **TDD-007** | LangGraph 모노레포 구조 |
 | **TDD-008** | LangGraph · IoT 온톨로지 플랫폼 |
 | **TDD-058** | 플랫폼 오케스트레이션 · graph_id 레지스트리 |
 | **TDD-010** | NEXIA 도메인 기술 SSOT |
 | **TDD-056** | nexia 7 탭 범위 확정 (In/Out · MVP) |
 | **TDD-057** | Ontex 도메인 기술 SSOT |
+| **TDD-072** | Kineton · Physical Bridge _(예약 · [Phase 0](#예약-global-architecture-phase-0--2026-06-13))_ |
+| **TDD-073** | Nexaon · Distillation 오케스트레이터 _(예약 · [Phase 0](#예약-global-architecture-phase-0--2026-06-13))_ |
 | **PRD-005** ↔ **TDD-013** | 드롭존 클러스터 |
 | **PRD-004** ↔ **TDD-024** · **TDD-025** | NEXA-CELL 클러스터 |
 | **PRD-001** | NEXIA MVP UI · AI TDD-033~041 의 `implements_doc` |
 | **TDD-038** | Yjs · Hocuspocus 협업 SSOT |
+
+---
+
+## 예약 (Global Architecture Phase 0 · 2026-06-13)
+
+> **SSOT:** [_inbox/Draft-NEXA 전역 아키텍처 표준](_inbox/Draft-NEXA%20전역%20아키텍처%20표준%20(Global%20Architecture%20Standard).md) §각 기술별 SSOT 인벤토리  
+> **규칙:** Phase 1 문서 초안 착수 시 **본 번호로 발급** · 다른 용도 **재사용 ✗**
+
+| doc_id | title (예정) | domain | 기술 ID | parent_doc (예정) | 상태 | 예정 경로 |
+| :----- | :----- | :----- | :---: | :----- | :--- | :----- |
+| **TDD-072** | Kineton · Physical Bridge · ACTON · ROS 2 v1.0 | NEXIA | **KL** | TDD-043 | **reserved** | `08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md` |
+| **TDD-073** | Nexaon · Distillation 오케스트레이터 v1.0 | NEXIA | **NL** | TDD-008 | **reserved** | `08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md` |
 
 ---
 
@@ -269,7 +281,9 @@ terms_nexa: []
 | doc_id | title | domain | 대체 SSOT | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- |
 | **MVP-001** | NEXIA 레이아웃 · 팝아웃 MVP | NEXIA | **UIX-004** · **TDD-014** | [03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md](./03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md) |
-| **UIX-006** | NEXA 통합 레이아웃 구조 규격 | NEXA | **UIX-004** · **TDD-002** | [07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md](./07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |
+| **UIX-006** | NEXA 통합 레이아웃 구조 규격 | NEXA | **UIX-004** · **TDD-071** | [07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md](./07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |
+| **TDD-002** | NEXA OS · 도메인 구조 (레지스트리) | NEXAOS | **TDD-071** | [—](./08_TDD/NEXAOS/) *(파일 삭제 · 2026-06-14)* |
+| **TDD-059** | NEXA OS · 도메인 마스터 맵 v1.0 | NEXAOS | **TDD-071** | [—](./08_TDD/NEXAOS/) *(파일 삭제 · 2026-06-14)* |
 | **TDD-015** | 멀티창 동기화 구현 로드맵 | NEXIA | **TDD-014** · **TDD-038** | [08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md](./08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md) |
 | **TDD-042** | 협업형 멀티에디터 플랫폼 | NEXIA | **PRD-001** · **TDD-038** · **TDD-041** | [08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md](./08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
 | **TDD-026~032** | Generators 7종 | NEXIA | **TDD-010** · **PRD-001** | [08_TDD/NEXIA/Generators/README.md](./08_TDD/NEXIA/Generators/README.md) |

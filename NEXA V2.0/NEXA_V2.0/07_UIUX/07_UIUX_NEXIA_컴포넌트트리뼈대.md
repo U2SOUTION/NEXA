@@ -47,7 +47,7 @@ MainShellLayout
 | 도메인 유형 | Content 분기 | 예 |
 | :--- | :--- | :--- |
 | **탭 셸** | `tabId` | **nexia** 7 탭 |
-| **subRoute** | URL 세그먼트 | erp · ontex |
+| **subRoute** | URL 세그먼트 | erp · Ontex |
 | **단일 뷰** | 없음 | home · settings |
 
 **범례:** **■** MVP · **◇** Phase 2 · **○** 후속
@@ -238,7 +238,7 @@ flowchart TD
 
 | domainKey | UIUX 뼈대 | 비고 |
 | :--- | :--- | :--- |
-| ontex | `07_UIUX_ONTEX_컴포넌트트리뼈대.md` | subRoute 4 뷰 |
+| Ontex | `07_UIUX_ONTEX_컴포넌트트리뼈대.md` | subRoute 4 뷰 |
 | erp | `07_UIUX_ERP_컴포넌트트리뼈대.md` | subRoute 6 메뉴 |
 | nexet | `07_UIUX_NEXET_컴포넌트트리뼈대.md` | 마켓 카탈로그 |
 | nexabo | `07_UIUX_NEXABO_컴포넌트트리뼈대.md` | statusBar·Panel |
@@ -252,5 +252,5 @@ flowchart TD
 | 구현 파일 트리 | [NEXIA · 구현 파일 구조 뼈대 (TDD-055)](../08_TDD/NEXIA/08_TDD_NEXIA_구현파일구조뼈대.md) |
 | MainShell · nexia | [NEXIA MainShell · 레이아웃 (UIX-004)](./07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | 플랫폼 레이아웃 | [NEXA 통합 레이아웃 구조 규격 (UIX-006)](./07_UIUX_NEXA_통합레이아웃구조규격.md) |
-| 도메인 레지스트리 | [도메인 구조 (TDD-002)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
+| 도메인 구조 SSOT | [도메인 구조 통합 (TDD-071)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 | v0 프롬프트 | [NEXIA v0 UI 프롬프트셋 (UIX-005)](./07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) |

@@ -7,10 +7,10 @@ domain: Ontex
 status: published
 created: 2026-06-12
 updated: 2026-06-13
-parent_doc: TDD-002
+parent_doc: TDD-071
 see_also: [TDD-008, TDD-049, TDD-056]
 terms_standard: ["langgraph", "pgvector", "neo4j", "rdf", "json-ld", "shacl", "react-flow", "yjs", "zod"]
-terms_nexa: ["ontex", "Nexion", "subRoute", "Graph-RAG", "NEXAVULT", "OG-RAG", "OAG", "project_knowledge", "canvas", "explore", "trace", "archive"]
+terms_nexa: ["Ontex", "Nexion", "subRoute", "Graph-RAG", "NEXAVULT", "OG-RAG", "OAG", "project_knowledge", "canvas", "explore", "trace", "archive"]
 tags: ["doc/cat/08-tdd", "doc/domain/ontex", "std/langgraph", "std/pgvector", "std/neo4j", "std/rdf", "std/json-ld", "std/shacl", "std/react-flow", "std/yjs", "std/zod", "nexa/ontex", "nexa/Nexion", "nexa/subRoute", "nexa/Graph-RAG", "nexa/NEXAVULT", "nexa/OG-RAG", "nexa/OAG", "nexa/project_knowledge", "nexa/canvas", "nexa/explore", "nexa/trace", "nexa/archive"]
 ---
 
@@ -19,7 +19,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/ontex", "std/langgraph", "std/pgvector", "s
 > **한 줄:** **`ontex`** 는 NEXIA·IoT·ERP·마켓에서 유입된 지식을 **Graph RAG · pgvector · 승인 그래프**로 통합·탐색·보존하는 **온톨로지·지식 허브 `domainKey`** 이다. Human↔AI **초안 편집·Run** 은 **nexia · Nexaon** — 본 도메인은 **승인 후 허브·탐색·아카이브** 를 담당한다.
 
 **Normative 진입점:** Ontex 도메인 TDD · 하위 구현 뼈대·UIUX 는 본 문서를 선행한다.
-**플랫폼 SSOT:** [`TDD-002`](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) §3.B · [`TDD-059`](../NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) §3
+**플랫폼 SSOT:** [`TDD-071`](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) §7.B · §5
 
 ---
 
@@ -42,8 +42,8 @@ tags: ["doc/cat/08-tdd", "doc/domain/ontex", "std/langgraph", "std/pgvector", "s
 | :--- | :--- | :--- |
 | IoT 온톨로지 **초안·Run·Deploy** | **nexia · Nexaon** | `ontology:draft` · SSE Run · ESPHome |
 | 7 탭 생산·실행 셸 | **nexia** | [`TDD-056`](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
-| 관제 대시보드 | **nexabo** | Telemetry 피드만 ontex 로 |
-| 마켓 유통·라이선스 | **nexet** | 설치 메타 → ontex 인덱스 |
+| 관제 대시보드 | **nexabo** | Telemetry 피드만 Ontex 로 |
+| 마켓 유통·라이선스 | **nexet** | 설치 메타 → Ontex 인덱스 |
 | LangGraph **런타임 구현** 상세 | **LangGraph TDD** | [`TDD-008`](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | Knowledge OS **7 대 지층** 정의 | **Knowledge TDD** | [`TDD-049`](../Knowledge/08_TDD_Knowledge_지식층위와오케스트레이션.md) |
 
@@ -51,9 +51,9 @@ tags: ["doc/cat/08-tdd", "doc/domain/ontex", "std/langgraph", "std/pgvector", "s
 
 | 이름 | 정체 |
 | :--- | :--- |
-| **ontex** | UI `domainKey` · `domains/ontex/` |
+| **Ontex** | UI `domainKey` · `domains/ontex/` |
 | **Nexion** | `subRoute: canvas` **UI 표시명** — 구 `nexion` 흡수 |
-| **Nexaon** | nexia Logex **ontology 서브모듈** — ontex 와 **분리** |
+| **Nexaon** | nexia Logex **ontology 서브모듈** — Ontex 와 **분리** |
 | **NEXAVULT** | pgvector·FACT **지식 데이터 허브** (온톨로지 SSOT 아님) |
 
 ---
@@ -219,7 +219,7 @@ flowchart LR
 | **엔진** | React Flow · Yjs · (선택) TipTap 미리보기 |
 | **범위 내** | 장기 지식 그래프 · MOC · wikilink 편집 · Dagre 레이아웃 |
 | **범위 외** | IoT 핀맵 실시간 Deploy · SHACL Run UI (→ **Nexaon**) |
-| **Yjs room** | `ontex:canvas:{graphId}` — nexia `ontology:draft` 와 **room 분리** |
+| **Yjs room** | `Ontex:canvas:{graphId}` — nexia `ontology:draft` 와 **room 분리** |
 | **MVP** | 캔버스 뷰 · 노드/엣지 편집 · explore 로 jump |
 
 ### 6.2 `explore`
@@ -236,7 +236,7 @@ flowchart LR
 | 항목 | 확정 |
 | :--- | :--- |
 | **엔진** | 이벤트 스트림 · `requestId`/`traceId` · (선택) React Flow sequence |
-| **범위 내** | nexia↔ontex ingest · MQTT · erp 이벤트 **계보** · Why Chain 조회 |
+| **범위 내** | nexia↔Ontex ingest · MQTT · erp 이벤트 **계보** · Why Chain 조회 |
 | **범위 외** | 실시간 관제 패널 (→ nexabo) |
 | **MVP** | 타임라인 · 이벤트 상세 · canvas/explore deeplink |
 
@@ -258,9 +258,9 @@ flowchart LR
 | IoT 온톨로지 **초안 편집** | nexia **Nexaon** | Yjs `ontology:draft` |
 | **Run · SHACL · 승인 A/B/C** | nexia **Nexaon** | SSE · Audit row |
 | **promoted Neo4j upsert** | Nest `ontology/` | SHACL PASS |
-| **허브 탐색·Graph RAG** | ontex **explore** | 인용·subgraph |
-| **장기 지식 그래프** | ontex **canvas** (Nexion) | specs/wikilink 링크 |
-| **문서·VOID 보존** | ontex **archive** | 분류 완료 |
+| **허브 탐색·Graph RAG** | Ontex **explore** | 인용·subgraph |
+| **장기 지식 그래프** | Ontex **canvas** (Nexion) | specs/wikilink 링크 |
+| **문서·VOID 보존** | Ontex **archive** | 분류 완료 |
 
 ```text
 nexia/Nexaon (산업 실행)  ──승인──►  promoted  ──►  ontex explore/canvas
@@ -350,8 +350,7 @@ packages/shared/src/schemas/ontex/
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 SSOT | [NEXA OS · 도메인 구조 (TDD-002)](../NEXAOS/08_TDD_NEXAOS_도메인레지스트리명세.md) |
-| 도메인 맵 | [NEXA OS · 도메인 마스터 맵 (TDD-059)](../NEXAOS/08_TDD_NEXAOS_도메인마스터맵_v1.0.md) |
+| 상위 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
 | nexia 경계 | [NEXIA · 7탭 범위 확정 (TDD-056)](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | LangGraph·Nexaon | [LangGraph · IoT 온톨로지 플랫폼 (TDD-008)](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | 오케스트레이션 | [LangGraph · 오케스트레이션 설계 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |

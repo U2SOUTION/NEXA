@@ -7,7 +7,7 @@ category: "05_PRD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-13
+updated: 2026-06-14
 parent_doc: BRD-001
 terms_standard: ["zustand", "keyboard-shortcuts"]
 terms_nexa: ["useNexiaSplitLayout", "useGlobalShortcuts", "Focus-Stack", "NexiaSplitLayout", "Nexus-Map"]
@@ -83,11 +83,11 @@ tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/zustand", "std/keyboard-shortc
 
 ### 3.2 레이아웃 프리셋·초기화
 
-| ID | 설명 | 기본 조합 (제안) | 동작 |
-|----|------|------------------|------|
-| `aiWorkspacePresetDefault` | Workspace 기본 레이아웃 | `Ctrl+Shift+0` | `applyPreset('default')` |
-| `aiWorkspacePresetCode` | Workspace 코드 중심 레이아웃 | `Ctrl+Shift+9` | `applyPreset('code')` |
-| `aiWorkspaceResetSizes` | 스플릿 비율 초기화 | `Ctrl+Shift+R` (또는 `Ctrl+Alt+R`) | `resetSplitSizes()` |
+| ID                         | 설명                   | 기본 조합 (제안)                       | 동작                       |
+| -------------------------- | -------------------- | -------------------------------- | ------------------------ |
+| `aiWorkspacePresetDefault` | Workspace 기본 레이아웃    | `Ctrl+Shift+0`                   | `applyPreset('default')` |
+| `aiWorkspacePresetCode`    | Workspace 코드 중심 레이아웃 | `Ctrl+Shift+9`                   | `applyPreset('code')`    |
+| `aiWorkspaceResetSizes`    | 스플릿 비율 초기화           | `Ctrl+Shift+R` (또는 `Ctrl+Alt+R`) | `resetSplitSizes()`      |
 
 - **주의**: `Ctrl+Shift+R` 은 현재 " 하드 리프레시 " 로 쓰일 수 있음. `useGlobalShortcuts` 내 `hardRefresh` 확인 후, Workspace 전용은 `Ctrl+Alt+R` 등으로 분리 권장.
 

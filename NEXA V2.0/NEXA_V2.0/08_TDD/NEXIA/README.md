@@ -46,7 +46,7 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 
 [Cells/README](./Cells/README.md) — ESPHome YAML · Lambda · ESP32 등록 (구 `/nexa-node` 통합)
 
-## NIXIE · L1 Presence Shell
+## NIXIE · ML1 Presence Shell
 
 [Nixie/README](./Nixie/README.md) — **4 Shell 채널** (Web · Desktop · Mobile · Physical) · [`TDD-070` §3.6.2](..\..\용어집_NEXA전용_v2.0.md)
 

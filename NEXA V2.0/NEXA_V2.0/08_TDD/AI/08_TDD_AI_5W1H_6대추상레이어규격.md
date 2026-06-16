@@ -567,7 +567,7 @@ NEXA 에서 설계한 [Where, Who, What, How, When] 프로토콜에서 지능화
 | 주제 | 문서 |
 | ---- | ---- |
 | NEXAON · relation enum | [LangGraph IoT 온톨로지 플랫폼 (TDD-008)](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
-| 04 Conflict edge `type` | [Ontex 기술스택 (TDD-049)](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
+| 04 Conflict edge `type` | [Ontex 기술스택 (TDD-049)](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 | AXON L2 · 경계 | `docs/Nexia/_Cosmic Semantic Interface Matrix v2 — CSIM · AXON 프로토콜 (정본).md` §11 |
 | OG-RAG ≠ GraphRAG | [RAG · 페르소나 아카이브 (TDD-036)](./08_TDD_AI_RAG페르소나아카이브전략.md) |
 

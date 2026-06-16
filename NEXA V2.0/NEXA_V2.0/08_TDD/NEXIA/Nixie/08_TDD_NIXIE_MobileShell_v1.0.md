@@ -16,7 +16,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/websocket", "std/sse", "std/pu
 
 # NIXIE · Mobile Shell v1.0
 
-> **한 줄:** **iOS/Android** 네이티브·크로스플랫폼 **Nixie Mobile Shell** — 푸시·백그라운드 제약 하에서 **L1 Presence** · Envelope/SSE **동일 계약** · Run **소유 ✗**.
+> **한 줄:** **iOS/Android** 네이티브·크로스플랫폼 **Nixie Mobile Shell** — 푸시·백그라운드 제약 하에서 **ML1 Presence** · Envelope/SSE **동일 계약** · Run **소유 ✗**.
 
 **채널 ID (Normative):** `channel_id: nixie-mobile`
 

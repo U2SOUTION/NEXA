@@ -7,7 +7,7 @@ category: "05_PRD"
 domain: NEXIA
 status: published
 created: 2026-06-10
-updated: 2026-06-13
+updated: 2026-06-14
 parent_doc: BRD-001
 terms_standard: ["json", "rest"]
 terms_nexa: ["NexiaLeftNav", "useNexiaUnifiedSearch", "Project", "Web-Resources"]

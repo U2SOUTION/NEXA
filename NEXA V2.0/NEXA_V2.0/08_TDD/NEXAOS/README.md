@@ -4,9 +4,8 @@ NEXA OS 플랫폼 셸·모노레포·도메인 레지스트리·미션 크리티
 
 | 문서 | 역할 |
 | :--- | :--- |
-| [08_TDD_NEXAOS_설계표준_미션크리티컬전략.md](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) | **Normative SSOT** |
-| [08_TDD_NEXAOS_도메인레지스트리명세.md](./08_TDD_NEXAOS_도메인레지스트리명세.md) | `domainKey` 레지스트리 SSOT (TDD-002) |
-| [08_TDD_NEXAOS_도메인마스터맵_v1.0.md](./08_TDD_NEXAOS_도메인마스터맵_v1.0.md) | **도메인 관계 맵** · 16키 · mermaid (TDD-059) |
+| [08_TDD_NEXAOS_설계표준_미션크리티컬전략.md](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) | **Normative SSOT** (TDD-001) |
+| [08_TDD_NEXAOS_도메인구조통합_v1.0.md](./08_TDD_NEXAOS_도메인구조통합_v1.0.md) | **도메인 구조 통합 SSOT (TDD-071)** — 레지스트리 §6~§13 · Concept Map §2.1 · 구 TDD-002/TDD-059 대체 |
 | [08_TDD_NEXAOS_수직계층보안아키텍처.md](./08_TDD_NEXAOS_수직계층보안아키텍처.md) | 5계층 보안 |
 | [08_TDD_NEXAOS_플랫폼기술스택.md](./08_TDD_NEXAOS_플랫폼기술스택.md) | 기술 스택 |
 | [용어집_범용_v2.0.md](../../용어집_범용_v2.0.md) | **범용 용어집** · `terms_standard` SSOT (TDD-069) |
