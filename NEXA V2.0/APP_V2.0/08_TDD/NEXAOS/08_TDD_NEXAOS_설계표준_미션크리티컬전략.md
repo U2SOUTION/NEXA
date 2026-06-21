@@ -2037,5 +2037,5 @@ MainShellLayout (viewport lock)
 | :--- | :--- |
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
 | 하위 TDD | [NEXA OS · 도메인 구조 통합 (TDD-071)](./08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
-| LangGraph 모노레포 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| LangGraph 모노레포 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |

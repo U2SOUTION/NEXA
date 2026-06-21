@@ -16,7 +16,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ollama", "std/comfyui", "std/e
 
 # NEXIA · 외부 엔진과 아키텍처
 
-> **스택 SSOT (To-Be):** [NEXA OS 플랫폼 기술 스택 (TDD-003)](../NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md) · [LangGraph 모노레포 폴더 구조 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) — **`apps/web` = Next.js (React)** · **워크플로 = React Flow (UI) + LangGraph (`apps/agent-graph`)** · **Vite+React** 제너레이터는 Next **embed**.
+> **스택 SSOT (To-Be):** [NEXA OS 플랫폼 기술 스택 (TDD-003)](../NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md) · [LangGraph 모노레포 폴더 구조 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) — **`apps/web` = Next.js (React)** · **워크플로 = React Flow (UI) + LangGraph (`apps/agent-graph`)** · **Vite+React** 제너레이터는 Next **embed**.
 
 - **정체성:** **NEXA 플랫폼** 내 **NEXIA 도메인**(`nexia`) 엔진 연동 — [`정체성 SSOT`](../_NEXA-플랫폼·메타-OS·NEXIA·도메인%20—%20정체성%20SSOT.md)
 

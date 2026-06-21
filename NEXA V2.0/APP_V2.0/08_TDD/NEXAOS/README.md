@@ -1,9 +1,10 @@
 # 08_TDD / NEXAOS
 
-NEXA OS 플랫폼 셸·모노레포·도메인 레지스트리·미션 크리티컬 설계 SSOT.
+NEXA OS 플랫폼 셸·**모노레포 경로**·도메인 레지스트리·미션 크리티컬 설계 SSOT.
 
 | 문서 | 역할 |
 | :--- | :--- |
+| [08_TDD_NEXAOS_모노레포폴더구조_v1.0.md](./08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) | **NEXA-Platform 모노레포 폴더 SSOT (TDD-007)** · TabOnto SDK 3층 |
 | [08_TDD_NEXAOS_설계표준_미션크리티컬전략.md](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) | **Normative SSOT** (TDD-001) |
 | [08_TDD_NEXAOS_도메인구조통합_v1.0.md](./08_TDD_NEXAOS_도메인구조통합_v1.0.md) | **도메인 구조 통합 SSOT (TDD-071)** — 레지스트리 §6~§13 · Concept Map §2.1 · 구 TDD-002/TDD-059 대체 |
 | [08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md](./08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md) | **전역 아키텍처 · 6+1 · Why-Chain (TDD-075)** — 개념 허브 |

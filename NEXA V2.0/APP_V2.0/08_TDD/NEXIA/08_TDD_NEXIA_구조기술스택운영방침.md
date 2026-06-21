@@ -16,7 +16,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/yjs", "std/hocu
 
 # NEXIA · 구조와 기술 스택·운영방침
 
-> **스택 SSOT (To-Be):** **`apps/web` = Next.js** (App Router). **워크플로** = **React Flow (UI)** + **LangGraph (`apps/agent-graph`)** · **Rivet ✗**. **Logex** 그래프 UI = **NEXIA React Flow `GraphCanvas`** (`@xyflow/react`); **Nexion** 지식 데스크 = **Nexion React Flow**. — [NEXA OS 플랫폼 기술 스택 (TDD-003)](../NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md) · [LangGraph 모노레포 폴더 구조 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)
+> **스택 SSOT (To-Be):** **`apps/web` = Next.js** (App Router). **워크플로** = **React Flow (UI)** + **LangGraph (`apps/agent-graph`)** · **Rivet ✗**. **Logex** 그래프 UI = **NEXIA React Flow `GraphCanvas`** (`@xyflow/react`); **Nexion** 지식 데스크 = **Nexion React Flow**. — [NEXA OS 플랫폼 기술 스택 (TDD-003)](../NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md) · [LangGraph 모노레포 폴더 구조 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md)
 
 **한 줄:** NEXIA 는 **NEXA 플랫폼**의 **핵심 지능 도메인**(`domainKey: nexia`) 으로, **7 탭 `-ex` `tabId`(SSOT)** · **Omnix 허브**로 인간·AI·장치·자산을 조율하고 **다른 도메인·모드와 연결**되어 작동한다.
 

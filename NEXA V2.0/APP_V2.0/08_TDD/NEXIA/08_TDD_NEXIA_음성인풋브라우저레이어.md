@@ -264,5 +264,5 @@ bc.postMessage({ type: 'MASTER_SWITCH', target: 'PIP' })
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
-| 구현 PRD | [음성·미디어 파이프라인 7탭 (PRD-007)](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) |
+| 구현 PRD | [음성·미디어 파이프라인 7탭 (PRD-007)](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인.md) |
 | 음성 자동화 TDD | [음성 인풋 자동화 및 확장 (TDD-021)](./08_TDD_NEXIA_음성인풋자동화및확장.md) |

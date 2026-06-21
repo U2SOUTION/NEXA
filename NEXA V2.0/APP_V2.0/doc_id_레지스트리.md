@@ -73,7 +73,7 @@ terms_nexa: []
 | PRD-003 | ASK VOID 처리 설계 (RFC) | NEXIA | BRD-001 | rfc | ASK, VOID, VOID-BOX, Omnix, DEFERRED | 완료 | 1/1 · 3 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_ASKVOID처리설계.md](./05_PRD/NEXIA/05_PRD_NEXIA_ASKVOID처리설계.md) |
 | PRD-004 | NEXA-CELL · ESPHome YAML 제너레이터 및 웹 펌웨어 | NEXIA | BRD-001 | esphome, react-flow, web-serial, ota, docker | NEXA-CELL, Twinex, Lambda, ESP32 | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md](./05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) |
 | PRD-005 | 드롭존 및 첨부 기능 플랜 | NEXIA | BRD-001 | file-upload, multipart, rest, mqtt | FileDropZone, FileBrowserModal, NexiaLeftNav, files, useNexiaAssets | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_드롭존첨부기능플랜.md](./05_PRD/NEXIA/05_PRD_NEXIA_드롭존첨부기능플랜.md) |
-| PRD-007 | 음성·미디어 파이프라인 (7 탭) | NEXIA | BRD-001 | whisper, stt, sse | Vivex, Scribx, agent-graph, transcribe | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md](./05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) |
+| PRD-007 | 음성·미디어 파이프라인 (7 탭) | NEXIA | BRD-001 | whisper, stt, sse | Vivex, Scribx, agent-graph, transcribe | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md](05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인.md) |
 | PRD-008 | 웹 탐색기 ↔ 문서 폴더 연동 | NEXIA | BRD-001 | rest | GlobalFileExplorer, NexiaExplorerPanel, file_references, nexa-docs | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md](./05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md) |
 | PRD-009 | 워크스페이스 단축키 및 레이아웃 | NEXIA | BRD-001 | zustand, keyboard-shortcuts | useNexiaSplitLayout, useGlobalShortcuts, Focus-Stack, NexiaSplitLayout, Nexus-Map | 완료 | 1/1 · 4 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스단축키레이아웃.md](./05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스단축키레이아웃.md) |
 | PRD-010 | 워크스페이스 웹 서치 자원 전략 | NEXIA | BRD-001 | json, rest | NexiaLeftNav, useNexiaUnifiedSearch, Project, Web-Resources | 완료 | 1/1 · 3 링크 | [05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스웹서치자원전략.md](./05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스웹서치자원전략.md) |
@@ -118,7 +118,7 @@ terms_nexa: []
 
 | doc_id | title | domain | parent_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
-| TDD-007 | LangGraph 모노레포 폴더 구조 v1.0 | LangGraph | TDD-001 | langgraph, react-flow, yjs, hocuspocus, nestjs, next-js, zod, neo4j, fastapi, sse, shacl, esphome | nexia, agent-graph, NexaonShell, GraphCanvas, ExplorerTree, packages-shared, approval-gate, ontology-draft | 완료 | 1/1 · 4 링크 | [08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md](./08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| TDD-007 | NEXA-Platform 모노레포 폴더 구조 v1.0 | NEXAOS | TDD-001 | langgraph, react-flow, yjs, hocuspocus, nestjs, next-js, zod, neo4j, fastapi, sse, shacl, esphome | nexia, agent-graph, NexaonShell, GraphCanvas, ExplorerTree, packages-shared, approval-gate, ontology-draft, tabonto | 완료 | 1/1 · 4 링크 | [08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md](./08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | TDD-008 | LangGraph · 인간 -LLM 협업형 IoT 온톨로지 플랫폼 | LangGraph | BRD-001 | langgraph, react-flow, yjs, hocuspocus, neo4j, shacl, esphome, sse | nexia, agent-graph, ontology-draft, approval-gate, GraphCanvas | 완료 | 1/1 · 4 링크 | [08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md](./08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | TDD-009 | IoT·온톨로지·AI 협력 플랫폼 핵심 기술 스택 | LangGraph | TDD-008 | langgraph, neo4j, sparql, cypher, graphql, grpc, ros-2, mqtt | nexia, Ontex, ontology, digital-twin | 완료 | 1/1 · 3 링크 | [08_TDD/LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md](./08_TDD/LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) |
 | TDD-058 | LangGraph · 오케스트레이션 설계 v1.0 | LangGraph | TDD-008 | langgraph, sse, fastapi, zod, state-graph | agent-graph, graph_id, run_id, Omnix, tabId, domainKey, orchestration, mint_surface | 완료 | 1/1 · 6 링크 | [08_TDD/LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md](./08_TDD/LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
@@ -246,7 +246,7 @@ terms_nexa: []
 | **BRD-001** | 사업 SSOT · 대부분 PRD·TDD·UIX 의 `parent_doc` |
 | **TDD-001** | NEXA OS 기술 SSOT |
 | **TDD-071** | 도메인 구조 통합 (레지스트리 + Concept Map · **TDD-002/TDD-059 대체**) |
-| **TDD-007** | LangGraph 모노레포 구조 |
+| **TDD-007** | NEXA-Platform 모노레포 구조 |
 | **TDD-008** | LangGraph · IoT 온톨로지 플랫폼 |
 | **TDD-058** | 플랫폼 오케스트레이션 · graph_id 레지스트리 |
 | **TDD-010** | NEXIA 도메인 기술 SSOT |

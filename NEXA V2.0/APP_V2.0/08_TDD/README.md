@@ -58,7 +58,7 @@
 
 | 문서 | 설명 |
 | :--- | :--- |
-| [모노레포폴더구조](./LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) | LangGraph 모노레포 |
+| [모노레포폴더구조](./NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) | **NEXA-Platform 모노레포 (TDD-007)** |
 | [LangGraph 플랫폼](./LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) | LangGraph 아키텍처 |
 | [IoT 핵심기술스택](./LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) | IoT·온톨로지·AI 스택 |
 | [오케스트레이션설계](./LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) | 플랫폼 오케스트레이션 · graph_id (TDD-058) |

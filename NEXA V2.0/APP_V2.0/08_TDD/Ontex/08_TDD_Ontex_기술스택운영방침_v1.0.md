@@ -355,4 +355,4 @@ packages/shared/src/schemas/ontex/
 | LangGraph·Nexaon | [LangGraph · IoT 온톨로지 플랫폼 (TDD-008)](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | 오케스트레이션 | [LangGraph · 오케스트레이션 설계 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
 | 지식 층위 | [Knowledge · 지식 층위 · 오케스트레이션 (TDD-049)](../Knowledge/08_TDD_Knowledge_지식층위와오케스트레이션.md) |
-| 모노레포 | [LangGraph 모노레포 폴더 구조 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 | [LangGraph 모노레포 폴더 구조 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |

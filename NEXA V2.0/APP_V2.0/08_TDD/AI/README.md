@@ -1,6 +1,6 @@
 # 08_TDD / AI
 
-AI 워크스페이스·협업·지능 위계·GOVERN·데이터 프로토콜. 플랫폼 스택은 [LangGraph](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) SSOT.
+AI 워크스페이스·협업·지능 위계·GOVERN·데이터 프로토콜. 플랫폼 스택은 [LangGraph](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) SSOT.
 
 ## 핵심 (진입점)
 

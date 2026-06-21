@@ -28,7 +28,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/llm", "std/vlm", "std/ollama",
 | :--- | :--- |
 | **목적** | AI 모델을 **처리 능력 (멀티모달 등급)** · **특화 용도** · **하드웨어·서버 배치** 기준으로 분류하고, NEXA 지능 위계·NEXIA 플랫폼·**별도 프로세스/외부 엔진**에 **어디에 무엇을 쓸지** 빠르게 판단할 수 있게 한다. |
 | **범위** | Ollama·LangGraph·ComfyUI·ESPHome 등 **별도 서버/프로세스**, ESP32 엣지, PC/AI 서버. 클라우드 API 는 **비교·예외** 참고용. |
-| **범위 밖** | LangGraph `StateGraph` 노드 상세 · Docker Compose 전체 Runbook — [TDD-007](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) · [TDD-019](../NEXIA/08_TDD_NEXIA_외부엔진및아키텍처.md). Fine-tuning — [TDD-036](./08_TDD_AI_RAG페르소나아카이브전략.md). |
+| **범위 밖** | LangGraph `StateGraph` 노드 상세 · Docker Compose 전체 Runbook — [TDD-007](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) · [TDD-019](../NEXIA/08_TDD_NEXIA_외부엔진및아키텍처.md). Fine-tuning — [TDD-036](./08_TDD_AI_RAG페르소나아카이브전략.md). |
 | **운영 원칙** | [TDD-041 GOVERN](./08_TDD_AI_코일밸런스운영규범GOVERN.md) **Frugality** — 유료 클라우드 호출을 억제하고, 엣지·로컬 sLLM 비중을 우선한다. |
 | **워크플로 SSOT** | **React Flow** (`apps/web` · GraphCanvas) + **LangGraph** (`apps/agent-graph`) — **Rivet ✗** ([§0.2](#02-워크플로-스택-react-flow--langgraph)) |
 
@@ -96,7 +96,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/llm", "std/vlm", "std/ollama",
 | **L3** | 흐름을 보는 AI | **VLM(영상)** / 경량 LMM | 텍스트 + 이미지 + 비디오 | Gemini 1.5 Flash, Gemma 3 | `gemma3` · `llama3.2-vision` |
 | **L4** | 모든 감각 통합 | **LMM / Omni** | 텍스트 + 이미지 + 비디오 + 오디오 | GPT-4o, Gemini 2.0, MiniCPM-o | `openbmb/minicpm-o2.6:8b` |
 
-**NEXIA Ollama capability 매핑** ([PRD-007](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) §1.3):
+**NEXIA Ollama capability 매핑** ([PRD-007](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인.md) §1.3):
 
 | Ollama `capabilities` | Capability Level | NEXIA UI 반영 |
 | :-- | :--: | :-- |
@@ -169,7 +169,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/llm", "std/vlm", "std/ollama",
 
 NEXA/NEXIA 는 **단일 웹서버 하나**로 끝나지 않는다. AI 모델은 **어느 프로세스·어느 엔진**에 올릴지가 선행 결정이어야 한다.
 
-> **정본:** [TDD-010 · NEXIA 스택](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) §2 · [TDD-019 · 외부 엔진](../NEXIA/08_TDD_NEXIA_외부엔진및아키텍처.md) · [TDD-007 · 모노레포·포트](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) §8
+> **정본:** [TDD-010 · NEXIA 스택](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) §2 · [TDD-019 · 외부 엔진](../NEXIA/08_TDD_NEXIA_외부엔진및아키텍처.md) · [TDD-007 · 모노레포·포트](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) §8
 
 **핵심 금지:** 브라우저 → `localhost:11434` (Ollama) **직접 호출 ✗**. 모든 LLM·Embed·STT 는 **Nest → agent-graph → Inference Runtime** (dev Ollama · prod vLLM) 또는 전용 API 를 경유한다 ([TDD-019](../NEXIA/08_TDD_NEXIA_외부엔진및아키텍처.md) §1).
 
@@ -245,7 +245,7 @@ flowchart TB
 
 ```
 
-> **범례:** 실선 = MVP Phase 1 주 경로 · 점선 = 선택 (prod/Phase 2) · `sync` 는 Nest 와 **프로세스·포트 분리** ([TDD-007](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) §2-①).
+> **범례:** 실선 = MVP Phase 1 주 경로 · 점선 = 선택 (prod/Phase 2) · `sync` 는 Nest 와 **프로세스·포트 분리** ([TDD-007](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) §2-①).
 
 ### 5.2 필수 vs 선택 서비스
 
@@ -277,7 +277,7 @@ flowchart TB
 | **`full`** | + web (:3000) | 원클릭 온보딩 |
 | **`ontology`** (확장) | + agent-graph · neo4j · ollama | Nexaon Run · RAG · SHACL |
 
-로컬 풀스택 dev: `web` + `backend` + `sync` + **`agent-graph`** + **Ollama** — 최소 5 프로세스 ([TDD-007](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) §8 `scripts/dev.sh`).
+로컬 풀스택 dev: `web` + `backend` + `sync` + **`agent-graph`** + **Ollama** — 최소 5 프로세스 ([TDD-007](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) §8 `scripts/dev.sh`).
 
 ### 5.4 외부 엔진 × AI 모델 · 7 탭 매핑
 
@@ -370,10 +370,10 @@ flowchart TB
 | TDD-040 | [지능 위계 · 하드웨어 사양](./08_TDD_AI_지능위계및하드웨어사양.md) | **정본** — 계층별 HF 모델·HW |
 | TDD-041 | [GOVERN · 코일 밸런스](./08_TDD_AI_코일밸런스운영규범GOVERN.md) | 로컬 우선·토큰 절감 |
 | TDD-036 | [RAG · 페르소나 아카이브](./08_TDD_AI_RAG페르소나아카이브전략.md) | 임베딩·아카이브 |
-| PRD-007 | [음성·미디어 파이프라인](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) | NEXIA STT·채팅 경로 |
+| PRD-007 | [음성·미디어 파이프라인](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인.md) | NEXIA STT·채팅 경로 |
 | PRD-004 | [NEXA-CELL · ESPHome](../../05_PRD/NEXIA/05_PRD_NEXIA_CELL_ESPHomeYAML제너레이터웹펌웨어.md) | ESP32 펌웨어·YAML |
 | PRD-013 | [파일 메타데이터 AI 추출](../../05_PRD/NEXIA/05_PRD_NEXIA_파일메타데이터AI추출.md) | Embed·pgvector |
-| TDD-007 | [LangGraph 모노레포 · 포트](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) | agent-graph · dev 포트 |
+| TDD-007 | [LangGraph 모노레포 · 포트](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) | agent-graph · dev 포트 |
 | TDD-010 | [NEXIA 구조 · 스택](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) | 7 탭 · 레이어 SSOT |
 | TDD-019 | [외부 엔진 · 아키텍처](../NEXIA/08_TDD_NEXIA_외부엔진및아키텍처.md) | Ollama·ComfyUI·ESPHome |
 

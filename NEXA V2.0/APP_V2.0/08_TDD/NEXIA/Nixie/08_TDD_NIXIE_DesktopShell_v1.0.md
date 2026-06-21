@@ -66,7 +66,7 @@ flowchart LR
 | **Voice**     | `sounddevice` + VAD · 플랫폼 STT API fallback | 로컬 always-on                                                               |
 | **M2P**       | WS → BAX ingress                              | [`UIX-BAX` §2.8](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
 
-**예상 repo 경로:** `apps/nixie-desktop/` (모노레포 루트 · [`TDD-007`](../../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) 확장)
+**예상 repo 경로:** `apps/nixie-desktop/` (모노레포 루트 · [`TDD-007`](../../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) 확장)
 
 ---
 

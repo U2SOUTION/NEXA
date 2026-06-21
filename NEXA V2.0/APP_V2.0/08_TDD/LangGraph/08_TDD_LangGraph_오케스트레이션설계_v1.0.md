@@ -146,7 +146,7 @@ Nest 는 SSE 를 **그대로 relay** — 변환 최소화.
 
 ## 4. `graph_id` 레지스트리 (확장 구조)
 
-`apps/agent-graph/src/agent_graph/graphs/registry.yaml` — [`TDD-007`](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md) §5 확장.
+`apps/agent-graph/src/agent_graph/graphs/registry.yaml` — [`TDD-007`](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) §5 확장.
 
 ### 4.1 패밀리 (family) 분류
 
@@ -455,7 +455,7 @@ apps/backend/src/modules/orchestration/
 | 관계                | 문서                                                                                                   |
 | :------------------ | :----------------------------------------------------------------------------------------------------- |
 | 상위 플랫폼         | [LangGraph · IoT 온톨로지 플랫폼 (TDD-008)](./08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
-| 모노레포 · registry | [LangGraph 모노레포 폴더 구조 (TDD-007)](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md)                  |
+| 모노레포 · registry | [LangGraph 모노레포 폴더 구조 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md)                  |
 | nexia 탭            | [NEXIA 구조 · 기술 스택 (TDD-010)](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md)                      |
 | nexia 범위          | [NEXIA · 7탭 범위 확정 (TDD-056)](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md)                           |
 | Ontex               | [Ontex · 기술 스택 (TDD-057)](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)                          |

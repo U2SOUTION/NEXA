@@ -14,10 +14,10 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/crdt", "std/zod", "
 # AI · 협업형 멀티 에디터 플랫폼
 
 > **⛔ archived (2026-06-13):** 구 **shadcn/Vercel AI SDK** 워크스페이스 초안 · **SSOT ✗**
-> **대체:** [PRD-001](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) · [TDD-038 Yjs SSOT](./08_TDD_AI_YjsHocuspocus협업SSOT.md) · [TDD-041 GOVERN](./08_TDD_AI_코일밸런스운영규범GOVERN.md) · [LangGraph 모노레포](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)
+> **대체:** [PRD-001](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) · [TDD-038 Yjs SSOT](./08_TDD_AI_YjsHocuspocus협업SSOT.md) · [TDD-041 GOVERN](./08_TDD_AI_코일밸런스운영규범GOVERN.md) · [LangGraph 모노레포](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md)
 
 
-> **스택 SSOT (LangGraph, 2026-06):** [`08_TDD_LangGraph_모노레포폴더구조`](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) · [`08_TDD_AI_YjsHocuspocus협업SSOT`](./08_TDD_AI_YjsHocuspocus협업SSOT.md)  
+> **스택 SSOT (LangGraph, 2026-06):** [`08_TDD_NEXAOS_모노레포폴더구조`](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) · [`08_TDD_AI_YjsHocuspocus협업SSOT`](./08_TDD_AI_YjsHocuspocus협업SSOT.md)  
 > 구 **Vue/Quasar/Pinia** 초안을 **Next.js · Zustand · agent-graph** 기준으로 갱신함. **스택 매핑:**
 >
 > | 초안 (레거시) | 현행 (nexia) |
@@ -997,7 +997,7 @@ Yjs 적용은 다음 단계 작업이므로, 여기서는 **준비 수준**의 �
 
 > **역할**: 10장 로드맵은 단계별 **구현 범위**, 본 절은 **별도 문서·관련 기획** 링크 위주. 세부 순서·우선순위는 별도 정리.
 
-**관련 문서**: [LangGraph 모노레포](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md), [웹서치·프로젝트 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스웹서치자원전략.md), [웹 탐색기 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md), [탐색기 미디어 동기화](../../05_PRD/NEXIA/05_PRD_NEXIA_탐색기미디어탭동기화.md), [단축키·레이아웃](../../05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스단축키레이아웃.md)
+**관련 문서**: [LangGraph 모노레포](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md), [웹서치·프로젝트 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스웹서치자원전략.md), [웹 탐색기 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_웹탐색기문서폴더연동.md), [탐색기 미디어 동기화](../../05_PRD/NEXIA/05_PRD_NEXIA_탐색기미디어탭동기화.md), [단축키·레이아웃](../../05_PRD/NEXIA/05_PRD_NEXIA_워크스페이스단축키레이아웃.md)
 
 1. **메모 → 문서 승격**: ai_user_memos → files 정식 저장 (ai_user_memos-기획.md)
 2. **탐색기·미디어 탭 동기화**: 좌측 미디어 탭과 탐색기 연동 (탐색기-미디어탭-동기화-기획.md)

@@ -17,7 +17,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/nestjs", "std/z
 # NEXIA · 구현 파일 구조 뼈대 (TDD)
 
 > **역할:** `domainKey` 별 **To-Be 코드·백엔드·계약** 파일 트리 SSOT 뼈대. 상세 동작은 하위 TDD·PRD 에 위임.
-> **선행:** [`TDD-071` 도메인 구조 통합](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) §8 · [`TDD-007` 모노레포](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)
+> **선행:** [`TDD-071` 도메인 구조 통합](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) §8 · [`TDD-007` 모노레포](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md)
 > **UI 대응:** [`UIX-008` 컴포넌트 트리](../../07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md)
 
 ---
@@ -315,7 +315,7 @@ apps/agent-graph/
 | 관계 | 문서 |
 | :--- | :--- |
 | 레지스트리 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](../NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
-| 모노레포 | [LangGraph 모노레포 폴더 구조 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 | [LangGraph 모노레포 폴더 구조 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | NEXIA Normative | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
 | UI 컴포넌트 트리 | [NEXIA · 컴포넌트 트리 뼈대 (UIX-008)](../../07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) |
 | MainShell 레이아웃 | [NEXIA MainShell · 레이아웃 (UIX-004)](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |

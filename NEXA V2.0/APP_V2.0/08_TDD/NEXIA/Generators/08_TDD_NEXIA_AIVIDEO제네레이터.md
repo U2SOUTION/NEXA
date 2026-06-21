@@ -649,4 +649,4 @@ _상태: v5 — 모드2 **fastProfile**: TECH_ANIM(Manim·R3F+Remotion) · DATA_
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [AI 협력 제너레이터 파이프라인 (TDD-028)](./08_TDD_NEXIA_AI협력제네레이터파이프라인.md) |
-| 음성 PRD | [음성·미디어 파이프라인 7탭 (PRD-007)](../../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) |
+| 음성 PRD | [음성·미디어 파이프라인 7탭 (PRD-007)](../../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인.md) |

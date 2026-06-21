@@ -315,5 +315,5 @@ UI-L8  SpecsPreview split + Deploy
 | UI 레이아웃 | [NEXIA MainShell · 레이아웃 v1.0 (UIX-004)](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | 탐색기 · Global Navex | [탐색기 UI 전략 (UIX-002)](../07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) |
 | v0 프롬프트셋 | [NEXIA v0 UI 프롬프트셋 v1.0 (UIX-005)](../07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | 온톨로지 플랫폼 | [LangGraph · 인간-LLM 협업형 IoT 온톨로지 플랫폼 (TDD-008)](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |

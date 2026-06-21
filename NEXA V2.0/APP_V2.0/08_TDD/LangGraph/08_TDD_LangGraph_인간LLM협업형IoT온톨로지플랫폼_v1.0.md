@@ -18,7 +18,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/langgraph", "std/langgraph", "std/react-flo
 
 > **범위:** IoT 자산 (클래스 · 핀맵 · 장비 관계) **온톨로지 디지털 트윈** — Human↔AI **실시간 협업** · 하드웨어 배포 (ESPHome) 까지.
 > **중심 스택:** **LangGraph** (`apps/agent-graph`) + **React Flow** + **Yjs**.
-> **정본 연계:** [`핵심 기술 스택`](./08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) · [`모노레포 폴더 구조`](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md) · NEXA-Platform `docs/NEXA OS/` · `docs/Nexia/` (CSIM·AXON 정본)
+> **정본 연계:** [`핵심 기술 스택`](./08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) · [`모노레포 폴더 구조`](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) · NEXA-Platform `docs/NEXA OS/` · `docs/Nexia/` (CSIM·AXON 정본)
 
 ---
 
@@ -272,7 +272,7 @@ Browser → NestJS → agent-graph ──┬── LLM adapter (dev Ollama · pr
 
 | 주제                           | 문서                                                                                                        |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| 모노레포 · agent-graph         | [`08_TDD 모노레포 폴더 구조`](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md)                                      |
+| 모노레포 · agent-graph         | [`08_TDD 모노레포 폴더 구조`](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md)                                      |
 | IoT · 온톨로지 · AI 스택       | [`08_TDD 핵심 기술 스택`](./08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md)                            |
 | NEXIA UI (PRD · 레이아웃)      | [`05_PRD`](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) · [`07_UIUX`](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | NEXA-Platform 상세 (용어·RAG 등) | `NEXA-Platform/docs/NEXA OS/` · `docs/Nexia/`                                                               |
@@ -287,7 +287,7 @@ Browser → NestJS → agent-graph ──┬── LLM adapter (dev Ollama · pr
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | 오케스트레이션 | [LangGraph · 오케스트레이션 설계 v1.0 (TDD-058)](./08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
 | 기술 스택 | [IoT·온톨로지·AI 협력 플랫폼 핵심 기술 스택 (TDD-009)](./08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) |
 | 제품 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |

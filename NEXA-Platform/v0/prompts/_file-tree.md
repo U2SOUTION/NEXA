@@ -2,7 +2,7 @@
 
 Paste with `_system.md`. Generated components **must use these paths** in comments and export structure.
 
-> SSOT: `NEXA V2.0/docs/08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md` · `NEXA V2.0/docs/07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md`
+> SSOT: `NEXA V2.0/docs/08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md` · `NEXA V2.0/docs/07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md`
 
 ---
 

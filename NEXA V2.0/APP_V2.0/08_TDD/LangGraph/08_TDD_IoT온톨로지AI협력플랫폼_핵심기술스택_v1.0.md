@@ -334,4 +334,4 @@ def get_current_art(zone_name: str):
 | :--- | :--- |
 | 상위 TDD | [LangGraph · 인간-LLM 협업형 IoT 온톨로지 플랫폼 (TDD-008)](./08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | MQTT 라우팅 | [MQTT 토픽 · 데이터 라우팅 (TDD-022)](../NEXIA/08_TDD_NEXIA_MQTT토픽데이터라우팅.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |

@@ -107,7 +107,7 @@ npm install @xyflow/react
 | --- |
 | [`07_UIUX NEXIA MainShell 레이아웃`](./07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | [`05_PRD NEXIA UI 기능 명세`](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
-| [`08_TDD 모노레포 폴더 구조`](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| [`08_TDD 모노레포 폴더 구조`](../08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 
 ---
 
@@ -119,4 +119,4 @@ npm install @xyflow/react
 | :--- | :--- |
 | 구현 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | UI 레이아웃 | [NEXIA MainShell · 레이아웃 v1.0 (UIX-004)](./07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |

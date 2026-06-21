@@ -15,7 +15,7 @@ NEXIA 도메인(`nexia`) 제품 요건. TDD SSOT는 [08_TDD/NEXIA](../../08_TDD/
 | [05_PRD_NEXIA_웹탐색기문서폴더연동](./05_PRD_NEXIA_웹탐색기문서폴더연동.md) | 탐색기 ↔ 문서 폴더 |
 | [05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0](./05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md) | **Navex** 인프라 · **지능형** 이중 모드 (PRD-014) |
 | [05_PRD_NEXIA_탐색기미디어탭동기화](./05_PRD_NEXIA_탐색기미디어탭동기화.md) | Explorer ↔ 미디어 탭 |
-| [05_PRD_NEXIA_음성미디어파이프라인7탭](./05_PRD_NEXIA_음성미디어파이프라인7탭.md) | STT · FFmpeg · 7탭 매핑 |
+| [05_PRD_NEXIA_음성미디어파이프라인](05_PRD_NEXIA_음성미디어파이프라인.md) | STT · FFmpeg · 7탭 매핑 |
 | [05_PRD_NEXIA_지식그래프NexusGraph](./05_PRD_NEXIA_지식그래프NexusGraph.md) | Nexus Graph · 관계 추론 PRD |
 | [05_PRD_NEXIA_ASKVOID처리설계](./05_PRD_NEXIA_ASKVOID처리설계.md) | ASK / VOID 처리 RFC |
 

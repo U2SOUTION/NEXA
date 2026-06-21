@@ -18,7 +18,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/yjs", "std/crdt", "std/hocuspo
 | 역할 | NEXA 플랫폼 **실시간 협업(CRDT)** 의 단일 진실원 |
 | 확정 (2026-05) | **Yjs 도입·안정화가 최우선** · 협업 서버는 **`apps/sync` Hocuspocus** |
 | 관련 구현 | [PRD-001](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) · 본 SSOT (TDD-038) |
-| 모노레포 SSOT | [`08_TDD_LangGraph_모노레포폴더구조`](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) — `apps/sync` · `packages/shared` |
+| 모노레포 SSOT | [`08_TDD_NEXAOS_모노레포폴더구조`](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) — `apps/sync` · `packages/shared` |
 | DB | `project_yjs_updates` + `yjs_state` 스냅샷 (Prisma/PostgreSQL) |
 
 ---

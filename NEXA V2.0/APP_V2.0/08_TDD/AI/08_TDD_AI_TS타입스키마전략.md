@@ -152,7 +152,7 @@ Ollama 연동 시 발생하는 에러(모델 로드 실패, 타임아웃 등)를
 |------|------|
 | **[NEXA-PLATFORM-TS-01]** | TS 마이그레이션·스키마 통합·에러 코드·Zod 패턴. AI 도메인은 본 문서에서 상세 정의. |
 | [PRD-001 NEXIA UI 기능 명세](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) | 오케스트레이터·Focus Stack |
-| [음성·미디어 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인7탭.md) | 비동기 큐·재시도 |
+| [음성·미디어 PRD](../../05_PRD/NEXIA/05_PRD_NEXIA_음성미디어파이프라인.md) | 비동기 큐·재시도 |
 ---
 
 ## 관련 문서

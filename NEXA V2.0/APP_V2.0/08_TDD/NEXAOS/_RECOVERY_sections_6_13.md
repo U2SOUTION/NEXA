@@ -270,7 +270,7 @@ apps/web/src/domains/<name>/
 └── types/
 ```
 
-**`nexia/` To-Be 예:** `tabs/omnix` · `tabs/twinex` (NEXA-CELL) · `modules/nexaon/` — [`모노레포 §apps/web`](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)
+**`nexia/` To-Be 예:** `tabs/omnix` · `tabs/twinex` (NEXA-CELL) · `modules/nexaon/` — [`모노레포 §apps/web`](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md)
 
 | 규칙             | 내용                                                                                                                     |
 | :--------------- | :----------------------------------------------------------------------------------------------------------------------- |
@@ -427,7 +427,7 @@ dev: {
 | 관계              | 문서                                                                                             |
 | :---------------- | :----------------------------------------------------------------------------------------------- |
 | 상위 Normative    | [NEXA OS 설계 표준 · 미션 크리티컬 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md)      |
-| 모노레포          | [LangGraph 모노레포 폴더 구조 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포          | [LangGraph 모노레포 폴더 구조 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | nexia 7 탭        | [NEXIA · 7Teb 범위 확정 (TDD-056)](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md)                    |
 | Ontex             | [Ontex · 기술 스택 (TDD-057)](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)                    |
 | 오케스트레이션    | [LangGraph · 오케스트레이션 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |

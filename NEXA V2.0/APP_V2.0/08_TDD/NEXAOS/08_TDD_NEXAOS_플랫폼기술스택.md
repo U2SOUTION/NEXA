@@ -111,5 +111,5 @@ UI (React Flow · Tiptap · Monaco)
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | TS 스키마 | [TS 타입 · 스키마 전략 (TDD-037)](../AI/08_TDD_AI_TS타입스키마전략.md) |

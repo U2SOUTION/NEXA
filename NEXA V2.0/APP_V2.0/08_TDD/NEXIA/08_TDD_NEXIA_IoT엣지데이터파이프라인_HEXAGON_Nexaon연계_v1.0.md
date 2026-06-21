@@ -725,7 +725,7 @@ type EdgeCandidateReport = {
 | **agent-graph** | `+/+/+/report/#` | **Zenith Indicator** · 이상 감지 · (선택) 1 차 LLM |
 | **Twinex** | device_id 매칭 | 트윈 상태·진단 반영 |
 
-**Local Bypass (Reflex):** STUCK·안전 interlock 은 **엣지 ACTON** 으로 즉시 차단 — uplink 와 **병행** ([`+/+/+/report/+/critical` NEXA-Edge](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) — HEXAGON·ACTON only).
+**Local Bypass (Reflex):** STUCK·안전 interlock 은 **엣지 ACTON** 으로 즉시 차단 — uplink 와 **병행** ([`+/+/+/report/+/critical` NEXA-Edge](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) — HEXAGON·ACTON only).
 
 ---
 

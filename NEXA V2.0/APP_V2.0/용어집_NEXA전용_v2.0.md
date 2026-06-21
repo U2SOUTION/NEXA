@@ -6,12 +6,12 @@ category: 08_TDD
 domain: NEXAOS
 status: published
 created: 2026-06-12
-updated: 2026-06-13
+updated: 2026-06-16
 parent_doc: TDD-001
 see_also: [TDD-040, TDD-043, TDD-044, TDD-069, TDD-071, TDD-075, TDD-010, TDD-045, TDD-056, TDD-065, TDD-061, TDD-062, TDD-063, TDD-064, TDD-074, UIX-004, PRD-014]
 terms_standard: []
-terms_nexa: [glossary, terms_nexa, domainKey, tabId, DIEA, Nexaon, NIXIE, Navex, NISE, ML0, ML1, ML2, ML3, Menton, Menton-Layer, ML, Physical-Tier, Physical-Centric-Hierarchy, Core-Engine-Stack, Hub-and-Spoke, Cosmic-Layer, AXON, AXON-Stack-Layer, CSIM, APEX, HEXAGON, ACTON, NEXAVULT, ENVIRON-Shield, Galthon, Kineton]
-tags: [doc/cat/08-tdd, doc/domain/nexaos, nexa/glossary, nexa/terms_nexa, nexa/domainKey, nexa/tabId, nexa/DIEA]
+terms_nexa: [glossary, terms_nexa, domainKey, tabId, DIEA, Nexaon, NIXIE, Navex, NISE, ML0, ML1, ML2, ML3, Menton, Menton-Layer, ML, Physical-Tier, Physical-Centric-Hierarchy, Core-Engine-Stack, Hub-and-Spoke, Cosmic-Layer, AXON, AXON-Stack-Layer, CSIM, APEX, HEXAGON, ACTON, NEXAVULT, ENVIRON-Shield, Galthon, Kineton, CAT, PMS, Contextual-Awareness-Timeline, Project-Management-System]
+tags: [doc/cat/08-tdd, doc/domain/nexaos, nexa/glossary, nexa/terms_nexa, nexa/domainKey, nexa/tabId, nexa/DIEA, nexa/CAT, nexa/PMS]
 ---
 
 # NEXA V2.0 전용 용어집
@@ -65,7 +65,7 @@ NEXA 플랫폼·제품·코드에서만 쓰는 식별자·모듈·정책.
 | `domainLayoutRegistry` | domainLayoutRegistry | domainKey→슬롯 lazy import 레지스트리            | TDD-071 |
 | `useLayoutStore`       | useLayoutStore       | 드로어·상태바 Zustand SSOT                      | UIX-006 |
 | `drawerDefaults`       | drawerDefaults       | 도메인별 L/R 드로어 open 정책                      | TDD-071 |
-| `SystemStatusBar`      | SystemStatusBar      | 하단 1 줄 + 확장 상태 패널                         | UIX-006 |
+| `SystemStatusBar`      | SystemStatusBar      | 하단 1 줄 + 확장 상태 패널 · **CAT 후보 거점** (미정) | UIX-006 |
 | `AppHeader`            | AppHeader            | 상단 전역 헤더                                  | UIX-006 |
 | `themePreset`          | themePreset          | 도메인 테마 (`office-light` 등)                 | TDD-071 |
 | `packages-shared`      | packages/shared      | Zod·commands 공유 패키지                       | TDD-007 |
@@ -267,12 +267,46 @@ stateBus · 엣지 후보고 · Human 편집
 
 **관련 SSOT:** [`TDD-071` §4·§2.1.2](08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) · [`TDD-056` §4](08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [TDD-068 §1.6.5](08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)
 
+#### 3.3.2 NEXIA 7+4 — 확장 레이어 (CAT · PMS)
+
+> **7+4** — **DIEA 7 Core `tabId`** (§3.3) + 플랫폼 **+4 확장 레이어**. 기존 **Ontex** · **Admin** (`domainKey` / 전역 배포)에 **CAT** · **PMS** 가 더해진 **Dev·App 통합 작업면** 모델. **UI 배치 미정** — Tab Rail 병치 vs `SystemStatusBar`·Drawer 등 **별도 거점** ([DEV 레이아웃 §7+4](../DEV_V2.0/NEXA_Dev_UIUX_레이아웃구조규격.md#74-배치-정책-미정)).
+
+| 태그 | 표기 (약칭) | 풀네임 (한·영) | Normative 정의 | SSOT |
+| :--- | :--- | :--- | :--- | :--- |
+| `CAT` | **CAT** | **상황 인지 타임라인** · Contextual Awareness Timeline | nexia·MainShell **횡단 관제** — 현재 작업·활성 위치·전략 방향을 **LLM이 합성**해 표시. **Read-only** · 사용자 직접 편집 **✗**. 입력 = Selection · `tabId` · Facet · `assetId` (+ 선택 스킬: Audit · PMS · Knowledge_Fabric · Ontology) | [DEV UI-Driven §CAT](../DEV_V2.0/NEXA_Dev_UI-Driven_기능설계및_전이_로드맵.md#지능형-상황-인지-타임라인-cat-contextual-awareness-timeline) |
+| `PMS` | **PMS** | **프로젝트 관리 시스템** · Project Management System | nexia·Dev·App **횡단 관제 프레임워크** — WBS · Roadmap · Backlog · Task · Sprint/Kanban · **Asset Ledger** · Version · Dependency · **Validation Gate** · Audit Trail · Resource Matrix · Communication Thread | [DEV UI-Driven §PMS](../DEV_V2.0/NEXA_Dev_UI-Driven_기능설계및_전이_로드맵.md#pms-project-management-system-프레임워크-항목) |
+| `Contextual-Awareness-Timeline` | CAT (풀명 태그) | Contextual Awareness Timeline | `CAT` **공식 영문 풀네임** — 약칭 **CAT** 만 문서·UI 기본 표기 | 본 절 · DEV UI-Driven |
+| `Project-Management-System` | PMS (풀명 태그) | Project Management System | `PMS` **공식 영문 풀네임** — 약칭 **PMS** 만 문서·UI 기본 표기 | 본 절 · DEV UI-Driven |
+
+**7+4 전체 (+4 목록 — Normative)**
+
+| # | 레이어 | `terms_nexa` | 역할 요약 |
+| :---: | :--- | :--- | :--- |
+| 1 | **Ontex** | `ontex` | 지식 허브 · 온톨로지·Graph RAG 장기 SSOT (`domainKey`) |
+| 2 | **Admin** | `admin` | 전역·배포 · Validation Gate · Source→Instance ([§3.2](#32-domainkey-제품업무-영역)) |
+| 3 | **CAT** | `CAT` | 상황 인지 타임라인 · LLM Read-only |
+| 4 | **PMS** | `PMS` | 프로젝트·자산·품질·협업 관제 |
+
+**경계 (Normative)**
+
+| 금지 혼동 | 이유 |
+| :--- | :--- |
+| **CAT** = Omnix 채팅 · Nixie 알림 | CAT는 **요약·방향** Read-only 레이어 — 대화 UI **대체 ✗** |
+| **CAT** = `SystemStatusBar` 전체 | StatusBar는 **플랫폼 슬롯** — CAT는 **+4 레이어** (하단 거점 **후보** · **미정**) |
+| **PMS** = `erp` · 외부 Jira | PMS는 **NEXA 내** WBS·Ledger·Gate **프레임워크** — ERP `domainKey` **✗** |
+| **CAT** · **PMS** = `tabId` (현재) | **8·9번째 `tabId` ✗** — [`TDD-056`](../08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) 개정 전 · 배치 **미정** |
+| **PMS** = 단일 탭 이름 | Sprint/Kanban 은 **7 Core Facet** 진행 상태와 **연동** — PMS 자체가 Facet **대체 ✗** |
+
+**Dev · App 동형:** CAT·PMS 포함 **7+4** 는 Dev(생산·검증)와 App(Instance) **동일 구조** — [DEV SoS §7+4](../DEV_V2.0/NEXA_Dev-System_of_Systems(SoS)_아키텍처비전.md#nexia-74--core--확장-레이어).
+
 ### 3.4 nexia — 명칭 구분 (혼동 방지)
 
 | 태그            | 표기          | 정체                                             | 금지 혼동              |
 | :------------ | :---------- | :--------------------------------------------- | :----------------- |
 | `nexia`       | **nexia**   | UI **`domainKey`** · `domains/nexia/` — **핵심 지능 셸** · **DIEA** 호스트 ([§3.4.0](#340-nexia--domainkey-정의)) | NEXAON 프로젝트명 · **NEXIA** 표기와 혼동 |
 | `DIEA`        | **DIEA** (Distillation Intelligence Engine Array) | nexia 내 **7 Facet** 어레이 (Omnix … Navex) · Facet 별 Distillation **산출** | `7Tab`/`7탭` SSOT 표기 ✗ · `domainKey` ✗ · Nexaon **과 동일시 ✗** ([§3.3.1](#331-diea--nexaon--관계)) |
+| `CAT`         | **CAT** (Contextual Awareness Timeline) | **+4** 상황 인지 타임라인 · LLM Read-only ([§3.3.2](#332-nexia-74--확장-레이어-cat--pms)) | Omnix 채팅 · StatusBar 전체 **✗** · 현재 `tabId` **✗** |
+| `PMS`         | **PMS** (Project Management System) | **+4** 프로젝트·자산·품질 관제 프레임워크 ([§3.3.2](#332-nexia-74--확장-레이어-cat--pms)) | `erp` · 외부 PM 툴 **✗** · 현재 `tabId` **✗** |
 | `Nexaon`      | **Nexaon**  | Logex **`ontology` 서브모드** — DIEA **Distillation 오케스트레이터** · Human↔LLM **온톨로지 정재** (§3.4.1) | 별도 `domainKey` ✗ · **`tabId` ✗** (8 번째 탭 ✗) · DIEA Facet **아님** · LangGraph Run **✓** ([§3.3.1](#331-diea--nexaon--관계)) |
 | `NexaonShell` | NexaonShell | Nexaon 3 분할 작업면 셸 (ExplorerTree · GraphCanvas · RunPanel) | MainShell ✗        |
 | `NEXIA`       | NEXIA       | 제품·문서 도메인 라벨 (대문자)                             | `nexia` 코드키와 별도 표기 |
@@ -709,6 +743,7 @@ Navex 는 **생성 확장자 없음** — **전 `domainKey`** · 전체 인덱�
 | nexia UI | [NEXIA MainShell (UIX-004)](07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | DIEA · Nexaon · Distillation | [TDD-071 §2.1.2·§4](08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) · [용어집 §3.3.1](#331-diea--nexaon--관계) |
 | DIEA Facet · Nexaon 진입 | [NEXIA DIEA Facet 범위 (TDD-056) §4.1](08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
+| **7+4 · CAT · PMS** | [용어집 §3.3.2](#332-nexia-74--확장-레이어-cat--pms) · [DEV UI-Driven §CAT·PMS](../DEV_V2.0/NEXA_Dev_UI-Driven_기능설계및_전이_로드맵.md) · [DEV 레이아웃 §7+4](../DEV_V2.0/NEXA_Dev_UIUX_레이아웃구조규격.md) |
 | Nexaon · Run · SHACL | [LangGraph · IoT 온톨로지 (TDD-008)](08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | Nexaon ↔ Ontex | [Ontex (TDD-057)](08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 | 엣지 후보고 → Nexaon | [TDD-068 §1.6.5](08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |

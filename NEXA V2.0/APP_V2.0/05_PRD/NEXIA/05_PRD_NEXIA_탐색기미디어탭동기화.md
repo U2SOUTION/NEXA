@@ -246,4 +246,4 @@ router.post('/files/:id/reference', async (req, res) => {
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
 | 탐색기 연동 | [웹 탐색기 ↔ 문서 폴더 연동 (PRD-008)](./05_PRD_NEXIA_웹탐색기문서폴더연동.md) |
 | 탐색기 UI | [탐색기 UI 전략 (UIX-002)](../../07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) |
-| 음성·미디어 | [음성·미디어 파이프라인 7탭 (PRD-007)](./05_PRD_NEXIA_음성미디어파이프라인7탭.md) |
+| 음성·미디어 | [음성·미디어 파이프라인 7탭 (PRD-007)](05_PRD_NEXIA_음성미디어파이프라인.md) |

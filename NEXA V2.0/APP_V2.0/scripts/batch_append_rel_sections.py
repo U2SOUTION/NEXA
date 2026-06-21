@@ -16,7 +16,7 @@ SECTIONS: dict[str, str] = {
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
 | UI 레이아웃 | [NEXIA MainShell · 레이아웃 v1.0 (UIX-004)](../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | v0 프롬프트셋 | [NEXIA v0 UI 프롬프트셋 v1.0 (UIX-005)](../07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | 온톨로지 플랫폼 | [LangGraph · 인간-LLM 협업형 IoT 온톨로지 플랫폼 (TDD-008)](../08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |""",
     "07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
@@ -24,13 +24,13 @@ SECTIONS: dict[str, str] = {
 | v0 프롬프트셋 | [NEXIA v0 UI 프롬프트셋 v1.0 (UIX-005)](./07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) |
 | OS SSOT | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | 도메인 구조 SSOT | [NEXA OS · 도메인 구조 통합 (TDD-071)](../08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |""",
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |""",
     "07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 구현 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
 | UI 레이아웃 | [NEXIA MainShell · 레이아웃 v1.0 (UIX-004)](./07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |""",
-    "08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md": """| 관계 | 문서 |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |""",
+    "08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | 제품 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |
@@ -39,14 +39,14 @@ SECTIONS: dict[str, str] = {
     "08_TDD/LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | 오케스트레이션 | [LangGraph · 오케스트레이션 설계 v1.0 (TDD-058)](./08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
 | 기술 스택 | [IoT·온톨로지·AI 협력 플랫폼 핵심 기술 스택 (TDD-009)](./08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) |
 | 제품 PRD | [NEXIA UI 기능 명세 — MVP Phase UI v1.0 (PRD-001)](../../05_PRD/05_PRD_NEXIA_UI기능명세_MVPPhaseUI_v1.0.md) |""",
     "08_TDD/LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 플랫폼 | [LangGraph · IoT 온톨로지 플랫폼 (TDD-008)](./08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
-| 모노레포 · registry | [LangGraph 모노레포 폴더 구조 (TDD-007)](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 · registry | [LangGraph 모노레포 폴더 구조 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | nexia 탭 | [NEXIA 구조 · 기술 스택 (TDD-010)](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |
 | nexia 범위 | [NEXIA · 7탭 범위 확정 (TDD-056)](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | ontex | [Ontex · 기술 스택 (TDD-057)](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
@@ -55,7 +55,7 @@ SECTIONS: dict[str, str] = {
 | :--- | :--- |
 | 상위 TDD | [LangGraph · 인간-LLM 협업형 IoT 온톨로지 플랫폼 (TDD-008)](./08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | MQTT 라우팅 | [MQTT 토픽 · 데이터 라우팅 (TDD-022)](../NEXIA/08_TDD_NEXIA_MQTT토픽데이터라우팅.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](./08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |""",
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |""",
     "03_MVP/03_MVP_NEXIA_레이아웃팝아웃MVP.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 레이아웃 규격 | [NEXA 통합 레이아웃 구조 규격 (UIX-006)](../07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |
@@ -189,7 +189,7 @@ SECTIONS: dict[str, str] = {
     "08_TDD/NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md": """| 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
-| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | TS 스키마 | [TS 타입 · 스키마 전략 (TDD-037)](../AI/08_TDD_AI_TS타입스키마전략.md) |""",
     "08_TDD/NEXAOS/08_TDD_NEXAOS_수직계층보안아키텍처.md": """| 관계 | 문서 |
 | :--- | :--- |

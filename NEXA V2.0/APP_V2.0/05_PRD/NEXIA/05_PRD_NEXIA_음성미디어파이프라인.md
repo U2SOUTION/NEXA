@@ -1,24 +1,40 @@
 ---
-implements_doc: 
+implements_doc:
 see_also: []
 doc_id: PRD-007
-title: "음성·미디어 파이프라인 (7탭)"
-category: "05_PRD"
+title: 음성·미디어 파이프라인
+category: 05_PRD
 domain: NEXIA
 status: published
 created: 2026-06-10
 updated: 2026-06-14
 parent_doc: BRD-001
-terms_standard: ["whisper", "stt", "sse"]
-terms_nexa: ["Vivex", "Scribx", "agent-graph", "transcribe"]
-tags: ["doc/cat/05-prd", "doc/domain/nexia", "std/whisper", "std/stt", "std/sse", "nexa/Vivex", "nexa/Scribx", "nexa/agent-graph", "nexa/transcribe"]
+terms_standard:
+  - whisper
+  - stt
+  - sse
+terms_nexa:
+  - Vivex
+  - Scribx
+  - agent-graph
+  - transcribe
+tags:
+  - doc/cat/05-prd
+  - doc/domain/nexia
+  - std/whisper
+  - std/stt
+  - std/sse
+  - nexa/Vivex
+  - nexa/Scribx
+  - nexa/agent-graph
+  - nexa/transcribe
 ---
 
-# NEXIA · 음성·미디어 파이프라인 (7 탭)
+# NEXIA · 음성·미디어 파이프라인
 
 > **스택:** STT·Chat·Embed 는 **Nest → `apps/agent-graph`** 경유. §0.1 Vercel AI SDK 설명은 **레거시** 참고용.
 
-**목표**: Whisper 등 STT 모델을 AI 채팅 음성 입력으로 연동하고, 7 탭 미디어 파이프라인을 정의한다.
+**목표**: Whisper 등 STT 모델을 AI 채팅 음성 입력으로 연동하고, 미디어 파이프라인을 정의한다.
 
 **작성일**: 2025-03-05
 
@@ -588,56 +604,7 @@ AI 협력을 극대화하기 위해 **더 세분화된 팩트 중심 필드**를
 6. **Phase 6 (선택)**
    실시간 스트리밍 (GStreamer), 인텔 HW 가속 (OneVPL), 경량 변환 (Libav) 등 환경·요구에 따라 선택 도입.
 
-### 8.5 7 개 탭별 미디어·AI 활용 구체화
 
-NEXIA 도메인 content 영역의 **7 개 탭**(`nexiaPanelRegistry` 기준: Dialogue, Narrative, Logic, Media, Sense, Nexus, Explorer) 별로, Whisper·FFmpeg·미디어 도구·채팅 모델을 **어디서 어떻게 쓸지** 정리한다.
-
-| 탭 ID         | 탭 명칭   | 컴포넌트               | STT/Whisper  | FFmpeg·미디어 도구  | 채팅/LLM    | 구체 시나리오                                                                                                                                                                                                                                                                            |
-| ------------- | --------- | ---------------------- | ------------ | ------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **dialogue**  | Dialogue  | NexiaChatPanel            | ✅ **핵심**  | (Phase2 부터) 전처리 | ✅ **핵심** | **마이크 버튼** 항상 표시. 녹음/파일 → (FFmpeg 정규화) → **Whisper transcribe** → 텍스트를 입력란에 넣거나 바로 전송 → **선택된 채팅 모델**로 응답. 이미지 첨부 (vision 모델) 는 기존 유지.                                                                                                |
-| **narrative** | Narrative | NexiaEditorPanel          | 보조         | —                   | 보조        | 채팅/패널에서 **“에디터에 삽입”** 시 AI 생성 텍스트·**STT 결과**를 문서에 삽입. 음성으로 메모한 뒤 transcribe → Narrative 에 붙여넣기 워크플로우.                                                                                                                                         |
-| **logic**     | Logic     | NexiaCodeEditorPanel      | 보조         | —                   | 보조        | 채팅/패널에서 **“코드에 삽입”** 시 AI 생성 코드 삽입. 음성으로 “이 함수 리팩터해줘” → STT → 채팅 → 생성 코드를 Logic 탭에 삽입.                                                                                                                                                          |
-| **media**     | Media     | AiMediaPanel           | ✅ 오디오 탭 | ✅ **핵심**         | 보조        | **Image**: Vision 모델 분석·채팅 연동 (기존). **Audio** 하위탭: **Wavesurfer.js** 파형·구간 선택, 재생·트림·노멀라이즈 (FFmpeg/SoX), **“텍스트로 변환”** → Whisper. **Video** 하위탭: (장기) FFmpeg 구간 추출·오디오 트랙 추출 → Whisper 자막/요약; MLT NLE 연동 시 타임라인 편집. |
-| **sense**     | Sense     | NexiaUniversalViewerPanel | —            | 보조                | —           | 이미지·오디오·영상 **통합 뷰**. 재생·썸네일·메타 표시. (장기) FFmpeg 로 썸네일/구간 미리보기 생성. 미디어 선택 시 Dialogue/Media 와 연동해 “이걸로 질문”·“이걸 텍스트로 변환” 등 액션 노출 가능.                                                                                           |
-| **nexus**     | Nexus     | AiNexusPanel           | —            | —                   | 보조        | 지식 그래프·관계 맵. 채팅/문서/미디어에서 추출한 **엔티티·요약**을 노드로 활용. (장기) 오디오/영상 → Whisper·요약 LLM → Nexus 노드 자동 생성.                                                                                                                                            |
-| **explorer**  | Explorer  | NexiaExplorerPanel        | 보조         | ✅ **연동**         | 보조        | 파일 트리·카드/테이블 뷰 + **FFmpeg·AI 생성 JSON 함께 보기**. **데이터 추가·생성 액션 버튼**(메타 추출, STT, 요약 등) 으로 탐색기에서 직접 생성 명령 실행. 미디어 선택 시 해당 탭으로 열기.                                                                                               |
-
-#### 탭별 상세 정리
-
-- **Dialogue (채팅)**
-
-  - **Phase 1**: 마이크 → transcribe API(Whisper) → 텍스트 → 현재 선택된 채팅 모델로 전송. 모델 선택은 Whisper 제외.
-  - **Phase 2~**: 업로드/녹음 파일을 서버에서 FFmpeg 로 정규화 (포맷·샘플레이트) 후 Whisper 호출.
-  - 이미지 첨부는 기존처럼 vision capable 채팅 모델로만 전송.
-
-- **Narrative (문서 에디터)**
-
-  - STT 결과·채팅에서 “에디터에 삽입”한 텍스트를 Tiptap 문서에 반영.
-  - “음성 메모 → transcribe → Narrative 에 붙여넣기” 플로우로 활용.
-
-- **Logic (코드 에디터)**
-
-  - 채팅에서 “코드에 삽입” 시 Monaco 에 삽입.
-  - 음성 질문 → STT → 채팅 → 생성 코드를 Logic 에 삽입하는 시나리오.
-
-- **Media**
-
-  - **Image**: 기존 Vision 채팅·이미지 분석 유지.
-  - **Audio**: 재생·트림·노멀라이즈 (FFmpeg/SoX). “텍스트로 변환” → Whisper → 결과를 채팅 입력란·Narrative·클립보드로 전달.
-  - **Video**: (장기) FFmpeg 로 오디오 추출 → Whisper 자막/요약; MLT 로 타임라인 편집 시 AI 와 협업.
-  - 3D/Vector/Animation/Font/Wide: 현재는 편집·뷰 위주; 필요 시 메타·썸네일에 FFmpeg 활용 검토.
-
-- **Sense (뷰어)**
-
-  - 멀티미디어 통합 뷰. (장기) FFmpeg 기반 썸네일·구간 미리보기. “이 미디어로 채팅”·“이 오디오 텍스트로 변환” 등 액션으로 Dialogue/Media 와 연동.
-
-- **Nexus**
-
-  - 채팅·문서·(장기) 오디오/영상 요약에서 나온 엔티티·관계를 그래프로 시각화. Whisper+LLM 파이프라인 결과를 노드/엣지로 반영.
-
-- **Explorer**
-  - 파일 선택 시 타입별로 해당 탭 (dialogue/media 등) 으로 열기. (장기) 오디오/영상 파일 우클릭 “텍스트로 변환” → transcribe → Narrative/Dialogue 로 전달.
-  - **아래 8.5.1**에서 탐색기 전용 “FFmpeg·AI JSON 연동” 및 “데이터 추가·생성 액션” 상세 기술.
 
 #### 8.5.1 탐색기 (Explorer): FFmpeg·AI 생성 JSON 연동 및 데이터 추가·생성 액션
 

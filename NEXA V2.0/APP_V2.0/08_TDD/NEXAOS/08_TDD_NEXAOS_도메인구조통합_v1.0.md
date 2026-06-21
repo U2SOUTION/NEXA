@@ -22,7 +22,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "nexa/DIEA", "nexa/nexia", "nexa/o
 | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **doc_id**     | **TDD-071** — 도메인 구조 통합 SSOT (구 TDD-002 + TDD-059)                                                                                                     |
 | **역할**       | `domainKey` 레지스트리·슬롯·폴더 (Normative) + 전 도메인 관계·mermaid (Concept Map)                                                                            |
-| **To-Be**      | [`08_TDD_LangGraph_모노레포폴더구조`](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) — `apps/web` · `apps/backend` · `apps/sync` · `apps/agent-graph` |
+| **To-Be**      | [`08_TDD_NEXAOS_모노레포폴더구조`](./08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) — `apps/web` · `apps/backend` · `apps/sync` · `apps/agent-graph` |
 | **레지스트리** | `NEXA-Platform/apps/web/src/frame/registry/domainLayoutRegistry.ts`                                                                                            |
 | **상위**       | [`08_TDD_NEXAOS_설계표준_미션크리티컬전략`](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) (TDD-001)                                                            |
 
@@ -592,7 +592,7 @@ apps/web/src/domains/<name>/
 └── types/
 ```
 
-**store** `nexia/` · `tabs/omnix` (NEXA-CELL) · `tabs/twinex` — [`modules/nexaon/`](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md)
+**store** `nexia/` · `tabs/omnix` (NEXA-CELL) · `tabs/twinex` — [`modules/nexaon/`](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md)
 
 | 규칙             | 내용                                                                                                                     |
 | :--------------- | :----------------------------------------------------------------------------------------------------------------------- |
@@ -749,7 +749,7 @@ dev: {
 | 관계              | 문서                                                                                             |
 | :---------------- | :----------------------------------------------------------------------------------------------- |
 | 상위 Normative    | [NEXA OS 설계 표준 · 미션 크리티컬 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md)      |
-| 모노레포          | [LangGraph 모노레포 폴더 구조 (TDD-007)](../LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md) |
+| 모노레포          | [LangGraph 모노레포 폴더 구조 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
 | nexia DIEA (TDD-056) | [NEXIA · DIEA Facet 범위 확정 (TDD-056)](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md)                    |
 | Ontex             | [Ontex · 기술 스택 (TDD-057)](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)                    |
 | 오케스트레이션    | [LangGraph · 오케스트레이션 (TDD-058)](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
