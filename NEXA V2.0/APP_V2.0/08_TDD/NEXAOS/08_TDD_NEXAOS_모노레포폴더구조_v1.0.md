@@ -14,7 +14,7 @@ terms_standard: ["langgraph", "react-flow", "yjs", "hocuspocus", "nestjs", "next
 terms_nexa: ["nexia", "agent-graph", "NexaonShell", "GraphCanvas", "ExplorerTree", "packages-shared", "approval-gate", "ontology-draft", "tabonto"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/langgraph", "std/react-flow", "std/yjs", "std/hocuspocus", "std/nestjs", "std/next-js", "std/zod", "std/neo4j", "std/fastapi", "std/sse", "std/shacl", "std/esphome", "nexa/nexia", "nexa/agent-graph", "nexa/NexaonShell", "nexa/GraphCanvas", "nexa/ExplorerTree", "nexa/packages-shared", "nexa/approval-gate", "nexa/ontology-draft", "nexa/tabonto"]
 ---
-
+ 
 # NEXA-Platform 모노레포 폴더 구조
 
 > [!note] **문서 위치 (2026-06-16)**

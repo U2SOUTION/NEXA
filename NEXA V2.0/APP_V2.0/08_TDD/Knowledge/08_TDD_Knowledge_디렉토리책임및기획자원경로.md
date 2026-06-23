@@ -65,7 +65,7 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 
 ### 6. NEXU Canvas (넥슈): **데이터 페브릭 · 서사·Why Chain 지도**
 
-**NEXU Canvas**는 온톨로지·Knowledge OS에 기반한 **데이터 페브릭**을 **종합·예술적**으로 펼치는 **시맨틱 뷰**다. **BAX(레이아웃 엔진)와 병합·혼용하지 않는다** ([`TDD-070` §3.6.3](../../용어집_NEXA전용_v2.0.md) · [`UIX-003`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md)).
+**NEXU Canvas**는 온톨로지·Knowledge OS에 기반한 **데이터 페브릭**을 **종합·예술적**으로 펼치는 **시맨틱 뷰**다. **BAX(레이아웃 엔진)와 병합·혼용하지 않는다** ([`TDD-070` §3.6.3](../../용어집_NEXA전용_v2.0.md) · [`UIX-003`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md)).
 
 **닉시(NIXIE) 전체 ≠ NEXU Canvas** · **대시보드 배경·장식 레이어 ✗**. 지식 OS **지능적 족보(Traceability)**·**Why Chain**을 공간으로 증명하는 **지능형 지도**가 본질이다.
 
@@ -85,7 +85,7 @@ NEXA는 동양 철학의 **空(공)** 개념을 기술적으로 구현한 **VOID
 | 층              | 역할                                                                     | SSOT                                                                 |
 | :-------------- | :----------------------------------------------------------------------- | :------------------------------------------------------------------- |
 | **NEXU Canvas** | What/Why — **데이터 페브릭** · Why Chain · 예술적 표현 (P5/Three/D3)     | 본 문서 §6                                                           |
-| **BAX**         | How sit — **미적 레이아웃** · void · Grid · RuleGuard · **전 domainKey** | [`UIX-003`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
+| **BAX**         | How sit — **미적 레이아웃** · void · Grid · RuleGuard · **전 domainKey** | [`UIX-003`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) |
 | **NIXIE**       | Express — Canvas·BAX·L2·엣지 **포함** **L1 전방** · Run **✗**            | [`TDD-070` §3.6](../../용어집_NEXA전용_v2.0.md)                               |
 
 **`VirtualCanvas`(BAX) ≠ `NEXU Canvas`**. Nexaon **GraphCanvas** = 편집·Run·Yjs — NEXU Canvas = **탐험·서사** (뷰 모드 분리 권장).

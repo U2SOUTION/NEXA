@@ -103,7 +103,7 @@ flowchart TB
 
 ### 4.3 M2P · 로컬 입력
 
-- **BAX M2P v2** — dial · proximity · `void_ratio_delta` ([`UIX-BAX` §2.8](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md))
+- **BAX M2P v2** — dial · proximity · `void_ratio_delta` ([`UIX-BAX` §5.3](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md))
 - Serial JSON line → `M2PPacketV2` (Desktop 과 동일 파서)
 
 ### 4.4 오프라인 Reflex (한정)
@@ -174,5 +174,5 @@ nixie_face:
 | 지능의 얼굴 · 쉘 | [`TDD-045` §5~6](../../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) |
 | ESP32 · OTA | [`TDD-024`](../Cells/08_TDD_NEXIA_CELL_ESP32베이스라인디바이스등록.md) |
 | Sentinel 경계 | [`TDD-039`](../../AI/08_TDD_AI_안전대책선조치로직.md) · [TDD-068 §1.4](../08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
-| BAX M2P | [`UIX-003` §2.8](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
+| BAX M2P | [`UIX-003` §5.3](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) |
 | Web · Desktop · Mobile | [`TDD-061`](./08_TDD_NIXIE_WebShell_v1.0.md) · [`TDD-062`](./08_TDD_NIXIE_DesktopShell_v1.0.md) · [`TDD-063`](./08_TDD_NIXIE_MobileShell_v1.0.md) |

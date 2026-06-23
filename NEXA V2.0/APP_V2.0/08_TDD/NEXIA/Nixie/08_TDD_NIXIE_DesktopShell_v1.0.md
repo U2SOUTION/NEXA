@@ -20,7 +20,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/python", "std/websocket", "std
 
 **채널 ID (Normative):** `channel_id: nixie-desktop`
 
-**상위:** [`TDD-070` §3.6.2](../../../용어집_NEXA전용_v2.0.md) · [`UIX-BAX` M2P](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md)
+**상위:** [`TDD-070` §3.6.2](../../../용어집_NEXA전용_v2.0.md) · [`UIX-BAX` M2P](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md)
 
 ---
 
@@ -64,7 +64,7 @@ flowchart LR
 | **UI**        | PyQt6 / PySide6 (또는 Dear PyGui)             | Rive 대체·캔버스·Jitter 연출                                                 |
 | **Transport** | `websockets` · `httpx-sse`                    | 세션 · Envelope downlink                                                     |
 | **Voice**     | `sounddevice` + VAD · 플랫폼 STT API fallback | 로컬 always-on                                                               |
-| **M2P**       | WS → BAX ingress                              | [`UIX-BAX` §2.8](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
+| **M2P**       | WS → BAX ingress                              | [`UIX-BAX` §5.3](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) |
 
 **예상 repo 경로:** `apps/nixie-desktop/` (모노레포 루트 · [`TDD-007`](../../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) 확장)
 
@@ -161,7 +161,7 @@ Web Shell 과 **동일 3 단** (Observe → Triage → Express). 추가 입력: 
 | 관계        | 문서                                                                         |
 | :---------- | :--------------------------------------------------------------------------- |
 | 4 채널 개요 | [`Nixie/README`](./README.md) · [`TDD-070` §3.6.2](../../../용어집_NEXA전용_v2.0.md)  |
-| M2P · BAX   | [`UIX-003` §2.8](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
+| M2P · BAX   | [`UIX-003` §5.3](../../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) |
 | Web Shell   | [`TDD-061`](./08_TDD_NIXIE_WebShell_v1.0.md)                                 |
 | Envelope    | [`TDD-023`](../08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md)               |
 | 보안        | [`TDD-016`](../08_TDD_NEXIA_보안및권한관리체계.md)                           |

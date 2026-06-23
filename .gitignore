@@ -46,6 +46,12 @@ out/
 **/.cursor/
 .cursor/
 
+# Cursor MCP (Model Context Protocol) 도구 디스크립터 - 자동 생성, 로컬 전용
+**/MCP/
+**/mcps/
+MCP/
+mcps/
+
 # Obsidian — vault 로컬 설정·플러그인·워크스pace (NEXA V2.0/docs)
 **/.obsidian/
 .obsidian/

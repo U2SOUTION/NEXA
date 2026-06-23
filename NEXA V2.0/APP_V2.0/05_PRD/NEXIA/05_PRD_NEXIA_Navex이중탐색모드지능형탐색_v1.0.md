@@ -282,7 +282,7 @@ Infra-Explorer `GET .../explorer/search?q=` — **L0 lexical subset** · intelli
 ### 6.1 Signal 타일
 
 - **matchReason** = `signal` + personal urgency
-- BAX void·Alarm — [`UIX-003`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) · **전 타일 반짝임 ✗**
+- BAX void·Alarm — [`UIX-003`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) · **전 타일 반짝임 ✗**
 
 ### 6.2 Relational File View
 

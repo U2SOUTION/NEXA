@@ -227,14 +227,16 @@ SECTIONS: dict[str, str] = {
 | 탐색기 연동 | [웹 탐색기 ↔ 문서 폴더 연동 (PRD-008)](./05_PRD_NEXIA_웹탐색기문서폴더연동.md) |
 | 탐색기 UI | [탐색기 UI 전략 (UIX-002)](../../07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) |
 | 음성·미디어 | [음성·미디어 파이프라인 7탭 (PRD-007)](./05_PRD_NEXIA_음성미디어파이프라인7탭.md) |""",
-    "07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md": """| 관계 | 문서 |
+    "07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md": """| 관계 | 문서 |
 | :--- | :--- |
-| 구현 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |
-| 그리드 UI | [그리드 알고리즘 · 동적 타이포그래피 UI (UIX-007)](./07_UIUX_그리드알고리즘_동적타이포그래피UI.md) |
-| NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |""",
+| 그리드 · 타이포 | [그리드 알고리즘 · 동적 타이포그래피 UI (UIX-007)](./07_UIUX_그리드알고리즘_동적타이포그래피UI.md) |
+| 모노레포 경로 | [NEXA-Platform 모노레포 폴더 구조 v1.0 (TDD-007)](../08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
+| Mission-Safe | [NEXA OS · 수직 계층 보안 (TDD-004)](../08_TDD/NEXAOS/08_TDD_NEXAOS_수직계층보안아키텍처.md) |
+| 도메인 mount | [NEXIA MainShell · 레이아웃 v1.0 (UIX-004)](./07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
+| 구현 BRD | [NEXA 사업 마스터 플랜 (BRD-001)](../01_BRD/01_BRD_NEXA_사업마스터플랜.md) |""",
     "07_UIUX/07_UIUX_그리드알고리즘_동적타이포그래피UI.md": """| 관계 | 문서 |
 | :--- | :--- |
-| 상위 UIX | [BAX 미학적 인터페이스 UX 아키텍처 (UIX-003)](./07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
+| 상위 UIX | [BAX 미학적 인터페이스 UX 아키텍처 v1.0 (UIX-003)](./07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) |
 | NEXIA 허브 | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](../08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) |""",
     "08_TDD/NEXIA/08_TDD_NEXIA_데이터분산처리하이브리드전략.md": """| 관계 | 문서 |
 | :--- | :--- |

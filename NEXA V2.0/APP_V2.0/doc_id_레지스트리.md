@@ -16,7 +16,7 @@ terms_nexa: []
 # doc_id 레지스트리 (불변 식별자 SSOT)
 
 > **규칙 SSOT:** [개발문서 생태계와 관리 체계.md](./개발문서%20생태계와%20관리%20체계.md) · Frontmatter 스키마
-> **갱신일:** 2026-06-13 · **확정 문서 83 건** · `_inbox`·README·메타 문서 제외
+> **갱신일:** 2026-06-22 · **확정 문서 84 건** · `_inbox`·README·메타 문서 제외
 
 <!-- REL_SYNC_SUMMARY_START -->
 > **관련 문서 링크 현황** (자동 갱신 `2026-06-11`) — 완료 **77/77** (100%) · **완료** 77
@@ -38,7 +38,7 @@ terms_nexa: []
 | `BRD-` | **003** | |
 | `MVP-` | **002** | |
 | `PRD-` | **014** | |
-| `UIX-` | **009** | |
+| `UIX-` | **010** | UIX-009 발급 (2026-06-22) |
 | `TDD-` | **076** | TDD-075 발급 (2026-06-13) |
 | `ADM-` | **002** | |
 | `LEG-` | **001** | 미사용 |
@@ -90,7 +90,7 @@ terms_nexa: []
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
 | UIX-001 | Tiptap 엔진 도메인 옵션 | NEXIA | PRD-001 | tiptap, yjs | TiptapEditor, toolbarOrder, uploadHandler, engines-tiptap | 완료 | 1/1 · 2 링크 | [07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md](./07_UIUX/07_UIUX_NEXIA_Tiptap엔진도메인옵션.md) |
 | UIX-002 | 탐색기 UI 전략 | NEXIA | PRD-008 | next-js, rest | GlobalFileExplorer, NexiaExplorerPanel, useGlobalFileExplorer, explorer | 완료 | 1/1 · 3 링크 | [07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md](./07_UIUX/07_UIUX_NEXIA_탐색기UI전략.md) |
-| UIX-003 | BAX 미학적 인터페이스 UX 아키텍처 | NEXIA | BRD-001 | websocket, sse | BAX, MAE, ATS, M2P, ASR, RuleGuard, VirtualCanvas, LayoutPolicy | 완료 | 1/1 · 3 링크 | [07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md](./07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
+| UIX-003 | BAX 미학적 인터페이스 UX 아키텍처 v1.0 | NEXIA | BRD-001 | zod, css-grid, next-js, sse, websocket | BAX, VirtualCanvas, Harness, ComponentManifest, clusterKey, LayoutProfile, MAE, RuleGuard, M2P, LayoutPolicy | 미완 | 0/1 | [07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md](./07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) |
 | UIX-004 | NEXIA MainShell · 레이아웃 v1.0 | NEXIA | PRD-001 | next-js, react, zustand, tailwind-css | nexia, MainShell, domainLayoutRegistry, useLayoutStore, SystemStatusBar, NexiaContent, NexaonShell, drawerDefaults, tabId | 완료 | 1/1 · 5 링크 | [07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md](./07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) |
 | UIX-005 | NEXIA v0 UI 프롬프트셋 v1.0 | NEXIA | PRD-001 | next-js, shadcn-ui, react-flow | nexia, v0, UI-L0, nexia-shell, nexaon-graph-workspace, NexaonShell | 완료 | 1/1 · 3 링크 | [07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md](./07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) |
 | UIX-006 | NEXA 통합 레이아웃 구조 규격 | NEXA | UIX-004 | zustand, next-js, app-router | MainShell, domainLayoutRegistry, useLayoutStore, SystemStatusBar, domainKey, AppHeader, Left-Drawer, Right-Drawer, drawerDefaults | **archived** | 1/1 · 4 링크 | [07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md](./07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) |
@@ -284,7 +284,7 @@ terms_nexa: []
 | **TDD-002** | NEXA OS · 도메인 구조 (레지스트리) | NEXAOS | **TDD-071** | [—](./08_TDD/NEXAOS/) *(파일 삭제 · 2026-06-14)* |
 | **TDD-059** | NEXA OS · 도메인 마스터 맵 v1.0 | NEXAOS | **TDD-071** | [—](./08_TDD/NEXAOS/) *(파일 삭제 · 2026-06-14)* |
 | **TDD-015** | 멀티창 동기화 구현 로드맵 | NEXIA | **TDD-014** · **TDD-038** | [08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md](./08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md) |
-| **TDD-042** | 협업형 멀티에디터 플랫폼 | NEXIA | **PRD-001** · **TDD-038** · **TDD-041** | [08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md](./08_TDD/AI/08_TDD_AI_협업형멀티에디터플랫폼.md) |
+| **UIX-009** | BAX Core · UI · Harness 아키텍처 v1.0 | NEXIA | **UIX-003** (v1.0 정본 흡수) | [07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md](./07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) *(2026-06-22 · UIX-003 재할당)* |
 | **TDD-026~032** | Generators 7종 | NEXIA | **TDD-010** · **PRD-001** | [08_TDD/NEXIA/Generators/README.md](./08_TDD/NEXIA/Generators/README.md) |
 
 ---

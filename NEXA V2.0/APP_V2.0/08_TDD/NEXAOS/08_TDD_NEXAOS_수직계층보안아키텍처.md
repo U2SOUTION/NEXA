@@ -22,7 +22,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/zod", "std/rbac", "std/mqtt",
 - **구현 Normative SSOT:** [`08_TDD_NEXAOS_설계표준_미션크리티컬전략`](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) — `commands/` · Ingress×Grade · `edge-queue` · CI
 - **NEXIA 적용:** [`01 보안 및 권한`](<../Nexia/01%20보안%20및%20권한%20관리%20체계%20(Security%20%26%20Governance).md>) · [`00 NEXIA 구조`](../Nexia/00%20인공지능%20NEXIA%20구조와%20기술%20스택과%20운영방침.md)
 - **로컬 셸:** [`05_PRD_U2BEE_데스크톱앱설계명세`](../../05_PRD/05_PRD_U2BEE_데스크톱앱설계명세.md)
-- **Mission-Safe UI:** [`07_UIUX_BAX_미학적인터페이스UX아키텍처`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) — MAE G1–G5
+- **Mission-Safe UI:** [`07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) · [`TDD-004`](./08_TDD_NEXAOS_수직계층보안아키텍처.md) — RuleGuard · G1–G5
 
 ---
 
@@ -140,7 +140,7 @@ NEXIA **7 탭 `tabId`**(Omnix · Normex · Logex · Scribx · Vivex · Twinex ·
 | G1–G4 | 텍스트 면적·가독성·배치·진동 밀도    | Safety **시인성** 보조 — `--safety-*` 토큰과 **병행** |
 | G5    | Circuit Open → V1/V2 진동 **UI OFF** | **UI 부하·혼란** 억제 — ESPHome **E-Stop 대체 아님**  |
 
-상세: [BAX §1.2](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) · RuleGuard. **G5 > ATS** — Circuit Open 시 사용자 미학 설정 **무시**.
+상세: [BAX §5](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) · RuleGuard. **G5 > ATS** — Circuit Open 시 사용자 미학 설정 **무시**.
 
 ---
 

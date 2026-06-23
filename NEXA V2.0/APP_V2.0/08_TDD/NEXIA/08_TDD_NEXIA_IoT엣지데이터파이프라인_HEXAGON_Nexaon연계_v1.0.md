@@ -299,7 +299,7 @@ flowchart TB
 ## 1.6 엣지↔플랫폼 소통 · nexabo/ · nexia/ · **Nixie**
 
 > **역할:** 엣지 후보고는 **도메인 UI**(`nexabo/` · `nexia/`) 와 **지능 루프**(Nexaon · agent-graph) 로 흐르고, **Nixie** 는 그 **결과·알람·상태** 를 MainShell 에 **항상 -on** 으로 **표현**한다. Reflex triage 는 ML1 에서만.
-> **SSOT:** §1.4 · [TDD-058 · 오케스트레이션](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) · [UIX BAX · NIXIE M2P](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) §2.8 · [TDD-045 · 지능의 얼굴](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md)
+> **SSOT:** §1.4 · [TDD-058 · 오케스트레이션](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) · [UIX BAX · NIXIE M2P](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) §5.3 · [TDD-045 · 지능의 얼굴](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md)
 
 ### 1.6.1 역할 분리 — Nixie · Nexaon · Omnix · Zenith
 
@@ -882,7 +882,7 @@ _MQTT cmd/_
 | MQTT | [TDD-022 · 토픽 라우팅](./08_TDD_NEXIA_MQTT토픽데이터라우팅.md) |
 | 하이브리드·엣지 모드 | [TDD-024 · 데이터 분산](./08_TDD_NEXIA_데이터분산처리하이브리드전략.md) |
 | LangGraph · Run | [TDD-058 · 오케스트레이션](../LangGraph/08_TDD_LangGraph_오케스트레이션설계_v1.0.md) |
-| Nixie · Presence Shell | [TDD-045 · 지능의 얼굴](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [UIX BAX · NIXIE M2P](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) §2.8 |
+| Nixie · Presence Shell | [TDD-045 · 지능의 얼굴](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [UIX BAX · NIXIE M2P](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) §5.3 |
 | Nexaon · 진입 · Run | [TDD-056 §4.1](./08_TDD_NEXIA_7탭범위확정_v1.0.md) · [TDD-070 §3.4.1](../../용어집_NEXA전용_v2.0.md) |
 | Nexaon · Run · SHACL | [TDD-008 · IoT 온톨로지 플랫폼](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | Ontex ingest | [TDD-057 · Ontex](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |

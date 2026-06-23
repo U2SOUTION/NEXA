@@ -413,7 +413,7 @@ SSOT: [`UIX-004`](07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md).
 | `NIXIE`         | NIXIE         | **ML1 전방 Presence** — **NEXU Canvas · BAX · 전 `domainKey`** 를 **포함**해 상태·경고·정서 **Express** · Canvas/BAX **대체 ✗** · Run **소유 ✗** ([§3.2.1](#321-nexa-intelligence-stack-ML0ML3) · [§3.6.1](#361-nixie--nixie--상세-정의) · [§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie)). |
 | `Nixie`         | Nixie         | **NIXIE** 제품·UI·채널 표기 — **4 Shell 채널** ([§3.6.1](#361-nixie--nixie--상세-정의) · [§3.6.2](#362-nixie-shell-채널--4-forms))                                                                                                                                                      |
 | `NEXU Canvas`   | NEXU Canvas   | 온톨로지·Knowledge OS **데이터 페브릭** 시맨틱·예술 **뷰** — Home(또는 전용 도메인) **풀 뷰** · **BAX 혼용 ✗** ([§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie) · [`TDD-045` §6](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md)).                                                             |
-| `BAX`           | BAX           | **미적 레이아웃 표현 엔진** — 데이터·인터랙션→배치·호흡·void · **전 `domainKey`** · **NEXU Canvas 혼용 ✗** ([§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md)).                                                                              |
+| `BAX`           | BAX           | **미적 레이아웃 표현 엔진** — 데이터·인터랙션→배치·호흡·void · **전 `domainKey`** · **NEXU Canvas 혼용 ✗** ([§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md)).                                                                              |
 | `HEXAGON`       | HEXAGON       | **AXON-AL2** — 5W1H·의미 축 Envelope · [§3.2.3](#323-axon--cosmic-language-프로토콜)                                                                                                                                                                                             |
 | `NEXNAP`        | NEXNAP        | 시스템 인터페이스·Envelope 규약                                                                                                                                                                                                                                                     |
 | `Envelope`      | Envelope      | 탭·actor·payload 표준 메시지 래퍼                                                                                                                                                                                                                                                 |
@@ -464,11 +464,11 @@ SSOT: [`UIX-004`](07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md).
 | **③ IoT uplink** | Event Router fan-out | 요약·TTS·Jitter — **Run 트리거 ✗** ([TDD-068 §1.4](08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)) |
 | **④ Self·정서** | `nexa_self_*` · 6-COILS | 정서 **Express** ([`TDD-045` §5](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md)) |
 | **⑤ NEXU Canvas** | confidence · Why Chain | **Jitter·Awareness** — Canvas **렌더 ✗** ([§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie)) |
-| **⑥ BAX** | void · AlarmState | **Reflex triage** — Layout **✗** ([`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md)) |
+| **⑥ BAX** | void · AlarmState | **Reflex triage** — Layout **✗** ([`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md)) |
 
 **금지 (Normative):** LangGraph Agent · Run **트리거** · Event Router **fan-out** · MQTT **직접 publish** · promoted·Neo4j **쓰기** · **NEXU Canvas/BAX 대체·병합** · NexaonShell·7 탭 **대체** ✗.
 
-**관련 SSOT:** [`TDD-045` §6](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) · [`TDD-010` §3.1](08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) · [`UIX-004` §4.6](07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [§3.6.2](#362-nixie-shell-채널--4-forms) · [§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie)
+**관련 SSOT:** [`TDD-045` §6](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) · [`TDD-010` §3.1](08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) · [`UIX-004` §4.6](07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [§3.6.2](#362-nixie-shell-채널--4-forms) · [§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie)
 
 #### 3.6.2 Nixie Shell 채널 — 4 Forms
 
@@ -481,7 +481,7 @@ SSOT: [`UIX-004`](07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md).
 | **정체** | 4 채널 모두 **Nixie (ML1 Presence)** — Nexaon·Omnix·Router **결과 수신·표현** · Run·promoted **✗** |
 | **동기화** | `effective_project_id` · Self(`nexa_self_*`) · confidence→Jitter · Envelope/SSE/WS **동일 계약** |
 | **동시 활성** | Web + Physical 등 **복수 채널** 동시 가능 — Reflex triage 가 **어느 표면**에 Express 할지 선택 |
-| **M2P** | Desktop·Physical 은 **BAX M2P** 실시간 의지 입력 채널 ([`UIX-BAX` §2.8](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md)) |
+| **M2P** | Desktop·Physical 은 **BAX M2P** 실시간 의지 입력 채널 ([`UIX-BAX` §2.8](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md)) |
 
 | # | 태그 | 표기 | 형태 | 구현·전환 | SSOT |
 | :---: | :--- | :--- | :--- | :--- | :--- |
@@ -540,11 +540,11 @@ SSOT: [`UIX-004`](07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md).
 | :--- | :--- | :--- |
 | **질문** | 무엇이 · 왜 연결되는가 | 어디에 · 얼마나 여백·밀도로 |
 | **데이터** | IND→SNT→Doc · Capability · confidence | MAE · void_ratio · LayoutPolicy |
-| **SSOT** | [`TDD-045` §6](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) | [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
+| **SSOT** | [`TDD-045` §6](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) | [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) |
 
 **타 도메인:** NEXU Canvas = **컨텍스트 슬라이스** · inset · deep link — BAX·NIXIE 는 **동일** 가동. **Nexaon GraphCanvas** = 편집·Run·Yjs — NEXU Canvas = **탐험·서사** (뷰 모드 분리 권장).
 
-**관련 SSOT:** [`TDD-045` §6~6.1](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) · [`UIX-006`](07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) · [`TDD-061`](08_TDD/NEXIA/Nixie/08_TDD_NIXIE_WebShell_v1.0.md)
+**관련 SSOT:** [`TDD-045` §6~6.1](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) · [`UIX-006`](07_UIUX/07_UIUX_NEXA_통합레이아웃구조규격.md) · [`TDD-061`](08_TDD/NEXIA/Nixie/08_TDD_NIXIE_WebShell_v1.0.md)
 
 #### 3.6.4 Navex · Global Asset Index — 상세 정의
 
@@ -649,7 +649,7 @@ SSOT: [`UIX-004`](07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md).
 
 | 태그 | 표기 | 정의 |
 | :--- | :--- | :--- |
-| `BAX` | BAX | **미적 레이아웃 표현 엔진** — MAE·void·RuleGuard · **전 domainKey** · **NEXU Canvas 혼용 ✗** ([§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md)) |
+| `BAX` | BAX | **미적 레이아웃 표현 엔진** — MAE·void·RuleGuard · **전 domainKey** · **NEXU Canvas 혼용 ✗** ([§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md)) |
 | `MAE` | MAE | Matrix Aesthetic Engine — 의미→Grid·배치 |
 | `ATS` | ATS | Aesthetic Tuning Settings — ASR·Depth·Vibration 영속 |
 | `ASR` | ASR | Aesthetic Space Ratio — void 하한 |
@@ -748,5 +748,5 @@ Navex 는 **생성 확장자 없음** — **전 `domainKey`** · 전체 인덱�
 | Nexaon ↔ Ontex | [Ontex (TDD-057)](08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 | 엣지 후보고 → Nexaon | [TDD-068 §1.6.5](08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
 | Nixie · 4 Shell 채널 | [Nixie/README](08_TDD/NEXIA/Nixie/README.md) · TDD-061~064 |
-| NEXU Canvas · BAX · NIXIE 3 층 | [§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie) · [`TDD-045` §6.1](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) |
+| NEXU Canvas · BAX · NIXIE 3 층 | [§3.6.3](#363-플랫폼-ui-3층--nexu-canvas--bax--nixie) · [`TDD-045` §6.1](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) · [`UIX-003`](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) |
 | Nixie · 지능의 얼굴 | [Knowledge (TDD-045)](08_TDD/Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md) |

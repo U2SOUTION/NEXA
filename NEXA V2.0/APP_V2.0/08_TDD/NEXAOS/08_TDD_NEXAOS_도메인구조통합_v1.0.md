@@ -738,7 +738,7 @@ dev: {
 
 ## 13. M2P 및 BAX — React 컴포넌트 예제 (참고)
 
-> **레거시** BAX 미학·레이아웃·React 예제 코드는 [`nexia`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처.md) — 본 통합본에는 **React Flow** (Obsidian `UIX-003` 내 코드 블록 렌더 이슈 방지).
+> **레거시** BAX 미학·레이아웃·React 예제 코드는 [`nexia`](../../07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) — 본 통합본에는 **React Flow** (Obsidian `UIX-003` 내 코드 블록 렌더 이슈 방지).
 
 **`<details>`** 3 축 메타데이터 (Depth × Mutability × Priority) · 3×3 `matrixId` · Safe-Zone · V1 Sparkline · VirtualCanvas — 상세 TSX 는 UIX-003 §구현 예제 참조.
 

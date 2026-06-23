@@ -15,13 +15,55 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/rea
 ---
 
 # 08\_TDD\_NEXAOS\_ 플랫폼기술스택
-
-> **SSOT (2026-06-13):** **워크플로** = **React Flow (UI)** + **LangGraph (`apps/agent-graph`)** · **Rivet ✗**
+> **SSOT (2026-06-13):** **워크플로** = **React Flow (UI)** + **LangGraph (`apps/agent-graph`)** 
 > **Chat·Streaming** = agent-graph **LLM adapter** (dev: Ollama · **prod: vLLM**) · **Embed** = `embedder` in-process.
+
+
+
+
+### 기술스텍 요약 섹터
+
+> [!IMPORTANT] **SSOT (2026-06-13)**
+> - **워크플로**: **React Flow** (UI) + **LangGraph** (`apps/agent-graph`)
+> - **채팅 스트리밍**: **LLM adapter** (dev: Ollama / prod: vLLM)
+> - **임베딩**: `embedder` (in-process)
+
+#### 프론트엔드 및 사용자 인터페이스
+
+> [!INFO] **Next.js 기반 코어 컴포넌트**
+> - **Next.js**: 플랫폼 전체 인터페이스 및 SSR 처리
+> - **Yjs**: 캔버스·문서·코드 실시간 동시 편집 (CRDT)
+> - **React Flow**: Nexaon/Logex **[[NEXU Canvas]]** 시각 편집 및 온톨로지 연동
+> - **Tiptap**: 기획 및 규범 초안 작성을 위한 협업 에디터
+> - **Monaco**: 생성 코드 편집 및 실시간 공유
+
+#### 백엔드 및 AI/온톨로지 엔진
+
+> [!NOTE] **런타임 및 인프라**
+> - **NestJS**: 인증, **[[NEXNAP]]** 통신, SSE 스트리밍 중계
+> - **LangGraph**: `apps/agent-graph` 기반의 워크플로 SSOT
+> - **PostgreSQL**: **pgvector**를 활용한 지식 벡터 저장
+> - **Neo4j**: 온톨로지 쿼리 및 지식 그래프 관리
+
+> [!TIP] **아키텍처 시너지**
+> - **동일 데이터 공유**: Tiptap, React Flow, Monaco가 단일 **Y.Doc**을 공유하여 실시간 정합성 유지
+> - **연산 분리**: NestJS는 중계(Relay)에 집중하고, 무거운 AI 추론 및 임베딩은 **agent-graph** 전용 프로세스에서 처리
+
+#### 아키텍처 핵심 요약
+
+> [!ABSTRACT] **데이터 흐름도**
+> - **UI Layer**: React Flow · Tiptap · Monaco
+> - **Proxy Layer**: NestJS (인증 · SSE Relay)
+> - **AI Layer**: agent-graph (LangGraph · LLM adapter · embedder)
+> - **Data Layer**: PostgreSQL(pgvector) · Neo4j
+
+
 
 ---
 
-## 🌐 프론트엔드 & 사용자 인터페이스 (Next.js 기반)
+
+
+## 프론트엔드 & 사용자 인터페이스 (Next.js 기반)
 
 | 역할            | 확정 스택       | 도입 목적 및 상세 기능                                                                                                                          |
 | --------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -31,17 +73,15 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/rea
 | 문서 에디터     | Tiptap          | @tiptap/react · @tiptap/extension-collaboration — 기획·규범 초안 · Yjs 공식 연동                                                                |
 | 스크립트 에디터 | Monaco          | @monaco-editor/react — 생성 코드 편집 · Yjs 결합                                                                                                |
 
----
 
-## ⚙ 참고: 백엔드 및 AI/온톨로지 엔진 영역
+### 참고: 백엔드 및 AI/온톨로지 엔진 영역
 
 - **NestJS** — 인증 · CP-02 · **agent-graph Run 프록시** · SSE 중계
 - **`apps/agent-graph`** — **LangGraph** `StateGraph` SSOT · **`adapters/llm/`** (Ollama · vLLM) · **`embedder`** · `/v1/embed`
 - **PostgreSQL** (pgvector) · **Neo4j** (온톨로지 쿼리층)
 
----
 
-## 💡 Tiptap · React Flow · Monaco 시너지
+#### Tiptap · React Flow · Monaco 시너지
 
 1. **Yjs + Hocuspocus:** Tiptap·React Flow·Monaco 가 동일 Y.Doc 을 공유한다.
 2. **AI 문서 스트리밍:** 토큰 생성은 **agent-graph LLM adapter** (dev Ollama · prod vLLM) 만. NestJS 가 SSE 를 중계하고 Tiptap 이 마크다운을 실시간 반영한다.
@@ -49,9 +89,8 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/rea
 
 프론트엔드 3 대 컴포넌트: **[React Flow(그래프) / Tiptap(문서) / Monaco(코드)]**.
 
----
 
-## ⚙️ [2/2] 백엔드 & AI/온톨로지 추론 엔진 (NestJS & Python)
+### [2/2] 백엔드 & AI/온톨로지 추론 엔진 (NestJS & Python)
 
 | 역할                     | 확정 스택                         | 도입 목적 및 상세 기능                                                                                       |
 | ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -64,9 +103,9 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/next-js", "std/yjs", "std/rea
 | 데이터베이스 (온톨로지)  | Neo4j                             | specs 동기화 트리플 · SPARQL/Cypher — SSOT 아님 (wikilink·specs 정본)                                        |
 | 로컬 LLM 가동            | Ollama (dev) · **vLLM (prod)**    | **agent-graph adapter 만** — Nest · 브라우저 **금지**                                                          |
 
----
 
-## 💡 아키텍처 핵심 요약
+
+### 아키텍처 핵심 요약
 
 1. Next.js + **React Flow** + Tiptap 편집 → Yjs(Hocuspocus) 실시간 공유.
 2. NestJS 가 **LangGraph Run** 을 프록시 — `POST /v1/runs/{graph_id}` · SSE relay.
@@ -83,23 +122,23 @@ UI (React Flow · Tiptap · Monaco)
 
 데이터 규격 SSOT: `packages/shared/schemas/agent-graph` · LangGraph RunRequest/Response.
 
----
 
-## LangGraph Python 서버 (FastAPI) 분리 — 장단점
 
-### 👍 장점
+### LangGraph Python 서버 (FastAPI) 분리 — 장단점
+
+#### 장점
 
 1. **파이썬 온톨로지 생태계** — rdflib · Owlready2 · SPARQLWrapper.
 2. **결합도 분리** — 무거운 AI 추론 중에도 NestJS·Yjs 편집 블로킹 최소화.
 3. **확장성** — agent-graph 만 GPU 노드로 스케일 아웃.
 
-### 👎 단점
+#### 단점
 
 1. **배포 복잡도** — Nest + FastAPI + sync 프로세스.
 2. **서버 간 통신** — Run HTTP + SSE relay SSOT 필요.
 3. **분산 상태** — PostgreSQL ↔ Neo4j 일관성.
 
-### 💡 제언
+#### 제언
 
 - **Streaming SSOT:** agent-graph SSE → Nest relay → UI. 중간 JSON Export 층 **없음**.
 - **통신:** Run = POST `/v1/runs/{graph_id}` · stream = GET `/v1/runs/{run_id}/stream`.
@@ -108,8 +147,8 @@ UI (React Flow · Tiptap · Monaco)
 
 ## 관련 문서
 
-| 관계 | 문서 |
-| :--- | :--- |
-| 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
+| 관계      | 문서                                                                              |
+| :------ | :------------------------------------------------------------------------------ |
+| 상위 TDD  | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md)        |
 | 모노레포 구조 | [LangGraph 모노레포 폴더 구조 v1.0 (TDD-007)](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
-| TS 스키마 | [TS 타입 · 스키마 전략 (TDD-037)](../AI/08_TDD_AI_TS타입스키마전략.md) |
+| TS 스키마  | [TS 타입 · 스키마 전략 (TDD-037)](../AI/08_TDD_AI_TS타입스키마전략.md)                        |
