@@ -84,13 +84,14 @@ NEXA OS는 **유기적 지능 생태계**이다.
 
 ## 3. 표 스키마 (Normative)
 
-**모든 `terms_nexa` 용어 행**은 아래 **13열**을 사용한다. 해당 없으면 **빈 칸**.
+**모든 `terms_nexa` 용어 행**은 아래 **14열**을 사용한다. 해당 없으면 **빈 칸**.
 
 | COLUMN         | MEANING                                                                                                                                         |
 | :------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
 | **tag**        | `terms_nexa` · `nexa/` 태그                                                                                                                       |
 | **code**       | `domainKey` · `tabId` · `PT-0` 등 런타임 코드                                                                                                         |
-| **tier**       | **네이밍 위계 코드** — `L0` 플랫폼 표준 · `L1` 소프트웨어 제품 · `L2` 시스템 ID · `L3` 내부 코드 변수 (§1 참조). category와 직교 — 같은 category 내에서도 위계가 다를 수 있음. |
+| **tier**       | **네이밍 위계 (레벨)** — `L0` 플랫폼 표준 · `L1` 소프트웨어 제품 · `L2` 시스템 ID · `L3` 내부 코드 변수 (§1 참조). category와 직교 — 같은 category 내에서도 위계가 다를 수 있음. |
+| **tier_code**  | **위계 코드명** (§1 4대 위계 표 참조) — `PLAT` 플랫폼 표준 · `PROD` 소프트웨어 제품 · `SYSID` 시스템 ID · `INTVAR` 내부 코드 변수. tier의 사람이 읽는 명사형 코드. |
 | **label_ko**   | 기획·UI 한글 짧은 이름, 약어는 소리나는데 발음                                                                                                                    |
 | **label_en**   | 영문 짧은 표기                                                                                                                                        |
 | **fullname**   | 풀네임·약어 풀어쓰기                                                                                                                                     |
@@ -102,10 +103,12 @@ NEXA OS는 **유기적 지능 생태계**이다.
 | **ssot**       | doc_id 또는 링크                                                                                                                                    |
 | **notes**      | 별칭·deprecated·보조                                                                                                                                |
 
-> [!note] **tier ↔ category 직교성**
-> - `category` = **용어의 주제/도메인** (무엇에 관한 용어인가)
-> - `tier`    = **네이밍 위계**      (어느 표기 계층에 속한 이름인가)
-> - 예: `NEXA` (category=`platform`, tier=`L0`) · `nexia` (category=`domainKey`, tier=`L2`) · `useLayoutStore` (category=`platform`, tier=`L3`)
+> [!note] **tier ↔ tier_code ↔ category 삼중 직교성**
+> - `tier`      = **네이밍 위계 레벨**   (L0/L1/L2/L3 — 머신 친화적)
+> - `tier_code` = **위계 코드명**        (PLAT/PROD/SYSID/INTVAR — 사람 친화적)
+> - `category`  = **용어의 주제/도메인** (무엇에 관한 용어인가)
+> - 세 차원은 모두 직교. 같은 tier 내에서도 category·tier_code가 다를 수 있음.
+> - 예: `NEXA` (category=`platform`, tier=`L0`, tier_code=`PLAT`) · `nexia` (category=`domainKey`, tier=`L2`, tier_code=`SYSID`) · `useLayoutStore` (category=`platform`, tier=`L3`, tier_code=`INTVAR`)
 
 ## 4. NEXA V2.0 전용 용어 (`terms_nexa`)
 
