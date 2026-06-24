@@ -26,14 +26,14 @@ NEXA OS는 **유기적 지능 생태계**이다.
 - **Title Case**를 보면 UI 개발자는 `Component`나 `Class`를 떠올려야 합니다.
 - **소문자**를 보면 개발자는 `url`이나 `db_key`를 떠올려야 합니다.
 
+#### NEXA 4대 위계 단일 표기 원칙
 
 | #   | 위계 (영역)       | 위계 코드    | 표기법 (Rule)      | 적용 대상                          | 예시                                                       |
-| :--- | :--- | :--- | :--- | :--- | :--- |
+| :-- | :------------ | :------- | :-------------- | :----------------------------- | :------------------------------------------------------- |
 | L0  | **플랫폼 표준**    | `PLAT`   | **FULL_UPPER**  | 최상위 브랜드·전사 프로토콜·공통 규약          | `NEXA`, `NEXNAP`, `CSIM`, `NEXAVULT`                     |
 | L1  | **제품 및 컴포넌트** | `PROD`   | **TitleCase**   | 데이터 원자·UI 컴포넌트·제품 모듈·클래스명      | `Nexel`, `Nexaon`, `Nixie`, `MentonLayer`                |
-| L2  | **시스템 ID**    | `SYSID`  | **lower-kebab** | 도메인키·URL·파일 확장자·API 경로·모노레포 폴더 | `nexia`, `nexet`, `domain-key`, `.nxchat`, `agent-graph` |
+| L2  | **시스템 ID**    | `SYSID`  | **lower_snake** | 도메인키·URL·파일 확장자·API 경로·모노레포 폴더 | `nexia`, `nexet`, `domain_key`, `.nxchat`, `agent-graph` |
 | L3  | **내부 코드 변수**  | `INTVAR` | **camelCase**   | 런타임 변수·함수 인자·지역 상수·훅 식별자       | `useLayoutStore`, `drawerDefaults`, `onChange`           |
-
 
 > [!tip] **Note — 4대 위계 단일 표기 원칙**
 >
@@ -45,9 +45,8 @@ NEXA OS는 **유기적 지능 생태계**이다.
 
 ### NEXA 네이밍 샘플
 
-
 | 구분        | 용어 (예시)            | 의미적 카테고리   | 아키텍처적 역할                          |
-| :--- | :--- | :--- | :--- |
+| :-------- | :----------------- | :--------- | :-------------------------------- |
 | 표준, 프로토콜  | **NEXA**           | 최상위 브랜드    | 플랫폼 전체를 아우르는 상징적 위계               |
 |           | **NEXAOS**         | 시스템 전체 명칭  | 미션크리티컬 설계 계층의 총칭                  |
 |           | **NEXNAP**         | 전사 통신 규약   | 시스템 간 데이터 봉투(Envelope) 규약         |
@@ -63,15 +62,15 @@ NEXA OS는 **유기적 지능 생태계**이다.
 | 도메인키, url | **nexia**          | 도메인 식별자    | 지능 셸 및 DIEA 호스팅용 `domainKey`      |
 |           | **nexabo**         | 도메인 식별자    | IoT 관제 및 텔레메트리용 `domainKey`       |
 |           | **nexet**          | 도메인 식별자    | 자산 유통 및 마켓플레이스용 `domainKey`       |
+|           |                    |            |                                   |
 
 
 ## 용어집 표 스키마 (Normative)
 
 **모든 `terms_nexa` 용어 행**은 아래 **14열**을 사용한다. 해당 없으면 **빈 칸**.
 
-
 | NO  | COLUMN         | MEANING                                                                                                                                                      |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| :-- | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | **tag**        | `terms_nexa` · `nexa/` 태그                                                                                                                                    |
 | 2   | **code**       | `domainKey` · `tabId` · `PT-0` 등 런타임 코드                                                                                                                      |
 | 3   | **tier**       | **네이밍 위계 (레벨 + 티어명)** — `L0 플랫폼 표준` · `L1 제품 및 컴포넌트` · `L2 시스템 ID` · `L3 내부 코드 변수` (§1 참조). 레벨 번호와 티어명을 결합한 표시. category와 직교 — 같은 category 내에서도 위계가 다를 수 있음. |
@@ -96,19 +95,7 @@ NEXA OS는 **유기적 지능 생태계**이다.
 > - 세 차원은 모두 직교. 같은 tier 내에서도 category·tier_code가 다를 수 있음.
 > - 예: `NEXA` (category=`platform`, tier=`L0`, tier_code=`PLAT`) · `nexia` (category=`domainKey`, tier=`L2`, tier_code=`SYSID`) · `useLayoutStore` (category=`platform`, tier=`L3`, tier_code=`INTVAR`)
 
-### 스키마 정합성 및 자동 검증 항목
-
-
-| #   | §1 위계        | §1 표기법          | §1 위계 코드 | §3 `tier`      | §3 `tier_code` | 정합  |
-| :---: | :--- | :--- | :--- | :--- | :--- | :---: |
-| 1   | L0 플랫폼 표준    | **FULL_UPPER**  | `PLAT`   | `L0 플랫폼 표준`    | `PLAT`         | ✓   |
-| 2   | L1 제품 및 컴포넌트 | **TitleCase**   | `PROD`   | `L1 제품 및 컴포넌트` | `PROD`         | ✓   |
-| 3   | L2 시스템 ID    | **lower-kebab** | `SYSID`  | `L2 시스템 ID`    | `SYSID`        | ✓   |
-| 4   | L3 내부 코드 변수  | **camelCase**   | `INTVAR` | `L3 내부 코드 변수`  | `INTVAR`       | ✓   |
-
-
-### 용어집 표 스키마 (Normative)전 표 집계
-
+### NEXA 4대 위계 집계
 
 | #   | 표 (section)                 | L0 (PLAT) | L1 (PROD) | L2 (SYSID) | L3 (INTVAR) | 비고           |
 | :---: | :--- | :---: | :---: | :---: | :---: | :--- |
@@ -166,11 +153,10 @@ def classify(tag: str):
 
 ### 플랫폼 · OS
 
-
 | TAG                    | CODE             | TIER         | TC(약어) | LABEL_KO    | LABEL_EN             | FULLNAME                                        | CATEGORY | DEFINITION                                                | NOT                              | ARTIFACT | RELATED | SSOT    | NOTES               |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `NEXA`                 |                  | L0 플랫폼 표준    | PLAT   | 넥사          | NEXA                 |                                                 | platform | 사업·플랫폼 전체 브랜드                                             |                                  |          |         | BRD-001 |                     |
-| `NEXAOS`               |                  | L0 플랫폼 표준    | PLAT   | 넥사 OS       | NEXA OS              |                                                 | platform | OS·셸·도메인·미션크리티컬 설계층                                       |                                  |          |         | TDD-001 |                     |
+| `NEXA OS`              |                  | L0 플랫폼 표준    | PLAT   | 넥사 OS       | NEXA OS              | **NEXA Operating System**                       | platform | OS·셸·도메인·미션크리티컬 설계층                                       |                                  |          |         | TDD-001 |                     |
 | `domainKey`            | domainKey        | L3 내부 코드 변수  | INTVAR | 도메인 키       | domainKey            |                                                 | platform | Header 전역 메뉴 도메인 식별자 (`nexia`, `erp` …)                   |                                  |          |         | TDD-071 |                     |
 | `subRoute`             | subRoute         | L3 내부 코드 변수  | INTVAR | 서브 라우트      | subRoute             |                                                 | platform | 단일 `domainKey` 내 content 분기 (`erp/parts`)                 |                                  |          |         | TDD-071 |                     |
 | `MainShell`            |                  | L1 제품 및 컴포넌트 | PROD   | 메인 쉘        | MainShell            |                                                 | platform | 4 영역 + StatusBar 플랫폼 셸                                    |                                  |          |         | UIX-004 | 구 UIX-006 → UIX-004 |
@@ -188,11 +174,8 @@ def classify(tag: str):
 | `M.O.S.E.S.`           |                  | L0 플랫폼 표준    | PLAT   | 모세          | M.O.S.E.S.           | Mission-Operational Safety Engineering Standard | platform | 미션크리티컬 설계 원칙 약어                                           |                                  |          |         | TDD-001 |                     |
 | `Galthon`              |                  | L1 제품 및 컴포넌트 | PROD   | 갈톤          | Galthon              |                                                 | platform | NEXA 전체 신뢰성 담보 독립 감시 주체 — Why-Chain·trace 횡단 관측 · 흐름 개입 ✗ | ≠ NEXA · ≠ Menton · ≠ Nexaon Run |          |         | TDD-074 | 6대 핵심 축 ✗           |
 
-
 ### domainKey (제품·업무 영역)
-
-> 상세 맵: [TDD-071](08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md).
-
+> 상세 맵: [TDD-071](08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md).  [[08_TDD_NEXAOS_도메인구조통합_v1.0]]
 
 | tag       | code    | TIER      | TC(약어) | label_ko | label_en | fullname | category  | definition                            | not                        | artifact | related      | ssot    | notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -207,9 +190,7 @@ def classify(tag: str):
 
 
 ### 아키텍처 축 — Physical · Menton · Engine
-
 > **한 줄:** PT = 배치 · ML = 논리 계층 · Core Engine = 기능. SSOT: [TDD-040](08_TDD/AI/08_TDD_AI_지능위계및하드웨어사양.md) · [TDD-075 Hub-and-Spoke](08_TDD/NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md).
-
 
 | TAG                 | CODE | TIER         | TC(약어) | LABEL_KO      | LABEL_EN                  | FULLNAME                | CATEGORY      | DEFINITION                                       | NOT                                 | ARTIFACT | RELATED | SSOT    | NOTES             |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -226,9 +207,7 @@ def classify(tag: str):
 | `ML2`               | ML2  | L0 플랫폼 표준    | PLAT   |               | Tactical · Domain         |                         | menton-layer  | nexabo/nexia 작업면 — 관제·트윈·정재 UI                   |                                     |          |         | TDD-040 |                   |
 | `ML3`               | ML3  | L0 플랫폼 표준    | PLAT   |               | Strategic                 |                         | menton-layer  | Nexaon·agent-graph·Omnix — ingest→Run→promoted   |                                     |          | Nexaon  | TDD-073 | LangGraph Agent ✓ |
 
-
 ### Cosmic Layer · CSIM (T1–T3)
-
 
 | TAG      | CODE | TIER         | TC(약어) | LABEL_KO          | LABEL_EN          | FULLNAME                         | CATEGORY    | DEFINITION                              | NOT                     | ARTIFACT | RELATED | SSOT    | NOTES   |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -238,9 +217,7 @@ def classify(tag: str):
 | `T3`     | T3   | L0 플랫폼 표준    | PLAT   | Concretization    | Concretization    |                                  | cosmic-tier | 의미 → Narrative\                         | Action · Run ✗ (Nexaon) |          |         |         | TDD-043 |
 | `CSIM`   |      | L0 플랫폼 표준    | PLAT   | 우주 의미 언어 번역기      | CSIM              | Cosmic Semantic Interface Matrix | cosmic-tier | Cosmic Layer 구현 · WILL/FACT ↔ Matrix 번역 |                         |          | Cosmic  | TDD-043 |         |
 
-
 ### Axon Layer · Cosmic Language (AL1–AL7)
-
 
 | TAG              | CODE     | TIER         | TC(약어) | LABEL_KO | LABEL_EN       | FULLNAME | CATEGORY   | DEFINITION                        | NOT | ARTIFACT | RELATED | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -259,7 +236,6 @@ def classify(tag: str):
 > **DIEA** = Distillation Intelligence Engine Array · `nexia` 7 Facet. 구 별칭 `7Tab`/`7탭` SSOT ✗. URL: `/nexia/{tabId}`.
 > **핵심 흐름:** 인간의지 ↔ [CSIM] 번역 ↔ [APEX] 매트릭스 ↔ [AXON] 프로토콜 ↔ [DIEA] 정재 작업대 ↔ [NEXIA] 정재 ↔ **M2P** 출력 ↔ [Peripheral]
 
-
 | TAG      | CODE   | TIER         | TC(약어) | LABEL_KO | LABEL_EN | FULLNAME                               | CATEGORY | DEFINITION              | NOT                        | ARTIFACT         | RELATED      | SSOT    | NOTES    |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `Omnix`  | omnix  | L1 제품 및 컴포넌트 | PROD   | 옴닉스      | Omnix    |                                        | tabId    | 소통·허브·오케스트레이션·승인 중계     |                            | .nxchat          | DIEA         | TDD-056 |          |
@@ -271,11 +247,9 @@ def classify(tag: str):
 | `Navex`  | navex  | L1 제품 및 컴포넌트 | PROD   | 네이벡스     | Navex    |                                        | tabId    | 플랫폼 전역 자산 탐색·검색·릴레이     |                            |                  | DIEA, NISE   | TDD-056 | 생성 확장자 ✗ |
 | `DIEA`   |        | L0 플랫폼 표준    | PLAT   | 정재 작업대   | DIEA     | Distillation Intelligence Engine Array | tabId    | nexia 7 Facet 지능 엔진 어레이 | ≠ domainKey · ≠ Nexaon 동일시 |                  | Nexaon,APEX  | TDD-071 |          |
 
-
 ### Nexaon · 명칭 (혼동 방지)
 
 > Nexaon ⊂ nexia · Logex ontology. DIEA 7 Facet에 포함 ✗.
-
 
 | TAG           | CODE | TIER         | TC(약어) | LABEL_KO | LABEL_EN    | FULLNAME | CATEGORY | DEFINITION                                     | NOT                                  | ARTIFACT                          | RELATED     | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -283,20 +257,16 @@ def classify(tag: str):
 | `NexaonShell` |      | L1 제품 및 컴포넌트 | PROD   | 넥사온쉘     | NexaonShell |          | ui       | ExplorerTree · GraphCanvas · RunPanel 3분할      | MainShell ✗                          |                                   | Nexaon      | TDD-056 |       |
 | `NEXIA`       |      | L0 플랫폼 표준    | PLAT   | 닉시아      | NEXIA       |          | ui       | 제품·문서 도메인 라벨 (대문자)                             | nexia 코드키와 별도                        |                                   |             | TDD-010 |       |
 
-
 ### 확장 레이어 — CAT · PMS (7+4)
 
 > 7 Core tabId + Ontex·Admin·CAT·PMS. UI 배치 미정.
-
 
 | TAG   | CODE | TIER      | TC(약어) | LABEL_KO | LABEL_EN | FULLNAME                      | CATEGORY | DEFINITION                                                 | NOT                     | ARTIFACT | RELATED | SSOT          | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `CAT` |      | L0 플랫폼 표준 | PLAT   | 켓        | CAT      | Contextual Awareness Timeline | ui       | nexia·MainShell 횡단 상황 인지 · LLM Read-only                   | Omnix 채팅 ✗ · tabId ✗    |          | PMS     | DEV UI-Driven |       |
 | `PMS` |      | L0 플랫폼 표준 | PLAT   | 피엠에스     | PMS      | Project Management System     | ui       | WBS·Roadmap·Backlog·Asset Ledger·Validation Gate · 지능 공정관리 | erp · 외부 PM ✗ · tabId ✗ |          | CAT     | DEV UI-Driven |       |
 
-
 ### nexia — UI 셸 · 레이아웃
-
 
 | TAG                       | CODE  | TIER         | TC(약어) | LABEL_KO   | LABEL_EN                | FULLNAME                        | CATEGORY | DEFINITION                               | NOT                         | ARTIFACT | RELATED             | SSOT    | NOTES   |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -327,7 +297,6 @@ def classify(tag: str):
 > NEXU(What) · BAX(How sit) · NIXIE(Express). 병합 ✗.
 > **핵심 흐름:** 인간의지 ↔ [CSIM] 번역 ↔ [APEX] 매트릭스 ↔ [AXON] 프로토콜 ↔ [DIEA] 정재 작업대 ↔ [NEXIA] 정재 ↔ **M2P** 출력 ↔ [Peripheral] 주변기기
 
-
 | TAG             | CODE | TIER         | TC(약어) | LABEL_KO      | LABEL_EN      | FULLNAME                  | CATEGORY | DEFINITION                                             | NOT                     | ARTIFACT | RELATED    | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `NIXIE`         |      | L0 플랫폼 표준    | PLAT   | 닉시            | NIXIE         |                           | ui       | ML1 Presence · Canvas·BAX·전 domainKey Express          | Canvas/BAX 대체 ✗ · Run ✗ |          | Nixie      | TDD-045 |       |
@@ -350,9 +319,7 @@ def classify(tag: str):
 | `VOID-BOX`      |      | L0 플랫폼 표준    | PLAT   | VOID-BOX      | 보이드 박스        |                           | ui       | **결정 유보(DEFERRED) 데이터를 담는 BAX 그리드 내 논리적 컨테이너**         |                         |          |            | PRD-003 |       |
 | `DEFERRED`      |      | L0 플랫폼 표준    | PLAT   | DEFERRED      | 연기/보류         |                           | ui       | 연기된 결정 상태                                              |                         |          |            | PRD-003 |       |
 
-
 ### NIXIE — 4 Shell 채널
-
 
 | TAG                  | CODE | TIER         | TC(약어) | LABEL_KO | LABEL_EN             | FULLNAME | CATEGORY | DEFINITION                       | NOT | ARTIFACT | RELATED | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -361,9 +328,7 @@ def classify(tag: str):
 | `NixieMobileShell`   |      | L1 제품 및 컴포넌트 | PROD   | 닉스 모바일쉘  | Nixie Mobile Shell   |          | ui       | iOS/Android · 푸시·VAD             |     |          |         | TDD-063 |       |
 | `NixiePhysicalShell` |      | L1 제품 및 컴포넌트 | PROD   | 닉시 실물쉘   | Nixie Physical Shell |          | ui       | ESP32/RPi 하드웨어 · M2P·Serial      |     |          |         | TDD-064 |       |
 
-
 ### 데이터 · 파일 · Identity
-
 
 | TAG                   | CODE | TIER        | TC(약어) | LABEL_KO        | LABEL_EN            | FULLNAME | CATEGORY | DEFINITION               | NOT | ARTIFACT | RELATED | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -386,7 +351,6 @@ def classify(tag: str):
 
 ### IoT · 제품 모듈
 
-
 | TAG               | CODE | TIER         | TC(약어) | LABEL_KO   | LABEL_EN        | FULLNAME | CATEGORY | DEFINITION                                 | NOT | ARTIFACT | RELATED | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `NEXA-CELL`       |      | L0 플랫폼 표준    | PLAT   | 넥사 세일      | NEXA-CELL       |          | iot      | ESPHome YAML·웹 펌웨어 제품                      |     |          |         | TDD-024 |       |
@@ -398,9 +362,7 @@ def classify(tag: str):
 | `Lambda`          |      | L1 제품 및 컴포넌트 | PROD   | 람다         | Lambda          |          | iot      | NEXA-CELL 보드 라인 (개발보드)                     |     |          |         | TDD-024 |       |
 | `Kineton`         |      | L1 제품 및 컴포넌트 | PROD   | 키네톤        | Kineton         |          | iot      | Physical Bridge · ACTON · ROS 2 번역,물리 실행엔진 |     |          |         | TDD-072 |       |
 
-
 ### Generators · 미디어
-
 
 | TAG          | CODE | TIER         | TC(약어) | LABEL_KO | LABEL_EN   | FULLNAME | CATEGORY | DEFINITION    | NOT | ARTIFACT | RELATED | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -410,9 +372,7 @@ def classify(tag: str):
 | `AICIRCUIT`  |      | L0 플랫폼 표준    | PLAT   | 회로 생성기   | AICIRCUIT  |          | iot      | AI 회로 생성기     |     |          |         | TDD-031 |       |
 | `AISOUND`    |      | L0 플랫폼 표준    | PLAT   | 솔 생성기    | AISOUND    |          | iot      | AI 사운드 생성기    |     |          |         | TDD-031 |       |
 
-
 ### 기타 · 레거시
-
 
 | TAG                | CODE | TIER         | TC(약어) | LABEL_KO         | LABEL_EN         | FULLNAME | CATEGORY | DEFINITION       | NOT              | ARTIFACT | RELATED        | SSOT    | NOTES      |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -429,7 +389,6 @@ def classify(tag: str):
 
 > Navex: 생성 확장자 ✗ — 전 domainKey 인덱싱.
 
-
 | TAG       | CODE   | TIER      | TC(약어) | LABEL_KO | LABEL_EN | FULLNAME | CATEGORY | DEFINITION      | NOT | ARTIFACT | RELATED | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `nxchat`  | omnix  | L2 시스템 ID | SYSID  | 채팅·세션    | .nxchat  |          | artifact | Omnix 채팅·세션     |     | .nxchat  |         | TDD-010 |       |
@@ -442,40 +401,7 @@ def classify(tag: str):
 | `nxdev`   | twinex | L2 시스템 ID | SYSID  | 디바이스 바인딩 | .nxdev   |          | artifact | Twinex 디바이스 바인딩 |     | .nxdev   |         | TDD-010 |       |
 | `nxdiag`  | twinex | L2 시스템 ID | SYSID  | 진단·시뮬    | .nxdiag  |          | artifact | Twinex 진단·시뮬    |     | .nxdiag  |         | TDD-010 |       |
 
-
-### 부록 A — 구 UI 라벨 (비규범)
-
-> [TDD-010 부록 B](08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) 동일. **신규 금지.**
-
-
-| TAG              | CODE    | TIER         | TC(약어) | LABEL_KO | LABEL_EN | FULLNAME | CATEGORY | DEFINITION | NOT | ARTIFACT | RELATED | SSOT | NOTES |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `Cockpit-legacy` | Cockpit | L1 제품 및 컴포넌트 | PROD   | 콕핏       | Cockpit  |          | legacy   | 구 UI 라벨    |     |          | Omnix   |      | 부록 A  |
-| `Ethos-legacy`   | Ethos   | L1 제품 및 컴포넌트 | PROD   | 에토스      | Ethos    |          | legacy   | 구 UI 라벨    |     |          | Normex  |      | 부록 A  |
-| `Synapse-legacy` | Synapse | L1 제품 및 컴포넌트 | PROD   | 시넵스      | Synapse  |          | legacy   | 구 UI 라벨    |     |          | Logex   |      | 부록 A  |
-| `Glos-legacy`    | Glos    | L1 제품 및 컴포넌트 | PROD   | 글로스      | Glos     |          | legacy   | 구 UI 라벨    |     |          | Scribx  |      | 부록 A  |
-| `Physis-legacy`  | Physis  | L1 제품 및 컴포넌트 | PROD   | 피시스      | Physis   |          | legacy   | 구 UI 라벨    |     |          | Vivex   |      | 부록 A  |
-| `Sense-legacy`   | Sense   | L1 제품 및 컴포넌트 | PROD   | 센스       | Sense    |          | legacy   | 구 UI 라벨    |     |          | Twinex  |      | 부록 A  |
-| `Navis-legacy`   | Navis   | L1 제품 및 컴포넌트 | PROD   | 나비스      | Navis    |          | legacy   | 구 UI 라벨    |     |          | Navex   |      | 부록 A  |
-
-
----
-
-## 부록 B — 전체 태그 인덱스
-
-확정 문서 frontmatter 기준. 신규 승격 시 `[sync_terms_to_tags.py](scripts/sync_terms_to_tags.py)` 재실행.
-
-
-| SCOPE            | COUNT | LOOKUP                                    |
-| :--- | :---: | :--- |
-| `terms_standard` | 99    | [용어집범용v2.0.md](용어집_범용_v2.0.md)            |
-| `terms_nexa`     | 219+  | 본 문서 §4 + [doc*id*레지스트리](doc_id_레지스트리.md) |
-
-
----
-
 ## 관련 문서
-
 
 | RELATION       | DOCUMENT                                                                                                                           |
 | :--- | :--- |
@@ -490,8 +416,29 @@ def classify(tag: str):
 | BAX            | [UIX-003](07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md)                                                                              |
 | Nixie          | [TDD-061~064](08_TDD/NEXIA/Nixie/)                                                                                                 |
 
+### 부록 A — 구 UI 라벨 (비규범)
 
----
+> [TDD-010 부록 B](08_TDD/NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) 동일. **신규 금지.**
+
+| TAG              | CODE    | TIER         | TC(약어) | LABEL_KO | LABEL_EN | FULLNAME | CATEGORY | DEFINITION | NOT | ARTIFACT | RELATED | SSOT | NOTES |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `Cockpit-legacy` | Cockpit | L1 제품 및 컴포넌트 | PROD   | 콕핏       | Cockpit  |          | legacy   | 구 UI 라벨    |     |          | Omnix   |      | 부록 A  |
+| `Ethos-legacy`   | Ethos   | L1 제품 및 컴포넌트 | PROD   | 에토스      | Ethos    |          | legacy   | 구 UI 라벨    |     |          | Normex  |      | 부록 A  |
+| `Synapse-legacy` | Synapse | L1 제품 및 컴포넌트 | PROD   | 시넵스      | Synapse  |          | legacy   | 구 UI 라벨    |     |          | Logex   |      | 부록 A  |
+| `Glos-legacy`    | Glos    | L1 제품 및 컴포넌트 | PROD   | 글로스      | Glos     |          | legacy   | 구 UI 라벨    |     |          | Scribx  |      | 부록 A  |
+| `Physis-legacy`  | Physis  | L1 제품 및 컴포넌트 | PROD   | 피시스      | Physis   |          | legacy   | 구 UI 라벨    |     |          | Vivex   |      | 부록 A  |
+| `Sense-legacy`   | Sense   | L1 제품 및 컴포넌트 | PROD   | 센스       | Sense    |          | legacy   | 구 UI 라벨    |     |          | Twinex  |      | 부록 A  |
+| `Navis-legacy`   | Navis   | L1 제품 및 컴포넌트 | PROD   | 나비스      | Navis    |          | legacy   | 구 UI 라벨    |     |          | Navex   |      | 부록 A  |
+
+## 부록 B — 전체 태그 인덱스
+
+확정 문서 frontmatter 기준. 신규 승격 시 `[sync_terms_to_tags.py](scripts/sync_terms_to_tags.py)` 재실행.
+
+
+| SCOPE            | COUNT | LOOKUP                                    |
+| :--- | :---: | :--- |
+| `terms_standard` | 99    | [용어집범용v2.0.md](용어집_범용_v2.0.md)            |
+| `terms_nexa`     | 219+  | 본 문서 §4 + [doc*id*레지스트리](doc_id_레지스트리.md) |
 
 ## 부록 C — 상세 서사 (이전 §3.3~3.6 요약 보존)
 
@@ -543,8 +490,3 @@ def classify(tag: str):
 
 - 헝가리안 표기법 (Hungarian Notation): 변수명 앞에 데이터의 종류(타입)를 나타내는 접두어를 붙이는 규칙입니다. (예: 정수형 변수 앞에 `i`를 붙여 `iAge`, 문자열 앞에 `str`을 붙여 `strName`)
 - 상수 표기법 (Constant Notation): 절대 변하지 않는 상수를 표현할 때 '모두 대문자'로 쓰고 단어를 언더바로 연결합니다. (예: `MAX_WIDTH`, `API_KEY`) [17, 18]
-
-#### Rule Validator 노드와의 연관성
-
-앞서 배운 랭그래프의 Rule Validator(규정 심사관) 노드에 "우리 프로젝트는 변수명에 파스칼 케이스만 허용한다"라는 네이밍 컨벤션 장부를 등록해 두면, LLM이 `user_name`이라고 스네이크 케이스로 코드를 짰을 때 입구 컷(분기)을 시키고 다시 짜오게 만들 수 있습니다.
-혹시 지금 개발 중이신 파이프라인에서 특정 언어(예: 파이썬 또는 자바스크립트)의 표준 네이밍 컨벤션 검사기를 Rule Validator 노드에 자동으로 연동하고 싶으신가요? 방법이 필요하시면 알려주세요!
