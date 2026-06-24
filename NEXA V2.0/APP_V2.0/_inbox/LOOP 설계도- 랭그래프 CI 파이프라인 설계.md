@@ -5,6 +5,22 @@
 
 ---
 
+## 📌 5단계 Test Spec — TAG ↔ CODE 매핑 (요약 카드)
+
+> **용어 직교:** `T1~T5`는 사람이 읽는 **순서 라벨(TAG)**, `audit_*`는 시스템이 식별하는 **CODE**. 런타임 키(`test_run_history[].step` 등)는 반드시 **CODE**(`audit_*`)를 사용한다.
+
+| 순서   | CODE (식별자)         | 단계          | 도구                  | 부러뜨리기 기준 (FAIL 조건)                         |
+| ------ | --------------------- | ------------- | --------------------- | --------------------------------------------------- |
+| **T1** | `audit_static_patch`  | 정적 검증     | D-2 (Patch Validator) | tsc/eslint/AST import 오류 1건이라도 발생           |
+| **T2** | `audit_api_unit`      | API 단위 검증 | Supertest             | 4xx/5xx 응답이 의도와 다르면                        |
+| **T3** | `audit_ui_e2e`        | UI E2E 검증   | Playwright            | 1초 이내 `Y.Doc` 동기화 불일치 / SSE 유실 0.1% 초과 |
+| **T4** | `audit_load_perf`     | 부하 검증     | k6 (MQTT)             | TTFT 600ms 초과 / 가상 5,000대 동시 publish 실패    |
+| **T5** | `audit_nexa_rule`     | 룰 검증       | E-0 (Rule Validator)  | NEXA 3대 룰 위반 1건이라도                          |
+
+> 상세 흐름: [§2. 테스트 실행 파이프라인](#2-테스트-실행-파이프라인-오른쪽-흐름-node-b--node-d-2) · TAG↔CODE SSOT: [용어집_NEXA전용_v2.0 1 1.md §1 위계와 CODE의 상관관계](용어집_NEXA전용_v2.0%201%201.md)
+
+---
+
 ## 파이프라인 다이어그램
 
 ```mermaid
@@ -184,8 +200,6 @@ class PipelineState(TypedDict):
 
 ---
 
-## 노드 설명
-
 | 노드                               | 역할                             | 문제성격           | 핵심 동작                                                                     | 성격                     |
 | ---------------------------------- | -------------------------------- | ------------------ | ----------------------------------------------------------------------------- | ------------------------ |
 | **Node 0** · Env Checker           | 환경 사전 검증                   | 환경 문제          | DB연결·포트 가용·의존성 버전 확인 → 이상 시 즉시 조기 종료                    | 결정론적                 |
@@ -200,7 +214,6 @@ class PipelineState(TypedDict):
 | **Node E-0** · Rule Validator      | NEXA 설계 룰 검증 (비기능 · 이원화 감사) | 설계 철학 문제 | HITL 승인 이후 — 기능 OK와 별개 차원으로 NEXA 정체성(Zod·레이어·NEX*·Yjs 무결성) 재시험 | 결정론적 |
 | **Node E** · PR Merger             | 최종 머지                        | 머지 충돌 문제     | NEXA 3대 룰 검수 후 메인 브랜치 병합                                          | 결정론적                 |
 | **Node F** · Notifier              | 결과 발송                        |                    | 완료·실패·롤백·거부 유형 구분 후 Telegram·Slack 발송                          | 결정론적                 |
-
 > **A-1 vs A-2 분리 이유:** Scanner는 항상 동일하게 동작하는 기계적 읽기입니다. Scope Resolver는 "어떤 파일을 건드릴지" 판단이 개입하므로 디버깅 시 "파일을 못 읽은 건지" vs "범위를 잘못 잡은 건지" 즉시 구분할 수 있습니다.
 
 > **C-1 vs C-2 분리 이유:** C-1(Noise Filter)은 "확실히 무관한 것만 제거"하는 보수적 정규식 필터입니다. 의심스러운 로그는 전부 통과시켜 C-2로 넘깁니다. C-2(LLM Analyzer)는 생존한 로그 전체를 의미 기반으로 분석해 에러 유형을 태깅하고 프롬프트를 조립합니다. 이 구조 덕분에 중요한 정보 누락 없이 LLM 토큰 낭비만 줄일 수 있습니다.
@@ -797,36 +810,38 @@ def route_after_judgment(state: AgentState):
 
 #### 5단계 Test Spec — 어떤 테스트를 어떤 순서로
 
-| 순서   | 단계          | 도구                  | 부러뜨리기 기준 (FAIL 조건)                         |
-| ------ | ------------- | --------------------- | --------------------------------------------------- |
-| **T1** | 정적 검증     | D-2 (Patch Validator) | tsc/eslint/AST import 오류 1건이라도 발생           |
-| **T2** | API 단위 검증 | Supertest             | 4xx/5xx 응답이 의도와 다르면                        |
-| **T3** | UI E2E 검증   | Playwright            | 1초 이내 `Y.Doc` 동기화 불일치 / SSE 유실 0.1% 초과 |
-| **T4** | 부하 검증     | k6 (MQTT)             | TTFT 600ms 초과 / 가상 5,000대 동시 publish 실패    |
-| **T5** | 룰 검증       | E-0 (Rule Validator)  | NEXA 3대 룰 위반 1건이라도                          |
+| 순서   | CODE (식별자)         | 단계          | 도구                  | 부러뜨리기 기준 (FAIL 조건)                         |
+| ------ | --------------------- | ------------- | --------------------- | --------------------------------------------------- |
+| **T1** | `audit_static_patch`  | 정적 검증     | D-2 (Patch Validator) | tsc/eslint/AST import 오류 1건이라도 발생           |
+| **T2** | `audit_api_unit`      | API 단위 검증 | Supertest             | 4xx/5xx 응답이 의도와 다르면                        |
+| **T3** | `audit_ui_e2e`        | UI E2E 검증   | Playwright            | 1초 이내 `Y.Doc` 동기화 불일치 / SSE 유실 0.1% 초과 |
+| **T4** | `audit_load_perf`     | 부하 검증     | k6 (MQTT)             | TTFT 600ms 초과 / 가상 5,000대 동시 publish 실패    |
+| **T5** | `audit_nexa_rule`     | 룰 검증       | E-0 (Rule Validator)  | NEXA 3대 룰 위반 1건이라도                          |
+
+> **TAG vs CODE 직교:** 표의 `T1~T5`는 사람이 읽는 **순서 라벨(TAG)**, `audit_*`는 시스템이 식별하는 **CODE**. `test_run_history[].step` 등 런타임 키는 반드시 **CODE**(`audit_*`)를 사용한다.
 
 #### 결과 상태 (`TestRunHistory`) — 모든 단계의 결과 누적
 
 ```python
 test_run_history: List[Dict] = [
-    {"step": "T1", "tool": "D-2", "result": "PASS", "duration_ms": 120, "details": "..."},
-    {"step": "T2", "tool": "Supertest", "result": "PASS", "duration_ms": 480, "details": "..."},
-    {"step": "T3", "tool": "Playwright", "result": "FAIL", "duration_ms": 1500,
+    {"step": "audit_static_patch", "tool": "D-2", "result": "PASS", "duration_ms": 120, "details": "..."},
+    {"step": "audit_api_unit",     "tool": "Supertest", "result": "PASS", "duration_ms": 480, "details": "..."},
+    {"step": "audit_ui_e2e",       "tool": "Playwright", "result": "FAIL", "duration_ms": 1500,
      "details": "Y.Doc sync timeout: 2 browsers diverged at node 'A-1'"},
-    {"step": "T4", "tool": "k6", "result": "SKIP", "duration_ms": 0,
-     "details": "T3 failed → cascade skip"},
-    {"step": "T5", "tool": "E-0", "result": "SKIP", "duration_ms": 0,
+    {"step": "audit_load_perf",    "tool": "k6", "result": "SKIP", "duration_ms": 0,
+     "details": "audit_ui_e2e failed → cascade skip"},
+    {"step": "audit_nexa_rule",    "tool": "E-0", "result": "SKIP", "duration_ms": 0,
      "details": "E2E not passed"},
 ]
 ```
 
-#### 🔁 T3 실패 시 자동 재시도 (Smart Retry)
+#### 🔁 T3 / `audit_ui_e2e` 실패 시 자동 재시도 (Smart Retry)
 
-T3(Playwright UI E2E)에서만 **자동 재시도 1회**를 허용합니다. 그 이유는:
+`audit_ui_e2e` (T3, Playwright UI E2E)에서만 **자동 재시도 1회**를 허용합니다. 그 이유는:
 
 - 브라우저 부팅·폰트 로딩 등 비결정적 외부 요인 때문
-- T1/T2/T4는 결정론적이므로 재시도 불필요
-- 단, **T3 2회 연속 실패 시 자동 재시도 중단** → C-1로 복귀
+- `audit_static_patch`(T1) / `audit_api_unit`(T2) / `audit_load_perf`(T4) 는 결정론적이므로 재시도 불필요
+- 단, **`audit_ui_e2e` 2회 연속 실패 시 자동 재시도 중단** → C-1로 복귀
 
 ---
 
@@ -876,7 +891,7 @@ D-1 (수정) → D-2 (정적 검증) → Node B (E2E)
 
 | 종료 경로                  | 트리거                   | 다음 행동                                   |
 | -------------------------- | ------------------------ | ------------------------------------------- |
-| **🎉 ALL PASS**            | T1~T5 모두 PASS          | D-3 (Code Reviewer) → HITL/E-0 → PR Merger  |
+| **🎉 ALL PASS**            | T1~T5(`audit_*`) 모두 PASS | D-3 (Code Reviewer) → HITL/E-0 → PR Merger  |
 | **↩ 자동 롤백**            | retry_count 초과         | Checkpoint에서 `update_state()` 복귀 → End  |
 | **⏸ HITL 강제 정지**       | retry 4회째 진입         | interrupt() → 사람 승인 대기                |
 | **🚨 시스템 에스컬레이션** | 4-Way Break 중 하나 발생 | Neo4j에 "미해결 사건" 노드 생성 → NEXA 알림 |

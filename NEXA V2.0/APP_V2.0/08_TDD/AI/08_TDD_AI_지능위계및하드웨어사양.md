@@ -8,7 +8,7 @@ created: 2026-06-10
 updated: 2026-06-13
 terms_standard: ["esp32", "jetson", "raspberry-pi"]
 terms_nexa: ["Physical-Tier", "Nano-Sentinel", "Micro-Sentinel", "Kinetic-Controller", "Zenith-Indicator", "COLD", "WARM", "HOT"]
-tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/raspberry-pi", "nexa/Physical-Tier", "nexa/Nano-Sentinel", "nexa/Micro-Sentinel", "nexa/Kinetic-Controller", "nexa/Zenith-Indicator", "nexa/COLD", "nexa/WARM", "nexa/HOT"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/raspberry-pi", "nexa/Physical Tier", "nexa/Nano Sentinel", "nexa/Micro Sentinel", "nexa/Kinetic Controller", "nexa/Zenith Indicator", "nexa/COLD", "nexa/WARM", "nexa/HOT"]
 ---
 # AI · 피지컬 티어 · 지능 위계 · 하드웨어 사양
 
@@ -34,14 +34,14 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 
 > **한 줄:** **PT-3 (Zenith)** = Cold Path **통합 허브** · **PT-0~2·브라우저** = **경량 실장(lite embodiment)** + **Local Reflex**.
 
-**PT-3 (Zenith Indicator)** 에서 Core Engine Stack **통합 허브**—**CSIM T2/T3R** · **DIEA** · **Normex** · **Nexaon** · **Ontex**—가 **풀스택 웹 플랫폼(Full-Stack Web Platform)** (`nexia` · Nest · `agent-graph` · MainShell)으로 집결되어 **전역 최적화(Global Optimization)** 와 **장기 지식 고착(Long-term Memory)** 을 담당한다.
+**PT-3 (Zenith Indicator)** 에서 Core Engine Stack **통합 허브**—**CSIM CT2/CT3R** · **DIEA** · **Normex** · **Nexaon** · **Ontex**—가 **풀스택 웹 플랫폼(Full-Stack Web Platform)** (`nexia` · Nest · `agent-graph` · MainShell)으로 집결되어 **전역 최적화(Global Optimization)** 와 **장기 지식 고착(Long-term Memory)** 을 담당한다.
 
-**PT-0~2** 및 **Nixie**(브라우저·Desktop·Mobile·Physical Shell)에는 해당 티어·Menton 층에 맞는 **경량 실장**—**HEXAGON** / **CSIM T1** · Sentinel·SLM·YOLO · **CSIM T3N** 표현—이 분산되어 **네트워크 우회 Local Reflex** 와 **실시간 UI 상호작용**을 보장한다.
+**PT-0~2** 및 **Nixie**(브라우저·Desktop·Mobile·Physical Shell)에는 해당 티어·Menton 층에 맞는 **경량 실장**—**HEXAGON** / **CSIM CT1** · Sentinel·SLM·YOLO · **CSIM CT3N** 표현—이 분산되어 **네트워크 우회 Local Reflex** 와 **실시간 UI 상호작용**을 보장한다.
 
 | 구분 | PT-3 허브 | PT-0~2 · ML1 샤드 |
 | :--- | :--- | :--- |
 | **역할** | Distillation · Run · promoted · RAG · 코일·전략 | Fact·Reflex · 비식별 게이트 · 현장 JSON 제어 · ECHO 표현 |
-| **엔진** | DIEA · Normex · Nexaon · Ontex · Gateway CSIM T2 | 말단 **HEXAGON** · **CSIM T1** · (선택) Micro/Kinetic SLM |
+| **엔진** | DIEA · Normex · Nexaon · Ontex · Gateway CSIM CT2 | 말단 **HEXAGON** · **CSIM CT1** · (선택) Micro/Kinetic SLM |
 | **경로** | **Cold Path** 종착 · **Slow Reasoning** | **Fast Path** · ACTON — Ontex **우회** |
 | **오해 방지** | 6엔진 **바이너리 전부 PT-3 only ✗** | 엣지 = **완전체 복제 ✗** · **동일 `Axon` · `HEXAGON` 규격의 말단 샤드 ✓** |
 

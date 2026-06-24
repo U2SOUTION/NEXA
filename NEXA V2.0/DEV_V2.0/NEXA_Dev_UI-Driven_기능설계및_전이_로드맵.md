@@ -270,7 +270,7 @@ graph LR
             direction TB
             M[Work Modes: Edit / Logic / ... Nexia 7탭]
             A[Admin Tab]
-            T2[Ontex Knowledge Hub Tab]
+            Tab2[Ontex Knowledge Hub Tab]
         end
 
         subgraph Right [Right: Inspector]

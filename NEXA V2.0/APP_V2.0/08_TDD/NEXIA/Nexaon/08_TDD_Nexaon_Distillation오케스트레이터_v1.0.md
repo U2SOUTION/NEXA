@@ -32,14 +32,14 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/langgraph", "std/yjs", "std/sh
 | **오케스트레이션** | `stateBus` · DIEA Facet 산출 → **정재 루프** (ingest → Run → 승인) |
 | **LangGraph Run** | `apps/agent-graph` · `graph_diff` · SSE |
 | **승인 전 단계** | Yjs `ontology:draft` · SHACL · **promoted 후보** |
-| **CSIM T3R** | Run **입력 정렬** — **번역·Run 소유** (CSIM 「사고 토대」✗) |
+| **CSIM CT3R** | Run **입력 정렬** — **번역·Run 소유** (CSIM 「사고 토대」✗) |
 
 ### 1.2 Nexaon 이 담지 않는 것
 
 | 대상 | 소유 |
 | :--- | :--- |
 | **HEXAGON Envelope 작성** | **`Axon`** (TDD-043 §11) |
-| **CSIM T1·T2** | **`Cosmic`** (TDD-043 §13) |
+| **CSIM CT1·CT2** | **`Cosmic`** (TDD-043 §13) |
 | **DIEA Facet 산출·Hot Path ERP** | **DIEA** · Facet별 domain |
 | **promoted 고착·Graph RAG** | **`Ontex`** (TDD-057) |
 | **물리 집행** | **`Kineton`** (TDD-072) |
@@ -105,7 +105,7 @@ nexia (domainKey)
 
 | 허용 | 금지 |
 | :--- | :--- |
-| `CSIM` T1·T2 **정렬 토큰** | 레지스터 raw · GPIO 스트림 |
+| `CSIM` CT1·CT2 **정렬 토큰** | 레지스터 raw · GPIO 스트림 |
 | `nexaon_ingest` 큐 Envelope | Nixie ML1 payload |
 | Human 편집 · DIEA correlate | Ethos FAIL payload |
 
@@ -154,7 +154,7 @@ nexia (domainKey)
 ## 8. 구현 체크리스트 (초안)
 
 - [ ] `nexaon_ingest` · Event Router 연동
-- [ ] CSIM T2 PASS Envelope 만 ingest
+- [ ] CSIM CT2 PASS Envelope 만 ingest
 - [ ] Omnix · SHACL · promoted 파이프라인
 - [ ] Deep link `?from=nexabo|nixie|twinex&trace_id=`
 - [ ] Hot Path · Kineton 과 **경로 분리** 검증
@@ -168,10 +168,10 @@ nexia (domainKey)
 | 엔진 | Nexaon 관점 담당 | 상위·동급이 **안 받는 것** |
 | :--- | :--- | :--- |
 | `HEXAGON` | Envelope · Zod | — _(ML0·게이트 완료)_ |
-| `CSIM` | T1–T3 **정렬 토큰** | Run · promoted **소유 ✗** |
+| `CSIM` | CT1–CT3 **정렬 토큰** | Run · promoted **소유 ✗** |
 | `DIEA` | Facet 산출 | promoted 직접 쓰기 |
 | `Normex` | Ethos · RULE | Run 단독 종결 |
-| **`Nexaon`** | Run · SHACL · T3R | Nixie payload · Hot Path |
+| **`Nexaon`** | Run · SHACL · CT3R | Nixie payload · Hot Path |
 | `Ontex` | promoted 수신 | 초안·미검증 ingest |
 
 **확장 핸드오프 (⑥–⑧):** Facet 산출 → `Nexaon` Run → Omnix·`Normex` 승인 → SHACL PASS → §7 promoted 순서.

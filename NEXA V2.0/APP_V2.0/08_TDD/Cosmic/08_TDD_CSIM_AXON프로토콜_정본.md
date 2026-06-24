@@ -532,21 +532,21 @@ contentHash 검증      →  Profile G/M whitelist
 
 | Tier | 단계 (EN) | Normative 정의 |
 | :---: | :--- | :--- |
-| **T1** | **Abstraction** · **공용어화** | 세상의 거친 **WILL/FACT** 신호를 **Matrix** **시스템 공용어**로 **양방향** 1차 번역 — **입력 전용 ✗** |
-| **T2** | **Contextualization** · **맥락 동기화** | 번역된 Matrix 좌표에 **Domain · HEXAGON · `stateBus`** 맥락을 입혀 **오해 없는 의미**로 정렬 — **Ethos · Zod**(Normex) **게이트 병행** |
-| **T3** | **Concretization** · **구체화** | 정렬된 의미를 **Narrative**(ECHO · 인간 표현)와 **Action**(HEXAGON · ACTON)으로 **번역** — **판단 · Run · promoted ✗** (NEXAON · Nixie · ACTON) |
+| **CT1** | **Abstraction** · **공용어화** | 세상의 거친 **WILL/FACT** 신호를 **Matrix** **시스템 공용어**로 **양방향** 1차 번역 — **입력 전용 ✗** |
+| **CT2** | **Contextualization** · **맥락 동기화** | 번역된 Matrix 좌표에 **Domain · HEXAGON · `stateBus`** 맥락을 입혀 **오해 없는 의미**로 정렬 — **Ethos · Zod**(Normex) **게이트 병행** |
+| **CT3** | **Concretization** · **구체화** | 정렬된 의미를 **Narrative**(ECHO · 인간 표현)와 **Action**(HEXAGON · ACTON)으로 **번역** — **판단 · Run · promoted ✗** (NEXAON · Nixie · ACTON) |
 
-**T3 방향 분기 (Normative):**
+**CT3 방향 분기 (Normative):**
 
-| 방향 | T3 산출 (우선) | 소비 주체 |
+| 방향 | CT3 산출 (우선) | 소비 주체 |
 | :--- | :--- | :--- |
 | **상향** | **Narrative** · ECHO · 상태 토큰 | **Nixie**(ML1) · 관제 UI |
 | **하향** | **Action** · HEXAGON · ACTON | **ACTON** · Hot Path |
-| **플랫폼 (ML3)** | semantic chunk · Run **입력** 정렬 | **Nexaon** _(CSIM T3 기능 · Run 소유)_ |
+| **플랫폼 (ML3)** | semantic chunk · Run **입력** 정렬 | **Nexaon** _(CSIM CT3 기능 · Run 소유)_ |
 
-**운영 배치**(ML0 T1 · Ingress T2 · Nexaon T3) — [Global Architecture §Cold Path](../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md) · [TDD-044 §2.6](./08_TDD_CosmicLanguage_전역데이터아키텍처.md) · [TDD-073 §4.1](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md).
+**운영 배치**(ML0 CT1 · Ingress CT2 · Nexaon CT3) — [Global Architecture §Cold Path](../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md) · [TDD-044 §2.6](./08_TDD_CosmicLanguage_전역데이터아키텍처.md) · [TDD-073 §4.1](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md).
 
-**개념 Tier (문서·Stack 공통):** **T1 공용어화** → **T2 맥락 동기화** → **T3 구체화**. _(구 표: 추상화→맥락화→구체화 — 동일 의미.)_
+**개념 Tier (문서·Stack 공통):** **CT1 공용어화** → **CT2 맥락 동기화** → **CT3 구체화**. _(구 표: 추상화→맥락화→구체화 — 동일 의미.)_
 
 ### 13.1 하향 — Intent to Act
 
@@ -725,7 +725,7 @@ _상태: Normative — CSIM · Axon · AXON-AL1–AL7 · APEX v0.16 · ACTON-GM 
 | 기술 | Core Engine | Menton 층 | PT |
 | :--- | :--- | :--- | :---: |
 | **`Axon`** | `HEXAGON` | ML0 Reflex | PT-0 ~ PT-3 Gate |
-| **`Cosmic`** | `CSIM` | ML0 T1 · Gate T2 · ML3 T3 | PT-0 ~ PT-3 |
+| **`Cosmic`** | `CSIM` | ML0 CT1 · Gate CT2 · ML3 CT3 | PT-0 ~ PT-3 |
 | **Hot Path** | `ACTON` | ML0 Reflex | PT-0 ~ PT-2 |
 
 **Hub-and-Spoke:** PT-3 = Cold Path 허브 · PT-0~2 = 경량 샤드 — 말단도 **동일 `Axon` · HEXAGON 규격** ([TDD-040 §0.1](../AI/08_TDD_AI_지능위계및하드웨어사양.md)).

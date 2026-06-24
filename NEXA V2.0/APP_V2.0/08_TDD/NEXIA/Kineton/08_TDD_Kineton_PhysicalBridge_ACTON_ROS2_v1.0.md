@@ -9,7 +9,7 @@ updated: 2026-06-13
 parent_doc: TDD-043
 see_also: [TDD-068, TDD-039, TDD-040, TDD-023, TDD-057, TDD-073, TDD-070, TDD-074]
 terms_standard: ["ros-2", "mqtt", "pwm", "protobuf"]
-terms_nexa: [Kineton, ACTON, HEXAGON, AXON, CSIM, Nano-Sentinel, Kinetic-Controller, Physical-Tier, Hot-Path, NEXA-CELL, Twinex, NEXNAP, Envelope]
+terms_nexa: [Kineton, ACTON, HEXAGON, AXON, CSIM, Nano Sentinel, Kinetic Controller, Physical Tier, Hot Path, NEXA CELL, Twinex, NEXNAP, Envelope]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kineton", "nexa/ACTON"]
 ---
 
@@ -33,14 +33,14 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 | **Cold Path 집행** | `Ontex` **promoted** · 승인 Action → `ACTON` · ROS 2 — 허브 경유 **승인본만** 하향 |
 | **ACTON 실행** | PWM · MQTT · Synapse · **ACTON-GM** `programRef` — 런타임 Fetch·Verify·Execute ([TDD-043 §12](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md)) |
 | **ROS 2 Bridge** | Intent → Topic / Service / Action · 디지털 트윈·로봇 **상호운용** |
-| **역 uplink** | 물리 피드백·telemetry → `Axon` · Inverse `CSIM` T1 — 디지털 트윈 정합 |
+| **역 uplink** | 물리 피드백·telemetry → `Axon` · Inverse `CSIM` CT1 — 디지털 트윈 정합 |
 
 ### 1.2 Kineton 이 담지 않는 것
 
 | 대상 | 소유 | 비고 |
 | :--- | :--- | :--- |
 | **5W1H Envelope · Zod** | **`Axon`** · `HEXAGON` | TDD-043 §11 |
-| **CSIM T1–T3 번역** | **`Cosmic`** · `CSIM` | TDD-043 §13 · TDD-044 |
+| **CSIM CT1–CT3 번역** | **`Cosmic`** · `CSIM` | TDD-043 §13 · TDD-044 |
 | **Run · SHACL · promoted** | **`Nexaon`** | [TDD-073](../Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
 | **영구 지식 고착** | **`Ontex`** | TDD-057 |
 | **Why-Chain 감시** | **`Galthon`** | [TDD-074](../../Galthon/08_TDD_Galthon_TrustWatch_신뢰감시독립주체_v1.0.md) — **흐름 비참여** |
@@ -116,7 +116,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 | 매핑 | NEXA 측 | ROS 2 측 |
 | :--- | :--- | :--- |
 | **Intent** | `ACTON` · 승인 Action body | `geometry_msgs` / `std_msgs` / 도메인 Action |
-| **상태** | Inverse `CSIM` T1 · Envelope | `/joint_states` · custom telemetry |
+| **상태** | Inverse `CSIM` CT1 · Envelope | `/joint_states` · custom telemetry |
 | **안전** | GOVERN · VOID · STUCK | estop · watchdog ([TDD-039](../AI/08_TDD_AI_안전대책선조치로직.md)) |
 
 **원칙:** ROS 2 는 **미들웨어** — NEXA 논리·Ethos 는 **`Axon`·`Cosmic`** 층에서 선행 정렬.

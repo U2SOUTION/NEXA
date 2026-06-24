@@ -39,7 +39,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "nexa/Galthon", "nexa/Why-Chain"]
 | 대상 | 소유·담당 |
 | :--- | :--- |
 | **Envelope 작성·Zod** | **`Axon`** · `HEXAGON` (TDD-043) |
-| **의미 번역·T1–T3** | **`Cosmic`** · `CSIM` (TDD-043 · TDD-044) |
+| **의미 번역·CT1–CT3** | **`Cosmic`** · `CSIM` (TDD-043 · TDD-044) |
 | **Facet 산출·Ethos RULE** | **`Menton`** · DIEA · `Normex` (TDD-056) |
 | **Run · 승인 · promoted** | **Nexaon** (TDD-073) · **Ontex** (TDD-057) |
 | **물리 집행** | **Kineton** (TDD-072) |
@@ -74,7 +74,7 @@ Cold Path · Hot Path **모든 홉**을 **동일 규칙**으로 관측한다. **
 | 기술 | 관측 포인트 |
 | :--- | :--- |
 | **`Axon`** | Envelope 폐기 · Zod FAIL · VOID |
-| **`Cosmic`** | T2 Ethos FAIL · raw uplink 시도 |
+| **`Cosmic`** | CT2 Ethos FAIL · raw uplink 시도 |
 | **`Menton`** | `Normex` RULE 위반 · Facet 산출 이상 |
 | **Nexaon** | Run 보류 · SHACL FAIL · ingest 게이트 |
 | **Ontex** | promoted 전 쓰기 시도 · explore 불가 |
@@ -92,7 +92,7 @@ Cold Path · Hot Path **모든 홉**을 **동일 규칙**으로 관측한다. **
 | :--- | :--- | :--- | :--- |
 | Action → Knowledge | 무엇이 승인되어 실행되었나 | `Kineton` · `Ontex` promoted | trace · 기록 |
 | Knowledge → Logic | 누가·어떤 Run 으로 정재했나 | `Nexaon` · `DIEA` · SHACL diff | trace · 기록 |
-| Logic → Context | 어떤 맥락·Ethos 로 정렬되었나 | `CSIM` T2 · `Normex` | trace · 기록 |
+| Logic → Context | 어떤 맥락·Ethos 로 정렬되었나 | `CSIM` CT2 · `Normex` | trace · 기록 |
 | Context → Raw | 원천 Fact·Envelope 는 무엇이었나 | `HEXAGON` · ML0 Sentinel | trace · 기록 |
 
 ### 4.2 관측 질문 · 엔진 근거
@@ -100,7 +100,7 @@ Cold Path · Hot Path **모든 홉**을 **동일 규칙**으로 관측한다. **
 | 질문 유형 | 관측 근거 (엔진) | `Galthon` 역할 |
 | :--- | :--- | :--- |
 | 왜 Envelope 폐기? | `HEXAGON` + Zod | trace · 기록 |
-| 왜 uplink 거부? | `CSIM` T2 · `Normex` Ethos | trace · 기록 |
+| 왜 uplink 거부? | `CSIM` CT2 · `Normex` Ethos | trace · 기록 |
 | 왜 Run 보류? | `DIEA` · `Nexaon` | trace · 기록 |
 | 왜 승인 거절? | `Normex` · Omnix | trace · 기록 |
 | 왜 promoted ✗? | `Nexaon` · SHACL | trace · 기록 |

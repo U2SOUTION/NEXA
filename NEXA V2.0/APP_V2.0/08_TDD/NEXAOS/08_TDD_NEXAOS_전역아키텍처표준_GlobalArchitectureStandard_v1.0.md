@@ -8,8 +8,8 @@ created: 2026-06-13
 updated: 2026-06-13
 parent_doc: TDD-001
 see_also: [TDD-070, TDD-043, TDD-044, TDD-072, TDD-073, TDD-074, TDD-057, TDD-040, TDD-068, TDD-007, TDD-055, TDD-071, TDD-061, TDD-062, TDD-063, TDD-064, TDD-038, PRD-002]
-terms_nexa: [Axon, Cosmic, Menton, Nexaon, Ontex, Kineton, Galthon, Why-Chain, Core-Engine-Stack, Hub-and-Spoke, Cold-Path, Hot-Path]
-tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "nexa/Global-Architecture"]
+terms_nexa: [Axon, Cosmic, Menton, Nexaon, Ontex, Kineton, Galthon, Why Chain, Core Engine Stack, Hub and Spoke, Cold Path, Hot Path]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "nexa/Global Architecture"]
 ---
 
 # NEXA 전역 아키텍처 표준 (Global Architecture Standard)
@@ -43,7 +43,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "nexa/Global-Architecture"]
 | 레이어      | 주요 외부·런타임 엔진             | 역할 (한 줄)                  | 주 Menton 층              |  주 피지컬 티어  |
 | :---------- | :-------------------------------- | :---------------------------- | :------------------------ | :--------------: |
 | **Axon**    | MQTT · Nest · WS/SSE              | Envelope 운송 · ingest 게이트 | ML0 (Reflex)              | PT-0 ~ PT-3 Gate |
-| **Cosmic**  | Nest Ingress · Zod _(CSIM T1/T2)_ | 맥락 게이트 · 스키마 검증     | ML0 T1 · Gate T2 · ML3 T3 |   PT-0 ~ PT-3    |
+| **Cosmic**  | Nest Ingress · Zod _(CSIM CT1/CT2)_ | 맥락 게이트 · 스키마 검증     | ML0 CT1 · Gate CT2 · ML3 CT3 |   PT-0 ~ PT-3    |
 | **Menton**  | Ollama / vLLM · ComfyUI           | LLM 추론 · Vivex 생성         | ML2 · ML3                 |       PT-3       |
 | **Nexaon**  | LangGraph · **Yjs/Hocuspocus**    | Run · **ontology:draft** CRDT | ML3 (Strategic)           |       PT-3       |
 | **Ontex**   | Neo4j · pgvector · Prisma         | promoted · Graph RAG · Audit  | 허브·탐색                 |       PT-3       |
@@ -78,7 +78,7 @@ flowchart TD
             kineton_ui["Kineton UI<br/>Twinex · 현장 제어"]:::hiControl
         end
         subgraph HI_Awareness [Awareness · 표현·조회]
-            nixie["Nixie<br/>T3N · M2P · 4 Shell"]:::hiNixie
+            nixie["Nixie<br/>CT3N · M2P · 4 Shell"]:::hiNixie
             nexabo["Nexabo<br/>Telemetry · 관제·브로드캐스트"]:::hiAware
             nexu["NEXU Canvas<br/>Graph RAG · Why-Chain"]:::hiAware
         end
@@ -87,7 +87,7 @@ flowchart TD
     subgraph Platform [NEXA 플랫폼 · Cold/Hot 본체]
         subgraph Core_Engine [Core Engine Stack · Cold Path]
             axon["Axon<br/>MQTT · HEXAGON · 5W1H"]:::layerAL
-            cosmic["Cosmic<br/>CSIM · Matrix · T1~T3"]:::layerCL
+            cosmic["Cosmic<br/>CSIM · Matrix · CT1~CT3"]:::layerCL
             menton["Menton<br/>Ollama/vLLM · DIEA · Normex"]:::layerML
             nexaon["Nexaon<br/>LangGraph · Yjs · Run"]:::layerNL
             ontex["Ontex<br/>Neo4j · pgvector · promoted"]:::layerOL
@@ -114,7 +114,7 @@ flowchart TD
     kineton -->|telemetry · 역 uplink| axon
 
     nixie -->|Envelope · M2P uplink| axon
-    cosmic -->|T3N · Narrative| nixie
+    cosmic -->|CT3N · Narrative| nixie
 
     nexia -.->|Intent · 승인| nexaon
     nexia -.->|TipTap| sync_yjs
@@ -126,7 +126,7 @@ flowchart TD
     nexu -.->|Graph · Why-Chain| ontex
     kineton_ui -.->|제어 · 피드백| kineton
 
-    cosmic -.->|T2 · 맥락 동기화| stateBus
+    cosmic -.->|CT2 · 맥락 동기화| stateBus
     axon -.->|Event Router · fan-out| stateBus
     stateBus -.->|Distillation 입력| nexia
     nexabo <-->|관제 · HITL| stateBus
@@ -153,14 +153,14 @@ flowchart TD
 1. **수직 흐름 (Cold Path):** `Axon` → `Cosmic` → `Menton` → `Nexaon` → `Ontex` — 데이터가 지식으로 **promoted** 고착되는 정교한 추론 과정.
 2. **우회 흐름 (Hot Path):** `Axon` → `Kineton` 직결 — `Menton`·`Nexaon`·`Ontex` **우회** · Local Reflex · PT-0~2.
 3. **승인 집행 (Cold → Physical):** `Ontex` **promoted** 지식 기반 Action → `Kineton` — Hot Path 와 **경로 분리**.
-4. **역 uplink · express downlink (실선):** `Kineton`·`Nixie` → `Axon` telemetry·Envelope · `Cosmic` → `Nixie` **T3N** — **프로토콜 데이터** 이동 _(접점 통제·조회 ✗)_.
-5. **접점 매핑 (점선):** **HI_Control** (`Nexia`·`ONTEX`·`Kineton UI`) = 통제 · **HI_Awareness** (`Nexabo`·`NEXU`) = 읽기 전용 · `Nixie` = 실선 uplink/T3N + 표현.
-6. **`Nixie` 양방향:** **상향(실선)** = `Envelope`·M2P → **`Axon` 필수** · **하향(실선)** = `CSIM` **T3N** → 표현. 워치·RPi·Physical Shell 동일 ([TDD-061~064](../NEXIA/Nixie/)).
+4. **역 uplink · express downlink (실선):** `Kineton`·`Nixie` → `Axon` telemetry·Envelope · `Cosmic` → `Nixie` **CT3N** — **프로토콜 데이터** 이동 _(접점 통제·조회 ✗)_.
+5. **접점 매핑 (점선):** **HI_Control** (`Nexia`·`ONTEX`·`Kineton UI`) = 통제 · **HI_Awareness** (`Nexabo`·`NEXU`) = 읽기 전용 · `Nixie` = 실선 uplink/CT3N + 표현.
+6. **`Nixie` 양방향:** **상향(실선)** = `Envelope`·M2P → **`Axon` 필수** · **하향(실선)** = `CSIM` **CT3N** → 표현. 워치·RPi·Physical Shell 동일 ([TDD-061~064](../NEXIA/Nixie/)).
 7. **`Galthon` 감시탑 (점선 1개):** `Platform` 전체 **횡단 관측** — 세부 대상(Axon~Kineton)은 [TDD-074](../Galthon/08_TDD_Galthon_TrustWatch_신뢰감시독립주체_v1.0.md) · Cold/Hot Path **비참여**.
 8. **레이아웃:** `TD`(상→하) · `Platform` = Core+Physical 메타 그룹 · HI 내부 **통제/Awareness** 2분 — 노드·엣지 **동일**, 그룹만 재구성 _(시안 · 2026-06-13)_.
 9. **노드 보조 라벨 (2행째):** [§핵심 기술 엔진 매핑](#핵심-기술-엔진-매핑-external-engine-mapping) 의 **외부·런타임 엔진** 요약 — Core = 실장 스택 · HI = 도메인·접점 역할.
 10. **`Yjs` · `apps/sync`:** `Nexaon`·`NEXIA` **promoted 전** 실시간 협업(CRDT) — `promoted` 본선은 **실선** `Nexaon→Ontex` · draft 루프는 **점선** `sync` 경유 ([TDD-038](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md)).
-11. **`stateBus` (런타임 허브):** 6+1 **레이어 ✗** · `Platform` 내 **횡단 버스** — `Cosmic` T2·`Axon` Event Router fan-out 수렴 · `nexia` Distillation 입력 · `Nexabo`·`Kineton UI`·`Nixie` **관제·HITL**(점선). **Hot Path 집행 소유 ✗** (`Axon→Kineton` 유지) · `stateBus→Ontex` **직결 ✗** ([TDD-071 §2.1](08_TDD_NEXAOS_도메인구조통합_v1.0.md) · [TDD-068](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)).
+11. **`stateBus` (런타임 허브):** 6+1 **레이어 ✗** · `Platform` 내 **횡단 버스** — `Cosmic` CT2·`Axon` Event Router fan-out 수렴 · `nexia` Distillation 입력 · `Nexabo`·`Kineton UI`·`Nixie` **관제·HITL**(점선). **Hot Path 집행 소유 ✗** (`Axon→Kineton` 유지) · `stateBus→Ontex` **직결 ✗** ([TDD-071 §2.1](08_TDD_NEXAOS_도메인구조통합_v1.0.md) · [TDD-068](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)).
 12. **노드 색·범례 (2층 인코딩):** **subgraph 배경** = 영역 · **노드 fill** = 성격 분류(저명도 뮤트) · **노드 stroke `#333` 통일** 2px — 라인 잡음 억제. **Galthon** 만 점선 stroke. **엣지** = `linkStyle default` 회색 · 실선/점선 = 경로 종류.
 
 | class                    | fill (성격)                       | 대상 · 의미                            |
@@ -181,7 +181,7 @@ flowchart TD
 ```text
 HEXAGON (Grammar)   → 5W1H · Envelope · Zod
     ↓
-CSIM (Semantic)     → Matrix 양방향 번역 · T1/T2/T3
+CSIM (Semantic)     → Matrix 양방향 번역 · CT1/CT2/CT3
     ↓
 DIEA (Context)      → 7 Facet · stateBus · 산출
     ↓
@@ -206,8 +206,8 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 | 단계 | 구간                         | 담당                                                                                               |
 | :--: | :--------------------------- | :------------------------------------------------------------------------------------------------- |
 | ①-a  | ML0 말단 → Envelope          | `HEXAGON` ([TDD-068 §3](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)) |
-| ①-b  | T1 Matrix · raw uplink **✗** | `CSIM`                                                                                             |
-|  ③   | 게이트 · Ethos · `stateBus`  | `CSIM` T2 · `Normex`                                                                               |
+| ①-b  | CT1 Matrix · raw uplink **✗** | `CSIM`                                                                                             |
+|  ③   | 게이트 · Ethos · `stateBus`  | `CSIM` CT2 · `Normex`                                                                               |
 | ⑤–⑥  | Facet · 정재 Run             | `DIEA` · `Nexaon`                                                                                  |
 | ⑦–⑧  | 승인 · SHACL                 | `Omnix` · `Normex` · `Nexaon`                                                                      |
 | ⑨–⑪  | Neo4j · pgvector · `Ontex`   | [TDD-073 §7](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md)                     |
@@ -223,10 +223,10 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 | 엔진      | 담당              | 상위가 안 받는 것        |
 | :-------- | :---------------- | :----------------------- |
 | `HEXAGON` | Envelope · Zod    | — _(ML0·게이트 완료)_    |
-| `CSIM`    | T1–T3 번역·정렬   | Run·promoted **소유 ✗**  |
+| `CSIM`    | CT1–CT3 번역·정렬   | Run·promoted **소유 ✗**  |
 | `DIEA`    | Facet 맥락·산출   | promoted 직접 쓰기       |
 | `Normex`  | Ethos · RULE      | Run 단독 종결            |
-| `Nexaon`  | Run · SHACL · T3R | Nixie payload · Hot Path |
+| `Nexaon`  | Run · SHACL · CT3R | Nixie payload · Hot Path |
 | `Ontex`   | promoted · RAG    | 초안·미검증 ingest       |
 
 **Hub-and-Spoke:** PT-3 = Cold Path **통합 허브** · PT-0~2·`Nixie` = 경량 샤드 + Local Reflex — [TDD-040 §0.1](../AI/08_TDD_AI_지능위계및하드웨어사양.md) · [용어집 §3.2.0](../../용어집_NEXA전용_v2.0.md)
@@ -243,7 +243,7 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 
 - **경로:** `Cosmic` 맥락 동기화(`CSIM`) → 지능 표현 층(Presence) → `Nixie` (Interface)
 - **역할:** 시스템의 추론 결과(Design)를 인간이 인지할 수 있는 감각적 형태로 변환 및 투영.
-- **Menton 층:** ML1 (Presence) — **CSIM T3N** Narrative·ECHO 만 소비 · raw ingest **✗**
+- **Menton 층:** ML1 (Presence) — **CSIM CT3N** Narrative·ECHO 만 소비 · raw ingest **✗**
 - **경계:** Cold Path **Run · promoted** **✗** — 결과 **Express** 전용. 엣지 Reflex triage 와 연동.
 
 **표현 채널 (4 Presence — 서사·감각 축)** _(배포 Shell 과 **동의어 ✗**)_: Physical · Cognitive · Ambient · Social — PiP · TTS · 알람·trace. **지능 판단 소유 ✗**.
@@ -260,7 +260,7 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 **Shell 간 규칙**
 
 1. Shell = **표현·Presence 채널** — Run · promoted · Hot Path 집행 **소유 ✗**
-2. Shell 간 **데이터 파이프 공유 ✗** — `CSIM` T3N · `trace_id` · 「정재 열기」UI 진입만 ([TDD-068 §1.4](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md))
+2. Shell 간 **데이터 파이프 공유 ✗** — `CSIM` CT3N · `trace_id` · 「정재 열기」UI 진입만 ([TDD-068 §1.4](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md))
 3. Desktop(Py)·Mobile은 **Nixie Shell** + 필요 시 **domainKey** 앱(nexabo 관제 등) **조합** — MainShell·7탭 **대체 ✗** _(Desktop)_
 
 ### NEXIA — 전략·집행 접점 (Strategic Orchestration)
@@ -368,7 +368,7 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 
 ```text
 [Cold Path · Distillation]
-  Fact/Intent → HEXAGON Envelope → CSIM T1→T2 → DIEA → Normex → Nexaon Run
+  Fact/Intent → HEXAGON Envelope → CSIM CT1→CT2 → DIEA → Normex → Nexaon Run
             → 승인 → Ontex promoted → Graph RAG
 
 [Hot Path · Reflex]
@@ -381,7 +381,7 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 시스템 내 데이터는 다음 **5단계**를 거쳐 '지식'에서 '행동'으로 진화한다.
 
 1. **Raw (`Axon`):** 센서·기획 입력이 `HEXAGON` 5W1H **Envelope** 로 포장된 원시·구조화 신호.
-2. **Context (`Cosmic`):** `CSIM` **T1·T2** — Matrix 공용어화 → 맥락·Ethos 정렬된 **의미 토큰** (raw uplink **✗**).
+2. **Context (`Cosmic`):** `CSIM` **CT1·CT2** — Matrix 공용어화 → 맥락·Ethos 정렬된 **의미 토큰** (raw uplink **✗**).
 3. **Logic (`Menton`):** `DIEA` · `Normex` · `Nexaon` — 가치 판단·정재·Run 초안. **promoted 전** 단계.
 4. **Knowledge (Ontex):** Human·`Omnix` 승인 후 **promoted** — 온톨로지·벡터 코퍼스에 **영구 고착**.
 5. **Action (Kineton):** 승인·정렬된 Action → `ACTON` · `ROS 2` — 물리 세계에 투영된 운동.
@@ -394,7 +394,7 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 | :----------------- | :------------------------------- | :----------------------------- |
 | Action → Knowledge | 무엇이 승인되어 실행되었나       | `Kineton` · `Ontex` promoted   |
 | Knowledge → Logic  | 누가·어떤 Run 으로 정재했나      | `Nexaon` · `DIEA` · SHACL diff |
-| Logic → Context    | 어떤 맥락·Ethos 로 정렬되었나    | `CSIM` T2 · `Normex`           |
+| Logic → Context    | 어떤 맥락·Ethos 로 정렬되었나    | `CSIM` CT2 · `Normex`           |
 | Context → Raw      | 원천 Fact·Envelope 는 무엇이었나 | `HEXAGON` · ML0 Sentinel       |
 
 **`Galthon`** 이 이 역추적·감사 **관측** 을 담당한다 *(흐름 비참여 · [TDD-074 §4](../Galthon/08_TDD_Galthon_TrustWatch*신뢰감시독립주체*v1.0.md))*. **NEXU Canvas** 는 동일 체인을 **서사·그래프**로 시각화한다.
@@ -408,7 +408,7 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 #### 핵심 기술 엔진 (Technical Components)
 
 - **`Axon`:** `HEXAGON` Grammar Engine — 5W1H **6축 Envelope** · Zod 선검증 · 이기종 uplink **공통 문법**. (`APEX` Matrix · `ACTON` 은 `Axon` 스택 내 인접 층)
-- **`Cosmic`:** `CSIM` (Cosmic Semantic Interface Matrix) — WILL/FACT ↔ Matrix **양방향 번역** · Tier **T1 공용어화 → T2 맥락 동기화 → T3 구체화**. **판단·Run ✗**
+- **`Cosmic`:** `CSIM` (Cosmic Semantic Interface Matrix) — WILL/FACT ↔ Matrix **양방향 번역** · Tier **CT1 공용어화 → CT2 맥락 동기화 → CT3 구체화**. **판단·Run ✗**
 - **`Menton`:** `DIEA` (7 Facet 작업면) · `Normex` (Ethos·RULE) — ML2 Domain · ML3 Strategic **사고·윤리 정렬**. 단일 모놀리식 엔진 **✗**
 - **Nexaon:** `Nexaon` Orchestrator · `apps/agent-graph` — ingest → Run · SHACL · Human 승인 · **promoted** 전 단계 **소유**
 - **협업 (promoted 전):** **`apps/sync`** Hocuspocus · **Yjs** CRDT — `ontology:draft` · React Flow · TipTap ([TDD-038](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md))
@@ -423,8 +423,8 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 | :----------------- | :--------------------------------- | :------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Axon**           | **MQTT / Mosquitto**               | 엣지·디바이스 Envelope Pub/Sub · 텔레메트리 버스                                                  | [TDD-068](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)                                                                           |
 | **Axon**           | **Nest · WS/SSE**                  | 브라우저·Nixie uplink · ingest 게이트 _(MQTT 병행)_                                               | [TDD-023](../NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md)                                                                                            |
-| **Cosmic**         | **Nest Ingress · Zod**             | `CSIM` **T2** 맥락·Ethos 게이트 · 런타임 스키마 검증                                              | [TDD-044 §2.6](../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md)                                                                                         |
-| **Cosmic**         | _(말단)_ **Matrix 샤드**           | PT-0~2 **T1** 공용어화 — 동일 규격 · 경량 실장                                                    | [TDD-040 §0.1](../AI/08_TDD_AI_지능위계및하드웨어사양.md)                                                                                                     |
+| **Cosmic**         | **Nest Ingress · Zod**             | `CSIM` **CT2** 맥락·Ethos 게이트 · 런타임 스키마 검증                                              | [TDD-044 §2.6](../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md)                                                                                         |
+| **Cosmic**         | _(말단)_ **Matrix 샤드**           | PT-0~2 **CT1** 공용어화 — 동일 규격 · 경량 실장                                                    | [TDD-040 §0.1](../AI/08_TDD_AI_지능위계및하드웨어사양.md)                                                                                                     |
 | **Menton**         | **Ollama / vLLM**                  | LLM 인퍼런스 · Embed — **`apps/agent-graph` 단일**                                                | [TDD-007 §2](../NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) · [TDD-040](../AI/08_TDD_AI_지능위계및하드웨어사양.md)                                   |
 | **Menton**         | **ComfyUI**                        | Vivex Facet 생성형 이미지 파이프라인                                                              | [TDD-056](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md)                                                                                                          |
 | **Nexaon**         | **LangGraph** (`apps/agent-graph`) | 에이전트 그래프 · Run · SSE · 상태 오케스트레이션                                                 | [TDD-008](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) · [TDD-073](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
@@ -451,18 +451,18 @@ Ontex (Foundation)  → promoted · Graph RAG · archive
 | 인접 계약                       | Output (상향·하향)            | Input (수신 측)                  | 검증·게이트             |
 | :------------------------------ | :---------------------------- | :------------------------------- | :---------------------- |
 | **현장 → `Axon`**               | raw Fact · GPIO · 센서 벡터   | `HEXAGON` Envelope (5W1H)        | Zod · 스키마 선검증     |
-| **`Axon` → `Cosmic`**           | HEXAGON Envelope · APEX Body  | `CSIM` **T1** Matrix 투영        | raw uplink **✗**        |
-| **`Cosmic` → `Menton`**         | T2 **의미 토큰** · Ethos PASS | `DIEA` `stateBus` · Facet 맥락   | `Normex` RULE 대조      |
-| **`Menton` → Nexaon**           | Facet 산출 · NQ · draft       | `Nexaon` Run 입력 · **T3R** 정렬 | CSIM **「사고 토대」✗** |
+| **`Axon` → `Cosmic`**           | HEXAGON Envelope · APEX Body  | `CSIM` **CT1** Matrix 투영        | raw uplink **✗**        |
+| **`Cosmic` → `Menton`**         | CT2 **의미 토큰** · Ethos PASS | `DIEA` `stateBus` · Facet 맥락   | `Normex` RULE 대조      |
+| **`Menton` → Nexaon**           | Facet 산출 · NQ · draft       | `Nexaon` Run 입력 · **CT3R** 정렬 | CSIM **「사고 토대」✗** |
 | **Nexaon → Ontex**              | 승인본 · graph_diff · triple  | `promoted` · ontology patch      | SHACL · Human accept    |
 | **Ontex → Kineton**             | Action intent · programRef    | `ACTON` · ROS 2 메시지           | 승인·VOID·안전 장치     |
-| **Kineton → `Axon`** _(역방향)_ | 물리 피드백 · telemetry       | Inverse `CSIM` T1 · Envelope     | 디지털 트윈 정합        |
+| **Kineton → `Axon`** _(역방향)_ | 물리 피드백 · telemetry       | Inverse `CSIM` CT1 · Envelope     | 디지털 트윈 정합        |
 
 **공통 계약 원칙**
 
 - **의미 토큰 only:** PT-3 LLM·`Nexaon` 은 **레지스터 raw ✗** — `CSIM` 번역 결과만 ingest.
-- **Ethos 선행:** T2 게이트 **FAIL** 시 하위 단계로 **전파 ✗** — Envelope 폐기.
-- **승인 분리:** `CSIM` T3 **번역** ≠ **Run** — Run·promoted 는 **Nexaon** 전용.
+- **Ethos 선행:** CT2 게이트 **FAIL** 시 하위 단계로 **전파 ✗** — Envelope 폐기.
+- **승인 분리:** `CSIM` CT3 **번역** ≠ **Run** — Run·promoted 는 **Nexaon** 전용.
 - **Hot/Cold 분기:** `Kineton` 은 Cold Path 완료 **없이** Reflex 실행 가능 — 단, **`Axon` 규격** 은 동일.
 
 ---
@@ -500,7 +500,7 @@ NEXA/  (모노레포 루트 · 형제 프로젝트)
 | 기술          | ID  | 주 구현·계약 위치                                                                                             | 구현 SSOT                                                                                                                                                                                |
 | :------------ | :-: | :------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`Axon`**    | AL  | `packages/shared` Envelope·HEXAGON 스키마 · 엣지 uplink · Nest ingest 게이트                                  | [TDD-043](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-068](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md)                                              |
-| **`Cosmic`**  | CL  | `packages/shared` CSIM 토큰 스키마 · `apps/backend` T1/T2 게이트 · 말단 Matrix 샤드                           | [TDD-043 §13](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044 §2.6](../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md)                                                        |
+| **`Cosmic`**  | CL  | `packages/shared` CSIM 토큰 스키마 · `apps/backend` CT1/CT2 게이트 · 말단 Matrix 샤드                           | [TDD-043 §13](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044 §2.6](../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md)                                                        |
 | **`Menton`**  | ML  | `apps/web/.../domains/nexia/` 7 Facet 탭 · `Normex` · `apps/agent-graph` ML3                                  | [TDD-056](../NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · [TDD-040](../AI/08_TDD_AI_지능위계및하드웨어사양.md)                                                                              |
 | **Nexaon**    | NL  | `domains/nexia/modules/nexaon/` · `apps/backend/modules/nexaon/` · `apps/agent-graph` · **`apps/sync` (Yjs)** | [TDD-073](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) · [TDD-038](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) · [TDD-055](../NEXIA/08_TDD_NEXIA_구현파일구조뼈대.md) |
 | **Ontex**     | OL  | `apps/backend/modules/ontology/` · Neo4j · pgvector · `domainKey` **ontex**                                   | [TDD-057](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md)                                                                                                                                |

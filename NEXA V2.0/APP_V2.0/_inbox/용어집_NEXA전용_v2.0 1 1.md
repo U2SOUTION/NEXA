@@ -3,9 +3,9 @@
 
 NEXA OS는 **유기적 지능 생태계**이다.
 
-1. **피지컬 티어** — **어디서** 연산하나 (PT-0~3)
+1. **피지컬 티어** — **어디서** 연산하나 (PT_0~3)
 2. **Menton Layer (ML0~ML3)** — **얼마나 깊게** 사고하나
-3. **Axon Layer (AL1~AL7)** — **어떤 규격**으로 신호·의미·실행을 포장하나
+3. **Axon Layer (AL_1~AL_7)** — **어떤 규격**으로 신호·의미·실행을 포장하나
 
 - **Core-Engine-Stack (CES)** — 전체 지능을 관통하는 **중앙 스택/엔진**
 - **Physical-Centric-Hierarchy (PCH)** — 물리 티어를 축으로 위계를 **결정**하는 구조
@@ -81,7 +81,7 @@ NEXA OS는 **유기적 지능 생태계**이다.
 | NO  | COLUMN         | MEANING                                                                                                                                                      |
 | :-- | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | **tag**        | `terms_nexa` · `nexa/` 태그                                                                                                                                    |
-| 2   | **code**       | `domainKey` · `tabId` · `PT-0` 등 런타임 코드                                                                                                                      |
+| 2   | **code**       | `domainKey` · `tabId` · `PT_0` 등 런타임 코드                                                                                                                      |
 | 3   | **tier**       | **네이밍 위계 (레벨 + 티어명)** — `L0 플랫폼 표준` · `L1 제품 및 컴포넌트` · `L2 시스템 ID` · `L3 내부 코드 변수` (§1 참조). 레벨 번호와 티어명을 결합한 표시. category와 직교 — 같은 category 내에서도 위계가 다를 수 있음. |
 | 4   | **tier_code**  | **위계 코드명** (§1 4대 위계 표 참조) — `PLAT` 플랫폼 표준 · `PROD` 제품 및 컴포넌트 · `SYSID` 시스템 ID · `INTVAR` 내부 코드 변수. tier의 사람이 읽는 명사형 코드.                                          |
 | 5   | **label_ko**   | 기획·UI 한글 짧은 이름, 약어는 소리나는데 발음                                                                                                                                 |
@@ -203,41 +203,41 @@ def classify(tag: str):
 
 | TAG                 | CODE | TIER         | TC(약어) | LABEL_KO      | LABEL_EN                  | FULLNAME                | CATEGORY      | DEFINITION                                       | NOT                                 | ARTIFACT | RELATED | SSOT    | NOTES             |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `Physical Tier`     | PT   | L1 제품 및 컴포넌트 | PROD   | 피지컬 티어        | Physical Placement Tier   | Physical Placement Tier | axis          | 어디서 연산하나 — 4단 PT-0~3                             |                                     |          |         | TDD-040 |                   |
+| `Physical Tier`     | PT   | L1 제품 및 컴포넌트 | PROD   | 피지컬 티어        | Physical Placement Tier   | Physical Placement Tier | axis          | 어디서 연산하나 — 4단 PT0~3                              |                                     |          |         | TDD-040 |                   |
 | `Menton Layer`      | ML   | L1 제품 및 컴포넌트 | PROD   | 멘톤 레이어        | Menton Intelligence Stack |                         | axis          | 소프트웨어상 역할 층 ML0~ML3                              | ≠ NEXA 브랜드 · ≠ NL0–NL3 (deprecated) |          |         | TDD-040 |                   |
 | `Core Engine Stack` | CoreEngineStack | L1 제품 및 컴포넌트 | PROD   | 코어 엔진 기술      | Core Engine Stack         |                         | axis          | Cold Path 기능 엔진 6 (가변)                           |                                     |          |         | TDD-075 |                   |
-| `Hub and Spoke`     | HubAndSpoke     | L1 제품 및 컴포넌트 | PROD   | Hub-and-Spoke | Hub-and-Spoke             |                         | axis          | PT-3 허브 + PT-0~2·Nixie 샤드 배치                     |                                     |          |         | TDD-075 |                   |
-| `PT-0`              | PT-0 | L0 플랫폼 표준    | PLAT   | 피지컬 티어 0      | PT-0                      |                         | physical-tier | 말단 COLD — Nano Sentinel · HEXAGON · ACTON Reflex |                                     |          | ML0     | TDD-040 | HW: COLD          |
-| `PT-1`              | PT-1 | L0 플랫폼 표준    | PLAT   | 피지컬 티어 1      |                           |                         | physical-tier | WARM Micro Sentinel (선택) · Nixie ✗               |                                     |          |         | TDD-040 |                   |
-| `PT-2`              | PT-2 | L0 플랫폼 표준    | PLAT   | 피지컬 티어 2      |                           |                         | physical-tier | WARM Kinetic Controller (선택) · Fast Path         |                                     |          |         | TDD-040 |                   |
-| `PT-3`              | PT-3 | L0 플랫폼 표준    | PLAT   | 피지컬 티어 3      | Zenith                    |                         | physical-tier | HOT 풀스택 웹 허브 · DIEA · Nexaon · Ontex             |                                     |          |         | TDD-040 |                   |
-| `ML0`               | ML0  | L0 플랫폼 표준    | PLAT   |               | Reflexive · Edge          |                         | menton-layer  | Sentinel · Fact·Reflex·후보고 uplink · ACTON        |                                     |          | PT-0    | TDD-040 | LangGraph Agent ✗ |
-| `ML1`               | ML1  | L0 플랫폼 표준    | PLAT   |               | Presence                  |                         | menton-layer  | NIXIE · 4 Shell · 결과·알람·상태 Express               |                                     |          | NIXIE   | TDD-040 |                   |
-| `ML2`               | ML2  | L0 플랫폼 표준    | PLAT   |               | Tactical · Domain         |                         | menton-layer  | nexabo/nexia 작업면 — 관제·트윈·정재 UI                   |                                     |          |         | TDD-040 |                   |
-| `ML3`               | ML3  | L0 플랫폼 표준    | PLAT   |               | Strategic                 |                         | menton-layer  | Nexaon·agent-graph·Omnix — ingest→Run→promoted   |                                     |          | Nexaon  | TDD-073 | LangGraph Agent ✓ |
+| `Hub and Spoke`     | HubAndSpoke     | L1 제품 및 컴포넌트 | PROD   | Hub-and-Spoke | Hub-and-Spoke             |                         | axis          | PT_3 허브 + PT_0~2·Nixie 샤드 배치                     |                                     |          |         | TDD-075 |                   |
+| `PT0 Edge Cold`             | PT_0 | L0 플랫폼 표준    | PLAT   | 피지컬 티어 0      | PT0 Edge Cold             |                         | physical-tier | 말단 COLD — Nano Sentinel · HEXAGON · ACTON Reflex |                                     |          | ML_0    | TDD-040 | HW: COLD          |
+| `PT1 Micro Warm`              | PT_1 | L0 플랫폼 표준    | PLAT   | 피지컬 티어 1      |                           |                         | physical-tier | WARM Micro Sentinel (선택) · Nixie ✗               |                                     |          |         | TDD-040 |                   |
+| `PT2 Kinetic Warm`              | PT_2 | L0 플랫폼 표준    | PLAT   | 피지컬 티어 2      |                           |                         | physical-tier | WARM Kinetic Controller (선택) · Fast Path         |                                     |          |         | TDD-040 |                   |
+| `PT3 Zenith Hot`              | PT_3 | L0 플랫폼 표준    | PLAT   | 피지컬 티어 3      | Zenith                    |                         | physical-tier | HOT 풀스택 웹 허브 · DIEA · Nexaon · Ontex             |                                     |          |         | TDD-040 |                   |
+| `ML0 Reflexive Edge`               | ML_0 | L0 플랫폼 표준    | PLAT   |               | Reflexive · Edge          |                         | menton-layer  | Sentinel · Fact·Reflex·후보고 uplink · ACTON        |                                     |          | PT_0    | TDD-040 | LangGraph Agent ✗ |
+| `ML1 Presence`               | ML_1 | L0 플랫폼 표준    | PLAT   |               | Presence                  |                         | menton-layer  | NIXIE · 4 Shell · 결과·알람·상태 Express               |                                     |          | NIXIE   | TDD-040 |                   |
+| `ML2 Tactical Domain`               | ML_2 | L0 플랫폼 표준    | PLAT   |               | Tactical · Domain         |                         | menton-layer  | nexabo/nexia 작업면 — 관제·트윈·정재 UI                   |                                     |          |         | TDD-040 |                   |
+| `ML3 Strategic`               | ML_3 | L0 플랫폼 표준    | PLAT   |               | Strategic                 |                         | menton-layer  | Nexaon·agent-graph·Omnix — ingest→Run→promoted   |                                     |          | Nexaon  | TDD-073 | LangGraph Agent ✓ |
 
-### Cosmic Layer · CSIM (T1–T3)
+### Cosmic Layer · CSIM (CT_1~3)
 
 | TAG      | CODE | TIER         | TC(약어) | LABEL_KO          | LABEL_EN          | FULLNAME                         | CATEGORY    | DEFINITION                              | NOT                     | ARTIFACT | RELATED | SSOT    | NOTES   |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `Cosmic` | Cosmic         | L1 제품 및 컴포넌트 | PROD   | 코믹                | Cosmic Layer      |                                  | cosmic-tier | WILL/FACT 의미 번역 축 · Tier T1–T3          |                         |          | CSIM    | TDD-043 |         |
-| `T1`     | T1   | L0 플랫폼 표준    | PLAT   | Abstraction       | Abstraction       |                                  | cosmic-tier | WILL/FACT → Matrix 시스템 공용어              |                         |          |         | TDD-043 |         |
-| `T2`     | T2   | L0 플랫폼 표준    | PLAT   | Contextualization | Contextualization |                                  | cosmic-tier | Matrix+맥락 → 오해 없는 의미 토큰                 |                         |          |         | TDD-043 |         |
-| `T3`     | T3   | L0 플랫폼 표준    | PLAT   | Concretization    | Concretization    |                                  | cosmic-tier | 의미 → Narrative\                         | Action · Run ✗ (Nexaon) |          |         |         | TDD-043 |
+| `Cosmic` | Cosmic         | L1 제품 및 컴포넌트 | PROD   | 코믹                | Cosmic Layer      |                                  | cosmic-tier | WILL/FACT 의미 번역 축 · Tier CT_1~3          |                         |          | CSIM    | TDD-043 |         |
+| `CT1 Abstraction`    | CT_1 | L0 플랫폼 표준    | PLAT   | Abstraction       | Abstraction       |                                  | cosmic-tier | WILL/FACT → Matrix 시스템 공용어              |                         |          |         | TDD-043 |         |
+| `CT2 Contextualization`    | CT_2 | L0 플랫폼 표준    | PLAT   | Contextualization | Contextualization |                                  | cosmic-tier | Matrix+맥락 → 오해 없는 의미 토큰                 |                         |          |         | TDD-043 |         |
+| `CT3 Concretization`    | CT_3 | L0 플랫폼 표준    | PLAT   | Concretization    | Concretization    |                                  | cosmic-tier | 의미 → Narrative\                         | Action · Run ✗ (Nexaon) |          |         |         | TDD-043 |
 | `CSIM`   | CSIM            | L0 플랫폼 표준    | PLAT   | 우주 의미 언어 번역기      | CSIM              | Cosmic Semantic Interface Matrix | cosmic-tier | Cosmic Layer 구현 · WILL/FACT ↔ Matrix 번역 |                         |          | Cosmic  | TDD-043 |         |
 
-### Axon Layer · Cosmic Language (AL1–AL7)
+### Axon Layer · Cosmic Language (AL_1~7)
 
 | TAG              | CODE     | TIER         | TC(약어) | LABEL_KO | LABEL_EN       | FULLNAME | CATEGORY   | DEFINITION                        | NOT | ARTIFACT | RELATED | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `AXON`           | AXON             | L0 플랫폼 표준    | PLAT   | 엑숀       | AXON           |          | axon-layer | Axon Layer 7층 프로토콜 · AXON-AL1…AL7 |     |          |         | TDD-043 |       |
-| `APEX`           | AXON-AL1 | L0 플랫폼 표준    | PLAT   | 의미 규격    | APEX Matrix    |          | axon-layer | 3×3 의미 매트릭스(CSIM의 표준 출력 규격)       |     |          | CSIM    | TDD-043 |       |
-| `HEXAGON`        | AXON-AL2 | L0 플랫폼 표준    | PLAT   | 헥사곤      | HEXAGON        |          | axon-layer | 5W1H 6축 Envelope · Zod 문법         |     |          |         | TDD-043 |       |
-| `Coil Balancer`  | AXON-AL3 | L1 제품 및 컴포넌트 | PROD   | 코일 벨렌서   | Coil Balancer  |          | axon-layer | 페르소나 Zero-sum · GOVERN            |     |          |         | TDD-043 |       |
-| `NEXAON Network` | AXON-AL4 | L0 플랫폼 표준    | PLAT   | 넥사온 네트워크 | NEXAON Network |          | axon-layer | 엣지 후보고·중앙 해석                      |     |          | Nexaon  | TDD-043 |       |
-| `NEXAVULT`       | AXON-AL5 | L0 플랫폼 표준    | PLAT   | 넥사볼트     | NEXAVULT       |          | axon-layer | Seed·로그·벡터 이중 저장                  |     |          | Ontex   | TDD-043 |       |
-| `ACTON`          | AXON-AL6 | L0 플랫폼 표준    | PLAT   | 넥숀       | ACTON          |          | axon-layer | 물리 실행 Synapse · PWM · MQTT        |     |          |         | TDD-043 |       |
-| `ENVIRON Shield` | AXON-AL7 | L0 플랫폼 표준    | PLAT   | 환경 보호막   | ENVIRON Shield |          | axon-layer | 환경·복지 · Jitter 차단 · Nixie triage  |     |          | NIXIE   | TDD-043 |       |
+| `AXON`           | AXON             | L0 플랫폼 표준    | PLAT   | 엑숀       | AXON           |          | axon-layer | Axon Layer 7층 프로토콜 · AL_1…AL_7 |     |          |         | TDD-043 |       |
+| `AL1 APEX`           | AL_1 | L0 플랫폼 표준    | PLAT   | 의미 규격    | APEX Matrix    |          | axon-layer | 3×3 의미 매트릭스(CSIM의 표준 출력 규격)       |     |          | CSIM    | TDD-043 |       |
+| `AL2 HEXAGON`        | AL_2 | L0 플랫폼 표준    | PLAT   | 헥사곤      | HEXAGON        |          | axon-layer | 5W1H 6축 Envelope · Zod 문법         |     |          |         | TDD-043 |       |
+| `AL3 Coil Balancer`  | AL_3 | L1 제품 및 컴포넌트 | PROD   | 코일 벨렌서   | Coil Balancer  |          | axon-layer | 페르소나 Zero-sum · GOVERN            |     |          |         | TDD-043 |       |
+| `AL4 NEXAON Network` | AL_4 | L0 플랫폼 표준    | PLAT   | 넥사온 네트워크 | NEXAON Network |          | axon-layer | 엣지 후보고·중앙 해석                      |     |          | Nexaon  | TDD-043 |       |
+| `AL5 NEXAVULT`       | AL_5 | L0 플랫폼 표준    | PLAT   | 넥사볼트     | NEXAVULT       |          | axon-layer | Seed·로그·벡터 이중 저장                  |     |          | Ontex   | TDD-043 |       |
+| `AL6 ACTON`          | AL_6 | L0 플랫폼 표준    | PLAT   | 넥숀       | ACTON          |          | axon-layer | 물리 실행 Synapse · PWM · MQTT        |     |          |         | TDD-043 |       |
+| `AL7 ENVIRON Shield` | AL_7 | L0 플랫폼 표준    | PLAT   | 환경 보호막   | ENVIRON Shield |          | axon-layer | 환경·복지 · Jitter 차단 · Nixie triage  |     |          | NIXIE   | TDD-043 |       |
 
 
 ### nexia — DIEA · tabId
@@ -262,7 +262,7 @@ def classify(tag: str):
 
 | TAG           | CODE | TIER         | TC(약어) | LABEL_KO | LABEL_EN    | FULLNAME | CATEGORY | DEFINITION                                     | NOT                                  | ARTIFACT                          | RELATED     | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `Nexaon`      | Nexaon          | L1 제품 및 컴포넌트 | PROD   | 넥사온      | Nexaon      |          | ui       | Logex ontology 서브모드 · ML3 Distillation 오케스트레이터 | tabId ✗ · domainKey ✗ · DIEA Facet ✗ | /nexia/logex/ontology/{projectId} | DIEA, Logex | TDD-073 |       |
+| `Nexaon`      | Nexaon          | L1 제품 및 컴포넌트 | PROD   | 넥사온      | Nexaon      |          | ui       | Logex ontology 서브모드 · ML_3 Distillation 오케스트레이터 | tabId ✗ · domainKey ✗ · DIEA Facet ✗ | /nexia/logex/ontology/{projectId} | DIEA, Logex | TDD-073 |       |
 | `NexaonShell` | NexaonShell     | L1 제품 및 컴포넌트 | PROD   | 넥사온쉘     | NexaonShell |          | ui       | ExplorerTree · GraphCanvas · RunPanel 3분할      | MainShell ✗                          |                                   | Nexaon      | TDD-056 |       |
 | `NEXIA`       | NEXIA           | L0 플랫폼 표준    | PLAT   | 닉시아      | NEXIA       |          | ui       | 제품·문서 도메인 라벨 (대문자)                             | nexia 코드키와 별도                        |                                   |             | TDD-010 |       |
 
@@ -308,7 +308,7 @@ def classify(tag: str):
 
 | TAG             | CODE | TIER         | TC(약어) | LABEL_KO      | LABEL_EN      | FULLNAME                  | CATEGORY | DEFINITION                                             | NOT                     | ARTIFACT | RELATED    | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `NIXIE`         | NIXIE           | L0 플랫폼 표준    | PLAT   | 닉시            | NIXIE         |                           | ui       | ML1 Presence · Canvas·BAX·전 domainKey Express          | Canvas/BAX 대체 ✗ · Run ✗ |          | Nixie      | TDD-045 |       |
+| `NIXIE`         | NIXIE           | L0 플랫폼 표준    | PLAT   | 닉시            | NIXIE         |                           | ui       | ML_1 Presence · Canvas·BAX·전 domainKey Express          | Canvas/BAX 대체 ✗ · Run ✗ |          | Nixie      | TDD-045 |       |
 | `Nixie`         | Nixie           | L1 제품 및 컴포넌트 | PROD   | 닉시            | Nixie         |                           | ui       | NIXIE 제품·UI·4 Shell 채널 표기                              |                         |          | NIXIE      | TDD-061 |       |
 | `M2P`           | M2P             | L0 플랫폼 표준    | PLAT   | 엠투피           | M2P           | Matrix-to-Peripheral      | ui       | **실시간 의지 데이터를 NIXIE·Serial용 구체적 명령어로 변환/전송하는 실행 프로토콜** | CSIM는 통역사, M2P는 실행근육    |          |            | UIX-003 |       |
 | `NEXU Canvas`   | NEXUCanvas      | L1 제품 및 컴포넌트 | PROD   | 넥슈 켄버스        | NEXU Canvas   |                           | ui       | 온톨로지·Knowledge 페브릭 시맨틱 뷰                               | BAX 혼용 ✗                |          | BAX, NIXIE | TDD-045 |       |
@@ -332,7 +332,7 @@ def classify(tag: str):
 
 | TAG                  | CODE | TIER         | TC(약어) | LABEL_KO | LABEL_EN             | FULLNAME | CATEGORY | DEFINITION                       | NOT | ARTIFACT | RELATED | SSOT    | NOTES |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `NixieWebShell`      | NixieWebShell        | L1 제품 및 컴포넌트 | PROD   | 닉시 웹쉘    | Nixie Web Shell      |          | ui       | MainShell frame ML1 · PiP detach |     |          |         | TDD-061 |       |
+| `NixieWebShell`      | NixieWebShell        | L1 제품 및 컴포넌트 | PROD   | 닉시 웹쉘    | Nixie Web Shell      |          | ui       | MainShell frame ML_1 · PiP detach |     |          |         | TDD-061 |       |
 | `NixieDesktopShell`  | NixieDesktopShell    | L1 제품 및 컴포넌트 | PROD   | 닉스 데스크탑쉘 | Nixie Desktop Shell  |          | ui       | Python PC 독립 · WS/SSE · M2P      |     |          |         | TDD-062 |       |
 | `NixieMobileShell`   | NixieMobileShell     | L1 제품 및 컴포넌트 | PROD   | 닉스 모바일쉘  | Nixie Mobile Shell   |          | ui       | iOS/Android · 푸시·VAD             |     |          |         | TDD-063 |       |
 | `NixiePhysicalShell` | NixiePhysicalShell   | L1 제품 및 컴포넌트 | PROD   | 닉시 실물쉘   | Nixie Physical Shell |          | ui       | ESP32/RPi 하드웨어 · M2P·Serial      |     |          |         | TDD-064 |       |
@@ -453,13 +453,13 @@ def classify(tag: str):
 
 > **DIEA ↔ Nexaon:** DIEA = 7 Facet 작업면 · Nexaon = Cold Path Distillation 오케스트레이터 (Logex ontology). Facet 산출은 never 직접 promoted — Nexaon·승인·SHACL 경유 ([TDD-071 §2.1.2](08_TDD/NEXAOS/08_TDD_NEXAOS_도메인구조통합_v1.0.md)).
 
-> **Nixie Reflex vs Nexaon Strategic:** Nixie(ML1) = Express·알림 · Nexaon(ML3) = Run·promoted. Run 트리거·Router fan-out **✗**.
+> **Nixie Reflex vs Nexaon Strategic:** Nixie(ML_1) = Express·알림 · Nexaon(ML_3) = Run·promoted. Run 트리거·Router fan-out **✗**.
 
-> **NEXU · BAX · NIXIE 3층:** Knowledge 페브릭 → 미적 레이아웃 → ML1 Express. Canvas/BAX **혼용 ✗**.
+> **NEXU · BAX · NIXIE 3층:** Knowledge 페브릭 → 미적 레이아웃 → ML_1 Express. Canvas/BAX **혼용 ✗**.
 
 > **Navex · NISE:** Intelligent = hybrid 검색 · Infra = InfraTree. Omnix discover → `navex_search` tool ([PRD-014](05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md)).
 
-> **혼동 방지 (번호 체계):** ML0–ML3 ≠ PT-0–3 ≠ T1–T3 ≠ AXON-AL1–7 ≠ UI-L* ≠ NexiaWorkspace L* — **동일 표기 금지**.
+> **혼동 방지 (번호 체계):** ML0~ML3 ≠ PT_0~3 ≠ CT_1~3 ≠ AL_1~7 ≠ UI-L* ≠ NexiaWorkspace L* — **동일 표기 금지**.
 
 ## 네이밍 컨벤션(Naming Convention, 명명 규칙)
 

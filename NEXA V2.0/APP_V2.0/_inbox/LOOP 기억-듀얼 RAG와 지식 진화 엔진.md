@@ -146,12 +146,24 @@ RAG가 검색해 온 과거 룰 조각들이 프롬프트에 조립되기 직전
 
 테스트가 실패하는 순간, 단순히 "에러났다 → 재시도"가 아니라 **4가지 관점에서 동시에** 실패 데이터를 채굴합니다. 이 4가지가 단일 LLM이 볼 수 없는 다층적 실패 인지를 만들어 줍니다.
 
-| # | 감지 게이트 | 채굴 데이터 | 저 위치 |
-|---|---|---|---|
-| ① | **에러 로그 (Error Log)** | 스택 트레이스·에러 코드 | `error_log` (정제 전) |
-| ② | **테스트 결과 (Test Result)** | 어떤 단계(T1~T5)에서 떨어졌는가 | `test_run_history` |
-| ③ | **컨텍스트 변화 (Context Diff)** | 직전 성공 코드와 현재 실패 코드의 diff | `code_diff` |
-| ④ | **메타 회고 (Meta Reflection)** | "이 시점에서 LLM이 무엇을 시도했는가" | `cumulative_5WHY` |
+| #   | 감지 게이트                | 채굴 데이터                                | 저장 위치 (CODE)        | 관련 단계 (TIER)         |
+| --- | -------------------------- | ------------------------------------------ | ----------------------- | ------------------------ |
+| ①   | **에러 로그 (Error Log)**  | 스택 트레이스·에러 코드                    | `error_log`             | -                        |
+| ②   | **테스트 결과 (Test Result)** | 어떤 단계에서 실패했는가                  | `audit_test_stage`      | `T1~T5` (아래 참조)      |
+| ③   | **컨텍스트 변화 (Context Diff)** | 직전 성공과 현재 실패의 diff             | `code_diff`             | -                        |
+| ④   | **메타 회고 (Meta Reflection)** | "LLM이 무엇을 시도했는가"                 | `cumulative_5why`       | -                        |
+
+> **TAG vs CODE 직교:** `T1~T5`는 사람이 읽는 **순서 라벨(TAG)**, `audit_*`는 시스템이 식별하는 **CODE**. ②의 `audit_test_stage`에는 `test_run_history[].step` 키에서 사용하는 정확한 식별자(`audit_static_patch` / `audit_api_unit` / `audit_ui_e2e` / `audit_load_perf` / `audit_nexa_rule`)가 기록된다. 5단계 매핑 SSOT → [LOOP 설계도 §0 요약 카드](../_inbox/LOOP%20설계도-%20랭그래프%20CI%20파이프라인%20설계.md).
+
+#### `T1~T5` ↔ `audit_*` 매핑 (LOOP 설계도 §0 발췌)
+
+| 순서 | CODE (식별자)         | 단계          | 도구                  |
+| ---- | --------------------- | ------------- | --------------------- |
+| T1   | `audit_static_patch`  | 정적 검증     | D-2 (Patch Validator) |
+| T2   | `audit_api_unit`      | API 단위 검증 | Supertest             |
+| T3   | `audit_ui_e2e`        | UI E2E 검증   | Playwright            |
+| T4   | `audit_load_perf`     | 부하 검증     | k6 (MQTT)             |
+| T5   | `audit_nexa_rule`     | 룰 검증       | E-0 (Rule Validator)  |
 
 #### 🚦 왜 단일 에러 로그가 아닌 4-Way인가?
 
@@ -172,7 +184,7 @@ RAG가 검색해 온 과거 룰 조각들이 프롬프트에 조립되기 직전
 
 ```json
 {
-  "phenomenon": "Playwright T3 FAIL: Y.Doc sync timeout (2 browsers diverged)",
+  "phenomenon": "Playwright `audit_ui_e2e` (T3) FAIL: Y.Doc sync timeout (2 browsers diverged)",
   "why_1": "왜 diverge? → 두 브라우저의 update 메시지가 1.2초 내 도착하지 않음",
   "why_2": "왜 1.2초? → MQTT QoS 1의 재전송 메커니즘이 WebSocket 우선순위를 밀어냄",
   "why_3": "왜 우선순위가 밀리는가? → emqx.conf에서 `mqtt.max_inflight` 기본값(32)이 부족",

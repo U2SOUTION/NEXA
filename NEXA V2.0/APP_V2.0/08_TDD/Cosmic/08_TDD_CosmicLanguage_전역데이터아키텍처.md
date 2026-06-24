@@ -8,12 +8,12 @@ created: 2026-06-10
 updated: 2026-06-13
 parent_doc: TDD-043
 terms_standard: ["ontology", "3d-mapping"]
-terms_nexa: ["Cosmic-Layer", "Cosmic-Language", "CLA", "CSIM", "APEX", "NEXAVULT", "Self-Verification"]
-tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/ontology", "std/3d-mapping", "nexa/Cosmic-Language", "nexa/CLA", "nexa/APEX", "nexa/NEXAVULT", "nexa/Self-Verification"]
+terms_nexa: ["Cosmic Layer", "Cosmic Language", "CLA", "CSIM", "APEX", "NEXAVULT", "Self Verification"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/ontology", "std/3d-mapping", "nexa/Cosmic Language", "nexa/CLA", "nexa/APEX", "nexa/NEXAVULT", "nexa/Self Verification"]
 ---
 # Cosmic · 전역 데이터 아키텍처
 
-> **표기 (Normative):** 신규·개정 SSOT 본문 = **Cosmic** · Tier 지칭 시 **`T1`–`T3`** · 구현 **`CSIM`**. bare **`CL`** · **`CLA`** **deprecated** — [용어집 §3.2.2](../../용어집_NEXA전용_v2.0.md).
+> **표기 (Normative):** 신규·개정 SSOT 본문 = **Cosmic** · Tier 지칭 시 **`CT1`–`CT3`** · 구현 **`CSIM`**. bare **`CL`** · **`CLA`** **deprecated** — [용어집 §3.2.2](../../용어집_NEXA전용_v2.0.md).
 >
 > **6대 레이어 분담:** **`Cosmic`** 본 문서 · 프로토콜·`Axon` [TDD-043](./08_TDD_CSIM_AXON프로토콜_정본.md) `parent_doc` · **`Kineton`** [TDD-072](../NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) · [Global Architecture](../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md)
 
@@ -22,7 +22,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/ontology", "std/3d-mapping", 
 **Cosmic**은 인간의 주권적 의지(Intention)와 물리 세계의 객관적 법칙(Physical Laws) 사이를 잇는 최상위 공리(Axiom)이자 지능형 온톨로지이자 NEXA Platform 자체입니다.
 **Cosmic**은 데이터를 단순한 신호 전달 도구가 아니라, 서버에 구축된 고정밀 3D 지도와 시맨틱 네트워크를 바탕으로 스스로 맥락을 증명하는 지능적 개체로 다룹니다. 이는 현장의 파편화된 수치를 우주적 질서 안에서 해석하여 인간과 AI가 직감적으로 소통할 수 있게 만드는 범용 언어 체계입니다.
 
-여기서 '증명(Self-Verification/Authentication)'은 단순히 수학적 문제를 푸는 과정이 아니라, "데이터 스스로가 자신이 왜 존재하며, 이 맥락에서 무엇을 의미하는지 논리적 근거를 완벽히 갖추고 있음"을 의미합니다.
+여기서 '증명(Self Verification/Authentication)'은 단순히 수학적 문제를 푸는 과정이 아니라, "데이터 스스로가 자신이 왜 존재하며, 이 맥락에서 무엇을 의미하는지 논리적 근거를 완벽히 갖추고 있음"을 의미합니다.
 Cosmic 체계 안에서 데이터가 스스로를 증명한다는 것은 다음 세 가지 요소를 충족한다는 뜻입니다.
 
 > 위치와 존재의 증명 (Spatial Truth)
@@ -65,13 +65,13 @@ Cosmic 체계 안에서 데이터가 스스로를 증명한다는 것은 다음 
 
 ### 2.3 CSIM — Cosmic Semantic Interface Matrix (의미 번역·LLM 정렬)
 
-> CSIM(Cosmic Semantic Interface Matrix)은 물리적 데이터를 지능적 맥락으로 치환하는 가로·세로 축 기반의 **의미 매트릭스** 지도입니다. **개념 Tier:** **T1 공용어화** → **T2 맥락 동기화** → **T3 구체화** ([`TDD-043` §13.0.1](08_TDD_CSIM_AXON프로토콜_정본.md)).
+> CSIM(Cosmic Semantic Interface Matrix)은 물리적 데이터를 지능적 맥락으로 치환하는 가로·세로 축 기반의 **의미 매트릭스** 지도입니다. **개념 Tier:** **CT1 공용어화** → **CT2 맥락 동기화** → **CT3 구체화** ([`TDD-043` §13.0.1](08_TDD_CSIM_AXON프로토콜_정본.md)).
 
 | Tier | 단계 (EN) | Normative 정의 |
 | :---: | :--- | :--- |
-| **T1** | **Abstraction** · **공용어화** | 거친 WILL/FACT → **Matrix** **시스템 공용어** (양방향 1차 투영) |
-| **T2** | **Contextualization** · **맥락 동기화** | Matrix + Domain/HEXAGON/`stateBus` → **오해 없는 의미** (+ Ethos 정렬) |
-| **T3** | **Concretization** · **구체화** | 의미 → **Narrative** \| **Action** — CSIM 번역 · Run/표현 = NEXAON · Nixie · ACTON |
+| **CT1** | **Abstraction** · **공용어화** | 거친 WILL/FACT → **Matrix** **시스템 공용어** (양방향 1차 투영) |
+| **CT2** | **Contextualization** · **맥락 동기화** | Matrix + Domain/HEXAGON/`stateBus` → **오해 없는 의미** (+ Ethos 정렬) |
+| **CT3** | **Concretization** · **구체화** | 의미 → **Narrative** \| **Action** — CSIM 번역 · Run/표현 = NEXAON · Nixie · ACTON |
 
 - **해석적 유연성:** 동일한 전압 수치라도 매트릭스 좌표에 따라 정상 상태(Is)로도, 잠재적 위험(Might)으로도 해석될 수 있습니다.
 - **초경량 벡터 통신:** 현장 장치는 좌표, 크기, 변화량 같은 최소 벡터 데이터를 고빈도로 전송해 트래픽을 절감합니다.
@@ -98,11 +98,11 @@ Cosmic 체계 안에서 데이터가 스스로를 증명한다는 것은 다음 
 
 | 배치 | Tier | 역할 | PT |
 | :--- | :---: | :--- | :---: |
-| **ML0 말단** | **T1** | Matrix 공용어화 · raw uplink **✗** | PT-0 ~ PT-2 |
-| **Ingress · Gate** | **T2** | 맥락·Ethos 정렬 · `stateBus` | PT-3 _(허브)_ |
-| **Nexaon Run 입력** | **T3R** | semantic chunk · Run 정렬 _(Run 소유 ✗)_ | PT-3 |
-| **Nixie 표현** | **T3N** | Narrative · ECHO | PT-0 ~ PT-3 _(표현)_ |
-| **ACTON 하향** | **T3A** | Action · HEXAGON | PT-0 ~ PT-2 _(Hot)_ |
+| **ML0 말단** | **CT1** | Matrix 공용어화 · raw uplink **✗** | PT-0 ~ PT-2 |
+| **Ingress · Gate** | **CT2** | 맥락·Ethos 정렬 · `stateBus` | PT-3 _(허브)_ |
+| **Nexaon Run 입력** | **CT3R** | semantic chunk · Run 정렬 _(Run 소유 ✗)_ | PT-3 |
+| **Nixie 표현** | **CT3N** | Narrative · ECHO | PT-0 ~ PT-3 _(표현)_ |
+| **ACTON 하향** | **CT3A** | Action · HEXAGON | PT-0 ~ PT-2 _(Hot)_ |
 
 **경계:** `CSIM` = **번역·정렬만** — promoted · Run 종결 · Hot Path 집행 **소유 ✗** ([TDD-073](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) · [TDD-072](../NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md)).
 
@@ -442,11 +442,6 @@ review:
 - 용어 사전(Glossary)과 버전 정책(예: `cla.spec.v1.x`)을 별도 섹션으로 고정하면 팀 온보딩 속도가 빨라집니다.
 - 시나리오 YAML을 실제 Zod 스키마 파일과 1:1 매핑해 문서-코드 괴리를 줄이는 것이 다음 단계로 적절합니다.
 
-### 총평
-
-현재 문서는 NEXA Platform OS의 "아이디어 메모" 단계를 넘어, **상위 표준(Constitution) 문서**로 전환 가능한 수준입니다.  
-즉시 구현을 강제하기보다는, 이 문서를 기준으로 모듈별 실행 규격을 파생시키는 방식이 가장 안전하고 확장성 높은 접근입니다.
----
 
 ## 관련 문서
 

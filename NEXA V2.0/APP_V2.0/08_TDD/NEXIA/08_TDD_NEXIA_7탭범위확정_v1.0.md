@@ -10,8 +10,8 @@ parent_doc: TDD-010
 implements_doc: PRD-001
 see_also: [UIX-004, UIX-008, UIX-002, PRD-008, PRD-014, TDD-071, TDD-070]
 terms_standard: ["react-flow", "yjs", "tiptap", "monaco", "langgraph", "sse"]
-terms_nexa: ["nexia", "tabId", "Omnix", "Normex", "Logex", "Scribx", "Vivex", "Twinex", "Navex", "Global-Navex", "NexaonShell", "ontology", "NEXA-CELL", "Ontex", "GlobalFileExplorer", "Global-Asset-Index", "InfraTree", "asset-origin", "navexCategory", "Project-Explorer"]
-tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/tiptap", "std/monaco", "std/langgraph", "std/sse", "nexa/nexia", "nexa/tabId", "nexa/Omnix", "nexa/Normex", "nexa/Logex", "nexa/Scribx", "nexa/Vivex", "nexa/Twinex", "nexa/Navex", "nexa/Global-Navex", "nexa/NexaonShell", "nexa/ontology", "nexa/NEXA-CELL", "nexa/ontex", "nexa/GlobalFileExplorer"]
+terms_nexa: ["nexia", "tabId", "Omnix", "Normex", "Logex", "Scribx", "Vivex", "Twinex", "Navex", "Global Navex", "NexaonShell", "ontology", "NEXA CELL", "Ontex", "GlobalFileExplorer", "Global Asset Index", "InfraTree", "asset-origin", "navexCategory", "Project Explorer"]
+tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/tiptap", "std/monaco", "std/langgraph", "std/sse", "nexa/nexia", "nexa/tabId", "nexa/Omnix", "nexa/Normex", "nexa/Logex", "nexa/Scribx", "nexa/Vivex", "nexa/Twinex", "nexa/Navex", "nexa/Global Navex", "nexa/NexaonShell", "nexa/ontology", "nexa/NEXA CELL", "nexa/ontex", "nexa/GlobalFileExplorer"]
 ---
 
 # NEXIA · 7 탭 범위 확정 v1.0
@@ -41,7 +41,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/t
 - **7 탭 셸** — `tabId` 전환 · L/R Drawer · Header · StatusBar **탭별 패널 스왑**
 - **인간·AI·장치 조율 허브** — Omnix 오케스트레이션 · 승인 게이트 진입점
 - **생산·실행 작업면** — Normex·Logex·Scribx·Vivex·Twinex·Navex 에서 **산출물 생성·편집·릴레이**
-- **NEXA-CELL** — Twinex 탭 내 ESPHome·펌웨어·OTA (**산업 1 단계** SSOT)
+- **NEXA CELL** — Twinex 탭 내 ESPHome·펌웨어·OTA (**산업 1 단계** SSOT)
 - **Nexaon(ontology)** — Logex **`ontology` 서브모드** (`modules/nexaon/`) — IoT 온톨로지 디지털 트윈 **편집·Run·승인 UI**
 
 ### 2.2 nexia 가 담지 않는 것
@@ -76,7 +76,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/react-flow", "std/yjs", "std/t
 |  3  | `logex`  | Logex   | 추론·관계·워크플로우         | `/nexia/logex`            |
 |  4  | `scribx` | Scribx  | 코드·명세·스크립트          | `/nexia/scribx`           |
 |  5  | `vivex`  | Vivex   | 미디어·시각·청각           | `/nexia/vivex`            |
-|  6  | `twinex` | Twinex  | 디지털 트윈·엣지·NEXA-CELL | `/nexia/twinex`           |
+|  6  | `twinex` | Twinex  | 디지털 트윈·엣지·NEXA CELL | `/nexia/twinex`           |
 |  7  | `navex`  | Navex   | 파일·자산·노드 탐색         | `/nexia/navex`            |
 
 **설정 SSOT:** `domains/nexia/config/nexiaTabs.ts`
@@ -197,7 +197,7 @@ Logex 는 **두 층**으로 확정한다.
 | :--- | :--- |
 | **역할** | Logex 로직의 **실행 가능 코드·명세** |
 | **범위 내** | Monaco 협업 편집 ● · 문서 트리 ● · Lint/Formatter 체인 ◐ · Logex→코드 변환 릴레이 ○ · 배포 승인 요청 (Omnix) ◐ |
-| **범위 외** | ESPHome YAML 편집 (**Twinex/NEXA-CELL**) · 미디어 렌더 (**Vivex**) |
+| **범위 외** | ESPHome YAML 편집 (**Twinex/NEXA CELL**) · 미디어 렌더 (**Vivex**) |
 | **엔진** | Monaco + Yjs |
 | **산출물** | `.nxcode` |
 | **Left / Right** | DocTree ● / Outline · Lint ● |
@@ -218,13 +218,13 @@ Logex 는 **두 층**으로 확정한다.
 
 | 구분               | 확정 내용                                                                                                                    |
 | :--------------- | :----------------------------------------------------------------------------------------------------------------------- |
-| **역할**           | 디지털 트윈 · **NEXA-CELL** · 엣지·진단                                                                                           |
+| **역할**           | 디지털 트윈 · **NEXA CELL** · 엣지·진단                                                                                           |
 | **범위 내**         | 디바이스·셀 목록 ● · 트윈 뷰포트 (3D) ◐ · ESPHome YAML 미리보기 ● · Web Serial·OTA ○ · MQTT/실시간 상태 스트립 ◐ · `.nxproj`·`.nxdev`·`.nxgrp` ● |
 | **범위 외**         | 공장 전체 관제 대시보드 (**nexabo**) · 온톨로지 클래스 편집 (**Nexaon**)                                                                    |
 | **엔진**           | Three.js/Babylon · ESPHome · MQTT · WebSocket                                                                            |
 | **산출물**          | `.nxproj` · `.nxgrp` · `.nxdev` · `.nxdiag`                                                                              |
 | **Left / Right** | CellList ● / OTA · Serial ○                                                                                              |
-| **연계**           | PRD-004 · TDD-024(NEXA-CELL)                                                                                             |
+| **연계**           | PRD-004 · TDD-024(NEXA CELL)                                                                                             |
 |                  |                                                                                                                          |
 
 ### 5.7 Navex (`navex`) · Global Navex
