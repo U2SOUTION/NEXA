@@ -153,7 +153,7 @@ NEXA OS **하이브리드 망 분리** 원칙을 NEXIA에 적용한다. **위험
 
 | 계층            | 역할                                                                                                                                                     |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Normex**      | 정책·Norm(규범) · 인터랙티브 블록 · **MUST/SHOULD** — [`CSIM · AXON`](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) HEXAGON Who |
+| **Normex**      | 정책·Norm(규범) · 인터랙티브 블록 · **MUST/SHOULD** — [`CSIM · AXON`](../Cosmic/08_TDD_AXON-CSIM-SUM-APEX우주언어및유기적구조체통합설계표준.md) HEXAGON Who |
 | **Omnix 3단계** | Omnix(승인) → Normex(검증) → 탭 서브 에이전트 — `00` §3.4                                                                                                |
 | **LangGraph**   | **`apps/agent-graph` Normex 가드** 모든 Run **선행** — 금지: 비인가 파일 · 민감정보 출력 · 승인 없는 실행                                                            |
 | **LLM**         | CSIM 판정·범위 미통과 → **실행 차단·재추론** — Header+Body 실시간 루프는 **비LLM**                                                                       |

@@ -30,7 +30,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/next-js", "std/document-pip", 
 
 | 항목        | Web Shell                                                        | 금지                            |
 | :---------- | :--------------------------------------------------------------- | :------------------------------ |
-| **레이어**  | **ML1 Presence** — `domainKey` **무관** · 탭 밖 **항상 -on** 목표 | ML3 Run · SHACL · promoted **✗** |
+| **레이어**  | **ML_1 Presence** — `domainKey` **무관** · 탭 밖 **항상 -on** 목표 | ML_3 Run · SHACL · promoted **✗** |
 | **UI 위치** | MainShell **frame** (Omnix 레일·7 탭 **위** 시각화 층)           | NexaonShell·7 탭 **대체 ✗**     |
 | **입력**    | 마이크·VAD · Omnix 채팅 위임 · 큐 알림 SSE                       | Event Router fan-out **✗**      |
 | **출력**    | P5/Rive · TTS · Jitter/Lumina · GlobalFlow 상태                  | MQTT publish **✗**              |

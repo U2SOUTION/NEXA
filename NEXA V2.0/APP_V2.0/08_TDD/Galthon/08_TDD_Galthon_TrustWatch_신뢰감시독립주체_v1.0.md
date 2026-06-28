@@ -39,7 +39,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "nexa/Galthon", "nexa/Why-Chain"]
 | 대상 | 소유·담당 |
 | :--- | :--- |
 | **Envelope 작성·Zod** | **`Axon`** · `HEXAGON` (TDD-043) |
-| **의미 번역·CT1–CT3** | **`Cosmic`** · `CSIM` (TDD-043 · TDD-044) |
+| **의미 번역·CT_1–CT_3** | **`Cosmic`** · `CSIM` (TDD-043 · TDD-044) |
 | **Facet 산출·Ethos RULE** | **`Menton`** · DIEA · `Normex` (TDD-056) |
 | **Run · 승인 · promoted** | **Nexaon** (TDD-073) · **Ontex** (TDD-057) |
 | **물리 집행** | **Kineton** (TDD-072) |
@@ -74,7 +74,7 @@ Cold Path · Hot Path **모든 홉**을 **동일 규칙**으로 관측한다. **
 | 기술 | 관측 포인트 |
 | :--- | :--- |
 | **`Axon`** | Envelope 폐기 · Zod FAIL · VOID |
-| **`Cosmic`** | CT2 Ethos FAIL · raw uplink 시도 |
+| **`Cosmic`** | CT_2 Ethos FAIL · raw uplink 시도 |
 | **`Menton`** | `Normex` RULE 위반 · Facet 산출 이상 |
 | **Nexaon** | Run 보류 · SHACL FAIL · ingest 게이트 |
 | **Ontex** | promoted 전 쓰기 시도 · explore 불가 |
@@ -92,15 +92,15 @@ Cold Path · Hot Path **모든 홉**을 **동일 규칙**으로 관측한다. **
 | :--- | :--- | :--- | :--- |
 | Action → Knowledge | 무엇이 승인되어 실행되었나 | `Kineton` · `Ontex` promoted | trace · 기록 |
 | Knowledge → Logic | 누가·어떤 Run 으로 정재했나 | `Nexaon` · `DIEA` · SHACL diff | trace · 기록 |
-| Logic → Context | 어떤 맥락·Ethos 로 정렬되었나 | `CSIM` CT2 · `Normex` | trace · 기록 |
-| Context → Raw | 원천 Fact·Envelope 는 무엇이었나 | `HEXAGON` · ML0 Sentinel | trace · 기록 |
+| Logic → Context | 어떤 맥락·Ethos 로 정렬되었나 | `CSIM` CT_2 · `Normex` | trace · 기록 |
+| Context → Raw | 원천 Fact·Envelope 는 무엇이었나 | `HEXAGON` · ML_0 Sentinel | trace · 기록 |
 
 ### 4.2 관측 질문 · 엔진 근거
 
 | 질문 유형 | 관측 근거 (엔진) | `Galthon` 역할 |
 | :--- | :--- | :--- |
 | 왜 Envelope 폐기? | `HEXAGON` + Zod | trace · 기록 |
-| 왜 uplink 거부? | `CSIM` CT2 · `Normex` Ethos | trace · 기록 |
+| 왜 uplink 거부? | `CSIM` CT_2 · `Normex` Ethos | trace · 기록 |
 | 왜 Run 보류? | `DIEA` · `Nexaon` | trace · 기록 |
 | 왜 승인 거절? | `Normex` · Omnix | trace · 기록 |
 | 왜 promoted ✗? | `Nexaon` · SHACL | trace · 기록 |
@@ -152,6 +152,6 @@ Cold Path · Hot Path **모든 홉**을 **동일 규칙**으로 관측한다. **
 | **개념 허브** | [Global Architecture Standard](../../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md) |
 | **미션 크리티컬** | [TDD-001](../NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | **신뢰도 점수** | [TDD-053](../Identity/08_TDD_NEXA_데이터무결성과신뢰도점수.md) |
-| **Axon · Cosmic** | [TDD-043](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044](../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
+| **Axon · Cosmic** | [TDD-043](../Cosmic/08_TDD_AXON-CSIM-SUM-APEX우주언어및유기적구조체통합설계표준.md) · [TDD-044](../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
 | **Nexaon · Ontex** | [TDD-073](../NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) · [TDD-057](../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 | **엣지 · trace** | [TDD-068](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |

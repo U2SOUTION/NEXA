@@ -19,7 +19,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 >
 > **기술 ID:** **`KL`** · **6대 핵심 레이어** — [Global Architecture Standard](../../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md)
 
-**Normative 진입점:** 물리 집행·Hot Path · ROS 2 Bridge · 엣지 Reflex 의 **Kineton 전용** 규격. `ACTON` 패킷·AXON-AL6 정의는 **TDD-043** 을 따른다.
+**Normative 진입점:** 물리 집행·Hot Path · ROS 2 Bridge · 엣지 Reflex 의 **Kineton 전용** 규격. `ACTON` 패킷·AL_6 정의는 **TDD-043** 을 따른다.
 
 ---
 
@@ -29,18 +29,18 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 
 | 축 | 내용 |
 | :--- | :--- |
-| **Hot Path** | `Axon` → `HEXAGON` → `ACTON` **직결** Reflex — `Menton`·`Nexaon`·`Ontex` **우회** 가능 (PT-0~2) |
+| **Hot Path** | `Axon` → `HEXAGON` → `ACTON` **직결** Reflex — `Menton`·`Nexaon`·`Ontex` **우회** 가능 (PT_0~2) |
 | **Cold Path 집행** | `Ontex` **promoted** · 승인 Action → `ACTON` · ROS 2 — 허브 경유 **승인본만** 하향 |
 | **ACTON 실행** | PWM · MQTT · Synapse · **ACTON-GM** `programRef` — 런타임 Fetch·Verify·Execute ([TDD-043 §12](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md)) |
 | **ROS 2 Bridge** | Intent → Topic / Service / Action · 디지털 트윈·로봇 **상호운용** |
-| **역 uplink** | 물리 피드백·telemetry → `Axon` · Inverse `CSIM` CT1 — 디지털 트윈 정합 |
+| **역 uplink** | 물리 피드백·telemetry → `Axon` · Inverse `CSIM` CT_1 — 디지털 트윈 정합 |
 
 ### 1.2 Kineton 이 담지 않는 것
 
 | 대상 | 소유 | 비고 |
 | :--- | :--- | :--- |
 | **5W1H Envelope · Zod** | **`Axon`** · `HEXAGON` | TDD-043 §11 |
-| **CSIM CT1–CT3 번역** | **`Cosmic`** · `CSIM` | TDD-043 §13 · TDD-044 |
+| **CSIM CT_1–CT_3 번역** | **`Cosmic`** · `CSIM` | TDD-043 §13 · TDD-044 |
 | **Run · SHACL · promoted** | **`Nexaon`** | [TDD-073](../Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
 | **영구 지식 고착** | **`Ontex`** | TDD-057 |
 | **Why-Chain 감시** | **`Galthon`** | [TDD-074](../../Galthon/08_TDD_Galthon_TrustWatch_신뢰감시독립주체_v1.0.md) — **흐름 비참여** |
@@ -50,7 +50,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 | 이름 | 정체 |
 | :--- | :--- |
 | **Kineton** | 6대 레이어 **Physical Bridge** · 기술 ID **`KL`** |
-| **ACTON** | `Axon` 스택 **AXON-AL6** 실행 어휘 — **Kineton** 이 **소비·집행** |
+| **ACTON** | `Axon` 스택 **AL_6** 실행 어휘 — **Kineton** 이 **소비·집행** |
 | **ACTON-GM** | G/M · `programRef` — CNC·로봇 등 **선택** 도메인 ([TDD-043 §12.3](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md)) |
 | **NEXAON** (프로토콜) | Axon 해석·학습 층 — **제품 Nexaon ✗** |
 
@@ -69,14 +69,14 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
   (Menton · Nexaon · Ontex 우회 · 동일 Axon 규격 유지)
 
 [Fast · Reflex]  (엣지 말단)
-  ML0 Sentinel ACTON → 물리 (<50ms) — 후보고만 상행 · DB 우회
+  ML_0 Sentinel ACTON → 물리 (<50ms) — 후보고만 상행 · DB 우회
 ```
 
 | Path | Stack 관여 | DB·Ontex | Kineton 역할 |
 | :--- | :--- | :--- | :--- |
 | **Cold → Physical** | 승인 Action 만 | promoted **필수** | 허브 승인본 **집행** |
 | **Hot Path** | `HEXAGON` shell | **우회** | 말단 **즉시 Reflex** |
-| **Fast · Reflex** | ML0 `ACTON` | **우회** | Nano/Kinetic **현장 제어** |
+| **Fast · Reflex** | ML_0 `ACTON` | **우회** | Nano/Kinetic **현장 제어** |
 
 **원칙:** Hot/Cold **경로 분리** — Reflex 는 `Ontex` 없이 가능하나 **`Axon` Envelope 규격** 은 동일 ([TDD-039](../AI/08_TDD_AI_안전대책선조치로직.md) GOVERN · interlock **우회 ✗**).
 
@@ -88,10 +88,10 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 
 | 피지컬 티어 | 주체 | Kineton 관여 | 비고 |
 | :---: | :--- | :--- | :--- |
-| **PT-0** | Nano Sentinel | **ACTON Reflex** · PWM/MQTT | COLD · uplink 후보만 |
-| **PT-1** | Micro Sentinel | 1차 요약·게이트 _(선택)_ | 집행 보조 |
-| **PT-2** | Kinetic Controller | **Fast Path** · TensorRT/SLM JSON 제어 | 현장 Decision |
-| **PT-3** | Zenith Indicator | Cold Path **승인 Action** 하향 · ROS 2 허브 | **Run UI ✗** |
+| **PT_0** | Nano Sentinel | **ACTON Reflex** · PWM/MQTT | COLD · uplink 후보만 |
+| **PT_1** | Micro Sentinel | 1차 요약·게이트 _(선택)_ | 집행 보조 |
+| **PT_2** | Kinetic Controller | **Fast Path** · TensorRT/SLM JSON 제어 | 현장 Decision |
+| **PT_3** | Zenith Indicator | Cold Path **승인 Action** 하향 · ROS 2 허브 | **Run UI ✗** |
 
 ---
 
@@ -116,7 +116,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 | 매핑 | NEXA 측 | ROS 2 측 |
 | :--- | :--- | :--- |
 | **Intent** | `ACTON` · 승인 Action body | `geometry_msgs` / `std_msgs` / 도메인 Action |
-| **상태** | Inverse `CSIM` CT1 · Envelope | `/joint_states` · custom telemetry |
+| **상태** | Inverse `CSIM` CT_1 · Envelope | `/joint_states` · custom telemetry |
 | **안전** | GOVERN · VOID · STUCK | estop · watchdog ([TDD-039](../AI/08_TDD_AI_안전대책선조치로직.md)) |
 
 **원칙:** ROS 2 는 **미들웨어** — NEXA 논리·Ethos 는 **`Axon`·`Cosmic`** 층에서 선행 정렬.
@@ -140,7 +140,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/ros-2", "std/mqtt", "nexa/Kine
 | :--- | :--- | :--- |
 | **Cold · Distillation** | `stateBus` → `DIEA` → `Nexaon` → `Ontex` | **필수** |
 | **Hot** | `DIEA` Normex·Logex → `erp` | **우회** |
-| **Fast · Reflex** | ML0 `ACTON` → **Kineton** | **우회** · 후보고만 상행 |
+| **Fast · Reflex** | ML_0 `ACTON` → **Kineton** | **우회** · 후보고만 상행 |
 
 ---
 

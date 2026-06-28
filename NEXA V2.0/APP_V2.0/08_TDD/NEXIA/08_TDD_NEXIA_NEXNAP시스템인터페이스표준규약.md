@@ -79,5 +79,5 @@ HEXAGON Protocol(5W1H 토큰)과 의미 매트릭스를 탭 간 릴레이·AI �
 | 관계 | 문서 |
 | :--- | :--- |
 | 상위 TDD | [NEXIA 구조 · 기술 스택 운영 방침 (TDD-010)](./08_TDD_NEXIA_구조기술스택운영방침.md) |
-| CSIM · AXON | [CSIM · AXON 프로토콜 정본 (TDD-043)](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |
+| CSIM · AXON | [CSIM · AXON 프로토콜 정본 (TDD-043)](../Cosmic/08_TDD_AXON-CSIM-SUM-APEX우주언어및유기적구조체통합설계표준.md) |
 | MQTT 라우팅 | [MQTT 토픽 · 데이터 라우팅 (TDD-022)](./08_TDD_NEXIA_MQTT토픽데이터라우팅.md) |

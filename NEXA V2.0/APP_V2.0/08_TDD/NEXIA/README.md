@@ -48,7 +48,7 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 
 [Cells/README](./Cells/README.md) — ESPHome YAML · Lambda · ESP32 등록 (구 `/nexa-node` 통합)
 
-## NIXIE · ML1 Presence Shell
+## NIXIE · ML_1 Presence Shell
 
 [Nixie/README](./Nixie/README.md) — **4 Shell 채널** (Web · Desktop · Mobile · Physical) · [`TDD-070` §3.6.2](..\..\용어집_NEXA전용_v2.0.md)
 
@@ -76,4 +76,4 @@ NEXIA 도메인(`nexia`) — 7탭 셸·프로토콜·제너레이터·보안. �
 | :--- | :--- |
 | UIUX | [07_UIUX_NEXIA_MainShell_레이아웃_v1.0](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · [07_UIUX_NEXIA_컴포넌트트리뼈대](../../07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) |
 | AI | [Yjs SSOT (TDD-038)](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md) · [모델·런타임 배치 (TDD-066)](../AI/08_TDD_AI_모델·런타임·엔진배치_v1.0.md) |
-| Cosmic | [CSIM · AXON](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |
+| Cosmic | [CSIM · AXON](../Cosmic/08_TDD_AXON-CSIM-SUM-APEX우주언어및유기적구조체통합설계표준.md) |

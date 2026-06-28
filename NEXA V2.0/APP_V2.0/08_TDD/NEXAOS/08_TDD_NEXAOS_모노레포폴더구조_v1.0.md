@@ -536,7 +536,7 @@ packages/shared/src/tabonto/host/
 | 비전 · 아키텍처    | [`인간-LLM 실시간 협업형 IoT 온톨로지 플랫폼`](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | Yjs · Hocuspocus   | [`08_TDD_AI_YjsHocuspocus협업SSOT`](../AI/08_TDD_AI_YjsHocuspocus협업SSOT.md)                               |
 | RAG · NEXAVULT     | [RAG · 페르소나 아카이브 전략 (TDD-036)](../AI/08_TDD_AI_RAG페르소나아카이브전략.md) · [지식 운영체제 · API 운영정책](../Knowledge/08_TDD_Knowledge_지식운영체제_API운영정책.md) |
-| AXON · HEXAGON     | [`CSIM · AXON (정본)`](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |
+| AXON · HEXAGON     | [`CSIM · AXON (정본)`](../Cosmic/08_TDD_AXON-CSIM-SUM-APEX우주언어및유기적구조체통합설계표준.md) |
 | **TabOnto EXTEND** | [[TabOnto 지식 밸런서 · 지적 시그니처 규격]](../../EXTEND/TabOnto 지식 밸런서 · 지적 시그니처 규격.md) · [[TabOnto 브라우저 대시보드 및 사이드바 키워드 자산 허브]](../../EXTEND/TabOnto 브라우저 대시보드 및 사이드바 키워드 자산 허브.md) |
 
 ---

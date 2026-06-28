@@ -17,7 +17,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/langgraph", "std/rag", "std/mc
 # 에이전틱 AI 파이프라인 · NEXIA 7 탭 · 플랫폼·Yjs 연계 v1.0
 
 > **doc_id:** TDD-067 · **상태:** published — 4 단계 파이프라인 · **nexia 7 탭** · **Ontex** · **Yjs Human·LLM** · NEXA OS 연계.
-> **짝 문서 (엣지 상류·하향):** [TDD-068 · IoT 엣지…](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) — uplink · **downlink** · HEXAGON · **Event Router** · **Nexaon(ML3) · Nixie(ML1)** · §7.5 · **§7.6**
+> **짝 문서 (엣지 상류·하향):** [TDD-068 · IoT 엣지…](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) — uplink · **downlink** · HEXAGON · **Event Router** · **Nexaon(ML_3) · Nixie(ML_1)** · §7.5 · **§7.6**
 > **NEXA AIS:** 6 종 **정본 승격 완료** — [08_TDD/AI/README](../AI/README.md) · TDD-033~041
 
 ---
@@ -101,7 +101,7 @@ User Query (Omnix)              엣지 후보고 (Sentinel · MQTT)
     │
     └──► Navex 등록 ──► ontex ingest (장기 허브)
 
-Nixie (ML1): Router nixie.alert + Run SSE ──► TTS · Jitter (표현만)
+Nixie (ML_1): Router nixie.alert + Run SSE ──► TTS · Jitter (표현만)
 
 Downlink (§7.6): ③ Planning ──► esphome_compose · 빌드 ──► USB/OTA ──► 엣지
       ▲                                              │
@@ -124,7 +124,7 @@ Downlink (§7.6): ③ Planning ──► esphome_compose · 빌드 ──► USB
 | **Nixie** _(frame)_ | ◐ **엣지 FACT** · Router `nixie.alert` 알림 | — | — | ◐ TTS·요약 **표현** | _(`.nx*` ✗)_ |
 | **nexabo** _(domainKey)_ | ● Live Feed · **엣지 후보고** 미러 | ◐ 알람 correlate UI | ◐ Event Router 규칙 편집 | — | 관제 trace |
 
-**Nixie** — `tabId` **✗** · MainShell **ML1 Presence** · IoT uplink **MQTT 직결 ✗** — [`짝 문서 §1.6`](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · **§7.5**
+**Nixie** — `tabId` **✗** · MainShell **ML_1 Presence** · IoT uplink **MQTT 직결 ✗** — [`짝 문서 §1.6`](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · **§7.5**
 
 **Nexaon(ontology)** — 별도 `tabId` 가 아니라 **`logex` + `logexSubMode: ontology`** (`modules/nexaon/`). ② Reasoning · ③ Planning · ④ Writing 의 **IoT 온톨로지** 핵심면.
 
@@ -171,19 +171,19 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 
 > **SSOT:** [짝 문서 · IoT 파이프라인](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) §1.4 · §1.6 · §1.6.6 · [TDD-070 §3.4.1](../../용어집_NEXA전용_v2.0.md)
 
-본 절은 **클라우드 4 단계 에이전트 파이프라인**과 **IoT 엣지 상류 (Sentinel · 후보고)** · **Nixie(ML1)** · **Event Router Policy** 의 접점을 정의한다.
+본 절은 **클라우드 4 단계 에이전트 파이프라인**과 **IoT 엣지 상류 (Sentinel · 후보고)** · **Nixie(ML_1)** · **Event Router Policy** 의 접점을 정의한다.
 
 **원칙**
 
 | 주체 | 4 단계 파이프라인에서 | 금지 |
 | :--- | :--- | :--- |
-| **Sentinel (ML0)** | ① Gathering **입력 원천** — FACT·후보고 uplink | 플랫폼 Run · Yjs **✗** |
+| **Sentinel (ML_0)** | ① Gathering **입력 원천** — FACT·후보고 uplink | 플랫폼 Run · Yjs **✗** |
 | **Event Router** | staging → **match·refine·route** (Normex·GOVERN·사용자 규칙) | MQTT downlink · promoted **직접 ✗** |
 | **Throttle · Buffer** | bus **→ Router** — Envelope 큐·집계 | 라우팅·Run **소유 ✗** · **§8.2.1 ②** |
 | **Ingress Gate** | **Broker → validate** — burst 진입 차단 | 장기 버퍼·Router **✗** · **§8.2.1 ①** |
-| **Nexaon / agent-graph (ML3)** | ② Reasoning · ③ Planning · ④ Writing (IoT 온톨로지) | — |
-| **Nixie (ML1)** | Router **`nixie.alert`** · Run SSE · Awareness **표현** | Run·Router·MQTT **소유 ✗** |
-| **Omnix (ML3)** | ③ Planning · 승인 · `nexia_tab_delegate` | — |
+| **Nexaon / agent-graph (ML_3)** | ② Reasoning · ③ Planning · ④ Writing (IoT 온톨로지) | — |
+| **Nixie (ML_1)** | Router **`nixie.alert`** · Run SSE · Awareness **표현** | Run·Router·MQTT **소유 ✗** |
+| **Omnix (ML_3)** | ③ Planning · 승인 · `nexia_tab_delegate` | — |
 
 #### 7.5.1 엣지 6 단계 ↔ Agentic 4 Phase
 
@@ -199,7 +199,7 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 #### 7.5.2 End-to-End (엣지 · 4 Phase · Nixie)
 
 ```text
-[ML0 Sentinel] 후보고 (candidate:true)
+[ML_0 Sentinel] 후보고 (candidate:true)
       │ MQTT
 [Broker]
       │
@@ -219,7 +219,7 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
       ├──────── nexia.twinex ───────► Twinex → ②/③ 컨텍스트
       ├──────── nexaon.queue/ingest ► ② Reasoning (nexaon_ingest)
       ├──────── agent-graph.critical ► ② Reasoning (Zenith 1차)
-      └──────── nixie.alert ──────────► Nixie ML1 (TTS · Jitter) — MQTT ✗
+      └──────── nixie.alert ──────────► Nixie ML_1 (TTS · Jitter) — MQTT ✗
                 │
                 ▼ Omnix · Run
          ② Reasoning → ③ Planning → ④ Writing
@@ -230,7 +230,7 @@ UI 는 Run 을 트리거만 하고, 4 단계 로직은 **`apps/agent-graph`** St
 
 ```mermaid
 flowchart TB
-  subgraph ML0 [ML0 · IoT 엣지 · 짝 문서 ①~③]
+  subgraph ML_0 [ML_0 · IoT 엣지 · 짝 문서 ①~③]
     S[Sentinel · HEXAGON]
     CR[후보고 Envelope]
     S --> CR
@@ -266,7 +266,7 @@ flowchart TB
     OT --> NV
   end
 
-  subgraph ML1 [Nixie · ML1 · 표현]
+  subgraph ML_1 [Nixie · ML_1 · 표현]
     NI[Nixie Shell]
     USER((사용자))
     ERP -->|nixie.alert SSE| NI
@@ -276,7 +276,7 @@ flowchart TB
     NI --> USER
   end
 
-  ML0 -.->|Reflex ACTON| S
+  ML_0 -.->|Reflex ACTON| S
 ```
 
 #### 7.5.3 User Query vs 엣지 후보고 (합류)
@@ -315,13 +315,13 @@ flowchart TB
 | **Uplink** _(§7.5)_ | Sentinel → MQTT → Nest → Event Router | ① Gathering → ②③④ | nexabo · Nexaon · Nixie(표현) |
 | **Generate** | Twinex/Logex → YAML·Lambda → `.bin` | ③ Planning → ④ Writing | **Twinex** · `esphome_compose` |
 | **Push** | USB(Web Serial) · OTA(MQTT `cmd/ota`) | ③ Planning _(고위험)_ | Twinex · Nest `esphome/` |
-| **Control** | `cmd/*` · GOVERN · Reflex ACTON | ③ Planning _(승인)_ · ML0 즉시 | Omnix · Nest · **Sentinel** |
+| **Control** | `cmd/*` · GOVERN · Reflex ACTON | ③ Planning _(승인)_ · ML_0 즉시 | Omnix · Nest · **Sentinel** |
 | **Feedback** | `…/status` · OTA ACK · 배포 trace | ① Gathering _(재유입)_ | Event Router → Twinex · nexabo |
 
 ```text
                     ┌─── Generate ─── esphome_compose · Docker build ───┐
                     │                                                  ▼
-[Human/Omnix] ──③④──► Twinex (.nxproj) ──Push──► [USB | OTA MQTT] ──► [ML0 Device]
+[Human/Omnix] ──③④──► Twinex (.nxproj) ──Push──► [USB | OTA MQTT] ──► [ML_0 Device]
        ▲                    ▲                           │                  │
        │                    │                           │                  │ ACTON Reflex
        │                    └──── Feedback (status/FACT) ◄─────────────────┘
@@ -379,10 +379,10 @@ Omnix 승인 → Nest downlink API → publish
 
 | 계층 | 주체 | 지연 | Agentic Phase | Event Router |
 | :--- | :--- | :--- | :--- | :--- |
-| **ML0 Reflex** | Sentinel **ACTON** | ms | _(플랫폼 **이전**)_ | uplink **후보고 병행** |
-| **ML0~ML1 GOVERN** | Nest → MQTT 파라미터 | 주기 | ③ Planning → ④ (규범 `.nxpol`) | **match** 후 downlink 큐 |
-| **ML2 명령** | `cmd/*` (OTA·릴레이·setpoint) | s | ③ **Omnix 승인** 필수 | Router **직접 cmd ✗** |
-| **ML2 UI** | Twinex 디바이스 패널 | 스로틀 | ②③ 컨텍스트 | MQTT **고주파 Yjs ✗** — §9.6 |
+| **ML_0 Reflex** | Sentinel **ACTON** | ms | _(플랫폼 **이전**)_ | uplink **후보고 병행** |
+| **ML_0~ML_1 GOVERN** | Nest → MQTT 파라미터 | 주기 | ③ Planning → ④ (규범 `.nxpol`) | **match** 후 downlink 큐 |
+| **ML_2 명령** | `cmd/*` (OTA·릴레이·setpoint) | s | ③ **Omnix 승인** 필수 | Router **직접 cmd ✗** |
+| **ML_2 UI** | Twinex 디바이스 패널 | 스로틀 | ②③ 컨텍스트 | MQTT **고주파 Yjs ✗** — §9.6 |
 
 **제어 vs uplink 분리 (Normative)**
 
@@ -426,7 +426,7 @@ flowchart TB
     OM --> OTA
   end
 
-  subgraph ML0 [ML0 · Device]
+  subgraph ML_0 [ML_0 · Device]
     DEV[ESP32 · Sentinel]
     USB --> DEV
     OTA --> DEV
@@ -514,34 +514,34 @@ awareness: {
 
 NIXIE·StatusBar 는 Awareness `status` 와 동기화 — [`UIX-004` §4.6](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md).
 
-### 9.2.1 Nexaon(ML3) · Nixie(ML1) · Event Router — 지능 vs 표현
+### 9.2.1 Nexaon(ML_3) · Nixie(ML_1) · Event Router — 지능 vs 표현
 
 > **엣지·IoT · 4 Phase · downlink:** **§7.5** · **§7.6** · [짝 문서 §1.4 · §1.6.3 · §1.6.6](./08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · [TDD-045 §5](../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md)
 
 | 주체 | 층 | 본 파이프라인 (4 단계) 에서 |
 | :--- | :---: | :--- |
 | **Event Router** | Nest Policy | ① Gathering **fan-out** — match·refine·route (Normex·GOVERN·사용자) |
-| **Nexaon** · **agent-graph** | ML3 | ② Reasoning · ③ Planning · ④ Writing — Run · `graph_diff` · SHACL · promoted |
-| **Omnix** | ML3 | Run 큐 · 승인 · 탭 위임 |
-| **Nixie (NIXIE)** | ML1 | Run·Router·MQTT **소유 ✗** — `nixie.alert` · SSE · Awareness · Jitter/Lumina |
+| **Nexaon** · **agent-graph** | ML_3 | ② Reasoning · ③ Planning · ④ Writing — Run · `graph_diff` · SHACL · promoted |
+| **Omnix** | ML_3 | Run 큐 · 승인 · 탭 위임 |
+| **Nixie (NIXIE)** | ML_1 | Run·Router·MQTT **소유 ✗** — `nixie.alert` · SSE · Awareness · Jitter/Lumina |
 
 ```mermaid
 flowchart LR
-  subgraph edge [ML0 · IoT]
+  subgraph edge [ML_0 · IoT]
     CR[후보고]
   end
   subgraph router [Event Router]
     ERP[Policy]
     CR -->|MQTT·Nest| ERP
   end
-  subgraph ML3 [ML3 · Strategic]
+  subgraph ML_3 [ML_3 · Strategic]
     OM[Omnix]
     AG[agent-graph]
     NX[Nexaon]
     ERP -->|nexaon.ingest| OM
     OM --> AG --> NX
   end
-  subgraph ML1 [ML1 · Presence]
+  subgraph ML_1 [ML_1 · Presence]
     NI[Nixie]
     USER((사용자))
     ERP -->|nixie.alert| NI
@@ -676,10 +676,10 @@ sequenceDiagram
 flowchart TB
   subgraph shell [NEXA OS · MainShell]
     MS[domainLayoutRegistry]
-    NI["Nixie ML1 · frame<br/>표현 전용 셸 · Run·라우터 소유 ✗"]
+    NI["Nixie ML_1 · frame<br/>표현 전용 셸 · Run·라우터 소유 ✗"]
   end
 
-  subgraph edge [ML0 · IoT 엣지 · §7.5 · §7.6]
+  subgraph edge [ML_0 · IoT 엣지 · §7.5 · §7.6]
     CR[Sentinel 후보고]
     DEV[Device · ACTON]
     CR --> DEV
@@ -703,7 +703,7 @@ flowchart TB
   subgraph nexia [domainKey · nexia · 7 tabId]
     OX[omnix]
     NX[normex · logex · scribx · vivex · twinex · navex]
-    NA["Nexaon · ontology<br/>ML3 지능 · Run·SHACL · 승격"]
+    NA["Nexaon · ontology<br/>ML_3 지능 · Run·SHACL · 승격"]
     OX --> NX
     NX --> NA
   end
@@ -813,7 +813,7 @@ MQTT → Broker → IG → Nest validate · staging → bus
 | **Nexaon** | Logex `ontology` 모듈 | ②③④ IoT 온톨로지 |
 | **Ontex** | 지식 허브 `domainKey` | ① + promoted 탐색 |
 | **Nexion** | Ontex `canvas` **표시명** | 장기 그래프 UI |
-| **Nixie** | MainShell **ML1 Presence** | ①~④ **표현** · MQTT **✗** · **§7.5** |
+| **Nixie** | MainShell **ML_1 Presence** | ①~④ **표현** · MQTT **✗** · **§7.5** |
 | **Event Router** | Nest **Policy** 모듈 | ① Gathering fan-out · ingest 트리거 · **downlink ✗** |
 | **Ingress Gate** | Nest **Broker 직후** | burst **진입 차단** · **§8.2.1 ①** |
 | **Throttle · Buffer** | **bus → Router** | Envelope **큐·집계** · **§8.2.1 ②** |

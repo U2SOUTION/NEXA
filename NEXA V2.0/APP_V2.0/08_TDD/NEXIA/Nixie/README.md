@@ -1,4 +1,4 @@
-# 08_TDD / NEXIA / Nixie (NIXIE · ML1 Presence Shell)
+# 08_TDD / NEXIA / Nixie (NIXIE · ML_1 Presence Shell)
 
 **NIXIE(닉시)** 의 **4 Shell 채널** 전용 TDD. 공통 정의·경계는 [`TDD-070` §3.6.1~3.6.2](../../../용어집_NEXA전용_v2.0.md) · [`TDD-045` §5~6](../../Knowledge/08_TDD_Knowledge_디렉토리책임및기획자원경로.md).
 

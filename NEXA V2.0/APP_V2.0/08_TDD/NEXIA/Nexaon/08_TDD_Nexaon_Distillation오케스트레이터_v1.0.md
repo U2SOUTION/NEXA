@@ -9,13 +9,13 @@ updated: 2026-06-13
 parent_doc: TDD-008
 see_also: [TDD-056, TDD-068, TDD-057, TDD-071, TDD-070, TDD-043, TDD-044, TDD-072]
 terms_standard: ["langgraph", "yjs", "react-flow", "shacl", "sse"]
-terms_nexa: [Nexaon, NexaonShell, nexia, DIEA, Logex, ontology, Omnix, Ontex, agent-graph, promoted, CSIM, HEXAGON, ML3, Menton]
+terms_nexa: [Nexaon, NexaonShell, nexia, DIEA, Logex, ontology, Omnix, Ontex, agent-graph, promoted, CSIM, HEXAGON, ML_3, Menton]
 tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/langgraph", "std/yjs", "std/shacl", "nexa/Nexaon"]
 ---
 
 # Nexaon · Distillation 오케스트레이터 v1.0
 
-> **한 줄:** **`Nexaon`** 은 `nexia` · **DIEA** Distillation **Cold Path** 의 **ML3 오케스트레이터** — ingest · LangGraph Run · Human 승인 · SHACL → **`Ontex` promoted** 전 단계 **소유**. Logex **`ontology` 서브모드** · **NexaonShell** UI.
+> **한 줄:** **`Nexaon`** 은 `nexia` · **DIEA** Distillation **Cold Path** 의 **ML_3 오케스트레이터** — ingest · LangGraph Run · Human 승인 · SHACL → **`Ontex` promoted** 전 단계 **소유**. Logex **`ontology` 서브모드** · **NexaonShell** UI.
 >
 > **기술 ID:** **`NL`** · **엣지 uplink·파이프라인** = [TDD-068](../08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · **물리 집행** = [TDD-072](../Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md)
 
@@ -39,11 +39,11 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/langgraph", "std/yjs", "std/sh
 | 대상 | 소유 |
 | :--- | :--- |
 | **HEXAGON Envelope 작성** | **`Axon`** (TDD-043 §11) |
-| **CSIM CT1·CT2** | **`Cosmic`** (TDD-043 §13) |
+| **CSIM CT_1·CT_2** | **`Cosmic`** (TDD-043 §13) |
 | **DIEA Facet 산출·Hot Path ERP** | **DIEA** · Facet별 domain |
 | **promoted 고착·Graph RAG** | **`Ontex`** (TDD-057) |
 | **물리 집행** | **`Kineton`** (TDD-072) |
-| **ML1 표현·TTS** | **Nixie** |
+| **ML_1 표현·TTS** | **Nixie** |
 
 ### 1.3 명칭 · 호스트
 
@@ -68,7 +68,7 @@ nexia (domainKey)
 | :--- | :--- |
 | **Slow · Distillation** | **전 구간 소유** (ingest → SHACL) |
 | **Hot Path** | **✗** — DIEA Normex·Logex → `erp` |
-| **Fast · Reflex** | **✗** — Kineton ML0 ACTON |
+| **Fast · Reflex** | **✗** — Kineton ML_0 ACTON |
 
 상세 엣지→플랫폼 단계: [TDD-068 §5–7](../08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) · 전역 흐름 = [Global Architecture §Why-Chain](../../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md).
 
@@ -105,8 +105,8 @@ nexia (domainKey)
 
 | 허용 | 금지 |
 | :--- | :--- |
-| `CSIM` CT1·CT2 **정렬 토큰** | 레지스터 raw · GPIO 스트림 |
-| `nexaon_ingest` 큐 Envelope | Nixie ML1 payload |
+| `CSIM` CT_1·CT_2 **정렬 토큰** | 레지스터 raw · GPIO 스트림 |
+| `nexaon_ingest` 큐 Envelope | Nixie ML_1 payload |
 | Human 편집 · DIEA correlate | Ethos FAIL payload |
 
 > **HEXAGON vs CSIM vs Nexaon:** [TDD-043 §2.3 · §13](../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044 §2.3](../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md)
@@ -154,7 +154,7 @@ nexia (domainKey)
 ## 8. 구현 체크리스트 (초안)
 
 - [ ] `nexaon_ingest` · Event Router 연동
-- [ ] CSIM CT2 PASS Envelope 만 ingest
+- [ ] CSIM CT_2 PASS Envelope 만 ingest
 - [ ] Omnix · SHACL · promoted 파이프라인
 - [ ] Deep link `?from=nexabo|nixie|twinex&trace_id=`
 - [ ] Hot Path · Kineton 과 **경로 분리** 검증
@@ -167,8 +167,8 @@ nexia (domainKey)
 
 | 엔진 | Nexaon 관점 담당 | 상위·동급이 **안 받는 것** |
 | :--- | :--- | :--- |
-| `HEXAGON` | Envelope · Zod | — _(ML0·게이트 완료)_ |
-| `CSIM` | CT1–CT3 **정렬 토큰** | Run · promoted **소유 ✗** |
+| `HEXAGON` | Envelope · Zod | — _(ML_0·게이트 완료)_ |
+| `CSIM` | CT_1–CT_3 **정렬 토큰** | Run · promoted **소유 ✗** |
 | `DIEA` | Facet 산출 | promoted 직접 쓰기 |
 | `Normex` | Ethos · RULE | Run 단독 종결 |
 | **`Nexaon`** | Run · SHACL · CT3R | Nixie payload · Hot Path |
@@ -186,7 +186,7 @@ nexia (domainKey)
 | **LangGraph** | [TDD-008](../../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) |
 | **7 탭·Facet** | [TDD-056](../08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | **고착** | [TDD-057](../../Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
-| **Axon · Cosmic** | [TDD-043](../../Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) · [TDD-044](../../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
+| **Axon · Cosmic** | [TDD-043](../../Cosmic/08_TDD_AXON-CSIM-SUM-APEX우주언어및유기적구조체통합설계표준.md) · [TDD-044](../../Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
 | **물리 집행** | [TDD-072](../Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) |
-| **용어 · ML3** | [TDD-070 §3.2.1](../../용어집_NEXA전용_v2.0.md) |
+| **용어 · ML_3** | [TDD-070 §3.2.1](../../용어집_NEXA전용_v2.0.md) |
 | **전역 아키텍처** | [Global Architecture Standard](../../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md) |

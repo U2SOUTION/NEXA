@@ -145,7 +145,7 @@ terms_nexa: []
 | TDD-067 | 에이전틱 AI 파이프라인 · 7탭 · 플랫폼·Yjs 연계 v1.0 | NEXIA | TDD-056 | — | langgraph, rag, mcp, agentic-ai, yjs, crdt, hocuspocus, mqtt | nexia, Ontex, Omnix, Nexaon, Navex, Nixie, agent-graph, apps-sync, tabId, Graph-RAG | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) |
 | TDD-068 | IoT 엣지 데이터 파이프라인 · HEXAGON · Nexaon 연계 v1.0 | NEXIA | TDD-022 | — | mqtt, esphome, protobuf, shacl, langgraph | HEXAGON, NEXNAP, Envelope, ACTON, NEXA-CELL, Twinex, Nexaon, EventRouter, Nixie | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
 | TDD-072 | Kineton · Physical Bridge · ACTON · ROS 2 v1.0 | NEXIA | TDD-043 | — | ros-2, mqtt, pwm, protobuf | Kineton, ACTON, HEXAGON, AXON, Hot-Path, Physical-Tier | 미완 | 0/1 | [08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md](./08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) |
-| TDD-073 | Nexaon · Distillation 오케스트레이터 v1.0 | NEXIA | TDD-008 | — | langgraph, yjs, react-flow, shacl, sse | Nexaon, NexaonShell, nexia, DIEA, promoted, ML3 | 미완 | 0/1 | [08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md](./08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
+| TDD-073 | Nexaon · Distillation 오케스트레이터 v1.0 | NEXIA | TDD-008 | — | langgraph, yjs, react-flow, shacl, sse | Nexaon, NexaonShell, nexia, DIEA, promoted, ML_3 | 미완 | 0/1 | [08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md](./08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
 | TDD-057 | Ontex · 기술 스택 운영 방침 v1.0 | Ontex | TDD-071 | — | langgraph, pgvector, neo4j, rdf, json-ld, shacl, react-flow, yjs, zod | Ontex, Nexion, subRoute, Graph-RAG, NEXAVULT, canvas, explore, trace, archive | 완료 | 1/1 · 6 링크 | [08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md](./08_TDD/Ontex/08_TDD_Ontex_기술스택운영방침_v1.0.md) |
 
 ## 08_TDD — NEXIA / Nixie (4)
@@ -201,7 +201,7 @@ terms_nexa: []
 
 | doc_id | title | domain | parent_doc | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
-| TDD-043 | CSIM · AXON 프로토콜 정본 | NEXAOS | TDD-001 | mqtt, protobuf, pwm | CSIM, AXON, APEX, HEXAGON, ACTON, NEXAVULT | 완료 | 1/1 · 3 링크 | [08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md](./08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md) |
+| TDD-043 | CSIM · AXON 프로토콜 정본 | NEXAOS | TDD-001 | mqtt, protobuf, pwm | CSIM, AXON, APEX, HEXAGON, ACTON, NEXAVULT | 완료 | 1/1 · 3 링크 | [08_TDD/Cosmic/08_TDD_CSIM_AXON프로토콜_정본.md](08_TDD/Cosmic/08_TDD_AXON-CSIM-SUM-APEX우주언어및유기적구조체통합설계표준.md) |
 | TDD-044 | Cosmic Language · 전역 데이터 아키텍처 | NEXAOS | TDD-043 | ontology, 3d-mapping | Cosmic-Language, CLA, APEX, NEXAVULT, Self-Verification | 완료 | 1/1 · 2 링크 | [08_TDD/Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md](./08_TDD/Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
 
 ## 08_TDD — Galthon (1)

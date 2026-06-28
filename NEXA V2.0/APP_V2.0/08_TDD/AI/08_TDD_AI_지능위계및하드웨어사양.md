@@ -14,9 +14,9 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 
 > **레거시 출처:** 「NEXA AIS Intelligence Hierarchy & Spec」→ **본 문서(TDD-040)가 정본**.
 >
-> **문서 중심축:** **피지컬 티어 (Physical Placement Tier)** — 하드웨어 배치·연산 자원 할당의 **절대 기준**. **지능 위계** = 각 티어의 **주체 명칭** (Nano/Micro/Kinetic/Zenith). **ML0–ML3** · **Core Engine Stack** 과 **1:1 ✗** — [Global Architecture §배치](../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md). **배치:** **PT-3 허브** + **PT-0~2·Nixie 샤드** ([§0.1](#01-hub-and-spoke-배치-원칙-normative)).
+> **문서 중심축:** **피지컬 티어 (Physical Placement Tier)** — 하드웨어 배치·연산 자원 할당의 **절대 기준**. **지능 위계** = 각 티어의 **주체 명칭** (Nano/Micro/Kinetic/Zenith). **ML_0–ML_3** · **Core Engine Stack** 과 **1:1 ✗** — [Global Architecture §배치](../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md). **배치:** **PT_3 허브** + **PT_0~2·Nixie 샤드** ([§0.1](#01-hub-and-spoke-배치-원칙-normative)).
 
-센티널(반사 신경)과 인디케이터(전략적 뇌)가 **피지컬 티어**별로 최적화된 하드웨어에서 구동되도록 설계한다. **PT-3 (Zenith)** 에 Core Engine **통합·기억**이 집결하고, **PT-0~2** 에 **Local Reflex** 가 분산되는 **Hub-and-Spoke** 구조로 연산 부하를 분산하고 실시간 반응성을 확보하는 **피지컬 티어 · 하드웨어 사양서**이다.
+센티널(반사 신경)과 인디케이터(전략적 뇌)가 **피지컬 티어**별로 최적화된 하드웨어에서 구동되도록 설계한다. **PT_3 (Zenith)** 에 Core Engine **통합·기억**이 집결하고, **PT_0~2** 에 **Local Reflex** 가 분산되는 **Hub-and-Spoke** 구조로 연산 부하를 분산하고 실시간 반응성을 확보하는 **피지컬 티어 · 하드웨어 사양서**이다.
 
 ---
 
@@ -24,26 +24,26 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 
 | 축 | 호칭 (한·영) | 질문 | 개수 | SSOT |
 | :--- | :--- | :--- | :---: | :--- |
-| **① 피지컬 티어** | 피지컬 티어 · Physical Placement Tier | **어디서** 연산하나 | **4** (PT-0~3) | **본 문서 (TDD-040)** |
-| **② 논리 계층** | **Menton** (Intelligence Stack) | **소프트웨어상** 어떤 역할 층인가 | **4** (ML0–ML3) | [용어집 §3.2.0~3.2.1](../../용어집_NEXA전용_v2.0.md) · [TDD-068 §1.4](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
+| **① 피지컬 티어** | 피지컬 티어 · Physical Placement Tier | **어디서** 연산하나 | **4** (PT_0~3) | **본 문서 (TDD-040)** |
+| **② 논리 계층** | **Menton** (Intelligence Stack) | **소프트웨어상** 어떤 역할 층인가 | **4** (ML_0–ML_3) | [용어집 §3.2.0~3.2.1](../../용어집_NEXA전용_v2.0.md) · [TDD-068 §1.4](../NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
 | **③ 핵심 엔진** | Core Engine Stack · 핵심엔진 스택 | **무엇이** 기능을 수행하나 | **6** _(가변)_ | [Global Architecture](../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md) |
 
-> **금지 혼동:** `지능 계층` **deprecated** → **피지컬 티어**. **6엔진** (HEXAGON→Ontex) **≠** **4피지컬 티어** **≠** **4 Menton 층과 1:1 ✗**. **Nixie** = ML1 Presence — Micro Sentinel **동일시 ✗**.
+> **금지 혼동:** `지능 계층` **deprecated** → **피지컬 티어**. **6엔진** (HEXAGON→Ontex) **≠** **4피지컬 티어** **≠** **4 Menton 층과 1:1 ✗**. **Nixie** = ML_1 Presence — Micro Sentinel **동일시 ✗**.
 
 #### 0.1 Hub-and-Spoke 배치 원칙 (Normative)
 
-> **한 줄:** **PT-3 (Zenith)** = Cold Path **통합 허브** · **PT-0~2·브라우저** = **경량 실장(lite embodiment)** + **Local Reflex**.
+> **한 줄:** **PT_3 (Zenith)** = Cold Path **통합 허브** · **PT_0~2·브라우저** = **경량 실장(lite embodiment)** + **Local Reflex**.
 
-**PT-3 (Zenith Indicator)** 에서 Core Engine Stack **통합 허브**—**CSIM CT2/CT3R** · **DIEA** · **Normex** · **Nexaon** · **Ontex**—가 **풀스택 웹 플랫폼(Full-Stack Web Platform)** (`nexia` · Nest · `agent-graph` · MainShell)으로 집결되어 **전역 최적화(Global Optimization)** 와 **장기 지식 고착(Long-term Memory)** 을 담당한다.
+**PT_3 (Zenith Indicator)** 에서 Core Engine Stack **통합 허브**—**CSIM CT_2/CT3R** · **DIEA** · **Normex** · **Nexaon** · **Ontex**—가 **풀스택 웹 플랫폼(Full-Stack Web Platform)** (`nexia` · Nest · `agent-graph` · MainShell)으로 집결되어 **전역 최적화(Global Optimization)** 와 **장기 지식 고착(Long-term Memory)** 을 담당한다.
 
-**PT-0~2** 및 **Nixie**(브라우저·Desktop·Mobile·Physical Shell)에는 해당 티어·Menton 층에 맞는 **경량 실장**—**HEXAGON** / **CSIM CT1** · Sentinel·SLM·YOLO · **CSIM CT3N** 표현—이 분산되어 **네트워크 우회 Local Reflex** 와 **실시간 UI 상호작용**을 보장한다.
+**PT_0~2** 및 **Nixie**(브라우저·Desktop·Mobile·Physical Shell)에는 해당 티어·Menton 층에 맞는 **경량 실장**—**HEXAGON** / **CSIM CT_1** · Sentinel·SLM·YOLO · **CSIM CT3N** 표현—이 분산되어 **네트워크 우회 Local Reflex** 와 **실시간 UI 상호작용**을 보장한다.
 
-| 구분 | PT-3 허브 | PT-0~2 · ML1 샤드 |
+| 구분 | PT_3 허브 | PT_0~2 · ML_1 샤드 |
 | :--- | :--- | :--- |
 | **역할** | Distillation · Run · promoted · RAG · 코일·전략 | Fact·Reflex · 비식별 게이트 · 현장 JSON 제어 · ECHO 표현 |
-| **엔진** | DIEA · Normex · Nexaon · Ontex · Gateway CSIM CT2 | 말단 **HEXAGON** · **CSIM CT1** · (선택) Micro/Kinetic SLM |
+| **엔진** | DIEA · Normex · Nexaon · Ontex · Gateway CSIM CT_2 | 말단 **HEXAGON** · **CSIM CT_1** · (선택) Micro/Kinetic SLM |
 | **경로** | **Cold Path** 종착 · **Slow Reasoning** | **Fast Path** · ACTON — Ontex **우회** |
-| **오해 방지** | 6엔진 **바이너리 전부 PT-3 only ✗** | 엣지 = **완전체 복제 ✗** · **동일 `Axon` · `HEXAGON` 규격의 말단 샤드 ✓** |
+| **오해 방지** | 6엔진 **바이너리 전부 PT_3 only ✗** | 엣지 = **완전체 복제 ✗** · **동일 `Axon` · `HEXAGON` 규격의 말단 샤드 ✓** |
 
 상세 엔진·Menton 층 매핑: [Global Architecture §배치·엔진](../NEXAOS/08_TDD_NEXAOS_전역아키텍처표준_GlobalArchitectureStandard_v1.0.md).
 
@@ -55,10 +55,10 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
 
 | 피지컬 티어 | 지능 위계 (주체) | 역할 | 핵심 임무 | 배치 환경 | 파이프라인 | HW 프로필 |
 | :---: | :--- | :--- | :--- | :--- | :--- | :---: |
-| **PT-0** | **나노 센티널** (Nano Sentinel) | 반사 신경 | 로우 데이터 감시, 노이즈 제거, 5W1H 단편 사실(Fact) 추출 | 현장 최전방 (ESP32 등) | Listen | **COLD** |
-| **PT-1** | **마이크로 센티널** (Micro Sentinel) _(생략 가능)_ | 인식 지능 | 객체 탐지·사건(Event) 식별, 데이터 비식별화 | 엣지 허브 (라즈베리 파이) | Awareness | **WARM** |
-| **PT-2** | **키네틱 컨트롤러** (Kinetic Controller) _(생략 가능)_ | 현장 지휘관 | 복합 상황 판단, 장치 제어 명령(JSON), 상위 에스컬레이션 결정 | 엣지 AI (Jetson Orin 등) | Decision | **WARM** |
-| **PT-3** | **제니스 인디케이터** (Zenith Indicator) | 전략적 뇌 | 맥락(Why) 해석, 코일 벨런서 전략, 사용자 조언 · **풀스택 플랫폼 허브** · Nexaon·DIEA | 중앙 서버 (NAS/AI 서버) | Execution · Feedback | **HOT** |
+| **PT_0** | **나노 센티널** (Nano Sentinel) | 반사 신경 | 로우 데이터 감시, 노이즈 제거, 5W1H 단편 사실(Fact) 추출 | 현장 최전방 (ESP32 등) | Listen | **COLD** |
+| **PT_1** | **마이크로 센티널** (Micro Sentinel) _(생략 가능)_ | 인식 지능 | 객체 탐지·사건(Event) 식별, 데이터 비식별화 | 엣지 허브 (라즈베리 파이) | Awareness | **WARM** |
+| **PT_2** | **키네틱 컨트롤러** (Kinetic Controller) _(생략 가능)_ | 현장 지휘관 | 복합 상황 판단, 장치 제어 명령(JSON), 상위 에스컬레이션 결정 | 엣지 AI (Jetson Orin 등) | Decision | **WARM** |
+| **PT_3** | **제니스 인디케이터** (Zenith Indicator) | 전략적 뇌 | 맥락(Why) 해석, 코일 벨런서 전략, 사용자 조언 · **풀스택 플랫폼 허브** · Nexaon·DIEA | 중앙 서버 (NAS/AI 서버) | Execution · Feedback | **HOT** |
 
 > **배치 구성 옵션:**
 >
@@ -100,7 +100,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexia", "std/esp32", "std/jetson", "std/ras
   - **AI 전문 서버:** ASUS Ascent GX10 (NVIDIA Blackwell 기반, 약 550만원) / [HP] ZGX Nano(NVIDIA DGX Spark기반 ), 900 만원.
 - **주요 지능:** 7B~70B LLM (Llama 3 등), 코일 벨런서 엔진, RAG 가속기, 고성능 PostgreSQL(pgvector).
 - **배치 환경:** Docker 및 Ollama 기반의 서버 환경.
-- **특성:** 플랫폼의 **'최종 두뇌'**이자 **Hub-and-Spoke 허브(PT-3)**이다. Core Engine Stack 통합·**전역 최적화**·**장기 지식 고착(Ontex·RAG)** 의 주 무대. 전체 이력을 분석하여 에너지 최적화 전략을 수립하거나, 복잡한 사용자 질문에 전문적인 답변을 생성한다. 대규모 데이터를 학습(Fine-tuning)하고 NAS에 보관된 과거 지식을 호출하여 통찰력을 제공한다.
+- **특성:** 플랫폼의 **'최종 두뇌'**이자 **Hub-and-Spoke 허브(PT_3)**이다. Core Engine Stack 통합·**전역 최적화**·**장기 지식 고착(Ontex·RAG)** 의 주 무대. 전체 이력을 분석하여 에너지 최적화 전략을 수립하거나, 복잡한 사용자 질문에 전문적인 답변을 생성한다. 대규모 데이터를 학습(Fine-tuning)하고 NAS에 보관된 과거 지식을 호출하여 통찰력을 제공한다.
 
 ---
 
