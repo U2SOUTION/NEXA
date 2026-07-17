@@ -1,3 +1,18 @@
+---
+doc_id: 
+title: ""
+category: ""
+domain: 
+status: draft
+created: 2026-07-17
+updated: 2026-07-18
+parent_doc: 
+implements_doc: 
+see_also: []
+terms_standard: []
+terms_nexa: []
+---
+
 # Heating CNC MVP v0.1
 
 Cloudflare Workers + Next.js 현장 제어 패널.
@@ -38,8 +53,8 @@ npm run device:sim -w heating-cnc-mvp
 
 브라우저: <http://localhost:3100/machining>
 
-1. 운영 모드를 `device_dry`로 전환
-2. device-sim 실행 시 Tri-Link 3번째 점(Device) 녹색
+1. 운영 모드를 `device_dry` 로 전환
+2. device-sim 실행 시 Tri-Link 3 번째 점 (Device) 녹색
 3. **Scan 시작** → 부하 샘플 진행바 → F 보정 결과
 
 `NEXT_PUBLIC_WORKER_URL` 미설정 시 기본 `http://127.0.0.1:8787`.
@@ -73,6 +88,7 @@ cd apps/heating-cnc-mvp && npm run db:migrate:local
 cd NEXA-Platform
 npm run test:heating-cnc
 npm run build:heating-cnc
+npm run device:sim -w heating-cnc-mvp
 ```
 
 ~
