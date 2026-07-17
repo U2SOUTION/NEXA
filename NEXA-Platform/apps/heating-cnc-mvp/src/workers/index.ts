@@ -16,6 +16,17 @@ export default {
       return Response.json({ ok: true, service: 'heating-cnc-mvp-worker' });
     }
 
+    if (url.pathname === '/api/admin/devices/provision' && request.method === 'POST') {
+      return Response.json(
+        {
+          ok: false,
+          stub: true,
+          message: 'Phase 2 stub — JWT + device_credentials provisioning not yet implemented',
+        },
+        { status: 501 },
+      );
+    }
+
     if (url.pathname === '/ui/ws' || url.pathname.startsWith('/device/')) {
       const deviceId = env.DEFAULT_DEVICE_ID;
       const id = env.TRI_LINK.idFromName(deviceId);

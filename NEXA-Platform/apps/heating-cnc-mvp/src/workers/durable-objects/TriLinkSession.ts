@@ -11,7 +11,7 @@ import {
 const UI_TTL_MS = 5000;
 const DEVICE_TTL_MS = 3000;
 const TELEMETRY_INTERVAL_MS = 500;
-const DEVICE_SIM_INTERVAL_MS = 500;
+const WATCHDOG_INTERVAL_MS = 1000;
 
 export class TriLinkSession implements DurableObject {
   private state: TriLinkState;
@@ -19,8 +19,9 @@ export class TriLinkSession implements DurableObject {
   private uiSockets = new Set<WebSocket>();
   private deviceSockets = new Set<WebSocket>();
   private telemetryTimer: ReturnType<typeof setInterval> | null = null;
-  private deviceSimTimer: ReturnType<typeof setInterval> | null = null;
+  private watchdogTimer: ReturnType<typeof setInterval> | null = null;
   private uptimeMs = 0;
+  private deviceLegLive = false;
 
   constructor(_state: DurableObjectState, _env: unknown) {
     this.state = createDefaultTriLinkState('turning-01');
@@ -44,6 +45,7 @@ export class TriLinkSession implements DurableObject {
       run_mode: this.state.run_mode,
       run_active: this.state.run_active,
       ui_connected: this.state.ui_connected,
+      device_connected: this.deviceLegLive,
       session: this.mockEngine.getSessionState(),
     });
   }
@@ -59,7 +61,8 @@ export class TriLinkSession implements DurableObject {
       this.ensureTimers();
     } else {
       this.deviceSockets.add(ws);
-      this.stopDeviceSim();
+      this.deviceLegLive = true;
+      this.broadcastToUi({ type: 'device_status', connected: true });
     }
 
     ws.addEventListener('message', (event) => {
@@ -67,9 +70,8 @@ export class TriLinkSession implements DurableObject {
         const msg = JSON.parse(String(event.data)) as { type?: string };
         if (leg === 'ui') {
           this.handleUiMessage(ws, msg);
-        } else if (msg.type === 'heartbeat') {
-          const triLink = this.onDeviceHeartbeat(msg as DeviceHeartbeat);
-          ws.send(JSON.stringify({ type: 'heartbeat_ack', tri_link: triLink }));
+        } else {
+          this.handleDeviceMessage(ws, msg);
         }
       } catch {
         ws.send(JSON.stringify({ type: 'error', message: 'invalid_message' }));
@@ -79,24 +81,43 @@ export class TriLinkSession implements DurableObject {
     ws.addEventListener('close', () => {
       if (leg === 'ui') {
         this.uiSockets.delete(ws);
-        if (this.uiSockets.size === 0) {
-          this.state.ui_connected = false;
-        }
+        if (this.uiSockets.size === 0) this.state.ui_connected = false;
       } else {
         this.deviceSockets.delete(ws);
-        if (this.deviceSockets.size === 0 && this.mockEngine.getTelemetry().run_mode === 'ui_sim') {
-          this.startDeviceSim();
+        if (this.deviceSockets.size === 0) {
+          this.deviceLegLive = false;
+          this.broadcastToUi({ type: 'device_status', connected: false });
+          if (this.state.run_active && this.state.run_mode !== 'ui_sim') {
+            this.triggerFailSafe('comm_timeout');
+          }
         }
       }
       this.cleanupTimers();
     });
   }
 
+  private shouldUseMock(): boolean {
+    const mode = this.mockEngine.getTelemetry().run_mode;
+    if (mode === 'ui_sim') return true;
+    return this.deviceSockets.size === 0;
+  }
+
+  private forwardToDevice(payload: object): void {
+    const raw = JSON.stringify(payload);
+    for (const ws of this.deviceSockets) {
+      try {
+        ws.send(raw);
+      } catch {
+        this.deviceSockets.delete(ws);
+      }
+    }
+  }
+
   private handleUiMessage(ws: WebSocket, raw: unknown): void {
     const msg = raw as { type?: string };
     if (msg.type === 'ui_heartbeat') {
       const payload = this.onUiHeartbeat(msg as UiHeartbeat);
-      ws.send(JSON.stringify({ type: 'ui_heartbeat_ack', tri_link: payload }));
+      ws.send(JSON.stringify({ type: 'ui_heartbeat_ack', tri_link: payload, device_connected: this.deviceLegLive }));
       return;
     }
 
@@ -107,17 +128,17 @@ export class TriLinkSession implements DurableObject {
     }
 
     const cmd = parsed.data;
+
+    if (!this.shouldUseMock()) {
+      this.forwardToDevice(cmd);
+      ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: true, forwarded: true }));
+      return;
+    }
+
     switch (cmd.type) {
       case 'cmd_jog': {
         const result = this.mockEngine.jog(cmd.axis, cmd.delta);
-        ws.send(
-          JSON.stringify({
-            type: 'cmd_ack',
-            seq_id: cmd.seq_id,
-            ok: result.ok,
-            reason: result.reason,
-          }),
-        );
+        ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: result.ok, reason: result.reason }));
         if (result.ok) this.broadcastTelemetry();
         break;
       }
@@ -133,14 +154,7 @@ export class TriLinkSession implements DurableObject {
         const result = this.mockEngine.start();
         this.state.run_active = result.ok && result.telemetry.run_active;
         this.state.run_guard.ui_required = result.telemetry.run_mode === 'live';
-        ws.send(
-          JSON.stringify({
-            type: 'cmd_ack',
-            seq_id: cmd.seq_id,
-            ok: result.ok,
-            reason: result.reason,
-          }),
-        );
+        ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: result.ok, reason: result.reason }));
         this.broadcastState();
         this.broadcastTelemetry();
         break;
@@ -177,14 +191,7 @@ export class TriLinkSession implements DurableObject {
       }
       case 'cmd_run': {
         const blocked = this.mockEngine.getSessionState().gcode_executor_state === 'LOCKED';
-        ws.send(
-          JSON.stringify({
-            type: 'cmd_ack',
-            seq_id: cmd.seq_id,
-            ok: !blocked,
-            reason: blocked ? 'executor_locked' : undefined,
-          }),
-        );
+        ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: !blocked, reason: blocked ? 'executor_locked' : undefined }));
         if (!blocked) {
           this.state.session_id = cmd.session_id;
           const start = this.mockEngine.start();
@@ -194,7 +201,77 @@ export class TriLinkSession implements DurableObject {
         }
         break;
       }
+      case 'cmd_scan_start': {
+        const mode = this.mockEngine.getTelemetry().run_mode;
+        if (mode === 'ui_sim') {
+          ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: false, reason: 'ui_sim' }));
+          break;
+        }
+        const stepDeg = cmd.scan_a_step_deg ?? 45;
+        const samples = this.mockEngine.runScanPass(stepDeg).samples;
+        let idx = 0;
+        for (const s of samples) {
+          this.broadcastToUi({
+            type: 'scan_pass_sample',
+            a_deg: s.aDeg,
+            a_load_pct: s.aLoadPct,
+            index: idx,
+            total: samples.length,
+          });
+          idx += 1;
+        }
+        const scan = this.mockEngine.getLastScan()!;
+        ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: true }));
+        this.broadcastToUi({
+          type: 'scan_pass_result',
+          scan_result: {
+            irregularity_index: scan.result.irregularityIndex,
+            f_nominal: scan.result.fNominal,
+            f_adj: scan.result.fAdj,
+            skipped: scan.result.skipped,
+            aborted: scan.result.aborted,
+          },
+          eccentricity: {
+            e_mount_mm: scan.split.eMountMm,
+            e_shape_mm: scan.split.eShapeMm,
+            e_mm: scan.split.eMountMm + scan.split.eShapeMm,
+            phase_deg: scan.split.phaseDeg,
+          },
+        });
+        this.broadcastTelemetry();
+        break;
+      }
     }
+  }
+
+  private handleDeviceMessage(ws: WebSocket, msg: { type?: string }): void {
+    if (msg.type === 'heartbeat') {
+      const triLink = this.onDeviceHeartbeat(msg as DeviceHeartbeat);
+      ws.send(JSON.stringify({ type: 'heartbeat_ack', tri_link: triLink }));
+      return;
+    }
+
+    if (msg.type === 'telemetry' && msg.payload && typeof msg.payload === 'object') {
+      const payload = msg.payload as Record<string, unknown>;
+      if (payload.run_mode) this.state.run_mode = payload.run_mode as TriLinkState['run_mode'];
+      if (typeof payload.run_active === 'boolean') this.state.run_active = payload.run_active;
+      this.mockEngine.setRunMode((payload.run_mode as TriLinkState['run_mode']) ?? this.state.run_mode);
+      this.broadcastTelemetryFromDevice(payload);
+      return;
+    }
+
+    if (msg.type === 'scan_pass_sample' || msg.type === 'scan_pass_result' || msg.type === 'fail_safe_event') {
+      this.broadcastToUi(msg);
+    }
+  }
+
+  private broadcastTelemetryFromDevice(payload: Record<string, unknown>): void {
+    this.broadcastToUi({
+      type: 'telemetry',
+      device_id: this.state.device_id,
+      ts: Date.now(),
+      payload: { ...payload, run_active: this.state.run_active },
+    });
   }
 
   onUiHeartbeat(msg: UiHeartbeat): TriLinkPayload {
@@ -202,7 +279,7 @@ export class TriLinkSession implements DurableObject {
     this.state.ui_connected = true;
     this.state.ui_tab_id = msg.tab_id;
     if (msg.session_id !== this.state.session_id && this.state.run_active) {
-      this.triggerGhostJob('session_mismatch');
+      this.triggerFailSafe('session_mismatch');
     }
     return this.buildTriLinkPayload();
   }
@@ -214,42 +291,47 @@ export class TriLinkSession implements DurableObject {
       this.mockEngine.setRunMode(msg.run_mode);
     }
     if (msg.run_active != null) this.state.run_active = msg.run_active;
+    this.uptimeMs = msg.uptime_ms ?? this.uptimeMs;
 
     const triLink = this.buildTriLinkPayload();
-    if (
-      this.state.run_active &&
-      this.state.run_mode === 'live' &&
-      this.state.run_guard.ui_required &&
-      !triLink.ui_alive
-    ) {
-      this.triggerGhostJob('ui_timeout');
+    if (this.state.run_active && this.state.run_mode === 'live' && this.state.run_guard.ui_required && !triLink.ui_alive) {
+      this.triggerFailSafe('ui_timeout');
     }
     return triLink;
   }
 
-  private triggerGhostJob(reason: string): void {
+  private runWatchdog(): void {
+    const now = Date.now();
+    const uiAlive = now - this.state.ui_last_seen_ms < UI_TTL_MS;
+    const deviceAlive = this.deviceLegLive && now - this.state.device_last_seen_ms < DEVICE_TTL_MS;
+
+    if (this.state.run_active && this.state.run_mode === 'live') {
+      if (this.state.run_guard.ui_required && !uiAlive) {
+        this.triggerFailSafe('ui_timeout');
+        return;
+      }
+      if (!this.shouldUseMock() && !deviceAlive) {
+        this.triggerFailSafe('comm_timeout');
+      }
+    }
+  }
+
+  private triggerFailSafe(reason: string): void {
+    if (!this.state.run_active && reason !== 'comm_timeout') return;
     this.state.run_active = false;
-    this.mockEngine.pause();
     this.mockEngine.estop();
-    const event = {
+    this.forwardToDevice({ type: 'cmd_estop', seq_id: Date.now() });
+    this.broadcastToUi({
       type: 'fail_safe_event',
       reason,
-      actions: ['motion_stop', 'm5', 'run_abort'],
-    };
-    this.broadcastToUi(event);
+      actions: ['motion_stop', 'm5', 'm211', 'run_abort'],
+    });
     this.broadcastState();
     this.broadcastTelemetry();
   }
 
   private isUiAlive(): boolean {
     return Date.now() - this.state.ui_last_seen_ms < UI_TTL_MS;
-  }
-
-  private isDeviceAlive(): boolean {
-    if (this.deviceSockets.size > 0) {
-      return Date.now() - this.state.device_last_seen_ms < DEVICE_TTL_MS;
-    }
-    return this.mockEngine.getTelemetry().run_mode === 'ui_sim';
   }
 
   private buildTriLinkPayload(): TriLinkPayload {
@@ -297,11 +379,11 @@ export class TriLinkSession implements DurableObject {
   }
 
   private ensureTimers(): void {
-    if (!this.telemetryTimer && this.uiSockets.size > 0) {
+    if (!this.telemetryTimer && this.uiSockets.size > 0 && this.shouldUseMock()) {
       this.telemetryTimer = setInterval(() => this.broadcastTelemetry(), TELEMETRY_INTERVAL_MS);
     }
-    if (this.deviceSockets.size === 0 && this.mockEngine.getTelemetry().run_mode === 'ui_sim') {
-      this.startDeviceSim();
+    if (!this.watchdogTimer) {
+      this.watchdogTimer = setInterval(() => this.runWatchdog(), WATCHDOG_INTERVAL_MS);
     }
   }
 
@@ -310,31 +392,9 @@ export class TriLinkSession implements DurableObject {
       clearInterval(this.telemetryTimer);
       this.telemetryTimer = null;
     }
-    if (this.uiSockets.size === 0 && this.deviceSockets.size === 0) {
-      this.stopDeviceSim();
-    }
-  }
-
-  private startDeviceSim(): void {
-    if (this.deviceSimTimer) return;
-    this.deviceSimTimer = setInterval(() => {
-      this.uptimeMs += DEVICE_SIM_INTERVAL_MS;
-      this.state.device_last_seen_ms = Date.now();
-      const triLink = this.buildTriLinkPayload();
-      for (const ws of this.uiSockets) {
-        this.sendToUi(ws, {
-          type: 'heartbeat_ack',
-          tri_link: triLink,
-          simulated: true,
-        });
-      }
-    }, DEVICE_SIM_INTERVAL_MS);
-  }
-
-  private stopDeviceSim(): void {
-    if (this.deviceSimTimer) {
-      clearInterval(this.deviceSimTimer);
-      this.deviceSimTimer = null;
+    if (this.uiSockets.size === 0 && this.deviceSockets.size === 0 && this.watchdogTimer) {
+      clearInterval(this.watchdogTimer);
+      this.watchdogTimer = null;
     }
   }
 }

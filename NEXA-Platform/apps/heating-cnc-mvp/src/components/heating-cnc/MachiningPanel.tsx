@@ -3,7 +3,9 @@
 import { ControlPad } from '@/components/heating-cnc/ControlPad';
 import { EventLog } from '@/components/heating-cnc/EventLog';
 import { JogGrid } from '@/components/heating-cnc/JogGrid';
+import { RunModeBanner } from '@/components/heating-cnc/RunModeBanner';
 import { RunModeSelector } from '@/components/heating-cnc/RunModeSelector';
+import { ScanPassCard } from '@/components/heating-cnc/ScanPassCard';
 import { TelemetryCard } from '@/components/heating-cnc/TelemetryCard';
 import { TriLinkBanner } from '@/components/heating-cnc/TriLinkBanner';
 import { useTriLinkSession } from '@/hooks/useTriLinkSession';
@@ -15,12 +17,17 @@ export function MachiningPanel() {
     telemetry,
     session,
     log,
+    deviceConnected,
+    scanProgress,
+    scanResult,
+    scanning,
     runMode,
     setRunMode,
     jog,
     estop,
     start,
     pause,
+    startScan,
     enterOverdrive,
     exitOverdrive,
     isLocked,
@@ -31,11 +38,25 @@ export function MachiningPanel() {
 
   return (
     <>
-      <TriLinkBanner status={status} triLink={triLink} runMode={runMode} />
+      <TriLinkBanner
+        status={status}
+        triLink={triLink}
+        runMode={runMode}
+        deviceConnected={deviceConnected}
+      />
+      <RunModeBanner runMode={runMode} deviceConnected={deviceConnected} />
 
       <div className="panel__grid">
         <div className="stack">
           <TelemetryCard telemetry={telemetry} session={session} />
+          <ScanPassCard
+            runMode={runMode}
+            scanning={scanning}
+            progress={scanProgress}
+            result={scanResult}
+            disabled={wsDisabled}
+            onStartScan={startScan}
+          />
           <JogGrid disabled={wsDisabled} onJog={jog} />
           <EventLog lines={log} />
         </div>

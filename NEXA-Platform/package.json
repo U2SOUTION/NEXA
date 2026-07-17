@@ -10,6 +10,7 @@
     "build:heating-cnc": "npm run build -w @nexa/heating-cnc",
     "test:heating-cnc": "npm run test -w @nexa/heating-cnc",
     "dev:heating-cnc-mvp": "npm run dev -w heating-cnc-mvp",
-    "dev:heating-cnc-worker": "npm run dev:worker -w heating-cnc-mvp"
+    "dev:heating-cnc-worker": "npm run dev:worker -w heating-cnc-mvp",
+    "device:sim:heating-cnc": "npm run device:sim -w heating-cnc-mvp"
   }
 }

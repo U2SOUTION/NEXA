@@ -29,6 +29,7 @@ body {
 
 button {
   font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 a {

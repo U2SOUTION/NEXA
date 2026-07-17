@@ -1,5 +1,7 @@
 'use client';
 
+import { touchStyle } from '@/components/heating-cnc/touchStyle';
+
 interface ControlPadProps {
   disabled?: boolean;
   isLocked?: boolean;
@@ -28,6 +30,7 @@ export function ControlPad({
         <button
           type="button"
           className="btn btn-estop"
+          style={touchStyle()}
           disabled={disabled}
           onClick={onEstop}
           aria-label="비상 정지"
@@ -37,12 +40,13 @@ export function ControlPad({
         <button
           type="button"
           className="btn btn-start"
+          style={touchStyle()}
           disabled={disabled || isLocked}
           onClick={onStart}
         >
           START
         </button>
-        <button type="button" className="btn btn-pause" disabled={disabled} onClick={onPause}>
+        <button type="button" className="btn btn-pause" style={touchStyle()} disabled={disabled} onClick={onPause}>
           PAUSE
         </button>
       </div>
@@ -56,7 +60,7 @@ export function ControlPad({
           <button
             type="button"
             className="btn btn-secondary"
-            style={{ flex: 1, minWidth: '140px' }}
+            style={touchStyle({ flex: 1, minWidth: '140px' })}
             disabled={disabled}
             onClick={onEnterOverdrive}
           >
@@ -66,7 +70,7 @@ export function ControlPad({
           <button
             type="button"
             className="btn btn-secondary"
-            style={{ flex: 1, minWidth: '140px' }}
+            style={touchStyle({ flex: 1, minWidth: '140px' })}
             disabled={disabled}
             onClick={onExitOverdrive}
           >

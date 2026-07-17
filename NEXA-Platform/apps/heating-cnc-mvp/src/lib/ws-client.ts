@@ -18,6 +18,9 @@ export interface TriLinkClientOptions {
   onSessionState?: (state: SessionState) => void;
   onLog?: (line: string) => void;
   onFailSafe?: (reason: string) => void;
+  onDeviceConnected?: (connected: boolean) => void;
+  onScanSample?: (sample: { a_deg: number; a_load_pct: number; index: number; total: number }) => void;
+  onScanResult?: (result: Record<string, unknown>) => void;
 }
 
 const HEARTBEAT_MS = 1000;
@@ -115,6 +118,10 @@ export class TriLinkClient {
     this.sendCommand({ type: 'cmd_set_session', seq_id: this.nextSeq(), work_session: workSession });
   }
 
+  startScan(stepDeg = 45): void {
+    this.sendCommand({ type: 'cmd_scan_start', seq_id: this.nextSeq(), scan_a_step_deg: stepDeg });
+  }
+
   private handleMessage(raw: unknown): void {
     if (!raw || typeof raw !== 'object') return;
     const msg = raw as Record<string, unknown>;
@@ -122,11 +129,17 @@ export class TriLinkClient {
     if (msg.tri_link && typeof msg.tri_link === 'object') {
       this.options.onTriLink?.(msg.tri_link as TriLinkPayload);
     }
+    if (typeof msg.device_connected === 'boolean') {
+      this.options.onDeviceConnected?.(msg.device_connected);
+    }
 
     if (typeof msg.type !== 'string') return;
 
     switch (msg.type) {
       case 'ui_heartbeat_ack':
+        if (typeof msg.device_connected === 'boolean') {
+          this.options.onDeviceConnected?.(msg.device_connected);
+        }
         break;
       case 'telemetry':
         if (msg.payload && typeof msg.payload === 'object') {
@@ -155,6 +168,24 @@ export class TriLinkClient {
       case 'fail_safe_event':
         this.options.onFailSafe?.(String(msg.reason));
         this.options.onLog?.(`FAIL-SAFE: ${String(msg.reason)}`);
+        break;
+      case 'device_status':
+        if (typeof msg.connected === 'boolean') {
+          this.options.onDeviceConnected?.(msg.connected);
+          this.options.onLog?.(msg.connected ? 'Device leg connected' : 'Device leg disconnected');
+        }
+        break;
+      case 'scan_pass_sample':
+        this.options.onScanSample?.({
+          a_deg: Number(msg.a_deg),
+          a_load_pct: Number(msg.a_load_pct),
+          index: Number(msg.index),
+          total: Number(msg.total),
+        });
+        break;
+      case 'scan_pass_result':
+        this.options.onScanResult?.(msg);
+        this.options.onLog?.('Scan Pass complete');
         break;
       case 'error':
         this.options.onLog?.(`Error: ${String(msg.message)}`);

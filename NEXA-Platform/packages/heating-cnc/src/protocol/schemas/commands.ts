@@ -53,6 +53,13 @@ export const CmdSetRunModeSchema = z.object({
 });
 export type CmdSetRunMode = z.infer<typeof CmdSetRunModeSchema>;
 
+export const CmdScanStartSchema = z.object({
+  type: z.literal('cmd_scan_start'),
+  seq_id: z.number(),
+  scan_a_step_deg: z.number().optional(),
+});
+export type CmdScanStart = z.infer<typeof CmdScanStartSchema>;
+
 export const ControlHandshakeAckSchema = z.object({
   type: z.literal('control_handshake_ack'),
   seq_id: z.number(),
@@ -70,6 +77,7 @@ export const WsCommandSchema = z.discriminatedUnion('type', [
   CmdStartSchema,
   CmdPauseSchema,
   CmdSetRunModeSchema,
+  CmdScanStartSchema,
 ]);
 export type WsCommand = z.infer<typeof WsCommandSchema>;
 

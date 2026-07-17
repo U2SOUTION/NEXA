@@ -1,5 +1,6 @@
 'use client';
 
+import { touchStyle } from '@/components/heating-cnc/touchStyle';
 import type { RunMode } from '@nexa/heating-cnc';
 
 const RUN_MODES: { id: RunMode; label: string }[] = [
@@ -24,6 +25,7 @@ export function RunModeSelector({ value, disabled, onChange }: RunModeSelectorPr
             key={mode.id}
             type="button"
             className={`mode-btn ${value === mode.id ? 'mode-btn--active' : ''}`}
+            style={touchStyle()}
             disabled={disabled}
             onClick={() => onChange(mode.id)}
           >

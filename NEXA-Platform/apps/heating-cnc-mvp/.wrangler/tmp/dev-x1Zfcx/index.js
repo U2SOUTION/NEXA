@@ -10,7 +10,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 
-// .wrangler/tmp/bundle-0EWNNt/strip-cf-connecting-ip-header.js
+// .wrangler/tmp/bundle-7Uug0K/strip-cf-connecting-ip-header.js
 function stripCfConnectingIPHeader(input, init) {
   const request = new Request(input, init);
   request.headers.delete("CF-Connecting-IP");
@@ -894,6 +894,101 @@ var process_default = _process;
 
 // ../../node_modules/wrangler/_virtual_unenv_global_polyfill-@cloudflare-unenv-preset-node-process
 globalThis.process = process_default;
+
+// ../../packages/heating-cnc/dist/cam/edge-case-cam.js
+var IRREGULARITY_SKIP_THRESHOLD = 0.15;
+function analyzeScanPass(samples, fNominal, kIrreg = 1.2, fFloor = 0.5) {
+  if (samples.length === 0) {
+    return {
+      samples: [],
+      loadMean: 0,
+      loadSpan: 0,
+      irregularityIndex: 0,
+      fAdj: fNominal,
+      fNominal,
+      skipped: true,
+      aborted: false
+    };
+  }
+  const loads = samples.map((s) => s.aLoadPct);
+  const loadMean = loads.reduce((a, b) => a + b, 0) / loads.length;
+  const loadSpan = Math.max(...loads) - Math.min(...loads);
+  const irregularityIndex = loadSpan / Math.max(loadMean, 1);
+  if (irregularityIndex < IRREGULARITY_SKIP_THRESHOLD) {
+    return {
+      samples,
+      loadMean,
+      loadSpan,
+      irregularityIndex,
+      fAdj: fNominal,
+      fNominal,
+      skipped: true,
+      aborted: false
+    };
+  }
+  const scale = Math.max(fFloor, Math.min(1, 1 - kIrreg * irregularityIndex));
+  return {
+    samples,
+    loadMean,
+    loadSpan,
+    irregularityIndex,
+    fAdj: Math.round(fNominal * scale),
+    fNominal,
+    skipped: false,
+    aborted: false
+  };
+}
+__name(analyzeScanPass, "analyzeScanPass");
+var K_LOAD_MM_PER_PCT = 0.04;
+function eccentricityFromGap4(gapsMm) {
+  const max = Math.max(...gapsMm);
+  const min = Math.min(...gapsMm);
+  const peakIdx = gapsMm.indexOf(max);
+  return {
+    e_mm: (max - min) / 2,
+    phase_deg: peakIdx * 90,
+    source: "gap4"
+  };
+}
+__name(eccentricityFromGap4, "eccentricityFromGap4");
+function decomposeEccentricity(input) {
+  const kLoad = input.kLoad ?? K_LOAD_MM_PER_PCT;
+  const kShapeIrreg = input.kShapeFromIrregularity ?? 2;
+  let eMount = 0;
+  let eShape = 0;
+  let phaseDeg = input.manualPhaseDeg ?? 0;
+  let mountSource = "none";
+  let shapeSource = "none";
+  if (input.gap4) {
+    const g = eccentricityFromGap4(input.gap4);
+    eMount = g.e_mm;
+    phaseDeg = g.phase_deg;
+    mountSource = "gap4";
+  } else if (input.manualMountMm != null && input.manualMountMm > 0) {
+    eMount = input.manualMountMm;
+    mountSource = "manual";
+  }
+  if (input.manualShapeMm != null && input.manualShapeMm > 0) {
+    eShape = input.manualShapeMm;
+    shapeSource = "manual";
+  } else if (input.scanSamples && input.scanSamples.length > 0) {
+    const loads = input.scanSamples.map((s) => s.aLoadPct);
+    const span = Math.max(...loads) - Math.min(...loads);
+    const peak = input.scanSamples.reduce((a, b) => b.aLoadPct > a.aLoadPct ? b : a);
+    if (!phaseDeg)
+      phaseDeg = peak.aDeg;
+    const eTotalScan = kLoad * span;
+    eShape = Math.max(0, eTotalScan - eMount);
+    shapeSource = "scan";
+  }
+  const irreg = input.irregularityIndex ?? 0;
+  if (eShape === 0 && irreg >= IRREGULARITY_SKIP_THRESHOLD) {
+    eShape = kShapeIrreg * irreg;
+    shapeSource = shapeSource === "none" ? "irregularity" : shapeSource;
+  }
+  return { eMountMm: eMount, eShapeMm: eShape, phaseDeg, mountSource, shapeSource };
+}
+__name(decomposeEccentricity, "decomposeEccentricity");
 
 // ../../node_modules/zod/v3/external.js
 var external_exports = {};
@@ -5117,6 +5212,23 @@ function createDefaultTelemetry(runMode = "ui_sim") {
 }
 __name(createDefaultTelemetry, "createDefaultTelemetry");
 
+// ../../packages/heating-cnc/dist/motion/StallGuardScan.js
+function generateStallGuardScanSamples(options = {}) {
+  const stepDeg = options.stepDeg ?? 45;
+  const base = options.baseLoadPct ?? 28;
+  const span = options.loadSpanPct ?? 22;
+  const steps = Math.floor(360 / stepDeg);
+  const samples = [];
+  for (let i = 0; i < steps; i++) {
+    const aDeg = i * stepDeg;
+    const wave = Math.sin(aDeg * Math.PI / 180);
+    const aLoadPct = Math.round(base + span * (0.5 + 0.5 * wave));
+    samples.push({ aDeg, aLoadPct });
+  }
+  return samples;
+}
+__name(generateStallGuardScanSamples, "generateStallGuardScanSamples");
+
 // ../../packages/heating-cnc/dist/motion/MockDeviceEngine.js
 function newSessionId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -5130,11 +5242,45 @@ var MockDeviceEngine = class {
   seqId = 0;
   workSession = "machining";
   postProcessSessionId = null;
+  scanning = false;
+  lastScan = null;
   constructor(runMode = "ui_sim") {
     this.telemetry = createDefaultTelemetry(runMode);
+    this.applyRunModeSideEffects(runMode);
   }
   setRunMode(runMode) {
     this.telemetry.run_mode = runMode;
+    this.applyRunModeSideEffects(runMode);
+  }
+  applyRunModeSideEffects(runMode) {
+    if (runMode === "device_dry" || runMode === "ui_sim") {
+      this.telemetry.pwm_actual = 0;
+    }
+    if (runMode === "ui_sim") {
+      this.telemetry.a_load_pct = 0;
+    }
+  }
+  isScanning() {
+    return this.scanning;
+  }
+  getLastScan() {
+    return this.lastScan;
+  }
+  /** Run scan pass — returns samples for progressive UI broadcast. */
+  runScanPass(stepDeg = 45, fNominal = 600) {
+    this.scanning = true;
+    this.telemetry.a_mode = "A_VEL";
+    const samples = generateStallGuardScanSamples({ stepDeg });
+    const result = analyzeScanPass(samples, fNominal);
+    const split = decomposeEccentricity({
+      scanSamples: samples,
+      irregularityIndex: result.irregularityIndex
+    });
+    this.lastScan = { result, split, samples };
+    this.telemetry.a_load_pct = Math.max(...samples.map((s) => s.aLoadPct));
+    this.telemetry.a_mode = "A_IDLE";
+    this.scanning = false;
+    return this.lastScan;
   }
   getWorkSession() {
     return this.workSession;
@@ -5145,6 +5291,7 @@ var MockDeviceEngine = class {
       this.telemetry.gcode_executor_state = "LOCKED";
       this.postProcessSessionId = newSessionId();
       this.telemetry.run_active = false;
+      this.telemetry.pwm_actual = 0;
       return {
         ok: true,
         postProcessSessionId: this.postProcessSessionId,
@@ -5159,11 +5306,17 @@ var MockDeviceEngine = class {
     return { ok: true, gcode_executor_state: this.telemetry.gcode_executor_state };
   }
   jog(axis, delta) {
+    if (this.scanning) {
+      return { ok: false, telemetry: this.getTelemetry(), reason: "scan_active" };
+    }
     if (this.telemetry.gcode_executor_state === "RUNNING" && this.workSession === "machining") {
       return { ok: false, telemetry: this.getTelemetry(), reason: "run_active" };
     }
     const key = axis.toLowerCase();
     this.telemetry[key] += delta;
+    if (axis === "A" && this.telemetry.run_mode !== "ui_sim") {
+      this.telemetry.a_load_pct = Math.min(99, (this.telemetry.a_load_pct ?? 0) + Math.abs(delta) * 2);
+    }
     this.seqId += 1;
     return { ok: true, telemetry: this.getTelemetry() };
   }
@@ -5171,6 +5324,7 @@ var MockDeviceEngine = class {
     this.telemetry.run_active = false;
     this.telemetry.gcode_executor_state = "LOCKED";
     this.telemetry.pwm_actual = 0;
+    this.scanning = false;
     this.seqId += 1;
     return this.getTelemetry();
   }
@@ -5183,12 +5337,18 @@ var MockDeviceEngine = class {
     }
     this.telemetry.run_active = true;
     this.telemetry.gcode_executor_state = "RUNNING";
+    if (this.telemetry.run_mode === "live") {
+      this.telemetry.pwm_actual = 400;
+    } else {
+      this.telemetry.pwm_actual = 0;
+    }
     this.seqId += 1;
     return { ok: true, telemetry: this.getTelemetry() };
   }
   pause() {
     this.telemetry.run_active = false;
     this.telemetry.gcode_executor_state = "PAUSED";
+    this.telemetry.pwm_actual = 0;
     this.seqId += 1;
     return this.getTelemetry();
   }
@@ -5259,6 +5419,11 @@ var CmdSetRunModeSchema = external_exports.object({
   seq_id: external_exports.number(),
   run_mode: RunModeSchema
 });
+var CmdScanStartSchema = external_exports.object({
+  type: external_exports.literal("cmd_scan_start"),
+  seq_id: external_exports.number(),
+  scan_a_step_deg: external_exports.number().optional()
+});
 var ControlHandshakeAckSchema = external_exports.object({
   type: external_exports.literal("control_handshake_ack"),
   seq_id: external_exports.number(),
@@ -5273,7 +5438,8 @@ var WsCommandSchema = external_exports.discriminatedUnion("type", [
   CmdEstopSchema,
   CmdStartSchema,
   CmdPauseSchema,
-  CmdSetRunModeSchema
+  CmdSetRunModeSchema,
+  CmdScanStartSchema
 ]);
 var CmdAckSchema = external_exports.object({
   type: external_exports.literal("cmd_ack"),
@@ -5296,6 +5462,29 @@ var FailSafeEventSchema = external_exports.object({
   reason: external_exports.string(),
   actions: external_exports.array(external_exports.string())
 });
+var ScanPassSampleMessageSchema = external_exports.object({
+  type: external_exports.literal("scan_pass_sample"),
+  a_deg: external_exports.number(),
+  a_load_pct: external_exports.number(),
+  index: external_exports.number(),
+  total: external_exports.number()
+});
+var ScanPassResultMessageSchema = external_exports.object({
+  type: external_exports.literal("scan_pass_result"),
+  scan_result: external_exports.object({
+    irregularity_index: external_exports.number(),
+    f_nominal: external_exports.number(),
+    f_adj: external_exports.number(),
+    skipped: external_exports.boolean(),
+    aborted: external_exports.boolean()
+  }),
+  eccentricity: external_exports.object({
+    e_mount_mm: external_exports.number(),
+    e_shape_mm: external_exports.number(),
+    e_mm: external_exports.number(),
+    phase_deg: external_exports.number()
+  }).optional()
+});
 var WsServerMessageSchema = external_exports.discriminatedUnion("type", [
   UiHeartbeatAckSchema,
   TelemetryMessageSchema,
@@ -5303,6 +5492,8 @@ var WsServerMessageSchema = external_exports.discriminatedUnion("type", [
   ControlHandshakeAckSchema,
   CmdAckSchema,
   FailSafeEventSchema,
+  ScanPassSampleMessageSchema,
+  ScanPassResultMessageSchema,
   external_exports.object({ type: external_exports.literal("error"), message: external_exports.string() })
 ]);
 
@@ -5310,15 +5501,16 @@ var WsServerMessageSchema = external_exports.discriminatedUnion("type", [
 var UI_TTL_MS = 5e3;
 var DEVICE_TTL_MS = 3e3;
 var TELEMETRY_INTERVAL_MS = 500;
-var DEVICE_SIM_INTERVAL_MS = 500;
+var WATCHDOG_INTERVAL_MS = 1e3;
 var TriLinkSession = class {
   state;
   mockEngine;
   uiSockets = /* @__PURE__ */ new Set();
   deviceSockets = /* @__PURE__ */ new Set();
   telemetryTimer = null;
-  deviceSimTimer = null;
+  watchdogTimer = null;
   uptimeMs = 0;
+  deviceLegLive = false;
   constructor(_state, _env) {
     this.state = createDefaultTriLinkState("turning-01");
     this.mockEngine = new MockDeviceEngine("ui_sim");
@@ -5338,6 +5530,7 @@ var TriLinkSession = class {
       run_mode: this.state.run_mode,
       run_active: this.state.run_active,
       ui_connected: this.state.ui_connected,
+      device_connected: this.deviceLegLive,
       session: this.mockEngine.getSessionState()
     });
   }
@@ -5351,16 +5544,16 @@ var TriLinkSession = class {
       this.ensureTimers();
     } else {
       this.deviceSockets.add(ws);
-      this.stopDeviceSim();
+      this.deviceLegLive = true;
+      this.broadcastToUi({ type: "device_status", connected: true });
     }
     ws.addEventListener("message", (event) => {
       try {
         const msg = JSON.parse(String(event.data));
         if (leg === "ui") {
           this.handleUiMessage(ws, msg);
-        } else if (msg.type === "heartbeat") {
-          const triLink = this.onDeviceHeartbeat(msg);
-          ws.send(JSON.stringify({ type: "heartbeat_ack", tri_link: triLink }));
+        } else {
+          this.handleDeviceMessage(ws, msg);
         }
       } catch {
         ws.send(JSON.stringify({ type: "error", message: "invalid_message" }));
@@ -5369,23 +5562,42 @@ var TriLinkSession = class {
     ws.addEventListener("close", () => {
       if (leg === "ui") {
         this.uiSockets.delete(ws);
-        if (this.uiSockets.size === 0) {
+        if (this.uiSockets.size === 0)
           this.state.ui_connected = false;
-        }
       } else {
         this.deviceSockets.delete(ws);
-        if (this.deviceSockets.size === 0 && this.mockEngine.getTelemetry().run_mode === "ui_sim") {
-          this.startDeviceSim();
+        if (this.deviceSockets.size === 0) {
+          this.deviceLegLive = false;
+          this.broadcastToUi({ type: "device_status", connected: false });
+          if (this.state.run_active && this.state.run_mode !== "ui_sim") {
+            this.triggerFailSafe("comm_timeout");
+          }
         }
       }
       this.cleanupTimers();
     });
   }
+  shouldUseMock() {
+    const mode = this.mockEngine.getTelemetry().run_mode;
+    if (mode === "ui_sim")
+      return true;
+    return this.deviceSockets.size === 0;
+  }
+  forwardToDevice(payload) {
+    const raw = JSON.stringify(payload);
+    for (const ws of this.deviceSockets) {
+      try {
+        ws.send(raw);
+      } catch {
+        this.deviceSockets.delete(ws);
+      }
+    }
+  }
   handleUiMessage(ws, raw) {
     const msg = raw;
     if (msg.type === "ui_heartbeat") {
       const payload = this.onUiHeartbeat(msg);
-      ws.send(JSON.stringify({ type: "ui_heartbeat_ack", tri_link: payload }));
+      ws.send(JSON.stringify({ type: "ui_heartbeat_ack", tri_link: payload, device_connected: this.deviceLegLive }));
       return;
     }
     const parsed = WsCommandSchema.safeParse(raw);
@@ -5394,17 +5606,15 @@ var TriLinkSession = class {
       return;
     }
     const cmd = parsed.data;
+    if (!this.shouldUseMock()) {
+      this.forwardToDevice(cmd);
+      ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: true, forwarded: true }));
+      return;
+    }
     switch (cmd.type) {
       case "cmd_jog": {
         const result = this.mockEngine.jog(cmd.axis, cmd.delta);
-        ws.send(
-          JSON.stringify({
-            type: "cmd_ack",
-            seq_id: cmd.seq_id,
-            ok: result.ok,
-            reason: result.reason
-          })
-        );
+        ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: result.ok, reason: result.reason }));
         if (result.ok)
           this.broadcastTelemetry();
         break;
@@ -5421,14 +5631,7 @@ var TriLinkSession = class {
         const result = this.mockEngine.start();
         this.state.run_active = result.ok && result.telemetry.run_active;
         this.state.run_guard.ui_required = result.telemetry.run_mode === "live";
-        ws.send(
-          JSON.stringify({
-            type: "cmd_ack",
-            seq_id: cmd.seq_id,
-            ok: result.ok,
-            reason: result.reason
-          })
-        );
+        ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: result.ok, reason: result.reason }));
         this.broadcastState();
         this.broadcastTelemetry();
         break;
@@ -5465,14 +5668,7 @@ var TriLinkSession = class {
       }
       case "cmd_run": {
         const blocked = this.mockEngine.getSessionState().gcode_executor_state === "LOCKED";
-        ws.send(
-          JSON.stringify({
-            type: "cmd_ack",
-            seq_id: cmd.seq_id,
-            ok: !blocked,
-            reason: blocked ? "executor_locked" : void 0
-          })
-        );
+        ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: !blocked, reason: blocked ? "executor_locked" : void 0 }));
         if (!blocked) {
           this.state.session_id = cmd.session_id;
           const start = this.mockEngine.start();
@@ -5482,14 +5678,82 @@ var TriLinkSession = class {
         }
         break;
       }
+      case "cmd_scan_start": {
+        const mode = this.mockEngine.getTelemetry().run_mode;
+        if (mode === "ui_sim") {
+          ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: false, reason: "ui_sim" }));
+          break;
+        }
+        const stepDeg = cmd.scan_a_step_deg ?? 45;
+        const samples = this.mockEngine.runScanPass(stepDeg).samples;
+        let idx = 0;
+        for (const s of samples) {
+          this.broadcastToUi({
+            type: "scan_pass_sample",
+            a_deg: s.aDeg,
+            a_load_pct: s.aLoadPct,
+            index: idx,
+            total: samples.length
+          });
+          idx += 1;
+        }
+        const scan = this.mockEngine.getLastScan();
+        ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: true }));
+        this.broadcastToUi({
+          type: "scan_pass_result",
+          scan_result: {
+            irregularity_index: scan.result.irregularityIndex,
+            f_nominal: scan.result.fNominal,
+            f_adj: scan.result.fAdj,
+            skipped: scan.result.skipped,
+            aborted: scan.result.aborted
+          },
+          eccentricity: {
+            e_mount_mm: scan.split.eMountMm,
+            e_shape_mm: scan.split.eShapeMm,
+            e_mm: scan.split.eMountMm + scan.split.eShapeMm,
+            phase_deg: scan.split.phaseDeg
+          }
+        });
+        this.broadcastTelemetry();
+        break;
+      }
     }
+  }
+  handleDeviceMessage(ws, msg) {
+    if (msg.type === "heartbeat") {
+      const triLink = this.onDeviceHeartbeat(msg);
+      ws.send(JSON.stringify({ type: "heartbeat_ack", tri_link: triLink }));
+      return;
+    }
+    if (msg.type === "telemetry" && msg.payload && typeof msg.payload === "object") {
+      const payload = msg.payload;
+      if (payload.run_mode)
+        this.state.run_mode = payload.run_mode;
+      if (typeof payload.run_active === "boolean")
+        this.state.run_active = payload.run_active;
+      this.mockEngine.setRunMode(payload.run_mode ?? this.state.run_mode);
+      this.broadcastTelemetryFromDevice(payload);
+      return;
+    }
+    if (msg.type === "scan_pass_sample" || msg.type === "scan_pass_result" || msg.type === "fail_safe_event") {
+      this.broadcastToUi(msg);
+    }
+  }
+  broadcastTelemetryFromDevice(payload) {
+    this.broadcastToUi({
+      type: "telemetry",
+      device_id: this.state.device_id,
+      ts: Date.now(),
+      payload: { ...payload, run_active: this.state.run_active }
+    });
   }
   onUiHeartbeat(msg) {
     this.state.ui_last_seen_ms = Date.now();
     this.state.ui_connected = true;
     this.state.ui_tab_id = msg.tab_id;
     if (msg.session_id !== this.state.session_id && this.state.run_active) {
-      this.triggerGhostJob("session_mismatch");
+      this.triggerFailSafe("session_mismatch");
     }
     return this.buildTriLinkPayload();
   }
@@ -5501,33 +5765,43 @@ var TriLinkSession = class {
     }
     if (msg.run_active != null)
       this.state.run_active = msg.run_active;
+    this.uptimeMs = msg.uptime_ms ?? this.uptimeMs;
     const triLink = this.buildTriLinkPayload();
     if (this.state.run_active && this.state.run_mode === "live" && this.state.run_guard.ui_required && !triLink.ui_alive) {
-      this.triggerGhostJob("ui_timeout");
+      this.triggerFailSafe("ui_timeout");
     }
     return triLink;
   }
-  triggerGhostJob(reason) {
+  runWatchdog() {
+    const now = Date.now();
+    const uiAlive = now - this.state.ui_last_seen_ms < UI_TTL_MS;
+    const deviceAlive = this.deviceLegLive && now - this.state.device_last_seen_ms < DEVICE_TTL_MS;
+    if (this.state.run_active && this.state.run_mode === "live") {
+      if (this.state.run_guard.ui_required && !uiAlive) {
+        this.triggerFailSafe("ui_timeout");
+        return;
+      }
+      if (!this.shouldUseMock() && !deviceAlive) {
+        this.triggerFailSafe("comm_timeout");
+      }
+    }
+  }
+  triggerFailSafe(reason) {
+    if (!this.state.run_active && reason !== "comm_timeout")
+      return;
     this.state.run_active = false;
-    this.mockEngine.pause();
     this.mockEngine.estop();
-    const event = {
+    this.forwardToDevice({ type: "cmd_estop", seq_id: Date.now() });
+    this.broadcastToUi({
       type: "fail_safe_event",
       reason,
-      actions: ["motion_stop", "m5", "run_abort"]
-    };
-    this.broadcastToUi(event);
+      actions: ["motion_stop", "m5", "m211", "run_abort"]
+    });
     this.broadcastState();
     this.broadcastTelemetry();
   }
   isUiAlive() {
     return Date.now() - this.state.ui_last_seen_ms < UI_TTL_MS;
-  }
-  isDeviceAlive() {
-    if (this.deviceSockets.size > 0) {
-      return Date.now() - this.state.device_last_seen_ms < DEVICE_TTL_MS;
-    }
-    return this.mockEngine.getTelemetry().run_mode === "ui_sim";
   }
   buildTriLinkPayload() {
     return {
@@ -5568,11 +5842,11 @@ var TriLinkSession = class {
     this.broadcastToUi({ type: "session_state", payload: this.mockEngine.getSessionState() });
   }
   ensureTimers() {
-    if (!this.telemetryTimer && this.uiSockets.size > 0) {
+    if (!this.telemetryTimer && this.uiSockets.size > 0 && this.shouldUseMock()) {
       this.telemetryTimer = setInterval(() => this.broadcastTelemetry(), TELEMETRY_INTERVAL_MS);
     }
-    if (this.deviceSockets.size === 0 && this.mockEngine.getTelemetry().run_mode === "ui_sim") {
-      this.startDeviceSim();
+    if (!this.watchdogTimer) {
+      this.watchdogTimer = setInterval(() => this.runWatchdog(), WATCHDOG_INTERVAL_MS);
     }
   }
   cleanupTimers() {
@@ -5580,30 +5854,9 @@ var TriLinkSession = class {
       clearInterval(this.telemetryTimer);
       this.telemetryTimer = null;
     }
-    if (this.uiSockets.size === 0 && this.deviceSockets.size === 0) {
-      this.stopDeviceSim();
-    }
-  }
-  startDeviceSim() {
-    if (this.deviceSimTimer)
-      return;
-    this.deviceSimTimer = setInterval(() => {
-      this.uptimeMs += DEVICE_SIM_INTERVAL_MS;
-      this.state.device_last_seen_ms = Date.now();
-      const triLink = this.buildTriLinkPayload();
-      for (const ws of this.uiSockets) {
-        this.sendToUi(ws, {
-          type: "heartbeat_ack",
-          tri_link: triLink,
-          simulated: true
-        });
-      }
-    }, DEVICE_SIM_INTERVAL_MS);
-  }
-  stopDeviceSim() {
-    if (this.deviceSimTimer) {
-      clearInterval(this.deviceSimTimer);
-      this.deviceSimTimer = null;
+    if (this.uiSockets.size === 0 && this.deviceSockets.size === 0 && this.watchdogTimer) {
+      clearInterval(this.watchdogTimer);
+      this.watchdogTimer = null;
     }
   }
 };
@@ -5615,6 +5868,16 @@ var workers_default = {
     const url = new URL(request.url);
     if (url.pathname === "/health") {
       return Response.json({ ok: true, service: "heating-cnc-mvp-worker" });
+    }
+    if (url.pathname === "/api/admin/devices/provision" && request.method === "POST") {
+      return Response.json(
+        {
+          ok: false,
+          stub: true,
+          message: "Phase 2 stub \u2014 JWT + device_credentials provisioning not yet implemented"
+        },
+        { status: 501 }
+      );
     }
     if (url.pathname === "/ui/ws" || url.pathname.startsWith("/device/")) {
       const deviceId = env2.DEFAULT_DEVICE_ID;
@@ -5667,7 +5930,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env2, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-0EWNNt/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-7Uug0K/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -5699,7 +5962,7 @@ function __facade_invoke__(request, env2, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-0EWNNt/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-7Uug0K/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

@@ -5,6 +5,7 @@ interface TriLinkBannerProps {
   status: ConnectionStatus;
   triLink: TriLinkPayload | null;
   runMode: string;
+  deviceConnected: boolean;
 }
 
 function bannerClass(status: ConnectionStatus, triLink: TriLinkPayload | null): string {
@@ -22,9 +23,9 @@ const STATUS_LABEL: Record<ConnectionStatus, string> = {
   error: '연결 오류',
 };
 
-export function TriLinkBanner({ status, triLink, runMode }: TriLinkBannerProps) {
+export function TriLinkBanner({ status, triLink, runMode, deviceConnected }: TriLinkBannerProps) {
   const uiAlive = triLink?.ui_alive ?? false;
-  const deviceAlive = status === 'connected';
+  const serverAlive = status === 'connected';
   const runActive = triLink?.run_active ?? false;
 
   return (
@@ -35,11 +36,11 @@ export function TriLinkBanner({ status, triLink, runMode }: TriLinkBannerProps) 
           title="UI"
         />
         <span
-          className={`tri-link__dot ${deviceAlive ? 'tri-link__dot--on' : 'tri-link__dot--off'}`}
+          className={`tri-link__dot ${serverAlive ? 'tri-link__dot--on' : 'tri-link__dot--off'}`}
           title="Server"
         />
         <span
-          className={`tri-link__dot ${deviceAlive ? 'tri-link__dot--on' : 'tri-link__dot--off'}`}
+          className={`tri-link__dot ${deviceConnected ? 'tri-link__dot--on' : 'tri-link__dot--off'}`}
           title="Device"
         />
       </div>

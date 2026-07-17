@@ -195,7 +195,6 @@
   border-radius: 10px;
   cursor: pointer;
   touch-action: manipulation;
-  user-select: none;
   transition: transform 0.1s, opacity 0.15s;
 }
 
@@ -325,4 +324,112 @@
   .sidebar {
     order: -1;
   }
+}
+
+.run-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  border: 1px solid transparent;
+}
+
+.run-banner--sim {
+  background: rgba(69, 123, 157, 0.15);
+  border-color: rgba(69, 123, 157, 0.35);
+}
+
+.run-banner--dry {
+  background: rgba(232, 93, 4, 0.12);
+  border-color: rgba(232, 93, 4, 0.35);
+}
+
+.run-banner--live {
+  background: rgba(208, 0, 0, 0.12);
+  border-color: rgba(208, 0, 0, 0.35);
+}
+
+.run-banner__hint {
+  color: var(--nexa-muted);
+}
+
+.run-banner__device {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.run-banner__device--on {
+  color: #52b788;
+}
+
+.run-banner__device--off {
+  color: #e85d04;
+}
+
+.scan-pass-card {
+  background: var(--nexa-surface);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: clamp(0.75rem, 2vw, 1rem);
+}
+
+.scan-pass-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.scan-pass-card__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--nexa-muted);
+}
+
+.scan-pass-card__progress p {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+}
+
+.scan-pass-card__bar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.scan-pass-card__bar-fill {
+  height: 100%;
+  background: var(--nexa-accent);
+  transition: width 0.15s ease;
+}
+
+.scan-pass-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.scan-pass-card__metrics dt {
+  font-size: 0.6875rem;
+  color: var(--nexa-muted);
+}
+
+.scan-pass-card__metrics dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.scan-pass-card__ok {
+  grid-column: 1 / -1;
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: #52b788;
 }

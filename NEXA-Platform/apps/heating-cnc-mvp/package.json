@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3100",
+    "dev:clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && next dev --port 3100",
     "build": "next build",
     "start": "next start --port 3100",
     "dev:worker": "wrangler dev",
+    "device:sim": "node scripts/device-sim.mjs",
     "db:migrate:local": "wrangler d1 migrations apply heating-cnc-db --local"
   },
   "dependencies": {
@@ -22,6 +24,7 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "typescript": "^5.7.3",
-    "wrangler": "^3.105.0"
+    "wrangler": "^3.105.0",
+    "ws": "^8.18.0"
   }
 }
