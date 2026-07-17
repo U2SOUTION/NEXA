@@ -201,3 +201,6 @@ assets/
 **/*.x3db
 *.x3db
 
+# 로컬 전용 앱 (Git 추적 제외 · 디스크에는 유지)
+NEXA-App/Color/
+
