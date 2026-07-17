@@ -62,7 +62,13 @@ export class TriLinkSession implements DurableObject {
     } else {
       this.deviceSockets.add(ws);
       this.deviceLegLive = true;
+      this.forwardToDevice({
+        type: 'cmd_set_run_mode',
+        seq_id: Date.now(),
+        run_mode: this.state.run_mode,
+      });
       this.broadcastToUi({ type: 'device_status', connected: true });
+      this.syncTelemetryTimer();
     }
 
     ws.addEventListener('message', (event) => {
@@ -93,12 +99,12 @@ export class TriLinkSession implements DurableObject {
         }
       }
       this.cleanupTimers();
+      this.syncTelemetryTimer();
     });
   }
 
   private shouldUseMock(): boolean {
-    const mode = this.mockEngine.getTelemetry().run_mode;
-    if (mode === 'ui_sim') return true;
+    if (this.state.run_mode === 'ui_sim') return true;
     return this.deviceSockets.size === 0;
   }
 
@@ -128,6 +134,20 @@ export class TriLinkSession implements DurableObject {
     }
 
     const cmd = parsed.data;
+
+    // 운영 모드는 서버 권한 — Mock + Device 양쪽 동기화 (heartbeat 덮어쓰기 방지)
+    if (cmd.type === 'cmd_set_run_mode') {
+      this.mockEngine.setRunMode(cmd.run_mode);
+      this.state.run_mode = cmd.run_mode;
+      this.state.run_guard.ui_required = cmd.run_mode === 'live' && this.state.run_active;
+      if (this.deviceSockets.size > 0) {
+        this.forwardToDevice(cmd);
+      }
+      this.syncTelemetryTimer();
+      ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: true, forwarded: this.deviceSockets.size > 0 }));
+      this.broadcastTelemetry();
+      return;
+    }
 
     if (!this.shouldUseMock()) {
       this.forwardToDevice(cmd);
@@ -164,14 +184,6 @@ export class TriLinkSession implements DurableObject {
         this.state.run_active = false;
         ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: true }));
         this.broadcastState();
-        this.broadcastTelemetry();
-        break;
-      }
-      case 'cmd_set_run_mode': {
-        this.mockEngine.setRunMode(cmd.run_mode);
-        this.state.run_mode = cmd.run_mode;
-        this.state.run_guard.ui_required = cmd.run_mode === 'live' && this.state.run_active;
-        ws.send(JSON.stringify({ type: 'cmd_ack', seq_id: cmd.seq_id, ok: true }));
         this.broadcastTelemetry();
         break;
       }
@@ -252,10 +264,10 @@ export class TriLinkSession implements DurableObject {
     }
 
     if (msg.type === 'telemetry' && msg.payload && typeof msg.payload === 'object') {
-      const payload = msg.payload as Record<string, unknown>;
-      if (payload.run_mode) this.state.run_mode = payload.run_mode as TriLinkState['run_mode'];
+      const payload = { ...(msg.payload as Record<string, unknown>) };
+      // Device 텔레메트리의 run_mode는 서버 SSOT로 덮어씀
+      payload.run_mode = this.state.run_mode;
       if (typeof payload.run_active === 'boolean') this.state.run_active = payload.run_active;
-      this.mockEngine.setRunMode((payload.run_mode as TriLinkState['run_mode']) ?? this.state.run_mode);
       this.broadcastTelemetryFromDevice(payload);
       return;
     }
@@ -286,10 +298,7 @@ export class TriLinkSession implements DurableObject {
 
   onDeviceHeartbeat(msg: DeviceHeartbeat): TriLinkPayload {
     this.state.device_last_seen_ms = Date.now();
-    if (msg.run_mode) {
-      this.state.run_mode = msg.run_mode;
-      this.mockEngine.setRunMode(msg.run_mode);
-    }
+    // run_mode는 UI cmd_set_run_mode가 SSOT — heartbeat로 덮어쓰지 않음
     if (msg.run_active != null) this.state.run_active = msg.run_active;
     this.uptimeMs = msg.uptime_ms ?? this.uptimeMs;
 
@@ -378,10 +387,18 @@ export class TriLinkSession implements DurableObject {
     this.broadcastToUi({ type: 'session_state', payload: this.mockEngine.getSessionState() });
   }
 
-  private ensureTimers(): void {
-    if (!this.telemetryTimer && this.uiSockets.size > 0 && this.shouldUseMock()) {
+  private syncTelemetryTimer(): void {
+    const wantMockTelemetry = this.uiSockets.size > 0 && this.shouldUseMock();
+    if (wantMockTelemetry && !this.telemetryTimer) {
       this.telemetryTimer = setInterval(() => this.broadcastTelemetry(), TELEMETRY_INTERVAL_MS);
+    } else if (!wantMockTelemetry && this.telemetryTimer) {
+      clearInterval(this.telemetryTimer);
+      this.telemetryTimer = null;
     }
+  }
+
+  private ensureTimers(): void {
+    this.syncTelemetryTimer();
     if (!this.watchdogTimer) {
       this.watchdogTimer = setInterval(() => this.runWatchdog(), WATCHDOG_INTERVAL_MS);
     }

@@ -10,7 +10,7 @@ var __publicField = (obj, key, value) => {
   return value;
 };
 
-// .wrangler/tmp/bundle-7Uug0K/strip-cf-connecting-ip-header.js
+// .wrangler/tmp/bundle-nlBJil/strip-cf-connecting-ip-header.js
 function stripCfConnectingIPHeader(input, init) {
   const request = new Request(input, init);
   request.headers.delete("CF-Connecting-IP");
@@ -5545,7 +5545,13 @@ var TriLinkSession = class {
     } else {
       this.deviceSockets.add(ws);
       this.deviceLegLive = true;
+      this.forwardToDevice({
+        type: "cmd_set_run_mode",
+        seq_id: Date.now(),
+        run_mode: this.state.run_mode
+      });
       this.broadcastToUi({ type: "device_status", connected: true });
+      this.syncTelemetryTimer();
     }
     ws.addEventListener("message", (event) => {
       try {
@@ -5575,11 +5581,11 @@ var TriLinkSession = class {
         }
       }
       this.cleanupTimers();
+      this.syncTelemetryTimer();
     });
   }
   shouldUseMock() {
-    const mode = this.mockEngine.getTelemetry().run_mode;
-    if (mode === "ui_sim")
+    if (this.state.run_mode === "ui_sim")
       return true;
     return this.deviceSockets.size === 0;
   }
@@ -5606,6 +5612,18 @@ var TriLinkSession = class {
       return;
     }
     const cmd = parsed.data;
+    if (cmd.type === "cmd_set_run_mode") {
+      this.mockEngine.setRunMode(cmd.run_mode);
+      this.state.run_mode = cmd.run_mode;
+      this.state.run_guard.ui_required = cmd.run_mode === "live" && this.state.run_active;
+      if (this.deviceSockets.size > 0) {
+        this.forwardToDevice(cmd);
+      }
+      this.syncTelemetryTimer();
+      ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: true, forwarded: this.deviceSockets.size > 0 }));
+      this.broadcastTelemetry();
+      return;
+    }
     if (!this.shouldUseMock()) {
       this.forwardToDevice(cmd);
       ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: true, forwarded: true }));
@@ -5641,14 +5659,6 @@ var TriLinkSession = class {
         this.state.run_active = false;
         ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: true }));
         this.broadcastState();
-        this.broadcastTelemetry();
-        break;
-      }
-      case "cmd_set_run_mode": {
-        this.mockEngine.setRunMode(cmd.run_mode);
-        this.state.run_mode = cmd.run_mode;
-        this.state.run_guard.ui_required = cmd.run_mode === "live" && this.state.run_active;
-        ws.send(JSON.stringify({ type: "cmd_ack", seq_id: cmd.seq_id, ok: true }));
         this.broadcastTelemetry();
         break;
       }
@@ -5727,12 +5737,10 @@ var TriLinkSession = class {
       return;
     }
     if (msg.type === "telemetry" && msg.payload && typeof msg.payload === "object") {
-      const payload = msg.payload;
-      if (payload.run_mode)
-        this.state.run_mode = payload.run_mode;
+      const payload = { ...msg.payload };
+      payload.run_mode = this.state.run_mode;
       if (typeof payload.run_active === "boolean")
         this.state.run_active = payload.run_active;
-      this.mockEngine.setRunMode(payload.run_mode ?? this.state.run_mode);
       this.broadcastTelemetryFromDevice(payload);
       return;
     }
@@ -5759,10 +5767,6 @@ var TriLinkSession = class {
   }
   onDeviceHeartbeat(msg) {
     this.state.device_last_seen_ms = Date.now();
-    if (msg.run_mode) {
-      this.state.run_mode = msg.run_mode;
-      this.mockEngine.setRunMode(msg.run_mode);
-    }
     if (msg.run_active != null)
       this.state.run_active = msg.run_active;
     this.uptimeMs = msg.uptime_ms ?? this.uptimeMs;
@@ -5841,10 +5845,17 @@ var TriLinkSession = class {
   broadcastState() {
     this.broadcastToUi({ type: "session_state", payload: this.mockEngine.getSessionState() });
   }
-  ensureTimers() {
-    if (!this.telemetryTimer && this.uiSockets.size > 0 && this.shouldUseMock()) {
+  syncTelemetryTimer() {
+    const wantMockTelemetry = this.uiSockets.size > 0 && this.shouldUseMock();
+    if (wantMockTelemetry && !this.telemetryTimer) {
       this.telemetryTimer = setInterval(() => this.broadcastTelemetry(), TELEMETRY_INTERVAL_MS);
+    } else if (!wantMockTelemetry && this.telemetryTimer) {
+      clearInterval(this.telemetryTimer);
+      this.telemetryTimer = null;
     }
+  }
+  ensureTimers() {
+    this.syncTelemetryTimer();
     if (!this.watchdogTimer) {
       this.watchdogTimer = setInterval(() => this.runWatchdog(), WATCHDOG_INTERVAL_MS);
     }
@@ -5930,7 +5941,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env2, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-7Uug0K/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-nlBJil/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -5962,7 +5973,7 @@ function __facade_invoke__(request, env2, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-7Uug0K/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-nlBJil/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

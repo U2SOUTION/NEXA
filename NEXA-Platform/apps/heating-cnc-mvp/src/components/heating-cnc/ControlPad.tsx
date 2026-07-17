@@ -1,7 +1,5 @@
 'use client';
 
-import { touchStyle } from '@/components/heating-cnc/touchStyle';
-
 interface ControlPadProps {
   disabled?: boolean;
   isLocked?: boolean;
@@ -30,7 +28,6 @@ export function ControlPad({
         <button
           type="button"
           className="btn btn-estop"
-          style={touchStyle()}
           disabled={disabled}
           onClick={onEstop}
           aria-label="비상 정지"
@@ -40,27 +37,21 @@ export function ControlPad({
         <button
           type="button"
           className="btn btn-start"
-          style={touchStyle()}
           disabled={disabled || isLocked}
           onClick={onStart}
         >
           START
         </button>
-        <button type="button" className="btn btn-pause" style={touchStyle()} disabled={disabled} onClick={onPause}>
+        <button type="button" className="btn btn-pause" disabled={disabled} onClick={onPause}>
           PAUSE
         </button>
       </div>
-      {isLocked && (
-        <p style={{ margin: '0.75rem 0 0', fontSize: '0.8125rem', color: '#ff6b6b' }}>
-          Utility Mode — G-code 실행 불가
-        </p>
-      )}
-      <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      {isLocked && <p className="control-hint control-hint--warn">Utility Mode — G-code 실행 불가</p>}
+      <div className="control-extra">
         {!inOverdrive ? (
           <button
             type="button"
-            className="btn btn-secondary"
-            style={touchStyle({ flex: 1, minWidth: '140px' })}
+            className="btn btn-secondary control-extra__btn"
             disabled={disabled}
             onClick={onEnterOverdrive}
           >
@@ -69,8 +60,7 @@ export function ControlPad({
         ) : (
           <button
             type="button"
-            className="btn btn-secondary"
-            style={touchStyle({ flex: 1, minWidth: '140px' })}
+            className="btn btn-secondary control-extra__btn"
             disabled={disabled}
             onClick={onExitOverdrive}
           >

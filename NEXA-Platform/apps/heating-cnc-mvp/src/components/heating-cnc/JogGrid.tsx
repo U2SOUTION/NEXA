@@ -1,7 +1,5 @@
 'use client';
 
-import { touchStyle } from '@/components/heating-cnc/touchStyle';
-
 interface JogGridProps {
   disabled?: boolean;
   onJog: (axis: 'X' | 'Y' | 'Z' | 'A', delta: number) => void;
@@ -22,7 +20,6 @@ export function JogGrid({ disabled, onJog }: JogGridProps) {
               <button
                 type="button"
                 className="jog-btn"
-                style={touchStyle()}
                 disabled={disabled}
                 onClick={() => onJog(axis, step)}
                 aria-label={`${axis} 축 +${step}`}
@@ -32,7 +29,6 @@ export function JogGrid({ disabled, onJog }: JogGridProps) {
               <button
                 type="button"
                 className="jog-btn"
-                style={touchStyle()}
                 disabled={disabled}
                 onClick={() => onJog(axis, -step)}
                 aria-label={`${axis} 축 -${step}`}

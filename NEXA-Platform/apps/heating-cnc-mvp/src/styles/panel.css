@@ -117,6 +117,45 @@
   background: #6c757d;
 }
 
+.tri-link__meta {
+  margin-left: 0.5rem;
+  opacity: 0.85;
+}
+
+.telemetry-badges {
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.telemetry-meta {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--nexa-muted);
+}
+
+.control-hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+}
+
+.control-hint--warn {
+  color: #ff6b6b;
+}
+
+.control-extra {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.control-extra__btn {
+  flex: 1;
+  min-width: 140px;
+}
+
 .telemetry-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -184,6 +223,13 @@
   .control-row .btn-estop {
     grid-column: 1 / -1;
   }
+}
+
+.btn,
+.mode-btn,
+.jog-btn {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn {
@@ -383,6 +429,10 @@
   justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.scan-pass-card__title {
+  margin: 0;
 }
 
 .scan-pass-card__hint {

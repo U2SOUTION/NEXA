@@ -1,5 +1,4 @@
 import type { ScanResultSummary, ScanSampleProgress } from '@/hooks/useTriLinkSession';
-import { touchStyle } from '@/components/heating-cnc/touchStyle';
 import type { RunMode } from '@nexa/heating-cnc';
 
 interface ScanPassCardProps {
@@ -26,9 +25,7 @@ export function ScanPassCard({
   return (
     <aside className={`scan-pass-card scan-pass-card--${phase}`} data-phase={phase}>
       <header className="scan-pass-card__header">
-        <h3 className="card__title" style={{ margin: 0 }}>
-          Scan Pass
-        </h3>
+        <h3 className="card__title scan-pass-card__title">Scan Pass</h3>
         {runMode === 'device_dry' && <span className="badge badge--idle">드라이런</span>}
       </header>
 
@@ -37,7 +34,7 @@ export function ScanPassCard({
           <p className="scan-pass-card__hint">
             A축 부하 스캔으로 비정형·편심을 감지하고 F를 보정합니다.
           </p>
-          <button type="button" className="btn btn-secondary" style={touchStyle()} disabled={disabled} onClick={onStartScan}>
+          <button type="button" className="btn btn-secondary" disabled={disabled} onClick={onStartScan}>
             Scan 시작
           </button>
         </>

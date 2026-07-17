@@ -47,7 +47,7 @@ export function TriLinkBanner({ status, triLink, runMode, deviceConnected }: Tri
       <div>
         <strong>Tri-Link</strong> · {STATUS_LABEL[status]}
         {triLink && (
-          <span style={{ marginLeft: '0.5rem', opacity: 0.85 }}>
+          <span className="tri-link__meta">
             {runActive ? 'RUN' : 'IDLE'} · {runMode}
             {triLink.ui_required && !triLink.ui_alive && ' · UI 타임아웃 위험'}
           </span>
