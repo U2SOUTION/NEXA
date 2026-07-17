@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.typecheck.json",
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true
-  },
-  "exclude": ["node_modules", "dist"]
-}

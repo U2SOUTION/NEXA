@@ -1,0 +1,40 @@
+/*!*************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ../../node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[10].use[2]!../../node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[10].use[3]!./src/app/globals.css ***!
+  \*************************************************************************************************************************************************************************************************************************************************************************/
+:root {
+  --nexa-bg: #0f1419;
+  --nexa-surface: #1a2332;
+  --nexa-accent: #e85d04;
+  --nexa-danger: #d00000;
+  --nexa-text: #f1f5f9;
+  --nexa-muted: #94a3b8;
+  --touch-min: 48px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+  background: var(--nexa-bg);
+  color: var(--nexa-text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: var(--nexa-accent);
+}
+

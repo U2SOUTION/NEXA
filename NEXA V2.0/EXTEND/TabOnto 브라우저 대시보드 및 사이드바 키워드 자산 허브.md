@@ -1,15 +1,30 @@
-# TabOnto · 브라우저 대시보드(new Tab) 및 사이드페널 용어 자산 허브
+---
+doc_id: 
+title: ""
+category: ""
+domain: 
+status: draft
+created: 2026-06-20
+updated: 2026-07-17
+parent_doc: 
+implements_doc: 
+see_also: []
+terms_standard: []
+terms_nexa: []
+---
+
+# TabOnto · 브라우저 대시보드 (new Tab) 및 사이드페널 용어 자산 허브
 
 > [!ABSTRACT] **제품 정의: 지식의 입구이자 물류 허브**
-> **TabOnto**는 웹 서핑 중 발견한 **용어와 맥락(Context)**을 포착하여 지능적으로 구조화하고, 이를 **[[NEXA]]** 플랫폼의 핵심 자산으로 전환하는 **지식 물류 허브**입니다.
-> "모든 거대한 온톨로지는 단 하나의 '개념(Term)'에서 시작됩니다. 용어는 단순한 단어가 아니라, 그 뒤에 숨겨진 **맥락과 관계를 잇는 고리(Linker)**입니다. TabOnto는 이 '원자'를 수집하여 **[[NEXIA]]**라는 거대한 지식 분자를 만드는 출발점입니다."
-> 
+> **TabOnto**는 웹 서핑 중 발견한 **용어와 맥락 (Context)**을 포착하여 지능적으로 구조화하고, 이를 **[[NEXA]]** 플랫폼의 핵심 자산으로 전환하는 **지식 물류 허브**입니다.
+> " 모든 거대한 온톨로지는 단 하나의 ' 개념 (Term)' 에서 시작됩니다. 용어는 단순한 단어가 아니라, 그 뒤에 숨겨진 **맥락과 관계를 잇는 고리 (Linker)**입니다. TabOnto 는 이 ' 원자 ' 를 수집하여 **[[NEXIA]]**라는 거대한 지식 분자를 만드는 출발점입니다."
+>
 
-> **Tab** + **Onto**(logy) — **새 탭(Tab)에서 시작하는, 내 손안의 지식 온톨로지(Ontology).**  
-> **포지션:** **브라우저 확장 (Extension)** = **가볍게 쌓기** · NEXA = **본관 · NEXIA 연동** — [[#제품 포지션 · NEXIA 연동]]  
-> **배포 2분할:** **NEXA-Platform 내 TabOnto** (웹·API · **본체 SSOT**) + **`NEXA-TabOnto-package/`** (**WebExtensions MV3** · **선택** · ① 수집 등 호스트 전용).  
-> **SDK 3층:** **UI · Core · Host Adapter** — 개념 정리 [[#TabOnto SDK 3층 (UI · Core · Host Adapter)]] · 폴더 경로 [TDD-007 §10.5](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md#105-tabonto-sdk-3층-ui--core--host-adapter).  
-> **브라우저:** Chrome **한정 ✗** — [WebExtensions API](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions) **MV3** 지원 브라우저 공통 설계 · [[#WebExtensions · 크로스 브라우저 타깃]]  
+> **Tab** + **Onto**(logy) — **새 탭 (Tab) 에서 시작하는, 내 손안의 지식 온톨로지 (Ontology).**
+> **포지션:** **브라우저 확장 (Extension)** = **가볍게 쌓기** · NEXA = **본관 · NEXIA 연동** — [[#제품 포지션 · NEXIA 연동]]
+> **배포 2 분할:** **NEXA-Platform 내 TabOnto** (웹·API · **본체 SSOT**) + **`NEXA-TabOnto-package/`** (**WebExtensions MV3** · **선택** · ① 수집 등 호스트 전용).
+> **SDK 3 층:** **UI · Core · Host Adapter** — 개념 정리 [[#TabOnto SDK 3층 (UI · Core · Host Adapter)]] · 폴더 경로 [TDD-007 §10.5](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md#105-tabonto-sdk-3층-ui--core--host-adapter).
+> **브라우저:** Chrome **한정 ✗** — [WebExtensions API](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions) **MV3** 지원 브라우저 공통 설계 · [[#WebExtensions · 크로스 브라우저 타깃]]
 > **정본 대조:** [TDD-003](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_플랫폼기술스택.md) · [TDD-007](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md)
 
 ---
@@ -17,16 +32,16 @@
 ## WebExtensions · 크로스 브라우저 타깃
 
 > [!important] **설계 원칙 — Chrome 독점 ✗ · WebExtensions 공통**
-> **`NEXA-TabOnto-package/`** 는 **Manifest V3 WebExtensions** 확장으로 정의한다.  
-> Chromium(Chrome · Edge · Brave · Opera 등)을 **1차 타깃**으로 하되, **Firefox MV3**까지 **동일 코드베이스**로 빌드·검증한다.  
+> **`NEXA-TabOnto-package/`** 는 **Manifest V3 WebExtensions** 확장으로 정의한다.
+> Chromium(Chrome · Edge · Brave · Opera 등) 을 **1 차 타깃**으로 하되, **Firefox MV3**까지 **동일 코드베이스**로 빌드·검증한다.
 > Safari · 모바일 브라우저는 **API 격차**가 커서 **Phase 2+** *(또는 본관 웹만)*.
 
-> [!check] **1차 지원 매트릭스 (MVP)**
+> [!check] **1 차 지원 매트릭스 (MVP)**
 
 | 브라우저 | 엔진 | MV3 | TabOnto MVP | 비고 |
 | :--- | :--- | :---: | :---: | :--- |
 | **Chrome** | Chromium | ⭕ | ⭕ P0 | `side_panel` · `chrome_url_overrides` |
-| **Edge** | Chromium | ⭕ | ⭕ P0 | Chromium과 **동일 zip** 가능 |
+| **Edge** | Chromium | ⭕ | ⭕ P0 | Chromium 과 **동일 zip** 가능 |
 | **Firefox** | Gecko | ⭕ | ⭕ P1 | `sidebar_action` **폴백** · newtab 차이 |
 | **Brave / Opera** | Chromium | ⭕ | △ P1 | Chromium 빌드 **재사용** |
 | **Safari** | WebKit | △ | ✗ MVP | `safari-web-extension` **별도** · Phase 2+ |
@@ -58,18 +73,18 @@
 
 > [!warning] **브라우저별 주의 (MVP)**
 >
-> - **Firefox** — `sidePanel` **미지원** → `sidebar_action` + 동일 iframe `sidepanel.html`  
-> - **newtab override** — 정책·버전별 차이 → **로컬 약식 DOM + API** 우선 *(iframe 전체 로드 ✗)*  
-> - **Gemini Nano** — **Chromium 전용** · Firefox 등은 **Nest/agent-graph 또는 BYOK**  
-> - **수동 설치(sideload)** — NEXA 슈퍼 유저 · 스토어 정책은 **브라우저별** 상이
+> - **Firefox** — `sidePanel` **미지원** → `sidebar_action` + 동일 iframe `sidepanel.html`
+> - **newtab override** — 정책·버전별 차이 → **로컬 약식 DOM + API** 우선 *(iframe 전체 로드 ✗)*
+> - **Gemini Nano** — **Chromium 전용** · Firefox 등은 **Nest/agent-graph 또는 BYOK**
+> - **수동 설치 (sideload)** — NEXA 슈퍼 유저 · 스토어 정책은 **브라우저별** 상이
 
-> **한 줄:** package는 **얇은 호스트** — SSOT는 **NEXA iframe** · 브라우저 차이는 **capabilities + polyfill**로 흡수.
+> **한 줄:** package 는 **얇은 호스트** — SSOT 는 **NEXA iframe** · 브라우저 차이는 **capabilities + polyfill**로 흡수.
 
 ### 구현 템플릿 · manifest diff · `capabilities.js`
 
 > [!abstract] **빌드 전략**
-> **단일 `manifest.json` ✗** — **`manifest.base.json` + 타깃 overlay merge** → `build/chromium.zip` · `build/firefox.zip`.  
-> WXT `@wxt-dev/module-react` / 커스텀 `scripts/build-extension.mjs` 모두 가능 · CI는 **양 zip smoke** 필수.
+> **단일 `manifest.json` ✗** — **`manifest.base.json` + 타깃 overlay merge** → `build/chromium.zip` · `build/firefox.zip`.
+> WXT `@wxt-dev/module-react` / 커스텀 `scripts/build-extension.mjs` 모두 가능 · CI 는 **양 zip smoke** 필수.
 
 **① `manifest.base.json` (공통 SSOT)**
 
@@ -121,7 +136,7 @@
 }
 ```
 
-> Chromium: `sidePanel`은 **`optional_permissions`** — 최초 `openSideUi` 실패 시 `browser.permissions.request({ permissions: ['sidePanel'] })` 후 재시도.
+> Chromium: `sidePanel` 은 **`optional_permissions`** — 최초 `openSideUi` 실패 시 `browser.permissions.request({ permissions: ['sidePanel'] })` 후 재시도.
 
 **③ `manifest.firefox.json` (merge · P1)**
 
@@ -142,7 +157,7 @@
 }
 ```
 
-> Firefox merge 시 **`side_panel` 키 제거** · `optional_permissions`에서 `sidePanel` **제거** *(API 없음)*.
+> Firefox merge 시 **`side_panel` 키 제거** · `optional_permissions` 에서 `sidePanel` **제거** *(API 없음)*.
 
 **④ merge 의사코드 (`scripts/merge-manifest.mjs`)**
 
@@ -270,38 +285,38 @@ export function isAllowedOrigin(origin) {
 
 > [!check] **연동 체크리스트**
 >
-> 1. `background.js` — `KEYWORD_CAPTURED` → `openSideUi(sender.tab?.id)`  
-> 2. `browser.action.onClicked` → `onActionClicked` *(Firefox sidebar 수동 열기 대비)*  
-> 3. Nest `(embed)/tabonto/layout.tsx` — `frame-ancestors`에 **Chromium·Firefox extension id** 환경변수 등록  
+> 1. `background.js` — `KEYWORD_CAPTURED` → `openSideUi(sender.tab?.id)`
+> 2. `browser.action.onClicked` → `onActionClicked` *(Firefox sidebar 수동 열기 대비)*
+> 3. Nest `(embed)/tabonto/layout.tsx` — `frame-ancestors` 에 **Chromium·Firefox extension id** 환경변수 등록
 > 4. CI — `merge-manifest chromium|firefox` → web-ext lint *(선택)* → sideload smoke
 
 ---
 
 > [!tip] **핵심 선순환**
-> **입력 → 자산화 → 활용 → 재학습**  
-> 6단계 파이프라인: `키워드 → 해석 → 편집 → 저장 → 관계도 추출 → 각자 응용`
+> **입력 → 자산화 → 활용 → 재학습**
+> 6 단계 파이프라인: `키워드 → 해석 → 편집 → 저장 → 관계도 추출 → 각자 응용`
 
 ---
 
 ## 플랫폼 본체 · 선택 설치 (EXTEND 공통)
 
 > [!important] **원칙**
-> **NEXA Platform = 기능 SSOT · 온전한 본체.** iframe · WebView · **WebExtensions 확장** · Desktop은 **밖에서 보는 창**이며, **설치·의무 ✗**.
+> **NEXA Platform = 기능 SSOT · 온전한 본체.** iframe · WebView · **WebExtensions 확장** · Desktop 은 **밖에서 보는 창**이며, **설치·의무 ✗**.
 
 | | **플랫폼 `(shell)`** | **선택: Browser Extension / Desktop** |
 | :--- | :--- | :--- |
 | **TabOnto** | ②~⑥ 전부 · 수동 입력·붙여넣기 · 대시보드 · Export | ① DOM 수집 · **side_panel / sidebar** · newtab 껍데기 |
 | **U2BEE** | 관제·설정·아카이브 UI · Nest 연동 | OS·파일 등 **시스템 레벨** — Desktop **선택 설치** |
 
-> embed `(embed)/…` 라우트는 Shell UI **재사용**. package·`apps/desktop`은 호스트 + **호스트 전용 capability**만 추가.
+> embed `(embed)/…` 라우트는 Shell UI **재사용**. package·`apps/desktop` 은 호스트 + **호스트 전용 capability**만 추가.
 
 ---
 
-## TabOnto SDK 3층 (UI · Core · Host Adapter)
+## TabOnto SDK 3 층 (UI · Core · Host Adapter)
 
 > [!abstract] **처음 보시는 분 — 한 줄**
-> TabOnto는 **화면(UI)** · **규칙·데이터(Core)** · **브라우저·OS 연결(Host Adapter)** 을 **나눠 두고**, Extension · NEXA 웹 · (미래) Desktop이 **같은 Core**를 씁니다.  
-> **`sdk/` 폴더가 따로 있는 것은 아닙니다** — 아래 표의 **실제 경로**가 SSOT입니다. ([TDD-007 §10.5](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md#105-tabonto-sdk-3층-ui--core--host-adapter))
+> TabOnto 는 **화면 (UI)** · **규칙·데이터 (Core)** · **브라우저·OS 연결 (Host Adapter)** 을 **나눠 두고**, Extension · NEXA 웹 · (미래) Desktop 이 **같은 Core**를 씁니다.
+> **`sdk/` 폴더가 따로 있는 것은 아닙니다** — 아래 표의 **실제 경로**가 SSOT 입니다. ([TDD-007 §10.5](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md#105-tabonto-sdk-3층-ui--core--host-adapter))
 
 | 층 | 무엇인가 (쉬운 말) | 바뀌면 안 되는 것 | 주요 위치 |
 | :--- | :--- | :--- | :--- |
@@ -329,8 +344,8 @@ export function isAllowedOrigin(origin) {
 > | 본 허브 · WebExtensions · PostMessage 절 | **Host Adapter** (어떻게 연결할지) |
 
 > [!important] **제품 포지션과 함께**
-> - **Extension** = Host Adapter **두껍게** + UI **얇게** (iframe·로컬 newtab)  
-> - **NEXA 본관** = UI **풀** + Adapter **거의 없음** (`direct`)  
+> - **Extension** = Host Adapter **두껍게** + UI **얇게** (iframe·로컬 newtab)
+> - **NEXA 본관** = UI **풀** + Adapter **거의 없음** (`direct`)
 > - 나중에 Adapter 구현 파일만 늘려도, 호스트는 **`createHostAdapter()` 한 줄**만 쓰는 것이 목표
 
 ---
@@ -338,7 +353,7 @@ export function isAllowedOrigin(origin) {
 ## 제품 포지션 · NEXIA 연동
 
 > [!important] **내부 규정 (제품 포지션)**
-> **Extension TabOnto** — NEXA와 **별개처럼** 느껴지는, **밖에서 가볍게** 지식을 쌓는 **브라우저 확장**.  
+> **Extension TabOnto** — NEXA 와 **별개처럼** 느껴지는, **밖에서 가볍게** 지식을 쌓는 **브라우저 확장**.
 > **NEXA TabOnto** — 밖에서 쌓은 지식을 **상세히 보고·편집**하고, NEXA 핵심 **NEXIA** 와 **연동**하는 본관.
 
 > [!note] **「별개」 vs 기술 SSOT**
@@ -356,7 +371,7 @@ export function isAllowedOrigin(origin) {
         └──────── 같은 자산 ────────────┘
 ```
 
-> [!check] **6단계 · 표면별 깊이**
+> [!check] **6 단계 · 표면별 깊이**
 
 | 단계 | Extension (가볍게) | NEXA `(shell)/tabonto` |
 | :--- | :--- | :--- |
@@ -366,7 +381,7 @@ export function isAllowedOrigin(origin) {
 | ④ 저장 | ⭕ | ⭕ |
 | ⑤ 관계도 | △ 약식 · 미리보기 | ⭕ React Flow · Auto-Link |
 | ⑥ Export | △ 클립보드 · MD | ⭕ 템플릿 · Notion · **→ NEXIA** |
-| **NEXIA 연동** | ✗ *(또는 「NEXA에서 열기」)* | ⭕ 승격 · Nexaon draft · Logex |
+| **NEXIA 연동** | ✗ *(또는 「NEXA 에서 열기」)* | ⭕ 승격 · Nexaon draft · Logex |
 
 > [!tip] **NEXIA 연동 (개념 · Phase 구분)**
 >
@@ -375,14 +390,14 @@ export function isAllowedOrigin(origin) {
 > - **연동** — TabOnto 노드 → NEXIA **promote / wikilink / import** *(Phase 2: 양방향 sync 검토)*
 > - **MVP 우선** — Promote·Export **> ⑤ React Flow** — [[#MVP 엔지니어링 가드레일]]
 
-> **한 줄:** Extension = **입구(funnel)** · NEXA TabOnto = **심화 + NEXIA로 올리는 다리**.
+> **한 줄:** Extension = **입구 (funnel)** · NEXA TabOnto = **심화 + NEXIA 로 올리는 다리**.
 
 ---
 
 ## 제품 정의
 
 > [!important] **한 줄 정의**
-> **TabOnto** — 지식의 **수집과 연결(온톨로지)** 은 우리가 세계 최고로 만들고, 기획·업무 효율화는 유저가 쓰던 툴로 **가장 매끄럽게 Export** 한다 — **지식의 물류 허브**.
+> **TabOnto** — 지식의 **수집과 연결 (온톨로지)** 은 우리가 세계 최고로 만들고, 기획·업무 효율화는 유저가 쓰던 툴로 **가장 매끄럽게 Export** 한다 — **지식의 물류 허브**.
 
 | UI | 역할 | 배포 위치 |
 | :--- | :--- | :--- |
@@ -416,7 +431,7 @@ export function isAllowedOrigin(origin) {
 | **Unknown** | 낯선 용어·개념 **첫 포착** | Tab 1 · **Extension** · 사이드페널 | 해석·RAG · 노드 SSOT |
 | **Known** | 이미 쌓인 지식으로 **의도·작업** | newtab **Z1·Z2·Z4** · Tab 5~6 · KickLink | React Flow · Nexaon Promote |
 
-> **한 줄:** Extension = **인터넷 쪽 정찰병(Scout)** · NEXA = **Known을 공고화·승격하는 본영** — [[#제품 포지션 · NEXIA 연동]]
+> **한 줄:** Extension = **인터넷 쪽 정찰병 (Scout)** · NEXA = **Known 을 공고화·승격하는 본영** — [[#제품 포지션 · NEXIA 연동]]
 
 > [!tip] **지적 시그니처와의 관계**
 > **Unknown** 활동이 쌓일수록 **지식 밸런서**가 축 비율을 갱신하고, 안정되면 **지적 시그니처**가 **윤곽**을 보여 줍니다 — [[TabOnto 지식 밸런서 · 지적 시그니처 규격]]
@@ -426,7 +441,7 @@ export function isAllowedOrigin(origin) {
 ## 제품명 · TabOnto
 
 > [!abstract] **Tab + Onto(logy)**
-> **새 탭(Tab)에서 시작하는, 내 손안의 지식 온톨로지(Ontology).**  
+> **새 탭 (Tab) 에서 시작하는, 내 손안의 지식 온톨로지 (Ontology).**
 > *Open a tab. Own your ontology.*
 
 | 항목 | 내용 |
@@ -441,13 +456,13 @@ export function isAllowedOrigin(origin) {
 > | :--- | :--- | :--- |
 > | **TabOnto** *(현행)* | Tab+Onto **이미 직관** · 코드·문서·`NEXA-TabOnto` 정합 | Onto 선행 강조는 약함 |
 > | **OntoTab** | **온톨로지 우선** · Known/Unknown 중 **탭=전장** 이미지 | 기존 TabOnto·패키지명 **전면 변경** 비용 |
-> | **NexaOnto** | [[NEXA]] **생태계 통합** · 「자산화는 NEXA에서 완성」 | **인터넷 정찰(Unknown)** 톤 약함 · Extension이 NEXA **부속품**처럼 들림 |
+> | **NexaOnto** | [[NEXA]] **생태계 통합** · 「자산화는 NEXA 에서 완성」 | **인터넷 정찰 (Unknown)** 톤 약함 · Extension 이 NEXA **부속품**처럼 들림 |
 >
 > **검토 의견 (문서 SSOT · 2026-06):**
 >
-> - **지식의 확장은 인터넷에 있다** → 브라우저 **얼굴(Extension)** 은 **OntoTab / TabOnto** 계열이 **NexaOnto**보다 맞습니다. Unknown Scout는 **웹→내 온톨로지** 방향이 핵심이지, 먼저 NEXA 로고를 내세울 필요는 없습니다.
-> - **자산 완성·Promote·팀 온톨로지**는 이미 **`NEXA-TabOnto`** · **NEXIA** 네이밍으로 **본영**이 커버됩니다 — **NexaOnto**를 제품 정식명으로 올리면 **이중 브랜딩**(TabOnto vs NexaOnto)만 늘 수 있습니다.
-> - **권장:** **정식명 TabOnto 유지** · 서브카피/Extension 태그라인에 **「Unknown Scout」** · shell·API는 **`NEXA-TabOnto`** 유지. **OntoTab**은 **A/B·스토어 부제** 후보만 *(코드 rename ✗)*.
+> - **지식의 확장은 인터넷에 있다** → 브라우저 **얼굴 (Extension)** 은 **OntoTab / TabOnto** 계열이 **NexaOnto**보다 맞습니다. Unknown Scout 는 **웹→내 온톨로지** 방향이 핵심이지, 먼저 NEXA 로고를 내세울 필요는 없습니다.
+> - **자산 완성·Promote·팀 온톨로지**는 이미 **`NEXA-TabOnto`** · **NEXIA** 네이밍으로 **본영**이 커버됩니다 — **NexaOnto**를 제품 정식명으로 올리면 **이중 브랜딩**(TabOnto vs NexaOnto) 만 늘 수 있습니다.
+> - **권장:** **정식명 TabOnto 유지** · 서브카피/Extension 태그라인에 **「Unknown Scout」** · shell·API 는 **`NEXA-TabOnto`** 유지. **OntoTab**은 **A/B·스토어 부제** 후보만 *(코드 rename ✗)*.
 >
 > **결정 전:** 본 표는 **아카이브·논의** — 확정 시 EXTEND 전역 일괄 rename 필요.
 
@@ -457,8 +472,8 @@ export function isAllowedOrigin(origin) {
 | :--- | :--- | :--- |
 | TabSide Asset | Tab+Side · 자산 유통 | → **TabOnto**로 확정 |
 | Knowledge Anchor | 용어에 닻을 내림 | |
-| SideCollect · TabReview | Collect → Review | TabOnto UX와 동형 |
-| MindDock | 지식 정착(Docking) | |
+| SideCollect · TabReview | Collect → Review | TabOnto UX 와 동형 |
+| MindDock | 지식 정착 (Docking) | |
 | LexiSide | Lexicon + Side | |
 | **OntoTab** | Onto 선행 · 탭=탐색 전장 | Identity Pivot 검토 — [[TabOnto 브라우저 대시보드 및 사이드바 키워드 자산 허브#제품명 · TabOnto]] |
 | **NexaOnto** | NEXA 생태계 접두 | 본영 브랜딩용 후보 · Extension 정식명 ✗ 권장 |
@@ -468,7 +483,7 @@ export function isAllowedOrigin(origin) {
 ## MVP 전략
 
 > [!abstract] **전략적 타협 — 플랫폼은 범용, 효율화는 템플릿**
-> 초기(MVP)에는 **[지식 → 기획 → 업무 효율화]** 연결 **파이프라인**만 명확히 제공하고, **실제 응용은 사용자·외부 생태계**에 맡긴다.  
+> 초기 (MVP) 에는 **[지식 → 기획 → 업무 효율화]** 연결 **파이프라인**만 명확히 제공하고, **실제 응용은 사용자·외부 생태계**에 맡긴다.
 > 처음부터 기획 에디터·태스크 툴까지 직접 만들면 리소스 분산 → 이도 저도 아님.
 
 > [!check] **우리가 100% 다룰 영역 vs 위임**
@@ -479,10 +494,10 @@ export function isAllowedOrigin(origin) {
 | **2. 기획** | 표준 프레임워크 **빈칸 채우기** | 기획서 에디터 · 와이어프레임 툴 | 3C · SWOT · PRD 템플릿 + 원클릭 AI 초안 |
 | **3. 업무 효율** | **Export · API 연동** | 일정·PM·협업 툴 전체 | Notion · Jira · 클립보드 **내보내기** |
 
-> [!example] **2단계 예시**
-> 수집한 `React` · `Next.js` 노드 선택 → **[기술 검토서 템플릿]** → AI가 상하 관계 분석해 초안 텍스트 생성.
+> [!example] **2 단계 예시**
+> 수집한 `React` · `Next.js` 노드 선택 → **[기술 검토서 템플릿]** → AI 가 상하 관계 분석해 초안 텍스트 생성.
 
-> [!example] **3단계 예시**
+> [!example] **3 단계 예시**
 > `[노션 마크다운으로 복사]` · `[지라 티켓 발행]` · `[클립보드]` — 유저가 평소 쓰던 툴에 **꽂기**.
 
 ---
@@ -492,12 +507,12 @@ export function isAllowedOrigin(origin) {
 > [!warning] **① 데이터 가교 · Zod 런타임 검증 (MVP 필수)**
 > **PostMessage**는 편리하지만, **메시지 규격이 조금만 어긋나도** 수집·브릿지 **전체가 멈출** 수 있다.
 >
-> **MVP에서 반드시 강제:**
+> **MVP 에서 반드시 강제:**
 >
 > - SSOT: `packages/shared/schemas/tabonto/extension-bridge.schema.ts` — action · envelope · payload **Zod**
 > - **iframe (Next.js)** — `window.addEventListener('message')` 수신 시 `safeParse` · 실패 = **로그 + drop** (침묵 실패 ✗)
 > - **package** — `postMessage` 송·수신 전 동일 스키마 검증 *(빌드 시 `@nexa/shared` 번들 또는 OpenAPI/JSON Schema 미러)*
-> - `bridge-protocol.js`의 `ACTIONS` 상수 = 스키마 `action` enum과 **1:1 동기화** · CI diff 검사
+> - `bridge-protocol.js` 의 `ACTIONS` 상수 = 스키마 `action` enum 과 **1:1 동기화** · CI diff 검사
 >
 > ```text
 > package ──postMessage──> safeParse(ExtensionBridgeMessage) ──> SidepanelApp
@@ -515,8 +530,8 @@ export function isAllowedOrigin(origin) {
 > | **데이터** | Nest `GET /tabonto/nodes?recent=` | iframe 로드 **병렬** 또는 iframe **대신** fetch 후 DOM hydrate |
 > | **풀 대시보드** | `(embed)/tabonto/dashboard` 또는 `(shell)/tabonto` | 「자세히 보기」·⑤ 그래프 — **지연 로드** |
 >
-> - MVP: newtab = **로컬 약식 레이아웃 + API 데이터** · React Flow iframe은 **Phase 1.5**
-> - `REFRESH_GRAPH` → API re-fetch + 로컬 리스트 갱신 *(iframe refresh는 fallback)*
+> - MVP: newtab = **로컬 약식 레이아웃 + API 데이터** · React Flow iframe 은 **Phase 1.5**
+> - `REFRESH_GRAPH` → API re-fetch + 로컬 리스트 갱신 *(iframe refresh 는 fallback)*
 
 > [!important] **③ 연동 · 구현 우선순위 (Retention)**
 > **유입·잔존**은 **⑤ 관계도**보다 **①~④ 수집·저장**과 **⑥ Export · NEXIA Promote**가 결정한다.
@@ -538,21 +553,21 @@ export function isAllowedOrigin(origin) {
 | 구분 | ❌ 방향 A: 전체 수직 통합 | ✅ 방향 B: 범용 허브 + 생태계 연동 *(추천)* |
 | :--- | :--- | :--- |
 | **구현 범위** | 지식 + 기획 에디터 + 태스크 툴 | 온톨로지 + 외부 연동 (Notion 등) |
-| **개발 기간** | 6개월+ · 출시 지연 | **1~2달 MVP** 검증 |
-| **유저 반응** | "노션/지라가 더 편한데…" (이탈) | "내 노션에 지식을 바로 꽂아주니 편하다" |
+| **개발 기간** | 6 개월 + · 출시 지연 | **1~2 달 MVP** 검증 |
+| **유저 반응** | " 노션/지라가 더 편한데…" (이탈) | " 내 노션에 지식을 바로 꽂아주니 편하다 " |
 | **확장성** | 자체 기능 범위에 갇힘 | 유저 업무 환경 **무엇이든** 대응 |
 
 > [!check] **TabOnto 비즈니스 이점**
 > - **MVP 최적화** — 기획·태스크 툴 미개발 → 공수 **~1/5**
-> - **진입 장벽 제거** — "새 툴 배우세요" ✗ → "기존 노션/지라를 200% 똑똑하게"
+> - **진입 장벽 제거** — " 새 툴 배우세요 " ✗ → " 기존 노션/지라를 200% 똑똑하게 "
 > - **차별점** — 단어장은 ④ 저장에서 끝 · 우리는 **⑤ 관계도 + ⑥ Export**까지
 
 ---
 
-## 6단계 파이프라인 (핵심 로직)
+## 6 단계 파이프라인 (핵심 로직)
 
 > [!abstract] **TabOnto 아키텍처 정본**
-> `키워드 → 해석 → 편집 → 저장 → 관계도 추출 → 각자 응용`  
+> `키워드 → 해석 → 편집 → 저장 → 관계도 추출 → 각자 응용`
 > 범용 상위 개념에 집중하면서 실질적 업무 효율화까지 연결하는 **타협점**.
 
 ### ① 키워드 (Input) · Unknown Scout
@@ -562,7 +577,7 @@ export function isAllowedOrigin(origin) {
 
 > [!tip] **사이드페널 · content script**
 > - 드래그 · 더블클릭 · 직접 입력으로 용어 포착
-> - **문맥(Sentence) + URL** 동시 캡처
+> - **문맥 (Sentence) + URL** 동시 캡처
 > - Manifest + Content Script + Background — 더블클릭 시 사이드바 강제 오픈·전달
 
 > [!note] **수집 모드 (options)**
@@ -576,11 +591,11 @@ export function isAllowedOrigin(origin) {
 
 > [!tip] **내장 AI (Gemini Nano) / 클라우드 API**
 > - 키워드 + 문맥 → **[기본 뜻 · 비즈니스 맥락 · 상하위 개념 · 추천 태그]**
-> - 질문 전 **기존 온톨로지 노드**를 꺼내 RAG처럼 **동봉**
+> - 질문 전 **기존 온톨로지 노드**를 꺼내 RAG 처럼 **동봉**
 
-> [!important] **3단계 분할 (LangGraph 스타일)**
-> 1. **해석 노드** — "문맥 속 사전적 뜻 1개만 정의"
-> 2. **추론 노드** — 기존 자산(예: React)과 **상하·인과 Yes/No** 검증
+> [!important] **3 단계 분할 (LangGraph 스타일)**
+> 1. **해석 노드** — " 문맥 속 사전적 뜻 1 개만 정의 "
+> 2. **추론 노드** — 기존 자산 (예: React) 과 **상하·인과 Yes/No** 검증
 > 3. **포맷 노드** — 1·2 결과만 모아 **JSON 규격화**
 >
 > *Gemini Nano 선가공 → 필요 시 외부 AI 폴백 검토*
@@ -593,16 +608,16 @@ export function isAllowedOrigin(origin) {
 ### ④ 저장 (Assetization)
 
 > [!tip] **Asset 창고**
-> 편집 완료 → 원클릭 저장 · **NEXA-TabOnto API** (서버 DB) · package는 PostMessage로 iframe에 전달만.
+> 편집 완료 → 원클릭 저장 · **NEXA-TabOnto API** (서버 DB) · package 는 PostMessage 로 iframe 에 전달만.
 
 ### ⑤ 관계도 추출 (Ontology Graph)
 
 > [!note] **MVP · 우선순위 P2**
-> Retention 핵심은 **①~④ · ⑥ · NEXIA Promote** — [[#MVP 엔지니어링 가드레일]].  
-> ⑤ 풀 그래프(React Flow)는 **Phase 1.5+** · newtab **약식 리스트**로 대체 가능.
+> Retention 핵심은 **①~④ · ⑥ · NEXIA Promote** — [[#MVP 엔지니어링 가드레일]].
+> ⑤ 풀 그래프 (React Flow) 는 **Phase 1.5+** · newtab **약식 리스트**로 대체 가능.
 
 > [!tip] **새 탭 대시보드**
-> 누적 자산 → 관계 분석 → **지식 그래프 / 연관 개념 리스트** 시각화 — "내가 이렇게 연결해 공부했구나" 인사이트.
+> 누적 자산 → 관계 분석 → **지식 그래프 / 연관 개념 리스트** 시각화 — " 내가 이렇게 연결해 공부했구나 " 인사이트.
 
 ### ⑥ 각자 응용 (Export & Freedom)
 
@@ -612,31 +627,31 @@ export function isAllowedOrigin(origin) {
 
 ---
 
-## 3층 UX (검색 · 자산화 · 재학습)
+## 3 층 UX (검색 · 자산화 · 재학습)
 
 > [!abstract] **The Entrance → The Vault → The Engine**
-> 인터넷 흐름을 **1초** 방해하지 않는 수집 · 휘발 방지 자산화 · 망각 방지 재학습.
+> 인터넷 흐름을 **1 초** 방해하지 않는 수집 · 휘발 방지 자산화 · 망각 방지 재학습.
 
-### 1층 · 검색 UI (The Entrance)
+### 1 층 · 검색 UI (The Entrance)
 
 > [!tip] **데이터 입력**
 > - **사이드바 통합 검색창** — 새 탭 없이 AI + 기존 DB 동시 조회
 > - **스마트 드래그/더블클릭** — 용어 자동 채움 + 결과 출력
 > - **Context 자동 수집** — 예문 + URL AI 캡처 (단어만 저장 ✗)
 
-### 2층 · 개인 자산화 (The Vault)
+### 2 층 · 개인 자산화 (The Vault)
 
 > [!tip] **나만의 지식 창고**
 > - **원클릭 카드 저장** — [용어 + 뜻 + 예문 + 카테고리]
 > - **AI 자동 태깅** — `#프론트엔드` `#AI` 등 · 폴더 수동 생성 ✗
-> - **자산 재활용** — 중복 시 "이미 2026년 6월 저장" + 내 메모 우선 · API 절감
+> - **자산 재활용** — 중복 시 " 이미 2026 년 6 월 저장 " + 내 메모 우선 · API 절감
 
-### 3층 · 재학습·유지 (The Engine)
+### 3 층 · 재학습·유지 (The Engine)
 
 > [!tip] **지식 숙성**
-> - **새 탭 플래시카드** — 망각곡선(에빙하우스) 기반 퀴즈
-> - **주간 AI 요약 리포트** — 이번 주 저장 N개 → "핵심 주제 요약" 맞춤 교재
-> - **자산 정제** — 마스터 처리 · AI "개발 예시 추가" 편집
+> - **새 탭 플래시카드** — 망각곡선 (에빙하우스) 기반 퀴즈
+> - **주간 AI 요약 리포트** — 이번 주 저장 N 개 → " 핵심 주제 요약 " 맞춤 교재
+> - **자산 정제** — 마스터 처리 · AI " 개발 예시 추가 " 편집
 
 | 대분류 | 핵심 역할 | MVP UI/기능 |
 | :--- | :--- | :--- |
@@ -646,12 +661,12 @@ export function isAllowedOrigin(origin) {
 
 ---
 
-## 배포 아키텍처 · iframe 2분할
+## 배포 아키텍처 · iframe 2 분할
 
 > [!important] **왜 분리하는가**
-> - **구글 MV3** — 확장에 무거운 UI·AI·DB 넣으면 **Chromium 계열** 정책·재심사 리스크 ↑ → package는 **수집·껍데기·브릿지**만 *(Firefox AMO 정책 동형)*  
+> - **구글 MV3** — 확장에 무거운 UI·AI·DB 넣으면 **Chromium 계열** 정책·재심사 리스크 ↑ → package 는 **수집·껍데기·브릿지**만 *(Firefox AMO 정책 동형)*
 > - **NEXA SSOT** — 온톨로지·AI·Export·기획 템플릿은 **웹플랫폼 서버**에서 즉시 배포·갱신 (확장 재설치 ✗)
-> - **iframe** — sidepanel · newtab 하단이 **NEXA 웹(Next.js)** iframe · **Nest → agent-graph** Run 경유 (TDD-003④)
+> - **iframe** — sidepanel · newtab 하단이 **NEXA 웹 (Next.js)** iframe · **Nest → agent-graph** Run 경유 (TDD-003④)
 
 ```text
 [일반 웹페이지] ──dblclick──> [content.js]
@@ -676,13 +691,13 @@ export function isAllowedOrigin(origin) {
 > [!tip] **iframe URL (예)**
 > - 사이드바: `https://{NEXA_HOST}/tabonto/sidepanel`
 > - 대시보드: `https://{NEXA_HOST}/tabonto/dashboard`
-> - package `manifest.json` · `bridge-protocol.js`에 **ORIGIN SSOT** 고정
+> - package `manifest.json` · `bridge-protocol.js` 에 **ORIGIN SSOT** 고정
 
 > [!warning] **추가 보안 가드레일 (Security & Resilience)**
 >
-> - **① Origin Verification** — `window.addEventListener('message', …)` 처리 시 `event.origin`이 **`chrome-extension://${EXTENSION_ID}`** *(Chromium)* · **`moz-extension://${EXTENSION_ID}`** *(Firefox)* *(iframe ← package)* 또는 **`https://{NEXA_HOST}`** *(package ← iframe)* 와 일치하는지 **반드시** 검증. `isAllowedOrigin()` = `bridge-protocol.js` · `extension-bridge.schema.ts` SSOT — **다중 prefix allowlist**.
-> - **② Auth Handshake** — 확장 설치 후 **최초 iframe load** 시 `browser.storage.local`의 토큰을 **`TABONTO_INIT`** payload에 실어 전달 · 서버는 JWT/세션으로 검증 후 embed API 허용.
-> - **③ CSP Policy** — embed 응답에 `Content-Security-Policy: frame-ancestors chrome-extension://${EXTENSION_ID} moz-extension://${EXTENSION_ID} https://{NEXA_HOST}` *(환경별 allowlist)* — **미허가 도메인 iframe 임베딩 ✗**. Next.js `(embed)/tabonto/layout.tsx` · Nest middleware에서 SSOT.
+> - **① Origin Verification** — `window.addEventListener('message', …)` 처리 시 `event.origin` 이 **`chrome-extension://${EXTENSION_ID}`** *(Chromium)* · **`moz-extension://${EXTENSION_ID}`** *(Firefox)* *(iframe ← package)* 또는 **`https://{NEXA_HOST}`** *(package ← iframe)* 와 일치하는지 **반드시** 검증. `isAllowedOrigin()` = `bridge-protocol.js` · `extension-bridge.schema.ts` SSOT — **다중 prefix allowlist**.
+> - **② Auth Handshake** — 확장 설치 후 **최초 iframe load** 시 `browser.storage.local` 의 토큰을 **`TABONTO_INIT`** payload 에 실어 전달 · 서버는 JWT/세션으로 검증 후 embed API 허용.
+> - **③ CSP Policy** — embed 응답에 `Content-Security-Policy: frame-ancestors chrome-extension://${EXTENSION_ID} moz-extension://${EXTENSION_ID} https://{NEXA_HOST}` *(환경별 allowlist)* — **미허가 도메인 iframe 임베딩 ✗**. Next.js `(embed)/tabonto/layout.tsx` · Nest middleware 에서 SSOT.
 > - **④ Degraded Mode** — 서버·iframe **응답 실패** 시 `content.js` / sidepanel 경로는 수집 데이터를 `browser.storage.local` **`pending_sync` 큐**에 적재 · 복구 시 Nest `POST /tabonto/nodes/batch-sync` 일괄 전송. Zod 검증 통과분만 enqueue — [[#MVP 엔지니어링 가드레일]].
 
 ---
@@ -690,7 +705,7 @@ export function isAllowedOrigin(origin) {
 ## TDD-003 · TDD-007 정합 검토
 
 > [!important] **검토 요약 (2026-06)**
-> iframe 2분할 **방향은 TDD와 충돌하지 않음**. 다만 서버 측 경로는 **독립 `NEXA-TabOnto/` 루트가 아니라 `NEXA-Platform/` 모노레포 안**에 두는 것이 정본.
+> iframe 2 분할 **방향은 TDD 와 충돌하지 않음**. 다만 서버 측 경로는 **독립 `NEXA-TabOnto/` 루트가 아니라 `NEXA-Platform/` 모노레포 안**에 두는 것이 정본.
 
 | 항목 | EXTEND (기존) | TDD-003 · TDD-007 | 판정 |
 | :--- | :--- | :--- | :--- |
@@ -701,12 +716,13 @@ export function isAllowedOrigin(origin) {
 | **Zod SSOT** | `packages/shared/src/tabonto/` | `packages/shared/src/schemas/{name}/` + `tabonto/` | ⚠️ **`schemas/tabonto/`** · **`tabonto/host/`** SDK Core |
 | **AI ② 해석** | `interpret.service` 직접 AI | **agent-graph 단일** · Nest **프록시·SSE** | ⚠️ **`modules/agent-graph` 경유** |
 | **DB** | PostgreSQL · pgvector (개략) | Prisma · `knowledge/` · `project_knowledge` | ⚠️ **Prisma 모델·knowledge 연계** 명시 |
-| **Neo4j** | (미언급) | `modules/ontology/` **only** · promoted용 | ✅ TabOnto MVP는 **PG JSONB** · Neo4j ✗ |
-| **브라우저→AI** | iframe 내 API | 브라우저 → **Nest REST** · agent-graph 직접 ✗ | ✅ iframe이 Nest 호출하면 OK |
+| **Neo4j** | (미언급) | `modules/ontology/` **only** · promoted 용 | ✅ TabOnto MVP 는 **PG JSONB** · Neo4j ✗ |
+| **브라우저→AI** | iframe 내 API | 브라우저 → **Nest REST** · agent-graph 직접 ✗ | ✅ iframe 이 Nest 호출하면 OK |
 | **Browser Extension package** | `NEXA-TabOnto-package/` | TDD `extension/` (선택) · 모노레포 **외부** zip · Chromium/Firefox | ✅ **repo 형제 또는 `extension/tabonto/`** |
 | **Yjs / sync** | (미언급) | TabOnto MVP **불필요** · Phase 2+ | ✅ MVP 제외 |
 
 > [!check] **아키텍처 정렬 (TDD-007 §6)**
+>
 > ```text
 > [WebExtensions package] ──PostMessage──> [iframe TabOnto UI · apps/web]
 >                                        │
@@ -724,11 +740,11 @@ export function isAllowedOrigin(origin) {
 
 ---
 
-## 파일 구조 · 2분할 (TDD 정본 경로 · SDK 3층)
+## 파일 구조 · 2 분할 (TDD 정본 경로 · SDK 3 층)
 
 > [!abstract] **정본**
-> **① NEXA-Platform/** 모노레포 안 TabOnto — **Core + UI**  
-> **② NEXA-TabOnto-package/** — Git 루트 **형제** 폴더 · **Host Adapter + UI shell** · zip 배포 (pnpm workspace **외부**)  
+> **① NEXA-Platform/** 모노레포 안 TabOnto — **Core + UI**
+> **② NEXA-TabOnto-package/** — Git 루트 **형제** 폴더 · **Host Adapter + UI shell** · zip 배포 (pnpm workspace **외부**)
 > 층별 상세 → [[#TabOnto SDK 3층 (UI · Core · Host Adapter)]] · [TDD-007 §10.5](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md#105-tabonto-sdk-3층-ui--core--host-adapter)
 
 ### ① NEXA-Platform/ — Core + UI (TDD-007 트리 내)
@@ -801,8 +817,8 @@ NEXA-Platform/                                 — ▲ TDD-007 제품 루트 (pn
 
 ### ② NEXA-TabOnto-package/ — Host Adapter + UI shell (모노레포 **외부** · zip)
 
-> **Chromium zip + Firefox zip** → 각 스토어 / NEXA 유저 **sideload**. **Core·DB·AI 코드 없음** — Nest API + iframe UI에 연결.  
-> 진입점 **`webextension-polyfill`** — 아래 `chrome.*`는 **개념 설명용** · 구현은 **`browser.*` SSOT**.
+> **Chromium zip + Firefox zip** → 각 스토어 / NEXA 유저 **sideload**. **Core·DB·AI 코드 없음** — Nest API + iframe UI 에 연결.
+> 진입점 **`webextension-polyfill`** — 아래 `chrome.*` 는 **개념 설명용** · 구현은 **`browser.*` SSOT**.
 
 ```text
 NEXA-TabOnto-package/                          — Host Adapter + UI shell
@@ -830,10 +846,10 @@ NEXA-TabOnto-package/                          — Host Adapter + UI shell
     └── widgets/
 ```
 
-> **Core 연결:** package는 `createHostAdapter({ surface: 'extension' })` *(Phase 2+ · shared 번들)* 또는 `bridge-protocol.js` 직접 호출 *(MVP)*.  
+> **Core 연결:** package 는 `createHostAdapter({ surface: 'extension' })` *(Phase 2+ · shared 번들)* 또는 `bridge-protocol.js` 직접 호출 *(MVP)*.
 > **UI 연결:** sidepanel/newtab HTML → NEXA `(embed)/tabonto/*` iframe **또는** API hydrate.
 
-### 파일 ↔ 6단계 · 배포 위치 매핑
+### 파일 ↔ 6 단계 · 배포 위치 매핑
 
 | 단계 | NEXA-TabOnto (서버) | NEXA-TabOnto-package |
 | :--- | :--- | :--- |
@@ -847,7 +863,7 @@ NEXA-TabOnto-package/                          — Host Adapter + UI shell
 ### PostMessage 프로토콜 (bridge SSOT)
 
 > [!warning] **런타임 검증 (MVP 필수)**
-> 아래 payload는 **`packages/shared/schemas/tabonto/extension-bridge.schema.ts`** Zod **`safeParse` 통과 후**만 처리.  
+> 아래 payload 는 **`packages/shared/schemas/tabonto/extension-bridge.schema.ts`** Zod **`safeParse` 통과 후**만 처리.
 > package · iframe **양쪽** 적용 — [[#MVP 엔지니어링 가드레일]].
 
 | action | 방향 | payload |
@@ -864,37 +880,37 @@ NEXA-TabOnto-package/                          — Host Adapter + UI shell
 ### NEXA-Platform · TabOnto (서버)
 
 > [!tip] **`app/(embed)/tabonto/` + `domains/tabonto/`**
-> Next.js **iframe 전용** 라우트 · MainShell registry **미등록**. `frame-ancestors`에 extension origin.
+> Next.js **iframe 전용** 라우트 · MainShell registry **미등록**. `frame-ancestors` 에 extension origin.
 
 > [!tip] **`modules/tabonto/` + `modules/agent-graph/`**
-> CRUD는 tabonto · **AI Run은 agent-graph 프록시만** (TDD-007④ · interpret.controller ✗).
+> CRUD 는 tabonto · **AI Run 은 agent-graph 프록시만** (TDD-007④ · interpret.controller ✗).
 
 > [!tip] **`packages/shared/schemas/tabonto/`**
-> FE·BE·extension bridge **Zod SSOT** — **`extension-bridge.schema.ts` MVP safeParse 필수** — nexaon 패턴 동형.  
+> FE·BE·extension bridge **Zod SSOT** — **`extension-bridge.schema.ts` MVP safeParse 필수** — nexaon 패턴 동형.
 > **지적 시그니처:** `intellectual-signature.schema.ts` · **`axisSetId`** — [[TabOnto 지식 밸런서 · 지적 시그니처 규격]]
 
 > [!tip] **`knowledge-balancer.service.ts` · `profile.controller.ts`** *(Phase 2)*
 > Tab 1~2 → **Knowledge Balancer** 집계 → **Intellectual Signature** · `/tabonto/profile/signature` · `axisRegistry/tabonto-v1.yaml`
 
 > [!tip] **`agent-graph/graphs/tabonto_*.py`**
-> ② 해석 3단 체인 · registry.yaml 등록 · Nest `graph_id` 1:1.
+> ② 해석 3 단 체인 · registry.yaml 등록 · Nest `graph_id` 1:1.
 
 ### NEXA-TabOnto-package (확장)
 
 > [!tip] **`manifest.json`**
-> MV3 **최소 권한**. UI는 **외부 iframe URL**만 참조 — 비즈니스 코드 미포함.
+> MV3 **최소 권한**. UI 는 **외부 iframe URL**만 참조 — 비즈니스 코드 미포함.
 
 > [!tip] **`content/content.js` · `background/background.js`**
 > **브라우저 전용** — DOM 수집 · sidePanel.open · runtime 중계.
 
 > [!tip] **`shared/bridge-protocol.js`**
-> PostMessage **action · origin allowlist** — `extension-bridge.schema.ts`와 **동기화** · 송수신 **Zod 검증**.
+> PostMessage **action · origin allowlist** — `extension-bridge.schema.ts` 와 **동기화** · 송수신 **Zod 검증**.
 
 > [!tip] **`sidepanel/sidepanel.html` + `sidepanel.js`**
 > iframe 껍데기 + **PostMessage 브릿지** (runtime ↔ **Next.js embed**) · **safeParse 필수**.
 
 > [!tip] **`newtab/newtab.html` (+ `newtab-bridge.js` · `newtab-dashboard.js`)**
-> **하이브리드** — 상단 Google 검색 · 하단 **약식 대시보드(패키지 내장)** + `GET /tabonto/nodes` 데이터 hydrate.  
+> **하이브리드** — 상단 Google 검색 · 하단 **약식 대시보드 (패키지 내장)** + `GET /tabonto/nodes` 데이터 hydrate.
 > 풀 dashboard iframe / `(shell)` 링크는 **지연 로드** — [[#MVP 엔지니어링 가드레일]].
 
 > [!check] **아키텍처 완성도**
@@ -902,10 +918,10 @@ NEXA-TabOnto-package/                          — Host Adapter + UI shell
 
 ---
 
-## background · PostMessage · 3방향 통신
+## background · PostMessage · 3 방향 통신
 
 > [!important] **관제탑 + iframe 브릿지**
-> Content · sidepanel 껍데기 · newtab 껍데기는 **runtime**으로 연결.  
+> Content · sidepanel 껍데기 · newtab 껍데기는 **runtime**으로 연결.
 > **실제 UI**는 NEXA iframe — **PostMessage**로 capture·refresh 전달.
 
 ```text
@@ -1003,7 +1019,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
 ## 부록 · 보관 메모
 
 > [!note] **후속 작업 질문 (원문)**
-> - 6단계 중 **② 해석 → ③ 편집** 사이드바 입력/편집 폼 **UI 프로토타입** 구상?
+> - 6 단계 중 **② 해석 → ③ 편집** 사이드바 입력/편집 폼 **UI 프로토타입** 구상?
 > - Export 우선 — **노션 마크다운 변환 로직**부터 개발?
 > - **`background.js` + `manifest.json`** 기틀 코드 우선 작성?
 
@@ -1013,21 +1029,21 @@ browser.runtime.onMessage.addListener((message, sender) => {
 > - `[1]` 외부 툴 가교 — Notion · Jira · Figma 등
 
 > [!quote] **기획 마감 코멘트 (원문)**
-> "나침반의 바늘이 완벽하게 고정되었습니다." / "기획의 뼈대가 이보다 더 단단할 수 없을 정도로 깔끔하게 정립되었습니다." / "아키텍처의 신경망 구조까지 완벽하게 정립되었습니다."
+> " 나침반의 바늘이 완벽하게 고정되었습니다." / " 기획의 뼈대가 이보다 더 단단할 수 없을 정도로 깔끔하게 정립되었습니다." / " 아키텍처의 신경망 구조까지 완벽하게 정립되었습니다."
 
 
 
 
 ## WebExtensions MV3 정책 · 슬림 경계 · 우회 전략
 
-Chromium(Chrome · Edge 등)과 Firefox 모두 **Manifest V3 WebExtensions** 정책은 보안·권한·스토어 심사 기준을 **지속 갱신**합니다.  
-TabOnto package에 과한 기능을 넣지 않고 슬림하게 유지해야 하는 핵심 이유 3가지를 정리합니다.
+Chromium(Chrome · Edge 등) 과 Firefox 모두 **Manifest V3 WebExtensions** 정책은 보안·권한·스토어 심사 기준을 **지속 갱신**합니다.
+TabOnto package 에 과한 기능을 넣지 않고 슬림하게 유지해야 하는 핵심 이유 3 가지를 정리합니다.
 
 ### 🛑 과유불급: 슬림함을 유지해야 하는 이유
 
 - **정책 변경 리스크 최소화:** 기능·권한이 복잡해질수록 **CWS · AMO · sideload** 각각의 제약에 걸려 확장이 **비활성화**될 위험이 커집니다.
-- **NEXA 수동 설치(sideload) 유저 보호:** 정식 스토어가 아닌 직접 등록으로 쓰는 슈퍼 유저는, 앱이 무거워지면 **브라우저·확장 업데이트** 때마다 재설치 부담이 커집니다.
-- **명확한 가교 역할:** package 본질은 **수집(사이드페널) + 인지(newtab)** 까지. 온톨로지 시각화·기획서·외부 툴 연동은 **NEXA iframe**에서 처리 — [[#WebExtensions · 크로스 브라우저 타깃]]
+- **NEXA 수동 설치 (sideload) 유저 보호:** 정식 스토어가 아닌 직접 등록으로 쓰는 슈퍼 유저는, 앱이 무거워지면 **브라우저·확장 업데이트** 때마다 재설치 부담이 커집니다.
+- **명확한 가교 역할:** package 본질은 **수집 (사이드페널) + 인지 (newtab)** 까지. 온톨로지 시각화·기획서·외부 툴 연동은 **NEXA iframe**에서 처리 — [[#WebExtensions · 크로스 브라우저 타깃]]
 
 ---
 
@@ -1097,13 +1113,13 @@ TabOnto package에 과한 기능을 넣지 않고 슬림하게 유지해야 하�
 ```
 
 > [!tip] **코드 예시 공통 주석**
-> 아래 `content.js` · `background.js` 샘플은 **`chrome.*`** 로 표기. 실제 package는 **`import browser from 'webextension-polyfill'`** 후 **`browser.*`** 만 사용.
+> 아래 `content.js` · `background.js` 샘플은 **`chrome.*`** 로 표기. 실제 package 는 **`import browser from 'webextension-polyfill'`** 후 **`browser.*`** 만 사용.
 
 ---
 
 ### 2. `content/content.js` (웹페이지 감시 주입기)
 
-- 사용자가 어떤 웹사이트에 있든 더블클릭한 단어와 그 주변 문장(Context)을 정확히 낚아채 관제탑으로 보냅니다.
+- 사용자가 어떤 웹사이트에 있든 더블클릭한 단어와 그 주변 문장 (Context) 을 정확히 낚아채 관제탑으로 보냅니다.
 
 ```javascript
 document.addEventListener('dblclick', () => {
@@ -1219,7 +1235,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 </html>
 ```
 
-> *(구 버전: 로컬 storage + 인라인 위젯 — **deprecated** · 서버 iframe으로 대체)*
+> *(구 버전: 로컬 storage + 인라인 위젯 — **deprecated** · 서버 iframe 으로 대체)*
 
 <!--
 ### [deprecated] 로컬 newtab.html (chrome.storage 직접 렌더)
@@ -1305,4 +1321,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 3. **sidebar_action** 으로 동일 `sidepanel.html` 로드 — `side_panel` API **미사용**
 
 > 스토어 배포: **Chrome Web Store** · **Microsoft Edge Add-ons** · **AMO** — zip·manifest **타깃별** CI 산출 — [[#WebExtensions · 크로스 브라우저 타깃]]
-

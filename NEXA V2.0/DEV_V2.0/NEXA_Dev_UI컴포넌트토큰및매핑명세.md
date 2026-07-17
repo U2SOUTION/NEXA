@@ -1,4 +1,8 @@
 ---
+created: 2026-06-19
+updated: 2026-07-17
+parent_doc: 
+terms_standard: []
 doc_id: DEV-UIX-TOKENS
 title: "NEXA Dev · UI 컴포넌트 토큰 및 매핑 명세"
 category: DEV
@@ -31,7 +35,7 @@ terms_nexa:
 # NEXA Dev · UI 컴포넌트 토큰 및 매핑 명세
 
 > [!abstract] Normative · v0 · Dev UI SSOT
-> **NEXA Dev** UI를 **v0.dev**에서 뽑아 `apps/web`에 이식할 때의 **디자인 토큰 · 컴포넌트 이름 · 파일 경로 · shadcn 매핑** 단일 정본. App [`UIX-005`](../APP_V2.0/07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) · [`TDD-001` §Theme](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) · [`UIX-008`](../APP_V2.0/07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) 계승 + **Dev 보강**(Source 스코프 · Logex 캔버스 · Gate · +4).
+> **NEXA Dev** UI 를 **v0.dev**에서 뽑아 `apps/web` 에 이식할 때의 **디자인 토큰 · 컴포넌트 이름 · 파일 경로 · shadcn 매핑** 단일 정본. App [`UIX-005`](../APP_V2.0/07_UIUX/07_UIUX_NEXIA_v0UI프롬프트셋_v1.0.md) · [`TDD-001` §Theme](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) · [`UIX-008`](../APP_V2.0/07_UIUX/07_UIUX_NEXIA_컴포넌트트리뼈대.md) 계승 + **Dev 보강**(Source 스코프 · Logex 캔버스 · Gate · +4).
 
 > [!summary] 문서 지도
 >
@@ -72,7 +76,7 @@ terms_nexa:
 | Dev v0 목표 | 추가 주입 섹션 |
 | :--- | :--- |
 | MainShell | §MainShell · §레이아웃 치수 · §Surface |
-| 7탭 셸 | §Nexia 7탭 · §Store |
+| 7 탭 셸 | §Nexia 7 탭 · §Store |
 | Logex/Nexaon | §Logex · GraphCanvas · §Nexaon 노드 |
 | 검증·배포 UI | §Dev 보강 · §상태 매핑 |
 
@@ -80,7 +84,7 @@ terms_nexa:
 
 ---
 
-## 토큰 3계층
+## 토큰 3 계층
 
 > `정의` · [`TDD-001` §Theme](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_설계표준_미션크리티컬전략.md)
 
@@ -109,7 +113,7 @@ terms_nexa:
 | CSS 변수 | Tailwind | HSL (기본값) | UI 용도 | v0 클래스 예 |
 | :--- | :--- | :--- | :--- | :--- |
 | `--safety-critical` | `safety-critical` | `0 84% 42%` | 긴급 정지 · Grade3 | `bg-safety-critical text-white` |
-| `--safety-warning` | `safety-warning` | `38 92% 50%` | 임계 초과 · 2등급 대기 | `border-safety-warning` |
+| `--safety-warning` | `safety-warning` | `38 92% 50%` | 임계 초과 · 2 등급 대기 | `border-safety-warning` |
 | `--status-ok` | `status-ok` | `142 71% 45%` | SYNC OK · Run 완료 | `text-status-ok` · 연결 dot |
 | `--status-degraded` | `status-degraded` | `45 93% 47%` | 지연 · 부분 장애 | `text-status-degraded` |
 | `--status-offline` | `status-offline` | `220 9% 46%` | sync 끊김 | `text-status-offline` |
@@ -141,7 +145,7 @@ terms_nexa:
 | SYNC strip | dot `bg-status-ok` / `bg-status-offline` | `text-xs` |
 
 > [!warning] `원칙`
-> Safety·Status UI에 `bg-primary` · 임의 hex **✗** — semantic 토큰만.
+> Safety·Status UI 에 `bg-primary` · 임의 hex **✗** — semantic 토큰만.
 
 ---
 
@@ -204,7 +208,7 @@ terms_nexa:
 <html data-theme-preset="office-light" class="light">
 ```
 
-**밀도 톤:** Palantir·IDE형 — consumer chat bubble 스타일 **✗** · `text-sm` 기본 · compact toolbar
+**밀도 톤:** Palantir·IDE 형 — consumer chat bubble 스타일 **✗** · `text-sm` 기본 · compact toolbar
 
 ---
 
@@ -235,7 +239,7 @@ terms_nexa:
 | :--- | :--- |
 | Glassmorphism | `bg-[var(--logex-drawer-glass)] backdrop-blur-md border-border/40` |
 
-> App·Dev **동형 스킨** — v0에서 Graph 영역만 dark canvas · 셸은 office-light 유지.
+> App·Dev **동형 스킨** — v0 에서 Graph 영역만 dark canvas · 셸은 office-light 유지.
 
 ---
 
@@ -263,7 +267,7 @@ terms_nexa:
 | **Canvas node title** | `text-xs font-medium` | React Flow node |
 | **Monospace** | `font-mono text-xs` | GPIO · run_id · code |
 
-**Font:** `font-sans` (Inter/Geist/system) — canvas code만 `font-mono`
+**Font:** `font-sans` (Inter/Geist/system) — canvas code 만 `font-mono`
 
 ---
 
@@ -325,7 +329,7 @@ nexia: {
 
 ---
 
-## Nexia 7탭 · Workspace 매핑
+## Nexia 7 탭 · Workspace 매핑
 
 > `구조` · [`TDD-056`](../APP_V2.0/08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) · UI-L1
 
@@ -400,7 +404,7 @@ NexiaContent
 
 | UI | `@nexa-path` | 비고 |
 | :--- | :--- | :--- |
-| `NexaonShell` | `modules/nexaon/NexaonShell.tsx` | 3분할 host |
+| `NexaonShell` | `modules/nexaon/NexaonShell.tsx` | 3 분할 host |
 | `NexaonToolbar` | `modules/nexaon/views/NexaonToolbar.tsx` | `h-10` |
 | `GraphCanvas` | `modules/nexaon/views/GraphCanvas.tsx` | `@xyflow/react` only here |
 | `ClassNode` | `engines/react-flow/nodeTypes/ClassNode.tsx` | import from engines |
@@ -413,7 +417,7 @@ NexiaContent
 | `useNexaonStore` | `modules/nexaon/store/useNexaonStore.ts` | graph · runId |
 
 > [!check] `원칙`
-> `nodeTypes`는 **engines/** 에만 정의 · `GraphCanvas`에서 import — v0 역방향 **✗**
+> `nodeTypes` 는 **engines/** 에만 정의 · `GraphCanvas` 에서 import — v0 역방향 **✗**
 
 ---
 
@@ -512,8 +516,8 @@ NexiaContent
 
 | Phase | 프롬프트 | 산출 컴포넌트 | 이식 루트 | 본 문서 섹션 |
 | :--- | :--- | :--- | :--- | :--- |
-| **UI-L0** | `UI-L0-main-shell.md` | MainShell 5영역 | `frame/` | §MainShell · §레이아웃 치수 |
-| **UI-L1** | `nexia-shell.md` | 7탭 · L/R/Status | `domains/nexia/` | §7탭 · §Store |
+| **UI-L0** | `UI-L0-main-shell.md` | MainShell 5 영역 | `frame/` | §MainShell · §레이아웃 치수 |
+| **UI-L1** | `nexia-shell.md` | 7 탭 · L/R/Status | `domains/nexia/` | §7 탭 · §Store |
 | **UI-L2** | `nexaon-graph-workspace.md` | NexaonShell · Graph | `modules/nexaon/` · `engines/` | §Logex · §Nexaon |
 | **UI-L3** ★ | (신규) `dev-source-scope.md` | ScopeBadge · Gate banner | `domains/nexia/scope/` | §Dev 보강 |
 | **UI-L4** ★ | (신규) `scribx-codegen.md` | Scribx + Pack UI | `modules/scribx/codegen/` | §Dev 보강 |
@@ -562,12 +566,12 @@ npx shadcn@latest add resizable
 | 금지 | 이유 |
 | :--- | :--- |
 | Vue · Quasar · pages router | Stack 고정 Next App Router |
-| React Flow로 MainShell | Graph **내부만** |
+| React Flow 로 MainShell | Graph **내부만** |
 | `bg-primary` on Safety UI | semantic 위반 |
 | body `overflow-y-auto` | Content 단일 scroll |
 | 브라우저 → Ollama/agent-graph | 아키텍처 |
-| `engines/` → `domains/` 역import | 단방향 |
-| 8번째 `tabId` | TDD-056 |
+| `engines/` → `domains/` 역 import | 단방향 |
+| 8 번째 `tabId` | TDD-056 |
 | Memex · Graphx 등 구 명칭 | 정합 |
 
 ### 이식 체크리스트
@@ -577,7 +581,7 @@ npx shadcn@latest add resizable
 - [ ] semantic 토큰 Status·Run·SHACL 적용
 - [ ] Logex canvas 토큰 Graph 영역만
 - [ ] `themePreset: office-light` + nexia registry
-- [ ] 7탭 `nexiaTabs.ts` SSOT
+- [ ] 7 탭 `nexiaTabs.ts` SSOT
 - [ ] Content `overflow-auto` only
 - [ ] `v0/history/` URL 기록
 - [ ] Dev ★ ScopeBadge · Gate (해당 Phase)

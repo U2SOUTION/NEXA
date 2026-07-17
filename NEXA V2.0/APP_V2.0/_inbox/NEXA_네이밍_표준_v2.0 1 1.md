@@ -1,28 +1,27 @@
 ---
+implements_doc: 
+terms_standard: []
+terms_nexa: []
 doc_id: TDD-NAMING-STD
 title: "NEXA 네이밍 표준 v2.0"
 category: "SSOT"
 domain: NEXAOS
 status: published
 created: 2026-06-24
-updated: 2026-06-24
+updated: 2026-07-01
 parent_doc: TDD-001
 see_also: [TDD-070, TDD-071, TDD-001, TDD-038, TDD-056]
 related_terms:
   - "용어집_NEXA전용_v2.0 1 1.md"
   - "doc_id_레지스트리.md"
-tags:
-  - "doc/cat/ssot"
-  - "doc/domain/nexaos"
-  - "std/naming"
-  - "std/ontology"
+tags: ["doc/cat/ssot", "doc/domain/nexaos", "std/naming", "std/ontology"]
 ---
 
 # NEXA 네이밍 표준 v2.0 (Naming Convention Standard)
 
 > **한 줄:** **`TAG`** = 사람이 읽는 이름 · **`CODE`** = 시스템 식별자 (불변).
 > **NEXA** 전체 코드·데이터·UI·온톨로지에 **통일된 4-tier 명명 규칙**을 적용하기 위한 **SSOT 명세**.
-> 본 문서는 **원칙·정책·거버넌스**를 다룬다. **개별 용어의 정의·등록**은 [`용어집_NEXA전용_v2.0 1 1.md`](용어집_NEXA전용_v2.0%201%201.md) §4~§5를 따른다.
+> 본 문서는 **원칙·정책·거버넌스**를 다룬다. **개별 용어의 정의·등록**은 [`용어집_NEXA전용_v2.0 1 1.md`](용어집_NEXA전용_v2.0%201%201.md) §4~§5 를 따른다.
 
 ---
 
@@ -63,8 +62,8 @@ tags:
 
 | 패턴 | 표기 | 예시 |
 |:---|:---|:---|
-| 1~2자 약어 | `FULL_UPPER` | `NEXA`, `CSIM`, `AXON` |
-| 2자 이상 + 번호 | `UPPER_SNAKE` | `PT_0`, `CT_1`, `AL_1`, `ML_0` |
+| 1~2 자 약어 | `FULL_UPPER` | `NEXA`, `CSIM`, `AXON` |
+| 2 자 이상 + 번호 | `UPPER_SNAKE` | `PT_0`, `CT_1`, `AL_1`, `ML_0` |
 
 ### 2.2 위계 ↔ 시스템 사용
 
@@ -88,8 +87,8 @@ tags:
 
 ### 3.1 직교 규칙
 - **TAG ≠ CODE**: 한쪽이 다른 쪽의 형식을 빌려오지 않음
-- **TAG가 자연어 형태(공백·하이픈)**여도 CODE는 `lower_snake`/`UPPER_SNAKE` 등 **시스템 표기법** 따름
-- **CODE가 약어**여도 TAG는 **풀네임 자연어** 권장
+- **TAG 가 자연어 형태 (공백·하이픈)**여도 CODE 는 `lower_snake`/`UPPER_SNAKE` 등 **시스템 표기법** 따름
+- **CODE 가 약어**여도 TAG 는 **풀네임 자연어** 권장
 
 ### 3.2 예시
 
@@ -104,14 +103,14 @@ tags:
 
 | 구분 | 의미 | 예시 |
 |:---|:---|:---|
-| **LABEL** | UI/소통용 짧은 표기 | "옴닉스", "멘톤 레이어 1" |
+| **LABEL** | UI/소통용 짧은 표기 | " 옴닉스 ", " 멘톤 레이어 1" |
 | **DOMAIN** | 도메인 키 (L2 SYSID 일부) | `nexia`, `nexabo`, `ontex` |
 
 ---
 
 ## §4. Naming Convention 확장
 
-### 4.1 4대 케이스 (기본)
+### 4.1 4 대 케이스 (기본)
 
 | 케이스 | 형식 | 주 용도 | 예시 |
 |:---|:---|:---|:---|
@@ -130,7 +129,7 @@ tags:
 | FULL_UPPER / UPPER_SNAKE | L0 PLAT | ✅ E-0 검증 |
 | kebab-case | **NEXA 표준 ✗** (L2 일부에서만) | ⚠️ TAG 한정 |
 
-> **kebab-case**는 L2의 일부(파일명, Git 브랜치)에서만 사용. CODE에는 절대 금지.
+> **kebab-case**는 L2 의 일부 (파일명, Git 브랜치) 에서만 사용. CODE 에는 절대 금지.
 
 ### 4.3 접두어 규칙 (Prefix)
 
@@ -157,7 +156,7 @@ tags:
 | **GraphQL 타입** | `TitleCase` | `DomainKey`, `User` | L1 |
 | **SQL 테이블** | `snake_case` (단수/복수 정책 결정) | `user`, `run_history` | L2 |
 | **SQL 컬럼** | `snake_case` | `user_id`, `created_at` | L3 |
-| **DB 인덱스** | `snake_case` (테이블_컬럼 인덱스) | `idx_user_id` | L2 |
+| **DB 인덱스** | `snake_case` (테이블 _ 컬럼 인덱스) | `idx_user_id` | L2 |
 | **ENV 변수** | `UPPER_SNAKE` | `NEXA_API_KEY`, `NEXIA_PORT` | L0 |
 | **CI/CD 잡** | `kebab-case` | `build-web`, `deploy-edge` | GitHub Actions 표준 |
 | **Git 브랜치** | `kebab-case` (정책) | `feat/naming-standard`, `fix/ontex-query` | 정책 정의 |
@@ -180,10 +179,10 @@ tags:
 
 | 언어 | 형식 | 예시 |
 |:---|:---|:---|
-| **한글 LABEL_KO** | 자연스러운 한글 | "옴닉스 채팅" |
+| **한글 LABEL_KO** | 자연스러운 한글 | " 옴닉스 채팅 " |
 | **영문 LABEL_EN** | TitleCase | "Omnix Chat" |
-| **일본어** | 자연스러운 일본어 | "オムニクスチャット" |
-| **중국어** | 자연스러운 중국어 | "全息聊天" |
+| **일본어** | 자연스러운 일본어 | " オムニクスチャット " |
+| **중국어** | 자연스러운 중국어 | " 全息聊天 " |
 
 > **i18n 키** 자체는 L2 `lower_snake` (`omnix_chat.title`)
 
@@ -191,7 +190,7 @@ tags:
 
 ## §5. Ontology 매핑 (RDF / OWL / SHACL)
 
-> **목표**: NEXA 네이밍을 **시맨틱 웹 표준**에 정렬하여, 외부 온톨로지(KG, Linked Open Data)와의 상호운용성 확보.
+> **목표**: NEXA 네이밍을 **시맨틱 웹 표준**에 정렬하여, 외부 온톨로지 (KG, Linked Open Data) 와의 상호운용성 확보.
 
 ### 5.1 Class 계층
 
@@ -277,8 +276,8 @@ nxa:Omnix a skos:Concept ;
 
 ### 5.7 온톨로지 SSOT 원칙
 
-- **용어집 SSOT** (`용어집_NEXA전용_v2.0 1 1.md`)이 **온톨로지 자동 생성의 원천**
-- **자동 변환 스크립트** (`scripts/glossary_to_rdf.py`)가 변경 시 자동 트리거
+- **용어집 SSOT** (`용어집_NEXA전용_v2.0 1 1.md`) 이 **온톨로지 자동 생성의 원천**
+- **자동 변환 스크립트** (`scripts/glossary_to_rdf.py`) 가 변경 시 자동 트리거
 - **SHACL Shape**이 추가 시 검증 (E-0 룰 검증과 유사)
 - **Neo4j 적재**는 **Ontex 도메인** SSOT 영역
 
@@ -292,12 +291,12 @@ nxa:Omnix a skos:Concept ;
 2. **코드 형식** 결정 (`FULL_UPPER`/`UPPER_SNAKE`/`TitleCase`/`lower_snake`/`camelCase`)
 3. **TAG 자연어** 확정
 4. **TAG ↔ CODE 직교** 확인
-5. **카테고리** enum 매칭 (12개)
+5. **카테고리** enum 매칭 (12 개)
 6. **SSOT 문서** 결정 (TDD-XX 또는 별도 doc_id)
 7. **`not` 컬럼**: 혼동 표현 기재
 8. **§4~§5 섹션** 적절한 곳에 신규 행 추가
 9. **E-0 룰 검증** 자동 실행
-10. **PR 리뷰** 1인 이상 승인
+10. **PR 리뷰** 1 인 이상 승인
 
 ### 6.2 마이그레이션 정책
 
@@ -310,7 +309,7 @@ nxa:Omnix a skos:Concept ;
 
 ### 6.3 deprecated 처리
 
-```
+```json
 [T1] deprecate 신호: 부록 A 추가 + CODE에 `_deprecated` suffix (선택)
 [T2] 신규 코드 발급: `Omnix_v2` 또는 별개 (충돌 방지)
 [T3] 마이그레이션: 코드 변환 매핑표 작성
@@ -415,7 +414,7 @@ jobs:
 
 > **Nixie Reflex vs Nexaon Strategic:** Nixie(ML_1) = Express·알림 · Nexaon(ML_3) = Run·promoted. Run 트리거·Router fan-out **✗**.
 
-> **NEXU · BAX · NIXIE 3층:** Knowledge 페브릭 → 미적 레이아웃 → ML_1 Express. Canvas/BAX **혼용 ✗**.
+> **NEXU · BAX · NIXIE 3 층:** Knowledge 페브릭 → 미적 레이아웃 → ML_1 Express. Canvas/BAX **혼용 ✗**.
 
 > **Navex · NISE:** Intelligent = hybrid 검색 · Infra = InfraTree. Omnix discover → `navex_search` tool ([PRD-014](05_PRD/NEXIA/05_PRD_NEXIA_Navex이중탐색모드지능형탐색_v1.0.md)).
 
@@ -428,7 +427,7 @@ jobs:
 | 일자 | 버전 | 변경 |
 |:---|:---:|:---|
 | 2026-06-24 | v2.0 | 분리 독립. §5 온톨로지 매핑 추가. §6 거버넌스·§7 자동화 추가. |
-| 이전 | v1.x | `용어집_NEXA전용_v2.0 1 1.md` §1~§5에 통합 |
+| 이전 | v1.x | `용어집_NEXA전용_v2.0 1 1.md` §1~§5 에 통합 |
 
 ---
 

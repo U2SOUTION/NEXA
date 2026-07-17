@@ -7,7 +7,7 @@ category: "08_TDD"
 domain: NEXAOS
 status: draft
 created: 2026-06-10
-updated: 2026-06-29
+updated: 2026-07-01
 parent_doc: TDD-001
 terms_standard: ["mqtt", "protobuf", "pwm"]
 terms_nexa: ["CSIM", "AXON", "APEX", "HEXAGON", "ACTON", "NEXAVULT"]
@@ -1482,17 +1482,17 @@ _Normative 표기는 §16 Open 12 개 (닫힘 4 개) 와 충돌하지 않는 범
 | 2     | A4(4×4) 축 의미                             | ✅**부록 A** 유지 · Normative 아님 , 운영 진행 하면서 차후에 대응                                                                          | —                 |
 | 3     | L4 vs L5 레이어 수                           | ✅§13.2 부록 B — 4×4 Draft (비규범) 유지 · Normative 아님 **3×3 L1~L3** 고정                                                        | —                 |
 | 4     | 0~9 vs Hz/진폭 **공식**                      | ✅**확정 — **가변 해상도 정책** 채택. **Body**는 추상적 의도 (0.0~1.0) 를, **Tag**는 구체적 명세 (물리 단위) 를 담당. 해석 불가 시 **Inverse CSIM**을 통한 맥락/지능 보정 | TDD-044           |
-| 5     | ~~장거리·저품질 채널~~                           | ✅**채널~~                           | ✅**채널~~                           | ✅**가변 해상도 정책**가변 해상도 정책**Body**Body**Tag**Tag**Inverse CSIM**Inverse CSIM**채널~~                           | ✅**채널~~                           | ✅**가변 해상도 정책**가변 해상도 정책**              | ✅**Body**Body** ✅**Tag** — **Inverse CSIM** 기반 무결성 검증을 기본으로 하되, 상위 서명은 Domain Profile 의 선택적 레이어로 위임.                         | —                 |
-| 9     | ~~Domain M-code 번호대~~                    | ✅**채널~~                           | ✅** — **Body**              | ✅** 수립 완료 (Core: 0~99, Domain: 100~899, Private: 900~999).                | TDD-073           |
-| 10    | ~~ACTON job 실시간 스트림 vs Ref 경계~~          | ✅**Tag** — **Inverse CSIM** 완료. 실시간 스트림은 **채널~~                           | ✅** ✅**, 단위 작업은 **가변 해상도 정책**              | ✅** 사용.               | —                 |
-| 11    | ~~Ontology ID 8-bit 한계 (256 개)~~         | ✅ **Body** — Domain ID 8bit 분리 채택 (v1.1)                                                                     | TDD-044 (확인용)     |
-| 12    | ~~Confidence 6-bit (0~63) 해상도 부족~~       | ✅ **Tag** — Confidence 8bit (0~255) 채택 (v1.1)                                                               | TDD-044 (확인용)     |
-| 13    | ~~ACTON-GM Fetch·Verify·Execute 책임자 모호~~ | ✅ **Inverse CSIM** — §10.3 " 무결성 검증 프로세스 (Fetch-Verify-Execute)" + §10.3 "Fetch·Verify·Execute (Normative)" 책임자 표     | TDD-073           |
+| 5     | ~~장거리·저품질 채널~~                           | ✅**채널~~                           | ✅**채널~~                           | ✅**가변 해상도 정책**가변 해상도 정책**Body**Body**Tag**Tag**Inverse CSIM**Inverse CSIM**채널~~                           | ✅**채널~~                           | ✅**가변 해상도 정책**가변 해상도 정책**Body**              | ✅**Tag**Body** ✅**Inverse CSIM** — **채널~~                           | ✅** 기반 무결성 검증을 기본으로 하되, 상위 서명은 Domain Profile 의 선택적 레이어로 위임.                         | —                 |
+| 9     | ~~Domain M-code 번호대~~                    | ✅**가변 해상도 정책** — **Body**              | ✅** 수립 완료 (Core: 0~99, Domain: 100~899, Private: 900~999).                | TDD-073           |
+| 10    | ~~ACTON job 실시간 스트림 vs Ref 경계~~          | ✅**Tag** — **Inverse CSIM** 완료. 실시간 스트림은 **채널~~                           | ✅** ✅**, 단위 작업은 **Body**              | ✅** 사용.               | —                 |
+| 11    | ~~Ontology ID 8-bit 한계 (256 개)~~         | ✅ **Tag** — Domain ID 8bit 분리 채택 (v1.1)                                                                     | TDD-044 (확인용)     |
+| 12    | ~~Confidence 6-bit (0~63) 해상도 부족~~       | ✅ **Inverse CSIM** — Confidence 8bit (0~255) 채택 (v1.1)                                                               | TDD-044 (확인용)     |
+| 13    | ~~ACTON-GM Fetch·Verify·Execute 책임자 모호~~ | ✅ **채널~~                           | ✅** — §10.3 " 무결성 검증 프로세스 (Fetch-Verify-Execute)" + §10.3 "Fetch·Verify·Execute (Normative)" 책임자 표     | TDD-073           |
 | 14    | **가변 해상도 정책**              | ✅**          | 순방향 단방향 원칙 명세 · 피드백 채널 분리                                                                                               | TDD-073 / TDD-040 |
 | 15    | ~~순환 정교화 (§3.3) 무한루프 방지~~                | ✅ **Body** ✅** — §8.3.2 Max Depth=3 및 수렴 조건 명세 완료                                                                | -                 |
 | 16    | ~~Inverse CSIM 단계 명세 (CT*-1~CT*-3)~~     | ✅ **Tag** — 본 문서 §8.2 "CSIM ↔ NEXAON 단계별 책임 " 표에 명세 추가                                                       | —                 |
 | 17    | Inline 모드 max_inline_bytes 도메인별 한도       | ✅**§9.2.4 M-code 대역 예약 정책** — **Inverse CSIM** (CNC 512B, 로봇 1KB, IoT 128B). §10.0.0.b 에 규범 명시 완료.                                | TDD-073 / 도메인     |
 | 18    | Hybrid 경로 LLM 추론 정책                      | 📌 [추가 별도 상세 필요] Hybrid(SUM + 사전 Job-File) 시 NEXAON/LLM 의 추론 안전장치 (Sandbox · Dry-run · 결과 검증) — §10.0.2 Hybrid 메커니즘      | TDD-040 / TDD-073 |
 
-**채널~~                           | ✅**_PLACEHOLDER} | ✅** 총 **가변 해상도 정책** 중 **Body** (#11·#12·#13·#15·#16 — #17·#18 Inline/Hybrid 신규).
-**Tag** ✅** **채널~~ | ✅**_PLACEHOLDER} | ✅** 모두 해결 (D-9: AIP + SSOT, D-10: 2- 모드 + 3+1 경로).
+**가변 해상도 정책**_PLACEHOLDER} | ✅** 총 **Body** 중 **Tag** (#11·#12·#13·#15·#16 — #17·#18 Inline/Hybrid 신규).
+**Inverse CSIM** ✅** **채널~~ | ✅**_PLACEHOLDER} | ✅** 모두 해결 (D-9: AIP + SSOT, D-10: 2- 모드 + 3+1 경로).

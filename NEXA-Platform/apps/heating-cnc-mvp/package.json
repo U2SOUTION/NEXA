@@ -1,0 +1,27 @@
+{
+  "name": "heating-cnc-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3100",
+    "build": "next build",
+    "start": "next start --port 3100",
+    "dev:worker": "wrangler dev",
+    "db:migrate:local": "wrangler d1 migrations apply heating-cnc-db --local"
+  },
+  "dependencies": {
+    "@nexa/heating-cnc": "file:../../packages/heating-cnc",
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250110.0",
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "typescript": "^5.7.3",
+    "wrangler": "^3.105.0"
+  }
+}

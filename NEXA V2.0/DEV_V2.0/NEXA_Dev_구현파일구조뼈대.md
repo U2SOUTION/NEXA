@@ -1,4 +1,8 @@
 ---
+created: 2026-06-18
+updated: 2026-07-17
+parent_doc: 
+terms_standard: []
 doc_id: DEV-IMPL-SKELETON
 title: "NEXA Dev · 구현 파일 구조 뼈대"
 category: DEV
@@ -39,7 +43,7 @@ terms_nexa:
 > - [[#backend · agent-graph · sync]]
 > - [[#구현 체크리스트]]
 
-표식: **■** MVP · **★** Dev 보강 · **◇** Phase 2 · **○** 후속 · **—** App 정본과 동일(위임)
+표식: **■** MVP · **★** Dev 보강 · **◇** Phase 2 · **○** 후속 · **—** App 정본과 동일 (위임)
 
 ---
 
@@ -52,7 +56,7 @@ terms_nexa:
 | **단일 모노레포** | Dev·App **별도 저장소 ✗** — `NEXA-Platform/` 동일 트리 |
 | **동형 경로** | `frame/` · `domains/nexia/tabs/*` · `modules/nexaon/` = App [`TDD-055`](../APP_V2.0/08_TDD/NEXIA/08_TDD_NEXIA_구현파일구조뼈대.md) **그대로** |
 | **Dev 보강** | `scope/` · `modules/cat|pms/` · `scribx/codegen/` · `validation-gate/` · `projects/.../source/` |
-| **스코프 분리** | 런타임·API·DB에서 `scope: source \| instance` — UI 셸은 동일 |
+| **스코프 분리** | 런타임·API·DB 에서 `scope: source \| instance` — UI 셸은 동일 |
 
 ```mermaid
 graph LR
@@ -265,7 +269,7 @@ packages/shared/src/schemas/dev/              ★ Gate · scope
 
 | 영역 | 경로 | Dev |
 | :--- | :--- | :--- |
-| **frame** | `apps/web/src/frame/` | `domainLayoutRegistry.nexia` 6슬롯 — [[NEXA_Dev_UIUX_레이아웃구조규격#frame · Registry · 상태]] |
+| **frame** | `apps/web/src/frame/` | `domainLayoutRegistry.nexia` 6 슬롯 — [[NEXA_Dev_UIUX_레이아웃구조규격#frame · Registry · 상태]] |
 | **engines** | `engines/react-flow/` · `tiptap/` · `monaco/` | Logex 캔버스 스킨 · Run SSE |
 | **shared** | `packages/shared/src/schemas/` | 아래 Dev 스키마 |
 
@@ -332,7 +336,7 @@ apps/sync/src/rooms/
 | :--- | :--- |
 | **App 원천** | [TDD-055 NEXIA 구현 파일 구조](../APP_V2.0/08_TDD/NEXIA/08_TDD_NEXIA_구현파일구조뼈대.md) |
 | **모노레포** | [TDD-007 LangGraph 모노레포](../APP_V2.0/08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md) |
-| **7탭 SSOT** | [TDD-056 7탭 범위](../APP_V2.0/08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
+| **7 탭 SSOT** | [TDD-056 7탭 범위](../APP_V2.0/08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
 | **레이아웃** | [NEXA_Dev_UIUX_레이아웃구조규격](NEXA_Dev_UIUX_레이아웃구조규격.md) |
 | **생산 파이프라인** | [NEXA_Dev_UI-Driven_기능설계및_전이_로드맵](NEXA_Dev_UI-Driven_기능설계및_전이_로드맵.md) |
 | **Logex · Scribx** | [DEV_Logex_Node_&_Surface_제작및배포가이드](DEV_Logex_Node_&_Surface_제작및배포가이드.md) |

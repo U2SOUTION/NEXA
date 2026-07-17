@@ -5,7 +5,7 @@ category: ""
 domain: 
 status: draft
 created: 2026-06-24
-updated: 2026-06-29
+updated: 2026-07-01
 parent_doc: 
 implements_doc: 
 see_also: []
@@ -329,6 +329,3 @@ RAG 가 검색해 온 과거 룰 조각들이 프롬프트에 조립되기 직�
 **이 4 단계 사이클이 도는 한, 시스템은 멈추지 않고 스스로 정밀해지는 진짜 자율 진화 엔진입니다.** 🌱
 
 ---
-
-
-

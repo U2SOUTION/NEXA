@@ -491,6 +491,20 @@ graph TD
 
 linkStyle default stroke:#666666,stroke-width:2px;
 
+    %% ── 엣지 라인 컬러 분류 (4 분류 기준) ──
+
+    %% ① Primary Flow (#0891b2 Cyan) — 중단 없이 진행되는 골든 패스
+    linkStyle 0,1,2,3,4,5,6,14,15,16,17,18,19,21,22,23,24,25,34,35,37,46,48 stroke:#0891b2,stroke-width:2px;
+
+    %% ② Refinement Flow (#6366f1 Indigo) — 분석·최적화·재시도 피드백 루프
+    linkStyle 7,8,9,10,11,12,20,38,39,40,41,42,43,44 stroke:#6366f1,stroke-width:2px;
+
+    %% ③ Async Storage (#475569 Slate) — 비동기 영속성 계층 (점선)
+    linkStyle 13,26,27,28,29,30 stroke:#475569,stroke-width:1.5px,stroke-dasharray:4 3;
+
+    %% ④ Event Trigger (#f59e0b Amber) — 시간·임계치 기반 모드 전환
+    linkStyle 31,32,33,36,45,47 stroke:#f59e0b,stroke-width:2px;
+
     %% ── 스타일 (fill 우선 · stroke는 핵심 경계만) ──
 
     %% [진입/종료] 시작과 종료는 동일 톤의 시안
