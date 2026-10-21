@@ -7,20 +7,20 @@ category: "08_TDD"
 domain: NEXAOS
 status: published
 created: 2026-06-10
-updated: 2026-06-16
+updated: 2026-07-19
 relocated_from: "08_TDD/LangGraph/08_TDD_LangGraph_모노레포폴더구조_v1.0.md"
 parent_doc: TDD-001
 terms_standard: ["langgraph", "react-flow", "yjs", "hocuspocus", "nestjs", "next-js", "zod", "neo4j", "fastapi", "sse", "shacl", "esphome"]
 terms_nexa: ["nexia", "agent-graph", "NexaonShell", "GraphCanvas", "ExplorerTree", "packages-shared", "approval-gate", "ontology-draft", "tabonto"]
 tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/langgraph", "std/react-flow", "std/yjs", "std/hocuspocus", "std/nestjs", "std/next-js", "std/zod", "std/neo4j", "std/fastapi", "std/sse", "std/shacl", "std/esphome", "nexa/nexia", "nexa/agent-graph", "nexa/NexaonShell", "nexa/GraphCanvas", "nexa/ExplorerTree", "nexa/packages-shared", "nexa/approval-gate", "nexa/ontology-draft", "nexa/tabonto"]
 ---
- 
+
 # NEXA-Platform 모노레포 폴더 구조
 
 > [!note] **문서 위치 (2026-06-16)**
 > **TDD-007** 정본은 **`08_TDD/NEXAOS/`** 입니다. 구 경로 `08_TDD/NEXAOS/08_TDD_NEXAOS_모노레포폴더구조_v1.0.md` 는 **리다이렉트**만 유지합니다.
 
-> **범위:** **NEXA-Platform** `pnpm-workspace` 전체 — `web` · `backend` · `sync` · **`agent-graph`** · `packages/shared` · **TabOnto SDK** · (선택) Extension package.  
+> **범위:** **NEXA-Platform** `pnpm-workspace` 전체 — `web` · `backend` · `sync` · **`agent-graph`** · `packages/shared` · **TabOnto SDK** · (선택) Extension package.
 > **온톨로지 수직 스택:** LangGraph + React Flow + Yjs · IoT · SHACL · Neo4j · ESPHome. UI `domainKey` = **`nexia`** · Nexaon = `domains/nexia/modules/nexaon/`.
 > **상위 SSOT:** [`인간-LLM 협업형 IoT 온톨로지 플랫폼`](../LangGraph/08_TDD_LangGraph_인간LLM협업형IoT온톨로지플랫폼_v1.0.md) · [`핵심 기술 스택`](../LangGraph/08_TDD_IoT온톨로지AI협력플랫폼_핵심기술스택_v1.0.md) · [`도메인 구조 통합 (TDD-071)`](./08_TDD_NEXAOS_도메인구조통합_v1.0.md)
 > **UI 연계:** [`07_UIUX NEXIA MainShell 레이아웃`](../../07_UIUX/07_UIUX_NEXIA_MainShell_레이아웃_v1.0.md) · NEXA-Platform `docs/NEXA OS/`
@@ -410,10 +410,10 @@ packages/shared/schemas/
 
 ---
 
-## 10.5 TabOnto SDK 3층 (UI · Core · Host Adapter)
+## 10.5 TabOnto SDK 3 층 (UI · Core · Host Adapter)
 
 > [!note] **개념 vs 폴더**
-> **SDK = `sdk/` 폴더 3개가 아닙니다.** 책임(UI · Core · Host Adapter)을 나누는 **설계 레이어**이며, 실제 경로는 아래 트리·표가 SSOT입니다.  
+> **SDK = `sdk/` 폴더 3 개가 아닙니다.** 책임 (UI · Core · Host Adapter) 을 나누는 **설계 레이어**이며, 실제 경로는 아래 트리·표가 SSOT 입니다.
 > 제품·호스트 관점 설명 → [[../../EXTEND/TabOnto 브라우저 대시보드 및 사이드바 키워드 자산 허브#TabOnto SDK 3층 (UI · Core · Host Adapter)]].
 
 | 층 | 한 줄 | 호스트 무관? | TabOnto 경로 (Greenfield) |
@@ -503,7 +503,7 @@ packages/shared/src/tabonto/host/
 | `pip` | ⭕ | ✗ | ⭕ |
 | `postMessageBridge` | ⭕ | ✗ | △ |
 
-> **진화 규칙:** 호스트는 **`createHostAdapter(config)`만** import · 내부 구현을 IF → `host/impl/extension.ts` 등으로 쪼개도 **호스트 코드 무수정** 목표.
+> **진화 규칙:** 호스트는 **`createHostAdapter(config)` 만** import · 내부 구현을 IF → `host/impl/extension.ts` 등으로 쪼개도 **호스트 코드 무수정** 목표.
 
 ---
 
@@ -541,7 +541,7 @@ packages/shared/src/tabonto/host/
 
 ---
 
-**결론:** NEXA-Platform은 V2.1 **3 앱 +shared**에 **`agent-graph`** 를 더한 **4+1 구조**이다. **React Flow·Yjs·Nest·LangGraph·Neo4j·ESPHome·TabOnto** 경계가 **폴더명으로 고정**되며, 그래프·프롬프트·SHACL SSOT 는 **`apps/agent-graph`** 아래에 모인다.
+**결론:** NEXA-Platform 은 V2.1 **3 앱 +shared**에 **`agent-graph`** 를 더한 **4+1 구조**이다. **React Flow·Yjs·Nest·LangGraph·Neo4j·ESPHome·TabOnto** 경계가 **폴더명으로 고정**되며, 그래프·프롬프트·SHACL SSOT 는 **`apps/agent-graph`** 아래에 모인다.
 ---
 
 ## 관련 문서

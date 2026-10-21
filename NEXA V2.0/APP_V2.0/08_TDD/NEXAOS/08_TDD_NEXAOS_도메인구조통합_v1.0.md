@@ -6,7 +6,7 @@ category: "08_TDD"
 domain: NEXAOS
 status: published
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-10-20
 version_note: "TDD-071 정본 — TDD-002/TDD-059 대체 · DIEA·Distillation·State Bus terms"
 parent_doc: TDD-001
 see_also: [TDD-001, TDD-007, TDD-056, TDD-057, TDD-058]

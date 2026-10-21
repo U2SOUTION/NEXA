@@ -108,8 +108,9 @@ coverage/
 **/.nyc_output/
 .nyc_output/
 
-# IDE 설정 (선택적 - 필요시 주석 해제)
-# .vscode/
+# IDE 설정
+.vscode/
+**/.vscode/
 # .idea/
 **/*.suo
 **/*.ntvs*
@@ -204,3 +205,16 @@ assets/
 # 로컬 전용 앱 (Git 추적 제외 · 디스크에는 유지)
 NEXA-App/Color/
 
+
+
+
+
+# Ignore Smart Environment folder
+.smart-env
+
+# 루트 로컬 폴더 (깃 추가 제외, 디스크에는 유지)
+.copilot/
+/copilot/
+.opencode/
+_memory/
+/BMO/
