@@ -17,7 +17,7 @@ terms_nexa: [NEXA-Rotor, Open-Controller, Base Controller, VOICE_EXT_MIC, MMWAVE
 
 # 모듈 — NEXA Rotor (베이스 컨트롤러)
 
-![](../../../../../assets/Pasted%20image%2020261024082920.png)
+![](../../../../../assets/Pasted%20image%2020261026073807.png)
 
 40 mm 원형 터치 (`TM040040`), 그 바깥의 터치 링, 메인 기판이 **노브와 한 덩어리로 강결합**되어 통째로 회전한다. 터치판은 24 장이다. 상단 4 방 물리 스위치는 두지 않는다. 십자 짐벌·구면 조인트는 두지 않고, 중앙 고정축에 **베어링 10×20×5**와 **댐퍼 그리스**만 둔다.
 
