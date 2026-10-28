@@ -5,7 +5,7 @@ category: ""
 domain: 
 status: draft
 created: 2026-06-10
-updated: 2026-06-11
+updated: 2026-10-28
 parent_doc: 
 implements_doc: 
 see_also: []
@@ -142,7 +142,7 @@ terms_nexa: []
 | TDD-023 | NEXNAP 시스템 인터페이스 표준 규약 | NEXIA | TDD-010 | — | mqtt, protobuf | NEXNAP, ACTON, AXON, CSIM, Envelope | 완료 | 1/1 · 3 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md](./08_TDD/NEXIA/08_TDD_NEXIA_NEXNAP시스템인터페이스표준규약.md) |
 | TDD-055 | NEXIA · 구현 파일 구조 뼈대 | NEXIA | TDD-010 | — | next-js, nestjs, zustand, yjs, langgraph, zod | nexia, domainKey, tabId, domainLayoutRegistry, Omnix, Normex, Logex, NexaonShell, NEXA-CELL | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_구현파일구조뼈대.md](./08_TDD/NEXIA/08_TDD_NEXIA_구현파일구조뼈대.md) |
 | TDD-056 | NEXIA · 7 탭 범위 확정 v1.0 | NEXIA | TDD-010 | PRD-001 | react-flow, yjs, tiptap, monaco, langgraph, sse | nexia, tabId, Omnix, Normex, Logex, Scribx, Vivex, Twinex, Navex, NexaonShell, ontology, Ontex | 완료 | 2/2 · 6 링크 | [08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_7탭범위확정_v1.0.md) |
-| TDD-067 | 에이전틱 AI 파이프라인 · 7탭 · 플랫폼·Yjs 연계 v1.0 | NEXIA | TDD-056 | — | langgraph, rag, mcp, agentic-ai, yjs, crdt, hocuspocus, mqtt | nexia, Ontex, Omnix, Nexaon, Navex, Nixie, agent-graph, apps-sync, tabId, Graph-RAG | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) |
+| TDD-067 | 에이전틱 AI 파이프라인 · 7 탭 · 플랫폼·Yjs 연계 v1.0 | NEXIA | TDD-056 | — | langgraph, rag, mcp, agentic-ai, yjs, crdt, hocuspocus, mqtt | nexia, Ontex, Omnix, Nexaon, Navex, Nixie, agent-graph, apps-sync, tabId, Graph-RAG | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_에이전틱AI파이프라인_7탭플랫폼연계_v1.0.md) |
 | TDD-068 | IoT 엣지 데이터 파이프라인 · HEXAGON · Nexaon 연계 v1.0 | NEXIA | TDD-022 | — | mqtt, esphome, protobuf, shacl, langgraph | HEXAGON, NEXNAP, Envelope, ACTON, NEXA-CELL, Twinex, Nexaon, EventRouter, Nixie | 미완 | 0/1 | [08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md](./08_TDD/NEXIA/08_TDD_NEXIA_IoT엣지데이터파이프라인_HEXAGON_Nexaon연계_v1.0.md) |
 | TDD-072 | Kineton · Physical Bridge · ACTON · ROS 2 v1.0 | NEXIA | TDD-043 | — | ros-2, mqtt, pwm, protobuf | Kineton, ACTON, HEXAGON, AXON, Hot-Path, Physical-Tier | 미완 | 0/1 | [08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md](./08_TDD/NEXIA/Kineton/08_TDD_Kineton_PhysicalBridge_ACTON_ROS2_v1.0.md) |
 | TDD-073 | Nexaon · Distillation 오케스트레이터 v1.0 | NEXIA | TDD-008 | — | langgraph, yjs, react-flow, shacl, sse | Nexaon, NexaonShell, nexia, DIEA, promoted, ML_3 | 미완 | 0/1 | [08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md](./08_TDD/NEXIA/Nexaon/08_TDD_Nexaon_Distillation오케스트레이터_v1.0.md) |
@@ -167,7 +167,7 @@ terms_nexa: []
 
 ## 08_TDD — NEXIA / Generators (7 · archived)
 
-> **Phase 2+** — MVP 7탭 P0 밖. [Generators/README](./08_TDD/NEXIA/Generators/README.md)
+> **Phase 2+** — MVP 7 탭 P0 밖. [Generators/README](./08_TDD/NEXIA/Generators/README.md)
 
 | doc_id | title | domain | parent_doc | status | terms_standard | terms_nexa | 관련문서 | 링크·충실도 | 파일 경로 |
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
@@ -226,7 +226,7 @@ terms_nexa: []
 | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- | :----- |
 | TDD-050 | Capability ID 체계 · Tier 접근 권한 | NEXAOS | TDD-004 | rbac | Capability-ID, nexa, Tier, domain_tags | 완료 | 1/1 · 2 링크 | [08_TDD/Identity/08_TDD_NEXA_CapabilityID체계_발급및Tier접근권한.md](./08_TDD/Identity/08_TDD_NEXA_CapabilityID체계_발급및Tier접근권한.md) |
 | TDD-051 | Capability 기능 자격 · 운영 및 보안 부록 | NEXAOS | TDD-050 | rbac, audit-log | Capability-ID, GOVERN, domain_tags | 완료 | 1/1 · 2 링크 | [08_TDD/Identity/08_TDD_NEXA_Capability기능자격_운영및보안부록.md](./08_TDD/Identity/08_TDD_NEXA_Capability기능자격_운영및보안부록.md) |
-| TDD-052 | Identity ID 발급 및 처리 설계 | NEXAOS | TDD-004 | uuid, postgresql | identity_id, nexa_identities, Knowledge-OS | 완료 | 1/1 · 2 링크 | [08_TDD/Identity/08_TDD_NEXA_IdentityID발급및처리설계.md](./08_TDD/Identity/08_TDD_NEXA_IdentityID발급및처리설계.md) |
+| TDD-052 | Identity ID 발급 및 처리 설계 | NEXAOS | TDD-004 | uuid, postgresql | identity_id, nexa_identities, Knowledge-OS | 완료 | 1/1 · 2 링크 | [08_TDD/Identity/08_TDD_NEXA_IdentityID발급및처리설계.md](08_TDD/Identity/08_TDD_NEXA_ID_발급체계_및_설계원장.md) |
 | TDD-053 | 데이터 무결성 · 신뢰도 점수 | NEXAOS | TDD-052 | postgresql | trust-score, nexa_identities, integrity | 완료 | 1/1 · 2 링크 | [08_TDD/Identity/08_TDD_NEXA_데이터무결성과신뢰도점수.md](./08_TDD/Identity/08_TDD_NEXA_데이터무결성과신뢰도점수.md) |
 
 ---
@@ -285,7 +285,7 @@ terms_nexa: []
 | **TDD-059** | NEXA OS · 도메인 마스터 맵 v1.0 | NEXAOS | **TDD-071** | [—](./08_TDD/NEXAOS/) *(파일 삭제 · 2026-06-14)* |
 | **TDD-015** | 멀티창 동기화 구현 로드맵 | NEXIA | **TDD-014** · **TDD-038** | [08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md](./08_TDD/NEXIA/08_TDD_NEXIA_멀티창동기화구현로드맵.md) |
 | **UIX-009** | BAX Core · UI · Harness 아키텍처 v1.0 | NEXIA | **UIX-003** (v1.0 정본 흡수) | [07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md](./07_UIUX/07_UIUX_BAX_미학적인터페이스UX아키텍처_v1.0.md) *(2026-06-22 · UIX-003 재할당)* |
-| **TDD-026~032** | Generators 7종 | NEXIA | **TDD-010** · **PRD-001** | [08_TDD/NEXIA/Generators/README.md](./08_TDD/NEXIA/Generators/README.md) |
+| **TDD-026~032** | Generators 7 종 | NEXIA | **TDD-010** · **PRD-001** | [08_TDD/NEXIA/Generators/README.md](./08_TDD/NEXIA/Generators/README.md) |
 
 ---
 

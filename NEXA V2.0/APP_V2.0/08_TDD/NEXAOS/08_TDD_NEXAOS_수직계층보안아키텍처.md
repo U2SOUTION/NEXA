@@ -188,4 +188,4 @@ _상태: Informative — NEXA OS V2.1 수직 5 계층 + Mission-Safe UI(MAE) 분
 | :--- | :--- |
 | 상위 TDD | [NEXA OS 설계 표준 · 미션 크리티컬 전략 (TDD-001)](./08_TDD_NEXAOS_설계표준_미션크리티컬전략.md) |
 | Capability ID | [Capability ID 체계 · Tier 접근 권한 (TDD-050)](../Identity/08_TDD_NEXA_CapabilityID체계_발급및Tier접근권한.md) |
-| Identity | [Identity ID 발급 및 처리 설계 (TDD-052)](../Identity/08_TDD_NEXA_IdentityID발급및처리설계.md) |
+| Identity | [Identity ID 발급 및 처리 설계 (TDD-052)](../Identity/08_TDD_NEXA_ID_발급체계_및_설계원장.md) |

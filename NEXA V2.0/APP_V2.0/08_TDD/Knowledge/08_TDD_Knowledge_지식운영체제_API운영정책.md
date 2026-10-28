@@ -49,7 +49,7 @@ tags: ["doc/cat/08-tdd", "doc/domain/nexaos", "std/rest", "std/pgvector", "std/p
 
 | 주제                                                     | SSOT 문서                                      | 역할                                                                           |
 | :------------------------------------------------------- | :--------------------------------------------- | :----------------------------------------------------------------------------- |
-| **전역 `identity_id` mint·불변성·정제 툴·`domain_tags`** | [`08_TDD_NEXA_IdentityID발급및처리설계`](../Identity/08_TDD_NEXA_IdentityID발급및처리설계.md) | 플랫폼 전역 **영혼 원장**(`nexa_identities`).                                  |
+| **전역 `identity_id` mint·불변성·정제 툴·`domain_tags`** | [`08_TDD_NEXA_IdentityID발급및처리설계`](../Identity/08_TDD_NEXA_ID_발급체계_및_설계원장.md) | 플랫폼 전역 **영혼 원장**(`nexa_identities`).                                  |
 | **용어 CRUD·임베딩·크롤러·감사·API 계약·신뢰도 게이트**  | **본 문서**              | Knowledge OS **운영·계약**; SoT 는 **PostgreSQL**, Ollama 는 보조 (본 문서 §2.6). |
 
 - **연결:** 영혼이 지식 OS 벡터·정의와 맞물릴 때는 `nexa_knowledge_definitions` 등에 `identity_id` 를 싣고 `nexa_knowledge_vectors` 는 `term_id` 등으로 연결하는 패턴을 **Identity SSOT §2-1**이 단정한다. 본 문서 §3·§4 의 **문서 동기화·참조·삭제**는 `anchor_id`·`nexa_knowledge_references` 를 전제로 하며, **행 단위 의미**는 `identity_id` 와 합치되도록 구현한다.

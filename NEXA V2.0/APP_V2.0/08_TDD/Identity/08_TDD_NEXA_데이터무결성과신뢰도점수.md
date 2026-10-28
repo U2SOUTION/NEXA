@@ -7,7 +7,7 @@ category: "08_TDD"
 domain: NEXAOS
 status: published
 created: 2026-06-10
-updated: 2026-06-11
+updated: 2026-10-28
 parent_doc: TDD-052
 terms_standard: ["postgresql"]
 terms_nexa: ["trust-score", "nexa_identities", "integrity"]
@@ -180,5 +180,5 @@ NEXA 플랫폼의 데이터 무결성과 지능적 의사결정 품질을 높이
 
 | 관계 | 문서 |
 | :--- | :--- |
-| 상위 TDD | [Identity ID 발급 및 처리 설계 (TDD-052)](./08_TDD_NEXA_IdentityID발급및처리설계.md) |
+| 상위 TDD | [Identity ID 발급 및 처리 설계 (TDD-052)](08_TDD_NEXA_ID_발급체계_및_설계원장.md) |
 | Knowledge | [지식 운영 체제 · API 운영 정책 (TDD-048)](../Knowledge/08_TDD_Knowledge_지식운영체제_API운영정책.md) |

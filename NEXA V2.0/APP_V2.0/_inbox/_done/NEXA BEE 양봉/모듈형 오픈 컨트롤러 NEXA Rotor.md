@@ -484,7 +484,7 @@ struct SlotEntry {
 | `slot`  | 퀵 전환 표                | 길이·칸 수가 맞으면 NVS 를 갈아 끼우고 RAM 에 올린다. 퀵 전환은 그 RAM 만 읽는다 |
 | `event` | 포털이 등록한 로터 이벤트 | 아래. 트리거만 둘로 나눈다                                                       |
 
-**토픽 계층 (NEXA 공통):** `nexa/{identity_id}/{instance_id}/{capability_id}/rotor/{slot|event}`. `identity_id`=근거(영구, 로터 정체성), `instance_id`=누구(실행 인스턴스), `capability_id`=무엇을 (예: `nexa.rotor.slot`, `nexa.rotor.event`). 1차: instance_id 단일 고정값.
+**토픽 계층 (NEXA 공통):** `nexa/{identity_id}/{instance_id}/{capability_id}/rotor/{slot|event}`. `identity_id`=근거 (영구, 로터 정체성), `instance_id`=누구 (실행 인스턴스), `capability_id`=무엇을 (예: `nexa.rotor.slot`, `nexa.rotor.event`). 1 차: instance_id 단일 고정값.
 
 USB-C 는 `slot` 표의 유선 경로다. 브로커가 없거나 무선이 실패하면 폰 형제가 그 포트로 넣는다. 어느 경로든 맞는 묶음만 NVS 를 바꾼다.
 

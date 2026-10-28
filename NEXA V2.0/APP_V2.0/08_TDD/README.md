@@ -76,7 +76,7 @@
 | NEXIA | [README](./NEXIA/README.md) — 구조·엔진·MQTT·제너레이터·보안 등 **20건** |
 | Cosmic | [CSIM_AXON](Cosmic/08_TDD_AXON-CSIM-SUM-APEX우주언어및유기적구조체통합설계표준.md) · [CosmicLanguage](./Cosmic/08_TDD_CosmicLanguage_전역데이터아키텍처.md) |
 | Knowledge | [API운영정책](./Knowledge/08_TDD_Knowledge_지식운영체제_API운영정책.md) · [지식층위](./Knowledge/08_TDD_Knowledge_지식층위와오케스트레이션.md) · [언어적라우팅](./Knowledge/08_TDD_Knowledge_언어적라우팅및지능형정규화.md) · [구축로드맵](./Knowledge/08_TDD_Knowledge_시스템구축순서및로드맵.md) |
-| Identity | [IdentityID](./Identity/08_TDD_NEXA_IdentityID발급및처리설계.md) · [CapabilityID](./Identity/08_TDD_NEXA_CapabilityID체계_발급및Tier접근권한.md) · [부록](./Identity/08_TDD_NEXA_Capability기능자격_운영및보안부록.md) · [신뢰도점수](./Identity/08_TDD_NEXA_데이터무결성과신뢰도점수.md) |
+| Identity | [IdentityID](Identity/08_TDD_NEXA_ID_발급체계_및_설계원장.md) · [CapabilityID](./Identity/08_TDD_NEXA_CapabilityID체계_발급및Tier접근권한.md) · [부록](./Identity/08_TDD_NEXA_Capability기능자격_운영및보안부록.md) · [신뢰도점수](./Identity/08_TDD_NEXA_데이터무결성과신뢰도점수.md) |
 | AI | [README](./AI/README.md) — Yjs SSOT · 협업 워크스페이스 · GOVERN 등 **10건** |
 
 > **미이관:** `_KNOWLEDGE RULE` · `SPEC CRUD` · `DDL` — NEXA-Platform에 남아 있을 수 있음. `_inbox`는 초안만.

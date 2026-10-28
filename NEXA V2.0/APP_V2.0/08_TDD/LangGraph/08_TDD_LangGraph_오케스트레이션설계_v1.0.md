@@ -412,7 +412,7 @@ apps/backend/src/modules/orchestration/
 
 | 필드            | 값                                                                                  |
 | :-------------- | :---------------------------------------------------------------------------------- |
-| `mint_surface`  | `orchestration` ([`TDD-052`](../Identity/08_TDD_NEXA_IdentityID발급및처리설계.md))  |
+| `mint_surface`  | `orchestration` ([`TDD-052`](../Identity/08_TDD_NEXA_ID_발급체계_및_설계원장.md))  |
 | `trace_id`      | 탭·도메인 간 릴레이 ([`TDD-010`](../NEXIA/08_TDD_NEXIA_구조기술스택운영방침.md) §4) |
 | `parent_run_id` | L3 위임 시 L1 Run 과 연결                                                           |
 

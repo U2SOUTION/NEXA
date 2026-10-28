@@ -373,8 +373,8 @@ nexa/{identity_id}/{instance_id}/{capability_id}/{domain}/{type}
 
 | 필드 | 역할 |
 | :--- | :--- |
-| `instance_id` | 이벤트를 보낸 실행 인스턴스 |
 | `identity_id` | 이벤트의 근거가 되는 정체성 |
+| `instance_id` | 이벤트를 보낸 실행 인스턴스 |
 | `capability_id` | 호출되는 기능 자격 ID |
 | `domain` | `sleep` / `heat` / `path` / `security` … |
 | `type` | `onset` / `wake_boost` / `sit_early_wake` / `alarm` / `telemetry` … |
@@ -691,7 +691,7 @@ PC 가 슬립하면 **NEXA Desk 도 기본은 같이 멈춘다.** 아침 재생�
 | **셸 모드 기본값 (운영)**     | **첫 실행:** 로고 스플래시 → 사이드바 스트립 → 마우스 아웃/시간 경과 시 자동 숨김 → 개인 설정으로 변경 가능. **기상 시:** PIP 모드 (오늘 할 일·to-do 체크). **사이드바 ↔ HUD:** 용도 분리. 더 많은 정보 필요 시 사용자가 위젯으로 팝아웃 (IoT·대시보드 등). 「표시면 · 셸 모드」                                                                                                                          |
 | **웹뷰 브리지 API 범위**      | **시스템 접근 화이트리스트만** (볼륨·장치·Driver 명령·TTS·로컬재생·상태 push). 재생·플레이리스트·스케줄·UI 는 포털이 직접 처리. **Desk 미설치 시** 웹 UI 에서 해당 컨트롤 비활성 + "NEXA Desk 앱 필요 " 안내. 엔드포인트 시그니처는 구현 직전 확정. 「구현 단속 · 포털 중심」                                                                                                                          |
 | **사운드 믹싱 정책**          | **duckRatio 기본 0.25**, Desk 설정에서 사용자 조절. TTS 중 `userMediaGain` 변경: 기본=목표만 갱신·UNDUCK 후 적용, 설정에서 즉시 반영으로 변경 가능. 뮤트=`hardMuteMediaOnTts` 토글. 메시지 수신 비활성화 옵션 제공 (사용자 책임). 「사운드 믹싱 · 채널」                                                                                                                          |
-| **이벤트 JSON 스키마·토픽**   | **토픽:** `nexa/{identity_id}/{instance_id}/{capability_id}/{domain}/{type}`. **페이로드:** instance_id·identity_id·capability_id·domain·type·ts·payload. identity_id=근거 (영구), instance_id=누구 (일시), capability_id=무엇을. 1 차: instance_id 단일 고정값. 「이벤트 모델」                                                                                                                          |
+| **이벤트 JSON 스키마·토픽**   | **토픽:** `nexa/{identity_id}/{instance_id}/{capability_id}/{domain}/{type}`. **페이로드:** identity_id·instance_id·capability_id·domain·type·ts·payload. identity_id=근거 (영구), instance_id=누구 (일시), capability_id=무엇을. 1 차: instance_id 단일 고정값. 「이벤트 모델」                                                                                                                          |
 
 ## 아직 닫지 않은 것
 
