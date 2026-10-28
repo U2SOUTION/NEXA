@@ -484,6 +484,8 @@ struct SlotEntry {
 | `slot`  | 퀵 전환 표                | 길이·칸 수가 맞으면 NVS 를 갈아 끼우고 RAM 에 올린다. 퀵 전환은 그 RAM 만 읽는다 |
 | `event` | 포털이 등록한 로터 이벤트 | 아래. 트리거만 둘로 나눈다                                                       |
 
+**토픽 계층 (NEXA 공통):** `nexa/{identity_id}/{instance_id}/{capability_id}/rotor/{slot|event}`. `identity_id`=근거(영구, 로터 정체성), `instance_id`=누구(실행 인스턴스), `capability_id`=무엇을 (예: `nexa.rotor.slot`, `nexa.rotor.event`). 1차: instance_id 단일 고정값.
+
 USB-C 는 `slot` 표의 유선 경로다. 브로커가 없거나 무선이 실패하면 폰 형제가 그 포트로 넣는다. 어느 경로든 맞는 묶음만 NVS 를 바꾼다.
 
 웹에서 로터 이벤트를 등록할 때 트리거는 둘 중 하나다. 행동은 같은 번호 체계다. 번호가 늘면 스케줄 기능이 늘고, 토픽과 세션은 그대로다. 알림·알람의 글은 웹에 둔다. 본문은 로터에 실리지 않는다. 온수 매트의 입실 예약과 수면 스케줄은 로터가 Wi-Fi 로 올리지 않는다. 퀵 전환으로 매트에 ESP-NOW 가 붙은 뒤, 무장 없이 터치 링 칸과 노브 칸 수를 매트가 받는다. 1 번의 짧은 누름은 입실 예약의 켬, 긴 누름은 끔, 노브는 분이다. 2 번은 수면 스케줄 인덱스, 3 번은 제어 존 인덱스다. 로터는 칸과 노브 칸 수만 보낸다. 페이지 번호는 보내지 않는다. 표는 매트 ESP32 메모리에 있고 편집은 웹에 있다. 절차는 매트 문서 「입실 예약」과 「수면 스케줄」이다.
@@ -499,6 +501,8 @@ struct PortalEvent {
     uint8_t  trigger;    // 0 confirm, 1 time
     uint32_t whenUnix;   // time 일 때만. 그 외는 0
     uint8_t  action;     // 로터에 있는 표현 번호. 본문 아님
+    // 공통 필드 (NEXA 토픽 계층과 동일)
+    // identity_id, instance_id, capability_id, ts 는 페이로드 래퍼에 포함
 };
 ```
 

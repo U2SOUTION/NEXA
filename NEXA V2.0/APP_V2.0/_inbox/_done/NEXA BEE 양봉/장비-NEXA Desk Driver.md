@@ -314,7 +314,7 @@ Desk Driver 는 책상 유틸을 넘어, **웹 기반 아트**(p5.js 등) 와 **
         │  MQTT 또는 WebSocket
         ▼
 [브로커 / WS 게이트]
-        │  공통 토픽·페이로드 (ch · level · scene · vuLevel · device_id)
+        │  공통 토픽·페이로드 (ch · level · scene · vuLevel · identity_id · instance_id)
         ▼
 [NEXA Desk Driver] ──► 디밍 · 릴레이 씬 · VU
         ▲
@@ -324,14 +324,14 @@ Desk Driver 는 책상 유틸을 넘어, **웹 기반 아트**(p5.js 등) 와 **
 | 항목                | 방침                                                                        |
 | :------------------ | :-------------------------------------------------------------------------- |
 | **확장·공유**       | **Driver + 연결된 조명 + 규약**이면 동일 아트 프로젝트를 **공유·재현** 가능 |
-| **각자 연출**       | 각자 브라우저 분석 → 자기 `device_id` → 자기 Driver                         |
+| **각자 연출**       | 각자 브라우저 분석 → 자기 `identity_id` → 자기 Driver                         |
 | **공동 공연**(선택) | 호스트 하나 → 브로커 → 다수 Driver                                          |
 | **1 차와 관계**     | 일상 Desk 루프백↔조명의 **확장 갈래**. Driver 에 아트 DSP 없음              |
 | **전제**            | 토픽·페이로드·채널 id 합의. 브로커·보안은 프로비저닝 때                     |
 
 #### 페이로드 초안 (MQTT / WS 공통 논리)
 
-토픽 예: `nexa/{device_id}/driver/cmd` · 상태: `…/driver/state` (확정 전).
+토픽 예: `nexa/{identity_id}/{instance_id}/{capability_id}/driver/cmd` · 상태: `nexa/{identity_id}/{instance_id}/{capability_id}/driver/state` (확정 전). `identity_id`=근거 (영구), `instance_id`=누구 (일시), `capability_id`=무엇을 (예: `nexa.desk.driver.level`).
 
 | `type`          | 필드 (초안)                    | 의미               |
 | :-------------- | :----------------------------- | :----------------- |
@@ -340,6 +340,8 @@ Desk Driver 는 책상 유틸을 넘어, **웹 기반 아트**(p5.js 등) 와 **
 | `ampMaster.set` | `v` 0…100, `zone?`             | POT4(AUTO 일 때만) |
 | `vuLevel`       | `v` 0…100                      | LED VU             |
 | `ampPath`       | `digipot` \| `pot`             | sense 보고 (state) |
+
+**공통 필드 (모든 페이로드):** `instance_id`, `identity_id`, `capability_id`, `ts`. 토픽 계층과 동일한 identity_id·instance_id·capability_id 를 사용한다. `device_id` 는 `identity_id` 로 대체 (장비 정체성 = identity).
 
 Desk·아트 웹·Driver 가 **같은 type 이름**을 쓴다. JSON 키 확정은 구현 직전.
 

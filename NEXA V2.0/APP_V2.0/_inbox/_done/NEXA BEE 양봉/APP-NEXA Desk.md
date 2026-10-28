@@ -351,15 +351,39 @@ HUD·사이드바는 같은 Qt 창 모드로 추가. 확정·버전 핀은 롤�
 
 ## 이벤트 모델 (초안)
 
-장비·포털이 NEXA Desk 에 보내는 논리는 **작은 이벤트**로 통일한다. 토픽·페이로드 스키마는 이후 확정.
+장비·포털이 NEXA Desk 에 보내는 논리는 **작은 이벤트**로 통일한다. 토픽·페이로드 스키마는 아래와 같이 확정.
 
-| 필드 (안) | 역할 |
+### 토픽 계층
+
+```json
+nexa/{identity_id}/{instance_id}/{capability_id}/{domain}/{type}
+```
+
+| 계층 | 의미 | 안정성 |
+| :--- | :--- | :--- |
+| `identity_id` | **근거/정체성** (영구). K(지식)·P(프로토콜)·F(기능) 접두 + NanoID 4 자 | 재부팅해도 변하지 않음 |
+| `instance_id` | **누구** (실행 인스턴스, 일시적). 프로세스마다 새로 발급 | 프로세스마다 새로 발급 |
+| `capability_id` | **무엇을** (기능 자격 ID, 예: `nexa.desk.media.play`) | 고정 |
+| `domain` | 도메인 | `sleep` / `heat` / `path` / `security` … |
+| `type` | 이벤트 유형 | `onset` / `wake_boost` / `sit_early_wake` / `alarm` / `telemetry` … |
+
+**원칙:** 영구 정체성 (identity_id) 이 상위, 일시적 실행 인스턴스 (instance_id) 가 하위. 토픽 계층은 " 안정적인 것 → 변하는 것 " 순서.
+
+### 페이로드
+
+| 필드 | 역할 |
 | :--- | :--- |
-| `source` | 장비 id / 슬롯 |
+| `instance_id` | 이벤트를 보낸 실행 인스턴스 |
+| `identity_id` | 이벤트의 근거가 되는 정체성 |
+| `capability_id` | 호출되는 기능 자격 ID |
 | `domain` | `sleep` / `heat` / `path` / `security` … |
 | `type` | `onset` / `wake_boost` / `sit_early_wake` / `alarm` / `telemetry` … |
 | `ts` | 시각 |
 | `payload` | 도메인별 JSON |
+
+### 1 차 단계 간소화
+
+"1 차 단일 인스턴스 " 원칙에 따라, 1 차에서는 `instance_id` 를 단일 고정값으로 사용. 멀티 인스턴스가 필요한 2 차에서 `instance_id` 가 실제 분기 역할을 한다.
 
 NEXA Desk → 장비는 기본적으로 **적게**. 재생은 로컬. 필요 시 포털에 상태만 올림 (`playing`, `track`, `volume`).
 
@@ -667,10 +691,11 @@ PC 가 슬립하면 **NEXA Desk 도 기본은 같이 멈춘다.** 아침 재생�
 | **셸 모드 기본값 (운영)**     | **첫 실행:** 로고 스플래시 → 사이드바 스트립 → 마우스 아웃/시간 경과 시 자동 숨김 → 개인 설정으로 변경 가능. **기상 시:** PIP 모드 (오늘 할 일·to-do 체크). **사이드바 ↔ HUD:** 용도 분리. 더 많은 정보 필요 시 사용자가 위젯으로 팝아웃 (IoT·대시보드 등). 「표시면 · 셸 모드」                                                                                                                          |
 | **웹뷰 브리지 API 범위**      | **시스템 접근 화이트리스트만** (볼륨·장치·Driver 명령·TTS·로컬재생·상태 push). 재생·플레이리스트·스케줄·UI 는 포털이 직접 처리. **Desk 미설치 시** 웹 UI 에서 해당 컨트롤 비활성 + "NEXA Desk 앱 필요 " 안내. 엔드포인트 시그니처는 구현 직전 확정. 「구현 단속 · 포털 중심」                                                                                                                          |
 | **사운드 믹싱 정책**          | **duckRatio 기본 0.25**, Desk 설정에서 사용자 조절. TTS 중 `userMediaGain` 변경: 기본=목표만 갱신·UNDUCK 후 적용, 설정에서 즉시 반영으로 변경 가능. 뮤트=`hardMuteMediaOnTts` 토글. 메시지 수신 비활성화 옵션 제공 (사용자 책임). 「사운드 믹싱 · 채널」                                                                                                                          |
+| **이벤트 JSON 스키마·토픽**   | **토픽:** `nexa/{identity_id}/{instance_id}/{capability_id}/{domain}/{type}`. **페이로드:** instance_id·identity_id·capability_id·domain·type·ts·payload. identity_id=근거 (영구), instance_id=누구 (일시), capability_id=무엇을. 1 차: instance_id 단일 고정값. 「이벤트 모델」                                                                                                                          |
 
 ## 아직 닫지 않은 것
 
-- 이벤트 JSON 스키마·토픽 표
+
 - 로터→NEXA Desk: **Desk Driver 가 기본** — [장비-NEXA Desk Driver](장비-NEXA%20Desk%20Driver.md). NEXA Desk↔Desk Driver 양방향·시리얼 모드는 그 문서 미결
 - 오디오 캡춰 루프백 분석 (밴드·주기)·AI 안내 더킹 깊이·복귀 곡선 · `desk_driver_lights` 페이로드
 - `media_mix`/`desk_driver_amp` JSON · Scarlett 장치 id 프로비저닝 UI
