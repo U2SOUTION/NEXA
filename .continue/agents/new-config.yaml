@@ -1,0 +1,27 @@
+# This is an example configuration file
+# To learn more, see the full config.yaml reference: https://docs.continue.dev/reference
+
+name: Example Config
+version: 1.0.0
+schema: v1
+
+# Define which models can be used
+# https://docs.continue.dev/customization/models
+models:
+    - name: Gemini 2.5 Pro
+      provider: openrouter
+      model: google/gemini-2.5-pro
+      apiKey: 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
+      roles:
+          - chat
+          - edit
+          - apply
+
+    - name: Claude 3.5 Sonnet
+      provider: openrouter
+      model: anthropic/claude-3.5-sonnet
+      apiKey: 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
+      roles:
+          - chat
+          - edit
+          - apply
